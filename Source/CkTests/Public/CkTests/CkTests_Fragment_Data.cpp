@@ -2,6 +2,12 @@
 
 // --------------------------------------------------------------------------------------------------------------------
 
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase1, "Resolver.DataBundle.Phase.Ck.Gyms.Phase1");
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase2, "Resolver.DataBundle.Phase.Ck.Gyms.Phase2");
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase3, "Resolver.DataBundle.Phase.Ck.Gyms.Phase3");
+
+// --------------------------------------------------------------------------------------------------------------------
+
 CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Timer_Tests, "Timer.Tests.Default");
 
 // --------------------------------------------------------------------------------------------------------------------
