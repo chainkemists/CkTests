@@ -21,5 +21,9 @@ CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Ism_Renderer_Test_Sphere, "Ism.Renderer.T
 CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Gyms_Ability_Jump, "Ck.Gyms.Ability.Jump");
 CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Gyms_Ability_Cue_JumpTakeOff, "Ck.Gyms.Ability.JumpTakeOff");
 
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Gyms_Probe_A, "Probe.Gyms.A");
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Gyms_Probe_B, "Probe.Gyms.B");
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Gyms_Probe_C, "Probe.Gyms.C");
+
 // --------------------------------------------------------------------------------------------------------------------
 

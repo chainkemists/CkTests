@@ -23,5 +23,9 @@ CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ism_Renderer_Test_Sphere);
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Ability_Jump);
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Ability_Cue_JumpTakeOff);
 
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Probe_A);
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Probe_B);
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Probe_C);
+
 // --------------------------------------------------------------------------------------------------------------------
 
