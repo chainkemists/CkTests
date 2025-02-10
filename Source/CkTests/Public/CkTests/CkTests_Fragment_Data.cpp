@@ -2,6 +2,12 @@
 
 // --------------------------------------------------------------------------------------------------------------------
 
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_FloatAttribute_A, "FloatAttribute.Gyms.A");
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_FloatAttribute_B, "FloatAttribute.Gyms.B");
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_FloatAttribute_C, "FloatAttribute.Gyms.C");
+
+// --------------------------------------------------------------------------------------------------------------------
+
 CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase1, "Resolver.DataBundle.Phase.Ck.Gyms.Phase1");
 CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase2, "Resolver.DataBundle.Phase.Ck.Gyms.Phase2");
 CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase3, "Resolver.DataBundle.Phase.Ck.Gyms.Phase3");

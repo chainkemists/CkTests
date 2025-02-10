@@ -4,6 +4,12 @@
 
 // --------------------------------------------------------------------------------------------------------------------
 
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_FloatAttribute_A);
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_FloatAttribute_B);
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_FloatAttribute_C);
+
+// --------------------------------------------------------------------------------------------------------------------
+
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase1);
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase2);
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase3);
