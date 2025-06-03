@@ -10,6 +10,10 @@ CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_FloatAttribute_C);
 
 // --------------------------------------------------------------------------------------------------------------------
 
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_ByteAttribute_Intent_R);
+
+// --------------------------------------------------------------------------------------------------------------------
+
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase1);
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase2);
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Resolver_DataBundle_Phase_Ck_Gyms_Phase3);
@@ -32,6 +36,9 @@ CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Ability_Cue_JumpTakeOff);
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Probe_A);
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Probe_B);
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Probe_C);
+
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Probe_InteractA);
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Probe_InteractB);
 
 // --------------------------------------------------------------------------------------------------------------------
 
