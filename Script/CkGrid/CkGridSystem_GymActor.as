@@ -1,18 +1,3 @@
-UCLASS()
-class UCk_EB : UCk_EntityBridge_ActorComponent_UE
-{
-};
-
-UCLASS()
-class UCk_Entity_ConstructionScript_WithTransform_ASBP : UCk_Entity_ConstructionScript_WithTransform_PDA
-{
-};
-
-UCLASS()
-class UTestObject : UObject
-{
-}
-
 UENUM()
 enum EOffsetType
 {
@@ -21,6 +6,44 @@ enum EOffsetType
     PosY,
     NegY
 }
+
+struct FTestEnttParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FInstancedStruct ToInstancedStruct() const
+    {
+        FInstancedStruct Result;
+        Result.InitializeAs(this);
+
+        return Result;
+    }
+};
+
+class UTestEntt : UCk_EntityScript_UE
+{
+    UPROPERTY(Replicated)
+    FTestEnttParams DummyParams;
+
+    default _Replication = ECk_Replication::Replicates;
+
+    UPROPERTY(ExposeOnSpawn)
+    FTransform InitialTransform = FTransform::Identity;
+
+    UFUNCTION(BlueprintOverride)
+    void DoBeginPlay(FCk_Handle InHandle)
+    {
+        Print("TestEntt BeginPlay", 10.0f);
+    }
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+    {
+        Print("TestEntt BeginPlay", 10.0f);
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+};
 
 UCLASS(Blueprintable)
 class ACk_GridSystem_GymActor : AActor
@@ -37,13 +60,13 @@ class ACk_GridSystem_GymActor : AActor
 
 	UPROPERTY(Category = "Config")
 	UCk_IsmRenderer_Data _RenderData;
-    default _RenderData = Cast<UCk_IsmRenderer_Data>(utils_object::LoadAssetByName("/CkTests/CkIsmRenderer/MovableIsm/MovableCube_IsmRendererData_DA.MovableCube_IsmRendererData_DA",
-        ECk_Utils_Object_AssetSearchScope::All, ECk_Utils_Object_AssetSearchStrategy::ExactOnly)._Asset);
+    default _RenderData = Cast<UCk_IsmRenderer_Data>(utils_i_o::LoadAssetByName("/CkTests/CkIsmRenderer/MovableIsm/MovableCube_IsmRendererData_DA.MovableCube_IsmRendererData_DA",
+        ECk_AssetSearchScope::All, ECk_AssetSearchStrategy::ExactOnly)._Asset);
 
 	UPROPERTY(DefaultComponent)
-	UCk_EB EntityBridge;
-	default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_ASBP::StaticClass();
-	default EntityBridge._Replication = ECk_Replication::DoesNotReplicate;
+	UCk_EntityBridge_ActorComponent_UE EntityBridge;
+	default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
+	default EntityBridge._Replication = ECk_Replication::Replicates;
 	default EntityBridge._OnReplicationComplete_MC.AddUFunction(this, n"OnReplicationComplete");
 
 	UFUNCTION()
@@ -51,12 +74,21 @@ class ACk_GridSystem_GymActor : AActor
 	{
 		if (System::IsServer())
 		{
+            auto EnttHandle = utils_entity_script::Request_SpawnEntity(InEntity, UTestEntt, FTestEnttParams().ToInstancedStruct());
+            utils_pending_entity_script::Promise_OnConstructed(EnttHandle, FCk_Delegate_EntityScript_Constructed(this, n"OnEnttConstructed"));
+
 			return;
 		}
 
 		GridA = CreateTestGrid(InEntity, _RenderData, FIntPoint(10, 10), FTransform(FVector(1000, 1000, 0)));
 		GridB = CreateTestGrid(InEntity, _RenderData, FIntPoint(4, 2), FTransform(FRotator(0, 0, 0)));
 	}
+
+    UFUNCTION()
+    private void OnEnttConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
+    {
+        Print("OnEnttConstructed", 10.0f);
+    }
 
     void BindRotation(UEnhancedInputComponent InInputComp, UInputAction InAction)
     {
