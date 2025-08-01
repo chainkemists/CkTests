@@ -239,7 +239,7 @@ class ACk_GridSystem_GymActor : AActor
 		}
 
 		auto NewHandle = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner();
-		UCk_Utils_Handle_UE::Set_DebugName(NewHandle, n"Grid System");
+        NewHandle.Set_DebugName(n"Grid System");
 
 		auto NewHandleTransform = UCk_Utils_Transform_UE::Add(NewHandle, InTransform, ECk_Replication::DoesNotReplicate);
 		auto Grid = UCk_Utils_2dGridSystem_UE::Add(NewHandleTransform, Params);
@@ -256,7 +256,7 @@ class ACk_GridSystem_GymActor : AActor
 			}
 
 			auto CellAsTransform = UCk_Utils_Transform_UE::Add(Cell.H(), FTransform(), ECk_Replication::DoesNotReplicate);
-			UCk_Utils_Handle_UE::Set_DebugName(CellAsTransform.H(), n"Cell");
+            CellAsTransform.H().Set_DebugName(n"Cell");
 			auto GridAsTransform = Grid.H().To_FCk_Handle_Transform();
 
 			auto Point = UCk_Utils_2dGridCell_UE::Get_Coordinate(Cell, ECk_2dGridSystem_CoordinateType::Rotated);
