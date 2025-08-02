@@ -22,16 +22,22 @@ class ACk_TweenTest_GymActor : AActor
     default TextRenderer.WorldSize = 40.0f;
     default TextRenderer.TextRenderColor = FColor::Orange;
 
-    UPROPERTY(ExposeOnSpawn)
+    UPROPERTY(ExposeOnSpawn, ReplicatedUsing=OnTextUpdated)
     ECk_TweenEasing TweenEasingMethod = ECk_TweenEasing::Linear;
 
     UPROPERTY(ExposeOnSpawn)
-    float32 TweenDuration = 2.0f;
+    float32 TweenDuration = 1.0f;
 
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
-        TextRenderer.Text = ck::Text(f"{TweenEasingMethod}");
+        TextRenderer.SetText(ck::Text(f"{TweenEasingMethod}"));
+    }
+
+    UFUNCTION()
+    void OnTextUpdated()
+    {
+        TextRenderer.SetText(ck::Text(f"{TweenEasingMethod}"));
     }
 
     UFUNCTION(BlueprintOverride)
@@ -64,26 +70,8 @@ class ACk_TweenTest_GymActor : AActor
     UFUNCTION()
     private void TweenToLocation(FCk_Handle_Transform InEntity)
     {
-        TweenHandle = utils_tween::Create_TweenEntityLocation(InEntity, EndLocation, TweenDuration, TweenEasingMethod);
-
-        TweenHandle.BindTo_OnComplete(
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
-             ECk_Signal_PostFireBehavior::DoNothing,
-              FCk_Delegate_Tween_OnComplete(this, n"OnTweenComplete"));
-    }
-
-    UFUNCTION()
-    private void OnTweenComplete(FCk_Handle_Tween InHandle, FCk_Tween_Payload_OnComplete InPayload)
-    {
-        System::Delay(1.0f, FLatentActionInfo(0, Math::Rand(), n"RestartTween", this));
-    }
-
-    UFUNCTION()
-    void RestartTween()
-    {
-        utils_transform::Request_SetLocation(ck::SelfEntity(this).To_FCk_Handle_Transform(), StartLocation);
-        TweenHandle.Restart();
-    }
+        TweenHandle = utils_tween::Create_TweenEntityLocation(InEntity, EndLocation, TweenDuration, TweenEasingMethod, ECk_TweenLoopType::Yoyo, -1, 0.0f);
+	}
 
     UFUNCTION()
 	private void EcsConstructionScript(FCk_Handle InEntity)

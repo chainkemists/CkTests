@@ -16,13 +16,12 @@ class ACk_TweenTest_GymPawn : ADefaultPawn
     }
 
     UFUNCTION()
-    private void OnEQSResult(UEnvQueryInstanceBlueprintWrapper QueryInstance,
-                             EEnvQueryStatus QueryStatus)
-    {
+	private void OnEQSResult(UEnvQueryInstanceBlueprintWrapper QueryInstance, EEnvQueryStatus QueryStatus)
+	{
         TArray<FVector> Locations;
         QueryInstance.GetQueryResultsAsLocations(Locations);
 
-        
+
         for (auto Index = 0; Index < int32(ECk_TweenEasing::ECk_MAX); ++Index)
         {
             auto SpawnedActor = SpawnActor(ACk_TweenTest_GymActor, Locations[Index], FRotator(0, 180, 0), NAME_None, true);
