@@ -11,14 +11,6 @@ struct FTestEnttParams
 {
     UPROPERTY()
     FTransform InitialTransform = FTransform::Identity;
-
-    FInstancedStruct ToInstancedStruct() const
-    {
-        FInstancedStruct Result;
-        Result.InitializeAs(this);
-
-        return Result;
-    }
 };
 
 class UTestEntt : UCk_EntityScript_UE
@@ -79,7 +71,7 @@ class ACk_GridSystem_GymActor : AActor
 	{
 		if (System::IsServer())
 		{
-            auto EnttHandle = utils_entity_script::Request_SpawnEntity(InEntity, UTestEntt, FTestEnttParams().ToInstancedStruct());
+            auto EnttHandle = utils_entity_script::Request_SpawnEntity(InEntity, UTestEntt, FTestEnttParams());
             utils_pending_entity_script::Promise_OnConstructed(EnttHandle, FCk_Delegate_EntityScript_Constructed(this, n"OnEnttConstructed"));
 
 			return;
@@ -168,7 +160,7 @@ class ACk_GridSystem_GymActor : AActor
 		auto Request = FCk_Request_Transform_SetLocation();
 		Request._NewLocation = HitResult.ImpactPoint;
 
-		auto CellsA = UCk_Utils_2dGridSystem_UE::ForEach_Cell(GridA, ECk_2dGridSystem_CellFilter::NoFilter);
+		auto CellsA = utils_2d_grid_system::ForEach_Cell(GridA, ECk_2dGridSystem_CellFilter::NoFilter);
 		for (auto Cell : CellsA)
 		{
 			auto WorldBounds = utils_2d_grid_cell::Get_Bounds(Cell, ECk_LocalWorld::World);
@@ -182,11 +174,11 @@ class ACk_GridSystem_GymActor : AActor
 			}
 		}
 
-		auto CellsB = UCk_Utils_2dGridSystem_UE::ForEach_Cell(GridB, ECk_2dGridSystem_CellFilter::NoFilter);
+		auto CellsB = utils_2d_grid_system::ForEach_Cell(GridB, ECk_2dGridSystem_CellFilter::NoFilter);
 		for (auto Cell : CellsB)
 		{
 			auto WorldBounds = utils_2d_grid_cell::Get_Bounds(Cell, ECk_LocalWorld::World);
-			if (UCk_Utils_2dGridCell_UE::Get_IsDisabled(Cell))
+			if (utils_2d_grid_cell::Get_IsDisabled(Cell))
 			{
 				DrawBox(WorldBounds, FLinearColor::Gray);
 			}
@@ -196,8 +188,8 @@ class ACk_GridSystem_GymActor : AActor
 			}
 		}
 
-        auto Intersection = UCk_Utils_2dGridSystem_UE::Get_Intersections(GridA, GridB);
-		auto IntersectingCells = UCk_Utils_2dGridSystem_UE::Get_IntersectingCells(GridA, GridB);
+        auto Intersection = utils_2d_grid_system::Get_Intersections(GridA, GridB);
+		auto IntersectingCells = utils_2d_grid_system::Get_IntersectingCells(GridA, GridB);
 
 		for (auto CellIntersection : IntersectingCells)
 		{
@@ -241,11 +233,11 @@ class ACk_GridSystem_GymActor : AActor
 		auto NewHandle = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner();
         NewHandle.Set_DebugName(n"Grid System");
 
-		auto NewHandleTransform = UCk_Utils_Transform_UE::Add(NewHandle, InTransform, ECk_Replication::DoesNotReplicate);
-		auto Grid = UCk_Utils_2dGridSystem_UE::Add(NewHandleTransform, Params);
-        UCk_Utils_2dGridSystem_UE::Request_SetPivotToAnchor(Grid, ECk_2dGridSystem_PivotAnchor::Center);
+		auto NewHandleTransform = utils_transform::Add(NewHandle, InTransform, ECk_Replication::DoesNotReplicate);
+		auto Grid = utils_2d_grid_system::Add(NewHandleTransform, Params);
+        utils_2d_grid_system::Request_SetPivotToAnchor(Grid, ECk_2dGridSystem_PivotAnchor::Center);
 
-		auto AllCells = UCk_Utils_2dGridSystem_UE::ForEach_Cell(Grid, ECk_2dGridSystem_CellFilter::NoFilter);
+		auto AllCells = utils_2d_grid_system::ForEach_Cell(Grid, ECk_2dGridSystem_CellFilter::NoFilter);
 
 		for (auto& Cell : AllCells)
 		{
@@ -255,11 +247,11 @@ class ACk_GridSystem_GymActor : AActor
 				IsmParams._IsmRenderer = InIsmData;
 			}
 
-			auto CellAsTransform = UCk_Utils_Transform_UE::Add(Cell.H(), FTransform(), ECk_Replication::DoesNotReplicate);
+			auto CellAsTransform = utils_transform::Add(Cell.H(), FTransform(), ECk_Replication::DoesNotReplicate);
             CellAsTransform.H().Set_DebugName(n"Cell");
 			auto GridAsTransform = Grid.H().To_FCk_Handle_Transform();
 
-			auto Point = UCk_Utils_2dGridCell_UE::Get_Coordinate(Cell, ECk_2dGridSystem_CoordinateType::Rotated);
+			auto Point = utils_2d_grid_cell::Get_Coordinate(Cell, ECk_2dGridSystem_CoordinateType::Rotated);
 			auto CellLocalPos = FVector(Point.X * Params._CellSize.X, Point.Y * Params._CellSize.Y, 0);
 			auto CellWorldPos = FTransform().TransformPosition(CellLocalPos);
 			auto LocalTransform = FTransform(CellLocalPos);
