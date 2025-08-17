@@ -51,34 +51,30 @@ class ACk_AudioGym_MovingAudioSource : AActor
         CenterPoint = PlayerLocation;
     }
 
+    UFUNCTION()
+    void OnSpatialTrackFinished(FCk_Handle_AudioTrack InTrack, ECk_AudioTrack_State InState)
+    {
+        // Restart the thunder after a brief delay
+        utils_audio_director::Request_StartTrack(LocalAudioDirector,
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Spatial.Moving"),
+            TOptional<int32>(), FCk_Time(0.5f));
+    }
+
     void SetupSpatialAudio()
     {
-        auto NewEntity = utils_entity_lifetime::Request_CreateEntity_TransientOwner();
+        auto SelfEntity = ck::SelfEntity(this);
 
         auto DirectorParams = FCk_Fragment_AudioDirector_ParamsData();
         DirectorParams._DefaultCrossfadeDuration = FCk_Time(1.0f);
         DirectorParams._MaxConcurrentTracks = 2;
+        DirectorParams._StingerLibraries.Add(ck::Asset_StingerLibrary);
 
-        LocalAudioDirector = utils_audio_director::Add(NewEntity, DirectorParams);
+        LocalAudioDirector = utils_audio_director::Add(SelfEntity, DirectorParams);
 
-        // Load and start spatial music
-        auto SpatialMusic = Cast<USoundBase>(
-            utils_i_o::LoadAssetByName("/Content/AudioGym/SFX/SpatialTestMusic.SpatialTestMusic",
-            ECk_AssetSearchScope::Plugins)._Asset);
-
-        if (ck::IsValid(SpatialMusic))
-        {
-            auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(
-                utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Spatial.Moving"), SpatialMusic);
-            TrackParams._Priority = 50;
-            TrackParams._Loop = true;
-            TrackParams._Volume = 0.7f;
-
-            utils_audio_director::Request_AddTrack(LocalAudioDirector, TrackParams);
-            utils_audio_director::Request_StartTrack(LocalAudioDirector,
-                utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Spatial.Moving"),
-                TOptional<int32>(), FCk_Time(0.5f));
-        }
+        // Play thunder stinger on repeat
+        utils_audio_director::Request_PlayStinger(LocalAudioDirector,
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Stingers.UI.Thunder"),
+            TOptional<float32>());
     }
 
     UFUNCTION(BlueprintOverride)
