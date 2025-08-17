@@ -1,212 +1,3 @@
-// Global functions for asset initialization
-TArray<FCk_MusicTrackEntry> Get_AmbientTracks()
-{
-    TArray<FCk_MusicTrackEntry> Tracks;
-
-    auto Track1 = FCk_MusicTrackEntry(Cast<USoundBase>(
-        utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    Track1._Volume = 0.8f;
-    Track1._Weight = 1.0f;
-    Tracks.Add(Track1);
-
-    auto Track2 = FCk_MusicTrackEntry(Cast<USoundBase>(
-        utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Kids_SFX.Ambient_Kids_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    Track2._Volume = 0.8f;
-    Track2._Weight = 1.0f;
-    Tracks.Add(Track2);
-
-    auto Track3 = FCk_MusicTrackEntry(Cast<USoundBase>(
-        utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Retro_SFX.Ambient_Retro_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    Track3._Volume = 0.8f;
-    Track3._Weight = 1.0f;
-    Tracks.Add(Track3);
-
-    return Tracks;
-}
-
-TArray<FCk_MusicTrackEntry> Get_CombatTracks()
-{
-    TArray<FCk_MusicTrackEntry> Tracks;
-
-    // Reuse ambient tracks for combat (higher volume/intensity)
-    auto Track1 = FCk_MusicTrackEntry(Cast<USoundBase>(
-        utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    Track1._Volume = 1.0f;  // Louder for combat
-    Track1._Weight = 1.0f;
-    Tracks.Add(Track1);
-
-    return Tracks;
-}
-
-TArray<FCk_MusicTrackEntry> Get_ActivityTracks()
-{
-    TArray<FCk_MusicTrackEntry> Tracks;
-
-    // Use kids theme for activity
-    auto Track1 = FCk_MusicTrackEntry(Cast<USoundBase>(
-        utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Kids_SFX.Ambient_Kids_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    Track1._Volume = 0.85f;
-    Track1._Weight = 1.0f;
-    Tracks.Add(Track1);
-
-    return Tracks;
-}
-
-TArray<FCk_StingerEntry> Get_StingerEntries()
-{
-    TArray<FCk_StingerEntry> Stingers;
-
-    // Interface stinger (default pickup)
-    auto InterfaceStinger = FCk_StingerEntry(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Stingers.UI.Interface"),
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    InterfaceStinger._Volume = 0.8f;
-    InterfaceStinger._Priority = 50;
-    InterfaceStinger._Cooldown = 0.1f;
-    InterfaceStinger._SameSourceBehavior = ECk_SFXSameSourceBehavior::KillOldest;
-    Stingers.Add(InterfaceStinger);
-
-    // Level up stinger (higher priority)
-    auto LevelUpStinger = FCk_StingerEntry(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Stingers.UI.LevelUp"),
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_LevelUp_SFX.Stinger_LevelUp_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    LevelUpStinger._Volume = 1.0f;
-    LevelUpStinger._Priority = 70;
-    LevelUpStinger._Cooldown = 0.5f;  // Longer cooldown for celebration sound
-    Stingers.Add(LevelUpStinger);
-
-    // Notification stinger
-    auto NotificationStinger = FCk_StingerEntry(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Stingers.UI.Notification"),
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Notifications_SFX.Stinger_Notifications_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    NotificationStinger._Volume = 0.7f;
-    NotificationStinger._Priority = 40;
-    NotificationStinger._Cooldown = 0.2f;
-    Stingers.Add(NotificationStinger);
-
-    // Thunder stinger (long, dramatic - lowest priority to avoid interrupting)
-    auto ThunderStinger = FCk_StingerEntry(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Stingers.UI.Thunder"),
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    ThunderStinger._Volume = 0.9f;
-    ThunderStinger._Priority = 30;  // Lower priority since it's long
-    ThunderStinger._Cooldown = 2.0f;  // Much longer cooldown for dramatic effect
-    ThunderStinger._SameSourceBehavior = ECk_SFXSameSourceBehavior::Ignore;  // Don't interrupt existing thunder
-    Stingers.Add(ThunderStinger);
-
-    return Stingers;
-}
-
-TArray<TObjectPtr<UCk_MusicLibrary_Base>> Get_MusicLibraries()
-{
-    TArray<TObjectPtr<UCk_MusicLibrary_Base>> Libraries;
-    Libraries.Add(Asset_AmbientMusicLibrary);
-    Libraries.Add(Asset_CombatMusicLibrary);
-    Libraries.Add(Asset_ActivityMusicLibrary);
-    return Libraries;
-}
-
-TArray<TObjectPtr<UCk_StingerLibrary_Base>> Get_StingerLibraries()
-{
-    TArray<TObjectPtr<UCk_StingerLibrary_Base>> Libraries;
-    Libraries.Add(Asset_StingerLibrary);
-    return Libraries;
-}
-
-// Main Audio Director Config
-asset Asset_AudioGymConfig of UCk_AudioDirector_Config
-{
-    _DefaultCrossfadeDuration = 2.0f;
-    _MaxConcurrentTracks = 6;
-    _AllowSamePriorityTracks = false;
-    _MusicLibraries = Get_MusicLibraries();
-    _StingerLibraries = Get_StingerLibraries();
-}
-
-// Ambient Music Library
-asset Asset_AmbientMusicLibrary of UCk_MusicLibrary_Base
-{
-    _LibraryName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Ambient");
-    _Priority = 10;
-    _OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-    _DefaultFadeInTime = FCk_Time(3.0f);
-    _DefaultFadeOutTime = FCk_Time(2.0f);
-    _Loop = true;
-    _SelectionMode = ECk_MusicSelectionMode::Random;
-    _Tracks = Get_AmbientTracks();
-}
-
-// Combat Music Library
-asset Asset_CombatMusicLibrary of UCk_MusicLibrary_Base
-{
-    _LibraryName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Combat");
-    _Priority = 100;
-    _OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-    _DefaultFadeInTime = FCk_Time(1.0f);
-    _DefaultFadeOutTime = FCk_Time(1.0f);
-    _Loop = true;
-    _SelectionMode = ECk_MusicSelectionMode::Random;
-    _Tracks = Get_CombatTracks();
-}
-
-// Activity Music Library
-asset Asset_ActivityMusicLibrary of UCk_MusicLibrary_Base
-{
-    _LibraryName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Activity");
-    _Priority = 90;
-    _OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-    _DefaultFadeInTime = FCk_Time(1.5f);
-    _DefaultFadeOutTime = FCk_Time(1.5f);
-    _Loop = true;
-    _SelectionMode = ECk_MusicSelectionMode::Random;
-    _Tracks = Get_ActivityTracks();
-}
-
-// Stinger Library
-asset Asset_StingerLibrary of UCk_StingerLibrary_Base
-{
-    _LibraryName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Stingers.UI");
-    _MaxConcurrent = 4;
-    _VoiceStealing = ECk_SFXVoiceStealingMode::KillLowestPriority;
-    _Stingers = Get_StingerEntries();
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
 {
     UPROPERTY()
@@ -214,19 +5,19 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
 
     UPROPERTY()
     UCk_MusicLibrary_Base AmbientMusicLibrary;
-    default AmbientMusicLibrary = Asset_AmbientMusicLibrary;
+    default AmbientMusicLibrary = ck::Asset_AmbientMusicLibrary;
 
     UPROPERTY()
     UCk_MusicLibrary_Base CombatMusicLibrary;
-    default CombatMusicLibrary = Asset_CombatMusicLibrary;
+    default CombatMusicLibrary = ck::Asset_CombatMusicLibrary;
 
     UPROPERTY()
     UCk_MusicLibrary_Base ActivityMusicLibrary;
-    default ActivityMusicLibrary = Asset_ActivityMusicLibrary;
+    default ActivityMusicLibrary = ck::Asset_ActivityMusicLibrary;
 
     UPROPERTY()
     UCk_StingerLibrary_Base StingerLibrary;
-    default StingerLibrary = Asset_StingerLibrary;
+    default StingerLibrary = ck::Asset_StingerLibrary;
 
     UPROPERTY()
     FString CurrentMusicTrack = "None";
@@ -241,7 +32,6 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
         SetupAudioDirector();
         LoadAudioLibraries();
         SpawnGymElements();
-        SpawnDebugDisplay();
     }
 
     void SetupAudioDirector()
@@ -268,20 +58,12 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
     UFUNCTION()
     void OnTrackStarted(FCk_Handle_AudioDirector InDirector, FGameplayTag InTrackName, FCk_Handle_AudioTrack InTrack)
     {
-        if (ck::IsValid(DebugDisplay))
-        {
-            DebugDisplay.AddActiveTrack(f"STARTED: {InTrackName.ToString()}");
-        }
         Print(f"🎵 Track Started: {InTrackName.ToString()}", 3.0f);
     }
 
     UFUNCTION()
     void OnTrackStopped(FCk_Handle_AudioDirector InDirector, FGameplayTag InTrackName, FCk_Handle_AudioTrack InTrack)
     {
-        if (ck::IsValid(DebugDisplay))
-        {
-            DebugDisplay.RemoveActiveTrack(InTrackName.ToString());
-        }
         Print(f"🛑 Track Stopped: {InTrackName.ToString()}", 3.0f);
     }
 
@@ -300,60 +82,90 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
 
     void SpawnGymElements()
     {
-        SpawnActor(ACk_AudioGym_AmbientZone, FVector(0, 0, 0));
-        SpawnActor(ACk_AudioGym_CombatZone, FVector(1000, 0, 0));
-        SpawnActor(ACk_AudioGym_ActivityZone, FVector(-1000, 0, 0));
-        SpawnActor(ACk_AudioGym_QuietZone, FVector(0, 1000, 0));
+        // Create 4 separate booths in corners of a square
+        // Each booth is 800x800, with 1000 units between centers
 
-        SpawnActor(ACk_AudioGym_MovingAudioSource, FVector(0, -500, 100));
+        // Booth 1: Ambient Zone (Top-Left)
+        SpawnActor(ACk_AudioGym_AmbientZone, FVector(-1000, -1000, 0));
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(-1000, -800, 50));
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(-800, -1000, 50));
+        SpawnBoothLabel("AMBIENT MUSIC\nLow Priority (10)\nCrossfade Transitions\n\nCollect stingers to test UI sounds",
+            FVector(-1000, -1000, 200), FLinearColor(0.0f, 0.0f, 1.0f));
 
-        for (int32 i = 0; i < 8; i++)
-        {
-            auto Angle = (i / 8.0f) * 2.0f * PI;
-            auto Location = FVector(Math::Cos(Angle) * 800, Math::Sin(Angle) * 800, 50);
-            SpawnActor(ACk_AudioGym_StingerPickup, Location);
-        }
+        // Booth 2: Combat Zone (Top-Right)
+        SpawnActor(ACk_AudioGym_CombatZone, FVector(1000, -1000, 0));
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(1000, -800, 50));
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(800, -1000, 50));
+        SpawnBoothLabel("COMBAT MUSIC\nHigh Priority (100)\nOverrides other music\n\nFast transitions",
+            FVector(1000, -1000, 200), FLinearColor(1.0f, 0.0f, 0.0f));
 
-        SpawnActor(ACk_AudioGym_ControlPanel, FVector(0, -1500, 0));
+        // Booth 3: Activity Zone (Bottom-Left)
+        SpawnActor(ACk_AudioGym_ActivityZone, FVector(-1000, 1000, 0));
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(-1000, 800, 50));
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(-800, 1000, 50));
+        SpawnBoothLabel("ACTIVITY MUSIC\nMedium Priority (90)\nSmooth crossfades\n\nBalanced volume",
+            FVector(-1000, 1000, 200), FLinearColor(1.0f, 1.0f, 0.0f));
+
+        // Booth 4: Quiet Zone (Bottom-Right)
+        SpawnActor(ACk_AudioGym_QuietZone, FVector(1000, 1000, 0));
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(1000, 800, 50));
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(800, 1000, 50));
+        SpawnBoothLabel("QUIET ZONE\nStops all music\nSilence for testing\n\nEnter to mute audio",
+            FVector(1000, 1000, 200), FLinearColor(0.0f, 1.0f, 0.0f));
+
+        // Center area: Controls and spatial audio
+        SpawnActor(ACk_AudioGym_ControlPanel, FVector(0, 0, 0));
+        SpawnActor(ACk_AudioGym_MovingAudioSource, FVector(0, -300, 100));
+        SpawnBoothLabel("CONTROL PANEL\nWalk into to cycle options\nManual audio testing",
+            FVector(0, 0, 100), FLinearColor(1.0f, 0.0f, 1.0f));
+        SpawnBoothLabel("3D SPATIAL AUDIO\nOrbiting sound source\nTest 3D positioning",
+            FVector(0, -300, 200), FLinearColor(1.0f, 0.65f, 0.0f));
+
+        // Pathway stingers between booths
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(0, -1000, 50));  // Top center
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(0, 1000, 50));   // Bottom center
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(-1000, 0, 50));  // Left center
+        SpawnActor(ACk_AudioGym_StingerPickup, FVector(1000, 0, 50));   // Right center
     }
 
-    void SpawnDebugDisplay()
+    void SpawnBoothLabel(const FString& Text, FVector Location, FLinearColor Color)
     {
-        DebugDisplay = Cast<ACk_AudioGym_DebugDisplay>(
-            SpawnActor(ACk_AudioGym_DebugDisplay, FVector(0, 0, 300)));
+        auto TextActor = Cast<ATextRenderActor>(SpawnActor(ATextRenderActor, Location));
+        if (ck::IsValid(TextActor))
+        {
+            auto TextComponent = TextActor.TextRender;
+            if (ck::IsValid(TextComponent))
+            {
+                TextComponent.Text = ck::Text(Text);
+                TextComponent.TextRenderColor = Color.ToFColor(true);
+                TextComponent.HorizontalAlignment = EHorizTextAligment::EHTA_Center;
+                TextComponent.VerticalAlignment = EVerticalTextAligment::EVRTA_TextCenter;
+                TextComponent.SetWorldSize(48.0f);
+            }
+        }
     }
 
     UFUNCTION()
     void OnEnteredZone(const FString& ZoneName, FGameplayTag MusicTag)
     {
         CurrentZone = ZoneName;
-        if (ck::IsValid(DebugDisplay))
-        {
-            DebugDisplay.UpdateZone(ZoneName);
-        }
+        ck::Trace(f"Zone: {ZoneName}", n"AudioGym_Zone", 0.0f, FLinearColor(1.0f, 1.0f, 0.0f));
 
         if (MusicTag.IsValid())
         {
             utils_audio_director::Request_StartMusicLibrary(AudioDirector, MusicTag,
                 TOptional<int32>(), FCk_Time(2.0f));
             CurrentMusicTrack = MusicTag.ToString();
-            if (ck::IsValid(DebugDisplay))
-            {
-                DebugDisplay.UpdateMusic(CurrentMusicTrack);
-            }
+            ck::Trace(f"Music: {CurrentMusicTrack}", n"AudioGym_Music", 0.0f, FLinearColor(0.0f, 1.0f, 1.0f));
         }
     }
 
-    UFUNCTION()
     void OnExitedZone(const FString& ZoneName)
     {
         if (CurrentZone == ZoneName)
         {
             CurrentZone = "None";
-            if (ck::IsValid(DebugDisplay))
-            {
-                DebugDisplay.UpdateZone("None");
-            }
+            ck::Trace("Zone: None", n"AudioGym_Zone", 0.0f, FLinearColor(0.5f, 0.5f, 0.5f));
             StopAllMusic();
         }
     }
@@ -363,11 +175,8 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
     {
         if (ck::IsValid(StingerLibrary))
         {
-            UCk_Utils_AudioDirector_UE::Request_PlayStinger(AudioDirector, StingerTag, TOptional<float32>());
-            if (ck::IsValid(DebugDisplay))
-            {
-                DebugDisplay.UpdateStinger(StingerTag.ToString());
-            }
+            utils_audio_director::Request_PlayStinger(AudioDirector, StingerTag, TOptional<float32>());
+            ck::Trace(f"Stinger: {StingerTag.ToString()}", n"AudioGym_Stinger", 3.0f, FLinearColor(1.0f, 0.5f, 0.0f));
         }
     }
 
@@ -402,15 +211,11 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
         }
     }
 
-    UFUNCTION(Exec, DisplayName="AudioGym - Stop All Music")
     void StopAllMusic()
     {
         utils_audio_director::Request_StopAllTracks(AudioDirector, FCk_Time(2.0f));
         CurrentMusicTrack = "None";
-        if (ck::IsValid(DebugDisplay))
-        {
-            DebugDisplay.UpdateMusic("None");
-        }
+        ck::Trace("Music: None", n"AudioGym_Music", 0.0f, FLinearColor(0.5f, 0.5f, 0.5f));
     }
 
     UFUNCTION(Exec, DisplayName="AudioGym - Play Test Stinger")
