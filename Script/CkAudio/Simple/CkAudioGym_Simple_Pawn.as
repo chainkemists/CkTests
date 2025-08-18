@@ -1,5 +1,5 @@
 UCLASS()
-class ACk_AudioTest_GymPawn : ADefaultPawn
+class ACk_AudioGym_Simple_Pawn : ADefaultPawn
 {
     UPROPERTY(DefaultComponent)
     UCk_EntityBridge_ActorComponent_UE EntityBridge;
@@ -13,7 +13,8 @@ class ACk_AudioTest_GymPawn : ADefaultPawn
     }
 
     UFUNCTION()
-    private void OnReplicationComplete(FCk_Handle InEntity)
+    void OnReplicationComplete(FCk_Handle InEntity)
     {
+        // Minimal pawn setup - just needs entity bridge for framework integration
     }
 }
