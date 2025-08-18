@@ -11,9 +11,6 @@ class ACk_AudioGym_MovingAudioSource : AActor
     default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
 
     UPROPERTY()
-    FCk_Handle_AudioDirector LocalAudioDirector;
-
-    UPROPERTY()
     float OrbitRadius = 500.0f;
     UPROPERTY()
     float OrbitSpeed = 30.0f; // degrees per second
@@ -31,7 +28,7 @@ class ACk_AudioGym_MovingAudioSource : AActor
     }
 
     UFUNCTION()
-    private void EcsConstructionScript(FCk_Handle InEntity)
+    void EcsConstructionScript(FCk_Handle InEntity)
     {
         utils_transform::Add(InEntity, GetActorTransform(), ECk_Replication::DoesNotReplicate);
     }
@@ -51,30 +48,20 @@ class ACk_AudioGym_MovingAudioSource : AActor
         CenterPoint = PlayerLocation;
     }
 
-    UFUNCTION()
-    void OnSpatialTrackFinished(FCk_Handle_AudioTrack InTrack, ECk_AudioTrack_State InState)
-    {
-        // Restart the thunder after a brief delay
-        utils_audio_director::Request_StartTrack(LocalAudioDirector,
-            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Spatial.Moving"),
-            TOptional<int32>(), FCk_Time(0.5f));
-    }
-
     void SetupSpatialAudio()
     {
+        // The spatial thunder cue will be executed when needed
+        // No need to create persistent entities - the Cue system handles this
+    }
+
+    UFUNCTION()
+    void OnSpatialTrackFinished(FCk_Handle_AudioCue InAudioCue, FGameplayTag InTrackName)
+    {
+        // Restart the spatial thunder cue
         auto SelfEntity = ck::SelfEntity(this);
-
-        auto DirectorParams = FCk_Fragment_AudioDirector_ParamsData();
-        DirectorParams._DefaultCrossfadeDuration = FCk_Time(1.0f);
-        DirectorParams._MaxConcurrentTracks = 2;
-        DirectorParams._StingerLibraries.Add(ck::Asset_StingerLibrary);
-
-        LocalAudioDirector = utils_audio_director::Add(SelfEntity, DirectorParams);
-
-        // Play thunder stinger on repeat
-        utils_audio_director::Request_PlayStinger(LocalAudioDirector,
-            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Stingers.UI.Thunder"),
-            TOptional<float32>());
+        utils_cue::Request_Execute_Local(SelfEntity,
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Spatial.Moving"),
+            FInstancedStruct());
     }
 
     UFUNCTION(BlueprintOverride)
@@ -164,7 +151,7 @@ class ACk_AudioGym_StingerPickup : AActor
     }
 
     UFUNCTION()
-    private void EcsConstructionScript(FCk_Handle InEntity)
+    void EcsConstructionScript(FCk_Handle InEntity)
     {
         utils_transform::Add(InEntity, GetActorTransform(), ECk_Replication::DoesNotReplicate);
     }
@@ -367,9 +354,9 @@ class ACk_AudioGym_ControlPanel : AActor
 
         switch (CurrentSelection)
         {
-            case 0: PlayerController.StartAmbientMusic(); break;  // Fixed: removed Manual suffix
+            case 0: PlayerController.StartAmbientMusic(); break;
             case 1: PlayerController.StartCombatMusic(); break;
-            case 2: break;
+            case 2: break; // Activity music - could add if needed
             case 3: PlayerController.StopAllMusic(); break;
             case 4: PlayerController.PlayTestStinger(); break;
             case 5: TriggerSpatialAudioTest(); break;
@@ -394,6 +381,12 @@ class ACk_AudioGym_ControlPanel : AActor
             if (ck::IsValid(MovingSource))
             {
                 MovingSource.CurrentAngle = 0.0f;
+
+                // Execute the spatial audio cue
+                auto SelfEntity = ck::SelfEntity(MovingSource);
+                utils_cue::Request_Execute_Local(SelfEntity,
+                    utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Spatial.Moving"),
+                    FInstancedStruct());
             }
         }
     }
