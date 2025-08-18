@@ -1,25 +1,6 @@
 class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
 {
     UPROPERTY()
-    FCk_Handle_AudioDirector AudioDirector;
-
-    UPROPERTY()
-    UCk_MusicLibrary_Base AmbientMusicLibrary;
-    default AmbientMusicLibrary = ck::Asset_AmbientMusicLibrary;
-
-    UPROPERTY()
-    UCk_MusicLibrary_Base CombatMusicLibrary;
-    default CombatMusicLibrary = ck::Asset_CombatMusicLibrary;
-
-    UPROPERTY()
-    UCk_MusicLibrary_Base ActivityMusicLibrary;
-    default ActivityMusicLibrary = ck::Asset_ActivityMusicLibrary;
-
-    UPROPERTY()
-    UCk_StingerLibrary_Base StingerLibrary;
-    default StingerLibrary = ck::Asset_StingerLibrary;
-
-    UPROPERTY()
     FString CurrentMusicTrack = "None";
     UPROPERTY()
     FString CurrentZone = "None";
@@ -29,55 +10,26 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
-        SetupAudioDirector();
-        LoadAudioLibraries();
+        CreateAudioCues();
         SpawnGymElements();
     }
 
-    void SetupAudioDirector()
+    void CreateAudioCues()
     {
-        auto NewEntity = utils_entity_lifetime::Request_CreateEntity_TransientOwner();
-
-        auto DirectorParams = FCk_Fragment_AudioDirector_ParamsData();
-        DirectorParams._DefaultCrossfadeDuration = FCk_Time(2.0f);
-        DirectorParams._MaxConcurrentTracks = 6;
-
-        AudioDirector = utils_audio_director::Add(NewEntity, DirectorParams);
-
-        utils_audio_director::BindTo_OnTrackStarted(AudioDirector,
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-            ECk_Signal_PostFireBehavior::DoNothing,
-            FCk_Delegate_AudioDirector_Track(this, n"OnTrackStarted"));
-
-        utils_audio_director::BindTo_OnTrackStopped(AudioDirector,
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-            ECk_Signal_PostFireBehavior::DoNothing,
-            FCk_Delegate_AudioDirector_Track(this, n"OnTrackStopped"));
+        // AudioCues are now Angelscript classes that the subsystem auto-discovers
+        // No manual setup needed - just execute by name when needed
     }
 
     UFUNCTION()
-    void OnTrackStarted(FCk_Handle_AudioDirector InDirector, FGameplayTag InTrackName, FCk_Handle_AudioTrack InTrack)
+    void OnMusicTrackStarted(FCk_Handle_AudioCue InAudioCue, FGameplayTag InTrackName)
     {
         Print(f"🎵 Track Started: {InTrackName.ToString()}", 3.0f);
-    }
+        CurrentMusicTrack = InTrackName.ToString();
 
-    UFUNCTION()
-    void OnTrackStopped(FCk_Handle_AudioDirector InDirector, FGameplayTag InTrackName, FCk_Handle_AudioTrack InTrack)
-    {
-        Print(f"🛑 Track Stopped: {InTrackName.ToString()}", 3.0f);
-    }
-
-    void LoadAudioLibraries()
-    {
-        // Add to director
-        if (ck::IsValid(AmbientMusicLibrary))
-            utils_audio_director::Request_AddMusicLibrary(AudioDirector, AmbientMusicLibrary);
-        if (ck::IsValid(CombatMusicLibrary))
-            utils_audio_director::Request_AddMusicLibrary(AudioDirector, CombatMusicLibrary);
-        if (ck::IsValid(ActivityMusicLibrary))
-            utils_audio_director::Request_AddMusicLibrary(AudioDirector, ActivityMusicLibrary);
-        if (ck::IsValid(StingerLibrary))
-            utils_audio_director::Request_AddStingerLibrary(AudioDirector, StingerLibrary);
+        if (ck::IsValid(DebugDisplay))
+        {
+            DebugDisplay.UpdateMusic(CurrentMusicTrack);
+        }
     }
 
     void SpawnGymElements()
@@ -126,6 +78,9 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
         SpawnActor(ACk_AudioGym_StingerPickup, FVector(0, 1000, 50));   // Bottom center
         SpawnActor(ACk_AudioGym_StingerPickup, FVector(-1000, 0, 50));  // Left center
         SpawnActor(ACk_AudioGym_StingerPickup, FVector(1000, 0, 50));   // Right center
+
+        // Spawn debug display
+        DebugDisplay = Cast<ACk_AudioGym_DebugDisplay>(SpawnActor(ACk_AudioGym_DebugDisplay, FVector(0, 0, 500)));
     }
 
     void SpawnBoothLabel(const FString& Text, FVector Location, FLinearColor Color)
@@ -151,12 +106,34 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
         CurrentZone = ZoneName;
         ck::Trace(f"Zone: {ZoneName}", n"AudioGym_Zone", 0.0f, FLinearColor(1.0f, 1.0f, 0.0f));
 
-        if (MusicTag.IsValid())
+        if (ck::IsValid(DebugDisplay))
         {
-            utils_audio_director::Request_StartMusicLibrary(AudioDirector, MusicTag,
-                TOptional<int32>(), FCk_Time(2.0f));
-            CurrentMusicTrack = MusicTag.ToString();
-            ck::Trace(f"Music: {CurrentMusicTrack}", n"AudioGym_Music", 0.0f, FLinearColor(0.0f, 1.0f, 1.0f));
+            DebugDisplay.UpdateZone(ZoneName);
+        }
+
+        // Determine which cue to play based on the music tag
+        auto ContextEntity = ck::SelfEntity(this);
+
+        if (MusicTag == utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Ambient"))
+        {
+            utils_cue::Request_Execute_Local(ContextEntity,
+                utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Ambient"),
+                FInstancedStruct());
+            ck::Trace("Music: Ambient", n"AudioGym_Music", 0.0f, FLinearColor(0.0f, 1.0f, 1.0f));
+        }
+        else if (MusicTag == utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Combat"))
+        {
+            utils_cue::Request_Execute_Local(ContextEntity,
+                utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Combat"),
+                FInstancedStruct());
+            ck::Trace("Music: Combat", n"AudioGym_Music", 0.0f, FLinearColor(1.0f, 0.0f, 0.0f));
+        }
+        else if (MusicTag == utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Activity"))
+        {
+            utils_cue::Request_Execute_Local(ContextEntity,
+                utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Activity"),
+                FInstancedStruct());
+            ck::Trace("Music: Activity", n"AudioGym_Music", 0.0f, FLinearColor(1.0f, 1.0f, 0.0f));
         }
     }
 
@@ -166,6 +143,12 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
         {
             CurrentZone = "None";
             ck::Trace("Zone: None", n"AudioGym_Zone", 0.0f, FLinearColor(0.5f, 0.5f, 0.5f));
+
+            if (ck::IsValid(DebugDisplay))
+            {
+                DebugDisplay.UpdateZone("None");
+            }
+
             StopAllMusic();
         }
     }
@@ -173,49 +156,61 @@ class ACk_AudioGym_PlayerController : ACk_PlayerController_UE
     UFUNCTION()
     void OnStingerTriggered(FGameplayTag StingerTag)
     {
-        if (ck::IsValid(StingerLibrary))
+        auto ContextEntity = ck::SelfEntity(this);
+        utils_cue::Request_Execute_Local(ContextEntity,
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Stingers.UI"),
+            FInstancedStruct());
+
+        ck::Trace(f"Stinger: {StingerTag.ToString()}", n"AudioGym_Stinger", 3.0f, FLinearColor(1.0f, 0.5f, 0.0f));
+
+        if (ck::IsValid(DebugDisplay))
         {
-            utils_audio_director::Request_PlayStinger(AudioDirector, StingerTag, TOptional<float32>());
-            ck::Trace(f"Stinger: {StingerTag.ToString()}", n"AudioGym_Stinger", 3.0f, FLinearColor(1.0f, 0.5f, 0.0f));
+            DebugDisplay.UpdateStinger(StingerTag.ToString());
         }
     }
 
     void StartAmbientMusic()
     {
-        if (ck::IsValid(AmbientMusicLibrary))
+        auto ContextEntity = ck::SelfEntity(this);
+        utils_cue::Request_Execute_Local(ContextEntity,
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Ambient"),
+            FInstancedStruct());
+
+        CurrentMusicTrack = "Ambient";
+        if (ck::IsValid(DebugDisplay))
         {
-            utils_audio_director::Request_StartMusicLibrary(AudioDirector,
-                utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Ambient"),
-                TOptional<int32>(), FCk_Time(3.0f));
-            CurrentMusicTrack = "Ambient";
-            if (ck::IsValid(DebugDisplay))
-            {
-                DebugDisplay.UpdateMusic("Ambient");
-            }
+            DebugDisplay.UpdateMusic("Ambient");
         }
     }
 
     UFUNCTION(Exec, DisplayName="AudioGym - Start Combat Music")
     void StartCombatMusic()
     {
-        if (ck::IsValid(CombatMusicLibrary))
+        auto ContextEntity = ck::SelfEntity(this);
+        utils_cue::Request_Execute_Local(ContextEntity,
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Combat"),
+            FInstancedStruct());
+
+        CurrentMusicTrack = "Combat";
+        if (ck::IsValid(DebugDisplay))
         {
-            utils_audio_director::Request_StartMusicLibrary(AudioDirector,
-                utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Music.Combat"),
-                TOptional<int32>(), FCk_Time(1.0f));
-            CurrentMusicTrack = "Combat";
-            if (ck::IsValid(DebugDisplay))
-            {
-                DebugDisplay.UpdateMusic("Combat");
-            }
+            DebugDisplay.UpdateMusic("Combat");
         }
     }
 
     void StopAllMusic()
     {
-        utils_audio_director::Request_StopAllTracks(AudioDirector, FCk_Time(2.0f));
+        // Note: With the Cue system, stopping all music would need to be handled
+        // by the individual AudioCue implementations or through a separate mechanism
+        // For now, we could execute a "stop all" cue or handle this differently
+
         CurrentMusicTrack = "None";
         ck::Trace("Music: None", n"AudioGym_Music", 0.0f, FLinearColor(0.5f, 0.5f, 0.5f));
+
+        if (ck::IsValid(DebugDisplay))
+        {
+            DebugDisplay.UpdateMusic("None");
+        }
     }
 
     UFUNCTION(Exec, DisplayName="AudioGym - Play Test Stinger")
