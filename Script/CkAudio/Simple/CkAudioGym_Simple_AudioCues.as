@@ -24,9 +24,8 @@ class UCk_SimpleBackgroundMusicCue : UCk_AudioCue_EntityScript
 
     // Configure as non-spatial background music
     default _SingleTrack._Priority = 10;
-    default _SingleTrack._Loop = true;
+    default _SingleTrack._Loop = false;
     default _SingleTrack._Volume = 0.5f;
-    default _SingleTrack._IsSpatial = false;
     default _SingleTrack._DefaultFadeInTime = FCk_Time(2.0f);
     default _SingleTrack._DefaultFadeOutTime = FCk_Time(2.0f);
     default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
@@ -55,7 +54,6 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
     default _SingleTrack._Priority = 50;
     default _SingleTrack._Loop = false;
     default _SingleTrack._Volume = 0.8f;
-    default _SingleTrack._IsSpatial = true;
     default _SingleTrack._DefaultFadeInTime = FCk_Time(0.2f);
     default _SingleTrack._DefaultFadeOutTime = FCk_Time(0.2f);
     default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
@@ -65,4 +63,11 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
     default _DefaultCrossfadeDuration = FCk_Time(0.5f);
     default _MaxConcurrentTracks = 1;
     default _AllowSamePriorityTracks = false;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+    {
+        utils_transform::Add(InHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
 }

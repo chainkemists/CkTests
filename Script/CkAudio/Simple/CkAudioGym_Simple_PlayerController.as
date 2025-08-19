@@ -37,7 +37,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_PlayerController_UE
             return;
         }
 
-        CueReplicatorSubsystem.Request_ExecuteCue_Local(
+        CueReplicatorSubsystem.Request_ExecuteCue_Local(ck::SelfEntity(this),
             utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.BackgroundMusic"),
             FInstancedStruct());
 
@@ -53,7 +53,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_PlayerController_UE
             return;
         }
 
-        CueReplicatorSubsystem.Request_ExecuteCue_Local(
+        CueReplicatorSubsystem.Request_ExecuteCue_Local(ck::SelfEntity(this),
             utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.SpatialAudio"),
             FInstancedStruct());
 
