@@ -62,8 +62,9 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
 
     void SpawnSpatialStation()
     {
-        // Spawn the spatial station at a specific location
-        auto StationLocation = FVector(500, 0, 0); // 500 units to the right of origin
+        // Spawn the spatial station at a specific location - positioned for medium-sized station
+        // Actual size: 400/1040 ≈ 0.38x of 1040 = ~395x395x296
+        auto StationLocation = FVector(0, 200, 0); // Center X, 200 units forward
         auto StationRotation = FRotator::ZeroRotator;
         auto StationTransform = FTransform(StationRotation, StationLocation);
 
@@ -77,7 +78,7 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
 
         if (ck::IsValid(SpatialStationEntity))
         {
-            Print("✅ Spatial Station spawned successfully", 3.0f);
+            Print("✅ Spatial Station spawned successfully at (0, 200, 0)", 3.0f);
         }
         else
         {
@@ -87,8 +88,10 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
 
     void SpawnAttenuationStation()
     {
-        // Spawn the attenuation station at a specific location (to the left of origin)
-        auto StationLocation = FVector(0, 1500, 0); // 500 units to the left of origin
+        // Spawn the attenuation station at a specific location - positioned to avoid overlap
+        // Actual size: 800/1040 ≈ 0.77x of 1040 = ~800x800x308
+        // Need separation: 395/2 + 800/2 + 500 padding = 197.5 + 400 + 500 = 1097.5
+        auto StationLocation = FVector(0, 1100, 0); // Center X, 1100 units forward
         auto StationRotation = FRotator::ZeroRotator;
         auto StationTransform = FTransform(StationRotation, StationLocation);
 
@@ -102,7 +105,7 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
 
         if (ck::IsValid(AttenuationStationEntity))
         {
-            Print("✅ Attenuation Station spawned successfully", 3.0f);
+            Print("✅ Attenuation Station spawned successfully at (0, 1100, 0)", 3.0f);
         }
         else
         {

@@ -25,8 +25,13 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
         // Set up the spatial audio cue tag
         AudioCueTag = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Spatial.Thunder");
 
-        // Override probe size for spatial testing
-        ProbeSize = FVector(AudioRadius * 2, AudioRadius * 2, 200);
+        // Override probe size for spatial testing - medium sized for 3D positioning
+        ProbeSize = FVector(400, 400, 300);
+
+        // Set visual properties
+        StationName = "SPATIAL AUDIO STATION";
+        StationDescription = "Test 3D positioning and thunder effects";
+        StationColor = FLinearColor(1.0f, 0.5f, 0.0f, 1.0f); // Orange for spatial
 
         utils_entity_tag::Add_UsingGameplayTag(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Station.Spatial"));
@@ -65,6 +70,7 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
         PendingEntityScript.Promise_OnConstructed(FCk_Delegate_EntityScript_Constructed(this, n"OnSpatialAudioComplete"));
 
         IsAudioPlaying = true;
+        UpdateVisualFeedback(true);
         Print("🔊 Spatial Audio Started", 2.0f);
     }
 
@@ -81,6 +87,7 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
         utils_audio_cue::Request_StopAll(AudioCue, FCk_Time(0.1f));
 
         IsAudioPlaying = false;
+        UpdateVisualFeedback(false);
         Print("🔇 Spatial Audio Stopped", 2.0f);
     }
 }

@@ -25,8 +25,13 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         // Set up the music audio cue tag
         AudioCueTag = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Music.Background");
 
-        // Override probe size for attenuation testing - larger area to demonstrate volume changes
-        ProbeSize = FVector(AudioRadius * 2, AudioRadius * 2, 250);
+        // Override probe size for attenuation testing - large room-sized area for volume testing
+        ProbeSize = FVector(800, 800, 400);
+
+        // Set visual properties
+        StationName = "ATTENUATION STATION";
+        StationDescription = "Walk around to hear volume and frequency changes";
+        StationColor = FLinearColor(0.0f, 1.0f, 0.5f, 1.0f); // Green for attenuation
 
         utils_entity_tag::Add_UsingGameplayTag(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Station.Attenuation"));
@@ -70,6 +75,7 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         PendingEntityScript.Promise_OnConstructed(FCk_Delegate_EntityScript_Constructed(this, n"OnAttenuationAudioComplete"));
 
         IsAudioPlaying = true;
+        UpdateVisualFeedback(true);
         Print("🎵 Attenuation Audio Started - Walk around to hear volume changes", 3.0f);
     }
 
@@ -86,6 +92,7 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         utils_audio_cue::Request_StopAll(AudioCue, FCk_Time(1.0f));
 
         IsAudioPlaying = false;
+        UpdateVisualFeedback(false);
         Print("🔇 Attenuation Audio Stopped", 2.0f);
     }
 }
