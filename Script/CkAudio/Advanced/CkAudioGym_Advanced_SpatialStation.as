@@ -52,15 +52,10 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
 
     void StartSpatialAudio()
     {
-        // if (ck::IsValid(AudioCue))
-        // {
-        //     utils_audio_cue::Request_Play(AudioCue, TOptional<int32>(), FCk_Time(0.2f));
-        //     return;
-        // }
-
         if (ck::IsValid(AudioCue))
         {
-            AudioCue.H().Destroy();
+            utils_audio_cue::Request_Play(AudioCue, TOptional<int32>(), FCk_Time(0.2f));
+            return;
         }
 
         // Execute the spatial audio cue

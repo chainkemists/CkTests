@@ -8,8 +8,19 @@ asset Asset_1x1x1Cube of UCk_IsmRenderer_Data
     _Mobility = ECk_Mobility::Movable;
 }
 
+
+// Spawn parameters for AudioGym Advanced Stations
+struct FCkAudioGym_Advanced_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform; // name MUST match the ExposeOnSpawn in the EntityScript
+}
+
 class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
 {
+    UPROPERTY(ExposeOnSpawn)
+    FTransform Transform; // this name MUST match the one in the above SpawnParams
+
     default _Replication = ECk_Replication::DoesNotReplicate;
 
     // Transform feature
@@ -27,7 +38,7 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
 
     // Default probe setup
     UPROPERTY()
-    FVector ProbeSize = FVector(500, 500, 500);
+    FVector ProbeSize = FVector(1000, 1000, 1000);
 
     // Set default probe parameters
     default ProbeParams._ProbeName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Probe.Station");
@@ -40,7 +51,6 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
         // Get self entity and add transform
-        const auto Transform = FTransform(FVector(0, 0, (ProbeSize.Z / 2) + 5));
         TransformHandle = utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
 
         // Create probe (requires shape first)
