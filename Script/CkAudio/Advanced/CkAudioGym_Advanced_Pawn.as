@@ -55,6 +55,9 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
     {
         // Spawn the spatial station
         SpawnSpatialStation();
+
+        // Spawn the attenuation station
+        SpawnAttenuationStation();
     }
 
     void SpawnSpatialStation()
@@ -64,9 +67,13 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
         auto StationRotation = FRotator::ZeroRotator;
         auto StationTransform = FTransform(StationRotation, StationLocation);
 
+        // Create spawn params for the spatial station
+        auto SpawnParams = FCkAudioGym_Advanced_Station_SpawnParams();
+        SpawnParams.Transform = StationTransform;
+
         // Spawn the spatial station entity script
         auto SpatialStationEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
-            UCkAudioGym_Advanced_SpatialStation, FInstancedStruct());
+            UCkAudioGym_Advanced_SpatialStation, SpawnParams);
 
         if (ck::IsValid(SpatialStationEntity))
         {
@@ -75,6 +82,31 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
         else
         {
             Print("❌ Failed to spawn Spatial Station", 3.0f);
+        }
+    }
+
+    void SpawnAttenuationStation()
+    {
+        // Spawn the attenuation station at a specific location (to the left of origin)
+        auto StationLocation = FVector(0, 1500, 0); // 500 units to the left of origin
+        auto StationRotation = FRotator::ZeroRotator;
+        auto StationTransform = FTransform(StationRotation, StationLocation);
+
+        // Create spawn params for the attenuation station
+        auto SpawnParams = FCkAudioGym_Advanced_Station_SpawnParams();
+        SpawnParams.Transform = StationTransform;
+
+        // Spawn the attenuation station entity script
+        auto AttenuationStationEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
+            UCkAudioGym_Advanced_AttenuationStation, SpawnParams);
+
+        if (ck::IsValid(AttenuationStationEntity))
+        {
+            Print("✅ Attenuation Station spawned successfully", 3.0f);
+        }
+        else
+        {
+            Print("❌ Failed to spawn Attenuation Station", 3.0f);
         }
     }
 }
