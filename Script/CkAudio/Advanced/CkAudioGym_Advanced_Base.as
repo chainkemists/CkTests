@@ -1,12 +1,22 @@
 // Base class for Advanced AudioGym stations, power-ups, and spatial sounds
 // Derived from UCk_EntityScript_UE to house common elements
 
-asset Asset_1x1x1Cube of UCk_IsmRenderer_Data
+// Cube assets for visual representation
+asset Asset_RegularCube of UCk_IsmRenderer_Data
 {
-    _Mesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName("/Engine/Functions/Engine_MaterialFunctions02/SupportFiles/1x1x1BoxCenterAligned.1x1x1BoxCenterAligned",
+    _Mesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName("/Engine/EngineMeshes/Cube.Cube",
         ECk_AssetSearchScope::Engine)._Asset);
     _Mobility = ECk_Mobility::Movable;
 }
+
+// Background cube with inverted normals - useful for future visual elements
+asset Asset_BackgroundCube of UCk_IsmRenderer_Data
+{
+    _Mesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName("/Engine/EngineMeshes/BackgroundCube.BackgroundCube",
+        ECk_AssetSearchScope::Engine)._Asset);
+    _Mobility = ECk_Mobility::Movable;
+}
+
 
 
 // Spawn parameters for AudioGym Advanced Stations
@@ -38,7 +48,19 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
 
     // Default probe setup
     UPROPERTY()
-    FVector ProbeSize = FVector(1000, 1000, 1000);
+    FVector ProbeSize = FVector(800, 800, 400); // More reasonable default size
+
+    // Visual representation properties
+    UPROPERTY()
+    FString StationName = "Audio Station";
+
+    UPROPERTY()
+    FString StationDescription = "Walk into this area to test audio features";
+
+    UPROPERTY()
+    FLinearColor StationColor = FLinearColor(0.2f, 0.6f, 1.0f, 1.0f); // Default blue
+
+
 
     // Set default probe parameters
     default ProbeParams._ProbeName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Probe.Station");
@@ -61,10 +83,20 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
         auto DebugInfo = FCk_Probe_DebugInfo();
         ProbeHandle = utils_probe::Add(TransformHandle, ProbeParams, DebugInfo);
 
-        // Add ISM Proxy renderer for visual representation
-        auto IsmProxyParams = FCk_Fragment_IsmProxy_ParamsData(Asset_1x1x1Cube);
-        IsmProxyParams._ScaleMultiplier = ProbeSize;
+        // Add ISM Proxy renderer for visual representation (station floor)
+        auto IsmProxyParams = FCk_Fragment_IsmProxy_ParamsData(Asset_BackgroundCube);
+        // Scale the 1040x1040x1040 background cube to match our probe size
+        // This gives us: Spatial (400/1040≈0.38x), Attenuation (800/1040≈0.77x)
+        IsmProxyParams._ScaleMultiplier = ProbeSize / 1040.0f;
         utils_ism_proxy::Add(InHandle, IsmProxyParams);
+
+                // Print station information to console for now
+        Print("🎯 Station Created: " + StationName, 5.0f);
+        Print("📝 Description: " + StationDescription, 5.0f);
+        Print("🎨 Color Theme Applied", 3.0f);
+        Print("📏 Large Testing Area Created", 3.0f);
+        Print("📍 Position: Transform applied", 3.0f);
+        Print("📐 Scale: Adjusted for 1040x1040x1040 background cube", 3.0f);
 
         // Bind overlaps to base class functions that derived classes can override
         utils_probe::BindTo_OnBeginOverlap(ProbeHandle,
@@ -91,5 +123,25 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
     void OnPlayerExitedStation(FCk_Handle_Probe InProbe, FCk_Probe_Payload_OnEndOverlap InOverlapInfo)
     {
         // Base implementation - derived classes should override
+    }
+
+
+
+
+
+    // Function to update visual feedback based on audio state
+    protected void UpdateVisualFeedback(bool bIsAudioPlaying)
+    {
+        // This can be overridden by derived classes to provide specific visual feedback
+        // For now, we'll just store the state for potential future use
+
+        if (bIsAudioPlaying)
+        {
+            Print("🎵 Audio playing at: " + StationName, 2.0f);
+        }
+        else
+        {
+            Print("🔇 Audio stopped at: " + StationName, 2.0f);
+        }
     }
 }
