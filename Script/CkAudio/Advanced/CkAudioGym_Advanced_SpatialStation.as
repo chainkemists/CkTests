@@ -63,9 +63,16 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
             return;
         }
 
-        // Execute the spatial audio cue
+        // Execute the spatial audio cue with proper transform
         auto SelfEntity = ck::SelfEntity(this);
-        auto PendingEntityScript = utils_cue::Request_Execute_Local(SelfEntity, AudioCueTag, FInstancedStruct());
+
+        // Create spawn params with the station's transform (same struct as music cue)
+        auto SpawnParams = FCkAudioGym_Advanced_AudioCue_SpawnParams();
+        SpawnParams.Transform = Transform; // Use the station's transform
+
+        auto Str = FInstancedStruct();
+        Str.InitializeAs(SpawnParams);
+        auto PendingEntityScript = utils_cue::Request_Execute_Local(SelfEntity, AudioCueTag, Str);
 
         PendingEntityScript.Promise_OnConstructed(FCk_Delegate_EntityScript_Constructed(this, n"OnSpatialAudioComplete"));
 

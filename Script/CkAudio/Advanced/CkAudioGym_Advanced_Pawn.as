@@ -1,4 +1,5 @@
 // Advanced AudioGym Pawn - Clean and simple setup
+// Following gym philosophy: simple, readable, organized
 
 class ACkAudioGym_Advanced_Pawn : ADefaultPawn
 {
@@ -8,7 +9,10 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
     default EntityBridge._Replication = ECk_Replication::DoesNotReplicate;
     default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
 
-    // Override ConstructionScript to add player probe
+    // ============================================================================
+    // PLAYER SETUP
+    // ============================================================================
+
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
@@ -18,13 +22,12 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
     UFUNCTION()
     void OnReplicationComplete(FCk_Handle InEntity)
     {
-        // Add player probe feature to the entity
-        AddPlayerProbe(InEntity);
+        SetupPlayer(InEntity);
     }
 
-    void AddPlayerProbe(FCk_Handle InEntity)
+    void SetupPlayer(FCk_Handle InEntity)
     {
-        // Add a probe feature to the player entity so it can overlap with stations
+        // Add player probe feature so player can overlap with stations
         auto ProbeParams = FCk_Fragment_Probe_ParamsData();
         ProbeParams._ProbeName = utils_gameplay_tag::ResolveGameplayTag(n"Player.Probe");
         ProbeParams._MotionType = ECk_MotionType::Kinematic;
@@ -33,83 +36,149 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
         // Add transform first (required for probe)
         auto TransformHandle = utils_transform::Add(InEntity, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        // Create a small probe around the player
-        auto PlayerProbeSize = FVector(100, 100, 200); // Player-sized probe
+        // Create a larger probe around the player for better pickup detection
+        auto PlayerProbeSize = FVector(150, 150, 250); // Larger player probe for better overlap detection
         auto BoxShape = utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(PlayerProbeSize));
         utils_shapes::Add(InEntity, BoxShape);
 
         auto DebugInfo = FCk_Probe_DebugInfo();
         utils_probe::Add(TransformHandle, ProbeParams, DebugInfo);
 
-        Print("✅ Player probe added", 2.0f);
+        ck::Trace("✅ Player probe added", NAME_None, 2.0f, utils_linear_color::Get_Green());
     }
+
+    // ============================================================================
+    // LEVEL SETUP
+    // ============================================================================
 
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
-        // Set up the level with stations
         SetupLevel();
     }
 
     void SetupLevel()
     {
-        // Spawn the spatial station
-        SpawnSpatialStation();
+        ck::Trace("🎯 AudioGym Advanced Level Ready - Use StationSpawner actors to place stations", NAME_None, 5.0f, utils_linear_color::Get_Orange());
 
-        // Spawn the attenuation station
-        SpawnAttenuationStation();
+        // Scatter audio pickups around the level for testing
+        ScatterAudioPickups();
     }
 
-    void SpawnSpatialStation()
+    // ============================================================================
+    // PICKUP SCATTERING
+    // ============================================================================
+
+    void ScatterAudioPickups()
     {
-        // Spawn the spatial station at a specific location - positioned for medium-sized station
-        // Actual size: 400/1040 ≈ 0.38x of 1040 = ~395x395x296
-        auto StationLocation = FVector(0, 200, 0); // Center X, 200 units forward
-        auto StationRotation = FRotator::ZeroRotator;
-        auto StationTransform = FTransform(StationRotation, StationLocation);
+        ck::Trace("🎁 Scattering audio pickups throughout the level...", NAME_None, 3.0f, utils_linear_color::Get_Yellow());
 
-        // Create spawn params for the spatial station
-        auto SpawnParams = FCkAudioGym_Advanced_Station_SpawnParams();
-        SpawnParams.Transform = StationTransform;
+        // Scatter pickups across the full 8000x6000 level area
+        // Level dimensions: X: -4000 to +4000, Y: -3000 to +3000
+        ScatterPickupsAcrossFullLevel();
 
-        // Spawn the spatial station entity script
-        auto SpatialStationEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
-            UCkAudioGym_Advanced_SpatialStation, SpawnParams);
+        ck::Trace("✅ Audio pickups scattered successfully", NAME_None, 2.0f, utils_linear_color::Get_Green());
+    }
 
-        if (ck::IsValid(SpatialStationEntity))
+    void ScatterPickupsAcrossFullLevel()
+    {
+        // Interface pickups - most common, spread across the entire level
+        // Left side (negative X)
+        SpawnInterfacePickup(FVector(-3500, -2500, 50));
+        SpawnInterfacePickup(FVector(-3000, -2000, 45));
+        SpawnInterfacePickup(FVector(-2500, -1500, 55));
+        SpawnInterfacePickup(FVector(-2000, -1000, 40));
+        SpawnInterfacePickup(FVector(-1500, -500, 50));
+        SpawnInterfacePickup(FVector(-1000, 0, 45));
+        SpawnInterfacePickup(FVector(-500, 500, 55));
+        SpawnInterfacePickup(FVector(0, 1000, 40));
+        SpawnInterfacePickup(FVector(500, 1500, 50));
+        SpawnInterfacePickup(FVector(1000, 2000, 45));
+        SpawnInterfacePickup(FVector(1500, 2500, 55));
+        SpawnInterfacePickup(FVector(2000, 3000, 40));
+
+        // Right side (positive X)
+        SpawnInterfacePickup(FVector(1000, 1000, 100));
+        SpawnInterfacePickup(FVector(1000, 1000, 100));
+        SpawnInterfacePickup(FVector(1000, 1000, 100));
+        SpawnInterfacePickup(FVector(1000, 1000, 100));
+        SpawnInterfacePickup(FVector(3000, 2000, 45));
+        SpawnInterfacePickup(FVector(3500, 1500, 55));
+        SpawnInterfacePickup(FVector(4000, 1000, 40));
+        SpawnInterfacePickup(FVector(3500, 500, 50));
+        SpawnInterfacePickup(FVector(3000, 0, 45));
+        SpawnInterfacePickup(FVector(2500, -500, 55));
+        SpawnInterfacePickup(FVector(2000, -1000, 40));
+        SpawnInterfacePickup(FVector(1500, -1500, 50));
+        SpawnInterfacePickup(FVector(1000, -2000, 45));
+        SpawnInterfacePickup(FVector(500, -2500, 55));
+        SpawnInterfacePickup(FVector(0, -3000, 40));
+
+        // LevelUp pickups - rare, in special spots across the level
+        SpawnLevelUpPickup(FVector(-3000, -2000, 60));
+        SpawnLevelUpPickup(FVector(-2000, 2000, 65));
+        SpawnLevelUpPickup(FVector(0, 0, 70));
+        SpawnLevelUpPickup(FVector(2000, -2000, 60));
+        SpawnLevelUpPickup(FVector(3000, 2000, 65));
+        SpawnLevelUpPickup(FVector(-1000, -2500, 55));
+        SpawnLevelUpPickup(FVector(1000, 2500, 55));
+
+        // Notification pickups - medium frequency, strategic locations
+        SpawnNotificationsPickup(FVector(-2800, -1800, 35));
+        SpawnNotificationsPickup(FVector(-1800, 1800, 30));
+        SpawnNotificationsPickup(FVector(-800, -800, 40));
+        SpawnNotificationsPickup(FVector(800, 800, 35));
+        SpawnNotificationsPickup(FVector(1800, -1800, 30));
+        SpawnNotificationsPickup(FVector(2800, 1800, 40));
+        SpawnNotificationsPickup(FVector(-1200, -2200, 25));
+        SpawnNotificationsPickup(FVector(1200, 2200, 25));
+        SpawnNotificationsPickup(FVector(-400, 1200, 45));
+        SpawnNotificationsPickup(FVector(400, -1200, 45));
+    }
+
+    // ============================================================================
+    // PICKUP SPAWNING HELPERS
+    // ============================================================================
+
+    void SpawnInterfacePickup(FVector Location)
+    {
+        auto SpawnParams = FCkAudioGym_Advanced_AudioPickup_SpawnParams();
+        SpawnParams.Transform = FTransform(FRotator::ZeroRotator, Location);
+
+        auto PickupEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
+            UCkAudioGym_Advanced_InterfacePickup, SpawnParams);
+
+        if (ck::IsValid(PickupEntity))
         {
-            Print("✅ Spatial Station spawned successfully at (0, 200, 0)", 3.0f);
-        }
-        else
-        {
-            Print("❌ Failed to spawn Spatial Station", 3.0f);
+            ck::Trace(f"🔵 Interface pickup placed at {Location.X},{Location.Y}", NAME_None, 1.0f, utils_linear_color::Get_Cyan());
         }
     }
 
-    void SpawnAttenuationStation()
+    void SpawnLevelUpPickup(FVector Location)
     {
-        // Spawn the attenuation station at a specific location - positioned to avoid overlap
-        // Actual size: 800/1040 ≈ 0.77x of 1040 = ~800x800x308
-        // Need separation: 395/2 + 800/2 + 500 padding = 197.5 + 400 + 500 = 1097.5
-        auto StationLocation = FVector(0, 1100, 0); // Center X, 1100 units forward
-        auto StationRotation = FRotator::ZeroRotator;
-        auto StationTransform = FTransform(StationRotation, StationLocation);
+        auto SpawnParams = FCkAudioGym_Advanced_AudioPickup_SpawnParams();
+        SpawnParams.Transform = FTransform(FRotator::ZeroRotator, Location);
 
-        // Create spawn params for the attenuation station
-        auto SpawnParams = FCkAudioGym_Advanced_Station_SpawnParams();
-        SpawnParams.Transform = StationTransform;
+        auto PickupEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
+            UCkAudioGym_Advanced_LevelUpPickup, SpawnParams);
 
-        // Spawn the attenuation station entity script
-        auto AttenuationStationEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
-            UCkAudioGym_Advanced_AttenuationStation, SpawnParams);
-
-        if (ck::IsValid(AttenuationStationEntity))
+        if (ck::IsValid(PickupEntity))
         {
-            Print("✅ Attenuation Station spawned successfully at (0, 1100, 0)", 3.0f);
+            ck::Trace(f"🟡 LevelUp pickup placed at {Location.X},{Location.Y}", NAME_None, 1.0f, utils_linear_color::Get_Yellow());
         }
-        else
+    }
+
+    void SpawnNotificationsPickup(FVector Location)
+    {
+        auto SpawnParams = FCkAudioGym_Advanced_AudioPickup_SpawnParams();
+        SpawnParams.Transform = FTransform(FRotator::ZeroRotator, Location);
+
+        auto PickupEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
+            UCkAudioGym_Advanced_NotificationsPickup, SpawnParams);
+
+        if (ck::IsValid(PickupEntity))
         {
-            Print("❌ Failed to spawn Attenuation Station", 3.0f);
+            ck::Trace(f"🟣 Notifications pickup placed at {Location.X},{Location.Y}", NAME_None, 1.0f, utils_linear_color::Get_Magenta());
         }
     }
 }

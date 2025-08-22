@@ -118,3 +118,105 @@ class UCk_AdvancedMusicCue : UCk_AudioCue_EntityScript
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
 }
+
+// Interface Stinger AudioCue (UI sounds)
+class UCk_AdvancedInterfaceStingerCue : UCk_AudioCue_EntityScript
+{
+    default _Replication = ECk_Replication::DoesNotReplicate;
+    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Stinger");
+    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
+
+    UPROPERTY(ExposeOnSpawn)
+    FTransform Transform;
+
+    default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
+
+    // Load the Interface stinger sound
+    default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
+        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Stinger.Track"),
+        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
+            ECk_AssetSearchScope::Plugins)._Asset));
+
+    // Configure as interface sound
+    default _SingleTrack._Priority = 60;
+    default _SingleTrack._Loop = false;
+    default _SingleTrack._Volume = 0.8f;
+    default _SingleTrack._DefaultFadeInTime = FCk_Time(0.0f);
+    default _SingleTrack._DefaultFadeOutTime = FCk_Time(0.1f);
+    default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+    {
+        utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+}
+
+// Level Up Stinger AudioCue (achievement sounds)
+class UCk_AdvancedLevelUpStingerCue : UCk_AudioCue_EntityScript
+{
+    default _Replication = ECk_Replication::DoesNotReplicate;
+    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.LevelUp.Stinger");
+    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
+
+    UPROPERTY(ExposeOnSpawn)
+    FTransform Transform;
+
+    default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
+
+    // Load the Interface stinger sound (known working)
+    default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
+        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.LevelUp.Stinger.Track"),
+        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
+            ECk_AssetSearchScope::Plugins)._Asset));
+
+    // Configure as level up sound
+    default _SingleTrack._Priority = 70;
+    default _SingleTrack._Loop = false;
+    default _SingleTrack._Volume = 0.9f;
+    default _SingleTrack._DefaultFadeInTime = FCk_Time(0.0f);
+    default _SingleTrack._DefaultFadeOutTime = FCk_Time(0.2f);
+    default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+    {
+        utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+}
+
+// Notifications Stinger AudioCue (alert sounds)
+class UCk_AdvancedNotificationsStingerCue : UCk_AudioCue_EntityScript
+{
+    default _Replication = ECk_Replication::DoesNotReplicate;
+    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Notifications.Stinger");
+    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
+
+    UPROPERTY(ExposeOnSpawn)
+    FTransform Transform;
+
+    default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
+
+    // Load the Interface stinger sound (known working)
+    default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
+        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Notifications.Stinger.Track"),
+        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
+            ECk_AssetSearchScope::Plugins)._Asset));
+
+    // Configure as notification sound
+    default _SingleTrack._Priority = 65;
+    default _SingleTrack._Loop = false;
+    default _SingleTrack._Volume = 0.7f;
+    default _SingleTrack._DefaultFadeInTime = FCk_Time(0.0f);
+    default _SingleTrack._DefaultFadeOutTime = FCk_Time(0.15f);
+    default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+    {
+        utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+}
