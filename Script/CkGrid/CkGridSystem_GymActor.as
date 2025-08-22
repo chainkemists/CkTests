@@ -97,7 +97,7 @@ class ACk_GridSystem_GymActor : AActor
 	{
         auto RotationOffset = FCk_Request_Transform_AddRotationOffset();
         RotationOffset._DeltaRotation = FRotator(0, 90, 0);
-        UCk_Utils_Transform_TypeUnsafe_UE::Request_AddRotationOffset(GridB.H(), RotationOffset);
+        GridB.H().Request_AddRotationOffset(RotationOffset);
 	}
 
 	UFUNCTION(Server)
@@ -212,7 +212,7 @@ class ACk_GridSystem_GymActor : AActor
             }
         }
 
-                UCk_Utils_Transform_TypeUnsafe_UE::Request_SetLocation(GridB.H(), Request);
+        GridB.H().Request_SetLocation(Request);
 	}
 
 	UFUNCTION()

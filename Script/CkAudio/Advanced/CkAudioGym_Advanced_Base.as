@@ -60,6 +60,19 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
     UPROPERTY()
     FLinearColor StationColor = FLinearColor(0.2f, 0.6f, 1.0f, 1.0f); // Default blue
 
+    // Utility functions for calculating scale multipliers
+    FVector CalculateBackgroundCubeScale(FVector InDesiredSize)
+    {
+        // Background cube is 1040x1040x1040, so divide desired size by 1040
+        return InDesiredSize / 1040.0f;
+    }
+
+    FVector CalculateRegularCubeScale(FVector InDesiredSize)
+    {
+        // Regular cube is 260x260x260, so divide desired size by 260
+        return InDesiredSize / 260.0f;
+    }
+
 
 
     // Set default probe parameters
@@ -85,9 +98,8 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
 
         // Add ISM Proxy renderer for visual representation (station floor)
         auto IsmProxyParams = FCk_Fragment_IsmProxy_ParamsData(Asset_BackgroundCube);
-        // Scale the 1040x1040x1040 background cube to match our probe size
-        // This gives us: Spatial (400/1040≈0.38x), Attenuation (800/1040≈0.77x)
-        IsmProxyParams._ScaleMultiplier = ProbeSize / 1040.0f;
+        // Use utility function to calculate scale for 1040x1040x1040 background cube
+        IsmProxyParams._ScaleMultiplier = CalculateBackgroundCubeScale(ProbeSize);
         utils_ism_proxy::Add(InHandle, IsmProxyParams);
 
                 // Print station information to console for now
@@ -96,7 +108,7 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
         Print("🎨 Color Theme Applied", 3.0f);
         Print("📏 Large Testing Area Created", 3.0f);
         Print("📍 Position: Transform applied", 3.0f);
-        Print("📐 Scale: Adjusted for 1040x1040x1040 background cube", 3.0f);
+        Print("📐 Scale: Using utility function for 1040x1040x1040 background cube", 3.0f);
 
         // Bind overlaps to base class functions that derived classes can override
         utils_probe::BindTo_OnBeginOverlap(ProbeHandle,
