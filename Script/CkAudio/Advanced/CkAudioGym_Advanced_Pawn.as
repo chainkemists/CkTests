@@ -80,61 +80,29 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
         ck::Trace("✅ Audio pickups scattered successfully", NAME_None, 2.0f, utils_linear_color::Get_Green());
     }
 
-    void ScatterPickupsAcrossFullLevel()
-    {
-        // Interface pickups - most common, spread across the entire level
-        // Left side (negative X)
-        SpawnInterfacePickup(FVector(-3500, -2500, 50));
-        SpawnInterfacePickup(FVector(-3000, -2000, 45));
-        SpawnInterfacePickup(FVector(-2500, -1500, 55));
-        SpawnInterfacePickup(FVector(-2000, -1000, 40));
-        SpawnInterfacePickup(FVector(-1500, -500, 50));
-        SpawnInterfacePickup(FVector(-1000, 0, 45));
-        SpawnInterfacePickup(FVector(-500, 500, 55));
-        SpawnInterfacePickup(FVector(0, 1000, 40));
-        SpawnInterfacePickup(FVector(500, 1500, 50));
-        SpawnInterfacePickup(FVector(1000, 2000, 45));
-        SpawnInterfacePickup(FVector(1500, 2500, 55));
-        SpawnInterfacePickup(FVector(2000, 3000, 40));
+void ScatterPickupsAcrossFullLevel()
+{
+    // Test cluster around (1000, 1000, 100) for audio debugging
+    // Very close to test point - should be loud
+    SpawnInterfacePickup(FVector(1000, 1000, 100));  // Exact test position
+    SpawnInterfacePickup(FVector(1050, 1050, 100));  // 50 units away
+    SpawnInterfacePickup(FVector(950, 950, 100));    // 50 units away, other direction
 
-        // Right side (positive X)
-        SpawnInterfacePickup(FVector(1000, 1000, 100));
-        SpawnInterfacePickup(FVector(1000, 1000, 100));
-        SpawnInterfacePickup(FVector(1000, 1000, 100));
-        SpawnInterfacePickup(FVector(1000, 1000, 100));
-        SpawnInterfacePickup(FVector(3000, 2000, 45));
-        SpawnInterfacePickup(FVector(3500, 1500, 55));
-        SpawnInterfacePickup(FVector(4000, 1000, 40));
-        SpawnInterfacePickup(FVector(3500, 500, 50));
-        SpawnInterfacePickup(FVector(3000, 0, 45));
-        SpawnInterfacePickup(FVector(2500, -500, 55));
-        SpawnInterfacePickup(FVector(2000, -1000, 40));
-        SpawnInterfacePickup(FVector(1500, -1500, 50));
-        SpawnInterfacePickup(FVector(1000, -2000, 45));
-        SpawnInterfacePickup(FVector(500, -2500, 55));
-        SpawnInterfacePickup(FVector(0, -3000, 40));
+    // Medium distance - should be audible with attenuation
+    SpawnLevelUpPickup(FVector(1200, 1200, 100));    // ~280 units away
+    SpawnLevelUpPickup(FVector(800, 800, 100));      // ~280 units away
+    SpawnLevelUpPickup(FVector(1000, 1400, 100));    // 400 units away
+    SpawnLevelUpPickup(FVector(1000, 600, 100));     // 400 units away
 
-        // LevelUp pickups - rare, in special spots across the level
-        SpawnLevelUpPickup(FVector(-3000, -2000, 60));
-        SpawnLevelUpPickup(FVector(-2000, 2000, 65));
-        SpawnLevelUpPickup(FVector(0, 0, 70));
-        SpawnLevelUpPickup(FVector(2000, -2000, 60));
-        SpawnLevelUpPickup(FVector(3000, 2000, 65));
-        SpawnLevelUpPickup(FVector(-1000, -2500, 55));
-        SpawnLevelUpPickup(FVector(1000, 2500, 55));
+    // Longer distance - testing attenuation falloff
+    SpawnNotificationsPickup(FVector(1500, 1500, 100)); // ~700 units away
+    SpawnNotificationsPickup(FVector(500, 500, 100));   // ~700 units away
+    SpawnNotificationsPickup(FVector(1000, 1800, 100)); // 800 units away
+    SpawnNotificationsPickup(FVector(1000, 200, 100));  // 800 units away
 
-        // Notification pickups - medium frequency, strategic locations
-        SpawnNotificationsPickup(FVector(-2800, -1800, 35));
-        SpawnNotificationsPickup(FVector(-1800, 1800, 30));
-        SpawnNotificationsPickup(FVector(-800, -800, 40));
-        SpawnNotificationsPickup(FVector(800, 800, 35));
-        SpawnNotificationsPickup(FVector(1800, -1800, 30));
-        SpawnNotificationsPickup(FVector(2800, 1800, 40));
-        SpawnNotificationsPickup(FVector(-1200, -2200, 25));
-        SpawnNotificationsPickup(FVector(1200, 2200, 25));
-        SpawnNotificationsPickup(FVector(-400, 1200, 45));
-        SpawnNotificationsPickup(FVector(400, -1200, 45));
-    }
+    // Control test - one near world origin to compare
+    SpawnInterfacePickup(FVector(100, 100, 100));       // Near origin for comparison
+}
 
     // ============================================================================
     // PICKUP SPAWNING HELPERS
