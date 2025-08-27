@@ -59,7 +59,9 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
     {
         if (ck::IsValid(AudioCue))
         {
-            utils_audio_cue::Request_Play(AudioCue, TOptional<int32>(), FCk_Time(0.2f));
+            auto Request = FCk_Request_AudioCue_Play();
+            Request._FadeInTime = FCk_Time(0.2f);
+            utils_audio_cue::Request_Play(AudioCue, Request);
             return;
         }
 

@@ -1,198 +1,387 @@
-// Concurrency Station - Tests multiple audio cues playing simultaneously
-// Inherits from UCkAudioGym_Advanced_Base
-
 class UCkAudioGym_Advanced_ConcurrencyStation : UCkAudioGym_Advanced_Base
 {
-        // Concurrency specific properties
+    // Concurrency testing specific properties
     UPROPERTY()
-    int32 MaxConcurrentSounds = 5; // Maximum number of sounds that can play at once
+    TArray<FGameplayTag> ConcurrentTrackTags;
 
     UPROPERTY()
-    float SpawnInterval = 1.0f; // Time between spawning new sounds (seconds)
+    int32 MaxConcurrentTracks = 8;
 
     UPROPERTY()
-    TArray<FCk_Handle_AudioCue> ActiveAudioCues; // Track all currently playing sounds
+    float SpawnInterval = 1.5f;
 
     UPROPERTY()
-    bool IsStationActive = false;
+    bool IsSpawningConcurrentSounds = false;
 
     UPROPERTY()
-    FCk_Handle_Timer SpawnTimer; // Timer for continuous spawning
+    FCk_Handle_Timer SpawnTimer;
 
-    // Override DoConstruct to set up concurrency audio station
+    UPROPERTY()
+    int32 CurrentSpawnIndex = 0;
+
+    UPROPERTY()
+    int32 TotalSoundsSpawned = 0;
+
+    // Visual indicators for concurrent track status
+    TArray<FCk_Handle_IsmProxy> TrackIndicators;
+
+    // Override DoConstruct to set up concurrency testing station
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
-        Super::DoConstruct(InHandle);
-
-        // Set up the thunder audio cue tag (we'll use the same one for multiple instances)
-        AudioCueTag = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Spatial.Thunder");
-
-        // Override probe size for corridor testing - long and narrow for sequential triggering
-        // Corridor is long in X (forward direction), narrow in Y and Z
-        ProbeSize = FVector(200, 1200, 300); // Corridor: 200 units wide, 1200 units long, 300 units tall
-
-        // Set visual properties
+        // Configure station properties
         StationName = "CONCURRENCY STATION";
-        StationDescription = "Walk in/out of corridor to spawn overlapping thunder sounds";
-        StationColor = FLinearColor(0.8f, 0.2f, 0.8f, 1.0f); // Purple for concurrency
+        StationDescription = "Test multiple simultaneous audio tracks with priority management";
+        StationThemeColor = FLinearColor(0.8f, 0.2f, 0.8f, 1.0f); // Purple for concurrency
+        StationBounds = FVector(600, 1000, 350); // Corridor-shaped for sequential triggering
+
+        // Configure AudioDirector for maximum concurrency testing
+        AudioDirectorParams._DefaultCrossfadeDuration = FCk_Time(0.8f);
+        AudioDirectorParams._MaxConcurrentTracks = MaxConcurrentTracks;
+        AudioDirectorParams._SamePriorityBehavior = ECk_SamePriorityBehavior::Allow; // Allow overlapping sounds
+
+        // Setup concurrent track tags
+        SetupConcurrentTrackTags();
+
+        // Call parent construction
+        auto Result = Super::DoConstruct(InHandle);
+
+        // Add all concurrent tracks to director
+        SetupConcurrentAudioTracks();
+
+        // Create visual indicators for track status
+        CreateTrackIndicators(InHandle);
 
         utils_entity_tag::Add_UsingGameplayTag(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Station.Concurrency"));
 
-        return ECk_EntityScript_ConstructionFlow::Finished;
+        return Result;
+    }
+
+    void SetupConcurrentTrackTags()
+    {
+        ConcurrentTrackTags.Empty();
+
+        // Create tags for different types of concurrent sounds
+        ConcurrentTrackTags.Add(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Thunder.A"));
+        ConcurrentTrackTags.Add(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Thunder.B"));
+        ConcurrentTrackTags.Add(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Thunder.C"));
+        ConcurrentTrackTags.Add(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Interface.A"));
+        ConcurrentTrackTags.Add(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Interface.B"));
+        ConcurrentTrackTags.Add(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Ambient.A"));
+        ConcurrentTrackTags.Add(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Ambient.B"));
+        ConcurrentTrackTags.Add(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Music"));
+
+        ck::Trace(f"Concurrency Station: {ConcurrentTrackTags.Num()} concurrent tracks configured", NAME_None, 2.0f, StationThemeColor);
+    }
+
+    void SetupConcurrentAudioTracks()
+    {
+        if (ck::IsValid(AudioDirector) == false)
+        {
+            ck::Trace("AudioDirector NOT valid - cannot setup concurrent tracks", NAME_None, 3.0f, FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
+            return;
+        }
+
+        for (int32 i = 0; i < ConcurrentTrackTags.Num(); i++)
+        {
+            auto TrackTag = ConcurrentTrackTags[i];
+
+            // Choose appropriate sound asset based on track type
+            auto SoundAsset = GetSoundAssetForTrackType(i);
+
+            auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(TrackTag, SoundAsset);
+
+            // Configure track parameters for concurrency testing
+            TrackParams._Priority = 30 + (i * 5); // Varied priorities for interesting interactions
+            TrackParams._Volume = 0.6f; // Lower volume since many will play simultaneously
+            TrackParams._DefaultFadeInTime = FCk_Time(0.3f);
+            TrackParams._DefaultFadeOutTime = FCk_Time(0.5f);
+
+            // Set different override behaviors for testing
+            if (i < 3) // Thunder sounds - queue up
+            {
+                TrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Queue;
+                TrackParams._LoopBehavior = ECk_LoopBehavior::PlayOnce;
+            }
+            else if (i < 5) // Interface sounds - interrupt
+            {
+                TrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
+                TrackParams._LoopBehavior = ECk_LoopBehavior::PlayOnce;
+            }
+            else // Ambient and music - crossfade
+            {
+                TrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
+                TrackParams._LoopBehavior = ECk_LoopBehavior::Loop;
+            }
+
+            utils_audio_director::Request_AddTrack(AudioDirector, TrackParams);
+        }
+
+        ck::Trace("Concurrency Station: All concurrent tracks configured with varied priorities", NAME_None, 2.0f, ActiveColor);
+    }
+
+    USoundBase GetSoundAssetForTrackType(int32 InTrackIndex)
+    {
+        if (InTrackIndex < 3) // Thunder variants
+        {
+            return Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
+                ECk_AssetSearchScope::Plugins)._Asset);
+        }
+        else if (InTrackIndex < 5) // Interface variants
+        {
+            return Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
+                ECk_AssetSearchScope::Plugins)._Asset);
+        }
+        else // Ambient and music
+        {
+            return Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
+                ECk_AssetSearchScope::Plugins)._Asset);
+        }
+    }
+
+    void CreateTrackIndicators(FCk_Handle& InHandle)
+    {
+        TrackIndicators.Empty();
+
+        for (int32 i = 0; i < ConcurrentTrackTags.Num(); i++)
+        {
+            auto IndicatorParams = FCk_Fragment_IsmProxy_ParamsData(ck::Asset_StationMarker);
+            IndicatorParams._ScaleMultiplier = FVector(0.2f, 0.2f, 0.2f);
+
+            // Arrange indicators in a line above the station
+            // TODO: Position indicators based on index
+            auto Indicator = utils_ism_proxy::Add(InHandle, IndicatorParams);
+            TrackIndicators.Add(Indicator);
+        }
     }
 
     // Override base class overlap functions
     UFUNCTION(BlueprintOverride)
     void OnPlayerEnteredStation(FCk_Handle_Probe InProbe, FCk_Probe_Payload_OnBeginOverlap InOverlapInfo)
     {
-        if (IsStationActive == false)
-        {
-            StartConcurrencyTest();
-        }
-        else
-        {
-            // Player re-entered - spawn more sounds for continuous testing
-            SpawnMoreThunderSounds();
-        }
+        Super::OnPlayerEnteredStation(InProbe, InOverlapInfo);
+
+        StartConcurrencyTest();
     }
 
     UFUNCTION(BlueprintOverride)
     void OnPlayerExitedStation(FCk_Handle_Probe InProbe, FCk_Probe_Payload_OnEndOverlap InOverlapInfo)
     {
+        Super::OnPlayerExitedStation(InProbe, InOverlapInfo);
+
         StopConcurrencyTest();
     }
 
-        void StartConcurrencyTest()
+    void StartConcurrencyTest()
     {
-        IsStationActive = true;
-        UpdateVisualFeedback(true);
+        ck::Trace("Concurrency Test Started", NAME_None, 3.0f, ActiveColor);
+        ck::Trace("Multiple audio tracks will spawn automatically", NAME_None, 3.0f, FLinearColor(0.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("Watch the AudioDirector manage priority conflicts", NAME_None, 3.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 
-        // Spawn initial sounds to test concurrency
-        SpawnInitialThunderSounds();
+        IsSpawningConcurrentSounds = true;
+        CurrentSpawnIndex = 0;
+        TotalSoundsSpawned = 0;
 
-        // Start continuous spawning timer
-        StartContinuousSpawning();
+        // Start with a few immediate sounds
+        SpawnInitialConcurrentSounds();
 
-        Print("🎵 Concurrency Test Started - Walk in/out to spawn more", 3.0f);
-        Print("📊 Max Concurrent: 5 | Walk in/out for more sounds", 2.0f);
+        // Begin automatic spawning sequence
+        StartAutomaticSpawning();
+
+        DisplayConcurrencyInstructions();
     }
 
-        void StopConcurrencyTest()
+    void StopConcurrencyTest()
     {
-        IsStationActive = false;
-        UpdateVisualFeedback(false);
+        IsSpawningConcurrentSounds = false;
 
-        // Stop continuous spawning timer
-        StopContinuousSpawning();
+        // Stop automatic spawning
+        StopAutomaticSpawning();
 
-        // Stop all active audio cues
-        StopAllActiveSounds();
+        // Stop all active tracks
+        Request_StopAllTracks(FCk_Time(1.0f));
 
-        Print("🔇 Concurrency Test Stopped", 2.0f);
+        // Reset counters
+        CurrentSpawnIndex = 0;
+        TotalSoundsSpawned = 0;
+
+        ck::Trace("Concurrency Test Stopped", NAME_None, 2.0f, InactiveColor);
     }
 
-    void SpawnInitialThunderSounds()
+    void SpawnInitialConcurrentSounds()
     {
-        // Spawn initial thunder sounds to test concurrency
-        for (int32 i = 0; i < 2; i++)
+        // Spawn a few sounds immediately to start the test
+        for (int32 i = 0; i < 3; i++)
         {
-            SpawnThunderSound();
+            SpawnNextConcurrentSound();
         }
     }
 
-    void SpawnMoreThunderSounds()
+    void StartAutomaticSpawning()
     {
-        // Spawn 1-2 more thunder sounds when player re-enters
-        for (int32 i = 0; i < 2; i++)
+        // TODO: In a real implementation, use utils_timer to create periodic spawning
+        // For now, spawn sounds in sequence
+        ck::Trace("Automatic spawning started", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 0.0f, 1.0f));
+
+        // Continue spawning sounds manually for demonstration
+        for (int32 i = 0; i < 5; i++)
         {
-            SpawnThunderSound();
-        }
-        Print("🔄 Spawned more thunder sounds!", 2.0f);
-    }
-
-    void StartContinuousSpawning()
-    {
-        // For now, just spawn initial sounds
-        // Continuous spawning can be triggered manually or through other means
-        Print("🔄 Continuous spawning ready - spawn more by re-entering", 2.0f);
-    }
-
-    void StopContinuousSpawning()
-    {
-        // Stop any spawning activity
-        Print("⏹️ Continuous spawning stopped", 1.0f);
-    }
-
-    void SpawnThunderSound()
-    {
-        // Check if we can play more sounds
-        if (ActiveAudioCues.Num() < MaxConcurrentSounds)
-        {
-            // Execute a new thunder audio cue with proper transform
-            auto SelfEntity = ck::SelfEntity(this);
-
-            // Create spawn params with the station's transform
-            auto SpawnParams = FCkAudioGym_Advanced_AudioCue_SpawnParams();
-            SpawnParams.Transform = Transform; // Use the station's transform
-
-            auto Str = FInstancedStruct();
-            Str.InitializeAs(SpawnParams);
-            auto PendingEntityScript = utils_cue::Request_Execute_Local(SelfEntity, AudioCueTag, Str);
-
-            PendingEntityScript.Promise_OnConstructed(FCk_Delegate_EntityScript_Constructed(this, n"OnThunderSoundComplete"));
-
-            Print("⚡ Thunder sound spawned", 1.0f);
-        }
-        else
-        {
-            Print("🚫 Max concurrent sounds reached", 2.0f);
+            SpawnNextConcurrentSound();
         }
     }
 
-        UFUNCTION()
-    private void OnThunderSoundComplete(FCk_Handle_EntityScript InEntityScriptHandle)
+    void StopAutomaticSpawning()
     {
-        auto Entity = InEntityScriptHandle;
-        auto AudioCue = Entity.H().To_FCk_Handle_AudioCue();
-
-        if (ck::IsValid(AudioCue))
+        if (ck::IsValid(SpawnTimer))
         {
-            // Add to active cues list
-            ActiveAudioCues.Add(AudioCue);
-
-            Print("⚡ Thunder spawned", 1.0f);
+            utils_timer::Request_Stop(SpawnTimer);
         }
     }
 
-
-
-    void StopAllActiveSounds()
+    void SpawnNextConcurrentSound()
     {
-        // Stop all currently playing sounds
-        for (auto AudioCue : ActiveAudioCues)
+        if (IsSpawningConcurrentSounds == false || CurrentSpawnIndex >= ConcurrentTrackTags.Num())
         {
-            if (ck::IsValid(AudioCue))
-            {
-                utils_audio_cue::Request_StopAll(AudioCue, FCk_Time(0.2f));
-            }
+            CurrentSpawnIndex = 0; // Wrap around to continue cycling
         }
 
-        ActiveAudioCues.Empty();
-        Print("🔇 All active sounds stopped", 2.0f);
+        auto TrackTag = ConcurrentTrackTags[CurrentSpawnIndex];
+        auto Priority = 30 + (CurrentSpawnIndex * 5);
+
+        Request_StartTrack_WithParams(TrackTag, Priority, FCk_Time(0.3f));
+
+        TotalSoundsSpawned++;
+        CurrentSpawnIndex++;
+
+        ck::Trace(f"Spawned concurrent sound #{TotalSoundsSpawned}: {TrackTag.ToString()}", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 0.0f, 1.0f));
+
+        DisplayConcurrencyStats();
     }
 
-    // Override visual feedback to show concurrency status
-    void UpdateVisualFeedback(bool bIsAudioPlaying)
+    void DisplayConcurrencyInstructions()
     {
-        if (bIsAudioPlaying)
+        ck::Trace("CONCURRENCY TEST FEATURES:", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 0.0f, 1.0f));
+        ck::Trace(f"Maximum concurrent tracks: {MaxConcurrentTracks}", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("Priority-based track management enabled", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("Multiple override behaviors tested:", NAME_None, 2.0f, FLinearColor(0.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("• Thunder: Queue behavior", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("• Interface: Interrupt behavior", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("• Ambient/Music: Crossfade behavior", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+    }
+
+    void DisplayConcurrencyStats()
+    {
+        auto ActiveTracks = Get_ActiveTrackCount();
+        auto HighestPriority = Get_CurrentHighestPriority();
+
+        ck::Trace(f"Active tracks: {ActiveTracks}/{MaxConcurrentTracks}", NAME_None, 1.5f, FLinearColor(0.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace(f"Total spawned: {TotalSoundsSpawned}", NAME_None, 1.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace(f"Highest priority: {HighestPriority}", NAME_None, 1.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+
+        if (ActiveTracks >= MaxConcurrentTracks)
         {
-            Print("🎵 Concurrency Test Active", 2.0f);
+            ck::Trace("MAXIMUM CONCURRENCY REACHED", NAME_None, 2.0f, FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
+            ck::Trace("AudioDirector managing track priorities", NAME_None, 2.0f, FLinearColor(1.0f, 0.5f, 0.0f, 1.0f));
         }
-        else
+    }
+
+    // Public interface for manual control
+    UFUNCTION()
+    void TriggerConcurrentSoundBurst()
+    {
+        if (PlayerInside == false)
         {
-            Print("🔇 Concurrency Test Inactive", 2.0f);
+            return;
         }
+
+        ck::Trace("Triggering concurrent sound burst", NAME_None, 2.0f, ActiveColor);
+
+        // Spawn multiple sounds rapidly to stress test the system
+        for (int32 i = 0; i < 4; i++)
+        {
+            SpawnNextConcurrentSound();
+        }
+    }
+
+    UFUNCTION()
+    void TriggerHighPrioritySounds()
+    {
+        if (PlayerInside == false)
+        {
+            return;
+        }
+
+        ck::Trace("Triggering high priority sounds", NAME_None, 2.0f, ActiveColor);
+
+        // Spawn interface sounds with very high priority to test interruption
+        for (int32 i = 3; i < 5; i++) // Interface track indices
+        {
+            auto TrackTag = ConcurrentTrackTags[i];
+            Request_StartTrack_WithParams(TrackTag, 90 + i, FCk_Time(0.1f));
+        }
+    }
+
+    UFUNCTION()
+    void TriggerCrossfadeTest()
+    {
+        if (PlayerInside == false)
+        {
+            return;
+        }
+
+        ck::Trace("Testing crossfade behavior with concurrent tracks", NAME_None, 2.0f, ActiveColor);
+
+        // Start ambient tracks with crossfade behavior
+        for (int32 i = 5; i < ConcurrentTrackTags.Num(); i++) // Ambient/music indices
+        {
+            auto TrackTag = ConcurrentTrackTags[i];
+            Request_StartTrack_WithParams(TrackTag, 40 + i, FCk_Time(2.0f));
+        }
+    }
+
+    UFUNCTION()
+    void DemonstratePriorityPreemption()
+    {
+        ck::Trace("Demonstrating priority-based preemption", NAME_None, 3.0f, ActiveColor);
+
+        // Fill up concurrent slots with low priority
+        for (int32 i = 0; i < MaxConcurrentTracks; i++)
+        {
+            auto TrackTag = ConcurrentTrackTags[i % ConcurrentTrackTags.Num()];
+            Request_StartTrack_WithParams(TrackTag, 20, FCk_Time(0.2f)); // Low priority
+        }
+
+        // Then trigger high priority sound that should preempt
+        auto HighPriorityTag = ConcurrentTrackTags[4]; // Interface sound
+        Request_StartTrack_WithParams(HighPriorityTag, 95, FCk_Time(0.1f));
+
+        ck::Trace("High priority sound should preempt lower priority tracks", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 0.0f, 1.0f));
+    }
+
+    // Status reporting
+    UFUNCTION()
+    int32 Get_TotalSoundsSpawned()
+    {
+        return TotalSoundsSpawned;
+    }
+
+    UFUNCTION()
+    bool Get_IsSpawningActive()
+    {
+        return IsSpawningConcurrentSounds;
+    }
+
+    UFUNCTION()
+    int32 Get_MaxConcurrentTracks()
+    {
+        return MaxConcurrentTracks;
+    }
+
+    UFUNCTION()
+    float Get_ConcurrencyUtilization()
+    {
+        auto ActiveTracks = Get_ActiveTrackCount();
+        return float(ActiveTracks) / float(MaxConcurrentTracks);
     }
 }

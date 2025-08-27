@@ -1,6 +1,3 @@
-// Advanced AudioGym AudioCues
-// Spatial, Music, Combat, and Activity audio definitions
-
 // Spawn parameters for AudioGym Advanced AudioCues
 struct FCkAudioGym_Advanced_AudioCue_SpawnParams
 {
@@ -8,108 +5,147 @@ struct FCkAudioGym_Advanced_AudioCue_SpawnParams
     FTransform Transform;
 }
 
-// Advanced Sound Attenuation for spatial audio testing
+// Advanced Sound Attenuation for comprehensive spatial testing
 asset Asset_SoundAttenuation_Advanced of USoundAttenuation
 {
-    // Enable volume attenuation and spatialization
     Attenuation.bAttenuate = true;
     Attenuation.bSpatialize = true;
 
-    // Distance-based volume attenuation
-    // Note: Basic attenuation is enabled, distance settings configured in Blueprint editor
+    // Comprehensive distance-based attenuation curve
+    Attenuation.AttenuationShape = EAttenuationShape::Sphere;
+    Attenuation.FalloffDistance = 800.0f;
+    Attenuation.AttenuationShapeExtents = FVector(400.0f, 400.0f, 400.0f);
 
-    // Volume curve - starts at full volume, drops to 20% at max distance
-    // Note: Curve setup would be done in Blueprint editor for complex curves
-
-    // Enable air absorption (low-pass filter based on distance)
+    // Advanced low-pass filtering for realistic air absorption
     Attenuation.bAttenuateWithLPF = true;
-    Attenuation.LPFRadiusMin = 100.0f;
-    Attenuation.LPFRadiusMax = 1000.0f;
-    Attenuation.LPFFrequencyAtMin = 20000.0f; // Full frequency at close range
-    Attenuation.LPFFrequencyAtMax = 2000.0f;  // Low-pass at far range
+    Attenuation.LPFRadiusMin = 200.0f;
+    Attenuation.LPFRadiusMax = 1200.0f;
+    Attenuation.LPFFrequencyAtMin = 20000.0f;
+    Attenuation.LPFFrequencyAtMax = 1500.0f;
 
-    // Enable reverb send based on distance
+    // Dynamic reverb based on distance
     Attenuation.bEnableReverbSend = true;
     Attenuation.ReverbSendMethod = EReverbSendMethod::Linear;
-    Attenuation.ReverbDistanceMin = 100.0f;
-    Attenuation.ReverbDistanceMax = 1000.0f;
-    Attenuation.ReverbWetLevelMin = 0.0f;   // No reverb at close range
-    Attenuation.ReverbWetLevelMax = 0.3f;   // Some reverb at far range
+    Attenuation.ReverbDistanceMin = 200.0f;
+    Attenuation.ReverbDistanceMax = 1200.0f;
+    Attenuation.ReverbWetLevelMin = 0.1f;
+    Attenuation.ReverbWetLevelMax = 0.5f;
 
-    // Enable priority attenuation based on distance
+    // Priority attenuation for intelligent culling
     Attenuation.bEnablePriorityAttenuation = true;
     Attenuation.PriorityAttenuationMethod = EPriorityAttenuationMethod::Linear;
-    Attenuation.PriorityAttenuationDistanceMin = 100.0f;
-    Attenuation.PriorityAttenuationDistanceMax = 1000.0f;
-    Attenuation.PriorityAttenuationMin = 1.0f;  // Full priority at close range
-    Attenuation.PriorityAttenuationMax = 0.3f;  // Reduced priority at far range
+    Attenuation.PriorityAttenuationDistanceMin = 300.0f;
+    Attenuation.PriorityAttenuationDistanceMax = 1500.0f;
+    Attenuation.PriorityAttenuationMin = 1.0f;
+    Attenuation.PriorityAttenuationMax = 0.2f;
 
-    // Non-spatialized radius for very close sounds
-    Attenuation.NonSpatializedRadiusStart = 50.0f;
-    Attenuation.NonSpatializedRadiusEnd = 25.0f;
-    Attenuation.NonSpatializedRadiusMode = ENonSpatializedRadiusSpeakerMapMode::OmniDirectional;
+    // Non-spatialized radius for intimate sounds
+    Attenuation.NonSpatializedRadiusStart = 100.0f;
+    Attenuation.NonSpatializedRadiusEnd = 50.0f;
 }
 
-// Advanced Spatial Thunder AudioCue (3D positioned, one-shot)
-class UCk_AdvancedSpatialThunderCue : UCk_AudioCue_EntityScript
+// Close Range Attenuation for UI and pickup sounds
+asset Asset_SoundAttenuation_CloseRange of USoundAttenuation
 {
-    default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Spatial.Thunder");
-    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
+    Attenuation.bAttenuate = true;
+    Attenuation.bSpatialize = true;
 
+    Attenuation.AttenuationShape = EAttenuationShape::Sphere;
+    Attenuation.FalloffDistance = 300.0f;
+    Attenuation.AttenuationShapeExtents = FVector(150.0f, 150.0f, 150.0f);
+
+    // Minimal LPF for UI clarity
+    Attenuation.bAttenuateWithLPF = true;
+    Attenuation.LPFRadiusMin = 50.0f;
+    Attenuation.LPFRadiusMax = 300.0f;
+    Attenuation.LPFFrequencyAtMin = 20000.0f;
+    Attenuation.LPFFrequencyAtMax = 8000.0f;
+}
+
+// Multi-Track Advanced Music AudioCue for complex musical arrangements
+class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
+{
     UPROPERTY(ExposeOnSpawn)
     FTransform Transform;
 
-    default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
+    default _SourcePriority = ECk_AudioCue_SourcePriority::LibraryOnly;
+    default _SelectionMode = ECk_AudioCue_SelectionMode::MoodBased;
+    default _DefaultCrossfadeDuration = FCk_Time(3.0f);
+    default _MaxConcurrentTracks = 4;
+    default _SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
 
-    // Load the Thunder sound asset and set up the track
-    default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Spatial.Thunder.Track"),
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
-            ECk_AssetSearchScope::Plugins)._Asset));
-
-    // Configure as spatial 3D audio
-    default _SingleTrack._Priority = 50;
-    default _SingleTrack._Loop = false;
-    default _SingleTrack._Volume = 0.8f;
-    default _SingleTrack._DefaultFadeInTime = FCk_Time(0.2f);
-    default _SingleTrack._DefaultFadeOutTime = FCk_Time(0.2f);
-    default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
-
-    UFUNCTION(BlueprintOverride)
-    ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+    // Build comprehensive music library with proper sound assets
+    TArray<FCk_Fragment_AudioTrack_ParamsData> BuildTrackLibrary()
     {
-        utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
-        return ECk_EntityScript_ConstructionFlow::Finished;
-    }
-}
+        auto TrackLibrary = TArray<FCk_Fragment_AudioTrack_ParamsData>();
 
-// Advanced Music AudioCue (3D positioned, looping with attenuation)
-class UCk_AdvancedMusicCue : UCk_AudioCue_EntityScript
-{
+        // Ambient base layer (lowest priority, always playing)
+        auto Track1 = FCk_Fragment_AudioTrack_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Music.Ambient.Base"),
+            Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
+                ECk_AssetSearchScope::Plugins)._Asset));
+
+        Track1._Priority = 10;
+        Track1._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
+        Track1._LoopBehavior = ECk_LoopBehavior::Loop;
+        Track1._Volume = 0.4f;
+        Track1._DefaultFadeInTime = FCk_Time(2.0f);
+        Track1._DefaultFadeOutTime = FCk_Time(2.0f);
+        Track1._LibraryAttenuationSettings = Asset_SoundAttenuation_Advanced;
+        TrackLibrary.Add(Track1);
+
+        // Melodic layer (medium priority)
+        auto Track2 = FCk_Fragment_AudioTrack_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Music.Melodic.Layer"),
+            Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
+                ECk_AssetSearchScope::Plugins)._Asset));
+
+        Track2._Priority = 30;
+        Track2._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
+        Track2._LoopBehavior = ECk_LoopBehavior::Loop;
+        Track2._Volume = 0.6f;
+        Track2._DefaultFadeInTime = FCk_Time(1.5f);
+        Track2._DefaultFadeOutTime = FCk_Time(1.5f);
+        Track2._LibraryAttenuationSettings = Asset_SoundAttenuation_Advanced;
+        TrackLibrary.Add(Track2);
+
+        // Percussion layer (high priority, intermittent)
+        auto Track3 = FCk_Fragment_AudioTrack_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Music.Percussion.Layer"),
+            Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
+                ECk_AssetSearchScope::Plugins)._Asset));
+
+        Track3._Priority = 50;
+        Track3._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Queue;
+        Track3._LoopBehavior = ECk_LoopBehavior::PlayOnce;
+        Track3._Volume = 0.7f;
+        Track3._DefaultFadeInTime = FCk_Time(0.5f);
+        Track3._DefaultFadeOutTime = FCk_Time(1.0f);
+        Track3._LibraryAttenuationSettings = Asset_SoundAttenuation_Advanced;
+        TrackLibrary.Add(Track3);
+
+        // Dynamic stinger (highest priority, interrupts)
+        auto Track4 = FCk_Fragment_AudioTrack_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Music.Stinger.Dynamic"),
+            Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
+                ECk_AssetSearchScope::Plugins)._Asset));
+
+        Track4._Priority = 80;
+        Track4._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
+        Track4._LoopBehavior = ECk_LoopBehavior::PlayOnce;
+        Track4._Volume = 0.8f;
+        Track4._DefaultFadeInTime = FCk_Time(0.1f);
+        Track4._DefaultFadeOutTime = FCk_Time(0.5f);
+        Track4._LibraryAttenuationSettings = Asset_SoundAttenuation_Advanced;
+        TrackLibrary.Add(Track4);
+
+        return TrackLibrary;
+    }
+
     default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Music.Background");
+    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Music.Orchestral");
     default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Persistent;
-
-    UPROPERTY(ExposeOnSpawn)
-    FTransform Transform;
-
-    default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
-
-    // Load the background music asset and set up the track
-    default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Music.Background.Track"),
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
-            ECk_AssetSearchScope::Plugins)._Asset));
-
-    // Configure as spatial looping music with attenuation
-    default _SingleTrack._Priority = 30;
-    default _SingleTrack._Loop = true;
-    default _SingleTrack._Volume = 0.6f;
-    default _SingleTrack._DefaultFadeInTime = FCk_Time(1.0f);
-    default _SingleTrack._DefaultFadeOutTime = FCk_Time(1.0f);
-    default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-    default _SingleTrack._LibraryAttenuationSettings = Asset_SoundAttenuation_Advanced;
+    default _TrackLibrary = BuildTrackLibrary();
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -119,31 +155,42 @@ class UCk_AdvancedMusicCue : UCk_AudioCue_EntityScript
     }
 }
 
-// Interface Stinger AudioCue (UI sounds)
-class UCk_AdvancedInterfaceStingerCue : UCk_AudioCue_EntityScript
+// Concurrency Test AudioCue - Multiple thunder sounds with priority management
+class UCk_AdvancedConcurrencyTestCue : UCk_AudioCue_EntityScript
 {
-    default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Stinger");
-    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
-
     UPROPERTY(ExposeOnSpawn)
     FTransform Transform;
 
+    default _Replication = ECk_Replication::DoesNotReplicate;
+    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Thunder");
+    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
 
-    // Load the Interface stinger sound
-    default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Stinger.Track"),
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
-            ECk_AssetSearchScope::Plugins)._Asset));
+    // Configure for concurrency testing
+    default _DefaultCrossfadeDuration = FCk_Time(0.5f);
+    default _MaxConcurrentTracks = 8;
+    default _SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
 
-    // Configure as interface sound
-    default _SingleTrack._Priority = 60;
-    default _SingleTrack._Loop = false;
-    default _SingleTrack._Volume = 0.8f;
-    default _SingleTrack._DefaultFadeInTime = FCk_Time(0.0f);
-    default _SingleTrack._DefaultFadeOutTime = FCk_Time(0.1f);
-    default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
+    // Build the single track properly with sound asset
+    FCk_Fragment_AudioTrack_ParamsData BuildSingleTrack()
+    {
+        auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Thunder.Track"),
+            Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
+                ECk_AssetSearchScope::Plugins)._Asset));
+
+        TrackParams._Priority = 40;
+        TrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Queue;
+        TrackParams._LoopBehavior = ECk_LoopBehavior::PlayOnce;
+        TrackParams._Volume = 0.8f;
+        TrackParams._DefaultFadeInTime = FCk_Time(0.2f);
+        TrackParams._DefaultFadeOutTime = FCk_Time(0.2f);
+        TrackParams._LibraryAttenuationSettings = Asset_SoundAttenuation_Advanced;
+
+        return TrackParams;
+    }
+
+    default _SingleTrack = BuildSingleTrack();
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -153,31 +200,37 @@ class UCk_AdvancedInterfaceStingerCue : UCk_AudioCue_EntityScript
     }
 }
 
-// Level Up Stinger AudioCue (achievement sounds)
-class UCk_AdvancedLevelUpStingerCue : UCk_AudioCue_EntityScript
+// Enhanced Interface Pickup Audio - Close range, high clarity
+class UCk_AdvancedInterfacePickupCue : UCk_AudioCue_EntityScript
 {
-    default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.LevelUp.Stinger");
-    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
-
     UPROPERTY(ExposeOnSpawn)
     FTransform Transform;
 
+    default _Replication = ECk_Replication::DoesNotReplicate;
+    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Pickup");
+    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
 
-    // Load the Interface stinger sound (known working)
-    default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.LevelUp.Stinger.Track"),
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
-            ECk_AssetSearchScope::Plugins)._Asset));
+    // Build the single track properly with sound asset
+    FCk_Fragment_AudioTrack_ParamsData BuildSingleTrack()
+    {
+        auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Pickup.Track"),
+            Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
+                ECk_AssetSearchScope::Plugins)._Asset));
 
-    // Configure as level up sound
-    default _SingleTrack._Priority = 70;
-    default _SingleTrack._Loop = false;
-    default _SingleTrack._Volume = 0.9f;
-    default _SingleTrack._DefaultFadeInTime = FCk_Time(0.0f);
-    default _SingleTrack._DefaultFadeOutTime = FCk_Time(0.2f);
-    default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
+        TrackParams._Priority = 70;
+        TrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
+        TrackParams._LoopBehavior = ECk_LoopBehavior::PlayOnce;
+        TrackParams._Volume = 0.8f;
+        TrackParams._DefaultFadeInTime = FCk_Time(0.0f);
+        TrackParams._DefaultFadeOutTime = FCk_Time(0.1f);
+        TrackParams._LibraryAttenuationSettings = Asset_SoundAttenuation_CloseRange;
+
+        return TrackParams;
+    }
+
+    default _SingleTrack = BuildSingleTrack();
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -187,31 +240,37 @@ class UCk_AdvancedLevelUpStingerCue : UCk_AudioCue_EntityScript
     }
 }
 
-// Notifications Stinger AudioCue (alert sounds)
-class UCk_AdvancedNotificationsStingerCue : UCk_AudioCue_EntityScript
+// Enhanced Achievement Audio - Celebration sounds
+class UCk_AdvancedAchievementCue : UCk_AudioCue_EntityScript
 {
-    default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Notifications.Stinger");
-    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
-
     UPROPERTY(ExposeOnSpawn)
     FTransform Transform;
 
+    default _Replication = ECk_Replication::DoesNotReplicate;
+    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Achievement.Fanfare");
+    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
 
-    // Load the Interface stinger sound (known working)
-    default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Notifications.Stinger.Track"),
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
-            ECk_AssetSearchScope::Plugins)._Asset));
+    // Build the single track properly with sound asset
+    FCk_Fragment_AudioTrack_ParamsData BuildSingleTrack()
+    {
+        auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Achievement.Fanfare.Track"),
+            Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
+                ECk_AssetSearchScope::Plugins)._Asset));
 
-    // Configure as notification sound
-    default _SingleTrack._Priority = 65;
-    default _SingleTrack._Loop = false;
-    default _SingleTrack._Volume = 0.7f;
-    default _SingleTrack._DefaultFadeInTime = FCk_Time(0.0f);
-    default _SingleTrack._DefaultFadeOutTime = FCk_Time(0.15f);
-    default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
+        TrackParams._Priority = 90;
+        TrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
+        TrackParams._LoopBehavior = ECk_LoopBehavior::PlayOnce;
+        TrackParams._Volume = 1.0f;
+        TrackParams._DefaultFadeInTime = FCk_Time(0.0f);
+        TrackParams._DefaultFadeOutTime = FCk_Time(0.5f);
+        TrackParams._LibraryAttenuationSettings = Asset_SoundAttenuation_CloseRange;
+
+        return TrackParams;
+    }
+
+    default _SingleTrack = BuildSingleTrack();
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
