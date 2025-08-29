@@ -144,7 +144,6 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
 
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Music.Orchestral");
-    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Persistent;
     default _TrackLibrary = BuildTrackLibrary();
 
     UFUNCTION(BlueprintOverride)
@@ -163,7 +162,6 @@ class UCk_AdvancedConcurrencyTestCue : UCk_AudioCue_EntityScript
 
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Thunder");
-    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
 
     // Configure for concurrency testing
@@ -208,7 +206,6 @@ class UCk_AdvancedInterfacePickupCue : UCk_AudioCue_EntityScript
 
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Pickup");
-    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
 
     // Build the single track properly with sound asset
@@ -248,7 +245,6 @@ class UCk_AdvancedAchievementCue : UCk_AudioCue_EntityScript
 
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Achievement.Fanfare");
-    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
 
     // Build the single track properly with sound asset

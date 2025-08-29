@@ -42,7 +42,7 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.SpatialAudio");
-    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Transient;
+    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::AfterOneFrame;
 
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
     default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
