@@ -1,0 +1,482 @@
+// Language-angelscript
+
+//============================================================================
+// CK FRAMEWORK GYM CREATION SPECIFICATION
+//============================================================================
+
+/*
+CRITICAL: This specification is for creating test gyms in the Ck Framework.
+Use this when creating new gyms to test specific framework features.
+All gyms follow standardized patterns for consistency and ease of development.
+*/
+
+//============================================================================
+// 1. ARCHITECTURE OVERVIEW
+//============================================================================
+
+// Client-Server Safe Architecture:
+// - All gym logic is in PlayerController (exists on both client/server)
+// - No dependencies on GameMode availability timing
+// - GameMode is minimal - just inheritance setup
+// - PlayerController contains all metadata and startup logic
+
+//============================================================================
+// 2. BASE CLASSES (REQUIRED)
+//============================================================================
+
+// All gyms MUST inherit from these base classes:
+// GameMode: ACk_Gym_Base_GameMode
+// PlayerController: ACk_Gym_Base_PlayerController
+// Pawn: ACk_Gym_Base_Pawn (can be used directly or inherited from)
+
+//============================================================================
+// 3. FILE STRUCTURE STANDARD
+//============================================================================
+
+// Required file structure for each gym:
+// Script/CkGyms/[GymName]/
+// ├── Ck[GymName]Gym_GameMode.as
+// ├── Ck[GymName]Gym_PlayerController.as
+// ├── Ck[GymName]Gym_Pawn.as (optional - can use base class directly)
+// └── Ck[GymName]Gym_[FeatureScripts].as (feature-specific entity scripts, assets, etc.)
+
+//============================================================================
+// 4. NAMING CONVENTIONS
+//============================================================================
+
+// Class Names:
+// GameMode: ACk_[GymName]Gym_GameMode
+// PlayerController: ACk_[GymName]Gym_PlayerController
+// Pawn: ACk_[GymName]Gym_Pawn (if needed)
+// Entity Scripts: UCk_[GymName][Feature]_EntityScript
+
+// FName Tags for Station Discovery (hierarchical):
+// Format: Gym.[GymCategory].[SpecificFeature]
+// Examples:
+// - Gym.Audio.BackgroundMusic
+// - Gym.Audio.SpatialAudio
+// - Gym.Physics.RigidBody
+// - Gym.Rendering.MaterialSwap
+
+// Console Commands:
+// Format: Ck_Gym[GymName]_[Action]
+// Examples:
+// - Ck_GymAudioSimple_RestartBackgroundMusic
+// - Ck_GymPhysics_ResetSimulation
+
+//============================================================================
+// 5. GAMEMODE TEMPLATE (MINIMAL)
+//============================================================================
+
+// GameMode is now minimal - all logic moved to PlayerController
+class ACk_[GymName]Gym_GameMode : ACk_Gym_Base_GameMode
+{
+    default PlayerControllerClass = ACk_[GymName]Gym_PlayerController;
+    default DefaultPawnClass = ACk_Gym_Base_Pawn; // or custom pawn class if needed
+
+    // GameMode now only handles basic game setup
+    // All gym-specific logic is in PlayerController for client-server safety
+}
+
+//============================================================================
+// 6. PLAYERCONTROLLER TEMPLATE (MAIN GYM LOGIC)
+//============================================================================
+
+class ACk_[GymName]Gym_PlayerController : ACk_Gym_Base_PlayerController
+{
+    //------------------------------------------------------------------------
+    // REQUIRED OVERRIDES - Gym Metadata
+    //------------------------------------------------------------------------
+
+    FString Get_GymName() override
+    {
+        return "[Gym Display Name]";
+    }
+
+    FString Get_GymDescription() override
+    {
+        return "Tests [specific features] of the Ck Framework";
+    }
+
+    TArray<FString> Get_RequiredStationTags() override
+    {
+        auto RequiredTags = TArray<FString>();
+        RequiredTags.Add("Gym.[Category].[Feature1]");
+        RequiredTags.Add("Gym.[Category].[Feature2]");
+        // Add all required station tags here
+        return RequiredTags;
+    }
+
+    //------------------------------------------------------------------------
+    // MAIN GYM STARTUP LOGIC
+    //------------------------------------------------------------------------
+
+    void Request_StartGym() override
+    {
+        // Base class automatically validates stations before calling this
+        // Implement gym-specific startup logic here
+        Request_Start[Feature1]();
+        Request_Start[Feature2]();
+
+        ck::Trace("[GymName] Gym - All features started");
+    }
+
+    //------------------------------------------------------------------------
+    // FEATURE IMPLEMENTATION FUNCTIONS
+    //------------------------------------------------------------------------
+
+    void Request_Start[Feature1]()
+    {
+        // Get station transform using base class utility (handles missing stations gracefully)
+        auto StationTransform = Get_StationTransform("Gym.[Category].[Feature1]");
+
+        // Implement feature startup logic:
+        // - Spawn entities at station location
+        // - Execute audio cues
+        // - Start physics simulations
+        // - etc.
+
+        ck::Trace("✅ [Feature1] started at station location");
+    }
+
+    void Request_Start[Feature2]()
+    {
+        auto StationTransform = Get_StationTransform("Gym.[Category].[Feature2]");
+
+        // Implement second feature startup logic
+
+        ck::Trace("✅ [Feature2] started at station location");
+    }
+
+    //------------------------------------------------------------------------
+    // CONSOLE COMMANDS FOR TESTING
+    //------------------------------------------------------------------------
+
+    UFUNCTION(Exec, DisplayName="[GymName] Gym - Restart [Feature1]")
+    void Ck_Gym[GymName]_Restart[Feature1]()
+    {
+        Request_Start[Feature1]();
+    }
+
+    UFUNCTION(Exec, DisplayName="[GymName] Gym - Restart [Feature2]")
+    void Ck_Gym[GymName]_Restart[Feature2]()
+    {
+        Request_Start[Feature2]();
+    }
+
+    // Add more console commands as needed for individual feature testing
+}
+
+//============================================================================
+// 7. PAWN TEMPLATE (OPTIONAL)
+//============================================================================
+
+// Only create custom pawn if special behavior is needed
+// Otherwise, use ACk_Gym_Base_Pawn directly in GameMode
+UCLASS()
+class ACk_[GymName]Gym_Pawn : ACk_Gym_Base_Pawn
+{
+    // Override Request_OnPawnReady() if custom pawn behavior is needed
+    void Request_OnPawnReady() override
+    {
+        // Custom pawn initialization logic here
+        Super::Request_OnPawnReady();
+    }
+}
+
+//============================================================================
+// 8. STATION SETUP IN LEVEL
+//============================================================================
+
+// BP_DemoDisplay Actor Setup:
+// 1. Place BP_DemoDisplay actors in level at desired locations
+// 2. Add FName tags (NOT Gameplay Tags) using standardized naming
+// 3. Example: Add "Gym.Audio.BackgroundMusic" as FName tag to actor
+// 4. Tags are added in actor's "Tags" array property
+
+// Tag Naming Rules:
+// 1. Always start with "Gym."
+// 2. Second level: broad category (Audio, Physics, Rendering, etc.)
+// 3. Third level: specific feature being tested
+// 4. Use PascalCase for readability
+// 5. Keep names descriptive but concise
+
+//============================================================================
+// 9. BUILT-IN CONSOLE COMMANDS (INHERITED)
+//============================================================================
+
+// Standard commands available in ALL gyms (inherited from base class):
+// Ck_Gym_ShowInfo - Display gym name, description, and required stations
+// Ck_Gym_ValidateStations - Validate all required stations exist in level
+// Ck_Gym_Restart - Restart the entire gym
+
+//============================================================================
+// 10. LOGGING STANDARDS
+//============================================================================
+
+// Use standardized logging functions:
+// ck::Trace() - General information, successful operations
+// ck::Warning() - Non-critical issues, fallbacks used
+// ck::Error() - Critical failures, missing requirements
+
+// Logging Patterns:
+// Successful operations:
+ck::Trace("✅ [Feature] started successfully");
+ck::Trace("🎵 Background music playing"); // Use emojis for visual categorization
+
+// Warnings:
+ck::Warning("❌ Station not found, using default location");
+
+// Errors:
+ck::Error("❌ Critical component missing - [Feature] cannot start");
+
+//============================================================================
+// 11. COMMON IMPLEMENTATION PATTERNS
+//============================================================================
+
+//------------------------------------------------------------------------
+// AUDIO GYM PATTERN
+//------------------------------------------------------------------------
+
+void Request_StartAudioFeature()
+{
+    auto StationTransform = Get_StationTransform("Gym.Audio.FeatureName");
+
+    utils_cue_executor::Request_ExecuteCue_Local(ck::SelfEntity(this),
+        utils_gameplay_tag::ResolveGameplayTag(n"Audio.Cue.Tag"),
+        FAudioCueTransform(StationTransform));
+
+    ck::Trace("🎵 Audio feature started at station location");
+}
+
+//------------------------------------------------------------------------
+// ENTITY SPAWNING PATTERN
+//------------------------------------------------------------------------
+
+void Request_SpawnEntityAtStation()
+{
+    auto StationTransform = Get_StationTransform("Gym.Category.Feature");
+    auto SpawnParams = FCk_EntityScript_SpawnParams_WithTransform();
+    SpawnParams.Set_Transform(StationTransform);
+
+    auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
+        ck::SelfEntity(this),
+        UCk_MyEntityScript,
+        SpawnParams
+    );
+
+    if (!ck::IsValid(SpawnRequest))
+    {
+        ck::Error("❌ Failed to spawn entity at station");
+        return;
+    }
+
+    ck::Trace("✅ Entity spawned at station location");
+}
+
+//------------------------------------------------------------------------
+// PHYSICS GYM PATTERN
+//------------------------------------------------------------------------
+
+void Request_StartPhysicsFeature()
+{
+    auto StationTransform = Get_StationTransform("Gym.Physics.RigidBody");
+
+    // Spawn physics entities at station
+    // Set up physics simulation parameters
+    // Add timer systems for automated testing
+
+    ck::Trace("⚡ Physics feature started at station location");
+}
+
+//============================================================================
+// 12. ERROR HANDLING PATTERNS
+//============================================================================
+
+//------------------------------------------------------------------------
+// STATION ACCESS (AUTOMATIC VIA BASE CLASS)
+//------------------------------------------------------------------------
+
+// Base class automatically validates all required stations before starting gym
+// Individual station access with graceful fallbacks:
+auto StationTransform = Get_StationTransform("Gym.Category.Feature");
+// Base class handles missing station warnings and returns FTransform::Identity as fallback
+
+//------------------------------------------------------------------------
+// ENTITY SPAWNING ERROR HANDLING
+//------------------------------------------------------------------------
+
+auto SpawnRequest = utils_entity_script::Request_SpawnEntity(/* params */);
+if (!ck::IsValid(SpawnRequest))
+{
+    ck::Error("❌ Failed to spawn [Entity] - check entity script setup");
+    return;
+}
+ck::Trace("✅ [Entity] spawned successfully");
+
+//------------------------------------------------------------------------
+// AUDIO CUE ERROR HANDLING
+//------------------------------------------------------------------------
+
+auto AudioCueResult = utils_cue_executor::Request_ExecuteCue_Local(/* params */);
+if (!ck::IsValid(AudioCueResult))
+{
+    ck::Error("❌ Failed to execute audio cue - check cue setup");
+    return;
+}
+ck::Trace("🎵 Audio cue executed successfully");
+
+//============================================================================
+// 13. DEVELOPMENT WORKFLOW CHECKLIST
+//============================================================================
+
+/*
+BEFORE IMPLEMENTATION:
+[ ] Define what framework features the gym will test
+[ ] Plan required stations and their FName tags
+[ ] Choose appropriate station placement in level
+[ ] Define console commands for testing
+
+DURING IMPLEMENTATION:
+[ ] Create GameMode inheriting from ACk_Gym_Base_GameMode
+[ ] Create PlayerController inheriting from ACk_Gym_Base_PlayerController
+[ ] Override required metadata functions: Get_GymName(), Get_GymDescription(), Get_RequiredStationTags()
+[ ] Implement Request_StartGym() with gym-specific logic
+[ ] Add console commands for individual feature testing
+[ ] Use Get_StationTransform() utility for station positioning
+[ ] Add proper error handling and logging
+
+AFTER IMPLEMENTATION:
+[ ] Test station discovery works correctly (use Ck_Gym_ValidateStations)
+[ ] Verify all console commands function
+[ ] Test graceful handling of missing stations
+[ ] Test gym info display (Ck_Gym_ShowInfo)
+[ ] Test in both single-player and multiplayer
+[ ] Verify client-server compatibility (no GameMode dependencies in logic)
+*/
+
+//============================================================================
+// 14. QUICK REFERENCE FOR COMMON TASKS
+//============================================================================
+
+//------------------------------------------------------------------------
+// FINDING STATIONS
+//------------------------------------------------------------------------
+
+// Get station actor (with null check handling)
+auto StationActor = Get_StationByTag("Gym.Category.Feature");
+
+// Get station transform (with automatic fallback to FTransform::Identity)
+auto StationTransform = Get_StationTransform("Gym.Category.Feature");
+
+//------------------------------------------------------------------------
+// CONSOLE COMMAND PATTERN
+//------------------------------------------------------------------------
+
+UFUNCTION(Exec, DisplayName="[Gym Name] - [Action Description]")
+void Ck_Gym[GymName]_[Action]()
+{
+    Request_[Action]();
+}
+
+//------------------------------------------------------------------------
+// REQUIRED OVERRIDE FUNCTIONS
+//------------------------------------------------------------------------
+
+FString Get_GymName() override { return "My Gym Name"; }
+FString Get_GymDescription() override { return "Description of what this tests"; }
+TArray<FString> Get_RequiredStationTags() override
+{
+    auto Tags = TArray<FString>();
+    Tags.Add("Gym.Category.Feature");
+    return Tags;
+}
+void Request_StartGym() override { /* implement startup logic */ }
+
+//============================================================================
+// 15. ARCHITECTURE BENEFITS
+//============================================================================
+
+/*
+CLIENT-SERVER SAFE:
+- All gym logic is in PlayerController (exists on both client/server)
+- No dependencies on GameMode availability timing
+- Works consistently across network scenarios
+
+SELF-CONTAINED:
+- Each PlayerController contains all metadata and logic for its gym
+- No external dependencies for basic functionality
+- Easy to understand and modify
+
+STANDARDIZED EXPERIENCE:
+- Consistent console commands across all gyms
+- Automatic station validation
+- Unified logging and error handling
+
+EXTENSIBLE:
+- Easy to add new features to existing gyms
+- Common patterns documented and reusable
+- Base classes handle all boilerplate functionality
+*/
+
+//============================================================================
+// 16. EXAMPLE: SIMPLE AUDIO GYM IMPLEMENTATION
+//============================================================================
+
+// GameMode (minimal):
+class ACk_AudioGym_Simple_GameMode : ACk_Gym_Base_GameMode
+{
+    default PlayerControllerClass = ACk_AudioGym_Simple_PlayerController;
+    default DefaultPawnClass = ACk_Gym_Base_Pawn;
+}
+
+// PlayerController (contains all logic):
+class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
+{
+    FString Get_GymName() override { return "Simple Audio Gym"; }
+    FString Get_GymDescription() override { return "Tests basic AudioCue functionality: background music and spatial audio"; }
+
+    TArray<FString> Get_RequiredStationTags() override
+    {
+        auto RequiredTags = TArray<FString>();
+        RequiredTags.Add("Gym.Audio.BackgroundMusic");
+        RequiredTags.Add("Gym.Audio.SpatialAudio");
+        return RequiredTags;
+    }
+
+    void Request_StartGym() override
+    {
+        Request_StartBackgroundMusic();
+        Request_StartSpatialAudio();
+        ck::Trace("🎵 Simple Audio Gym - All audio features started");
+    }
+
+    void Request_StartBackgroundMusic()
+    {
+        auto StationTransform = Get_StationTransform("Gym.Audio.BackgroundMusic");
+        utils_cue_executor::Request_ExecuteCue_Local(ck::SelfEntity(this),
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.BackgroundMusic"),
+            FAudioCueTransform(StationTransform));
+        ck::Trace("🎵 Background music cue executed at demo display location");
+    }
+
+    void Request_StartSpatialAudio()
+    {
+        auto StationTransform = Get_StationTransform("Gym.Audio.SpatialAudio");
+        utils_cue_executor::Request_ExecuteCue_Local(ck::SelfEntity(this),
+            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.SpatialAudio"),
+            FAudioCueTransform(StationTransform));
+        ck::Trace("🔊 Spatial audio cue executed at demo display location");
+    }
+
+    UFUNCTION(Exec, DisplayName="Simple AudioGym - Restart Background Music")
+    void Ck_GymAudioSimple_RestartBackgroundMusic() { Request_StartBackgroundMusic(); }
+
+    UFUNCTION(Exec, DisplayName="Simple AudioGym - Trigger Spatial Audio")
+    void Ck_GymAudioSimple_TriggerSpatialAudio() { Request_StartSpatialAudio(); }
+}
+
+/*
+This specification provides everything needed to quickly create consistent,
+robust gyms for testing Ck Framework features following established patterns.
+*/
