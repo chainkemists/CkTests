@@ -30,7 +30,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_PlayerController_UE
 
     void StartBackgroundMusic()
     {
-        auto CueReplicatorSubsystem = Subsystem::GetWorldSubsystem(UCk_CueReplicator_Subsystem_Base_UE);
+        auto CueReplicatorSubsystem = Subsystem::GetWorldSubsystem(UCk_CueExecutor_Subsystem_Base_UE);
         if (!ck::IsValid(CueReplicatorSubsystem))
         {
             Print("❌ Background Music - No CueReplicator subsystem found", 3.0f);
@@ -46,7 +46,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_PlayerController_UE
 
     void StartSpatialAudio()
     {
-        auto CueReplicatorSubsystem = Subsystem::GetWorldSubsystem(UCk_CueReplicator_Subsystem_Base_UE);
+        auto CueReplicatorSubsystem = Subsystem::GetWorldSubsystem(UCk_CueExecutor_Subsystem_Base_UE);
         if (!ck::IsValid(CueReplicatorSubsystem))
         {
             Print("❌ Spatial Audio - No CueReplicator subsystem found", 3.0f);
