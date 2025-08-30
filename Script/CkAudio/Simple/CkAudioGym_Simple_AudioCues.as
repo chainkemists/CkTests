@@ -6,9 +6,24 @@ asset Asset_Concurrency_AudioGym of USoundConcurrency
 {
 }
 
+USTRUCT()
+struct FAudioCueTransform
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FAudioCueTransform(FTransform InTransform)
+    {
+        InitialTransform = InTransform;
+    }
+}
+
 // Simple Background Music AudioCue (non-spatial, looping)
 class UCk_SimpleBackgroundMusicCue : UCk_AudioCue_EntityScript
 {
+    UPROPERTY(ExposeOnSpawn)
+    FTransform InitialTransform = FTransform::Identity;
+
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.BackgroundMusic");
     default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Persistent;
@@ -40,9 +55,11 @@ class UCk_SimpleBackgroundMusicCue : UCk_AudioCue_EntityScript
 // Simple Spatial Audio AudioCue (3D positioned, one-shot)
 class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
 {
+    UPROPERTY(ExposeOnSpawn)
+    FTransform InitialTransform = FTransform::Identity;
+
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.SpatialAudio");
-    default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::AfterOneFrame;
 
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
     default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
@@ -67,7 +84,7 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
-        utils_transform::Add(InHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
+        utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
 }
