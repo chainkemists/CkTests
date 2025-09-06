@@ -1,14 +1,3 @@
-// Audio Pickup - Interactive audio triggers for powerups, levelups, and interface sounds
-// Can be scattered throughout the level for testing various audio stingers
-
-// Cube asset for visual representation
-asset Asset_RegularCube of UCk_IsmRenderer_Data
-{
-    _Mesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName("/Engine/EngineMeshes/Cube.Cube",
-        ECk_AssetSearchScope::Engine)._Asset);
-    _Mobility = ECk_Mobility::Movable;
-}
-
 // Spawn parameters for AudioGym Advanced Audio Pickups
 struct FCkAudioGym_Advanced_AudioPickup_SpawnParams
 {
@@ -52,21 +41,20 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_EntityScript_UE
 
     // Probe parameters
     FCk_Fragment_Probe_ParamsData ProbeParams;
+    default ProbeParams._ProbeName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Pickup");
+    default ProbeParams.Set_MotionType(ECk_MotionType::Kinematic).Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
+    default ProbeParams._Filter.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"Player.Probe"));
 
     // Override construction script
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
         // Set up probe parameters
-        ProbeParams._ProbeName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Pickup");
-        ProbeParams._MotionType = ECk_MotionType::Kinematic;
-        ProbeParams._ResponsePolicy = ECk_ProbeResponse_Policy::Notify;
 
         // Filter to detect player probe overlaps
-        ProbeParams._Filter.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"Player.Probe"));
 
         // Use Static motion type for better overlap detection with kinematic player probe
-        ProbeParams._MotionType = ECk_MotionType::Static;
+        ProbeParams.Set_MotionType(ECk_MotionType::Static);
 
         // Add transform component
         TransformHandle = utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
@@ -88,10 +76,10 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_EntityScript_UE
         utils_debug_draw::DrawDebugBox(PickupCenter, PickupExtent, PickupColor, PickupRotation, 0.0f, 3.0f);
 
         // Add visual representation using regular cube
-        auto IsmProxyParams = FCk_Fragment_IsmProxy_ParamsData(Asset_RegularCube);
+        auto IsmProxyParams = FCk_Fragment_IsmProxy_ParamsData(ck::Asset_RegularCube);
         // Scale the 260x260x260 regular cube to match our pickup size
         FVector ScaleMultiplier = CalculateRegularCubeScale(PickupSize);
-        IsmProxyParams._ScaleMultiplier = ScaleMultiplier;
+        IsmProxyParams.Set_ScaleMultiplier(ScaleMultiplier);
         PickupRenderer = utils_ism_proxy::Add(InHandle, IsmProxyParams);
 
         // Bind overlap events
