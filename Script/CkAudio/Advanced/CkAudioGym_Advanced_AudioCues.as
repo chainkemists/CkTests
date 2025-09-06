@@ -69,7 +69,6 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
     FTransform Transform;
 
     default _SourcePriority = ECk_AudioCue_SourcePriority::LibraryOnly;
-    default _SelectionMode = ECk_AudioCue_SelectionMode::MoodBased;
     default _DefaultCrossfadeDuration = FCk_Time(3.0f);
     default _MaxConcurrentTracks = 4;
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;

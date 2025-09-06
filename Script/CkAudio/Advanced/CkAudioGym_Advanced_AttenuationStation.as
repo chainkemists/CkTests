@@ -100,15 +100,14 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
 
-        MusicTrackParams._Priority = 40;
-        MusicTrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-        MusicTrackParams._LoopBehavior = ECk_LoopBehavior::Loop;
-        MusicTrackParams._Volume = 0.8f;
-        MusicTrackParams._DefaultFadeInTime = FCk_Time(2.0f);
-        MusicTrackParams._DefaultFadeOutTime = FCk_Time(2.0f);
-
-        // Use advanced attenuation settings
-        MusicTrackParams._LibraryAttenuationSettings = Cast<USoundAttenuation>(utils_i_o::LoadAssetByName("Asset_SoundAttenuation_Advanced", ECk_AssetSearchScope::Plugins)._Asset);
+        MusicTrackParams
+        .Set_Priority(40)
+        .Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade)
+        .Set_LoopBehavior(ECk_LoopBehavior::Loop)
+        .Set_Volume(0.8f)
+        .Set_DefaultFadeInTime(FCk_Time(2.0f))
+        .Set_DefaultFadeOutTime(FCk_Time(2.0f))
+        .Set_LibraryAttenuationSettings(Cast<USoundAttenuation>(utils_i_o::LoadAssetByName("Asset_SoundAttenuation_Advanced", ECk_AssetSearchScope::Plugins)._Asset));
 
         utils_audio_director::Request_AddTrack(AudioDirector, MusicTrackParams);
 
