@@ -223,12 +223,8 @@ class ACk_GridSystem_GymActor : AActor
 		FIntPoint InDimentions,
         FTransform InTransform = FTransform::Identity)
 	{
-		auto Params = FCk_Fragment_2dGridSystem_ParamsData();
-		{
-			Params._CellSize = _CellSize;
-			Params._Dimensions = InDimentions;
-            Params._DefaultCellState = ECk_EnableDisable::Enable;
-		}
+		auto Params = FCk_Fragment_2dGridSystem_ParamsData(InDimentions, _CellSize);
+		Params.Set_DefaultCellState(ECk_EnableDisable::Enable);
 
 		auto NewHandle = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner();
         NewHandle.Set_DebugName(n"Grid System");
