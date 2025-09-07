@@ -25,7 +25,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
     FCk_Handle_VectorAttribute VelocityAttribute;
 
     // Test values
-    float CurrentTestValue = 50.0f;
+    float32 CurrentTestValue = 50.0f;
     bool IsIncreasing = true;
 
     UFUNCTION(BlueprintOverride)
@@ -86,6 +86,9 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
         );
 
         VelocityAttribute = utils_vector_attribute::Add(SelfEntity, VelocityParams);
+
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes, FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_UpdateAttributes, FCk_Delegate_Messaging_OnBroadcast(this, n"OnUpdateAttributes"));
     }
 
     // Timer callback for display updates (every frame)
@@ -99,12 +102,15 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
     UFUNCTION()
     private void UpdateTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        Request_UpdateValues();
+        utils_messaging::Broadcast(InHandle, FCk_Message_AttributeGym_UpdateAttributes());
     }
 
-    void Request_UpdateValues()
+    UFUNCTION()
+    private void OnUpdateAttributes(FCk_Handle InHandle, FGameplayTag InMessageName,
+                                   FInstancedStruct InPayload)
     {
-        if (ck::IsValid(HealthAttribute) == false) return;
+        if (ck::Is_NOT_Valid(HealthAttribute))
+        { return; }
 
         // Cycle test value
         if (IsIncreasing)
@@ -132,6 +138,27 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
 
         auto VelocityValue = FVector(CurrentTestValue, CurrentTestValue * 0.5f, Math::Sin(CurrentTestValue * 0.1f) * 50.0f);
         utils_vector_attribute::Request_Override(VelocityAttribute, VelocityValue);
+    }
+
+    UFUNCTION()
+    private void OnResetAttributes(FCk_Handle InHandle, FGameplayTag InMessageName,
+                                   FInstancedStruct InPayload)
+    {
+        CurrentTestValue = 50.0f;
+        IsIncreasing = true;
+
+        if (ck::IsValid(HealthAttribute))
+        {
+            utils_float_attribute::Request_Override(HealthAttribute, 100.0f);
+        }
+        if (ck::IsValid(ArmorAttribute))
+        {
+            utils_byte_attribute::Request_Override(ArmorAttribute, 150);
+        }
+        if (ck::IsValid(VelocityAttribute))
+        {
+            utils_vector_attribute::Request_Override(VelocityAttribute, FVector(100.0f, 50.0f, 0.0f));
+        }
     }
 
     void DisplayCurrentValues()
@@ -184,25 +211,6 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
             DisplayText = f"{DisplayText}- [CLAMPED] appears when limits are enforced";
 
             utils_debug_draw::DrawDebugString(DisplayPos, DisplayText, nullptr, FLinearColor::White, 0.0f);
-        }
-    }
-
-    void Request_Reset()
-    {
-        CurrentTestValue = 50.0f;
-        IsIncreasing = true;
-
-        if (ck::IsValid(HealthAttribute))
-        {
-            utils_float_attribute::Request_Override(HealthAttribute, 100.0f);
-        }
-        if (ck::IsValid(ArmorAttribute))
-        {
-            utils_byte_attribute::Request_Override(ArmorAttribute, 150);
-        }
-        if (ck::IsValid(VelocityAttribute))
-        {
-            utils_vector_attribute::Request_Override(VelocityAttribute, FVector(100.0f, 50.0f, 0.0f));
         }
     }
 }
@@ -267,13 +275,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
         for (auto Entity : Entities)
         {
-            auto Script = utils_entity_script::TryGet_EntityScript(Entity);
-            auto TypedScript = Cast<UCk_EntityScript_AttributeGym_BasicAttributes>(Script);
-            if (ck::IsValid(TypedScript))
-            {
-                TypedScript.Request_UpdateValues();
-                break; // Only update the first one found
-            }
+            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_UpdateAttributes());
         }
     }
 
@@ -284,13 +286,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
         for (auto Entity : Entities)
         {
-            auto Script = utils_entity_script::TryGet_EntityScript(Entity);
-            auto TypedScript = Cast<UCk_EntityScript_AttributeGym_BasicAttributes>(Script);
-            if (ck::IsValid(TypedScript))
-            {
-                TypedScript.Request_Reset();
-                break; // Only reset the first one found
-            }
+            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
         }
     }
 }
