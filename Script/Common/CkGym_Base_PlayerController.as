@@ -2,8 +2,10 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
 {
     UPROPERTY(DefaultComponent)
     UCk_EntityBridge_ActorComponent_UE EntityBridge;
-    default EntityBridge._Replication = ECk_Replication::DoesNotReplicate;
+    default EntityBridge._Replication = ECk_Replication::Replicates;
     default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
+
+    default Replicates = true;
 
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
