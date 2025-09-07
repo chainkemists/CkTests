@@ -30,7 +30,7 @@ class UCk_EntityScript_AttributeGym_ClampingAuto : UCk_EntityScript_UE
     int32 ClampedCount = 0;
 
     // Auto-cycling test values
-    float CurrentManaTest = 50.0f;
+    float32 CurrentManaTest = 50.0f;
     uint8 CurrentStaminaTest = 128;
     bool ManaIncreasing = true;
     bool StaminaIncreasing = true;
@@ -142,6 +142,8 @@ class UCk_EntityScript_AttributeGym_ClampingAuto : UCk_EntityScript_UE
                 StaminaClampedDelegate
             );
         }
+
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes, FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
     }
 
     // Timer callbacks
@@ -335,7 +337,9 @@ class UCk_EntityScript_AttributeGym_ClampingAuto : UCk_EntityScript_UE
         }
     }
 
-    void Request_Reset()
+    UFUNCTION()
+    private void OnResetAttributes(FCk_Handle InHandle, FGameplayTag InMessageName,
+                                   FInstancedStruct InPayload)
     {
         ValueChangeCount = 0;
         ClampedCount = 0;
@@ -470,6 +474,11 @@ class UCk_EntityScript_AttributeGym_ClampingManual : UCk_EntityScript_UE
                 StaminaClampedDelegate
             );
         }
+
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes, FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_TestBoundaries, FCk_Delegate_Messaging_OnBroadcast(this, n"OnTestBoundaries"));
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_SetStamina, FCk_Delegate_Messaging_OnBroadcast(this, n"OnSetStaminaAttribute"));
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_SetMana, FCk_Delegate_Messaging_OnBroadcast(this, n"OnSetManaAttribute"));
     }
 
     UFUNCTION()
@@ -612,7 +621,9 @@ class UCk_EntityScript_AttributeGym_ClampingManual : UCk_EntityScript_UE
         }
     }
 
-    void Request_SetMana(float InValue)
+    UFUNCTION()
+    private void OnSetManaAttribute(FCk_Handle InHandle, FGameplayTag InMessageName,
+                                   FInstancedStruct InPayload)
     {
         // Only modify attributes on server/host - clients receive replicated updates
         auto SelfEntity = ck::SelfEntity(this);
@@ -622,14 +633,17 @@ class UCk_EntityScript_AttributeGym_ClampingManual : UCk_EntityScript_UE
             return; // Clients don't modify attributes
         }
 
-        LastManaInput = InValue;
+        auto TypedPayload = InPayload.Get(FCk_Message_AttributeGym_SetMana);
+        LastManaInput = TypedPayload.Value;
         if (ck::IsValid(ManaAttribute))
         {
-            utils_float_attribute::Request_Override(ManaAttribute, InValue);
+            utils_float_attribute::Request_Override(ManaAttribute, TypedPayload.Value);
         }
     }
 
-    void Request_SetStamina(uint8 InValue)
+    UFUNCTION()
+    private void OnSetStaminaAttribute(FCk_Handle InHandle, FGameplayTag InMessageName,
+                                   FInstancedStruct InPayload)
     {
         // Only modify attributes on server/host - clients receive replicated updates
         auto SelfEntity = ck::SelfEntity(this);
@@ -639,14 +653,17 @@ class UCk_EntityScript_AttributeGym_ClampingManual : UCk_EntityScript_UE
             return; // Clients don't modify attributes
         }
 
-        LastStaminaInput = InValue;
+        auto TypedPayload = InPayload.Get(FCk_Message_AttributeGym_SetStamina);
+        LastStaminaInput = TypedPayload.Value;
         if (ck::IsValid(StaminaAttribute))
         {
-            utils_byte_attribute::Request_Override(StaminaAttribute, InValue);
+            utils_byte_attribute::Request_Override(StaminaAttribute, TypedPayload.Value);
         }
     }
 
-    void Request_TestBoundaries()
+    UFUNCTION()
+    private void OnTestBoundaries(FCk_Handle InHandle, FGameplayTag InMessageName,
+                                   FInstancedStruct InPayload)
     {
         auto SelfEntity = ck::SelfEntity(this);
         auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
@@ -657,11 +674,13 @@ class UCk_EntityScript_AttributeGym_ClampingManual : UCk_EntityScript_UE
             utils_debug_draw::DrawDebugString(TestPos, "TESTING BOUNDARIES...", nullptr, FLinearColor(1.0f, 1.0f, 0.0f, 1.0f), 3.0f);
         }
 
-        Request_SetMana(150.0f);
-        Request_SetStamina(250);
+        utils_messaging::Broadcast(InHandle, FCk_Message_AttributeGym_SetStamina(250));
+        utils_messaging::Broadcast(InHandle, FCk_Message_AttributeGym_SetMana(150.0f));
     }
 
-    void Request_Reset()
+    UFUNCTION()
+    private void OnResetAttributes(FCk_Handle InHandle, FGameplayTag InMessageName,
+                                   FInstancedStruct InPayload)
     {
         ValueChangeCount = 0;
         ClampedCount = 0;
@@ -759,30 +778,18 @@ class ACk_AttributeGym_ClampingDual_PlayerController : ACk_Gym_Base_PlayerContro
         auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_AttributeGym_ClampingAuto");
         for (auto Entity : Entities)
         {
-            auto Script = utils_entity_script::TryGet_EntityScript(Entity);
-            auto TypedScript = Cast<UCk_EntityScript_AttributeGym_ClampingAuto>(Script);
-            if (ck::IsValid(TypedScript))
-            {
-                TypedScript.Request_Reset();
-                break;
-            }
+            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
         }
     }
 
     // Manual Station Commands
     UFUNCTION(Exec, DisplayName="Attribute Gym - Set Mana")
-    void Ck_GymAttribute_SetMana(float InValue)
+    void Ck_GymAttribute_SetMana(float32 InValue)
     {
         auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_AttributeGym_ClampingManual");
         for (auto Entity : Entities)
         {
-            auto Script = utils_entity_script::TryGet_EntityScript(Entity);
-            auto TypedScript = Cast<UCk_EntityScript_AttributeGym_ClampingManual>(Script);
-            if (ck::IsValid(TypedScript))
-            {
-                TypedScript.Request_SetMana(InValue);
-                break;
-            }
+            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_SetMana(InValue));
         }
     }
 
@@ -792,13 +799,7 @@ class ACk_AttributeGym_ClampingDual_PlayerController : ACk_Gym_Base_PlayerContro
         auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_AttributeGym_ClampingManual");
         for (auto Entity : Entities)
         {
-            auto Script = utils_entity_script::TryGet_EntityScript(Entity);
-            auto TypedScript = Cast<UCk_EntityScript_AttributeGym_ClampingManual>(Script);
-            if (ck::IsValid(TypedScript))
-            {
-                TypedScript.Request_SetStamina(uint8(Math::Clamp(InValue, 0, 255)));
-                break;
-            }
+            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_SetStamina(uint8(Math::Clamp(InValue, 0, 255))));
         }
     }
 
@@ -808,13 +809,7 @@ class ACk_AttributeGym_ClampingDual_PlayerController : ACk_Gym_Base_PlayerContro
         auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_AttributeGym_ClampingManual");
         for (auto Entity : Entities)
         {
-            auto Script = utils_entity_script::TryGet_EntityScript(Entity);
-            auto TypedScript = Cast<UCk_EntityScript_AttributeGym_ClampingManual>(Script);
-            if (ck::IsValid(TypedScript))
-            {
-                TypedScript.Request_TestBoundaries();
-                break;
-            }
+            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_TestBoundaries());
         }
     }
 
@@ -824,13 +819,7 @@ class ACk_AttributeGym_ClampingDual_PlayerController : ACk_Gym_Base_PlayerContro
         auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_AttributeGym_ClampingManual");
         for (auto Entity : Entities)
         {
-            auto Script = utils_entity_script::TryGet_EntityScript(Entity);
-            auto TypedScript = Cast<UCk_EntityScript_AttributeGym_ClampingManual>(Script);
-            if (ck::IsValid(TypedScript))
-            {
-                TypedScript.Request_Reset();
-                break;
-            }
+            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
         }
     }
 }
