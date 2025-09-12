@@ -25,7 +25,6 @@ class UCk_SimpleBackgroundMusicCue : UCk_AudioCue_EntityScript
     FTransform InitialTransform = FTransform::Identity;
 
     default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.BackgroundMusic");
     default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Persistent;
 
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
@@ -50,6 +49,12 @@ class UCk_SimpleBackgroundMusicCue : UCk_AudioCue_EntityScript
     default _DefaultCrossfadeDuration = FCk_Time(2.0f);
     default _MaxConcurrentTracks = 1;
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Block;
+
+    UFUNCTION(BlueprintOverride)
+    FGameplayTag Get_CueName() const
+    {
+        return GameplayTags::ResolveGameplayTag(n"AudioGym.Simple.BackgroundMusic");
+    }
 }
 
 // Simple Spatial Audio AudioCue (3D positioned, one-shot)
@@ -59,7 +64,6 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
     FTransform InitialTransform = FTransform::Identity;
 
     default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.SpatialAudio");
 
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
     default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
@@ -80,6 +84,12 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
     default _DefaultCrossfadeDuration = FCk_Time(0.5f);
     default _MaxConcurrentTracks = 1;
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Block;
+
+    UFUNCTION(BlueprintOverride)
+    FGameplayTag Get_CueName() const
+    {
+        return GameplayTags::ResolveGameplayTag(n"AudioGym.Simple.SpatialAudio");
+    }
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
