@@ -73,6 +73,12 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
     default _MaxConcurrentTracks = 4;
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
 
+    UFUNCTION(BlueprintOverride)
+    FGameplayTag Get_CueName() const
+    {
+        return GameplayTags::ResolveGameplayTag(n"AudioGym.Advanced.Music.Orchestral");
+    }
+
     // Build comprehensive music library with proper sound assets
     TArray<FCk_Fragment_AudioTrack_ParamsData> BuildTrackLibrary()
     {
@@ -142,7 +148,6 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
     }
 
     default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Music.Orchestral");
     default _TrackLibrary = BuildTrackLibrary();
 
     UFUNCTION(BlueprintOverride)
@@ -160,13 +165,18 @@ class UCk_AdvancedConcurrencyTestCue : UCk_AudioCue_EntityScript
     FTransform Transform;
 
     default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Thunder");
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
 
     // Configure for concurrency testing
     default _DefaultCrossfadeDuration = FCk_Time(0.5f);
     default _MaxConcurrentTracks = 8;
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
+
+    UFUNCTION(BlueprintOverride)
+    FGameplayTag Get_CueName() const
+    {
+        return GameplayTags::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Thunder");
+    }
 
     // Build the single track properly with sound asset
     FCk_Fragment_AudioTrack_ParamsData BuildSingleTrack()
@@ -204,8 +214,13 @@ class UCk_AdvancedInterfacePickupCue : UCk_AudioCue_EntityScript
     FTransform Transform;
 
     default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Pickup");
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
+
+    UFUNCTION(BlueprintOverride)
+    FGameplayTag Get_CueName() const
+    {
+        return GameplayTags::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Pickup");
+    }
 
     // Build the single track properly with sound asset
     FCk_Fragment_AudioTrack_ParamsData BuildSingleTrack()
@@ -243,8 +258,13 @@ class UCk_AdvancedAchievementCue : UCk_AudioCue_EntityScript
     FTransform Transform;
 
     default _Replication = ECk_Replication::DoesNotReplicate;
-    default _CueName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Achievement.Fanfare");
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
+
+    UFUNCTION(BlueprintOverride)
+    FGameplayTag Get_CueName() const
+    {
+        return GameplayTags::ResolveGameplayTag(n"AudioGym.Advanced.Achievement.Fanfare");
+    }
 
     // Build the single track properly with sound asset
     FCk_Fragment_AudioTrack_ParamsData BuildSingleTrack()
