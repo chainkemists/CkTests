@@ -150,8 +150,6 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
         }
 
         auto Request = FCk_Request_AudioDirector_StartTrack(InTrackTag);
-        Request._PriorityOverrideMode = ECk_PriorityOverride::Override;
-        Request._PriorityOverrideValue = InPriority;
         Request._FadeInTime = InFadeTime;
         utils_audio_director::Request_StartTrack(AudioDirector, Request);
     }

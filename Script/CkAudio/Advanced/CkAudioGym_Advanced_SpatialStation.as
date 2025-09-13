@@ -93,7 +93,7 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
     void StopSpatialAudio()
     {
         // Stop the spatial audio cue
-        utils_audio_cue::Request_StopAll(AudioCue, FCk_Time(0.1f));
+        utils_audio_cue::Request_StopAll(AudioCue);
 
         IsAudioPlaying = false;
         UpdateVisualFeedback(false);
