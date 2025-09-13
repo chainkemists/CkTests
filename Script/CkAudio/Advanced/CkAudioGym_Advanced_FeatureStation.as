@@ -319,8 +319,6 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
         if (ck::IsValid(OrchestralDirector))
         {
             auto Request = FCk_Request_AudioDirector_StartTrack(TrackTag);
-            Request._PriorityOverrideMode = ECk_PriorityOverride::Override;
-            Request._PriorityOverrideValue = Priority;
             Request._FadeInTime = FCk_Time(2.0f + (CurrentSequenceStep * 0.3f));
 
             utils_audio_director::Request_StartTrack(OrchestralDirector, Request);
@@ -387,8 +385,6 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
         if (ck::IsValid(OrchestralDirector))
         {
             auto Request = FCk_Request_AudioDirector_StartTrack(StingerTag);
-            Request._PriorityOverrideMode = ECk_PriorityOverride::Override;
-            Request._PriorityOverrideValue = 95; // Very high priority
             Request._FadeInTime = FCk_Time(0.5f);
 
             utils_audio_director::Request_StartTrack(OrchestralDirector, Request);
@@ -451,8 +447,6 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
         for (int32 i = 0; i < ClimaxTags.Num(); i++)
         {
             auto Request = FCk_Request_AudioDirector_StartTrack(ClimaxTags[i]);
-            Request._PriorityOverrideMode = ECk_PriorityOverride::Override;
-            Request._PriorityOverrideValue = 90 + i;
             Request._FadeInTime = FCk_Time(0.5f * (i + 1));
 
             utils_audio_director::Request_StartTrack(OrchestralDirector, Request);
