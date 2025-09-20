@@ -33,9 +33,9 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         StationBounds = FVector(1200, 800, 400); // Large elongated area for distance testing
 
         // Configure AudioDirector for attenuation testing
-        AudioDirectorParams._DefaultCrossfadeDuration = FCk_Time(2.0f); // Longer crossfades for smooth transitions
-        AudioDirectorParams._MaxConcurrentTracks = 3; // Ambient + music + occasional effects
-        AudioDirectorParams._SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
+        AudioDirectorParams.Set_DefaultCrossfadeDuration(FCk_Time(2.0f)); // Longer crossfades for smooth transitions
+        AudioDirectorParams.Set_MaxConcurrentTracks(3); // Ambient + music + occasional effects
+        AudioDirectorParams.Set_SamePriorityBehavior(ECk_SamePriorityBehavior::Allow);
 
         // Setup attenuation test zones
         SetupAttenuationZones();
@@ -97,8 +97,8 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         // Add continuous music track for attenuation testing
         auto MusicTrackParams = FCk_Fragment_AudioTrack_ParamsData(
             MusicTrackTag,
-            Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
-                ECk_AssetSearchScope::Plugins)._Asset));
+            Cast<USoundBase>(utils_i_o::LoadAssetByName(
+                "/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX", ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
 
         MusicTrackParams
         .Set_Priority(40)
@@ -107,7 +107,9 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         .Set_Volume(0.8f)
         .Set_DefaultFadeInTime(FCk_Time(2.0f))
         .Set_DefaultFadeOutTime(FCk_Time(2.0f))
-        .Set_LibraryAttenuationSettings(Cast<USoundAttenuation>(utils_i_o::LoadAssetByName("Asset_SoundAttenuation_Advanced", ECk_AssetSearchScope::Plugins)._Asset));
+        .Set_LibraryAttenuationSettings(
+            Cast<USoundAttenuation>(utils_i_o::LoadAssetByName("Asset_SoundAttenuation_Advanced",
+            ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
 
         utils_audio_director::Request_AddTrack(AudioDirector, MusicTrackParams);
 
@@ -115,15 +117,15 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         auto AmbientTrackParams = FCk_Fragment_AudioTrack_ParamsData(
             AmbientTrackTag,
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
-                ECk_AssetSearchScope::Plugins)._Asset));
+                ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
 
-        AmbientTrackParams._Priority = 20; // Lower priority background
-        AmbientTrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-        AmbientTrackParams._LoopBehavior = ECk_LoopBehavior::Loop;
-        AmbientTrackParams._Volume = 0.5f;
-        AmbientTrackParams._DefaultFadeInTime = FCk_Time(3.0f);
-        AmbientTrackParams._DefaultFadeOutTime = FCk_Time(3.0f);
-        AmbientTrackParams._LibraryAttenuationSettings = Cast<USoundAttenuation>(utils_i_o::LoadAssetByName("Asset_SoundAttenuation_Advanced", ECk_AssetSearchScope::Plugins)._Asset);
+        AmbientTrackParams.Set_Priority(20); // Lower priority background
+        AmbientTrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade);
+        AmbientTrackParams.Set_LoopBehavior(ECk_LoopBehavior::Loop);
+        AmbientTrackParams.Set_Volume(0.5f);
+        AmbientTrackParams.Set_DefaultFadeInTime(FCk_Time(3.0f));
+        AmbientTrackParams.Set_DefaultFadeOutTime(FCk_Time(3.0f));
+        AmbientTrackParams.Set_LibraryAttenuationSettings(Cast<USoundAttenuation>(utils_i_o::LoadAssetByName("Asset_SoundAttenuation_Advanced", ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
 
         utils_audio_director::Request_AddTrack(AudioDirector, AmbientTrackParams);
 
@@ -137,7 +139,7 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         for (int32 i = 0; i < AttenuationTestZones.Num(); i++)
         {
             auto MarkerParams = FCk_Fragment_IsmProxy_ParamsData(ck::Asset_StationMarker);
-            MarkerParams._ScaleMultiplier = FVector(0.4f, 0.4f, 0.4f);
+            MarkerParams.Set_ScaleMultiplier(FVector(0.4f, 0.4f, 0.4f));
 
             // Color code markers by distance (green = close, red = far)
             auto DistanceRatio = float(i) / float(AttenuationTestZones.Num() - 1);

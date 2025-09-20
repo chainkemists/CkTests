@@ -71,8 +71,8 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
 
     // Set default probe parameters
     default ProbeParams._ProbeName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Probe.Station");
-    default ProbeParams._MotionType = ECk_MotionType::Kinematic;
-    default ProbeParams._ResponsePolicy = ECk_ProbeResponse_Policy::Notify;
+    default ProbeParams.Set_MotionType(ECk_MotionType::Kinematic);
+    default ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
     default ProbeParams._Filter.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"Player.Probe"));
 
     // Set default AudioDirector parameters
