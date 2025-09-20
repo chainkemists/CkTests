@@ -227,7 +227,7 @@ class UCk_EntityScript_AttributeGym_ClampingAuto : UCk_EntityScript_UE
         // Cycle stamina value to test clamping
         if (StaminaIncreasing)
         {
-            CurrentStaminaTest += 25;
+            CurrentStaminaTest = uint8(CurrentStaminaTest + 25);
             if (CurrentStaminaTest >= 240)
             {
                 StaminaIncreasing = false;
@@ -235,7 +235,7 @@ class UCk_EntityScript_AttributeGym_ClampingAuto : UCk_EntityScript_UE
         }
         else
         {
-            CurrentStaminaTest -= 35;
+            CurrentStaminaTest = uint8(CurrentStaminaTest - 35);
             if (CurrentStaminaTest <= 0)
             {
                 StaminaIncreasing = true;

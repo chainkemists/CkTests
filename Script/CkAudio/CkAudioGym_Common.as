@@ -11,7 +11,7 @@ namespace ck
     asset Asset_BackgroundCube of UCk_IsmRenderer_Data
     {
         _Mesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName("/Engine/EngineMeshes/BackgroundCube.BackgroundCube",
-            ECk_AssetSearchScope::Engine)._Asset);
+            ECk_AssetSearchScope::Engine).Get_Asset().Get());
         _Mobility = ECk_Mobility::Movable;
     }
 
