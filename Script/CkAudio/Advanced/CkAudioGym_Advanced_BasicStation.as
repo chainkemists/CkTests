@@ -31,9 +31,9 @@ class UCkAudioGym_Advanced_BasicStation : UCkAudioGym_Advanced_Base
         AchievementTrackTag = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Achievement.Fanfare");
 
         // Configure AudioDirector for basic usage
-        AudioDirectorParams._DefaultCrossfadeDuration = FCk_Time(0.5f);
-        AudioDirectorParams._MaxConcurrentTracks = 2;
-        AudioDirectorParams._SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
+        AudioDirectorParams.Set_DefaultCrossfadeDuration(FCk_Time(0.5f));
+        AudioDirectorParams.Set_MaxConcurrentTracks(2);
+        AudioDirectorParams.Set_SamePriorityBehavior(ECk_SamePriorityBehavior::Allow);
 
         // Call parent construction
         Super::DoConstruct(InHandle);
@@ -61,12 +61,12 @@ class UCkAudioGym_Advanced_BasicStation : UCkAudioGym_Advanced_Base
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
 
-        InterfaceTrackParams._Priority = 60;
-        InterfaceTrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
-        InterfaceTrackParams._LoopBehavior = ECk_LoopBehavior::PlayOnce;
-        InterfaceTrackParams._Volume = 0.7f;
-        InterfaceTrackParams._DefaultFadeInTime = FCk_Time(0.1f);
-        InterfaceTrackParams._DefaultFadeOutTime = FCk_Time(0.2f);
+        InterfaceTrackParams.Set_Priority(60);
+        InterfaceTrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Interrupt);
+        InterfaceTrackParams.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
+        InterfaceTrackParams.Set_Volume(0.7f);
+        InterfaceTrackParams.Set_DefaultFadeInTime(FCk_Time(0.1f));
+        InterfaceTrackParams.Set_DefaultFadeOutTime(FCk_Time(0.2f));
 
         utils_audio_director::Request_AddTrack(AudioDirector, InterfaceTrackParams);
 
@@ -76,12 +76,12 @@ class UCkAudioGym_Advanced_BasicStation : UCkAudioGym_Advanced_Base
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
 
-        AchievementTrackParams._Priority = 80;
-        AchievementTrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
-        AchievementTrackParams._LoopBehavior = ECk_LoopBehavior::PlayOnce;
-        AchievementTrackParams._Volume = 0.9f;
-        AchievementTrackParams._DefaultFadeInTime = FCk_Time(0.0f);
-        AchievementTrackParams._DefaultFadeOutTime = FCk_Time(0.3f);
+        AchievementTrackParams.Set_Priority(80);
+        AchievementTrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Interrupt);
+        AchievementTrackParams.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
+        AchievementTrackParams.Set_Volume(0.9f);
+        AchievementTrackParams.Set_DefaultFadeInTime(FCk_Time(0.0f));
+        AchievementTrackParams.Set_DefaultFadeOutTime(FCk_Time(0.3f));
 
         utils_audio_director::Request_AddTrack(AudioDirector, AchievementTrackParams);
 
@@ -224,7 +224,7 @@ class UCkAudioGym_Advanced_BasicStation : UCkAudioGym_Advanced_Base
     }
 
     // Visual feedback override
-    void UpdateStationVisualState()
+    void UpdateStationVisualState() override
     {
         Super::UpdateStationVisualState();
 
