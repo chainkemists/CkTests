@@ -40,8 +40,7 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_EntityScript_UE
     FCk_Handle_Timer CooldownTimer;
 
     // Probe parameters
-    FCk_Fragment_Probe_ParamsData ProbeParams;
-    default ProbeParams._ProbeName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Pickup");
+    FCk_Fragment_Probe_ParamsData ProbeParams(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Pickup"));
     default ProbeParams.Set_MotionType(ECk_MotionType::Kinematic).Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
     default ProbeParams._Filter.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"Player.Probe"));
 

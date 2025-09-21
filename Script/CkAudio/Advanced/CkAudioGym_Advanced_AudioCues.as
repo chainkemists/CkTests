@@ -286,7 +286,7 @@ class UCk_AdvancedAchievementCue : UCk_AudioCue_EntityScript
         auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Achievement.Fanfare.Track"),
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
-                ECk_AssetSearchScope::Plugins)._Asset));
+                ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
 
         TrackParams.Set_Priority(90);
         TrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Interrupt);

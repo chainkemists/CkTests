@@ -12,7 +12,7 @@ class ACk_TweenTest_GymActor : AActor
 
     UPROPERTY(DefaultComponent)
     UStaticMeshComponent Mesh;
-    default Mesh.StaticMesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName("Cube1", ECk_AssetSearchScope::Engine, ECk_AssetSearchStrategy::ExactOnly)._Asset);
+    default Mesh.StaticMesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName("Cube1", ECk_AssetSearchScope::Engine, ECk_AssetSearchStrategy::ExactOnly).Get_Asset().Get());
     default Mesh.CollisionEnabled = ECollisionEnabled::NoCollision;
 
     UPROPERTY(DefaultComponent)

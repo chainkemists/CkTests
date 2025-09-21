@@ -37,9 +37,9 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
         StationBounds = FVector(1000, 1000, 500); // Large area for comprehensive testing
 
         // Configure primary AudioDirector for advanced orchestration
-        AudioDirectorParams._DefaultCrossfadeDuration = FCk_Time(3.0f); // Long artistic crossfades
-        AudioDirectorParams._MaxConcurrentTracks = 12; // Full orchestral arrangement
-        AudioDirectorParams._SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
+        AudioDirectorParams.Set_DefaultCrossfadeDuration(FCk_Time(3.0f));
+        AudioDirectorParams.Set_MaxConcurrentTracks(12);
+        AudioDirectorParams.Set_SamePriorityBehavior(ECk_SamePriorityBehavior::Allow);
 
         // Setup orchestral track system
         SetupOrchestralTracks();
@@ -90,9 +90,9 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
     {
         // Create specialized AudioDirector for orchestral management
         auto OrchestralParams = FCk_Fragment_AudioDirector_ParamsData();
-        OrchestralParams._DefaultCrossfadeDuration = FCk_Time(4.0f); // Even longer for orchestral transitions
-        OrchestralParams._MaxConcurrentTracks = 16; // Maximum orchestral complexity
-        OrchestralParams._SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
+        OrchestralParams.Set_DefaultCrossfadeDuration(FCk_Time(4.0f)); // Even longer for orchestral transitions
+        OrchestralParams.Set_MaxConcurrentTracks(16); // Maximum orchestral complexity
+        OrchestralParams.Set_SamePriorityBehavior(ECk_SamePriorityBehavior::Allow);
 
         OrchestralDirector = utils_audio_director::Add(InHandle, OrchestralParams);
 
@@ -127,12 +127,12 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
 
-        AmbientTrackParams._Priority = 10; // Lowest priority foundation
-        AmbientTrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-        AmbientTrackParams._LoopBehavior = ECk_LoopBehavior::Loop;
-        AmbientTrackParams._Volume = 0.3f;
-        AmbientTrackParams._DefaultFadeInTime = FCk_Time(5.0f);
-        AmbientTrackParams._DefaultFadeOutTime = FCk_Time(5.0f);
+        AmbientTrackParams.Set_Priority(10); // Lowest priority foundation
+        AmbientTrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade);
+        AmbientTrackParams.Set_LoopBehavior(ECk_LoopBehavior::Loop);
+        AmbientTrackParams.Set_Volume(0.3f);
+        AmbientTrackParams.Set_DefaultFadeInTime(FCk_Time(5.0f));
+        AmbientTrackParams.Set_DefaultFadeOutTime(FCk_Time(5.0f));
 
         utils_audio_director::Request_AddTrack(AudioDirector, AmbientTrackParams);
     }
@@ -197,36 +197,36 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
     {
         if (InTrackIndex < 2) // Percussion - foundation rhythm
         {
-            InOutParams._Priority = 20 + InTrackIndex;
-            InOutParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Queue;
-            InOutParams._LoopBehavior = ECk_LoopBehavior::Loop;
-            InOutParams._Volume = 0.7f;
+            InOutParams.Set_Priority(20 + InTrackIndex);
+            InOutParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Queue);
+            InOutParams.Set_LoopBehavior(ECk_LoopBehavior::Loop);
+            InOutParams.Set_Volume(0.7f);
         }
         else if (InTrackIndex < 5) // Harmony - sustained pads
         {
-            InOutParams._Priority = 30 + InTrackIndex;
-            InOutParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-            InOutParams._LoopBehavior = ECk_LoopBehavior::Loop;
-            InOutParams._Volume = 0.5f;
+            InOutParams.Set_Priority(30 + InTrackIndex);
+            InOutParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade);
+            InOutParams.Set_LoopBehavior(ECk_LoopBehavior::Loop);
+            InOutParams.Set_Volume(0.5f);
         }
         else if (InTrackIndex < 8) // Melody - prominent leads
         {
-            InOutParams._Priority = 50 + InTrackIndex;
-            InOutParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-            InOutParams._LoopBehavior = ECk_LoopBehavior::Loop;
-            InOutParams._Volume = 0.8f;
+            InOutParams.Set_Priority(50 + InTrackIndex);
+            InOutParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade);
+            InOutParams.Set_LoopBehavior(ECk_LoopBehavior::Loop);
+            InOutParams.Set_Volume(0.8f);
         }
         else // Dynamic elements - highest priority effects
         {
-            InOutParams._Priority = 80 + InTrackIndex;
-            InOutParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
-            InOutParams._LoopBehavior = ECk_LoopBehavior::PlayOnce;
-            InOutParams._Volume = 0.9f;
+            InOutParams.Set_Priority(80 + InTrackIndex);
+            InOutParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Interrupt);
+            InOutParams.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
+            InOutParams.Set_Volume(0.9f);
         }
 
         // Set sophisticated fade times
-        InOutParams._DefaultFadeInTime = FCk_Time(2.0f + (InTrackIndex * 0.3f));
-        InOutParams._DefaultFadeOutTime = FCk_Time(1.5f + (InTrackIndex * 0.2f));
+        InOutParams.Set_DefaultFadeInTime(FCk_Time(2.0f + (InTrackIndex * 0.3f)));
+        InOutParams.Set_DefaultFadeOutTime(FCk_Time(1.5f + (InTrackIndex * 0.2f)));
     }
 
     // Override base class overlap functions
@@ -319,7 +319,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
         if (ck::IsValid(OrchestralDirector))
         {
             auto Request = FCk_Request_AudioDirector_StartTrack(TrackTag);
-            Request._FadeInTime = FCk_Time(2.0f + (CurrentSequenceStep * 0.3f));
+            Request.Set_FadeInTime(FCk_Time(2.0f + (CurrentSequenceStep * 0.3f)));
 
             utils_audio_director::Request_StartTrack(OrchestralDirector, Request);
         }
@@ -368,7 +368,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
             if (ck::IsValid(TrackHandle))
             {
                 auto NewVolume = 0.5f * DynamicVolumeMultiplier;
-                utils_audio_track::Request_SetVolume(TrackHandle, NewVolume, FCk_Time(1.0f));
+                utils_audio_track::Request_SetVolume(TrackHandle, float32(NewVolume), FCk_Time(1.0f));
             }
         }
 
@@ -385,7 +385,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
         if (ck::IsValid(OrchestralDirector))
         {
             auto Request = FCk_Request_AudioDirector_StartTrack(StingerTag);
-            Request._FadeInTime = FCk_Time(0.5f);
+            Request.Set_FadeInTime(FCk_Time(0.5f));
 
             utils_audio_director::Request_StartTrack(OrchestralDirector, Request);
         }
@@ -447,7 +447,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
         for (int32 i = 0; i < ClimaxTags.Num(); i++)
         {
             auto Request = FCk_Request_AudioDirector_StartTrack(ClimaxTags[i]);
-            Request._FadeInTime = FCk_Time(0.5f * (i + 1));
+            Request.Set_FadeInTime(FCk_Time(0.5f * (i + 1)));
 
             utils_audio_director::Request_StartTrack(OrchestralDirector, Request);
         }

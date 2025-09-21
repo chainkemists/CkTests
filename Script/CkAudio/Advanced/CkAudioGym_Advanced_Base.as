@@ -70,15 +70,15 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
     }
 
     // Set default probe parameters
-    default ProbeParams._ProbeName = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Probe.Station");
+    default ProbeParams = FCk_Fragment_Probe_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Probe.Station"));
     default ProbeParams.Set_MotionType(ECk_MotionType::Kinematic);
     default ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
     default ProbeParams._Filter.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"Player.Probe"));
 
     // Set default AudioDirector parameters
-    default AudioDirectorParams._DefaultCrossfadeDuration = FCk_Time(2.0f);
-    default AudioDirectorParams._MaxConcurrentTracks = 4;
-    default AudioDirectorParams._SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
+    default AudioDirectorParams.Set_DefaultCrossfadeDuration(FCk_Time(2.0f));
+    default AudioDirectorParams.Set_MaxConcurrentTracks(4);
+    default AudioDirectorParams.Set_SamePriorityBehavior(ECk_SamePriorityBehavior::Allow);
 
     // Override construction script
     UFUNCTION(BlueprintOverride)
@@ -101,7 +101,7 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
         // Add ISM Proxy renderer for visual representation (station floor)
         auto IsmProxyParams = FCk_Fragment_IsmProxy_ParamsData(ck::Asset_BackgroundCube);
         // Use utility function to calculate scale for 1040x1040x1040 background cube
-        IsmProxyParams._ScaleMultiplier = CalculateBackgroundCubeScale(ProbeSize);
+        IsmProxyParams.Set_ScaleMultiplier(CalculateBackgroundCubeScale(ProbeSize));
         utils_ism_proxy::Add(InHandle, IsmProxyParams);
 
         // Print station information to console for now
@@ -150,7 +150,7 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
         }
 
         auto Request = FCk_Request_AudioDirector_StartTrack(InTrackTag);
-        Request._FadeInTime = InFadeTime;
+        Request.Set_FadeInTime(InFadeTime);
         utils_audio_director::Request_StartTrack(AudioDirector, Request);
     }
 

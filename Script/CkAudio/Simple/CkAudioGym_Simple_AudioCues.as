@@ -31,20 +31,20 @@ class UCk_SimpleBackgroundMusicCue : UCk_AudioCue_EntityScript
     default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
         utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.BackgroundMusic.Track"),
         Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
+        ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
 
     default _PlaybackBehavior = ECk_AudioCue_PlaybackBehavior::DelayedPlay;
     default _DelayTime = FCk_Time(5.0f);
 
     // Configure as non-spatial background music
-    default _SingleTrack._Priority = 10;
-    default _SingleTrack._LoopBehavior = ECk_LoopBehavior::PlayOnce;
-    default _SingleTrack._Volume = 0.5f;
-    default _SingleTrack._DefaultFadeInTime = FCk_Time(2.0f);
-    default _SingleTrack._DefaultFadeOutTime = FCk_Time(2.0f);
-    default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-    default _SingleTrack._LibraryAttenuationSettings = Asset_SoundAttenuation_AudioGym;
-    default _SingleTrack._LibraryConcurrencySettings = Asset_Concurrency_AudioGym;
+    default _SingleTrack.Set_Priority(10);
+    default _SingleTrack.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
+    default _SingleTrack.Set_Volume(0.5f);
+    default _SingleTrack.Set_DefaultFadeInTime(FCk_Time(2.0f));
+    default _SingleTrack.Set_DefaultFadeOutTime(FCk_Time(2.0f));
+    default _SingleTrack.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade);
+    default _SingleTrack.Set_LibraryAttenuationSettings(Asset_SoundAttenuation_AudioGym);
+    default _SingleTrack.Set_LibraryConcurrencySettings(Asset_Concurrency_AudioGym);
 
     default _DefaultCrossfadeDuration = FCk_Time(2.0f);
     default _MaxConcurrentTracks = 1;
@@ -72,14 +72,14 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
         ECk_AssetSearchScope::Plugins)._Asset));
 
     // Configure as spatial 3D audio
-    default _SingleTrack._Priority = 50;
-    default _SingleTrack._LoopBehavior = ECk_LoopBehavior::PlayOnce;
-    default _SingleTrack._Volume = 0.8f;
-    default _SingleTrack._DefaultFadeInTime = FCk_Time(0.2f);
-    default _SingleTrack._DefaultFadeOutTime = FCk_Time(0.2f);
-    default _SingleTrack._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
-    default _SingleTrack._LibraryAttenuationSettings = Asset_SoundAttenuation_AudioGym;
-    default _SingleTrack._LibraryConcurrencySettings = Asset_Concurrency_AudioGym;
+    default _SingleTrack.Set_Priority(50);
+    default _SingleTrack.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
+    default _SingleTrack.Set_Volume(0.8f);
+    default _SingleTrack.Set_DefaultFadeInTime(FCk_Time(0.2f));
+    default _SingleTrack.Set_DefaultFadeOutTime(FCk_Time(0.2f));
+    default _SingleTrack.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Interrupt);
+    default _SingleTrack.Set_LibraryAttenuationSettings(Asset_SoundAttenuation_AudioGym);
+    default _SingleTrack.Set_LibraryConcurrencySettings(Asset_Concurrency_AudioGym);
 
     default _DefaultCrossfadeDuration = FCk_Time(0.5f);
     default _MaxConcurrentTracks = 1;

@@ -113,13 +113,13 @@ class ACkAudioGym_Advanced_StationSpawner : AActor
         }
 
         // Get the class name as string and clean it up
-        auto FullName = f"{StationEntityScriptClass}";
+        auto _FullName = f"{StationEntityScriptClass}";
 
-        FullName = FullName.Replace("CkAudioGym_Advanced_", "");
-        FullName = FullName.Replace("(UASClass)", "");
-        FullName = FullName.Replace("{ ", "");
-        FullName = FullName.Replace(" }", "");
+        _FullName = FullName.Replace("CkAudioGym_Advanced_", "");
+        _FullName = FullName.Replace("(UASClass)", "");
+        _FullName = FullName.Replace("{ ", "");
+        _FullName = FullName.Replace(" }", "");
 
-        return FullName;
+        return _FullName;
     }
 }

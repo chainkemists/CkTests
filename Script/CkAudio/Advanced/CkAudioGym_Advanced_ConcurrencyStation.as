@@ -36,9 +36,9 @@ class UCkAudioGym_Advanced_ConcurrencyStation : UCkAudioGym_Advanced_Base
         StationBounds = FVector(600, 1000, 350); // Corridor-shaped for sequential triggering
 
         // Configure AudioDirector for maximum concurrency testing
-        AudioDirectorParams._DefaultCrossfadeDuration = FCk_Time(0.8f);
-        AudioDirectorParams._MaxConcurrentTracks = MaxConcurrentTracks;
-        AudioDirectorParams._SamePriorityBehavior = ECk_SamePriorityBehavior::Allow; // Allow overlapping sounds
+        AudioDirectorParams.Set_DefaultCrossfadeDuration(FCk_Time(0.8f));
+        AudioDirectorParams.Set_MaxConcurrentTracks(MaxConcurrentTracks);
+        AudioDirectorParams.Set_SamePriorityBehavior(ECk_SamePriorityBehavior::Allow);
 
         // Setup concurrent track tags
         SetupConcurrentTrackTags();
@@ -93,26 +93,26 @@ class UCkAudioGym_Advanced_ConcurrencyStation : UCkAudioGym_Advanced_Base
             auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(TrackTag, SoundAsset);
 
             // Configure track parameters for concurrency testing
-            TrackParams._Priority = 30 + (i * 5); // Varied priorities for interesting interactions
-            TrackParams._Volume = 0.6f; // Lower volume since many will play simultaneously
-            TrackParams._DefaultFadeInTime = FCk_Time(0.3f);
-            TrackParams._DefaultFadeOutTime = FCk_Time(0.5f);
+            TrackParams.Set_Priority(30 + (i * 5));
+            TrackParams.Set_Volume(0.6f);
+            TrackParams.Set_DefaultFadeInTime(FCk_Time(0.3f));
+            TrackParams.Set_DefaultFadeOutTime(FCk_Time(0.5f));
 
             // Set different override behaviors for testing
             if (i < 3) // Thunder sounds - queue up
             {
-                TrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Queue;
-                TrackParams._LoopBehavior = ECk_LoopBehavior::PlayOnce;
+                TrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Queue);
+                TrackParams.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
             }
             else if (i < 5) // Interface sounds - interrupt
             {
-                TrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Interrupt;
-                TrackParams._LoopBehavior = ECk_LoopBehavior::PlayOnce;
+                TrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Interrupt);
+                TrackParams.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
             }
             else // Ambient and music - crossfade
             {
-                TrackParams._OverrideBehavior = ECk_AudioTrack_OverrideBehavior::Crossfade;
-                TrackParams._LoopBehavior = ECk_LoopBehavior::Loop;
+                TrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade);
+                TrackParams.Set_LoopBehavior(ECk_LoopBehavior::Loop);
             }
 
             utils_audio_director::Request_AddTrack(AudioDirector, TrackParams);
@@ -147,7 +147,7 @@ class UCkAudioGym_Advanced_ConcurrencyStation : UCkAudioGym_Advanced_Base
         for (int32 i = 0; i < ConcurrentTrackTags.Num(); i++)
         {
             auto IndicatorParams = FCk_Fragment_IsmProxy_ParamsData(ck::Asset_StationMarker);
-            IndicatorParams._ScaleMultiplier = FVector(0.2f, 0.2f, 0.2f);
+            IndicatorParams.Set_ScaleMultiplier(FVector(0.2f, 0.2f, 0.2f));
 
             // Arrange indicators in a line above the station
             // TODO: Position indicators based on index
