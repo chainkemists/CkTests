@@ -20,6 +20,8 @@ struct FClampingSpawnParams
 
 class UCk_EntityScript_AttributeGym_ClampingAuto : UCk_EntityScript_UE
 {
+    default _Replication = ECk_Replication::DoesNotReplicate;
+
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
@@ -281,28 +283,24 @@ class UCk_EntityScript_AttributeGym_ClampingAuto : UCk_EntityScript_UE
             auto DisplayPos = Transform.GetLocation() + DisplayOffset;
 
             // Header based on network role
+            auto TitleText = "";
             auto DisplayText = "";
-            auto HeaderColor = FLinearColor(0.0f, 1.0f, 0.0f, 1.0f); // Default green
 
             if (IsClientAndHost)
             {
-                DisplayText = "=== AUTO CLAMPING (CLIENT+HOST) ===\n";
-                HeaderColor = FLinearColor(0.0f, 1.0f, 0.0f, 1.0f); // Green
+                TitleText = "AUTO CLAMP (CLIENT+HOST)";
             }
             else if (IsHost)
             {
-                DisplayText = "=== AUTO CLAMPING (HOST) ===\n";
-                HeaderColor = FLinearColor(1.0f, 0.5f, 0.0f, 1.0f); // Orange
+                TitleText = "AUTO CLAMP (HOST)";
             }
             else if (IsClient)
             {
-                DisplayText = "=== AUTO CLAMPING (CLIENT) ===\n";
-                HeaderColor = FLinearColor(0.0f, 0.5f, 1.0f, 1.0f); // Blue
+                TitleText = "AUTO CLAMP (CLIENT)";
             }
             else
             {
-                DisplayText = "=== AUTO CLAMPING (UNKNOWN) ===\n";
-                HeaderColor = FLinearColor(0.5f, 0.5f, 0.5f, 1.0f); // Gray
+                TitleText = "AUTO CLAMP (UNKNOWN)";
             }
 
             DisplayText = f"{DisplayText}Changes: {ValueChangeCount} | Clamps: {ClampedCount}\n\n";
@@ -333,7 +331,10 @@ class UCk_EntityScript_AttributeGym_ClampingAuto : UCk_EntityScript_UE
                 DisplayText = f"{DisplayText}[{StaminaBar}] Dir: " + (StaminaIncreasing ? "UP" : "DOWN");
             }
 
-            utils_debug_draw::DrawDebugString(DisplayPos, DisplayText, nullptr, HeaderColor, 0.0f);
+            auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
+            auto& Fragment = UCk_Utils_DynamicFragment_UE::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
+            Fragment.Title = FText::FromString(TitleText);
+            Fragment.Description = FText::FromString(DisplayText);
         }
     }
 
@@ -365,6 +366,8 @@ class UCk_EntityScript_AttributeGym_ClampingAuto : UCk_EntityScript_UE
 
 class UCk_EntityScript_AttributeGym_ClampingManual : UCk_EntityScript_UE
 {
+    default _Replication = ECk_Replication::DoesNotReplicate;
+
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
@@ -560,28 +563,24 @@ class UCk_EntityScript_AttributeGym_ClampingManual : UCk_EntityScript_UE
             auto DisplayPos = Transform.GetLocation() + DisplayOffset;
 
             // Header and color based on network role
+            auto TitleText = "";
             auto DisplayText = "";
-            auto HeaderColor = FLinearColor(0.0f, 0.0f, 1.0f, 1.0f); // Default blue
 
             if (IsClientAndHost)
             {
-                DisplayText = "=== MANUAL CLAMPING (CLIENT+HOST) ===\n";
-                HeaderColor = FLinearColor(0.0f, 0.0f, 1.0f, 1.0f); // Blue
+                TitleText = "MANUAL CLAMP (CLIENT+HOST)";
             }
             else if (IsHost)
             {
-                DisplayText = "=== MANUAL CLAMPING (HOST) ===\n";
-                HeaderColor = FLinearColor(1.0f, 0.5f, 0.0f, 1.0f); // Orange
+                TitleText = "MANUAL CLAMP (HOST)";
             }
             else if (IsClient)
             {
-                DisplayText = "=== MANUAL CLAMPING (CLIENT) ===\n";
-                HeaderColor = FLinearColor(0.0f, 0.5f, 1.0f, 1.0f); // Light Blue
+                TitleText = "MANUAL CLAMP (CLIENT)";
             }
             else
             {
-                DisplayText = "=== MANUAL CLAMPING (UNKNOWN) ===\n";
-                HeaderColor = FLinearColor(0.5f, 0.5f, 0.5f, 1.0f); // Gray
+                TitleText = "MANUAL CLAMP (UNKNOWN)";
             }
 
             DisplayText = f"{DisplayText}Changes: {ValueChangeCount} | Clamps: {ClampedCount}\n\n";
@@ -617,7 +616,11 @@ class UCk_EntityScript_AttributeGym_ClampingManual : UCk_EntityScript_UE
             DisplayText = f"{DisplayText}Ck_GymAttribute_SetStamina [value]\n";
             DisplayText = f"{DisplayText}Ck_GymAttribute_TestBoundaries";
 
-            utils_debug_draw::DrawDebugString(DisplayPos, DisplayText, nullptr, HeaderColor, 0.0f);
+
+            auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
+            auto& Fragment = UCk_Utils_DynamicFragment_UE::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
+            Fragment.Title = FText::FromString(TitleText);
+            Fragment.Description = FText::FromString(DisplayText);
         }
     }
 
@@ -735,7 +738,7 @@ class ACk_AttributeGym_ClampingDual_PlayerController : ACk_Gym_Base_PlayerContro
         auto SpawnParams = FClampingSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
-            ck::SelfEntity(this),
+            Get_StationHandle("Gym.Attribute.ClampingAuto"),
             UCk_EntityScript_AttributeGym_ClampingAuto,
             FInstancedStruct::Make(SpawnParams)
         );
@@ -756,7 +759,7 @@ class ACk_AttributeGym_ClampingDual_PlayerController : ACk_Gym_Base_PlayerContro
         auto SpawnParams = FClampingSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
-            ck::SelfEntity(this),
+            Get_StationHandle("Gym.Attribute.ClampingManual"),
             UCk_EntityScript_AttributeGym_ClampingManual,
             FInstancedStruct::Make(SpawnParams)
         );
