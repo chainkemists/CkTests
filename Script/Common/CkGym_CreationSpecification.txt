@@ -420,7 +420,40 @@ EXTENSIBLE:
 */
 
 //============================================================================
-// 16. EXAMPLE: SIMPLE AUDIO GYM IMPLEMENTATION
+// 16. STATION TEXT MODIFICATION (UPDATED)
+//============================================================================
+
+/*
+NEW FEATURE: Gyms can now modify station display text directly through dynamic fragments.
+This allows real-time updates to station displays without needing preset text.
+
+USAGE PATTERN:
+*/
+
+// Access the station owner (typically through entity lifetime)
+auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
+
+// Get or add the dynamic fragment for station display
+auto& Fragment = UCk_Utils_DynamicFragment_UE::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
+
+// Update the title and description
+Fragment.Title = FText::FromString("STATION TITLE");
+Fragment.Description = FText::FromString("Dynamic description with real-time data");
+
+/*
+This allows gyms to:
+- Display real-time statistics and counters
+- Show attribute values and progress bars
+- Update command lists dynamically
+- Display network role information
+- Show test results and status updates
+
+Note: The FCkGym_Station_TitleAndDescription fragment is automatically handled by
+the station display system and updates are reflected immediately on the BP_DemoDisplay.
+*/
+
+//============================================================================
+// 17. EXAMPLE: SIMPLE AUDIO GYM IMPLEMENTATION
 //============================================================================
 
 // GameMode (minimal):

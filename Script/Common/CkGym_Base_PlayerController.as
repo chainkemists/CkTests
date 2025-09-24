@@ -108,6 +108,32 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         return StationActor;
     }
 
+    FCk_Handle Get_StationHandle(FString InStationTag)
+    {
+        auto StationActor = Get_StationByTag(InStationTag);
+        if (!ck::IsValid(StationActor))
+        {
+            ck::Warning("❌ Cannot get transform - station not found: " + InStationTag);
+            return FCk_Handle();
+        }
+
+        return utils_owning_actor::Get_ActorEntityHandle(StationActor);
+    }
+
+    void Set_StationTitleAndDescription(FString InStationTag, FCkGym_Station_TitleAndDescription InTextAndDescription)
+    {
+        auto StationActor = Get_StationByTag(InStationTag);
+        if (!ck::IsValid(StationActor))
+        {
+            ck::Warning("❌ Cannot get transform - station not found: " + InStationTag);
+            return;
+        }
+
+        auto Handle = utils_owning_actor::Get_ActorEntityHandle(StationActor);
+        auto& Fragment = UCk_Utils_DynamicFragment_UE::AddOrGet_Fragment(Handle, FCkGym_Station_TitleAndDescription);
+        Fragment = InTextAndDescription;
+    }
+
     // Utility function for derived classes to get station transform
     FTransform Get_StationTransform(FString InStationTag)
     {
