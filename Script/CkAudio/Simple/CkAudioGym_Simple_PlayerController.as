@@ -1,23 +1,5 @@
 class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 {
-    FString Get_GymName() override
-    {
-        return "Simple Audio Gym";
-    }
-
-    FString Get_GymDescription() override
-    {
-        return "Tests basic AudioCue functionality: background music and spatial audio";
-    }
-
-    TArray<FString> Get_RequiredStationTags() override
-    {
-        auto RequiredTags = TArray<FString>();
-        RequiredTags.Add("Gym.Audio.BackgroundMusic");
-        RequiredTags.Add("Gym.Audio.SpatialAudio");
-        return RequiredTags;
-    }
-
     void Request_StartGym() override
     {
         // Start both audio features
