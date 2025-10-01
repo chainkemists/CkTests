@@ -221,23 +221,6 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
 
 class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 {
-    FString Get_GymName() override
-    {
-        return "Attribute System Testing Gym";
-    }
-
-    FString Get_GymDescription() override
-    {
-        return "Tests Float, Byte, and Vector attributes with modifiers, clamping, and signals";
-    }
-
-    TArray<FString> Get_RequiredStationTags() override
-    {
-        auto RequiredTags = TArray<FString>();
-        RequiredTags.Add("Gym.Attribute.BasicAttributes");
-        return RequiredTags;
-    }
-
     void Request_StartGym() override
     {
         Request_StartBasicAttributes();
@@ -256,15 +239,6 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             UCk_EntityScript_AttributeGym_BasicAttributes,
             FInstancedStruct::Make(SpawnParams)
         );
-
-        if (ck::IsValid(SpawnRequest))
-        {
-            ck::Trace("✅ Basic Attributes entity spawned at station location");
-        }
-        else
-        {
-            ck::Error("❌ Failed to spawn Basic Attributes entity");
-        }
     }
 
     // Console Commands
@@ -299,21 +273,4 @@ class ACk_AttributeGym_GameMode : ACk_Gym_Base_GameMode
 {
     default PlayerControllerClass = ACk_AttributeGym_PlayerController;
     default DefaultPawnClass = ACk_Gym_Base_Pawn;
-
-    FString Get_GymName() override
-    {
-        return "Attribute System Testing Gym";
-    }
-
-    FString Get_GymDescription() override
-    {
-        return "Tests Float, Byte, and Vector attributes with modifiers, clamping, and signals";
-    }
-
-    TArray<FString> Get_RequiredStationTags() override
-    {
-        auto RequiredTags = TArray<FString>();
-        RequiredTags.Add("Gym.Attribute.BasicAttributes");
-        return RequiredTags;
-    }
 }
