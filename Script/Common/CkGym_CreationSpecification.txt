@@ -85,29 +85,6 @@ class ACk_[GymName]Gym_GameMode : ACk_Gym_Base_GameMode
 class ACk_[GymName]Gym_PlayerController : ACk_Gym_Base_PlayerController
 {
     //------------------------------------------------------------------------
-    // REQUIRED OVERRIDES - Gym Metadata
-    //------------------------------------------------------------------------
-
-    FString Get_GymName() override
-    {
-        return "[Gym Display Name]";
-    }
-
-    FString Get_GymDescription() override
-    {
-        return "Tests [specific features] of the Ck Framework";
-    }
-
-    TArray<FString> Get_RequiredStationTags() override
-    {
-        auto RequiredTags = TArray<FString>();
-        RequiredTags.Add("Gym.[Category].[Feature1]");
-        RequiredTags.Add("Gym.[Category].[Feature2]");
-        // Add all required station tags here
-        return RequiredTags;
-    }
-
-    //------------------------------------------------------------------------
     // MAIN GYM STARTUP LOGIC
     //------------------------------------------------------------------------
 
@@ -340,7 +317,6 @@ BEFORE IMPLEMENTATION:
 DURING IMPLEMENTATION:
 [ ] Create GameMode inheriting from ACk_Gym_Base_GameMode
 [ ] Create PlayerController inheriting from ACk_Gym_Base_PlayerController
-[ ] Override required metadata functions: Get_GymName(), Get_GymDescription(), Get_RequiredStationTags()
 [ ] Implement Request_StartGym() with gym-specific logic
 [ ] Add console commands for individual feature testing
 [ ] Use Get_StationTransform() utility for station positioning
@@ -378,20 +354,6 @@ void Ck_Gym[GymName]_[Action]()
 {
     Request_[Action]();
 }
-
-//------------------------------------------------------------------------
-// REQUIRED OVERRIDE FUNCTIONS
-//------------------------------------------------------------------------
-
-FString Get_GymName() override { return "My Gym Name"; }
-FString Get_GymDescription() override { return "Description of what this tests"; }
-TArray<FString> Get_RequiredStationTags() override
-{
-    auto Tags = TArray<FString>();
-    Tags.Add("Gym.Category.Feature");
-    return Tags;
-}
-void Request_StartGym() override { /* implement startup logic */ }
 
 //============================================================================
 // 15. ARCHITECTURE BENEFITS
@@ -466,17 +428,6 @@ class ACk_AudioGym_Simple_GameMode : ACk_Gym_Base_GameMode
 // PlayerController (contains all logic):
 class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 {
-    FString Get_GymName() override { return "Simple Audio Gym"; }
-    FString Get_GymDescription() override { return "Tests basic AudioCue functionality: background music and spatial audio"; }
-
-    TArray<FString> Get_RequiredStationTags() override
-    {
-        auto RequiredTags = TArray<FString>();
-        RequiredTags.Add("Gym.Audio.BackgroundMusic");
-        RequiredTags.Add("Gym.Audio.SpatialAudio");
-        return RequiredTags;
-    }
-
     void Request_StartGym() override
     {
         Request_StartBackgroundMusic();
