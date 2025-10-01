@@ -45,10 +45,10 @@ struct FCk_Message_IntegerGym_AddModifier
 {
     UPROPERTY()
     FGameplayTag ModifierName;
-    
+
     UPROPERTY()
     int32 Delta;
-    
+
     UPROPERTY()
     ECk_MinMaxCurrent Component;
 
@@ -65,7 +65,7 @@ struct FCk_Message_IntegerGym_RemoveModifier
 {
     UPROPERTY()
     FGameplayTag ModifierName;
-    
+
     UPROPERTY()
     ECk_MinMaxCurrent Component;
 

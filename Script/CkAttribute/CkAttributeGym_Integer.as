@@ -178,7 +178,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}Ck_GymInteger_SetExperience [value]";
 
 		auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
-		auto& Fragment = UCk_Utils_DynamicFragment_UE::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
+		auto& Fragment = utils_dynamic_fragment::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
 		Fragment.Title = FText::FromString(TitleText);
 		Fragment.Description = FText::FromString(DisplayText);
 	}
@@ -390,7 +390,7 @@ class UCk_EntityScript_IntegerGym_MinMaxCurrent : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}through modifiers (next station)";
 
 		auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
-		auto& Fragment = UCk_Utils_DynamicFragment_UE::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
+		auto& Fragment = utils_dynamic_fragment::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
 		Fragment.Title = FText::FromString(TitleText);
 		Fragment.Description = FText::FromString(DisplayText);
 	}
@@ -571,7 +571,7 @@ class UCk_EntityScript_IntegerGym_Modifiers : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}Ck_GymInteger_ClearAllModifiers";
 
 		auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
-		auto& Fragment = UCk_Utils_DynamicFragment_UE::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
+		auto& Fragment = utils_dynamic_fragment::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
 		Fragment.Title = FText::FromString(TitleText);
 		Fragment.Description = FText::FromString(DisplayText);
 	}
@@ -810,7 +810,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}Ck_GymInteger_ResetClamping";
 
 		auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
-		auto& Fragment = UCk_Utils_DynamicFragment_UE::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
+		auto& Fragment = utils_dynamic_fragment::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
 		Fragment.Title = FText::FromString(TitleText);
 		Fragment.Description = FText::FromString(DisplayText);
 	}
