@@ -55,12 +55,12 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
 		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"DisplayTick"));
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		auto UpdateTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.8f));
 		UpdateTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto UpdateTimer = utils_timer::Add(InHandle, UpdateTimerParams);
-		UpdateTimer.BindTo_OnDone(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"UpdateTick"));
+		UpdateTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"UpdateTick"));
 	}
 
 	void
@@ -90,23 +90,15 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 	Request_BindSignals(
 		FCk_Handle InHandle)
 	{
-		utils_byte_attribute::BindTo_OnValueChanged(ArmorAttribute, ECk_MinMaxCurrent::Current, ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnArmorValueChanged"));
-
-		utils_byte_attribute::BindTo_OnMinClamped(ArmorAttribute, ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnArmorClamped"));
-
-		utils_byte_attribute::BindTo_OnMaxClamped(ArmorAttribute, ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnArmorClamped"));
-
-		utils_byte_attribute::BindTo_OnValueChanged(StaminaAttribute, ECk_MinMaxCurrent::Current, ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnStaminaValueChanged"));
-
-		utils_byte_attribute::BindTo_OnMinClamped(StaminaAttribute, ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnStaminaClamped"));
-
-		utils_byte_attribute::BindTo_OnMaxClamped(StaminaAttribute, ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnStaminaClamped"));
-
-		utils_byte_attribute::BindTo_OnValueChanged(HealthAttribute, ECk_MinMaxCurrent::Current, ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnHealthValueChanged"));
-
-		utils_byte_attribute::BindTo_OnMinClamped(HealthAttribute, ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnHealthClamped"));
-
-		utils_byte_attribute::BindTo_OnMaxClamped(HealthAttribute, ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnHealthClamped"));
+		utils_byte_attribute::BindTo_OnValueChanged(ArmorAttribute, ECk_MinMaxCurrent::Current, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnArmorValueChanged"));
+		utils_byte_attribute::BindTo_OnMinClamped(ArmorAttribute, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnArmorClamped"));
+		utils_byte_attribute::BindTo_OnMaxClamped(ArmorAttribute, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnArmorClamped"));
+		utils_byte_attribute::BindTo_OnValueChanged(StaminaAttribute, ECk_MinMaxCurrent::Current, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnStaminaValueChanged"));
+		utils_byte_attribute::BindTo_OnMinClamped(StaminaAttribute, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnStaminaClamped"));
+		utils_byte_attribute::BindTo_OnMaxClamped(StaminaAttribute, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnStaminaClamped"));
+		utils_byte_attribute::BindTo_OnValueChanged(HealthAttribute, ECk_MinMaxCurrent::Current, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnHealthValueChanged"));
+		utils_byte_attribute::BindTo_OnMinClamped(HealthAttribute, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnHealthClamped"));
+		utils_byte_attribute::BindTo_OnMaxClamped(HealthAttribute, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnHealthClamped"));
 	}
 
 	UFUNCTION()

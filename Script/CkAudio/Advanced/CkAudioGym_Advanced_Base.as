@@ -114,13 +114,9 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
 
         // Bind overlaps to base class functions that derived classes can override
         utils_probe::BindTo_OnBeginOverlap(ProbeHandle,
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-            ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_Probe_OnBeginOverlap(this, n"OnPlayerEnteredStation"));
 
         utils_probe::BindTo_OnEndOverlap(ProbeHandle,
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-            ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_Probe_OnEndOverlap(this, n"OnPlayerExitedStation"));
 
         return ECk_EntityScript_ConstructionFlow::Finished;

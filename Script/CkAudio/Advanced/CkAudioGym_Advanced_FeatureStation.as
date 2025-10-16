@@ -98,13 +98,9 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
 
         // Bind orchestral director events
         utils_audio_director::BindTo_OnTrackStarted(OrchestralDirector,
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-            ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_AudioDirector_Track(this, n"OnOrchestralTrackStarted"));
 
         utils_audio_director::BindTo_OnTrackStopped(OrchestralDirector,
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-            ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_AudioDirector_Track(this, n"OnOrchestralTrackStopped"));
     }
 
