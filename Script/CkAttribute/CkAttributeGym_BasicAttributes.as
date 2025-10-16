@@ -41,13 +41,13 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
         auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-        DisplayTimer.BindTo_OnDone(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"DisplayTick"));
+        DisplayTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"DisplayTick"));
 
         // Timer for value updates (every 1.5 seconds)
         auto UpdateTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.5f));
         UpdateTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto UpdateTimer = utils_timer::Add(InHandle, UpdateTimerParams);
-        UpdateTimer.BindTo_OnDone(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"UpdateTick"));
+        UpdateTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"UpdateTick"));
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

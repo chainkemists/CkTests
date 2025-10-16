@@ -83,8 +83,6 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_EntityScript_UE
 
         // Bind overlap events
         utils_probe::BindTo_OnBeginOverlap(ProbeHandle,
-            ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-            ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_Probe_OnBeginOverlap(this, n"OnPlayerEnteredPickup"));
 
         // Print pickup info with probe details for debugging

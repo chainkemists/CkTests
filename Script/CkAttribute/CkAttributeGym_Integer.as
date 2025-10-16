@@ -56,7 +56,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
 		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"DisplayTick"));
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Health: 0-100, starts at 100
 		auto HealthParams = FCk_Fragment_IntegerAttribute_ParamsData(
@@ -88,24 +88,18 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 		utils_integer_attribute::BindTo_OnValueChanged(
 			HealthAttribute,
 			ECk_MinMaxCurrent::Current,
-			ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-			ECk_Signal_PostFireBehavior::DoNothing,
 			HealthDelegate);
 
 		auto ArmorDelegate = FCk_Delegate_IntegerAttribute_OnValueChanged(this, n"OnArmorChanged");
 		utils_integer_attribute::BindTo_OnValueChanged(
 			ArmorAttribute,
 			ECk_MinMaxCurrent::Current,
-			ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-			ECk_Signal_PostFireBehavior::DoNothing,
 			ArmorDelegate);
 
 		auto ExperienceDelegate = FCk_Delegate_IntegerAttribute_OnValueChanged(this, n"OnExperienceChanged");
 		utils_integer_attribute::BindTo_OnValueChanged(
 			ExperienceAttribute,
 			ECk_MinMaxCurrent::Current,
-			ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-			ECk_Signal_PostFireBehavior::DoNothing,
 			ExperienceDelegate);
 
 		// Bind to messages
@@ -296,7 +290,7 @@ class UCk_EntityScript_IntegerGym_MinMaxCurrent : UCk_EntityScript_UE
 		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
 		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"DisplayTick"));
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
@@ -322,24 +316,18 @@ class UCk_EntityScript_IntegerGym_MinMaxCurrent : UCk_EntityScript_UE
 		utils_integer_attribute::BindTo_OnValueChanged(
 			PowerLevelAttribute,
 			ECk_MinMaxCurrent::Min,
-			ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-			ECk_Signal_PostFireBehavior::DoNothing,
 			MinDelegate);
 
 		auto MaxDelegate = FCk_Delegate_IntegerAttribute_OnValueChanged(this, n"OnMaxChanged");
 		utils_integer_attribute::BindTo_OnValueChanged(
 			PowerLevelAttribute,
 			ECk_MinMaxCurrent::Max,
-			ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-			ECk_Signal_PostFireBehavior::DoNothing,
 			MaxDelegate);
 
 		auto CurrentDelegate = FCk_Delegate_IntegerAttribute_OnValueChanged(this, n"OnCurrentChanged");
 		utils_integer_attribute::BindTo_OnValueChanged(
 			PowerLevelAttribute,
 			ECk_MinMaxCurrent::Current,
-			ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-			ECk_Signal_PostFireBehavior::DoNothing,
 			CurrentDelegate);
 
 		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_IntegerGym_ResetAttributes, FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
@@ -453,7 +441,7 @@ class UCk_EntityScript_IntegerGym_Modifiers : UCk_EntityScript_UE
 		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
 		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"DisplayTick"));
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
@@ -683,13 +671,13 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
 		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"DisplayTick"));
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Auto-update timer
 		auto UpdateTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.5f));
 		UpdateTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto UpdateTimer = utils_timer::Add(InHandle, UpdateTimerParams);
-		UpdateTimer.BindTo_OnDone(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"UpdateTick"));
+		UpdateTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"UpdateTick"));
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
@@ -713,15 +701,11 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		auto MinClampDelegate = FCk_Delegate_IntegerAttribute_OnClamped(this, n"OnMinClamped");
 		utils_integer_attribute::BindTo_OnMinClamped(
 			ResourceAttribute,
-			ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-			ECk_Signal_PostFireBehavior::DoNothing,
 			MinClampDelegate);
 
 		auto MaxClampDelegate = FCk_Delegate_IntegerAttribute_OnClamped(this, n"OnMaxClamped");
 		utils_integer_attribute::BindTo_OnMaxClamped(
 			ResourceAttribute,
-			ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
-			ECk_Signal_PostFireBehavior::DoNothing,
 			MaxClampDelegate);
 
 		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_IntegerGym_ResetAttributes, FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));

@@ -48,12 +48,12 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_EntityScript_UE
 		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
 		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"DisplayTick"));
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.5f));
 		AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-		AutoTimer.BindTo_OnDone(ECk_Signal_BindingPolicy::FireIfPayloadInFlight, FCk_Delegate_Timer(this, n"AutoTick"));
+		AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
 	}
 
 	void
@@ -90,7 +90,6 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_EntityScript_UE
 		for (auto Attribute : AllAttributes)
 		{
 			utils_byte_attribute::BindTo_OnValueChanged(Attribute, ECk_MinMaxCurrent::Current,
-				ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing,
 				FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged"));
 		}
 	}
@@ -164,7 +163,6 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_EntityScript_UE
 		for (auto Attribute : CombatAttributes)
 		{
 			utils_byte_attribute::BindTo_OnValueChanged(Attribute, ECk_MinMaxCurrent::Current,
-				ECk_Signal_BindingPolicy::FireIfPayloadInFlight, ECk_Signal_PostFireBehavior::DoNothing,
 				FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged"));
 		}
 	}
