@@ -140,7 +140,7 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_EntityScript_UE
 
         auto Str = FInstancedStruct();
         Str.InitializeAs(AudioSpawnParams);
-        auto PendingEntityScript = utils_cue::Request_Execute_Local(SelfEntity, AudioCueTag, Str);
+        auto PendingEntityScript = utils_cue_audio::Request_ExecuteCue_Local(SelfEntity, AudioCueTag, Str);
 
         Print("🔊 Playing pickup audio: " + PickupName, 1.0f);
     }

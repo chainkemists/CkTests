@@ -74,7 +74,7 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
 
         auto Str = FInstancedStruct();
         Str.InitializeAs(SpawnParams);
-        auto PendingEntityScript = utils_cue::Request_Execute_Local(SelfEntity, AudioCueTag, Str);
+        auto PendingEntityScript = utils_cue_audio::Request_ExecuteCue_Local(SelfEntity, AudioCueTag, Str);
 
         PendingEntityScript.Promise_OnConstructed(FCk_Delegate_EntityScript_Constructed(this, n"OnSpatialAudioComplete"));
 
