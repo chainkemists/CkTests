@@ -13,8 +13,8 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
     UPROPERTY()
     bool IsAudioPlaying = false;
 
-    UPROPERTY()
-    FCk_Handle_AudioCue AudioCue;
+    // UPROPERTY()
+    // FCk_Handle_AudioCue AudioCue;
 
     // Override DoConstruct to set up spatial audio station
     UFUNCTION(BlueprintOverride)
@@ -57,13 +57,13 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
 
     void StartSpatialAudio()
     {
-        if (ck::IsValid(AudioCue))
-        {
-            auto Request = FCk_Request_AudioCue_Play();
-            Request.Set_FadeInTime(FCk_Time(0.2f));
-            utils_audio_cue::Request_Play(AudioCue, Request);
-            return;
-        }
+        // if (ck::IsValid(AudioCue))
+        // {
+        //     auto Request = FCk_Request_AudioCue_Play();
+        //     Request.Set_FadeInTime(FCk_Time(0.2f));
+        //     utils_audio_cue::Request_Play(AudioCue, Request);
+        //     return;
+        // }
 
         // Execute the spatial audio cue with proper transform
         auto SelfEntity = ck::SelfEntity(this);
@@ -87,13 +87,13 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
     private void OnSpatialAudioComplete(FCk_Handle_EntityScript InEntityScriptHandle)
     {
         auto Entity = InEntityScriptHandle;
-        AudioCue = Entity.H().To_FCk_Handle_AudioCue();
+        // AudioCue = Entity.H().To_FCk_Handle_AudioDirector();
     }
 
     void StopSpatialAudio()
     {
         // Stop the spatial audio cue
-        utils_audio_cue::Request_StopAll(AudioCue);
+        // utils_audio_cue::Request_StopAll(AudioCue);
 
         IsAudioPlaying = false;
         UpdateVisualFeedback(false);
