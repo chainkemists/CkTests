@@ -210,7 +210,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
             DisplayText = f"{DisplayText}- Velocity continues growing without limits\n";
             DisplayText = f"{DisplayText}- [CLAMPED] appears when limits are enforced";
 
-            utils_debug_draw::DrawDebugString(DisplayPos, DisplayText, nullptr, FLinearColor::White, 0.0f);
+            utils_debug_draw::DrawDebugString(DisplayPos, DisplayText, FLinearColor::White, 0.0f);
         }
     }
 }
