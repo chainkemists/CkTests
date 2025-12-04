@@ -842,7 +842,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		{
 			auto Transform = utils_transform::Get_EntityCurrentTransform(TransformHandle);
 			auto TestPos = Transform.GetLocation() + FVector(0.0f, 0.0f, 250.0f);
-			utils_debug_draw::DrawDebugString(TestPos, "TESTING BOUNDARIES!", nullptr, FLinearColor(1.0f, 1.0f, 0.0f, 1.0f), 3.0f);
+			utils_debug_draw::DrawDebugString(TestPos, "TESTING BOUNDARIES!", FLinearColor(1.0f, 1.0f, 0.0f, 1.0f), 3.0f);
 		}
 	}
 
