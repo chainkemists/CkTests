@@ -6,6 +6,64 @@
 
 class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 {
+    TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
+    {
+        auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
+
+        // Basic Integer Attributes Station
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.IntegerBasic");
+            Station.Title = FText::FromString("INTEGER BASIC ATTRIBUTES");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Demonstrates basic integer attribute operations."));
+            Description.Add(FText::FromString("Tests get/set operations for Health, Armor, and Experience."));
+            Description.Add(FText::FromString("Console: Ck_GymInteger_SetHealth/SetArmor/SetExperience"));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        // Min/Max/Current Station
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.IntegerMinMaxCurrent");
+            Station.Title = FText::FromString("INTEGER MIN/MAX/CURRENT");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Displays all three attribute components independently."));
+            Description.Add(FText::FromString("Shows how Min, Max, and Current values interact and update."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        // Modifiers Station
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.IntegerModifiers");
+            Station.Title = FText::FromString("INTEGER MODIFIERS");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Tests attribute modifier system with add/remove operations."));
+            Description.Add(FText::FromString("Demonstrates weapon and buff modifier stacking."));
+            Description.Add(FText::FromString("Console: Ck_GymInteger_Add/Remove WeaponBonus/BuffBonus"));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        // Clamping & Signals Station
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.IntegerClamping");
+            Station.Title = FText::FromString("INTEGER CLAMPING & SIGNALS");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Tests automatic value clamping and signal callbacks."));
+            Description.Add(FText::FromString("Monitors OnValueChanged, OnMinClamped, OnMaxClamped events."));
+            Description.Add(FText::FromString("Console: Ck_GymInteger_TestBoundaries"));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        return Stations;
+    }
+
     void Request_StartGym() override
     {
         Request_StartBasicStation();
