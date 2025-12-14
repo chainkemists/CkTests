@@ -85,12 +85,46 @@ class ACk_[GymName]Gym_GameMode : ACk_Gym_Base_GameMode
 class ACk_[GymName]Gym_PlayerController : ACk_Gym_Base_PlayerController
 {
     //------------------------------------------------------------------------
+    // STATION DEFINITION (REQUIRED)
+    //------------------------------------------------------------------------
+
+    TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
+    {
+        auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
+
+        // Define each station with tag, title, and description
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.[Category].[Feature1]");
+            Station.Title = FText::FromString("FEATURE 1 TITLE");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Description paragraph 1."));
+            Description.Add(FText::FromString("Description paragraph 2."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        // Add more stations as needed
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.[Category].[Feature2]");
+            Station.Title = FText::FromString("FEATURE 2 TITLE");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("What this station demonstrates."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        return Stations;
+    }
+
+    //------------------------------------------------------------------------
     // MAIN GYM STARTUP LOGIC
     //------------------------------------------------------------------------
 
     void Request_StartGym() override
     {
-        // Base class automatically validates stations before calling this
+        // Base class spawns stations before calling this
         // Implement gym-specific startup logic here
         Request_Start[Feature1]();
         Request_Start[Feature2]();
@@ -162,14 +196,26 @@ class ACk_[GymName]Gym_Pawn : ACk_Gym_Base_Pawn
 }
 
 //============================================================================
-// 8. STATION SETUP IN LEVEL
+// 8. STATION SETUP (AUTOMATIC)
 //============================================================================
 
-// BP_DemoDisplay Actor Setup:
-// 1. Place BP_DemoDisplay actors in level at desired locations
-// 2. Add FName tags (NOT Gameplay Tags) using standardized naming
-// 3. Example: Add "Gym.Audio.BackgroundMusic" as FName tag to actor
-// 4. Tags are added in actor's "Tags" array property
+// Stations are now spawned automatically via Get_RequiredStations() override
+// Base class handles:
+// - Default grid layout (500 units forward, spaced 800 units along Y axis)
+// - Stations face player (180° rotation)
+// - Centered grid arrangement
+// - Skip spawning if station already exists in level
+
+// Station Spawn Parameters:
+// - Tags: FName array for station identification
+// - Title: FText displayed at top of station
+// - Description: TArray<FText> for multi-paragraph descriptions
+// - Transform: Optional override (defaults to grid layout)
+// - Dimensions, colors, text scaling (use defaults unless needed)
+
+// Manual Override:
+// - Place BP_DemoDisplay in level with matching tag to override automatic spawn
+// - Useful for custom positioning or special station configurations
 
 // Tag Naming Rules:
 // 1. Always start with "Gym."
@@ -311,22 +357,23 @@ ck::Trace("🎵 Audio cue executed successfully");
 BEFORE IMPLEMENTATION:
 [ ] Define what framework features the gym will test
 [ ] Plan required stations and their FName tags
-[ ] Choose appropriate station placement in level
+[ ] Plan station titles and descriptions
 [ ] Define console commands for testing
 
 DURING IMPLEMENTATION:
 [ ] Create GameMode inheriting from ACk_Gym_Base_GameMode
 [ ] Create PlayerController inheriting from ACk_Gym_Base_PlayerController
-[ ] Implement Request_StartGym() with gym-specific logic
+[ ] Override Get_RequiredStations() to define all stations with titles/descriptions
+[ ] Implement Request_StartGym() with gym-specific startup logic
 [ ] Add console commands for individual feature testing
 [ ] Use Get_StationTransform() utility for station positioning
 [ ] Add proper error handling and logging
 
 AFTER IMPLEMENTATION:
-[ ] Test station discovery works correctly (use Ck_Gym_ValidateStations)
+[ ] Test stations spawn correctly in default grid layout
+[ ] Verify station titles and descriptions display properly
 [ ] Verify all console commands function
-[ ] Test graceful handling of missing stations
-[ ] Test gym info display (Ck_Gym_ShowInfo)
+[ ] Test manual station override (place BP_DemoDisplay with matching tag)
 [ ] Test in both single-player and multiplayer
 [ ] Verify client-server compatibility (no GameMode dependencies in logic)
 */
@@ -428,6 +475,34 @@ class ACk_AudioGym_Simple_GameMode : ACk_Gym_Base_GameMode
 // PlayerController (contains all logic):
 class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 {
+    TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
+    {
+        auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
+
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Audio.BackgroundMusic");
+            Station.Title = FText::FromString("BACKGROUND MUSIC");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Continuous background music playback."));
+            Description.Add(FText::FromString("Tests audio cue execution and looping."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Audio.SpatialAudio");
+            Station.Title = FText::FromString("SPATIAL AUDIO");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("3D positional audio effects."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        return Stations;
+    }
+
     void Request_StartGym() override
     {
         Request_StartBackgroundMusic();

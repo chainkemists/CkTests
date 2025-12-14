@@ -1,5 +1,66 @@
 //--------------------------------------------------------------------------------------------------------------------------
 
+struct FCkGym_Station_SpawnParams_Payload
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    UPROPERTY()
+    TArray<FName> Tags;
+
+    // Dimensions
+    UPROPERTY()
+    float Width = 6.0f;
+
+    UPROPERTY()
+    float Depth = 5.0f;
+
+    UPROPERTY()
+    float Height = 5.0f;
+
+    // Text Content
+    UPROPERTY()
+    FText Title = FText::FromString("Title");
+
+    UPROPERTY()
+    TArray<FText> Description;
+
+    // Text Styling
+    UPROPERTY()
+    float TitleScale = 20.0f;
+
+    UPROPERTY()
+    float DescriptionScale = 12.0f;
+
+    UPROPERTY()
+    FLinearColor TitleColour = FLinearColor::White;
+
+    UPROPERTY()
+    FLinearColor DescriptionColour = FLinearColor::White;
+
+    // Layout Options
+    UPROPERTY()
+    bool SeperateTitlePanel = false;
+
+    UPROPERTY()
+    bool FloorText = false;
+
+    UPROPERTY()
+    int32 NumberOfLinesBetweenParagraphs = 1;
+
+    UPROPERTY()
+    int32 NumberOfSpacesBetweenLines = 0;
+
+    UPROPERTY()
+    float TextPadding = 1.0f;
+
+    // Positioning
+    UPROPERTY()
+    FVector CenterOffset = FVector(250.0f, 0.0f, 200.0f);
+};
+
+//--------------------------------------------------------------------------------------------------------------------------
+
 struct FCkGym_Station_TitleAndDescription
 {
     UPROPERTY()
@@ -32,6 +93,15 @@ struct FCk_Gym_TransformSpawnParams
 
 namespace CkGym_Common
 {
+    void
+    Request_SpawnNewStation(
+        FCkGym_Station_SpawnParams_Payload InPayload)
+    {
+        auto Entity = Subsystem::GetWorldSubsystem(UCk_EcsWorld_Subsystem_UE).Get_TransientEntity();
+        utils_messaging::Broadcast(Entity, InPayload);
+    }
+
+
     // Network role detection for display positioning
     FString Get_NetworkRoleTitle(FCk_Handle InEntity)
     {

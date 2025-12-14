@@ -4,6 +4,86 @@
 
 class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 {
+    TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
+    {
+        auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
+
+        // Byte Clamping Station
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.ByteClamping");
+            Station.Title = FText::FromString("BYTE CLAMPING");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Demonstrates automatic value clamping within min/max boundaries."));
+            Description.Add(FText::FromString("Watch attributes cycle and clamp when exceeding their limits."));
+            Description.Add(FText::FromString("Armor: 0-200 | Stamina: 50-255 | Health: 0-100"));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        // Byte Modifiers Station
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.ByteModifiers");
+            Station.Title = FText::FromString("BYTE MODIFIERS");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Tests attribute modifier system with add/multiply operations."));
+            Description.Add(FText::FromString("See how modifiers stack and affect final attribute values."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        // Byte MinMaxCurrent Station
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.ByteMinMaxCurrent");
+            Station.Title = FText::FromString("BYTE MIN/MAX/CURRENT");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Displays all three attribute values: Min, Max, and Current."));
+            Description.Add(FText::FromString("Watch how they update independently and interact."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        // Byte Multiple Station
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.ByteMultiple");
+            Station.Title = FText::FromString("BYTE MULTIPLE ATTRIBUTES");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Entity with multiple byte attributes working simultaneously."));
+            Description.Add(FText::FromString("Tests attribute independence and concurrent updates."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        // Byte Values Station
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.ByteValues");
+            Station.Title = FText::FromString("BYTE VALUES");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Basic attribute value operations and display."));
+            Description.Add(FText::FromString("Tests get/set operations and value updates."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        // Byte Signals Station
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.ByteSignals");
+            Station.Title = FText::FromString("BYTE SIGNALS");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Tests attribute signal system and callbacks."));
+            Description.Add(FText::FromString("Monitors OnValueChanged, OnMinClamped, OnMaxClamped events."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        return Stations;
+    }
+
     void Request_StartGym() override
     {
         Request_StartByteClamping();
