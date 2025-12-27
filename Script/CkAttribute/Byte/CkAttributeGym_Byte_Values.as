@@ -200,7 +200,7 @@ class UCk_EntityScript_AttributeGym_ByteValues : UCk_EntityScript_UE
 	void
 	Request_UpdateDisplay()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		auto TitleText = "BYTE VALUES (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
 		auto DisplayText = f"Cycle Step: {CycleStep}/6 | Changes: {ValueChangeCount}\n\n";
 

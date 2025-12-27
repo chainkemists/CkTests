@@ -255,7 +255,7 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_EntityScript_UE
 
     void Request_UpdateDisplay()
     {
-        auto SelfEntity = ck::SelfEntity(this);
+        auto SelfEntity = ck::ToEntity(this);
         auto TitleText = "BYTE MODIFIERS (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
         auto DisplayText = f"Cycle Step: {CycleStep}/7 | Changes: {ValueChangeCount}\n\n";
 

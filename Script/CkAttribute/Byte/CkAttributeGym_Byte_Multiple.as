@@ -136,7 +136,7 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_EntityScript_UE
 	void
 	Request_AddCombatBatch()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 
 		auto CombatParams = FCk_Fragment_MultipleByteAttribute_ParamsData();
 		auto& CombatList = CombatParams._ByteAttributeParams;
@@ -170,7 +170,7 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_EntityScript_UE
 	void
 	Request_TestForEachOperations()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		TotalAttributes = 0;
 
 		auto AllFound = utils_byte_attribute::ForEach(SelfEntity, FInstancedStruct(),
@@ -191,7 +191,7 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_EntityScript_UE
 	void
 	Request_TestNameBasedLookup()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 
 		auto StrengthFound = utils_byte_attribute::ForEach_ByName(SelfEntity,
 			utils_gameplay_tag::ResolveGameplayTag(n"RPG.Strength"), FInstancedStruct(),
@@ -222,7 +222,7 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_EntityScript_UE
 	void
 	Request_TestIterationFiltering()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 
 		auto FilteredAttributes = utils_byte_attribute::ForEach_If(SelfEntity, FInstancedStruct(),
 			FCk_Lambda_InHandle(this, n"ProcessHighValue"),
@@ -264,7 +264,7 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_EntityScript_UE
 	void
 	Request_UpdateDisplay()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		auto TitleText = "BYTE MULTIPLE (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
 		auto DisplayText = f"Cycle Step: {CycleStep}/6 | Changes: {ValueChangeCount}\n";
 		DisplayText = f"{DisplayText}Total Attributes: {AllAttributes.Num()}\n\n";

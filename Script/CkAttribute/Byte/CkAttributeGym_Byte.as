@@ -170,7 +170,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Byte Gym - Test Boundaries")
     void Ck_GymByte_TestBoundaries()
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_AttributeGym_ByteClamping");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_ByteClamping");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_TestBoundaries());
@@ -181,13 +181,13 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Byte Gym - Reset All")
     void Ck_GymByte_ResetAll()
     {
-        auto ClampingEntities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_AttributeGym_ByteClamping");
+        auto ClampingEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_ByteClamping");
         for (auto Entity : ClampingEntities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
         }
 
-        auto ModifierEntities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_AttributeGym_ByteModifiers");
+        auto ModifierEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_ByteModifiers");
         for (auto Entity : ModifierEntities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());

@@ -265,7 +265,7 @@ void Request_StartAudioFeature()
 {
     auto StationTransform = Get_StationTransform("Gym.Audio.FeatureName");
 
-    utils_cue_executor::Request_ExecuteCue_Local(ck::SelfEntity(this),
+    utils_cue_executor::Request_ExecuteCue_Local(ck::ToEntity(this),
         utils_gameplay_tag::ResolveGameplayTag(n"Audio.Cue.Tag"),
         FAudioCueTransform(StationTransform));
 
@@ -283,7 +283,7 @@ void Request_SpawnEntityAtStation()
     SpawnParams.Set_Transform(StationTransform);
 
     auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
-        ck::SelfEntity(this),
+        ck::ToEntity(this),
         UCk_MyEntityScript,
         SpawnParams
     );
@@ -513,7 +513,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartBackgroundMusic()
     {
         auto StationTransform = Get_StationTransform("Gym.Audio.BackgroundMusic");
-        utils_cue_executor::Request_ExecuteCue_Local(ck::SelfEntity(this),
+        utils_cue_executor::Request_ExecuteCue_Local(ck::ToEntity(this),
             utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.BackgroundMusic"),
             FAudioCueTransform(StationTransform));
         ck::Trace("🎵 Background music cue executed at demo display location");
@@ -522,7 +522,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartSpatialAudio()
     {
         auto StationTransform = Get_StationTransform("Gym.Audio.SpatialAudio");
-        utils_cue_executor::Request_ExecuteCue_Local(ck::SelfEntity(this),
+        utils_cue_executor::Request_ExecuteCue_Local(ck::ToEntity(this),
             utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.SpatialAudio"),
             FAudioCueTransform(StationTransform));
         ck::Trace("🔊 Spatial audio cue executed at demo display location");

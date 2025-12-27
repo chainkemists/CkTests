@@ -132,7 +132,7 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_EntityScript_UE
     void PlayPickupAudio()
     {
         // Execute the pickup audio cue
-        auto SelfEntity = ck::SelfEntity(this);
+        auto SelfEntity = ck::ToEntity(this);
 
         // Create spawn params with the pickup's transform
         auto AudioSpawnParams = FCkAudioGym_Advanced_AudioCue_SpawnParams();

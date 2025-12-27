@@ -168,7 +168,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Integer Gym - Set Health")
     void Ck_GymInteger_SetHealth(int32 InValue)
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Basic");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Basic");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_SetHealth(InValue));
@@ -178,7 +178,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Integer Gym - Set Armor")
     void Ck_GymInteger_SetArmor(int32 InValue)
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Basic");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Basic");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_SetArmor(InValue));
@@ -188,7 +188,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Integer Gym - Set Experience")
     void Ck_GymInteger_SetExperience(int32 InValue)
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Basic");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Basic");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_SetExperience(InValue));
@@ -203,7 +203,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymInteger_AddWeaponBonus(int32 InDelta)
     {
         auto ModifierTag = utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Weapon");
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Modifiers");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Modifiers");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_AddModifier(ModifierTag, InDelta, ECk_MinMaxCurrent::Current));
@@ -214,7 +214,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymInteger_AddBuffBonus(int32 InDelta)
     {
         auto ModifierTag = utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Buff");
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Modifiers");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Modifiers");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_AddModifier(ModifierTag, InDelta, ECk_MinMaxCurrent::Current));
@@ -225,7 +225,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymInteger_RemoveWeaponBonus()
     {
         auto ModifierTag = utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Weapon");
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Modifiers");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Modifiers");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_RemoveModifier(ModifierTag, ECk_MinMaxCurrent::Current));
@@ -236,7 +236,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymInteger_RemoveBuffBonus()
     {
         auto ModifierTag = utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Buff");
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Modifiers");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Modifiers");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_RemoveModifier(ModifierTag, ECk_MinMaxCurrent::Current));
@@ -246,7 +246,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Integer Gym - Clear All Modifiers")
     void Ck_GymInteger_ClearAllModifiers()
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Modifiers");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Modifiers");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_ClearModifiers());
@@ -260,7 +260,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Integer Gym - Test Boundaries")
     void Ck_GymInteger_TestBoundaries()
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Clamping");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Clamping");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_TestBoundaries());
@@ -270,7 +270,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Integer Gym - Reset Clamping")
     void Ck_GymInteger_ResetClamping()
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Clamping");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Clamping");
         for (auto Entity : Entities)
         {
             utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_ResetAttributes());
@@ -293,7 +293,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
         for (auto Tag : AllTags)
         {
-            auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), Tag);
+            auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), Tag);
             for (auto Entity : Entities)
             {
                 utils_messaging::Broadcast(Entity, FCk_Message_IntegerGym_ResetAttributes());
@@ -307,7 +307,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymInteger_RestartBasic()
     {
         // Destroy existing entities
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Basic");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Basic");
         for (auto Entity : Entities)
         {
             utils_entity_lifetime::Request_DestroyEntity(Entity);
@@ -320,7 +320,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Integer Gym - Restart Station (MinMaxCurrent)")
     void Ck_GymInteger_RestartMinMaxCurrent()
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_MinMaxCurrent");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_MinMaxCurrent");
         for (auto Entity : Entities)
         {
             utils_entity_lifetime::Request_DestroyEntity(Entity);
@@ -331,7 +331,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Integer Gym - Restart Station (Modifiers)")
     void Ck_GymInteger_RestartModifiers()
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Modifiers");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Modifiers");
         for (auto Entity : Entities)
         {
             utils_entity_lifetime::Request_DestroyEntity(Entity);
@@ -342,7 +342,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Integer Gym - Restart Station (Clamping)")
     void Ck_GymInteger_RestartClamping()
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_IntegerGym_Clamping");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Clamping");
         for (auto Entity : Entities)
         {
             utils_entity_lifetime::Request_DestroyEntity(Entity);
