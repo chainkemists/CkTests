@@ -112,7 +112,7 @@ void ScatterPickupsAcrossFullLevel()
         auto SpawnParams = FCkAudioGym_Advanced_AudioPickup_SpawnParams();
         SpawnParams.Transform = FTransform(FRotator::ZeroRotator, Location);
 
-        auto PickupEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
+        auto PickupEntity = utils_entity_script::Request_SpawnEntity(ck::ToEntity(this),
             UCkAudioGym_Advanced_InterfacePickup, SpawnParams);
 
         if (ck::IsValid(PickupEntity))
@@ -126,7 +126,7 @@ void ScatterPickupsAcrossFullLevel()
         auto SpawnParams = FCkAudioGym_Advanced_AudioPickup_SpawnParams();
         SpawnParams.Transform = FTransform(FRotator::ZeroRotator, Location);
 
-        auto PickupEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
+        auto PickupEntity = utils_entity_script::Request_SpawnEntity(ck::ToEntity(this),
             UCkAudioGym_Advanced_LevelUpPickup, SpawnParams);
 
         if (ck::IsValid(PickupEntity))
@@ -140,7 +140,7 @@ void ScatterPickupsAcrossFullLevel()
         auto SpawnParams = FCkAudioGym_Advanced_AudioPickup_SpawnParams();
         SpawnParams.Transform = FTransform(FRotator::ZeroRotator, Location);
 
-        auto PickupEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
+        auto PickupEntity = utils_entity_script::Request_SpawnEntity(ck::ToEntity(this),
             UCkAudioGym_Advanced_NotificationsPickup, SpawnParams);
 
         if (ck::IsValid(PickupEntity))

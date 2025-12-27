@@ -66,7 +66,7 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
         // }
 
         // Execute the spatial audio cue with proper transform
-        auto SelfEntity = ck::SelfEntity(this);
+        auto SelfEntity = ck::ToEntity(this);
 
         // Create spawn params with the station's transform (same struct as music cue)
         auto SpawnParams = FCkAudioGym_Advanced_AudioCue_SpawnParams();

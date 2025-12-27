@@ -63,7 +63,7 @@ class ACkAudioGym_Advanced_StationSpawner : AActor
         SpawnParams.Transform = SpawnTransform;
 
         // Spawn the station entity script
-        auto StationEntity = utils_entity_script::Request_SpawnEntity(ck::SelfEntity(this),
+        auto StationEntity = utils_entity_script::Request_SpawnEntity(ck::ToEntity(this),
             StationEntityScriptClass, SpawnParams);
 
         if (ck::IsValid(StationEntity))

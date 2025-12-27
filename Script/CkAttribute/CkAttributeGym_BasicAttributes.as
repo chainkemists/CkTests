@@ -163,7 +163,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
 
     void DisplayCurrentValues()
     {
-        auto SelfEntity = ck::SelfEntity(this);
+        auto SelfEntity = ck::ToEntity(this);
         auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
 
         if (ck::IsValid(TransformHandle))
@@ -235,7 +235,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
         auto SpawnParams = FBasicAttributesSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
-            ck::SelfEntity(this),
+            ck::ToEntity(this),
             UCk_EntityScript_AttributeGym_BasicAttributes,
             FInstancedStruct::Make(SpawnParams)
         );
@@ -245,7 +245,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Attribute Gym - Update Basic Values")
     void Ck_GymAttribute_UpdateBasicValues()
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_AttributeGym_BasicAttributes");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
 
         for (auto Entity : Entities)
         {
@@ -256,7 +256,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Attribute Gym - Reset Basic Values")
     void Ck_GymAttribute_ResetBasicValues()
     {
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::SelfEntity(this), n"TAG_AttributeGym_BasicAttributes");
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
 
         for (auto Entity : Entities)
         {

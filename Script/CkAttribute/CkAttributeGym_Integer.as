@@ -119,7 +119,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 
 	void DisplayStats()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
 
 		if (ck::Ensure(ck::IsValid(TransformHandle), "TransformHandle should be valid in gym") == false)
@@ -341,7 +341,7 @@ class UCk_EntityScript_IntegerGym_MinMaxCurrent : UCk_EntityScript_UE
 
 	void DisplayStats()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
 
 		auto TitleText = "MIN/MAX/CURRENT COMPONENTS";
@@ -512,7 +512,7 @@ class UCk_EntityScript_IntegerGym_Modifiers : UCk_EntityScript_UE
 
 	void DisplayStats()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
 
 		auto TitleText = "INTEGER ATTRIBUTE MODIFIERS";
@@ -753,7 +753,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 
 	void DisplayStats()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
 
 		auto TitleText = "INTEGER CLAMPING & SIGNALS";
@@ -804,7 +804,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 	{
 		MinClampCount++;
 
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
 		auto Transform = utils_transform::Get_EntityCurrentTransform(TransformHandle);
 		auto ClampPos = Transform.GetLocation() + FVector(-50.0f, 0.0f, 150.0f);
@@ -816,7 +816,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 	{
 		MaxClampCount++;
 
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
 		if (ck::IsValid(TransformHandle))
 		{
@@ -836,7 +836,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		utils_integer_attribute::Request_Override(ResourceAttribute, -50);
 		utils_integer_attribute::Request_Override(ResourceAttribute, 150);
 
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
 		if (ck::IsValid(TransformHandle))
 		{

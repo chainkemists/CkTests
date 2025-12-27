@@ -174,7 +174,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 	void
     Request_UpdateDisplay()
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		auto TitleText = "BYTE CLAMPING (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
 		auto DisplayText = f"Changes: {ValueChangeCount} | Clamps: {ClampedCount}\n\n";
 
@@ -231,7 +231,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 	void OnArmorClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
 	{
 		ClampedCount++;
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		CkGym_Attribute::Draw_ClampIndicator(SelfEntity, FVector(-50.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 
@@ -239,7 +239,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 	void OnStaminaClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
 	{
 		ClampedCount++;
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		CkGym_Attribute::Draw_ClampIndicator(SelfEntity, FVector(0.0f, 0.0f, 150.0f), FLinearColor(1.0f, 1.0f, 0.0f, 1.0f));
 	}
 
@@ -247,7 +247,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 	void OnHealthClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
 	{
 		ClampedCount++;
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		CkGym_Attribute::Draw_ClampIndicator(SelfEntity, FVector(50.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
 	}
 
@@ -255,7 +255,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 	UFUNCTION()
 	private void OnTestBoundaries(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		auto SelfEntity = ck::SelfEntity(this);
+		auto SelfEntity = ck::ToEntity(this);
 		CkGym_Common::Draw_DebugSphere(SelfEntity, FVector(0.0f, 0.0f, 300.0f), FLinearColor(1.0f, 1.0f, 0.0f, 1.0f), 25.0f, 3.0f, 2.0f);
 
 		// Test extreme values
