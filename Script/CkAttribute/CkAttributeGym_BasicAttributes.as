@@ -164,11 +164,9 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
     void DisplayCurrentValues()
     {
         auto SelfEntity = ck::ToEntity(this);
-        auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
-
-        if (ck::IsValid(TransformHandle))
+        if (SelfEntity.Is_Transform())
         {
-            auto Transform = utils_transform::Get_EntityCurrentTransform(TransformHandle);
+            auto Transform = utils_transform::Get_EntityCurrentTransform(SelfEntity.As_Transform());
             auto DisplayPos = Transform.GetLocation() + FVector(0.0f, 0.0f, 200.0f);
 
             auto DisplayText = "=== BASIC ATTRIBUTES - AUTO CLAMPING TEST ===\n";
