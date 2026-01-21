@@ -64,7 +64,7 @@ class ACk_TweenTest_GymActor : AActor
 
         StartLocation = GetActorLocation();
         EndLocation = StartLocation + FVector(0.0f, 0.0f, 200.0f);
-        TweenToLocation(InEntity.To_FCk_Handle_Transform());
+        TweenToLocation(InEntity.As_Transform());
 	}
 
     UFUNCTION()

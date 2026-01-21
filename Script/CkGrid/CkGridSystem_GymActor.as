@@ -124,13 +124,6 @@ class ACk_GridSystem_GymActor : AActor
 	Tick(
 		float DeltaSeconds)
 	{
-        // auto Asset = utils_object::LoadAssetByName("/AutoSettings/InputMapping/DefaultKeySeparator.DefaultKeySeparator",
-        //     ECk_Utils_Object_AssetSearchScope::All, ECk_Utils_Object_AssetSearchStrategy::ExactOnly);
-        // Print(f"Asset: {Asset._Asset}", 0.0f);
-        // Print(f"Asset: {Asset._AssetPath}", 0.0f);
-
-        // auto Assets = utils_object::LoadAssetsByName("MovableCube_IsmRendererData_DA", ECk_Utils_Object_AssetSearchScope::All);
-
 		auto PlayerController = Gameplay::GetPlayerController(0);
 		auto PlayerPawn = Gameplay::GetPlayerPawn(0);
 
@@ -212,6 +205,7 @@ class ACk_GridSystem_GymActor : AActor
             }
         }
 
+        FCk_Handle H;
         GridB.H().Request_SetLocation(Request);
 	}
 
@@ -229,6 +223,8 @@ class ACk_GridSystem_GymActor : AActor
 		auto NewHandle = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner();
         NewHandle.Set_DebugName(n"Grid System");
 
+        FCk_Handle_Probe P;
+
 		auto NewHandleTransform = utils_transform::Add(NewHandle, InTransform, ECk_Replication::DoesNotReplicate);
 		auto Grid = utils_2d_grid_system::Add(NewHandleTransform, Params);
         utils_2d_grid_system::Request_SetPivotToAnchor(Grid, ECk_2dGridSystem_PivotAnchor::Center);
@@ -245,7 +241,7 @@ class ACk_GridSystem_GymActor : AActor
 
 			auto CellAsTransform = utils_transform::Add(Cell.H(), FTransform(), ECk_Replication::DoesNotReplicate);
             CellAsTransform.H().Set_DebugName(n"Cell");
-			auto GridAsTransform = Grid.H().To_FCk_Handle_Transform();
+			auto GridAsTransform = Grid.As_Transform();
 
 			auto Point = utils_2d_grid_cell::Get_Coordinate(Cell, ECk_2dGridSystem_CoordinateType::Rotated);
 			auto CellLocalPos = FVector(Point.X * Params._CellSize.X, Point.Y * Params._CellSize.Y, 0);
