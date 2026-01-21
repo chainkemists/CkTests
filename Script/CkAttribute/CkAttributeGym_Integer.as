@@ -120,7 +120,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 	void DisplayStats()
 	{
 		auto SelfEntity = ck::ToEntity(this);
-		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
+		auto TransformHandle = SelfEntity.As_Transform();
 
 		if (ck::Ensure(ck::IsValid(TransformHandle), "TransformHandle should be valid in gym") == false)
 		{
@@ -342,7 +342,7 @@ class UCk_EntityScript_IntegerGym_MinMaxCurrent : UCk_EntityScript_UE
 	void DisplayStats()
 	{
 		auto SelfEntity = ck::ToEntity(this);
-		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
+		auto TransformHandle = SelfEntity.As_Transform();
 
 		auto TitleText = "MIN/MAX/CURRENT COMPONENTS";
 		auto DisplayText = "";
@@ -513,7 +513,7 @@ class UCk_EntityScript_IntegerGym_Modifiers : UCk_EntityScript_UE
 	void DisplayStats()
 	{
 		auto SelfEntity = ck::ToEntity(this);
-		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
+		auto TransformHandle = SelfEntity.As_Transform();
 
 		auto TitleText = "INTEGER ATTRIBUTE MODIFIERS";
 		auto DisplayText = "";
@@ -754,7 +754,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 	void DisplayStats()
 	{
 		auto SelfEntity = ck::ToEntity(this);
-		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
+		auto TransformHandle = SelfEntity.As_Transform();
 
 		auto TitleText = "INTEGER CLAMPING & SIGNALS";
 		auto DisplayText = "";
@@ -805,7 +805,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		MinClampCount++;
 
 		auto SelfEntity = ck::ToEntity(this);
-		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
+		auto TransformHandle = SelfEntity.As_Transform();
 		auto Transform = utils_transform::Get_EntityCurrentTransform(TransformHandle);
 		auto ClampPos = Transform.GetLocation() + FVector(-50.0f, 0.0f, 150.0f);
 		utils_debug_draw::DrawDebugSphere(ClampPos, 30.0f, 8, FLinearColor(0.0f, 0.0f, 1.0f, 1.0f), 2.0f, 3.0f);
@@ -817,10 +817,9 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		MaxClampCount++;
 
 		auto SelfEntity = ck::ToEntity(this);
-		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
-		if (ck::IsValid(TransformHandle))
+		if (SelfEntity.Is_Transform())
 		{
-			auto Transform = utils_transform::Get_EntityCurrentTransform(TransformHandle);
+			auto Transform = utils_transform::Get_EntityCurrentTransform(SelfEntity.As_Transform());
 			auto ClampPos = Transform.GetLocation() + FVector(50.0f, 0.0f, 150.0f);
 			utils_debug_draw::DrawDebugSphere(ClampPos, 30.0f, 8, FLinearColor(1.0f, 0.0f, 0.0f, 1.0f), 2.0f, 3.0f);
 		}
@@ -837,10 +836,9 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		utils_integer_attribute::Request_Override(ResourceAttribute, 150);
 
 		auto SelfEntity = ck::ToEntity(this);
-		auto TransformHandle = SelfEntity.To_FCk_Handle_Transform();
-		if (ck::IsValid(TransformHandle))
+		if (SelfEntity.Is_Transform())
 		{
-			auto Transform = utils_transform::Get_EntityCurrentTransform(TransformHandle);
+			auto Transform = utils_transform::Get_EntityCurrentTransform(SelfEntity.As_Transform());
 			auto TestPos = Transform.GetLocation() + FVector(0.0f, 0.0f, 250.0f);
 			utils_debug_draw::DrawDebugString(TestPos, "TESTING BOUNDARIES!", FLinearColor(1.0f, 1.0f, 0.0f, 1.0f), 3.0f);
 		}

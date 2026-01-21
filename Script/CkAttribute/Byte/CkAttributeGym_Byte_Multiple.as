@@ -204,7 +204,7 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_EntityScript_UE
         FCk_Handle InHandle,
         FInstancedStruct InOptionalPayload)
 	{
-		auto StrengthAttr = InHandle.To_FCk_Handle_ByteAttribute();
+		auto StrengthAttr = InHandle.As_ByteAttribute();
 		utils_byte_attribute::Request_Override(StrengthAttr, 100);
 	}
 
@@ -245,7 +245,7 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_EntityScript_UE
         FCk_SharedBool OutResult,
         FInstancedStruct InOptionalPayload)
 	{
-		auto Attr = InHandle.To_FCk_Handle_ByteAttribute();
+		auto Attr = InHandle.As_ByteAttribute();
 		auto Value = utils_byte_attribute::Get_FinalValue(Attr);
         auto Res = OutResult;
 		Res.Set(Value > 100);

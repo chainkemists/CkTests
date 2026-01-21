@@ -158,7 +158,7 @@ namespace CkGym_Common
     // Draw debug sphere at entity location with offset
     void Draw_DebugSphere(FCk_Handle InEntity, FVector InOffset, FLinearColor InColor, float32 InRadius = 25.0f, float32 InDuration = 2.0f, float32 InThickness = 3.0f)
     {
-        auto TransformHandle = InEntity.To_FCk_Handle_Transform();
+        auto TransformHandle = InEntity.As_Transform();
         if (ck::Is_NOT_Valid(TransformHandle))
         {
             return;

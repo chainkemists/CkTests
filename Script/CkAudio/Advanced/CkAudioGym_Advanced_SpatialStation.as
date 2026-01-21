@@ -87,7 +87,7 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
     private void OnSpatialAudioComplete(FCk_Handle_EntityScript InEntityScriptHandle)
     {
         auto Entity = InEntityScriptHandle;
-        // AudioCue = Entity.H().To_FCk_Handle_AudioDirector();
+        // AudioCue = Entity.As_AudioDirector();
     }
 
     void StopSpatialAudio()
