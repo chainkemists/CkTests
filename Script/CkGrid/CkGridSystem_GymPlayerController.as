@@ -14,11 +14,6 @@ class AGridPlayerController : ACk_PlayerController_UE
     UInputAction RotateAction;
 
     UPROPERTY(Category = "Input")
-    FEnhancedActionKeyMapping RotateKeyMap;
-    default RotateKeyMap.Action = RotateAction;
-    default RotateKeyMap.Key = EKeys::R;
-
-    UPROPERTY(Category = "Input")
     UInputMappingContext Context;
 
     UPROPERTY(DefaultComponent)
@@ -30,7 +25,7 @@ class AGridPlayerController : ACk_PlayerController_UE
         RotateAction = UButtonPress();
 
         Context = UGridInputMappingContext();
-        Context.Mappings.Add(RotateKeyMap);
+        Context.MapKey(RotateAction, EKeys::R);
     }
 
     UFUNCTION(BlueprintOverride)
