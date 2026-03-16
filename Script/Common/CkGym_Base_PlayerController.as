@@ -63,7 +63,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
             // Only apply default layout if transform is identity (not explicitly set)
             if (InOutStations[i].Transform.Equals(FTransform::Identity))
             {
-                auto RowIndex = i / MaxStationsPerRow;
+                auto RowIndex = Math::IntegerDivisionTrunc(i, MaxStationsPerRow);
                 auto ColIndex = i % MaxStationsPerRow;
                 auto StationsInRow = Math::Min(MaxStationsPerRow, InOutStations.Num() - (RowIndex * MaxStationsPerRow));
                 auto RowStartOffset = -(StationsInRow - 1) * StationSpacing * 0.5f;
