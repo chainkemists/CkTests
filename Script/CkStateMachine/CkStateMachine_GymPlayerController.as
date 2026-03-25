@@ -145,7 +145,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
             NAME_None,
             true);
 
-        SpawnedActor.InitialStateClass = UCk_SmTest_Hier_Parent_Approach;
+        SpawnedActor.InitialStateClass = UCk_SmTest_Hier_Parent_Spawn;
         FinishSpawningActor(SpawnedActor);
     }
 

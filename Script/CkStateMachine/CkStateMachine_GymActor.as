@@ -29,7 +29,7 @@ class ACk_SmTest_GymActor : AActor
     UStaticMeshComponent Mesh;
     default Mesh.StaticMesh = Cast<UStaticMesh>(
         utils_i_o::LoadAssetByName("Cube1", ECk_AssetSearchScope::Engine,
-        ECk_AssetSearchStrategy::ExactOnly).Get_Asset().Get());
+        ECk_AssetSearchStrategy::ExactOnly)._Asset);
     default Mesh.CollisionEnabled = ECollisionEnabled::NoCollision;
 
     UPROPERTY(DefaultComponent)
@@ -230,9 +230,12 @@ class ACk_SmTest_GymActor : AActor
         if (InStateClass == UCk_SmTest_Complex_State_Flee)   { return "Flee"; }
 
         // Hierarchical states (parent)
+        if (InStateClass == UCk_SmTest_Hier_Parent_Spawn)    { return "Spawn"; }
         if (InStateClass == UCk_SmTest_Hier_Parent_Approach) { return "Approach"; }
-        if (InStateClass == UCk_SmTest_Hier_Parent_Engage)   { return "Engage [Sub-SM]"; }
+        if (InStateClass == UCk_SmTest_Hier_Parent_Engage)   { return "Engage [Combat SM]"; }
         if (InStateClass == UCk_SmTest_Hier_Parent_Retreat)  { return "Retreat"; }
+        if (InStateClass == UCk_SmTest_Hier_Parent_Heal)     { return "Heal [Heal SM]"; }
+        if (InStateClass == UCk_SmTest_Hier_Parent_Flee)     { return "Flee"; }
 
         return "Unknown";
     }
@@ -253,9 +256,12 @@ class ACk_SmTest_GymActor : AActor
         if (InStateClass == UCk_SmTest_Complex_State_Flee)   { return FColor(255, 255, 0); }
 
         // Hierarchical states (parent)
+        if (InStateClass == UCk_SmTest_Hier_Parent_Spawn)    { return FColor(128, 128, 128); }
         if (InStateClass == UCk_SmTest_Hier_Parent_Approach) { return FColor(0, 128, 255); }
         if (InStateClass == UCk_SmTest_Hier_Parent_Engage)   { return FColor::Red; }
         if (InStateClass == UCk_SmTest_Hier_Parent_Retreat)  { return FColor(255, 255, 0); }
+        if (InStateClass == UCk_SmTest_Hier_Parent_Heal)     { return FColor(77, 230, 77); }
+        if (InStateClass == UCk_SmTest_Hier_Parent_Flee)     { return FColor(255, 102, 0); }
 
         return FColor::White;
     }
