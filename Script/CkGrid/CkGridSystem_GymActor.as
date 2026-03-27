@@ -89,7 +89,7 @@ class ACk_GridSystem_GymActor : AActor
 
     void BindRotation(UEnhancedInputComponent InInputComp, UInputAction InAction)
     {
-        InInputComp.BindAction(InAction, ETriggerEvent::Started, FEnhancedInputActionHandlerDynamicSignature(this, n"Rotate"));
+        InInputComp.BindAction(n"Rotate", EInputEvent::IE_Pressed, FInputActionHandlerDynamicSignature(this, n"Rotate"));
     }
 
 	UFUNCTION()
