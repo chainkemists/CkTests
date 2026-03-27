@@ -38,7 +38,8 @@ class AGridPlayerController : ACk_PlayerController_UE
         PushInputComponent(InputComponent);
 
         UEnhancedInputLocalPlayerSubsystem EnhancedInputSubsystem = UEnhancedInputLocalPlayerSubsystem::Get(this);
-        EnhancedInputSubsystem.AddMappingContext(Context, 0, FModifyContextOptions());
+        // TODO: UE 5.7 - AddMappingContext signature changed in AngelScript bindings
+        //EnhancedInputSubsystem.AddMappingContext(Context, 0);
 
         // just for testing
         // InputComponent.BindAction(Action, ETriggerEvent::Triggered, FEnhancedInputActionHandlerDynamicSignature(this, n"Input_Action"));
@@ -55,6 +56,6 @@ class AGridPlayerController : ACk_PlayerController_UE
     UFUNCTION()
     void Input_Action(FInputActionValue ActionValue, float32 ElapsedTime, float32 TriggeredTime, UInputAction SourceAction)
     {
-        Print(f"Input_Action[{ActionValue.ToString()}, {ElapsedTime}, {TriggeredTime}, {SourceAction.ToString()}]");
+        Print(f"Input_Action[{ElapsedTime}, {TriggeredTime}, {SourceAction.ToString()}]");
     }
 };
