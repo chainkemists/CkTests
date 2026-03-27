@@ -3,7 +3,7 @@ class ACk_TweenTest_GymPawn : ADefaultPawn
 {
     UPROPERTY()
     UEnvQuery TestActorSpawnPointsQuery = Cast<UEnvQuery>(
-        utils_i_o::LoadAssetByName("TweenActorSpawnPoints_Query_CkTests_EQS", ECk_AssetSearchScope::All, ECk_AssetSearchStrategy::ExactOnly).Get_Asset().Get());
+        utils_i_o::LoadAssetByName("TweenActorSpawnPoints_Query_CkTests_EQS", ECk_AssetSearchScope::All, ECk_AssetSearchStrategy::ExactOnly)._Asset);
 
     UFUNCTION(BlueprintOverride)
     void BeginPlay()

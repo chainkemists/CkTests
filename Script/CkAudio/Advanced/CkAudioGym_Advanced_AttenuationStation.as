@@ -96,9 +96,9 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
 
         // Add continuous music track for attenuation testing
         auto MusicTrackParams = FCk_Fragment_AudioTrack_ParamsData(
-            MusicTrackTag,
             Cast<USoundBase>(utils_i_o::LoadAssetByName(
                 "/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX", ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
+        MusicTrackParams._TrackName = MusicTrackTag.GetTagName();
 
         MusicTrackParams
         .Set_Priority(40)
@@ -115,9 +115,9 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
 
         // Add ambient background for layered attenuation testing
         auto AmbientTrackParams = FCk_Fragment_AudioTrack_ParamsData(
-            AmbientTrackTag,
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
                 ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
+        AmbientTrackParams._TrackName = AmbientTrackTag.GetTagName();
 
         AmbientTrackParams.Set_Priority(20); // Lower priority background
         AmbientTrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade);

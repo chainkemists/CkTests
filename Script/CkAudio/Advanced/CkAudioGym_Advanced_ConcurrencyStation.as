@@ -90,7 +90,8 @@ class UCkAudioGym_Advanced_ConcurrencyStation : UCkAudioGym_Advanced_Base
             // Choose appropriate sound asset based on track type
             auto SoundAsset = GetSoundAssetForTrackType(i);
 
-            auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(TrackTag, SoundAsset);
+            auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(SoundAsset);
+            TrackParams._TrackName = TrackTag.GetTagName();
 
             // Configure track parameters for concurrency testing
             TrackParams.Set_Priority(30 + (i * 5));

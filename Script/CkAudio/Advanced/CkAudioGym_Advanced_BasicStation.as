@@ -57,9 +57,9 @@ class UCkAudioGym_Advanced_BasicStation : UCkAudioGym_Advanced_Base
 
         // Add Interface sound track
         auto InterfaceTrackParams = FCk_Fragment_AudioTrack_ParamsData(
-            InterfaceTrackTag,
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
+        InterfaceTrackParams._TrackName = InterfaceTrackTag.GetTagName();
 
         InterfaceTrackParams.Set_Priority(60);
         InterfaceTrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Interrupt);
@@ -72,9 +72,9 @@ class UCkAudioGym_Advanced_BasicStation : UCkAudioGym_Advanced_Base
 
         // Add Achievement sound track
         auto AchievementTrackParams = FCk_Fragment_AudioTrack_ParamsData(
-            AchievementTrackTag,
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
+        AchievementTrackParams._TrackName = AchievementTrackTag.GetTagName();
 
         AchievementTrackParams.Set_Priority(80);
         AchievementTrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Interrupt);
