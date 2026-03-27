@@ -145,7 +145,7 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
             return;
         }
 
-        auto Request = FCk_Request_AudioDirector_StartTrack(InTrackTag);
+        auto Request = FCk_Request_AudioDirector_StartTrack(InTrackTag.GetTagName());
         Request.Set_FadeInTime(InFadeTime);
         utils_audio_director::Request_StartTrack(AudioDirector, Request);
     }
@@ -157,7 +157,7 @@ class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
             return;
         }
 
-        utils_audio_director::Request_StopTrack(AudioDirector, InTrackTag, InFadeTime);
+        utils_audio_director::Request_StopTrack(AudioDirector, InTrackTag.GetTagName(), InFadeTime);
     }
 
     void Request_StopAllTracks(FCk_Time InFadeTime)

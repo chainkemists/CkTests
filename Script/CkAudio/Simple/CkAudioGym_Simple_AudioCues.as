@@ -29,9 +29,9 @@ class UCk_SimpleBackgroundMusicCue : UCk_AudioCue_EntityScript
 
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
     default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.BackgroundMusic.Track"),
         Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
-        ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
+        ECk_AssetSearchScope::Plugins)._Asset));
+    default _SingleTrack._TrackName = n"AudioGym.Simple.BackgroundMusic.Track";
 
     default _PlaybackBehavior = ECk_AudioCue_PlaybackBehavior::DelayedPlay;
     default _DelayTime = FCk_Time(5.0f);
@@ -67,9 +67,9 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
 
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
     default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
-        utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.SpatialAudio.Track"),
         Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
         ECk_AssetSearchScope::Plugins)._Asset));
+    default _SingleTrack._TrackName = n"AudioGym.Simple.SpatialAudio.Track";
 
     // Configure as spatial 3D audio
     default _SingleTrack.Set_Priority(50);

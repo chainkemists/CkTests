@@ -119,9 +119,9 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
 
         // Setup foundational tracks in primary director
         auto AmbientTrackParams = FCk_Fragment_AudioTrack_ParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Features.Ambient.Foundation"),
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
+        AmbientTrackParams._TrackName = n"AudioGym.Advanced.Features.Ambient.Foundation";
 
         AmbientTrackParams.Set_Priority(10); // Lowest priority foundation
         AmbientTrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade);
@@ -147,7 +147,8 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
             auto TrackTag = OrchestralTrackTags[i];
             auto SoundAsset = GetOrchestralSoundAsset(i);
 
-            auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(TrackTag, SoundAsset);
+            auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(SoundAsset);
+            TrackParams._TrackName = TrackTag.GetTagName();
 
             // Configure orchestral track parameters based on type
             ConfigureOrchestralTrackParams(TrackParams, i);
@@ -155,7 +156,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
             utils_audio_director::Request_AddTrack(OrchestralDirector, TrackParams);
 
             // Track the handle for dynamic control
-            auto TrackHandle = utils_audio_director::Get_TrackByName(OrchestralDirector, TrackTag);
+            auto TrackHandle = utils_audio_director::Get_TrackByName(OrchestralDirector, TrackTag.GetTagName());
             if (ck::IsValid(TrackHandle))
             {
                 ManagedTracks.Add(TrackTag, TrackHandle);
@@ -314,7 +315,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
 
         if (ck::IsValid(OrchestralDirector))
         {
-            auto Request = FCk_Request_AudioDirector_StartTrack(TrackTag);
+            auto Request = FCk_Request_AudioDirector_StartTrack(TrackTag.GetTagName());
             Request.Set_FadeInTime(FCk_Time(2.0f + (CurrentSequenceStep * 0.3f)));
 
             utils_audio_director::Request_StartTrack(OrchestralDirector, Request);
@@ -380,7 +381,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
 
         if (ck::IsValid(OrchestralDirector))
         {
-            auto Request = FCk_Request_AudioDirector_StartTrack(StingerTag);
+            auto Request = FCk_Request_AudioDirector_StartTrack(StingerTag.GetTagName());
             Request.Set_FadeInTime(FCk_Time(0.5f));
 
             utils_audio_director::Request_StartTrack(OrchestralDirector, Request);
@@ -442,7 +443,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
 
         for (int32 i = 0; i < ClimaxTags.Num(); i++)
         {
-            auto Request = FCk_Request_AudioDirector_StartTrack(ClimaxTags[i]);
+            auto Request = FCk_Request_AudioDirector_StartTrack(ClimaxTags[i].GetTagName());
             Request.Set_FadeInTime(FCk_Time(0.5f * (i + 1)));
 
             utils_audio_director::Request_StartTrack(OrchestralDirector, Request);
