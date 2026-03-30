@@ -149,7 +149,7 @@ namespace CkGym_Common
             return;
         }
 
-        auto& Fragment = utils_dynamic_fragment::AddOrGet_Fragment(Owner, FCkGym_Station_TitleAndDescription);
+        auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
         Fragment.Title = FText::FromString(InTitle);
         Fragment.Description = FText::FromString(InDescription);
         Fragment.Instructions = FText::FromString(InInstructions);
