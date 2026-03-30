@@ -139,7 +139,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         }
 
         auto Handle = utils_owning_actor::Get_ActorEntityHandle(StationActor);
-        auto& Fragment = utils_dynamic_fragment::AddOrGet_Fragment(Handle, FCkGym_Station_TitleAndDescription);
+        auto& Fragment = Handle.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
         Fragment = InTextAndDescription;
     }
 
