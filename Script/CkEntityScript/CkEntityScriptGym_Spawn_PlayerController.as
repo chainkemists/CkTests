@@ -10,19 +10,41 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
     int32 ExpectedTestInt = 42;
     float32 ExpectedTestFloat = 3.14f;
 
-    private FString StationTitle = "ENTITY SCRIPT SPAWN";
-    private TArray<FText> StationDescriptionLines;
+    //------------------------------------------------------------------------
+    // STATION DESCRIPTIONS
+    //------------------------------------------------------------------------
 
-    private TArray<FText> Get_StationDescriptionLines()
+    private FString SpawnStationTitle = "ENTITY SCRIPT SPAWN";
+    private TArray<FText> SpawnStationDescriptionLines;
+
+    private TArray<FText> Get_SpawnStationDescriptionLines()
     {
-        if (StationDescriptionLines.Num() == 0)
+        if (SpawnStationDescriptionLines.Num() == 0)
         {
-            StationDescriptionLines.Add(FText::FromString("Verifies that ExposeOnSpawn properties are correctly injected"));
-            StationDescriptionLines.Add(FText::FromString("during entity script spawning."));
-            StationDescriptionLines.Add(FText::FromString("Console: Ck_GymEntityScript_RestartSpawnTest"));
+            SpawnStationDescriptionLines.Add(FText::FromString("Verifies that ExposeOnSpawn properties are correctly injected"));
+            SpawnStationDescriptionLines.Add(FText::FromString("during entity script spawning."));
+            SpawnStationDescriptionLines.Add(FText::FromString("Console: Ck_GymEntityScript_RestartSpawnTest"));
         }
-        return StationDescriptionLines;
+        return SpawnStationDescriptionLines;
     }
+
+    private FString ReplicatedStationTitle = "ENTITY SCRIPT SPAWN (REPLICATED)";
+    private TArray<FText> ReplicatedStationDescriptionLines;
+
+    private TArray<FText> Get_ReplicatedStationDescriptionLines()
+    {
+        if (ReplicatedStationDescriptionLines.Num() == 0)
+        {
+            ReplicatedStationDescriptionLines.Add(FText::FromString("Verifies that ExposeOnSpawn properties survive replication."));
+            ReplicatedStationDescriptionLines.Add(FText::FromString("Entity script uses ECk_Replication::Replicates."));
+            ReplicatedStationDescriptionLines.Add(FText::FromString("Console: Ck_GymEntityScript_RestartReplicatedSpawnTest"));
+        }
+        return ReplicatedStationDescriptionLines;
+    }
+
+    //------------------------------------------------------------------------
+    // STATION SETUP
+    //------------------------------------------------------------------------
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -31,8 +53,18 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.EntityScript.Spawn");
-            Station.Title = FText::FromString(StationTitle);
-            Station.Description = Get_StationDescriptionLines();
+            Station.Title = FText::FromString(SpawnStationTitle);
+            Station.Description = Get_SpawnStationDescriptionLines();
+            Station.Description.Add(FText::FromString(""));
+            Station.Description.Add(FText::FromString("Waiting for entity to spawn..."));
+            Stations.Add(Station);
+        }
+
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.EntityScript.SpawnReplicated");
+            Station.Title = FText::FromString(ReplicatedStationTitle);
+            Station.Description = Get_ReplicatedStationDescriptionLines();
             Station.Description.Add(FText::FromString(""));
             Station.Description.Add(FText::FromString("Waiting for entity to spawn..."));
             Stations.Add(Station);
@@ -41,11 +73,24 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
         return Stations;
     }
 
+    //------------------------------------------------------------------------
+    // GYM STARTUP
+    //------------------------------------------------------------------------
+
     void Request_StartGym() override
     {
-        Request_StartSpawnTest();
-        ck::Trace("Entity Script Spawn Gym started");
+        auto ThisEntity = ck::ToEntity(this);
+        if (utils_net::Get_IsEntityNetMode_Host(ThisEntity))
+        {
+            Request_StartSpawnTest();
+            Request_StartReplicatedSpawnTest();
+            ck::Trace("Entity Script Spawn Gym started");
+        }
     }
+
+    //------------------------------------------------------------------------
+    // SPAWN TEST (NON-REPLICATED)
+    //------------------------------------------------------------------------
 
     void Request_StartSpawnTest()
     {
@@ -55,10 +100,12 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
         SpawnParams.TestInt = ExpectedTestInt;
         SpawnParams.TestFloat = ExpectedTestFloat;
 
+        const auto StationEntity = Get_StationHandle("Gym.EntityScript.Spawn");
+
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
-            Get_StationHandle("Gym.EntityScript.Spawn"),
+            StationEntity,
             UCk_EntityScript_EntityScriptGym_Spawn,
-            FInstancedStruct::Make(SpawnParams)
+            SpawnParams
         );
 
         if (ck::IsValid(SpawnRequest))
@@ -74,7 +121,63 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     private void OnSpawnTestConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
     {
-        const auto& Received = InEntityScriptHandle.Get_Fragment(FEntityScriptGym_SpawnParams);
+        Request_VerifyAndDisplayResults(InEntityScriptHandle, "Gym.EntityScript.Spawn", SpawnStationTitle, Get_SpawnStationDescriptionLines());
+    }
+
+    //------------------------------------------------------------------------
+    // SPAWN TEST (REPLICATED)
+    //------------------------------------------------------------------------
+
+    void Request_StartReplicatedSpawnTest()
+    {
+        auto SpawnParams = FEntityScriptGym_SpawnParams();
+        SpawnParams.InitialTransform = Get_StationTransform("Gym.EntityScript.SpawnReplicated");
+        SpawnParams.TestName = ExpectedTestName;
+        SpawnParams.TestInt = ExpectedTestInt;
+        SpawnParams.TestFloat = ExpectedTestFloat;
+
+        auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
+            Get_StationHandle("Gym.EntityScript.SpawnReplicated"),
+            UCk_EntityScript_EntityScriptGym_SpawnReplicated,
+            SpawnParams
+        );
+
+        if (ck::IsValid(SpawnRequest))
+        {
+            utils_pending_entity_script::Promise_OnConstructed(SpawnRequest, FCk_Delegate_EntityScript_Constructed(this, n"OnReplicatedSpawnTestConstructed"));
+        }
+        else
+        {
+            ck::Error("Failed to spawn EntityScript Replicated Spawn test entity");
+        }
+    }
+
+    UPROPERTY(ReplicatedUsing=OnRep_ReplicatedSpawnTestEntityScriptHandle)
+    FCk_Handle_EntityScript ReplicatedSpawnTestEntityScriptHandle;
+
+    UFUNCTION()
+    private void OnRep_ReplicatedSpawnTestEntityScriptHandle()
+    {
+        if (ck::IsValid(ReplicatedSpawnTestEntityScriptHandle))
+        {
+            Request_VerifyAndDisplayResults(ReplicatedSpawnTestEntityScriptHandle, "Gym.EntityScript.SpawnReplicated", ReplicatedStationTitle, Get_ReplicatedStationDescriptionLines());
+        }
+    }
+
+    UFUNCTION()
+    private void OnReplicatedSpawnTestConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
+    {
+        ReplicatedSpawnTestEntityScriptHandle = InEntityScriptHandle;
+        Request_VerifyAndDisplayResults(InEntityScriptHandle, "Gym.EntityScript.SpawnReplicated", ReplicatedStationTitle, Get_ReplicatedStationDescriptionLines());
+    }
+
+    //------------------------------------------------------------------------
+    // SHARED VERIFICATION
+    //------------------------------------------------------------------------
+
+    private void Request_VerifyAndDisplayResults(FCk_Handle_EntityScript InHandle, FString InStationTag, FString InTitle, TArray<FText> InDescriptionLines)
+    {
+        const auto& Received = InHandle.Get_Fragment(FEntityScriptGym_SpawnParams);
 
         auto NamePass = (Received.TestName == ExpectedTestName);
         auto IntPass = (Received.TestInt == ExpectedTestInt);
@@ -82,7 +185,7 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
         auto AllPassed = NamePass && IntPass && FloatPass;
 
         auto DisplayText = "";
-        for (auto Line : Get_StationDescriptionLines())
+        for (auto Line : InDescriptionLines)
         {
             DisplayText = f"{DisplayText}{Line}\n";
         }
@@ -94,10 +197,14 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
         DisplayText = f"{DisplayText}RESULT: " + (AllPassed ? "ALL TESTS PASSED" : "SOME TESTS FAILED");
 
         auto StationDisplay = FCkGym_Station_TitleAndDescription();
-        StationDisplay.Title = FText::FromString(StationTitle);
+        StationDisplay.Title = FText::FromString(InTitle);
         StationDisplay.Description = FText::FromString(DisplayText);
-        Set_StationTitleAndDescription("Gym.EntityScript.Spawn", StationDisplay);
+        Set_StationTitleAndDescription(InStationTag, StationDisplay);
     }
+
+    //------------------------------------------------------------------------
+    // CONSOLE COMMANDS
+    //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="EntityScript Gym - Restart Spawn Test")
     void Ck_GymEntityScript_RestartSpawnTest()
@@ -109,5 +216,17 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
         }
 
         Request_StartSpawnTest();
+    }
+
+    UFUNCTION(Exec, DisplayName="EntityScript Gym - Restart Replicated Spawn Test")
+    void Ck_GymEntityScript_RestartReplicatedSpawnTest()
+    {
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_EntityScriptGym_SpawnReplicated");
+        for (auto Entity : Entities)
+        {
+            utils_entity_lifetime::Request_DestroyEntity(Entity);
+        }
+
+        Request_StartReplicatedSpawnTest();
     }
 }
