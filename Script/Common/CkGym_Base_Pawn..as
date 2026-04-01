@@ -6,6 +6,8 @@ class ACk_Gym_Base_Pawn : ADefaultPawn
     default EntityBridge._Replication = ECk_Replication::Replicates;
     default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
 
+    default Replicates = true;
+
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
