@@ -127,7 +127,9 @@ class ACk_SceneNodeGym_Cube : AActor
 
 	FTransform Get_SceneNodeWorldTransform(FCk_Handle_SceneNode InNode)
 	{
-		auto ParentWorldTransform = utils_transform::Get_EntityCurrentTransform(EcsEntity);
+		// Get the parent transform handle that this scene node is attached to
+		auto ParentHandle = utils_scene_node::Get_Parent(InNode);
+		auto ParentWorldTransform = utils_transform::Get_EntityCurrentTransform(ParentHandle);
 		auto LocalOffset = utils_scene_node::Get_Offset(InNode);
 		// Compose: parent world * local offset
 		return LocalOffset * ParentWorldTransform;
@@ -180,12 +182,15 @@ class ACk_SceneNodeGym_Cube : AActor
 
 	private void Setup_Hierarchy()
 	{
+		// Root -> Child
 		auto ChildLocalTransform = FTransform(FRotator(), FVector(120.0f, 0.0f, 0.0f), FVector(0.7f, 0.7f, 0.7f));
 		HierarchyChild = utils_scene_node::Create(ParentTransform, ChildLocalTransform);
 		HierarchyChildCube = SpawnChildCube("Child");
 
-		auto GrandchildLocalTransform = FTransform(FRotator(), FVector(200.0f, 0.0f, 0.0f), FVector(0.4f, 0.4f, 0.4f));
-		HierarchyGrandchild = utils_scene_node::Create(ParentTransform, GrandchildLocalTransform);
+		// Child -> Grandchild (parented to child's transform, not root)
+		auto ChildTransformHandle = HierarchyChild.As_Transform();
+		auto GrandchildLocalTransform = FTransform(FRotator(), FVector(100.0f, 0.0f, 0.0f), FVector(0.6f, 0.6f, 0.6f));
+		HierarchyGrandchild = utils_scene_node::Create(ChildTransformHandle, GrandchildLocalTransform);
 		HierarchyGrandchildCube = SpawnChildCube("Grandchild");
 	}
 
