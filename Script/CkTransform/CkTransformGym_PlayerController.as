@@ -2,6 +2,9 @@ class ACk_TransformGym_PlayerController : ACk_Gym_Base_PlayerController
 {
 	TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
 	{
+		if (HasAuthority() == false)
+		{ return TArray<FCkGym_Station_SpawnParams_Payload>(); }
+
 		auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
 		{
@@ -75,6 +78,9 @@ class ACk_TransformGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartGym() override
 	{
+		if (HasAuthority() == false)
+		{ return; }
+
 		Request_SpawnCube("Gym.Transform.SetLocation", ECk_TransformGym_Behavior::SetLocation);
 		Request_SpawnCube("Gym.Transform.SetRotation", ECk_TransformGym_Behavior::SetRotation);
 		Request_SpawnCube("Gym.Transform.SetScale", ECk_TransformGym_Behavior::SetScale);
