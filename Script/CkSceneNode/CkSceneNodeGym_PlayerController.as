@@ -2,6 +2,9 @@ class ACk_SceneNodeGym_PlayerController : ACk_Gym_Base_PlayerController
 {
 	TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
 	{
+		if (HasAuthority() == false)
+		{ return TArray<FCkGym_Station_SpawnParams_Payload>(); }
+
 		auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
 		{
@@ -53,6 +56,9 @@ class ACk_SceneNodeGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartGym() override
 	{
+		if (HasAuthority() == false)
+		{ return; }
+
 		Request_SpawnCube("Gym.SceneNode.ParentChild", ECk_SceneNodeGym_Behavior::ParentChild);
 		Request_SpawnCube("Gym.SceneNode.OffsetUpdates", ECk_SceneNodeGym_Behavior::OffsetUpdates);
 		Request_SpawnCube("Gym.SceneNode.MultipleChildren", ECk_SceneNodeGym_Behavior::MultipleChildren);
