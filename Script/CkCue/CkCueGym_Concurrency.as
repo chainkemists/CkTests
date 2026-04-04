@@ -85,9 +85,9 @@ class UCk_EntityScript_CueGym_Concurrency : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}Triggers: {RestartTriggerCount}\n";
 		DisplayText = f"{DisplayText}Active Instances: {RestartEntities.Num()}\n";
 
-		auto Instructions = "Fires both cue types every 2s. Both shrink over time:\n"
-			+ "  Left: AllowMultiple - multiple spheres, each shrinks\n"
-			+ "    independently (green->red, large->small)\n"
+		auto Instructions = "Fires both cue types every 2s:\n"
+			+ "  Left: AllowMultiple - spheres shrink and fade\n"
+			+ "    green->red over 10s lifetime (new=large, old=small)\n"
 			+ "  Right: RestartExisting - single sphere snaps back to\n"
 			+ "    large/bright on each restart (never fully shrinks)";
 
