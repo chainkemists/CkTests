@@ -74,6 +74,18 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 			Stations.Add(Station);
 		}
 
+		// Station 6: Owner Destruction
+		{
+			auto Station = FCkGym_Station_SpawnParams_Payload();
+			Station.Tags.Add(n"Gym.Cue.OwnerDestruction");
+			Station.Title = FText::FromString("CUE OWNER DESTRUCTION");
+			auto Description = TArray<FText>();
+			Description.Add(FText::FromString("Tests automatic cue cleanup when owning entity is destroyed."));
+			Description.Add(FText::FromString("Owner sphere + 3 cue spheres vanish together on owner destruction."));
+			Station.Description = Description;
+			Stations.Add(Station);
+		}
+
 		return Stations;
 	}
 
@@ -90,6 +102,7 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 		Request_StartOwnerValidation();
 		Request_StartRestart();
 		Request_StartTransient();
+		Request_StartOwnerDestruction();
 		ck::Trace("Cue Gym - All stations started");
 	}
 
@@ -142,6 +155,15 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 			FInstancedStruct::Make(SpawnParams));
 	}
 
+	void Request_StartOwnerDestruction()
+	{
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Cue.OwnerDestruction"));
+		utils_entity_script::Request_SpawnEntity(
+			Get_StationHandle("Gym.Cue.OwnerDestruction"),
+			UCk_EntityScript_CueGym_OwnerDestruction,
+			FInstancedStruct::Make(SpawnParams));
+	}
+
 	//------------------------------------------------------------------------
 	// CONSOLE COMMANDS
 	//------------------------------------------------------------------------
@@ -181,6 +203,13 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 		Request_StartTransient();
 	}
 
+	UFUNCTION(Exec, DisplayName="Cue Gym - Restart OwnerDestruction")
+	void Ck_GymCue_RestartOwnerDestruction()
+	{
+		Request_DestroyStationEntities(n"TAG_CueGym_OwnerDestruction");
+		Request_StartOwnerDestruction();
+	}
+
 	UFUNCTION(Exec, DisplayName="Cue Gym - Reset All")
 	void Ck_GymCue_ResetAll()
 	{
@@ -189,6 +218,7 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 		Request_DestroyStationEntities(n"TAG_CueGym_OwnerValidation");
 		Request_DestroyStationEntities(n"TAG_CueGym_Restart");
 		Request_DestroyStationEntities(n"TAG_CueGym_Transient");
+		Request_DestroyStationEntities(n"TAG_CueGym_OwnerDestruction");
 
 		Request_StartGym();
 	}
