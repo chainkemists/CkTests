@@ -158,8 +158,9 @@ class UCk_EntityScript_CueGym_OwnerValidation : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}RequireValid:  {P2Require}\n";
 
 		auto Instructions = "Alternates between valid and invalid owners:\n"
+			+ "  White box = owner entity (shrinks before destruction)\n"
 			+ "  Phase 1: Both cues fire with valid owner (both execute)\n"
-			+ "  Phase 2: Both cues fire with invalid owner\n"
+			+ "  Phase 2: Owner destroyed, cues fire with invalid handle\n"
 			+ "    Left (cyan): SkipIfInvalid - skips silently\n"
 			+ "    Right (yellow): RequireValid - should not execute";
 
@@ -178,11 +179,35 @@ class UCk_EntityScript_CueGym_TempOwner : UCk_EntityScript_UE
 	UPROPERTY(ExposeOnSpawn)
 	FTransform InitialTransform = FTransform::Identity;
 
+	float ElapsedTime = 0.0f;
+	float PhaseDuration = 5.0f;
+	FCk_Handle_Pmg_DebugShape ShapeHandle;
+
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_TempOwner");
+
+		// Tick timer to draw a visible owner sphere that shrinks over the phase
+		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DrawTick"));
+
 		return ECk_EntityScript_ConstructionFlow::Finished;
+	}
+
+	UFUNCTION()
+	private void DrawTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+	{
+		ElapsedTime = ElapsedTime + float(InDeltaT.Get_Seconds());
+		auto Progress = Math::Clamp(ElapsedTime / PhaseDuration, 0.0, 1.0);
+
+		// Shrinks from 30 -> 5 over phase duration, fades from bright white to dim
+		auto Radius = float32(Math::Lerp(30.0, 5.0, Progress));
+		auto Brightness = float32(1.0 - Progress * 0.7);
+
+		auto Extent = FVector(Radius, Radius, Radius);
+		CueGym_Pmg::DestroyShape(ShapeHandle);
+		ShapeHandle = CueGym_Pmg::DrawBox(ck::ToEntity(this), FVector(0.0f, 0.0f, 150.0f),
+			FLinearColor(Brightness, Brightness, Brightness, 0.3f), Extent);
 	}
 }
