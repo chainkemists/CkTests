@@ -98,27 +98,30 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         return false;
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // Gym Menu — Look-at Selection
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    bool bMenuActive = false;
+    int32 HighlightedGymIndex = -1;
+    TArray<FVector> GymLabelPositions;
+    float GymLabelVerticalSpacing = 35.0f;
+    float GymLabelSelectThreshold = 40.0f;
+
     // Override this in derived gym classes to implement gym-specific startup logic
     void Request_StartGym()
     {
-        // Base class: spawn a menu station listing all available gyms
+        // Base class: spawn a menu station and compute label positions for look-at selection
         auto Registry = CkGym_Cycler::Get_GymRegistry();
         auto Description = TArray<FText>();
 
         for (int32 i = 0; i < Registry.Num(); i++)
         {
-            auto Marker = "";
-            auto Subsystem = UCkGym_CyclerSubsystem::Get();
-            if (i == Subsystem.CurrentGymIndex)
-            {
-                Marker = "  <--";
-            }
-            Description.Add(FText::FromString(f"[{i}] {Registry[i].DisplayName}{Marker}"));
+            Description.Add(FText::FromString(f"[{i}] {Registry[i].DisplayName}"));
         }
 
         Description.Add(FText::FromString(""));
-        Description.Add(FText::FromString("Console: Ck_Gym_GoTo <index>"));
-        Description.Add(FText::FromString("Console: Ck_Gym_Next / Ck_Gym_Prev"));
+        Description.Add(FText::FromString("Look at a gym and press E to select"));
 
         auto Station = FCkGym_Station_SpawnParams_Payload();
         Station.Title = FText::FromString("Gym Cycler");
@@ -133,6 +136,84 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         Station.Transform = MenuTransform;
 
         CkGym_Common::Request_SpawnNewStation(Station);
+
+        // Compute world positions for each gym label on the station face
+        // Station faces the player (rotated 180), so labels are on the -X side
+        auto StationLoc = MenuTransform.GetLocation();
+        auto LabelBasePos = StationLoc + FVector(-50.0f, 0.0f, 350.0f);
+
+        GymLabelPositions.Empty();
+        for (int32 i = 0; i < Registry.Num(); i++)
+        {
+            auto LabelPos = LabelBasePos - FVector(0.0f, 0.0f, float(i) * GymLabelVerticalSpacing);
+            GymLabelPositions.Add(LabelPos);
+        }
+
+        bMenuActive = true;
+        HighlightedGymIndex = -1;
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void Tick(float DeltaSeconds)
+    {
+        if (bMenuActive == false)
+        {
+            return;
+        }
+
+        auto Registry = CkGym_Cycler::Get_GymRegistry();
+        if (GymLabelPositions.Num() == 0)
+        {
+            return;
+        }
+
+        // Get camera ray
+        FVector CameraLoc;
+        FRotator CameraRot;
+        GetPlayerViewPoint(CameraLoc, CameraRot);
+        auto ForwardDir = CameraRot.GetForwardVector();
+
+        // Find which label the camera ray is closest to
+        auto BestIndex = -1;
+        auto BestDistance = GymLabelSelectThreshold;
+
+        for (int32 i = 0; i < GymLabelPositions.Num(); i++)
+        {
+            auto ToLabel = GymLabelPositions[i] - CameraLoc;
+            auto Projection = ToLabel.DotProduct(ForwardDir);
+            if (Projection < 0.0f)
+            {
+                continue;
+            }
+
+            auto ClosestPoint = CameraLoc + ForwardDir * Projection;
+            auto Distance = (GymLabelPositions[i] - ClosestPoint).Size();
+            if (Distance < BestDistance)
+            {
+                BestDistance = Distance;
+                BestIndex = i;
+            }
+        }
+
+        HighlightedGymIndex = BestIndex;
+
+        // Draw labels with highlight
+        for (int32 i = 0; i < GymLabelPositions.Num(); i++)
+        {
+            auto IsHighlighted = (i == HighlightedGymIndex);
+            auto Color = IsHighlighted ? FLinearColor(1.0f, 0.9f, 0.0f, 1.0f) : FLinearColor(0.7f, 0.7f, 0.7f, 1.0f);
+            auto Prefix = IsHighlighted ? ">> " : "   ";
+            auto LabelText = f"{Prefix}[{i}] {Registry[i].DisplayName}";
+
+            utils_debug_draw::DrawDebugString(GymLabelPositions[i], LabelText, Color, 0.0f);
+        }
+
+        // Check for confirm input
+        if (HighlightedGymIndex >= 0 && WasInputKeyJustPressed(EKeys::E))
+        {
+            bMenuActive = false;
+            Ck_Gym_GoTo(HighlightedGymIndex);
+        }
     }
 
     // Utility function for derived classes to find station by tag
@@ -221,6 +302,4 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         CkGym_Cycler::Print_GymList();
     }
 
-    // TODO: Add PageUp/PageDown hotkeys for gym cycling once UE 5.7 AddMappingContext
-    // Angelscript binding is resolved (see CkGrid TODO). Console commands work as-is.
 }
