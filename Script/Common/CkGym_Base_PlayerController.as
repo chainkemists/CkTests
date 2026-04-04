@@ -101,7 +101,38 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     // Override this in derived gym classes to implement gym-specific startup logic
     void Request_StartGym()
     {
-        ck::Trace("Base gym started - override Request_StartGym() in derived class");
+        // Base class: spawn a menu station listing all available gyms
+        auto Registry = CkGym_Cycler::Get_GymRegistry();
+        auto Description = TArray<FText>();
+
+        for (int32 i = 0; i < Registry.Num(); i++)
+        {
+            auto Marker = "";
+            auto Subsystem = UCkGym_CyclerSubsystem::Get();
+            if (i == Subsystem.CurrentGymIndex)
+            {
+                Marker = "  <--";
+            }
+            Description.Add(FText::FromString(f"[{i}] {Registry[i].DisplayName}{Marker}"));
+        }
+
+        Description.Add(FText::FromString(""));
+        Description.Add(FText::FromString("Console: Ck_Gym_GoTo <index>"));
+        Description.Add(FText::FromString("Console: Ck_Gym_Next / Ck_Gym_Prev"));
+
+        auto Station = FCkGym_Station_SpawnParams_Payload();
+        Station.Title = FText::FromString("Gym Cycler");
+        Station.Description = Description;
+        Station.Tags.Add(n"Gym.Cycler.Menu");
+        Station.Width = 8.0f;
+        Station.Height = 8.0f;
+
+        auto MenuTransform = FTransform::Identity;
+        MenuTransform.SetLocation(FVector(500.0f, 0.0f, 0.0f));
+        MenuTransform.SetRotation(FRotator(0.0f, 180.0f, 0.0f).Quaternion());
+        Station.Transform = MenuTransform;
+
+        CkGym_Common::Request_SpawnNewStation(Station);
     }
 
     // Utility function for derived classes to find station by tag
@@ -161,4 +192,35 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     {
         Request_StartGym();
     }
+
+    //--------------------------------------------------------------------------------------------------------------------------
+    // Gym Cycling
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    UFUNCTION(Exec, DisplayName="Gym - Next")
+    void Ck_Gym_Next()
+    {
+        CkGym_Cycler::Request_NextGym();
+    }
+
+    UFUNCTION(Exec, DisplayName="Gym - Previous")
+    void Ck_Gym_Prev()
+    {
+        CkGym_Cycler::Request_PrevGym();
+    }
+
+    UFUNCTION(Exec, DisplayName="Gym - Go To Index")
+    void Ck_Gym_GoTo(int32 InIndex)
+    {
+        CkGym_Cycler::Request_TravelToGym(InIndex);
+    }
+
+    UFUNCTION(Exec, DisplayName="Gym - List All")
+    void Ck_Gym_List()
+    {
+        CkGym_Cycler::Print_GymList();
+    }
+
+    // TODO: Add PageUp/PageDown hotkeys for gym cycling once UE 5.7 AddMappingContext
+    // Angelscript binding is resolved (see CkGrid TODO). Console commands work as-is.
 }
