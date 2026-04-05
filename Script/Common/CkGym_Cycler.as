@@ -20,26 +20,32 @@ struct FCkGym_Entry
 }
 
 //--------------------------------------------------------------------------------------------------------------------------
+// Gym Registry
+// To add a new gym, add one line to Get_GymRegistry():
+//   CkGym_Cycler::RegisterGym(Gyms, "Display Name", AMyGym_GameMode);
+//--------------------------------------------------------------------------------------------------------------------------
 
 namespace CkGym_Cycler
 {
+    void RegisterGym(TArray<FCkGym_Entry>& G, FString N, TSubclassOf<AGameModeBase> C) { G.Add(FCkGym_Entry(N, C)); }
+
     TArray<FCkGym_Entry> Get_GymRegistry()
     {
         auto Gyms = TArray<FCkGym_Entry>();
-        Gyms.Add(FCkGym_Entry("Attribute Integer",  ACk_IntegerAttributeGym_GameMode));
-        Gyms.Add(FCkGym_Entry("Attribute Byte",     ACk_ByteAttributeGym_GameMode));
-        Gyms.Add(FCkGym_Entry("Attribute Basic",    ACk_AttributeGym_GameMode));
-        Gyms.Add(FCkGym_Entry("Audio Simple",       ACk_AudioGym_Simple_GameMode));
-        Gyms.Add(FCkGym_Entry("Cue",                ACk_CueGym_GameMode));
-        Gyms.Add(FCkGym_Entry("Entity Lifecycle",   ACk_EntityLifecycleGym_GameMode));
-        Gyms.Add(FCkGym_Entry("Entity Script",      ACk_EntityScriptGym_Spawn_GameMode));
-        Gyms.Add(FCkGym_Entry("Messaging",          ACk_MessagingGym_GameMode));
-        Gyms.Add(FCkGym_Entry("PMG Shapes",         ACk_PmgShapesGym_GameMode));
-        Gyms.Add(FCkGym_Entry("Scene Node",         ACk_SceneNodeGym_GameMode));
-        Gyms.Add(FCkGym_Entry("State Machine",      ACk_SmTest_GymGameMode));
-        Gyms.Add(FCkGym_Entry("Timer",              ACk_TimerGym_GameMode));
-        Gyms.Add(FCkGym_Entry("Transform",          ACk_TransformGym_GameMode));
-        Gyms.Add(FCkGym_Entry("Tween",              ACk_TweenTest_GymGameMode));
+        RegisterGym(Gyms, "Attribute Basic",    ACk_AttributeGym_GameMode);
+        RegisterGym(Gyms, "Attribute Byte",     ACk_ByteAttributeGym_GameMode);
+        RegisterGym(Gyms, "Attribute Integer",  ACk_IntegerAttributeGym_GameMode);
+        RegisterGym(Gyms, "Audio Simple",       ACk_AudioGym_Simple_GameMode);
+        RegisterGym(Gyms, "Cue",                ACk_CueGym_GameMode);
+        RegisterGym(Gyms, "Entity Lifecycle",   ACk_EntityLifecycleGym_GameMode);
+        RegisterGym(Gyms, "Entity Script",      ACk_EntityScriptGym_Spawn_GameMode);
+        RegisterGym(Gyms, "Messaging",          ACk_MessagingGym_GameMode);
+        RegisterGym(Gyms, "PMG Shapes",         ACk_PmgShapesGym_GameMode);
+        RegisterGym(Gyms, "Scene Node",         ACk_SceneNodeGym_GameMode);
+        RegisterGym(Gyms, "State Machine",      ACk_SmTest_GymGameMode);
+        RegisterGym(Gyms, "Timer",              ACk_TimerGym_GameMode);
+        RegisterGym(Gyms, "Transform",          ACk_TransformGym_GameMode);
+        RegisterGym(Gyms, "Tween",              ACk_TweenTest_GymGameMode);
         return Gyms;
     }
 
