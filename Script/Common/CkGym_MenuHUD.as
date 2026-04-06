@@ -316,7 +316,7 @@ class ACkGym_MenuHUD : AHUD
         DrawText(
             "Press Tab for Gym Menu",
             FLinearColor(0.5f, 0.5f, 0.5f, 0.6f),
-            float(SizeX) - 280.0f, float(SizeY) - 40.0f,
+            float(SizeX) - 280.0f, 20.0f,
             nullptr, 1.0f, false
         );
     }
