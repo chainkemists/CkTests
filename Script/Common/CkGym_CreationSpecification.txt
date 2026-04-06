@@ -78,6 +78,10 @@ class ACk_[GymName]Gym_GameMode : ACk_Gym_Base_GameMode
     // All gym-specific logic is in PlayerController for client-server safety
 }
 
+// IMPORTANT: After creating the GameMode, register it in CkGym_Cycler.as so the
+// gym shows up in the in-game Tab selector. Add one alphabetically-sorted line:
+//   CkGym_Cycler::RegisterGym(Gyms, "Display Name", ACk_[GymName]Gym_GameMode);
+
 //============================================================================
 // 6. PLAYERCONTROLLER TEMPLATE (MAIN GYM LOGIC)
 //============================================================================
@@ -368,6 +372,10 @@ DURING IMPLEMENTATION:
 [ ] Add console commands for individual feature testing
 [ ] Use Get_StationTransform() utility for station positioning
 [ ] Add proper error handling and logging
+[ ] Register the gym in CkGym_Cycler.as so it appears in the Tab menu:
+        CkGym_Cycler::RegisterGym(Gyms, "Display Name", ACk_[GymName]Gym_GameMode);
+    (Keep entries sorted alphabetically. Required for the gym to appear in the
+    HUD selector and be reachable via Tab/PgUp/PgDn from any other gym.)
 
 AFTER IMPLEMENTATION:
 [ ] Test stations spawn correctly in default grid layout
