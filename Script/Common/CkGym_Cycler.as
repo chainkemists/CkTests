@@ -39,6 +39,7 @@ namespace CkGym_Cycler
         RegisterGym(Gyms, "Cue",                ACk_CueGym_GameMode);
         RegisterGym(Gyms, "Entity Lifecycle",   ACk_EntityLifecycleGym_GameMode);
         RegisterGym(Gyms, "Entity Script",      ACk_EntityScriptGym_Spawn_GameMode);
+        RegisterGym(Gyms, "Inventory",          ACk_InventoryGym_GameMode);
         RegisterGym(Gyms, "Messaging",          ACk_MessagingGym_GameMode);
         RegisterGym(Gyms, "PMG Shapes",         ACk_PmgShapesGym_GameMode);
         RegisterGym(Gyms, "Scene Node",         ACk_SceneNodeGym_GameMode);
