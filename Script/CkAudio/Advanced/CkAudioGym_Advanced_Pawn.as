@@ -3,26 +3,26 @@
 
 class ACkAudioGym_Advanced_Pawn : ADefaultPawn
 {
-    // EntityBridge component for ECS integration
-    UPROPERTY(DefaultComponent)
-    UCk_EntityBridge_ActorComponent_UE EntityBridge;
-    default EntityBridge._Replication = ECk_Replication::DoesNotReplicate;
-    default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
-
     // ============================================================================
     // PLAYER SETUP
     // ============================================================================
 
     UFUNCTION(BlueprintOverride)
-    void ConstructionScript()
+    void BeginPlay()
     {
-        EntityBridge._OnReplicationComplete_MC.AddUFunction(this, n"OnReplicationComplete");
+        auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
+        SpawnParams._OwningActor = this;
+        auto PendingEntity = utils_entity_script::Request_SpawnEntity(
+            ck::TransientEntity(), UCk_EntityScript_WithActor_UE, SpawnParams);
+        utils_pending_entity_script::Promise_OnConstructed(
+            PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnEntityConstructed"));
     }
 
     UFUNCTION()
-    void OnReplicationComplete(FCk_Handle InEntity)
+    void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
     {
-        SetupPlayer(InEntity);
+        SetupPlayer(FCk_Handle(InEntityScriptHandle));
+        SetupLevel();
     }
 
     void SetupPlayer(FCk_Handle InEntity)
@@ -49,12 +49,6 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
     // ============================================================================
     // LEVEL SETUP
     // ============================================================================
-
-    UFUNCTION(BlueprintOverride)
-    void BeginPlay()
-    {
-        SetupLevel();
-    }
 
     void SetupLevel()
     {
