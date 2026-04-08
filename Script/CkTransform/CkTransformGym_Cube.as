@@ -18,11 +18,6 @@ class ACk_TransformGym_Cube : AActor
 	default bReplicateMovement = true;
 
 	UPROPERTY(DefaultComponent)
-	UCk_EntityBridge_ActorComponent_UE EntityBridge;
-	default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
-	default EntityBridge._Replication = ECk_Replication::Replicates;
-
-	UPROPERTY(DefaultComponent)
 	UStaticMeshComponent Mesh;
 	default Mesh.StaticMesh = Cast<UStaticMesh>(utils_i_o::LoadAssetByName("Cube1", ECk_AssetSearchScope::Engine, ECk_AssetSearchStrategy::ExactOnly)._Asset);
 	default Mesh.CollisionEnabled = ECollisionEnabled::NoCollision;
@@ -71,27 +66,25 @@ class ACk_TransformGym_Cube : AActor
 		{
 			RotationSpeed = 20.0f;
 		}
-	}
 
-	UFUNCTION(BlueprintOverride)
-	void ConstructionScript()
-	{
-		EntityBridge._OnReplicationComplete_MC.AddUFunction(this, n"OnReplicationComplete");
-		EntityBridge._OnPreConstruct.AddUFunction(this, n"EcsConstructionScript");
-	}
-
-	UFUNCTION()
-	private void EcsConstructionScript(FCk_Handle InEntity)
-	{
-		utils_transform::Add(InEntity, GetActorTransform());
+		if (HasAuthority())
+		{
+			auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
+			SpawnParams._OwningActor = this;
+			auto PendingEntity = utils_entity_script::Request_SpawnEntity(
+				ck::TransientEntity(), UCk_EntityScript_WithActor_UE, SpawnParams);
+			utils_pending_entity_script::Promise_OnConstructed(
+				PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnEntityConstructed"));
+		}
 	}
 
 	UFUNCTION()
-	private void OnReplicationComplete(FCk_Handle InEntity)
+	private void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
 	{
 		if (System::IsServer() == false)
 		{ return; }
 
+		auto InEntity = FCk_Handle(InEntityScriptHandle);
 		EcsEntity = InEntity;
 
 		// Set up timers based on behavior
@@ -160,7 +153,7 @@ class ACk_TransformGym_Cube : AActor
 	UFUNCTION()
 	private void OnFrameTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
-		auto DeltaSeconds = InDeltaT.Get_Seconds();
+		auto DeltaSeconds = float32(InDeltaT.Get_Seconds());
 		ElapsedTime = ElapsedTime + DeltaSeconds;
 
 		if (Behavior == ECk_TransformGym_Behavior::SetScale)
