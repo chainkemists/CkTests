@@ -72,10 +72,10 @@ class UCk_EntityScript_EntityLifecycleGym_ActorBridge : UCk_EntityScript_UE
 		auto OwnerInChain = utils_owning_actor::TryGet_Entity_OwningActor_InOwnershipChain(InHandle);
 		Pass_OwningActorInChain = utils_handle::Get_IsValid(OwnerInChain);
 
-		// Entity bridge: replication status
+		// Actor replication status
 		if (ck::IsValid(StationActor))
 		{
-			auto ReplStatus = utils_entity_bridge::Get_DoesActorEntityReplicate(StationActor);
+			auto ReplStatus = StationActor.bReplicates;
 			ReplicationStatus = f"{ReplStatus}";
 		}
 
@@ -104,7 +104,7 @@ class UCk_EntityScript_EntityLifecycleGym_ActorBridge : UCk_EntityScript_UE
 		D = f"{D}" + (Pass_HasOwningActor ? "[+] " : "[-] ") + "Has(ownerHandle)\n";
 		D = f"{D}" + (Pass_OwningActorInChain ? "[+] " : "[-] ") + "OwningActor in chain\n\n";
 
-		D = f"{D}--- utils_entity_bridge ---\n";
+		D = f"{D}--- actor replication ---\n";
 		D = f"{D}    Replication status: {ReplicationStatus}\n";
 
 		auto AllPassed = Pass_GetOwnerEntity && Pass_GetEntityOwningActor
