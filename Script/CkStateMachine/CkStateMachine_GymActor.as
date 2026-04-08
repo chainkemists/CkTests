@@ -21,11 +21,6 @@ class ACk_SmTest_GymActor : AActor
     // ========================================================================
 
     UPROPERTY(DefaultComponent)
-    UCk_EntityBridge_ActorComponent_UE EntityBridge;
-    default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
-    default EntityBridge._Replication = ECk_Replication::Replicates;
-
-    UPROPERTY(DefaultComponent)
     UStaticMeshComponent Mesh;
     default Mesh.StaticMesh = Cast<UStaticMesh>(
         utils_i_o::LoadAssetByName("Cube1", ECk_AssetSearchScope::Engine,
@@ -83,17 +78,20 @@ class ACk_SmTest_GymActor : AActor
     // ========================================================================
 
     UFUNCTION(BlueprintOverride)
-    void ConstructionScript()
-    {
-        EntityBridge._OnReplicationComplete_MC.AddUFunction(this, n"OnReplicationComplete");
-        EntityBridge._OnPreConstruct.AddUFunction(this, n"EcsConstructionScript");
-    }
-
-    UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
         auto ModeLabel = EnablePauseResume ? "Pause/Resume + State Graph" : "State Graph Auto";
         InfoText.SetText(ck::Text(f"SM: {ModeLabel}"));
+
+        if (HasAuthority())
+        {
+            auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
+            SpawnParams._OwningActor = this;
+            auto PendingEntity = utils_entity_script::Request_SpawnEntity(
+                ck::TransientEntity(), UCk_EntityScript_WithActor_UE, SpawnParams);
+            utils_pending_entity_script::Promise_OnConstructed(
+                PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnEntityConstructed"));
+        }
     }
 
     // ========================================================================
@@ -101,18 +99,12 @@ class ACk_SmTest_GymActor : AActor
     // ========================================================================
 
     UFUNCTION()
-    private void EcsConstructionScript(FCk_Handle InEntity)
-    {
-        utils_transform::Add(InEntity, GetActorTransform());
-    }
-
-    UFUNCTION()
-    private void OnReplicationComplete(FCk_Handle InEntity)
+    private void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
     {
         if (System::IsServer() == false)
         { return; }
 
-        auto OwnerHandle = InEntity;
+        auto OwnerHandle = FCk_Handle(InEntityScriptHandle);
         auto StateClass = InitialStateClass.IsValid()
             ? InitialStateClass
             : TSubclassOf<UCk_SmState_EntityScript>(UCk_SmTest_State_Idle);

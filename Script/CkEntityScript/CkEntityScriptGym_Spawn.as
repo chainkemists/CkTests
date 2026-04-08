@@ -89,6 +89,8 @@ class UCk_EntityScript_EntityScriptGym_SpawnReplicated : UCk_EntityScript_UE
             case ECk_Net_NetModeType::Client:
                 ck::Trace("Hello");
             break;
+            default:
+            break;
         }
 
         auto SpawnParamsVerification = FEntityScriptGym_SpawnParams();

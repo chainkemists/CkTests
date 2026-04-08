@@ -7,12 +7,6 @@ class ACkAudioGym_Advanced_StationSpawner : AActor
     UPROPERTY(DefaultComponent, RootComponent)
     USceneComponent RootComponent;
 
-    // EntityBridge component for ECS integration
-    UPROPERTY(DefaultComponent)
-    UCk_EntityBridge_ActorComponent_UE EntityBridge;
-    default EntityBridge._Replication = ECk_Replication::DoesNotReplicate;
-    default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
-
     // TextRender component to display station name
     UPROPERTY(DefaultComponent, Attach = RootComponent)
     UTextRenderComponent TextRenderComponent;
@@ -28,24 +22,28 @@ class ACkAudioGym_Advanced_StationSpawner : AActor
     UPROPERTY(EditAnywhere, Category = "AudioGym Station", meta = (EditCondition = "bOverrideStationTransform"))
     FTransform StationTransform;
 
-    // Override ConstructionScript to spawn the station
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
-                EntityBridge._OnReplicationComplete_MC.AddUFunction(this, n"OnReplicationComplete");
-
-        // Configure TextRender component
         SetupTextRender();
     }
 
-    UFUNCTION()
-    void OnReplicationComplete(FCk_Handle InEntity)
+    UFUNCTION(BlueprintOverride)
+    void BeginPlay()
     {
-        // Spawn the selected station
-        SpawnStation();
+        auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
+        SpawnParams._OwningActor = this;
+        auto PendingEntity = utils_entity_script::Request_SpawnEntity(
+            ck::TransientEntity(), UCk_EntityScript_WithActor_UE, SpawnParams);
+        utils_pending_entity_script::Promise_OnConstructed(
+            PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnEntityConstructed"));
     }
 
-
+    UFUNCTION()
+    void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
+    {
+        SpawnStation();
+    }
 
     void SpawnStation()
     {
