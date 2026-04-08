@@ -1,23 +1,25 @@
 UCLASS()
 class ACk_Gym_Base_Pawn : ADefaultPawn
 {
-    UPROPERTY(DefaultComponent)
-    UCk_EntityBridge_ActorComponent_UE EntityBridge;
-    default EntityBridge._Replication = ECk_Replication::Replicates;
-    default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
-
     default Replicates = true;
 
     UFUNCTION(BlueprintOverride)
-    void ConstructionScript()
+    void BeginPlay()
     {
-        EntityBridge._OnReplicationComplete_MC.AddUFunction(this, n"OnReplicationComplete");
+        if (HasAuthority())
+        {
+            auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
+            SpawnParams._OwningActor = this;
+            auto PendingEntity = utils_entity_script::Request_SpawnEntity(
+                ck::TransientEntity(), UCk_EntityScript_WithActor_UE, SpawnParams);
+            utils_pending_entity_script::Promise_OnConstructed(
+                PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnEntityConstructed"));
+        }
     }
 
     UFUNCTION()
-    void OnReplicationComplete(FCk_Handle InEntity)
+    void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
     {
-        // Standard pawn setup - can be extended by derived classes
         ck::Trace("Gym pawn entity setup complete");
         Request_OnPawnReady();
     }

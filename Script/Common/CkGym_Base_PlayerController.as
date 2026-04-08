@@ -1,23 +1,68 @@
 class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
 {
-    UPROPERTY(DefaultComponent)
-    UCk_EntityBridge_ActorComponent_UE EntityBridge;
-    default EntityBridge._Replication = ECk_Replication::DoesNotReplicate;
-    default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
-
     default Replicates = false;
 
     UFUNCTION(BlueprintOverride)
-    void ConstructionScript()
+    void BeginPlay()
     {
-        EntityBridge._OnReplicationComplete_MC.AddUFunction(this, n"OnReplicationComplete");
+        auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
+        SpawnParams._OwningActor = this;
+        auto PendingEntity = utils_entity_script::Request_SpawnEntity(
+            ck::TransientEntity(), UCk_EntityScript_WithActor_UE, SpawnParams);
+        utils_pending_entity_script::Promise_OnConstructed(
+            PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnEntityConstructed"));
+    }
+
+    private int32 _PendingStationCount = 0;
+
+    UFUNCTION()
+    void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
+    {
+        Request_EnsureStationsExist();
+        Request_MakeStationsEcsReady();
+    }
+
+    void Request_MakeStationsEcsReady()
+    {
+        auto RequiredStations = Get_RequiredStations();
+        _PendingStationCount = 0;
+
+        for (auto StationParams : RequiredStations)
+        {
+            for (auto Tag : StationParams.Tags)
+            {
+                auto StationActor = utils_actor::Get_FirstActorWithNameContaining(Tag.ToString(), ECk_ActorSearchMethod::SearchByTag);
+                if (!ck::IsValid(StationActor))
+                { continue; }
+
+                if (utils_owning_actor::Get_IsActorEcsReady(StationActor))
+                { continue; }
+
+                _PendingStationCount++;
+                auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
+                SpawnParams._OwningActor = StationActor;
+                auto PendingEntity = utils_entity_script::Request_SpawnEntity(
+                    ck::TransientEntity(), UCk_EntityScript_WithActor_UE, SpawnParams);
+                utils_pending_entity_script::Promise_OnConstructed(
+                    PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnStationEntityConstructed"));
+                break;
+            }
+        }
+
+        if (_PendingStationCount == 0)
+        {
+            Request_StartGym();
+        }
     }
 
     UFUNCTION()
-    void OnReplicationComplete(FCk_Handle InEntity)
+    void OnStationEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
     {
-        Request_EnsureStationsExist();
-        Request_StartGym();
+        _PendingStationCount--;
+        if (_PendingStationCount <= 0)
+        {
+            Request_StartGym();
+        }
     }
 
     // Override in derived classes to define required stations
@@ -127,11 +172,16 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         auto StationActor = Get_StationByTag(InStationTag);
         if (!ck::IsValid(StationActor))
         {
-            ck::Warning("❌ Cannot get transform - station not found: " + InStationTag);
+            ck::Warning("Cannot get station handle - station not found: " + InStationTag);
             return FCk_Handle();
         }
 
-        return utils_owning_actor::Get_ActorEntityHandle(StationActor);
+        auto Handle = utils_owning_actor::TryGet_ActorEntityHandle(StationActor);
+        if (!ck::IsValid(Handle))
+        {
+            ck::Warning("Station [" + InStationTag + "] is not ECS-ready");
+        }
+        return Handle;
     }
 
     void Set_StationTitleAndDescription(FString InStationTag, FCkGym_Station_TitleAndDescription InTextAndDescription)
@@ -139,11 +189,16 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         auto StationActor = Get_StationByTag(InStationTag);
         if (!ck::IsValid(StationActor))
         {
-            ck::Warning("❌ Cannot get transform - station not found: " + InStationTag);
+            ck::Warning("Cannot set station text - station not found: " + InStationTag);
             return;
         }
 
-        auto Handle = utils_owning_actor::Get_ActorEntityHandle(StationActor);
+        auto Handle = utils_owning_actor::TryGet_ActorEntityHandle(StationActor);
+        if (!ck::IsValid(Handle))
+        {
+            ck::Warning("Station [" + InStationTag + "] is not ECS-ready, cannot set title");
+            return;
+        }
         auto& Fragment = Handle.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
         Fragment = InTextAndDescription;
     }

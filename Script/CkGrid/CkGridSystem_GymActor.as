@@ -55,20 +55,25 @@ class ACk_GridSystem_GymActor : AActor
     default _RenderData = Cast<UCk_IsmRenderer_Data>(utils_i_o::LoadAssetByName("/CkTests/CkIsmRenderer/MovableIsm/MovableCube_IsmRendererData_DA.MovableCube_IsmRendererData_DA",
         ECk_AssetSearchScope::All, ECk_AssetSearchStrategy::ExactOnly)._Asset);
 
-	UPROPERTY(DefaultComponent)
-	UCk_EntityBridge_ActorComponent_UE EntityBridge;
-	default EntityBridge._ConstructionScript = UCk_Entity_ConstructionScript_WithTransform_PDA;
-	default EntityBridge._Replication = ECk_Replication::Replicates;
-
-	UFUNCTION(BlueprintOverride)
-    void ConstructionScript()
+    UFUNCTION(BlueprintOverride)
+    void BeginPlay()
     {
-        EntityBridge._OnReplicationComplete_MC.AddUFunction(this, n"OnReplicationComplete");
+        if (HasAuthority())
+        {
+            auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
+            SpawnParams._OwningActor = this;
+            auto PendingEntity = utils_entity_script::Request_SpawnEntity(
+                ck::TransientEntity(), UCk_EntityScript_WithActor_UE, SpawnParams);
+            utils_pending_entity_script::Promise_OnConstructed(
+                PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnEntityConstructed"));
+        }
     }
 
 	UFUNCTION()
-	private void OnReplicationComplete(FCk_Handle InEntity)
+	void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
 	{
+        auto InEntity = FCk_Handle(InEntityScriptHandle);
+
 		if (System::IsServer())
 		{
             auto EnttHandle = utils_entity_script::Request_SpawnEntity(InEntity, UTestEntt, FTestEnttParams());
@@ -95,8 +100,7 @@ class ACk_GridSystem_GymActor : AActor
 	UFUNCTION()
 	private void Rotate(FInputActionValue ActionValue, float32 ElapsedTime, float32 TriggeredTime, const UInputAction SourceAction)
 	{
-        auto RotationOffset = FCk_Request_Transform_AddRotationOffset();
-        RotationOffset._DeltaRotation = FRotator(0, 90, 0);
+        auto RotationOffset = FCk_Request_Transform_AddRotationOffset(FRotator(0, 90, 0));
         GridB.H().Request_AddRotationOffset(RotationOffset);
 	}
 
@@ -150,8 +154,7 @@ class ACk_GridSystem_GymActor : AActor
 			return;
 		}
 
-		auto Request = FCk_Request_Transform_SetLocation();
-		Request._NewLocation = HitResult.ImpactPoint;
+		auto Request = FCk_Request_Transform_SetLocation(HitResult.ImpactPoint);
 
 		auto CellsA = utils_2d_grid_system::ForEach_Cell(GridA, ECk_2dGridSystem_CellFilter::NoFilter);
 		for (auto Cell : CellsA)
@@ -186,22 +189,22 @@ class ACk_GridSystem_GymActor : AActor
 
 		for (auto CellIntersection : IntersectingCells)
 		{
-			auto CellAWorldBounds = utils_2d_grid_cell::Get_Bounds(CellIntersection._CellA, ECk_LocalWorld::World);
-			auto CellBWorldBounds = utils_2d_grid_cell::Get_Bounds(CellIntersection._CellB, ECk_LocalWorld::World);
+			auto CellAWorldBounds = utils_2d_grid_cell::Get_Bounds(CellIntersection.Get_CellA(), ECk_LocalWorld::World);
+			auto CellBWorldBounds = utils_2d_grid_cell::Get_Bounds(CellIntersection.Get_CellB(), ECk_LocalWorld::World);
 
 			DrawBox(CellAWorldBounds, FLinearColor::Red, 10.0f);
 			DrawBox(CellBWorldBounds, FLinearColor::Green, 15.0f);
 		}
 
-        if (Intersection._HasValidSnapPosition)
+        if (Intersection.Get_HasValidSnapPosition())
         {
-            auto SnapPosition = FVector(Intersection._SnapPosition.X, Intersection._SnapPosition.Y, 0.0);
+            auto SnapPosition = FVector(Intersection.Get_SnapPosition().X, Intersection.Get_SnapPosition().Y, 0.0);
 
             System::DrawDebugSphere(SnapPosition, 50.0f);
 
             if (SnapPosition.Distance(HitResult.ImpactPoint) < 50.0f)
             {
-                Request._NewLocation = FVector(Intersection._SnapPosition.X, Intersection._SnapPosition.Y, 0.0);
+                Request = FCk_Request_Transform_SetLocation(FVector(Intersection.Get_SnapPosition().X, Intersection.Get_SnapPosition().Y, 0.0));
             }
         }
 
@@ -235,7 +238,6 @@ class ACk_GridSystem_GymActor : AActor
 		{
 			auto IsmParams = FCk_Fragment_IsmProxy_ParamsData();
 			{
-				// IsmParams._IsmRenderer = Cast<UCk_IsmRenderer_Data>(UCk_Utils_Object_UE::LoadAssetByName("MovableCube_IsmRendererData_DA"));
 				IsmParams._IsmRenderer = InIsmData;
 			}
 
@@ -244,7 +246,7 @@ class ACk_GridSystem_GymActor : AActor
 			auto GridAsTransform = Grid.As_Transform();
 
 			auto Point = utils_2d_grid_cell::Get_Coordinate(Cell, ECk_2dGridSystem_CoordinateType::Rotated);
-			auto CellLocalPos = FVector(Point.X * Params._CellSize.X, Point.Y * Params._CellSize.Y, 0);
+			auto CellLocalPos = FVector(Point.X * Params.Get_CellSize().X, Point.Y * Params.Get_CellSize().Y, 0);
 			auto CellWorldPos = FTransform().TransformPosition(CellLocalPos);
 			auto LocalTransform = FTransform(CellLocalPos);
 			auto WorldTransform = FTransform(CellWorldPos);
