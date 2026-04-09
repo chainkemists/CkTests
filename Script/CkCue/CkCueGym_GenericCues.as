@@ -157,8 +157,8 @@ class UCk_CueGym_Cue_Timed : UCk_GenericCue_EntityScript
 
 	default _Replication = ECk_Replication::DoesNotReplicate;
 	default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Timed;
-	default _LifetimeDuration = FCk_Time(5.0f);
 	default _ConcurrencyPolicy = ECk_Cue_ConcurrencyPolicy::AllowMultiple;
+	default _LifetimeDuration = FCk_Time(5.0f);
 
 	FCk_Handle_Pmg_DebugShape ShapeHandle;
 
@@ -254,8 +254,8 @@ class UCk_CueGym_Cue_Multiple : UCk_GenericCue_EntityScript
 
 	default _Replication = ECk_Replication::DoesNotReplicate;
 	default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Timed;
-	default _LifetimeDuration = FCk_Time(10.0f);
 	default _ConcurrencyPolicy = ECk_Cue_ConcurrencyPolicy::AllowMultiple;
+	default _LifetimeDuration = FCk_Time(10.0f);
 
 	float ElapsedTime = 0.0f;
 	float LifetimeSeconds = 10.0f;
@@ -307,8 +307,8 @@ class UCk_CueGym_Cue_Restart : UCk_GenericCue_EntityScript
 
 	default _Replication = ECk_Replication::DoesNotReplicate;
 	default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Timed;
-	default _LifetimeDuration = FCk_Time(10.0f);
 	default _ConcurrencyPolicy = ECk_Cue_ConcurrencyPolicy::RestartExisting;
+	default _LifetimeDuration = FCk_Time(10.0f);
 
 	int32 RestartCount = 0;
 	float ElapsedTime = 0.0f;
@@ -372,9 +372,9 @@ class UCk_CueGym_Cue_OwnerSkip : UCk_GenericCue_EntityScript
 
 	default _Replication = ECk_Replication::DoesNotReplicate;
 	default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Timed;
-	default _LifetimeDuration = FCk_Time(5.0f);
 	default _ConcurrencyPolicy = ECk_Cue_ConcurrencyPolicy::AllowMultiple;
 	default _OwnerValidationPolicy = ECk_Cue_OwnerValidationPolicy::SkipIfInvalid;
+	default _LifetimeDuration = FCk_Time(5.0f);
 
 	FCk_Handle_Pmg_DebugShape ShapeHandle;
 
@@ -412,9 +412,9 @@ class UCk_CueGym_Cue_OwnerRequire : UCk_GenericCue_EntityScript
 
 	default _Replication = ECk_Replication::DoesNotReplicate;
 	default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Timed;
-	default _LifetimeDuration = FCk_Time(5.0f);
 	default _ConcurrencyPolicy = ECk_Cue_ConcurrencyPolicy::AllowMultiple;
 	default _OwnerValidationPolicy = ECk_Cue_OwnerValidationPolicy::RequireValid;
+	default _LifetimeDuration = FCk_Time(5.0f);
 
 	FCk_Handle_Pmg_DebugShape ShapeHandle;
 
@@ -456,8 +456,8 @@ class UCk_CueGym_Cue_Restartable : UCk_GenericCue_EntityScript
 
 	default _Replication = ECk_Replication::DoesNotReplicate;
 	default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Timed;
-	default _LifetimeDuration = FCk_Time(8.0f);
 	default _ConcurrencyPolicy = ECk_Cue_ConcurrencyPolicy::RestartExisting;
+	default _LifetimeDuration = FCk_Time(8.0f);
 
 	int32 RestartCount = 0;
 	FCk_Handle_Pmg_DebugShape ShapeHandle;
@@ -514,9 +514,9 @@ class UCk_CueGym_Cue_Transient : UCk_GenericCue_EntityScript
 
 	default _Replication = ECk_Replication::DoesNotReplicate;
 	default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Timed;
-	default _LifetimeDuration = FCk_Time(5.0f);
 	default _ConcurrencyPolicy = ECk_Cue_ConcurrencyPolicy::AllowMultiple;
 	default _OwnerValidationPolicy = ECk_Cue_OwnerValidationPolicy::RequireValid;
+	default _LifetimeDuration = FCk_Time(5.0f);
 
 	FCk_Handle_Pmg_DebugShape ShapeHandle;
 
