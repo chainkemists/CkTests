@@ -77,7 +77,6 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
     FTransform Transform;
 
     default _SourcePriority = ECk_AudioCue_SourcePriority::LibraryOnly;
-    default _DefaultCrossfadeDuration = FCk_Time(3.0f);
     default _MaxConcurrentTracks = 4;
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
 
@@ -151,6 +150,8 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
     }
 
     default _Replication = ECk_Replication::DoesNotReplicate;
+
+    default _DefaultCrossfadeDuration = FCk_Time(3.0f);
     default _TrackLibrary = BuildTrackLibrary();
 
     UFUNCTION(BlueprintOverride)
@@ -175,7 +176,6 @@ class UCk_AdvancedConcurrencyTestCue : UCk_AudioCue_EntityScript
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
 
-    default _DefaultCrossfadeDuration = FCk_Time(0.5f);
     default _MaxConcurrentTracks = 8;
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Allow;
 
@@ -203,6 +203,7 @@ class UCk_AdvancedConcurrencyTestCue : UCk_AudioCue_EntityScript
         return TrackParams;
     }
 
+    default _DefaultCrossfadeDuration = FCk_Time(0.5f);
     default _SingleTrack = BuildSingleTrack();
 
     UFUNCTION(BlueprintOverride)

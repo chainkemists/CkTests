@@ -28,27 +28,31 @@ class UCk_SimpleBackgroundMusicCue : UCk_AudioCue_EntityScript
     default _LifetimeBehavior = ECk_Cue_LifetimeBehavior::Persistent;
 
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
-    default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    default _SingleTrack._TrackName = n"AudioGym.Simple.BackgroundMusic.Track";
 
     default _PlaybackBehavior = ECk_AudioCue_PlaybackBehavior::DelayedPlay;
-    default _DelayTime = FCk_Time(5.0f);
 
-    // Configure as non-spatial background music
-    default _SingleTrack.Set_Priority(10);
-    default _SingleTrack.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
-    default _SingleTrack.Set_Volume(0.5f);
-    default _SingleTrack.Set_DefaultFadeInTime(FCk_Time(2.0f));
-    default _SingleTrack.Set_DefaultFadeOutTime(FCk_Time(2.0f));
-    default _SingleTrack.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade);
-    default _SingleTrack.Set_LibraryAttenuationSettings(Asset_SoundAttenuation_AudioGym);
-    default _SingleTrack.Set_LibraryConcurrencySettings(Asset_Concurrency_AudioGym);
-
-    default _DefaultCrossfadeDuration = FCk_Time(2.0f);
     default _MaxConcurrentTracks = 1;
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Block;
+
+    UPROPERTY()
+    FCk_Fragment_AudioTrack_ParamsData TrackParams(
+        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
+        ECk_AssetSearchScope::Plugins)._Asset));
+    default TrackParams._TrackName = n"AudioGym.Simple.BackgroundMusic.Track";
+
+    // Configure as non-spatial background music
+    default TrackParams.Set_Priority(10);
+    default TrackParams.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
+    default TrackParams.Set_Volume(0.5f);
+    default TrackParams.Set_DefaultFadeInTime(FCk_Time(2.0f));
+    default TrackParams.Set_DefaultFadeOutTime(FCk_Time(2.0f));
+    default TrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Crossfade);
+    default TrackParams.Set_LibraryAttenuationSettings(Asset_SoundAttenuation_AudioGym);
+    default TrackParams.Set_LibraryConcurrencySettings(Asset_Concurrency_AudioGym);
+
+    default _SingleTrack = TrackParams;
+    default _DelayTime = FCk_Time(5.0f);
+    default _DefaultCrossfadeDuration = FCk_Time(2.0f);
 
     UFUNCTION(BlueprintOverride)
     FGameplayTag Get_CueName() const
@@ -66,24 +70,28 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
     default _Replication = ECk_Replication::DoesNotReplicate;
 
     default _SourcePriority = ECk_AudioCue_SourcePriority::SingleTrackOnly;
-    default _SingleTrack = FCk_Fragment_AudioTrack_ParamsData(
-        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
-        ECk_AssetSearchScope::Plugins)._Asset));
-    default _SingleTrack._TrackName = n"AudioGym.Simple.SpatialAudio.Track";
 
-    // Configure as spatial 3D audio
-    default _SingleTrack.Set_Priority(50);
-    default _SingleTrack.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
-    default _SingleTrack.Set_Volume(0.8f);
-    default _SingleTrack.Set_DefaultFadeInTime(FCk_Time(0.2f));
-    default _SingleTrack.Set_DefaultFadeOutTime(FCk_Time(0.2f));
-    default _SingleTrack.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Interrupt);
-    default _SingleTrack.Set_LibraryAttenuationSettings(Asset_SoundAttenuation_AudioGym);
-    default _SingleTrack.Set_LibraryConcurrencySettings(Asset_Concurrency_AudioGym);
-
-    default _DefaultCrossfadeDuration = FCk_Time(0.5f);
     default _MaxConcurrentTracks = 1;
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Block;
+
+    UPROPERTY()
+    FCk_Fragment_AudioTrack_ParamsData TrackParams(
+        Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
+        ECk_AssetSearchScope::Plugins)._Asset));
+    default TrackParams._TrackName = n"AudioGym.Simple.SpatialAudio.Track";
+
+    // Configure as spatial 3D audio
+    default TrackParams.Set_Priority(50);
+    default TrackParams.Set_LoopBehavior(ECk_LoopBehavior::PlayOnce);
+    default TrackParams.Set_Volume(0.8f);
+    default TrackParams.Set_DefaultFadeInTime(FCk_Time(0.2f));
+    default TrackParams.Set_DefaultFadeOutTime(FCk_Time(0.2f));
+    default TrackParams.Set_OverrideBehavior(ECk_AudioTrack_OverrideBehavior::Interrupt);
+    default TrackParams.Set_LibraryAttenuationSettings(Asset_SoundAttenuation_AudioGym);
+    default TrackParams.Set_LibraryConcurrencySettings(Asset_Concurrency_AudioGym);
+
+    default _SingleTrack = TrackParams;
+    default _DefaultCrossfadeDuration = FCk_Time(0.5f);
 
     UFUNCTION(BlueprintOverride)
     FGameplayTag Get_CueName() const
