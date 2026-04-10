@@ -13,6 +13,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.DataOnlyUnbounded");
+            Station.Height = 8.0f;
             Station.Title = FText::FromString("DATA-ONLY UNBOUNDED");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Unlimited-capacity data-only inventory."));
@@ -25,6 +26,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.DataOnlyBounded");
+            Station.Height = 8.0f;
             Station.Title = FText::FromString("DATA-ONLY BOUNDED");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Max 5 items; overfill returns Failed_NoSpaceAvailable."));
@@ -37,6 +39,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.Spatial");
+            Station.Height = 8.0f;
             Station.Title = FText::FromString("SPATIAL INVENTORY");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("8x6 grid with auto-placement and explicit coordinates."));
@@ -49,6 +52,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.StackableTrait");
+            Station.Height = 8.0f;
             Station.Title = FText::FromString("STACKABLE TRAIT");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Exercises Request_StackItems, Request_SplitStack."));
@@ -61,11 +65,26 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.TagsTrait");
+            Station.Height = 8.0f;
             Station.Title = FText::FromString("TAGS TRAIT");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Runtime tag add/remove via Request_AddTag / Request_RemoveTag."));
             Description.Add(FText::FromString("Binds OnTagsChanged per item."));
             Description.Add(FText::FromString("Console: Ck_GymInventory_AddRareTag / RemoveRareTag"));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Inventory.ShelfDesync");
+            Station.Height = 8.0f;
+            Station.Title = FText::FromString("SHELF LOOT/STOCK DESYNC");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Simulates in-game shelf stock/loot in rapid succession."));
+            Description.Add(FText::FromString("Replicated inventories exercise the IFP network path."));
+            Description.Add(FText::FromString("Invariant: total potion count stays constant."));
+            Description.Add(FText::FromString("Console: Ck_GymInventory_ShelfStock / ShelfLoot / ShelfLoop n / ShelfReset"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -80,6 +99,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_StartStation_Spatial();
         Request_StartStation_StackableTrait();
         Request_StartStation_TagsTrait();
+        Request_StartStation_ShelfDesync();
         ck::Trace("✅ Inventory Gym - All stations started");
     }
 
@@ -145,6 +165,18 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
             FInstancedStruct::Make(SpawnParams));
         if (ck::IsValid(Req)) { ck::Trace("✅ Tags Trait started"); }
         else { ck::Error("❌ Failed to spawn Tags Trait entity"); }
+    }
+
+    void Request_StartStation_ShelfDesync()
+    {
+        auto T = Get_StationTransform("Gym.Inventory.ShelfDesync");
+        auto SpawnParams = FInventoryGymSpawnParams(T);
+        auto Req = utils_entity_script::Request_SpawnEntity(
+            Get_StationHandle("Gym.Inventory.ShelfDesync"),
+            UCk_EntityScript_InvGym_ShelfDesync,
+            FInstancedStruct::Make(SpawnParams));
+        if (ck::IsValid(Req)) { ck::Trace("✅ Shelf Desync started"); }
+        else { ck::Error("❌ Failed to spawn Shelf Desync entity"); }
     }
 
     //------------------------------------------------------------------------
@@ -280,6 +312,73 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
+    // SHELF LOOT/STOCK DESYNC COMMANDS
+    //------------------------------------------------------------------------
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Shelf Stock (single)")
+    void Ck_GymInventory_ShelfStock()
+    {
+        auto Msg = FCk_Message_InvGym_ShelfStock();
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_ShelfDesync");
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Shelf Loot (single)")
+    void Ck_GymInventory_ShelfLoot()
+    {
+        auto Msg = FCk_Message_InvGym_ShelfLoot();
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_ShelfDesync");
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Shelf Start Pump")
+    void Ck_GymInventory_ShelfStart()
+    {
+        auto Msg = FCk_Message_InvGym_ShelfLoop(1);
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_ShelfDesync");
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Shelf Stop Pump")
+    void Ck_GymInventory_ShelfStop()
+    {
+        auto Msg = FCk_Message_InvGym_ShelfLoop(0);
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_ShelfDesync");
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Shelf Reset")
+    void Ck_GymInventory_ShelfReset()
+    {
+        auto Msg = FCk_Message_InvGym_ShelfReset();
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_ShelfDesync");
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+    }
+
+    //------------------------------------------------------------------------
+    // AUTO MODE
+    //------------------------------------------------------------------------
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Toggle Auto Mode")
+    void Ck_GymInventory_Auto()
+    {
+        auto Msg = FCk_Message_InvGym_AutoToggle();
+        auto AllTags = TArray<FName>();
+        AllTags.Add(n"TAG_InvGym_DataOnlyUnbounded");
+        AllTags.Add(n"TAG_InvGym_DataOnlyBounded");
+        AllTags.Add(n"TAG_InvGym_Spatial");
+        AllTags.Add(n"TAG_InvGym_StackableTrait");
+        AllTags.Add(n"TAG_InvGym_TagsTrait");
+        AllTags.Add(n"TAG_InvGym_ShelfDesync");
+
+        for (auto Tag : AllTags)
+        {
+            auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), Tag);
+            for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+        }
+    }
+
+    //------------------------------------------------------------------------
     // RESTART COMMANDS
     //------------------------------------------------------------------------
 
@@ -292,6 +391,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         AllTags.Add(n"TAG_InvGym_Spatial");
         AllTags.Add(n"TAG_InvGym_StackableTrait");
         AllTags.Add(n"TAG_InvGym_TagsTrait");
+        AllTags.Add(n"TAG_InvGym_ShelfDesync");
 
         for (auto Tag : AllTags)
         {
