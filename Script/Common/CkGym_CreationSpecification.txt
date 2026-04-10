@@ -543,6 +543,163 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymAudioSimple_TriggerSpatialAudio() { Request_StartSpatialAudio(); }
 }
 
+//============================================================================
+// 12. AUTO MODE PATTERN
+//============================================================================
+
+// Gyms can include an auto mode that cycles through operations automatically
+// so the user can watch behavior without typing commands. The inventory gym
+// established the reference pattern:
+//
+// ARCHITECTURE:
+// - Each station entity has an AutoTimer (500ms, ResetOnDone, starts Running)
+// - AutoRunning bool + AutoStep counter
+// - AutoTick function bound to timer's OnDone signal
+// - Responds to FCk_Message_*_AutoSet(bool Enabled) — explicit on/off, no toggle
+// - Manual command handlers call StopAuto() before executing
+//
+// TIMER SETUP (in DoConstruct):
+//     auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
+//     AutoTimerParams.Set_StartingState(ECk_Timer_State::Running)
+//                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+//     AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
+//     AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
+//
+// AUTO TICK PATTERN:
+//     void AutoTick(FCk_Handle_Timer, FCk_Chrono, FCk_Time)
+//     {
+//         auto Step = AutoStep % TOTAL_STEPS;
+//         if (Step == 0) { /* operation */ }
+//         else if (Step == 1) { /* operation */ }
+//         // ... ensure adds == removes so inventory doesn't grow unbounded
+//         AutoStep++;
+//     }
+//
+// STOP ON MANUAL COMMAND:
+//     void StopAuto()
+//     {
+//         if (AutoRunning) { AutoRunning = false; utils_timer::Request_Pause(AutoTimer); }
+//     }
+//     // Call StopAuto() at the start of every manual message handler
+//
+// PLAYER CONTROLLER COMMANDS:
+//     Ck_Gym[Name]_AutoOn    — BroadcastAutoToAll(true)  — forces ALL stations on
+//     Ck_Gym[Name]_AutoOff   — BroadcastAutoToAll(false) — forces ALL stations off
+//     Ck_Gym[Name]_Auto[Station] — per-station re-enable
+//
+// KEY DESIGN DECISIONS:
+// - Use explicit on/off (not toggle) to avoid mixed state across stations
+// - Auto starts ON by default so the gym is alive on entry
+// - Manual commands auto-disable that station's auto (user took over)
+// - Per-station auto commands only re-enable (on), because AutoOff handles global off
+// - Step count must balance adds and removes — count carefully or items accumulate
+
+//============================================================================
+// 13. DISPLAY LAYOUT PATTERN
+//============================================================================
+
+// Each station's display text should follow this structure:
+//
+// [AUTO] Running (or [MANUAL])        ← status line at top
+//
+// ===== [Station Data] =====          ← station-specific live data
+// Items: 5 (no limit)                    (counts, contents, grid, etc.)
+// [0] Potion [3/10]
+// ...
+//
+// ===== Auto Sequence =====           ← plain english operation descriptions
+// >> Add 3 potions                       with >> on current step
+//    Add 5 arrows
+//    Sort inventory
+//    Remove first (x3)
+//
+// ===== Commands =====                ← full Ck_Gym* command names for manual use
+// Ck_GymInventory_AddPotion [n]
+// Ck_GymInventory_RemoveFirst
+// ...
+// Ck_Gym[Name]_AutoOn / AutoOff       ← global auto commands
+// Ck_Gym[Name]_Auto[Station]           ← per-station auto command
+//
+// IMPORTANT — STATION DESCRIPTION PERSISTENCE:
+// The station's initial Description (set in Get_RequiredStations) is
+// overwritten on the first DisplayStats() tick. The station panel only has
+// Title + Description fields — DisplayStats writes Description every frame.
+// This means any text from the spawn params is lost immediately.
+//
+// To keep a station description visible, include it as a 1-2 line summary
+// at the top of your DisplayStats output, right after the auto status line:
+//
+//     DisplayText = f"{DisplayText}{AutoStatusLine(AutoRunning)}\n";
+//     DisplayText = f"{DisplayText}Unlimited-capacity data-only inventory.\n";
+//     DisplayText = f"{DisplayText}Tests add/remove/sort and OnItemsChanged.\n\n";
+//     // ... then live data, auto sequence, commands ...
+//
+// The initial Description in Get_RequiredStations still matters — it's shown
+// briefly while the entity script constructs. But treat DisplayStats as the
+// authoritative display and duplicate the description there.
+//
+// A future improvement could cache the initial description on the station
+// entity (e.g. as a fragment) so DisplayStats can read it back without
+// hardcoding the same text in two places.
+//
+// Use shared helpers for consistency:
+//   inv_gym_helpers::AutoStatusLine(AutoRunning)
+//   inv_gym_helpers::AutoCommandsBlock("Ck_Gym[Name]_Auto[Station]")
+//
+// IMPORTANT: Don't nest function calls with string args inside f-strings.
+// f"{func("arg")}" breaks — the inner quotes terminate the f-string.
+// Instead: DisplayText = DisplayText + func("arg");
+
+//============================================================================
+// 14. INLINE ASSET DEFINITIONS
+//============================================================================
+
+// Use the Angelscript 'asset' keyword to define test data assets inline
+// instead of creating .uasset files in the content browser.
+//
+// Files containing asset blocks must use the _Assets.as suffix:
+//   GOOD: CkInventoryGym_Assets.as
+//   BAD:  CkInventoryGym_Shared.as (assets mixed with logic)
+//
+// PATTERN:
+//   asset ItemDef_MyGym_Sword of UCk_InventoryItem_Definition
+//   {
+//       _CoreInfo = FCk_InventoryItem_CoreInfo(FText::FromString("Sword"));
+//       auto Trait = Cast<UCk_ItemTrait_Tags>(NewObject(this, UCk_ItemTrait_Tags));
+//       Trait._Tags = ...;
+//       _ItemTraits.Add(Trait);
+//   }
+//
+// ACCESSOR NAMESPACE:
+//   namespace my_gym_items
+//   {
+//       UCk_InventoryItem_Definition Sword() { return ItemDef_MyGym_Sword; }
+//   }
+//
+// The asset keyword creates a real UObject at module load — no .uasset on disk,
+// discoverable by the asset registry, hot-reloadable. See CkInventoryGym_Assets.as
+// for a complete example with stackable/tags/dimensions traits.
+
+//============================================================================
+// 15. REPLICATION GOTCHAS
+//============================================================================
+
+// The gym framework's PlayerController and station actors have Replicates=false.
+// The Pawn has Replicates=true. This matters for any feature that routes through
+// Request_BuildAndReplicate (e.g. item creation):
+//
+// - Item creation via Request_AddItemByDefinition requires the inventory's
+//   ContextOwner to have replicated NetParams. In standalone this was fixed
+//   by making Request_TryBuildAndReplicate build locally when the owner
+//   doesn't replicate (see CkEntityReplicationDriver_Utils.cpp fix).
+//
+// - If you hit silent failures (e.g. Failed_NoSpaceAvailable on unbounded
+//   inventories), check the replication chain: ContextOwner → NetParams →
+//   Get_EntityReplication. The error name is misleading.
+//
+// - For multi-client PIE testing, ensure the entity creation path has a
+//   replicated owner in the chain.
+
 /*
 This specification provides everything needed to quickly create consistent,
 robust gyms for testing Ck Framework features following established patterns.
