@@ -593,6 +593,17 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 // - Manual commands auto-disable that station's auto (user took over)
 // - Per-station auto commands only re-enable (on), because AutoOff handles global off
 // - Step count must balance adds and removes — count carefully or items accumulate
+//
+// AUTO STEPS SHOULD MAP TO REAL COMMANDS:
+// - Each auto step should perform the same operation a user could do manually
+//   via a console command. The auto sequence is just the commands fired in order.
+// - Extract shared operation methods (e.g. Request_SetAllValues, Request_TestBoundaries)
+//   that both auto steps and manual message handlers call.
+// - Auto steps call the shared methods directly (not via messaging, which would
+//   trigger StopAuto). Manual message handlers call StopAuto() then the same methods.
+// - The display's Auto Sequence section should describe steps in terms of the
+//   commands a user could type, and the Commands section should list all of them.
+// - See CkAttributeGym_BasicAttributes.as for a reference implementation.
 
 //============================================================================
 // 13. DISPLAY LAYOUT PATTERN
