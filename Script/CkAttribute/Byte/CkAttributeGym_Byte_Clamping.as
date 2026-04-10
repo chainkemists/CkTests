@@ -12,6 +12,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 	FCk_Handle_ByteAttribute ArmorAttribute;
 	FCk_Handle_ByteAttribute StaminaAttribute;
 	FCk_Handle_ByteAttribute HealthAttribute;
+	FCk_Handle_ByteAttribute ShieldAttribute;
 
 	int32 ValueChangeCount = 0;
 	int32 ClampedCount = 0;
@@ -84,6 +85,12 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 			utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Health"), 75);
 		HealthParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0).Set_MaxValue(100);
 		HealthAttribute = utils_byte_attribute::Add(InHandle, HealthParams);
+
+		// Shield: 0-150, starts at 200 (initial value exceeds max — clamped on creation)
+		auto ShieldParams = FCk_Fragment_ByteAttribute_ParamsData(
+			utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Shield"), 200);
+		ShieldParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0).Set_MaxValue(150);
+		ShieldAttribute = utils_byte_attribute::Add(InHandle, ShieldParams);
 	}
 
 	void
@@ -99,6 +106,9 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 		utils_byte_attribute::BindTo_OnValueChanged(HealthAttribute, ECk_MinMaxCurrent::Current, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnHealthValueChanged"));
 		utils_byte_attribute::BindTo_OnMinClamped(HealthAttribute, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnHealthClamped"));
 		utils_byte_attribute::BindTo_OnMaxClamped(HealthAttribute, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnHealthClamped"));
+		utils_byte_attribute::BindTo_OnValueChanged(ShieldAttribute, ECk_MinMaxCurrent::Current, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnShieldValueChanged"));
+		utils_byte_attribute::BindTo_OnMinClamped(ShieldAttribute, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnShieldClamped"));
+		utils_byte_attribute::BindTo_OnMaxClamped(ShieldAttribute, FCk_Delegate_ByteAttribute_OnClamped(this, n"OnShieldClamped"));
 	}
 
 	UFUNCTION()
@@ -181,30 +191,37 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 		{
 			auto ArmorValue = utils_byte_attribute::Get_FinalValue(ArmorAttribute);
 			auto ArmorBar = CkGym_Attribute::Create_ProgressBar(ArmorValue, 200.0f, 20, ECk_ASCII_ProgressBar_Style::HashTag_Symbol);
-			auto ClampStatus = CkGym_Attribute::Get_ClampingStatus(ArmorValue, CurrentArmorTest);
-			DisplayText = f"{DisplayText}Armor: {ArmorValue}/200 (In: {CurrentArmorTest})" + ClampStatus + "\n";
+			auto ClampSuffix = CkGym_Attribute::Get_ClampingSuffix(ArmorValue, CurrentArmorTest);
+			DisplayText = f"{DisplayText}Armor: {ArmorValue}/200{ClampSuffix}\n";
 			DisplayText = f"{DisplayText}[{ArmorBar}] " + (ArmorIncreasing ? "UP" : "DOWN") + "\n\n";
 		}
 
 		{
 			auto StaminaValue = utils_byte_attribute::Get_FinalValue(StaminaAttribute);
 			auto StaminaBar = CkGym_Attribute::Create_ProgressBar((StaminaValue - 50), (255 - 50), 20, ECk_ASCII_ProgressBar_Style::Equal_Symbol);
-			auto ClampStatus = CkGym_Attribute::Get_ClampingStatus(StaminaValue, CurrentStaminaTest);
-			DisplayText = f"{DisplayText}Stamina: {StaminaValue}/255 (In: {CurrentStaminaTest})" + ClampStatus + "\n";
+			auto ClampSuffix = CkGym_Attribute::Get_ClampingSuffix(StaminaValue, CurrentStaminaTest);
+			DisplayText = f"{DisplayText}Stamina: {StaminaValue}/255{ClampSuffix}\n";
 			DisplayText = f"{DisplayText}[{StaminaBar}] " + (StaminaIncreasing ? "UP" : "DOWN") + "\n\n";
 		}
 
 		{
 			auto HealthValue = utils_byte_attribute::Get_FinalValue(HealthAttribute);
 			auto HealthBar = CkGym_Attribute::Create_ProgressBar(HealthValue, 100.0f, 20);
-			auto ClampStatus = CkGym_Attribute::Get_ClampingStatus(HealthValue, CurrentHealthTest);
-			DisplayText = f"{DisplayText}Health: {HealthValue}/100 (In: {CurrentHealthTest})" + ClampStatus + "\n";
-			DisplayText = f"{DisplayText}[{HealthBar}] " + (HealthIncreasing ? "UP" : "DOWN");
+			auto ClampSuffix = CkGym_Attribute::Get_ClampingSuffix(HealthValue, CurrentHealthTest);
+			DisplayText = f"{DisplayText}Health: {HealthValue}/100{ClampSuffix}\n";
+			DisplayText = f"{DisplayText}[{HealthBar}] " + (HealthIncreasing ? "UP" : "DOWN") + "\n\n";
+		}
+
+		{
+			auto ShieldValue = utils_byte_attribute::Get_FinalValue(ShieldAttribute);
+			auto ShieldBar = CkGym_Attribute::Create_ProgressBar(ShieldValue, 150.0f, 20, ECk_ASCII_ProgressBar_Style::HashTag_Symbol);
+			DisplayText = f"{DisplayText}Shield: {ShieldValue}/150 (Initial: 200, clamped on creation)\n";
+			DisplayText = f"{DisplayText}[{ShieldBar}] STATIC";
 		}
 
         CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText,
             "Automatically cycles attribute values beyond their limits to demonstrate clamping behavior.\n" +
-            "Watch for [CLAMPED] status and colored sphere indicators when values hit boundaries.\n" +
+            "Shield demonstrates initial-value clamping (created with value > max).\n" +
             "Use Ck_GymByte_TestBoundaries to trigger extreme values manually.");
 	}
 
@@ -251,6 +268,20 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 		CkGym_Attribute::Draw_ClampIndicator(SelfEntity, FVector(50.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
 	}
 
+	UFUNCTION()
+	void OnShieldValueChanged(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnValueChanged InPayload)
+	{
+		ValueChangeCount++;
+	}
+
+	UFUNCTION()
+	void OnShieldClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
+	{
+		ClampedCount++;
+		auto SelfEntity = ck::ToEntity(this);
+		CkGym_Attribute::Draw_ClampIndicator(SelfEntity, FVector(100.0f, 0.0f, 150.0f), FLinearColor(0.0f, 1.0f, 0.0f, 1.0f));
+	}
+
 	// Message handlers
 	UFUNCTION()
 	private void OnTestBoundaries(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
@@ -262,6 +293,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 		utils_byte_attribute::Request_Override(ArmorAttribute, 255);
 		utils_byte_attribute::Request_Override(StaminaAttribute, 30);
 		utils_byte_attribute::Request_Override(HealthAttribute, 150);
+		utils_byte_attribute::Request_Override(ShieldAttribute, 255);
 	}
 
 	UFUNCTION()
@@ -279,5 +311,6 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 		utils_byte_attribute::Request_Override(ArmorAttribute, 100);
 		utils_byte_attribute::Request_Override(StaminaAttribute, 150);
 		utils_byte_attribute::Request_Override(HealthAttribute, 75);
+		utils_byte_attribute::Request_Override(ShieldAttribute, 200);
 	}
 }
