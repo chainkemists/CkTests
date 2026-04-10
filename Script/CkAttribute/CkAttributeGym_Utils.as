@@ -16,14 +16,16 @@ namespace CkGym_Attribute
         );
     }
 
-    // Create clamping status string
-    FString Get_ClampingStatus(float32 InCurrentValue, float32 InInputValue)
+    // Create clamping status suffix — only shows info when clamping actually occurred
+    FString Get_ClampingSuffix(float32 InCurrentValue, float32 InInputValue)
     {
         if (InCurrentValue != InInputValue)
         {
-            return " [CLAMPED]";
+            int32 Delta = int32(InCurrentValue) - int32(InInputValue);
+            FString DeltaStr = (Delta > 0) ? f"+{Delta}" : f"{Delta}";
+            return f" (Requested: {int32(InInputValue)}, Clamped: {DeltaStr})";
         }
-        return " [NORMAL]";
+        return "";
     }
 
     // Draw clamping event indicator
