@@ -8,16 +8,25 @@ struct FBasicAttributesSpawnParams
     UPROPERTY()
     FTransform InitialTransform = FTransform::Identity;
 
-    FBasicAttributesSpawnParams(FTransform InTransform)
+    UPROPERTY()
+    FString StationName = "";
+
+    FBasicAttributesSpawnParams(FTransform InTransform, FString InStationName = "")
     {
         InitialTransform = InTransform;
+        StationName = InStationName;
     }
 }
 
 class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
 {
+    default _Replication = ECk_Replication::DoesNotReplicate;
+
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY(ExposeOnSpawn)
+    FString StationName = "BasicAttributes";
 
     // Attribute handles for different types
     FCk_Handle_FloatAttribute HealthAttribute;
@@ -41,7 +50,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
         auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-        DisplayTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"DisplayTick"));
+        DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
         // Timer for value updates (every 1.5 seconds)
         auto UpdateTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.5f));
@@ -49,13 +58,9 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
         auto UpdateTimer = utils_timer::Add(InHandle, UpdateTimerParams);
         UpdateTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"UpdateTick"));
 
-        return ECk_EntityScript_ConstructionFlow::Finished;
-    }
-
-    UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
-    {
-        auto SelfEntity = InHandle;
+        //------------------------------------------------------------------------
+        // Attribute Setup
+        //------------------------------------------------------------------------
 
         // Create Float Attribute (Health: 0-100)
         auto HealthParams = FCk_Fragment_FloatAttribute_ParamsData(
@@ -66,7 +71,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
         HealthParams.Set_MinValue(0.0f);
         HealthParams.Set_MaxValue(100.0f);
 
-        HealthAttribute = utils_float_attribute::Add(SelfEntity, HealthParams);
+        HealthAttribute = utils_float_attribute::Add(InHandle, HealthParams);
 
         // Create Byte Attribute (Armor: 0-255)
         auto ArmorParams = FCk_Fragment_ByteAttribute_ParamsData(
@@ -77,7 +82,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
         ArmorParams.Set_MinValue(0);
         ArmorParams.Set_MaxValue(255);
 
-        ArmorAttribute = utils_byte_attribute::Add(SelfEntity, ArmorParams);
+        ArmorAttribute = utils_byte_attribute::Add(InHandle, ArmorParams);
 
         // Create Vector Attribute (Velocity: unclamped)
         auto VelocityParams = FCk_Fragment_VectorAttribute_ParamsData(
@@ -85,10 +90,13 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
             FVector(100.0f, 50.0f, 0.0f)
         );
 
-        VelocityAttribute = utils_vector_attribute::Add(SelfEntity, VelocityParams);
+        VelocityAttribute = utils_vector_attribute::Add(InHandle, VelocityParams);
 
+        // Bind to messages
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes, FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_UpdateAttributes, FCk_Delegate_Messaging_OnBroadcast(this, n"OnUpdateAttributes"));
+
+        return ECk_EntityScript_ConstructionFlow::Finished;
     }
 
     // Timer callback for display updates (every frame)
@@ -164,52 +172,55 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
     void DisplayCurrentValues()
     {
         auto SelfEntity = ck::ToEntity(this);
-        if (SelfEntity.Is_Transform())
+        auto TransformHandle = SelfEntity.As_Transform();
+
+        if (ck::Ensure(ck::IsValid(TransformHandle), "TransformHandle should be valid in gym") == false)
         {
-            auto Transform = utils_transform::Get_EntityCurrentTransform(SelfEntity.As_Transform());
-            auto DisplayPos = Transform.GetLocation() + FVector(0.0f, 0.0f, 200.0f);
-
-            auto DisplayText = "=== BASIC ATTRIBUTES - AUTO CLAMPING TEST ===\n";
-            DisplayText = f"{DisplayText}Testing automatic min/max clamping behavior\n";
-            DisplayText = f"{DisplayText}Values update every 1.5s, cycling through boundaries\n";
-            DisplayText = f"{DisplayText}\n";
-
-            DisplayText = f"{DisplayText}TEST INPUT: {CurrentTestValue} (Direction: " + (IsIncreasing ? "UP" : "DOWN") + ")\n";
-            DisplayText = f"{DisplayText}\n";
-
-            if (ck::IsValid(HealthAttribute))
-            {
-                auto HealthValue = utils_float_attribute::Get_FinalValue(HealthAttribute);
-                auto HealthBase = utils_float_attribute::Get_BaseValue(HealthAttribute);
-                auto ClampStatus = (HealthValue != CurrentTestValue) ? " [CLAMPED]" : " [NORMAL]";
-                DisplayText = f"{DisplayText}FLOAT: Health = {HealthValue} (Limits: 0-100)" + ClampStatus + "\n";
-            }
-
-            if (ck::IsValid(ArmorAttribute))
-            {
-                auto ArmorValue = utils_byte_attribute::Get_FinalValue(ArmorAttribute);
-                auto ArmorBase = utils_byte_attribute::Get_BaseValue(ArmorAttribute);
-                auto TestArmorValue = uint8(Math::Clamp(CurrentTestValue * 2.0f, 0.0f, 255.0f));
-                auto ClampStatus = (ArmorValue != TestArmorValue) ? " [CLAMPED]" : " [NORMAL]";
-                DisplayText = f"{DisplayText}BYTE: Armor = {ArmorValue} (Limits: 0-255)" + ClampStatus + "\n";
-            }
-
-            if (ck::IsValid(VelocityAttribute))
-            {
-                auto VelocityValue = utils_vector_attribute::Get_FinalValue(VelocityAttribute);
-                DisplayText = f"{DisplayText}VECTOR: Velocity = {VelocityValue.ToString()}\n";
-                DisplayText = f"{DisplayText}  Speed: {VelocityValue.Size()} (No limits - unclamped)\n";
-            }
-
-            DisplayText = f"{DisplayText}\n";
-            DisplayText = f"{DisplayText}WATCH FOR:\n";
-            DisplayText = f"{DisplayText}- Health stops at 0 and 100 despite input going beyond\n";
-            DisplayText = f"{DisplayText}- Armor (2x input) clamps at 0 and 255 boundaries\n";
-            DisplayText = f"{DisplayText}- Velocity continues growing without limits\n";
-            DisplayText = f"{DisplayText}- [CLAMPED] appears when limits are enforced";
-
-            utils_debug_draw::DrawDebugString(DisplayPos, DisplayText, FLinearColor::White, 0.0f);
+            return;
         }
+
+        auto TitleText = "BASIC ATTRIBUTES - AUTO CLAMPING";
+        auto DisplayText = "";
+
+        DisplayText = f"{DisplayText}Testing automatic min/max clamping behavior\n";
+        DisplayText = f"{DisplayText}Values update every 1.5s, cycling through boundaries\n\n";
+
+        DisplayText = f"{DisplayText}TEST INPUT: {CurrentTestValue} (Direction: " + (IsIncreasing ? "UP" : "DOWN") + ")\n\n";
+
+        if (ck::IsValid(HealthAttribute))
+        {
+            auto HealthValue = utils_float_attribute::Get_FinalValue(HealthAttribute);
+            auto HealthBar = CkGym_Attribute::Create_ProgressBar(HealthValue, 100.0f, 20);
+            auto ClampSuffix = CkGym_Attribute::Get_ClampingSuffix(HealthValue, CurrentTestValue);
+            DisplayText = f"{DisplayText}FLOAT Health: {HealthValue}/100\n";
+            DisplayText = f"{DisplayText}[{HealthBar}]{ClampSuffix}\n\n";
+        }
+
+        if (ck::IsValid(ArmorAttribute))
+        {
+            auto ArmorValue = utils_byte_attribute::Get_FinalValue(ArmorAttribute);
+            auto TestArmorValue = Math::Clamp(CurrentTestValue * 2.0f, 0.0f, 255.0f);
+            auto ArmorBar = CkGym_Attribute::Create_ProgressBar(float32(ArmorValue), 255.0f, 20, ECk_ASCII_ProgressBar_Style::HashTag_Symbol);
+            auto ClampSuffix = CkGym_Attribute::Get_ClampingSuffix(float32(ArmorValue), TestArmorValue);
+            DisplayText = f"{DisplayText}BYTE Armor: {ArmorValue}/255\n";
+            DisplayText = f"{DisplayText}[{ArmorBar}]{ClampSuffix}\n\n";
+        }
+
+        if (ck::IsValid(VelocityAttribute))
+        {
+            auto VelocityValue = utils_vector_attribute::Get_FinalValue(VelocityAttribute);
+            DisplayText = f"{DisplayText}VECTOR Velocity: {VelocityValue.ToString()}\n";
+            DisplayText = f"{DisplayText}Speed: {VelocityValue.Size()} (No limits - unclamped)\n\n";
+        }
+
+        DisplayText = f"{DisplayText}===== Commands =====\n";
+        DisplayText = f"{DisplayText}Ck_GymAttribute_UpdateBasicValues\n";
+        DisplayText = f"{DisplayText}Ck_GymAttribute_ResetBasicValues";
+
+        auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
+        auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
+        Fragment.Title = FText::FromString(TitleText);
+        Fragment.Description = FText::FromString(DisplayText);
     }
 }
 
@@ -219,6 +230,26 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
 
 class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 {
+    TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
+    {
+        auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
+
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Attribute.BasicAttributes");
+            Station.Height = 7.0f;
+            Station.Title = FText::FromString("BASIC ATTRIBUTES - AUTO CLAMPING");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Tests float, byte, and vector attributes with auto-clamping."));
+            Description.Add(FText::FromString("Values cycle through boundaries every 1.5s."));
+            Description.Add(FText::FromString("Console: Ck_GymAttribute_UpdateBasicValues / ResetBasicValues"));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        return Stations;
+    }
+
     void Request_StartGym() override
     {
         Request_StartBasicAttributes();
@@ -230,13 +261,22 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
         auto StationTransform = Get_StationTransform("Gym.Attribute.BasicAttributes");
 
         // Spawn the basic attributes testing entity at the station
-        auto SpawnParams = FBasicAttributesSpawnParams(StationTransform);
+        auto SpawnParams = FBasicAttributesSpawnParams(StationTransform, "BasicAttributes");
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
-            ck::ToEntity(this),
+            Get_StationHandle("Gym.Attribute.BasicAttributes"),
             UCk_EntityScript_AttributeGym_BasicAttributes,
             FInstancedStruct::Make(SpawnParams)
         );
+
+        if (ck::IsValid(SpawnRequest))
+        {
+            ck::Trace("✅ Basic Attributes station started");
+        }
+        else
+        {
+            ck::Error("❌ Failed to spawn Basic Attributes entity");
+        }
     }
 
     // Console Commands
