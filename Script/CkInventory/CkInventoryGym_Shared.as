@@ -1,52 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// INVENTORY GYM - SHARED SPAWN PARAMS, MESSAGES & ITEM DEFINITION LOADER
+// INVENTORY GYM - SHARED SPAWN PARAMS, MESSAGES & HELPERS
 //============================================================================
 //
-// USER SETUP REQUIRED before this gym becomes fully functional:
-//
-// 1. Create a content folder at:
-//      Plugins/CkTests/Content/CkInventory/Items/
-//
-// 2. Create these UCk_InventoryItem_Definition assets inside it:
-//      ItemDef_Potion    (add Stackable trait, max 10; Tags trait: Item.Consumable, Item.Potion)
-//      ItemDef_Arrow     (add Stackable trait, max 99; Tags trait: Item.Consumable, Item.Ammo)
-//      ItemDef_Sword     (NO Stackable trait;          Tags trait: Item.Weapon,     Item.Melee)
-//      ItemDef_Shield    (NO Stackable trait;          Tags trait: Item.Equipment,  Item.Defense)
-//      ItemDef_Key       (NO Stackable trait;          Tags trait: Item.Quest)
-//
-// (Optional) For typesafe accessors, create a UCkAssetRegistryConfig data asset
-// pointing at /CkTests/CkInventory/Items and run the asset registry generator.
-// This gym currently uses utils_i_o::LoadAssetByName with hardcoded paths so it
-// is self-contained and does not require the generator step.
+// Item definitions live in CkInventoryGym_Assets.as (the _Assets.as convention).
+// This file contains spawn params, messages, and shared display helpers.
 //
 //============================================================================
-
-//============================================================================
-// ITEM DEFINITION LOADER
-//============================================================================
-
-namespace inv_gym_items
-{
-    UCk_InventoryItem_Definition Get_ItemDef(FString InName)
-    {
-        auto Path = f"/CkTests/CkInventory/Items/{InName}.{InName}";
-        auto LoadResult = utils_i_o::LoadAssetByName(Path, ECk_AssetSearchScope::Plugins);
-        auto Asset = Cast<UCk_InventoryItem_Definition>(LoadResult._Asset);
-        if (Asset == nullptr)
-        {
-            ck::Warning(f"[InventoryGym] Missing item definition at [{Path}] — create it in the editor (see CkInventoryGym_Shared.as header).");
-        }
-        return Asset;
-    }
-
-    UCk_InventoryItem_Definition Potion() { return Get_ItemDef("ItemDef_Potion"); }
-    UCk_InventoryItem_Definition Arrow()  { return Get_ItemDef("ItemDef_Arrow");  }
-    UCk_InventoryItem_Definition Sword()  { return Get_ItemDef("ItemDef_Sword");  }
-    UCk_InventoryItem_Definition Shield() { return Get_ItemDef("ItemDef_Shield"); }
-    UCk_InventoryItem_Definition Key()    { return Get_ItemDef("ItemDef_Key");    }
-}
 
 //============================================================================
 // SPAWN PARAMS
@@ -164,6 +125,46 @@ USTRUCT()
 struct FCk_Message_InvGym_SortInventory
 {
     FCk_Message_InvGym_SortInventory() {}
+}
+
+//============================================================================
+// SHELF LOOT/STOCK MESSAGES (desync repro station)
+//============================================================================
+
+USTRUCT()
+struct FCk_Message_InvGym_ShelfStock
+{
+    FCk_Message_InvGym_ShelfStock() {}
+}
+
+USTRUCT()
+struct FCk_Message_InvGym_ShelfLoot
+{
+    FCk_Message_InvGym_ShelfLoot() {}
+}
+
+USTRUCT()
+struct FCk_Message_InvGym_ShelfLoop
+{
+    UPROPERTY()
+    int32 Iterations;
+
+    FCk_Message_InvGym_ShelfLoop(int32 InIterations = 10)
+    {
+        Iterations = InIterations;
+    }
+}
+
+USTRUCT()
+struct FCk_Message_InvGym_ShelfReset
+{
+    FCk_Message_InvGym_ShelfReset() {}
+}
+
+USTRUCT()
+struct FCk_Message_InvGym_AutoToggle
+{
+    FCk_Message_InvGym_AutoToggle() {}
 }
 
 //============================================================================
