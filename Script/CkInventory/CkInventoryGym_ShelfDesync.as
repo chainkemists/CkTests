@@ -91,7 +91,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_ShelfLoot,  FCk_Delegate_Messaging_OnBroadcast(this, n"OnLoot"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_ShelfLoop,  FCk_Delegate_Messaging_OnBroadcast(this, n"OnLoop"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_ShelfReset, FCk_Delegate_Messaging_OnBroadcast(this, n"OnReset"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoToggle, FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoToggle"));
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoSet,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -262,9 +262,10 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
     }
 
     UFUNCTION()
-    private void OnAutoToggle(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
+    private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        PumpRunning = !PumpRunning;
+        auto Typed = InPayload.Get(FCk_Message_InvGym_AutoSet);
+        PumpRunning = Typed.Enabled;
         if (PumpRunning) { utils_timer::Request_Resume(PumpTimer); }
         else { utils_timer::Request_Pause(PumpTimer); }
     }
@@ -333,7 +334,9 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
         auto PumpStr = PumpRunning ? "RUNNING" : "stopped";
 
         auto DisplayText = "";
-        DisplayText = f"{DisplayText}===== Shelf Loot/Stock =====\n";
+        DisplayText = f"{DisplayText}{inv_gym_helpers::AutoStatusLine(PumpRunning)}\n";
+        DisplayText = f"{DisplayText}Rapid stock/loot pump simulating in-game\n";
+        DisplayText = f"{DisplayText}shelf operations. Watch total for drift.\n\n";
         DisplayText = f"{DisplayText}Expected total: {InitialPotionCount}\n";
         DisplayText = f"{DisplayText}Player: {PlayerPotions}   Shelf: {ShelfPotions}\n";
         DisplayText = f"{DisplayText}TOTAL: {Total}";
@@ -344,14 +347,17 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
 
         auto AS = PumpRunning ? ">> " : "   ";
 
-        auto AutoStr = PumpRunning ? ">> Ck_GymInventory_Auto - ON" : "   Ck_GymInventory_Auto - OFF";
+        DisplayText = f"{DisplayText}===== Auto Sequence =====\n";
+        DisplayText = f"{DisplayText}{AS}Alternating stock/loot pump ({PumpStr})\n";
 
-        DisplayText = f"{DisplayText}===== Operations =====\n";
-        DisplayText = f"{DisplayText}{AutoStr}\n";
-        DisplayText = f"{DisplayText}{AS}Ck_GymInventory_ShelfStart/Stop - Pump ({PumpStr})\n";
-        DisplayText = f"{DisplayText}   Ck_GymInventory_ShelfStock - Single stock\n";
-        DisplayText = f"{DisplayText}   Ck_GymInventory_ShelfLoot - Single loot\n";
-        DisplayText = f"{DisplayText}   Ck_GymInventory_ShelfReset - Re-seed";
+        DisplayText = f"{DisplayText}\n===== Commands =====\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_ShelfStart\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_ShelfStop\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_ShelfStock\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_ShelfLoot\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_ShelfReset\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_RestartAll\n";
+        DisplayText = DisplayText + inv_gym_helpers::AutoCommandsBlock("Ck_GymInventory_AutoShelf");
 
         auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
         auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);

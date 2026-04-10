@@ -13,12 +13,12 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.DataOnlyUnbounded");
-            Station.Height = 8.0f;
+            Station.Height = 10.0f;
             Station.Title = FText::FromString("DATA-ONLY UNBOUNDED");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Unlimited-capacity data-only inventory."));
-            Description.Add(FText::FromString("Tests add/remove/sort and OnItemsChanged signal."));
-            Description.Add(FText::FromString("Console: Ck_GymInventory_AddPotion/AddArrow/RemoveFirst/SortAll"));
+            Description.Add(FText::FromString("Tests add/remove/sort and OnItemsChanged."));
+            Description.Add(FText::FromString("Starts in auto mode."));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -26,12 +26,12 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.DataOnlyBounded");
-            Station.Height = 8.0f;
+            Station.Height = 10.0f;
             Station.Title = FText::FromString("DATA-ONLY BOUNDED");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Max 5 items; overfill returns Failed_NoSpaceAvailable."));
-            Description.Add(FText::FromString("Demonstrates Request_OverrideBounds at runtime."));
-            Description.Add(FText::FromString("Console: Ck_GymInventory_FillBounded / SetBounds"));
+            Description.Add(FText::FromString("Bounded inventory (max 5)."));
+            Description.Add(FText::FromString("Demonstrates Request_OverrideBounds and rejection."));
+            Description.Add(FText::FromString("Starts in auto mode."));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -39,12 +39,11 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.Spatial");
-            Station.Height = 8.0f;
+            Station.Height = 10.0f;
             Station.Title = FText::FromString("SPATIAL INVENTORY");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("8x6 grid with auto-placement and explicit coordinates."));
-            Description.Add(FText::FromString("Uses Get_CanPlaceItemAt and Get_FirstAvailablePlacement."));
-            Description.Add(FText::FromString("Console: Ck_GymInventory_AddSword / AddShieldAt x y"));
+            Description.Add(FText::FromString("8x6 grid with auto-placement, explicit coords,"));
+            Description.Add(FText::FromString("and multi-cell items (3x1). Starts in auto mode."));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -52,12 +51,11 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.StackableTrait");
-            Station.Height = 8.0f;
+            Station.Height = 10.0f;
             Station.Title = FText::FromString("STACKABLE TRAIT");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Exercises Request_StackItems, Request_SplitStack."));
-            Description.Add(FText::FromString("Binds OnStackCountChanged per item."));
-            Description.Add(FText::FromString("Console: Ck_GymInventory_StackPotions / SplitStack n"));
+            Description.Add(FText::FromString("Request_StackItems, Request_SplitStack."));
+            Description.Add(FText::FromString("Binds OnStackCountChanged. Starts in auto mode."));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -65,12 +63,12 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.TagsTrait");
-            Station.Height = 8.0f;
+            Station.Height = 10.0f;
             Station.Title = FText::FromString("TAGS TRAIT");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Runtime tag add/remove via Request_AddTag / Request_RemoveTag."));
-            Description.Add(FText::FromString("Binds OnTagsChanged per item."));
-            Description.Add(FText::FromString("Console: Ck_GymInventory_AddRareTag / RemoveRareTag"));
+            Description.Add(FText::FromString("Runtime tag add/remove via Request_AddTag /"));
+            Description.Add(FText::FromString("Request_RemoveTag. Binds OnTagsChanged."));
+            Description.Add(FText::FromString("Starts in auto mode."));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -78,13 +76,12 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.ShelfDesync");
-            Station.Height = 8.0f;
-            Station.Title = FText::FromString("SHELF LOOT/STOCK DESYNC");
+            Station.Height = 10.0f;
+            Station.Title = FText::FromString("SHELF LOOT/STOCK");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Simulates in-game shelf stock/loot in rapid succession."));
-            Description.Add(FText::FromString("Replicated inventories exercise the IFP network path."));
-            Description.Add(FText::FromString("Invariant: total potion count stays constant."));
-            Description.Add(FText::FromString("Console: Ck_GymInventory_ShelfStock / ShelfLoot / ShelfLoop n / ShelfReset"));
+            Description.Add(FText::FromString("Rapid stock/loot pump simulating in-game"));
+            Description.Add(FText::FromString("shelf operations. Watch total for drift."));
+            Description.Add(FText::FromString("Starts in auto mode."));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -359,10 +356,9 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
     // AUTO MODE
     //------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Toggle Auto Mode")
-    void Ck_GymInventory_Auto()
+    private void BroadcastAutoToAll(bool InEnabled)
     {
-        auto Msg = FCk_Message_InvGym_AutoToggle();
+        auto Msg = FCk_Message_InvGym_AutoSet(InEnabled);
         auto AllTags = TArray<FName>();
         AllTags.Add(n"TAG_InvGym_DataOnlyUnbounded");
         AllTags.Add(n"TAG_InvGym_DataOnlyBounded");
@@ -376,6 +372,55 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), Tag);
             for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
         }
+    }
+
+    private void BroadcastAutoToTag(FName InTag, bool InEnabled)
+    {
+        auto Msg = FCk_Message_InvGym_AutoSet(InEnabled);
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), InTag);
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto All")
+    void Ck_GymInventory_Auto(int32 InEnabled = 1)
+    {
+        BroadcastAutoToAll(InEnabled != 0);
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Unbounded")
+    void Ck_GymInventory_AutoUnbounded()
+    {
+        BroadcastAutoToTag(n"TAG_InvGym_DataOnlyUnbounded", true);
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Bounded")
+    void Ck_GymInventory_AutoBounded()
+    {
+        BroadcastAutoToTag(n"TAG_InvGym_DataOnlyBounded", true);
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Spatial")
+    void Ck_GymInventory_AutoSpatial()
+    {
+        BroadcastAutoToTag(n"TAG_InvGym_Spatial", true);
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Stackable")
+    void Ck_GymInventory_AutoStackable()
+    {
+        BroadcastAutoToTag(n"TAG_InvGym_StackableTrait", true);
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Tags")
+    void Ck_GymInventory_AutoTags()
+    {
+        BroadcastAutoToTag(n"TAG_InvGym_TagsTrait", true);
+    }
+
+    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Shelf")
+    void Ck_GymInventory_AutoShelf()
+    {
+        BroadcastAutoToTag(n"TAG_InvGym_ShelfDesync", true);
     }
 
     //------------------------------------------------------------------------
