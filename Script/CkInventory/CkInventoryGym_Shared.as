@@ -162,9 +162,15 @@ struct FCk_Message_InvGym_ShelfReset
 }
 
 USTRUCT()
-struct FCk_Message_InvGym_AutoToggle
+struct FCk_Message_InvGym_AutoSet
 {
-    FCk_Message_InvGym_AutoToggle() {}
+    UPROPERTY()
+    bool Enabled;
+
+    FCk_Message_InvGym_AutoSet(bool InEnabled = true)
+    {
+        Enabled = InEnabled;
+    }
 }
 
 //============================================================================
@@ -196,6 +202,19 @@ namespace inv_gym_helpers
         if (Def == inv_gym_items::Shield()) { return "Shield"; }
         if (Def == inv_gym_items::Key())    { return "Key";    }
         return "<unknown>";
+    }
+
+    FString AutoStatusLine(bool InAutoRunning)
+    {
+        return InAutoRunning ? "[AUTO] Running" : "[MANUAL]";
+    }
+
+    FString AutoCommandsBlock(FString InPerStationCmd)
+    {
+        auto Text = "";
+        Text = f"{Text}\nCk_GymInventory_Auto [0/1]\n";
+        Text = f"{Text}{InPerStationCmd}";
+        return Text;
     }
 
     // FGameplayTagContainer::GetGameplayTagArray / ToString are not exposed to Angelscript,
