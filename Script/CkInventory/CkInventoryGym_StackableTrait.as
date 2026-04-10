@@ -15,6 +15,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_EntityScript_UE
     FCk_Handle_Timer AutoTimer;
 
     int32 StackEventsCount = 0;
+    FString LastResult = "";
     bool AutoRunning = true;
     int32 AutoStep = 0;
 
@@ -43,7 +44,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_EntityScript_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemByDef,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemByDef"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_StackFirstTwo,   FCk_Delegate_Messaging_OnBroadcast(this, n"OnStackFirstTwo"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_SplitFirst,      FCk_Delegate_Messaging_OnBroadcast(this, n"OnSplitFirst"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoToggle,      FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoToggle"));
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoSet,          FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
 
         auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
         AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
@@ -67,8 +68,12 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_EntityScript_UE
         auto NumItems = utils_inventory::Get_NumItems(Inventory);
 
         auto DisplayText = "";
-        DisplayText = f"{DisplayText}===== Stackable Trait =====\n";
-        DisplayText = f"{DisplayText}Items: {NumItems}   Stack events: {StackEventsCount}\n\n";
+        DisplayText = f"{DisplayText}{inv_gym_helpers::AutoStatusLine(AutoRunning)}\n";
+        DisplayText = f"{DisplayText}Request_StackItems, Request_SplitStack.\n";
+        DisplayText = f"{DisplayText}Binds OnStackCountChanged per item.\n\n";
+        DisplayText = f"{DisplayText}Items: {NumItems}   Stack events: {StackEventsCount}\n";
+        if (LastResult != "") { DisplayText = f"{DisplayText}Last: {LastResult}\n"; }
+        DisplayText = f"{DisplayText}\n";
 
         DisplayText = f"{DisplayText}===== Stacks =====\n";
         auto Items = utils_inventory::Get_Items(Inventory);
@@ -99,16 +104,21 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_EntityScript_UE
         auto A4 = (AutoRunning && Step == 4) ? ">> " : "   ";
         auto A5 = (AutoRunning && Step == 5) ? ">> " : "   ";
 
-        auto AutoStr = AutoRunning ? ">> Ck_GymInventory_Auto - ON" : "   Ck_GymInventory_Auto - OFF";
+        DisplayText = f"{DisplayText}\n===== Auto Sequence =====\n";
+        DisplayText = f"{DisplayText}{A0}Add potion (new stack)\n";
+        DisplayText = f"{DisplayText}{A1}Add potion (new stack)\n";
+        DisplayText = f"{DisplayText}{A2}Merge first two stacks\n";
+        DisplayText = f"{DisplayText}{A3}Split 1 off first stack\n";
+        DisplayText = f"{DisplayText}{A4}Re-merge first two\n";
+        DisplayText = f"{DisplayText}{A5}Remove first item\n";
 
-        DisplayText = f"{DisplayText}\n===== Operations =====\n";
-        DisplayText = f"{DisplayText}{AutoStr}\n";
-        DisplayText = f"{DisplayText}{A0}Ck_GymInventory_AddPotion - New stack\n";
-        DisplayText = f"{DisplayText}{A1}Ck_GymInventory_AddPotion - New stack\n";
-        DisplayText = f"{DisplayText}{A2}Ck_GymInventory_StackPotions - Merge first two\n";
-        DisplayText = f"{DisplayText}{A3}Ck_GymInventory_SplitStack 1 - Split off 1\n";
-        DisplayText = f"{DisplayText}{A4}Ck_GymInventory_StackPotions - Re-merge\n";
-        DisplayText = f"{DisplayText}{A5}Ck_GymInventory_RemoveFirst - Remove";
+        DisplayText = f"{DisplayText}\n===== Commands =====\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_AddPotion [n]\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_StackPotions\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_SplitStack [n]\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_RemoveFirst\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_RestartAll\n";
+        DisplayText = DisplayText + inv_gym_helpers::AutoCommandsBlock("Ck_GymInventory_AutoStackable");
 
         auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
         auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
@@ -181,7 +191,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_EntityScript_UE
     UFUNCTION()
     void OnStackResult(FCk_Handle_Inventory InInventory, FCk_Handle_Item InSource, FCk_Handle_Item InTarget, ECk_Inventory_OperationResult_Stack InResult)
     {
-        ck::Trace(f"[InvGym Stackable] Stack result: {InResult}");
+        LastResult = f"Stack: {InResult}";
     }
 
     UFUNCTION()
@@ -206,7 +216,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_EntityScript_UE
     UFUNCTION()
     void OnSplitResult(FCk_Handle_Inventory InInventory, FCk_Handle_Item InSource, FCk_Handle_Item InNewItem, ECk_Inventory_OperationResult_Split InResult)
     {
-        ck::Trace(f"[InvGym Stackable] Split result: {InResult}");
+        LastResult = f"Split: {InResult}";
     }
 
     //------------------------------------------------------------------------
@@ -214,9 +224,10 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_EntityScript_UE
     //------------------------------------------------------------------------
 
     UFUNCTION()
-    private void OnAutoToggle(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
+    private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        AutoRunning = !AutoRunning;
+        auto Typed = InPayload.Get(FCk_Message_InvGym_AutoSet);
+        AutoRunning = Typed.Enabled;
         if (AutoRunning) { utils_timer::Request_Resume(AutoTimer); }
         else { utils_timer::Request_Pause(AutoTimer); }
     }

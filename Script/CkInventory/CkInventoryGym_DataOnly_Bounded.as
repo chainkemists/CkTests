@@ -14,7 +14,7 @@ class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_EntityScript_UE
     FCk_Handle_Inventory Inventory;
     FCk_Handle_Timer AutoTimer;
 
-    int32 LastAddResult = -1;
+    FString LastResult = "";
     bool AutoRunning = true;
     int32 AutoStep = 0;
 
@@ -40,7 +40,7 @@ class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_EntityScript_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemByDef,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemByDef"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_RemoveFirst,     FCk_Delegate_Messaging_OnBroadcast(this, n"OnRemoveFirst"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_OverrideBounds,  FCk_Delegate_Messaging_OnBroadcast(this, n"OnOverrideBounds"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoToggle,      FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoToggle"));
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoSet,          FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
 
         auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
         AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
@@ -67,10 +67,13 @@ class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_EntityScript_UE
         auto NumItems = utils_inventory::Get_NumItems(Inventory);
 
         auto DisplayText = "";
-        DisplayText = f"{DisplayText}===== Data-Only Bounded =====\n";
+        DisplayText = f"{DisplayText}{inv_gym_helpers::AutoStatusLine(AutoRunning)}\n";
+        DisplayText = f"{DisplayText}Bounded inventory (max 5). Demonstrates\n";
+        DisplayText = f"{DisplayText}Request_OverrideBounds and rejection.\n\n";
         auto BoundedStr = IsBounded ? f"{BoundMax}" : "UNBOUNDED";
         DisplayText = f"{DisplayText}Items: {NumItems}/{BoundedStr}\n";
-        DisplayText = f"{DisplayText}Last Add Result: {LastAddResult}\n\n";
+        if (LastResult != "") { DisplayText = f"{DisplayText}Last: {LastResult}\n"; }
+        DisplayText = f"{DisplayText}\n";
 
         DisplayText = f"{DisplayText}===== Contents =====\n";
         auto Items = utils_inventory::Get_Items(Inventory);
@@ -90,16 +93,20 @@ class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_EntityScript_UE
         auto A4 = (AutoRunning && Step == 9)  ? ">> " : "   ";
         auto A5 = (AutoRunning && Step == 10) ? ">> " : "   ";
 
-        auto AutoStr = AutoRunning ? ">> Ck_GymInventory_Auto - ON" : "   Ck_GymInventory_Auto - OFF";
+        DisplayText = f"{DisplayText}\n===== Auto Sequence =====\n";
+        DisplayText = f"{DisplayText}{A0}Fill to bound (5)\n";
+        DisplayText = f"{DisplayText}{A1}Overfill (expect reject)\n";
+        DisplayText = f"{DisplayText}{A2}Expand bound to 10\n";
+        DisplayText = f"{DisplayText}{A3}Add 2 more items\n";
+        DisplayText = f"{DisplayText}{A4}Clear all items\n";
+        DisplayText = f"{DisplayText}{A5}Reset bound to 5\n";
 
-        DisplayText = f"{DisplayText}\n===== Operations =====\n";
-        DisplayText = f"{DisplayText}{AutoStr}\n";
-        DisplayText = f"{DisplayText}{A0}Ck_GymInventory_FillBounded - Fill to 5\n";
-        DisplayText = f"{DisplayText}{A1}Ck_GymInventory_FillBounded - Overfill (reject)\n";
-        DisplayText = f"{DisplayText}{A2}Ck_GymInventory_SetBounds 10 - Expand limit\n";
-        DisplayText = f"{DisplayText}{A3}Ck_GymInventory_FillBounded - Add 2 more\n";
-        DisplayText = f"{DisplayText}{A4}Ck_GymInventory_RemoveFirst - Clear all\n";
-        DisplayText = f"{DisplayText}{A5}Ck_GymInventory_SetBounds 5 - Reset limit";
+        DisplayText = f"{DisplayText}\n===== Commands =====\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_FillBounded\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_SetBounds [n]\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_RemoveFirst\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_RestartAll\n";
+        DisplayText = DisplayText + inv_gym_helpers::AutoCommandsBlock("Ck_GymInventory_AutoBounded");
 
         auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
         auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
@@ -132,8 +139,7 @@ class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_EntityScript_UE
     UFUNCTION()
     void OnAddResult(FCk_Handle_Inventory InInventory, ECk_Inventory_OperationResult_AddByDefinition InResult, int InAmountAdded, const TArray<FCk_Handle_Item>&in InItemsCreated)
     {
-        LastAddResult = int32(InResult);
-        ck::Trace(f"[InvGym Bounded] Add result: {InResult} added={InAmountAdded}");
+        LastResult = f"Add: {InResult} (+{InAmountAdded})";
     }
 
     UFUNCTION()
@@ -165,9 +171,10 @@ class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_EntityScript_UE
     //------------------------------------------------------------------------
 
     UFUNCTION()
-    private void OnAutoToggle(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
+    private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        AutoRunning = !AutoRunning;
+        auto Typed = InPayload.Get(FCk_Message_InvGym_AutoSet);
+        AutoRunning = Typed.Enabled;
         if (AutoRunning) { utils_timer::Request_Resume(AutoTimer); }
         else { utils_timer::Request_Pause(AutoTimer); }
     }

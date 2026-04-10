@@ -15,6 +15,9 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
     FCk_Handle_Timer AutoTimer;
 
     FIntPoint LastFailedCoord = FIntPoint(-1, -1);
+    FIntPoint LastRandomCoord = FIntPoint(-1, -1);
+    ECk_CardinalRotation LastRandomRotation = ECk_CardinalRotation::None;
+    FString LastResult = "";
     bool AutoRunning = true;
     int32 AutoStep = 0;
 
@@ -40,7 +43,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemByDef, FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemByDef"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemAt,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemAt"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_RemoveFirst,  FCk_Delegate_Messaging_OnBroadcast(this, n"OnRemoveFirst"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoToggle,   FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoToggle"));
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoSet,       FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
 
         auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
         AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
@@ -78,6 +81,9 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
         auto Items = utils_inventory::Get_Items(Inventory);
 
         auto DisplayText = "";
+        DisplayText = f"{DisplayText}{inv_gym_helpers::AutoStatusLine(AutoRunning)}\n";
+        DisplayText = f"{DisplayText}8x6 grid with auto-placement, explicit\n";
+        DisplayText = f"{DisplayText}coordinates, and multi-cell items (3x1).\n\n";
         DisplayText = f"{DisplayText}Items: {NumItems}  Grid: {Dims.X}x{Dims.Y}\n\n";
 
         // Legend showing which color/letter maps to which item
@@ -104,25 +110,37 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
         }
 
         DisplayText = f"{DisplayText}\nSword:{SwordCount} Shield:{ShieldCount} Potion:{PotionCount}\n";
+        if (LastRandomCoord.X >= 0)
+        {
+            DisplayText = f"{DisplayText}Last random: ({LastRandomCoord.X},{LastRandomCoord.Y}) rot={LastRandomRotation}\n";
+        }
         if (LastFailedCoord.X >= 0)
         {
             DisplayText = f"{DisplayText}Last blocked: ({LastFailedCoord.X},{LastFailedCoord.Y})\n";
         }
 
-        auto Step = AutoStep % 8;
+        if (LastResult != "") { DisplayText = f"{DisplayText}Last: {LastResult}\n"; }
+
+        auto Step = AutoStep % 10;
         auto A0 = (AutoRunning && Step <= 1) ? ">> " : "   ";
         auto A1 = (AutoRunning && Step == 2) ? ">> " : "   ";
         auto A2 = (AutoRunning && Step == 3) ? ">> " : "   ";
-        auto A3 = (AutoRunning && Step >= 4) ? ">> " : "   ";
+        auto A3 = (AutoRunning && Step == 4) ? ">> " : "   ";
+        auto A4 = (AutoRunning && Step >= 5) ? ">> " : "   ";
 
-        auto AutoStr = AutoRunning ? ">> Ck_GymInventory_Auto - ON" : "   Ck_GymInventory_Auto - OFF";
+        DisplayText = f"{DisplayText}\n===== Auto Sequence =====\n";
+        DisplayText = f"{DisplayText}{A0}Auto-place 3x1 swords (x2)\n";
+        DisplayText = f"{DisplayText}{A1}Add shield (auto-place)\n";
+        DisplayText = f"{DisplayText}{A2}Place sword at random coord\n";
+        DisplayText = f"{DisplayText}{A3}Add shield (expect blocked)\n";
+        DisplayText = f"{DisplayText}{A4}Remove first (x5)\n";
 
-        DisplayText = f"{DisplayText}\n===== Operations =====\n";
-        DisplayText = f"{DisplayText}{AutoStr}\n";
-        DisplayText = f"{DisplayText}{A0}Ck_GymInventory_AddSword - Auto-place 3x1 (x2)\n";
-        DisplayText = f"{DisplayText}{A1}Ck_GymInventory_AddShieldAt - Add shield\n";
-        DisplayText = f"{DisplayText}{A2}Ck_GymInventory_AddShieldAt - Add another shield\n";
-        DisplayText = f"{DisplayText}{A3}Ck_GymInventory_RemoveFirst - Remove (x4)";
+        DisplayText = f"{DisplayText}\n===== Commands =====\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_AddSword\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_AddShieldAt [x] [y]\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_RemoveFirst\n";
+        DisplayText = f"{DisplayText}Ck_GymInventory_RestartAll\n";
+        DisplayText = DisplayText + inv_gym_helpers::AutoCommandsBlock("Ck_GymInventory_AutoSpatial");
 
         auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
         auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
@@ -184,7 +202,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
     UFUNCTION()
     void OnAddResult(FCk_Handle_Inventory InInventory, FCk_Handle_Item InItem, ECk_Inventory_OperationResult_Add InResult)
     {
-        ck::Trace(f"[InvGym Spatial] AddItem result: {InResult}");
+        LastResult = f"AddItem: {InResult}";
     }
 
     UFUNCTION()
@@ -206,9 +224,10 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
     //------------------------------------------------------------------------
 
     UFUNCTION()
-    private void OnAutoToggle(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
+    private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        AutoRunning = !AutoRunning;
+        auto Typed = InPayload.Get(FCk_Message_InvGym_AutoSet);
+        AutoRunning = Typed.Enabled;
         if (AutoRunning) { utils_timer::Request_Resume(AutoTimer); }
         else { utils_timer::Request_Pause(AutoTimer); }
     }
@@ -216,34 +235,48 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
     UFUNCTION()
     private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        auto Step = AutoStep % 8;
+        auto Step = AutoStep % 10;
         auto SwordDef = inv_gym_items::Sword();
         auto ShieldDef = inv_gym_items::Shield();
-        auto SelfEntity = ck::ToEntity(this);
 
         if (Step <= 1 && SwordDef != nullptr)
         {
-            // Add 3x1 swords via auto-place
             utils_inventory::Request_AddItemByDefinition(Inventory, FCk_Request_Inventory_AddItemByDefinition(SwordDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
         else if (Step == 2 && ShieldDef != nullptr)
         {
-            // Add shield via auto-place — finds first free slot
             utils_inventory::Request_AddItemByDefinition(Inventory, FCk_Request_Inventory_AddItemByDefinition(ShieldDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
-        else if (Step == 3 && ShieldDef != nullptr)
+        else if (Step == 3 && SwordDef != nullptr)
         {
-            // Try adding another shield — use AddItemByDefinition but the grid
-            // may be filling up. Also test the blocked coordinate query.
             auto Spatial = utils_inventory_spatial::DoCastChecked(Inventory);
-            // Check if (0,0) is blocked (it should be — swords are there)
-            // We need a temp item to query placement, use AddItemByDefinition
-            // and let it auto-place. The blocked coord display is just informational.
+            auto GridDims = utils_inventory_spatial::Get_Dimensions(Spatial);
+            auto RandX = Math::RandRange(0, GridDims.X - 1);
+            auto RandY = Math::RandRange(0, GridDims.Y - 1);
+            auto RandRot = Math::RandRange(0, 3);
+            auto Rotation = ECk_CardinalRotation(RandRot);
+
+            LastRandomCoord = FIntPoint(RandX, RandY);
+            LastRandomRotation = Rotation;
+
+            auto SelfEntity = ck::ToEntity(this);
+            auto NewItem = utils_item::Create(SelfEntity, SwordDef);
+            if (ck::IsValid(NewItem))
+            {
+                auto Req = FCk_Request_Inventory_AddItem(NewItem);
+                Req.Set_PlacementCoordinate(FIntPoint(RandX, RandY));
+                Req.Set_Rotation(Rotation);
+                utils_inventory::Request_AddItem(Inventory, Req, FCk_Delegate_Inventory_OnOperationResult_Add(this, n"OnAddResult"));
+            }
+        }
+        else if (Step == 4 && ShieldDef != nullptr)
+        {
             LastFailedCoord = FIntPoint(0, 0);
             utils_inventory::Request_AddItemByDefinition(Inventory, FCk_Request_Inventory_AddItemByDefinition(ShieldDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
-        else if (Step >= 4)
+        else if (Step >= 5)
         {
+            // 5 removes to match 5 adds (steps 0-4)
             auto Items = utils_inventory::Get_Items(Inventory);
             if (Items.Num() > 0)
             {
