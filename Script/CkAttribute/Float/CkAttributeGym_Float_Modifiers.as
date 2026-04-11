@@ -1,0 +1,349 @@
+//============================================================================
+// FLOAT MODIFIERS ENTITY SCRIPT
+//============================================================================
+
+class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_EntityScript_UE
+{
+    default _Replication = ECk_Replication::DoesNotReplicate;
+
+    UPROPERTY(ExposeOnSpawn)
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_Handle_FloatAttribute DamageAttribute;
+    FCk_Handle_FloatAttribute DefenseAttribute;
+
+    TArray<FCk_Handle_FloatAttributeModifier> ActiveModifiers;
+
+    int32 CycleStep = 0;
+    int32 ValueChangeCount = 0;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+    {
+        utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
+        utils_entity_tag::Add(InHandle, n"TAG_AttributeGym_FloatModifiers");
+
+        Request_SetupTimers(InHandle);
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void DoBeginPlay(FCk_Handle InHandle)
+    {
+        Request_SetupAttributes(InHandle);
+        Request_BindSignals(InHandle);
+        Request_StartAutomationCycle();
+
+        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes,
+            FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
+    }
+
+    void Request_SetupTimers(FCk_Handle InHandle)
+    {
+        auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+        DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+        auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
+        DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
+
+        auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.5f));
+        AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+        auto AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
+        AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
+    }
+
+    void Request_SetupAttributes(FCk_Handle InHandle)
+    {
+        // Damage: 10-200, starts at 50.0
+        auto DamageParams = FCk_Fragment_FloatAttribute_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Damage"), 50.0f);
+        DamageParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(10.0f).Set_MaxValue(200.0f);
+        DamageAttribute = utils_float_attribute::Add(InHandle, DamageParams);
+
+        // Defense: 0-100, starts at 30.0
+        auto DefenseParams = FCk_Fragment_FloatAttribute_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Defense"), 30.0f);
+        DefenseParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(100.0f);
+        DefenseAttribute = utils_float_attribute::Add(InHandle, DefenseParams);
+    }
+
+    void Request_BindSignals(FCk_Handle InHandle)
+    {
+        if (ck::IsValid(DamageAttribute))
+        {
+            utils_float_attribute::BindTo_OnValueChanged(DamageAttribute, ECk_MinMaxCurrent::Current,
+                FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnDamageValueChanged"));
+        }
+
+        if (ck::IsValid(DefenseAttribute))
+        {
+            utils_float_attribute::BindTo_OnValueChanged(DefenseAttribute, ECk_MinMaxCurrent::Current,
+                FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnDefenseValueChanged"));
+        }
+    }
+
+    void Request_StartAutomationCycle()
+    {
+        auto WeaponParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        WeaponParams.Set_ModifierDelta(25.5f);
+
+        auto WeaponMod = utils_float_attribute_modifier::Add_Revocable(
+            DamageAttribute,
+            utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Weapon"),
+            ECk_AttributeModifier_Operation::Add,
+            WeaponParams);
+
+        if (ck::IsValid(WeaponMod))
+        {
+            ActiveModifiers.Add(WeaponMod);
+        }
+    }
+
+    UFUNCTION()
+    private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        Request_UpdateDisplay();
+    }
+
+    UFUNCTION()
+    private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        Request_ExecuteAutomationStep();
+    }
+
+    void Request_ExecuteAutomationStep()
+    {
+        CycleStep++;
+
+        switch (CycleStep)
+        {
+            case 1: Request_AddArmorModifier(); break;
+            case 2: Request_AddBuffModifier(); break;
+            case 3: Request_AddMultipleModifiers(); break;
+            case 4: Request_RemoveWeaponModifier(); break;
+            case 5: Request_ModifyExistingModifier(); break;
+            case 6: Request_ClearAllModifiers(); break;
+            case 7: Request_TestNotRevocableModifiers(); break;
+            default:
+                CycleStep = 0;
+                Request_StartAutomationCycle();
+                break;
+        }
+    }
+
+    void Request_AddArmorModifier()
+    {
+        if (ck::Is_NOT_Valid(DefenseAttribute)) return;
+
+        auto ArmorParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        ArmorParams.Set_ModifierDelta(15.75f);
+
+        auto ArmorMod = utils_float_attribute_modifier::Add_Revocable(
+            DefenseAttribute,
+            utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Armor"),
+            ECk_AttributeModifier_Operation::Add,
+            ArmorParams);
+
+        if (ck::IsValid(ArmorMod))
+        {
+            ActiveModifiers.Add(ArmorMod);
+        }
+    }
+
+    void Request_AddBuffModifier()
+    {
+        if (ck::Is_NOT_Valid(DamageAttribute)) return;
+
+        auto BuffParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        BuffParams.Set_ModifierDelta(20.25f);
+
+        auto BuffMod = utils_float_attribute_modifier::Add_Revocable(
+            DamageAttribute,
+            utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Buff"),
+            ECk_AttributeModifier_Operation::Add,
+            BuffParams);
+
+        if (ck::IsValid(BuffMod))
+        {
+            ActiveModifiers.Add(BuffMod);
+        }
+    }
+
+    void Request_AddMultipleModifiers()
+    {
+        if (ck::Is_NOT_Valid(DefenseAttribute)) return;
+
+        auto ShieldParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        ShieldParams.Set_ModifierDelta(10.5f);
+
+        auto ShieldMod = utils_float_attribute_modifier::Add_Revocable(
+            DefenseAttribute,
+            utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Shield"),
+            ECk_AttributeModifier_Operation::Add,
+            ShieldParams);
+
+        if (ck::IsValid(ShieldMod))
+        {
+            ActiveModifiers.Add(ShieldMod);
+        }
+
+        auto EnchantParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        EnchantParams.Set_ModifierDelta(8.3f);
+
+        auto EnchantMod = utils_float_attribute_modifier::Add_Revocable(
+            DefenseAttribute,
+            utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Enchantment"),
+            ECk_AttributeModifier_Operation::Add,
+            EnchantParams);
+
+        if (ck::IsValid(EnchantMod))
+        {
+            ActiveModifiers.Add(EnchantMod);
+        }
+    }
+
+    void Request_RemoveWeaponModifier()
+    {
+        auto WeaponMod = utils_float_attribute_modifier::TryGet(
+            DamageAttribute,
+            utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Weapon"),
+            ECk_MinMaxCurrent::Current);
+
+        if (ck::IsValid(WeaponMod))
+        {
+            utils_float_attribute_modifier::Remove(WeaponMod);
+            ActiveModifiers.Remove(WeaponMod);
+        }
+    }
+
+    void Request_ModifyExistingModifier()
+    {
+        auto BuffMod = utils_float_attribute_modifier::TryGet(
+            DamageAttribute,
+            utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Buff"),
+            ECk_MinMaxCurrent::Current);
+
+        if (ck::IsValid(BuffMod))
+        {
+            utils_float_attribute_modifier::Override(BuffMod, 35.75f);
+        }
+    }
+
+    void Request_ClearAllModifiers()
+    {
+        utils_float_attribute_modifier::Request_ClearAllModifiers(DamageAttribute, ECk_MinMaxCurrent::Current);
+        utils_float_attribute_modifier::Request_ClearAllModifiers(DefenseAttribute, ECk_MinMaxCurrent::Current);
+        ActiveModifiers.Empty();
+    }
+
+    void Request_TestNotRevocableModifiers()
+    {
+        if (ck::Is_NOT_Valid(DamageAttribute)) return;
+
+        auto PermanentParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        PermanentParams.Set_ModifierDelta(12.5f);
+
+        utils_float_attribute_modifier::Add_NotRevocable(
+            DamageAttribute,
+            ECk_AttributeModifier_Operation::Add,
+            PermanentParams);
+    }
+
+    void Request_UpdateDisplay()
+    {
+        auto SelfEntity = ck::ToEntity(this);
+        auto TitleText = "FLOAT MODIFIERS (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
+        auto DisplayText = f"Cycle Step: {CycleStep}/7 | Changes: {ValueChangeCount}\n\n";
+
+        if (ck::IsValid(DamageAttribute))
+        {
+            auto BaseValue = utils_float_attribute::Get_BaseValue(DamageAttribute);
+            auto BonusValue = utils_float_attribute::Get_BonusValue(DamageAttribute);
+            auto FinalValue = utils_float_attribute::Get_FinalValue(DamageAttribute);
+            auto DamageBar = CkGym_Attribute::Create_ProgressBar(FinalValue, 200.0f, 20);
+
+            DisplayText = f"{DisplayText}Damage: {BaseValue} + {BonusValue} = {FinalValue}/200\n";
+            DisplayText = f"{DisplayText}[{DamageBar}]\n\n";
+        }
+
+        if (ck::IsValid(DefenseAttribute))
+        {
+            auto BaseValue = utils_float_attribute::Get_BaseValue(DefenseAttribute);
+            auto BonusValue = utils_float_attribute::Get_BonusValue(DefenseAttribute);
+            auto FinalValue = utils_float_attribute::Get_FinalValue(DefenseAttribute);
+            auto DefenseBar = CkGym_Attribute::Create_ProgressBar(FinalValue, 100.0f, 20, ECk_ASCII_ProgressBar_Style::HashTag_Symbol);
+
+            DisplayText = f"{DisplayText}Defense: {BaseValue} + {BonusValue} = {FinalValue}/100\n";
+            DisplayText = f"{DisplayText}[{DefenseBar}]\n\n";
+        }
+
+        auto PhaseText = Get_CurrentPhaseText();
+        DisplayText = f"{DisplayText}AUTOMATION: {PhaseText}\n\n";
+
+        DisplayText = f"{DisplayText}Active Modifiers: {ActiveModifiers.Num()}\n";
+        auto ModifierCount = 0;
+        for (auto Modifier : ActiveModifiers)
+        {
+            if (ck::IsValid(Modifier))
+            {
+                auto Delta = utils_float_attribute_modifier::Get_Delta(Modifier);
+                ModifierCount++;
+                DisplayText = f"{DisplayText}  Mod {ModifierCount}: +{Delta}\n";
+            }
+        }
+
+        CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText,
+            "Cycles through 7 phases: adding/removing modifiers, testing non-revocable modifiers,\n" +
+            "and clearing all. Displays Base + Bonus = Final calculations with fractional deltas.\n" +
+            "Shows active modifier count and individual delta values.");
+    }
+
+    FString Get_CurrentPhaseText()
+    {
+        switch (CycleStep)
+        {
+            case 0: return "Starting - Adding Weapon";
+            case 1: return "Adding Armor Modifier";
+            case 2: return "Adding Buff Modifier";
+            case 3: return "Adding Multiple Modifiers";
+            case 4: return "Removing Weapon Modifier";
+            case 5: return "Modifying Existing Buff";
+            case 6: return "Clearing All Modifiers";
+            case 7: return "Adding Non-Revocable";
+            default: return "Unknown Phase";
+        }
+    }
+
+    UFUNCTION()
+    void OnDamageValueChanged(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload)
+    {
+        ValueChangeCount++;
+    }
+
+    UFUNCTION()
+    void OnDefenseValueChanged(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload)
+    {
+        ValueChangeCount++;
+    }
+
+    UFUNCTION()
+    private void OnResetAttributes(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
+    {
+        CycleStep = 0;
+        ValueChangeCount = 0;
+
+        utils_float_attribute_modifier::Request_ClearAllModifiers(DamageAttribute, ECk_MinMaxCurrent::Current);
+        utils_float_attribute_modifier::Request_ClearAllModifiers(DefenseAttribute, ECk_MinMaxCurrent::Current);
+        ActiveModifiers.Empty();
+
+        if (ck::IsValid(DamageAttribute))
+        {
+            utils_float_attribute::Request_Override(DamageAttribute, 50.0f);
+        }
+        if (ck::IsValid(DefenseAttribute))
+        {
+            utils_float_attribute::Request_Override(DefenseAttribute, 30.0f);
+        }
+
+        Request_StartAutomationCycle();
+    }
+}
