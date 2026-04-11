@@ -1,20 +1,4 @@
 //============================================================================
-// BYTE ATTRIBUTE MIN/MAX/CURRENT COMPONENTS STATION
-//============================================================================
-
-USTRUCT()
-struct FByteMinMaxCurrentSpawnParams
-{
-	UPROPERTY()
-	FTransform InitialTransform = FTransform::Identity;
-
-	FByteMinMaxCurrentSpawnParams(FTransform InTransform)
-	{
-		InitialTransform = InTransform;
-	}
-}
-
-//============================================================================
 // BYTE MIN/MAX/CURRENT ENTITY SCRIPT
 //============================================================================
 
