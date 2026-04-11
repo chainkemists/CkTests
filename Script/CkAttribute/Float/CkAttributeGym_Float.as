@@ -13,6 +13,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatValues");
             Station.Title = FText::FromString("FLOAT VALUES");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Basic float attribute value operations and display."));
             Description.Add(FText::FromString("Tests Base/Bonus/Final retrieval, percentage, and magnitude calculations."));
@@ -25,6 +26,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatClamping");
             Station.Title = FText::FromString("FLOAT CLAMPING");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Demonstrates automatic value clamping within min/max boundaries."));
             Description.Add(FText::FromString("Cycles fractional values beyond limits to show float-precision clamping."));
@@ -38,6 +40,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatModifiers");
             Station.Title = FText::FromString("FLOAT MODIFIERS");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests attribute modifier system with add/multiply operations."));
             Description.Add(FText::FromString("See how modifiers stack and affect final attribute values."));
@@ -50,6 +53,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatMinMaxCurrent");
             Station.Title = FText::FromString("FLOAT MIN/MAX/CURRENT");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Displays all three attribute components: Min, Max, and Current."));
             Description.Add(FText::FromString("Watch how they update independently and interact."));
@@ -62,6 +66,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatSignals");
             Station.Title = FText::FromString("FLOAT SIGNALS");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests attribute signal system and callbacks."));
             Description.Add(FText::FromString("Monitors OnValueChanged, OnMinClamped, OnMaxClamped events."));
@@ -74,6 +79,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatRefill");
             Station.Title = FText::FromString("FLOAT REFILL");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests the float-exclusive refill/regeneration system."));
             Description.Add(FText::FromString("Drains energy, then watches it auto-refill. Pause/resume controls."));
@@ -86,6 +92,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatIncrementDecrement");
             Station.Title = FText::FromString("FLOAT INC/DEC");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests the float mixin increment/decrement helpers."));
             Description.Add(FText::FromString("Revocable vs non-revocable +1/-1 operations and revocation."));
@@ -98,6 +105,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatMultiple");
             Station.Title = FText::FromString("FLOAT MULTIPLE ATTRIBUTES");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Entity with multiple float attributes working simultaneously."));
             Description.Add(FText::FromString("Tests attribute independence, batch creation, and iteration patterns."));
@@ -242,52 +250,23 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Float Gym - Reset All")
     void Ck_GymFloat_ResetAll()
     {
-        auto ClampingEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatClamping");
-        for (auto Entity : ClampingEntities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
-        }
+        auto AllTags = TArray<FName>();
+        AllTags.Add(n"TAG_AttributeGym_FloatClamping");
+        AllTags.Add(n"TAG_AttributeGym_FloatModifiers");
+        AllTags.Add(n"TAG_AttributeGym_FloatValues");
+        AllTags.Add(n"TAG_AttributeGym_FloatMinMaxCurrent");
+        AllTags.Add(n"TAG_AttributeGym_FloatSignals");
+        AllTags.Add(n"TAG_AttributeGym_FloatRefill");
+        AllTags.Add(n"TAG_AttributeGym_FloatIncrementDecrement");
+        AllTags.Add(n"TAG_AttributeGym_FloatMultiple");
 
-        auto ModifierEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatModifiers");
-        for (auto Entity : ModifierEntities)
+        for (auto Tag : AllTags)
         {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
-        }
-
-        auto ValueEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatValues");
-        for (auto Entity : ValueEntities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
-        }
-
-        auto MinMaxEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatMinMaxCurrent");
-        for (auto Entity : MinMaxEntities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
-        }
-
-        auto SignalEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatSignals");
-        for (auto Entity : SignalEntities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
-        }
-
-        auto RefillEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatRefill");
-        for (auto Entity : RefillEntities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
-        }
-
-        auto IncDecEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatIncrementDecrement");
-        for (auto Entity : IncDecEntities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
-        }
-
-        auto MultipleEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatMultiple");
-        for (auto Entity : MultipleEntities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
+            auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), Tag);
+            for (auto Entity : Entities)
+            {
+                utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
+            }
         }
     }
 }
