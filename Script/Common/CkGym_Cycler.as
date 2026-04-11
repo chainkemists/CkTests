@@ -34,6 +34,7 @@ namespace CkGym_Cycler
         auto Gyms = TArray<FCkGym_Entry>();
         RegisterGym(Gyms, "Attribute Basic",    ACk_AttributeGym_GameMode);
         RegisterGym(Gyms, "Attribute Byte",     ACk_ByteAttributeGym_GameMode);
+        RegisterGym(Gyms, "Attribute Float",    ACk_FloatAttributeGym_GameMode);
         RegisterGym(Gyms, "Attribute Integer",  ACk_IntegerAttributeGym_GameMode);
         RegisterGym(Gyms, "Audio Simple",       ACk_AudioGym_Simple_GameMode);
         RegisterGym(Gyms, "Cue",                ACk_CueGym_GameMode);
