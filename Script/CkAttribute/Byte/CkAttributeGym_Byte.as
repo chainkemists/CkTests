@@ -13,6 +13,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteClamping");
             Station.Title = FText::FromString("BYTE CLAMPING");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Demonstrates automatic value clamping within min/max boundaries."));
             Description.Add(FText::FromString("Watch attributes cycle and clamp when exceeding their limits."));
@@ -26,6 +27,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteModifiers");
             Station.Title = FText::FromString("BYTE MODIFIERS");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests attribute modifier system with add/multiply operations."));
             Description.Add(FText::FromString("See how modifiers stack and affect final attribute values."));
@@ -38,6 +40,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteMinMaxCurrent");
             Station.Title = FText::FromString("BYTE MIN/MAX/CURRENT");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Displays all three attribute values: Min, Max, and Current."));
             Description.Add(FText::FromString("Watch how they update independently and interact."));
@@ -50,6 +53,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteMultiple");
             Station.Title = FText::FromString("BYTE MULTIPLE ATTRIBUTES");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Entity with multiple byte attributes working simultaneously."));
             Description.Add(FText::FromString("Tests attribute independence and concurrent updates."));
@@ -62,6 +66,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteValues");
             Station.Title = FText::FromString("BYTE VALUES");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Basic attribute value operations and display."));
             Description.Add(FText::FromString("Tests get/set operations and value updates."));
@@ -74,6 +79,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteSignals");
             Station.Title = FText::FromString("BYTE SIGNALS");
+            Station.Height = 8.0f;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests attribute signal system and callbacks."));
             Description.Add(FText::FromString("Monitors OnValueChanged, OnMinClamped, OnMaxClamped events."));
@@ -181,16 +187,21 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Byte Gym - Reset All")
     void Ck_GymByte_ResetAll()
     {
-        auto ClampingEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_ByteClamping");
-        for (auto Entity : ClampingEntities)
-        {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
-        }
+        auto AllTags = TArray<FName>();
+        AllTags.Add(n"TAG_AttributeGym_ByteClamping");
+        AllTags.Add(n"TAG_AttributeGym_ByteModifiers");
+        AllTags.Add(n"TAG_AttributeGym_ByteValues");
+        AllTags.Add(n"TAG_AttributeGym_ByteMinMaxCurrent");
+        AllTags.Add(n"TAG_AttributeGym_ByteMultiple");
+        AllTags.Add(n"TAG_AttributeGym_ByteSignals");
 
-        auto ModifierEntities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_ByteModifiers");
-        for (auto Entity : ModifierEntities)
+        for (auto Tag : AllTags)
         {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
+            auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), Tag);
+            for (auto Entity : Entities)
+            {
+                utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_ResetAttributes());
+            }
         }
     }
 }
