@@ -10,7 +10,6 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
-        // Station 1: Instant Interaction
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Interaction.Instant");
@@ -19,10 +18,10 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("Source and target on same entity with Instant completion."));
             Description.Add(FText::FromString("Tests OnNewInteraction and OnInteractionFinished signals."));
             Station.Description = Description;
+            Station.Height = 7.0f;
             Stations.Add(Station);
         }
 
-        // Station 2: Timed Interaction
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Interaction.Timed");
@@ -31,10 +30,10 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("Source and target on separate entities with 3s timed completion."));
             Description.Add(FText::FromString("Displays elapsed time and completion tracking."));
             Station.Description = Description;
+            Station.Height = 7.0f;
             Stations.Add(Station);
         }
 
-        // Station 3: Manual Interaction
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Interaction.Manual");
@@ -43,10 +42,10 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("ManuallyCompleted policy - must explicitly end or cancel."));
             Description.Add(FText::FromString("Tests EndInteraction with Succeeded/Failed and CancelInteraction."));
             Station.Description = Description;
+            Station.Height = 7.0f;
             Stations.Add(Station);
         }
 
-        // Station 4: Enable/Disable & Validation
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Interaction.Validation");
@@ -55,10 +54,10 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("Target with custom CanInteractWith validation delegate."));
             Description.Add(FText::FromString("Toggle enabled state and custom validation to test rejection."));
             Station.Description = Description;
+            Station.Height = 7.0f;
             Stations.Add(Station);
         }
 
-        // Station 5: Interaction Resolver
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Interaction.Resolver");
@@ -67,10 +66,10 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("Resolver with intent-channel mapping and distance sorting."));
             Description.Add(FText::FromString("Source + 3 targets at varying distances."));
             Station.Description = Description;
+            Station.Height = 7.0f;
             Stations.Add(Station);
         }
 
-        // Station 6: Resolver Data Bundle
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Interaction.DataBundle");
@@ -79,6 +78,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("ResolverSource + ResolverTarget with phased resolution."));
             Description.Add(FText::FromString("Calculate phase (base+bonus) then Apply phase (multiplier)."));
             Station.Description = Description;
+            Station.Height = 7.0f;
             Stations.Add(Station);
         }
 
@@ -93,7 +93,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_StartValidationStation();
         Request_StartResolverStation();
         Request_StartDataBundleStation();
-        ck::Trace("✅ Interaction Gym - All stations started");
+        ck::Trace("Interaction Gym - All stations started");
     }
 
     //------------------------------------------------------------------------
@@ -103,95 +103,65 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartInstantStation()
     {
         auto StationTransform = Get_StationTransform("Gym.Interaction.Instant");
-        auto SpawnParams = FInteractionGymSpawnParams(StationTransform);
-
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Interaction.Instant"),
             UCk_EntityScript_InteractionGym_Instant,
-            FInstancedStruct::Make(SpawnParams)
+            FInstancedStruct::Make(FInteractionGymSpawnParams(StationTransform))
         );
-
-        if (ck::IsValid(SpawnRequest))
-        {
-            ck::Trace("✅ Instant Interaction station started");
-        }
-        else
-        {
-            ck::Error("❌ Failed to spawn Instant Interaction entity");
-        }
+        if (ck::IsValid(SpawnRequest)) { ck::Trace("✅ [Instant] started"); }
+        else { ck::Error("❌ Failed to spawn [Instant]"); }
     }
 
     void Request_StartTimedStation()
     {
         auto StationTransform = Get_StationTransform("Gym.Interaction.Timed");
+        auto StationHandle = Get_StationHandle("Gym.Interaction.Timed");
+        auto BaseLocation = StationTransform.GetLocation();
 
-        // Spawn source entity (offset slightly from station center)
         auto SourceTransform = StationTransform;
-        auto SourceLocation = SourceTransform.GetLocation() + FVector(100.0f, 0.0f, 0.0f);
-        SourceTransform.SetLocation(SourceLocation);
-        auto SourceParams = FInteractionGymSpawnParams(SourceTransform);
+        SourceTransform.SetLocation(BaseLocation + FVector(100.0f, 0.0f, 0.0f));
+        auto SpawnRequest = utils_entity_script::Request_SpawnEntity(StationHandle, UCk_EntityScript_InteractionGym_TimedSource, FInstancedStruct::Make(FInteractionGymSpawnParams(SourceTransform)));
 
-        utils_entity_script::Request_SpawnEntity(
-            Get_StationHandle("Gym.Interaction.Timed"),
-            UCk_EntityScript_InteractionGym_TimedSource,
-            FInstancedStruct::Make(SourceParams)
-        );
-
-        // Spawn target entity (offset in other direction)
         auto TargetTransform = StationTransform;
-        auto TargetLocation = TargetTransform.GetLocation() + FVector(-100.0f, 0.0f, 0.0f);
-        TargetTransform.SetLocation(TargetLocation);
-        auto TargetParams = FInteractionGymSpawnParams(TargetTransform);
+        TargetTransform.SetLocation(BaseLocation + FVector(-100.0f, 0.0f, 0.0f));
+        auto SpawnRequest2 = utils_entity_script::Request_SpawnEntity(StationHandle, UCk_EntityScript_InteractionGym_TimedTarget, FInstancedStruct::Make(FInteractionGymSpawnParams(TargetTransform)));
 
-        utils_entity_script::Request_SpawnEntity(
-            Get_StationHandle("Gym.Interaction.Timed"),
-            UCk_EntityScript_InteractionGym_TimedTarget,
-            FInstancedStruct::Make(TargetParams)
-        );
-
-        ck::Trace("✅ Timed Interaction station started (source + target)");
+        if (ck::IsValid(SpawnRequest) && ck::IsValid(SpawnRequest2)) { ck::Trace("✅ [Timed] started"); }
+        else { ck::Error("❌ Failed to spawn [Timed]"); }
     }
 
     void Request_StartManualStation()
     {
         auto StationTransform = Get_StationTransform("Gym.Interaction.Manual");
-        auto SpawnParams = FInteractionGymSpawnParams(StationTransform);
-
-        utils_entity_script::Request_SpawnEntity(
+        auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Interaction.Manual"),
             UCk_EntityScript_InteractionGym_Manual,
-            FInstancedStruct::Make(SpawnParams)
+            FInstancedStruct::Make(FInteractionGymSpawnParams(StationTransform))
         );
-        ck::Trace("✅ Manual Interaction station started");
+        if (ck::IsValid(SpawnRequest)) { ck::Trace("✅ [Manual] started"); }
+        else { ck::Error("❌ Failed to spawn [Manual]"); }
     }
 
     void Request_StartValidationStation()
     {
         auto StationTransform = Get_StationTransform("Gym.Interaction.Validation");
-        auto SpawnParams = FInteractionGymSpawnParams(StationTransform);
-
-        utils_entity_script::Request_SpawnEntity(
+        auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Interaction.Validation"),
             UCk_EntityScript_InteractionGym_Validation,
-            FInstancedStruct::Make(SpawnParams)
+            FInstancedStruct::Make(FInteractionGymSpawnParams(StationTransform))
         );
-        ck::Trace("✅ Validation station started");
+        if (ck::IsValid(SpawnRequest)) { ck::Trace("✅ [Validation] started"); }
+        else { ck::Error("❌ Failed to spawn [Validation]"); }
     }
 
     void Request_StartResolverStation()
     {
         auto StationTransform = Get_StationTransform("Gym.Interaction.Resolver");
-
-        // Spawn source entity at station center
-        auto SourceParams = FInteractionGymSpawnParams(StationTransform);
-        utils_entity_script::Request_SpawnEntity(
-            Get_StationHandle("Gym.Interaction.Resolver"),
-            UCk_EntityScript_InteractionGym_ResolverSource,
-            FInstancedStruct::Make(SourceParams)
-        );
-
-        // Spawn 3 target entities at different distances from source
+        auto StationHandle = Get_StationHandle("Gym.Interaction.Resolver");
         auto BaseLocation = StationTransform.GetLocation();
+
+        auto SpawnRequest = utils_entity_script::Request_SpawnEntity(StationHandle, UCk_EntityScript_InteractionGym_ResolverSource, FInstancedStruct::Make(FInteractionGymSpawnParams(StationTransform)));
+
         auto Offsets = TArray<FVector>();
         Offsets.Add(FVector(50.0f, 0.0f, 0.0f));
         Offsets.Add(FVector(150.0f, 0.0f, 0.0f));
@@ -201,33 +171,27 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto TargetTransform = StationTransform;
             TargetTransform.SetLocation(BaseLocation + Offsets[i]);
-            auto TargetParams = FInteractionGymSpawnParams(TargetTransform);
-
-            utils_entity_script::Request_SpawnEntity(
-                Get_StationHandle("Gym.Interaction.Resolver"),
-                UCk_EntityScript_InteractionGym_ResolverTarget,
-                FInstancedStruct::Make(TargetParams)
-            );
+            utils_entity_script::Request_SpawnEntity(StationHandle, UCk_EntityScript_InteractionGym_ResolverTarget, FInstancedStruct::Make(FInteractionGymSpawnParams(TargetTransform)));
         }
 
-        ck::Trace("✅ Resolver station started (1 source + 3 targets)");
+        if (ck::IsValid(SpawnRequest)) { ck::Trace("✅ [Resolver] started"); }
+        else { ck::Error("❌ Failed to spawn [Resolver]"); }
     }
 
     void Request_StartDataBundleStation()
     {
         auto StationTransform = Get_StationTransform("Gym.Interaction.DataBundle");
-        auto SpawnParams = FInteractionGymSpawnParams(StationTransform);
-
-        utils_entity_script::Request_SpawnEntity(
+        auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Interaction.DataBundle"),
             UCk_EntityScript_InteractionGym_DataBundle,
-            FInstancedStruct::Make(SpawnParams)
+            FInstancedStruct::Make(FInteractionGymSpawnParams(StationTransform))
         );
-        ck::Trace("✅ Data Bundle station started");
+        if (ck::IsValid(SpawnRequest)) { ck::Trace("✅ [DataBundle] started"); }
+        else { ck::Error("❌ Failed to spawn [DataBundle]"); }
     }
 
     //------------------------------------------------------------------------
-    // HELPER: Broadcast message to all entities with a given tag
+    // HELPERS
     //------------------------------------------------------------------------
 
     void BroadcastToTag(FName InTag, FInstancedStruct InMessage)
@@ -239,34 +203,50 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
+    void BroadcastAutoToAll(bool InEnabled)
+    {
+        auto AllTags = TArray<FName>();
+        AllTags.Add(n"TAG_InteractionGym_Instant");
+        AllTags.Add(n"TAG_InteractionGym_TimedTarget");
+        AllTags.Add(n"TAG_InteractionGym_Manual");
+        AllTags.Add(n"TAG_InteractionGym_Validation");
+        AllTags.Add(n"TAG_InteractionGym_ResolverSource");
+        AllTags.Add(n"TAG_InteractionGym_DataBundle");
+
+        for (auto Tag : AllTags)
+        {
+            BroadcastToTag(Tag, FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(InEnabled)));
+        }
+    }
+
     //------------------------------------------------------------------------
-    // STATION 1: INSTANT INTERACTION COMMANDS
+    // STATION 1: INSTANT
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Trigger Instant")
     void Ck_GymInteraction_TriggerInstant()
     {
-        BroadcastToTag(n"TAG_InteractionGym_Instant", FInstancedStruct::Make(FCk_Message_InteractionGym_Command()));
+        BroadcastToTag(n"TAG_InteractionGym_Instant", FInstancedStruct::Make(FCk_Message_InteractionGym_TriggerInstant()));
     }
 
     //------------------------------------------------------------------------
-    // STATION 2: TIMED INTERACTION COMMANDS
+    // STATION 2: TIMED
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Start Timed")
     void Ck_GymInteraction_StartTimed()
     {
-        BroadcastToTag(n"TAG_InteractionGym_TimedTarget", FInstancedStruct::Make(FCk_Message_InteractionGym_Command()));
+        BroadcastToTag(n"TAG_InteractionGym_TimedTarget", FInstancedStruct::Make(FCk_Message_InteractionGym_StartTimed()));
     }
 
     //------------------------------------------------------------------------
-    // STATION 3: MANUAL INTERACTION COMMANDS
+    // STATION 3: MANUAL
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Start Manual")
     void Ck_GymInteraction_StartManual()
     {
-        BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_Command()));
+        BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_StartManual()));
     }
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - End Manual Success")
@@ -288,13 +268,13 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // STATION 4: VALIDATION COMMANDS
+    // STATION 4: VALIDATION
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Attempt Validation")
     void Ck_GymInteraction_AttemptValidation()
     {
-        BroadcastToTag(n"TAG_InteractionGym_Validation", FInstancedStruct::Make(FCk_Message_InteractionGym_Command()));
+        BroadcastToTag(n"TAG_InteractionGym_Validation", FInstancedStruct::Make(FCk_Message_InteractionGym_AttemptValidation()));
     }
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Toggle Enabled")
@@ -310,7 +290,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // STATION 5: RESOLVER COMMANDS
+    // STATION 5: RESOLVER
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Start Intent")
@@ -338,12 +318,64 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // STATION 6: DATA BUNDLE COMMANDS
+    // STATION 6: DATA BUNDLE
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Initiate Resolution")
     void Ck_GymInteraction_InitiateResolution()
     {
-        BroadcastToTag(n"TAG_InteractionGym_DataBundle", FInstancedStruct::Make(FCk_Message_InteractionGym_Command()));
+        BroadcastToTag(n"TAG_InteractionGym_DataBundle", FInstancedStruct::Make(FCk_Message_InteractionGym_InitiateResolution()));
+    }
+
+    //------------------------------------------------------------------------
+    // AUTO MODE COMMANDS
+    //------------------------------------------------------------------------
+
+    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto On")
+    void Ck_GymInteraction_AutoOn()
+    {
+        BroadcastAutoToAll(true);
+    }
+
+    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Off")
+    void Ck_GymInteraction_AutoOff()
+    {
+        BroadcastAutoToAll(false);
+    }
+
+    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Instant")
+    void Ck_GymInteraction_AutoInstant()
+    {
+        BroadcastToTag(n"TAG_InteractionGym_Instant", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+    }
+
+    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Timed")
+    void Ck_GymInteraction_AutoTimed()
+    {
+        BroadcastToTag(n"TAG_InteractionGym_TimedTarget", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+    }
+
+    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Manual")
+    void Ck_GymInteraction_AutoManual()
+    {
+        BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+    }
+
+    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Validation")
+    void Ck_GymInteraction_AutoValidation()
+    {
+        BroadcastToTag(n"TAG_InteractionGym_Validation", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+    }
+
+    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Resolver")
+    void Ck_GymInteraction_AutoResolver()
+    {
+        BroadcastToTag(n"TAG_InteractionGym_ResolverSource", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+    }
+
+    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto DataBundle")
+    void Ck_GymInteraction_AutoDataBundle()
+    {
+        BroadcastToTag(n"TAG_InteractionGym_DataBundle", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
     }
 }
