@@ -547,122 +547,127 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 // 12. AUTO MODE PATTERN
 //============================================================================
 
-// Gyms can include an auto mode that cycles through operations automatically
-// so the user can watch behavior without typing commands. The inventory gym
-// established the reference pattern:
+// GOAL: A gym should be immediately useful without any user input.
 //
-// ARCHITECTURE:
-// - Each station entity has an AutoTimer (500ms, ResetOnDone, starts Running)
-// - AutoRunning bool + AutoStep counter
-// - AutoTick function bound to timer's OnDone signal
-// - Responds to FCk_Message_*_AutoSet(bool Enabled) — explicit on/off, no toggle
-// - Manual command handlers call StopAuto() before executing
+// When someone walks into a gym, they should:
+//   1. See all stations actively running through their operations
+//   2. See an [AUTO] indicator at the top of each station confirming it's live
+//   3. See a step-by-step list of what the station is doing, with >> marking
+//      the CURRENT operation — so the user understands the sequence and can
+//      anticipate what comes next
+//   4. See a description of what the station tests (persists after startup)
+//   5. See a list of console commands they can type to interact manually
+//   6. Know that typing any manual command will take them off auto mode for
+//      that station, so they can explore at their own pace
 //
-// TIMER SETUP (in DoConstruct):
-//     auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
-//     AutoTimerParams.Set_StartingState(ECk_Timer_State::Running)
-//                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-//     AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-//     AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
+// Not every station needs auto mode, but it's the default expectation.
+// The biggest value is showing what the station is doing and what comes
+// next, so the user builds a mental model of the feature without reading
+// any code.
 //
-// AUTO TICK PATTERN:
-//     void AutoTick(FCk_Handle_Timer, FCk_Chrono, FCk_Time)
+// DISPLAY LAYOUT (rendered by gym_auto:: helpers):
+//
+//   [AUTO] Running                        <- status (or [MANUAL])
+//   Description of what this station      <- from AutoConfig.Description
+//   tests, 1-2 lines.
+//
+//   Items: 5 (no limit)                   <- station-specific live data
+//   [0] Potion [3/10]                        (counts, contents, grid, etc.)
+//   ...
+//
+//   ===== Auto Sequence =====             <- plain english step descriptions
+//      Add 3 potions                         >> marks the current step
+//   >> Add 5 arrows                          user sees what's happening now
+//      Sort inventory                        and what's coming next
+//      Remove first (x3)
+//
+//   ===== Commands =====                  <- full console command names
+//   Ck_GymMyFeature_AddPotion [n]            for manual interaction
+//   Ck_GymMyFeature_SortAll
+//   Ck_GymMyFeature_RestartAll
+//
+//   Ck_GymMyFeature_Auto [0/1]             <- global auto on/off
+//   Ck_GymMyFeature_AutoUnbounded          <- per-station auto command
+//
+// IMPLEMENTATION:
+//
+// Use the shared gym_auto module (CkGym_AutoStation.as) for auto-mode
+// infrastructure. It provides timer setup, message handling, display
+// formatting, and stop-on-manual-command helpers.
+//
+// SETUP (in DoConstruct, one line):
+//     AutoTimer = gym_auto::Setup(InHandle, this);
+//
+//     This creates a 500ms ResetOnDone timer (starts Running), binds it to
+//     the "AutoTick" UFUNCTION on the entity script, and binds the
+//     FCk_Message_Gym_AutoSet message to the "OnAutoSet" UFUNCTION.
+//
+// CONFIGURATION (declarative, in DoConstruct after Setup):
+//     AutoConfig.TotalSteps = 7;
+//     AutoConfig.Description = "What this station tests.";
+//     AutoConfig.GlobalAutoCommand = "Ck_GymMyFeature_Auto [0/1]";
+//     AutoConfig.PerStationAutoCommand = "Ck_GymMyFeature_AutoUnbounded";
+//     AutoConfig.Steps.Add(FCkGym_AutoStep("Add 3 potions", 0, 0));
+//     AutoConfig.Steps.Add(FCkGym_AutoStep("Sort inventory", 3, 3));
+//     AutoConfig.Steps.Add(FCkGym_AutoStep("Remove first (x3)", 4, 6));
+//     AutoConfig.ManualCommands.Add("Ck_GymMyFeature_AddPotion [n]");
+//     AutoConfig.ManualCommands.Add("Ck_GymMyFeature_SortAll");
+//
+// DISPLAY (in DisplayStats):
+//     auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
+//     // ... station-specific live data ...
+//     DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
+//
+//     FormatHeader outputs: [AUTO] Running + description.
+//     FormatAutoAndCommands outputs: auto sequence with >> arrows + commands list.
+//
+// MANUAL HANDLERS (one-liner stop):
+//     gym_auto::StopAuto(AutoTimer, AutoRunning);
+//
+// AUTO SET HANDLER (one-liner):
+//     UFUNCTION()
+//     private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 //     {
-//         auto Step = AutoStep % TOTAL_STEPS;
+//         gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
+//     }
+//
+// AUTO TICK (station-specific logic):
+//     UFUNCTION()
+//     private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+//     {
+//         auto Step = AutoStep % AutoConfig.TotalSteps;
 //         if (Step == 0) { /* operation */ }
-//         else if (Step == 1) { /* operation */ }
-//         // ... ensure adds == removes so inventory doesn't grow unbounded
+//         // ... ensure adds == removes so state doesn't grow unbounded
 //         AutoStep++;
 //     }
 //
-// STOP ON MANUAL COMMAND:
-//     void StopAuto()
-//     {
-//         if (AutoRunning) { AutoRunning = false; utils_timer::Request_Pause(AutoTimer); }
-//     }
-//     // Call StopAuto() at the start of every manual message handler
-//
 // PLAYER CONTROLLER COMMANDS:
-//     Ck_Gym[Name]_AutoOn    — BroadcastAutoToAll(true)  — forces ALL stations on
-//     Ck_Gym[Name]_AutoOff   — BroadcastAutoToAll(false) — forces ALL stations off
-//     Ck_Gym[Name]_Auto[Station] — per-station re-enable
+//     Ck_Gym[Name]_Auto [0/1]         — forces ALL stations on or off
+//     Ck_Gym[Name]_Auto[Station]      — re-enables a specific station
+//     Use BroadcastAutoToAll/BroadcastAutoToTag helpers (see inventory gym PC).
 //
 // KEY DESIGN DECISIONS:
 // - Use explicit on/off (not toggle) to avoid mixed state across stations
 // - Auto starts ON by default so the gym is alive on entry
-// - Manual commands auto-disable that station's auto (user took over)
-// - Per-station auto commands only re-enable (on), because AutoOff handles global off
+// - Manual commands auto-disable that station (user took over)
 // - Step count must balance adds and removes — count carefully or items accumulate
-//
-// AUTO STEPS SHOULD MAP TO REAL COMMANDS:
 // - Each auto step should perform the same operation a user could do manually
-//   via a console command. The auto sequence is just the commands fired in order.
-// - Extract shared operation methods (e.g. Request_SetAllValues, Request_TestBoundaries)
-//   that both auto steps and manual message handlers call.
-// - Auto steps call the shared methods directly (not via messaging, which would
-//   trigger StopAuto). Manual message handlers call StopAuto() then the same methods.
-// - The display's Auto Sequence section should describe steps in terms of the
-//   commands a user could type, and the Commands section should list all of them.
-// - See CkAttributeGym_BasicAttributes.as for a reference implementation.
-
-//============================================================================
-// 13. DISPLAY LAYOUT PATTERN
-//============================================================================
-
-// Each station's display text should follow this structure:
 //
-// [AUTO] Running (or [MANUAL])        ← status line at top
-//
-// ===== [Station Data] =====          ← station-specific live data
-// Items: 5 (no limit)                    (counts, contents, grid, etc.)
-// [0] Potion [3/10]
-// ...
-//
-// ===== Auto Sequence =====           ← plain english operation descriptions
-// >> Add 3 potions                       with >> on current step
-//    Add 5 arrows
-//    Sort inventory
-//    Remove first (x3)
-//
-// ===== Commands =====                ← full Ck_Gym* command names for manual use
-// Ck_GymInventory_AddPotion [n]
-// Ck_GymInventory_RemoveFirst
-// ...
-// Ck_Gym[Name]_AutoOn / AutoOff       ← global auto commands
-// Ck_Gym[Name]_Auto[Station]           ← per-station auto command
-//
-// IMPORTANT — STATION DESCRIPTION PERSISTENCE:
-// The station's initial Description (set in Get_RequiredStations) is
-// overwritten on the first DisplayStats() tick. The station panel only has
-// Title + Description fields — DisplayStats writes Description every frame.
-// This means any text from the spawn params is lost immediately.
-//
-// To keep a station description visible, include it as a 1-2 line summary
-// at the top of your DisplayStats output, right after the auto status line:
-//
-//     DisplayText = f"{DisplayText}{AutoStatusLine(AutoRunning)}\n";
-//     DisplayText = f"{DisplayText}Unlimited-capacity data-only inventory.\n";
-//     DisplayText = f"{DisplayText}Tests add/remove/sort and OnItemsChanged.\n\n";
-//     // ... then live data, auto sequence, commands ...
-//
-// The initial Description in Get_RequiredStations still matters — it's shown
-// briefly while the entity script constructs. But treat DisplayStats as the
-// authoritative display and duplicate the description there.
-//
-// A future improvement could cache the initial description on the station
-// entity (e.g. as a fragment) so DisplayStats can read it back without
-// hardcoding the same text in two places.
-//
-// Use shared helpers for consistency:
-//   inv_gym_helpers::AutoStatusLine(AutoRunning)
-//   inv_gym_helpers::AutoCommandsBlock("Ck_Gym[Name]_Auto[Station]")
+// STATION DESCRIPTION PERSISTENCE:
+// The station's initial Description (set in Get_RequiredStations) is overwritten
+// on the first DisplayStats tick. To keep it visible, set AutoConfig.Description
+// which gym_auto::FormatHeader renders after the status line. Match the text in
+// Get_RequiredStations so both the brief flash and the live display agree.
 //
 // IMPORTANT: Don't nest function calls with string args inside f-strings.
 // f"{func("arg")}" breaks — the inner quotes terminate the f-string.
 // Instead: DisplayText = DisplayText + func("arg");
+//
+// See CkGym_AutoStation.as for the full implementation.
+// See CkInventoryGym_DataOnly_Unbounded.as for a reference station.
 
 //============================================================================
-// 14. INLINE ASSET DEFINITIONS
+// 13. INLINE ASSET DEFINITIONS
 //============================================================================
 
 // Use the Angelscript 'asset' keyword to define test data assets inline
@@ -692,7 +697,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 // for a complete example with stackable/tags/dimensions traits.
 
 //============================================================================
-// 15. REPLICATION GOTCHAS
+// 14. REPLICATION GOTCHAS
 //============================================================================
 
 // The gym framework's PlayerController and station actors have Replicates=false.
