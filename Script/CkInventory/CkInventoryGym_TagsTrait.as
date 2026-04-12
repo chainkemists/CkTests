@@ -13,11 +13,13 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_EntityScript_UE
 
     FCk_Handle_Inventory Inventory;
     FCk_Handle_Timer AutoTimer;
+    bool AutoRunning = true;
+    int32 AutoStep = 0;
 
     int32 TagChangeCount = 0;
     FString LastResult = "";
-    bool AutoRunning = true;
-    int32 AutoStep = 0;
+
+    FCkGym_AutoConfig AutoConfig;
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -44,12 +46,24 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_EntityScript_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemByDef, FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemByDef"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddTag,       FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddTag"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_RemoveTag,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnRemoveTag"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoSet,       FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
 
-        auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
-        AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-        AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-        AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
+        AutoTimer = gym_auto::Setup(InHandle, this);
+
+        AutoConfig.TotalSteps = 6;
+        AutoConfig.Description = "Runtime tag add/remove via Request_AddTag\n/ Request_RemoveTag. Binds OnTagsChanged.";
+        AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
+        AutoConfig.PerStationAutoCommand = "Ck_GymInventory_AutoTags";
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Add sword item", 0, 0));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Tag all items Rare", 1, 1));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Tag all items Legendary", 2, 2));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Remove Rare tag from all", 3, 3));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Remove Legendary tag from all", 4, 4));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Remove first item", 5, 5));
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_AddPotion [n]");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_AddRareTag");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_RemoveRareTag");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_RemoveFirst");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_RestartAll");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -67,10 +81,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_EntityScript_UE
 
         auto NumItems = utils_inventory::Get_NumItems(Inventory);
 
-        auto DisplayText = "";
-        DisplayText = f"{DisplayText}{inv_gym_helpers::AutoStatusLine(AutoRunning)}\n";
-        DisplayText = f"{DisplayText}Runtime tag add/remove via Request_AddTag\n";
-        DisplayText = f"{DisplayText}/ Request_RemoveTag. Binds OnTagsChanged.\n\n";
+        auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
         DisplayText = f"{DisplayText}Items: {NumItems}   Tag changes: {TagChangeCount}\n";
         if (LastResult != "") { DisplayText = f"{DisplayText}Last: {LastResult}\n"; }
         DisplayText = f"{DisplayText}\n";
@@ -95,29 +106,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_EntityScript_UE
             if (Index >= 6) { break; }
         }
 
-        auto Step = AutoStep % 6;
-        auto A0 = (AutoRunning && Step == 0) ? ">> " : "   ";
-        auto A1 = (AutoRunning && Step == 1) ? ">> " : "   ";
-        auto A2 = (AutoRunning && Step == 2) ? ">> " : "   ";
-        auto A3 = (AutoRunning && Step == 3) ? ">> " : "   ";
-        auto A4 = (AutoRunning && Step == 4) ? ">> " : "   ";
-        auto A5 = (AutoRunning && Step == 5) ? ">> " : "   ";
-
-        DisplayText = f"{DisplayText}\n===== Auto Sequence =====\n";
-        DisplayText = f"{DisplayText}{A0}Add sword item\n";
-        DisplayText = f"{DisplayText}{A1}Tag all items Rare\n";
-        DisplayText = f"{DisplayText}{A2}Tag all items Legendary\n";
-        DisplayText = f"{DisplayText}{A3}Remove Rare tag from all\n";
-        DisplayText = f"{DisplayText}{A4}Remove Legendary tag from all\n";
-        DisplayText = f"{DisplayText}{A5}Remove first item\n";
-
-        DisplayText = f"{DisplayText}\n===== Commands =====\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_AddPotion [n]\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_AddRareTag\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_RemoveRareTag\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_RemoveFirst\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_RestartAll\n";
-        DisplayText = DisplayText + inv_gym_helpers::AutoCommandsBlock("Ck_GymInventory_AutoTags");
+        DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
 
         auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
         auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
@@ -146,15 +135,10 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_EntityScript_UE
         TagChangeCount++;
     }
 
-    void StopAuto()
-    {
-        if (AutoRunning) { AutoRunning = false; utils_timer::Request_Pause(AutoTimer); }
-    }
-
     UFUNCTION()
     private void OnAddItemByDef(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_InvGym_AddItemByDef);
         auto Def = inv_gym_helpers::ResolveDefByName(Typed.DefName);
         if (Def == nullptr) { return; }
@@ -169,7 +153,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_EntityScript_UE
     UFUNCTION()
     private void OnAddTag(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_InvGym_AddTag);
         auto Items = utils_inventory::Get_Items(Inventory);
         for (auto Item : Items)
@@ -185,7 +169,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_EntityScript_UE
     UFUNCTION()
     private void OnRemoveTag(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_InvGym_RemoveTag);
         auto Items = utils_inventory::Get_Items(Inventory);
         for (auto Item : Items)
@@ -205,10 +189,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_EntityScript_UE
     UFUNCTION()
     private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        auto Typed = InPayload.Get(FCk_Message_InvGym_AutoSet);
-        AutoRunning = Typed.Enabled;
-        if (AutoRunning) { utils_timer::Request_Resume(AutoTimer); }
-        else { utils_timer::Request_Pause(AutoTimer); }
+        gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
     }
 
     UFUNCTION()
