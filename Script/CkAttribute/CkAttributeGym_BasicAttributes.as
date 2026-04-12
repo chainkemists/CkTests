@@ -37,6 +37,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
     FCk_Handle_Timer AutoTimer;
     bool AutoRunning = true;
     int32 AutoStep = 0;
+    FCkGym_AutoConfig AutoConfig;
 
     // Signal counters
     int32 HealthChangeCount = 0;
@@ -54,7 +55,31 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_AttributeGym_BasicAttributes");
 
-        Request_SetupTimers(InHandle);
+        // Display timer (every frame)
+        auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+        DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+        auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
+        DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
+
+        // Auto timer (2s cycle)
+        AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(2.0f));
+
+        // Auto config
+        AutoConfig.TotalSteps = 6;
+        AutoConfig.Description = "Tests float, byte, and vector attributes with auto-clamping.";
+        AutoConfig.GlobalAutoCommand = "Ck_GymAttribute_Auto [0/1]";
+        AutoConfig.PerStationAutoCommand = "Ck_GymAttribute_AutoBasic";
+        AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 50, SetArmor 150, SetVelocity mid", 0, 0));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 95, SetArmor 245, SetVelocity high", 1, 1));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("TestBoundaries (push past max)", 2, 2));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 10, SetArmor 20, SetVelocity low", 3, 3));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth -10, SetArmor 0 (push past min)", 4, 4));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("ResetBasicValues", 5, 5));
+        AutoConfig.ManualCommands.Add("Ck_GymAttribute_SetHealth [value]");
+        AutoConfig.ManualCommands.Add("Ck_GymAttribute_SetArmor [value]");
+        AutoConfig.ManualCommands.Add("Ck_GymAttribute_SetVelocity [x] [y] [z]");
+        AutoConfig.ManualCommands.Add("Ck_GymAttribute_TestBoundaries");
+        AutoConfig.ManualCommands.Add("Ck_GymAttribute_ResetBasicValues");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -65,21 +90,6 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
         Request_SetupAttributes(InHandle);
         Request_BindSignals();
         Request_BindMessages(InHandle);
-    }
-
-    void Request_SetupTimers(FCk_Handle InHandle)
-    {
-        // Display timer (every frame)
-        auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
-        DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-        auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-        DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
-
-        // Auto timer (2s cycle)
-        auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.0f));
-        AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-        AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-        AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
     }
 
     void Request_SetupAttributes(FCk_Handle InHandle)
@@ -147,8 +157,6 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnTestBoundaries"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_AutoSet,
-            FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
     }
 
     //------------------------------------------------------------------------
@@ -192,7 +200,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
     UFUNCTION()
     private void OnSetHealth(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_AttributeGym_SetHealth);
         utils_float_attribute::Request_Override(HealthAttribute, Typed.Value);
     }
@@ -200,7 +208,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
     UFUNCTION()
     private void OnSetArmor(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_AttributeGym_SetArmor);
         utils_byte_attribute::Request_Override(ArmorAttribute, Typed.Value);
     }
@@ -208,7 +216,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
     UFUNCTION()
     private void OnSetVelocity(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_AttributeGym_SetVelocity);
         utils_vector_attribute::Request_Override(VelocityAttribute, Typed.Value);
     }
@@ -216,7 +224,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
     UFUNCTION()
     private void OnTestBoundaries(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         Request_TestBoundariesMax();
     }
 
@@ -239,30 +247,17 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
     UFUNCTION()
     private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        auto Typed = InPayload.Get(FCk_Message_AttributeGym_AutoSet);
-        AutoRunning = Typed.Enabled;
-        if (AutoRunning) { utils_timer::Request_Resume(AutoTimer); }
-        else { utils_timer::Request_Pause(AutoTimer); }
+        gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
     }
 
     //------------------------------------------------------------------------
     // Auto Mode
     //------------------------------------------------------------------------
 
-    void StopAuto()
-    {
-        if (AutoRunning) { AutoRunning = false; utils_timer::Request_Pause(AutoTimer); }
-    }
-
     UFUNCTION()
     private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        Request_ExecuteAutomationStep();
-    }
-
-    void Request_ExecuteAutomationStep()
-    {
-        auto Step = AutoStep % 6;
+        auto Step = AutoStep % AutoConfig.TotalSteps;
         AutoStep++;
 
         switch (Step)
@@ -345,12 +340,9 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
         }
 
         auto NetworkRole = CkGym_Common::Get_NetworkRoleTitle(SelfEntity);
-        auto ModeStr = AutoRunning ? "[AUTO]" : "[MANUAL]";
-        auto TitleText = "BASIC ATTRIBUTES (" + NetworkRole + ") " + ModeStr;
+        auto TitleText = "BASIC ATTRIBUTES (" + NetworkRole + ")";
 
-        auto DisplayText = "";
-        DisplayText = DisplayText + (AutoRunning ? "[AUTO] Running" : "[MANUAL]") + "\n";
-        DisplayText = DisplayText + "Tests float, byte, and vector attributes with auto-clamping.\n\n";
+        auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 
         // Attribute values
         DisplayText = DisplayText + "===== Attribute Values =====\n";
@@ -379,26 +371,9 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_EntityScript_UE
         }
 
         auto TotalChanges = HealthChangeCount + ArmorChangeCount + VelocityChangeCount;
-        DisplayText = f"{DisplayText}Changes: {TotalChanges} | Clamps: {ClampedCount}\n\n";
+        DisplayText = f"{DisplayText}Changes: {TotalChanges} | Clamps: {ClampedCount}\n";
 
-        // Auto sequence — each step maps to a real command
-        DisplayText = DisplayText + "===== Auto Sequence =====\n";
-        auto CurrentStep = AutoStep % 6;
-        DisplayText = DisplayText + (CurrentStep == 0 ? ">> " : "   ") + "SetHealth 50, SetArmor 150, SetVelocity mid\n";
-        DisplayText = DisplayText + (CurrentStep == 1 ? ">> " : "   ") + "SetHealth 95, SetArmor 245, SetVelocity high\n";
-        DisplayText = DisplayText + (CurrentStep == 2 ? ">> " : "   ") + "TestBoundaries (push past max)\n";
-        DisplayText = DisplayText + (CurrentStep == 3 ? ">> " : "   ") + "SetHealth 10, SetArmor 20, SetVelocity low\n";
-        DisplayText = DisplayText + (CurrentStep == 4 ? ">> " : "   ") + "SetHealth -10, SetArmor 0 (push past min)\n";
-        DisplayText = DisplayText + (CurrentStep == 5 ? ">> " : "   ") + "ResetBasicValues\n\n";
-
-        // Commands
-        DisplayText = DisplayText + "===== Commands =====\n";
-        DisplayText = DisplayText + "Ck_GymAttribute_SetHealth [value]\n";
-        DisplayText = DisplayText + "Ck_GymAttribute_SetArmor [value]\n";
-        DisplayText = DisplayText + "Ck_GymAttribute_SetVelocity [x] [y] [z]\n";
-        DisplayText = DisplayText + "Ck_GymAttribute_TestBoundaries\n";
-        DisplayText = DisplayText + "Ck_GymAttribute_ResetBasicValues\n";
-        DisplayText = DisplayText + "Ck_GymAttribute_AutoOn / AutoOff";
+        DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
 
         auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
         auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
@@ -425,7 +400,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests float, byte, and vector attributes with auto-clamping."));
             Description.Add(FText::FromString("Auto-cycles through 6 phases every 2s."));
-            Description.Add(FText::FromString("Console: SetHealth / SetArmor / SetVelocity / TestBoundaries / AutoOn / AutoOff"));
+            Description.Add(FText::FromString("Console: SetHealth / SetArmor / SetVelocity / TestBoundaries / Auto"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -514,23 +489,23 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    UFUNCTION(Exec, DisplayName="Attribute Gym - Basic Auto On")
-    void Ck_GymAttribute_AutoOn()
+    UFUNCTION(Exec, DisplayName="Attribute Gym - Auto")
+    void Ck_GymAttribute_Auto(int32 InEnabled = 1)
     {
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
         for (auto Entity : Entities)
         {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_AutoSet(true));
+            utils_messaging::Broadcast(Entity, FCk_Message_Gym_AutoSet(InEnabled != 0));
         }
     }
 
-    UFUNCTION(Exec, DisplayName="Attribute Gym - Basic Auto Off")
-    void Ck_GymAttribute_AutoOff()
+    UFUNCTION(Exec, DisplayName="Attribute Gym - Auto Basic")
+    void Ck_GymAttribute_AutoBasic()
     {
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_BasicAttributes");
         for (auto Entity : Entities)
         {
-            utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_AutoSet(false));
+            utils_messaging::Broadcast(Entity, FCk_Message_Gym_AutoSet(true));
         }
     }
 }
