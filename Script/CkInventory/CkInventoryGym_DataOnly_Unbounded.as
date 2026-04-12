@@ -13,12 +13,14 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_EntityScript_UE
 
     FCk_Handle_Inventory Inventory;
     FCk_Handle_Timer AutoTimer;
+    bool AutoRunning = true;
+    int32 AutoStep = 0;
+    FString LastResult = "";
 
     int32 ItemsAddedCount = 0;
     int32 ItemsRemovedCount = 0;
-    FString LastResult = "";
-    bool AutoRunning = true;
-    int32 AutoStep = 0;
+
+    FCkGym_AutoConfig AutoConfig;
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -45,12 +47,23 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_EntityScript_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemByDef,   FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemByDef"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_RemoveFirst,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnRemoveFirst"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_SortInventory,  FCk_Delegate_Messaging_OnBroadcast(this, n"OnSort"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoSet,         FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
 
-        auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
-        AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-        AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-        AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
+        AutoTimer = gym_auto::Setup(InHandle, this);
+
+        AutoConfig.TotalSteps = 7;
+        AutoConfig.Description = "Unlimited-capacity data-only inventory.\nTests add/remove/sort and OnItemsChanged.";
+        AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
+        AutoConfig.PerStationAutoCommand = "Ck_GymInventory_AutoUnbounded";
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Add 3 potions", 0, 0));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Add 5 arrows", 1, 1));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Add 1 sword", 2, 2));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Sort inventory", 3, 3));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Remove first (x3)", 4, 6));
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_AddPotion [n]");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_AddArrow [n]");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_RemoveFirst");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_SortAll");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_RestartAll");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -64,16 +77,12 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_EntityScript_UE
     void DisplayStats()
     {
         auto SelfEntity = ck::ToEntity(this);
-
         if (ck::IsValid(Inventory) == false) { return; }
 
         auto NumItems = utils_inventory::Get_NumItems(Inventory);
         auto Items = utils_inventory::Get_Items(Inventory);
 
-        auto DisplayText = "";
-        DisplayText = f"{DisplayText}{inv_gym_helpers::AutoStatusLine(AutoRunning)}\n";
-        DisplayText = f"{DisplayText}Unlimited-capacity data-only inventory.\n";
-        DisplayText = f"{DisplayText}Tests add/remove/sort and OnItemsChanged.\n\n";
+        auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
         DisplayText = f"{DisplayText}Items: {NumItems} (no limit)\n";
         DisplayText = f"{DisplayText}Added: {ItemsAddedCount}  Removed: {ItemsRemovedCount}\n";
         if (LastResult != "") { DisplayText = f"{DisplayText}Last: {LastResult}\n"; }
@@ -96,27 +105,7 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_EntityScript_UE
             if (Index >= 12) { DisplayText = f"{DisplayText}  ... ({NumItems - 12} more)\n"; break; }
         }
 
-        auto Step = AutoStep % 7;
-        auto A0 = (AutoRunning && Step == 0) ? ">> " : "   ";
-        auto A1 = (AutoRunning && Step == 1) ? ">> " : "   ";
-        auto A2 = (AutoRunning && Step == 2) ? ">> " : "   ";
-        auto A3 = (AutoRunning && Step == 3) ? ">> " : "   ";
-        auto A4 = (AutoRunning && Step >= 4) ? ">> " : "   ";
-
-        DisplayText = f"{DisplayText}\n===== Auto Sequence =====\n";
-        DisplayText = f"{DisplayText}{A0}Add 3 potions\n";
-        DisplayText = f"{DisplayText}{A1}Add 5 arrows\n";
-        DisplayText = f"{DisplayText}{A2}Add 1 sword\n";
-        DisplayText = f"{DisplayText}{A3}Sort inventory\n";
-        DisplayText = f"{DisplayText}{A4}Remove first (x3)\n";
-
-        DisplayText = f"{DisplayText}\n===== Commands =====\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_AddPotion [n]\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_AddArrow [n]\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_RemoveFirst\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_SortAll\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_RestartAll\n";
-        DisplayText = DisplayText + inv_gym_helpers::AutoCommandsBlock("Ck_GymInventory_AutoUnbounded");
+        DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
 
         auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
         auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
@@ -132,15 +121,10 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_EntityScript_UE
         ItemsRemovedCount += InItemsRemoved.Num();
     }
 
-    void StopAuto()
-    {
-        if (AutoRunning) { AutoRunning = false; utils_timer::Request_Pause(AutoTimer); }
-    }
-
     UFUNCTION()
     private void OnAddItemByDef(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_InvGym_AddItemByDef);
         auto Def = inv_gym_helpers::ResolveDefByName(Typed.DefName);
         if (Def == nullptr) { return; }
@@ -161,7 +145,7 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_EntityScript_UE
     UFUNCTION()
     private void OnRemoveFirst(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Items = utils_inventory::Get_Items(Inventory);
         if (Items.Num() == 0) { return; }
 
@@ -175,7 +159,7 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_EntityScript_UE
     UFUNCTION()
     private void OnSort(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         utils_inventory::Request_Sort(
             Inventory,
             FCk_Request_Inventory_Sort(),
@@ -189,10 +173,7 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_EntityScript_UE
     UFUNCTION()
     private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        auto Typed = InPayload.Get(FCk_Message_InvGym_AutoSet);
-        AutoRunning = Typed.Enabled;
-        if (AutoRunning) { utils_timer::Request_Resume(AutoTimer); }
-        else { utils_timer::Request_Pause(AutoTimer); }
+        gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
     }
 
     UFUNCTION()

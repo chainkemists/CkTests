@@ -358,7 +358,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void BroadcastAutoToAll(bool InEnabled)
     {
-        auto Msg = FCk_Message_InvGym_AutoSet(InEnabled);
+        auto Msg = FCk_Message_Gym_AutoSet(InEnabled);
         auto AllTags = TArray<FName>();
         AllTags.Add(n"TAG_InvGym_DataOnlyUnbounded");
         AllTags.Add(n"TAG_InvGym_DataOnlyBounded");
@@ -376,7 +376,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void BroadcastAutoToTag(FName InTag, bool InEnabled)
     {
-        auto Msg = FCk_Message_InvGym_AutoSet(InEnabled);
+        auto Msg = FCk_Message_Gym_AutoSet(InEnabled);
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), InTag);
         for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
     }

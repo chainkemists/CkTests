@@ -9,18 +9,18 @@
 // Two inventories (Player + Shelf) start with 10 potions on the player.
 // A pump timer continuously runs stock+loot cycles at configurable speed:
 //
-//   STOCK: split 1 off player stack → transfer to shelf (ForceNewItem)
-//   LOOT:  first shelf potion → transfer to player (PreferStacking)
+//   STOCK: split 1 off player stack -> transfer to shelf (ForceNewItem)
+//   LOOT:  first shelf potion -> transfer to player (PreferStacking)
 //
 // The display shows live potion counts for both inventories. The user
-// watches the total — if it drifts from 10 and stays there, that's the
+// watches the total -- if it drifts from 10 and stays there, that's the
 // desync bug. Transient mid-frame blips are expected and harmless.
 //
 // Commands:
-//   ShelfStart / ShelfStop  — toggle the continuous pump
-//   ShelfSpeed [ms]         — set pump interval (lower = faster spam)
-//   ShelfStock / ShelfLoot  — single manual operation
-//   ShelfReset              — clear everything and re-seed
+//   ShelfStart / ShelfStop  -- toggle the continuous pump
+//   ShelfSpeed [ms]         -- set pump interval (lower = faster spam)
+//   ShelfStock / ShelfLoot  -- single manual operation
+//   ShelfReset              -- clear everything and re-seed
 //
 //============================================================================
 
@@ -34,14 +34,17 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
     FCk_Handle_Inventory PlayerInv;
     FCk_Handle_Inventory ShelfInv;
     FCk_Handle_Timer PumpTimer;
+    bool PumpRunning = true;
+    int32 AutoStep = 0;
 
     int32 InitialPotionCount = 10;
     int32 StockOps = 0;
     int32 LootOps = 0;
-    bool PumpRunning = true;
 
     // Alternate stock/loot each pump tick so they interleave like real gameplay.
     bool NextOpIsStock = true;
+
+    FCkGym_AutoConfig AutoConfig;
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -54,12 +57,6 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
-
-        // Pump timer (paused until ShelfStart, default 50ms interval)
-        auto PumpTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05f));
-        PumpTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-        PumpTimer = utils_timer::Add(InHandle, PumpTimerParams);
-        PumpTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"PumpTick"));
 
         // Player inventory (unbounded data-only)
         auto PlayerParams = utils_inventory::Make_InventoryParams_DataOnly(
@@ -91,7 +88,20 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_ShelfLoot,  FCk_Delegate_Messaging_OnBroadcast(this, n"OnLoot"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_ShelfLoop,  FCk_Delegate_Messaging_OnBroadcast(this, n"OnLoop"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_ShelfReset, FCk_Delegate_Messaging_OnBroadcast(this, n"OnReset"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoSet,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
+
+        PumpTimer = gym_auto::Setup(InHandle, this, FCk_Time(0.05f), n"PumpTick");
+
+        AutoConfig.TotalSteps = 2;
+        AutoConfig.Description = "Rapid stock/loot pump simulating in-game\nshelf operations. Watch total for drift.";
+        AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
+        AutoConfig.PerStationAutoCommand = "Ck_GymInventory_AutoShelf";
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Alternating stock/loot pump", 0, 1));
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_ShelfStart");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_ShelfStop");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_ShelfStock");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_ShelfLoot");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_ShelfReset");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_RestartAll");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -151,7 +161,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
     }
 
     //------------------------------------------------------------------------
-    // PUMP — continuous stock/loot alternation
+    // PUMP -- continuous stock/loot alternation
     //------------------------------------------------------------------------
 
     UFUNCTION()
@@ -166,6 +176,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
             Do_Loot();
         }
         NextOpIsStock = !NextOpIsStock;
+        AutoStep++;
     }
 
     //------------------------------------------------------------------------
@@ -177,7 +188,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
         auto PlayerStack = Get_PlayerPotionStack();
         if (ck::IsValid(PlayerStack) == false) { return; }
 
-        // Single TransferItem with Count=1, ForceNewItem — the processor handles
+        // Single TransferItem with Count=1, ForceNewItem -- the processor handles
         // the stack decrement + new item creation in one pass, no intermediate state.
         auto TransferReq = FCk_Request_Inventory_TransferItem(PlayerStack, ShelfInv);
         TransferReq._Count = 1;
@@ -223,22 +234,17 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
     // MESSAGE HANDLERS
     //------------------------------------------------------------------------
 
-    void StopAuto()
-    {
-        if (PumpRunning) { PumpRunning = false; utils_timer::Request_Pause(PumpTimer); }
-    }
-
     UFUNCTION()
     private void OnStock(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(PumpTimer, PumpRunning);
         Do_Stock();
     }
 
     UFUNCTION()
     private void OnLoot(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(PumpTimer, PumpRunning);
         Do_Loot();
     }
 
@@ -257,17 +263,14 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
         {
             utils_timer::Request_Resume(PumpTimer);
             PumpRunning = true;
-            ck::Trace("[InvGym Shelf] Pump started (50ms interval — alternating stock/loot)");
+            ck::Trace("[InvGym Shelf] Pump started (50ms interval -- alternating stock/loot)");
         }
     }
 
     UFUNCTION()
     private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        auto Typed = InPayload.Get(FCk_Message_InvGym_AutoSet);
-        PumpRunning = Typed.Enabled;
-        if (PumpRunning) { utils_timer::Request_Resume(PumpTimer); }
-        else { utils_timer::Request_Pause(PumpTimer); }
+        gym_auto::HandleAutoSet(InPayload, PumpTimer, PumpRunning);
     }
 
     UFUNCTION()
@@ -307,7 +310,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
 
         StockOps = 0;
         LootOps = 0;
-        ck::Trace("[InvGym Shelf] Reset — player re-seeded, shelf empty, pump stopped");
+        ck::Trace("[InvGym Shelf] Reset -- player re-seeded, shelf empty, pump stopped");
     }
 
     //------------------------------------------------------------------------
@@ -331,12 +334,8 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
         auto Delta = Total - InitialPotionCount;
 
         auto ModeStr = PumpRunning ? "[AUTO]" : "[MANUAL]";
-        auto PumpStr = PumpRunning ? "RUNNING" : "stopped";
 
-        auto DisplayText = "";
-        DisplayText = f"{DisplayText}{inv_gym_helpers::AutoStatusLine(PumpRunning)}\n";
-        DisplayText = f"{DisplayText}Rapid stock/loot pump simulating in-game\n";
-        DisplayText = f"{DisplayText}shelf operations. Watch total for drift.\n\n";
+        auto DisplayText = gym_auto::FormatHeader(AutoConfig, PumpRunning);
         DisplayText = f"{DisplayText}Expected total: {InitialPotionCount}\n";
         DisplayText = f"{DisplayText}Player: {PlayerPotions}   Shelf: {ShelfPotions}\n";
         DisplayText = f"{DisplayText}TOTAL: {Total}";
@@ -345,19 +344,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
 
         DisplayText = f"{DisplayText}Stock ops: {StockOps}   Loot ops: {LootOps}\n\n";
 
-        auto AS = PumpRunning ? ">> " : "   ";
-
-        DisplayText = f"{DisplayText}===== Auto Sequence =====\n";
-        DisplayText = f"{DisplayText}{AS}Alternating stock/loot pump ({PumpStr})\n";
-
-        DisplayText = f"{DisplayText}\n===== Commands =====\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_ShelfStart\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_ShelfStop\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_ShelfStock\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_ShelfLoot\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_ShelfReset\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_RestartAll\n";
-        DisplayText = DisplayText + inv_gym_helpers::AutoCommandsBlock("Ck_GymInventory_AutoShelf");
+        DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, PumpRunning);
 
         auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
         auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);

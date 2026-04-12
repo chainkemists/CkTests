@@ -161,20 +161,8 @@ struct FCk_Message_InvGym_ShelfReset
     FCk_Message_InvGym_ShelfReset() {}
 }
 
-USTRUCT()
-struct FCk_Message_InvGym_AutoSet
-{
-    UPROPERTY()
-    bool Enabled;
-
-    FCk_Message_InvGym_AutoSet(bool InEnabled = true)
-    {
-        Enabled = InEnabled;
-    }
-}
-
 //============================================================================
-// SHARED HELPERS
+// SHARED HELPERS (inventory-specific display utilities)
 //============================================================================
 
 namespace inv_gym_helpers
@@ -189,9 +177,6 @@ namespace inv_gym_helpers
         return nullptr;
     }
 
-    // Compares an item's definition pointer to each known gym item def and returns
-    // a friendly display name. Used instead of reaching into FCk_InventoryItem_CoreInfo
-    // because its accessor is C++-only (CK_PROPERTY_GET doesn't emit a UFUNCTION).
     FString GetItemDisplayName(FCk_Handle_Item InItem)
     {
         auto Def = utils_item::Get_Definition(InItem);
@@ -204,21 +189,6 @@ namespace inv_gym_helpers
         return "<unknown>";
     }
 
-    FString AutoStatusLine(bool InAutoRunning)
-    {
-        return InAutoRunning ? "[AUTO] Running" : "[MANUAL]";
-    }
-
-    FString AutoCommandsBlock(FString InPerStationCmd)
-    {
-        auto Text = "";
-        Text = f"{Text}\nCk_GymInventory_Auto [0/1]\n";
-        Text = f"{Text}{InPerStationCmd}";
-        return Text;
-    }
-
-    // FGameplayTagContainer::GetGameplayTagArray / ToString are not exposed to Angelscript,
-    // so we summarize by count + First() tag + any known rarity overlays.
     FString TagsToString(FGameplayTagContainer InTags)
     {
         if (InTags.IsEmpty()) { return "(none)"; }

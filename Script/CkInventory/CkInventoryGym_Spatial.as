@@ -13,13 +13,15 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
 
     FCk_Handle_Inventory Inventory;
     FCk_Handle_Timer AutoTimer;
+    bool AutoRunning = true;
+    int32 AutoStep = 0;
 
     FIntPoint LastFailedCoord = FIntPoint(-1, -1);
     FIntPoint LastRandomCoord = FIntPoint(-1, -1);
     ECk_CardinalRotation LastRandomRotation = ECk_CardinalRotation::None;
     FString LastResult = "";
-    bool AutoRunning = true;
-    int32 AutoStep = 0;
+
+    FCkGym_AutoConfig AutoConfig;
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -43,12 +45,22 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemByDef, FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemByDef"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemAt,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemAt"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_RemoveFirst,  FCk_Delegate_Messaging_OnBroadcast(this, n"OnRemoveFirst"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AutoSet,       FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
 
-        auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
-        AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-        AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-        AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
+        AutoTimer = gym_auto::Setup(InHandle, this);
+
+        AutoConfig.TotalSteps = 10;
+        AutoConfig.Description = "8x6 grid with auto-placement, explicit\ncoordinates, and multi-cell items (3x1).";
+        AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
+        AutoConfig.PerStationAutoCommand = "Ck_GymInventory_AutoSpatial";
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Auto-place 3x1 swords (x2)", 0, 1));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Add shield (auto-place)", 2, 2));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Place sword at random coord", 3, 3));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Add shield (expect blocked)", 4, 4));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Remove first (x5)", 5, 9));
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_AddSword");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_AddShieldAt [x] [y]");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_RemoveFirst");
+        AutoConfig.ManualCommands.Add("Ck_GymInventory_RestartAll");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -80,10 +92,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
         auto NumItems = utils_inventory::Get_NumItems(Inventory);
         auto Items = utils_inventory::Get_Items(Inventory);
 
-        auto DisplayText = "";
-        DisplayText = f"{DisplayText}{inv_gym_helpers::AutoStatusLine(AutoRunning)}\n";
-        DisplayText = f"{DisplayText}8x6 grid with auto-placement, explicit\n";
-        DisplayText = f"{DisplayText}coordinates, and multi-cell items (3x1).\n\n";
+        auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
         DisplayText = f"{DisplayText}Items: {NumItems}  Grid: {Dims.X}x{Dims.Y}\n\n";
 
         // Legend showing which color/letter maps to which item
@@ -121,26 +130,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
 
         if (LastResult != "") { DisplayText = f"{DisplayText}Last: {LastResult}\n"; }
 
-        auto Step = AutoStep % 10;
-        auto A0 = (AutoRunning && Step <= 1) ? ">> " : "   ";
-        auto A1 = (AutoRunning && Step == 2) ? ">> " : "   ";
-        auto A2 = (AutoRunning && Step == 3) ? ">> " : "   ";
-        auto A3 = (AutoRunning && Step == 4) ? ">> " : "   ";
-        auto A4 = (AutoRunning && Step >= 5) ? ">> " : "   ";
-
-        DisplayText = f"{DisplayText}\n===== Auto Sequence =====\n";
-        DisplayText = f"{DisplayText}{A0}Auto-place 3x1 swords (x2)\n";
-        DisplayText = f"{DisplayText}{A1}Add shield (auto-place)\n";
-        DisplayText = f"{DisplayText}{A2}Place sword at random coord\n";
-        DisplayText = f"{DisplayText}{A3}Add shield (expect blocked)\n";
-        DisplayText = f"{DisplayText}{A4}Remove first (x5)\n";
-
-        DisplayText = f"{DisplayText}\n===== Commands =====\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_AddSword\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_AddShieldAt [x] [y]\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_RemoveFirst\n";
-        DisplayText = f"{DisplayText}Ck_GymInventory_RestartAll\n";
-        DisplayText = DisplayText + inv_gym_helpers::AutoCommandsBlock("Ck_GymInventory_AutoSpatial");
+        DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
 
         auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
         auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
@@ -149,15 +139,10 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
         Fragment.Description = FText::FromString(DisplayText);
     }
 
-    void StopAuto()
-    {
-        if (AutoRunning) { AutoRunning = false; utils_timer::Request_Pause(AutoTimer); }
-    }
-
     UFUNCTION()
     private void OnAddItemByDef(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_InvGym_AddItemByDef);
         auto Def = inv_gym_helpers::ResolveDefByName(Typed.DefName);
         if (Def == nullptr) { return; }
@@ -173,7 +158,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
     UFUNCTION()
     private void OnAddItemAt(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_InvGym_AddItemAt);
         auto Def = inv_gym_helpers::ResolveDefByName(Typed.DefName);
         if (Def == nullptr) { return; }
@@ -208,7 +193,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
     UFUNCTION()
     private void OnRemoveFirst(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        StopAuto();
+        gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Items = utils_inventory::Get_Items(Inventory);
         if (Items.Num() == 0) { return; }
 
@@ -226,10 +211,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
     UFUNCTION()
     private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        auto Typed = InPayload.Get(FCk_Message_InvGym_AutoSet);
-        AutoRunning = Typed.Enabled;
-        if (AutoRunning) { utils_timer::Request_Resume(AutoTimer); }
-        else { utils_timer::Request_Pause(AutoTimer); }
+        gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
     }
 
     UFUNCTION()
