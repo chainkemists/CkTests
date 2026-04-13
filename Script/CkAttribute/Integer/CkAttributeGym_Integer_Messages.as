@@ -82,3 +82,31 @@ struct FCk_Message_IntegerGym_ClearModifiers
 {
 	FCk_Message_IntegerGym_ClearModifiers() {}
 }
+
+USTRUCT()
+struct FCk_Message_IntegerGym_SetValue
+{
+	UPROPERTY()
+	int32 Value;
+
+	UPROPERTY()
+	ECk_MinMaxCurrent Component;
+
+	FCk_Message_IntegerGym_SetValue(int32 InValue = 50, ECk_MinMaxCurrent InComponent = ECk_MinMaxCurrent::Current)
+	{
+		Value = InValue;
+		Component = InComponent;
+	}
+}
+
+USTRUCT()
+struct FCk_Message_IntegerGym_SetResource
+{
+	UPROPERTY()
+	int32 Value;
+
+	FCk_Message_IntegerGym_SetResource(int32 InValue = 50)
+	{
+		Value = InValue;
+	}
+}
