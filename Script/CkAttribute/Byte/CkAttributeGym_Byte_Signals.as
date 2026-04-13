@@ -11,7 +11,11 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_EntityScript_UE
 
 	FCk_Handle_ByteAttribute TestAttribute;
 
-	int32 CycleStep = 0;
+	FCk_Handle_Timer AutoTimer;
+	bool AutoRunning = true;
+	int32 AutoStep = 0;
+	FCkGym_AutoConfig AutoConfig;
+
 	int32 Delegate1Count = 0;
 	int32 Delegate2Count = 0;
 	int32 Delegate3Count = 0;
@@ -27,7 +31,28 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
 		utils_entity_tag::Add(InHandle, n"TAG_AttributeGym_ByteSignals");
 
-		Request_SetupTimers(InHandle);
+		// Display timer
+		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
+
+		// Auto timer
+		AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(2.2f));
+
+		// Auto config
+		AutoConfig.TotalSteps = 6;
+		AutoConfig.Description = "Tests signal binding/unbinding with multiple delegates.\nShows dynamic bind/unbind and signal firing verification.";
+		AutoConfig.GlobalAutoCommand = "Ck_GymByte_Auto [0/1]";
+		AutoConfig.PerStationAutoCommand = "Ck_GymByte_AutoSignals";
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Bind first delegate", 0, 0));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Bind multiple delegates", 1, 1));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Trigger value changes", 2, 2));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Unbind selective delegates", 3, 3));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Test rebinding", 4, 4));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Unbind all delegates", 5, 5));
+		AutoConfig.ManualCommands.Add("Ck_GymByte_SetSignalValue [val]");
+
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
 
@@ -40,21 +65,8 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_EntityScript_UE
 
 		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes,
 			FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
-	}
-
-	void
-	Request_SetupTimers(
-		FCk_Handle InHandle)
-	{
-		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
-		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
-
-		auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.2f));
-		AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-		AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_ByteGym_SetValue,
+			FCk_Delegate_Messaging_OnBroadcast(this, n"OnSetSignalValue"));
 	}
 
 	void
@@ -68,108 +80,73 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_EntityScript_UE
 	}
 
 	UFUNCTION()
-	private void
-	DisplayTick(
-		FCk_Handle_Timer InHandle,
-		FCk_Chrono InChrono,
-		FCk_Time InDeltaT)
+	private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT) { Request_UpdateDisplay(); }
+
+	UFUNCTION()
+	private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
-		Request_UpdateDisplay();
+		auto Step = AutoStep % AutoConfig.TotalSteps;
+
+		if (Step == 0) { Request_BindFirstDelegate(); }
+		else if (Step == 1) { Request_BindMultipleDelegates(); }
+		else if (Step == 2) { Request_TriggerValueChanges(); }
+		else if (Step == 3) { Request_UnbindSelectiveDelegates(); }
+		else if (Step == 4) { Request_TestRebinding(); }
+		else if (Step == 5) { Request_UnbindAllDelegates(); }
+
+		AutoStep++;
 	}
 
 	UFUNCTION()
-	private void
-	AutoTick(
-		FCk_Handle_Timer InHandle,
-		FCk_Chrono InChrono,
-		FCk_Time InDeltaT)
-	{
-		Request_ExecuteAutomationStep();
-	}
+	private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning); }
 
-	void
-	Request_ExecuteAutomationStep()
-	{
-		CycleStep++;
-
-		switch (CycleStep)
-		{
-			case 1: Request_BindFirstDelegate(); break;
-			case 2: Request_BindMultipleDelegates(); break;
-			case 3: Request_TriggerValueChanges(); break;
-			case 4: Request_UnbindSelectiveDelegates(); break;
-			case 5: Request_TestRebinding(); break;
-			case 6: Request_UnbindAllDelegates(); break;
-			default:
-				CycleStep = 0;
-				break;
-		}
-	}
-
-	void
-	Request_BindFirstDelegate()
+	void Request_BindFirstDelegate()
 	{
 		utils_byte_attribute::BindTo_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
 			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged1"));
-
 		Delegate1Bound = true;
 		utils_byte_attribute::Request_Override(TestAttribute, 120);
 	}
 
-	void
-	Request_BindMultipleDelegates()
+	void Request_BindMultipleDelegates()
 	{
 		utils_byte_attribute::BindTo_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
 			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged2"));
-
 		utils_byte_attribute::BindTo_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
 			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged3"));
-
 		Delegate2Bound = true;
 		Delegate3Bound = true;
 		utils_byte_attribute::Request_Override(TestAttribute, 80);
 	}
 
-	void
-	Request_TriggerValueChanges()
+	void Request_TriggerValueChanges()
 	{
 		utils_byte_attribute::Request_Override(TestAttribute, 150);
 		utils_byte_attribute::Request_Override(TestAttribute, 60);
 		utils_byte_attribute::Request_Override(TestAttribute, 200);
 	}
 
-	void
-	Request_UnbindSelectiveDelegates()
+	void Request_UnbindSelectiveDelegates()
 	{
 		utils_byte_attribute::UnbindFrom_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
 			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged2"));
-
 		Delegate2Bound = false;
 		utils_byte_attribute::Request_Override(TestAttribute, 90);
 	}
 
-	void
-	Request_TestRebinding()
+	void Request_TestRebinding()
 	{
 		utils_byte_attribute::BindTo_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
 			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged2"));
-
 		Delegate2Bound = true;
 		utils_byte_attribute::Request_Override(TestAttribute, 110);
 	}
 
-	void
-	Request_UnbindAllDelegates()
+	void Request_UnbindAllDelegates()
 	{
-		utils_byte_attribute::UnbindFrom_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
-			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged1"));
-
-		utils_byte_attribute::UnbindFrom_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
-			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged2"));
-
-		utils_byte_attribute::UnbindFrom_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
-			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged3"));
-
+		utils_byte_attribute::UnbindFrom_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged1"));
+		utils_byte_attribute::UnbindFrom_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged2"));
+		utils_byte_attribute::UnbindFrom_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current, FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged3"));
 		Delegate1Bound = false;
 		Delegate2Bound = false;
 		Delegate3Bound = false;
@@ -181,7 +158,7 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_EntityScript_UE
 	{
 		auto SelfEntity = ck::ToEntity(this);
 		auto TitleText = "BYTE SIGNALS (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
-		auto DisplayText = f"Cycle Step: {CycleStep}/6\n\n";
+		auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 
 		auto CurrentValue = utils_byte_attribute::Get_FinalValue(TestAttribute);
 		DisplayText = f"{DisplayText}Current Value: {CurrentValue}\n\n";
@@ -200,73 +177,38 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}Total Signals Fired: " + f"{Delegate1Count + Delegate2Count + Delegate3Count}\n\n";
 
 		auto ValueBar = CkGym_Attribute::Create_ProgressBar(CurrentValue, 255.0f, 20);
-		DisplayText = f"{DisplayText}[{ValueBar}]\n\n";
+		DisplayText = f"{DisplayText}[{ValueBar}]\n";
 
-		DisplayText = f"{DisplayText}AUTOMATION: " + Get_CurrentPhaseText();
+		DisplayText = DisplayText + "\n" + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
 
-		auto Instructions = "Tests signal binding/unbinding with different policies. Shows multiple delegates per attribute, dynamic bind/unbind operations, and signal firing verification with policy comparisons.";
-
-		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);
-	}
-
-	FString
-	Get_CurrentPhaseText()
-	{
-		switch (CycleStep)
-		{
-			case 0: return "Idle - No Bindings";
-			case 1: return "Binding First Delegate";
-			case 2: return "Binding Multiple Delegates";
-			case 3: return "Triggering Value Changes";
-			case 4: return "Unbinding Selective Delegates";
-			case 5: return "Testing Rebinding";
-			case 6: return "Unbinding All Delegates";
-			default: return "Unknown Phase";
-		}
+		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, "");
 	}
 
 	UFUNCTION()
-	void
-	OnValueChanged1(
-		FCk_Handle InAttributeOwnerEntity,
-		FCk_Payload_ByteAttribute_OnValueChanged InPayload)
+	private void OnSetSignalValue(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		Delegate1Count++;
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		auto Typed = InPayload.Get(FCk_Message_ByteGym_SetValue);
+		utils_byte_attribute::Request_Override(TestAttribute, Typed.Value);
 	}
 
-	UFUNCTION()
-	void
-	OnValueChanged2(
-		FCk_Handle InAttributeOwnerEntity,
-		FCk_Payload_ByteAttribute_OnValueChanged InPayload)
-	{
-		Delegate2Count++;
-	}
+	UFUNCTION() void OnValueChanged1(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnValueChanged InPayload) { Delegate1Count++; }
+	UFUNCTION() void OnValueChanged2(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnValueChanged InPayload) { Delegate2Count++; }
+	UFUNCTION() void OnValueChanged3(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnValueChanged InPayload) { Delegate3Count++; }
 
 	UFUNCTION()
-	void
-	OnValueChanged3(
-		FCk_Handle InAttributeOwnerEntity,
-		FCk_Payload_ByteAttribute_OnValueChanged InPayload)
+	private void OnResetAttributes(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		Delegate3Count++;
-	}
-
-	UFUNCTION()
-	private void
-	OnResetAttributes(
-		FCk_Handle InHandle,
-		FGameplayTag InMessageName,
-		FInstancedStruct InPayload)
-	{
-		CycleStep = 0;
+		AutoStep = 0;
 		Delegate1Count = 0;
 		Delegate2Count = 0;
 		Delegate3Count = 0;
 		Delegate1Bound = false;
 		Delegate2Bound = false;
 		Delegate3Bound = false;
-
 		utils_byte_attribute::Request_Override(TestAttribute, 100);
+
+		AutoRunning = true;
+		utils_timer::Request_Resume(AutoTimer);
 	}
 }
