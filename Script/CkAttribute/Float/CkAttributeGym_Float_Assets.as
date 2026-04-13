@@ -11,8 +11,10 @@ namespace Ck
 		GameplayTags.Add(n"FloatAttribute.Damage");
 		GameplayTags.Add(n"FloatAttribute.Defense");
 		GameplayTags.Add(n"FloatAttribute.Energy");
+		GameplayTags.Add(n"FloatAttribute.Energy.Refill");
 		GameplayTags.Add(n"FloatAttribute.Health");
 		GameplayTags.Add(n"FloatAttribute.Mana");
+		GameplayTags.Add(n"FloatAttribute.Mana.Refill");
 		GameplayTags.Add(n"FloatAttribute.PowerLevel");
 		GameplayTags.Add(n"FloatAttribute.Signal");
 		GameplayTags.Add(n"FloatAttribute.Stamina");

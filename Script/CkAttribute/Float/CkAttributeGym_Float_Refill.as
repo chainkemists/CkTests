@@ -71,7 +71,7 @@ class UCk_EntityScript_AttributeGym_FloatRefill : UCk_EntityScript_UE
 	void Request_SetupAttributes(FCk_Handle InHandle)
 	{
 		auto RefillParams = FCk_Fragment_FloatAttributeRefill_ParamsData(
-			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Energy"), 5.0f);
+			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Energy.Refill"), 5.0f);
 		RefillParams.Set_StartingState(ECk_Attribute_RefillState::Running);
 
 		auto EnergyParams = FCk_Fragment_FloatAttribute_ParamsData(
@@ -81,7 +81,7 @@ class UCk_EntityScript_AttributeGym_FloatRefill : UCk_EntityScript_UE
 		EnergyAttribute = utils_float_attribute::Add(InHandle, EnergyParams);
 
 		auto ManaRefillParams = FCk_Fragment_FloatAttributeRefill_ParamsData(
-			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Mana"), 3.0f);
+			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Mana.Refill"), 3.0f);
 		ManaRefillParams.Set_RefillBehavior(ECk_Attribute_Refill_Policy::AlwaysReturnToZero);
 		ManaRefillParams.Set_StartingState(ECk_Attribute_RefillState::Running);
 
