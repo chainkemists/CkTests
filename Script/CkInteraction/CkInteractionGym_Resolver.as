@@ -20,7 +20,8 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_EntityScript_UE
     int32 TargetChangedCount = 0;
     bool AutoRunning = true;
     int32 AutoStep = 0;
-    int32 AUTO_TOTAL_STEPS = 4;
+
+    FCkGym_AutoConfig AutoConfig;
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -55,24 +56,29 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_EntityScript_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InteractionGym_StopIntent, FCk_Delegate_Messaging_OnBroadcast(this, n"OnStopIntent"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InteractionGym_AddTargets, FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddTargets"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InteractionGym_RemoveTargets, FCk_Delegate_Messaging_OnBroadcast(this, n"OnRemoveTargets"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InteractionGym_AutoSet, FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
 
-        // Auto timer
-        auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.5f));
-        AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-        AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-        AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
-
-        // Display timer
         auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
+        AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(1.5f));
+
+        AutoConfig.TotalSteps = 4;
+        AutoConfig.Description = "Resolver with distance sorting, 3 targets.";
+        AutoConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
+        AutoConfig.PerStationAutoCommand = "Ck_GymInteraction_AutoResolver";
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Add 3 targets", 0, 0));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Start intent", 1, 1));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Stop intent", 2, 2));
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Remove targets", 3, 3));
+        AutoConfig.ManualCommands.Add("Ck_GymInteraction_StartIntent");
+        AutoConfig.ManualCommands.Add("Ck_GymInteraction_StopIntent");
+        AutoConfig.ManualCommands.Add("Ck_GymInteraction_AddTarget");
+        AutoConfig.ManualCommands.Add("Ck_GymInteraction_RemoveTarget");
+
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
-
-    void StopAuto() { if (AutoRunning) { AutoRunning = false; utils_timer::Request_Pause(AutoTimer); } }
 
     void Request_StartIntent()
     {
@@ -120,7 +126,7 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_EntityScript_UE
     private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (!AutoRunning) { return; }
-        auto Step = AutoStep % AUTO_TOTAL_STEPS;
+        auto Step = AutoStep % AutoConfig.TotalSteps;
         if (Step == 0) { Request_AddTargets(); }
         else if (Step == 1) { Request_StartIntent(); }
         else if (Step == 2) { Request_StopIntent(); }
@@ -136,21 +142,18 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_EntityScript_UE
     }
 
     UFUNCTION()
-    private void OnStartIntent(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { StopAuto(); Request_StartIntent(); }
+    private void OnStartIntent(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); Request_StartIntent(); }
     UFUNCTION()
-    private void OnStopIntent(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { StopAuto(); Request_StopIntent(); }
+    private void OnStopIntent(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); Request_StopIntent(); }
     UFUNCTION()
-    private void OnAddTargets(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { StopAuto(); Request_AddTargets(); }
+    private void OnAddTargets(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); Request_AddTargets(); }
     UFUNCTION()
-    private void OnRemoveTargets(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { StopAuto(); Request_RemoveTargets(); }
+    private void OnRemoveTargets(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); Request_RemoveTargets(); }
 
     UFUNCTION()
     private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        auto Msg = InPayload.Get(FCk_Message_InteractionGym_AutoSet);
-        AutoRunning = Msg.Enabled;
-        if (AutoRunning) { utils_timer::Request_Resume(AutoTimer); }
-        else { utils_timer::Request_Pause(AutoTimer); }
+        gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
     }
 
     UFUNCTION()
@@ -159,29 +162,19 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_EntityScript_UE
         auto SelfEntity = ck::ToEntity(this);
         auto IntentStr = IntentActive ? "Active" : "Inactive";
         auto CurrentBestTargets = utils_interaction_resolver::Get_BestInteractTargets(ResolverHandle, interaction_gym_helpers::UseIntent());
-        auto StepMarker = AutoRunning ? (AutoStep % AUTO_TOTAL_STEPS) : -1;
 
-        auto DisplayText = "";
-        DisplayText = DisplayText + interaction_gym_helpers::AutoStatusLine(AutoRunning) + "\n";
-        DisplayText = f"{DisplayText}Resolver with distance sorting, 3 targets.\n\n";
+        auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
         DisplayText = f"{DisplayText}===== Resolver Stats =====\n";
         DisplayText = f"{DisplayText}Intent: {IntentStr}\n";
         DisplayText = f"{DisplayText}Best Targets: {CurrentBestTargets.Num()}\n";
         DisplayText = f"{DisplayText}Changed Events: {TargetChangedCount}\n\n";
-        DisplayText = f"{DisplayText}===== Auto Sequence =====\n";
-        DisplayText = DisplayText + interaction_gym_helpers::StepPrefix(StepMarker, 0) + " Add 3 targets\n";
-        DisplayText = DisplayText + interaction_gym_helpers::StepPrefix(StepMarker, 1) + " Start intent\n";
-        DisplayText = DisplayText + interaction_gym_helpers::StepPrefix(StepMarker, 2) + " Stop intent\n";
-        DisplayText = DisplayText + interaction_gym_helpers::StepPrefix(StepMarker, 3) + " Remove targets\n\n";
-        DisplayText = f"{DisplayText}===== Commands =====\n";
-        DisplayText = f"{DisplayText}Ck_GymInteraction_StartIntent\n";
-        DisplayText = f"{DisplayText}Ck_GymInteraction_StopIntent\n";
-        DisplayText = f"{DisplayText}Ck_GymInteraction_AddTarget\n";
-        DisplayText = f"{DisplayText}Ck_GymInteraction_RemoveTarget\n";
-        DisplayText = f"{DisplayText}Ck_GymInteraction_AutoOn / AutoOff\n";
-        DisplayText = f"{DisplayText}Ck_GymInteraction_AutoResolver\n";
+        DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
 
-        CkGym_Common::Update_StationDisplay(SelfEntity, "INTERACTION RESOLVER", DisplayText, "");
+        auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
+        auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
+        auto ModeStr = AutoRunning ? "[AUTO]" : "[MANUAL]";
+        Fragment.Title = FText::FromString(f"INTERACTION RESOLVER {ModeStr}");
+        Fragment.Description = FText::FromString(DisplayText);
     }
 }
 
