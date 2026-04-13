@@ -12,7 +12,10 @@ class UCk_EntityScript_AttributeGym_FloatIncrementDecrement : UCk_EntityScript_U
 	FCk_Handle_FloatAttribute CounterAttribute;
 	TArray<FCk_Handle_FloatAttributeModifier> RevocableModifiers;
 
-	int32 CycleStep = 0;
+	FCk_Handle_Timer AutoTimer;
+	bool AutoRunning = true;
+	int32 AutoStep = 0;
+	FCkGym_AutoConfig AutoConfig;
 	int32 ValueChangeCount = 0;
 
 	UFUNCTION(BlueprintOverride)
@@ -23,7 +26,28 @@ class UCk_EntityScript_AttributeGym_FloatIncrementDecrement : UCk_EntityScript_U
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
 		utils_entity_tag::Add(InHandle, n"TAG_AttributeGym_FloatIncrementDecrement");
 
-		Request_SetupTimers(InHandle);
+		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
+
+		AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(2.0f));
+
+		AutoConfig.TotalSteps = 12;
+		AutoConfig.Description = "Tests the float mixin increment/decrement helpers.\nRevocable vs non-revocable +1/-1 operations.";
+		AutoConfig.GlobalAutoCommand = "Ck_GymFloat_Auto [0/1]";
+		AutoConfig.PerStationAutoCommand = "Ck_GymFloat_AutoIncDec";
+		AutoConfig.Steps.Add(FCkGym_AutoStep("IncrementNotRevocable (x3)", 0, 2));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("IncrementRevocable (x2)", 3, 4));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("DecrementNotRevocable (x2)", 5, 6));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Revoke all revocable", 7, 7));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("DecrementRevocable (x2)", 8, 9));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Revoke all revocable", 10, 10));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset to default", 11, 11));
+		AutoConfig.ManualCommands.Add("Ck_GymFloat_Increment");
+		AutoConfig.ManualCommands.Add("Ck_GymFloat_Decrement");
+		AutoConfig.ManualCommands.Add("Ck_GymFloat_RevokeAll");
+
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
 
@@ -37,150 +61,85 @@ class UCk_EntityScript_AttributeGym_FloatIncrementDecrement : UCk_EntityScript_U
 
 		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes,
 			FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_FloatGym_Increment,
+			FCk_Delegate_Messaging_OnBroadcast(this, n"OnManualIncrement"));
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_FloatGym_Decrement,
+			FCk_Delegate_Messaging_OnBroadcast(this, n"OnManualDecrement"));
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_FloatGym_RevokeAll,
+			FCk_Delegate_Messaging_OnBroadcast(this, n"OnManualRevokeAll"));
 	}
 
-	void
-	Request_SetupTimers(
-		FCk_Handle InHandle)
+	void Request_SetupAttributes(FCk_Handle InHandle)
 	{
-		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
-		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
-
-		auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.0f));
-		AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-		AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
-	}
-
-	void
-	Request_SetupAttributes(
-		FCk_Handle InHandle)
-	{
-		// Counter: 0-50, starts at 25.0
 		auto CounterParams = FCk_Fragment_FloatAttribute_ParamsData(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Counter"), 25.0f);
 		CounterParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(50.0f);
 		CounterAttribute = utils_float_attribute::Add(InHandle, CounterParams);
 	}
 
-	void
-	Request_BindSignals(
-		FCk_Handle InHandle)
+	void Request_BindSignals(FCk_Handle InHandle)
 	{
 		utils_float_attribute::BindTo_OnValueChanged(CounterAttribute, ECk_MinMaxCurrent::Current,
 			FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnValueChanged"));
-		utils_float_attribute::BindTo_OnMinClamped(CounterAttribute,
-			FCk_Delegate_FloatAttribute_OnClamped(this, n"OnClamped"));
-		utils_float_attribute::BindTo_OnMaxClamped(CounterAttribute,
-			FCk_Delegate_FloatAttribute_OnClamped(this, n"OnClamped"));
+		utils_float_attribute::BindTo_OnMinClamped(CounterAttribute, FCk_Delegate_FloatAttribute_OnClamped(this, n"OnClamped"));
+		utils_float_attribute::BindTo_OnMaxClamped(CounterAttribute, FCk_Delegate_FloatAttribute_OnClamped(this, n"OnClamped"));
+	}
+
+	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT) { Request_UpdateDisplay(); }
+
+	UFUNCTION()
+	private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+	{
+		auto Step = AutoStep % AutoConfig.TotalSteps;
+
+		if (Step >= 0 && Step <= 2) { CounterAttribute.IncrementNotRevocable(); }
+		else if (Step >= 3 && Step <= 4)
+		{
+			auto Mod = CounterAttribute.IncrementRevocable();
+			if (ck::IsValid(Mod)) { RevocableModifiers.Add(Mod); }
+		}
+		else if (Step >= 5 && Step <= 6) { CounterAttribute.DecrementNotRevocable(); }
+		else if (Step == 7) { Request_RevokeAllRevocable(); }
+		else if (Step >= 8 && Step <= 9)
+		{
+			auto Mod = CounterAttribute.DecrementRevocable();
+			if (ck::IsValid(Mod)) { RevocableModifiers.Add(Mod); }
+		}
+		else if (Step == 10) { Request_RevokeAllRevocable(); }
+		else if (Step == 11) { Request_ResetToDefault(); }
+
+		AutoStep++;
 	}
 
 	UFUNCTION()
-	private void
-	DisplayTick(
-		FCk_Handle_Timer InHandle,
-		FCk_Chrono InChrono,
-		FCk_Time InDeltaT)
+	private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		Request_UpdateDisplay();
+		gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
 	}
 
-	UFUNCTION()
-	private void
-	AutoTick(
-		FCk_Handle_Timer InHandle,
-		FCk_Chrono InChrono,
-		FCk_Time InDeltaT)
-	{
-		Request_ExecuteAutomationStep();
-	}
-
-	void
-	Request_ExecuteAutomationStep()
-	{
-		CycleStep++;
-
-		switch (CycleStep)
-		{
-			case 1: Request_IncrementNotRevocable(); break;
-			case 2: Request_IncrementNotRevocable(); break;
-			case 3: Request_IncrementNotRevocable(); break;
-			case 4: Request_IncrementRevocable(); break;
-			case 5: Request_IncrementRevocable(); break;
-			case 6: Request_DecrementNotRevocable(); break;
-			case 7: Request_DecrementNotRevocable(); break;
-			case 8: Request_RevokeAllRevocable(); break;
-			case 9: Request_DecrementRevocable(); break;
-			case 10: Request_DecrementRevocable(); break;
-			case 11: Request_RevokeAllRevocable(); break;
-			case 12: Request_ResetToDefault(); break;
-			default:
-				CycleStep = 0;
-				break;
-		}
-	}
-
-	void
-	Request_IncrementNotRevocable()
-	{
-		CounterAttribute.IncrementNotRevocable();
-	}
-
-	void
-	Request_IncrementRevocable()
-	{
-		auto Mod = CounterAttribute.IncrementRevocable();
-		if (ck::IsValid(Mod))
-		{
-			RevocableModifiers.Add(Mod);
-		}
-	}
-
-	void
-	Request_DecrementNotRevocable()
-	{
-		CounterAttribute.DecrementNotRevocable();
-	}
-
-	void
-	Request_DecrementRevocable()
-	{
-		auto Mod = CounterAttribute.DecrementRevocable();
-		if (ck::IsValid(Mod))
-		{
-			RevocableModifiers.Add(Mod);
-		}
-	}
-
-	void
-	Request_RevokeAllRevocable()
+	void Request_RevokeAllRevocable()
 	{
 		for (auto Mod : RevocableModifiers)
 		{
-			if (ck::IsValid(Mod))
-			{
-				utils_float_attribute_modifier::Remove(Mod);
-			}
+			if (ck::IsValid(Mod)) { utils_float_attribute_modifier::Remove(Mod); }
 		}
 		RevocableModifiers.Empty();
 	}
 
-	void
-	Request_ResetToDefault()
+	void Request_ResetToDefault()
 	{
 		utils_float_attribute_modifier::Request_ClearAllModifiers(CounterAttribute, ECk_MinMaxCurrent::Current);
 		RevocableModifiers.Empty();
 		utils_float_attribute::Request_Override(CounterAttribute, 25.0f);
 	}
 
-	void
-	Request_UpdateDisplay()
+	void Request_UpdateDisplay()
 	{
 		auto SelfEntity = ck::ToEntity(this);
 		auto TitleText = "FLOAT INC/DEC (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
-		auto DisplayText = f"Cycle Step: {CycleStep}/12 | Changes: {ValueChangeCount}\n\n";
+		auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
+
+		DisplayText = f"{DisplayText}Changes: {ValueChangeCount}\n\n";
 
 		auto BaseValue = utils_float_attribute::Get_BaseValue(CounterAttribute);
 		auto BonusValue = utils_float_attribute::Get_BonusValue(CounterAttribute);
@@ -203,67 +162,41 @@ class UCk_EntityScript_AttributeGym_FloatIncrementDecrement : UCk_EntityScript_U
 			}
 		}
 
-		DisplayText = f"{DisplayText}\nAUTOMATION: " + Get_CurrentPhaseText();
-
-		auto Instructions = "Tests the float mixin increment/decrement helpers.\n"
-			+ "IncrementNotRevocable: permanent +1.0 | IncrementRevocable: removable +1.0\n"
-			+ "DecrementNotRevocable: permanent -1.0 | DecrementRevocable: removable -1.0\n"
-			+ "Revoke steps remove all revocable modifiers, leaving permanent ones.";
-
-		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);
-	}
-
-	FString
-	Get_CurrentPhaseText()
-	{
-		switch (CycleStep)
-		{
-			case 0: return "Idle - Base 25.0";
-			case 1: return "IncrementNotRevocable (+1 permanent)";
-			case 2: return "IncrementNotRevocable (+1 permanent)";
-			case 3: return "IncrementNotRevocable (+1 permanent)";
-			case 4: return "IncrementRevocable (+1 removable)";
-			case 5: return "IncrementRevocable (+1 removable)";
-			case 6: return "DecrementNotRevocable (-1 permanent)";
-			case 7: return "DecrementNotRevocable (-1 permanent)";
-			case 8: return "Revoking All Revocable Modifiers";
-			case 9: return "DecrementRevocable (-1 removable)";
-			case 10: return "DecrementRevocable (-1 removable)";
-			case 11: return "Revoking All Revocable Modifiers";
-			case 12: return "Resetting to Default";
-			default: return "Unknown Phase";
-		}
+		DisplayText = DisplayText + "\n" + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
+		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, "");
 	}
 
 	UFUNCTION()
-	void
-	OnValueChanged(
-		FCk_Handle InAttributeOwnerEntity,
-		FCk_Payload_FloatAttribute_OnValueChanged InPayload)
+	private void OnManualIncrement(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		ValueChangeCount++;
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		auto Mod = CounterAttribute.IncrementRevocable();
+		if (ck::IsValid(Mod)) { RevocableModifiers.Add(Mod); }
 	}
 
 	UFUNCTION()
-	void
-	OnClamped(
-		FCk_Handle InAttributeOwnerEntity,
-		FCk_Payload_FloatAttribute_OnClamped InPayload)
+	private void OnManualDecrement(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		auto SelfEntity = ck::ToEntity(this);
-		CkGym_Attribute::Draw_ClampIndicator(SelfEntity, FVector(0.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.5f, 0.0f, 1.0f));
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		auto Mod = CounterAttribute.DecrementRevocable();
+		if (ck::IsValid(Mod)) { RevocableModifiers.Add(Mod); }
 	}
 
 	UFUNCTION()
-	private void
-	OnResetAttributes(
-		FCk_Handle InHandle,
-		FGameplayTag InMessageName,
-		FInstancedStruct InPayload)
+	private void OnManualRevokeAll(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		CycleStep = 0;
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		Request_RevokeAllRevocable();
+	}
+
+	UFUNCTION() void OnValueChanged(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload) { ValueChangeCount++; }
+	UFUNCTION() void OnClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnClamped InPayload) { CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(0.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.5f, 0.0f, 1.0f)); }
+
+	UFUNCTION()
+	private void OnResetAttributes(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
+	{
+		AutoStep = 0;
 		ValueChangeCount = 0;
-
 		utils_float_attribute_modifier::Request_ClearAllModifiers(CounterAttribute, ECk_MinMaxCurrent::Current);
 		RevocableModifiers.Empty();
 		utils_float_attribute::Request_Override(CounterAttribute, 25.0f);

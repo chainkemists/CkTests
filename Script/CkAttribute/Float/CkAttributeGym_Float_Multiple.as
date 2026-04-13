@@ -13,7 +13,10 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_EntityScript_UE
 	TArray<FCk_Handle_FloatAttribute> RPGAttributes;
 	TArray<FCk_Handle_FloatAttribute> CombatAttributes;
 
-	int32 CycleStep = 0;
+	FCk_Handle_Timer AutoTimer;
+	bool AutoRunning = true;
+	int32 AutoStep = 0;
+	FCkGym_AutoConfig AutoConfig;
 	int32 TotalAttributes = 0;
 	int32 ValueChangeCount = 0;
 
@@ -25,7 +28,26 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
 		utils_entity_tag::Add(InHandle, n"TAG_AttributeGym_FloatMultiple");
 
-		Request_SetupTimers(InHandle);
+		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
+
+		AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(3.5f));
+
+		AutoConfig.TotalSteps = 6;
+		AutoConfig.Description = "Creates multiple float attributes in batches.\nTests ForEach iteration, name-based lookups, and filtering.";
+		AutoConfig.GlobalAutoCommand = "Ck_GymFloat_Auto [0/1]";
+		AutoConfig.PerStationAutoCommand = "Ck_GymFloat_AutoMultiple";
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Add combat batch (Attack + Defense)", 0, 0));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Test ForEach operations", 1, 1));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Test name-based lookup", 2, 2));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Batch value update (+15.5)", 3, 3));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Test iteration filtering (>100)", 4, 4));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Clear combat batch", 5, 5));
+		AutoConfig.ManualCommands.Add("Ck_GymFloat_AddBatch");
+		AutoConfig.ManualCommands.Add("Ck_GymFloat_ClearBatch");
+
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
 
@@ -39,26 +61,13 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_EntityScript_UE
 
 		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes,
 			FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_FloatGym_AddBatch,
+			FCk_Delegate_Messaging_OnBroadcast(this, n"OnManualAddBatch"));
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_FloatGym_ClearBatch,
+			FCk_Delegate_Messaging_OnBroadcast(this, n"OnManualClearBatch"));
 	}
 
-	void
-	Request_SetupTimers(
-		FCk_Handle InHandle)
-	{
-		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
-		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
-
-		auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.5f));
-		AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-		AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
-	}
-
-	void
-	Request_CreateInitialBatch(
-		FCk_Handle InHandle)
+	void Request_CreateInitialBatch(FCk_Handle InHandle)
 	{
 		auto RPGParams = FCk_Fragment_MultipleFloatAttribute_ParamsData();
 		auto& RPGList = RPGParams._FloatAttributeParams;
@@ -82,9 +91,7 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_EntityScript_UE
 		AllAttributes.Append(RPGAttributes);
 	}
 
-	void
-	Request_BindSignals(
-		FCk_Handle InHandle)
+	void Request_BindSignals(FCk_Handle InHandle)
 	{
 		for (auto Attribute : AllAttributes)
 		{
@@ -93,50 +100,32 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_EntityScript_UE
 		}
 	}
 
-	UFUNCTION()
-	private void
-	DisplayTick(
-		FCk_Handle_Timer InHandle,
-		FCk_Chrono InChrono,
-		FCk_Time InDeltaT)
-	{
-		Request_UpdateDisplay();
-	}
+	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT) { Request_UpdateDisplay(); }
 
 	UFUNCTION()
-	private void
-	AutoTick(
-		FCk_Handle_Timer InHandle,
-		FCk_Chrono InChrono,
-		FCk_Time InDeltaT)
+	private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
-		Request_ExecuteAutomationStep();
+		auto Step = AutoStep % AutoConfig.TotalSteps;
+
+		if (Step == 0) { Request_AddCombatBatch(); }
+		else if (Step == 1) { Request_TestForEachOperations(); }
+		else if (Step == 2) { Request_TestNameBasedLookup(); }
+		else if (Step == 3) { Request_BatchValueUpdate(); }
+		else if (Step == 4) { Request_TestIterationFiltering(); }
+		else if (Step == 5) { Request_ClearCombatBatch(); }
+
+		AutoStep++;
 	}
 
-	void
-	Request_ExecuteAutomationStep()
+	UFUNCTION()
+	private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		CycleStep++;
-
-		switch (CycleStep)
-		{
-			case 1: Request_AddCombatBatch(); break;
-			case 2: Request_TestForEachOperations(); break;
-			case 3: Request_TestNameBasedLookup(); break;
-			case 4: Request_BatchValueUpdate(); break;
-			case 5: Request_TestIterationFiltering(); break;
-			case 6: Request_ClearCombatBatch(); break;
-			default:
-				CycleStep = 0;
-				break;
-		}
+		gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
 	}
 
-	void
-	Request_AddCombatBatch()
+	void Request_AddCombatBatch()
 	{
 		auto SelfEntity = ck::ToEntity(this);
-
 		auto CombatParams = FCk_Fragment_MultipleFloatAttribute_ParamsData();
 		auto& CombatList = CombatParams._FloatAttributeParams;
 
@@ -153,12 +142,6 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_EntityScript_UE
 		CombatAttributes = utils_float_attribute::AddMultiple(SelfEntity, CombatParams, ECk_Replication::Replicates);
 		AllAttributes.Append(CombatAttributes);
 
-		Request_BindNewSignals();
-	}
-
-	void
-	Request_BindNewSignals()
-	{
 		for (auto Attribute : CombatAttributes)
 		{
 			utils_float_attribute::BindTo_OnValueChanged(Attribute, ECk_MinMaxCurrent::Current,
@@ -166,49 +149,31 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_EntityScript_UE
 		}
 	}
 
-	void
-	Request_TestForEachOperations()
+	void Request_TestForEachOperations()
 	{
 		auto SelfEntity = ck::ToEntity(this);
 		TotalAttributes = 0;
-
-		auto AllFound = utils_float_attribute::ForEach(SelfEntity, FInstancedStruct(),
-			FCk_Lambda_InHandle(this, n"CountAttribute"));
-
+		auto AllFound = utils_float_attribute::ForEach(SelfEntity, FInstancedStruct(), FCk_Lambda_InHandle(this, n"CountAttribute"));
 		TotalAttributes = AllFound.Num();
 	}
 
-	UFUNCTION()
-	private void
-    CountAttribute(
-        FCk_Handle InHandle,
-        FInstancedStruct InOptionalPayload)
-	{
-		// Lambda callback for counting
-	}
+	UFUNCTION() private void CountAttribute(FCk_Handle InHandle, FInstancedStruct InOptionalPayload) { }
 
-	void
-	Request_TestNameBasedLookup()
+	void Request_TestNameBasedLookup()
 	{
 		auto SelfEntity = ck::ToEntity(this);
-
 		utils_float_attribute::ForEach_ByName(SelfEntity,
 			utils_gameplay_tag::ResolveGameplayTag(n"RPG.Strength"), FInstancedStruct(),
 			FCk_Lambda_InHandle(this, n"ModifyStrength"));
 	}
 
-	UFUNCTION()
-	private void
-    ModifyStrength(
-        FCk_Handle InHandle,
-        FInstancedStruct InOptionalPayload)
+	UFUNCTION() private void ModifyStrength(FCk_Handle InHandle, FInstancedStruct InOptionalPayload)
 	{
 		auto StrengthAttr = InHandle.As_FloatAttribute();
 		utils_float_attribute::Request_Override(StrengthAttr, 100.5f);
 	}
 
-	void
-	Request_BatchValueUpdate()
+	void Request_BatchValueUpdate()
 	{
 		for (auto Attribute : RPGAttributes)
 		{
@@ -218,55 +183,38 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_EntityScript_UE
 		}
 	}
 
-	void
-	Request_TestIterationFiltering()
+	void Request_TestIterationFiltering()
 	{
 		auto SelfEntity = ck::ToEntity(this);
-
 		utils_float_attribute::ForEach_If(SelfEntity, FInstancedStruct(),
 			FCk_Lambda_InHandle(this, n"ProcessHighValue"),
 			FCk_Predicate_InHandle_OutResult(this, n"FilterHighValue"));
 	}
 
-	UFUNCTION()
-	private void
-    ProcessHighValue(
-        FCk_Handle InHandle,
-        FInstancedStruct InOptionalPayload)
-	{
-		// Process attributes with high values
-	}
+	UFUNCTION() private void ProcessHighValue(FCk_Handle InHandle, FInstancedStruct InOptionalPayload) { }
 
 	UFUNCTION()
-	private void
-    FilterHighValue(
-        FCk_Handle InHandle,
-        FCk_SharedBool OutResult,
-        FInstancedStruct InOptionalPayload)
+	private void FilterHighValue(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InOptionalPayload)
 	{
 		auto Attr = InHandle.As_FloatAttribute();
 		auto Value = utils_float_attribute::Get_FinalValue(Attr);
-        auto Res = OutResult;
+		auto Res = OutResult;
 		Res.Set(Value > 100.0f);
 	}
 
-	void
-	Request_ClearCombatBatch()
+	void Request_ClearCombatBatch()
 	{
-		for (auto Attribute : CombatAttributes)
-		{
-			AllAttributes.Remove(Attribute);
-		}
+		for (auto Attribute : CombatAttributes) { AllAttributes.Remove(Attribute); }
 		CombatAttributes.Empty();
 	}
 
-	void
-	Request_UpdateDisplay()
+	void Request_UpdateDisplay()
 	{
 		auto SelfEntity = ck::ToEntity(this);
 		auto TitleText = "FLOAT MULTIPLE (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
-		auto DisplayText = f"Cycle Step: {CycleStep}/6 | Changes: {ValueChangeCount}\n";
-		DisplayText = f"{DisplayText}Total Attributes: {AllAttributes.Num()}\n\n";
+		auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
+
+		DisplayText = f"{DisplayText}Changes: {ValueChangeCount} | Total: {AllAttributes.Num()}\n\n";
 
 		DisplayText = f"{DisplayText}RPG ATTRIBUTES ({RPGAttributes.Num()}):\n";
 		for (auto Attribute : RPGAttributes)
@@ -285,55 +233,35 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_EntityScript_UE
 			}
 		}
 
-		DisplayText = f"{DisplayText}\nAUTOMATION: " + Get_CurrentPhaseText();
-
-		auto Instructions = "Creates multiple attributes in batches and demonstrates ForEach iteration patterns.\n"
-            + "Shows batch operations, name-based lookups, and simultaneous value updates\n"
-            + "across attribute collections with fractional values.";
-
-		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);
+		DisplayText = DisplayText + "\n" + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
+		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, "");
 	}
 
-	FString
-	Get_CurrentPhaseText()
+	UFUNCTION() void OnValueChanged(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload) { ValueChangeCount++; }
+
+	UFUNCTION()
+	private void OnManualAddBatch(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		switch (CycleStep)
-		{
-			case 0: return "Idle - RPG Batch Created";
-			case 1: return "Adding Combat Batch";
-			case 2: return "Testing ForEach Operations";
-			case 3: return "Testing Name-Based Lookup";
-			case 4: return "Batch Value Updates";
-			case 5: return "Testing Iteration Filtering";
-			case 6: return "Clearing Combat Batch";
-			default: return "Unknown Phase";
-		}
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		Request_AddCombatBatch();
 	}
 
 	UFUNCTION()
-	void
-	OnValueChanged(
-		FCk_Handle InAttributeOwnerEntity,
-		FCk_Payload_FloatAttribute_OnValueChanged InPayload)
+	private void OnManualClearBatch(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		ValueChangeCount++;
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		Request_ClearCombatBatch();
 	}
 
 	UFUNCTION()
-	private void
-	OnResetAttributes(
-		FCk_Handle InHandle,
-		FGameplayTag InMessageName,
-		FInstancedStruct InPayload)
+	private void OnResetAttributes(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		CycleStep = 0;
+		AutoStep = 0;
 		ValueChangeCount = 0;
 		TotalAttributes = 0;
-
 		AllAttributes.Empty();
 		RPGAttributes.Empty();
 		CombatAttributes.Empty();
-
 		Request_CreateInitialBatch(InHandle);
 		Request_BindSignals(InHandle);
 	}

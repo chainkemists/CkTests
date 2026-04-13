@@ -11,11 +11,13 @@ class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_EntityScript_UE
 
 	FCk_Handle_FloatAttribute PowerLevelAttribute;
 
+	FCk_Handle_Timer AutoTimer;
+	bool AutoRunning = true;
+	int32 AutoStep = 0;
+	FCkGym_AutoConfig AutoConfig;
 	int32 MinChangeCount = 0;
 	int32 MaxChangeCount = 0;
 	int32 CurrentChangeCount = 0;
-
-	int32 CycleStep = 0;
 
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow
@@ -25,7 +27,27 @@ class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
 		utils_entity_tag::Add(InHandle, n"TAG_AttributeGym_FloatMinMaxCurrent");
 
-		Request_SetupTimers(InHandle);
+		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
+
+		AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(3.0f));
+
+		AutoConfig.TotalSteps = 6;
+		AutoConfig.Description = "Tests individual Min/Max/Current component manipulation.\nShows component presence detection and separate change counters.";
+		AutoConfig.GlobalAutoCommand = "Ck_GymFloat_Auto [0/1]";
+		AutoConfig.PerStationAutoCommand = "Ck_GymFloat_AutoMinMaxCurrent";
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Modify Min component (10 -> 25.5)", 0, 0));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Modify Max component (200 -> 175.75)", 1, 1));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Modify Current component (100 -> 142.3)", 2, 2));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Test component detection", 3, 3));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Test value retrieval", 4, 4));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset to defaults", 5, 5));
+		AutoConfig.ManualCommands.Add("Ck_GymFloat_SetMin [val]");
+		AutoConfig.ManualCommands.Add("Ck_GymFloat_SetMax [val]");
+		AutoConfig.ManualCommands.Add("Ck_GymFloat_SetCurrent [val]");
+
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
 
@@ -39,28 +61,14 @@ class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_EntityScript_UE
 
 		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes,
 			FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
-	}
-
-	void
-	Request_SetupTimers(
-		FCk_Handle InHandle)
-	{
-		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
-		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
-
-		auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.0f));
-		AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-		AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_FloatGym_SetValue,
+			FCk_Delegate_Messaging_OnBroadcast(this, n"OnSetValue"));
 	}
 
 	void
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		// PowerLevel: Min=10.0, Max=200.0, Current=100.0
 		auto PowerParams = FCk_Fragment_FloatAttribute_ParamsData(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.PowerLevel"), 100.0f);
 		PowerParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(10.0f).Set_MaxValue(200.0f);
@@ -71,25 +79,15 @@ class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_EntityScript_UE
 	Request_BindSignals(
 		FCk_Handle InHandle)
 	{
-		auto MinDelegate = FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnMinChanged");
-		utils_float_attribute::BindTo_OnValueChanged(PowerLevelAttribute, ECk_MinMaxCurrent::Min, MinDelegate);
-
-		auto MaxDelegate = FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnMaxChanged");
-		utils_float_attribute::BindTo_OnValueChanged(PowerLevelAttribute, ECk_MinMaxCurrent::Max, MaxDelegate);
-
-		auto CurrentDelegate = FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnCurrentChanged");
-		utils_float_attribute::BindTo_OnValueChanged(PowerLevelAttribute, ECk_MinMaxCurrent::Current, CurrentDelegate);
+		utils_float_attribute::BindTo_OnValueChanged(PowerLevelAttribute, ECk_MinMaxCurrent::Min,
+			FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnMinChanged"));
+		utils_float_attribute::BindTo_OnValueChanged(PowerLevelAttribute, ECk_MinMaxCurrent::Max,
+			FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnMaxChanged"));
+		utils_float_attribute::BindTo_OnValueChanged(PowerLevelAttribute, ECk_MinMaxCurrent::Current,
+			FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnCurrentChanged"));
 	}
 
-	UFUNCTION()
-	private void
-	DisplayTick(
-		FCk_Handle_Timer InHandle,
-		FCk_Chrono InChrono,
-		FCk_Time InDeltaT)
-	{
-		Request_UpdateDisplay();
-	}
+	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT) { Request_UpdateDisplay(); }
 
 	UFUNCTION()
 	private void
@@ -98,64 +96,27 @@ class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_EntityScript_UE
 		FCk_Chrono InChrono,
 		FCk_Time InDeltaT)
 	{
-		Request_ExecuteAutomationStep();
-	}
+		auto Step = AutoStep % AutoConfig.TotalSteps;
 
-	void
-	Request_ExecuteAutomationStep()
-	{
-		CycleStep++;
-
-		switch (CycleStep)
+		if (Step == 0) { utils_float_attribute::Request_Override(PowerLevelAttribute, 25.5f, ECk_MinMaxCurrent::Min); }
+		else if (Step == 1) { utils_float_attribute::Request_Override(PowerLevelAttribute, 175.75f, ECk_MinMaxCurrent::Max); }
+		else if (Step == 2) { utils_float_attribute::Request_Override(PowerLevelAttribute, 142.3f, ECk_MinMaxCurrent::Current); }
+		else if (Step == 3) { /* component detection shown in display */ }
+		else if (Step == 4) { /* value retrieval shown in display */ }
+		else if (Step == 5)
 		{
-			case 1: Request_ModifyMin(); break;
-			case 2: Request_ModifyMax(); break;
-			case 3: Request_ModifyCurrent(); break;
-			case 4: Request_TestComponentDetection(); break;
-			case 5: Request_TestValueRetrieval(); break;
-			case 6: Request_ResetToDefaults(); break;
-			default:
-				CycleStep = 0;
-				break;
+			utils_float_attribute::Request_Override(PowerLevelAttribute, 10.0f, ECk_MinMaxCurrent::Min);
+			utils_float_attribute::Request_Override(PowerLevelAttribute, 200.0f, ECk_MinMaxCurrent::Max);
+			utils_float_attribute::Request_Override(PowerLevelAttribute, 100.0f, ECk_MinMaxCurrent::Current);
 		}
+
+		AutoStep++;
 	}
 
-	void
-	Request_ModifyMin()
+	UFUNCTION()
+	private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		utils_float_attribute::Request_Override(PowerLevelAttribute, 25.5f, ECk_MinMaxCurrent::Min);
-	}
-
-	void
-	Request_ModifyMax()
-	{
-		utils_float_attribute::Request_Override(PowerLevelAttribute, 175.75f, ECk_MinMaxCurrent::Max);
-	}
-
-	void
-	Request_ModifyCurrent()
-	{
-		utils_float_attribute::Request_Override(PowerLevelAttribute, 142.3f, ECk_MinMaxCurrent::Current);
-	}
-
-	void
-	Request_TestComponentDetection()
-	{
-		// Component presence displayed in display update
-	}
-
-	void
-	Request_TestValueRetrieval()
-	{
-		// All value retrieval shown in display update
-	}
-
-	void
-	Request_ResetToDefaults()
-	{
-		utils_float_attribute::Request_Override(PowerLevelAttribute, 10.0f, ECk_MinMaxCurrent::Min);
-		utils_float_attribute::Request_Override(PowerLevelAttribute, 200.0f, ECk_MinMaxCurrent::Max);
-		utils_float_attribute::Request_Override(PowerLevelAttribute, 100.0f, ECk_MinMaxCurrent::Current);
+		gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
 	}
 
 	void
@@ -163,12 +124,11 @@ class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_EntityScript_UE
 	{
 		auto SelfEntity = ck::ToEntity(this);
 		auto TitleText = "FLOAT MIN/MAX/CURRENT (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
-		auto DisplayText = f"Cycle Step: {CycleStep}/6\n";
+		auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 
 		DisplayText = f"{DisplayText}Min Changes: {MinChangeCount} | Max Changes: {MaxChangeCount}\n";
 		DisplayText = f"{DisplayText}Current Changes: {CurrentChangeCount}\n\n";
 
-		// Component presence detection
 		auto HasMin = utils_float_attribute::Has_Component(PowerLevelAttribute, ECk_MinMaxCurrent::Min);
 		auto HasMax = utils_float_attribute::Has_Component(PowerLevelAttribute, ECk_MinMaxCurrent::Max);
 		auto HasCurrent = utils_float_attribute::Has_Component(PowerLevelAttribute, ECk_MinMaxCurrent::Current);
@@ -178,7 +138,6 @@ class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}  Max: " + (HasMax ? "YES" : "NO") + "\n";
 		DisplayText = f"{DisplayText}  Current: " + (HasCurrent ? "YES" : "NO") + "\n\n";
 
-		// Value retrieval for each component
 		auto MinValue = utils_float_attribute::Get_BaseValue(PowerLevelAttribute, ECk_MinMaxCurrent::Min);
 		auto MaxValue = utils_float_attribute::Get_BaseValue(PowerLevelAttribute, ECk_MinMaxCurrent::Max);
 		auto CurrentBase = utils_float_attribute::Get_BaseValue(PowerLevelAttribute, ECk_MinMaxCurrent::Current);
@@ -192,74 +151,32 @@ class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}  Current Bonus: {CurrentBonus}\n";
 		DisplayText = f"{DisplayText}  Current Final: {CurrentFinal}\n\n";
 
-		// Visual representation
 		auto Range = MaxValue - MinValue;
 		auto BarValue = (Range > 0.0f) ? (CurrentFinal - MinValue) : 0.0f;
 		auto PowerBar = CkGym_Attribute::Create_ProgressBar(BarValue, Range, 25);
 		DisplayText = f"{DisplayText}[{PowerBar}]\n";
 		DisplayText = f"{DisplayText}  {MinValue} <--- {CurrentFinal} ---> {MaxValue}\n\n";
 
-		auto PhaseText = Get_CurrentPhaseText();
-		DisplayText = f"{DisplayText}AUTOMATION: {PhaseText}";
-
-		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText,
-            "Tests individual component manipulation (Min/Max/Current).\n" +
-            "Shows component presence detection and separate change counters.\n" +
-            "Progress bar displays current value within min-max range.\n" +
-            "6-step automation cycle modifies each component with fractional values.");
-	}
-
-	FString
-	Get_CurrentPhaseText()
-	{
-		switch (CycleStep)
-		{
-			case 0: return "Idle";
-			case 1: return "Modifying Min Component";
-			case 2: return "Modifying Max Component";
-			case 3: return "Modifying Current Component";
-			case 4: return "Testing Component Detection";
-			case 5: return "Testing Value Retrieval";
-			case 6: return "Resetting to Defaults";
-			default: return "Unknown Phase";
-		}
+		DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
+		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, "");
 	}
 
 	UFUNCTION()
-	void
-	OnMinChanged(
-		FCk_Handle InAttributeOwnerEntity,
-		FCk_Payload_FloatAttribute_OnValueChanged InPayload)
+	private void OnSetValue(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		MinChangeCount++;
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		auto Typed = InPayload.Get(FCk_Message_FloatGym_SetValue);
+		utils_float_attribute::Request_Override(PowerLevelAttribute, Typed.Value, Typed.Component);
 	}
 
-	UFUNCTION()
-	void
-	OnMaxChanged(
-		FCk_Handle InAttributeOwnerEntity,
-		FCk_Payload_FloatAttribute_OnValueChanged InPayload)
-	{
-		MaxChangeCount++;
-	}
+	UFUNCTION() void OnMinChanged(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload) { MinChangeCount++; }
+	UFUNCTION() void OnMaxChanged(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload) { MaxChangeCount++; }
+	UFUNCTION() void OnCurrentChanged(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload) { CurrentChangeCount++; }
 
 	UFUNCTION()
-	void
-	OnCurrentChanged(
-		FCk_Handle InAttributeOwnerEntity,
-		FCk_Payload_FloatAttribute_OnValueChanged InPayload)
+	private void OnResetAttributes(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		CurrentChangeCount++;
-	}
-
-	UFUNCTION()
-	private void
-	OnResetAttributes(
-		FCk_Handle InHandle,
-		FGameplayTag InMessageName,
-		FInstancedStruct InPayload)
-	{
-		CycleStep = 0;
+		AutoStep = 0;
 		MinChangeCount = 0;
 		MaxChangeCount = 0;
 		CurrentChangeCount = 0;
