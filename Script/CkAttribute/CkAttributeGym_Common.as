@@ -90,20 +90,6 @@ struct FCk_Message_AttributeGym_SetVelocity
 //--------------------------------------------------------------------------------------------------------------------------
 
 USTRUCT()
-struct FCk_Message_AttributeGym_AutoSet
-{
-    UPROPERTY()
-    bool Enabled;
-
-    FCk_Message_AttributeGym_AutoSet(bool InEnabled = true)
-    {
-        Enabled = InEnabled;
-    }
-};
-
-//--------------------------------------------------------------------------------------------------------------------------
-
-USTRUCT()
 struct FCk_Message_FloatGym_ToggleRefill
 {
 };
