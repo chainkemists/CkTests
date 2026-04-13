@@ -671,6 +671,66 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 // - Step count must balance adds and removes — count carefully or items accumulate
 // - Each auto step should perform the same operation a user could do manually
 //
+// MANUAL COMMAND DESIGN:
+// Every station should have manual console commands that let the user
+// interact directly with the feature being tested. The principle:
+//
+//   If the auto cycle does it, the user should be able to do it too.
+//
+// This means:
+// 1. Each distinct operation in the auto cycle maps to a console command.
+//    If auto does "add modifier" and "clear modifiers", expose both as
+//    Ck_GymMyFeature_AddModifier and Ck_GymMyFeature_ClearModifiers.
+//
+// 2. Parameterized commands are valuable. If a station manipulates a
+//    numeric value, accept it as a parameter with a sensible default:
+//      UFUNCTION(Exec) void Ck_GymMyFeature_SetValue(float InValue = 100.0f)
+//    This lets users experiment beyond what the auto cycle shows.
+//
+// 3. Every manual handler MUST call gym_auto::StopAuto() first:
+//      gym_auto::StopAuto(AutoTimer, AutoRunning);
+//    This switches the station to [MANUAL] so the user's action isn't
+//    immediately overwritten by the next auto tick.
+//
+// 4. Commands are listed on the station display via AutoConfig.ManualCommands.
+//    Include the parameter hint in the string:
+//      AutoConfig.ManualCommands.Add("Ck_GymMyFeature_SetValue [val]");
+//
+// 5. Use dedicated USTRUCT messages for each command. Define them in the
+//    gym's Common.as file. Parameterized commands carry data in the struct:
+//      USTRUCT() struct FCk_Message_MyGym_SetValue { float32 Value; ... };
+//    Parameterless commands use empty structs.
+//
+// 6. Entity scripts bind messages in DoBeginPlay and define handler UFUNCTIONs.
+//    PlayerController defines UFUNCTION(Exec) commands that broadcast the
+//    message to the appropriate entity tag.
+//
+// EXAMPLE — per-station command flow:
+//
+//   // Common.as — message definition
+//   USTRUCT() struct FCk_Message_MyGym_SetValue { float32 Value; };
+//
+//   // Entity script — bind in DoBeginPlay
+//   utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_MyGym_SetValue,
+//       FCk_Delegate_Messaging_OnBroadcast(this, n"OnSetValue"));
+//
+//   // Entity script — handler
+//   UFUNCTION()
+//   private void OnSetValue(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
+//   {
+//       gym_auto::StopAuto(AutoTimer, AutoRunning);
+//       auto Typed = InPayload.Get(FCk_Message_MyGym_SetValue);
+//       // ... apply Typed.Value ...
+//   }
+//
+//   // PlayerController — console command
+//   UFUNCTION(Exec, DisplayName="My Gym - Set Value")
+//   void Ck_GymMyFeature_SetValue(float InValue = 100.0f)
+//   {
+//       for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_MyStation"))
+//       { utils_messaging::Broadcast(E, FCk_Message_MyGym_SetValue(InValue)); }
+//   }
+//
 // STATION DESCRIPTION PERSISTENCE:
 // The station's initial Description (set in Get_RequiredStations) is overwritten
 // on the first DisplayStats tick. To keep it visible, set AutoConfig.Description
