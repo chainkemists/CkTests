@@ -22,7 +22,8 @@ class UCk_EntityScript_InteractionGym_DataBundle : UCk_EntityScript_UE
     bool AllPhasesComplete = false;
     bool AutoRunning = true;
     int32 AutoStep = 0;
-    int32 AUTO_TOTAL_STEPS = 1;
+
+    FCkGym_AutoConfig AutoConfig;
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -47,24 +48,23 @@ class UCk_EntityScript_InteractionGym_DataBundle : UCk_EntityScript_UE
         ResolverTargetHandle = utils_resolver_target::Add(InHandle, TargetParams);
 
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InteractionGym_InitiateResolution, FCk_Delegate_Messaging_OnBroadcast(this, n"OnInitiateResolution"));
-        utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InteractionGym_AutoSet, FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
 
-        // Auto timer (2s interval)
-        auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.0f));
-        AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-        AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-        AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
-
-        // Display timer
         auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
+        AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(2.0f));
+
+        AutoConfig.TotalSteps = 1;
+        AutoConfig.Description = "ResolverSource + ResolverTarget with 2 phases.\nCalculate (base+bonus), Apply (multiplier).";
+        AutoConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
+        AutoConfig.PerStationAutoCommand = "Ck_GymInteraction_AutoDataBundle";
+        AutoConfig.Steps.Add(FCkGym_AutoStep("Initiate resolution", 0, 0));
+        AutoConfig.ManualCommands.Add("Ck_GymInteraction_InitiateResolution");
+
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
-
-    void StopAuto() { if (AutoRunning) { AutoRunning = false; utils_timer::Request_Pause(AutoTimer); } }
 
     void Request_InitiateResolution()
     {
@@ -98,21 +98,18 @@ class UCk_EntityScript_InteractionGym_DataBundle : UCk_EntityScript_UE
     private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (!AutoRunning) { return; }
-        auto Step = AutoStep % AUTO_TOTAL_STEPS;
+        auto Step = AutoStep % AutoConfig.TotalSteps;
         if (Step == 0) { Request_InitiateResolution(); }
         AutoStep++;
     }
 
     UFUNCTION()
-    private void OnInitiateResolution(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { StopAuto(); Request_InitiateResolution(); }
+    private void OnInitiateResolution(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); Request_InitiateResolution(); }
 
     UFUNCTION()
     private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        auto Msg = InPayload.Get(FCk_Message_InteractionGym_AutoSet);
-        AutoRunning = Msg.Enabled;
-        if (AutoRunning) { utils_timer::Request_Resume(AutoTimer); }
-        else { utils_timer::Request_Pause(AutoTimer); }
+        gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
     }
 
     UFUNCTION()
@@ -167,24 +164,20 @@ class UCk_EntityScript_InteractionGym_DataBundle : UCk_EntityScript_UE
     private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         auto SelfEntity = ck::ToEntity(this);
-        auto StepMarker = AutoRunning ? (AutoStep % AUTO_TOTAL_STEPS) : -1;
         auto CompleteStr = AllPhasesComplete ? "Yes" : "No";
 
-        auto DisplayText = "";
-        DisplayText = DisplayText + interaction_gym_helpers::AutoStatusLine(AutoRunning) + "\n";
-        DisplayText = f"{DisplayText}ResolverSource + ResolverTarget with 2 phases.\n\n";
+        auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
         DisplayText = f"{DisplayText}===== Resolution Stats =====\n";
         DisplayText = f"{DisplayText}Resolutions: {ResolutionCount}\n";
         DisplayText = f"{DisplayText}Phase: {CurrentPhase}\n";
         DisplayText = f"{DisplayText}Phases Done: {PhasesCompleted}  All Complete: {CompleteStr}\n";
         DisplayText = f"{DisplayText}Final Value: {LastFinalValue}\n\n";
-        DisplayText = f"{DisplayText}===== Auto Sequence =====\n";
-        DisplayText = DisplayText + interaction_gym_helpers::StepPrefix(StepMarker, 0) + " Initiate resolution\n\n";
-        DisplayText = f"{DisplayText}===== Commands =====\n";
-        DisplayText = f"{DisplayText}Ck_GymInteraction_InitiateResolution\n";
-        DisplayText = f"{DisplayText}Ck_GymInteraction_AutoOn / AutoOff\n";
-        DisplayText = f"{DisplayText}Ck_GymInteraction_AutoDataBundle\n";
+        DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
 
-        CkGym_Common::Update_StationDisplay(SelfEntity, "RESOLVER DATA BUNDLE", DisplayText, "");
+        auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
+        auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
+        auto ModeStr = AutoRunning ? "[AUTO]" : "[MANUAL]";
+        Fragment.Title = FText::FromString(f"RESOLVER DATA BUNDLE {ModeStr}");
+        Fragment.Description = FText::FromString(DisplayText);
     }
 }
