@@ -205,6 +205,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void BroadcastAutoToAll(bool InEnabled)
     {
+        auto Msg = FCk_Message_Gym_AutoSet(InEnabled);
         auto AllTags = TArray<FName>();
         AllTags.Add(n"TAG_InteractionGym_Instant");
         AllTags.Add(n"TAG_InteractionGym_TimedTarget");
@@ -215,8 +216,14 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
 
         for (auto Tag : AllTags)
         {
-            BroadcastToTag(Tag, FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(InEnabled)));
+            BroadcastToTag(Tag, FInstancedStruct::Make(Msg));
         }
+    }
+
+    void BroadcastAutoToTag(FName InTag, bool InEnabled)
+    {
+        auto Msg = FCk_Message_Gym_AutoSet(InEnabled);
+        BroadcastToTag(InTag, FInstancedStruct::Make(Msg));
     }
 
     //------------------------------------------------------------------------
@@ -331,51 +338,45 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
     // AUTO MODE COMMANDS
     //------------------------------------------------------------------------
 
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto On")
-    void Ck_GymInteraction_AutoOn()
+    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto All")
+    void Ck_GymInteraction_Auto(int32 InEnabled = 1)
     {
-        BroadcastAutoToAll(true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Off")
-    void Ck_GymInteraction_AutoOff()
-    {
-        BroadcastAutoToAll(false);
+        BroadcastAutoToAll(InEnabled != 0);
     }
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Instant")
     void Ck_GymInteraction_AutoInstant()
     {
-        BroadcastToTag(n"TAG_InteractionGym_Instant", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+        BroadcastAutoToTag(n"TAG_InteractionGym_Instant", true);
     }
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Timed")
     void Ck_GymInteraction_AutoTimed()
     {
-        BroadcastToTag(n"TAG_InteractionGym_TimedTarget", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+        BroadcastAutoToTag(n"TAG_InteractionGym_TimedTarget", true);
     }
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Manual")
     void Ck_GymInteraction_AutoManual()
     {
-        BroadcastToTag(n"TAG_InteractionGym_Manual", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+        BroadcastAutoToTag(n"TAG_InteractionGym_Manual", true);
     }
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Validation")
     void Ck_GymInteraction_AutoValidation()
     {
-        BroadcastToTag(n"TAG_InteractionGym_Validation", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+        BroadcastAutoToTag(n"TAG_InteractionGym_Validation", true);
     }
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Auto Resolver")
     void Ck_GymInteraction_AutoResolver()
     {
-        BroadcastToTag(n"TAG_InteractionGym_ResolverSource", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+        BroadcastAutoToTag(n"TAG_InteractionGym_ResolverSource", true);
     }
 
     UFUNCTION(Exec, DisplayName="Interaction Gym - Auto DataBundle")
     void Ck_GymInteraction_AutoDataBundle()
     {
-        BroadcastToTag(n"TAG_InteractionGym_DataBundle", FInstancedStruct::Make(FCk_Message_InteractionGym_AutoSet(true)));
+        BroadcastAutoToTag(n"TAG_InteractionGym_DataBundle", true);
     }
 }

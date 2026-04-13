@@ -34,19 +34,8 @@ struct FInteractionGymSpawnParams
 }
 
 //============================================================================
-// MESSAGE TYPES
+// MESSAGE TYPES (station-specific; auto on/off uses FCk_Message_Gym_AutoSet)
 //============================================================================
-
-// Auto mode (shared by all stations)
-USTRUCT()
-struct FCk_Message_InteractionGym_AutoSet
-{
-    UPROPERTY()
-    bool Enabled = true;
-
-    FCk_Message_InteractionGym_AutoSet() {}
-    FCk_Message_InteractionGym_AutoSet(bool InEnabled) { Enabled = InEnabled; }
-}
 
 // Station 1: Instant
 USTRUCT()
@@ -157,19 +146,5 @@ namespace interaction_gym_helpers
     FGameplayTag UseIntent()
     {
         return utils_gameplay_tag::ResolveGameplayTag(n"InteractionIntent.InteractionGym.Use");
-    }
-
-    FString AutoStatusLine(bool AutoRunning)
-    {
-        if (AutoRunning)
-        {
-            return "[AUTO] Running";
-        }
-        return "[MANUAL]";
-    }
-
-    FString StepPrefix(int32 StepMarker, int32 Step)
-    {
-        return (StepMarker == Step) ? ">>" : "  ";
     }
 }
