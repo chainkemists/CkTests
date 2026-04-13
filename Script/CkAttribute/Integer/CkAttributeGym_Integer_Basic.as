@@ -18,6 +18,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 	FCk_Handle_Timer AutoTimer;
 	bool AutoRunning = true;
 	int32 AutoStep = 0;
+	FCkGym_AutoConfig AutoConfig;
 
 	// Signal counters
 	int32 HealthChangeCount = 0;
@@ -34,7 +35,30 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
 		utils_entity_tag::Add(InHandle, n"TAG_IntegerGym_Basic");
 
-		Request_SetupTimers(InHandle);
+		// Display timer (every frame)
+		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
+
+		// Auto timer (2s cycle)
+		AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(2.0f));
+
+		// Auto config
+		AutoConfig.TotalSteps = 6;
+		AutoConfig.Description = "Tests integer attributes: Health (0-100), Armor (0-50), Experience (0+).";
+		AutoConfig.GlobalAutoCommand = "Ck_GymInteger_Auto [0/1]";
+		AutoConfig.PerStationAutoCommand = "Ck_GymInteger_AutoBasic";
+		AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 50, SetArmor 25, SetExperience 500", 0, 0));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 95, SetArmor 45, SetExperience 2000", 1, 1));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("TestBoundaries (push past max)", 2, 2));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth 10, SetArmor 5, SetExperience 100", 3, 3));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("SetHealth -10, SetArmor -5 (push past min)", 4, 4));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("ResetToDefaults", 5, 5));
+		AutoConfig.ManualCommands.Add("Ck_GymInteger_SetHealth [value]");
+		AutoConfig.ManualCommands.Add("Ck_GymInteger_SetArmor [value]");
+		AutoConfig.ManualCommands.Add("Ck_GymInteger_SetExperience [value]");
+		AutoConfig.ManualCommands.Add("Ck_GymInteger_ResetAll");
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
@@ -45,21 +69,6 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 		Request_SetupAttributes(InHandle);
 		Request_BindSignals();
 		Request_BindMessages(InHandle);
-	}
-
-	void Request_SetupTimers(FCk_Handle InHandle)
-	{
-		// Display timer (every frame)
-		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
-		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
-
-		// Auto timer (2s cycle)
-		auto AutoTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.0f));
-		AutoTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		AutoTimer = utils_timer::Add(InHandle, AutoTimerParams);
-		AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"AutoTick"));
 	}
 
 	void Request_SetupAttributes(FCk_Handle InHandle)
@@ -111,8 +120,6 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 			FCk_Delegate_Messaging_OnBroadcast(this, n"OnSetExperience"));
 		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_ResetAttributes,
 			FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
-		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_AutoSet,
-			FCk_Delegate_Messaging_OnBroadcast(this, n"OnAutoSet"));
 	}
 
 	//------------------------------------------------------------------------
@@ -144,7 +151,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 	UFUNCTION()
 	private void OnSetHealth(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		StopAuto();
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
 		auto Typed = InPayload.Get(FCk_Message_IntegerGym_SetHealth);
 		utils_integer_attribute::Request_Override(HealthAttribute, Typed.Value);
 	}
@@ -152,7 +159,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 	UFUNCTION()
 	private void OnSetArmor(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		StopAuto();
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
 		auto Typed = InPayload.Get(FCk_Message_IntegerGym_SetArmor);
 		utils_integer_attribute::Request_Override(ArmorAttribute, Typed.Value);
 	}
@@ -160,7 +167,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 	UFUNCTION()
 	private void OnSetExperience(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		StopAuto();
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
 		auto Typed = InPayload.Get(FCk_Message_IntegerGym_SetExperience);
 		utils_integer_attribute::Request_Override(ExperienceAttribute, Typed.Value);
 	}
@@ -183,30 +190,17 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 	UFUNCTION()
 	private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		auto Typed = InPayload.Get(FCk_Message_AttributeGym_AutoSet);
-		AutoRunning = Typed.Enabled;
-		if (AutoRunning) { utils_timer::Request_Resume(AutoTimer); }
-		else { utils_timer::Request_Pause(AutoTimer); }
+		gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
 	}
 
 	//------------------------------------------------------------------------
 	// Auto Mode
 	//------------------------------------------------------------------------
 
-	void StopAuto()
-	{
-		if (AutoRunning) { AutoRunning = false; utils_timer::Request_Pause(AutoTimer); }
-	}
-
 	UFUNCTION()
 	private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
-		Request_ExecuteAutomationStep();
-	}
-
-	void Request_ExecuteAutomationStep()
-	{
-		auto Step = AutoStep % 6;
+		auto Step = AutoStep % AutoConfig.TotalSteps;
 		AutoStep++;
 
 		switch (Step)
@@ -282,12 +276,9 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 	{
 		auto SelfEntity = ck::ToEntity(this);
 		auto NetworkRole = CkGym_Common::Get_NetworkRoleTitle(SelfEntity);
-		auto ModeStr = AutoRunning ? "[AUTO]" : "[MANUAL]";
-		auto TitleText = "INTEGER BASIC (" + NetworkRole + ") " + ModeStr;
+		auto TitleText = "INTEGER BASIC (" + NetworkRole + ")";
 
-		auto DisplayText = "";
-		DisplayText = DisplayText + (AutoRunning ? "[AUTO] Running" : "[MANUAL]") + "\n";
-		DisplayText = DisplayText + "Tests integer attributes: Health (0-100), Armor (0-50), Experience (0+).\n\n";
+		auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 
 		// Attribute values
 		DisplayText = DisplayText + "===== Attribute Values =====\n";
@@ -306,25 +297,9 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}Experience: {XPValue} (no max)\n\n";
 
 		auto TotalChanges = HealthChangeCount + ArmorChangeCount + ExperienceChangeCount;
-		DisplayText = f"{DisplayText}Changes: {TotalChanges} (H:{HealthChangeCount} A:{ArmorChangeCount} XP:{ExperienceChangeCount})\n\n";
+		DisplayText = f"{DisplayText}Changes: {TotalChanges} (H:{HealthChangeCount} A:{ArmorChangeCount} XP:{ExperienceChangeCount})\n";
 
-		// Auto sequence — each step maps to a real command
-		DisplayText = DisplayText + "===== Auto Sequence =====\n";
-		auto CurrentStep = AutoStep % 6;
-		DisplayText = DisplayText + (CurrentStep == 0 ? ">> " : "   ") + "SetHealth 50, SetArmor 25, SetExperience 500\n";
-		DisplayText = DisplayText + (CurrentStep == 1 ? ">> " : "   ") + "SetHealth 95, SetArmor 45, SetExperience 2000\n";
-		DisplayText = DisplayText + (CurrentStep == 2 ? ">> " : "   ") + "TestBoundaries (push past max)\n";
-		DisplayText = DisplayText + (CurrentStep == 3 ? ">> " : "   ") + "SetHealth 10, SetArmor 5, SetExperience 100\n";
-		DisplayText = DisplayText + (CurrentStep == 4 ? ">> " : "   ") + "SetHealth -10, SetArmor -5 (push past min)\n";
-		DisplayText = DisplayText + (CurrentStep == 5 ? ">> " : "   ") + "ResetToDefaults\n\n";
-
-		// Commands
-		DisplayText = DisplayText + "===== Commands =====\n";
-		DisplayText = DisplayText + "Ck_GymInteger_SetHealth [value]\n";
-		DisplayText = DisplayText + "Ck_GymInteger_SetArmor [value]\n";
-		DisplayText = DisplayText + "Ck_GymInteger_SetExperience [value]\n";
-		DisplayText = DisplayText + "Ck_GymInteger_ResetAll\n";
-		DisplayText = DisplayText + "Ck_GymInteger_AutoOn / AutoOff";
+		DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
 
 		auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
 		auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
