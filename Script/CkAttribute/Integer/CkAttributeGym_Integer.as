@@ -13,7 +13,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 			auto Station = FCkGym_Station_SpawnParams_Payload();
 			Station.Tags.Add(n"Gym.Attribute.IntegerBasic");
 			Station.Title = FText::FromString("INTEGER BASIC ATTRIBUTES");
-			Station.Height = 8.0f;
+			Station.Height = gym_auto::EstimateStationHeight(6, 4, 14);
 			auto Description = TArray<FText>();
 			Description.Add(FText::FromString("Tests integer attributes: Health (0-100), Armor (0-50), Experience (0+)."));
 			Description.Add(FText::FromString("Auto-cycles through 6 phases every 2s."));
@@ -27,7 +27,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 			auto Station = FCkGym_Station_SpawnParams_Payload();
 			Station.Tags.Add(n"Gym.Attribute.IntegerMinMaxCurrent");
 			Station.Title = FText::FromString("INTEGER MIN/MAX/CURRENT");
-			Station.Height = 8.0f;
+			Station.Height = gym_auto::EstimateStationHeight(6, 3, 16);
 			auto Description = TArray<FText>();
 			Description.Add(FText::FromString("Displays all three attribute components independently."));
 			Description.Add(FText::FromString("Shows how Min, Max, and Current values interact and update."));
@@ -40,7 +40,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 			auto Station = FCkGym_Station_SpawnParams_Payload();
 			Station.Tags.Add(n"Gym.Attribute.IntegerModifiers");
 			Station.Title = FText::FromString("INTEGER MODIFIERS");
-			Station.Height = 8.0f;
+			Station.Height = gym_auto::EstimateStationHeight(4, 5, 12);
 			auto Description = TArray<FText>();
 			Description.Add(FText::FromString("Tests attribute modifier system with add/remove operations."));
 			Description.Add(FText::FromString("Demonstrates weapon and buff modifier stacking."));
@@ -54,7 +54,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 			auto Station = FCkGym_Station_SpawnParams_Payload();
 			Station.Tags.Add(n"Gym.Attribute.IntegerClamping");
 			Station.Title = FText::FromString("INTEGER CLAMPING & SIGNALS");
-			Station.Height = 8.0f;
+			Station.Height = gym_auto::EstimateStationHeight(1, 3, 10);
 			auto Description = TArray<FText>();
 			Description.Add(FText::FromString("Tests automatic value clamping and signal callbacks."));
 			Description.Add(FText::FromString("Monitors OnMinClamped, OnMaxClamped events."));
@@ -63,6 +63,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 			Stations.Add(Station);
 		}
 
+		gym_auto::NormalizeStationHeights(Stations);
 		return Stations;
 	}
 
@@ -160,24 +161,87 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 		}
 	}
 
-	UFUNCTION(Exec, DisplayName="Integer Gym - Basic Auto On")
-	void Ck_GymInteger_AutoOn()
+	UFUNCTION(Exec, DisplayName="Integer Gym - Auto")
+	void Ck_GymInteger_Auto(int32 InEnabled = 1)
 	{
-		auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Basic");
-		for (auto Entity : Entities)
+		auto AllTags = TArray<FName>();
+		AllTags.Add(n"TAG_IntegerGym_Basic");
+		AllTags.Add(n"TAG_IntegerGym_MinMaxCurrent");
+		AllTags.Add(n"TAG_IntegerGym_Modifiers");
+		AllTags.Add(n"TAG_IntegerGym_Clamping");
+
+		for (auto Tag : AllTags)
 		{
-			utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_AutoSet(true));
+			auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), Tag);
+			for (auto Entity : Entities)
+			{
+				utils_messaging::Broadcast(Entity, FCk_Message_Gym_AutoSet(InEnabled != 0));
+			}
 		}
 	}
 
-	UFUNCTION(Exec, DisplayName="Integer Gym - Basic Auto Off")
-	void Ck_GymInteger_AutoOff()
+	UFUNCTION(Exec, DisplayName="Integer Gym - Auto Basic")
+	void Ck_GymInteger_AutoBasic()
 	{
 		auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Basic");
-		for (auto Entity : Entities)
-		{
-			utils_messaging::Broadcast(Entity, FCk_Message_AttributeGym_AutoSet(false));
-		}
+		for (auto Entity : Entities) { utils_messaging::Broadcast(Entity, FCk_Message_Gym_AutoSet(true)); }
+	}
+
+	UFUNCTION(Exec, DisplayName="Integer Gym - Auto MinMaxCurrent")
+	void Ck_GymInteger_AutoMinMaxCurrent()
+	{
+		auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_MinMaxCurrent");
+		for (auto Entity : Entities) { utils_messaging::Broadcast(Entity, FCk_Message_Gym_AutoSet(true)); }
+	}
+
+	UFUNCTION(Exec, DisplayName="Integer Gym - Auto Modifiers")
+	void Ck_GymInteger_AutoModifiers()
+	{
+		auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Modifiers");
+		for (auto Entity : Entities) { utils_messaging::Broadcast(Entity, FCk_Message_Gym_AutoSet(true)); }
+	}
+
+	UFUNCTION(Exec, DisplayName="Integer Gym - Auto Clamping")
+	void Ck_GymInteger_AutoClamping()
+	{
+		auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Clamping");
+		for (auto Entity : Entities) { utils_messaging::Broadcast(Entity, FCk_Message_Gym_AutoSet(true)); }
+	}
+
+	//------------------------------------------------------------------------
+	// MINMAXCURRENT STATION COMMANDS
+	//------------------------------------------------------------------------
+
+	UFUNCTION(Exec, DisplayName="Integer Gym - Set Min")
+	void Ck_GymInteger_SetMin(int32 InValue = 20)
+	{
+		for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_MinMaxCurrent"))
+		{ utils_messaging::Broadcast(E, FCk_Message_IntegerGym_SetValue(InValue, ECk_MinMaxCurrent::Min)); }
+	}
+
+	UFUNCTION(Exec, DisplayName="Integer Gym - Set Max")
+	void Ck_GymInteger_SetMax(int32 InValue = 80)
+	{
+		for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_MinMaxCurrent"))
+		{ utils_messaging::Broadcast(E, FCk_Message_IntegerGym_SetValue(InValue, ECk_MinMaxCurrent::Max)); }
+	}
+
+	UFUNCTION(Exec, DisplayName="Integer Gym - Set Current")
+	void Ck_GymInteger_SetCurrent(int32 InValue = 50)
+	{
+		for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_MinMaxCurrent"))
+		{ utils_messaging::Broadcast(E, FCk_Message_IntegerGym_SetValue(InValue, ECk_MinMaxCurrent::Current)); }
+	}
+
+	//------------------------------------------------------------------------
+	// CLAMPING STATION COMMANDS — SetResource
+	//------------------------------------------------------------------------
+
+	UFUNCTION(Exec, DisplayName="Integer Gym - Set Resource")
+	void Ck_GymInteger_SetResource(int32 InValue = 50)
+	{
+		for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_IntegerGym_Clamping"))
+		{ utils_messaging::Broadcast(E, FCk_Message_IntegerGym_SetResource(InValue)); }
 	}
 
 	//------------------------------------------------------------------------

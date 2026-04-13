@@ -11,6 +11,12 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 
 	FCk_Handle_IntegerAttribute ResourceAttribute;
 
+	FCk_Handle_Timer AutoTimer;
+	FCk_Handle_Timer UpdateTimer;
+	bool AutoRunning = true;
+	int32 AutoStep = 0;
+	FCkGym_AutoConfig AutoConfig;
+
 	int32 MinClampCount = 0;
 	int32 MaxClampCount = 0;
 	int32 LastInputValue = 50;
@@ -27,7 +33,31 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
 		utils_entity_tag::Add(InHandle, n"TAG_IntegerGym_Clamping");
 
-		Request_SetupTimers(InHandle);
+		// Display timer
+		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
+
+		// Update timer for continuous value cycling
+		auto UpdateTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.5f));
+		UpdateTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+		UpdateTimer = utils_timer::Add(InHandle, UpdateTimerParams);
+		UpdateTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"UpdateTick"));
+
+		// Auto timer (controls on/off for the cycling)
+		AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(1.5f));
+
+		// Auto config
+		AutoConfig.TotalSteps = 1;
+		AutoConfig.Description = "Auto-cycles values beyond min/max to trigger OnMinClamped and OnMaxClamped.";
+		AutoConfig.GlobalAutoCommand = "Ck_GymInteger_Auto [0/1]";
+		AutoConfig.PerStationAutoCommand = "Ck_GymInteger_AutoClamping";
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Cycling Resource value (0-100 range)", 0, 0));
+		AutoConfig.ManualCommands.Add("Ck_GymInteger_SetResource [val]");
+		AutoConfig.ManualCommands.Add("Ck_GymInteger_TestBoundaries");
+		AutoConfig.ManualCommands.Add("Ck_GymInteger_ResetClamping");
+
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
 
@@ -43,21 +73,8 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 			FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetAttributes"));
 		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_AttributeGym_TestBoundaries,
 			FCk_Delegate_Messaging_OnBroadcast(this, n"OnTestBoundaries"));
-	}
-
-	void
-	Request_SetupTimers(
-		FCk_Handle InHandle)
-	{
-		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
-		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
-		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
-
-		auto UpdateTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.5f));
-		UpdateTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto UpdateTimer = utils_timer::Add(InHandle, UpdateTimerParams);
-		UpdateTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"UpdateTick"));
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_IntegerGym_SetResource,
+			FCk_Delegate_Messaging_OnBroadcast(this, n"OnSetResource"));
 	}
 
 	void
@@ -83,13 +100,29 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 	}
 
 	UFUNCTION()
-	private void
-	UpdateTick(
-		FCk_Handle_Timer InHandle,
-		FCk_Chrono InChrono,
-		FCk_Time InDeltaT)
+	private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
-		Request_AutoUpdateValue();
+		Request_UpdateDisplay();
+	}
+
+	UFUNCTION()
+	private void UpdateTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+	{
+		if (AutoRunning) { Request_AutoUpdateValue(); }
+	}
+
+	UFUNCTION()
+	private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+	{
+		AutoStep++;
+	}
+
+	UFUNCTION()
+	private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
+	{
+		gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
+		if (AutoRunning) { utils_timer::Request_Resume(UpdateTimer); }
+		else { utils_timer::Request_Pause(UpdateTimer); }
 	}
 
 	void Request_AutoUpdateValue()
@@ -97,36 +130,19 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		if (ck::Is_NOT_Valid(ResourceAttribute))
 			return;
 
-		// Cycle value to test clamping
 		if (IsIncreasing)
 		{
 			CurrentTestValue += 20;
-			if (CurrentTestValue >= 120)
-			{
-				IsIncreasing = false;
-			}
+			if (CurrentTestValue >= 120) { IsIncreasing = false; }
 		}
 		else
 		{
 			CurrentTestValue -= 25;
-			if (CurrentTestValue <= -20)
-			{
-				IsIncreasing = true;
-			}
+			if (CurrentTestValue <= -20) { IsIncreasing = true; }
 		}
 
 		LastInputValue = CurrentTestValue;
 		utils_integer_attribute::Request_Override(ResourceAttribute, CurrentTestValue);
-	}
-
-	UFUNCTION()
-	private void
-	DisplayTick(
-		FCk_Handle_Timer InHandle,
-		FCk_Chrono InChrono,
-		FCk_Time InDeltaT)
-	{
-		Request_UpdateDisplay();
 	}
 
 	void
@@ -134,65 +150,51 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 	{
 		auto SelfEntity = ck::ToEntity(this);
 		auto TitleText = "INTEGER CLAMPING (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
-		auto DisplayText = f"Min Clamps: {MinClampCount} | Max Clamps: {MaxClampCount}\n\n";
+		auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
+
+		DisplayText = f"{DisplayText}Min Clamps: {MinClampCount} | Max Clamps: {MaxClampCount}\n\n";
 
 		auto ResourceValue = utils_integer_attribute::Get_FinalValue(ResourceAttribute);
 		auto ClampStatus = "";
 
-		if (ResourceValue == 0 && LastInputValue < 0)
-		{
-			ClampStatus = " [MIN CLAMPED]";
-		}
-		else if (ResourceValue == 100 && LastInputValue > 100)
-		{
-			ClampStatus = " [MAX CLAMPED]";
-		}
-		else
-		{
-			ClampStatus = " [NORMAL]";
-		}
+		if (ResourceValue == 0 && LastInputValue < 0) { ClampStatus = " [MIN CLAMPED]"; }
+		else if (ResourceValue == 100 && LastInputValue > 100) { ClampStatus = " [MAX CLAMPED]"; }
+		else { ClampStatus = " [NORMAL]"; }
 
 		DisplayText = f"{DisplayText}Resource: {ResourceValue}/100\n";
 		DisplayText = f"{DisplayText}Input Value: {LastInputValue}\n";
 		DisplayText = f"{DisplayText}Status: " + ClampStatus + "\n";
 		DisplayText = f"{DisplayText}Direction: " + (IsIncreasing ? "INCREASING" : "DECREASING") + "\n\n";
 
-		// Visual representation
 		auto ResourceBar = CkGym_Attribute::Create_ProgressBar(ResourceValue, 100.0f, 20);
-		DisplayText = f"{DisplayText}[{ResourceBar}]";
+		DisplayText = f"{DisplayText}[{ResourceBar}]\n";
 
-		auto Instructions = "Tests automatic value clamping and signal callbacks.\n"
-			+ "Auto-cycles values beyond min/max to trigger OnMinClamped and OnMaxClamped.\n"
-			+ "Commands: Ck_GymInteger_TestBoundaries / Ck_GymInteger_ResetClamping";
+		DisplayText = DisplayText + "\n" + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
 
-		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);
+		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, "");
 	}
 
-	// Signal callbacks
-	UFUNCTION()
-	void OnMinClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_IntegerAttribute_OnClamped InPayload)
-	{
-		MinClampCount++;
-		auto SelfEntity = ck::ToEntity(this);
-		CkGym_Attribute::Draw_ClampIndicator(SelfEntity, FVector(-50.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.0f, 1.0f, 1.0f));
-	}
+	UFUNCTION() void OnMinClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_IntegerAttribute_OnClamped InPayload) { MinClampCount++; CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(-50.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); }
+	UFUNCTION() void OnMaxClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_IntegerAttribute_OnClamped InPayload) { MaxClampCount++; CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(50.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); }
 
 	UFUNCTION()
-	void OnMaxClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_IntegerAttribute_OnClamped InPayload)
+	private void OnSetResource(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		MaxClampCount++;
-		auto SelfEntity = ck::ToEntity(this);
-		CkGym_Attribute::Draw_ClampIndicator(SelfEntity, FVector(50.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		utils_timer::Request_Pause(UpdateTimer);
+		auto Typed = InPayload.Get(FCk_Message_IntegerGym_SetResource);
+		CurrentTestValue = Typed.Value;
+		LastInputValue = Typed.Value;
+		utils_integer_attribute::Request_Override(ResourceAttribute, Typed.Value);
 	}
 
-	// Message handlers
 	UFUNCTION()
 	private void OnTestBoundaries(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
-		auto SelfEntity = ck::ToEntity(this);
-		CkGym_Common::Draw_DebugSphere(SelfEntity, FVector(0.0f, 0.0f, 250.0f), FLinearColor(1.0f, 1.0f, 0.0f, 1.0f), 25.0f, 3.0f, 2.0f);
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		utils_timer::Request_Pause(UpdateTimer);
 
-		// Test extreme values
+		CkGym_Common::Draw_DebugSphere(ck::ToEntity(this), FVector(0.0f, 0.0f, 250.0f), FLinearColor(1.0f, 1.0f, 0.0f, 1.0f), 25.0f, 3.0f, 2.0f);
 		utils_integer_attribute::Request_Override(ResourceAttribute, -50);
 		utils_integer_attribute::Request_Override(ResourceAttribute, 150);
 	}
@@ -200,6 +202,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 	UFUNCTION()
 	private void OnResetAttributes(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
+		AutoStep = 0;
 		MinClampCount = 0;
 		MaxClampCount = 0;
 		CurrentTestValue = 50;
@@ -207,5 +210,9 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		IsIncreasing = true;
 
 		utils_integer_attribute::Request_Override(ResourceAttribute, 50);
+
+		AutoRunning = true;
+		utils_timer::Request_Resume(AutoTimer);
+		utils_timer::Request_Resume(UpdateTimer);
 	}
 }
