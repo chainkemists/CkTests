@@ -191,7 +191,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
         // Single TransferItem with Count=1, ForceNewItem -- the processor handles
         // the stack decrement + new item creation in one pass, no intermediate state.
         auto TransferReq = FCk_Request_Inventory_TransferItem(PlayerStack, ShelfInv);
-        TransferReq._Count = 1;
+        TransferReq.Set_Count(1);
         TransferReq.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
         utils_inventory::Request_TransferItem(
             PlayerInv,

@@ -9,11 +9,8 @@
 // ============================================================================
 
 UCLASS()
-class UCk_SmTest_Condition_AfterDelay : UCk_SmCondition_EntityScript
+class UCk_SmTest_Condition_AfterDelay : UCk_SmCondition_EventDriven
 {
-    default _ConditionMode = ECk_SmConditionMode::EventDriven;
-    default _ResetBehavior = ECk_SmConditionResetBehavior::Manual;
-
     UPROPERTY(EditAnywhere)
     float32 DelaySeconds = 2.0f;
 
@@ -29,7 +26,7 @@ class UCk_SmTest_Condition_AfterDelay : UCk_SmCondition_EntityScript
     UFUNCTION()
     private void TryMarkSatisfied()
     {
-        auto OwnerSm = DoGet_OwnerStateMachine();
+        auto OwnerSm = Get_OwningStateMachine();
         if (!ck::IsValid(OwnerSm))
         {
             return;
@@ -51,20 +48,20 @@ UCLASS()
 class UCk_SmTest_State_Idle : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle& InHandle)
+    void DoDefineState(FCk_Handle_SmState& InHandle)
     {
         auto Trans = DoAddTransition(UCk_SmTest_State_Patrol);
         DoAddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoOnStateEnter(FCk_Handle InHandle)
+    void DoBeginPlay(FCk_Handle InHandle)
     {
         ck::Trace("SM Test: Entered IDLE", n"SmTest", 3.0f, FLinearColor::Blue);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoOnStateExit(FCk_Handle InHandle)
+    void DoEndPlay(FCk_Handle InHandle)
     {
         ck::Trace("SM Test: Exited IDLE", n"SmTest", 1.0f);
     }
@@ -76,20 +73,20 @@ UCLASS()
 class UCk_SmTest_State_Patrol : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle& InHandle)
+    void DoDefineState(FCk_Handle_SmState& InHandle)
     {
         auto Trans = DoAddTransition(UCk_SmTest_State_Alert);
         DoAddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoOnStateEnter(FCk_Handle InHandle)
+    void DoBeginPlay(FCk_Handle InHandle)
     {
         ck::Trace("SM Test: Entered PATROL", n"SmTest", 3.0f, FLinearColor::Green);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoOnStateExit(FCk_Handle InHandle)
+    void DoEndPlay(FCk_Handle InHandle)
     {
         ck::Trace("SM Test: Exited PATROL", n"SmTest", 1.0f);
     }
@@ -101,20 +98,20 @@ UCLASS()
 class UCk_SmTest_State_Alert : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle& InHandle)
+    void DoDefineState(FCk_Handle_SmState& InHandle)
     {
         auto Trans = DoAddTransition(UCk_SmTest_State_Idle);
         DoAddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoOnStateEnter(FCk_Handle InHandle)
+    void DoBeginPlay(FCk_Handle InHandle)
     {
         ck::Trace("SM Test: Entered ALERT", n"SmTest", 3.0f, FLinearColor::Red);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoOnStateExit(FCk_Handle InHandle)
+    void DoEndPlay(FCk_Handle InHandle)
     {
         ck::Trace("SM Test: Exited ALERT", n"SmTest", 1.0f);
     }
