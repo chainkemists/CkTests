@@ -1,0 +1,2714 @@
+// Auto-generated EntityScript spawn-params — DO NOT EDIT.
+// This file is regenerated on editor startup and after every AngelScript recompile.
+//
+// For each UCk_EntityScript_UE subclass, two declarations are emitted:
+//   - FCk_MyEntityScript_SpawnParams  (file-scope USTRUCT, unique name — avoids the
+//     `Params` name-collision across namespaces that trips the Unreal naming check)
+//   - namespace UCk_MyEntityScript { FCk_MyEntityScript_SpawnParams Params() { ... } }
+//     so callers can still write `UCk_MyEntityScript::Params()`.
+//
+// Properties are flattened across the hierarchy (AS has no struct inheritance). Non-
+// trivial struct defaults outside the CkReflection_Utils allowlist are emitted without
+// an initializer — set them on the instance before calling Request_SpawnEntity.
+
+USTRUCT()
+struct FCk_AdvancedAchievementCue_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCk_AdvancedAchievementCue_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCk_AdvancedAchievementCue
+{
+    FCk_AdvancedAchievementCue_SpawnParams Params()
+    {
+        return FCk_AdvancedAchievementCue_SpawnParams();
+    }
+
+    FCk_AdvancedAchievementCue_SpawnParams Params(FTransform InTransform)
+    {
+        return FCk_AdvancedAchievementCue_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_AdvancedConcurrencyTestCue_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCk_AdvancedConcurrencyTestCue_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCk_AdvancedConcurrencyTestCue
+{
+    FCk_AdvancedConcurrencyTestCue_SpawnParams Params()
+    {
+        return FCk_AdvancedConcurrencyTestCue_SpawnParams();
+    }
+
+    FCk_AdvancedConcurrencyTestCue_SpawnParams Params(FTransform InTransform)
+    {
+        return FCk_AdvancedConcurrencyTestCue_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_AdvancedInterfacePickupCue_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCk_AdvancedInterfacePickupCue_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCk_AdvancedInterfacePickupCue
+{
+    FCk_AdvancedInterfacePickupCue_SpawnParams Params()
+    {
+        return FCk_AdvancedInterfacePickupCue_SpawnParams();
+    }
+
+    FCk_AdvancedInterfacePickupCue_SpawnParams Params(FTransform InTransform)
+    {
+        return FCk_AdvancedInterfacePickupCue_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_AdvancedMusicDirectorCue_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCk_AdvancedMusicDirectorCue_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCk_AdvancedMusicDirectorCue
+{
+    FCk_AdvancedMusicDirectorCue_SpawnParams Params()
+    {
+        return FCk_AdvancedMusicDirectorCue_SpawnParams();
+    }
+
+    FCk_AdvancedMusicDirectorCue_SpawnParams Params(FTransform InTransform)
+    {
+        return FCk_AdvancedMusicDirectorCue_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_AfterOneFrame_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_AfterOneFrame_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_AfterOneFrame
+{
+    FCk_CueGym_Cue_AfterOneFrame_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_AfterOneFrame_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_AfterOneFrame_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_AfterOneFrame_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_Custom_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_Custom_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_Custom
+{
+    FCk_CueGym_Cue_Custom_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_Custom_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_Custom_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_Custom_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_Multiple_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_Multiple_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_Multiple
+{
+    FCk_CueGym_Cue_Multiple_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_Multiple_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_Multiple_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_Multiple_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_OwnerDestruction_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_OwnerDestruction_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_OwnerDestruction
+{
+    FCk_CueGym_Cue_OwnerDestruction_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_OwnerDestruction_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_OwnerDestruction_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_OwnerDestruction_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_OwnerRequire_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_OwnerRequire_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_OwnerRequire
+{
+    FCk_CueGym_Cue_OwnerRequire_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_OwnerRequire_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_OwnerRequire_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_OwnerRequire_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_OwnerSkip_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_OwnerSkip_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_OwnerSkip
+{
+    FCk_CueGym_Cue_OwnerSkip_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_OwnerSkip_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_OwnerSkip_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_OwnerSkip_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_Persistent_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_Persistent_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_Persistent
+{
+    FCk_CueGym_Cue_Persistent_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_Persistent_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_Persistent_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_Persistent_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_Restart_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_Restart_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_Restart
+{
+    FCk_CueGym_Cue_Restart_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_Restart_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_Restart_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_Restart_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_Restartable_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_Restartable_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_Restartable
+{
+    FCk_CueGym_Cue_Restartable_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_Restartable_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_Restartable_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_Restartable_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_Timed_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_Timed_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_Timed
+{
+    FCk_CueGym_Cue_Timed_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_Timed_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_Timed_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_Timed_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CueGym_Cue_Transient_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_CueGym_Cue_Transient_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_CueGym_Cue_Transient
+{
+    FCk_CueGym_Cue_Transient_SpawnParams Params()
+    {
+        return FCk_CueGym_Cue_Transient_SpawnParams();
+    }
+
+    FCk_CueGym_Cue_Transient_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_CueGym_Cue_Transient_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_BasicAttributes_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FString StationName = "BasicAttributes";
+
+    FCk_EntityScript_AttributeGym_BasicAttributes_SpawnParams(FTransform InInitialTransform, FString InStationName)
+    {
+        InitialTransform = InInitialTransform;
+        StationName = InStationName;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_BasicAttributes
+{
+    FCk_EntityScript_AttributeGym_BasicAttributes_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_BasicAttributes_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_BasicAttributes_SpawnParams Params(FTransform InInitialTransform, FString InStationName)
+    {
+        return FCk_EntityScript_AttributeGym_BasicAttributes_SpawnParams(InInitialTransform, InStationName);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_ByteClamping_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_ByteClamping_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_ByteClamping
+{
+    FCk_EntityScript_AttributeGym_ByteClamping_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_ByteClamping_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_ByteClamping_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_ByteClamping_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_ByteMinMaxCurrent_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_ByteMinMaxCurrent_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_ByteMinMaxCurrent
+{
+    FCk_EntityScript_AttributeGym_ByteMinMaxCurrent_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_ByteMinMaxCurrent_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_ByteMinMaxCurrent_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_ByteMinMaxCurrent_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_ByteModifiers_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_ByteModifiers_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_ByteModifiers
+{
+    FCk_EntityScript_AttributeGym_ByteModifiers_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_ByteModifiers_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_ByteModifiers_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_ByteModifiers_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_ByteMultiple_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_ByteMultiple_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_ByteMultiple
+{
+    FCk_EntityScript_AttributeGym_ByteMultiple_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_ByteMultiple_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_ByteMultiple_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_ByteMultiple_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_ByteSignals_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_ByteSignals_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_ByteSignals
+{
+    FCk_EntityScript_AttributeGym_ByteSignals_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_ByteSignals_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_ByteSignals_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_ByteSignals_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_ByteValues_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_ByteValues_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_ByteValues
+{
+    FCk_EntityScript_AttributeGym_ByteValues_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_ByteValues_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_ByteValues_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_ByteValues_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_FloatClamping_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_FloatClamping_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_FloatClamping
+{
+    FCk_EntityScript_AttributeGym_FloatClamping_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_FloatClamping_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_FloatClamping_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_FloatClamping_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_FloatIncrementDecrement_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_FloatIncrementDecrement_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_FloatIncrementDecrement
+{
+    FCk_EntityScript_AttributeGym_FloatIncrementDecrement_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_FloatIncrementDecrement_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_FloatIncrementDecrement_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_FloatIncrementDecrement_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_FloatMinMaxCurrent_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_FloatMinMaxCurrent_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_FloatMinMaxCurrent
+{
+    FCk_EntityScript_AttributeGym_FloatMinMaxCurrent_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_FloatMinMaxCurrent_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_FloatMinMaxCurrent_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_FloatMinMaxCurrent_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_FloatModifiers_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_FloatModifiers_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_FloatModifiers
+{
+    FCk_EntityScript_AttributeGym_FloatModifiers_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_FloatModifiers_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_FloatModifiers_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_FloatModifiers_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_FloatMultiple_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_FloatMultiple_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_FloatMultiple
+{
+    FCk_EntityScript_AttributeGym_FloatMultiple_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_FloatMultiple_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_FloatMultiple_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_FloatMultiple_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_FloatRefill_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_FloatRefill_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_FloatRefill
+{
+    FCk_EntityScript_AttributeGym_FloatRefill_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_FloatRefill_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_FloatRefill_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_FloatRefill_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_FloatSignals_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_FloatSignals_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_FloatSignals
+{
+    FCk_EntityScript_AttributeGym_FloatSignals_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_FloatSignals_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_FloatSignals_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_FloatSignals_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_AttributeGym_FloatValues_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_AttributeGym_FloatValues_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_AttributeGym_FloatValues
+{
+    FCk_EntityScript_AttributeGym_FloatValues_SpawnParams Params()
+    {
+        return FCk_EntityScript_AttributeGym_FloatValues_SpawnParams();
+    }
+
+    FCk_EntityScript_AttributeGym_FloatValues_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_AttributeGym_FloatValues_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_CueGym_Concurrency_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_CueGym_Concurrency_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_CueGym_Concurrency
+{
+    FCk_EntityScript_CueGym_Concurrency_SpawnParams Params()
+    {
+        return FCk_EntityScript_CueGym_Concurrency_SpawnParams();
+    }
+
+    FCk_EntityScript_CueGym_Concurrency_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_CueGym_Concurrency_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_CueGym_DestructionOwner_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_CueGym_DestructionOwner_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_CueGym_DestructionOwner
+{
+    FCk_EntityScript_CueGym_DestructionOwner_SpawnParams Params()
+    {
+        return FCk_EntityScript_CueGym_DestructionOwner_SpawnParams();
+    }
+
+    FCk_EntityScript_CueGym_DestructionOwner_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_CueGym_DestructionOwner_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_CueGym_Lifetime_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_CueGym_Lifetime_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_CueGym_Lifetime
+{
+    FCk_EntityScript_CueGym_Lifetime_SpawnParams Params()
+    {
+        return FCk_EntityScript_CueGym_Lifetime_SpawnParams();
+    }
+
+    FCk_EntityScript_CueGym_Lifetime_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_CueGym_Lifetime_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_CueGym_OwnerDestruction_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_CueGym_OwnerDestruction_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_CueGym_OwnerDestruction
+{
+    FCk_EntityScript_CueGym_OwnerDestruction_SpawnParams Params()
+    {
+        return FCk_EntityScript_CueGym_OwnerDestruction_SpawnParams();
+    }
+
+    FCk_EntityScript_CueGym_OwnerDestruction_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_CueGym_OwnerDestruction_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_CueGym_OwnerValidation_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_CueGym_OwnerValidation_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_CueGym_OwnerValidation
+{
+    FCk_EntityScript_CueGym_OwnerValidation_SpawnParams Params()
+    {
+        return FCk_EntityScript_CueGym_OwnerValidation_SpawnParams();
+    }
+
+    FCk_EntityScript_CueGym_OwnerValidation_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_CueGym_OwnerValidation_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_CueGym_Restart_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_CueGym_Restart_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_CueGym_Restart
+{
+    FCk_EntityScript_CueGym_Restart_SpawnParams Params()
+    {
+        return FCk_EntityScript_CueGym_Restart_SpawnParams();
+    }
+
+    FCk_EntityScript_CueGym_Restart_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_CueGym_Restart_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_CueGym_TempOwner_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_CueGym_TempOwner_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_CueGym_TempOwner
+{
+    FCk_EntityScript_CueGym_TempOwner_SpawnParams Params()
+    {
+        return FCk_EntityScript_CueGym_TempOwner_SpawnParams();
+    }
+
+    FCk_EntityScript_CueGym_TempOwner_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_CueGym_TempOwner_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_CueGym_Transient_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_CueGym_Transient_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_CueGym_Transient
+{
+    FCk_EntityScript_CueGym_Transient_SpawnParams Params()
+    {
+        return FCk_EntityScript_CueGym_Transient_SpawnParams();
+    }
+
+    FCk_EntityScript_CueGym_Transient_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_CueGym_Transient_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_EntityLifecycleGym_ActorBridge_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_EntityLifecycleGym_ActorBridge_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_EntityLifecycleGym_ActorBridge
+{
+    FCk_EntityScript_EntityLifecycleGym_ActorBridge_SpawnParams Params()
+    {
+        return FCk_EntityScript_EntityLifecycleGym_ActorBridge_SpawnParams();
+    }
+
+    FCk_EntityScript_EntityLifecycleGym_ActorBridge_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_EntityLifecycleGym_ActorBridge_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_EntityLifecycleGym_DeferredSetup_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_EntityLifecycleGym_DeferredSetup_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_EntityLifecycleGym_DeferredSetup
+{
+    FCk_EntityScript_EntityLifecycleGym_DeferredSetup_SpawnParams Params()
+    {
+        return FCk_EntityScript_EntityLifecycleGym_DeferredSetup_SpawnParams();
+    }
+
+    FCk_EntityScript_EntityLifecycleGym_DeferredSetup_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_EntityLifecycleGym_DeferredSetup_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_EntityLifecycleGym_DestroyCallbacks_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_EntityLifecycleGym_DestroyCallbacks_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_EntityLifecycleGym_DestroyCallbacks
+{
+    FCk_EntityScript_EntityLifecycleGym_DestroyCallbacks_SpawnParams Params()
+    {
+        return FCk_EntityScript_EntityLifecycleGym_DestroyCallbacks_SpawnParams();
+    }
+
+    FCk_EntityScript_EntityLifecycleGym_DestroyCallbacks_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_EntityLifecycleGym_DestroyCallbacks_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_EntityLifecycleGym_HandleAndEntity_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_EntityLifecycleGym_HandleAndEntity_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_EntityLifecycleGym_HandleAndEntity
+{
+    FCk_EntityScript_EntityLifecycleGym_HandleAndEntity_SpawnParams Params()
+    {
+        return FCk_EntityScript_EntityLifecycleGym_HandleAndEntity_SpawnParams();
+    }
+
+    FCk_EntityScript_EntityLifecycleGym_HandleAndEntity_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_EntityLifecycleGym_HandleAndEntity_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_EntityLifecycleGym_OwnershipTree_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_EntityLifecycleGym_OwnershipTree_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_EntityLifecycleGym_OwnershipTree
+{
+    FCk_EntityScript_EntityLifecycleGym_OwnershipTree_SpawnParams Params()
+    {
+        return FCk_EntityScript_EntityLifecycleGym_OwnershipTree_SpawnParams();
+    }
+
+    FCk_EntityScript_EntityLifecycleGym_OwnershipTree_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_EntityLifecycleGym_OwnershipTree_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast
+{
+    FCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast_SpawnParams Params()
+    {
+        return FCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast_SpawnParams();
+    }
+
+    FCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_EntityLifecycleGym_SpawnTarget_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_EntityLifecycleGym_SpawnTarget_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_EntityLifecycleGym_SpawnTarget
+{
+    FCk_EntityScript_EntityLifecycleGym_SpawnTarget_SpawnParams Params()
+    {
+        return FCk_EntityScript_EntityLifecycleGym_SpawnTarget_SpawnParams();
+    }
+
+    FCk_EntityScript_EntityLifecycleGym_SpawnTarget_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_EntityLifecycleGym_SpawnTarget_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_EntityLifecycleGym_TagSystem_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_EntityLifecycleGym_TagSystem_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_EntityLifecycleGym_TagSystem
+{
+    FCk_EntityScript_EntityLifecycleGym_TagSystem_SpawnParams Params()
+    {
+        return FCk_EntityScript_EntityLifecycleGym_TagSystem_SpawnParams();
+    }
+
+    FCk_EntityScript_EntityLifecycleGym_TagSystem_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_EntityLifecycleGym_TagSystem_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FName TestName = n"None";
+
+    UPROPERTY()
+    int32 TestInt = 0;
+
+    UPROPERTY()
+    float32 TestFloat = 0.0f;
+
+    FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams(FTransform InInitialTransform, FName InTestName, int32 InTestInt, float32 InTestFloat)
+    {
+        InitialTransform = InInitialTransform;
+        TestName = InTestName;
+        TestInt = InTestInt;
+        TestFloat = InTestFloat;
+    }
+}
+
+namespace UCk_EntityScript_EntityScriptGym_Spawn
+{
+    FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams Params()
+    {
+        return FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams();
+    }
+
+    FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams Params(FTransform InInitialTransform, FName InTestName, int32 InTestInt, float32 InTestFloat)
+    {
+        return FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams(InInitialTransform, InTestName, InTestInt, InTestFloat);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FName TestName = n"None";
+
+    UPROPERTY()
+    int32 TestInt = 0;
+
+    UPROPERTY()
+    float32 TestFloat = 0.0f;
+
+    FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams(FTransform InInitialTransform, FName InTestName, int32 InTestInt, float32 InTestFloat)
+    {
+        InitialTransform = InInitialTransform;
+        TestName = InTestName;
+        TestInt = InTestInt;
+        TestFloat = InTestFloat;
+    }
+}
+
+namespace UCk_EntityScript_EntityScriptGym_SpawnReplicated
+{
+    FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams Params()
+    {
+        return FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams();
+    }
+
+    FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams Params(FTransform InInitialTransform, FName InTestName, int32 InTestInt, float32 InTestFloat)
+    {
+        return FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams(InInitialTransform, InTestName, InTestInt, InTestFloat);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IntegerGym_Basic_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IntegerGym_Basic_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IntegerGym_Basic
+{
+    FCk_EntityScript_IntegerGym_Basic_SpawnParams Params()
+    {
+        return FCk_EntityScript_IntegerGym_Basic_SpawnParams();
+    }
+
+    FCk_EntityScript_IntegerGym_Basic_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IntegerGym_Basic_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IntegerGym_Clamping_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IntegerGym_Clamping_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IntegerGym_Clamping
+{
+    FCk_EntityScript_IntegerGym_Clamping_SpawnParams Params()
+    {
+        return FCk_EntityScript_IntegerGym_Clamping_SpawnParams();
+    }
+
+    FCk_EntityScript_IntegerGym_Clamping_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IntegerGym_Clamping_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IntegerGym_MinMaxCurrent_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IntegerGym_MinMaxCurrent_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IntegerGym_MinMaxCurrent
+{
+    FCk_EntityScript_IntegerGym_MinMaxCurrent_SpawnParams Params()
+    {
+        return FCk_EntityScript_IntegerGym_MinMaxCurrent_SpawnParams();
+    }
+
+    FCk_EntityScript_IntegerGym_MinMaxCurrent_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IntegerGym_MinMaxCurrent_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IntegerGym_Modifiers_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IntegerGym_Modifiers_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IntegerGym_Modifiers
+{
+    FCk_EntityScript_IntegerGym_Modifiers_SpawnParams Params()
+    {
+        return FCk_EntityScript_IntegerGym_Modifiers_SpawnParams();
+    }
+
+    FCk_EntityScript_IntegerGym_Modifiers_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IntegerGym_Modifiers_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InteractionGym_DataBundle_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InteractionGym_DataBundle_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InteractionGym_DataBundle
+{
+    FCk_EntityScript_InteractionGym_DataBundle_SpawnParams Params()
+    {
+        return FCk_EntityScript_InteractionGym_DataBundle_SpawnParams();
+    }
+
+    FCk_EntityScript_InteractionGym_DataBundle_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InteractionGym_DataBundle_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InteractionGym_Instant_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InteractionGym_Instant_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InteractionGym_Instant
+{
+    FCk_EntityScript_InteractionGym_Instant_SpawnParams Params()
+    {
+        return FCk_EntityScript_InteractionGym_Instant_SpawnParams();
+    }
+
+    FCk_EntityScript_InteractionGym_Instant_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InteractionGym_Instant_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InteractionGym_Manual_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InteractionGym_Manual_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InteractionGym_Manual
+{
+    FCk_EntityScript_InteractionGym_Manual_SpawnParams Params()
+    {
+        return FCk_EntityScript_InteractionGym_Manual_SpawnParams();
+    }
+
+    FCk_EntityScript_InteractionGym_Manual_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InteractionGym_Manual_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InteractionGym_ResolverSource_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InteractionGym_ResolverSource_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InteractionGym_ResolverSource
+{
+    FCk_EntityScript_InteractionGym_ResolverSource_SpawnParams Params()
+    {
+        return FCk_EntityScript_InteractionGym_ResolverSource_SpawnParams();
+    }
+
+    FCk_EntityScript_InteractionGym_ResolverSource_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InteractionGym_ResolverSource_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InteractionGym_ResolverTarget_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InteractionGym_ResolverTarget_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InteractionGym_ResolverTarget
+{
+    FCk_EntityScript_InteractionGym_ResolverTarget_SpawnParams Params()
+    {
+        return FCk_EntityScript_InteractionGym_ResolverTarget_SpawnParams();
+    }
+
+    FCk_EntityScript_InteractionGym_ResolverTarget_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InteractionGym_ResolverTarget_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InteractionGym_TimedSource_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InteractionGym_TimedSource_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InteractionGym_TimedSource
+{
+    FCk_EntityScript_InteractionGym_TimedSource_SpawnParams Params()
+    {
+        return FCk_EntityScript_InteractionGym_TimedSource_SpawnParams();
+    }
+
+    FCk_EntityScript_InteractionGym_TimedSource_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InteractionGym_TimedSource_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InteractionGym_TimedTarget_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InteractionGym_TimedTarget_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InteractionGym_TimedTarget
+{
+    FCk_EntityScript_InteractionGym_TimedTarget_SpawnParams Params()
+    {
+        return FCk_EntityScript_InteractionGym_TimedTarget_SpawnParams();
+    }
+
+    FCk_EntityScript_InteractionGym_TimedTarget_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InteractionGym_TimedTarget_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InteractionGym_Validation_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InteractionGym_Validation_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InteractionGym_Validation
+{
+    FCk_EntityScript_InteractionGym_Validation_SpawnParams Params()
+    {
+        return FCk_EntityScript_InteractionGym_Validation_SpawnParams();
+    }
+
+    FCk_EntityScript_InteractionGym_Validation_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InteractionGym_Validation_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InvGym_DataOnlyBounded_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InvGym_DataOnlyBounded_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InvGym_DataOnlyBounded
+{
+    FCk_EntityScript_InvGym_DataOnlyBounded_SpawnParams Params()
+    {
+        return FCk_EntityScript_InvGym_DataOnlyBounded_SpawnParams();
+    }
+
+    FCk_EntityScript_InvGym_DataOnlyBounded_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InvGym_DataOnlyBounded_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InvGym_DataOnlyUnbounded_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InvGym_DataOnlyUnbounded_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InvGym_DataOnlyUnbounded
+{
+    FCk_EntityScript_InvGym_DataOnlyUnbounded_SpawnParams Params()
+    {
+        return FCk_EntityScript_InvGym_DataOnlyUnbounded_SpawnParams();
+    }
+
+    FCk_EntityScript_InvGym_DataOnlyUnbounded_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InvGym_DataOnlyUnbounded_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InvGym_ShelfDesync_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InvGym_ShelfDesync_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InvGym_ShelfDesync
+{
+    FCk_EntityScript_InvGym_ShelfDesync_SpawnParams Params()
+    {
+        return FCk_EntityScript_InvGym_ShelfDesync_SpawnParams();
+    }
+
+    FCk_EntityScript_InvGym_ShelfDesync_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InvGym_ShelfDesync_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InvGym_Spatial_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InvGym_Spatial_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InvGym_Spatial
+{
+    FCk_EntityScript_InvGym_Spatial_SpawnParams Params()
+    {
+        return FCk_EntityScript_InvGym_Spatial_SpawnParams();
+    }
+
+    FCk_EntityScript_InvGym_Spatial_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InvGym_Spatial_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InvGym_StackableTrait_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InvGym_StackableTrait_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InvGym_StackableTrait
+{
+    FCk_EntityScript_InvGym_StackableTrait_SpawnParams Params()
+    {
+        return FCk_EntityScript_InvGym_StackableTrait_SpawnParams();
+    }
+
+    FCk_EntityScript_InvGym_StackableTrait_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InvGym_StackableTrait_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_InvGym_TagsTrait_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_InvGym_TagsTrait_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_InvGym_TagsTrait
+{
+    FCk_EntityScript_InvGym_TagsTrait_SpawnParams Params()
+    {
+        return FCk_EntityScript_InvGym_TagsTrait_SpawnParams();
+    }
+
+    FCk_EntityScript_InvGym_TagsTrait_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_InvGym_TagsTrait_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_MessagingGym_Basic_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_MessagingGym_Basic_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_MessagingGym_Basic
+{
+    FCk_EntityScript_MessagingGym_Basic_SpawnParams Params()
+    {
+        return FCk_EntityScript_MessagingGym_Basic_SpawnParams();
+    }
+
+    FCk_EntityScript_MessagingGym_Basic_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_MessagingGym_Basic_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_MessagingGym_DynamicBind_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_MessagingGym_DynamicBind_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_MessagingGym_DynamicBind
+{
+    FCk_EntityScript_MessagingGym_DynamicBind_SpawnParams Params()
+    {
+        return FCk_EntityScript_MessagingGym_DynamicBind_SpawnParams();
+    }
+
+    FCk_EntityScript_MessagingGym_DynamicBind_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_MessagingGym_DynamicBind_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_MessagingGym_MultiListener_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_MessagingGym_MultiListener_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_MessagingGym_MultiListener
+{
+    FCk_EntityScript_MessagingGym_MultiListener_SpawnParams Params()
+    {
+        return FCk_EntityScript_MessagingGym_MultiListener_SpawnParams();
+    }
+
+    FCk_EntityScript_MessagingGym_MultiListener_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_MessagingGym_MultiListener_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_MessagingGym_MultiType_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_MessagingGym_MultiType_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_MessagingGym_MultiType
+{
+    FCk_EntityScript_MessagingGym_MultiType_SpawnParams Params()
+    {
+        return FCk_EntityScript_MessagingGym_MultiType_SpawnParams();
+    }
+
+    FCk_EntityScript_MessagingGym_MultiType_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_MessagingGym_MultiType_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_MessagingGym_OneShot_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_MessagingGym_OneShot_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_MessagingGym_OneShot
+{
+    FCk_EntityScript_MessagingGym_OneShot_SpawnParams Params()
+    {
+        return FCk_EntityScript_MessagingGym_OneShot_SpawnParams();
+    }
+
+    FCk_EntityScript_MessagingGym_OneShot_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_MessagingGym_OneShot_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_SceneNodeGym_Display_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    ACk_SceneNodeGym_Cube LinkedCube = nullptr;
+
+    FCk_EntityScript_SceneNodeGym_Display_SpawnParams(FTransform InInitialTransform, ACk_SceneNodeGym_Cube InLinkedCube)
+    {
+        InitialTransform = InInitialTransform;
+        LinkedCube = InLinkedCube;
+    }
+}
+
+namespace UCk_EntityScript_SceneNodeGym_Display
+{
+    FCk_EntityScript_SceneNodeGym_Display_SpawnParams Params()
+    {
+        return FCk_EntityScript_SceneNodeGym_Display_SpawnParams();
+    }
+
+    FCk_EntityScript_SceneNodeGym_Display_SpawnParams Params(FTransform InInitialTransform, ACk_SceneNodeGym_Cube InLinkedCube)
+    {
+        return FCk_EntityScript_SceneNodeGym_Display_SpawnParams(InInitialTransform, InLinkedCube);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_TimerGym_Basics_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_TimerGym_Basics_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_TimerGym_Basics
+{
+    FCk_EntityScript_TimerGym_Basics_SpawnParams Params()
+    {
+        return FCk_EntityScript_TimerGym_Basics_SpawnParams();
+    }
+
+    FCk_EntityScript_TimerGym_Basics_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_TimerGym_Basics_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_TimerGym_Behaviors_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_TimerGym_Behaviors_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_TimerGym_Behaviors
+{
+    FCk_EntityScript_TimerGym_Behaviors_SpawnParams Params()
+    {
+        return FCk_EntityScript_TimerGym_Behaviors_SpawnParams();
+    }
+
+    FCk_EntityScript_TimerGym_Behaviors_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_TimerGym_Behaviors_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_TimerGym_Control_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_TimerGym_Control_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_TimerGym_Control
+{
+    FCk_EntityScript_TimerGym_Control_SpawnParams Params()
+    {
+        return FCk_EntityScript_TimerGym_Control_SpawnParams();
+    }
+
+    FCk_EntityScript_TimerGym_Control_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_TimerGym_Control_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_TimerGym_Countdown_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_TimerGym_Countdown_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_TimerGym_Countdown
+{
+    FCk_EntityScript_TimerGym_Countdown_SpawnParams Params()
+    {
+        return FCk_EntityScript_TimerGym_Countdown_SpawnParams();
+    }
+
+    FCk_EntityScript_TimerGym_Countdown_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_TimerGym_Countdown_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_TimerGym_Signals_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_TimerGym_Signals_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_TimerGym_Signals
+{
+    FCk_EntityScript_TimerGym_Signals_SpawnParams Params()
+    {
+        return FCk_EntityScript_TimerGym_Signals_SpawnParams();
+    }
+
+    FCk_EntityScript_TimerGym_Signals_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_TimerGym_Signals_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_TransformGym_Display_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    ACk_TransformGym_Cube LinkedCube = nullptr;
+
+    FCk_EntityScript_TransformGym_Display_SpawnParams(FTransform InInitialTransform, ACk_TransformGym_Cube InLinkedCube)
+    {
+        InitialTransform = InInitialTransform;
+        LinkedCube = InLinkedCube;
+    }
+}
+
+namespace UCk_EntityScript_TransformGym_Display
+{
+    FCk_EntityScript_TransformGym_Display_SpawnParams Params()
+    {
+        return FCk_EntityScript_TransformGym_Display_SpawnParams();
+    }
+
+    FCk_EntityScript_TransformGym_Display_SpawnParams Params(FTransform InInitialTransform, ACk_TransformGym_Cube InLinkedCube)
+    {
+        return FCk_EntityScript_TransformGym_Display_SpawnParams(InInitialTransform, InLinkedCube);
+    }
+}
+
+USTRUCT()
+struct FCk_SimpleBackgroundMusicCue_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_SimpleBackgroundMusicCue_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_SimpleBackgroundMusicCue
+{
+    FCk_SimpleBackgroundMusicCue_SpawnParams Params()
+    {
+        return FCk_SimpleBackgroundMusicCue_SpawnParams();
+    }
+
+    FCk_SimpleBackgroundMusicCue_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_SimpleBackgroundMusicCue_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_SimpleSpatialAudioCue_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_SimpleSpatialAudioCue_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_SimpleSpatialAudioCue
+{
+    FCk_SimpleSpatialAudioCue_SpawnParams Params()
+    {
+        return FCk_SimpleSpatialAudioCue_SpawnParams();
+    }
+
+    FCk_SimpleSpatialAudioCue_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_SimpleSpatialAudioCue_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Complex_State_Attack_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Complex_State_Attack
+{
+    FCk_SmTest_Complex_State_Attack_SpawnParams Params()
+    {
+        return FCk_SmTest_Complex_State_Attack_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Complex_State_Chase_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Complex_State_Chase
+{
+    FCk_SmTest_Complex_State_Chase_SpawnParams Params()
+    {
+        return FCk_SmTest_Complex_State_Chase_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Complex_State_Flee_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Complex_State_Flee
+{
+    FCk_SmTest_Complex_State_Flee_SpawnParams Params()
+    {
+        return FCk_SmTest_Complex_State_Flee_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Complex_State_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Complex_State_Idle
+{
+    FCk_SmTest_Complex_State_Idle_SpawnParams Params()
+    {
+        return FCk_SmTest_Complex_State_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Complex_State_Patrol_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Complex_State_Patrol
+{
+    FCk_SmTest_Complex_State_Patrol_SpawnParams Params()
+    {
+        return FCk_SmTest_Complex_State_Patrol_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Complex_State_Search_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Complex_State_Search
+{
+    FCk_SmTest_Complex_State_Search_SpawnParams Params()
+    {
+        return FCk_SmTest_Complex_State_Search_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Condition_AfterDelay_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Condition_AfterDelay
+{
+    FCk_SmTest_Condition_AfterDelay_SpawnParams Params()
+    {
+        return FCk_SmTest_Condition_AfterDelay_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Condition_AlwaysTrue_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Condition_AlwaysTrue
+{
+    FCk_SmTest_Condition_AlwaysTrue_SpawnParams Params()
+    {
+        return FCk_SmTest_Condition_AlwaysTrue_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Condition_LongDelay_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Condition_LongDelay
+{
+    FCk_SmTest_Condition_LongDelay_SpawnParams Params()
+    {
+        return FCk_SmTest_Condition_LongDelay_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Condition_PolledTimer_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Condition_PolledTimer
+{
+    FCk_SmTest_Condition_PolledTimer_SpawnParams Params()
+    {
+        return FCk_SmTest_Condition_PolledTimer_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Condition_ShortDelay_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Condition_ShortDelay
+{
+    FCk_SmTest_Condition_ShortDelay_SpawnParams Params()
+    {
+        return FCk_SmTest_Condition_ShortDelay_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Child_Recover_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Child_Recover
+{
+    FCk_SmTest_Hier_Child_Recover_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Child_Recover_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Child_Strike_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Child_Strike
+{
+    FCk_SmTest_Hier_Child_Strike_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Child_Strike_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Child_WindUp_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Child_WindUp
+{
+    FCk_SmTest_Hier_Child_WindUp_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Child_WindUp_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Heal_Channel_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Heal_Channel
+{
+    FCk_SmTest_Hier_Heal_Channel_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Heal_Channel_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Heal_Gather_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Heal_Gather
+{
+    FCk_SmTest_Hier_Heal_Gather_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Heal_Gather_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Heal_Restore_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Heal_Restore
+{
+    FCk_SmTest_Hier_Heal_Restore_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Heal_Restore_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_HealSubSmTask_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_HealSubSmTask
+{
+    FCk_SmTest_Hier_HealSubSmTask_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_HealSubSmTask_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Parent_Approach_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Parent_Approach
+{
+    FCk_SmTest_Hier_Parent_Approach_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Parent_Approach_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Parent_Engage_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Parent_Engage
+{
+    FCk_SmTest_Hier_Parent_Engage_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Parent_Engage_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Parent_Flee_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Parent_Flee
+{
+    FCk_SmTest_Hier_Parent_Flee_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Parent_Flee_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Parent_Heal_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Parent_Heal
+{
+    FCk_SmTest_Hier_Parent_Heal_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Parent_Heal_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Parent_Retreat_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Parent_Retreat
+{
+    FCk_SmTest_Hier_Parent_Retreat_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Parent_Retreat_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_Parent_Spawn_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_Parent_Spawn
+{
+    FCk_SmTest_Hier_Parent_Spawn_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_Parent_Spawn_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Hier_SubSmTask_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Hier_SubSmTask
+{
+    FCk_SmTest_Hier_SubSmTask_SpawnParams Params()
+    {
+        return FCk_SmTest_Hier_SubSmTask_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_State_Alert_SpawnParams
+{
+}
+
+namespace UCk_SmTest_State_Alert
+{
+    FCk_SmTest_State_Alert_SpawnParams Params()
+    {
+        return FCk_SmTest_State_Alert_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_State_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmTest_State_Idle
+{
+    FCk_SmTest_State_Idle_SpawnParams Params()
+    {
+        return FCk_SmTest_State_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_State_Patrol_SpawnParams
+{
+}
+
+namespace UCk_SmTest_State_Patrol
+{
+    FCk_SmTest_State_Patrol_SpawnParams Params()
+    {
+        return FCk_SmTest_State_Patrol_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_LogOnly_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_LogOnly
+{
+    FCk_SmTest_Task_LogOnly_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_LogOnly_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_TimedWork_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_TimedWork
+{
+    FCk_SmTest_Task_TimedWork_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_TimedWork_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCkAudioGym_Advanced_AttenuationStation_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCkAudioGym_Advanced_AttenuationStation_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCkAudioGym_Advanced_AttenuationStation
+{
+    FCkAudioGym_Advanced_AttenuationStation_SpawnParams Params()
+    {
+        return FCkAudioGym_Advanced_AttenuationStation_SpawnParams();
+    }
+
+    FCkAudioGym_Advanced_AttenuationStation_SpawnParams Params(FTransform InTransform)
+    {
+        return FCkAudioGym_Advanced_AttenuationStation_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCkAudioGym_Advanced_AudioPickup_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCkAudioGym_Advanced_AudioPickup_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCkAudioGym_Advanced_AudioPickup
+{
+    FCkAudioGym_Advanced_AudioPickup_SpawnParams Params()
+    {
+        return FCkAudioGym_Advanced_AudioPickup_SpawnParams();
+    }
+
+    FCkAudioGym_Advanced_AudioPickup_SpawnParams Params(FTransform InTransform)
+    {
+        return FCkAudioGym_Advanced_AudioPickup_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCkAudioGym_Advanced_Base_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCkAudioGym_Advanced_Base_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCkAudioGym_Advanced_Base
+{
+    FCkAudioGym_Advanced_Base_SpawnParams Params()
+    {
+        return FCkAudioGym_Advanced_Base_SpawnParams();
+    }
+
+    FCkAudioGym_Advanced_Base_SpawnParams Params(FTransform InTransform)
+    {
+        return FCkAudioGym_Advanced_Base_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCkAudioGym_Advanced_BasicStation_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCkAudioGym_Advanced_BasicStation_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCkAudioGym_Advanced_BasicStation
+{
+    FCkAudioGym_Advanced_BasicStation_SpawnParams Params()
+    {
+        return FCkAudioGym_Advanced_BasicStation_SpawnParams();
+    }
+
+    FCkAudioGym_Advanced_BasicStation_SpawnParams Params(FTransform InTransform)
+    {
+        return FCkAudioGym_Advanced_BasicStation_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCkAudioGym_Advanced_ConcurrencyStation_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCkAudioGym_Advanced_ConcurrencyStation_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCkAudioGym_Advanced_ConcurrencyStation
+{
+    FCkAudioGym_Advanced_ConcurrencyStation_SpawnParams Params()
+    {
+        return FCkAudioGym_Advanced_ConcurrencyStation_SpawnParams();
+    }
+
+    FCkAudioGym_Advanced_ConcurrencyStation_SpawnParams Params(FTransform InTransform)
+    {
+        return FCkAudioGym_Advanced_ConcurrencyStation_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCkAudioGym_Advanced_FeaturesStation_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCkAudioGym_Advanced_FeaturesStation_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCkAudioGym_Advanced_FeaturesStation
+{
+    FCkAudioGym_Advanced_FeaturesStation_SpawnParams Params()
+    {
+        return FCkAudioGym_Advanced_FeaturesStation_SpawnParams();
+    }
+
+    FCkAudioGym_Advanced_FeaturesStation_SpawnParams Params(FTransform InTransform)
+    {
+        return FCkAudioGym_Advanced_FeaturesStation_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCkAudioGym_Advanced_InterfacePickup_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCkAudioGym_Advanced_InterfacePickup_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCkAudioGym_Advanced_InterfacePickup
+{
+    FCkAudioGym_Advanced_InterfacePickup_SpawnParams Params()
+    {
+        return FCkAudioGym_Advanced_InterfacePickup_SpawnParams();
+    }
+
+    FCkAudioGym_Advanced_InterfacePickup_SpawnParams Params(FTransform InTransform)
+    {
+        return FCkAudioGym_Advanced_InterfacePickup_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCkAudioGym_Advanced_LevelUpPickup_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCkAudioGym_Advanced_LevelUpPickup_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCkAudioGym_Advanced_LevelUpPickup
+{
+    FCkAudioGym_Advanced_LevelUpPickup_SpawnParams Params()
+    {
+        return FCkAudioGym_Advanced_LevelUpPickup_SpawnParams();
+    }
+
+    FCkAudioGym_Advanced_LevelUpPickup_SpawnParams Params(FTransform InTransform)
+    {
+        return FCkAudioGym_Advanced_LevelUpPickup_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCkAudioGym_Advanced_NotificationsPickup_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCkAudioGym_Advanced_NotificationsPickup_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCkAudioGym_Advanced_NotificationsPickup
+{
+    FCkAudioGym_Advanced_NotificationsPickup_SpawnParams Params()
+    {
+        return FCkAudioGym_Advanced_NotificationsPickup_SpawnParams();
+    }
+
+    FCkAudioGym_Advanced_NotificationsPickup_SpawnParams Params(FTransform InTransform)
+    {
+        return FCkAudioGym_Advanced_NotificationsPickup_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCkAudioGym_Advanced_SpatialStation_SpawnParams
+{
+    UPROPERTY()
+    FTransform Transform = FTransform::Identity;
+
+    FCkAudioGym_Advanced_SpatialStation_SpawnParams(FTransform InTransform)
+    {
+        Transform = InTransform;
+    }
+}
+
+namespace UCkAudioGym_Advanced_SpatialStation
+{
+    FCkAudioGym_Advanced_SpatialStation_SpawnParams Params()
+    {
+        return FCkAudioGym_Advanced_SpatialStation_SpawnParams();
+    }
+
+    FCkAudioGym_Advanced_SpatialStation_SpawnParams Params(FTransform InTransform)
+    {
+        return FCkAudioGym_Advanced_SpatialStation_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FTestEntt_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FTestEntt_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UTestEntt
+{
+    FTestEntt_SpawnParams Params()
+    {
+        return FTestEntt_SpawnParams();
+    }
+
+    FTestEntt_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FTestEntt_SpawnParams(InInitialTransform);
+    }
+}
+
