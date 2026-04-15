@@ -291,21 +291,21 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Float Gym - Set Min")
-    void Ck_GymFloat_SetMin(float InValue = 25.0f)
+    void Ck_GymFloat_SetMin(float32 InValue = 25.0f)
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatMinMaxCurrent"))
         { utils_messaging::Broadcast(E, FCk_Message_FloatGym_SetValue(InValue, ECk_MinMaxCurrent::Min)); }
     }
 
     UFUNCTION(Exec, DisplayName="Float Gym - Set Max")
-    void Ck_GymFloat_SetMax(float InValue = 175.0f)
+    void Ck_GymFloat_SetMax(float32 InValue = 175.0f)
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatMinMaxCurrent"))
         { utils_messaging::Broadcast(E, FCk_Message_FloatGym_SetValue(InValue, ECk_MinMaxCurrent::Max)); }
     }
 
     UFUNCTION(Exec, DisplayName="Float Gym - Set Current")
-    void Ck_GymFloat_SetCurrent(float InValue = 100.0f)
+    void Ck_GymFloat_SetCurrent(float32 InValue = 100.0f)
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatMinMaxCurrent"))
         { utils_messaging::Broadcast(E, FCk_Message_FloatGym_SetValue(InValue, ECk_MinMaxCurrent::Current)); }
@@ -316,7 +316,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Float Gym - Set Signal Value")
-    void Ck_GymFloat_SetSignalValue(float InValue = 150.0f)
+    void Ck_GymFloat_SetSignalValue(float32 InValue = 150.0f)
     {
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AttributeGym_FloatSignals"))
         { utils_messaging::Broadcast(E, FCk_Message_FloatGym_SetValue(InValue)); }
@@ -438,16 +438,16 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     // Helpers
     private TArray<FName> Get_AllStationTags()
     {
-        auto Tags = TArray<FName>();
-        Tags.Add(n"TAG_AttributeGym_FloatValues");
-        Tags.Add(n"TAG_AttributeGym_FloatClamping");
-        Tags.Add(n"TAG_AttributeGym_FloatModifiers");
-        Tags.Add(n"TAG_AttributeGym_FloatMinMaxCurrent");
-        Tags.Add(n"TAG_AttributeGym_FloatSignals");
-        Tags.Add(n"TAG_AttributeGym_FloatRefill");
-        Tags.Add(n"TAG_AttributeGym_FloatIncrementDecrement");
-        Tags.Add(n"TAG_AttributeGym_FloatMultiple");
-        return Tags;
+        auto StationTags = TArray<FName>();
+        StationTags.Add(n"TAG_AttributeGym_FloatValues");
+        StationTags.Add(n"TAG_AttributeGym_FloatClamping");
+        StationTags.Add(n"TAG_AttributeGym_FloatModifiers");
+        StationTags.Add(n"TAG_AttributeGym_FloatMinMaxCurrent");
+        StationTags.Add(n"TAG_AttributeGym_FloatSignals");
+        StationTags.Add(n"TAG_AttributeGym_FloatRefill");
+        StationTags.Add(n"TAG_AttributeGym_FloatIncrementDecrement");
+        StationTags.Add(n"TAG_AttributeGym_FloatMultiple");
+        return StationTags;
     }
 
     private void BroadcastAutoToAll(bool InEnabled)
