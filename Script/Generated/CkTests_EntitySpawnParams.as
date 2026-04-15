@@ -1998,6 +1998,56 @@ namespace UCk_EntityScript_TransformGym_Display
 }
 
 USTRUCT()
+struct FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams
+{
+    UPROPERTY()
+    TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams(TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_ReplicationGym_PawnExtra_EntityScript
+{
+    FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams Params()
+    {
+        return FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams();
+    }
+
+    FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams Params(TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
+struct FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams
+{
+    UPROPERTY()
+    TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams(TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_ReplicationGym_ReplicatedActor_EntityScript
+{
+    FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams Params()
+    {
+        return FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams();
+    }
+
+    FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams Params(TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
 struct FCk_SimpleBackgroundMusicCue_SpawnParams
 {
     UPROPERTY()
