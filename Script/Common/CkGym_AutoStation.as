@@ -93,7 +93,7 @@ namespace gym_auto
 
     void NormalizeStationHeights(TArray<FCkGym_Station_SpawnParams_Payload>& InStations)
     {
-        auto MaxHeight = 0.0f;
+        auto MaxHeight = 0.0;
         for (auto& Station : InStations)
         {
             if (Station.Height > MaxHeight) { MaxHeight = Station.Height; }
