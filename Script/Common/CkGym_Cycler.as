@@ -8,30 +8,39 @@ struct FCkGym_Entry
     UPROPERTY()
     TSubclassOf<AGameModeBase> GameModeClass;
 
+    // Optional per-gym level override. When empty, falls back to
+    // UCkGym_CyclerSubsystem.GymLevelName. Set this for project gyms that live
+    // in their own level (e.g. BusterBlock gyms).
+    UPROPERTY()
+    FString LevelName;
+
     FCkGym_Entry()
     {
     }
 
-    FCkGym_Entry(FString InDisplayName, TSubclassOf<AGameModeBase> InGameModeClass)
+    FCkGym_Entry(FString InDisplayName, TSubclassOf<AGameModeBase> InGameModeClass, FString InLevelName = "")
     {
         DisplayName = InDisplayName;
         GameModeClass = InGameModeClass;
+        LevelName = InLevelName;
     }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------
 // Gym Registry
-// To add a new gym, add one line to Get_GymRegistry():
-//   CkGym_Cycler::RegisterGym(Gyms, "Display Name", AMyGym_GameMode);
+//
+// Built-in CkTests gyms are hardcoded in Register_BuiltInCkGyms below. Projects
+// that want to add their own gyms to the Tab-menu selector should call
+// CkGym_Cycler::RegisterProjectGym(displayName, gameModeClass, levelName) from
+// a GameInstanceSubsystem's Initialize — they'll appear after the built-ins.
 //--------------------------------------------------------------------------------------------------------------------------
 
 namespace CkGym_Cycler
 {
-    void RegisterGym(TArray<FCkGym_Entry>& G, FString N, TSubclassOf<AGameModeBase> C) { G.Add(FCkGym_Entry(N, C)); }
+    void RegisterGym(TArray<FCkGym_Entry>& G, FString N, TSubclassOf<AGameModeBase> C, FString L = "") { G.Add(FCkGym_Entry(N, C, L)); }
 
-    TArray<FCkGym_Entry> Get_GymRegistry()
+    void Register_BuiltInCkGyms(TArray<FCkGym_Entry>& Gyms)
     {
-        auto Gyms = TArray<FCkGym_Entry>();
         RegisterGym(Gyms, "Attribute Basic",    ACk_AttributeGym_GameMode);
         RegisterGym(Gyms, "Attribute Byte",     ACk_ByteAttributeGym_GameMode);
         RegisterGym(Gyms, "Attribute Float",    ACk_FloatAttributeGym_GameMode);
@@ -50,6 +59,45 @@ namespace CkGym_Cycler
         RegisterGym(Gyms, "Timer",              ACk_TimerGym_GameMode);
         RegisterGym(Gyms, "Transform",          ACk_TransformGym_GameMode);
         RegisterGym(Gyms, "Tween",              ACk_TweenTest_GymGameMode);
+    }
+
+    // Called by external modules (e.g. BusterBlock) from a GameInstanceSubsystem
+    // Initialize to add their own gyms. Dedupes by DisplayName so duplicate
+    // registrations on hot-reload or module reinit are idempotent.
+    void RegisterProjectGym(FString InDisplayName, TSubclassOf<AGameModeBase> InGameModeClass, FString InLevelName = "")
+    {
+        auto Subsystem = UCkGym_CyclerSubsystem::Get();
+        if (ck::Is_NOT_Valid(Subsystem))
+        {
+            ck::Warning(f"[GymCycler] RegisterProjectGym called but subsystem not available (DisplayName={InDisplayName})");
+            return;
+        }
+
+        for (auto Existing : Subsystem.ProjectGyms)
+        {
+            if (Existing.DisplayName == InDisplayName)
+            {
+                return;
+            }
+        }
+
+        Subsystem.ProjectGyms.Add(FCkGym_Entry(InDisplayName, InGameModeClass, InLevelName));
+    }
+
+    TArray<FCkGym_Entry> Get_GymRegistry()
+    {
+        auto Gyms = TArray<FCkGym_Entry>();
+        Register_BuiltInCkGyms(Gyms);
+
+        auto Subsystem = UCkGym_CyclerSubsystem::Get();
+        if (ck::IsValid(Subsystem))
+        {
+            for (auto ProjectGym : Subsystem.ProjectGyms)
+            {
+                Gyms.Add(ProjectGym);
+            }
+        }
+
         return Gyms;
     }
 
@@ -75,7 +123,7 @@ namespace CkGym_Cycler
         // Resolve the actual class path from the UClass at runtime
         auto Entry = Registry[WrappedIndex];
         auto ClassPath = Entry.GameModeClass.Get().GetPathName();
-        auto LevelName = Subsystem.GymLevelName;
+        auto LevelName = Entry.LevelName != "" ? Entry.LevelName : Subsystem.GymLevelName;
 
         auto TravelURL = f"{LevelName}?game={ClassPath}";
         ck::Trace(f"[GymCycler] ServerTravel {TravelURL}");
