@@ -19,7 +19,7 @@ class UCk_ReplicationGym_ReplicatedActor_EntityScript : UCk_EntityScript_WithAct
     FCk_Handle_IntegerAttribute ValueAttribute;
 
     UFUNCTION(BlueprintOverride)
-    ECk_EntityScript_ConstructionFlow DoConstructWithActor(FCk_Handle& InHandle, AActor InActor)
+    ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
         utils_entity_tag::Add(InHandle, n"TAG_ReplicationGym_ReplicatedActor");
 
