@@ -44,6 +44,7 @@ namespace CkGym_Cycler
         RegisterGym(Gyms, "Inventory",          ACk_InventoryGym_GameMode);
         RegisterGym(Gyms, "Messaging",          ACk_MessagingGym_GameMode);
         RegisterGym(Gyms, "PMG Shapes",         ACk_PmgShapesGym_GameMode);
+        RegisterGym(Gyms, "Replication",        ACk_ReplicationGym_GameMode);
         RegisterGym(Gyms, "Scene Node",         ACk_SceneNodeGym_GameMode);
         RegisterGym(Gyms, "State Machine",      ACk_SmTest_GymGameMode);
         RegisterGym(Gyms, "Timer",              ACk_TimerGym_GameMode);
