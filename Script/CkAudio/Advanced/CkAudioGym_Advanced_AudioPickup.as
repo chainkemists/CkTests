@@ -1,10 +1,3 @@
-// Spawn parameters for AudioGym Advanced Audio Pickups
-struct FCkAudioGym_Advanced_AudioPickup_SpawnParams
-{
-    UPROPERTY()
-    FTransform Transform;
-}
-
 // Base Audio Pickup class
 class UCkAudioGym_Advanced_AudioPickup : UCk_EntityScript_UE
 {

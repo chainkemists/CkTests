@@ -94,7 +94,7 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartSpawnTest()
     {
-        auto SpawnParams = FEntityScriptGym_SpawnParams();
+        auto SpawnParams = UCk_EntityScript_EntityScriptGym_Spawn::Params();
         SpawnParams.InitialTransform = Get_StationTransform("Gym.EntityScript.Spawn");
         SpawnParams.TestName = ExpectedTestName;
         SpawnParams.TestInt = ExpectedTestInt;
@@ -130,7 +130,7 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartReplicatedSpawnTest()
     {
-        auto SpawnParams = FEntityScriptGym_SpawnParams();
+        auto SpawnParams = UCk_EntityScript_EntityScriptGym_SpawnReplicated::Params();
         SpawnParams.InitialTransform = Get_StationTransform("Gym.EntityScript.SpawnReplicated");
         SpawnParams.TestName = ExpectedTestName;
         SpawnParams.TestInt = ExpectedTestInt;
