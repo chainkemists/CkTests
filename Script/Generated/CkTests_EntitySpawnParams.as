@@ -387,6 +387,79 @@ namespace UCk_CueGym_Cue_Transient
 }
 
 USTRUCT()
+struct FCk_EntityScript_AStarGym_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FString StationTitle = "";
+
+    UPROPERTY()
+    FString StationDescription = "";
+
+    UPROPERTY()
+    int32 GridWidth = 10;
+
+    UPROPERTY()
+    int32 GridHeight = 10;
+
+    UPROPERTY()
+    int32 StartX = 0;
+
+    UPROPERTY()
+    int32 StartY = 0;
+
+    UPROPERTY()
+    int32 GoalX = 9;
+
+    UPROPERTY()
+    int32 GoalY = 9;
+
+    UPROPERTY()
+    int64 BudgetMicroseconds = 0;
+
+    UPROPERTY()
+    float64 CostThreshold = 0.0;
+
+    UPROPERTY()
+    TArray<FIntPoint> BlockedCells;
+
+    UPROPERTY()
+    float64 RestartIntervalSeconds = 5.0;
+
+    FCk_EntityScript_AStarGym_Station_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int32 InGridWidth, int32 InGridHeight, int32 InStartX, int32 InStartY, int32 InGoalX, int32 InGoalY, int64 InBudgetMicroseconds, float64 InCostThreshold, TArray<FIntPoint> InBlockedCells, float64 InRestartIntervalSeconds)
+    {
+        InitialTransform = InInitialTransform;
+        StationTitle = InStationTitle;
+        StationDescription = InStationDescription;
+        GridWidth = InGridWidth;
+        GridHeight = InGridHeight;
+        StartX = InStartX;
+        StartY = InStartY;
+        GoalX = InGoalX;
+        GoalY = InGoalY;
+        BudgetMicroseconds = InBudgetMicroseconds;
+        CostThreshold = InCostThreshold;
+        BlockedCells = InBlockedCells;
+        RestartIntervalSeconds = InRestartIntervalSeconds;
+    }
+}
+
+namespace UCk_EntityScript_AStarGym_Station
+{
+    FCk_EntityScript_AStarGym_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_AStarGym_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_AStarGym_Station_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int32 InGridWidth, int32 InGridHeight, int32 InStartX, int32 InStartY, int32 InGoalX, int32 InGoalY, int64 InBudgetMicroseconds, float64 InCostThreshold, TArray<FIntPoint> InBlockedCells, float64 InRestartIntervalSeconds)
+    {
+        return FCk_EntityScript_AStarGym_Station_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InGridWidth, InGridHeight, InStartX, InStartY, InGoalX, InGoalY, InBudgetMicroseconds, InCostThreshold, InBlockedCells, InRestartIntervalSeconds);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_AttributeGym_BasicAttributes_SpawnParams
 {
     UPROPERTY()
@@ -1236,6 +1309,71 @@ namespace UCk_EntityScript_EntityScriptGym_SpawnReplicated
     FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams Params(FTransform InInitialTransform, FName InTestName, int InTestInt, float32 InTestFloat)
     {
         return FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams(InInitialTransform, InTestName, InTestInt, InTestFloat);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FString StationTitle = "";
+
+    UPROPERTY()
+    FString StationDescription = "";
+
+    UPROPERTY()
+    TArray<UClass> ActionClasses;
+
+    UPROPERTY()
+    TArray<UClass> GoalClasses;
+
+    UPROPERTY()
+    TSubclassOf<UCk_GoapGoal_EntityScript> SpecificGoalClass = nullptr;
+
+    UPROPERTY()
+    TMap<FGameplayTag, bool> InitialWorldState;
+
+    UPROPERTY()
+    int64 BudgetMicroseconds = 0;
+
+    UPROPERTY()
+    float64 RestartIntervalSeconds = 5.0;
+
+    UPROPERTY()
+    TSubclassOf<UCk_GoapAction_EntityScript> CostOverrideAction = nullptr;
+
+    UPROPERTY()
+    float64 CostOverrideValue = -1.0;
+
+    FCk_EntityScript_GoapGym_Station_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, TArray<UClass> InActionClasses, TArray<UClass> InGoalClasses, TSubclassOf<UCk_GoapGoal_EntityScript> InSpecificGoalClass, TMap<FGameplayTag, bool> InInitialWorldState, int64 InBudgetMicroseconds, float64 InRestartIntervalSeconds, TSubclassOf<UCk_GoapAction_EntityScript> InCostOverrideAction, float64 InCostOverrideValue)
+    {
+        InitialTransform = InInitialTransform;
+        StationTitle = InStationTitle;
+        StationDescription = InStationDescription;
+        ActionClasses = InActionClasses;
+        GoalClasses = InGoalClasses;
+        SpecificGoalClass = InSpecificGoalClass;
+        InitialWorldState = InInitialWorldState;
+        BudgetMicroseconds = InBudgetMicroseconds;
+        RestartIntervalSeconds = InRestartIntervalSeconds;
+        CostOverrideAction = InCostOverrideAction;
+        CostOverrideValue = InCostOverrideValue;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_Station
+{
+    FCk_EntityScript_GoapGym_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_Station_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, TArray<UClass> InActionClasses, TArray<UClass> InGoalClasses, TSubclassOf<UCk_GoapGoal_EntityScript> InSpecificGoalClass, TMap<FGameplayTag, bool> InInitialWorldState, int64 InBudgetMicroseconds, float64 InRestartIntervalSeconds, TSubclassOf<UCk_GoapAction_EntityScript> InCostOverrideAction, float64 InCostOverrideValue)
+    {
+        return FCk_EntityScript_GoapGym_Station_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InActionClasses, InGoalClasses, InSpecificGoalClass, InInitialWorldState, InBudgetMicroseconds, InRestartIntervalSeconds, InCostOverrideAction, InCostOverrideValue);
     }
 }
 
