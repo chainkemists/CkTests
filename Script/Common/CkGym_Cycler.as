@@ -9,8 +9,7 @@ struct FCkGym_Entry
     TSubclassOf<AGameModeBase> GameModeClass;
 
     // Optional per-gym level override. When empty, falls back to
-    // UCkGym_CyclerSubsystem.GymLevelName. Set this for project gyms that live
-    // in their own level (e.g. BusterBlock gyms).
+    // UCkGym_CyclerSubsystem.GymLevelName.
     UPROPERTY()
     FString LevelName;
 
@@ -27,43 +26,20 @@ struct FCkGym_Entry
 }
 
 //--------------------------------------------------------------------------------------------------------------------------
-// Gym Registry
+// Gym Registry (framework — no hardcoded gyms)
 //
-// Built-in CkTests gyms are hardcoded in Register_BuiltInCkGyms below. Projects
-// that want to add their own gyms to the Tab-menu selector should call
-// CkGym_Cycler::RegisterProjectGym(displayName, gameModeClass, levelName) from
-// a GameInstanceSubsystem's Initialize — they'll appear after the built-ins.
+// The cycler is a pure registry. Consumers (CkTests, BusterBlock, etc.) register
+// their own gyms via RegisterProjectGym, typically from a base GameMode's
+// BeginPlay. This keeps the framework gym-agnostic.
 //--------------------------------------------------------------------------------------------------------------------------
 
 namespace CkGym_Cycler
 {
     void RegisterGym(TArray<FCkGym_Entry>& G, FString N, TSubclassOf<AGameModeBase> C, FString L = "") { G.Add(FCkGym_Entry(N, C, L)); }
 
-    void Register_BuiltInCkGyms(TArray<FCkGym_Entry>& Gyms)
-    {
-        RegisterGym(Gyms, "Attribute Basic",    ACk_AttributeGym_GameMode);
-        RegisterGym(Gyms, "Attribute Byte",     ACk_ByteAttributeGym_GameMode);
-        RegisterGym(Gyms, "Attribute Float",    ACk_FloatAttributeGym_GameMode);
-        RegisterGym(Gyms, "Attribute Integer",  ACk_IntegerAttributeGym_GameMode);
-        RegisterGym(Gyms, "Audio Simple",       ACk_AudioGym_Simple_GameMode);
-        RegisterGym(Gyms, "Cue",                ACk_CueGym_GameMode);
-        RegisterGym(Gyms, "Entity Lifecycle",   ACk_EntityLifecycleGym_GameMode);
-        RegisterGym(Gyms, "Entity Script",      ACk_EntityScriptGym_Spawn_GameMode);
-        RegisterGym(Gyms, "Interaction",        ACk_InteractionGym_GameMode);
-        RegisterGym(Gyms, "Inventory",          ACk_InventoryGym_GameMode);
-        RegisterGym(Gyms, "Messaging",          ACk_MessagingGym_GameMode);
-        RegisterGym(Gyms, "PMG Shapes",         ACk_PmgShapesGym_GameMode);
-        RegisterGym(Gyms, "Replication",        ACk_ReplicationGym_GameMode);
-        RegisterGym(Gyms, "Scene Node",         ACk_SceneNodeGym_GameMode);
-        RegisterGym(Gyms, "State Machine",      ACk_SmTest_GymGameMode);
-        RegisterGym(Gyms, "Timer",              ACk_TimerGym_GameMode);
-        RegisterGym(Gyms, "Transform",          ACk_TransformGym_GameMode);
-        RegisterGym(Gyms, "Tween",              ACk_TweenTest_GymGameMode);
-    }
-
-    // Called by external modules (e.g. BusterBlock) from a GameInstanceSubsystem
-    // Initialize to add their own gyms. Dedupes by DisplayName so duplicate
-    // registrations on hot-reload or module reinit are idempotent.
+    // Called by consumers (e.g. CkTests_Gyms::RegisterAll, BB_Gyms::RegisterAll)
+    // from a base GameMode's BeginPlay. Dedupes by DisplayName so duplicate
+    // registrations on hot-reload or level re-entry are idempotent.
     void RegisterProjectGym(FString InDisplayName, TSubclassOf<AGameModeBase> InGameModeClass, FString InLevelName = "")
     {
         auto Subsystem = UCkGym_CyclerSubsystem::Get();
@@ -86,19 +62,12 @@ namespace CkGym_Cycler
 
     TArray<FCkGym_Entry> Get_GymRegistry()
     {
-        auto Gyms = TArray<FCkGym_Entry>();
-        Register_BuiltInCkGyms(Gyms);
-
         auto Subsystem = UCkGym_CyclerSubsystem::Get();
         if (ck::IsValid(Subsystem))
         {
-            for (auto ProjectGym : Subsystem.ProjectGyms)
-            {
-                Gyms.Add(ProjectGym);
-            }
+            return Subsystem.ProjectGyms;
         }
-
-        return Gyms;
+        return TArray<FCkGym_Entry>();
     }
 
     void Request_TravelToGym(int32 InIndex)
