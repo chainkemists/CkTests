@@ -98,7 +98,7 @@ class ACk_GridSystem_GymActor : AActor
     }
 
 	UFUNCTION()
-	private void Rotate(FInputActionValue ActionValue, float32 ElapsedTime, float32 TriggeredTime, const UInputAction SourceAction)
+	private void Rotate(FKey Key)
 	{
         auto RotationOffset = FCk_Request_Transform_AddRotationOffset(FRotator(0, 90, 0));
         GridB.H().Request_AddRotationOffset(RotationOffset);

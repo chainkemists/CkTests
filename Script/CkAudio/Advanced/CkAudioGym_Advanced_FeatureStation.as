@@ -401,14 +401,14 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
 
     // Orchestral director event handlers
     UFUNCTION()
-    void OnOrchestralTrackStarted(FCk_Handle_AudioDirector InDirector, FGameplayTag InTrackName, FCk_Handle_AudioTrack InTrack)
+    void OnOrchestralTrackStarted(FCk_Handle_AudioDirector InDirector, FName InTrackName, FCk_Handle_AudioTrack InTrack)
     {
         ck::Trace(f"Orchestral track started: {InTrackName.ToString()}", NAME_None, 1.5f, FLinearColor(0.0f, 1.0f, 1.0f, 1.0f));
         DisplayDualDirectorStats();
     }
 
     UFUNCTION()
-    void OnOrchestralTrackStopped(FCk_Handle_AudioDirector InDirector, FGameplayTag InTrackName, FCk_Handle_AudioTrack InTrack)
+    void OnOrchestralTrackStopped(FCk_Handle_AudioDirector InDirector, FName InTrackName, FCk_Handle_AudioTrack InTrack)
     {
         ck::Trace(f"Orchestral track stopped: {InTrackName.ToString()}", NAME_None, 1.5f, FLinearColor(0.5f, 0.5f, 0.5f, 1.0f));
     }
