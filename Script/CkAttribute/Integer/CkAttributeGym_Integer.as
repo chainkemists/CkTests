@@ -354,7 +354,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 // GAME MODE
 //============================================================================
 
-class ACk_IntegerAttributeGym_GameMode : ACk_Gym_Base_GameMode
+class ACk_IntegerAttributeGym_GameMode : ACkTests_Gym_Base_GameMode
 {
 	default PlayerControllerClass = ACk_IntegerAttributeGym_PlayerController;
 	default DefaultPawnClass = ACk_Gym_Base_Pawn;

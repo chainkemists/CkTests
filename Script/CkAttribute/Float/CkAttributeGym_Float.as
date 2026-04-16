@@ -478,7 +478,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 // GAME MODE
 //============================================================================
 
-class ACk_FloatAttributeGym_GameMode : ACk_Gym_Base_GameMode
+class ACk_FloatAttributeGym_GameMode : ACkTests_Gym_Base_GameMode
 {
     default PlayerControllerClass = ACk_FloatAttributeGym_PlayerController;
     default DefaultPawnClass = ACk_Gym_Base_Pawn;
