@@ -20,6 +20,8 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 	int32 MinClampCount = 0;
 	int32 MaxClampCount = 0;
 	int32 LastInputValue = 50;
+	int32 LastPreClampValue = 0;
+	int32 LastClampedValue = 0;
 
 	// Auto-cycling test values
 	int32 CurrentTestValue = 50;
@@ -152,7 +154,15 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		auto TitleText = "INTEGER CLAMPING (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
 		auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 
-		DisplayText = f"{DisplayText}Min Clamps: {MinClampCount} | Max Clamps: {MaxClampCount}\n\n";
+		DisplayText = f"{DisplayText}Min Clamps: {MinClampCount} | Max Clamps: {MaxClampCount}\n";
+
+		if (MinClampCount > 0 || MaxClampCount > 0)
+		{
+			int32 Overflow = LastPreClampValue - LastClampedValue;
+			DisplayText = f"{DisplayText}Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={Overflow}\n";
+		}
+
+		DisplayText = DisplayText + "\n";
 
 		auto ResourceValue = utils_integer_attribute::Get_FinalValue(ResourceAttribute);
 		auto ClampStatus = "";
@@ -174,8 +184,21 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, "");
 	}
 
-	UFUNCTION() void OnMinClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_IntegerAttribute_OnClamped InPayload) { MinClampCount++; CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(-50.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); }
-	UFUNCTION() void OnMaxClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_IntegerAttribute_OnClamped InPayload) { MaxClampCount++; CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(50.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); }
+	UFUNCTION() void OnMinClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_IntegerAttribute_OnClamped InPayload)
+	{
+		MinClampCount++;
+		LastPreClampValue = InPayload.Get_PreClampFinalValue();
+		LastClampedValue = InPayload.Get_FinalClampedValue();
+		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(-50.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.0f, 1.0f, 1.0f));
+	}
+
+	UFUNCTION() void OnMaxClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_IntegerAttribute_OnClamped InPayload)
+	{
+		MaxClampCount++;
+		LastPreClampValue = InPayload.Get_PreClampFinalValue();
+		LastClampedValue = InPayload.Get_FinalClampedValue();
+		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(50.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
+	}
 
 	UFUNCTION()
 	private void OnSetResource(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
@@ -207,6 +230,8 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		MaxClampCount = 0;
 		CurrentTestValue = 50;
 		LastInputValue = 50;
+		LastPreClampValue = 0;
+		LastClampedValue = 0;
 		IsIncreasing = true;
 
 		utils_integer_attribute::Request_Override(ResourceAttribute, 50);
