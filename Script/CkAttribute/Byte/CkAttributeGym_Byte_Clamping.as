@@ -22,6 +22,8 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 
 	int32 ValueChangeCount = 0;
 	int32 ClampedCount = 0;
+	uint8 LastPreClampValue = 0;
+	uint8 LastClampedValue = 0;
 
 	// Auto-cycling test values
 	uint8 CurrentArmorTest = 100;
@@ -161,7 +163,15 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 		auto TitleText = "BYTE CLAMPING (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
 		auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 
-		DisplayText = f"{DisplayText}Changes: {ValueChangeCount} | Clamps: {ClampedCount}\n\n";
+		DisplayText = f"{DisplayText}Changes: {ValueChangeCount} | Clamps: {ClampedCount}\n";
+
+		if (ClampedCount > 0)
+		{
+			int32 ClampOverflow = int32(LastPreClampValue) - int32(LastClampedValue);
+			DisplayText = f"{DisplayText}Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={ClampOverflow}\n";
+		}
+
+		DisplayText = DisplayText + "\n";
 
 		{
 			auto ArmorValue = utils_byte_attribute::Get_FinalValue(ArmorAttribute);
@@ -204,10 +214,29 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 	UFUNCTION() void OnHealthValueChanged(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnValueChanged InPayload) { ValueChangeCount++; }
 	UFUNCTION() void OnShieldValueChanged(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnValueChanged InPayload) { ValueChangeCount++; }
 
-	UFUNCTION() void OnArmorClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload) { ClampedCount++; CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(-50.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); }
-	UFUNCTION() void OnStaminaClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload) { ClampedCount++; CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(0.0f, 0.0f, 150.0f), FLinearColor(1.0f, 1.0f, 0.0f, 1.0f)); }
-	UFUNCTION() void OnHealthClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload) { ClampedCount++; CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(50.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); }
-	UFUNCTION() void OnShieldClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload) { ClampedCount++; CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(100.0f, 0.0f, 150.0f), FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); }
+	UFUNCTION() void OnArmorClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
+	{
+		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue();
+		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(-50.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.0f, 1.0f, 1.0f));
+	}
+
+	UFUNCTION() void OnStaminaClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
+	{
+		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue();
+		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(0.0f, 0.0f, 150.0f), FLinearColor(1.0f, 1.0f, 0.0f, 1.0f));
+	}
+
+	UFUNCTION() void OnHealthClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
+	{
+		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue();
+		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(50.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
+	}
+
+	UFUNCTION() void OnShieldClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
+	{
+		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue();
+		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(100.0f, 0.0f, 150.0f), FLinearColor(0.0f, 1.0f, 0.0f, 1.0f));
+	}
 
 	UFUNCTION()
 	private void OnTestBoundaries(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
@@ -228,6 +257,8 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 		AutoStep = 0;
 		ValueChangeCount = 0;
 		ClampedCount = 0;
+		LastPreClampValue = 0;
+		LastClampedValue = 0;
 		CurrentArmorTest = 100;
 		CurrentStaminaTest = 150;
 		CurrentHealthTest = 75;
