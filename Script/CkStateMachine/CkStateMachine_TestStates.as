@@ -48,10 +48,10 @@ UCLASS()
 class UCk_SmTest_State_Idle : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_State_Patrol);
-        DoAddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_State_Patrol);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -73,10 +73,10 @@ UCLASS()
 class UCk_SmTest_State_Patrol : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_State_Alert);
-        DoAddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_State_Alert);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -98,10 +98,10 @@ UCLASS()
 class UCk_SmTest_State_Alert : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_State_Idle);
-        DoAddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_State_Idle);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
     }
 
     UFUNCTION(BlueprintOverride)
