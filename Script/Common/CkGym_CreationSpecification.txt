@@ -5,9 +5,16 @@
 //============================================================================
 
 /*
-CRITICAL: This specification is for creating test gyms in the Ck Framework.
-Use this when creating new gyms to test specific framework features.
-All gyms follow standardized patterns for consistency and ease of development.
+CRITICAL: This specification describes the gym FRAMEWORK — the project-agnostic
+base classes, station spawning, auto-mode infrastructure, and cycler/HUD that
+live in CkTests/Script/Common/. The framework itself has zero knowledge of
+any specific gym.
+
+CONSUMERS register their gyms at runtime from a project-level base game mode:
+  - CkTests gyms: ACkTests_Gym_Base_GameMode → CkTests_Gyms::RegisterAll()
+  - Your project:  AMyProject_Gym_Base_GameMode → MyProject_Gyms::RegisterAll()
+Each level is self-contained — the Tab menu shows only gyms registered by that
+level's game mode. See "PROJECT-LEVEL GAME MODES" below.
 */
 
 //============================================================================
@@ -24,10 +31,19 @@ All gyms follow standardized patterns for consistency and ease of development.
 // 2. BASE CLASSES (REQUIRED)
 //============================================================================
 
-// All gyms MUST inherit from these base classes:
-// GameMode: ACk_Gym_Base_GameMode
-// PlayerController: ACk_Gym_Base_PlayerController
-// Pawn: ACk_Gym_Base_Pawn (can be used directly or inherited from)
+// FRAMEWORK base classes (do not inherit directly — use project base):
+//   ACk_Gym_Base_GameMode          — sets HUD, default pawn, station spawning
+//   ACk_Gym_Base_PlayerController  — station lookup, grid layout, gym cycling
+//   ACk_Gym_Base_Pawn              — ECS-ready DefaultPawn (use directly or subclass)
+//
+// PROJECT-LEVEL base game modes (inherit your gym GameMode from one of these):
+//   CkTests:      ACkTests_Gym_Base_GameMode  (Script/Common/CkTests_Gym_Base_GameMode.as)
+//   Your project: Create your own following the same pattern — a subclass of
+//                 ACk_Gym_Base_GameMode that calls your registration namespace
+//                 in BeginPlay. See CkTests_Gym_Base_GameMode.as as the template.
+//
+// These call their project's registration namespace in BeginPlay, which feeds
+// the Tab menu via CkGym_Cycler::RegisterProjectGym().
 
 //============================================================================
 // 3. FILE STRUCTURE STANDARD
@@ -68,19 +84,32 @@ All gyms follow standardized patterns for consistency and ease of development.
 // 5. GAMEMODE TEMPLATE (MINIMAL)
 //============================================================================
 
-// GameMode is now minimal - all logic moved to PlayerController
-class ACk_[GymName]Gym_GameMode : ACk_Gym_Base_GameMode
+// GameMode is minimal — all logic lives in PlayerController.
+// Inherit from your PROJECT's base game mode, not ACk_Gym_Base_GameMode directly.
+//
+// CkTests example:
+class ACk_[GymName]Gym_GameMode : ACkTests_Gym_Base_GameMode
 {
     default PlayerControllerClass = ACk_[GymName]Gym_PlayerController;
-    default DefaultPawnClass = ACk_Gym_Base_Pawn; // or custom pawn class if needed
-
-    // GameMode now only handles basic game setup
-    // All gym-specific logic is in PlayerController for client-server safety
+    default DefaultPawnClass = ACk_Gym_Base_Pawn;
 }
-
-// IMPORTANT: After creating the GameMode, register it in CkGym_Cycler.as so the
-// gym shows up in the in-game Tab selector. Add one alphabetically-sorted line:
-//   CkGym_Cycler::RegisterGym(Gyms, "Display Name", ACk_[GymName]Gym_GameMode);
+//
+// Project gym example (your own base game mode):
+// class AMyProject_[GymName]Gym_GameMode : AMyProject_Gym_Base_GameMode
+// {
+//     default PlayerControllerClass = AMyProject_[GymName]Gym_PlayerController;
+//     default DefaultPawnClass = ACk_Gym_Base_Pawn;
+// }
+//
+// REGISTRATION: After creating the GameMode, add it to your project's registry
+// namespace so it appears in the Tab menu:
+//
+// CkTests:      CkTests_GymRegistry.as     → CkGym_Cycler::RegisterProjectGym("Name", ACk_XxxGym_GameMode);
+// Your project: MyProject_GymRegistry.as   → CkGym_Cycler::RegisterProjectGym("Name", AMyGym_GameMode, "MyGymLevel");
+//
+// The LevelName parameter is optional — omit it to use the subsystem's default
+// (CkGym_AllTests). Project gyms that live in their own levels should provide
+// their level name explicitly.
 
 //============================================================================
 // 6. PLAYERCONTROLLER TEMPLATE (MAIN GYM LOGIC)
@@ -383,17 +412,19 @@ BEFORE IMPLEMENTATION:
 [ ] Define console commands for testing
 
 DURING IMPLEMENTATION:
-[ ] Create GameMode inheriting from ACk_Gym_Base_GameMode
+[ ] Create GameMode inheriting from your PROJECT's base game mode:
+        CkTests:      ACkTests_Gym_Base_GameMode
+        Your project: your own subclass of ACk_Gym_Base_GameMode (see pattern above)
 [ ] Create PlayerController inheriting from ACk_Gym_Base_PlayerController
 [ ] Override Get_RequiredStations() to define all stations with titles/descriptions
 [ ] Implement Request_StartGym() with gym-specific startup logic
 [ ] Add console commands for individual feature testing
 [ ] Use Get_StationTransform() utility for station positioning
 [ ] Add proper error handling and logging
-[ ] Register the gym in CkGym_Cycler.as so it appears in the Tab menu:
-        CkGym_Cycler::RegisterGym(Gyms, "Display Name", ACk_[GymName]Gym_GameMode);
-    (Keep entries sorted alphabetically. Required for the gym to appear in the
-    HUD selector and be reachable via Tab/PgUp/PgDn from any other gym.)
+[ ] Register the gym in your project's registry namespace:
+        CkTests:      CkTests_GymRegistry.as    → CkGym_Cycler::RegisterProjectGym(...)
+        Your project: MyProject_GymRegistry.as   → CkGym_Cycler::RegisterProjectGym(...)
+    (Keep entries sorted alphabetically within the namespace.)
 
 AFTER IMPLEMENTATION:
 [ ] Test stations spawn correctly in default grid layout
@@ -491,8 +522,8 @@ the station display system and updates are reflected immediately on the BP_DemoD
 // 17. EXAMPLE: SIMPLE AUDIO GYM IMPLEMENTATION
 //============================================================================
 
-// GameMode (minimal):
-class ACk_AudioGym_Simple_GameMode : ACk_Gym_Base_GameMode
+// GameMode (minimal — inherits from CkTests project base):
+class ACk_AudioGym_Simple_GameMode : ACkTests_Gym_Base_GameMode
 {
     default PlayerControllerClass = ACk_AudioGym_Simple_PlayerController;
     default DefaultPawnClass = ACk_Gym_Base_Pawn;
@@ -794,7 +825,48 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 // - For multi-client PIE testing, ensure the entity creation path has a
 //   replicated owner in the chain.
 
+//============================================================================
+// 15. LEVEL SETUP & BINARY PIPELINE (THINGS CLAUDE CAN'T SEE)
+//============================================================================
+
+// Several critical pieces of the gym framework are binary assets in the editor
+// that AngelScript code depends on but cannot directly inspect:
+//
+// LEVEL REQUIREMENTS — Each gym level (.umap) must have:
+//   1. World Settings → Default GameMode Override set to the project's base
+//      game mode (e.g. ACkTests_Gym_Base_GameMode for CkTests, or your own
+//      project base). Without this, no gyms register and the Tab menu is empty.
+//   2. A Blueprint actor in the level that hooks onto the transient entity
+//      and listens for messages that trigger BP_DemoDisplay spawning.
+//      This is the bridge between the AS CkGym_Common::Request_SpawnNewStation()
+//      call and the actual display hardware appearing in the world.
+//
+// BP_DemoDisplay PIPELINE — The display stations visible in-game are Blueprint
+// actors (BP_DemoDisplay) with this internal flow:
+//   1. BP_DemoDisplay spawns → it adds an entity script onto itself
+//   2. That entity receives FCkGym_Station_TitleAndDescription dynamic fragments
+//      (sent by the gym station scripts via Owner.AddOrGet_Fragment)
+//   3. The fragment data (Title, Description) is rendered onto 3D text
+//      components on the display actor each tick
+//
+// This means:
+//   - Creating a new gym level: duplicate an existing gym level (CkGym_AllTests
+//     or AllTests_Gym_BB_MAP) so you get the spawn-listener Blueprint for free.
+//     Then change the World Settings game mode override.
+//   - BP_DemoDisplay is a Content asset in Plugins/CkTests/Content/Common/DemoRoom/.
+//     Both CkTests and BB levels reference it — it's part of the framework.
+//   - If station text isn't updating, check that the entity script is writing to
+//     the LIFETIME OWNER's fragment (utils_entity_lifetime::Get_LifetimeOwner),
+//     not the station entity directly.
+//
+// HUD — ACkGym_MenuHUD (set by ACk_Gym_Base_GameMode via default HUDClass):
+//   - Renders the Tab-key gym selector overlay
+//   - Reads gym entries from CkGym_Cycler::Get_GymRegistry() (= Subsystem.ProjectGyms)
+//   - Only shows gyms that were registered by the current level's game mode
+//   - Info about which gyms exist comes through UCkGym_CyclerSubsystem
+
 /*
 This specification provides everything needed to quickly create consistent,
-robust gyms for testing Ck Framework features following established patterns.
+robust gyms following established patterns. The framework is project-agnostic;
+each project registers its own gyms from its own base game mode.
 */
