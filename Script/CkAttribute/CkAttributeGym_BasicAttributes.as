@@ -514,7 +514,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 // GAME MODE
 //============================================================================
 
-class ACk_AttributeGym_GameMode : ACk_Gym_Base_GameMode
+class ACk_AttributeGym_GameMode : ACkTests_Gym_Base_GameMode
 {
     default PlayerControllerClass = ACk_AttributeGym_PlayerController;
     default DefaultPawnClass = ACk_Gym_Base_Pawn;
