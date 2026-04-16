@@ -22,6 +22,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_EntityScript_UE
 	int32 MaxClampCount = 0;
 	float32 LastPreviousFinal = 0.0f;
 	float32 LastNewFinal = 0.0f;
+	float32 LastPreClampValue = 0.0f;
 	float32 LastClampedValue = 0.0f;
 	bool Delegate1Bound = false;
 	bool Delegate2Bound = false;
@@ -179,9 +180,10 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}  Previous Final: {LastPreviousFinal}\n";
 		DisplayText = f"{DisplayText}  New Final: {LastNewFinal}\n";
 		DisplayText = f"{DisplayText}  Delta: {LastNewFinal - LastPreviousFinal}\n";
-		if (LastClampedValue != 0.0f)
+		if (LastClampedValue != 0.0f || LastPreClampValue != 0.0f)
 		{
-			DisplayText = f"{DisplayText}  Last Clamped To: {LastClampedValue}\n";
+			auto ClampOverflow = LastPreClampValue - LastClampedValue;
+			DisplayText = f"{DisplayText}  Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={ClampOverflow}\n";
 		}
 		DisplayText = f"{DisplayText}\n";
 
@@ -203,8 +205,21 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_EntityScript_UE
 	UFUNCTION() void OnValueChanged1(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload) { Delegate1Count++; LastPreviousFinal = InPayload.Get_FinalValue_Previous(); LastNewFinal = InPayload.Get_FinalValue(); }
 	UFUNCTION() void OnValueChanged2(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload) { Delegate2Count++; LastPreviousFinal = InPayload.Get_FinalValue_Previous(); LastNewFinal = InPayload.Get_FinalValue(); }
 	UFUNCTION() void OnValueChanged3(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload) { Delegate3Count++; LastPreviousFinal = InPayload.Get_FinalValue_Previous(); LastNewFinal = InPayload.Get_FinalValue(); }
-	UFUNCTION() void OnMinClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnClamped InPayload) { MinClampCount++; LastClampedValue = InPayload.Get_FinalClampedValue(); CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(-30.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.5f, 1.0f, 1.0f)); }
-	UFUNCTION() void OnMaxClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnClamped InPayload) { MaxClampCount++; LastClampedValue = InPayload.Get_FinalClampedValue(); CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(30.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.5f, 0.0f, 1.0f)); }
+	UFUNCTION() void OnMinClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnClamped InPayload)
+	{
+		MinClampCount++;
+		LastPreClampValue = InPayload.Get_PreClampFinalValue();
+		LastClampedValue = InPayload.Get_FinalClampedValue();
+		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(-30.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.5f, 1.0f, 1.0f));
+	}
+
+	UFUNCTION() void OnMaxClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnClamped InPayload)
+	{
+		MaxClampCount++;
+		LastPreClampValue = InPayload.Get_PreClampFinalValue();
+		LastClampedValue = InPayload.Get_FinalClampedValue();
+		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(30.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.5f, 0.0f, 1.0f));
+	}
 
 	UFUNCTION()
 	private void OnResetAttributes(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
@@ -212,7 +227,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_EntityScript_UE
 		AutoStep = 0;
 		Delegate1Count = 0; Delegate2Count = 0; Delegate3Count = 0;
 		MinClampCount = 0; MaxClampCount = 0;
-		LastPreviousFinal = 0.0f; LastNewFinal = 0.0f; LastClampedValue = 0.0f;
+		LastPreviousFinal = 0.0f; LastNewFinal = 0.0f; LastPreClampValue = 0.0f; LastClampedValue = 0.0f;
 		Delegate1Bound = false; Delegate2Bound = false; Delegate3Bound = false;
 		utils_float_attribute::Request_Override(TestAttribute, 100.0f);
 	}
