@@ -219,15 +219,15 @@ UCLASS()
 class UCk_SmTest_Complex_State_Idle : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto ToPatrol = DoAddTransition(UCk_SmTest_Complex_State_Patrol);
-        DoAddCondition(ToPatrol, UCk_SmTest_Condition_ShortDelay);
+        auto ToPatrol = AddTransition(InHandle, UCk_SmTest_Complex_State_Patrol);
+        auto Cond0 = AddCondition(ToPatrol, UCk_SmTest_Condition_ShortDelay);
 
-        auto ToChase = DoAddTransition(UCk_SmTest_Complex_State_Chase);
-        DoAddCondition(ToChase, UCk_SmTest_Condition_PolledTimer);
+        auto ToChase = AddTransition(InHandle, UCk_SmTest_Complex_State_Chase);
+        auto Cond1 = AddCondition(ToChase, UCk_SmTest_Condition_PolledTimer);
 
-        DoAddTask(UCk_SmTest_Task_LogOnly);
+        AddTask(InHandle, UCk_SmTest_Task_LogOnly);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -252,19 +252,19 @@ UCLASS()
 class UCk_SmTest_Complex_State_Patrol : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto ToChase = DoAddTransition(UCk_SmTest_Complex_State_Chase);
-        DoAddCondition(ToChase, UCk_SmTest_Condition_ShortDelay);
+        auto ToChase = AddTransition(InHandle, UCk_SmTest_Complex_State_Chase);
+        auto Cond0 = AddCondition(ToChase, UCk_SmTest_Condition_ShortDelay);
 
-        auto ToIdle = DoAddTransition(UCk_SmTest_Complex_State_Idle);
-        DoAddCondition(ToIdle, UCk_SmTest_Condition_PolledTimer);
+        auto ToIdle = AddTransition(InHandle, UCk_SmTest_Complex_State_Idle);
+        auto Cond1 = AddCondition(ToIdle, UCk_SmTest_Condition_PolledTimer);
 
-        auto ToSearch = DoAddTransition(UCk_SmTest_Complex_State_Search);
-        DoAddCondition(ToSearch, UCk_SmTest_Condition_LongDelay);
+        auto ToSearch = AddTransition(InHandle, UCk_SmTest_Complex_State_Search);
+        auto Cond2 = AddCondition(ToSearch, UCk_SmTest_Condition_LongDelay);
 
-        DoAddTask(UCk_SmTest_Task_TimedWork);
-        DoAddTask(UCk_SmTest_Task_LogOnly);
+        AddTask(InHandle, UCk_SmTest_Task_TimedWork);
+        AddTask(InHandle, UCk_SmTest_Task_LogOnly);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -288,16 +288,16 @@ UCLASS()
 class UCk_SmTest_Complex_State_Chase : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto ToAttack = DoAddTransition(UCk_SmTest_Complex_State_Attack);
-        DoAddCondition(ToAttack, UCk_SmTest_Condition_ShortDelay);
-        DoAddCondition(ToAttack, UCk_SmTest_Condition_AlwaysTrue);
+        auto ToAttack = AddTransition(InHandle, UCk_SmTest_Complex_State_Attack);
+        auto Cond0 = AddCondition(ToAttack, UCk_SmTest_Condition_ShortDelay);
+        auto Cond1 = AddCondition(ToAttack, UCk_SmTest_Condition_AlwaysTrue);
 
-        auto ToFlee = DoAddTransition(UCk_SmTest_Complex_State_Flee);
-        DoAddCondition(ToFlee, UCk_SmTest_Condition_LongDelay);
+        auto ToFlee = AddTransition(InHandle, UCk_SmTest_Complex_State_Flee);
+        auto Cond2 = AddCondition(ToFlee, UCk_SmTest_Condition_LongDelay);
 
-        DoAddTask(UCk_SmTest_Task_TimedWork);
+        AddTask(InHandle, UCk_SmTest_Task_TimedWork);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -320,13 +320,13 @@ UCLASS()
 class UCk_SmTest_Complex_State_Attack : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto ToIdle = DoAddTransition(UCk_SmTest_Complex_State_Idle);
-        DoAddCondition(ToIdle, UCk_SmTest_Condition_ShortDelay);
+        auto ToIdle = AddTransition(InHandle, UCk_SmTest_Complex_State_Idle);
+        auto Cond = AddCondition(ToIdle, UCk_SmTest_Condition_ShortDelay);
 
-        DoAddTask(UCk_SmTest_Task_TimedWork);
-        DoAddTask(UCk_SmTest_Task_LogOnly);
+        AddTask(InHandle, UCk_SmTest_Task_TimedWork);
+        AddTask(InHandle, UCk_SmTest_Task_LogOnly);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -349,12 +349,12 @@ UCLASS()
 class UCk_SmTest_Complex_State_Search : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto ToIdle = DoAddTransition(UCk_SmTest_Complex_State_Idle);
-        DoAddCondition(ToIdle, UCk_SmTest_Condition_ShortDelay);
+        auto ToIdle = AddTransition(InHandle, UCk_SmTest_Complex_State_Idle);
+        auto Cond = AddCondition(ToIdle, UCk_SmTest_Condition_ShortDelay);
 
-        DoAddTask(UCk_SmTest_Task_TimedWork);
+        AddTask(InHandle, UCk_SmTest_Task_TimedWork);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -376,12 +376,12 @@ UCLASS()
 class UCk_SmTest_Complex_State_Flee : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto ToIdle = DoAddTransition(UCk_SmTest_Complex_State_Idle);
-        DoAddCondition(ToIdle, UCk_SmTest_Condition_ShortDelay);
+        auto ToIdle = AddTransition(InHandle, UCk_SmTest_Complex_State_Idle);
+        auto Cond = AddCondition(ToIdle, UCk_SmTest_Condition_ShortDelay);
 
-        DoAddTask(UCk_SmTest_Task_LogOnly);
+        AddTask(InHandle, UCk_SmTest_Task_LogOnly);
     }
 
     UFUNCTION(BlueprintOverride)

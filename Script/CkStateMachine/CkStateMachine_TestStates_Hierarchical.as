@@ -53,10 +53,10 @@ UCLASS()
 class UCk_SmTest_Hier_Child_WindUp : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Child_Strike);
-        DoAddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Child_Strike);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -77,10 +77,10 @@ UCLASS()
 class UCk_SmTest_Hier_Child_Strike : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Child_Recover);
-        DoAddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Child_Recover);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -101,10 +101,10 @@ UCLASS()
 class UCk_SmTest_Hier_Child_Recover : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Child_WindUp);
-        DoAddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Child_WindUp);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -127,10 +127,10 @@ UCLASS()
 class UCk_SmTest_Hier_Heal_Gather : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Heal_Channel);
-        DoAddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Heal_Channel);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -151,10 +151,10 @@ UCLASS()
 class UCk_SmTest_Hier_Heal_Channel : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Heal_Restore);
-        DoAddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Heal_Restore);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -175,10 +175,10 @@ UCLASS()
 class UCk_SmTest_Hier_Heal_Restore : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Heal_Gather);
-        DoAddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Heal_Gather);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -201,10 +201,10 @@ UCLASS()
 class UCk_SmTest_Hier_Parent_Spawn : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Parent_Approach);
-        DoAddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Parent_Approach);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -225,15 +225,15 @@ UCLASS()
 class UCk_SmTest_Hier_Parent_Approach : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         // Branch 1: Approach -> Engage (normal flow)
-        auto TransEngage = DoAddTransition(UCk_SmTest_Hier_Parent_Engage);
-        DoAddCondition(TransEngage, UCk_SmTest_Condition_AfterDelay);
+        auto TransEngage = AddTransition(InHandle, UCk_SmTest_Hier_Parent_Engage);
+        auto Cond0 = AddCondition(TransEngage, UCk_SmTest_Condition_AfterDelay);
 
         // Branch 2: Approach -> Flee (short-circuit)
-        auto TransFlee = DoAddTransition(UCk_SmTest_Hier_Parent_Flee);
-        DoAddCondition(TransFlee, UCk_SmTest_Condition_LongDelay);
+        auto TransFlee = AddTransition(InHandle, UCk_SmTest_Hier_Parent_Flee);
+        auto Cond1 = AddCondition(TransFlee, UCk_SmTest_Condition_LongDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -254,12 +254,12 @@ UCLASS()
 class UCk_SmTest_Hier_Parent_Engage : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Parent_Retreat);
-        DoAddCondition(Trans, UCk_SmTest_Condition_PolledTimer);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Parent_Retreat);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_PolledTimer);
 
-        DoAddTask(UCk_SmTest_Hier_SubSmTask);
+        AddTask(InHandle, UCk_SmTest_Hier_SubSmTask);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -281,10 +281,10 @@ UCLASS()
 class UCk_SmTest_Hier_Parent_Retreat : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Parent_Heal);
-        DoAddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Parent_Heal);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_AfterDelay);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -305,12 +305,12 @@ UCLASS()
 class UCk_SmTest_Hier_Parent_Heal : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Parent_Approach);
-        DoAddCondition(Trans, UCk_SmTest_Condition_PolledTimer);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Parent_Approach);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_PolledTimer);
 
-        DoAddTask(UCk_SmTest_Hier_HealSubSmTask);
+        AddTask(InHandle, UCk_SmTest_Hier_HealSubSmTask);
     }
 
     UFUNCTION(BlueprintOverride)
@@ -332,11 +332,11 @@ UCLASS()
 class UCk_SmTest_Hier_Parent_Flee : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState& InHandle)
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         // Flee short-circuits to Heal
-        auto Trans = DoAddTransition(UCk_SmTest_Hier_Parent_Heal);
-        DoAddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
+        auto Trans = AddTransition(InHandle, UCk_SmTest_Hier_Parent_Heal);
+        auto Cond = AddCondition(Trans, UCk_SmTest_Condition_ShortDelay);
     }
 
     UFUNCTION(BlueprintOverride)
