@@ -24,6 +24,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 	int32 ClampedCount = 0;
 	uint8 LastPreClampValue = 0;
 	uint8 LastClampedValue = 0;
+	uint8 LastOverflow = 0;
 
 	// Auto-cycling test values
 	uint8 CurrentArmorTest = 100;
@@ -167,9 +168,13 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 
 		if (ClampedCount > 0)
 		{
-			int32 ClampOverflow = int32(LastPreClampValue) - int32(LastClampedValue);
-			DisplayText = f"{DisplayText}Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={ClampOverflow}\n";
+			DisplayText = f"{DisplayText}Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={LastOverflow}\n";
 		}
+
+		// Live polling via utility accessors — shows the Armor attribute's this-frame values.
+		auto LivePre = utils_byte_attribute::Get_PreClampFinalValue(ArmorAttribute);
+		auto LiveOvr = utils_byte_attribute::Get_ClampOverflow(ArmorAttribute);
+		DisplayText = f"{DisplayText}Live Poll (Armor): pre={LivePre}  overflow={LiveOvr}\n";
 
 		DisplayText = DisplayText + "\n";
 
@@ -216,25 +221,25 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 
 	UFUNCTION() void OnArmorClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
 	{
-		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue();
+		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue(); LastOverflow = InPayload.Get_ClampOverflow();
 		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(-50.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 
 	UFUNCTION() void OnStaminaClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
 	{
-		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue();
+		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue(); LastOverflow = InPayload.Get_ClampOverflow();
 		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(0.0f, 0.0f, 150.0f), FLinearColor(1.0f, 1.0f, 0.0f, 1.0f));
 	}
 
 	UFUNCTION() void OnHealthClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
 	{
-		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue();
+		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue(); LastOverflow = InPayload.Get_ClampOverflow();
 		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(50.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
 	}
 
 	UFUNCTION() void OnShieldClamped(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnClamped InPayload)
 	{
-		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue();
+		ClampedCount++; LastPreClampValue = InPayload.Get_PreClampFinalValue(); LastClampedValue = InPayload.Get_FinalClampedValue(); LastOverflow = InPayload.Get_ClampOverflow();
 		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(100.0f, 0.0f, 150.0f), FLinearColor(0.0f, 1.0f, 0.0f, 1.0f));
 	}
 
@@ -259,6 +264,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_EntityScript_UE
 		ClampedCount = 0;
 		LastPreClampValue = 0;
 		LastClampedValue = 0;
+		LastOverflow = 0;
 		CurrentArmorTest = 100;
 		CurrentStaminaTest = 150;
 		CurrentHealthTest = 75;
