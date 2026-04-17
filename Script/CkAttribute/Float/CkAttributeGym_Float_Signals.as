@@ -24,6 +24,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_EntityScript_UE
 	float32 LastNewFinal = 0.0f;
 	float32 LastPreClampValue = 0.0f;
 	float32 LastClampedValue = 0.0f;
+	float32 LastOverflow = 0.0f;
 	bool Delegate1Bound = false;
 	bool Delegate2Bound = false;
 	bool Delegate3Bound = false;
@@ -182,9 +183,14 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_EntityScript_UE
 		DisplayText = f"{DisplayText}  Delta: {LastNewFinal - LastPreviousFinal}\n";
 		if (LastClampedValue != 0.0f || LastPreClampValue != 0.0f)
 		{
-			auto ClampOverflow = LastPreClampValue - LastClampedValue;
-			DisplayText = f"{DisplayText}  Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={ClampOverflow}\n";
+			DisplayText = f"{DisplayText}  Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={LastOverflow}\n";
 		}
+
+		// Live polling via utility accessors — updates every frame.
+		auto LivePre = utils_float_attribute::Get_PreClampFinalValue(TestAttribute);
+		auto LiveOvr = utils_float_attribute::Get_ClampOverflow(TestAttribute);
+		DisplayText = f"{DisplayText}  Live Poll:  pre={LivePre}  overflow={LiveOvr}\n";
+
 		DisplayText = f"{DisplayText}\n";
 
 		auto ValueBar = CkGym_Attribute::Create_ProgressBar(CurrentValue, 255.0f, 20);
@@ -210,6 +216,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_EntityScript_UE
 		MinClampCount++;
 		LastPreClampValue = InPayload.Get_PreClampFinalValue();
 		LastClampedValue = InPayload.Get_FinalClampedValue();
+		LastOverflow = InPayload.Get_ClampOverflow();
 		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(-30.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.5f, 1.0f, 1.0f));
 	}
 
@@ -218,6 +225,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_EntityScript_UE
 		MaxClampCount++;
 		LastPreClampValue = InPayload.Get_PreClampFinalValue();
 		LastClampedValue = InPayload.Get_FinalClampedValue();
+		LastOverflow = InPayload.Get_ClampOverflow();
 		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(30.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.5f, 0.0f, 1.0f));
 	}
 
@@ -227,7 +235,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_EntityScript_UE
 		AutoStep = 0;
 		Delegate1Count = 0; Delegate2Count = 0; Delegate3Count = 0;
 		MinClampCount = 0; MaxClampCount = 0;
-		LastPreviousFinal = 0.0f; LastNewFinal = 0.0f; LastPreClampValue = 0.0f; LastClampedValue = 0.0f;
+		LastPreviousFinal = 0.0f; LastNewFinal = 0.0f; LastPreClampValue = 0.0f; LastClampedValue = 0.0f; LastOverflow = 0.0f;
 		Delegate1Bound = false; Delegate2Bound = false; Delegate3Bound = false;
 		utils_float_attribute::Request_Override(TestAttribute, 100.0f);
 	}

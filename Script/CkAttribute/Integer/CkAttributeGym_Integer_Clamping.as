@@ -22,6 +22,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 	int32 LastInputValue = 50;
 	int32 LastPreClampValue = 0;
 	int32 LastClampedValue = 0;
+	int32 LastOverflow = 0;
 
 	// Auto-cycling test values
 	int32 CurrentTestValue = 50;
@@ -158,9 +159,13 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 
 		if (MinClampCount > 0 || MaxClampCount > 0)
 		{
-			int32 Overflow = LastPreClampValue - LastClampedValue;
-			DisplayText = f"{DisplayText}Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={Overflow}\n";
+			DisplayText = f"{DisplayText}Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={LastOverflow}\n";
 		}
+
+		// Live polling via utility accessors — updates every frame (this-frame values).
+		auto LivePre = utils_integer_attribute::Get_PreClampFinalValue(ResourceAttribute);
+		auto LiveOvr = utils_integer_attribute::Get_ClampOverflow(ResourceAttribute);
+		DisplayText = f"{DisplayText}Live Poll:  pre={LivePre}  overflow={LiveOvr}\n";
 
 		DisplayText = DisplayText + "\n";
 
@@ -189,6 +194,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		MinClampCount++;
 		LastPreClampValue = InPayload.Get_PreClampFinalValue();
 		LastClampedValue = InPayload.Get_FinalClampedValue();
+		LastOverflow = InPayload.Get_ClampOverflow();
 		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(-50.0f, 0.0f, 150.0f), FLinearColor(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 
@@ -197,6 +203,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		MaxClampCount++;
 		LastPreClampValue = InPayload.Get_PreClampFinalValue();
 		LastClampedValue = InPayload.Get_FinalClampedValue();
+		LastOverflow = InPayload.Get_ClampOverflow();
 		CkGym_Attribute::Draw_ClampIndicator(ck::ToEntity(this), FVector(50.0f, 0.0f, 150.0f), FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
 	}
 
@@ -232,6 +239,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
 		LastInputValue = 50;
 		LastPreClampValue = 0;
 		LastClampedValue = 0;
+		LastOverflow = 0;
 		IsIncreasing = true;
 
 		utils_integer_attribute::Request_Override(ResourceAttribute, 50);
