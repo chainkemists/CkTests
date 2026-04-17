@@ -276,230 +276,250 @@ class UCk_GoapTest_Goal_Neutralize : UCk_GoapGoal_EntityScript
 };
 
 //============================================================================
-// STATION 6 — AGE OF EMPIRES (mirrors goap_debugger_D.html action graph)
+// STATION 6 — CIRCULAR DEPENDENCY (intentional — exercises the cycle detector)
 //============================================================================
+// Chicken-and-egg graph: charging the device requires a battery; charging the
+// battery requires power. Neither can bootstrap from empty state, so the
+// framework must flag the cycle and the planner must fail cleanly.
 
-// TrainVillager: (HasTownCenter) -> HasIdleVillager
-class UCk_GoapTest_Action_TrainVillager : UCk_GoapAction_EntityScript
+class UCk_GoapTest_Action_ChargeDevice : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasTownCenter"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasIdleVillager"), true);
-		SetCost(3.0f);
-	}
-};
-
-// SelectBuildSite: (HasIdleVillager) -> BuildSiteSelected, HasBuilder
-class UCk_GoapTest_Action_SelectBuildSite : UCk_GoapAction_EntityScript
-{
-	UFUNCTION(BlueprintOverride)
-	void DoDefineAction()
-	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasIdleVillager"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.BuildSiteSelected"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasBuilder"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.Cycle.HasBattery"), true);
+		AddEffect(goap_tags::T(n"Goap.WS.Cycle.HasPower"), true);
 		SetCost(1.0f);
 	}
 };
 
-// SendToForest: (HasIdleVillager, HasLumberCamp) -> VillagerNearForest
-class UCk_GoapTest_Action_SendToForest : UCk_GoapAction_EntityScript
+class UCk_GoapTest_Action_ChargeBattery : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasIdleVillager"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasLumberCamp"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.VillagerNearForest"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.Cycle.HasPower"), true);
+		AddEffect(goap_tags::T(n"Goap.WS.Cycle.HasBattery"), true);
 		SetCost(1.0f);
 	}
 };
 
-// SendToBerries: (HasIdleVillager, HasMill) -> VillagerNearBerries
-class UCk_GoapTest_Action_SendToBerries : UCk_GoapAction_EntityScript
+class UCk_GoapTest_Goal_HasPower : UCk_GoapGoal_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
-	void DoDefineAction()
+	void DoDefineGoal()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasIdleVillager"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasMill"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.VillagerNearBerries"), true);
-		SetCost(1.0f);
+		AddCondition(goap_tags::T(n"Goap.WS.Cycle.HasPower"), true);
+		SetPriority(1);
 	}
 };
 
-// SendToGold: (HasIdleVillager, HasMiningCamp) -> VillagerNearGold
-class UCk_GoapTest_Action_SendToGold : UCk_GoapAction_EntityScript
-{
-	UFUNCTION(BlueprintOverride)
-	void DoDefineAction()
-	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasIdleVillager"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasMiningCamp"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.VillagerNearGold"), true);
-		SetCost(1.0f);
-	}
-};
+//============================================================================
+// STATION 7 — AGE OF EMPIRES (single-villager realistic economy)
+//============================================================================
+//
+// Resources are CONSUMABLE — builds spend wood, research spends food + gold.
+// This is an intentional production/consumption economy. The action graph
+// contains loops (GatherWood produces HasWood; BuildLumberCamp consumes it;
+// GatherWoodFromCamp requires HasLumberCamp and also produces HasWood),
+// but those loops have an ESCAPE from the initial world state: GatherWood
+// requires only HasVillager=true (plus !HasWood, which is the initial
+// value), so the cycle is seedable and therefore reachable.
+//
+// The framework's cycle detector should recognize this and NOT flag these
+// loops — an action whose preconditions are all satisfied by the initial
+// world state provides the escape.
+//
+// Design invariants:
+//   - Every GatherX carries !HasX so the planner never schedules a
+//     redundant gather when the resource is already held.
+//   - Every BuildX / ResearchX carries !<result> so each one-shot fires
+//     at most once per world-cycle.
+//   - Plain vs FromCamp variants give the planner a cost-based choice;
+//     per-tick distance costs decide which variant wins right now.
 
-// SendToStone: (HasIdleVillager, HasMiningCamp) -> VillagerNearStone
-class UCk_GoapTest_Action_SendToStone : UCk_GoapAction_EntityScript
-{
-	UFUNCTION(BlueprintOverride)
-	void DoDefineAction()
-	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasIdleVillager"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasMiningCamp"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.VillagerNearStone"), true);
-		SetCost(1.0f);
-	}
-};
-
-// GatherWood: (VillagerNearForest) -> WoodSufficient
+// GatherWood: (HasVillager, !HasWood) -> HasWood  [slow, always available]
 class UCk_GoapTest_Action_GatherWood : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.VillagerNearForest"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.WoodSufficient"), true);
-		SetCost(5.0f);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasVillager"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasWood"),     false);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasWood"), true);
+		SetCost(8.0f);
 	}
 };
 
-// GatherFood: (VillagerNearBerries) -> FoodSufficient
+// GatherWoodFromCamp: (HasVillager, HasLumberCamp, !HasWood) -> HasWood  [fast]
+class UCk_GoapTest_Action_GatherWoodFromCamp : UCk_GoapAction_EntityScript
+{
+	UFUNCTION(BlueprintOverride)
+	void DoDefineAction()
+	{
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasVillager"),   true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasLumberCamp"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasWood"),       false);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasWood"), true);
+		SetCost(3.0f);
+	}
+};
+
+// GatherFood: (HasVillager, !HasFood) -> HasFood  [slow, always available]
 class UCk_GoapTest_Action_GatherFood : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.VillagerNearBerries"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.FoodSufficient"), true);
-		SetCost(5.0f);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasVillager"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasFood"),     false);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasFood"), true);
+		SetCost(8.0f);
 	}
 };
 
-// GatherGold: (VillagerNearGold) -> GoldSufficient
-class UCk_GoapTest_Action_GatherGold : UCk_GoapAction_EntityScript
+// GatherFoodFromMill: (HasVillager, HasMill, !HasFood) -> HasFood  [fast]
+class UCk_GoapTest_Action_GatherFoodFromMill : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.VillagerNearGold"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.GoldSufficient"), true);
-		SetCost(5.0f);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasVillager"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasMill"),     true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasFood"),     false);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasFood"), true);
+		SetCost(3.0f);
 	}
 };
 
-// GatherStone: (VillagerNearStone) -> StoneSufficient
+// GatherStone: (HasVillager, HasMiningCamp, !HasStone) -> HasStone
+// Stone and gold have no slow variant — they're gated behind the mining camp
+// so the planner has to build it first, creating a non-trivial dependency.
 class UCk_GoapTest_Action_GatherStone : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.VillagerNearStone"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.StoneSufficient"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasVillager"),   true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasMiningCamp"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasStone"),      false);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasStone"), true);
 		SetCost(5.0f);
 	}
 };
 
-// BuildLumberCamp: (HasBuilder, WoodSufficient, BuildSiteSelected) -> HasLumberCamp
+// GatherGold: (HasVillager, HasMiningCamp, !HasGold) -> HasGold
+class UCk_GoapTest_Action_GatherGold : UCk_GoapAction_EntityScript
+{
+	UFUNCTION(BlueprintOverride)
+	void DoDefineAction()
+	{
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasVillager"),   true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasMiningCamp"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasGold"),       false);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasGold"), true);
+		SetCost(5.0f);
+	}
+};
+
+// BuildLumberCamp: (HasVillager, HasWood, !HasLumberCamp) -> HasLumberCamp, !HasWood
 class UCk_GoapTest_Action_BuildLumberCamp : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasBuilder"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.WoodSufficient"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.BuildSiteSelected"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasVillager"),   true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasWood"),       true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasLumberCamp"), false);
 		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasLumberCamp"), true);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasWood"),       false);
 		SetCost(4.0f);
 	}
 };
 
-// BuildMill: (HasBuilder, WoodSufficient, BuildSiteSelected) -> HasMill
+// BuildMill: (HasVillager, HasWood, !HasMill) -> HasMill, !HasWood
 class UCk_GoapTest_Action_BuildMill : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasBuilder"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.WoodSufficient"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.BuildSiteSelected"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasVillager"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasWood"),     true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasMill"),     false);
 		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasMill"), true);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasWood"), false);
 		SetCost(4.0f);
 	}
 };
 
-// BuildMiningCamp: (HasBuilder, WoodSufficient, BuildSiteSelected) -> HasMiningCamp
+// BuildMiningCamp: (HasVillager, HasWood, !HasMiningCamp) -> HasMiningCamp, !HasWood
 class UCk_GoapTest_Action_BuildMiningCamp : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasBuilder"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.WoodSufficient"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.BuildSiteSelected"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasVillager"),   true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasWood"),       true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasMiningCamp"), false);
 		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasMiningCamp"), true);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasWood"),       false);
 		SetCost(4.0f);
 	}
 };
 
-// BuildBarracks: (HasBuilder, WoodSufficient, StoneSufficient, BuildSiteSelected) -> HasBarracks
+// BuildBarracks: (HasVillager, HasWood, HasStone, !HasBarracks) -> HasBarracks, !HasWood, !HasStone
 class UCk_GoapTest_Action_BuildBarracks : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasBuilder"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.WoodSufficient"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.StoneSufficient"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.BuildSiteSelected"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasVillager"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasWood"),     true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasStone"),    true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasBarracks"), false);
 		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasBarracks"), true);
-		SetCost(6.0f);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasWood"),     false);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasStone"),    false);
+		SetCost(5.0f);
 	}
 };
 
-// ResearchFeudalAge: (HasTownCenter, FoodSufficient, GoldSufficient, HasBarracks) -> AgeAdvancing
+// ResearchFeudalAge: (TC, HasFood, HasGold, HasBarracks, !ReachedFeudalAge)
+//     -> ReachedFeudalAge, !HasFood, !HasGold  (research consumes food + gold)
 class UCk_GoapTest_Action_ResearchFeudalAge : UCk_GoapAction_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineAction()
 	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasTownCenter"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.FoodSufficient"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.GoldSufficient"), true);
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasBarracks"), true);
-		AddEffect(goap_tags::T(n"Goap.WS.AoE.AgeAdvancing"), true);
-		SetCost(8.0f);
-	}
-};
-
-// WaitForResearch: (AgeAdvancing) -> ReachedFeudalAge
-class UCk_GoapTest_Action_WaitForResearch : UCk_GoapAction_EntityScript
-{
-	UFUNCTION(BlueprintOverride)
-	void DoDefineAction()
-	{
-		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.AgeAdvancing"), true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasTownCenter"),    true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasFood"),          true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasGold"),          true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.HasBarracks"),      true);
+		AddPrecondition(goap_tags::T(n"Goap.WS.AoE.ReachedFeudalAge"), false);
 		AddEffect(goap_tags::T(n"Goap.WS.AoE.ReachedFeudalAge"), true);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasFood"),          false);
+		AddEffect(goap_tags::T(n"Goap.WS.AoE.HasGold"),          false);
 		SetCost(10.0f);
 	}
 };
 
-// Goals
+// ================================================================================================================
+// GOALS
+// ================================================================================================================
+
+// GatherResources: HasWood + HasFood (warm-up goal, priority 3)
 class UCk_GoapTest_Goal_GatherResources : UCk_GoapGoal_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
 	void DoDefineGoal()
 	{
-		AddCondition(goap_tags::T(n"Goap.WS.AoE.WoodSufficient"), true);
-		AddCondition(goap_tags::T(n"Goap.WS.AoE.FoodSufficient"), true);
+		AddCondition(goap_tags::T(n"Goap.WS.AoE.HasWood"), true);
+		AddCondition(goap_tags::T(n"Goap.WS.AoE.HasFood"), true);
 		SetPriority(3);
 	}
 };
 
+// BuildMilitary: HasBarracks (priority 5)
 class UCk_GoapTest_Goal_BuildMilitary : UCk_GoapGoal_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
@@ -510,6 +530,7 @@ class UCk_GoapTest_Goal_BuildMilitary : UCk_GoapGoal_EntityScript
 	}
 };
 
+// ReachFeudalAge: ReachedFeudalAge (priority 10)
 class UCk_GoapTest_Goal_ReachFeudalAge : UCk_GoapGoal_EntityScript
 {
 	UFUNCTION(BlueprintOverride)
