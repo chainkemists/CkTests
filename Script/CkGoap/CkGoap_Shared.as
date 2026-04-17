@@ -20,6 +20,7 @@ namespace Ck
 		GameplayTags.Add(n"Gym.Goap.Combat");
 		GameplayTags.Add(n"Gym.Goap.Priorities");
 		GameplayTags.Add(n"Gym.Goap.NoPlan");
+		GameplayTags.Add(n"Gym.Goap.CircularDep");
 		GameplayTags.Add(n"Gym.Goap.Empire");
 
 		// Station 1: OpenDoor
@@ -46,24 +47,26 @@ namespace Ck
 		GameplayTags.Add(n"Goap.WS.Pri.EnemySpotted");
 		GameplayTags.Add(n"Goap.WS.Pri.EnemyDown");
 
-		// Station 6: Age of Empires
+		// Station 6 (new): CircularDep — power/battery cycle that triggers the detector
+		GameplayTags.Add(n"Goap.WS.Cycle.HasPower");
+		GameplayTags.Add(n"Goap.WS.Cycle.HasBattery");
+
+		// Station 7: Age of Empires (single-villager realistic model)
+		//   Resources are consumable booleans (HasWood=false after building).
+		//   Villager is always "available" (one-at-a-time serial execution is
+		//   the executor's job; GOAP models the ordered recipe).
+		//   Camps accelerate gathering — planner decides whether the cost is
+		//   worth amortizing via dynamic cost variants of gather actions.
 		GameplayTags.Add(n"Goap.WS.AoE.HasTownCenter");
-		GameplayTags.Add(n"Goap.WS.AoE.HasIdleVillager");
+		GameplayTags.Add(n"Goap.WS.AoE.HasVillager");
+		GameplayTags.Add(n"Goap.WS.AoE.HasWood");
+		GameplayTags.Add(n"Goap.WS.AoE.HasFood");
+		GameplayTags.Add(n"Goap.WS.AoE.HasGold");
+		GameplayTags.Add(n"Goap.WS.AoE.HasStone");
 		GameplayTags.Add(n"Goap.WS.AoE.HasLumberCamp");
 		GameplayTags.Add(n"Goap.WS.AoE.HasMill");
 		GameplayTags.Add(n"Goap.WS.AoE.HasMiningCamp");
 		GameplayTags.Add(n"Goap.WS.AoE.HasBarracks");
-		GameplayTags.Add(n"Goap.WS.AoE.HasBuilder");
-		GameplayTags.Add(n"Goap.WS.AoE.BuildSiteSelected");
-		GameplayTags.Add(n"Goap.WS.AoE.VillagerNearForest");
-		GameplayTags.Add(n"Goap.WS.AoE.VillagerNearBerries");
-		GameplayTags.Add(n"Goap.WS.AoE.VillagerNearGold");
-		GameplayTags.Add(n"Goap.WS.AoE.VillagerNearStone");
-		GameplayTags.Add(n"Goap.WS.AoE.WoodSufficient");
-		GameplayTags.Add(n"Goap.WS.AoE.FoodSufficient");
-		GameplayTags.Add(n"Goap.WS.AoE.GoldSufficient");
-		GameplayTags.Add(n"Goap.WS.AoE.StoneSufficient");
-		GameplayTags.Add(n"Goap.WS.AoE.AgeAdvancing");
 		GameplayTags.Add(n"Goap.WS.AoE.ReachedFeudalAge");
 
 		// Entity tags used by PlayerController to broadcast per-station commands
@@ -72,6 +75,7 @@ namespace Ck
 		GameplayTags.Add(n"TAG_GoapGym_Combat");
 		GameplayTags.Add(n"TAG_GoapGym_Priorities");
 		GameplayTags.Add(n"TAG_GoapGym_NoPlan");
+		GameplayTags.Add(n"TAG_GoapGym_CircularDep");
 		GameplayTags.Add(n"TAG_GoapGym_Empire");
 	}
 }
@@ -112,6 +116,11 @@ USTRUCT() struct FCk_Message_GoapGym_Priorities_ResetAll {}
 
 // Station 5: NoPlanPossible
 USTRUCT() struct FCk_Message_GoapGym_NoPlan_Replan {}
+
+// Station 6: CircularDep
+USTRUCT() struct FCk_Message_GoapGym_CircularDep_Replan {}
+USTRUCT() struct FCk_Message_GoapGym_CircularDep_SeedBattery {}
+USTRUCT() struct FCk_Message_GoapGym_CircularDep_ClearSeed {}
 
 // Station 6: AgeOfEmpires
 USTRUCT() struct FCk_Message_GoapGym_Empire_PlanGatherResources {}
