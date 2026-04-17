@@ -35,6 +35,10 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 			"Actions registered cannot satisfy the goal.",
 			"Planner terminates with PlanFailed. Restart to re-observe."));
 
+		Stations.Add(MakeStation(n"Gym.Goap.CircularDep", "CIRCULAR DEPENDENCY",
+			"Intentional chicken-and-egg graph. Exercises framework cycle detection + plan-time reachability diagnostic.",
+			"Seed HasBattery to break the deadlock. Debugger shows a red warning banner."));
+
 		Stations.Add(MakeStation(n"Gym.Goap.Empire", "AGE OF EMPIRES",
 			"Full AoE-style villager economy — 16 actions, 3 goals.",
 			"Auto plays through GatherResources -> BuildMilitary -> ReachFeudalAge timeline."));
@@ -62,6 +66,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 		Request_StartCombat();
 		Request_StartPriorities();
 		Request_StartNoPlan();
+		Request_StartCircularDep();
 		Request_StartEmpire();
 		ck::Trace("GOAP Gym - All stations started");
 	}
@@ -115,6 +120,15 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 			FInstancedStruct::Make(FCk_Gym_TransformSpawnParams(T)));
 	}
 
+	void Request_StartCircularDep()
+	{
+		auto T = Get_StationTransform("Gym.Goap.CircularDep");
+		utils_entity_script::Request_SpawnEntity(
+			Get_StationHandle("Gym.Goap.CircularDep"),
+			UCk_EntityScript_GoapGym_CircularDep,
+			FInstancedStruct::Make(FCk_Gym_TransformSpawnParams(T)));
+	}
+
 	void Request_StartEmpire()
 	{
 		auto T = Get_StationTransform("Gym.Goap.Empire");
@@ -146,6 +160,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 		StationTags.Add(n"TAG_GoapGym_Combat");
 		StationTags.Add(n"TAG_GoapGym_Priorities");
 		StationTags.Add(n"TAG_GoapGym_NoPlan");
+		StationTags.Add(n"TAG_GoapGym_CircularDep");
 		StationTags.Add(n"TAG_GoapGym_Empire");
 		for (auto Tag : StationTags) { BroadcastToTag(Tag, FInstancedStruct::Make(Msg)); }
 	}
@@ -184,6 +199,9 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	UFUNCTION(Exec, DisplayName="GOAP Gym - Auto NoPlan")
 	void Ck_GymGoap_AutoNoPlan() { BroadcastAutoToTag(n"TAG_GoapGym_NoPlan", true); }
+
+	UFUNCTION(Exec, DisplayName="GOAP Gym - Auto CircularDep")
+	void Ck_GymGoap_AutoCircularDep() { BroadcastAutoToTag(n"TAG_GoapGym_CircularDep", true); }
 
 	UFUNCTION(Exec, DisplayName="GOAP Gym - Auto Empire")
 	void Ck_GymGoap_AutoEmpire() { BroadcastAutoToTag(n"TAG_GoapGym_Empire", true); }
@@ -269,7 +287,20 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 	void Ck_GymGoap_NoPlan_Replan() { BroadcastToTag(n"TAG_GoapGym_NoPlan", FInstancedStruct::Make(FCk_Message_GoapGym_NoPlan_Replan())); }
 
 	// ------------------------------------------------------------------------
-	// STATION 6: EMPIRE
+	// STATION 6: CIRCULAR DEPENDENCY
+	// ------------------------------------------------------------------------
+
+	UFUNCTION(Exec, DisplayName="GOAP Gym - CircularDep Replan")
+	void Ck_GymGoap_CircularDep_Replan()       { BroadcastToTag(n"TAG_GoapGym_CircularDep", FInstancedStruct::Make(FCk_Message_GoapGym_CircularDep_Replan())); }
+
+	UFUNCTION(Exec, DisplayName="GOAP Gym - CircularDep Seed Battery")
+	void Ck_GymGoap_CircularDep_SeedBattery()  { BroadcastToTag(n"TAG_GoapGym_CircularDep", FInstancedStruct::Make(FCk_Message_GoapGym_CircularDep_SeedBattery())); }
+
+	UFUNCTION(Exec, DisplayName="GOAP Gym - CircularDep Clear Seed")
+	void Ck_GymGoap_CircularDep_ClearSeed()    { BroadcastToTag(n"TAG_GoapGym_CircularDep", FInstancedStruct::Make(FCk_Message_GoapGym_CircularDep_ClearSeed())); }
+
+	// ------------------------------------------------------------------------
+	// STATION 7: EMPIRE
 	// ------------------------------------------------------------------------
 
 	UFUNCTION(Exec, DisplayName="GOAP Gym - Empire Plan GatherResources")

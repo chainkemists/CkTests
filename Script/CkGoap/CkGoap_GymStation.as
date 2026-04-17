@@ -82,6 +82,7 @@ class UCk_EntityScript_GoapGym_Door : UCk_EntityScript_UE
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Door");
 
 		GoapEntity = utils_goap::Add(InHandle);
+		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Door"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_FindKey);
 		GoapEntity.AddAction(UCk_GoapTest_Action_UnlockDoor);
 		GoapEntity.AddGoal(UCk_GoapTest_Goal_OpenDoor);
@@ -131,6 +132,7 @@ class UCk_EntityScript_GoapGym_Door : UCk_EntityScript_UE
 
 	UFUNCTION() private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto Step = AutoStep % AutoConfig.TotalSteps;
 		if      (Step == 0) { ResetWorldState(false, false); }
 		else if (Step == 1) { ResetWorldState(false, true); }
@@ -148,6 +150,7 @@ class UCk_EntityScript_GoapGym_Door : UCk_EntityScript_UE
 
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
 		auto HasKey    = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Door.HasKey"));
@@ -193,6 +196,7 @@ class UCk_EntityScript_GoapGym_Tea : UCk_EntityScript_UE
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Tea");
 
 		GoapEntity = utils_goap::Add(InHandle);
+		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Tea"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_FillKettle);
 		GoapEntity.AddAction(UCk_GoapTest_Action_BoilKettle);
 		GoapEntity.AddAction(UCk_GoapTest_Action_SteepTea);
@@ -245,6 +249,7 @@ class UCk_EntityScript_GoapGym_Tea : UCk_EntityScript_UE
 
 	UFUNCTION() private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto Step = AutoStep % AutoConfig.TotalSteps;
 		if      (Step == 0) { SetWS(false, false, false, false); }
 		else if (Step == 1) { SetWS(true,  false, false, false); }
@@ -264,6 +269,7 @@ class UCk_EntityScript_GoapGym_Tea : UCk_EntityScript_UE
 
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
 		auto HasWater   = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.HasWater"));
@@ -313,6 +319,7 @@ class UCk_EntityScript_GoapGym_Combat : UCk_EntityScript_UE
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Combat");
 
 		GoapEntity = utils_goap::Add(InHandle);
+		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Combat"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_PickUpWeapon);
 		GoapEntity.AddAction(UCk_GoapTest_Action_LoadAmmo);
 		GoapEntity.AddAction(UCk_GoapTest_Action_RangedAttack);
@@ -370,6 +377,7 @@ class UCk_EntityScript_GoapGym_Combat : UCk_EntityScript_UE
 
 	UFUNCTION() private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto Step = AutoStep % AutoConfig.TotalSteps;
 		if      (Step == 0) { ResetScenario(); SetMeleeCost(6.0f); }
 		else if (Step == 1) { ResetScenario(); SetMeleeCost(3.0f); }
@@ -388,6 +396,7 @@ class UCk_EntityScript_GoapGym_Combat : UCk_EntityScript_UE
 
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
 		auto HasWeapon    = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"));
@@ -437,6 +446,7 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_EntityScript_UE
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Priorities");
 
 		GoapEntity = utils_goap::Add(InHandle);
+		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Priorities"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_Hide);
 		GoapEntity.AddAction(UCk_GoapTest_Action_Suppress);
 		GoapEntity.AddAction(UCk_GoapTest_Action_Forage);
@@ -494,6 +504,7 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_EntityScript_UE
 
 	UFUNCTION() private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto Step = AutoStep % AutoConfig.TotalSteps;
 		ResetWS();
 		if      (Step == 0) { /* calm - Neutralize is the only achievable goal */ }
@@ -513,6 +524,7 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_EntityScript_UE
 
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
 
@@ -564,6 +576,7 @@ class UCk_EntityScript_GoapGym_NoPlan : UCk_EntityScript_UE
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_NoPlan");
 
 		GoapEntity = utils_goap::Add(InHandle);
+		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.NoPlan"));
 		// Intentionally register actions that CANNOT reach KillEnemy
 		GoapEntity.AddAction(UCk_GoapTest_Action_Scout);
 		GoapEntity.AddAction(UCk_GoapTest_Action_Hide);
@@ -593,12 +606,13 @@ class UCk_EntityScript_GoapGym_NoPlan : UCk_EntityScript_UE
 
 	private void RequestPlan() { GoapEntity.Request_Plan(); PlanCount++; }
 
-	UFUNCTION() private void AutoTick (FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT) { RequestPlan(); AutoStep++; }
+	UFUNCTION() private void AutoTick (FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT) { if (ck::Is_NOT_Valid(GoapEntity)) { return; } RequestPlan(); AutoStep++; }
 	UFUNCTION() private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning); }
 	UFUNCTION() private void OnReplan (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); RequestPlan(); }
 
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
 
@@ -618,10 +632,14 @@ class UCk_EntityScript_GoapGym_NoPlan : UCk_EntityScript_UE
 }
 
 //============================================================================
-// STATION 6 — AGE OF EMPIRES (full mockup graph, multi-stage timeline)
+// STATION 6 — CIRCULAR DEPENDENCY (exercises framework cycle detector)
 //============================================================================
+// Intentional bad graph: ChargeDevice needs HasBattery, ChargeBattery needs
+// HasPower. Classic chicken-and-egg — the GOAP framework's setup-time SCC
+// detection flags this as a dependency cycle, and the plan-time reachability
+// check populates UnreachableGoalConditions. The debugger surfaces both.
 
-class UCk_EntityScript_GoapGym_Empire : UCk_EntityScript_UE
+class UCk_EntityScript_GoapGym_CircularDep : UCk_EntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -634,8 +652,182 @@ class UCk_EntityScript_GoapGym_Empire : UCk_EntityScript_UE
 	int32 AutoStep = 0;
 	bool AutoRunning = true;
 	int32 PlanCount = 0;
+	bool BatterySeeded = false;
 
+	FCkGym_AutoConfig AutoConfig;
+
+	UFUNCTION(BlueprintOverride)
+	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	{
+		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
+		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_CircularDep");
+
+		GoapEntity = utils_goap::Add(InHandle);
+		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.CircularDep"));
+		GoapEntity.AddAction(UCk_GoapTest_Action_ChargeDevice);
+		GoapEntity.AddAction(UCk_GoapTest_Action_ChargeBattery);
+		GoapEntity.AddGoal(UCk_GoapTest_Goal_HasPower);
+
+		ResetWS();
+		RequestPlan();
+
+		auto DisplayParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+		DisplayParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
+		auto DisplayTimer = utils_timer::Add(InHandle, DisplayParams);
+		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
+
+		AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(2.5f));
+
+		AutoConfig.TotalSteps = 3;
+		AutoConfig.Description = "Intentional chicken-and-egg graph. Framework flags the cycle + goal unreachability. Seeding HasBattery breaks the deadlock.";
+		AutoConfig.GlobalAutoCommand = "Ck_GymGoap_Auto [0/1]";
+		AutoConfig.PerStationAutoCommand = "Ck_GymGoap_AutoCircularDep";
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Empty start: PlanFailed + diagnostic banner", 0, 0));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Seed HasBattery -> plan succeeds (1 step)", 1, 1));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Clear seed -> PlanFailed again", 2, 2));
+		AutoConfig.ManualCommands.Add("Ck_GymGoap_CircularDep_Replan");
+		AutoConfig.ManualCommands.Add("Ck_GymGoap_CircularDep_SeedBattery");
+		AutoConfig.ManualCommands.Add("Ck_GymGoap_CircularDep_ClearSeed");
+
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_GoapGym_CircularDep_Replan,       FCk_Delegate_Messaging_OnBroadcast(this, n"OnReplan"));
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_GoapGym_CircularDep_SeedBattery,  FCk_Delegate_Messaging_OnBroadcast(this, n"OnSeedBattery"));
+		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_GoapGym_CircularDep_ClearSeed,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnClearSeed"));
+
+		return ECk_EntityScript_ConstructionFlow::Finished;
+	}
+
+	private void ResetWS()
+	{
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Cycle.HasPower"),   false);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Cycle.HasBattery"), BatterySeeded);
+	}
+
+	private void RequestPlan() { GoapEntity.Request_Plan(); PlanCount++; }
+
+	UFUNCTION() private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
+		auto Step = AutoStep % AutoConfig.TotalSteps;
+		if      (Step == 0) { BatterySeeded = false; ResetWS(); }
+		else if (Step == 1) { BatterySeeded = true;  ResetWS(); }
+		else if (Step == 2) { BatterySeeded = false; ResetWS(); }
+		RequestPlan();
+		AutoStep++;
+	}
+
+	UFUNCTION() private void OnAutoSet    (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning); }
+	UFUNCTION() private void OnReplan     (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); RequestPlan(); }
+	UFUNCTION() private void OnSeedBattery(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); BatterySeeded = true;  ResetWS(); RequestPlan(); }
+	UFUNCTION() private void OnClearSeed  (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); BatterySeeded = false; ResetWS(); RequestPlan(); }
+
+	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
+		auto SelfEntity = ck::ToEntity(this);
+		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
+		auto HasPower   = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Cycle.HasPower"));
+		auto HasBattery = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Cycle.HasBattery"));
+
+		auto Text = gym_auto::FormatHeader(AutoConfig, AutoRunning);
+		Text = f"{Text}===== Graph =====\n";
+		Text = f"{Text}  ChargeDevice:  (HasBattery) -> HasPower\n";
+		Text = f"{Text}  ChargeBattery: (HasPower)   -> HasBattery\n\n";
+		Text = f"{Text}===== World State =====\n";
+		Text = f"{Text}HasPower: {HasPower}   HasBattery: {HasBattery}   Seeded: {BatterySeeded}\n\n";
+		Text = f"{Text}===== Planner =====\n";
+		Text = f"{Text}Goal: HasPower=true   Status: {goap_gym_util::StatusString(Status)}   Plan #{PlanCount}\n";
+		Text = f"{Text}{goap_gym_util::FormatPlan(GoapEntity)}\n";
+		Text = Text + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
+
+		auto Mode = AutoRunning ? "[AUTO]" : "[MANUAL]";
+		CkGym_Common::Update_StationDisplay(SelfEntity, f"CIRCULAR DEPENDENCY {Mode}", Text, "");
+	}
+}
+
+//============================================================================
+// STATION 7 — AGE OF EMPIRES (single-villager time-sliced execution)
+//============================================================================
+//
+// Executes the GOAP plan over time, one action at a time. Each action takes
+// Cost * SecondsPerCost seconds to "execute"; when it completes, its effects
+// are applied to the world state and the next action begins. When the plan
+// finishes, the next-priority goal is selected automatically (framework
+// picks the highest-priority unsatisfied goal). When all goals are
+// satisfied (planner returns PlanFailed because nothing to pursue), the
+// world resets and the cycle starts over.
+//
+// This simulates a real executor layer — GOAP produces the recipe, the
+// station simulates a unit carrying it out step by step.
+
+enum ECk_GoapGymEmpire_Phase
+{
+	Idle,              // No plan, request one next tick
+	AwaitingPlan,      // Plan was requested, waiting for PlanFound / PlanFailed
+	Running,           // Executing CurrentPlan[CurrentActionIndex]
+	BetweenPlans,      // Plan finished, brief pause before next
+	AllGoalsComplete   // All goals satisfied, brief pause before world reset
+}
+
+class UCk_EntityScript_GoapGym_Empire : UCk_EntityScript_UE
+{
+	default _Replication = ECk_Replication::DoesNotReplicate;
+
+	UPROPERTY(ExposeOnSpawn)
+	FTransform InitialTransform = FTransform::Identity;
+
+	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Timer AutoTimer;
+
+	// Visual arena is drawn in immediate-mode each DisplayTick using
+	// utils_pmg_basic_shapes::DrawFilled*. PMG's Create_*/Add_* flavors run
+	// their setup processor only once and never re-sync the mesh to a moving
+	// Transform, so persistent shapes can't follow the villager. Redrawing
+	// every frame at the current position is cheap and keeps the code free
+	// of entity-handle bookkeeping.
+	FVector VillagerPosition = FVector::ZeroVector;
+
+	// Execution state
+	TArray<TSubclassOf<UCk_GoapAction_EntityScript>> CurrentPlan;
+	int32 CurrentActionIndex = -1;
+	float CurrentActionElapsed = 0.0f;
+	float CurrentActionDuration = 0.0f;
+	float CurrentActionCost = 0.0f;
+	FString CurrentActionName = "";
+	ECk_GoapGymEmpire_Phase Phase = ECk_GoapGymEmpire_Phase::Idle;
+	float PhasePauseElapsed = 0.0f;
+
+	// Villager movement state. Set when a new action begins; lerped each tick.
+	FVector VillagerStartLocation = FVector::ZeroVector;
+	FVector VillagerTargetLocation = FVector::ZeroVector;
+
+	// Tuning constants
+	const float SecondsPerCost = 0.3f;   // how many real seconds per cost unit
+	const float BetweenPlansDelay = 1.0f;
+	const float AllCompleteDelay = 2.5f;
+
+	// Layout — offsets from the station's InitialTransform, in world units.
+	// The arena sits on a ~6m x 4m footprint centered on the station.
+	const FVector OffsetTownCenter = FVector(   0.0f,    0.0f, 0.0f);
+	const FVector OffsetForest     = FVector(-300.0f,  200.0f, 0.0f);
+	const FVector OffsetBerries    = FVector( 300.0f,  200.0f, 0.0f);
+	const FVector OffsetGold       = FVector(-300.0f, -200.0f, 0.0f);
+	const FVector OffsetStone      = FVector( 300.0f, -200.0f, 0.0f);
+	const FVector OffsetLumberCamp = FVector(-200.0f,  180.0f, 0.0f);
+	const FVector OffsetMill       = FVector( 200.0f,  180.0f, 0.0f);
+	const FVector OffsetMiningCamp = FVector(   0.0f, -180.0f, 0.0f);
+	const FVector OffsetBarracks   = FVector(   0.0f,  140.0f, 0.0f);
+
+	// Distance-based cost weighting. CostPerDistanceUnit × distance_to_target
+	// is added to every action's base cost before planning, so the planner
+	// prefers the action whose target is closest to the villager's current
+	// position. Movement meaningfully shapes the plan.
+	const float CostPerDistanceUnit = 0.01f;  // 1 cost unit per 100cm of travel
+
+	// Tracking
+	bool AutoRunning = true;     // gym_auto pause/resume
+	int32 PlanCount = 0;
 	FString LastGoalName = "(none)";
+
 	FCkGym_AutoConfig AutoConfig;
 
 	UFUNCTION(BlueprintOverride)
@@ -645,16 +837,14 @@ class UCk_EntityScript_GoapGym_Empire : UCk_EntityScript_UE
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Empire");
 
 		GoapEntity = utils_goap::Add(InHandle);
+		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Empire"));
 
-		// 15 actions from the mockup
-		GoapEntity.AddAction(UCk_GoapTest_Action_TrainVillager);
-		GoapEntity.AddAction(UCk_GoapTest_Action_SelectBuildSite);
-		GoapEntity.AddAction(UCk_GoapTest_Action_SendToForest);
-		GoapEntity.AddAction(UCk_GoapTest_Action_SendToBerries);
-		GoapEntity.AddAction(UCk_GoapTest_Action_SendToGold);
-		GoapEntity.AddAction(UCk_GoapTest_Action_SendToStone);
+		// Single-villager economy. Two variants of each gatherable exist
+		// so the planner can amortize via camps when the goal is heavier.
 		GoapEntity.AddAction(UCk_GoapTest_Action_GatherWood);
+		GoapEntity.AddAction(UCk_GoapTest_Action_GatherWoodFromCamp);
 		GoapEntity.AddAction(UCk_GoapTest_Action_GatherFood);
+		GoapEntity.AddAction(UCk_GoapTest_Action_GatherFoodFromMill);
 		GoapEntity.AddAction(UCk_GoapTest_Action_GatherGold);
 		GoapEntity.AddAction(UCk_GoapTest_Action_GatherStone);
 		GoapEntity.AddAction(UCk_GoapTest_Action_BuildLumberCamp);
@@ -662,31 +852,31 @@ class UCk_EntityScript_GoapGym_Empire : UCk_EntityScript_UE
 		GoapEntity.AddAction(UCk_GoapTest_Action_BuildMiningCamp);
 		GoapEntity.AddAction(UCk_GoapTest_Action_BuildBarracks);
 		GoapEntity.AddAction(UCk_GoapTest_Action_ResearchFeudalAge);
-		GoapEntity.AddAction(UCk_GoapTest_Action_WaitForResearch);
 
 		GoapEntity.AddGoal(UCk_GoapTest_Goal_GatherResources);
 		GoapEntity.AddGoal(UCk_GoapTest_Goal_BuildMilitary);
 		GoapEntity.AddGoal(UCk_GoapTest_Goal_ReachFeudalAge);
 
+		VillagerPosition = WorldPosFromOffset(OffsetTownCenter);
 		ResetWorld();
+		UpdateActionCostsByDistance();
 
+		// DisplayTimer ticks every frame (0s interval). It drives BOTH the
+		// station text render AND the plan-execution state machine.
 		auto DisplayParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
 		DisplayParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto DisplayTimer = utils_timer::Add(InHandle, DisplayParams);
 		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
-		AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(3.5f));
+		// The AutoTimer is unused for driving steps here (execution runs on
+		// DisplayTick), but we keep it so gym_auto's pause/resume still works.
+		AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(1.0f));
 
-		AutoConfig.TotalSteps = 6;
-		AutoConfig.Description = "AoE-style economy. Cycles through goals + applies each plan to advance the world.";
+		AutoConfig.TotalSteps = 1;
+		AutoConfig.Description = "Single-villager AoE economy. Plan executes action-by-action; world state advances live; goals cycle by priority.";
 		AutoConfig.GlobalAutoCommand = "Ck_GymGoap_Auto [0/1]";
 		AutoConfig.PerStationAutoCommand = "Ck_GymGoap_AutoEmpire";
-		AutoConfig.Steps.Add(FCkGym_AutoStep("Reset world (TownCenter + IdleVillager only)", 0, 0));
-		AutoConfig.Steps.Add(FCkGym_AutoStep("Plan GatherResources (pri 3)", 1, 1));
-		AutoConfig.Steps.Add(FCkGym_AutoStep("Apply plan -> advance world", 2, 2));
-		AutoConfig.Steps.Add(FCkGym_AutoStep("Plan BuildMilitary (pri 5)", 3, 3));
-		AutoConfig.Steps.Add(FCkGym_AutoStep("Apply plan -> advance world", 4, 4));
-		AutoConfig.Steps.Add(FCkGym_AutoStep("Plan ReachFeudalAge (pri 10)", 5, 5));
+		AutoConfig.Steps.Add(FCkGym_AutoStep("Execute plan -> next goal -> reset", 0, 0));
 		AutoConfig.ManualCommands.Add("Ck_GymGoap_Empire_PlanGatherResources");
 		AutoConfig.ManualCommands.Add("Ck_GymGoap_Empire_PlanBuildMilitary");
 		AutoConfig.ManualCommands.Add("Ck_GymGoap_Empire_PlanFeudalAge");
@@ -704,25 +894,155 @@ class UCk_EntityScript_GoapGym_Empire : UCk_EntityScript_UE
 
 	private void ResetWorld()
 	{
-		// Mockup line 157: start with TownCenter + IdleVillager, everything else false
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasTownCenter"),      true);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasIdleVillager"),    true);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasLumberCamp"),      false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMill"),            false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMiningCamp"),      false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasBarracks"),        false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasBuilder"),         false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.BuildSiteSelected"),  false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.VillagerNearForest"), false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.VillagerNearBerries"),false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.VillagerNearGold"),   false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.VillagerNearStone"),  false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.WoodSufficient"),     false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.FoodSufficient"),     false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.GoldSufficient"),     false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.StoneSufficient"),    false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.AgeAdvancing"),       false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.ReachedFeudalAge"),   false);
+		// Start-of-game world: one villager, one town center, no resources,
+		// no buildings, no research progress. Everything else flips during
+		// plan execution.
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasTownCenter"),    true);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasVillager"),      true);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasWood"),          false);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasFood"),          false);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasGold"),          false);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasStone"),         false);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasLumberCamp"),    false);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMill"),          false);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMiningCamp"),    false);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasBarracks"),      false);
+		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.ReachedFeudalAge"), false);
+
+		// Visual reset: send villager home, remove building shapes.
+		// Send villager home visually (positional reset).
+		VillagerPosition = WorldPosFromOffset(OffsetTownCenter);
+		VillagerStartLocation = VillagerPosition;
+		VillagerTargetLocation = VillagerPosition;
+	}
+
+	// --------------------------------------------------------------------------
+	// VISUAL ARENA (immediate-mode — redrawn every frame by DrawArena)
+	// --------------------------------------------------------------------------
+
+	private FVector StationOrigin()
+	{
+		return InitialTransform.GetLocation();
+	}
+
+	private FVector WorldPosFromOffset(FVector InOffset)
+	{
+		return StationOrigin() + InOffset;
+	}
+
+	private FVector GetVillagerLocation()
+	{
+		return VillagerPosition;
+	}
+
+	// Redraw the whole arena this frame using DrawFilled*. Duration=0 means
+	// "visible this frame only" — next DisplayTick re-issues the draws.
+	private void DrawArena()
+	{
+		const auto TcColor       = FLinearColor(0.95f, 0.85f, 0.30f, 0.65f);
+		const auto ForestColor   = FLinearColor(0.15f, 0.55f, 0.15f, 0.75f);
+		const auto BerryColor    = FLinearColor(0.80f, 0.20f, 0.25f, 0.75f);
+		const auto GoldColor     = FLinearColor(0.95f, 0.75f, 0.10f, 0.75f);
+		const auto StoneColor    = FLinearColor(0.55f, 0.55f, 0.60f, 0.75f);
+		const auto VillColor     = FLinearColor(0.20f, 0.55f, 0.95f, 0.95f);
+		const auto CampColor     = FLinearColor(0.65f, 0.45f, 0.25f, 0.85f);
+		const auto MillColor     = FLinearColor(0.85f, 0.65f, 0.40f, 0.85f);
+		const auto BarracksColor = FLinearColor(0.40f, 0.30f, 0.25f, 0.90f);
+
+		// Resource / landmark landmarks (always present)
+		utils_pmg_basic_shapes::DrawFilledBox(      WorldPosFromOffset(OffsetTownCenter), FVector(60.0f, 60.0f, 80.0f), TcColor,     true, 2.0f, ECk_Plane_Axis::XY, 0.0f);
+		utils_pmg_basic_shapes::DrawFilledPyramid(  WorldPosFromOffset(OffsetForest),     80.0f, 120.0f,                ForestColor, true, 2.0f, ECk_Plane_Axis::XY, 0.0f);
+		utils_pmg_basic_shapes::DrawFilledSphere(   WorldPosFromOffset(OffsetBerries),    45.0f, 16, 16,                BerryColor,  true, 2.0f, ECk_Plane_Axis::XY, 0.0f);
+		utils_pmg_basic_shapes::DrawFilledCylinder( WorldPosFromOffset(OffsetGold),       45.0f, 60.0f, 16,             GoldColor,   true, 2.0f, ECk_Plane_Axis::XY, 0.0f);
+		utils_pmg_basic_shapes::DrawFilledBox(      WorldPosFromOffset(OffsetStone),      FVector(70.0f, 70.0f, 40.0f), StoneColor,  true, 2.0f, ECk_Plane_Axis::XY, 0.0f);
+
+		// Villager at current interpolated position
+		utils_pmg_basic_shapes::DrawFilledCapsule(  VillagerPosition, 30.0f, 50.0f, 16, 8, VillColor,   true, 3.0f, ECk_Plane_Axis::XY, 0.0f);
+
+		// Buildings appear only when the corresponding world-state fact is true.
+		if (GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasLumberCamp")))
+		{ utils_pmg_basic_shapes::DrawFilledBox(WorldPosFromOffset(OffsetLumberCamp), FVector(40.0f, 40.0f, 40.0f), CampColor,     true, 2.0f, ECk_Plane_Axis::XY, 0.0f); }
+		if (GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMill")))
+		{ utils_pmg_basic_shapes::DrawFilledPyramid(WorldPosFromOffset(OffsetMill),  50.0f, 70.0f,                MillColor,     true, 2.0f, ECk_Plane_Axis::XY, 0.0f); }
+		if (GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMiningCamp")))
+		{ utils_pmg_basic_shapes::DrawFilledBox(WorldPosFromOffset(OffsetMiningCamp), FVector(40.0f, 40.0f, 40.0f), CampColor,     true, 2.0f, ECk_Plane_Axis::XY, 0.0f); }
+		if (GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasBarracks")))
+		{ utils_pmg_basic_shapes::DrawFilledBox(WorldPosFromOffset(OffsetBarracks), FVector(70.0f, 50.0f, 60.0f), BarracksColor, true, 2.0f, ECk_Plane_Axis::XY, 0.0f); }
+	}
+
+	// --------------------------------------------------------------------------
+	// ACTION → LOCATION MAPPING + DISTANCE-BASED COSTS
+	// --------------------------------------------------------------------------
+
+	// Where the villager needs to be standing to perform this action.
+	private FVector GetActionTargetLocation(FString InActionName)
+	{
+		if      (InActionName.Contains("GatherWood"))        { return WorldPosFromOffset(OffsetForest); }
+		else if (InActionName.Contains("GatherFood"))        { return WorldPosFromOffset(OffsetBerries); }
+		else if (InActionName.Contains("GatherGold"))        { return WorldPosFromOffset(OffsetGold); }
+		else if (InActionName.Contains("GatherStone"))       { return WorldPosFromOffset(OffsetStone); }
+		else if (InActionName.Contains("BuildLumberCamp"))   { return WorldPosFromOffset(OffsetLumberCamp); }
+		else if (InActionName.Contains("BuildMiningCamp"))   { return WorldPosFromOffset(OffsetMiningCamp); }
+		else if (InActionName.Contains("BuildMill"))         { return WorldPosFromOffset(OffsetMill); }
+		else if (InActionName.Contains("BuildBarracks"))     { return WorldPosFromOffset(OffsetBarracks); }
+		else if (InActionName.Contains("ResearchFeudalAge")) { return WorldPosFromOffset(OffsetTownCenter); }
+		return WorldPosFromOffset(OffsetTownCenter);
+	}
+
+	private FVector GetTargetForActionClass(TSubclassOf<UCk_GoapAction_EntityScript> InClass)
+	{
+		if (ck::Is_NOT_Valid(InClass)) { return StationOrigin(); }
+		return GetActionTargetLocation(InClass.Get().GetName().ToString());
+	}
+
+	// Per-action "base" costs. The planner's view of an action's cost is
+	// base + distance_from_villager_to_target × CostPerDistanceUnit. The base
+	// is what would live in the action's CDO; we restate it here so we can
+	// rewrite the dynamic cost each tick without re-loading the CDO.
+	private float GetBaseCost(TSubclassOf<UCk_GoapAction_EntityScript> InClass)
+	{
+		const auto ActionName = ck::IsValid(InClass) ? InClass.Get().GetName().ToString() : FString();
+		if      (ActionName.Contains("GatherWoodFromCamp"))   { return 3.0f; }
+		else if (ActionName.Contains("GatherWood"))           { return 8.0f; }
+		else if (ActionName.Contains("GatherFoodFromMill"))   { return 3.0f; }
+		else if (ActionName.Contains("GatherFood"))           { return 8.0f; }
+		else if (ActionName.Contains("GatherGold"))           { return 5.0f; }
+		else if (ActionName.Contains("GatherStone"))          { return 5.0f; }
+		else if (ActionName.Contains("BuildLumberCamp"))      { return 4.0f; }
+		else if (ActionName.Contains("BuildMiningCamp"))      { return 4.0f; }
+		else if (ActionName.Contains("BuildMill"))            { return 4.0f; }
+		else if (ActionName.Contains("BuildBarracks"))        { return 5.0f; }
+		else if (ActionName.Contains("ResearchFeudalAge"))    { return 10.0f; }
+		return 1.0f;
+	}
+
+	// Rewrite every action's cost to reflect current villager position. Called
+	// right before Request_Plan so the planner sees up-to-date distance costs.
+	private void UpdateActionCostsByDistance()
+	{
+		auto ActionClasses = TArray<TSubclassOf<UCk_GoapAction_EntityScript>>();
+		ActionClasses.Add(UCk_GoapTest_Action_GatherWood);
+		ActionClasses.Add(UCk_GoapTest_Action_GatherWoodFromCamp);
+		ActionClasses.Add(UCk_GoapTest_Action_GatherFood);
+		ActionClasses.Add(UCk_GoapTest_Action_GatherFoodFromMill);
+		ActionClasses.Add(UCk_GoapTest_Action_GatherGold);
+		ActionClasses.Add(UCk_GoapTest_Action_GatherStone);
+		ActionClasses.Add(UCk_GoapTest_Action_BuildLumberCamp);
+		ActionClasses.Add(UCk_GoapTest_Action_BuildMill);
+		ActionClasses.Add(UCk_GoapTest_Action_BuildMiningCamp);
+		ActionClasses.Add(UCk_GoapTest_Action_BuildBarracks);
+		ActionClasses.Add(UCk_GoapTest_Action_ResearchFeudalAge);
+
+		const auto VillagerPos = GetVillagerLocation();
+
+		for (auto ActionClass : ActionClasses)
+		{
+			const auto Target = GetTargetForActionClass(ActionClass);
+			const auto Distance = float((VillagerPos - Target).Size());
+			const auto BaseCost = GetBaseCost(ActionClass);
+			const auto NewCost = BaseCost + Distance * CostPerDistanceUnit;
+			utils_goap::Set_ActionCost(GoapEntity, ActionClass, NewCost);
+		}
 	}
 
 	// Simulates plan execution by writing each action's effects into the world state.
@@ -738,57 +1058,298 @@ class UCk_EntityScript_GoapGym_Empire : UCk_EntityScript_UE
 
 	private void ApplyEffectByActionName(FString InName)
 	{
-		// Mirrors each action's AddEffect from CkGoap_TestActions.as
-		if      (InName.Contains("TrainVillager"))     { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasIdleVillager"),   true); }
-		else if (InName.Contains("SelectBuildSite"))   { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.BuildSiteSelected"), true); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasBuilder"), true); }
-		else if (InName.Contains("SendToForest"))      { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.VillagerNearForest"),   true); }
-		else if (InName.Contains("SendToBerries"))     { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.VillagerNearBerries"),  true); }
-		else if (InName.Contains("SendToGold"))        { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.VillagerNearGold"),     true); }
-		else if (InName.Contains("SendToStone"))       { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.VillagerNearStone"),    true); }
-		else if (InName.Contains("GatherWood"))        { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.WoodSufficient"),  true); }
-		else if (InName.Contains("GatherFood"))        { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.FoodSufficient"),  true); }
-		else if (InName.Contains("GatherGold"))        { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.GoldSufficient"),  true); }
-		else if (InName.Contains("GatherStone"))       { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.StoneSufficient"), true); }
-		else if (InName.Contains("BuildLumberCamp"))   { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasLumberCamp"),   true); }
-		else if (InName.Contains("BuildMill"))         { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMill"),         true); }
-		else if (InName.Contains("BuildMiningCamp"))   { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMiningCamp"),   true); }
-		else if (InName.Contains("BuildBarracks"))     { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasBarracks"),     true); }
-		else if (InName.Contains("ResearchFeudalAge")) { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.AgeAdvancing"),    true); }
-		else if (InName.Contains("WaitForResearch"))   { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.ReachedFeudalAge"),true); }
+		// Mirrors each action's AddEffect/consumption from CkGoap_TestActions.as.
+		// Order matters: longer prefixes must win over shorter ones
+		// (e.g. "BuildMiningCamp" before "BuildMill", "ResearchFeudalAge" is
+		// a distinct prefix so safe). Using if/else-if guarantees single match.
+		if      (InName.Contains("GatherWood"))
+		{
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasWood"), true);
+		}
+		else if (InName.Contains("GatherFood"))
+		{
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasFood"), true);
+		}
+		else if (InName.Contains("GatherGold"))
+		{
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasGold"), true);
+		}
+		else if (InName.Contains("GatherStone"))
+		{
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasStone"), true);
+		}
+		else if (InName.Contains("BuildLumberCamp"))
+		{
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasLumberCamp"), true);
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasWood"),       false);
+		}
+		else if (InName.Contains("BuildMiningCamp"))
+		{
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMiningCamp"), true);
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasWood"),       false);
+		}
+		else if (InName.Contains("BuildMill"))
+		{
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMill"), true);
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasWood"), false);
+		}
+		else if (InName.Contains("BuildBarracks"))
+		{
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasBarracks"), true);
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasWood"),     false);
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasStone"),    false);
+		}
+		else if (InName.Contains("ResearchFeudalAge"))
+		{
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.ReachedFeudalAge"), true);
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasFood"),          false);
+			GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasGold"),          false);
+		}
 	}
 
-	private void PlanGather   () { LastGoalName = "GatherResources"; GoapEntity.Request_PlanForGoal(UCk_GoapTest_Goal_GatherResources); PlanCount++; }
-	private void PlanMilitary () { LastGoalName = "BuildMilitary";   GoapEntity.Request_PlanForGoal(UCk_GoapTest_Goal_BuildMilitary);   PlanCount++; }
-	private void PlanFeudal   () { LastGoalName = "ReachFeudalAge";  GoapEntity.Request_PlanForGoal(UCk_GoapTest_Goal_ReachFeudalAge);  PlanCount++; }
+	// --------------------------------------------------------------------------
+	// PLAN REQUEST HELPERS (used by manual commands)
+	// --------------------------------------------------------------------------
 
-	UFUNCTION() private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+	private void RequestPlan_Auto()
 	{
-		auto Step = AutoStep % AutoConfig.TotalSteps;
-		if      (Step == 0) { ResetWorld();        LastGoalName = "(reset)"; }
-		else if (Step == 1) { PlanGather(); }
-		else if (Step == 2) { ApplyPlanEffects();  LastGoalName = "(applied)"; }
-		else if (Step == 3) { PlanMilitary(); }
-		else if (Step == 4) { ApplyPlanEffects();  LastGoalName = "(applied)"; }
-		else if (Step == 5) { PlanFeudal(); }
-		AutoStep++;
+		// No specific goal — framework auto-selects highest priority unsatisfied
+		LastGoalName = "(auto)";
+		CurrentPlan.Reset();
+		CurrentActionIndex = -1;
+		Phase = ECk_GoapGymEmpire_Phase::AwaitingPlan;
+		UpdateActionCostsByDistance();  // bake villager position into costs
+		GoapEntity.Request_Plan();
+		PlanCount++;
 	}
 
-	UFUNCTION() private void OnAutoSet       (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning); }
-	UFUNCTION() private void OnPlanGather    (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); PlanGather(); }
-	UFUNCTION() private void OnPlanMilitary  (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); PlanMilitary(); }
-	UFUNCTION() private void OnPlanFeudal    (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); PlanFeudal(); }
-	UFUNCTION() private void OnApplyPlan     (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); ApplyPlanEffects(); LastGoalName = "(applied)"; }
-	UFUNCTION() private void OnResetWorld    (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); ResetWorld(); LastGoalName = "(reset)"; }
+	private void RequestPlan_Specific(TSubclassOf<UCk_GoapGoal_EntityScript> InGoal, FString InLabel)
+	{
+		LastGoalName = InLabel;
+		CurrentPlan.Reset();
+		CurrentActionIndex = -1;
+		Phase = ECk_GoapGymEmpire_Phase::AwaitingPlan;
+		UpdateActionCostsByDistance();
+		GoapEntity.Request_PlanForGoal(InGoal);
+		PlanCount++;
+	}
+
+	private bool IsValidPlanIndex(int32 InIndex)
+	{
+		return InIndex >= 0 && InIndex < CurrentPlan.Num();
+	}
+
+	private void BeginActionAt(int32 InIndex)
+	{
+		CurrentActionIndex = InIndex;
+		CurrentActionElapsed = 0.0f;
+		if (!IsValidPlanIndex(InIndex))
+		{
+			CurrentActionName = "";
+			CurrentActionDuration = 0.0f;
+			CurrentActionCost = 0.0f;
+			return;
+		}
+		auto ActionClass = CurrentPlan[InIndex];
+		CurrentActionName = ActionClass.Get().GetName().ToString();
+		CurrentActionCost = utils_goap::Get_ActionCost(GoapEntity, ActionClass);
+		CurrentActionDuration = Math::Max(0.05f, CurrentActionCost * SecondsPerCost);
+
+		// Snapshot the villager's start position; the DisplayTick lerp
+		// moves VillagerPosition toward VillagerTargetLocation over the
+		// action's duration. Cost already encodes distance, so the lerp
+		// pace matches the planner's expectation.
+		VillagerStartLocation = VillagerPosition;
+		VillagerTargetLocation = GetActionTargetLocation(CurrentActionName);
+	}
+
+	private void CompleteCurrentAction()
+	{
+		if (!IsValidPlanIndex(CurrentActionIndex)) { return; }
+		auto ActionClass = CurrentPlan[CurrentActionIndex];
+		const auto CompletedName = ActionClass.Get().GetName().ToString();
+
+		// Snap villager to the target so we don't drift over many actions.
+		VillagerPosition = VillagerTargetLocation;
+
+		ApplyEffectByActionName(CompletedName);
+	}
+
+	// --------------------------------------------------------------------------
+	// TICK-DRIVEN EXECUTION STATE MACHINE
+	// --------------------------------------------------------------------------
+
+	private void AdvanceExecution(float InDeltaSeconds)
+	{
+		const auto Status = utils_goap::Get_PlanStatus(GoapEntity);
+
+		if (Phase == ECk_GoapGymEmpire_Phase::Idle)
+		{
+			RequestPlan_Auto();
+			return;
+		}
+
+		if (Phase == ECk_GoapGymEmpire_Phase::AwaitingPlan)
+		{
+			if (Status == ECk_GoapPlanStatus::Planning) { return; }
+
+			if (Status == ECk_GoapPlanStatus::PlanFound)
+			{
+				CurrentPlan = utils_goap::Get_Plan(GoapEntity);
+				if (CurrentPlan.Num() == 0)
+				{
+					// Goal was already satisfied — advance to next plan
+					Phase = ECk_GoapGymEmpire_Phase::BetweenPlans;
+					PhasePauseElapsed = 0.0f;
+					return;
+				}
+				Phase = ECk_GoapGymEmpire_Phase::Running;
+				BeginActionAt(0);
+				return;
+			}
+
+			// PlanFailed / CostThresholdReached — either all goals satisfied
+			// or something's unreachable. Either way, cycle the world.
+			Phase = ECk_GoapGymEmpire_Phase::AllGoalsComplete;
+			PhasePauseElapsed = 0.0f;
+			return;
+		}
+
+		if (Phase == ECk_GoapGymEmpire_Phase::Running)
+		{
+			CurrentActionElapsed += InDeltaSeconds;
+
+			// Animate villager: lerp VillagerPosition from start → target
+			// over action duration. DrawArena reads VillagerPosition each
+			// frame, so this propagates to the capsule's render position.
+			if (CurrentActionDuration > 0.0f)
+			{
+				const auto Alpha = Math::Clamp(CurrentActionElapsed / CurrentActionDuration, 0.0f, 1.0f);
+				VillagerPosition = Math::Lerp(VillagerStartLocation, VillagerTargetLocation, Alpha);
+			}
+
+			if (CurrentActionElapsed < CurrentActionDuration) { return; }
+
+			CompleteCurrentAction();
+
+			const auto NextIndex = CurrentActionIndex + 1;
+			if (CurrentPlan.IsValidIndex(NextIndex))
+			{
+				BeginActionAt(NextIndex);
+			}
+			else
+			{
+				// Plan complete. Pause briefly, then try the next goal.
+				CurrentPlan.Reset();
+				CurrentActionIndex = -1;
+				CurrentActionName = "(plan complete)";
+				CurrentActionDuration = 0.0f;
+				CurrentActionElapsed = 0.0f;
+				Phase = ECk_GoapGymEmpire_Phase::BetweenPlans;
+				PhasePauseElapsed = 0.0f;
+			}
+			return;
+		}
+
+		if (Phase == ECk_GoapGymEmpire_Phase::BetweenPlans)
+		{
+			PhasePauseElapsed += InDeltaSeconds;
+			if (PhasePauseElapsed >= BetweenPlansDelay)
+			{
+				Phase = ECk_GoapGymEmpire_Phase::Idle;  // request next plan next tick
+			}
+			return;
+		}
+
+		if (Phase == ECk_GoapGymEmpire_Phase::AllGoalsComplete)
+		{
+			PhasePauseElapsed += InDeltaSeconds;
+			if (PhasePauseElapsed >= AllCompleteDelay)
+			{
+				ResetWorld();
+				LastGoalName = "(reset)";
+				Phase = ECk_GoapGymEmpire_Phase::Idle;
+			}
+			return;
+		}
+	}
+
+	// --------------------------------------------------------------------------
+	// MANUAL COMMAND HANDLERS
+	// --------------------------------------------------------------------------
+
+	// gym_auto::Setup binds a timer to n"AutoTick" by default — execution here
+	// is DisplayTick-driven, so this is a no-op. Keeping the handler lets the
+	// standard gym_auto pause/resume plumbing work unchanged.
+	UFUNCTION() private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT) {}
+
+	UFUNCTION() private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload)
+	{
+		gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
+	}
+
+	UFUNCTION() private void OnPlanGather(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload)
+	{
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		RequestPlan_Specific(UCk_GoapTest_Goal_GatherResources, "GatherResources");
+	}
+
+	UFUNCTION() private void OnPlanMilitary(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload)
+	{
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		RequestPlan_Specific(UCk_GoapTest_Goal_BuildMilitary, "BuildMilitary");
+	}
+
+	UFUNCTION() private void OnPlanFeudal(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload)
+	{
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		RequestPlan_Specific(UCk_GoapTest_Goal_ReachFeudalAge, "ReachFeudalAge");
+	}
+
+	UFUNCTION() private void OnApplyPlan(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload)
+	{
+		// "Skip ahead": apply every remaining action's effects at once.
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		ApplyPlanEffects();
+		CurrentPlan.Reset();
+		CurrentActionIndex = -1;
+		Phase = ECk_GoapGymEmpire_Phase::BetweenPlans;
+		PhasePauseElapsed = 0.0f;
+	}
+
+	UFUNCTION() private void OnResetWorld(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload)
+	{
+		gym_auto::StopAuto(AutoTimer, AutoRunning);
+		ResetWorld();
+		CurrentPlan.Reset();
+		CurrentActionIndex = -1;
+		CurrentActionName = "";
+		Phase = ECk_GoapGymEmpire_Phase::Idle;
+		LastGoalName = "(reset)";
+	}
+
+	// --------------------------------------------------------------------------
+	// DISPLAY (drives both text + execution state machine)
+	// --------------------------------------------------------------------------
 
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
+		const auto DeltaSeconds = float(InDeltaT.Get_Seconds());
+
+		if (AutoRunning) { AdvanceExecution(DeltaSeconds); }
+
+		// Redraw arena every frame — PMG's DrawFilled* with duration=0
+		// means "1 frame" which is exactly what we want at display cadence.
+		DrawArena();
+
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
 
-		auto Wood  = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.WoodSufficient"));
-		auto Food  = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.FoodSufficient"));
-		auto Gold  = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.GoldSufficient"));
-		auto Stone = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.StoneSufficient"));
+		auto Wood     = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasWood"));
+		auto Food     = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasFood"));
+		auto Gold     = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasGold"));
+		auto Stone    = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasStone"));
 		auto Lumber   = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasLumberCamp"));
 		auto Mill     = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMill"));
 		auto Mining   = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.AoE.HasMiningCamp"));
@@ -801,12 +1362,46 @@ class UCk_EntityScript_GoapGym_Empire : UCk_EntityScript_UE
 		Text = f"{Text}===== Buildings =====\n";
 		Text = f"{Text}LumberCamp: {Lumber}   Mill: {Mill}   MiningCamp: {Mining}\n";
 		Text = f"{Text}Barracks: {Barracks}   FeudalAge: {Feudal}\n\n";
+
+		Text = f"{Text}===== Villager =====\n";
+		Text = f"{Text}Phase: {PhaseString(Phase)}\n";
+		if (Phase == ECk_GoapGymEmpire_Phase::Running)
+		{
+			auto Pct = int32(100);
+			if (CurrentActionDuration > 0.0f)
+			{
+				Pct = int32(Math::Clamp(CurrentActionElapsed / CurrentActionDuration, 0.0f, 1.0f) * 100.0f);
+			}
+			auto Step = CurrentActionIndex + 1;
+			auto Total = CurrentPlan.Num();
+			Text = f"{Text}Doing: {CurrentActionName}  (step {Step}/{Total}, cost {CurrentActionCost}, {Pct}%)\n";
+		}
+		else if (Phase == ECk_GoapGymEmpire_Phase::BetweenPlans)
+		{
+			Text = f"{Text}Plan complete. Next plan in {BetweenPlansDelay - PhasePauseElapsed}s...\n";
+		}
+		else if (Phase == ECk_GoapGymEmpire_Phase::AllGoalsComplete)
+		{
+			Text = f"{Text}All goals satisfied. World reset in {AllCompleteDelay - PhasePauseElapsed}s...\n";
+		}
+		Text = f"{Text}\n";
+
 		Text = f"{Text}===== Planner =====\n";
 		Text = f"{Text}Goal: {LastGoalName}   Status: {goap_gym_util::StatusString(Status)}   Plan #{PlanCount}\n";
 		Text = f"{Text}{goap_gym_util::FormatPlan(GoapEntity)}\n";
-		Text = Text + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
+		Text = Text + gym_auto::FormatAutoAndCommands(AutoConfig, 0, AutoRunning);
 
 		auto Mode = AutoRunning ? "[AUTO]" : "[MANUAL]";
 		CkGym_Common::Update_StationDisplay(SelfEntity, f"AGE OF EMPIRES {Mode}", Text, "");
+	}
+
+	private FString PhaseString(ECk_GoapGymEmpire_Phase InPhase)
+	{
+		if (InPhase == ECk_GoapGymEmpire_Phase::Idle)             { return "Idle (requesting plan)"; }
+		if (InPhase == ECk_GoapGymEmpire_Phase::AwaitingPlan)     { return "Awaiting plan from planner"; }
+		if (InPhase == ECk_GoapGymEmpire_Phase::Running)          { return "Executing plan"; }
+		if (InPhase == ECk_GoapGymEmpire_Phase::BetweenPlans)     { return "Between plans"; }
+		if (InPhase == ECk_GoapGymEmpire_Phase::AllGoalsComplete) { return "All goals complete"; }
+		return "Unknown";
 	}
 }
