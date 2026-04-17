@@ -1313,67 +1313,177 @@ namespace UCk_EntityScript_EntityScriptGym_SpawnReplicated
 }
 
 USTRUCT()
-struct FCk_EntityScript_GoapGym_Station_SpawnParams
+struct FCk_EntityScript_GoapGym_CircularDep_SpawnParams
 {
     UPROPERTY()
     FTransform InitialTransform = FTransform::Identity;
 
-    UPROPERTY()
-    FString StationTitle = "";
-
-    UPROPERTY()
-    FString StationDescription = "";
-
-    UPROPERTY()
-    TArray<UClass> ActionClasses;
-
-    UPROPERTY()
-    TArray<UClass> GoalClasses;
-
-    UPROPERTY()
-    TSubclassOf<UCk_GoapGoal_EntityScript> SpecificGoalClass = nullptr;
-
-    UPROPERTY()
-    TMap<FGameplayTag, bool> InitialWorldState;
-
-    UPROPERTY()
-    int64 BudgetMicroseconds = 0;
-
-    UPROPERTY()
-    float64 RestartIntervalSeconds = 5.0;
-
-    UPROPERTY()
-    TSubclassOf<UCk_GoapAction_EntityScript> CostOverrideAction = nullptr;
-
-    UPROPERTY()
-    float64 CostOverrideValue = -1.0;
-
-    FCk_EntityScript_GoapGym_Station_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, TArray<UClass> InActionClasses, TArray<UClass> InGoalClasses, TSubclassOf<UCk_GoapGoal_EntityScript> InSpecificGoalClass, TMap<FGameplayTag, bool> InInitialWorldState, int64 InBudgetMicroseconds, float64 InRestartIntervalSeconds, TSubclassOf<UCk_GoapAction_EntityScript> InCostOverrideAction, float64 InCostOverrideValue)
+    FCk_EntityScript_GoapGym_CircularDep_SpawnParams(FTransform InInitialTransform)
     {
         InitialTransform = InInitialTransform;
-        StationTitle = InStationTitle;
-        StationDescription = InStationDescription;
-        ActionClasses = InActionClasses;
-        GoalClasses = InGoalClasses;
-        SpecificGoalClass = InSpecificGoalClass;
-        InitialWorldState = InInitialWorldState;
-        BudgetMicroseconds = InBudgetMicroseconds;
-        RestartIntervalSeconds = InRestartIntervalSeconds;
-        CostOverrideAction = InCostOverrideAction;
-        CostOverrideValue = InCostOverrideValue;
     }
 }
 
-namespace UCk_EntityScript_GoapGym_Station
+namespace UCk_EntityScript_GoapGym_CircularDep
 {
-    FCk_EntityScript_GoapGym_Station_SpawnParams Params()
+    FCk_EntityScript_GoapGym_CircularDep_SpawnParams Params()
     {
-        return FCk_EntityScript_GoapGym_Station_SpawnParams();
+        return FCk_EntityScript_GoapGym_CircularDep_SpawnParams();
     }
 
-    FCk_EntityScript_GoapGym_Station_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, TArray<UClass> InActionClasses, TArray<UClass> InGoalClasses, TSubclassOf<UCk_GoapGoal_EntityScript> InSpecificGoalClass, TMap<FGameplayTag, bool> InInitialWorldState, int64 InBudgetMicroseconds, float64 InRestartIntervalSeconds, TSubclassOf<UCk_GoapAction_EntityScript> InCostOverrideAction, float64 InCostOverrideValue)
+    FCk_EntityScript_GoapGym_CircularDep_SpawnParams Params(FTransform InInitialTransform)
     {
-        return FCk_EntityScript_GoapGym_Station_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InActionClasses, InGoalClasses, InSpecificGoalClass, InInitialWorldState, InBudgetMicroseconds, InRestartIntervalSeconds, InCostOverrideAction, InCostOverrideValue);
+        return FCk_EntityScript_GoapGym_CircularDep_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_Combat_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_Combat_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_Combat
+{
+    FCk_EntityScript_GoapGym_Combat_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_Combat_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_Combat_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_Combat_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_Door_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_Door_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_Door
+{
+    FCk_EntityScript_GoapGym_Door_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_Door_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_Door_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_Door_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_Empire_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_Empire_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_Empire
+{
+    FCk_EntityScript_GoapGym_Empire_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_Empire_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_Empire_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_Empire_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_NoPlan_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_NoPlan_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_NoPlan
+{
+    FCk_EntityScript_GoapGym_NoPlan_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_NoPlan_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_NoPlan_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_NoPlan_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_Priorities_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_Priorities_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_Priorities
+{
+    FCk_EntityScript_GoapGym_Priorities_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_Priorities_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_Priorities_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_Priorities_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_Tea_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_Tea_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_Tea
+{
+    FCk_EntityScript_GoapGym_Tea_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_Tea_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_Tea_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_Tea_SpawnParams(InInitialTransform);
     }
 }
 
