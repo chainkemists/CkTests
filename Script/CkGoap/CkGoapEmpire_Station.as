@@ -326,7 +326,22 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		CurrentStep = 0;
 		PlansCompleted++;
 		PlanningStuckSeconds = 0.0f;
-		ck::Trace(f"[Empire] OnPlanComplete: {CurrentPlan.Num()} steps, cost {CurrentPlanCost}");
+
+		// Cross-check: read the plan back directly from the Current fragment.
+		// If InPayload.Get_Actions() is losing the TArray across the AS
+		// binding, this will still show the real step count.
+		auto FragmentPlan = utils_goap::Get_Plan(GoapEntity);
+		auto FragmentStatus = utils_goap::Get_PlanStatus(GoapEntity);
+		auto IsFeudal = utils_goap::Get_WorldStateValue(GoapEntity, goapempire_tags::T(empire_tags::IsInFeudalAge));
+		auto IsDark = utils_goap::Get_WorldStateValue(GoapEntity, goapempire_tags::T(empire_tags::IsInDarkAge));
+		ck::Trace(f"[Empire] OnPlanComplete: payload={CurrentPlan.Num()} frag={FragmentPlan.Num()} cost={CurrentPlanCost} status={FragmentStatus} IsDark={IsDark} IsFeudal={IsFeudal}");
+
+		// If the payload's TArray was lost in binding, rehydrate from the
+		// Current fragment (which always holds the authoritative plan).
+		if (CurrentPlan.Num() == 0 && FragmentPlan.Num() > 0)
+		{
+			CurrentPlan = FragmentPlan;
+		}
 
 		if (CurrentPlan.Num() == 0)
 		{
