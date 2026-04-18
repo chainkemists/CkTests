@@ -372,7 +372,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		PhaseSourcePos = GetVillagerPosition();
 		PhaseTargetPos = InitialTransform.TransformPositionNoScale(Target);
 
-		auto Distance = (PhaseTargetPos - PhaseSourcePos).Size();
+		auto Distance = float32((PhaseTargetPos - PhaseSourcePos).Size());
 		PhaseDuration = Distance / empire_tuning::VillagerSpeed;
 		PhaseElapsed = 0.0f;
 
@@ -397,7 +397,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 	{
 		if (Phase == ECk_GoapEmpire_Phase::Idle) { return; }
 
-		PhaseElapsed = PhaseElapsed + InDeltaT.Get_Seconds();
+		PhaseElapsed = PhaseElapsed + float32(InDeltaT.Get_Seconds());
 
 		if (Phase == ECk_GoapEmpire_Phase::Travel)
 		{
@@ -566,7 +566,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		else if (A == UCk_Empire_Action_ResearchEliteSkirmisher)  { ResearchFlag = empire_tags::HasResearchedEliteSkirmisher; }
 		else if (A == UCk_Empire_Action_ResearchChemistry)        { ResearchFlag = empire_tags::HasResearchedChemistry; }
 		else if (A == UCk_Empire_Action_ResearchBallistics)       { ResearchFlag = empire_tags::HasResearchedBallistics; }
-		if (ResearchFlag.IsValid())
+		if (!ResearchFlag.IsNone())
 		{
 			SpendAndFlag(ResearchFlag, 0, empire_tuning::CostResearchFood, empire_tuning::CostResearchGold, 0);
 			return;
@@ -698,8 +698,8 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		if (Phase == ECk_GoapEmpire_Phase::Work)   { PhaseStr = f"Work {int32(PhaseElapsed / Math::Max(0.01f, PhaseDuration) * 100.0f)}%"; }
 
 		auto CurrentAction = CurrentStep < CurrentPlan.Num() && ck::IsValid(CurrentPlan[CurrentStep])
-			? CurrentPlan[CurrentStep].Get().GetName()
-			: "—";
+			? CurrentPlan[CurrentStep].Get().GetName().ToString()
+			: FString("—");
 
 		auto Text = f"Age: {ActiveAge}    Wonder: {HasWonder}\n";
 		Text = Text + f"Plan step: {CurrentStep + 1}/{CurrentPlan.Num()}    Action: {CurrentAction}\n";
