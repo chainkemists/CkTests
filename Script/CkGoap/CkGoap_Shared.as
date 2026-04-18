@@ -51,23 +51,40 @@ namespace Ck
 		GameplayTags.Add(n"Goap.WS.Cycle.HasPower");
 		GameplayTags.Add(n"Goap.WS.Cycle.HasBattery");
 
-		// Station 7: Age of Empires (single-villager realistic model)
-		//   Resources are consumable booleans (HasWood=false after building).
-		//   Villager is always "available" (one-at-a-time serial execution is
-		//   the executor's job; GOAP models the ordered recipe).
-		//   Camps accelerate gathering — planner decides whether the cost is
-		//   worth amortizing via dynamic cost variants of gather actions.
-		GameplayTags.Add(n"Goap.WS.AoE.HasTownCenter");
-		GameplayTags.Add(n"Goap.WS.AoE.HasVillager");
-		GameplayTags.Add(n"Goap.WS.AoE.HasWood");
-		GameplayTags.Add(n"Goap.WS.AoE.HasFood");
-		GameplayTags.Add(n"Goap.WS.AoE.HasGold");
-		GameplayTags.Add(n"Goap.WS.AoE.HasStone");
-		GameplayTags.Add(n"Goap.WS.AoE.HasLumberCamp");
-		GameplayTags.Add(n"Goap.WS.AoE.HasMill");
-		GameplayTags.Add(n"Goap.WS.AoE.HasMiningCamp");
-		GameplayTags.Add(n"Goap.WS.AoE.HasBarracks");
-		GameplayTags.Add(n"Goap.WS.AoE.ReachedFeudalAge");
+		// Planner tests — boolean capability ladder.
+		GameplayTags.Add(n"Gym.PlannerTest.T1");
+		GameplayTags.Add(n"Gym.PlannerTest.T2");
+		GameplayTags.Add(n"Gym.PlannerTest.T4");
+		GameplayTags.Add(n"Gym.PlannerTest.T5");
+
+		GameplayTags.Add(n"TAG_PlannerTest_T1");
+		GameplayTags.Add(n"TAG_PlannerTest_T2");
+		GameplayTags.Add(n"TAG_PlannerTest_T4");
+		GameplayTags.Add(n"TAG_PlannerTest_T5");
+
+		// T1 — single-step action execution
+		GameplayTags.Add(n"Goap.WS.T1.HasTool");
+		// T2 — dependency resolution (four-step linear chain)
+		GameplayTags.Add(n"Goap.WS.T2.Step1");
+		GameplayTags.Add(n"Goap.WS.T2.Step2");
+		GameplayTags.Add(n"Goap.WS.T2.Step3");
+		GameplayTags.Add(n"Goap.WS.T2.StepFinal");
+		// T4 — branching (either path produces Tool)
+		GameplayTags.Add(n"Goap.WS.T4.HasWood");
+		GameplayTags.Add(n"Goap.WS.T4.HasStone");
+		GameplayTags.Add(n"Goap.WS.T4.HasTool");
+		// T5 — cost sensitivity (cheap vs expensive path)
+		GameplayTags.Add(n"Goap.WS.T5.HasMaterial");
+		GameplayTags.Add(n"Goap.WS.T5.HasTool");
+
+		// Station: Empire (boolean AoE-style)
+		//   Every stockpile / unlock is a boolean flag. Gameplay code sets
+		//   "HasEnoughFood" when its actual food ≥ threshold, etc.
+		GameplayTags.Add(n"Goap.WS.Empire.HasEnoughFood");
+		GameplayTags.Add(n"Goap.WS.Empire.HasEnoughGold");
+		GameplayTags.Add(n"Goap.WS.Empire.HasEnoughWood");
+		GameplayTags.Add(n"Goap.WS.Empire.HasBarracks");
+		GameplayTags.Add(n"Goap.WS.Empire.IsInFeudalAge");
 
 		// Entity tags used by PlayerController to broadcast per-station commands
 		GameplayTags.Add(n"TAG_GoapGym_Door");

@@ -420,7 +420,7 @@ struct FCk_EntityScript_AStarGym_Station_SpawnParams
     int64 BudgetMicroseconds = 0;
 
     UPROPERTY()
-    float64 CostThreshold = 0.0;
+    float32 CostThreshold = 0.0f;
 
     UPROPERTY()
     TArray<FIntPoint> BlockedCells;
@@ -428,7 +428,7 @@ struct FCk_EntityScript_AStarGym_Station_SpawnParams
     UPROPERTY()
     float64 RestartIntervalSeconds = 5.0;
 
-    FCk_EntityScript_AStarGym_Station_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int32 InGridWidth, int32 InGridHeight, int32 InStartX, int32 InStartY, int32 InGoalX, int32 InGoalY, int64 InBudgetMicroseconds, float64 InCostThreshold, TArray<FIntPoint> InBlockedCells, float64 InRestartIntervalSeconds)
+    FCk_EntityScript_AStarGym_Station_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int32 InGridWidth, int32 InGridHeight, int32 InStartX, int32 InStartY, int32 InGoalX, int32 InGoalY, int64 InBudgetMicroseconds, float32 InCostThreshold, TArray<FIntPoint> InBlockedCells, float64 InRestartIntervalSeconds)
     {
         InitialTransform = InInitialTransform;
         StationTitle = InStationTitle;
@@ -453,7 +453,7 @@ namespace UCk_EntityScript_AStarGym_Station
         return FCk_EntityScript_AStarGym_Station_SpawnParams();
     }
 
-    FCk_EntityScript_AStarGym_Station_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int32 InGridWidth, int32 InGridHeight, int32 InStartX, int32 InStartY, int32 InGoalX, int32 InGoalY, int64 InBudgetMicroseconds, float64 InCostThreshold, TArray<FIntPoint> InBlockedCells, float64 InRestartIntervalSeconds)
+    FCk_EntityScript_AStarGym_Station_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int32 InGridWidth, int32 InGridHeight, int32 InStartX, int32 InStartY, int32 InGoalX, int32 InGoalY, int64 InBudgetMicroseconds, float32 InCostThreshold, TArray<FIntPoint> InBlockedCells, float64 InRestartIntervalSeconds)
     {
         return FCk_EntityScript_AStarGym_Station_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InGridWidth, InGridHeight, InStartX, InStartY, InGoalX, InGoalY, InBudgetMicroseconds, InCostThreshold, InBlockedCells, InRestartIntervalSeconds);
     }
@@ -2059,6 +2059,106 @@ namespace UCk_EntityScript_MessagingGym_OneShot
     FCk_EntityScript_MessagingGym_OneShot_SpawnParams Params(FTransform InInitialTransform)
     {
         return FCk_EntityScript_MessagingGym_OneShot_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_PlannerT1_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_PlannerT1_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_PlannerT1
+{
+    FCk_EntityScript_PlannerT1_SpawnParams Params()
+    {
+        return FCk_EntityScript_PlannerT1_SpawnParams();
+    }
+
+    FCk_EntityScript_PlannerT1_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_PlannerT1_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_PlannerT2_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_PlannerT2_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_PlannerT2
+{
+    FCk_EntityScript_PlannerT2_SpawnParams Params()
+    {
+        return FCk_EntityScript_PlannerT2_SpawnParams();
+    }
+
+    FCk_EntityScript_PlannerT2_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_PlannerT2_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_PlannerT4_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_PlannerT4_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_PlannerT4
+{
+    FCk_EntityScript_PlannerT4_SpawnParams Params()
+    {
+        return FCk_EntityScript_PlannerT4_SpawnParams();
+    }
+
+    FCk_EntityScript_PlannerT4_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_PlannerT4_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_PlannerT5_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_PlannerT5_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_PlannerT5
+{
+    FCk_EntityScript_PlannerT5_SpawnParams Params()
+    {
+        return FCk_EntityScript_PlannerT5_SpawnParams();
+    }
+
+    FCk_EntityScript_PlannerT5_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_PlannerT5_SpawnParams(InInitialTransform);
     }
 }
 
