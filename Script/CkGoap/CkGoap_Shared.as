@@ -21,7 +21,6 @@ namespace Ck
 		GameplayTags.Add(n"Gym.Goap.Priorities");
 		GameplayTags.Add(n"Gym.Goap.NoPlan");
 		GameplayTags.Add(n"Gym.Goap.CircularDep");
-		GameplayTags.Add(n"Gym.Goap.Empire");
 
 		// Station 1: OpenDoor
 		GameplayTags.Add(n"Goap.WS.Door.HasKey");
@@ -77,15 +76,6 @@ namespace Ck
 		GameplayTags.Add(n"Goap.WS.T5.HasMaterial");
 		GameplayTags.Add(n"Goap.WS.T5.HasTool");
 
-		// Station: Empire (boolean AoE-style)
-		//   Every stockpile / unlock is a boolean flag. Gameplay code sets
-		//   "HasEnoughFood" when its actual food ≥ threshold, etc.
-		GameplayTags.Add(n"Goap.WS.Empire.HasEnoughFood");
-		GameplayTags.Add(n"Goap.WS.Empire.HasEnoughGold");
-		GameplayTags.Add(n"Goap.WS.Empire.HasEnoughWood");
-		GameplayTags.Add(n"Goap.WS.Empire.HasBarracks");
-		GameplayTags.Add(n"Goap.WS.Empire.IsInFeudalAge");
-
 		// Entity tags used by PlayerController to broadcast per-station commands
 		GameplayTags.Add(n"TAG_GoapGym_Door");
 		GameplayTags.Add(n"TAG_GoapGym_Tea");
@@ -93,7 +83,6 @@ namespace Ck
 		GameplayTags.Add(n"TAG_GoapGym_Priorities");
 		GameplayTags.Add(n"TAG_GoapGym_NoPlan");
 		GameplayTags.Add(n"TAG_GoapGym_CircularDep");
-		GameplayTags.Add(n"TAG_GoapGym_Empire");
 	}
 }
 
@@ -139,9 +128,3 @@ USTRUCT() struct FCk_Message_GoapGym_CircularDep_Replan {}
 USTRUCT() struct FCk_Message_GoapGym_CircularDep_SeedBattery {}
 USTRUCT() struct FCk_Message_GoapGym_CircularDep_ClearSeed {}
 
-// Station 6: AgeOfEmpires
-USTRUCT() struct FCk_Message_GoapGym_Empire_PlanGatherResources {}
-USTRUCT() struct FCk_Message_GoapGym_Empire_PlanBuildMilitary {}
-USTRUCT() struct FCk_Message_GoapGym_Empire_PlanFeudalAge {}
-USTRUCT() struct FCk_Message_GoapGym_Empire_ApplyPlan {}
-USTRUCT() struct FCk_Message_GoapGym_Empire_ResetWorld {}
