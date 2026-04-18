@@ -39,10 +39,6 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 			"Intentional chicken-and-egg graph. Exercises framework cycle detection + plan-time reachability diagnostic.",
 			"Seed HasBattery to break the deadlock. Debugger shows a red warning banner."));
 
-		Stations.Add(MakeStation(n"Gym.Goap.Empire", "AGE OF EMPIRES",
-			"Full AoE-style villager economy — 16 actions, 3 goals.",
-			"Auto plays through GatherResources -> BuildMilitary -> ReachFeudalAge timeline."));
-
 		return Stations;
 	}
 
@@ -67,7 +63,6 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 		Request_StartPriorities();
 		Request_StartNoPlan();
 		Request_StartCircularDep();
-		Request_StartEmpire();
 		ck::Trace("GOAP Gym - All stations started");
 	}
 
@@ -129,15 +124,6 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 			FInstancedStruct::Make(FCk_Gym_TransformSpawnParams(T)));
 	}
 
-	void Request_StartEmpire()
-	{
-		auto T = Get_StationTransform("Gym.Goap.Empire");
-		utils_entity_script::Request_SpawnEntity(
-			Get_StationHandle("Gym.Goap.Empire"),
-			UCk_EntityScript_GoapGym_Empire,
-			FInstancedStruct::Make(FCk_Gym_TransformSpawnParams(T)));
-	}
-
 	// ------------------------------------------------------------------------
 	// BROADCAST HELPERS
 	// ------------------------------------------------------------------------
@@ -161,7 +147,6 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 		StationTags.Add(n"TAG_GoapGym_Priorities");
 		StationTags.Add(n"TAG_GoapGym_NoPlan");
 		StationTags.Add(n"TAG_GoapGym_CircularDep");
-		StationTags.Add(n"TAG_GoapGym_Empire");
 		for (auto Tag : StationTags) { BroadcastToTag(Tag, FInstancedStruct::Make(Msg)); }
 	}
 
@@ -202,9 +187,6 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	UFUNCTION(Exec, DisplayName="GOAP Gym - Auto CircularDep")
 	void Ck_GymGoap_AutoCircularDep() { BroadcastAutoToTag(n"TAG_GoapGym_CircularDep", true); }
-
-	UFUNCTION(Exec, DisplayName="GOAP Gym - Auto Empire")
-	void Ck_GymGoap_AutoEmpire() { BroadcastAutoToTag(n"TAG_GoapGym_Empire", true); }
 
 	// ------------------------------------------------------------------------
 	// STATION 1: DOOR
@@ -298,23 +280,4 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	UFUNCTION(Exec, DisplayName="GOAP Gym - CircularDep Clear Seed")
 	void Ck_GymGoap_CircularDep_ClearSeed()    { BroadcastToTag(n"TAG_GoapGym_CircularDep", FInstancedStruct::Make(FCk_Message_GoapGym_CircularDep_ClearSeed())); }
-
-	// ------------------------------------------------------------------------
-	// STATION 7: EMPIRE
-	// ------------------------------------------------------------------------
-
-	UFUNCTION(Exec, DisplayName="GOAP Gym - Empire Plan GatherResources")
-	void Ck_GymGoap_Empire_PlanGatherResources() { BroadcastToTag(n"TAG_GoapGym_Empire", FInstancedStruct::Make(FCk_Message_GoapGym_Empire_PlanGatherResources())); }
-
-	UFUNCTION(Exec, DisplayName="GOAP Gym - Empire Plan BuildMilitary")
-	void Ck_GymGoap_Empire_PlanBuildMilitary()   { BroadcastToTag(n"TAG_GoapGym_Empire", FInstancedStruct::Make(FCk_Message_GoapGym_Empire_PlanBuildMilitary())); }
-
-	UFUNCTION(Exec, DisplayName="GOAP Gym - Empire Plan FeudalAge")
-	void Ck_GymGoap_Empire_PlanFeudalAge()       { BroadcastToTag(n"TAG_GoapGym_Empire", FInstancedStruct::Make(FCk_Message_GoapGym_Empire_PlanFeudalAge())); }
-
-	UFUNCTION(Exec, DisplayName="GOAP Gym - Empire Apply Plan")
-	void Ck_GymGoap_Empire_ApplyPlan()           { BroadcastToTag(n"TAG_GoapGym_Empire", FInstancedStruct::Make(FCk_Message_GoapGym_Empire_ApplyPlan())); }
-
-	UFUNCTION(Exec, DisplayName="GOAP Gym - Empire Reset World")
-	void Ck_GymGoap_Empire_ResetWorld()          { BroadcastToTag(n"TAG_GoapGym_Empire", FInstancedStruct::Make(FCk_Message_GoapGym_Empire_ResetWorld())); }
 }
