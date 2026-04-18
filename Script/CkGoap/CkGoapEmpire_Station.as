@@ -100,7 +100,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		VillagerShape = utils_pmg_basic_shapes::DrawFilledSphere(
 			VillagerStart, 40.0f, 16, 16,
 			FLinearColor(0.12f, 0.55f, 0.96f, 0.9f),
-			true, 2.0f, ECk_Plane_Axis::XY, 0.0f);
+			true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
 
 		// Static location markers
 		DrawLocation(InitialTransform, empire_layout::TownCenter(),  FLinearColor(0.18f, 0.73f, 0.95f, 0.4f), FVector(160.0f, 160.0f, 20.0f));
@@ -148,7 +148,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 	{
 		auto WorldPos = InRoot.TransformPositionNoScale(InLocalPos);
 		auto Shape = utils_pmg_basic_shapes::DrawFilledBox(
-			WorldPos, InExtent, InColor, true, 2.0f, ECk_Plane_Axis::XY, 0.0f);
+			WorldPos, InExtent, InColor, true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
 		StaticShapes.Add(Shape);
 	}
 
@@ -416,6 +416,10 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 
 	UFUNCTION() private void StepTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		// Villager is a transient-owned PMG entity; during PIE shutdown it can
+		// enter D_Teardown while our timer still fires once more. Bail out.
+		if (!ck::IsValid(VillagerShape)) { return; }
+
 		auto Dt = float32(InDeltaT.Get_Seconds());
 
 		if (RetryPlanCountdown > 0.0f)
@@ -664,11 +668,13 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 
 	private FVector GetVillagerPosition()
 	{
+		if (!ck::IsValid(VillagerShape)) { return PhaseSourcePos; }
 		return utils_transform::Get_EntityCurrentLocation(VillagerShape);
 	}
 
 	private void SetVillagerPosition(FVector InWorldPos)
 	{
+		if (!ck::IsValid(VillagerShape)) { return; }
 		utils_transform::Request_SetLocation(VillagerShape, InWorldPos, ECk_LocalWorld::World);
 	}
 
@@ -678,7 +684,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		auto WorldPos = InitialTransform.TransformPositionNoScale(LocalPos);
 		auto Shape = utils_pmg_basic_shapes::DrawFilledBox(
 			WorldPos, FVector(80.0f, 80.0f, 120.0f),
-			InColor, true, 2.0f, ECk_Plane_Axis::XY, 0.0f);
+			InColor, true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
 		BuildingShapes.Add(Shape);
 	}
 
@@ -689,7 +695,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		auto WorldPos = InitialTransform.TransformPositionNoScale(InLocal + FVector(0.0f, 0.0f, 40.0f));
 		auto Shape = utils_pmg_basic_shapes::DrawFilledBox(
 			WorldPos, FVector(70.0f, 70.0f, 90.0f),
-			InColor, true, 2.0f, ECk_Plane_Axis::XY, 0.0f);
+			InColor, true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
 		BuildingShapes.Add(Shape);
 	}
 
@@ -699,7 +705,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		auto Shape = utils_pmg_basic_shapes::DrawFilledPyramid(
 			WorldPos, 200.0f, 300.0f,
 			FLinearColor(1.00f, 0.85f, 0.20f, 0.9f),
-			true, 3.0f, ECk_Plane_Axis::XY, 0.0f);
+			true, 3.0f, ECk_Plane_Axis::XY, -1.0f);
 		BuildingShapes.Add(Shape);
 	}
 
