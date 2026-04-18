@@ -179,10 +179,10 @@ namespace empire_layout
 	// Dual-uses are fine — each building is a single physical shape at one slot.
 	FVector BuildingSlot(int32 InSlotIndex)
 	{
-		auto const RadiansPerSlot = 6.283185307 / 8.0;  // 2π / 8
-		auto const Angle = float(InSlotIndex) * float(RadiansPerSlot);
-		auto const Radius = 400.0;
-		return FVector(Math::Cos(Angle) * Radius, Math::Sin(Angle) * Radius, 50.0);
+		const float32 RadiansPerSlot = float32(6.283185307 / 8.0);  // 2π / 8
+		const float32 Angle = float32(InSlotIndex) * RadiansPerSlot;
+		const float32 Radius = 400.0f;
+		return FVector(Math::Cos(Angle) * Radius, Math::Sin(Angle) * Radius, 50.0f);
 	}
 }
 
