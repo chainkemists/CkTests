@@ -399,22 +399,22 @@ struct FCk_EntityScript_AStarGym_Station_SpawnParams
     FString StationDescription = "";
 
     UPROPERTY()
-    int32 GridWidth = 10;
+    int GridWidth = 10;
 
     UPROPERTY()
-    int32 GridHeight = 10;
+    int GridHeight = 10;
 
     UPROPERTY()
-    int32 StartX = 0;
+    int StartX = 0;
 
     UPROPERTY()
-    int32 StartY = 0;
+    int StartY = 0;
 
     UPROPERTY()
-    int32 GoalX = 9;
+    int GoalX = 9;
 
     UPROPERTY()
-    int32 GoalY = 9;
+    int GoalY = 9;
 
     UPROPERTY()
     int64 BudgetMicroseconds = 0;
@@ -426,9 +426,9 @@ struct FCk_EntityScript_AStarGym_Station_SpawnParams
     TArray<FIntPoint> BlockedCells;
 
     UPROPERTY()
-    float64 RestartIntervalSeconds = 5.0;
+    float RestartIntervalSeconds = 5.0;
 
-    FCk_EntityScript_AStarGym_Station_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int32 InGridWidth, int32 InGridHeight, int32 InStartX, int32 InStartY, int32 InGoalX, int32 InGoalY, int64 InBudgetMicroseconds, float32 InCostThreshold, TArray<FIntPoint> InBlockedCells, float64 InRestartIntervalSeconds)
+    FCk_EntityScript_AStarGym_Station_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int InGridWidth, int InGridHeight, int InStartX, int InStartY, int InGoalX, int InGoalY, int64 InBudgetMicroseconds, float32 InCostThreshold, TArray<FIntPoint> InBlockedCells, float InRestartIntervalSeconds)
     {
         InitialTransform = InInitialTransform;
         StationTitle = InStationTitle;
@@ -453,7 +453,7 @@ namespace UCk_EntityScript_AStarGym_Station
         return FCk_EntityScript_AStarGym_Station_SpawnParams();
     }
 
-    FCk_EntityScript_AStarGym_Station_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int32 InGridWidth, int32 InGridHeight, int32 InStartX, int32 InStartY, int32 InGoalX, int32 InGoalY, int64 InBudgetMicroseconds, float32 InCostThreshold, TArray<FIntPoint> InBlockedCells, float64 InRestartIntervalSeconds)
+    FCk_EntityScript_AStarGym_Station_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int InGridWidth, int InGridHeight, int InStartX, int InStartY, int InGoalX, int InGoalY, int64 InBudgetMicroseconds, float32 InCostThreshold, TArray<FIntPoint> InBlockedCells, float InRestartIntervalSeconds)
     {
         return FCk_EntityScript_AStarGym_Station_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InGridWidth, InGridHeight, InStartX, InStartY, InGoalX, InGoalY, InBudgetMicroseconds, InCostThreshold, InBlockedCells, InRestartIntervalSeconds);
     }
@@ -1313,6 +1313,31 @@ namespace UCk_EntityScript_EntityScriptGym_SpawnReplicated
 }
 
 USTRUCT()
+struct FCk_EntityScript_GoapEmpire_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapEmpire_Station_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapEmpire_Station
+{
+    FCk_EntityScript_GoapEmpire_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapEmpire_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapEmpire_Station_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapEmpire_Station_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_GoapGym_CircularDep_SpawnParams
 {
     UPROPERTY()
@@ -1384,31 +1409,6 @@ namespace UCk_EntityScript_GoapGym_Door
     FCk_EntityScript_GoapGym_Door_SpawnParams Params(FTransform InInitialTransform)
     {
         return FCk_EntityScript_GoapGym_Door_SpawnParams(InInitialTransform);
-    }
-}
-
-USTRUCT()
-struct FCk_EntityScript_GoapGym_Empire_SpawnParams
-{
-    UPROPERTY()
-    FTransform InitialTransform = FTransform::Identity;
-
-    FCk_EntityScript_GoapGym_Empire_SpawnParams(FTransform InInitialTransform)
-    {
-        InitialTransform = InInitialTransform;
-    }
-}
-
-namespace UCk_EntityScript_GoapGym_Empire
-{
-    FCk_EntityScript_GoapGym_Empire_SpawnParams Params()
-    {
-        return FCk_EntityScript_GoapGym_Empire_SpawnParams();
-    }
-
-    FCk_EntityScript_GoapGym_Empire_SpawnParams Params(FTransform InInitialTransform)
-    {
-        return FCk_EntityScript_GoapGym_Empire_SpawnParams(InInitialTransform);
     }
 }
 
