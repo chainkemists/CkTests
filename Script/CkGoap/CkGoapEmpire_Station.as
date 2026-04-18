@@ -43,7 +43,8 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 	// ------------------------------------------------------------------------
 
 	FCk_Handle_Goap GoapEntity;
-	FCk_Handle VillagerEntity;
+	// Villager is just the PMG shape entity — has its own transform, can be
+	// moved via utils_transform::Request_SetLocation directly on the handle.
 	FCk_Handle_Pmg_DebugShape VillagerShape;
 	TArray<FCk_Handle_Pmg_DebugShape> StaticShapes;    // locations drawn at spawn
 	TArray<FCk_Handle_Pmg_DebugShape> BuildingShapes;  // drawn as buildings are built
@@ -59,6 +60,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 	FVector PhaseTargetPos = FVector::ZeroVector;
 	float32 PhaseDuration = 0.0f;
 	float32 PhaseElapsed  = 0.0f;
+	float32 RetryPlanCountdown = 0.0f;
 	TSubclassOf<UCk_GoapAction_EntityScript> PhaseActionClass;
 
 	// ------------------------------------------------------------------------
@@ -90,17 +92,14 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapEmpireGym_Station");
 
-		// Villager — its own entity so its transform can be updated independently
-		// as we simulate movement between locations.
-		auto VillagerStart = FTransform(InitialTransform.TransformPositionNoScale(empire_layout::TownCenter()));
-		VillagerEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
-		utils_transform::Add(VillagerEntity, VillagerStart, ECk_Replication::DoesNotReplicate);
-		VillagerShape = utils_pmg_basic_shapes::Add_Sphere(
-			VillagerEntity, FTransform::Identity,
-			40.0f, 16, 16,
-			ECk_Plane_Axis::XY,
+		// Villager = standalone filled-sphere debug shape entity. DrawFilledX
+		// creates its own entity (with a transform), so we can move it via
+		// utils_transform::Request_SetLocation on the same handle later.
+		auto VillagerStart = InitialTransform.TransformPositionNoScale(empire_layout::TownCenter());
+		VillagerShape = utils_pmg_basic_shapes::DrawFilledSphere(
+			VillagerStart, 40.0f, 16, 16,
 			FLinearColor(0.12f, 0.55f, 0.96f, 0.9f),
-			true, 2.0f, 0.0f);
+			true, 2.0f, ECk_Plane_Axis::XY, 0.0f);
 
 		// Static location markers
 		DrawLocation(InitialTransform, empire_layout::TownCenter(),  FLinearColor(0.18f, 0.73f, 0.95f, 0.4f), FVector(160.0f, 160.0f, 20.0f));
@@ -336,12 +335,13 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 	UFUNCTION() private void OnPlanFailed(FCk_Handle_Goap InHandle, FCk_Goap_Payload_OnPlanFailed InPayload)
 	{
 		PlansFailed++;
-		LastStatus = "Plan FAILED — replanning next frame";
-		// Try again — world state is continuously projected, so a failure here
-		// is typically a transient (gameplay flag momentarily false) and the
-		// next request will succeed. If it persists the Failure Analysis panel
-		// will explain why.
+		LastStatus = "Plan FAILED — retrying in 1s";
 		Phase = ECk_GoapEmpire_Phase::Idle;
+		// Schedule a retry 1s later (gives ECS time to reconcile pending state
+		// and avoids tight-looping a persistent failure while still letting
+		// transient ones recover). The RetryPlanCountdown tick in StepTick
+		// handles the timer.
+		RetryPlanCountdown = 1.0f;
 	}
 
 	// ------------------------------------------------------------------------
@@ -395,9 +395,21 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 
 	UFUNCTION() private void StepTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
+		auto Dt = float32(InDeltaT.Get_Seconds());
+
+		if (RetryPlanCountdown > 0.0f)
+		{
+			RetryPlanCountdown = RetryPlanCountdown - Dt;
+			if (RetryPlanCountdown <= 0.0f)
+			{
+				RetryPlanCountdown = 0.0f;
+				RequestNextPlan();
+			}
+		}
+
 		if (Phase == ECk_GoapEmpire_Phase::Idle) { return; }
 
-		PhaseElapsed = PhaseElapsed + float32(InDeltaT.Get_Seconds());
+		PhaseElapsed = PhaseElapsed + Dt;
 
 		if (Phase == ECk_GoapEmpire_Phase::Travel)
 		{
@@ -610,12 +622,12 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 
 	private FVector GetVillagerPosition()
 	{
-		return utils_transform::Get_EntityCurrentLocation(VillagerEntity);
+		return utils_transform::Get_EntityCurrentLocation(VillagerShape);
 	}
 
 	private void SetVillagerPosition(FVector InWorldPos)
 	{
-		utils_transform::Request_SetLocation(VillagerEntity, InWorldPos, ECk_LocalWorld::World);
+		utils_transform::Request_SetLocation(VillagerShape, InWorldPos, ECk_LocalWorld::World);
 	}
 
 	private void SpawnBuildingShape(int32 InSlotIndex, FLinearColor InColor)
