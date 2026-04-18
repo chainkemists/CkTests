@@ -134,8 +134,11 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_GoapEmpire_ResetWorld,
 			FCk_Delegate_Messaging_OnBroadcast(this, n"OnResetWorld"));
 
-		// Kick off the cycle.
-		RequestNextPlan();
+		// Defer the first plan request so the Setup processor has a frame to
+		// extract action CDOs into _ActionDefs before HandleRequests runs.
+		// Without this the request can land against an empty action list and
+		// the search fails immediately with nothing to expand.
+		RetryPlanCountdown = 0.2f;
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
