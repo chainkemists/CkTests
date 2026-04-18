@@ -59,7 +59,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 	FVector PhaseTargetPos = FVector::ZeroVector;
 	float32 PhaseDuration = 0.0f;
 	float32 PhaseElapsed  = 0.0f;
-	FName PhaseActionName;
+	TSubclassOf<UCk_GoapAction_EntityScript> PhaseActionClass;
 
 	// ------------------------------------------------------------------------
 	// GAMEPLAY-LAYER NUMERIC STATE
@@ -366,11 +366,9 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 			return;
 		}
 
-		auto ActionName = ActionClass.Get().GetName();
-		PhaseActionName = FName(ActionName);
+		PhaseActionClass = ActionClass;
 
-		// Choose the target location for this action.
-		auto Target = ResolveActionTarget(FName(ActionName));
+		auto Target = ResolveActionTarget(ActionClass);
 		PhaseSourcePos = GetVillagerPosition();
 		PhaseTargetPos = InitialTransform.TransformPositionNoScale(Target);
 
@@ -380,7 +378,6 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 
 		if (PhaseDuration <= 0.01f)
 		{
-			// Already at destination — go straight to work.
 			EnterWorkPhase();
 		}
 		else
@@ -392,7 +389,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 	private void EnterWorkPhase()
 	{
 		Phase = ECk_GoapEmpire_Phase::Work;
-		PhaseDuration = ResolveActionWorkDuration(PhaseActionName);
+		PhaseDuration = ResolveActionWorkDuration(PhaseActionClass);
 		PhaseElapsed = 0.0f;
 	}
 
@@ -416,7 +413,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		{
 			if (PhaseElapsed >= PhaseDuration)
 			{
-				ApplyActionCompletion(PhaseActionName);
+				ApplyActionCompletion(PhaseActionClass);
 				StepsExecuted++;
 				CurrentStep++;
 				BeginStep(CurrentStep);
@@ -428,50 +425,83 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 	// ACTION → (location, work duration, completion effect) LOOKUP
 	// ------------------------------------------------------------------------
 
-	private FVector ResolveActionTarget(FName InActionName)
+	private bool IsWoodGather(TSubclassOf<UCk_GoapAction_EntityScript> A)
 	{
-		auto S = InActionName.ToString();
-		if (S.Contains("GatherWood"))  { return empire_layout::Forest(); }
-		if (S.Contains("GatherFood"))  { return empire_layout::FarmField(); }
-		if (S.Contains("GatherGold"))  { return empire_layout::GoldMine(); }
-		if (S.Contains("GatherStone")) { return empire_layout::StoneQuarry(); }
+		return A == UCk_Empire_Action_GatherWood || A == UCk_Empire_Action_GatherWoodFromCamp;
+	}
+	private bool IsFoodGather(TSubclassOf<UCk_GoapAction_EntityScript> A)
+	{
+		return A == UCk_Empire_Action_GatherFood || A == UCk_Empire_Action_GatherFoodFromFarm || A == UCk_Empire_Action_GatherFoodFromMill;
+	}
+	private bool IsGoldGather(TSubclassOf<UCk_GoapAction_EntityScript> A)
+	{
+		return A == UCk_Empire_Action_GatherGold || A == UCk_Empire_Action_GatherGoldFromCamp;
+	}
+	private bool IsStoneGather(TSubclassOf<UCk_GoapAction_EntityScript> A)
+	{
+		return A == UCk_Empire_Action_GatherStone || A == UCk_Empire_Action_GatherStoneFromCamp;
+	}
+	private bool IsResearch(TSubclassOf<UCk_GoapAction_EntityScript> A)
+	{
+		return A == UCk_Empire_Action_ResearchLoom || A == UCk_Empire_Action_ResearchWheelbarrow
+			|| A == UCk_Empire_Action_ResearchHandCart || A == UCk_Empire_Action_ResearchGoldMining
+			|| A == UCk_Empire_Action_ResearchStoneMining || A == UCk_Empire_Action_ResearchCrossbow
+			|| A == UCk_Empire_Action_ResearchFletching || A == UCk_Empire_Action_ResearchHusbandry
+			|| A == UCk_Empire_Action_ResearchBloodlines || A == UCk_Empire_Action_ResearchEliteSkirmisher
+			|| A == UCk_Empire_Action_ResearchChemistry || A == UCk_Empire_Action_ResearchBallistics;
+	}
+	private bool IsAgeAdvance(TSubclassOf<UCk_GoapAction_EntityScript> A)
+	{
+		return A == UCk_Empire_Action_AdvanceToFeudalAge || A == UCk_Empire_Action_AdvanceToCastleAge || A == UCk_Empire_Action_AdvanceToImperialAge;
+	}
+	private bool IsUnitTrain(TSubclassOf<UCk_GoapAction_EntityScript> A)
+	{
+		return A == UCk_Empire_Action_TrainMilitia || A == UCk_Empire_Action_TrainSpearman
+			|| A == UCk_Empire_Action_TrainArcher || A == UCk_Empire_Action_TrainKnight
+			|| A == UCk_Empire_Action_TrainMonk || A == UCk_Empire_Action_TrainSiegeRam
+			|| A == UCk_Empire_Action_TrainTrebuchet;
+	}
+
+	private FVector ResolveActionTarget(TSubclassOf<UCk_GoapAction_EntityScript> InAction)
+	{
+		if (IsWoodGather(InAction))  { return empire_layout::Forest(); }
+		if (IsFoodGather(InAction))  { return empire_layout::FarmField(); }
+		if (IsGoldGather(InAction))  { return empire_layout::GoldMine(); }
+		if (IsStoneGather(InAction)) { return empire_layout::StoneQuarry(); }
 		// Every build / train / research / advance happens near the TownCenter
 		// (villager travels back, representing resource delivery + construction).
 		return empire_layout::TownCenter();
 	}
 
-	private float32 ResolveActionWorkDuration(FName InActionName)
+	private float32 ResolveActionWorkDuration(TSubclassOf<UCk_GoapAction_EntityScript> InAction)
 	{
-		auto S = InActionName.ToString();
-		if (S.Contains("GatherWood"))  { return empire_tuning::WorkGatherWood; }
-		if (S.Contains("GatherFood"))  { return empire_tuning::WorkGatherFood; }
-		if (S.Contains("GatherGold"))  { return empire_tuning::WorkGatherGold; }
-		if (S.Contains("GatherStone")) { return empire_tuning::WorkGatherStone; }
-		if (S.Contains("Research"))    { return empire_tuning::WorkResearch; }
-		if (S.Contains("Train"))       { return empire_tuning::WorkTrainUnit; }
-		if (S.Contains("Advance"))     { return empire_tuning::WorkAdvanceAge; }
-		if (S.Contains("Trade"))       { return empire_tuning::WorkTrainUnit; }
-		if (S.Contains("Build"))       { return empire_tuning::WorkBuild; }
+		if (IsWoodGather(InAction))  { return empire_tuning::WorkGatherWood; }
+		if (IsFoodGather(InAction))  { return empire_tuning::WorkGatherFood; }
+		if (IsGoldGather(InAction))  { return empire_tuning::WorkGatherGold; }
+		if (IsStoneGather(InAction)) { return empire_tuning::WorkGatherStone; }
+		if (IsResearch(InAction))    { return empire_tuning::WorkResearch; }
+		if (IsAgeAdvance(InAction))  { return empire_tuning::WorkAdvanceAge; }
+		if (IsUnitTrain(InAction))   { return empire_tuning::WorkTrainUnit; }
+		if (InAction == UCk_Empire_Action_TrainVillager) { return empire_tuning::WorkTrainUnit; }
+		if (InAction == UCk_Empire_Action_TradeForFood)  { return empire_tuning::WorkTrainUnit; }
 		return empire_tuning::WorkBuild;
 	}
 
 	// Apply the action's EFFECT side on completion:
 	//  - Gather actions: add yield to the numeric stockpile, re-project flags.
 	//  - Build / Research / Train / Advance: decrement cost(s) from numerics,
-	//    then flip the corresponding GOAP-effect flag, spawn building visuals
-	//    if applicable, and re-project flags.
-	private void ApplyActionCompletion(FName InActionName)
+	//    spawn building visuals if applicable, and re-project flags. The
+	//    GOAP-effect flag (HasBarracks, HasResearchedLoom, IsInFeudalAge etc.)
+	//    was already applied by the planner when Request_Plan satisfied the
+	//    action's effects; we don't double-write it here.
+	private void ApplyActionCompletion(TSubclassOf<UCk_GoapAction_EntityScript> A)
 	{
-		auto S = InActionName.ToString();
+		if (IsWoodGather(A))  { Wood  = Wood  + empire_tuning::YieldWood;  ProjectGameplayFlags(); return; }
+		if (IsFoodGather(A))  { Food  = Food  + empire_tuning::YieldFood;  ProjectGameplayFlags(); return; }
+		if (IsGoldGather(A))  { Gold  = Gold  + empire_tuning::YieldGold;  ProjectGameplayFlags(); return; }
+		if (IsStoneGather(A)) { Stone = Stone + empire_tuning::YieldStone; ProjectGameplayFlags(); return; }
 
-		// Resource gathers — purely additive
-		if (S.Contains("GatherWood"))  { Wood  = Wood  + empire_tuning::YieldWood;  ProjectGameplayFlags(); return; }
-		if (S.Contains("GatherFood"))  { Food  = Food  + empire_tuning::YieldFood;  ProjectGameplayFlags(); return; }
-		if (S.Contains("GatherGold"))  { Gold  = Gold  + empire_tuning::YieldGold;  ProjectGameplayFlags(); return; }
-		if (S.Contains("GatherStone")) { Stone = Stone + empire_tuning::YieldStone; ProjectGameplayFlags(); return; }
-
-		// Trade: spend gold → get food
-		if (S.Contains("Trade"))
+		if (A == UCk_Empire_Action_TradeForFood)
 		{
 			Gold = Math::Max(0, Gold - empire_tuning::ThresholdGold);
 			Food = Food + empire_tuning::YieldFood;
@@ -479,80 +509,82 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 			return;
 		}
 
-		// Builds — each has its own cost + flag + visual slot.
-		if (S == "Ck_Empire_Action_BuildHouse_C")
+		// Buildings — each has its cost + slot. House uniquely bumps pop cap.
+		if (A == UCk_Empire_Action_BuildHouse)
 			{ SpendAndFlag(empire_tags::HasHouse, empire_tuning::CostHouseWood, 0, 0, 0); PopulationCap = PopulationCap + empire_tuning::PopPerHouse; ProjectGameplayFlags(); SpawnBuildingShape(0, FLinearColor(0.92f, 0.85f, 0.62f, 0.7f)); return; }
-		if (S == "Ck_Empire_Action_BuildLumberCamp_C")
+		if (A == UCk_Empire_Action_BuildLumberCamp)
 			{ SpendAndFlag(empire_tags::HasLumberCamp, empire_tuning::CostLumberCampWood, 0, 0, 0); SpawnBuildingNear(empire_layout::Forest(), FLinearColor(0.30f, 0.48f, 0.20f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildMill_C")
+		if (A == UCk_Empire_Action_BuildMill)
 			{ SpendAndFlag(empire_tags::HasMill, empire_tuning::CostMillWood, 0, 0, 0); SpawnBuildingShape(6, FLinearColor(0.85f, 0.75f, 0.50f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildMiningCamp_C")
+		if (A == UCk_Empire_Action_BuildMiningCamp)
 			{ SpendAndFlag(empire_tags::HasMiningCamp, empire_tuning::CostMiningCampWood, 0, 0, 0); SpawnBuildingNear(empire_layout::GoldMine(), FLinearColor(0.70f, 0.55f, 0.18f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildFarm_C")
+		if (A == UCk_Empire_Action_BuildFarm)
 			{ SpendAndFlag(empire_tags::HasFarm, empire_tuning::CostFarmWood, 0, 0, 0); SpawnBuildingNear(empire_layout::FarmField(), FLinearColor(0.88f, 0.62f, 0.32f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildDock_C")
+		if (A == UCk_Empire_Action_BuildDock)
 			{ SpendAndFlag(empire_tags::HasDock, empire_tuning::CostDockWood, 0, 0, 0); SpawnBuildingShape(0, FLinearColor(0.45f, 0.70f, 0.85f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildMarket_C")
+		if (A == UCk_Empire_Action_BuildMarket)
 			{ SpendAndFlag(empire_tags::HasMarket, empire_tuning::CostMarketWood, 0, 0, 0); SpawnBuildingShape(5, FLinearColor(0.94f, 0.74f, 0.22f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildBarracks_C")
+		if (A == UCk_Empire_Action_BuildBarracks)
 			{ SpendAndFlag(empire_tags::HasBarracks, empire_tuning::CostBarracksWood, 0, 0, 0); SpawnBuildingShape(1, FLinearColor(0.75f, 0.25f, 0.25f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildArchery_C")
+		if (A == UCk_Empire_Action_BuildArchery)
 			{ SpendAndFlag(empire_tags::HasArchery, empire_tuning::CostArcheryWood, 0, 0, 0); SpawnBuildingShape(2, FLinearColor(0.65f, 0.35f, 0.18f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildStable_C")
+		if (A == UCk_Empire_Action_BuildStable)
 			{ SpendAndFlag(empire_tags::HasStable, empire_tuning::CostStableWood, 0, 0, 0); SpawnBuildingShape(3, FLinearColor(0.55f, 0.35f, 0.20f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildBlacksmith_C")
+		if (A == UCk_Empire_Action_BuildBlacksmith)
 			{ SpendAndFlag(empire_tags::HasBlacksmith, empire_tuning::CostBlacksmithWood, 0, 0, 0); SpawnBuildingShape(4, FLinearColor(0.40f, 0.40f, 0.44f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildMonastery_C")
+		if (A == UCk_Empire_Action_BuildMonastery)
 			{ SpendAndFlag(empire_tags::HasMonastery, empire_tuning::CostMonasteryWood, 0, 0, 0); SpawnBuildingShape(7, FLinearColor(0.92f, 0.92f, 0.98f, 0.8f)); return; }
-		if (S == "Ck_Empire_Action_BuildUniversity_C")
+		if (A == UCk_Empire_Action_BuildUniversity)
 			{ SpendAndFlag(empire_tags::HasUniversity, empire_tuning::CostUniversityWood, 0, 0, empire_tuning::CostUniversityStone); SpawnBuildingShape(7, FLinearColor(0.88f, 0.82f, 0.65f, 0.85f)); return; }
-		if (S == "Ck_Empire_Action_BuildSiegeWorkshop_C")
+		if (A == UCk_Empire_Action_BuildSiegeWorkshop)
 			{ SpendAndFlag(empire_tags::HasSiegeWorkshop, empire_tuning::CostSiegeWorkshopWood, 0, 0, 0); SpawnBuildingShape(7, FLinearColor(0.55f, 0.45f, 0.25f, 0.85f)); return; }
-		if (S == "Ck_Empire_Action_BuildCastle_C")
+		if (A == UCk_Empire_Action_BuildCastle)
 			{ SpendAndFlag(empire_tags::HasCastle, 0, 0, 0, empire_tuning::CostCastleStone); SpawnBuildingShape(7, FLinearColor(0.72f, 0.75f, 0.80f, 0.9f)); return; }
-		if (S == "Ck_Empire_Action_BuildWonder_C")
+		if (A == UCk_Empire_Action_BuildWonder)
 			{ SpendAndFlag(empire_tags::HasWonder, empire_tuning::CostWonderWood, 0, empire_tuning::CostWonderGold, empire_tuning::CostWonderStone); SpawnWonderShape(); return; }
 
-		// Age advances — spend food (+ gold on Castle / Imperial), flip flag.
-		if (S == "Ck_Empire_Action_AdvanceToFeudalAge_C")
+		// Age advances
+		if (A == UCk_Empire_Action_AdvanceToFeudalAge)
 			{ SpendAndFlag(empire_tags::IsInFeudalAge, 0, empire_tuning::CostAdvanceFeudalFood, 0, 0); return; }
-		if (S == "Ck_Empire_Action_AdvanceToCastleAge_C")
+		if (A == UCk_Empire_Action_AdvanceToCastleAge)
 			{ SpendAndFlag(empire_tags::IsInCastleAge, 0, empire_tuning::CostAdvanceCastleFood, empire_tuning::CostAdvanceCastleGold, 0); return; }
-		if (S == "Ck_Empire_Action_AdvanceToImperialAge_C")
+		if (A == UCk_Empire_Action_AdvanceToImperialAge)
 			{ SpendAndFlag(empire_tags::IsInImperialAge, 0, empire_tuning::CostAdvanceImperialFood, empire_tuning::CostAdvanceImperialGold, 0); return; }
 
-		// Research — all uniform cost (food + gold, flip flag)
+		// Research — every research entry has the same cost pattern (food + gold)
+		// and a one-to-one mapping to a HasResearchedX flag.
 		auto ResearchFlag = FName();
-		if      (S == "Ck_Empire_Action_ResearchLoom_C")             { ResearchFlag = empire_tags::HasResearchedLoom; }
-		else if (S == "Ck_Empire_Action_ResearchWheelbarrow_C")      { ResearchFlag = empire_tags::HasResearchedWheelbarrow; }
-		else if (S == "Ck_Empire_Action_ResearchHandCart_C")         { ResearchFlag = empire_tags::HasResearchedHandCart; }
-		else if (S == "Ck_Empire_Action_ResearchGoldMining_C")       { ResearchFlag = empire_tags::HasResearchedGoldMining; }
-		else if (S == "Ck_Empire_Action_ResearchStoneMining_C")      { ResearchFlag = empire_tags::HasResearchedStoneMining; }
-		else if (S == "Ck_Empire_Action_ResearchCrossbow_C")         { ResearchFlag = empire_tags::HasResearchedCrossbow; }
-		else if (S == "Ck_Empire_Action_ResearchFletching_C")        { ResearchFlag = empire_tags::HasResearchedFletching; }
-		else if (S == "Ck_Empire_Action_ResearchHusbandry_C")        { ResearchFlag = empire_tags::HasResearchedHusbandry; }
-		else if (S == "Ck_Empire_Action_ResearchBloodlines_C")       { ResearchFlag = empire_tags::HasResearchedBloodlines; }
-		else if (S == "Ck_Empire_Action_ResearchEliteSkirmisher_C")  { ResearchFlag = empire_tags::HasResearchedEliteSkirmisher; }
-		else if (S == "Ck_Empire_Action_ResearchChemistry_C")        { ResearchFlag = empire_tags::HasResearchedChemistry; }
-		else if (S == "Ck_Empire_Action_ResearchBallistics_C")       { ResearchFlag = empire_tags::HasResearchedBallistics; }
+		if      (A == UCk_Empire_Action_ResearchLoom)             { ResearchFlag = empire_tags::HasResearchedLoom; }
+		else if (A == UCk_Empire_Action_ResearchWheelbarrow)      { ResearchFlag = empire_tags::HasResearchedWheelbarrow; }
+		else if (A == UCk_Empire_Action_ResearchHandCart)         { ResearchFlag = empire_tags::HasResearchedHandCart; }
+		else if (A == UCk_Empire_Action_ResearchGoldMining)       { ResearchFlag = empire_tags::HasResearchedGoldMining; }
+		else if (A == UCk_Empire_Action_ResearchStoneMining)      { ResearchFlag = empire_tags::HasResearchedStoneMining; }
+		else if (A == UCk_Empire_Action_ResearchCrossbow)         { ResearchFlag = empire_tags::HasResearchedCrossbow; }
+		else if (A == UCk_Empire_Action_ResearchFletching)        { ResearchFlag = empire_tags::HasResearchedFletching; }
+		else if (A == UCk_Empire_Action_ResearchHusbandry)        { ResearchFlag = empire_tags::HasResearchedHusbandry; }
+		else if (A == UCk_Empire_Action_ResearchBloodlines)       { ResearchFlag = empire_tags::HasResearchedBloodlines; }
+		else if (A == UCk_Empire_Action_ResearchEliteSkirmisher)  { ResearchFlag = empire_tags::HasResearchedEliteSkirmisher; }
+		else if (A == UCk_Empire_Action_ResearchChemistry)        { ResearchFlag = empire_tags::HasResearchedChemistry; }
+		else if (A == UCk_Empire_Action_ResearchBallistics)       { ResearchFlag = empire_tags::HasResearchedBallistics; }
 		if (ResearchFlag.IsValid())
 		{
 			SpendAndFlag(ResearchFlag, 0, empire_tuning::CostResearchFood, empire_tuning::CostResearchGold, 0);
 			return;
 		}
 
-		// Unit training — flag effect is on HasArmyXxx (already set by planner
-		// via effect); we just spend the numeric cost.
-		if (S == "Ck_Empire_Action_TrainVillager_C")
+		// Villager training — spend food, bump the numeric count.
+		if (A == UCk_Empire_Action_TrainVillager)
 		{
 			Food = Math::Max(0, Food - empire_tuning::CostTrainVillagerFood);
 			Villagers = Villagers + 1;
 			ProjectGameplayFlags();
 			return;
 		}
-		if (S.Contains("Train"))
+
+		// Any unit training (non-villager) — spend food + gold. HasArmyXxx
+		// flags are already set by the planner's effect side.
+		if (IsUnitTrain(A))
 		{
-			// Any non-villager unit: spend food + gold
 			Food = Math::Max(0, Food - empire_tuning::CostTrainUnitFood);
 			Gold = Math::Max(0, Gold - empire_tuning::CostTrainUnitGold);
 			ProjectGameplayFlags();
@@ -623,10 +655,11 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 
 	private void ResetWorld()
 	{
-		// Note: we don't destroy building shape entities on reset because PMG
-		// typesafe handles don't trivially cast to FCk_Handle for
-		// Request_DestroyEntity in AS. The cycler will overdraw — fine for
-		// a demo. A followup can add a PMG shape teardown utility.
+		// Destroy transient building shapes. Static location markers persist.
+		for (auto Shape : BuildingShapes)
+		{
+			if (ck::IsValid(Shape)) { utils_entity_lifetime::Request_DestroyEntity(Shape); }
+		}
 		BuildingShapes.Reset();
 
 		CurrentPlan.Reset();
