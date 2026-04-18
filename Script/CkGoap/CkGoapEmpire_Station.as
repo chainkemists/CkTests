@@ -61,6 +61,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 	float32 PhaseDuration = 0.0f;
 	float32 PhaseElapsed  = 0.0f;
 	float32 RetryPlanCountdown = 0.0f;
+	float32 PlanningStuckSeconds = 0.0f;
 	TSubclassOf<UCk_GoapAction_EntityScript> PhaseActionClass;
 
 	// ------------------------------------------------------------------------
@@ -311,9 +312,11 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		CurrentPlan.Reset();
 		CurrentStep = 0;
 		Phase = ECk_GoapEmpire_Phase::Idle;
+		PlanningStuckSeconds = 0.0f;
 		GoapEntity.Request_Plan();
 		PlansRequested++;
 		LastStatus = "Planning";
+		ck::Trace(f"[Empire] RequestNextPlan #{PlansRequested}");
 	}
 
 	UFUNCTION() private void OnPlanComplete(FCk_Handle_Goap InHandle, FCk_Goap_Payload_OnPlanComplete InPayload)
@@ -322,6 +325,8 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		CurrentPlanCost = InPayload.Get_TotalCost();
 		CurrentStep = 0;
 		PlansCompleted++;
+		PlanningStuckSeconds = 0.0f;
+		ck::Trace(f"[Empire] OnPlanComplete: {CurrentPlan.Num()} steps, cost {CurrentPlanCost}");
 
 		if (CurrentPlan.Num() == 0)
 		{
@@ -340,11 +345,9 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		PlansFailed++;
 		LastStatus = "Plan FAILED — retrying in 1s";
 		Phase = ECk_GoapEmpire_Phase::Idle;
-		// Schedule a retry 1s later (gives ECS time to reconcile pending state
-		// and avoids tight-looping a persistent failure while still letting
-		// transient ones recover). The RetryPlanCountdown tick in StepTick
-		// handles the timer.
+		PlanningStuckSeconds = 0.0f;
 		RetryPlanCountdown = 1.0f;
+		ck::Trace(f"[Empire] OnPlanFailed #{PlansFailed}");
 	}
 
 	// ------------------------------------------------------------------------
@@ -408,6 +411,27 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 				RetryPlanCountdown = 0.0f;
 				RequestNextPlan();
 			}
+		}
+
+		// Watchdog — if the planner sits in Planning status for too long
+		// without resolving to Complete/Failed (shouldn't happen, but can if
+		// a signal fails to fire or the processor chain stalls), force-cancel
+		// and re-request so the sim doesn't silently hang.
+		auto PlanStatus = utils_goap::Get_PlanStatus(GoapEntity);
+		if (PlanStatus == ECk_GoapPlanStatus::Planning)
+		{
+			PlanningStuckSeconds = PlanningStuckSeconds + Dt;
+			if (PlanningStuckSeconds > 5.0f)
+			{
+				ck::Trace(f"[Empire] Planning stuck for {PlanningStuckSeconds}s — force-cancel + retry");
+				PlanningStuckSeconds = 0.0f;
+				utils_goap::Request_CancelPlan(GoapEntity);
+				RetryPlanCountdown = 0.5f;
+			}
+		}
+		else
+		{
+			PlanningStuckSeconds = 0.0f;
 		}
 
 		if (Phase == ECk_GoapEmpire_Phase::Idle) { return; }
