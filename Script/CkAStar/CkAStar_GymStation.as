@@ -78,7 +78,7 @@ class UCk_EntityScript_AStarGym_Station : UCk_EntityScript_UE
 	int64 BudgetMicroseconds = 0;
 
 	UPROPERTY(ExposeOnSpawn)
-	float CostThreshold = 0.0f;
+	float32 CostThreshold = 0.0f;
 
 	UPROPERTY(ExposeOnSpawn)
 	TArray<FIntPoint> BlockedCells;
@@ -110,7 +110,7 @@ class UCk_EntityScript_AStarGym_Station : UCk_EntityScript_UE
 
 		if (CostThreshold > 0.0f)
 		{
-			utils_a_star_test::Set_CostThreshold(SearchEntity, float(CostThreshold));
+			utils_a_star_test::Set_CostThreshold(SearchEntity, CostThreshold);
 		}
 
 		for (auto Cell : BlockedCells)
