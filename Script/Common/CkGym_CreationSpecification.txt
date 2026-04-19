@@ -516,6 +516,21 @@ This allows gyms to:
 
 Note: The FCkGym_Station_TitleAndDescription fragment is automatically handled by
 the station display system and updates are reflected immediately on the BP_DemoDisplay.
+
+LINE WRAPPING: The BP_DemoDisplay widget does not auto-wrap text. Any line longer
+than roughly 55-60 characters will trail off the right edge of the station and
+become unreadable. Use explicit '\n' line breaks in your description strings to
+keep each line within that budget. This applies to AutoConfig.Description, any
+f-string interpolation going into Fragment.Description, and any other text you
+push to the display. Example:
+
+    AutoConfig.Description =
+        "First line, under ~55 chars.\n" +
+        "Second line continues the thought.\n" +
+        "Third line wraps up.";
+
+If you find yourself needing many lines, consider trimming wording instead —
+most existing gyms use 1-3 short lines total.
 */
 
 //============================================================================
@@ -653,7 +668,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 //
 // CONFIGURATION (declarative, in DoConstruct after Setup):
 //     AutoConfig.TotalSteps = 7;
-//     AutoConfig.Description = "What this station tests.";
+//     AutoConfig.Description = "What this station tests.";  // Use \n for line breaks (~55 chars/line — see section 16).
 //     AutoConfig.GlobalAutoCommand = "Ck_GymMyFeature_Auto [0/1]";
 //     AutoConfig.PerStationAutoCommand = "Ck_GymMyFeature_AutoUnbounded";
 //     AutoConfig.Steps.Add(FCkGym_AutoStep("Add 3 potions", 0, 0));
