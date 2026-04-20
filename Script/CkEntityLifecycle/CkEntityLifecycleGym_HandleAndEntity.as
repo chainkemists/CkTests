@@ -3,7 +3,7 @@
 // Tests: utils_handle, utils_entity
 //============================================================================
 
-class UCk_EntityScript_EntityLifecycleGym_HandleAndEntity : UCk_EntityScript_UE
+class UCk_EntityScript_EntityLifecycleGym_HandleAndEntity : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

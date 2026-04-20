@@ -4,7 +4,7 @@
 //        Request_Consume, OnDepleted signal
 //============================================================================
 
-class UCk_EntityScript_TimerGym_Countdown : UCk_EntityScript_UE
+class UCk_EntityScript_TimerGym_Countdown : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

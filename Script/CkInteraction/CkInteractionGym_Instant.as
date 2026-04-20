@@ -4,7 +4,7 @@
 // INTERACTION GYM - INSTANT INTERACTION
 //============================================================================
 
-class UCk_EntityScript_InteractionGym_Instant : UCk_EntityScript_UE
+class UCk_EntityScript_InteractionGym_Instant : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

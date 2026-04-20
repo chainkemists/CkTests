@@ -3,7 +3,7 @@
 // Tests: utils_entity_tag
 //============================================================================
 
-class UCk_EntityScript_EntityLifecycleGym_TagSystem : UCk_EntityScript_UE
+class UCk_EntityScript_EntityLifecycleGym_TagSystem : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

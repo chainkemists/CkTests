@@ -38,13 +38,13 @@ class UCk_SmTest_Condition_PolledTimer : UCk_SmCondition_Polled
     float64 StartTime = 0.0;
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
     {
         StartTime = System::GetGameTimeInSeconds();
     }
 
     UFUNCTION(BlueprintOverride)
-    bool DoEvaluate(FCk_Handle InHandle, FCk_Time InDeltaT) const
+    bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
         return System::GetGameTimeInSeconds() - StartTime >= DurationSeconds;
     }
@@ -60,7 +60,7 @@ class UCk_SmTest_Condition_ShortDelay : UCk_SmCondition_EventDriven
     float32 DelaySeconds = 1.0f;
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
     {
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(DelaySeconds));
         TimerParams
@@ -102,7 +102,7 @@ class UCk_SmTest_Condition_LongDelay : UCk_SmCondition_EventDriven
     float32 DelaySeconds = 4.0f;
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
     {
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(DelaySeconds));
         TimerParams
@@ -141,7 +141,7 @@ UCLASS()
 class UCk_SmTest_Condition_AlwaysTrue : UCk_SmCondition_Polled
 {
     UFUNCTION(BlueprintOverride)
-    bool DoEvaluate(FCk_Handle InHandle, FCk_Time InDeltaT) const
+    bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
         return true;
     }
@@ -164,13 +164,13 @@ class UCk_SmTest_Task_TimedWork : UCk_SmTask_EntityScript
     float32 ElapsedTime = 0.0f;
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle)
     {
         ElapsedTime = 0.0f;
     }
 
     UFUNCTION(BlueprintOverride)
-    ECk_SmTaskResult DoTick(FCk_Handle InHandle, FCk_Time InDeltaT)
+    ECk_SmTaskResult DoTick(FCk_Handle_SmTask InHandle, FCk_Time InDeltaT)
     {
         ElapsedTime += float32(InDeltaT.Get_Seconds());
 
@@ -183,7 +183,7 @@ class UCk_SmTest_Task_TimedWork : UCk_SmTask_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEndPlay(FCk_Handle InHandle)
+    void DoExitTask(FCk_Handle_SmTask InHandle)
     {
     }
 };
@@ -197,12 +197,12 @@ class UCk_SmTest_Task_LogOnly : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle)
     {
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEndPlay(FCk_Handle InHandle)
+    void DoExitTask(FCk_Handle_SmTask InHandle)
     {
     }
 };
@@ -231,13 +231,13 @@ class UCk_SmTest_Complex_State_Idle : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle)
     {
         ck::Trace("Complex SM: Entered IDLE", n"SmTest", 3.0f, FLinearColor::Blue);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEndPlay(FCk_Handle InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle)
     {
     }
 };
@@ -268,13 +268,13 @@ class UCk_SmTest_Complex_State_Patrol : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle)
     {
         ck::Trace("Complex SM: Entered PATROL", n"SmTest", 3.0f, FLinearColor::Green);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEndPlay(FCk_Handle InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle)
     {
     }
 };
@@ -301,13 +301,13 @@ class UCk_SmTest_Complex_State_Chase : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle)
     {
         ck::Trace("Complex SM: Entered CHASE", n"SmTest", 3.0f, FLinearColor(1.0f, 0.5f, 0.0f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEndPlay(FCk_Handle InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle)
     {
     }
 };
@@ -330,13 +330,13 @@ class UCk_SmTest_Complex_State_Attack : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle)
     {
         ck::Trace("Complex SM: Entered ATTACK", n"SmTest", 3.0f, FLinearColor::Red);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEndPlay(FCk_Handle InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle)
     {
     }
 };
@@ -358,13 +358,13 @@ class UCk_SmTest_Complex_State_Search : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle)
     {
         ck::Trace("Complex SM: Entered SEARCH", n"SmTest", 3.0f, FLinearColor(0.5f, 0.0f, 1.0f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEndPlay(FCk_Handle InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle)
     {
     }
 };
@@ -385,13 +385,13 @@ class UCk_SmTest_Complex_State_Flee : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoBeginPlay(FCk_Handle InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle)
     {
         ck::Trace("Complex SM: Entered FLEE", n"SmTest", 3.0f, FLinearColor(1.0f, 1.0f, 0.0f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEndPlay(FCk_Handle InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle)
     {
     }
 };

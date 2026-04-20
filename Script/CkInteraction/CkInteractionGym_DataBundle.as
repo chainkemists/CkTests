@@ -4,7 +4,7 @@
 // STATION 6: RESOLVER DATA BUNDLE
 //============================================================================
 
-class UCk_EntityScript_InteractionGym_DataBundle : UCk_EntityScript_UE
+class UCk_EntityScript_InteractionGym_DataBundle : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

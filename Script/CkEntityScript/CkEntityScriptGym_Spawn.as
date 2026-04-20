@@ -24,7 +24,7 @@ struct FEntityScriptGym_SpawnParams
 // TEST ENTITY SCRIPT
 //============================================================================
 
-class UCk_EntityScript_EntityScriptGym_Spawn : UCk_EntityScript_UE
+class UCk_EntityScript_EntityScriptGym_Spawn : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -62,7 +62,7 @@ class UCk_EntityScript_EntityScriptGym_Spawn : UCk_EntityScript_UE
 // TEST ENTITY SCRIPT (REPLICATED)
 //============================================================================
 
-class UCk_EntityScript_EntityScriptGym_SpawnReplicated : UCk_EntityScript_UE
+class UCk_EntityScript_EntityScriptGym_SpawnReplicated : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::Replicates;
 

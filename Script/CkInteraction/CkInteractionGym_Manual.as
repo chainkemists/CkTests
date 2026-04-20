@@ -4,7 +4,7 @@
 // STATION 3: MANUAL INTERACTION
 //============================================================================
 
-class UCk_EntityScript_InteractionGym_Manual : UCk_EntityScript_UE
+class UCk_EntityScript_InteractionGym_Manual : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

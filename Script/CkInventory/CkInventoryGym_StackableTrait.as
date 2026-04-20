@@ -4,7 +4,7 @@
 // INVENTORY GYM - STACKABLE TRAIT ENTITY SCRIPT
 //============================================================================
 
-class UCk_EntityScript_InvGym_StackableTrait : UCk_EntityScript_UE
+class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

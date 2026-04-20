@@ -3,7 +3,7 @@
 // Tests: utils_deferred_entity
 //============================================================================
 
-class UCk_EntityScript_EntityLifecycleGym_DeferredSetup : UCk_EntityScript_UE
+class UCk_EntityScript_EntityLifecycleGym_DeferredSetup : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
