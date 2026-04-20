@@ -155,14 +155,11 @@ class UCk_EntityScript_ProbeGym_DebugStation : UCk_EntityScript_UE
     private void OnResetMsg(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
-        // Force-exit everything the probe currently tracks so counters drain.
-        auto Snapshot = utils_probe::Get_CurrentOverlaps(ProbeHandle).Array();
-        for (int32 i = 0; i < Snapshot.Num(); ++i)
-        {
-            auto Other = Snapshot[i].Get_OtherEntity();
-            utils_probe::Request_EndOverlap(ProbeHandle,
-                FCk_Request_Probe_EndOverlap(Other));
-        }
+        // The auto cycle only ever force-enters `self`, so force-exiting self
+        // drains whatever state the cycle left behind. (TSet iteration isn't
+        // exposed to AS, so we can't snapshot Get_CurrentOverlaps here.)
+        utils_probe::Request_EndOverlap(ProbeHandle,
+            FCk_Request_Probe_EndOverlap(InHandle));
         EnterSignalCount = 0;
         ExitSignalCount = 0;
         LastEventLine = "(reset)";
@@ -225,23 +222,8 @@ class UCk_EntityScript_ProbeGym_DebugStation : UCk_EntityScript_UE
 
         DisplayText = DisplayText + "===== Probe State =====\n";
 
-        auto Overlaps = utils_probe::Get_CurrentOverlaps(ProbeHandle).Array();
-        auto Count = Overlaps.Num();
-
+        auto Count = utils_probe::Get_CurrentOverlaps(ProbeHandle).Num();
         DisplayText = f"{DisplayText}Current overlaps: {Count}\n";
-
-        auto DisplayLimit = 5;
-        auto ShowCount = Count < DisplayLimit ? Count : DisplayLimit;
-        for (int32 i = 0; i < ShowCount; ++i)
-        {
-            auto Other = Overlaps[i].Get_OtherEntity();
-            DisplayText = f"{DisplayText}  [{i}] {Other.ToString()}\n";
-        }
-        if (Count > DisplayLimit)
-        {
-            auto Remaining = Count - DisplayLimit;
-            DisplayText = f"{DisplayText}  ... +{Remaining} more\n";
-        }
 
         DisplayText = DisplayText + "\n";
         DisplayText = f"{DisplayText}Signals: enter={EnterSignalCount} exit={ExitSignalCount}\n";
