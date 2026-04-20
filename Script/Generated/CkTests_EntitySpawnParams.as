@@ -1338,6 +1338,31 @@ namespace UCk_EntityScript_GoapEmpire_Station
 }
 
 USTRUCT()
+struct FCk_EntityScript_GoapGym_AutoReplan_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_AutoReplan_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_AutoReplan
+{
+    FCk_EntityScript_GoapGym_AutoReplan_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_AutoReplan_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_AutoReplan_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_AutoReplan_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_GoapGym_CircularDep_SpawnParams
 {
     UPROPERTY()
