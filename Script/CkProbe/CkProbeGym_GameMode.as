@@ -59,6 +59,19 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
 
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Probe.StationaryHierarchy");
+            Station.Title = FText::FromString("PROBE STATIC HIERARCHY");
+            Station.Height = gym_auto::EstimateStationHeight(1, 1, 24);
+            auto StaticDescription = TArray<FText>();
+            StaticDescription.Add(FText::FromString("Same Z45->X30 chain but stationary."));
+            StaticDescription.Add(FText::FromString("Detector at expected probe world pos."));
+            StaticDescription.Add(FText::FromString("Fires at setup if composition works."));
+            Station.Description = StaticDescription;
+            Stations.Add(Station);
+        }
+
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Probe.NestedSceneNode");
             Station.Title = FText::FromString("PROBE NESTED SCENE NODES");
             Station.Height = gym_auto::EstimateStationHeight(1, 1, 24);
@@ -79,7 +92,19 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_StartDebugStation();
         Request_StartSinglePhysicalStation();
         Request_StartPhysicalStation();
+        Request_StartStationaryHierarchyStation();
         Request_StartNestedSceneNodeStation();
+    }
+
+    void Request_StartStationaryHierarchyStation()
+    {
+        auto StationTransform = Get_StationTransform("Gym.Probe.StationaryHierarchy");
+        auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
+
+        utils_entity_script::Request_SpawnEntity(
+            Get_StationHandle("Gym.Probe.StationaryHierarchy"),
+            UCk_EntityScript_ProbeGym_StationaryHierarchyStation,
+            FInstancedStruct::Make(SpawnParams));
     }
 
     void Request_StartSinglePhysicalStation()
