@@ -33,8 +33,21 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
 
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Probe.Physical.Single");
+            Station.Title = FText::FromString("PROBE PHYSICAL (SINGLE)");
+            Station.Height = gym_auto::EstimateStationHeight(1, 1, 14);
+            auto SingleDescription = TArray<FText>();
+            SingleDescription.Add(FText::FromString("Single ball tweens through the detector."));
+            SingleDescription.Add(FText::FromString("Simplest case; yellow = Jolt body desync."));
+            SingleDescription.Add(FText::FromString("Walk pawn through too."));
+            Station.Description = SingleDescription;
+            Stations.Add(Station);
+        }
+
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Probe.Physical");
-            Station.Title = FText::FromString("PROBE PHYSICAL");
+            Station.Title = FText::FromString("PROBE PHYSICAL (MULTI)");
             Station.Height = gym_auto::EstimateStationHeight(1, 1, 14);
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Multi-ball tween demo. Yellow ball = Jolt body desync vs AABB."));
@@ -48,7 +61,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Probe.NestedSceneNode");
             Station.Title = FText::FromString("PROBE NESTED SCENE NODES");
-            Station.Height = gym_auto::EstimateStationHeight(1, 1, 14);
+            Station.Height = gym_auto::EstimateStationHeight(1, 1, 24);
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Kinematic probe at end of Z45->X30 scene-node chain."));
             Description.Add(FText::FromString("Static detector fires when chained probe crosses it."));
@@ -64,8 +77,20 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartGym() override
     {
         Request_StartDebugStation();
+        Request_StartSinglePhysicalStation();
         Request_StartPhysicalStation();
         Request_StartNestedSceneNodeStation();
+    }
+
+    void Request_StartSinglePhysicalStation()
+    {
+        auto StationTransform = Get_StationTransform("Gym.Probe.Physical.Single");
+        auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
+
+        utils_entity_script::Request_SpawnEntity(
+            Get_StationHandle("Gym.Probe.Physical.Single"),
+            UCk_EntityScript_ProbeGym_PhysicalStation_Single,
+            FInstancedStruct::Make(SpawnParams));
     }
 
     void Request_StartDebugStation()

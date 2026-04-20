@@ -270,42 +270,58 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_EntityScript_UE
     void DrawVisuals()
     {
         auto RootPos = utils_transform::Get_EntityCurrentLocation(RootEntity);
-        auto Expected = ComputeExpectedChainedLocation(RootPos);
-        auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
-
-        // Root cube (orange).
-        utils_pmg_basic_shapes::DrawFilledBox(
-            RootPos, FVector(25.0f, 25.0f, 25.0f),
-            FLinearColor(1.0f, 0.6f, 0.2f, 1.0f),
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
-
-        // NodeA cube (cyan) — at composed world position of NodeA.
         auto NodeA_Pos = utils_transform::Get_EntityCurrentLocation(NodeA.As_Transform());
+        auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
+        auto Expected = ComputeExpectedChainedLocation(RootPos);
+
+        // Root (ORANGE cube, biggest) — the tweened ancestor. Its world
+        // location changes each frame; everything below hangs off it.
         utils_pmg_basic_shapes::DrawFilledBox(
-            NodeA_Pos, FVector(15.0f, 15.0f, 15.0f),
-            FLinearColor(0.2f, 0.8f, 1.0f, 1.0f),
+            RootPos, FVector(30.0f, 30.0f, 30.0f),
+            FLinearColor(1.0f, 0.5f, 0.0f, 1.0f),
             true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
 
-        // Expected chained-probe location (white wire-ish — use filled but
-        // slightly smaller than the actual so both are visible if they
-        // overlap perfectly).
+        // NodeA (CYAN cube, medium) — child of Root. Local +150 X, yaw 45°.
+        utils_pmg_basic_shapes::DrawFilledBox(
+            NodeA_Pos, FVector(20.0f, 20.0f, 20.0f),
+            FLinearColor(0.2f, 0.9f, 1.0f, 1.0f),
+            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+
+        // NodeB (PURPLE cube, small) — child of NodeA. Local +100 Y in A's
+        // rotated frame, roll 30°. The chained probe is composed on NodeB's
+        // transform, so NodeB position == Actual probe body position.
+        utils_pmg_basic_shapes::DrawFilledBox(
+            Actual, FVector(14.0f, 14.0f, 14.0f),
+            FLinearColor(0.7f, 0.3f, 1.0f, 1.0f),
+            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+
+        // Expected probe position (WHITE translucent small sphere) —
+        // AS-computed ground truth via FTransform composition. If the ECS
+        // transform composition works, this overlaps the Actual sphere.
         utils_pmg_basic_shapes::DrawFilledSphere(
             Expected, ProbeRadius * 0.6f, 16, 16,
             FLinearColor(1.0f, 1.0f, 1.0f, 0.5f),
             true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
 
-        // Actual chained-probe location (magenta) — desync if diverges from
-        // Expected.
+        // Actual probe body position — MAGENTA when aligned with Expected,
+        // YELLOW on desync (Drift > 5 units).
         auto Drift = (Expected - Actual).Size();
         LastDriftMagnitude = float32(Drift);
         auto ActualColor = Drift > 5.0f
-            ? FLinearColor(1.0f, 1.0f, 0.0f, 1.0f)      // yellow on desync
-            : FLinearColor(1.0f, 0.2f, 1.0f, 1.0f);     // magenta when OK
+            ? FLinearColor(1.0f, 1.0f, 0.0f, 1.0f)
+            : FLinearColor(1.0f, 0.2f, 1.0f, 0.8f);
         utils_pmg_basic_shapes::DrawFilledSphere(
             Actual, ProbeRadius, 16, 16, ActualColor,
             true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
 
-        // Detector box — red when overlapping, green when empty.
+        // Breadcrumb cubes along Root→NodeA and NodeA→NodeB so the chain is
+        // visible as a dashed line (PMG exposes no DrawLine helper in AS).
+        DrawChainBreadcrumbs(RootPos, NodeA_Pos, FLinearColor(1.0f, 0.7f, 0.2f, 0.6f));
+        DrawChainBreadcrumbs(NodeA_Pos, Actual,   FLinearColor(0.5f, 0.6f, 1.0f, 0.6f));
+
+        // Detector (GREEN empty / RED occupied). NOT part of the chain — it's
+        // a separate static probe at a fixed world position; the chained
+        // probe sweeps through it twice per yoyo period.
         auto DetectorOccupied = utils_probe::Get_CurrentOverlaps(DetectorProbe).Num() > 0;
         auto DetectorColor = DetectorOccupied
             ? FLinearColor(1.0f, 0.2f, 0.2f, 0.25f)
@@ -313,6 +329,21 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_EntityScript_UE
         utils_pmg_basic_shapes::DrawFilledBox(
             DetectorWorldLocation, DetectorHalfExtents, DetectorColor,
             true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+    }
+
+    // Paints tiny cubes along the segment from InStart to InEnd so the
+    // parent-to-child relationship is visible as a dashed line.
+    void DrawChainBreadcrumbs(FVector InStart, FVector InEnd, FLinearColor InColor)
+    {
+        auto Steps = 4;
+        for (int32 i = 1; i < Steps; ++i)
+        {
+            auto T = float(i) / float(Steps);
+            auto Pos = InStart + (InEnd - InStart) * T;
+            utils_pmg_basic_shapes::DrawFilledBox(
+                Pos, FVector(4.0f, 4.0f, 4.0f), InColor,
+                true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+        }
     }
 
     //------------------------------------------------------------------------
@@ -326,6 +357,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_EntityScript_UE
         auto TitleText = f"PROBE NESTED ({NetworkRole})";
 
         auto RootPos = utils_transform::Get_EntityCurrentLocation(RootEntity);
+        auto NodeA_Pos = utils_transform::Get_EntityCurrentLocation(NodeA.As_Transform());
         auto Expected = ComputeExpectedChainedLocation(RootPos);
         auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
         auto Drift = (Expected - Actual).Size();
@@ -339,13 +371,25 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_EntityScript_UE
 
         auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 
+        DisplayText = DisplayText + "===== Hierarchy =====\n";
+        DisplayText = DisplayText + "Root (orange cube)\n";
+        DisplayText = DisplayText + " -> NodeA (cyan) +150 X, yaw 45\n";
+        DisplayText = DisplayText + "   -> NodeB (purple) +100 Y, roll 30\n";
+        DisplayText = DisplayText + "      -> ChainedProbe (magenta sphere)\n";
+        DisplayText = DisplayText + "Detector (green/red box, NOT in chain)\n";
+        DisplayText = DisplayText + "White sphere = AS-expected probe pos\n";
+        DisplayText = DisplayText + "\n";
+
         DisplayText = DisplayText + "===== Chain State =====\n";
-        DisplayText = f"{DisplayText}Root Y:  {RootPos.Y}\n";
+        DisplayText = f"{DisplayText}Root Y:   {RootPos.Y}\n";
+        DisplayText = f"{DisplayText}NodeA:    {NodeA_Pos.X},{NodeA_Pos.Y},{NodeA_Pos.Z}\n";
         DisplayText = f"{DisplayText}Expected: {Expected.X},{Expected.Y},{Expected.Z}\n";
         DisplayText = f"{DisplayText}Actual:   {Actual.X},{Actual.Y},{Actual.Z}\n";
         DisplayText = f"{DisplayText}Drift:    {Drift}\n";
         DisplayText = DisplayText + "\n";
         DisplayText = DisplayText + "===== Detector =====\n";
+        DisplayText = DisplayText + "(static box; fires when chained probe\n";
+        DisplayText = DisplayText + " sweeps through its volume)\n";
         DisplayText = f"{DisplayText}Hits:     {DetectorHitCount}\n";
         DisplayText = f"{DisplayText}Expected: ~{ExpectedHits}\n";
         DisplayText = f"{DisplayText}Last:     {LastDetectorEventLine}\n";

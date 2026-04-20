@@ -350,3 +350,17 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_EntityScript_UE
         Fragment.Description = FText::FromString(DisplayText);
     }
 }
+
+//============================================================================
+// PROBE GYM — PHYSICAL STATION (SINGLE-BALL VARIANT)
+//
+// Thin subclass of the multi-ball physical station with BallCount=1 so the
+// simplest case (one entity passes through the detector) is isolated from
+// the multi-entity stress scenario. Mirrors BB_TriggerGym's _Single pattern.
+//============================================================================
+
+class UCk_EntityScript_ProbeGym_PhysicalStation_Single : UCk_EntityScript_ProbeGym_PhysicalStation
+{
+    default BallCount = 1;
+}
+
