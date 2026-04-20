@@ -44,6 +44,19 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Probe.NestedSceneNode");
+            Station.Title = FText::FromString("PROBE NESTED SCENE NODES");
+            Station.Height = gym_auto::EstimateStationHeight(1, 1, 14);
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Kinematic probe at end of Z45->X30 scene-node chain."));
+            Description.Add(FText::FromString("Static detector fires when chained probe crosses it."));
+            Description.Add(FText::FromString("Detector hits should match expected count."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
         gym_auto::NormalizeStationHeights(Stations);
         return Stations;
     }
@@ -52,6 +65,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         Request_StartDebugStation();
         Request_StartPhysicalStation();
+        Request_StartNestedSceneNodeStation();
     }
 
     void Request_StartDebugStation()
@@ -73,6 +87,17 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
         utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Probe.Physical"),
             UCk_EntityScript_ProbeGym_PhysicalStation,
+            FInstancedStruct::Make(SpawnParams));
+    }
+
+    void Request_StartNestedSceneNodeStation()
+    {
+        auto StationTransform = Get_StationTransform("Gym.Probe.NestedSceneNode");
+        auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
+
+        utils_entity_script::Request_SpawnEntity(
+            Get_StationHandle("Gym.Probe.NestedSceneNode"),
+            UCk_EntityScript_ProbeGym_NestedSceneNodeStation,
             FInstancedStruct::Make(SpawnParams));
     }
 
@@ -101,6 +126,13 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
         { utils_messaging::Broadcast(E, FCk_Message_ProbeGym_Reset()); }
     }
 
+    UFUNCTION(Exec, DisplayName="Probe Gym - Nested Reset")
+    void Ck_GymProbe_NestedReset()
+    {
+        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_NestedSceneNodeStation"))
+        { utils_messaging::Broadcast(E, FCk_Message_ProbeGym_NestedReset()); }
+    }
+
     //------------------------------------------------------------------------
     // Console Commands — Auto
     //------------------------------------------------------------------------
@@ -112,6 +144,8 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_DebugStation"))
         { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_PhysicalStation"))
+        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
+        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_NestedSceneNodeStation"))
         { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
     }
 
@@ -129,6 +163,12 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
         { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(true)); }
     }
 
+    UFUNCTION(Exec, DisplayName="Probe Gym - Auto Nested")
+    void Ck_GymProbe_AutoNested()
+    {
+        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_NestedSceneNodeStation"))
+        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(true)); }
+    }
 }
 
 //============================================================================

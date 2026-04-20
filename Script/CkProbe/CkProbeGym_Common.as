@@ -41,3 +41,8 @@ USTRUCT()
 struct FCk_Message_ProbeGym_Reset
 {
 };
+
+USTRUCT()
+struct FCk_Message_ProbeGym_NestedReset
+{
+};
