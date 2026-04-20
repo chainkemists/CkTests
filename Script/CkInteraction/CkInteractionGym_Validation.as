@@ -4,7 +4,7 @@
 // STATION 4: ENABLE/DISABLE & VALIDATION
 //============================================================================
 
-class UCk_EntityScript_InteractionGym_Validation : UCk_EntityScript_UE
+class UCk_EntityScript_InteractionGym_Validation : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

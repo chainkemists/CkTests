@@ -3,7 +3,7 @@
 // Tests: ResetOnDone vs PauseOnDone vs StopOnDone side-by-side
 //============================================================================
 
-class UCk_EntityScript_TimerGym_Behaviors : UCk_EntityScript_UE
+class UCk_EntityScript_TimerGym_Behaviors : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

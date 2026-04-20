@@ -2,7 +2,7 @@
 // FLOAT ATTRIBUTE SIGNAL BINDING STATION
 //============================================================================
 
-class UCk_EntityScript_AttributeGym_FloatSignals : UCk_EntityScript_UE
+class UCk_EntityScript_AttributeGym_FloatSignals : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

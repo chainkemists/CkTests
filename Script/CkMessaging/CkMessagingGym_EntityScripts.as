@@ -24,7 +24,7 @@ struct FMessagingGymSpawnParams
 // STATION 1: BASIC BROADCAST & LISTEN
 //============================================================================
 
-class UCk_EntityScript_MessagingGym_Basic : UCk_EntityScript_UE
+class UCk_EntityScript_MessagingGym_Basic : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -99,7 +99,7 @@ class UCk_EntityScript_MessagingGym_Basic : UCk_EntityScript_UE
 // STATION 2: MULTI-LISTENER FAN-OUT
 //============================================================================
 
-class UCk_EntityScript_MessagingGym_MultiListener : UCk_EntityScript_UE
+class UCk_EntityScript_MessagingGym_MultiListener : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -186,7 +186,7 @@ class UCk_EntityScript_MessagingGym_MultiListener : UCk_EntityScript_UE
 // STATION 3: ONE-SHOT LISTENER
 //============================================================================
 
-class UCk_EntityScript_MessagingGym_OneShot : UCk_EntityScript_UE
+class UCk_EntityScript_MessagingGym_OneShot : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -271,7 +271,7 @@ class UCk_EntityScript_MessagingGym_OneShot : UCk_EntityScript_UE
 // STATION 4: DYNAMIC BIND / UNBIND
 //============================================================================
 
-class UCk_EntityScript_MessagingGym_DynamicBind : UCk_EntityScript_UE
+class UCk_EntityScript_MessagingGym_DynamicBind : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -380,7 +380,7 @@ class UCk_EntityScript_MessagingGym_DynamicBind : UCk_EntityScript_UE
 // STATION 5: MULTIPLE MESSAGE TYPES
 //============================================================================
 
-class UCk_EntityScript_MessagingGym_MultiType : UCk_EntityScript_UE
+class UCk_EntityScript_MessagingGym_MultiType : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

@@ -3,7 +3,7 @@
 // Tests: utils_entity_lifetime (creation & ownership queries)
 //============================================================================
 
-class UCk_EntityScript_EntityLifecycleGym_OwnershipTree : UCk_EntityScript_UE
+class UCk_EntityScript_EntityLifecycleGym_OwnershipTree : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

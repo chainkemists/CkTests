@@ -4,7 +4,7 @@
 //        Complete, Jump, ReverseDirection, ChangeCountDirection)
 //============================================================================
 
-class UCk_EntityScript_TimerGym_Control : UCk_EntityScript_UE
+class UCk_EntityScript_TimerGym_Control : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

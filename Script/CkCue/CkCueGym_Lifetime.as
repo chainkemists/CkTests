@@ -3,7 +3,7 @@
 // Tests: AfterOneFrame, Persistent, Timed, Custom lifetime behaviors
 //============================================================================
 
-class UCk_EntityScript_CueGym_Lifetime : UCk_EntityScript_UE
+class UCk_EntityScript_CueGym_Lifetime : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

@@ -3,7 +3,7 @@
 // Tests: Cues automatically destroyed when owning entity is destroyed
 //============================================================================
 
-class UCk_EntityScript_CueGym_OwnerDestruction : UCk_EntityScript_UE
+class UCk_EntityScript_CueGym_OwnerDestruction : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -173,7 +173,7 @@ class UCk_EntityScript_CueGym_OwnerDestruction : UCk_EntityScript_UE
 // DESTRUCTION OWNER ENTITY (visible owner for OwnerDestruction station)
 //============================================================================
 
-class UCk_EntityScript_CueGym_DestructionOwner : UCk_EntityScript_UE
+class UCk_EntityScript_CueGym_DestructionOwner : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

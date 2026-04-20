@@ -4,7 +4,7 @@
 // INVENTORY GYM - DATA-ONLY BOUNDED ENTITY SCRIPT
 //============================================================================
 
-class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_EntityScript_UE
+class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

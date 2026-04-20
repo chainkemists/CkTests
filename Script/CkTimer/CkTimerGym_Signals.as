@@ -4,7 +4,7 @@
 //        OnReset, OnStop, OnJump, OnDepleted)
 //============================================================================
 
-class UCk_EntityScript_TimerGym_Signals : UCk_EntityScript_UE
+class UCk_EntityScript_TimerGym_Signals : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

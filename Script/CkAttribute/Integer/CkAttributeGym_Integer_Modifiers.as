@@ -2,7 +2,7 @@
 // INTEGER MODIFIERS ENTITY SCRIPT
 //============================================================================
 
-class UCk_EntityScript_IntegerGym_Modifiers : UCk_EntityScript_UE
+class UCk_EntityScript_IntegerGym_Modifiers : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

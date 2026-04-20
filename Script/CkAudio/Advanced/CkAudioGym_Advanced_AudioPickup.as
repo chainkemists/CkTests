@@ -1,5 +1,5 @@
 // Base Audio Pickup class
-class UCkAudioGym_Advanced_AudioPickup : UCk_EntityScript_UE
+class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

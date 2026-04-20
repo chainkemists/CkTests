@@ -3,7 +3,7 @@
 // Tests: Cues executed without a persistent owner entity
 //============================================================================
 
-class UCk_EntityScript_CueGym_Transient : UCk_EntityScript_UE
+class UCk_EntityScript_CueGym_Transient : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

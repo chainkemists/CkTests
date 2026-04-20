@@ -2,7 +2,7 @@
 // FLOAT ATTRIBUTE VALUE RETRIEVAL STATION
 //============================================================================
 
-class UCk_EntityScript_AttributeGym_FloatValues : UCk_EntityScript_UE
+class UCk_EntityScript_AttributeGym_FloatValues : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

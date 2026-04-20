@@ -7,7 +7,7 @@
 // Helper entity script - minimal target for spawning
 //----------------------------------------------------------------------------
 
-class UCk_EntityScript_EntityLifecycleGym_SpawnTarget : UCk_EntityScript_UE
+class UCk_EntityScript_EntityLifecycleGym_SpawnTarget : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -28,7 +28,7 @@ class UCk_EntityScript_EntityLifecycleGym_SpawnTarget : UCk_EntityScript_UE
 // Main station entity script
 //----------------------------------------------------------------------------
 
-class UCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast : UCk_EntityScript_UE
+class UCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

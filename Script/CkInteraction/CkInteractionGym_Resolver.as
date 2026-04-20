@@ -4,7 +4,7 @@
 // STATION 5: INTERACTION RESOLVER - SOURCE ENTITY (with resolver)
 //============================================================================
 
-class UCk_EntityScript_InteractionGym_ResolverSource : UCk_EntityScript_UE
+class UCk_EntityScript_InteractionGym_ResolverSource : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -182,7 +182,7 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_EntityScript_UE
 // STATION 5: INTERACTION RESOLVER - TARGET ENTITY
 //============================================================================
 
-class UCk_EntityScript_InteractionGym_ResolverTarget : UCk_EntityScript_UE
+class UCk_EntityScript_InteractionGym_ResolverTarget : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

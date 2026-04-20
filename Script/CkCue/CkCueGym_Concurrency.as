@@ -3,7 +3,7 @@
 // Tests: AllowMultiple vs RestartExisting concurrency policies
 //============================================================================
 
-class UCk_EntityScript_CueGym_Concurrency : UCk_EntityScript_UE
+class UCk_EntityScript_CueGym_Concurrency : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

@@ -4,7 +4,7 @@
 // STATION 2: TIMED INTERACTION - SOURCE ENTITY
 //============================================================================
 
-class UCk_EntityScript_InteractionGym_TimedSource : UCk_EntityScript_UE
+class UCk_EntityScript_InteractionGym_TimedSource : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -31,7 +31,7 @@ class UCk_EntityScript_InteractionGym_TimedSource : UCk_EntityScript_UE
 // STATION 2: TIMED INTERACTION - TARGET ENTITY
 //============================================================================
 
-class UCk_EntityScript_InteractionGym_TimedTarget : UCk_EntityScript_UE
+class UCk_EntityScript_InteractionGym_TimedTarget : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

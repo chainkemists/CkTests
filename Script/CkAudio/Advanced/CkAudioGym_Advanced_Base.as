@@ -5,7 +5,7 @@ struct FCkAudioGym_Advanced_Station_SpawnParams
     FTransform Transform; // name MUST match the ExposeOnSpawn in the EntityScript
 }
 
-class UCkAudioGym_Advanced_Base : UCk_EntityScript_UE
+class UCkAudioGym_Advanced_Base : UCk_GenericEntityScript_UE
 {
     UPROPERTY(ExposeOnSpawn)
     FTransform Transform; // this name MUST match the one in the above SpawnParams

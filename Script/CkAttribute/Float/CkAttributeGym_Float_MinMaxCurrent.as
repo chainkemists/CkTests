@@ -2,7 +2,7 @@
 // FLOAT ATTRIBUTE MIN/MAX/CURRENT COMPONENTS STATION
 //============================================================================
 
-class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_EntityScript_UE
+class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

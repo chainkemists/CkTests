@@ -2,7 +2,7 @@
 // INTEGER CLAMPING & SIGNALS ENTITY SCRIPT
 //============================================================================
 
-class UCk_EntityScript_IntegerGym_Clamping : UCk_EntityScript_UE
+class UCk_EntityScript_IntegerGym_Clamping : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

@@ -24,7 +24,7 @@
 //
 //============================================================================
 
-class UCk_EntityScript_InvGym_ShelfDesync : UCk_EntityScript_UE
+class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 
