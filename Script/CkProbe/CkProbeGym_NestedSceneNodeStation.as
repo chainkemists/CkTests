@@ -256,55 +256,67 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_EntityScript_UE
     // an identical world transform.
     //------------------------------------------------------------------------
 
-    FVector ComputeExpectedChainedLocation(FVector InRootWorldLocation)
+    FTransform ComputeExpectedNodeAWorld(FVector InRootWorldLocation)
     {
         auto RootXform = FTransform(FRotator::ZeroRotator, InRootWorldLocation, FVector(1.0f, 1.0f, 1.0f));
         auto NodeA_Local = FTransform(RotA_Local, OffsetA_Local, FVector(1.0f, 1.0f, 1.0f));
-        auto NodeB_Local = FTransform(RotB_Local, OffsetB_Local, FVector(1.0f, 1.0f, 1.0f));
+        return NodeA_Local * RootXform;
+    }
 
-        auto NodeA_World = NodeA_Local * RootXform;
-        auto NodeB_World = NodeB_Local * NodeA_World;
-        return NodeB_World.GetLocation();
+    FTransform ComputeExpectedNodeBWorld(FVector InRootWorldLocation)
+    {
+        auto NodeA_World = ComputeExpectedNodeAWorld(InRootWorldLocation);
+        auto NodeB_Local = FTransform(RotB_Local, OffsetB_Local, FVector(1.0f, 1.0f, 1.0f));
+        return NodeB_Local * NodeA_World;
+    }
+
+    FVector ComputeExpectedChainedLocation(FVector InRootWorldLocation)
+    {
+        return ComputeExpectedNodeBWorld(InRootWorldLocation).GetLocation();
     }
 
     void DrawVisuals()
     {
         auto RootPos = utils_transform::Get_EntityCurrentLocation(RootEntity);
-        auto NodeA_Pos = utils_transform::Get_EntityCurrentLocation(NodeA.As_Transform());
-        auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
-        auto Expected = ComputeExpectedChainedLocation(RootPos);
 
-        // Root (ORANGE cube, biggest) — the tweened ancestor. Its world
-        // location changes each frame; everything below hangs off it.
+        // Hierarchy cubes are drawn at AS-composed world positions so the
+        // chain follows Root regardless of whether the ECS scene-node
+        // processor propagates the tween. The "Actual" sphere below shows
+        // where the ECS thinks the probe is — if it diverges from the
+        // composed chain, that IS the bug this station exists to expose.
+        auto ExpectedNodeA = ComputeExpectedNodeAWorld(RootPos).GetLocation();
+        auto ExpectedNodeB = ComputeExpectedNodeBWorld(RootPos).GetLocation();
+        auto Expected = ExpectedNodeB;
+
+        // Actual ECS-reported position of the probe entity (NodeB). On a
+        // correctly-propagating chain this matches ExpectedNodeB exactly.
+        auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
+
+        // Root (ORANGE cube, biggest) — the tweened ancestor. Moves along
+        // +Y; everything below it should follow.
         utils_pmg_basic_shapes::DrawFilledBox(
             RootPos, FVector(30.0f, 30.0f, 30.0f),
             FLinearColor(1.0f, 0.5f, 0.0f, 1.0f),
             true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
 
-        // NodeA (CYAN cube, medium) — child of Root. Local +150 X, yaw 45°.
+        // NodeA (CYAN cube) drawn at AS-composed world. Child of Root via
+        // local +150 X, yaw 45°.
         utils_pmg_basic_shapes::DrawFilledBox(
-            NodeA_Pos, FVector(20.0f, 20.0f, 20.0f),
+            ExpectedNodeA, FVector(20.0f, 20.0f, 20.0f),
             FLinearColor(0.2f, 0.9f, 1.0f, 1.0f),
             true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
 
-        // NodeB (PURPLE cube, small) — child of NodeA. Local +100 Y in A's
-        // rotated frame, roll 30°. The chained probe is composed on NodeB's
-        // transform, so NodeB position == Actual probe body position.
+        // NodeB (PURPLE cube) drawn at AS-composed world. Child of NodeA
+        // via local +100 Y (in A's rotated frame), roll 30°. The chained
+        // probe is composed on NodeB's transform.
         utils_pmg_basic_shapes::DrawFilledBox(
-            Actual, FVector(14.0f, 14.0f, 14.0f),
+            ExpectedNodeB, FVector(14.0f, 14.0f, 14.0f),
             FLinearColor(0.7f, 0.3f, 1.0f, 1.0f),
             true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
 
-        // Expected probe position (WHITE translucent small sphere) —
-        // AS-computed ground truth via FTransform composition. If the ECS
-        // transform composition works, this overlaps the Actual sphere.
-        utils_pmg_basic_shapes::DrawFilledSphere(
-            Expected, ProbeRadius * 0.6f, 16, 16,
-            FLinearColor(1.0f, 1.0f, 1.0f, 0.5f),
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
-
-        // Actual probe body position — MAGENTA when aligned with Expected,
-        // YELLOW on desync (Drift > 5 units).
+        // Actual probe body position (what the ECS reports) —
+        //   MAGENTA when aligned with Expected
+        //   YELLOW on desync (Drift > 5 units) — this is the bug state
         auto Drift = (Expected - Actual).Size();
         LastDriftMagnitude = float32(Drift);
         auto ActualColor = Drift > 5.0f
@@ -314,14 +326,14 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_EntityScript_UE
             Actual, ProbeRadius, 16, 16, ActualColor,
             true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
 
-        // Breadcrumb cubes along Root→NodeA and NodeA→NodeB so the chain is
-        // visible as a dashed line (PMG exposes no DrawLine helper in AS).
-        DrawChainBreadcrumbs(RootPos, NodeA_Pos, FLinearColor(1.0f, 0.7f, 0.2f, 0.6f));
-        DrawChainBreadcrumbs(NodeA_Pos, Actual,   FLinearColor(0.5f, 0.6f, 1.0f, 0.6f));
+        // Breadcrumb dashes along Root→NodeA and NodeA→NodeB so the chain
+        // is visible (PMG exposes no DrawLine helper in AS).
+        DrawChainBreadcrumbs(RootPos, ExpectedNodeA, FLinearColor(1.0f, 0.7f, 0.2f, 0.6f));
+        DrawChainBreadcrumbs(ExpectedNodeA, ExpectedNodeB, FLinearColor(0.5f, 0.6f, 1.0f, 0.6f));
 
-        // Detector (GREEN empty / RED occupied). NOT part of the chain — it's
-        // a separate static probe at a fixed world position; the chained
-        // probe sweeps through it twice per yoyo period.
+        // Detector (GREEN empty / RED occupied). NOT part of the chain — a
+        // standalone static probe; the chained probe should sweep through
+        // it twice per yoyo period when the hierarchy propagates motion.
         auto DetectorOccupied = utils_probe::Get_CurrentOverlaps(DetectorProbe).Num() > 0;
         auto DetectorColor = DetectorOccupied
             ? FLinearColor(1.0f, 0.2f, 0.2f, 0.25f)
@@ -357,8 +369,11 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_EntityScript_UE
         auto TitleText = f"PROBE NESTED ({NetworkRole})";
 
         auto RootPos = utils_transform::Get_EntityCurrentLocation(RootEntity);
-        auto NodeA_Pos = utils_transform::Get_EntityCurrentLocation(NodeA.As_Transform());
+        auto ExpectedNodeA = ComputeExpectedNodeAWorld(RootPos).GetLocation();
         auto Expected = ComputeExpectedChainedLocation(RootPos);
+        // Actual = what the ECS reports for the probe entity. If the scene-
+        // node processor propagates Root's tween to descendants, this should
+        // equal Expected each frame.
         auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
         auto Drift = (Expected - Actual).Size();
 
@@ -372,20 +387,21 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_EntityScript_UE
         auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 
         DisplayText = DisplayText + "===== Hierarchy =====\n";
-        DisplayText = DisplayText + "Root (orange cube)\n";
+        DisplayText = DisplayText + "Root (orange) tweens along +Y.\n";
         DisplayText = DisplayText + " -> NodeA (cyan) +150 X, yaw 45\n";
         DisplayText = DisplayText + "   -> NodeB (purple) +100 Y, roll 30\n";
-        DisplayText = DisplayText + "      -> ChainedProbe (magenta sphere)\n";
+        DisplayText = DisplayText + "      -> Probe (magenta/yellow sphere)\n";
+        DisplayText = DisplayText + "Cubes drawn at AS-composed world pos,\n";
+        DisplayText = DisplayText + "sphere drawn at ECS-reported pos.\n";
         DisplayText = DisplayText + "Detector (green/red box, NOT in chain)\n";
-        DisplayText = DisplayText + "White sphere = AS-expected probe pos\n";
         DisplayText = DisplayText + "\n";
 
         DisplayText = DisplayText + "===== Chain State =====\n";
-        DisplayText = f"{DisplayText}Root Y:   {RootPos.Y}\n";
-        DisplayText = f"{DisplayText}NodeA:    {NodeA_Pos.X},{NodeA_Pos.Y},{NodeA_Pos.Z}\n";
-        DisplayText = f"{DisplayText}Expected: {Expected.X},{Expected.Y},{Expected.Z}\n";
-        DisplayText = f"{DisplayText}Actual:   {Actual.X},{Actual.Y},{Actual.Z}\n";
-        DisplayText = f"{DisplayText}Drift:    {Drift}\n";
+        DisplayText = f"{DisplayText}Root (live):    {RootPos.X},{RootPos.Y}\n";
+        DisplayText = f"{DisplayText}NodeA (AS):     {ExpectedNodeA.X},{ExpectedNodeA.Y}\n";
+        DisplayText = f"{DisplayText}NodeB AS-exp:   {Expected.X},{Expected.Y}\n";
+        DisplayText = f"{DisplayText}NodeB ECS-act:  {Actual.X},{Actual.Y}\n";
+        DisplayText = f"{DisplayText}Drift:          {Drift}\n";
         DisplayText = DisplayText + "\n";
         DisplayText = DisplayText + "===== Detector =====\n";
         DisplayText = DisplayText + "(static box; fires when chained probe\n";
@@ -397,13 +413,14 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_EntityScript_UE
         DisplayText = f"{DisplayText}Status:   {StatusLabel}\n";
         if (StatusLabel == "DESYNC")
         {
-            DisplayText = DisplayText + "Expected != Actual -> scene-node\n";
-            DisplayText = DisplayText + "transform composition is broken.\n";
+            DisplayText = DisplayText + "ECS probe pos != AS-expected ->\n";
+            DisplayText = DisplayText + "scene-node motion not propagating\n";
+            DisplayText = DisplayText + "through chain from tweened Root.\n";
         }
         if (ElapsedSeconds > FullYoyoSeconds && DetectorHitCount == 0)
         {
             DisplayText = DisplayText + "Zero detector hits after 1+ yoyo -\n";
-            DisplayText = DisplayText + "Jolt body likely stuck at root.\n";
+            DisplayText = DisplayText + "Jolt body stuck; overlap won't fire.\n";
         }
 
         DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, 0, AutoRunning);
