@@ -99,7 +99,9 @@ class UCk_EntityScript_PlannerT1 : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T1");
 
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, planner_test_util::T(n"Gym.PlannerTest.T1"));
 
 		GoapEntity.AddAction(UCk_GoapT1_Action_CreateTool);
@@ -224,7 +226,9 @@ class UCk_EntityScript_PlannerT2 : UCk_EntityScript_UE
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T2");
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, planner_test_util::T(n"Gym.PlannerTest.T2"));
 
 		GoapEntity.AddAction(UCk_GoapT2_Action_DoStep1);
@@ -356,7 +360,9 @@ class UCk_EntityScript_PlannerT4 : UCk_EntityScript_UE
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T4");
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, planner_test_util::T(n"Gym.PlannerTest.T4"));
 
 		GoapEntity.AddAction(UCk_GoapT4_Action_GatherWood);
@@ -477,7 +483,9 @@ class UCk_EntityScript_PlannerT5 : UCk_EntityScript_UE
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T5");
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, planner_test_util::T(n"Gym.PlannerTest.T5"));
 
 		GoapEntity.AddAction(UCk_GoapT5_Action_Gather);

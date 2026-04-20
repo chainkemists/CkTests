@@ -81,7 +81,9 @@ class UCk_EntityScript_GoapGym_Door : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Door");
 
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Door"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_FindKey);
 		GoapEntity.AddAction(UCk_GoapTest_Action_UnlockDoor);
@@ -197,7 +199,9 @@ class UCk_EntityScript_GoapGym_Tea : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Tea");
 
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Tea"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_FillKettle);
 		GoapEntity.AddAction(UCk_GoapTest_Action_BoilKettle);
@@ -322,7 +326,9 @@ class UCk_EntityScript_GoapGym_Combat : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Combat");
 
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Combat"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_PickUpWeapon);
 		GoapEntity.AddAction(UCk_GoapTest_Action_LoadAmmo);
@@ -451,7 +457,9 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Priorities");
 
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Priorities"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_Hide);
 		GoapEntity.AddAction(UCk_GoapTest_Action_Suppress);
@@ -583,7 +591,9 @@ class UCk_EntityScript_GoapGym_NoPlan : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_NoPlan");
 
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.NoPlan"));
 		// Intentionally register actions that CANNOT reach KillEnemy
 		GoapEntity.AddAction(UCk_GoapTest_Action_Scout);
@@ -672,7 +682,9 @@ class UCk_EntityScript_GoapGym_CircularDep : UCk_EntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_CircularDep");
 
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.CircularDep"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_ChargeDevice);
 		GoapEntity.AddAction(UCk_GoapTest_Action_ChargeBattery);

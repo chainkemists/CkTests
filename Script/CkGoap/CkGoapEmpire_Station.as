@@ -110,7 +110,9 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 		DrawLocation(InitialTransform, empire_layout::FarmField(),   FLinearColor(0.88f, 0.62f, 0.32f, 0.4f), FVector(120.0f, 120.0f, 20.0f));
 
 		// Planner entity
-		GoapEntity = utils_goap::Add(InHandle);
+		auto GoapParams = FCk_Fragment_Goap_ParamsData();
+		GoapParams.Set_PlanOnStart(false);
+		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goapempire_tags::T(n"Gym.GoapEmpire.Station"));
 
 		RegisterActionsAndGoals();
