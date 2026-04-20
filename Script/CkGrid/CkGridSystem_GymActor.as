@@ -13,7 +13,7 @@ struct FTestEnttParams
     FTransform InitialTransform = FTransform::Identity;
 };
 
-class UTestEntt : UCk_EntityScript_UE
+class UTestEntt : UCk_GenericEntityScript_UE
 {
     UPROPERTY(Replicated)
     FTestEnttParams DummyParams;

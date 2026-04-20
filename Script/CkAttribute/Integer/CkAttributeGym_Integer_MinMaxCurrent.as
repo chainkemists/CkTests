@@ -2,7 +2,7 @@
 // INTEGER MIN/MAX/CURRENT COMPONENTS ENTITY SCRIPT
 //============================================================================
 
-class UCk_EntityScript_IntegerGym_MinMaxCurrent : UCk_EntityScript_UE
+class UCk_EntityScript_IntegerGym_MinMaxCurrent : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

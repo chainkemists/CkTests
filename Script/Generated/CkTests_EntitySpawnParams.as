@@ -1175,12 +1175,12 @@ struct FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams
     FName TestName = n"None";
 
     UPROPERTY()
-    int32 TestInt = 0;
+    int TestInt = 0;
 
     UPROPERTY()
     float32 TestFloat = 0.0f;
 
-    FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams(FTransform InInitialTransform, FName InTestName, int32 InTestInt, float32 InTestFloat)
+    FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams(FTransform InInitialTransform, FName InTestName, int InTestInt, float32 InTestFloat)
     {
         InitialTransform = InInitialTransform;
         TestName = InTestName;
@@ -1196,7 +1196,7 @@ namespace UCk_EntityScript_EntityScriptGym_Spawn
         return FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams();
     }
 
-    FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams Params(FTransform InInitialTransform, FName InTestName, int32 InTestInt, float32 InTestFloat)
+    FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams Params(FTransform InInitialTransform, FName InTestName, int InTestInt, float32 InTestFloat)
     {
         return FCk_EntityScript_EntityScriptGym_Spawn_SpawnParams(InInitialTransform, InTestName, InTestInt, InTestFloat);
     }
@@ -1212,12 +1212,12 @@ struct FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams
     FName TestName = n"None";
 
     UPROPERTY()
-    int32 TestInt = 0;
+    int TestInt = 0;
 
     UPROPERTY()
     float32 TestFloat = 0.0f;
 
-    FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams(FTransform InInitialTransform, FName InTestName, int32 InTestInt, float32 InTestFloat)
+    FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams(FTransform InInitialTransform, FName InTestName, int InTestInt, float32 InTestFloat)
     {
         InitialTransform = InInitialTransform;
         TestName = InTestName;
@@ -1233,7 +1233,7 @@ namespace UCk_EntityScript_EntityScriptGym_SpawnReplicated
         return FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams();
     }
 
-    FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams Params(FTransform InInitialTransform, FName InTestName, int32 InTestInt, float32 InTestFloat)
+    FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams Params(FTransform InInitialTransform, FName InTestName, int InTestInt, float32 InTestFloat)
     {
         return FCk_EntityScript_EntityScriptGym_SpawnReplicated_SpawnParams(InInitialTransform, InTestName, InTestInt, InTestFloat);
     }

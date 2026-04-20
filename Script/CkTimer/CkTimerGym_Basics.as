@@ -3,7 +3,7 @@
 // Tests: Timer creation, querying, chrono display, lifecycle
 //============================================================================
 
-class UCk_EntityScript_TimerGym_Basics : UCk_EntityScript_UE
+class UCk_EntityScript_TimerGym_Basics : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

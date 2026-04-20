@@ -13,7 +13,7 @@ struct FSceneNodeGym_DisplaySpawnParams
 // Reads cube actor state and updates station display text each frame.
 //============================================================================
 
-class UCk_EntityScript_SceneNodeGym_Display : UCk_EntityScript_UE
+class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

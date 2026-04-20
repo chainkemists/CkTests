@@ -2,7 +2,7 @@
 // FLOAT ATTRIBUTE REFILL STATION (Float-exclusive feature)
 //============================================================================
 
-class UCk_EntityScript_AttributeGym_FloatRefill : UCk_EntityScript_UE
+class UCk_EntityScript_AttributeGym_FloatRefill : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 

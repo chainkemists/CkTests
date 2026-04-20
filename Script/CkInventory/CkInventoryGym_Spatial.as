@@ -4,7 +4,7 @@
 // INVENTORY GYM - SPATIAL ENTITY SCRIPT
 //============================================================================
 
-class UCk_EntityScript_InvGym_Spatial : UCk_EntityScript_UE
+class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

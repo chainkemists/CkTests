@@ -3,7 +3,7 @@
 // Tests: SkipIfInvalid vs RequireValid with valid and invalid owners
 //============================================================================
 
-class UCk_EntityScript_CueGym_OwnerValidation : UCk_EntityScript_UE
+class UCk_EntityScript_CueGym_OwnerValidation : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -172,7 +172,7 @@ class UCk_EntityScript_CueGym_OwnerValidation : UCk_EntityScript_UE
 // TEMPORARY OWNER ENTITY (used by OwnerValidation station)
 //============================================================================
 
-class UCk_EntityScript_CueGym_TempOwner : UCk_EntityScript_UE
+class UCk_EntityScript_CueGym_TempOwner : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
