@@ -111,15 +111,18 @@ class UCk_EntityScript_CueGym_OwnerDestruction : UCk_GenericEntityScript_UE
 
 		auto Cue1Transform = FTransform(InitialTransform.GetRotation(),
 			BaseLocation + FVector(-100.0f, -80.0f, 0.0f), FVector(1.0f));
-		utils_cue_generic::Request_ExecuteCue_Local(OwnerHandle, CueTag, FCkCueGym_SpawnParams(Cue1Transform));
+		utils_cue_generic::Request_ExecuteCue(OwnerHandle, CueTag, FCkCueGym_SpawnParams(Cue1Transform),
+			ECk_Cue_ReliabilityPolicy::Unreliable, ECk_Cue_MulticastPolicy::LocalOnly);
 
 		auto Cue2Transform = FTransform(InitialTransform.GetRotation(),
 			BaseLocation + FVector(-100.0f, 80.0f, 0.0f), FVector(1.0f));
-		utils_cue_generic::Request_ExecuteCue_Local(OwnerHandle, CueTag, FCkCueGym_SpawnParams(Cue2Transform));
+		utils_cue_generic::Request_ExecuteCue(OwnerHandle, CueTag, FCkCueGym_SpawnParams(Cue2Transform),
+			ECk_Cue_ReliabilityPolicy::Unreliable, ECk_Cue_MulticastPolicy::LocalOnly);
 
 		auto Cue3Transform = FTransform(InitialTransform.GetRotation(),
 			BaseLocation + FVector(-200.0f, 0.0f, 0.0f), FVector(1.0f));
-		utils_cue_generic::Request_ExecuteCue_Local(OwnerHandle, CueTag, FCkCueGym_SpawnParams(Cue3Transform));
+		utils_cue_generic::Request_ExecuteCue(OwnerHandle, CueTag, FCkCueGym_SpawnParams(Cue3Transform),
+			ECk_Cue_ReliabilityPolicy::Unreliable, ECk_Cue_MulticastPolicy::LocalOnly);
 
 		CuesSpawned = 3;
 

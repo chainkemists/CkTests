@@ -53,9 +53,11 @@ class UCk_EntityScript_CueGym_Restart : UCk_GenericEntityScript_UE
 		auto CueTransform = FTransform(InitialTransform.GetRotation(),
 			BaseLocation + FVector(-100.0f, 0.0f, 0.0f), FVector(1.0f));
 
-		utils_cue_generic::Request_ExecuteCue_Local(SelfEntity,
+		utils_cue_generic::Request_ExecuteCue(SelfEntity,
 			GameplayTags::ResolveGameplayTag(n"CueGym.Restart.Restartable"),
-			FCkCueGym_SpawnParams(CueTransform));
+			FCkCueGym_SpawnParams(CueTransform),
+			ECk_Cue_ReliabilityPolicy::Unreliable,
+			ECk_Cue_MulticastPolicy::LocalOnly);
 
 		TriggerCount++;
 		ck::Trace(f"CueGym: Restart station fired cue (trigger #{TriggerCount})");

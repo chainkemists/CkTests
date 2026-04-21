@@ -83,17 +83,21 @@ class UCk_EntityScript_CueGym_OwnerValidation : UCk_GenericEntityScript_UE
 		// SkipIfInvalid cue at left
 		auto SkipTransform = FTransform(InitialTransform.GetRotation(),
 			BaseLocation + FVector(-100.0f, -100.0f, 0.0f), FVector(1.0f));
-		utils_cue_generic::Request_ExecuteCue_Local(SelfEntity,
+		utils_cue_generic::Request_ExecuteCue(SelfEntity,
 			GameplayTags::ResolveGameplayTag(n"CueGym.Owner.SkipInvalid"),
-			FCkCueGym_SpawnParams(SkipTransform));
+			FCkCueGym_SpawnParams(SkipTransform),
+			ECk_Cue_ReliabilityPolicy::Unreliable,
+			ECk_Cue_MulticastPolicy::LocalOnly);
 		Phase1_SkipExecuted = true;
 
 		// RequireValid cue at right
 		auto RequireTransform = FTransform(InitialTransform.GetRotation(),
 			BaseLocation + FVector(-100.0f, 100.0f, 0.0f), FVector(1.0f));
-		utils_cue_generic::Request_ExecuteCue_Local(SelfEntity,
+		utils_cue_generic::Request_ExecuteCue(SelfEntity,
 			GameplayTags::ResolveGameplayTag(n"CueGym.Owner.RequireValid"),
-			FCkCueGym_SpawnParams(RequireTransform));
+			FCkCueGym_SpawnParams(RequireTransform),
+			ECk_Cue_ReliabilityPolicy::Unreliable,
+			ECk_Cue_MulticastPolicy::LocalOnly);
 		Phase1_RequireExecuted = true;
 
 		ck::Trace("CueGym: OwnerValidation Phase 1 - fired cues with valid owner");
@@ -120,17 +124,21 @@ class UCk_EntityScript_CueGym_OwnerValidation : UCk_GenericEntityScript_UE
 		// SkipIfInvalid cue at left - should still spawn (policy skips validation)
 		auto SkipTransform = FTransform(InitialTransform.GetRotation(),
 			BaseLocation + FVector(-100.0f, -100.0f, 0.0f), FVector(1.0f));
-		utils_cue_generic::Request_ExecuteCue_Local(InvalidHandle,
+		utils_cue_generic::Request_ExecuteCue(InvalidHandle,
 			GameplayTags::ResolveGameplayTag(n"CueGym.Owner.SkipInvalid"),
-			FCkCueGym_SpawnParams(SkipTransform));
+			FCkCueGym_SpawnParams(SkipTransform),
+			ECk_Cue_ReliabilityPolicy::Unreliable,
+			ECk_Cue_MulticastPolicy::LocalOnly);
 		Phase2_SkipExecuted = true;
 
 		// RequireValid cue at right - should NOT spawn (policy requires valid owner)
 		auto RequireTransform = FTransform(InitialTransform.GetRotation(),
 			BaseLocation + FVector(-100.0f, 100.0f, 0.0f), FVector(1.0f));
-		utils_cue_generic::Request_ExecuteCue_Local(InvalidHandle,
+		utils_cue_generic::Request_ExecuteCue(InvalidHandle,
 			GameplayTags::ResolveGameplayTag(n"CueGym.Owner.RequireValid"),
-			FCkCueGym_SpawnParams(RequireTransform));
+			FCkCueGym_SpawnParams(RequireTransform),
+			ECk_Cue_ReliabilityPolicy::Unreliable,
+			ECk_Cue_MulticastPolicy::LocalOnly);
 		Phase2_RequireExecuted = true;
 
 		ck::Trace("CueGym: OwnerValidation Phase 2 - fired cues with invalid owner");
