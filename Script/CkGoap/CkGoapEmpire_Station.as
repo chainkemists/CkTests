@@ -31,7 +31,7 @@ enum ECk_GoapEmpire_Phase
 	Work
 }
 
-class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
+class UCk_EntityScript_GoapEmpire_Station : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -88,7 +88,8 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_EntityScript_UE
 	// ------------------------------------------------------------------------
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapEmpireGym_Station");

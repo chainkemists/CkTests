@@ -33,5 +33,8 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Timer",              ACk_TimerGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Transform",          ACk_TransformGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Tween",              ACk_TweenTest_GymGameMode);
+        CkGym_Cycler::RegisterProjectGym("GOAP",               ACk_GoapGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("GOAP (Empire)",      ACk_GoapEmpireGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("GOAP (Replan)",      ACk_GoapAutoReplanGym_GameMode);
     }
 }

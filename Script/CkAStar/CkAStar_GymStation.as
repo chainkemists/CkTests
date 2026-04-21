@@ -43,7 +43,7 @@ struct FCkAStar_GymStationSpawnParams
 
 // ====================================================================================================================
 
-class UCk_EntityScript_AStarGym_Station : UCk_EntityScript_UE
+class UCk_EntityScript_AStarGym_Station : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -92,7 +92,8 @@ class UCk_EntityScript_AStarGym_Station : UCk_EntityScript_UE
 	int32 SearchCount = 0;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 

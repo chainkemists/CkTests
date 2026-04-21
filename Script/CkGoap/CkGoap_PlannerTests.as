@@ -81,7 +81,7 @@ class UCk_GoapT1_Goal_HasTool : UCk_GoapGoal_EntityScript
 	}
 };
 
-class UCk_EntityScript_PlannerT1 : UCk_EntityScript_UE
+class UCk_EntityScript_PlannerT1 : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -94,7 +94,8 @@ class UCk_EntityScript_PlannerT1 : UCk_EntityScript_UE
 	float LastPlanCost = 0.0f;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T1");
@@ -210,7 +211,7 @@ class UCk_GoapT2_Goal_StepFinal : UCk_GoapGoal_EntityScript
 	}
 };
 
-class UCk_EntityScript_PlannerT2 : UCk_EntityScript_UE
+class UCk_EntityScript_PlannerT2 : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 	UPROPERTY(ExposeOnSpawn) FTransform InitialTransform = FTransform::Identity;
@@ -222,7 +223,8 @@ class UCk_EntityScript_PlannerT2 : UCk_EntityScript_UE
 	float LastPlanCost = 0.0f;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T2");
@@ -344,7 +346,7 @@ class UCk_GoapT4_Goal_HasTool : UCk_GoapGoal_EntityScript
 	}
 };
 
-class UCk_EntityScript_PlannerT4 : UCk_EntityScript_UE
+class UCk_EntityScript_PlannerT4 : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 	UPROPERTY(ExposeOnSpawn) FTransform InitialTransform = FTransform::Identity;
@@ -356,7 +358,8 @@ class UCk_EntityScript_PlannerT4 : UCk_EntityScript_UE
 	float LastPlanCost = 0.0f;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T4");
@@ -467,7 +470,7 @@ class UCk_GoapT5_Goal_HasTool : UCk_GoapGoal_EntityScript
 	}
 };
 
-class UCk_EntityScript_PlannerT5 : UCk_EntityScript_UE
+class UCk_EntityScript_PlannerT5 : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 	UPROPERTY(ExposeOnSpawn) FTransform InitialTransform = FTransform::Identity;
@@ -479,7 +482,8 @@ class UCk_EntityScript_PlannerT5 : UCk_EntityScript_UE
 	float LastPlanCost = 0.0f;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T5");

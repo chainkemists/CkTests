@@ -59,7 +59,7 @@ namespace goap_gym_util
 // STATION 1 — OPEN DOOR (trivial: 2 actions, 1 goal)
 //============================================================================
 
-class UCk_EntityScript_GoapGym_Door : UCk_EntityScript_UE
+class UCk_EntityScript_GoapGym_Door : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -76,7 +76,8 @@ class UCk_EntityScript_GoapGym_Door : UCk_EntityScript_UE
 	FCkGym_AutoConfig AutoConfig;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Door");
@@ -177,7 +178,7 @@ class UCk_EntityScript_GoapGym_Door : UCk_EntityScript_UE
 // STATION 2 — MAKE TEA (strict linear 4-step chain)
 //============================================================================
 
-class UCk_EntityScript_GoapGym_Tea : UCk_EntityScript_UE
+class UCk_EntityScript_GoapGym_Tea : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -194,7 +195,8 @@ class UCk_EntityScript_GoapGym_Tea : UCk_EntityScript_UE
 	FCkGym_AutoConfig AutoConfig;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Tea");
@@ -303,7 +305,7 @@ class UCk_EntityScript_GoapGym_Tea : UCk_EntityScript_UE
 // STATION 3 — COMBAT (ranged vs melee + dynamic cost flipping)
 //============================================================================
 
-class UCk_EntityScript_GoapGym_Combat : UCk_EntityScript_UE
+class UCk_EntityScript_GoapGym_Combat : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -321,7 +323,8 @@ class UCk_EntityScript_GoapGym_Combat : UCk_EntityScript_UE
 	FCkGym_AutoConfig AutoConfig;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Combat");
@@ -435,7 +438,7 @@ class UCk_EntityScript_GoapGym_Combat : UCk_EntityScript_UE
 // STATION 4 — PRIORITIES (3 goals, highest-priority achievable wins)
 //============================================================================
 
-class UCk_EntityScript_GoapGym_Priorities : UCk_EntityScript_UE
+class UCk_EntityScript_GoapGym_Priorities : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -452,7 +455,8 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_EntityScript_UE
 	FCkGym_AutoConfig AutoConfig;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Priorities");
@@ -569,7 +573,7 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_EntityScript_UE
 // STATION 5 — NO PLAN POSSIBLE (demonstrates PlanFailed)
 //============================================================================
 
-class UCk_EntityScript_GoapGym_NoPlan : UCk_EntityScript_UE
+class UCk_EntityScript_GoapGym_NoPlan : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -586,7 +590,8 @@ class UCk_EntityScript_GoapGym_NoPlan : UCk_EntityScript_UE
 	FCkGym_AutoConfig AutoConfig;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_NoPlan");
@@ -659,7 +664,7 @@ class UCk_EntityScript_GoapGym_NoPlan : UCk_EntityScript_UE
 // detection flags this as a dependency cycle, and the plan-time reachability
 // check populates UnreachableGoalConditions. The debugger surfaces both.
 
-class UCk_EntityScript_GoapGym_CircularDep : UCk_EntityScript_UE
+class UCk_EntityScript_GoapGym_CircularDep : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
@@ -677,7 +682,8 @@ class UCk_EntityScript_GoapGym_CircularDep : UCk_EntityScript_UE
 	FCkGym_AutoConfig AutoConfig;
 
 	UFUNCTION(BlueprintOverride)
-	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+	ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_CircularDep");
