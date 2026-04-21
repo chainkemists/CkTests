@@ -55,17 +55,21 @@ class UCk_EntityScript_CueGym_Concurrency : UCk_GenericEntityScript_UE
 		// Left side: AllowMultiple - each instance gets a vertical offset so they stack
 		auto MultipleOffset = FVector(-100.0f, -100.0f, float(MultipleTriggerCount % 5) * 40.0f);
 		auto MultipleTransform = FTransform(InitialTransform.GetRotation(), BaseLocation + MultipleOffset, FVector(1.0f));
-		utils_cue_generic::Request_ExecuteCue_Local(SelfEntity,
+		utils_cue_generic::Request_ExecuteCue(SelfEntity,
 			GameplayTags::ResolveGameplayTag(n"CueGym.Concurrency.Multiple"),
-			FCkCueGym_SpawnParams(MultipleTransform));
+			FCkCueGym_SpawnParams(MultipleTransform),
+			ECk_Cue_ReliabilityPolicy::Unreliable,
+			ECk_Cue_MulticastPolicy::LocalOnly);
 		MultipleTriggerCount++;
 
 		// Right side: RestartExisting - always same position, restarts instead of stacking
 		auto RestartOffset = FVector(-100.0f, 100.0f, 0.0f);
 		auto RestartTransform = FTransform(InitialTransform.GetRotation(), BaseLocation + RestartOffset, FVector(1.0f));
-		utils_cue_generic::Request_ExecuteCue_Local(SelfEntity,
+		utils_cue_generic::Request_ExecuteCue(SelfEntity,
 			GameplayTags::ResolveGameplayTag(n"CueGym.Concurrency.Restart"),
-			FCkCueGym_SpawnParams(RestartTransform));
+			FCkCueGym_SpawnParams(RestartTransform),
+			ECk_Cue_ReliabilityPolicy::Unreliable,
+			ECk_Cue_MulticastPolicy::LocalOnly);
 		RestartTriggerCount++;
 	}
 

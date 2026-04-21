@@ -84,7 +84,8 @@ class UCk_EntityScript_CueGym_Lifetime : UCk_GenericEntityScript_UE
 		}
 
 		auto CueTransform = FTransform(BaseTransform.GetRotation(), BaseLocation + Offset, FVector(1.0f));
-		utils_cue_generic::Request_ExecuteCue_Local(SelfEntity, CueTag, FCkCueGym_SpawnParams(CueTransform));
+		utils_cue_generic::Request_ExecuteCue(SelfEntity, CueTag, FCkCueGym_SpawnParams(CueTransform),
+			ECk_Cue_ReliabilityPolicy::Unreliable, ECk_Cue_MulticastPolicy::LocalOnly);
 
 		CueIndex = (CueIndex + 1) % 4;
 		if (CueIndex == 0)
