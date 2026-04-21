@@ -16,7 +16,7 @@
 // as the 4th entity.
 //============================================================================
 
-class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_EntityScript_UE
+class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

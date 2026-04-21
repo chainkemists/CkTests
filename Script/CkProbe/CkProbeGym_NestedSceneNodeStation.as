@@ -23,7 +23,7 @@
 // schedule (the "persistent desync, zero hits" symptom).
 //============================================================================
 
-class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_EntityScript_UE
+class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

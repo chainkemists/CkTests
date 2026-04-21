@@ -13,7 +13,7 @@
 // dedup behavior is visible without reading logs.
 //============================================================================
 
-class UCk_EntityScript_ProbeGym_DebugStation : UCk_EntityScript_UE
+class UCk_EntityScript_ProbeGym_DebugStation : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 

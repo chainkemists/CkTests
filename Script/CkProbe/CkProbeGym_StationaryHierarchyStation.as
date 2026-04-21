@@ -25,7 +25,7 @@
 // link is wrong.
 //============================================================================
 
-class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_EntityScript_UE
+class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 
