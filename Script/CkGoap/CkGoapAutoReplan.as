@@ -85,7 +85,7 @@ class UCk_GoapAutoReplan_Goal_KillTarget : UCk_GoapGoal_EntityScript
 // ENEMY — trivial: position + alive state. Drifts randomly in/out each tick.
 //============================================================================
 
-class FAutoReplan_Enemy
+struct FAutoReplan_Enemy
 {
 	FVector Center;            // drift origin (AI location)
 	FVector Position;          // current world position
@@ -100,7 +100,7 @@ class FAutoReplan_Enemy
 // AUTO-REPLAN AI STATION
 //============================================================================
 
-class UCk_EntityScript_GoapGym_AutoReplan : UCk_EntityScript_UE
+class UCk_EntityScript_GoapGym_AutoReplan :  UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
