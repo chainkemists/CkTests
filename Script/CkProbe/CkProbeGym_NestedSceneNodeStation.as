@@ -66,9 +66,12 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
     FCk_Handle_Pmg_DebugShape RootShape;
     FCk_Handle_Pmg_DebugShape NodeAShape;
     FCk_Handle_Pmg_DebugShape NodeBShape;
-    TArray<FCk_Handle_Pmg_DebugShape> BreadcrumbsA;
-    TArray<FCk_Handle_Pmg_DebugShape> BreadcrumbsB;
-    int32 BreadcrumbSteps = 4;
+
+    // Parent->child relationships are shown as dashed lines redrawn each frame
+    // (Duration=0 PMG draws live for one frame, no persistent entity churn beyond
+    //  the one-frame-lifetime entity which is cleaned up automatically).
+    FLinearColor LineColor_RootToA = FLinearColor(1.0f, 0.7f, 0.2f, 0.8f);
+    FLinearColor LineColor_AToB    = FLinearColor(0.5f, 0.6f, 1.0f, 0.8f);
 
     // Color-flipping shapes — kept persistent, position updated each frame,
     // and only destroyed + respawned when the desired color actually changes.
@@ -104,18 +107,23 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
         utils_entity_tag::Add(InHandle, n"TAG_ProbeGym_NestedSceneNodeStation");
         StationWorldLocation = InitialTransform.Translation;
         StationEntity = InHandle;
+        utils_handle::Set_DebugName(StationEntity, n"ProbeGym_Nested_Station");
 
-        // ---- Root entity (identity rotation; tweened along +Y) ----
-        // Its parent-lifetime owner is this station so it cleans up with us.
+        // ---- Root entity (scene node under the station; tweened along +Y) ----
+        // Making Root itself a scene-node child of the station ensures the
+        // tween's world-space writes propagate through the chain below it.
+        // Without this, Root has a plain transform and NodeA/B compose off a
+        // static parent — the chained probe never moves.
         // Request_OverrideToSelf so probes in the chain aren't suppressed by
         // the default DifferentContextOnly policy when overlapping the
         // Detector (also under this station's context).
-        RootEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        RootEntity.Request_OverrideToSelf();
-
         RootStartWorldLocation = StationWorldLocation;
-        auto RootInitial = FTransform(FRotator::ZeroRotator, RootStartWorldLocation);
-        RootTransformHandle = utils_transform::Add(RootEntity, RootInitial, ECk_Replication::DoesNotReplicate);
+        auto RootLocal = FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+        auto RootNode = utils_scene_node::Create(TransformHandle, RootLocal);
+        RootTransformHandle = RootNode.As_Transform();
+        RootEntity = RootTransformHandle.H();
+        RootEntity.Request_OverrideToSelf();
+        utils_handle::Set_DebugName(RootEntity, n"ProbeGym_Nested_Root");
 
         // ---- Scene-node chain ----
         // utils_scene_node::Create internally creates a child entity under the
@@ -125,10 +133,12 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
         auto NodeA_Local = FTransform(RotA_Local, OffsetA_Local, FVector(1.0f, 1.0f, 1.0f));
         NodeA = utils_scene_node::Create(RootTransformHandle, NodeA_Local);
         auto NodeA_TH = NodeA.As_Transform();
+        utils_handle::Set_DebugName(NodeA_TH.H(), n"ProbeGym_Nested_NodeA");
 
         auto NodeB_Local = FTransform(RotB_Local, OffsetB_Local, FVector(1.0f, 1.0f, 1.0f));
         NodeB = utils_scene_node::Create(NodeA_TH, NodeB_Local);
         auto NodeB_TH = NodeB.As_Transform();
+        utils_handle::Set_DebugName(NodeB_TH.H(), n"ProbeGym_Nested_NodeB");
 
         // ---- Chained probe at end of chain ----
         auto ChainedParams = FCk_Fragment_Probe_ParamsData(
@@ -138,6 +148,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
 
         auto ChainedDebug = FCk_Probe_DebugInfo();
         ChainedProbe = utils_probe::Add_Sphere(NodeB_TH, ProbeRadius, ChainedParams, ChainedDebug);
+        utils_handle::Set_DebugName(ChainedProbe.H(), n"ProbeGym_Nested_ChainedProbe");
 
         // ---- Detector placement ----
         // Compute expected world location at root's START position (root Y0),
@@ -148,6 +159,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
 
         DetectorEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
         DetectorEntity.Request_OverrideToSelf();
+        utils_handle::Set_DebugName(DetectorEntity, n"ProbeGym_Nested_Detector");
 
         auto DetectorInitial = FTransform(FRotator::ZeroRotator, DetectorWorldLocation);
         auto DetectorTransformHandle = utils_transform::Add(
@@ -165,14 +177,17 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
         auto DetectorDebug = FCk_Probe_DebugInfo();
         DetectorProbe = utils_probe::Add_Box(
             DetectorTransformHandle, DetectorHalfExtents, DetectorParams, DetectorDebug);
+        utils_handle::Set_DebugName(DetectorProbe.H(), n"ProbeGym_Nested_DetectorProbe");
 
         // Per-frame tick for visuals + display.
         auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"FrameTick"));
+        utils_handle::Set_DebugName(DisplayTimer.H(), n"ProbeGym_Nested_DisplayTimer");
 
         AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(1.0f));
+        utils_handle::Set_DebugName(AutoTimer.H(), n"ProbeGym_Nested_AutoTimer");
 
         AutoConfig.TotalSteps = 1;
         AutoConfig.Description =
@@ -213,43 +228,32 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
             RootPos, FVector(30.0f, 30.0f, 30.0f),
             FLinearColor(1.0f, 0.5f, 0.0f, 1.0f),
             true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+        utils_handle::Set_DebugName(RootShape.H(), n"ProbeGym_Nested_RootShape");
 
         NodeAShape = utils_pmg_basic_shapes::DrawFilledBox(
             ExpectedNodeA, FVector(20.0f, 20.0f, 20.0f),
             FLinearColor(0.2f, 0.9f, 1.0f, 1.0f),
             true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+        utils_handle::Set_DebugName(NodeAShape.H(), n"ProbeGym_Nested_NodeAShape");
 
         NodeBShape = utils_pmg_basic_shapes::DrawFilledBox(
             ExpectedNodeB, FVector(14.0f, 14.0f, 14.0f),
             FLinearColor(0.7f, 0.3f, 1.0f, 1.0f),
             true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
-
-        auto BreadcrumbColorA = FLinearColor(1.0f, 0.7f, 0.2f, 0.6f);
-        auto BreadcrumbColorB = FLinearColor(0.5f, 0.6f, 1.0f, 0.6f);
-        for (int32 i = 1; i < BreadcrumbSteps; ++i)
-        {
-            auto T = float(i) / float(BreadcrumbSteps);
-            auto PosA = RootPos + (ExpectedNodeA - RootPos) * T;
-            auto PosB = ExpectedNodeA + (ExpectedNodeB - ExpectedNodeA) * T;
-
-            BreadcrumbsA.Add(utils_pmg_basic_shapes::DrawFilledBox(
-                PosA, FVector(4.0f, 4.0f, 4.0f), BreadcrumbColorA,
-                true, 2.0f, ECk_Plane_Axis::XY, -1.0f));
-            BreadcrumbsB.Add(utils_pmg_basic_shapes::DrawFilledBox(
-                PosB, FVector(4.0f, 4.0f, 4.0f), BreadcrumbColorB,
-                true, 2.0f, ECk_Plane_Axis::XY, -1.0f));
-        }
+        utils_handle::Set_DebugName(NodeBShape.H(), n"ProbeGym_Nested_NodeBShape");
 
         auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
         ActualColorCached = ActualColor_Aligned;
         ActualShape = utils_pmg_basic_shapes::DrawFilledSphere(
             Actual, ProbeRadius, 16, 16, ActualColorCached,
             true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+        utils_handle::Set_DebugName(ActualShape.H(), n"ProbeGym_Nested_ActualShape");
 
         DetectorColorCached = DetectorColor_Empty;
         DetectorShape = utils_pmg_basic_shapes::DrawFilledBox(
             DetectorWorldLocation, DetectorHalfExtents, DetectorColorCached,
             true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+        utils_handle::Set_DebugName(DetectorShape.H(), n"ProbeGym_Nested_DetectorShape");
     }
 
     private bool ColorIsDifferent(FLinearColor InA, FLinearColor InB)
@@ -270,6 +274,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
             ECk_TweenLoopType::Yoyo,
             -1,
             0.0f);
+        utils_handle::Set_DebugName(RootTween.H(), n"ProbeGym_Nested_RootTween");
 
         if (!AutoRunning)
         { utils_tween::Pause(RootTween); }
@@ -386,8 +391,20 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
         utils_transform::Request_SetLocation(NodeAShape, ExpectedNodeA, ECk_LocalWorld::World);
         utils_transform::Request_SetLocation(NodeBShape, ExpectedNodeB, ECk_LocalWorld::World);
 
-        UpdateBreadcrumbPositions(BreadcrumbsA, RootPos,        ExpectedNodeA);
-        UpdateBreadcrumbPositions(BreadcrumbsB, ExpectedNodeA, ExpectedNodeB);
+        // Parent->child edges (dashed lines, one-frame PMG draws). Much lower
+        // visual noise than breadcrumb cubes and makes the hierarchy obvious.
+        auto DashLen   = 15.0f;
+        auto GapLen    = 10.0f;
+        auto Thickness = 2.0f;
+        auto OneFrame  = 0.0f;
+        utils_pmg_directional_shapes::DrawDashedLine(
+            RootPos, ExpectedNodeA,
+            DashLen, GapLen, Thickness,
+            LineColor_RootToA, ECk_Plane_Axis::XY, OneFrame);
+        utils_pmg_directional_shapes::DrawDashedLine(
+            ExpectedNodeA, ExpectedNodeB,
+            DashLen, GapLen, Thickness,
+            LineColor_AToB, ECk_Plane_Axis::XY, OneFrame);
 
         // Actual probe body position (what the ECS reports) —
         //   MAGENTA when aligned with Expected
@@ -404,6 +421,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
             ActualShape = utils_pmg_basic_shapes::DrawFilledSphere(
                 Actual, ProbeRadius, 16, 16, ActualColorCached,
                 true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+            utils_handle::Set_DebugName(ActualShape.H(), n"ProbeGym_Nested_ActualShape");
         }
         else
         {
@@ -423,19 +441,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
             DetectorShape = utils_pmg_basic_shapes::DrawFilledBox(
                 DetectorWorldLocation, DetectorHalfExtents, DetectorColorCached,
                 true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
-        }
-    }
-
-    // Re-positions the persistent breadcrumb cubes so the dashed line from
-    // InStart to InEnd tracks the moving parent.
-    private void UpdateBreadcrumbPositions(
-        TArray<FCk_Handle_Pmg_DebugShape>& InShapes, FVector InStart, FVector InEnd)
-    {
-        for (int32 i = 0; i < InShapes.Num(); ++i)
-        {
-            auto T = float(i + 1) / float(BreadcrumbSteps);
-            auto Pos = InStart + (InEnd - InStart) * T;
-            utils_transform::Request_SetLocation(InShapes[i], Pos, ECk_LocalWorld::World);
+            utils_handle::Set_DebugName(DetectorShape.H(), n"ProbeGym_Nested_DetectorShape");
         }
     }
 
