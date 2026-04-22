@@ -31,6 +31,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
     FTransform InitialTransform = FTransform::Identity;
 
     // Entities
+    FCk_Handle StationEntity;
     FCk_Handle RootEntity;
     FCk_Handle_Transform RootTransformHandle;
     FCk_Handle_SceneNode NodeA;
@@ -57,6 +58,30 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
     float32 RootAmplitude = 300.0f;
     float32 RootTweenDuration = 4.0f;
 
+    // Persistent debug shapes for the static-color elements of the chain.
+    // Created once with infinite lifetime in DoBeginPlay and re-positioned
+    // each frame in DrawVisuals. Only Actual (drift-colored) and Detector
+    // (overlap-colored) are still recreated per-tick — basic-shape PMG has
+    // no recolor API, so swapping colors requires a fresh shape.
+    FCk_Handle_Pmg_DebugShape RootShape;
+    FCk_Handle_Pmg_DebugShape NodeAShape;
+    FCk_Handle_Pmg_DebugShape NodeBShape;
+    TArray<FCk_Handle_Pmg_DebugShape> BreadcrumbsA;
+    TArray<FCk_Handle_Pmg_DebugShape> BreadcrumbsB;
+    int32 BreadcrumbSteps = 4;
+
+    // Color-flipping shapes — kept persistent, position updated each frame,
+    // and only destroyed + respawned when the desired color actually changes.
+    FCk_Handle_Pmg_DebugShape ActualShape;
+    FLinearColor ActualColorCached;
+    FCk_Handle_Pmg_DebugShape DetectorShape;
+    FLinearColor DetectorColorCached;
+
+    FLinearColor ActualColor_Aligned = FLinearColor(1.0f, 0.2f, 1.0f, 0.8f);
+    FLinearColor ActualColor_Drift   = FLinearColor(1.0f, 1.0f, 0.0f, 1.0f);
+    FLinearColor DetectorColor_Empty = FLinearColor(0.2f, 1.0f, 0.4f, 0.15f);
+    FLinearColor DetectorColor_Hit   = FLinearColor(1.0f, 0.2f, 0.2f, 0.25f);
+
     // Diagnostics
     int32 DetectorHitCount = 0;
     FString LastDetectorEventLine = "(none)";
@@ -78,6 +103,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
         auto TransformHandle = utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_ProbeGym_NestedSceneNodeStation");
         StationWorldLocation = InitialTransform.Translation;
+        StationEntity = InHandle;
 
         // ---- Root entity (identity rotation; tweened along +Y) ----
         // Its parent-lifetime owner is this station so it cleans up with us.
@@ -171,7 +197,64 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_ProbeGym_NestedReset,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnNestedResetMsg"));
 
+        SpawnPersistentShapes();
         StartRootTween();
+    }
+
+    private void SpawnPersistentShapes()
+    {
+        auto RootPos = utils_transform::Get_EntityCurrentLocation(RootEntity);
+        auto ExpectedNodeA = ComputeExpectedNodeAWorld(RootPos).GetLocation();
+        auto ExpectedNodeB = ComputeExpectedNodeBWorld(RootPos).GetLocation();
+
+        // Duration = -1.0 -> PMG CheckDuration processor early-outs and
+        // never destroys the shape. Per-frame work only moves them.
+        RootShape = utils_pmg_basic_shapes::DrawFilledBox(
+            RootPos, FVector(30.0f, 30.0f, 30.0f),
+            FLinearColor(1.0f, 0.5f, 0.0f, 1.0f),
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+
+        NodeAShape = utils_pmg_basic_shapes::DrawFilledBox(
+            ExpectedNodeA, FVector(20.0f, 20.0f, 20.0f),
+            FLinearColor(0.2f, 0.9f, 1.0f, 1.0f),
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+
+        NodeBShape = utils_pmg_basic_shapes::DrawFilledBox(
+            ExpectedNodeB, FVector(14.0f, 14.0f, 14.0f),
+            FLinearColor(0.7f, 0.3f, 1.0f, 1.0f),
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+
+        auto BreadcrumbColorA = FLinearColor(1.0f, 0.7f, 0.2f, 0.6f);
+        auto BreadcrumbColorB = FLinearColor(0.5f, 0.6f, 1.0f, 0.6f);
+        for (int32 i = 1; i < BreadcrumbSteps; ++i)
+        {
+            auto T = float(i) / float(BreadcrumbSteps);
+            auto PosA = RootPos + (ExpectedNodeA - RootPos) * T;
+            auto PosB = ExpectedNodeA + (ExpectedNodeB - ExpectedNodeA) * T;
+
+            BreadcrumbsA.Add(utils_pmg_basic_shapes::DrawFilledBox(
+                PosA, FVector(4.0f, 4.0f, 4.0f), BreadcrumbColorA,
+                true, 2.0f, ECk_Plane_Axis::XY, -1.0f));
+            BreadcrumbsB.Add(utils_pmg_basic_shapes::DrawFilledBox(
+                PosB, FVector(4.0f, 4.0f, 4.0f), BreadcrumbColorB,
+                true, 2.0f, ECk_Plane_Axis::XY, -1.0f));
+        }
+
+        auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
+        ActualColorCached = ActualColor_Aligned;
+        ActualShape = utils_pmg_basic_shapes::DrawFilledSphere(
+            Actual, ProbeRadius, 16, 16, ActualColorCached,
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+
+        DetectorColorCached = DetectorColor_Empty;
+        DetectorShape = utils_pmg_basic_shapes::DrawFilledBox(
+            DetectorWorldLocation, DetectorHalfExtents, DetectorColorCached,
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+    }
+
+    private bool ColorIsDifferent(FLinearColor InA, FLinearColor InB)
+    {
+        return InA.R != InB.R || InA.G != InB.G || InA.B != InB.B || InA.A != InB.A;
     }
 
     //------------------------------------------------------------------------
@@ -277,9 +360,14 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
 
     void DrawVisuals()
     {
+        // FrameTick can fire before DoBeginPlay (and thus before
+        // SpawnPersistentShapes); skip until the persistent shapes exist.
+        if (ck::Is_NOT_Valid(RootShape))
+        { return; }
+
         auto RootPos = utils_transform::Get_EntityCurrentLocation(RootEntity);
 
-        // Hierarchy cubes are drawn at AS-composed world positions so the
+        // Hierarchy cubes track the AS-composed world positions so the
         // chain follows Root regardless of whether the ECS scene-node
         // processor propagates the tween. The "Actual" sphere below shows
         // where the ECS thinks the probe is — if it diverges from the
@@ -292,69 +380,62 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
         // correctly-propagating chain this matches ExpectedNodeB exactly.
         auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
 
-        // Root (ORANGE cube, biggest) — the tweened ancestor. Moves along
-        // +Y; everything below it should follow.
-        utils_pmg_basic_shapes::DrawFilledBox(
-            RootPos, FVector(30.0f, 30.0f, 30.0f),
-            FLinearColor(1.0f, 0.5f, 0.0f, 1.0f),
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+        // Move persistent shapes to their new composed positions. These were
+        // spawned once with infinite lifetime in SpawnPersistentShapes().
+        utils_transform::Request_SetLocation(RootShape,  RootPos,        ECk_LocalWorld::World);
+        utils_transform::Request_SetLocation(NodeAShape, ExpectedNodeA, ECk_LocalWorld::World);
+        utils_transform::Request_SetLocation(NodeBShape, ExpectedNodeB, ECk_LocalWorld::World);
 
-        // NodeA (CYAN cube) drawn at AS-composed world. Child of Root via
-        // local +150 X, yaw 45°.
-        utils_pmg_basic_shapes::DrawFilledBox(
-            ExpectedNodeA, FVector(20.0f, 20.0f, 20.0f),
-            FLinearColor(0.2f, 0.9f, 1.0f, 1.0f),
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
-
-        // NodeB (PURPLE cube) drawn at AS-composed world. Child of NodeA
-        // via local +100 Y (in A's rotated frame), roll 30°. The chained
-        // probe is composed on NodeB's transform.
-        utils_pmg_basic_shapes::DrawFilledBox(
-            ExpectedNodeB, FVector(14.0f, 14.0f, 14.0f),
-            FLinearColor(0.7f, 0.3f, 1.0f, 1.0f),
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+        UpdateBreadcrumbPositions(BreadcrumbsA, RootPos,        ExpectedNodeA);
+        UpdateBreadcrumbPositions(BreadcrumbsB, ExpectedNodeA, ExpectedNodeB);
 
         // Actual probe body position (what the ECS reports) —
         //   MAGENTA when aligned with Expected
         //   YELLOW on desync (Drift > 5 units) — this is the bug state
+        // Basic-shape PMG has no recolor request, so on color flip we
+        // destroy + respawn the shape; otherwise just move it.
         auto Drift = (Expected - Actual).Size();
         LastDriftMagnitude = float32(Drift);
-        auto ActualColor = Drift > 5.0f
-            ? FLinearColor(1.0f, 1.0f, 0.0f, 1.0f)
-            : FLinearColor(1.0f, 0.2f, 1.0f, 0.8f);
-        utils_pmg_basic_shapes::DrawFilledSphere(
-            Actual, ProbeRadius, 16, 16, ActualColor,
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
-
-        // Breadcrumb dashes along Root→NodeA and NodeA→NodeB so the chain
-        // is visible (PMG exposes no DrawLine helper in AS).
-        DrawChainBreadcrumbs(RootPos, ExpectedNodeA, FLinearColor(1.0f, 0.7f, 0.2f, 0.6f));
-        DrawChainBreadcrumbs(ExpectedNodeA, ExpectedNodeB, FLinearColor(0.5f, 0.6f, 1.0f, 0.6f));
+        auto ActualColor = Drift > 5.0f ? ActualColor_Drift : ActualColor_Aligned;
+        if (ColorIsDifferent(ActualColor, ActualColorCached))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(ActualShape);
+            ActualColorCached = ActualColor;
+            ActualShape = utils_pmg_basic_shapes::DrawFilledSphere(
+                Actual, ProbeRadius, 16, 16, ActualColorCached,
+                true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+        }
+        else
+        {
+            utils_transform::Request_SetLocation(ActualShape, Actual, ECk_LocalWorld::World);
+        }
 
         // Detector (GREEN empty / RED occupied). NOT part of the chain — a
         // standalone static probe; the chained probe should sweep through
         // it twice per yoyo period when the hierarchy propagates motion.
+        // Position is fixed; only respawn on color change.
         auto DetectorOccupied = utils_probe::Get_CurrentOverlaps(DetectorProbe).Num() > 0;
-        auto DetectorColor = DetectorOccupied
-            ? FLinearColor(1.0f, 0.2f, 0.2f, 0.25f)
-            : FLinearColor(0.2f, 1.0f, 0.4f, 0.15f);
-        utils_pmg_basic_shapes::DrawFilledBox(
-            DetectorWorldLocation, DetectorHalfExtents, DetectorColor,
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+        auto DetectorColor = DetectorOccupied ? DetectorColor_Hit : DetectorColor_Empty;
+        if (ColorIsDifferent(DetectorColor, DetectorColorCached))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(DetectorShape);
+            DetectorColorCached = DetectorColor;
+            DetectorShape = utils_pmg_basic_shapes::DrawFilledBox(
+                DetectorWorldLocation, DetectorHalfExtents, DetectorColorCached,
+                true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+        }
     }
 
-    // Paints tiny cubes along the segment from InStart to InEnd so the
-    // parent-to-child relationship is visible as a dashed line.
-    void DrawChainBreadcrumbs(FVector InStart, FVector InEnd, FLinearColor InColor)
+    // Re-positions the persistent breadcrumb cubes so the dashed line from
+    // InStart to InEnd tracks the moving parent.
+    private void UpdateBreadcrumbPositions(
+        TArray<FCk_Handle_Pmg_DebugShape>& InShapes, FVector InStart, FVector InEnd)
     {
-        auto Steps = 4;
-        for (int32 i = 1; i < Steps; ++i)
+        for (int32 i = 0; i < InShapes.Num(); ++i)
         {
-            auto T = float(i) / float(Steps);
+            auto T = float(i + 1) / float(BreadcrumbSteps);
             auto Pos = InStart + (InEnd - InStart) * T;
-            utils_pmg_basic_shapes::DrawFilledBox(
-                Pos, FVector(4.0f, 4.0f, 4.0f), InColor,
-                true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+            utils_transform::Request_SetLocation(InShapes[i], Pos, ECk_LocalWorld::World);
         }
     }
 
