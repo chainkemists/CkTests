@@ -2342,6 +2342,81 @@ namespace UCk_EntityScript_SceneNodeGym_Display
 }
 
 USTRUCT()
+struct FCk_EntityScript_SceneNodeTweenGym_ChainStation_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_SceneNodeTweenGym_ChainStation_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_SceneNodeTweenGym_ChainStation
+{
+    FCk_EntityScript_SceneNodeTweenGym_ChainStation_SpawnParams Params()
+    {
+        return FCk_EntityScript_SceneNodeTweenGym_ChainStation_SpawnParams();
+    }
+
+    FCk_EntityScript_SceneNodeTweenGym_ChainStation_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_SceneNodeTweenGym_ChainStation_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_SceneNodeTweenGym_DeepStation_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_SceneNodeTweenGym_DeepStation_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_SceneNodeTweenGym_DeepStation
+{
+    FCk_EntityScript_SceneNodeTweenGym_DeepStation_SpawnParams Params()
+    {
+        return FCk_EntityScript_SceneNodeTweenGym_DeepStation_SpawnParams();
+    }
+
+    FCk_EntityScript_SceneNodeTweenGym_DeepStation_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_SceneNodeTweenGym_DeepStation_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_SceneNodeTweenGym_SimpleStation_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_SceneNodeTweenGym_SimpleStation_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_SceneNodeTweenGym_SimpleStation
+{
+    FCk_EntityScript_SceneNodeTweenGym_SimpleStation_SpawnParams Params()
+    {
+        return FCk_EntityScript_SceneNodeTweenGym_SimpleStation_SpawnParams();
+    }
+
+    FCk_EntityScript_SceneNodeTweenGym_SimpleStation_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_SceneNodeTweenGym_SimpleStation_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_TimerGym_Basics_SpawnParams
 {
     UPROPERTY()
