@@ -276,6 +276,17 @@ class ACkGym_MenuHUD : AHUD
         Request_CheckNumberInput(PC, EKeys::Seven, "7", NumEntries);
         Request_CheckNumberInput(PC, EKeys::Eight, "8", NumEntries);
         Request_CheckNumberInput(PC, EKeys::Nine, "9", NumEntries);
+
+        Request_CheckNumberInput(PC, EKeys::NumPadZero, "0", NumEntries);
+        Request_CheckNumberInput(PC, EKeys::NumPadOne, "1", NumEntries);
+        Request_CheckNumberInput(PC, EKeys::NumPadTwo, "2", NumEntries);
+        Request_CheckNumberInput(PC, EKeys::NumPadThree, "3", NumEntries);
+        Request_CheckNumberInput(PC, EKeys::NumPadFour, "4", NumEntries);
+        Request_CheckNumberInput(PC, EKeys::NumPadFive, "5", NumEntries);
+        Request_CheckNumberInput(PC, EKeys::NumPadSix, "6", NumEntries);
+        Request_CheckNumberInput(PC, EKeys::NumPadSeven, "7", NumEntries);
+        Request_CheckNumberInput(PC, EKeys::NumPadEight, "8", NumEntries);
+        Request_CheckNumberInput(PC, EKeys::NumPadNine, "9", NumEntries);
     }
 
     void Tick_HandleBackspace(APlayerController PC, float DeltaTime, int32 NumEntries)
