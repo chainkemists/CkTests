@@ -55,6 +55,28 @@ class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntitySc
     int32 DetectorHitCount = 0;
     FString LastDetectorEventLine = "(none)";
 
+    // Persistent debug shapes — chain is stationary, so the hierarchy cubes
+    // and breadcrumbs are spawned once with infinite lifetime and never moved.
+    // Actual sphere and Detector box are only destroyed + respawned when
+    // their (color-encoded) state actually changes; basic-shape PMG has no
+    // recolor request.
+    FCk_Handle_Pmg_DebugShape RootShape;
+    FCk_Handle_Pmg_DebugShape NodeAShape;
+    FCk_Handle_Pmg_DebugShape NodeBShape;
+    TArray<FCk_Handle_Pmg_DebugShape> BreadcrumbsA;
+    TArray<FCk_Handle_Pmg_DebugShape> BreadcrumbsB;
+    int32 BreadcrumbSteps = 4;
+
+    FCk_Handle_Pmg_DebugShape ActualShape;
+    FLinearColor ActualColorCached;
+    FCk_Handle_Pmg_DebugShape DetectorShape;
+    FLinearColor DetectorColorCached;
+
+    FLinearColor ActualColor_Aligned = FLinearColor(1.0f, 0.2f, 1.0f, 0.8f);
+    FLinearColor ActualColor_Drift   = FLinearColor(1.0f, 1.0f, 0.0f, 1.0f);
+    FLinearColor DetectorColor_Empty = FLinearColor(0.2f, 1.0f, 0.4f, 0.15f);
+    FLinearColor DetectorColor_Hit   = FLinearColor(1.0f, 0.2f, 0.2f, 0.25f);
+
     FCk_Handle_Timer AutoTimer;
     bool AutoRunning = true;
     FCkGym_AutoConfig AutoConfig;
@@ -149,6 +171,62 @@ class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntitySc
     {
         utils_probe::BindTo_OnBeginOverlap(DetectorProbe,
             FCk_Delegate_Probe_OnBeginOverlap(this, n"OnDetectorBeginOverlap"));
+
+        SpawnPersistentShapes();
+    }
+
+    private void SpawnPersistentShapes()
+    {
+        auto RootPos = utils_transform::Get_EntityCurrentLocation(RootEntity);
+        auto ExpectedNodeA = ComputeExpectedNodeAWorld().GetLocation();
+        auto ExpectedNodeB = ComputeExpectedNodeBWorld().GetLocation();
+        auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
+
+        RootShape = utils_pmg_basic_shapes::DrawFilledBox(
+            RootPos, FVector(30.0f, 30.0f, 30.0f),
+            FLinearColor(1.0f, 0.5f, 0.0f, 1.0f),
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+
+        NodeAShape = utils_pmg_basic_shapes::DrawFilledBox(
+            ExpectedNodeA, FVector(20.0f, 20.0f, 20.0f),
+            FLinearColor(0.2f, 0.9f, 1.0f, 1.0f),
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+
+        NodeBShape = utils_pmg_basic_shapes::DrawFilledBox(
+            ExpectedNodeB, FVector(14.0f, 14.0f, 14.0f),
+            FLinearColor(0.7f, 0.3f, 1.0f, 1.0f),
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+
+        auto BreadcrumbColorA = FLinearColor(1.0f, 0.7f, 0.2f, 0.6f);
+        auto BreadcrumbColorB = FLinearColor(0.5f, 0.6f, 1.0f, 0.6f);
+        for (int32 i = 1; i < BreadcrumbSteps; ++i)
+        {
+            auto T = float(i) / float(BreadcrumbSteps);
+            auto PosA = RootPos + (ExpectedNodeA - RootPos) * T;
+            auto PosB = ExpectedNodeA + (ExpectedNodeB - ExpectedNodeA) * T;
+
+            BreadcrumbsA.Add(utils_pmg_basic_shapes::DrawFilledBox(
+                PosA, FVector(4.0f, 4.0f, 4.0f), BreadcrumbColorA,
+                true, 2.0f, ECk_Plane_Axis::XY, -1.0f));
+            BreadcrumbsB.Add(utils_pmg_basic_shapes::DrawFilledBox(
+                PosB, FVector(4.0f, 4.0f, 4.0f), BreadcrumbColorB,
+                true, 2.0f, ECk_Plane_Axis::XY, -1.0f));
+        }
+
+        ActualColorCached = ActualColor_Aligned;
+        ActualShape = utils_pmg_basic_shapes::DrawFilledSphere(
+            Actual, ProbeRadius, 16, 16, ActualColorCached,
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+
+        DetectorColorCached = DetectorColor_Empty;
+        DetectorShape = utils_pmg_basic_shapes::DrawFilledBox(
+            DetectorWorldLocation, DetectorHalfExtents, DetectorColorCached,
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+    }
+
+    private bool ColorIsDifferent(FLinearColor InA, FLinearColor InB)
+    {
+        return InA.R != InB.R || InA.G != InB.G || InA.B != InB.B || InA.A != InB.A;
     }
 
     //------------------------------------------------------------------------
@@ -213,63 +291,39 @@ class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntitySc
 
     void DrawVisuals()
     {
-        auto RootPos = utils_transform::Get_EntityCurrentLocation(RootEntity);
-        auto ExpectedNodeA = ComputeExpectedNodeAWorld().GetLocation();
+        // Skip until DoBeginPlay has spawned the persistent shapes.
+        if (ck::Is_NOT_Valid(RootShape))
+        { return; }
+
+        // Hierarchy is stationary; only Actual + Detector might change color.
         auto ExpectedNodeB = ComputeExpectedNodeBWorld().GetLocation();
         auto Actual = utils_transform::Get_EntityCurrentLocation(NodeB.As_Transform());
 
-        // Root (ORANGE cube) — static.
-        utils_pmg_basic_shapes::DrawFilledBox(
-            RootPos, FVector(30.0f, 30.0f, 30.0f),
-            FLinearColor(1.0f, 0.5f, 0.0f, 1.0f),
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
-
-        // NodeA (CYAN cube) at AS-composed world.
-        utils_pmg_basic_shapes::DrawFilledBox(
-            ExpectedNodeA, FVector(20.0f, 20.0f, 20.0f),
-            FLinearColor(0.2f, 0.9f, 1.0f, 1.0f),
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
-
-        // NodeB (PURPLE cube) at AS-composed world.
-        utils_pmg_basic_shapes::DrawFilledBox(
-            ExpectedNodeB, FVector(14.0f, 14.0f, 14.0f),
-            FLinearColor(0.7f, 0.3f, 1.0f, 1.0f),
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
-
-        // Actual probe position — MAGENTA when aligned, YELLOW if desynced.
         auto Drift = (ExpectedNodeB - Actual).Size();
-        auto ActualColor = Drift > 5.0f
-            ? FLinearColor(1.0f, 1.0f, 0.0f, 1.0f)
-            : FLinearColor(1.0f, 0.2f, 1.0f, 0.8f);
-        utils_pmg_basic_shapes::DrawFilledSphere(
-            Actual, ProbeRadius, 16, 16, ActualColor,
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
-
-        // Breadcrumb dashes along the chain.
-        DrawChainBreadcrumbs(RootPos, ExpectedNodeA, FLinearColor(1.0f, 0.7f, 0.2f, 0.6f));
-        DrawChainBreadcrumbs(ExpectedNodeA, ExpectedNodeB, FLinearColor(0.5f, 0.6f, 1.0f, 0.6f));
-
-        // Detector — placed AT the expected probe position. Should be RED
-        // (occupied) immediately if hierarchy composition works.
-        auto DetectorOccupied = utils_probe::Get_CurrentOverlaps(DetectorProbe).Num() > 0;
-        auto DetectorColor = DetectorOccupied
-            ? FLinearColor(1.0f, 0.2f, 0.2f, 0.25f)
-            : FLinearColor(0.2f, 1.0f, 0.4f, 0.15f);
-        utils_pmg_basic_shapes::DrawFilledBox(
-            DetectorWorldLocation, DetectorHalfExtents, DetectorColor,
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
-    }
-
-    void DrawChainBreadcrumbs(FVector InStart, FVector InEnd, FLinearColor InColor)
-    {
-        auto Steps = 4;
-        for (int32 i = 1; i < Steps; ++i)
+        auto ActualColor = Drift > 5.0f ? ActualColor_Drift : ActualColor_Aligned;
+        if (ColorIsDifferent(ActualColor, ActualColorCached))
         {
-            auto T = float(i) / float(Steps);
-            auto Pos = InStart + (InEnd - InStart) * T;
-            utils_pmg_basic_shapes::DrawFilledBox(
-                Pos, FVector(4.0f, 4.0f, 4.0f), InColor,
-                true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+            utils_entity_lifetime::Request_DestroyEntity(ActualShape);
+            ActualColorCached = ActualColor;
+            ActualShape = utils_pmg_basic_shapes::DrawFilledSphere(
+                Actual, ProbeRadius, 16, 16, ActualColorCached,
+                true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+        }
+        else
+        {
+            // Even on a stationary chain, Actual can drift if a bug occurs.
+            utils_transform::Request_SetLocation(ActualShape, Actual, ECk_LocalWorld::World);
+        }
+
+        auto DetectorOccupied = utils_probe::Get_CurrentOverlaps(DetectorProbe).Num() > 0;
+        auto DetectorColor = DetectorOccupied ? DetectorColor_Hit : DetectorColor_Empty;
+        if (ColorIsDifferent(DetectorColor, DetectorColorCached))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(DetectorShape);
+            DetectorColorCached = DetectorColor;
+            DetectorShape = utils_pmg_basic_shapes::DrawFilledBox(
+                DetectorWorldLocation, DetectorHalfExtents, DetectorColorCached,
+                true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
         }
     }
 

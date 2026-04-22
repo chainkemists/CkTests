@@ -43,6 +43,23 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
 
     int32 DesyncCount = 0;
 
+    // Persistent debug shapes — created once with infinite lifetime.
+    // Detector box position is fixed; only respawned on color change.
+    // Each ball has its own persistent sphere whose position is updated each
+    // frame via Request_SetLocation, and is only destroyed + respawned when
+    // its (color-encoded) state actually changes (basic-shape PMG has no
+    // recolor request).
+    FCk_Handle_Pmg_DebugShape DetectorShape;
+    FLinearColor DetectorColorCached;
+    TArray<FCk_Handle_Pmg_DebugShape> BallShapes;
+    TArray<FLinearColor> BallColorsCached;
+
+    FLinearColor DetectorColor_Empty = FLinearColor(0.2f, 0.4f, 1.0f, 0.15f);
+    FLinearColor DetectorColor_Occupied = FLinearColor(1.0f, 0.2f, 0.2f, 0.15f);
+    FLinearColor BallColor_Outside = FLinearColor(0.4f, 1.0f, 0.4f, 1.0f);
+    FLinearColor BallColor_Inside = FLinearColor(1.0f, 0.4f, 0.7f, 1.0f);
+    FLinearColor BallColor_Desync = FLinearColor(1.0f, 1.0f, 0.0f, 1.0f);
+
     FCk_Handle_Timer AutoTimer;
     bool AutoRunning = true;
     FCkGym_AutoConfig AutoConfig;
@@ -137,6 +154,34 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
         // (see BusterBlock commit b4c6ed72d), so there's no need to wait
         // before any ball's transform starts moving.
         StartNextBallTween();
+
+        SpawnPersistentShapes();
+    }
+
+    private void SpawnPersistentShapes()
+    {
+        DetectorColorCached = DetectorColor_Empty;
+        DetectorShape = utils_pmg_basic_shapes::DrawFilledBox(
+            StationWorldLocation, ProbeHalfExtents, DetectorColorCached,
+            true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+
+        for (int32 i = 0; i < Balls.Num(); ++i)
+        {
+            auto Ball = Balls[i];
+            auto BallLoc = ck::IsValid(Ball)
+                ? utils_transform::Get_EntityCurrentLocation(Ball)
+                : StationWorldLocation;
+
+            BallColorsCached.Add(BallColor_Outside);
+            BallShapes.Add(utils_pmg_basic_shapes::DrawFilledSphere(
+                BallLoc, BallRadius, 16, 16, BallColor_Outside,
+                true, 2.0f, ECk_Plane_Axis::XY, -1.0f));
+        }
+    }
+
+    private bool ColorIsDifferent(FLinearColor InA, FLinearColor InB)
+    {
+        return InA.R != InB.R || InA.G != InB.G || InA.B != InB.B || InA.A != InB.A;
     }
 
     //------------------------------------------------------------------------
@@ -238,20 +283,27 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
 
     void DrawVisuals()
     {
+        // Skip until DoBeginPlay has spawned the persistent shapes.
+        if (ck::Is_NOT_Valid(DetectorShape))
+        { return; }
+
         auto CurrentOverlaps = utils_probe::Get_CurrentOverlaps(ProbeHandle);
         auto ProbeOccupied = CurrentOverlaps.Num() > 0;
-        auto BoxColor = ProbeOccupied
-            ? FLinearColor(1.0f, 0.2f, 0.2f, 0.15f)
-            : FLinearColor(0.2f, 0.4f, 1.0f, 0.15f);
+        auto BoxColor = ProbeOccupied ? DetectorColor_Occupied : DetectorColor_Empty;
 
-        utils_pmg_basic_shapes::DrawFilledBox(
-            StationWorldLocation, ProbeHalfExtents, BoxColor,
-            true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+        if (ColorIsDifferent(BoxColor, DetectorColorCached))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(DetectorShape);
+            DetectorColorCached = BoxColor;
+            DetectorShape = utils_pmg_basic_shapes::DrawFilledBox(
+                StationWorldLocation, ProbeHalfExtents, DetectorColorCached,
+                true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+        }
 
         auto LocalDesyncCount = 0;
-        auto ActiveBallCount = BallTweens.Num();
+        auto BallShapeCount = BallShapes.Num();
 
-        for (int32 i = 0; i < ActiveBallCount; ++i)
+        for (int32 i = 0; i < BallShapeCount; ++i)
         {
             auto Ball = Balls[i];
             if (ck::Is_NOT_Valid(Ball))
@@ -264,21 +316,30 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
             FLinearColor BallColor;
             if (VisuallyInside != ProbeKnowsInside)
             {
-                BallColor = FLinearColor(1.0f, 1.0f, 0.0f, 1.0f);
+                BallColor = BallColor_Desync;
                 LocalDesyncCount++;
             }
             else if (VisuallyInside)
             {
-                BallColor = FLinearColor(1.0f, 0.4f, 0.7f, 1.0f);
+                BallColor = BallColor_Inside;
             }
             else
             {
-                BallColor = FLinearColor(0.4f, 1.0f, 0.4f, 1.0f);
+                BallColor = BallColor_Outside;
             }
 
-            utils_pmg_basic_shapes::DrawFilledSphere(
-                BallLoc, BallRadius, 16, 16, BallColor,
-                true, 2.0f, ECk_Plane_Axis::XY, 0.1f);
+            if (ColorIsDifferent(BallColor, BallColorsCached[i]))
+            {
+                utils_entity_lifetime::Request_DestroyEntity(BallShapes[i]);
+                BallColorsCached[i] = BallColor;
+                BallShapes[i] = utils_pmg_basic_shapes::DrawFilledSphere(
+                    BallLoc, BallRadius, 16, 16, BallColor,
+                    true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
+            }
+            else
+            {
+                utils_transform::Request_SetLocation(BallShapes[i], BallLoc, ECk_LocalWorld::World);
+            }
         }
 
         DesyncCount = LocalDesyncCount;
