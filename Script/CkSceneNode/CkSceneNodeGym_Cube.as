@@ -5,6 +5,7 @@ enum ECk_SceneNodeGym_Behavior
 	OffsetUpdates,
 	MultipleChildren,
 	Hierarchy,
+	PropagateOnly,
 	ECk_MAX
 }
 
@@ -59,6 +60,20 @@ class ACk_SceneNodeGym_Cube : AActor
 	float32 RootRotationSpeed = 25.0f;
 	float32 ChildRotationSpeed = 45.0f;
 
+	// --- PropagateOnly state ---
+	// Solar-system style: only the root rotates. Planet + moon have static
+	// local offsets and no per-frame updates, so if scene-node transform
+	// propagation works, planet should orbit root and moon should orbit
+	// planet via parent motion alone. If propagation is broken, planet
+	// and moon stay frozen at their initial world positions.
+	FCk_Handle_SceneNode PropagatePlanet;
+	FCk_Handle_SceneNode PropagateMoon;
+	ACk_SceneNodeGym_ChildCube PropagatePlanetCube;
+	ACk_SceneNodeGym_ChildCube PropagateMoonCube;
+	float32 PropagateRootRotationSpeed = 40.0f;
+	float32 PropagatePlanetOrbitRadius = 160.0f;
+	float32 PropagateMoonOrbitRadius = 80.0f;
+
 	UFUNCTION(BlueprintOverride)
 	void BeginPlay()
 	{
@@ -100,6 +115,10 @@ class ACk_SceneNodeGym_Cube : AActor
 		else if (Behavior == ECk_SceneNodeGym_Behavior::Hierarchy)
 		{
 			Setup_Hierarchy();
+		}
+		else if (Behavior == ECk_SceneNodeGym_Behavior::PropagateOnly)
+		{
+			Setup_PropagateOnly();
 		}
 
 		// Per-frame tick
@@ -187,6 +206,22 @@ class ACk_SceneNodeGym_Cube : AActor
 		HierarchyGrandchildCube = SpawnChildCube("Grandchild");
 	}
 
+	private void Setup_PropagateOnly()
+	{
+		// Sun (root) is the rotating parent this actor is attached to. The
+		// planet and moon have static local offsets and NO per-frame updates
+		// of their own — purely relying on scene-node transform propagation
+		// to inherit the root's rotation.
+		auto PlanetLocalTransform = FTransform(FRotator(), FVector(PropagatePlanetOrbitRadius, 0.0f, 0.0f), FVector(0.6f, 0.6f, 0.6f));
+		PropagatePlanet = utils_scene_node::Create(ParentTransform, PlanetLocalTransform);
+		PropagatePlanetCube = SpawnChildCube("Planet");
+
+		auto PlanetTransformHandle = PropagatePlanet.As_Transform();
+		auto MoonLocalTransform = FTransform(FRotator(), FVector(PropagateMoonOrbitRadius, 0.0f, 0.0f), FVector(0.4f, 0.4f, 0.4f));
+		PropagateMoon = utils_scene_node::Create(PlanetTransformHandle, MoonLocalTransform);
+		PropagateMoonCube = SpawnChildCube("Moon");
+	}
+
 	//------------------------------------------------------------------------
 	// PER-FRAME TICK
 	//------------------------------------------------------------------------
@@ -212,6 +247,10 @@ class ACk_SceneNodeGym_Cube : AActor
 		else if (Behavior == ECk_SceneNodeGym_Behavior::Hierarchy)
 		{
 			Tick_Hierarchy(DeltaSeconds);
+		}
+		else if (Behavior == ECk_SceneNodeGym_Behavior::PropagateOnly)
+		{
+			Tick_PropagateOnly(DeltaSeconds);
 		}
 	}
 
@@ -273,5 +312,17 @@ class ACk_SceneNodeGym_Cube : AActor
 
 		SyncChildCube(HierarchyChildCube, HierarchyChild);
 		SyncChildCube(HierarchyGrandchildCube, HierarchyGrandchild);
+	}
+
+	private void Tick_PropagateOnly(float32 DeltaSeconds)
+	{
+		// ONLY the root rotates. Planet and Moon have their offsets locked in
+		// at setup and are never touched again — so their world transforms
+		// depend entirely on scene-node transform propagation picking up the
+		// root's rotation change each frame.
+		utils_transform::Request_AddRotationOffset(EcsEntity, FRotator(0.0f, PropagateRootRotationSpeed * DeltaSeconds, 0.0f), ECk_LocalWorld::World);
+
+		SyncChildCube(PropagatePlanetCube, PropagatePlanet);
+		SyncChildCube(PropagateMoonCube, PropagateMoon);
 	}
 }
