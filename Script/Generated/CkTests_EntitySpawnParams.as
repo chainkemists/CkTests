@@ -2788,6 +2788,19 @@ namespace UCk_SmTest_Condition_LongDelay
 }
 
 USTRUCT()
+struct FCk_SmTest_Condition_PolledFalse_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Condition_PolledFalse
+{
+    FCk_SmTest_Condition_PolledFalse_SpawnParams Params()
+    {
+        return FCk_SmTest_Condition_PolledFalse_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_SmTest_Condition_PolledTimer_SpawnParams
 {
 }
@@ -2810,6 +2823,162 @@ namespace UCk_SmTest_Condition_ShortDelay
     FCk_SmTest_Condition_ShortDelay_SpawnParams Params()
     {
         return FCk_SmTest_Condition_ShortDelay_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_Sub_State_A_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_Sub_State_A
+{
+    FCk_SmTest_GraphWalk_Sub_State_A_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_Sub_State_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_Sub_State_B_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_Sub_State_B
+{
+    FCk_SmTest_GraphWalk_Sub_State_B_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_Sub_State_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_Sub_State_C_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_Sub_State_C
+{
+    FCk_SmTest_GraphWalk_Sub_State_C_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_Sub_State_C_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_Sub_State_D_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_Sub_State_D
+{
+    FCk_SmTest_GraphWalk_Sub_State_D_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_Sub_State_D_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_Sub_State_E_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_Sub_State_E
+{
+    FCk_SmTest_GraphWalk_Sub_State_E_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_Sub_State_E_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_SubSmTask_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_SubSmTask
+{
+    FCk_SmTest_GraphWalk_SubSmTask_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_SubSmTask_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_SubSmWrapper_State_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_SubSmWrapper_State
+{
+    FCk_SmTest_GraphWalk_SubSmWrapper_State_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_SubSmWrapper_State_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_Top_State_A_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_Top_State_A
+{
+    FCk_SmTest_GraphWalk_Top_State_A_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_Top_State_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_Top_State_B_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_Top_State_B
+{
+    FCk_SmTest_GraphWalk_Top_State_B_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_Top_State_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_Top_State_C_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_Top_State_C
+{
+    FCk_SmTest_GraphWalk_Top_State_C_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_Top_State_C_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_Top_State_D_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_Top_State_D
+{
+    FCk_SmTest_GraphWalk_Top_State_D_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_Top_State_D_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_GraphWalk_Top_State_E_SpawnParams
+{
+}
+
+namespace UCk_SmTest_GraphWalk_Top_State_E
+{
+    FCk_SmTest_GraphWalk_Top_State_E_SpawnParams Params()
+    {
+        return FCk_SmTest_GraphWalk_Top_State_E_SpawnParams();
     }
 }
 
@@ -3035,6 +3204,110 @@ namespace UCk_SmTest_State_Patrol
 }
 
 USTRUCT()
+struct FCk_SmTest_Task_EnterCount_Sub_A_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_EnterCount_Sub_A
+{
+    FCk_SmTest_Task_EnterCount_Sub_A_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_EnterCount_Sub_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_EnterCount_Sub_B_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_EnterCount_Sub_B
+{
+    FCk_SmTest_Task_EnterCount_Sub_B_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_EnterCount_Sub_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_EnterCount_Sub_C_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_EnterCount_Sub_C
+{
+    FCk_SmTest_Task_EnterCount_Sub_C_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_EnterCount_Sub_C_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_EnterCount_Sub_D_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_EnterCount_Sub_D
+{
+    FCk_SmTest_Task_EnterCount_Sub_D_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_EnterCount_Sub_D_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_EnterCount_Top_A_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_EnterCount_Top_A
+{
+    FCk_SmTest_Task_EnterCount_Top_A_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_EnterCount_Top_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_EnterCount_Top_B_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_EnterCount_Top_B
+{
+    FCk_SmTest_Task_EnterCount_Top_B_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_EnterCount_Top_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_EnterCount_Top_C_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_EnterCount_Top_C
+{
+    FCk_SmTest_Task_EnterCount_Top_C_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_EnterCount_Top_C_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_EnterCount_Top_D_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_EnterCount_Top_D
+{
+    FCk_SmTest_Task_EnterCount_Top_D_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_EnterCount_Top_D_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_SmTest_Task_LogOnly_SpawnParams
 {
 }
@@ -3044,6 +3317,32 @@ namespace UCk_SmTest_Task_LogOnly
     FCk_SmTest_Task_LogOnly_SpawnParams Params()
     {
         return FCk_SmTest_Task_LogOnly_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_RequestStopOwning_Sub_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_RequestStopOwning_Sub
+{
+    FCk_SmTest_Task_RequestStopOwning_Sub_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_RequestStopOwning_Sub_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Task_RequestStopOwning_Top_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Task_RequestStopOwning_Top
+{
+    FCk_SmTest_Task_RequestStopOwning_Top_SpawnParams Params()
+    {
+        return FCk_SmTest_Task_RequestStopOwning_Top_SpawnParams();
     }
 }
 
