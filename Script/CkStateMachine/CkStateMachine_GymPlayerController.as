@@ -53,6 +53,18 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.StateMachine.GraphWalkRegression");
+            Station.Title = FText::FromString("GRAPH-WALK REGRESSION");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Guards CkFoundation PR #643: graph-walk temp entities must not fire task DoEnterTask bodies."));
+            Description.Add(FText::FromString("Constructs two 5-state linear SMs (top-level + sub-SM) gated by polled-false conditions."));
+            Description.Add(FText::FromString("PASS = only initial states incremented counters, both SMs still Running."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
         return Stations;
     }
 
@@ -66,6 +78,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
         Request_StartPauseResume();
         Request_StartComplex();
         Request_StartHierarchical();
+        Request_StartGraphWalkRegression();
         ck::Trace("SM Gym - All stations started");
     }
 
@@ -150,6 +163,28 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
     }
 
     // ========================================================================
+    // GRAPH-WALK REGRESSION STATION
+    // ========================================================================
+
+    void Request_StartGraphWalkRegression()
+    {
+        auto StationTransform = Get_StationTransform("Gym.StateMachine.GraphWalkRegression");
+
+        auto SpawnedActor = SpawnActor(
+            ACk_SmTest_GraphWalkRegression_GymActor,
+            StationTransform.GetLocation(),
+            FRotator(0, 180, 0),
+            NAME_None,
+            true);
+
+        // Pass the station handle so the actor can push PASS/FAIL straight
+        // to the station's BP_DemoDisplay panel via dynamic fragment.
+        SpawnedActor.StationHandle = Get_StationHandle("Gym.StateMachine.GraphWalkRegression");
+
+        FinishSpawningActor(SpawnedActor);
+    }
+
+    // ========================================================================
     // CONSOLE COMMANDS
     // ========================================================================
 
@@ -175,6 +210,12 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymSm_RestartHierarchical()
     {
         Request_StartHierarchical();
+    }
+
+    UFUNCTION(Exec, DisplayName="SM Gym - Restart GraphWalk Regression")
+    void Ck_GymSm_RestartGraphWalkRegression()
+    {
+        Request_StartGraphWalkRegression();
     }
 };
 
