@@ -2179,6 +2179,47 @@ namespace UCk_EntityScript_MessagingGym_OneShot
 }
 
 USTRUCT()
+struct FCk_EntityScript_NavigationGym_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FString StationTitle = "";
+
+    UPROPERTY()
+    FString StationDescription = "";
+
+    UPROPERTY()
+    FVector TargetOffset = FVector(500.0, 0.0, 0.0);
+
+    UPROPERTY()
+    float RepathIntervalSeconds = 5.0;
+
+    FCk_EntityScript_NavigationGym_Station_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, FVector InTargetOffset, float InRepathIntervalSeconds)
+    {
+        InitialTransform = InInitialTransform;
+        StationTitle = InStationTitle;
+        StationDescription = InStationDescription;
+        TargetOffset = InTargetOffset;
+        RepathIntervalSeconds = InRepathIntervalSeconds;
+    }
+}
+
+namespace UCk_EntityScript_NavigationGym_Station
+{
+    FCk_EntityScript_NavigationGym_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_NavigationGym_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_NavigationGym_Station_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, FVector InTargetOffset, float InRepathIntervalSeconds)
+    {
+        return FCk_EntityScript_NavigationGym_Station_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InTargetOffset, InRepathIntervalSeconds);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_PlannerT1_SpawnParams
 {
     UPROPERTY()
