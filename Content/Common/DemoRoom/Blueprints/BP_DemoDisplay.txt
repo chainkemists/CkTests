@@ -1,0 +1,3804 @@
+=== Blueprint: BP_DemoDisplay ===
+Path: /CkTests/Common/DemoRoom/Blueprints/BP_DemoDisplay.BP_DemoDisplay
+Type: Blueprint
+Parent Class: Actor (/Script/Engine.Actor)
+Exported: 2026.04.26-00.19.39
+
+--- Implemented Interfaces (1) ---
+  [Ck_Entity_ConstructionScript_Interface] /Script/CkEcs.Ck_Entity_ConstructionScript_Interface
+    void DoConstruct(FCk_Handle InHandle)
+    void ExecuteUbergraph(int32 EntryPoint)
+
+--- Variables (35) ---
+  [InstancedStaticMeshComponent] ISM_Main (Category: Default)
+  [InstancedStaticMeshComponent] ISM_Corner (Category: Default)
+  [InstancedStaticMeshComponent] ISM_Side (Category: Default)
+  [InstancedStaticMeshComponent] ISM_ Curve (Category: Default)
+  [InstancedStaticMeshComponent] ISM_ CurveEdge (Category: Default)
+  [double] Width (Category: Panel Settings)
+  [double] Depth (Category: Panel Settings)
+  [double] Height (Category: Panel Settings)
+  [Text] Title Text (Category: Title)
+  [TArray<Text>] Description Text (Category: Description)
+  [Byte] Text Alignment (Category: Panel Settings)
+  [double] Description Scale (Category: Description)
+  [double] Title Scale (Category: Title)
+  [Color] Title Colour (Category: Title)
+  [Color] Description Colour (Category: Description)
+  [Boolean] Seperate Title Panel (Category: Title)
+  [Boolean] Floor Text (Category: Panel Settings)
+  [Boolean] Spotlight (Category: Panel Settings)
+  [Integer] Number of lines between paragraphs (Category: Description)
+  [Integer] Number of spaces between lines (Category: Description)
+  [String] DescriptionFinal (Category: Debug)
+  [float] Text Padding (Category: Description)
+  [InstancedStaticMeshComponent] ISM_TitleBarMain (Category: Default)
+  [InstancedStaticMeshComponent] ISM_TitleBarEnd (Category: Default)
+  [Boolean] Cast Shadows (Category: Panel Settings)
+  [InstancedStaticMeshComponent] ISM_ShadowStraight (Category: Default)
+  [InstancedStaticMeshComponent] ISM_ShadowRound (Category: Default)
+  [double] ShadowCover (Category: Panel Settings)
+  [DataTableRowHandle] Colour (Category: Panel Settings)
+  [LinearColor] Custom Colour (Category: Panel Settings)
+  [LinearColor] BoardColour (Category: Default)
+  [Vector] CenterOffset (Category: Default)
+  [TextRenderComponent] TitleText_Component (Category: Default)
+  [TextRenderComponent] DescriptionText_Component (Category: Default)
+  [Ck_Handle_EntityScript] In Entity Script Handle (Category: Default, Replicated: Yes, RepNotify: OnRep_In Entity Script Handle)
+
+--- Class Defaults ---
+--- Properties (94) ---
+  [Default]
+    (UTextRenderComponent*) Instructions = None
+    (USceneComponent*) Offset = None
+    (USceneComponent*) DefaultSceneRoot = None
+    (UInstancedStaticMeshComponent*) ISM_Main = None
+    (UInstancedStaticMeshComponent*) ISM_Corner = None
+    (UInstancedStaticMeshComponent*) ISM_Side = None
+    (UInstancedStaticMeshComponent*) ISM_ Curve = None
+    (UInstancedStaticMeshComponent*) ISM_ CurveEdge = None
+    (UInstancedStaticMeshComponent*) ISM_TitleBarMain = None
+    (UInstancedStaticMeshComponent*) ISM_TitleBarEnd = None
+    (UInstancedStaticMeshComponent*) ISM_ShadowStraight = None
+    (UInstancedStaticMeshComponent*) ISM_ShadowRound = None
+    (FLinearColor) BoardColour = (R=0.000000,G=0.000000,B=0.000000,A=0.000000)
+    (FVector) CenterOffset = (X=250.000000,Y=0.000000,Z=200.000000)
+    (UTextRenderComponent*) TitleText_Component = None
+    (UTextRenderComponent*) DescriptionText_Component = None
+    (FCk_Handle_EntityScript) In Entity Script Handle = (_Entity=(_EntityID=-1,_EntityNumber=1048575,_EntityVersion=4095))
+  [Panel Settings]
+    (double) Width = 6.000000
+    (double) Depth = 5.000000
+    (double) Height = 5.000000
+    (TEnumAsByte<EHorizTextAligment>) Text Alignment = EHTA_Left
+    (bool) Floor Text = False
+    (bool) Spotlight = True
+    (bool) Cast Shadows = False
+    (double) ShadowCover = 0.333000
+    (FDataTableRowHandle) Colour = (DataTable="/Script/Engine.DataTable'/CkTests/Common/DemoRoom/Misc/DT_Colourways.DT_Colourways'",RowName="Custom")
+    (FLinearColor) Custom Colour = (R=0.010000,G=0.010000,B=0.010000,A=1.000000)
+  [Title]
+    (FText) Title Text = NSLOCTEXT("[51E71398DFA916B252F96FF75157BFC6]", "0D3A6FBE4730C60DF81C7C8CF4B1EC0C", "Title")
+    (double) Title Scale = 20.000000
+    (FColor) Title Colour = (B=255,G=255,R=255,A=255)
+    (bool) Seperate Title Panel = False
+  [Description]
+    (TArray) Description Text = (NSLOCTEXT("[51E71398DFA916B252F96FF75157BFC6]", "235193A046599097044989B3EB9BD67F", "Example paragraph line 1"),NSLOCTEXT("[51E71398DFA916B252F96FF75157BFC6]", "2765075C481D55F59FC95D9FF43F8E40", "Example paragraph line 2"))
+    (double) Description Scale = 12.000000
+    (FColor) Description Colour = (B=255,G=255,R=255,A=255)
+    (int32) Number of lines between paragraphs = 1
+    (int32) Number of spaces between lines = 0
+    (float) Text Padding = 1.000000
+  [Debug]
+    (FString) DescriptionFinal = 
+  [Tick]
+    (FActorTickFunction) PrimaryActorTick = (bStartWithTickEnabled=True,bAllowTickOnDedicatedServer=True)
+    (uint8) bAllowTickBeforeBeginPlay = False
+  [Replication]
+    (uint8) bOnlyRelevantToOwner = False
+    (uint8) bAlwaysRelevant = True
+    (uint8) bReplicateMovement = False
+    (uint8) bCallPreReplication = True
+    (uint8) bCallPreReplicationForReplay = True
+    (uint8) bNetLoadOnClient = True
+    (uint8) bNetUseOwnerRelevancy = False
+    (uint8) bReplayRewindable = False
+    (uint8) bReplicates = True
+    (uint8) bReplicateUsingRegisteredSubObjectList = True
+    (FRepMovement) ReplicatedMovement = ()
+    (TEnumAsByte<ENetDormancy>) NetDormancy = DORM_Awake
+    (float) NetCullDistanceSquared = 225000000.000000
+    (float) NetUpdateFrequency = 100.000000
+    (float) MinNetUpdateFrequency = 2.000000
+    (float) NetPriority = 1.000000
+    (EPhysicsReplicationMode) PhysicsReplicationMode = Default
+  [Rendering]
+    (uint8) bHidden = False
+    (float) SpriteScale = 1.000000
+  [LevelInstance]
+    (uint8) bIsMainWorldOnly = False
+  [Collision]
+    (uint8) bRelevantForLevelBounds = True
+    (uint8) bGenerateOverlapEventsDuringLevelStreaming = False
+    (EActorUpdateOverlapsMethod) UpdateOverlapsMethodDuringLevelStreaming = UseConfigDefault
+    (EActorUpdateOverlapsMethod) DefaultUpdateOverlapsMethodDuringLevelStreaming = OnlyUpdateMovable
+  [Actor]
+    (uint8) bAutoDestroyWhenFinished = False
+    (uint8) bCanBeDamaged = True
+    (uint8) bFindCameraComponentWhenViewTarget = True
+    (uint8) bIgnoresOriginShifting = False
+    (uint8) bCanBeInCluster = False
+    (uint8) bMigratingAsset = False
+    (float) InitialLifeSpan = 0.000000
+    (float) CustomTimeDilation = 1.000000
+    (ESpawnActorCollisionHandlingMethod) SpawnCollisionHandlingMethod = AlwaysSpawn
+    (TObjectPtr<APawn>) Instigator = None
+    (FVector) PivotOffset = (X=0.000000,Y=0.000000,Z=0.000000)
+    (TArray) Layers = 
+    (FGuid) ActorGuid = 00000000000000000000000000000000
+    (FGuid) ContentBundleGuid = 00000000000000000000000000000000
+    (TArray) Tags = 
+  [Input]
+    (uint8) bBlockInput = False
+    (TEnumAsByte<EAutoReceiveInput::Type>) AutoReceiveInput = Disabled
+    (int32) InputPriority = 0
+  [HLOD]
+    (uint8) bEnableAutoLODGeneration = True
+    (TObjectPtr<UHLODLayer>) HLODLayer = None
+  [Cooking]
+    (uint8) bIsEditorOnlyActor = False
+    (uint8) bOptimizeBPComponentData = False
+  [Physics]
+    (uint8) bAsyncPhysicsTickEnabled = False
+  [WorldPartition]
+    (FName) RuntimeGrid = None
+    (uint8) bIsSpatiallyLoaded = True
+  [Networking]
+    (TEnumAsByte<ENetRole>) Role = ROLE_Authority
+  [Transformation]
+    (TObjectPtr<USceneComponent>) RootComponent = None
+  [DataLayers]
+    (TArray) DataLayers = 
+    (TArray) DataLayerAssets = 
+    (TObjectPtr<UExternalDataLayerAsset>) ExternalDataLayerAsset = None
+
+--- Components (3) ---
+  [SceneComponent] DefaultSceneRoot (SCS)
+    Location: (0, 0, 0)
+    Rotation: (P=0, Y=0, R=0)
+    Scale:    (1, 1, 1)
+    --- Properties (12) ---
+      [Transform]
+        (FVector) RelativeLocation = (X=0.000000,Y=0.000000,Z=0.000000)
+        (FRotator) RelativeRotation = (Pitch=0.000000,Yaw=0.000000,Roll=0.000000)
+        (FVector) RelativeScale3D = (X=1.000000,Y=1.000000,Z=1.000000)
+        (uint8) bAbsoluteLocation = False
+        (uint8) bAbsoluteRotation = False
+        (uint8) bAbsoluteScale = False
+      [Rendering]
+        (uint8) bVisible = True
+        (uint8) bHiddenInGame = False
+        (uint8) bUseAttachParentBound = False
+      [Physics]
+        (uint8) bShouldUpdatePhysicsVolume = False
+      [Mobility]
+        (TEnumAsByte<EComponentMobility::Type>) Mobility = Movable
+      [LOD]
+        (TEnumAsByte<EDetailMode>) DetailMode = DM_Low
+
+  [SceneComponent] Offset (SCS)
+    Location: (250, 0, 200)
+    Rotation: (P=0, Y=0, R=0)
+    Scale:    (1, 1, 1)
+    --- Properties (12) ---
+      [Transform]
+        (FVector) RelativeLocation = (X=250.000000,Y=0.000000,Z=200.000000)
+        (FRotator) RelativeRotation = (Pitch=0.000000,Yaw=0.000000,Roll=0.000000)
+        (FVector) RelativeScale3D = (X=1.000000,Y=1.000000,Z=1.000000)
+        (uint8) bAbsoluteLocation = False
+        (uint8) bAbsoluteRotation = False
+        (uint8) bAbsoluteScale = False
+      [Rendering]
+        (uint8) bVisible = True
+        (uint8) bHiddenInGame = False
+        (uint8) bUseAttachParentBound = False
+      [Physics]
+        (uint8) bShouldUpdatePhysicsVolume = False
+      [Mobility]
+        (TEnumAsByte<EComponentMobility::Type>) Mobility = Movable
+      [LOD]
+        (TEnumAsByte<EDetailMode>) DetailMode = DM_Low
+
+  [TextRenderComponent] Instructions (SCS)
+    Location: (100, 270, 12)
+    Rotation: (P=90, Y=180, R=180)
+    Scale:    (1, 1, 1)
+    --- Properties (100) ---
+      [Text]
+        (FText) Text = 
+        (TObjectPtr<UMaterialInterface>) TextMaterial = /Script/Engine.Material'/Engine/EngineMaterials/DefaultTextMaterialOpaque.DefaultTextMaterialOpaque'
+        (TObjectPtr<UFont>) Font = /Script/Engine.Font'/Engine/EngineFonts/RobotoDistanceField.RobotoDistanceField'
+        (TEnumAsByte<EHorizTextAligment>) HorizontalAlignment = EHTA_Left
+        (TEnumAsByte<EVerticalTextAligment>) VerticalAlignment = EVRTA_TextTop
+        (FColor) TextRenderColor = (B=255,G=255,R=255,A=255)
+        (float) XScale = 1.000000
+        (float) YScale = 1.000000
+        (float) WorldSize = 16.000000
+        (float) HorizSpacingAdjust = 0.000000
+        (float) VertSpacingAdjust = 0.000000
+      [Rendering]
+        (uint8) bAlwaysRenderAsText = False
+        (uint8) bVisibleInReflectionCaptures = True
+        (uint8) bVisibleInRealTimeSkyCaptures = True
+        (uint8) bVisibleInRayTracing = True
+        (uint8) bRenderInMainPass = True
+        (uint8) bRenderInDepthPass = True
+        (uint8) bReceivesDecals = True
+        (uint8) bHoldout = False
+        (uint8) bOwnerNoSee = False
+        (uint8) bOnlyOwnerSee = False
+        (uint8) bTreatAsBackgroundForOcclusion = False
+        (uint8) bUseAsOccluder = False
+        (uint8) bHasPerInstanceHitProxies = False
+        (uint8) bRenderCustomDepth = False
+        (uint8) bVisibleInSceneCaptureOnly = False
+        (uint8) bHiddenInSceneCapture = False
+        (EFirstPersonPrimitiveType) FirstPersonPrimitiveType = None
+        (ERendererStencilMask) CustomDepthStencilWriteMask = ERSM_Default
+        (int32) CustomDepthStencilValue = 0
+        (FCustomPrimitiveData) CustomPrimitiveData = ()
+        (int32) TranslucencySortPriority = 0
+        (float) TranslucencySortDistanceOffset = 0.000000
+        (float) BoundsScale = 1.000000
+        (uint8) bVisible = True
+        (uint8) bHiddenInGame = False
+        (uint8) bUseAttachParentBound = False
+      [LOD]
+        (float) MinDrawDistance = 0.000000
+        (float) LDMaxDrawDistance = 0.000000
+        (float) CachedMaxDrawDistance = 0.000000
+        (uint8) bNeverDistanceCull = False
+        (uint8) bAllowCullDistanceVolume = True
+        (TEnumAsByte<EDetailMode>) DetailMode = DM_Low
+      [Lighting]
+        (TEnumAsByte<EIndirectLightingCacheQuality>) IndirectLightingCacheQuality = ILCQ_Point
+        (ELightmapType) LightmapType = Default
+        (EShadowCacheInvalidationBehavior) ShadowCacheInvalidationBehavior = Auto
+        (uint8) CastShadow = False
+        (uint8) bEmissiveLightSource = False
+        (uint8) bAffectDynamicIndirectLighting = True
+        (uint8) bAffectIndirectLightingWhileHidden = False
+        (uint8) bAffectDistanceFieldLighting = True
+        (uint8) bCastDynamicShadow = True
+        (uint8) bCastStaticShadow = True
+        (uint8) bCastVolumetricTranslucentShadow = False
+        (uint8) bCastContactShadow = True
+        (uint8) bSelfShadowOnly = False
+        (uint8) bCastFarShadow = False
+        (uint8) bCastInsetShadow = False
+        (uint8) bCastCinematicShadow = False
+        (uint8) bCastHiddenShadow = False
+        (uint8) bCastShadowAsTwoSided = False
+        (uint8) bLightAttachmentsAsGroup = False
+        (uint8) bExcludeFromLightAttachmentGroup = False
+        (uint8) bSingleSampleShadowFromStationaryLights = False
+        (uint8) bStaticWhenNotMoveable = True
+        (FLightingChannels) LightingChannels = (bChannel0=True)
+      [HLOD]
+        (EHLODBatchingPolicy) HLODBatchingPolicy = None
+        (uint8) bEnableAutoLODGeneration = True
+        (uint8) ExcludeFromHLODLevels = 0
+      [Collision]
+        (uint8) bAlwaysCreatePhysicsState = False
+        (uint8) bGenerateOverlapEvents = False
+        (uint8) bMultiBodyOverlap = False
+        (uint8) bTraceComplexOnMove = False
+        (uint8) bReturnMaterialOnMove = False
+        (uint8) bConsiderForActorPlacementWhenHidden = False
+        (TEnumAsByte<ECanBeCharacterBase>) CanCharacterStepUpOn = ECB_Yes
+        (FBodyInstance) BodyInstance = (PositionSolverIterationCount=8,VelocitySolverIterationCount=2,ProjectionSolverIterationCount=1,bAllowPartialIslandSleep=True,bLockTranslation=True,bLockRotation=True,bInterpolateWhenSubStepping=True,bInertiaConditioning=True,SolverAsyncDeltaTime=0.016667,CollisionProfileName="NoCollision",CollisionResponses=(ResponseArray=((Channel="Visibility",Response=ECR_Ignore),(Channel="Camera",Response=ECR_Ignore))),MassInKgOverride=100.000000,LinearDamping=0.010000,CustomDOFPlaneNormal=(X=0.000000,Y=0.000000,Z=0.000000),COMNudge=(X=0.000000,Y=0.000000,Z=0.000000),MassScale=1.000000,InertiaTensorScale=(X=1.000000,Y=1.000000,Z=1.000000),WalkableSlopeOverride=(),MaxAngularVelocity=3600.000000,CustomSleepThresholdMultiplier=1.000000,StabilizationThresholdMultiplier=1.000000,bEnableGravity=True,bStartAwake=True,bUpdateMassWhenScaleChanges=True)
+      [TextureStreaming]
+        (uint8) bForceMipStreaming = False
+      [Mobile]
+        (uint8) bReceiveMobileCSMShadows = True
+      [Physics]
+        (uint8) bIgnoreRadialImpulse = False
+        (uint8) bIgnoreRadialForce = False
+        (uint8) bApplyImpulseOnDamage = True
+        (uint8) bReplicatePhysicsToAutonomousProxy = True
+        (uint8) bShouldUpdatePhysicsVolume = False
+      [Navigation]
+        (uint8) bFillCollisionUnderneathForNavmesh = False
+        (uint8) bRasterizeAsFilledConvexVolume = False
+      [RayTracing]
+        (ERayTracingGroupCullingPriority) RayTracingGroupCullingPriority = CP_4_DEFAULT
+        (int32) RayTracingGroupId = -1
+      [VirtualTexture]
+        (TArray) RuntimeVirtualTextures = 
+        (int8) VirtualTextureLodBias = 0
+        (int8) VirtualTextureCullMips = 0
+        (int8) VirtualTextureMinCoverage = 0
+        (ERuntimeVirtualTextureMainPassType) VirtualTextureRenderPassType = Exclusive
+      [Transform]
+        (FVector) RelativeLocation = (X=100.000000,Y=270.000000,Z=12.000000)
+        (FRotator) RelativeRotation = (Pitch=90.000000,Yaw=180.000000,Roll=180.000000)
+        (FVector) RelativeScale3D = (X=1.000000,Y=1.000000,Z=1.000000)
+        (uint8) bAbsoluteLocation = False
+        (uint8) bAbsoluteRotation = False
+        (uint8) bAbsoluteScale = False
+      [Mobility]
+        (TEnumAsByte<EComponentMobility::Type>) Mobility = Movable
+
+
+--- Event Graph: EventGraph ---
+  Execution Flows:
+    [1] Event BeginPlay -> Parent: BeginPlay -> [Ck] Spawn Ck Entity Script with Actor UE
+Actor-Derived - Instanced -> [Ck][EntityScript] Promise/Future OnConstructed
+    [2] Event ActorBeginOverlap
+    [3] OnActorEntityCreated
+Custom Event -> Print String -> Delay -> [Ck][DynamicFragment] Get Fragment
+          [Valid] -> Set Text
+Target is Text Render Component
+           -> Set Text
+Target is Text Render Component
+           -> Set Text
+Target is Text Render Component
+           -> Reroute Node
+           -> Reroute Node
+          [Invalid] -> Reroute Node
+           -> Reroute Node
+
+  Nodes (27):
+    [K2Node_Event] "Event BeginPlay" (Node_QHBdMUd1CvLYU1ipfvZyWQ)
+      Out Pins:
+        (Delegate) OutputDelegate
+        (exec) then -> Node_ukwg-U6alSbiMneWtysWLA.execute
+    [K2Node_Event] "Event ActorBeginOverlap" (Node_fkdVrEUVGOyRMquW4IhkXA)
+      Comment: This node is disabled and will not be called.
+Drag off pins to build functionality.
+      Out Pins:
+        (Delegate) OutputDelegate
+        (exec) then
+        (Actor) OtherActor
+    [K2Node_CallParentFunction] "Parent: BeginPlay" (Node_ukwg-U6alSbiMneWtysWLA)
+      In Pins:
+        (exec) execute <- Node_QHBdMUd1CvLYU1ipfvZyWQ.then
+      Out Pins:
+        (exec) then -> Node_sgzCBErUKbx8Li6W9J-1Uw.execute
+    [K2Node_VariableGet] "Get TitleText_Component" (Node_NIPCTkRn-aPRL9qNHdhEFA)
+      Out Pins:
+        (TextRenderComponent) TitleText_Component -> Node_LK09AUJkqfzf_3Oy-50gXg.self
+    [K2Node_CallFunction] "Set Text
+Target is Text Render Component" (Node_LK09AUJkqfzf_3Oy-50gXg)
+      In Pins:
+        (exec) execute <- Node_OvvZ2U1kYnUj-IW_OopHiw.Valid
+        (TextRenderComponent) self <- Node_NIPCTkRn-aPRL9qNHdhEFA.TitleText_Component
+        (Text) Value <- Node_wt-oTUqUq_OUgWqwRqV3dQ.Title
+      Out Pins:
+        (exec) then -> Node_xJ7Kk0n4ZS4qDHy2FTFZ8w.execute
+    [K2Node_VariableGet] "Get DescriptionText_Component" (Node_M67z10J_YTXl1dWDHiVK4Q)
+      Out Pins:
+        (TextRenderComponent) DescriptionText_Component -> Node_xJ7Kk0n4ZS4qDHy2FTFZ8w.self
+    [K2Node_CallFunction] "Set Text
+Target is Text Render Component" (Node_xJ7Kk0n4ZS4qDHy2FTFZ8w)
+      In Pins:
+        (exec) execute <- Node_LK09AUJkqfzf_3Oy-50gXg.then
+        (TextRenderComponent) self <- Node_M67z10J_YTXl1dWDHiVK4Q.DescriptionText_Component
+        (Text) Value <- Node_jGQ7C08va339oS2DsyeIiQ.OutputPin
+      Out Pins:
+        (exec) then -> Node_H55fokskHo2kTJCeXL47SQ.execute
+    [K2Node_CallFunction] "Delay" (Node_gYjt0klytTEA1R2Ex26L2Q)
+      In Pins:
+        (exec) execute <- Node_rHOj-E_SUlJjUsGV-GbsXA.then, Node_1ljjVEe8ujl8kOSfqvl8TQ.OutputPin, Node_VC5_NEUZEw-pTQaIc4OWyg.OutputPin
+        (float) Duration = 0.100000
+      Out Pins:
+        (exec) then -> Node_OvvZ2U1kYnUj-IW_OopHiw.execute
+    [K2Node_VariableGet] "Get Instructions" (Node_8Rxsj0vv2y2-7nerThqbbA)
+      Out Pins:
+        (TextRenderComponent) Instructions -> Node_H55fokskHo2kTJCeXL47SQ.self
+    [K2Node_CallFunction] "Set Text
+Target is Text Render Component" (Node_H55fokskHo2kTJCeXL47SQ)
+      In Pins:
+        (exec) execute <- Node_xJ7Kk0n4ZS4qDHy2FTFZ8w.then
+        (TextRenderComponent) self <- Node_8Rxsj0vv2y2-7nerThqbbA.Instructions
+        (Text) Value <- Node_6qsZ5UToj1nK4SCFUPKJIQ.OutputPin
+      Out Pins:
+        (exec) then -> Node_7XncsEnQmUInXfGXEktInw.InputPin
+    [CkDynamicFragment_K2Node] "[Ck][DynamicFragment] Get Fragment" (Node_OvvZ2U1kYnUj-IW_OopHiw)
+      In Pins:
+        (exec) execute <- Node_gYjt0klytTEA1R2Ex26L2Q.then
+        (Ck_StructTypeSelector) Fragment Type = (_StructType="/Script/AngelscriptCode.ASStruct'/Script/Angelscript.CkGym_Station_TitleAndDescription'")
+        (Ck_Handle) Handle <- Node_2A9twEwjUUedTAye5aDjww.OutputPin
+      Out Pins:
+        (exec) Valid -> Node_LK09AUJkqfzf_3Oy-50gXg.execute
+        (exec) Invalid -> Node_fkCqP0lw9SsEsAOGNIGFdQ.InputPin
+        (CkGym_Station_TitleAndDescription) Fragment -> Node_wt-oTUqUq_OUgWqwRqV3dQ.CkGym_Station_TitleAndDescription
+    [K2Node_BreakStruct] "Break Ck Gym Station Title and Description" (Node_wt-oTUqUq_OUgWqwRqV3dQ)
+      In Pins:
+        (CkGym_Station_TitleAndDescription) CkGym_Station_TitleAndDescription <- Node_OvvZ2U1kYnUj-IW_OopHiw.Fragment
+      Out Pins:
+        (Text) Title -> Node_LK09AUJkqfzf_3Oy-50gXg.Value
+        (Text) Description -> Node_jGQ7C08va339oS2DsyeIiQ.InputPin
+        (Text) Instructions -> Node_6qsZ5UToj1nK4SCFUPKJIQ.InputPin
+    [K2Node_CustomEvent] "OnActorEntityCreated
+Custom Event" (Node_AADkTUxAT1gSECSQVcCcIA)
+      Out Pins:
+        (Delegate) OutputDelegate
+        (exec) then -> Node_rHOj-E_SUlJjUsGV-GbsXA.execute
+        (Ck_Handle_EntityScript) InEntityScriptHandle -> Node_k0JTE0VuGh4m09S7gNqyEQ.InputPin, Node_H3lf_UkqLarcz5egFs7BQA.InHandle
+    [Ck_K2Node_EntityScript] "[Ck] Spawn Ck Entity Script with Actor UE
+Actor-Derived - Instanced" (Node_sgzCBErUKbx8Li6W9J-1Uw)
+      In Pins:
+        (exec) execute <- Node_ukwg-U6alSbiMneWtysWLA.then
+        (Class<Ck_EntityScript_UE>) InEntityScriptClass = Ck_EntityScript_WithActor_UE
+        (Byte) InLifetimeOwnerType = UseTransientEntity
+        (Actor) _OwningActor <- Node_zKbKV0i71EkW0GGW7g3MxQ.self
+      Out Pins:
+        (exec) then -> Node_nWIHIU6oHilWGl6WlDwkOw.execute
+        (Ck_Handle_PendingEntityScript) EntityUnderConstruction -> Node_nWIHIU6oHilWGl6WlDwkOw.InPendingEntityScript
+    [K2Node_CallFunction] "[Ck][EntityScript] Promise/Future OnConstructed" (Node_nWIHIU6oHilWGl6WlDwkOw)
+      In Pins:
+        (exec) execute <- Node_sgzCBErUKbx8Li6W9J-1Uw.then
+        (Ck_Handle_PendingEntityScript) InPendingEntityScript <- Node_sgzCBErUKbx8Li6W9J-1Uw.EntityUnderConstruction
+        (Delegate) InDelegate <- Node_bPNsMU9A269Isj2hHjJVjA.OutputDelegate
+      Out Pins:
+        (exec) then
+    [K2Node_CreateDelegate] "Create Event" (Node_bPNsMU9A269Isj2hHjJVjA)
+      In Pins:
+        (Object) self
+      Out Pins:
+        (Delegate) OutputDelegate -> Node_nWIHIU6oHilWGl6WlDwkOw.InDelegate
+    [K2Node_Self] "Self-Reference" (Node_zKbKV0i71EkW0GGW7g3MxQ)
+      Out Pins:
+        (Object) self -> Node_sgzCBErUKbx8Li6W9J-1Uw._OwningActor
+    [K2Node_CallFunction] "Print String" (Node_rHOj-E_SUlJjUsGV-GbsXA)
+      In Pins:
+        (exec) execute <- Node_AADkTUxAT1gSECSQVcCcIA.then
+        (String) InString <- Node_H3lf_UkqLarcz5egFs7BQA.ReturnValue
+        (Boolean) bPrintToScreen = true
+        (Boolean) bPrintToLog = true
+        (LinearColor) TextColor = (R=0.000000,G=0.660000,B=1.000000,A=1.000000)
+        (float) Duration = 2.000000
+        (Name) Key = None
+      Out Pins:
+        (exec) then -> Node_gYjt0klytTEA1R2Ex26L2Q.execute
+    [K2Node_CallFunction] "[Ck] Handle -> String" (Node_H3lf_UkqLarcz5egFs7BQA)
+      In Pins:
+        (Ck_Handle) InHandle <- Node_AADkTUxAT1gSECSQVcCcIA.InEntityScriptHandle
+      Out Pins:
+        (String) ReturnValue -> Node_rHOj-E_SUlJjUsGV-GbsXA.InString
+    [K2Node_Knot] "Reroute Node" (Node_1ljjVEe8ujl8kOSfqvl8TQ)
+      In Pins:
+        (exec) InputPin <- Node_7XncsEnQmUInXfGXEktInw.OutputPin
+      Out Pins:
+        (exec) OutputPin -> Node_gYjt0klytTEA1R2Ex26L2Q.execute
+    [K2Node_Knot] "Reroute Node" (Node_7XncsEnQmUInXfGXEktInw)
+      In Pins:
+        (exec) InputPin <- Node_H55fokskHo2kTJCeXL47SQ.then
+      Out Pins:
+        (exec) OutputPin -> Node_1ljjVEe8ujl8kOSfqvl8TQ.InputPin
+    [K2Node_Knot] "Reroute Node" (Node_VC5_NEUZEw-pTQaIc4OWyg)
+      In Pins:
+        (exec) InputPin <- Node_fkCqP0lw9SsEsAOGNIGFdQ.OutputPin
+      Out Pins:
+        (exec) OutputPin -> Node_gYjt0klytTEA1R2Ex26L2Q.execute
+    [K2Node_Knot] "Reroute Node" (Node_fkCqP0lw9SsEsAOGNIGFdQ)
+      In Pins:
+        (exec) InputPin <- Node_OvvZ2U1kYnUj-IW_OopHiw.Invalid
+      Out Pins:
+        (exec) OutputPin -> Node_VC5_NEUZEw-pTQaIc4OWyg.InputPin
+    [K2Node_Knot] "Reroute Node" (Node_jGQ7C08va339oS2DsyeIiQ)
+      In Pins:
+        (Text) InputPin <- Node_wt-oTUqUq_OUgWqwRqV3dQ.Description
+      Out Pins:
+        (Text) OutputPin -> Node_xJ7Kk0n4ZS4qDHy2FTFZ8w.Value
+    [K2Node_Knot] "Reroute Node" (Node_k0JTE0VuGh4m09S7gNqyEQ)
+      In Pins:
+        (Ck_Handle_EntityScript) InputPin <- Node_AADkTUxAT1gSECSQVcCcIA.InEntityScriptHandle
+      Out Pins:
+        (Ck_Handle_EntityScript) OutputPin -> Node_2A9twEwjUUedTAye5aDjww.InputPin
+    [K2Node_Knot] "Reroute Node" (Node_2A9twEwjUUedTAye5aDjww)
+      In Pins:
+        (Ck_Handle_EntityScript) InputPin <- Node_k0JTE0VuGh4m09S7gNqyEQ.OutputPin
+      Out Pins:
+        (Ck_Handle_EntityScript) OutputPin -> Node_OvvZ2U1kYnUj-IW_OopHiw.Handle
+    [K2Node_Knot] "Reroute Node" (Node_6qsZ5UToj1nK4SCFUPKJIQ)
+      In Pins:
+        (Text) InputPin <- Node_wt-oTUqUq_OUgWqwRqV3dQ.Instructions
+      Out Pins:
+        (Text) OutputPin -> Node_H55fokskHo2kTJCeXL47SQ.Value
+
+--- Function: UserConstructionScript ---
+  Execution Flows:
+    [1] Construction Script -> Redraw
+Target is BP Demo Display -> Set Relative Transform
+Target is Scene Component -> For Each Loop -> Branch -> Set Relative Location
+Target is Scene Component
+
+  Nodes (49):
+    [K2Node_FunctionEntry] "Construction Script" (Node_ADA_zk7NUeL7GeaV1zTElg)
+      Out Pins:
+        (exec) then -> Node_3Y8Xzkqe9ETjkwi-JeywUA.execute
+    [K2Node_VariableGet] "Get Height" (Node_cI8TUEkPSVxXHae9qL_5oQ)
+      Out Pins:
+        (double) Height -> Node_ulDzIk2Yr_a6uPmPNZvmBQ.Option 0
+    [K2Node_PromotableOperator] "float / float" (Node_roGgV0UzdbHKsHuSc3raLQ)
+      In Pins:
+        (double) A <- Node_ulDzIk2Yr_a6uPmPNZvmBQ.ReturnValue
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_iMrJ_U1pVJaaPVCeUYE2Og.A
+    [K2Node_PromotableOperator] "float * float" (Node_iMrJ_U1pVJaaPVCeUYE2Og)
+      In Pins:
+        (double) A <- Node_roGgV0UzdbHKsHuSc3raLQ.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_-vuPfkD6e_sG99GQFqAT6w.Z
+    [K2Node_CallFunction] "Make Vector" (Node_-vuPfkD6e_sG99GQFqAT6w)
+      In Pins:
+        (double) X = 15.000000
+        (double) Y <- Node_t7DslEeqJslhlyOznkwYjQ.ReturnValue
+        (double) Z <- Node_iMrJ_U1pVJaaPVCeUYE2Og.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_boVBykaTD6qcLuW1gNj5Nw.Location
+    [K2Node_CallFunction] "Select Transform" (Node_VNKE4kZvTOuuLeqxTPbr4g)
+      In Pins:
+        (Transform) A <- Node_vB4Wjk5Kdh6A3EOxsYh_YQ.ReturnValue
+        (Transform) B <- Node_boVBykaTD6qcLuW1gNj5Nw.ReturnValue
+        (Boolean) bPickA <- Node_gzilP0lfJ1JkZpKuuE2RGA.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue
+    [K2Node_CallFunction] "Make Transform" (Node_boVBykaTD6qcLuW1gNj5Nw)
+      In Pins:
+        (Vector) Location <- Node_-vuPfkD6e_sG99GQFqAT6w.ReturnValue
+        (Rotator) Rotation = 0, 0, 0
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_VNKE4kZvTOuuLeqxTPbr4g.B, Node_nk_HEk9Ccaco39iZduaC_A.Option 0
+    [K2Node_VariableGet] "Get Height" (Node_YflV7E3aqKc8l6KB4cKRJQ)
+      Out Pins:
+        (double) Height -> Node_RJ7tMEZuR5aP5jWNLaegSA.A
+    [K2Node_CallFunction] "Make Transform" (Node_vB4Wjk5Kdh6A3EOxsYh_YQ)
+      In Pins:
+        (Vector) Location <- Node_sng_NEOMNKg4H1uM1-AJGQ.ReturnValue
+        (Rotator) Rotation = 0, 0, 0
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_VNKE4kZvTOuuLeqxTPbr4g.A
+    [K2Node_CallFunction] "Make Vector" (Node_sng_NEOMNKg4H1uM1-AJGQ)
+      In Pins:
+        (double) X <- Node_sOnKCEuKrEJQb7Ci3lAttw.ReturnValue
+        (double) Y <- Node_t7DslEeqJslhlyOznkwYjQ.ReturnValue
+        (double) Z = 25.000000
+      Out Pins:
+        (Vector) ReturnValue -> Node_vB4Wjk5Kdh6A3EOxsYh_YQ.Location
+    [K2Node_VariableGet] "Get Depth" (Node_4ouozE2xjiceCtCw3gqWFA)
+      Out Pins:
+        (double) Depth -> Node_sOnKCEuKrEJQb7Ci3lAttw.A
+    [K2Node_PromotableOperator] "float * float" (Node_sOnKCEuKrEJQb7Ci3lAttw)
+      In Pins:
+        (double) A <- Node_4ouozE2xjiceCtCw3gqWFA.Depth
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_sng_NEOMNKg4H1uM1-AJGQ.X
+    [K2Node_CommutativeAssociativeBinaryOperator] "OR Boolean" (Node_gzilP0lfJ1JkZpKuuE2RGA)
+      In Pins:
+        (Boolean) A <- Node_RJ7tMEZuR5aP5jWNLaegSA.ReturnValue
+        (Boolean) B <- Node_LqsxQEZyyOk5AcK3U1eRNQ.Seperate Title Panel
+      Out Pins:
+        (Boolean) ReturnValue -> Node_VNKE4kZvTOuuLeqxTPbr4g.bPickA
+    [K2Node_VariableGet] "Get Seperate Title Panel" (Node_LqsxQEZyyOk5AcK3U1eRNQ)
+      Out Pins:
+        (Boolean) Seperate Title Panel -> Node_gzilP0lfJ1JkZpKuuE2RGA.B
+    [K2Node_PromotableOperator] "float < float" (Node_RJ7tMEZuR5aP5jWNLaegSA)
+      In Pins:
+        (double) A <- Node_YflV7E3aqKc8l6KB4cKRJQ.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_gzilP0lfJ1JkZpKuuE2RGA.A
+    [K2Node_Select] "Select" (Node_nk_HEk9Ccaco39iZduaC_A)
+      In Pins:
+        (Transform) Option 0 <- Node_boVBykaTD6qcLuW1gNj5Nw.ReturnValue
+        (Transform) Option 1 <- Node_bLRcHky8x0BmiCSvBiatpw.ReturnValue
+        (Boolean) Index <- Node_j9n9qU1W5uvUGduFBQVYwQ.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue
+    [K2Node_VariableGet] "Get Floor Text" (Node_Oh-cNEeQ1YX36eOpBtYqjw)
+      Out Pins:
+        (Boolean) Floor Text -> Node_j9n9qU1W5uvUGduFBQVYwQ.A
+    [K2Node_CallFunction] "Make Transform" (Node_bLRcHky8x0BmiCSvBiatpw)
+      In Pins:
+        (double) Location_X <- Node_03iIOE6d34L8826YDUtj7Q.ReturnValue
+        (double) Location_Y <- Node_eb7-O0ezrRGDZn-OSvpWCA.ReturnValue
+        (double) Location_Z = 15.000000
+        (Rotator) Rotation = 90.000000, 0,0.000000
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_nk_HEk9Ccaco39iZduaC_A.Option 1
+    [K2Node_CommutativeAssociativeBinaryOperator] "OR Boolean" (Node_j9n9qU1W5uvUGduFBQVYwQ)
+      In Pins:
+        (Boolean) A <- Node_Oh-cNEeQ1YX36eOpBtYqjw.Floor Text
+        (Boolean) B <- Node_accmwE6sjrhCK3-uHdqHBw.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_nk_HEk9Ccaco39iZduaC_A.Index
+    [K2Node_VariableGet] "Get Height" (Node_XseoQ0Dj-fhr53eNvrzgtQ)
+      Out Pins:
+        (double) Height -> Node_accmwE6sjrhCK3-uHdqHBw.A
+    [K2Node_PromotableOperator] "float < float" (Node_accmwE6sjrhCK3-uHdqHBw)
+      In Pins:
+        (double) A <- Node_XseoQ0Dj-fhr53eNvrzgtQ.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_j9n9qU1W5uvUGduFBQVYwQ.B
+    [K2Node_PromotableOperator] "float / float" (Node_c_EgiU2jI9oGNDO3775k-w)
+      In Pins:
+        (double) A <- Node__cuqHEmSjSsuLTKjZN1Aqg.Depth
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_03iIOE6d34L8826YDUtj7Q.A
+    [K2Node_PromotableOperator] "float * float" (Node_03iIOE6d34L8826YDUtj7Q)
+      In Pins:
+        (double) A <- Node_c_EgiU2jI9oGNDO3775k-w.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_bLRcHky8x0BmiCSvBiatpw.Location_X
+    [K2Node_VariableGet] "Get Depth" (Node__cuqHEmSjSsuLTKjZN1Aqg)
+      Out Pins:
+        (double) Depth -> Node_c_EgiU2jI9oGNDO3775k-w.A
+    [K2Node_MacroInstance] "Text Alignment Offset" (Node_t7DslEeqJslhlyOznkwYjQ)
+      In Pins:
+        (double) Width Adjustment
+        (Boolean) Force Center
+      Out Pins:
+        (double) ReturnValue -> Node_-vuPfkD6e_sG99GQFqAT6w.Y, Node_sng_NEOMNKg4H1uM1-AJGQ.Y
+    [K2Node_MacroInstance] "Text Alignment Offset" (Node_eb7-O0ezrRGDZn-OSvpWCA)
+      In Pins:
+        (double) Width Adjustment
+        (Boolean) Force Center
+      Out Pins:
+        (double) ReturnValue -> Node_bLRcHky8x0BmiCSvBiatpw.Location_Y
+    [K2Node_Select] "Select" (Node_ulDzIk2Yr_a6uPmPNZvmBQ)
+      In Pins:
+        (double) Option 0 <- Node_cI8TUEkPSVxXHae9qL_5oQ.Height
+        (double) Option 1 <- Node_XoG9Z0fhCrG7ElG7vcovQw.Depth
+        (Boolean) Index = false
+      Out Pins:
+        (double) ReturnValue -> Node_roGgV0UzdbHKsHuSc3raLQ.A
+    [K2Node_VariableGet] "Get Depth" (Node_XoG9Z0fhCrG7ElG7vcovQw)
+      Out Pins:
+        (double) Depth -> Node_ulDzIk2Yr_a6uPmPNZvmBQ.Option 1
+    [K2Node_CallFunction] "Redraw
+Target is BP Demo Display" (Node_3Y8Xzkqe9ETjkwi-JeywUA)
+      In Pins:
+        (exec) execute <- Node_ADA_zk7NUeL7GeaV1zTElg.then
+        (Object) self
+      Out Pins:
+        (exec) then -> Node_ztfuyEXc9sp1mdmmOMHlmw.execute
+    [K2Node_VariableGet] "Get DefaultSceneRoot" (Node_eyR5sEFT60bMV4uF7K_2Nw)
+      Out Pins:
+        (SceneComponent) DefaultSceneRoot -> Node_amlQhUxBJQwGyuaXoXHgDw.self
+    [K2Node_CallFunction] "Get Children Components
+Target is Scene Component" (Node_amlQhUxBJQwGyuaXoXHgDw)
+      In Pins:
+        (SceneComponent) self <- Node_eyR5sEFT60bMV4uF7K_2Nw.DefaultSceneRoot
+        (Boolean) bIncludeAllDescendants = false
+      Out Pins:
+        (TArray<SceneComponent>) Children -> Node_9gJ2VUKJB1kqXfGjVWg83Q.Array
+    [K2Node_MacroInstance] "For Each Loop" (Node_9gJ2VUKJB1kqXfGjVWg83Q)
+      In Pins:
+        (exec) Exec <- Node_ztfuyEXc9sp1mdmmOMHlmw.then
+        (TArray<SceneComponent>) Array <- Node_amlQhUxBJQwGyuaXoXHgDw.Children
+      Out Pins:
+        (exec) LoopBody -> Node_ouWSuk_hgc7gXjeDGH1_qQ.execute
+        (SceneComponent) Array Element -> Node_1x6n-Ea6sZcqgN-3DkZlKQ.B, Node_OlPwi0S7uQsztzKkY31bWw.InputPin
+        (Integer) Array Index
+        (exec) Completed
+    [K2Node_CallFunction] "Set Relative Location
+Target is Scene Component" (Node_Bsyrg0QNakpdETqHkTqIVw)
+      In Pins:
+        (exec) execute <- Node_ouWSuk_hgc7gXjeDGH1_qQ.then
+        (SceneComponent) self <- Node_MXq7f0twaW8yyWusK9Iy5g.OutputPin
+        (Vector) NewLocation <- Node_o5kPdEEy7dea1sWmECnMag.ReturnValue
+        (Boolean) bSweep = false
+        (Boolean) bTeleport = false
+      Out Pins:
+        (exec) then
+        (HitResult) SweepHitResult
+    [K2Node_VariableGet] "Get Offset" (Node_MnGYaEt66_F_moaCsq9NUw)
+      Out Pins:
+        (SceneComponent) Offset -> Node_1x6n-Ea6sZcqgN-3DkZlKQ.A, Node_wIjxmELH4etQNmWYQfZu3Q.self
+    [K2Node_PromotableOperator] "Not Equal (Object)" (Node_1x6n-Ea6sZcqgN-3DkZlKQ)
+      In Pins:
+        (Object) A <- Node_MnGYaEt66_F_moaCsq9NUw.Offset
+        (Object) B <- Node_9gJ2VUKJB1kqXfGjVWg83Q.Array Element
+      Out Pins:
+        (Boolean) ReturnValue -> Node_ouWSuk_hgc7gXjeDGH1_qQ.Condition
+    [K2Node_IfThenElse] "Branch" (Node_ouWSuk_hgc7gXjeDGH1_qQ)
+      In Pins:
+        (exec) execute <- Node_9gJ2VUKJB1kqXfGjVWg83Q.LoopBody
+        (Boolean) Condition <- Node_1x6n-Ea6sZcqgN-3DkZlKQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_Bsyrg0QNakpdETqHkTqIVw.execute
+        (exec) else
+    [K2Node_VariableGet] "Get RelativeLocation" (Node_wIjxmELH4etQNmWYQfZu3Q)
+      In Pins:
+        (SceneComponent) self <- Node_MnGYaEt66_F_moaCsq9NUw.Offset
+      Out Pins:
+        (Vector) RelativeLocation -> Node_HTKi0UtN-tUHZduecec3mA.A
+    [K2Node_CallFunction] "Negate Vector" (Node_HTKi0UtN-tUHZduecec3mA)
+      In Pins:
+        (Vector) A <- Node_wIjxmELH4etQNmWYQfZu3Q.RelativeLocation
+      Out Pins:
+        (Vector) ReturnValue -> Node_o5kPdEEy7dea1sWmECnMag.B
+    [K2Node_VariableGet] "Get RelativeLocation" (Node_UwufVU0GCJHMcA6QkecQ2A)
+      In Pins:
+        (SceneComponent) self <- Node_djYkEUlr2PyxHJW1LAfDeg.OutputPin
+      Out Pins:
+        (Vector) RelativeLocation -> Node_o5kPdEEy7dea1sWmECnMag.A
+    [K2Node_PromotableOperator] "vector + vector" (Node_o5kPdEEy7dea1sWmECnMag)
+      In Pins:
+        (Vector) A <- Node_UwufVU0GCJHMcA6QkecQ2A.RelativeLocation
+        (Vector) B <- Node_HTKi0UtN-tUHZduecec3mA.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_Bsyrg0QNakpdETqHkTqIVw.NewLocation
+    [EdGraphNode_Comment] "Offset all the new components by the Offset SceneNode. This allows us this Actor's location not intersect the meshes.
+
+This is useful for programatically preparing the stations with items." (Node_zWwf4Eg6Buq7EoGlFHvHDg)
+      Comment: Offset all the new components by the Offset SceneNode. This allows us this Actor's location not intersect the meshes.
+
+This is useful for programatically preparing the stations with items.
+    [K2Node_VariableGet] "Get Offset" (Node_14viqk382pbdn3qmRJaO6g)
+      Out Pins:
+        (SceneComponent) Offset -> Node_ztfuyEXc9sp1mdmmOMHlmw.self
+    [K2Node_CallFunction] "Set Relative Transform
+Target is Scene Component" (Node_ztfuyEXc9sp1mdmmOMHlmw)
+      In Pins:
+        (exec) execute <- Node_3Y8Xzkqe9ETjkwi-JeywUA.then
+        (SceneComponent) self <- Node_14viqk382pbdn3qmRJaO6g.Offset
+        (Transform) NewTransform <- Node_akzLgEDZ46MndHiu3jC_WA.ReturnValue
+        (Boolean) bSweep = false
+        (Boolean) bTeleport = false
+      Out Pins:
+        (exec) then -> Node_9gJ2VUKJB1kqXfGjVWg83Q.Exec
+        (HitResult) SweepHitResult
+    [K2Node_CallFunction] "Make Transform" (Node_akzLgEDZ46MndHiu3jC_WA)
+      In Pins:
+        (Vector) Location <- Node_JQl0KUAPo9Ag3SyDc6ugWQ.CenterOffset
+        (Rotator) Rotation = 0, 0, 0
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_ztfuyEXc9sp1mdmmOMHlmw.NewTransform
+    [K2Node_VariableGet] "Get CenterOffset" (Node_JQl0KUAPo9Ag3SyDc6ugWQ)
+      Out Pins:
+        (Vector) CenterOffset -> Node_akzLgEDZ46MndHiu3jC_WA.Location
+    [EdGraphNode_Comment] "User adjustable offset" (Node_6bb4vEqunA6sXRqwl7UikQ)
+      Comment: User adjustable offset
+    [K2Node_Knot] "Reroute Node" (Node_OlPwi0S7uQsztzKkY31bWw)
+      In Pins:
+        (SceneComponent) InputPin <- Node_9gJ2VUKJB1kqXfGjVWg83Q.Array Element
+      Out Pins:
+        (SceneComponent) OutputPin -> Node_djYkEUlr2PyxHJW1LAfDeg.InputPin
+    [K2Node_Knot] "Reroute Node" (Node_djYkEUlr2PyxHJW1LAfDeg)
+      In Pins:
+        (SceneComponent) InputPin <- Node_OlPwi0S7uQsztzKkY31bWw.OutputPin
+      Out Pins:
+        (SceneComponent) OutputPin -> Node_UwufVU0GCJHMcA6QkecQ2A.self, Node_MXq7f0twaW8yyWusK9Iy5g.InputPin
+    [K2Node_Knot] "Reroute Node" (Node_MXq7f0twaW8yyWusK9Iy5g)
+      In Pins:
+        (SceneComponent) InputPin <- Node_djYkEUlr2PyxHJW1LAfDeg.OutputPin
+      Out Pins:
+        (SceneComponent) OutputPin -> Node_Bsyrg0QNakpdETqHkTqIVw.self
+
+--- Function: Create Instances ---
+  Execution Flows:
+    [1] Create Instances -> Sequence
+          [then_0] -> Reroute Node
+           -> Get Data Table Row DT_Colourways
+           -> Set BoardColour
+           -> Add Instanced Static Mesh Component
+Static Mesh Display_Main_B
+           -> Set ISM_Main
+           -> Add Instanced Static Mesh Component
+Static Mesh Display_Corner_B
+           -> Set ISM_Corner
+           -> Add Instanced Static Mesh Component
+Static Mesh Display_Curve_B
+           -> Set ISM_ Curve
+           -> Add Instanced Static Mesh Component
+Static Mesh Display_EdgeCurve_B
+           -> Set ISM_ CurveEdge
+           -> Add Instanced Static Mesh Component
+Static Mesh Display_Side_B
+           -> Set ISM_Side
+           -> Set Default Custom Primitive Data Vector 4
+Target is Primitive Component
+          [then_2] -> Add Instanced Static Mesh Component
+Static Mesh ShadowBox_1MPanel
+           -> Set ISM_ShadowStraight
+           -> Add Instanced Static Mesh Component
+Static Mesh ShadowBox_RoundEdge
+           -> Set ISM_ShadowRound
+          [then_1] -> Branch
+           -> Add Instanced Static Mesh Component
+Static Mesh TagBar_Middle
+           -> Set ISM_TitleBarMain
+           -> Add Instanced Static Mesh Component
+Static Mesh TagBar_TitleCap
+           -> Set ISM_TitleBarEnd
+
+  Nodes (44):
+    [K2Node_FunctionEntry] "Create Instances" (Node_j2_i6E8YfmluSyCfBNg5kA)
+      Out Pins:
+        (exec) then -> Node_qBt6Dkt9O5Dgi6aZhrJ4bA.execute
+    [K2Node_AddComponent] "Add Instanced Static Mesh Component
+Static Mesh Display_Main_B" (Node_bm_cykvNb4M1SaaGIAcPiQ)
+      In Pins:
+        (exec) execute <- Node_d8Km7EYgLrQ-T-KCqfoWyg.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform
+      Out Pins:
+        (exec) then -> Node_kNIYK0YNCCDYi425JX8oZg.execute
+        (InstancedStaticMeshComponent) ReturnValue -> Node_kNIYK0YNCCDYi425JX8oZg.ISM_Main
+    [K2Node_VariableSet] "Set ISM_Main" (Node_kNIYK0YNCCDYi425JX8oZg)
+      In Pins:
+        (exec) execute <- Node_bm_cykvNb4M1SaaGIAcPiQ.then
+        (InstancedStaticMeshComponent) ISM_Main <- Node_bm_cykvNb4M1SaaGIAcPiQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_fDwbqUjRU6svjRGbpvqkpA.execute
+        (InstancedStaticMeshComponent) Output_Get
+    [K2Node_AddComponent] "Add Instanced Static Mesh Component
+Static Mesh Display_Corner_B" (Node_fDwbqUjRU6svjRGbpvqkpA)
+      In Pins:
+        (exec) execute <- Node_kNIYK0YNCCDYi425JX8oZg.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform
+      Out Pins:
+        (exec) then -> Node_C_65d0zFCM8LNWCDQJTdog.execute
+        (InstancedStaticMeshComponent) ReturnValue -> Node_C_65d0zFCM8LNWCDQJTdog.ISM_Corner
+    [K2Node_VariableSet] "Set ISM_Corner" (Node_C_65d0zFCM8LNWCDQJTdog)
+      In Pins:
+        (exec) execute <- Node_fDwbqUjRU6svjRGbpvqkpA.then
+        (InstancedStaticMeshComponent) ISM_Corner <- Node_fDwbqUjRU6svjRGbpvqkpA.ReturnValue
+      Out Pins:
+        (exec) then -> Node_q0FBtE82g9xehnqq2N7g4w.execute
+        (InstancedStaticMeshComponent) Output_Get
+    [K2Node_AddComponent] "Add Instanced Static Mesh Component
+Static Mesh Display_Curve_B" (Node_q0FBtE82g9xehnqq2N7g4w)
+      In Pins:
+        (exec) execute <- Node_C_65d0zFCM8LNWCDQJTdog.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform
+      Out Pins:
+        (exec) then -> Node_2Pkbe0wb22_Bx-OAHeIq4A.execute
+        (InstancedStaticMeshComponent) ReturnValue -> Node_2Pkbe0wb22_Bx-OAHeIq4A.ISM_ Curve
+    [K2Node_VariableSet] "Set ISM_ Curve" (Node_2Pkbe0wb22_Bx-OAHeIq4A)
+      In Pins:
+        (exec) execute <- Node_q0FBtE82g9xehnqq2N7g4w.then
+        (InstancedStaticMeshComponent) ISM_ Curve <- Node_q0FBtE82g9xehnqq2N7g4w.ReturnValue
+      Out Pins:
+        (exec) then -> Node_StNdMUZL0jMi4faB9KjtEg.execute
+        (InstancedStaticMeshComponent) Output_Get
+    [K2Node_AddComponent] "Add Instanced Static Mesh Component
+Static Mesh Display_EdgeCurve_B" (Node_StNdMUZL0jMi4faB9KjtEg)
+      In Pins:
+        (exec) execute <- Node_2Pkbe0wb22_Bx-OAHeIq4A.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform
+      Out Pins:
+        (exec) then -> Node_4nIilUeAh4noMqueoTqGQg.execute
+        (InstancedStaticMeshComponent) ReturnValue -> Node_4nIilUeAh4noMqueoTqGQg.ISM_ CurveEdge
+    [K2Node_VariableSet] "Set ISM_ CurveEdge" (Node_4nIilUeAh4noMqueoTqGQg)
+      In Pins:
+        (exec) execute <- Node_StNdMUZL0jMi4faB9KjtEg.then
+        (InstancedStaticMeshComponent) ISM_ CurveEdge <- Node_StNdMUZL0jMi4faB9KjtEg.ReturnValue
+      Out Pins:
+        (exec) then -> Node_SfBhBU_-xKEV8byjP5EPWw.execute
+        (InstancedStaticMeshComponent) Output_Get
+    [K2Node_AddComponent] "Add Instanced Static Mesh Component
+Static Mesh Display_Side_B" (Node_SfBhBU_-xKEV8byjP5EPWw)
+      In Pins:
+        (exec) execute <- Node_4nIilUeAh4noMqueoTqGQg.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform
+      Out Pins:
+        (exec) then -> Node_ERMcvE1rT310l7SWfabWXg.execute
+        (InstancedStaticMeshComponent) ReturnValue -> Node_ERMcvE1rT310l7SWfabWXg.ISM_Side
+    [K2Node_VariableSet] "Set ISM_Side" (Node_ERMcvE1rT310l7SWfabWXg)
+      In Pins:
+        (exec) execute <- Node_SfBhBU_-xKEV8byjP5EPWw.then
+        (InstancedStaticMeshComponent) ISM_Side <- Node_SfBhBU_-xKEV8byjP5EPWw.ReturnValue
+      Out Pins:
+        (exec) then -> Node_pUFKak8JTW2MKbGL-bSFQQ.execute
+        (InstancedStaticMeshComponent) Output_Get
+    [K2Node_VariableGet] "Get Custom Colour" (Node_Zd8kOkSVV6ZEC_290GLwYQ)
+      Out Pins:
+        (LinearColor) Custom Colour -> Node_UuaOB0GLAPduTCaM-k_i_g.A
+    [K2Node_ExecutionSequence] "Sequence" (Node_qBt6Dkt9O5Dgi6aZhrJ4bA)
+      In Pins:
+        (exec) execute <- Node_j2_i6E8YfmluSyCfBNg5kA.then
+      Out Pins:
+        (exec) then_0 -> Node_w7_qG0tNhATLFp-RdQ-Wnw.InputPin
+        (exec) then_1 -> Node_2Ji1VUpHeFbXYoaTaw3Ozg.execute
+        (exec) then_2 -> Node_8dnWFkdSCa0CW_uOVV_m1Q.execute
+    [EdGraphNode_Comment] "Main demo display instances" (Node_-OoivEkEp8zdBXaPp4IyEA)
+      Comment: Main demo display instances
+    [EdGraphNode_Comment] "Setup instances for each required mesh" (Node_BRTLaUZaOwXF57CQ6hJ0pQ)
+      Comment: Setup instances for each required mesh
+    [K2Node_AddComponent] "Add Instanced Static Mesh Component
+Static Mesh TagBar_Middle" (Node_n3-wG0RIm6tZV4yO4qy9sQ)
+      In Pins:
+        (exec) execute <- Node_2Ji1VUpHeFbXYoaTaw3Ozg.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform
+      Out Pins:
+        (exec) then -> Node_ZkbdrkeNPgokVxK2Sa-Jrg.execute
+        (InstancedStaticMeshComponent) ReturnValue -> Node_ZkbdrkeNPgokVxK2Sa-Jrg.ISM_TitleBarMain
+    [K2Node_AddComponent] "Add Instanced Static Mesh Component
+Static Mesh TagBar_TitleCap" (Node_PkyGkUlGn2rnISaYX9H1Og)
+      In Pins:
+        (exec) execute <- Node_ZkbdrkeNPgokVxK2Sa-Jrg.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform
+      Out Pins:
+        (exec) then -> Node_LXW1EUasT9b-VV-uLdiYHg.execute
+        (InstancedStaticMeshComponent) ReturnValue -> Node_LXW1EUasT9b-VV-uLdiYHg.ISM_TitleBarEnd
+    [K2Node_VariableSet] "Set ISM_TitleBarMain" (Node_ZkbdrkeNPgokVxK2Sa-Jrg)
+      In Pins:
+        (exec) execute <- Node_n3-wG0RIm6tZV4yO4qy9sQ.then
+        (InstancedStaticMeshComponent) ISM_TitleBarMain <- Node_n3-wG0RIm6tZV4yO4qy9sQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_PkyGkUlGn2rnISaYX9H1Og.execute
+        (InstancedStaticMeshComponent) Output_Get
+    [K2Node_VariableSet] "Set ISM_TitleBarEnd" (Node_LXW1EUasT9b-VV-uLdiYHg)
+      In Pins:
+        (exec) execute <- Node_PkyGkUlGn2rnISaYX9H1Og.then
+        (InstancedStaticMeshComponent) ISM_TitleBarEnd <- Node_PkyGkUlGn2rnISaYX9H1Og.ReturnValue
+      Out Pins:
+        (exec) then
+        (InstancedStaticMeshComponent) Output_Get
+    [EdGraphNode_Comment] "Create Seperate Title Bar" (Node_kJg-80-OCq8Xk1KufbQ77A)
+      Comment: Create Seperate Title Bar
+    [K2Node_IfThenElse] "Branch" (Node_2Ji1VUpHeFbXYoaTaw3Ozg)
+      In Pins:
+        (exec) execute <- Node_qBt6Dkt9O5Dgi6aZhrJ4bA.then_1
+        (Boolean) Condition <- Node_UBvO5kqr6-N1bayoJTD8uQ.Seperate Title Panel
+      Out Pins:
+        (exec) then -> Node_n3-wG0RIm6tZV4yO4qy9sQ.execute
+        (exec) else
+    [K2Node_VariableGet] "Get Seperate Title Panel" (Node_UBvO5kqr6-N1bayoJTD8uQ)
+      Out Pins:
+        (Boolean) Seperate Title Panel -> Node_2Ji1VUpHeFbXYoaTaw3Ozg.Condition
+    [K2Node_AddComponent] "Add Instanced Static Mesh Component
+Static Mesh ShadowBox_1MPanel" (Node_8dnWFkdSCa0CW_uOVV_m1Q)
+      In Pins:
+        (exec) execute <- Node_qBt6Dkt9O5Dgi6aZhrJ4bA.then_2
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform
+      Out Pins:
+        (exec) then -> Node_ON_oi0FNLpdthAyEsAfKfQ.execute
+        (InstancedStaticMeshComponent) ReturnValue -> Node_ON_oi0FNLpdthAyEsAfKfQ.ISM_ShadowStraight
+    [K2Node_AddComponent] "Add Instanced Static Mesh Component
+Static Mesh ShadowBox_RoundEdge" (Node_MjQlTUvLak3MBXav2jGUxQ)
+      In Pins:
+        (exec) execute <- Node_ON_oi0FNLpdthAyEsAfKfQ.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform
+      Out Pins:
+        (exec) then -> Node_Ph8EAkinSlO7HI-6uxobew.execute
+        (InstancedStaticMeshComponent) ReturnValue -> Node_Ph8EAkinSlO7HI-6uxobew.ISM_ShadowRound
+    [K2Node_VariableSet] "Set ISM_ShadowStraight" (Node_ON_oi0FNLpdthAyEsAfKfQ)
+      In Pins:
+        (exec) execute <- Node_8dnWFkdSCa0CW_uOVV_m1Q.then
+        (InstancedStaticMeshComponent) ISM_ShadowStraight <- Node_8dnWFkdSCa0CW_uOVV_m1Q.ReturnValue
+      Out Pins:
+        (exec) then -> Node_MjQlTUvLak3MBXav2jGUxQ.execute
+        (InstancedStaticMeshComponent) Output_Get
+    [K2Node_VariableSet] "Set ISM_ShadowRound" (Node_Ph8EAkinSlO7HI-6uxobew)
+      In Pins:
+        (exec) execute <- Node_MjQlTUvLak3MBXav2jGUxQ.then
+        (InstancedStaticMeshComponent) ISM_ShadowRound <- Node_MjQlTUvLak3MBXav2jGUxQ.ReturnValue
+      Out Pins:
+        (exec) then
+        (InstancedStaticMeshComponent) Output_Get
+    [K2Node_VariableGet] "Get Colour" (Node_5lR3PEXOCPHMCbmEQd8ttA)
+      Out Pins:
+        (DataTableRowHandle) Colour -> Node_SAif1Ep_AtRxRRK7NC__aQ.DataTableRowHandle
+    [K2Node_BreakStruct] "Break Data Table Row Handle" (Node_SAif1Ep_AtRxRRK7NC__aQ)
+      In Pins:
+        (DataTableRowHandle) DataTableRowHandle <- Node_5lR3PEXOCPHMCbmEQd8ttA.Colour
+      Out Pins:
+        (DataTable) DataTable
+        (Name) RowName -> Node_5VIkskTJ3XwbylWllb9alw.RowName, Node_OnZEykqW3bamYteu6dzUKQ.A
+    [K2Node_GetDataTableRow] "Get Data Table Row DT_Colourways" (Node_5VIkskTJ3XwbylWllb9alw)
+      In Pins:
+        (exec) execute <- Node_w7_qG0tNhATLFp-RdQ-Wnw.OutputPin
+        (DataTable) DataTable = DT_Colourways
+        (Name) RowName <- Node_SAif1Ep_AtRxRRK7NC__aQ.RowName
+      Out Pins:
+        (exec) then -> Node_d8Km7EYgLrQ-T-KCqfoWyg.execute
+        (exec) RowNotFound
+        (S_Colour) ReturnValue
+    [K2Node_CallFunction] "To LinearColor (Color)" (Node_mG5GNkWSRZuNInmwaJYIeg)
+      In Pins:
+        (Color) InColor
+      Out Pins:
+        (LinearColor) ReturnValue -> Node_UuaOB0GLAPduTCaM-k_i_g.B
+    [K2Node_CallFunction] "Select Color" (Node_UuaOB0GLAPduTCaM-k_i_g)
+      In Pins:
+        (LinearColor) A <- Node_Zd8kOkSVV6ZEC_290GLwYQ.Custom Colour
+        (LinearColor) B <- Node_mG5GNkWSRZuNInmwaJYIeg.ReturnValue
+        (Boolean) bPickA <- Node_OnZEykqW3bamYteu6dzUKQ.ReturnValue
+      Out Pins:
+        (LinearColor) ReturnValue -> Node_d8Km7EYgLrQ-T-KCqfoWyg.BoardColour
+    [K2Node_PromotableOperator] "Equal (Name)" (Node_OnZEykqW3bamYteu6dzUKQ)
+      In Pins:
+        (Name) A <- Node_SAif1Ep_AtRxRRK7NC__aQ.RowName
+        (Name) B = Custom
+      Out Pins:
+        (Boolean) ReturnValue -> Node_UuaOB0GLAPduTCaM-k_i_g.bPickA
+    [K2Node_VariableGet] "Get Custom Colour" (Node_hOwNjkQ8xLneNLG4p3ppWQ)
+      Out Pins:
+        (LinearColor) Custom Colour -> Node_qorMpUIFCEiv6lyGsCX-HQ.LinearColor
+    [K2Node_CallFunction] "Set Default Custom Primitive Data Vector 4
+Target is Primitive Component" (Node_pUFKak8JTW2MKbGL-bSFQQ)
+      In Pins:
+        (exec) execute <- Node_ERMcvE1rT310l7SWfabWXg.then
+        (PrimitiveComponent) self <- Node_Ho4-mkaGvvxi-iaF2H44Xg.ISM_Main, Node_2KjHe0H1kyxUUqmRicz1RA.ISM_Corner, Node_zsspw0rVzlJJoPKFZZrtnA.ISM_ Curve, Node_GqCmI0_acl6GwMyqHLFPiw.ISM_Side, Node_nJcfiUE8DqxwDWSKuCGgGw.ISM_ CurveEdge
+        (Integer) DataIndex = 0
+        (Vector4) Value <- Node_DQX9BkLTLNXa7BGlHZr1Xw.ReturnValue
+      Out Pins:
+        (exec) then
+    [K2Node_CallFunction] "Make Vector 4" (Node_DQX9BkLTLNXa7BGlHZr1Xw)
+      In Pins:
+        (double) X <- Node_qorMpUIFCEiv6lyGsCX-HQ.R
+        (double) Y <- Node_qorMpUIFCEiv6lyGsCX-HQ.G
+        (double) Z <- Node_qorMpUIFCEiv6lyGsCX-HQ.B
+        (double) W <- Node_qorMpUIFCEiv6lyGsCX-HQ.A
+      Out Pins:
+        (Vector4) ReturnValue -> Node_pUFKak8JTW2MKbGL-bSFQQ.Value
+    [K2Node_BreakStruct] "Break Linear Color" (Node_qorMpUIFCEiv6lyGsCX-HQ)
+      In Pins:
+        (LinearColor) LinearColor <- Node_hOwNjkQ8xLneNLG4p3ppWQ.Custom Colour
+      Out Pins:
+        (float) R -> Node_DQX9BkLTLNXa7BGlHZr1Xw.X
+        (float) G -> Node_DQX9BkLTLNXa7BGlHZr1Xw.Y
+        (float) B -> Node_DQX9BkLTLNXa7BGlHZr1Xw.Z
+        (float) A -> Node_DQX9BkLTLNXa7BGlHZr1Xw.W
+    [K2Node_VariableSet] "Set BoardColour" (Node_d8Km7EYgLrQ-T-KCqfoWyg)
+      In Pins:
+        (exec) execute <- Node_5VIkskTJ3XwbylWllb9alw.then
+        (LinearColor) BoardColour <- Node_UuaOB0GLAPduTCaM-k_i_g.ReturnValue
+      Out Pins:
+        (exec) then -> Node_bm_cykvNb4M1SaaGIAcPiQ.execute
+        (LinearColor) Output_Get
+    [K2Node_Knot] "Reroute Node" (Node_w7_qG0tNhATLFp-RdQ-Wnw)
+      In Pins:
+        (exec) InputPin <- Node_qBt6Dkt9O5Dgi6aZhrJ4bA.then_0
+      Out Pins:
+        (exec) OutputPin -> Node_5VIkskTJ3XwbylWllb9alw.execute
+    [K2Node_VariableGet] "Get ISM_Main" (Node_Ho4-mkaGvvxi-iaF2H44Xg)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_Main -> Node_pUFKak8JTW2MKbGL-bSFQQ.self
+    [K2Node_VariableGet] "Get ISM_Corner" (Node_2KjHe0H1kyxUUqmRicz1RA)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_Corner -> Node_pUFKak8JTW2MKbGL-bSFQQ.self
+    [K2Node_VariableGet] "Get ISM_ Curve" (Node_zsspw0rVzlJJoPKFZZrtnA)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_ Curve -> Node_pUFKak8JTW2MKbGL-bSFQQ.self
+    [K2Node_VariableGet] "Get ISM_ CurveEdge" (Node_nJcfiUE8DqxwDWSKuCGgGw)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_ CurveEdge -> Node_pUFKak8JTW2MKbGL-bSFQQ.self
+    [K2Node_VariableGet] "Get ISM_Side" (Node_GqCmI0_acl6GwMyqHLFPiw)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_Side -> Node_pUFKak8JTW2MKbGL-bSFQQ.self
+    [K2Node_IfThenElse] "Branch" (Node_ZAnuCEHTala0Fvu9hQeE-Q)
+      In Pins:
+        (exec) execute
+        (Boolean) Condition = true
+      Out Pins:
+        (exec) then
+        (exec) else
+
+--- Function: Create Display ---
+  Execution Flows:
+    [1] Create Display -> Sequence
+          [then_0] -> Reroute Node
+           -> Branch
+           -> Add Instance
+Target is Instanced Static Mesh Component
+           -> Add Instances
+Target is Instanced Static Mesh Component
+          [then_1] -> Scalable Panel
+Target is BP Demo Display
+           -> Scalable Panel
+Target is BP Demo Display
+
+  Nodes (76):
+    [K2Node_FunctionEntry] "Create Display" (Node_ICBtZ0jDW9MPJh-CXzSlgQ)
+      Out Pins:
+        (exec) then -> Node_oJtL0Ug3crwdPgWmTdTybw.execute
+    [K2Node_VariableGet] "Get ISM_ Curve" (Node_8ZWXQkbfSVGJzMG2VWDGnA)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_ Curve -> Node_zdgRREUB2f4OSKiTPBvoIg.self
+    [K2Node_CallFunction] "Add Instance
+Target is Instanced Static Mesh Component" (Node_zdgRREUB2f4OSKiTPBvoIg)
+      In Pins:
+        (exec) execute <- Node_EDnb6UtkXcV0suuHmjzB9g.else
+        (InstancedStaticMeshComponent) self <- Node_8ZWXQkbfSVGJzMG2VWDGnA.ISM_ Curve
+        (Transform) InstanceTransform <- Node_RVqUVEdjnA2Gz7SFaUER9w.ReturnValue
+        (Boolean) bWorldSpace = false
+      Out Pins:
+        (exec) then -> Node_mSa3R0yOCTHavqe0ANA9jQ.execute
+        (Integer) ReturnValue
+    [K2Node_CallFunction] "Make Transform" (Node_RVqUVEdjnA2Gz7SFaUER9w)
+      In Pins:
+        (Vector) Location = 0, 0, 0
+        (Rotator) Rotation = 0, 0, 0
+        (double) Scale_X = 1.0
+        (double) Scale_Y <- Node_pl-JQk30tNRcvXqLjRl-MQ.ReturnValue
+        (double) Scale_Z = 1.0
+      Out Pins:
+        (Transform) ReturnValue -> Node_zdgRREUB2f4OSKiTPBvoIg.InstanceTransform
+    [K2Node_VariableGet] "Get Width" (Node_CoXxAkGxBYn3V8-tD4QB4Q)
+      Out Pins:
+        (double) Width -> Node_z93Dr00EyOlBe9KbY2XeKA.A
+    [K2Node_PromotableOperator] "float / float" (Node_pl-JQk30tNRcvXqLjRl-MQ)
+      In Pins:
+        (double) A <- Node_z93Dr00EyOlBe9KbY2XeKA.ReturnValue
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_RVqUVEdjnA2Gz7SFaUER9w.Scale_Y, Node_jNI44kivnlQVMlmf1ziXfA.A, Node_oHG0nUvzdwQ6LGK0qCOtTg.A
+    [K2Node_PromotableOperator] "float - float" (Node_z93Dr00EyOlBe9KbY2XeKA)
+      In Pins:
+        (double) A <- Node_CoXxAkGxBYn3V8-tD4QB4Q.Width
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_pl-JQk30tNRcvXqLjRl-MQ.A
+    [K2Node_VariableGet] "Get ISM_ CurveEdge" (Node_fPgrrkNAuuKTW-e_R65PAA)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_ CurveEdge -> Node_mSa3R0yOCTHavqe0ANA9jQ.self
+    [K2Node_CallFunction] "Make Transform" (Node_SpOVx0q0s9MsOqK4iTGMHg)
+      In Pins:
+        (double) Location_X = 0.0
+        (double) Location_Y <- Node_jNI44kivnlQVMlmf1ziXfA.ReturnValue
+        (double) Location_Z = 0.0
+        (Rotator) Rotation = 0, 0, 0
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_thno3kbeK_-au0SxXDDCzQ.[0]
+    [K2Node_PromotableOperator] "float * float" (Node_jNI44kivnlQVMlmf1ziXfA)
+      In Pins:
+        (double) A <- Node_pl-JQk30tNRcvXqLjRl-MQ.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_SpOVx0q0s9MsOqK4iTGMHg.Location_Y
+    [K2Node_CallFunction] "Make Transform" (Node_5PTFzE0PsMA2GQSqExGfPw)
+      In Pins:
+        (double) Location_X = 0.0
+        (double) Location_Y <- Node_oHG0nUvzdwQ6LGK0qCOtTg.ReturnValue
+        (double) Location_Z = 0.0
+        (Rotator) Rotation = 90.000000,360.000000,180.000000
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_thno3kbeK_-au0SxXDDCzQ.[1]
+    [K2Node_PromotableOperator] "float * float" (Node_oHG0nUvzdwQ6LGK0qCOtTg)
+      In Pins:
+        (double) A <- Node_pl-JQk30tNRcvXqLjRl-MQ.ReturnValue
+        (double) B = -100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_5PTFzE0PsMA2GQSqExGfPw.Location_Y
+    [K2Node_CallFunction] "Scalable Panel
+Target is BP Demo Display" (Node_yNUou0ebW4O1T_aCk5_4kg)
+      In Pins:
+        (exec) execute <- Node_oJtL0Ug3crwdPgWmTdTybw.then_1
+        (Object) self
+        (Transform) Base Position <- Node_o_0NqkRduu7u5xS5KEKbCQ.ReturnValue
+        (double) Length <- Node_JvK97EHwUy19eD-zGv14yQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_ytaG90rsBFZcLdSbzz0rrQ.execute
+    [K2Node_CallFunction] "Make Transform" (Node_lF_utUO2kOvVAdKsPFmzEg)
+      In Pins:
+        (Vector) Location = 0, 0,-100.000000
+        (Rotator) Rotation = 0, 0, 0
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_xw-6eEY3tl8r3b-2t8DRAg.A
+    [K2Node_VariableGet] "Get Height" (Node_63R6o06PPZPyBHSk_4AmbA)
+      Out Pins:
+        (double) Height -> Node_9MpSQkZW5Ec_wue4qlWGVw.A
+    [K2Node_CallFunction] "Scalable Panel
+Target is BP Demo Display" (Node_ytaG90rsBFZcLdSbzz0rrQ)
+      In Pins:
+        (exec) execute <- Node_yNUou0ebW4O1T_aCk5_4kg.then
+        (Object) self
+        (Transform) Base Position <- Node_O6wOEk5sh02Q_nOIuYu45g.ReturnValue
+        (double) Length <- Node_GhOnPkisX_4_bO6_e6TfZA.ReturnValue
+      Out Pins:
+        (exec) then
+    [K2Node_VariableGet] "Get Depth" (Node_vGl8NUkBsJ_5NIqcHlYjeg)
+      Out Pins:
+        (double) Depth -> Node_LMwcnEiIVrCbe3q6jSinew.A
+    [K2Node_CallFunction] "Make Transform" (Node_06ds3EPrVCo6sXCBfQ81xQ)
+      In Pins:
+        (Vector) Location = 0.000000,0.000000,-100.000000
+        (Rotator) Rotation = 90.000000,180.000000,0.000000
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_MhikBkXa3b5mCIyAS6EmpA.A
+    [K2Node_CallFunction] "Add Instances
+Target is Instanced Static Mesh Component" (Node_mSa3R0yOCTHavqe0ANA9jQ)
+      In Pins:
+        (exec) execute <- Node_zdgRREUB2f4OSKiTPBvoIg.then
+        (InstancedStaticMeshComponent) self <- Node_fPgrrkNAuuKTW-e_R65PAA.ISM_ CurveEdge
+        (TArray<Transform>) InstanceTransforms <- Node_thno3kbeK_-au0SxXDDCzQ.Array
+        (Boolean) bShouldReturnIndices = false
+        (Boolean) bWorldSpace = false
+        (Boolean) bUpdateNavigation = true
+      Out Pins:
+        (exec) then
+        (TArray<Integer>) ReturnValue
+    [K2Node_MakeArray] "Make Array" (Node_thno3kbeK_-au0SxXDDCzQ)
+      In Pins:
+        (Transform) [0] <- Node_SpOVx0q0s9MsOqK4iTGMHg.ReturnValue
+        (Transform) [1] <- Node_5PTFzE0PsMA2GQSqExGfPw.ReturnValue
+      Out Pins:
+        (TArray<Transform>) Array -> Node_mSa3R0yOCTHavqe0ANA9jQ.InstanceTransforms
+    [K2Node_ExecutionSequence] "Sequence" (Node_oJtL0Ug3crwdPgWmTdTybw)
+      In Pins:
+        (exec) execute <- Node_ICBtZ0jDW9MPJh-CXzSlgQ.then
+      Out Pins:
+        (exec) then_0 -> Node_gtGmWkM725M-O7OVaiCsJw.InputPin
+        (exec) then_1 -> Node_yNUou0ebW4O1T_aCk5_4kg.execute
+    [K2Node_Knot] "Reroute Node" (Node_gtGmWkM725M-O7OVaiCsJw)
+      In Pins:
+        (exec) InputPin <- Node_oJtL0Ug3crwdPgWmTdTybw.then_0
+      Out Pins:
+        (exec) OutputPin -> Node_EDnb6UtkXcV0suuHmjzB9g.execute
+    [K2Node_VariableGet] "Get Height" (Node_C6Q28ELUR7FTHBKvV7QSMw)
+      Out Pins:
+        (double) Height -> Node_d8h7xEaDHTkmD6S45oz5oA.A
+    [K2Node_IfThenElse] "Branch" (Node_EDnb6UtkXcV0suuHmjzB9g)
+      In Pins:
+        (exec) execute <- Node_gtGmWkM725M-O7OVaiCsJw.OutputPin
+        (Boolean) Condition <- Node_OjIsqUHBUoyUgyaiUMl6Iw.ReturnValue
+      Out Pins:
+        (exec) then
+        (exec) else -> Node_zdgRREUB2f4OSKiTPBvoIg.execute
+    [K2Node_CallFunction] "Select Transform" (Node_xw-6eEY3tl8r3b-2t8DRAg)
+      In Pins:
+        (Transform) A <- Node_lF_utUO2kOvVAdKsPFmzEg.ReturnValue
+        (Transform) B <- Node_5lIjLUjBzNyOQLG_roBdMw.ReturnValue
+        (Boolean) bPickA <- Node_ZOzeJUxN4_8X-UahBfo5kA.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue -> Node_o_0NqkRduu7u5xS5KEKbCQ.A
+    [K2Node_CallFunction] "Make Transform" (Node_5lIjLUjBzNyOQLG_roBdMw)
+      In Pins:
+        (Vector) Location <- Node_C0ZIa0Hg3496zr2d4TTYpw.ReturnValue
+        (Rotator) Rotation = -90.000000,0.000000,0.000000
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_xw-6eEY3tl8r3b-2t8DRAg.B
+    [K2Node_CallFunction] "Select Transform" (Node_MhikBkXa3b5mCIyAS6EmpA)
+      In Pins:
+        (Transform) A <- Node_06ds3EPrVCo6sXCBfQ81xQ.ReturnValue
+        (Transform) B <- Node_fz4C20vWaBKIF02T6rSgGg.ReturnValue
+        (Boolean) bPickA <- Node_ZOzeJUxN4_8X-UahBfo5kA.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue -> Node_O6wOEk5sh02Q_nOIuYu45g.A
+    [K2Node_VariableGet] "Get Height" (Node_7yRM8kQ71pZd-BupvHbTkw)
+      Out Pins:
+        (double) Height -> Node_ZOzeJUxN4_8X-UahBfo5kA.A
+    [K2Node_PromotableOperator] "float >= float" (Node_ZOzeJUxN4_8X-UahBfo5kA)
+      In Pins:
+        (double) A <- Node_7yRM8kQ71pZd-BupvHbTkw.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_MhikBkXa3b5mCIyAS6EmpA.bPickA, Node_xw-6eEY3tl8r3b-2t8DRAg.bPickA
+    [K2Node_CallFunction] "Make Transform" (Node_fz4C20vWaBKIF02T6rSgGg)
+      In Pins:
+        (Vector) Location <- Node_jc-AZ0AOhP_wVaG-5yWxFw.ReturnValue
+        (Rotator) Rotation = 90.000000,180.000000,0.000000
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_MhikBkXa3b5mCIyAS6EmpA.B
+    [K2Node_VariableGet] "Get Depth" (Node_825XMklwimD-vG6QXoxVOQ)
+      Out Pins:
+        (double) Depth -> Node_KjYD2EZ_vah6jFiMT3ju9g.A
+    [K2Node_CallFunction] "Select Float" (Node_LMwcnEiIVrCbe3q6jSinew)
+      In Pins:
+        (double) A <- Node_vGl8NUkBsJ_5NIqcHlYjeg.Depth
+        (double) B <- Node_WfibEk5_wowFQuaDNvzGEA.ReturnValue
+        (Boolean) bPickA <- Node_UHF3dUDw9LqrxiSKM55FhA.ReturnValue
+      Out Pins:
+        (double) ReturnValue -> Node_GhOnPkisX_4_bO6_e6TfZA.A
+    [K2Node_PromotableOperator] "float / float" (Node_KjYD2EZ_vah6jFiMT3ju9g)
+      In Pins:
+        (double) A <- Node_825XMklwimD-vG6QXoxVOQ.Depth
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_WfibEk5_wowFQuaDNvzGEA.A
+    [K2Node_VariableGet] "Get Height" (Node_m5vdv0XS_JtxeVmoh3iJYg)
+      Out Pins:
+        (double) Height -> Node_UHF3dUDw9LqrxiSKM55FhA.A
+    [K2Node_PromotableOperator] "float >= float" (Node_UHF3dUDw9LqrxiSKM55FhA)
+      In Pins:
+        (double) A <- Node_m5vdv0XS_JtxeVmoh3iJYg.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_LMwcnEiIVrCbe3q6jSinew.bPickA
+    [K2Node_VariableGet] "Get Height" (Node_RBUgAUsQCL_SKomnAdc39g)
+      Out Pins:
+        (double) Height -> Node_kR3dxUcMVPC1VKSBMpJmRA.A
+    [K2Node_PromotableOperator] "float >= float" (Node_kR3dxUcMVPC1VKSBMpJmRA)
+      In Pins:
+        (double) A <- Node_RBUgAUsQCL_SKomnAdc39g.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_9MpSQkZW5Ec_wue4qlWGVw.bPickA
+    [K2Node_CallFunction] "Select Float" (Node_9MpSQkZW5Ec_wue4qlWGVw)
+      In Pins:
+        (double) A <- Node_63R6o06PPZPyBHSk_4AmbA.Height
+        (double) B <- Node_fhTpakn8PhitDCe_gp5Mjw.ReturnValue
+        (Boolean) bPickA <- Node_kR3dxUcMVPC1VKSBMpJmRA.ReturnValue
+      Out Pins:
+        (double) ReturnValue -> Node_JvK97EHwUy19eD-zGv14yQ.A
+    [K2Node_VariableGet] "Get Depth" (Node_jUkNIETa7oADkISFdvcupA)
+      Out Pins:
+        (double) Depth -> Node_vDppU0UC9UNiQHCxPYN73A.A
+    [K2Node_PromotableOperator] "float / float" (Node_vDppU0UC9UNiQHCxPYN73A)
+      In Pins:
+        (double) A <- Node_jUkNIETa7oADkISFdvcupA.Depth
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_fhTpakn8PhitDCe_gp5Mjw.A
+    [K2Node_PromotableOperator] "float + float" (Node_fhTpakn8PhitDCe_gp5Mjw)
+      In Pins:
+        (double) A <- Node_vDppU0UC9UNiQHCxPYN73A.ReturnValue
+        (double) B = 1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_9MpSQkZW5Ec_wue4qlWGVw.B
+    [K2Node_PromotableOperator] "float + float" (Node_WfibEk5_wowFQuaDNvzGEA)
+      In Pins:
+        (double) A <- Node_KjYD2EZ_vah6jFiMT3ju9g.ReturnValue
+        (double) B = 1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_LMwcnEiIVrCbe3q6jSinew.B
+    [K2Node_VariableGet] "Get Depth" (Node_pv-CEkJg-Olrhbu82q4rag)
+      Out Pins:
+        (double) Depth -> Node_se3vf0yaXQmLAkKnYAvVfQ.A
+    [K2Node_CallFunction] "Make Vector" (Node_C0ZIa0Hg3496zr2d4TTYpw)
+      In Pins:
+        (double) X = 0.0
+        (double) Y = 0.0
+        (double) Z <- Node_IYefOk57lj-AOG2BnKkxRQ.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_5lIjLUjBzNyOQLG_roBdMw.Location
+    [K2Node_CallFunction] "Make Vector" (Node_jc-AZ0AOhP_wVaG-5yWxFw)
+      In Pins:
+        (double) X = 0.0
+        (double) Y = 0.0
+        (double) Z <- Node_6iDOpU-qX9ScXWGN04xVXg.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_fz4C20vWaBKIF02T6rSgGg.Location
+    [K2Node_PromotableOperator] "float * float" (Node_IYefOk57lj-AOG2BnKkxRQ)
+      In Pins:
+        (double) A <- Node_se3vf0yaXQmLAkKnYAvVfQ.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_C0ZIa0Hg3496zr2d4TTYpw.Z, Node_6iDOpU-qX9ScXWGN04xVXg.A
+    [K2Node_PromotableOperator] "float / float" (Node_se3vf0yaXQmLAkKnYAvVfQ)
+      In Pins:
+        (double) A <- Node_pv-CEkJg-Olrhbu82q4rag.Depth
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_IYefOk57lj-AOG2BnKkxRQ.A
+    [K2Node_PromotableOperator] "float * float" (Node_6iDOpU-qX9ScXWGN04xVXg)
+      In Pins:
+        (double) A <- Node_IYefOk57lj-AOG2BnKkxRQ.ReturnValue
+        (double) B = -1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_jc-AZ0AOhP_wVaG-5yWxFw.Z
+    [K2Node_PromotableOperator] "float < float" (Node_d8h7xEaDHTkmD6S45oz5oA)
+      In Pins:
+        (double) A <- Node_C6Q28ELUR7FTHBKvV7QSMw.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_OjIsqUHBUoyUgyaiUMl6Iw.A
+    [K2Node_CommutativeAssociativeBinaryOperator] "OR Boolean" (Node_OjIsqUHBUoyUgyaiUMl6Iw)
+      In Pins:
+        (Boolean) A <- Node_d8h7xEaDHTkmD6S45oz5oA.ReturnValue
+        (Boolean) B <- Node_R-lepU4y3oxWzICInfcHdA.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_EDnb6UtkXcV0suuHmjzB9g.Condition
+    [K2Node_VariableGet] "Get Depth" (Node_aCRAvETIMivsFGm_zxzc6g)
+      Out Pins:
+        (double) Depth -> Node_R-lepU4y3oxWzICInfcHdA.A
+    [K2Node_PromotableOperator] "float < float" (Node_R-lepU4y3oxWzICInfcHdA)
+      In Pins:
+        (double) A <- Node_aCRAvETIMivsFGm_zxzc6g.Depth
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_OjIsqUHBUoyUgyaiUMl6Iw.B
+    [K2Node_CallFunction] "Select Transform" (Node_O6wOEk5sh02Q_nOIuYu45g)
+      In Pins:
+        (Transform) A <- Node_MhikBkXa3b5mCIyAS6EmpA.ReturnValue
+        (Transform) B <- Node_7nLLpUaFhnQwcFebsz1AMg.ReturnValue
+        (Boolean) bPickA <- Node_WCV4RUeJx7DruwqSYvkp8w.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue -> Node_ytaG90rsBFZcLdSbzz0rrQ.Base Position
+    [K2Node_VariableGet] "Get Depth" (Node_Z_DaHEDfticoXLqPebiQFQ)
+      Out Pins:
+        (double) Depth -> Node_WCV4RUeJx7DruwqSYvkp8w.A
+    [K2Node_PromotableOperator] "float >= float" (Node_WCV4RUeJx7DruwqSYvkp8w)
+      In Pins:
+        (double) A <- Node_Z_DaHEDfticoXLqPebiQFQ.Depth
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_O6wOEk5sh02Q_nOIuYu45g.bPickA, Node_o_0NqkRduu7u5xS5KEKbCQ.bPickA
+    [K2Node_CallFunction] "Make Transform" (Node_7nLLpUaFhnQwcFebsz1AMg)
+      In Pins:
+        (Vector) Location <- Node_MdAjN0TZipMuJ6qi92traQ.ReturnValue
+        (Rotator) Rotation = 180.000000,180.000000,0.000000
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_O6wOEk5sh02Q_nOIuYu45g.B
+    [K2Node_CallFunction] "Select Transform" (Node_o_0NqkRduu7u5xS5KEKbCQ)
+      In Pins:
+        (Transform) A <- Node_xw-6eEY3tl8r3b-2t8DRAg.ReturnValue
+        (Transform) B <- Node_QGnOAkt_N78ZHhaL3SqkNQ.ReturnValue
+        (Boolean) bPickA <- Node_WCV4RUeJx7DruwqSYvkp8w.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue -> Node_yNUou0ebW4O1T_aCk5_4kg.Base Position
+    [K2Node_CallFunction] "Make Transform" (Node_QGnOAkt_N78ZHhaL3SqkNQ)
+      In Pins:
+        (Vector) Location <- Node_VA1mxkCIia1p3tK-QlZ1Xg.ReturnValue
+        (Rotator) Rotation = 0, 0, 0
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_o_0NqkRduu7u5xS5KEKbCQ.B
+    [K2Node_VariableGet] "Get Height" (Node_cjzKhEUgmHFrHNeCgU70AA)
+      Out Pins:
+        (double) Height -> Node_4KYQ9kmC159OlL-FnsJDzg.A
+    [K2Node_PromotableOperator] "float * float" (Node_6n3yKExJLticyTyIPAlK2A)
+      In Pins:
+        (double) A <- Node_4KYQ9kmC159OlL-FnsJDzg.ReturnValue
+        (double) B = -100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_VA1mxkCIia1p3tK-QlZ1Xg.Z
+    [K2Node_PromotableOperator] "float / float" (Node_4KYQ9kmC159OlL-FnsJDzg)
+      In Pins:
+        (double) A <- Node_cjzKhEUgmHFrHNeCgU70AA.Height
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_6n3yKExJLticyTyIPAlK2A.A, Node_3Jvl7kjEI8zCORylww3aPg.A
+    [K2Node_CallFunction] "Make Vector" (Node_VA1mxkCIia1p3tK-QlZ1Xg)
+      In Pins:
+        (double) X = 0.0
+        (double) Y = 0.0
+        (double) Z <- Node_6n3yKExJLticyTyIPAlK2A.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_QGnOAkt_N78ZHhaL3SqkNQ.Location
+    [K2Node_CallFunction] "Make Vector" (Node_MdAjN0TZipMuJ6qi92traQ)
+      In Pins:
+        (double) X = 0.0
+        (double) Y = 0.0
+        (double) Z <- Node_3Jvl7kjEI8zCORylww3aPg.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_7nLLpUaFhnQwcFebsz1AMg.Location
+    [K2Node_CallFunction] "Select Float" (Node_JvK97EHwUy19eD-zGv14yQ)
+      In Pins:
+        (double) A <- Node_9MpSQkZW5Ec_wue4qlWGVw.ReturnValue
+        (double) B <- Node_aeG_IU1tfKBtzAykQfniHA.ReturnValue
+        (Boolean) bPickA <- Node_v0HDW0KVLV3k_KiBl5X_2g.ReturnValue
+      Out Pins:
+        (double) ReturnValue -> Node_yNUou0ebW4O1T_aCk5_4kg.Length
+    [K2Node_VariableGet] "Get Depth" (Node_ywkm60_4KhRe-g-QHyfmIw)
+      Out Pins:
+        (double) Depth -> Node_v0HDW0KVLV3k_KiBl5X_2g.A
+    [K2Node_PromotableOperator] "float >= float" (Node_v0HDW0KVLV3k_KiBl5X_2g)
+      In Pins:
+        (double) A <- Node_ywkm60_4KhRe-g-QHyfmIw.Depth
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_JvK97EHwUy19eD-zGv14yQ.bPickA
+    [K2Node_VariableGet] "Get Height" (Node_0h_1UkbSRY-UAKKXxLarRA)
+      Out Pins:
+        (double) Height -> Node_Rd2N6UPHrOHqAhGKfr3YSg.A
+    [K2Node_PromotableOperator] "float / float" (Node_Rd2N6UPHrOHqAhGKfr3YSg)
+      In Pins:
+        (double) A <- Node_0h_1UkbSRY-UAKKXxLarRA.Height
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_aeG_IU1tfKBtzAykQfniHA.A
+    [K2Node_PromotableOperator] "float + float" (Node_aeG_IU1tfKBtzAykQfniHA)
+      In Pins:
+        (double) A <- Node_Rd2N6UPHrOHqAhGKfr3YSg.ReturnValue
+        (double) B = 1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_JvK97EHwUy19eD-zGv14yQ.B
+    [K2Node_CallFunction] "Select Float" (Node_GhOnPkisX_4_bO6_e6TfZA)
+      In Pins:
+        (double) A <- Node_LMwcnEiIVrCbe3q6jSinew.ReturnValue
+        (double) B <- Node_mtU2gUDYkXiSqjOG5wLpNw.ReturnValue
+        (Boolean) bPickA <- Node_1aT9F0MiR3E6cpSHLOTOgQ.ReturnValue
+      Out Pins:
+        (double) ReturnValue -> Node_ytaG90rsBFZcLdSbzz0rrQ.Length
+    [K2Node_VariableGet] "Get Depth" (Node_BW6MFEr0waIWVpSO3nQZ6Q)
+      Out Pins:
+        (double) Depth -> Node_1aT9F0MiR3E6cpSHLOTOgQ.A
+    [K2Node_PromotableOperator] "float >= float" (Node_1aT9F0MiR3E6cpSHLOTOgQ)
+      In Pins:
+        (double) A <- Node_BW6MFEr0waIWVpSO3nQZ6Q.Depth
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_GhOnPkisX_4_bO6_e6TfZA.bPickA
+    [K2Node_VariableGet] "Get Height" (Node_yTHhZkLjdPsDSz6vKw5DHA)
+      Out Pins:
+        (double) Height -> Node_auUnLUeksPULA3iEb05hyQ.A
+    [K2Node_PromotableOperator] "float / float" (Node_auUnLUeksPULA3iEb05hyQ)
+      In Pins:
+        (double) A <- Node_yTHhZkLjdPsDSz6vKw5DHA.Height
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_mtU2gUDYkXiSqjOG5wLpNw.A
+    [K2Node_PromotableOperator] "float + float" (Node_mtU2gUDYkXiSqjOG5wLpNw)
+      In Pins:
+        (double) A <- Node_auUnLUeksPULA3iEb05hyQ.ReturnValue
+        (double) B = 1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_GhOnPkisX_4_bO6_e6TfZA.B
+    [K2Node_PromotableOperator] "float * float" (Node_3Jvl7kjEI8zCORylww3aPg)
+      In Pins:
+        (double) A <- Node_4KYQ9kmC159OlL-FnsJDzg.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_MdAjN0TZipMuJ6qi92traQ.Z
+
+--- Function: Scalable Panel ---
+  Execution Flows:
+    [1] Scalable Panel -> Add Instance
+Target is Instanced Static Mesh Component -> Add Instances
+Target is Instanced Static Mesh Component -> Scale Safe Instance
+Target is BP Demo Display -> Scale Safe Instance
+Target is BP Demo Display -> Scale Safe Instance
+Target is BP Demo Display
+
+  Nodes (40):
+    [K2Node_FunctionEntry] "Scalable Panel" (Node_x8pE4Ury8UIfOcuD8VnabA)
+      Out Pins:
+        (exec) then -> Node_Y3g2eUoLEn1VCI-gU-u5Ug.execute
+        (Transform) Base Position -> Node_RGwVj0ZOxckIiLOXuYqCjA.RelativeTo
+        (double) Length
+    [K2Node_VariableGet] "Get ISM_Main" (Node_AxhgMU4fwP5vL4SqRygDwQ)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_Main -> Node_Y3g2eUoLEn1VCI-gU-u5Ug.self
+    [K2Node_CallFunction] "Add Instance
+Target is Instanced Static Mesh Component" (Node_Y3g2eUoLEn1VCI-gU-u5Ug)
+      In Pins:
+        (exec) execute <- Node_x8pE4Ury8UIfOcuD8VnabA.then
+        (InstancedStaticMeshComponent) self <- Node_AxhgMU4fwP5vL4SqRygDwQ.ISM_Main
+        (Transform) InstanceTransform <- Node_RGwVj0ZOxckIiLOXuYqCjA.ReturnValue
+        (Boolean) bWorldSpace = false
+      Out Pins:
+        (exec) then -> Node_X8pm7kCc62ty2H2t3na3tQ.execute
+        (Integer) ReturnValue
+    [K2Node_CallFunction] "Make Relative Transform" (Node_RGwVj0ZOxckIiLOXuYqCjA)
+      In Pins:
+        (Transform) A <- Node_u8qSJUzjRbSZFuGqoXDAVg.ReturnValue
+        (Transform) RelativeTo <- Node_x8pE4Ury8UIfOcuD8VnabA.Base Position
+      Out Pins:
+        (Transform) ReturnValue -> Node_Y3g2eUoLEn1VCI-gU-u5Ug.InstanceTransform
+    [K2Node_CallFunction] "Make Transform" (Node_u8qSJUzjRbSZFuGqoXDAVg)
+      In Pins:
+        (Vector) Location = 0, 0, 0
+        (Rotator) Rotation = 0, 0, 0
+        (double) Scale_X = 1.000000
+        (double) Scale_Y <- Node_HMOjFUh_lOAN2FKTEIWnpQ.ReturnValue
+        (double) Scale_Z <- Node_1-IV2UZRSZQT-oiQYRpNxA.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue -> Node_RGwVj0ZOxckIiLOXuYqCjA.A
+    [K2Node_VariableGet] "Get Width" (Node_jdr7bUibFSXV6F-0CSoeow)
+      Out Pins:
+        (double) Width -> Node_1iRFWU46ojgUNYW6SFaPMw.A
+    [K2Node_PromotableOperator] "float / float" (Node_HMOjFUh_lOAN2FKTEIWnpQ)
+      In Pins:
+        (double) A <- Node_1iRFWU46ojgUNYW6SFaPMw.ReturnValue
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_u8qSJUzjRbSZFuGqoXDAVg.Scale_Y, Node_dq1qG0X6zOnjiOaZYaN9CQ.A, Node_a1AUgUxpggRF13Snm695Ig.Scale_Y
+    [K2Node_PromotableOperator] "float - float" (Node_1iRFWU46ojgUNYW6SFaPMw)
+      In Pins:
+        (double) A <- Node_jdr7bUibFSXV6F-0CSoeow.Width
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_HMOjFUh_lOAN2FKTEIWnpQ.A
+    [K2Node_VariableGet] "Get ISM_Side" (Node_rdP5l0L2FoyIUri-udU-gg)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_Side -> Node_vpQh7UfPd0hakFytKIFQQw.Instance, Node_pQW7yE86daHCZwe4aH9F7w.Instance, Node_d4Y_VU0ZFdEYSqySLuEu4A.Instance
+    [K2Node_CallFunction] "Make Transform" (Node_VVx_JkLDkVWYtFijzRGXxg)
+      In Pins:
+        (double) Location_X = 0.0
+        (double) Location_Y <- Node_dq1qG0X6zOnjiOaZYaN9CQ.ReturnValue
+        (double) Location_Z <- Node_TkQzFE3vbnVOGDCNMBybVQ.ReturnValue
+        (Rotator) Rotation = 0, 0,90.000000
+        (double) Scale_X = 1.000000
+        (double) Scale_Y <- Node_pCZ_20E7k1AnkLCBRo_R2w.OutputPin
+        (double) Scale_Z = 1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_QYGcu0tR0eavh1m1wVAknQ.A
+    [K2Node_CallFunction] "Make Relative Transform" (Node_QYGcu0tR0eavh1m1wVAknQ)
+      In Pins:
+        (Transform) A <- Node_VVx_JkLDkVWYtFijzRGXxg.ReturnValue
+        (Transform) RelativeTo <- Node_ckET1UlXICin0vyZ1AjnGw.Base Position
+      Out Pins:
+        (Transform) ReturnValue -> Node_vpQh7UfPd0hakFytKIFQQw.Transform
+    [K2Node_PromotableOperator] "float * float" (Node_dq1qG0X6zOnjiOaZYaN9CQ)
+      In Pins:
+        (double) A <- Node_HMOjFUh_lOAN2FKTEIWnpQ.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_VVx_JkLDkVWYtFijzRGXxg.Location_Y, Node_VRBzCkRqSooqWqWRXEH7_w.A, Node_Lfx5pkWMrxDyFH6Enpja0g.Location_Y, Node_xJHw7Uf1jwLnbc-Jr8u0pg.A
+    [K2Node_PromotableOperator] "float / float" (Node_1-IV2UZRSZQT-oiQYRpNxA)
+      In Pins:
+        (double) A <- Node_skaDhUOIYKklWcOXtiDa4g.ReturnValue
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_TkQzFE3vbnVOGDCNMBybVQ.A, Node_u8qSJUzjRbSZFuGqoXDAVg.Scale_Z, Node_BJUW5kEq2IAokl-AeqmOoA.Scale_Y, Node_pCZ_20E7k1AnkLCBRo_R2w.InputPin
+    [K2Node_PromotableOperator] "float * float" (Node_TkQzFE3vbnVOGDCNMBybVQ)
+      In Pins:
+        (double) A <- Node_1-IV2UZRSZQT-oiQYRpNxA.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_VVx_JkLDkVWYtFijzRGXxg.Location_Z, Node_BJUW5kEq2IAokl-AeqmOoA.Location_Z
+    [K2Node_PromotableOperator] "float - float" (Node_skaDhUOIYKklWcOXtiDa4g)
+      In Pins:
+        (double) A <- Node_19SEG09c8KpNuGKZq5TvjQ.Length
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_1-IV2UZRSZQT-oiQYRpNxA.A
+    [K2Node_CallFunction] "Make Relative Transform" (Node_3RgSKkb-yaidWHyYNYuyog)
+      In Pins:
+        (Transform) A <- Node_BJUW5kEq2IAokl-AeqmOoA.ReturnValue
+        (Transform) RelativeTo <- Node_ckET1UlXICin0vyZ1AjnGw.Base Position
+      Out Pins:
+        (Transform) ReturnValue -> Node_d4Y_VU0ZFdEYSqySLuEu4A.Transform
+    [K2Node_CallFunction] "Make Transform" (Node_BJUW5kEq2IAokl-AeqmOoA)
+      In Pins:
+        (double) Location_X = 0.0
+        (double) Location_Y <- Node_VRBzCkRqSooqWqWRXEH7_w.ReturnValue
+        (double) Location_Z <- Node_TkQzFE3vbnVOGDCNMBybVQ.ReturnValue
+        (Rotator) Rotation = 0,0.000000,-90.000000
+        (double) Scale_X = 1.0
+        (double) Scale_Y <- Node_1-IV2UZRSZQT-oiQYRpNxA.ReturnValue
+        (double) Scale_Z = 1.0
+      Out Pins:
+        (Transform) ReturnValue -> Node_3RgSKkb-yaidWHyYNYuyog.A
+    [K2Node_PromotableOperator] "float * float" (Node_VRBzCkRqSooqWqWRXEH7_w)
+      In Pins:
+        (double) A <- Node_dq1qG0X6zOnjiOaZYaN9CQ.ReturnValue
+        (double) B = -1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_BJUW5kEq2IAokl-AeqmOoA.Location_Y
+    [K2Node_CallFunction] "Make Relative Transform" (Node_iHV2x0VPNjt-jfi9IK8Pyg)
+      In Pins:
+        (Transform) A <- Node_a1AUgUxpggRF13Snm695Ig.ReturnValue
+        (Transform) RelativeTo <- Node_ckET1UlXICin0vyZ1AjnGw.Base Position
+      Out Pins:
+        (Transform) ReturnValue -> Node_pQW7yE86daHCZwe4aH9F7w.Transform
+    [K2Node_CallFunction] "Make Transform" (Node_a1AUgUxpggRF13Snm695Ig)
+      In Pins:
+        (double) Location_X = 0.0
+        (double) Location_Y = 0.0
+        (double) Location_Z <- Node_e7yyXkioupQFvXyXN7y7Lw.ReturnValue
+        (Rotator) Rotation = 0, 0, 0
+        (double) Scale_X = 1.000000
+        (double) Scale_Y <- Node_HMOjFUh_lOAN2FKTEIWnpQ.ReturnValue
+        (double) Scale_Z = 1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_iHV2x0VPNjt-jfi9IK8Pyg.A
+    [K2Node_PromotableOperator] "float - float" (Node_uhuFzUQ10jFraw-i-TBJwg)
+      In Pins:
+        (double) A <- Node_19SEG09c8KpNuGKZq5TvjQ.Length
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_e7yyXkioupQFvXyXN7y7Lw.A
+    [K2Node_PromotableOperator] "float * float" (Node_e7yyXkioupQFvXyXN7y7Lw)
+      In Pins:
+        (double) A <- Node_uhuFzUQ10jFraw-i-TBJwg.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_a1AUgUxpggRF13Snm695Ig.Location_Z
+    [K2Node_CallFunction] "Add Instances
+Target is Instanced Static Mesh Component" (Node_X8pm7kCc62ty2H2t3na3tQ)
+      In Pins:
+        (exec) execute <- Node_Y3g2eUoLEn1VCI-gU-u5Ug.then
+        (InstancedStaticMeshComponent) self <- Node_pJ83aEjQQiJJ9Omi1yPnHw.ISM_Corner
+        (TArray<Transform>) InstanceTransforms <- Node_qQqhkUx22UOtT_yLtJ6SAg.Array
+        (Boolean) bShouldReturnIndices = false
+        (Boolean) bWorldSpace = false
+        (Boolean) bUpdateNavigation = true
+      Out Pins:
+        (exec) then -> Node_vpQh7UfPd0hakFytKIFQQw.execute
+        (TArray<Integer>) ReturnValue
+    [K2Node_VariableGet] "Get ISM_Corner" (Node_pJ83aEjQQiJJ9Omi1yPnHw)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_Corner -> Node_X8pm7kCc62ty2H2t3na3tQ.self
+    [K2Node_MakeArray] "Make Array" (Node_qQqhkUx22UOtT_yLtJ6SAg)
+      In Pins:
+        (Transform) [0] <- Node_N5rzYU7lgB-Q9sGf6yIQPw.ReturnValue
+        (Transform) [1] <- Node_0LKLs0SG4VBB2peWKzM1Zg.ReturnValue
+      Out Pins:
+        (TArray<Transform>) Array -> Node_X8pm7kCc62ty2H2t3na3tQ.InstanceTransforms
+    [K2Node_CallFunction] "Make Relative Transform" (Node_N5rzYU7lgB-Q9sGf6yIQPw)
+      In Pins:
+        (Transform) A <- Node_Lfx5pkWMrxDyFH6Enpja0g.ReturnValue
+        (Transform) RelativeTo <- Node_3juZE0RL6j4uFrqCEnaZrQ.Base Position
+      Out Pins:
+        (Transform) ReturnValue -> Node_qQqhkUx22UOtT_yLtJ6SAg.[0]
+    [K2Node_CallFunction] "Make Relative Transform" (Node_0LKLs0SG4VBB2peWKzM1Zg)
+      In Pins:
+        (Transform) A <- Node_jLJKK0r7K3kUOPuePIx0Yw.ReturnValue
+        (Transform) RelativeTo <- Node_3juZE0RL6j4uFrqCEnaZrQ.Base Position
+      Out Pins:
+        (Transform) ReturnValue -> Node_qQqhkUx22UOtT_yLtJ6SAg.[1]
+    [K2Node_VariableGet] "Get Base Position" (Node_3juZE0RL6j4uFrqCEnaZrQ)
+      Out Pins:
+        (Transform) Base Position -> Node_0LKLs0SG4VBB2peWKzM1Zg.RelativeTo, Node_N5rzYU7lgB-Q9sGf6yIQPw.RelativeTo
+    [K2Node_VariableGet] "Get Base Position" (Node_ckET1UlXICin0vyZ1AjnGw)
+      Out Pins:
+        (Transform) Base Position -> Node_iHV2x0VPNjt-jfi9IK8Pyg.RelativeTo, Node_3RgSKkb-yaidWHyYNYuyog.RelativeTo, Node_QYGcu0tR0eavh1m1wVAknQ.RelativeTo
+    [K2Node_CallFunction] "Make Transform" (Node_Lfx5pkWMrxDyFH6Enpja0g)
+      In Pins:
+        (double) Location_X = 0.0
+        (double) Location_Y <- Node_dq1qG0X6zOnjiOaZYaN9CQ.ReturnValue
+        (double) Location_Z <- Node_gQqGVE6HwSTyxGGDoMNCDg.ReturnValue
+        (Rotator) Rotation = 0, 0, 0
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_N5rzYU7lgB-Q9sGf6yIQPw.A
+    [K2Node_CallFunction] "Make Transform" (Node_jLJKK0r7K3kUOPuePIx0Yw)
+      In Pins:
+        (double) Location_X = 0.0
+        (double) Location_Y <- Node_xJHw7Uf1jwLnbc-Jr8u0pg.ReturnValue
+        (double) Location_Z <- Node_gQqGVE6HwSTyxGGDoMNCDg.ReturnValue
+        (Rotator) Rotation = 0, 0,-90.000000
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_0LKLs0SG4VBB2peWKzM1Zg.A
+    [K2Node_PromotableOperator] "float * float" (Node_gQqGVE6HwSTyxGGDoMNCDg)
+      In Pins:
+        (double) A <- Node_81GcSETi7M6fioqhG2hSGQ.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_Lfx5pkWMrxDyFH6Enpja0g.Location_Z, Node_jLJKK0r7K3kUOPuePIx0Yw.Location_Z
+    [K2Node_PromotableOperator] "float - float" (Node_81GcSETi7M6fioqhG2hSGQ)
+      In Pins:
+        (double) A <- Node_H40tEkVfkxNNTqS7QqxJHQ.Length
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_gQqGVE6HwSTyxGGDoMNCDg.A
+    [K2Node_PromotableOperator] "float * float" (Node_xJHw7Uf1jwLnbc-Jr8u0pg)
+      In Pins:
+        (double) A <- Node_dq1qG0X6zOnjiOaZYaN9CQ.ReturnValue
+        (double) B = -1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_jLJKK0r7K3kUOPuePIx0Yw.Location_Y
+    [K2Node_VariableGet] "Get Length" (Node_19SEG09c8KpNuGKZq5TvjQ)
+      Out Pins:
+        (double) Length -> Node_uhuFzUQ10jFraw-i-TBJwg.A, Node_skaDhUOIYKklWcOXtiDa4g.A
+    [K2Node_VariableGet] "Get Length" (Node_H40tEkVfkxNNTqS7QqxJHQ)
+      Out Pins:
+        (double) Length -> Node_81GcSETi7M6fioqhG2hSGQ.A
+    [K2Node_Knot] "Reroute Node" (Node_pCZ_20E7k1AnkLCBRo_R2w)
+      In Pins:
+        (double) InputPin <- Node_1-IV2UZRSZQT-oiQYRpNxA.ReturnValue
+      Out Pins:
+        (double) OutputPin -> Node_VVx_JkLDkVWYtFijzRGXxg.Scale_Y
+    [K2Node_CallFunction] "Scale Safe Instance
+Target is BP Demo Display" (Node_vpQh7UfPd0hakFytKIFQQw)
+      In Pins:
+        (exec) execute <- Node_X8pm7kCc62ty2H2t3na3tQ.then
+        (Object) self
+        (InstancedStaticMeshComponent) Instance <- Node_rdP5l0L2FoyIUri-udU-gg.ISM_Side
+        (Transform) Transform <- Node_QYGcu0tR0eavh1m1wVAknQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_d4Y_VU0ZFdEYSqySLuEu4A.execute
+    [K2Node_CallFunction] "Scale Safe Instance
+Target is BP Demo Display" (Node_d4Y_VU0ZFdEYSqySLuEu4A)
+      In Pins:
+        (exec) execute <- Node_vpQh7UfPd0hakFytKIFQQw.then
+        (Object) self
+        (InstancedStaticMeshComponent) Instance <- Node_rdP5l0L2FoyIUri-udU-gg.ISM_Side
+        (Transform) Transform <- Node_3RgSKkb-yaidWHyYNYuyog.ReturnValue
+      Out Pins:
+        (exec) then -> Node_pQW7yE86daHCZwe4aH9F7w.execute
+    [K2Node_CallFunction] "Scale Safe Instance
+Target is BP Demo Display" (Node_pQW7yE86daHCZwe4aH9F7w)
+      In Pins:
+        (exec) execute <- Node_d4Y_VU0ZFdEYSqySLuEu4A.then
+        (Object) self
+        (InstancedStaticMeshComponent) Instance <- Node_rdP5l0L2FoyIUri-udU-gg.ISM_Side
+        (Transform) Transform <- Node_iHV2x0VPNjt-jfi9IK8Pyg.ReturnValue
+      Out Pins:
+        (exec) then
+
+--- Function: Redraw ---
+  Execution Flows:
+    [1] Redraw -> Create Instances
+Target is BP Demo Display -> Create Display
+Target is BP Demo Display -> Add Title Panel
+Target is BP Demo Display -> Shadow Box
+Target is BP Demo Display -> Sequence
+          [then_0] -> Reroute Node
+           -> Branch
+           -> Add Text Render Component
+
+           -> Set TitleText_Component
+           -> Set Text
+Target is Text Render Component
+           -> Set Horizontal Alignment
+Target is Text Render Component
+           -> Set World Size
+Target is Text Render Component
+           -> Set Text Render Color
+Target is Text Render Component
+           -> Set Vertical Alignment
+Target is Text Render Component
+          [then_2] -> Branch
+           -> Add Spot Light Component
+
+           -> Set Relative Location And Rotation
+Target is Scene Component
+           -> Set Cast Shadows
+Target is Light Component Base
+          [then_1] -> Format Text
+Target is BP Demo Display
+           -> Branch
+           -> Add Text Render Component
+
+           -> Set DescriptionText_Component
+           -> Set Text
+Target is Text Render Component
+           -> Set Horizontal Alignment
+Target is Text Render Component
+           -> Set World Size
+Target is Text Render Component
+           -> Set Text Render Color
+Target is Text Render Component
+           -> Set Vertical Alignment
+Target is Text Render Component
+
+  Nodes (93):
+    [K2Node_FunctionEntry] "Redraw" (Node_mbxGjkEtb08RUOOUZj_g3g)
+      Out Pins:
+        (exec) then -> Node_rOtitEgL46ZzhaKxad0OBA.execute
+    [K2Node_CallFunction] "Create Instances
+Target is BP Demo Display" (Node_rOtitEgL46ZzhaKxad0OBA)
+      In Pins:
+        (exec) execute <- Node_mbxGjkEtb08RUOOUZj_g3g.then
+        (Object) self
+      Out Pins:
+        (exec) then -> Node_v_DYaU23u9fBuOOnq_OTQQ.execute
+    [K2Node_CallFunction] "Create Display
+Target is BP Demo Display" (Node_v_DYaU23u9fBuOOnq_OTQQ)
+      In Pins:
+        (exec) execute <- Node_rOtitEgL46ZzhaKxad0OBA.then
+        (Object) self
+      Out Pins:
+        (exec) then -> Node_9mLkNEuXM6kBDhSCJ3cUwA.execute
+    [K2Node_CallFunction] "Set Text
+Target is Text Render Component" (Node_8l6PWkVukpsdfeazvk1EhQ)
+      In Pins:
+        (exec) execute <- Node_h9BNEUMicViDWQOg1sbfzw.then
+        (TextRenderComponent) self <- Node_ZnfvNkROnyTSaFWJFxlIoQ.ReturnValue
+        (Text) Value <- Node_s_rz5UXx5MTcBGqNwyirAg.Title Text
+      Out Pins:
+        (exec) then -> Node_tAMcJEPbqeSsg2SbjLcEOw.execute
+    [K2Node_VariableGet] "Get Title Text" (Node_s_rz5UXx5MTcBGqNwyirAg)
+      Out Pins:
+        (Text) Title Text -> Node_8l6PWkVukpsdfeazvk1EhQ.Value
+    [K2Node_ExecutionSequence] "Sequence" (Node_0QJppUTsm5ZdtHWAMuC-Mw)
+      In Pins:
+        (exec) execute <- Node_3CY4MkQSpmcqsoicFR0pMg.then
+      Out Pins:
+        (exec) then_0 -> Node_1ZeoWUkKgZTrYoSO9JlDwA.InputPin
+        (exec) then_1 -> Node_e4BfVE5OoQTQiLayAsRE_Q.execute
+        (exec) then_2 -> Node_Hj8UN0Pc-OaLoFa0g4fFrA.execute
+    [K2Node_CallFunction] "Set Relative Location And Rotation
+Target is Scene Component" (Node_97Dtw0X-uKqetmiMTMh_gA)
+      In Pins:
+        (exec) execute <- Node_E49N00y1bjMjMOOI0jEOXA.then
+        (SceneComponent) self <- Node_E49N00y1bjMjMOOI0jEOXA.ReturnValue
+        (double) NewLocation_X <- Node_n-4BtkkNnhtc6RiHDX-6lA.ReturnValue
+        (double) NewLocation_Y = 0.0
+        (double) NewLocation_Z <- Node_CvzWWUHoVqaROue7AXhKAg.ReturnValue
+        (Rotator) NewRotation = -135.000000, 0, 0
+        (Boolean) bSweep = false
+        (Boolean) bTeleport = false
+      Out Pins:
+        (exec) then -> Node_pFBf00i-zGzLnKuuJ-Ja1Q.execute
+        (HitResult) SweepHitResult
+    [K2Node_VariableGet] "Get Depth" (Node_0yNBPEsZeb1UunGbbhi0eg)
+      Out Pins:
+        (double) Depth -> Node_iRo_2UAo1eYOhcuZWaDSFg.A
+    [K2Node_VariableGet] "Get Height" (Node_iyCBm0gFLeWUD9mH343p0g)
+      Out Pins:
+        (double) Height -> Node_U0vYyE7H9_MebUKYDH2Pyw.A
+    [K2Node_PromotableOperator] "float * float" (Node_n-4BtkkNnhtc6RiHDX-6lA)
+      In Pins:
+        (double) A <- Node_iRo_2UAo1eYOhcuZWaDSFg.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_97Dtw0X-uKqetmiMTMh_gA.NewLocation_X
+    [K2Node_PromotableOperator] "float * float" (Node_CvzWWUHoVqaROue7AXhKAg)
+      In Pins:
+        (double) A <- Node_U0vYyE7H9_MebUKYDH2Pyw.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_97Dtw0X-uKqetmiMTMh_gA.NewLocation_Z
+    [K2Node_AddComponent] "Add Text Render Component
+" (Node_s_tsfUzwgCqmO5ycLVsHPA)
+      In Pins:
+        (exec) execute <- Node_c4hnm07WAYADjmOJZGbfbQ.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform <- Node_pHvJZE9twa98F9CuSCm2BQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_7EfkdUDOwhswAXSwz5_FlQ.execute
+        (TextRenderComponent) ReturnValue -> Node_SyZkd0fwzvYhhu-_dsv9gg.self, Node_l9c0aUbCJk5HjGGQ_nx_NQ.self, Node_JnbaqUnQIskxGDaIFOz-Sg.self, Node_-o4ifEk5rf-kDEelHQmYew.self, Node_6hvWLE5LQMXn6pOyFqgQ5Q.self, Node_7EfkdUDOwhswAXSwz5_FlQ.DescriptionText_Component
+    [K2Node_CallFunction] "Set Text
+Target is Text Render Component" (Node_SyZkd0fwzvYhhu-_dsv9gg)
+      In Pins:
+        (exec) execute <- Node_7EfkdUDOwhswAXSwz5_FlQ.then
+        (TextRenderComponent) self <- Node_s_tsfUzwgCqmO5ycLVsHPA.ReturnValue
+        (Text) Value <- Node_sVTKxUtnDqbpreWAhe_maQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_l9c0aUbCJk5HjGGQ_nx_NQ.execute
+    [K2Node_IfThenElse] "Branch" (Node_c4hnm07WAYADjmOJZGbfbQ)
+      In Pins:
+        (exec) execute <- Node_e4BfVE5OoQTQiLayAsRE_Q.then
+        (Boolean) Condition <- Node_hwgslU_FYBrJJbCR55tCiQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_s_tsfUzwgCqmO5ycLVsHPA.execute
+        (exec) else
+    [K2Node_CallFunction] "Text Is Empty" (Node_SCS0YUt8wE6Bqi-KxhjFNA)
+      In Pins:
+        (Text) InText <- Node_7L3f509oN2MQCfm1dYaBIg.Title Text
+      Out Pins:
+        (Boolean) ReturnValue -> Node_yEfaYUuc4ebEflSk_GjqIQ.A
+    [K2Node_IfThenElse] "Branch" (Node_Mt7Dbku40tKh5HyDZbTIKw)
+      In Pins:
+        (exec) execute <- Node_1ZeoWUkKgZTrYoSO9JlDwA.OutputPin
+        (Boolean) Condition <- Node_yEfaYUuc4ebEflSk_GjqIQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_ZnfvNkROnyTSaFWJFxlIoQ.execute
+        (exec) else
+    [K2Node_VariableGet] "Get Title Text" (Node_7L3f509oN2MQCfm1dYaBIg)
+      Out Pins:
+        (Text) Title Text -> Node_SCS0YUt8wE6Bqi-KxhjFNA.InText
+    [K2Node_AddComponent] "Add Text Render Component
+" (Node_ZnfvNkROnyTSaFWJFxlIoQ)
+      In Pins:
+        (exec) execute <- Node_Mt7Dbku40tKh5HyDZbTIKw.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform <- Node_qH114EeGgbsELta35hchEQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_h9BNEUMicViDWQOg1sbfzw.execute
+        (TextRenderComponent) ReturnValue -> Node_8l6PWkVukpsdfeazvk1EhQ.self, Node_tAMcJEPbqeSsg2SbjLcEOw.self, Node_MhsV6kKGwoTpJoShPtqhEA.self, Node_aaavlUBCn2JKCwaBtHyipQ.self, Node_l2ecE0_j3sFWCqSAebhVkg.self, Node_h9BNEUMicViDWQOg1sbfzw.TitleText_Component
+    [K2Node_CallFunction] "NOT Boolean" (Node_hwgslU_FYBrJJbCR55tCiQ)
+      In Pins:
+        (Boolean) A <- Node_ziVrrkb78jwoyQy571JG9w.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_c4hnm07WAYADjmOJZGbfbQ.Condition
+    [K2Node_CallFunction] "NOT Boolean" (Node_yEfaYUuc4ebEflSk_GjqIQ)
+      In Pins:
+        (Boolean) A <- Node_SCS0YUt8wE6Bqi-KxhjFNA.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_Mt7Dbku40tKh5HyDZbTIKw.Condition
+    [K2Node_CommutativeAssociativeBinaryOperator] "Max (Float)" (Node_U0vYyE7H9_MebUKYDH2Pyw)
+      In Pins:
+        (double) A <- Node_iyCBm0gFLeWUD9mH343p0g.Height
+        (double) B = 2.500000
+      Out Pins:
+        (double) ReturnValue -> Node_CvzWWUHoVqaROue7AXhKAg.A
+    [K2Node_CommutativeAssociativeBinaryOperator] "Max (Float)" (Node_iRo_2UAo1eYOhcuZWaDSFg)
+      In Pins:
+        (double) A <- Node_0yNBPEsZeb1UunGbbhi0eg.Depth
+        (double) B = 2.500000
+      Out Pins:
+        (double) ReturnValue -> Node_n-4BtkkNnhtc6RiHDX-6lA.A
+    [K2Node_CallFunction] "Set Horizontal Alignment
+Target is Text Render Component" (Node_l9c0aUbCJk5HjGGQ_nx_NQ)
+      In Pins:
+        (exec) execute <- Node_SyZkd0fwzvYhhu-_dsv9gg.then
+        (TextRenderComponent) self <- Node_s_tsfUzwgCqmO5ycLVsHPA.ReturnValue
+        (Byte) Value <- Node_EQc3akG9jf3GKa2iW5z3yQ.Text Alignment
+      Out Pins:
+        (exec) then -> Node_JnbaqUnQIskxGDaIFOz-Sg.execute
+    [K2Node_CallFunction] "Set Horizontal Alignment
+Target is Text Render Component" (Node_tAMcJEPbqeSsg2SbjLcEOw)
+      In Pins:
+        (exec) execute <- Node_8l6PWkVukpsdfeazvk1EhQ.then
+        (TextRenderComponent) self <- Node_ZnfvNkROnyTSaFWJFxlIoQ.ReturnValue
+        (Byte) Value <- Node_5-iTYUtA3TklIN-UEVgKYg.ReturnValue
+      Out Pins:
+        (exec) then -> Node_MhsV6kKGwoTpJoShPtqhEA.execute
+    [K2Node_VariableGet] "Get Text Alignment" (Node_EQc3akG9jf3GKa2iW5z3yQ)
+      Out Pins:
+        (Byte) Text Alignment -> Node_l9c0aUbCJk5HjGGQ_nx_NQ.Value
+    [K2Node_CallFunction] "Set World Size
+Target is Text Render Component" (Node_JnbaqUnQIskxGDaIFOz-Sg)
+      In Pins:
+        (exec) execute <- Node_l9c0aUbCJk5HjGGQ_nx_NQ.then
+        (TextRenderComponent) self <- Node_s_tsfUzwgCqmO5ycLVsHPA.ReturnValue
+        (float) Value <- Node_EyHDk0iSiiD7f_qRHaytug.Description Scale
+      Out Pins:
+        (exec) then -> Node_-o4ifEk5rf-kDEelHQmYew.execute
+    [K2Node_VariableGet] "Get Description Scale" (Node_EyHDk0iSiiD7f_qRHaytug)
+      Out Pins:
+        (double) Description Scale -> Node_JnbaqUnQIskxGDaIFOz-Sg.Value
+    [K2Node_CallFunction] "Set World Size
+Target is Text Render Component" (Node_MhsV6kKGwoTpJoShPtqhEA)
+      In Pins:
+        (exec) execute <- Node_tAMcJEPbqeSsg2SbjLcEOw.then
+        (TextRenderComponent) self <- Node_ZnfvNkROnyTSaFWJFxlIoQ.ReturnValue
+        (float) Value <- Node_v2sflUJgh0uSTnmWDbdlzw.ReturnValue
+      Out Pins:
+        (exec) then -> Node_aaavlUBCn2JKCwaBtHyipQ.execute
+    [K2Node_VariableGet] "Get Title Scale" (Node_tQ6XxUpqdzjlJI-XG0R6SA)
+      Out Pins:
+        (double) Title Scale -> Node__Fdi50M6jJYaH_-X8-Ngtg.A, Node_v2sflUJgh0uSTnmWDbdlzw.B
+    [K2Node_CallFunction] "Set Text Render Color
+Target is Text Render Component" (Node_-o4ifEk5rf-kDEelHQmYew)
+      In Pins:
+        (exec) execute <- Node_JnbaqUnQIskxGDaIFOz-Sg.then
+        (TextRenderComponent) self <- Node_s_tsfUzwgCqmO5ycLVsHPA.ReturnValue
+        (Color) Value <- Node_HrQkMUPoupBiU4qJCUpYzQ.Description Colour
+      Out Pins:
+        (exec) then -> Node_6hvWLE5LQMXn6pOyFqgQ5Q.execute
+    [K2Node_CallFunction] "Set Text Render Color
+Target is Text Render Component" (Node_aaavlUBCn2JKCwaBtHyipQ)
+      In Pins:
+        (exec) execute <- Node_MhsV6kKGwoTpJoShPtqhEA.then
+        (TextRenderComponent) self <- Node_ZnfvNkROnyTSaFWJFxlIoQ.ReturnValue
+        (Color) Value <- Node_kt8WIECLut37gXai-Ud4lQ.Title Colour
+      Out Pins:
+        (exec) then -> Node_l2ecE0_j3sFWCqSAebhVkg.execute
+    [K2Node_VariableGet] "Get Title Colour" (Node_kt8WIECLut37gXai-Ud4lQ)
+      Out Pins:
+        (Color) Title Colour -> Node_aaavlUBCn2JKCwaBtHyipQ.Value
+    [K2Node_VariableGet] "Get Description Colour" (Node_HrQkMUPoupBiU4qJCUpYzQ)
+      Out Pins:
+        (Color) Description Colour -> Node_-o4ifEk5rf-kDEelHQmYew.Value
+    [K2Node_VariableGet] "Get Text Alignment" (Node_k6DjaUB18yUxsx2vK9hfzw)
+      Out Pins:
+        (Byte) Text Alignment -> Node_5-iTYUtA3TklIN-UEVgKYg.Option 0
+    [K2Node_Knot] "Reroute Node" (Node_1ZeoWUkKgZTrYoSO9JlDwA)
+      In Pins:
+        (exec) InputPin <- Node_0QJppUTsm5ZdtHWAMuC-Mw.then_0
+      Out Pins:
+        (exec) OutputPin -> Node_Mt7Dbku40tKh5HyDZbTIKw.execute
+    [EdGraphNode_Comment] "Set Title Text" (Node_UkRA502Z0wH9EOGspR3-7w)
+      Comment: Set Title Text
+    [EdGraphNode_Comment] "Set Title Text Position" (Node_wmdFAEavZHJlnN6Wl_iXWw)
+      Comment: Set Title Text Position
+    [EdGraphNode_Comment] "Set Description Text" (Node_xPGKYk4sAAc909u3iCXP6w)
+      Comment: Set Description Text
+    [K2Node_CallFunction] "Make Vector" (Node_lFfwAEz34xg0sY6XwHqj0g)
+      In Pins:
+        (double) X = 15.000000
+        (double) Y <- Node_nXfNeUN6SIqwouSVjVvjnw.ReturnValue
+        (double) Z <- Node__vr4zEtjC-Q8thWg9qoX4A.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_NqkUu0LH6m_X11exb08FdQ.InVec, Node_f4pAKEbvtAfD9NW4a323iA.Option 0
+    [K2Node_CallFunction] "Make Transform" (Node_pHvJZE9twa98F9CuSCm2BQ)
+      In Pins:
+        (Vector) Location <- Node_f4pAKEbvtAfD9NW4a323iA.ReturnValue
+        (Rotator) Rotation <- Node_bcjjaEacIO1CF86dviIrLQ.ReturnValue
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_s_tsfUzwgCqmO5ycLVsHPA.RelativeTransform
+    [K2Node_CallFunction] "Break Vector" (Node_NqkUu0LH6m_X11exb08FdQ)
+      In Pins:
+        (Vector) InVec <- Node_lFfwAEz34xg0sY6XwHqj0g.ReturnValue
+      Out Pins:
+        (double) X -> Node_q03Sw0Rx2br5Rq-PN9E5eQ.Z
+        (double) Y -> Node_q03Sw0Rx2br5Rq-PN9E5eQ.Y
+        (double) Z -> Node_q03Sw0Rx2br5Rq-PN9E5eQ.X
+    [K2Node_VariableGet] "Get Floor Text" (Node_6ohyNUmp33HGKo-WkWoSmg)
+      Out Pins:
+        (Boolean) Floor Text -> Node_qAqF0EXkPhMqOCCae3qrCQ.A
+    [K2Node_VariableGet] "Get Height" (Node_uHA2Bk1PaTrV2ySqxQ8cRQ)
+      Out Pins:
+        (double) Height -> Node_5gQ9k0jmxmHmTVWuoA8qag.A
+    [K2Node_PromotableOperator] "float < float" (Node_5gQ9k0jmxmHmTVWuoA8qag)
+      In Pins:
+        (double) A <- Node_uHA2Bk1PaTrV2ySqxQ8cRQ.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_qAqF0EXkPhMqOCCae3qrCQ.B
+    [K2Node_CommutativeAssociativeBinaryOperator] "OR Boolean" (Node_qAqF0EXkPhMqOCCae3qrCQ)
+      In Pins:
+        (Boolean) A <- Node_6ohyNUmp33HGKo-WkWoSmg.Floor Text
+        (Boolean) B <- Node_5gQ9k0jmxmHmTVWuoA8qag.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_f4pAKEbvtAfD9NW4a323iA.Index, Node_bcjjaEacIO1CF86dviIrLQ.bPickA, Node_TE6XY0BrNeRAfbKkvHvm5Q.Index
+    [K2Node_CallFunction] "Make Vector" (Node_q03Sw0Rx2br5Rq-PN9E5eQ)
+      In Pins:
+        (double) X <- Node_NqkUu0LH6m_X11exb08FdQ.Z
+        (double) Y <- Node_NqkUu0LH6m_X11exb08FdQ.Y
+        (double) Z <- Node_NqkUu0LH6m_X11exb08FdQ.X
+      Out Pins:
+        (Vector) ReturnValue -> Node_f4pAKEbvtAfD9NW4a323iA.Option 1
+    [K2Node_Select] "Select" (Node_f4pAKEbvtAfD9NW4a323iA)
+      In Pins:
+        (Vector) Option 0 <- Node_lFfwAEz34xg0sY6XwHqj0g.ReturnValue
+        (Vector) Option 1 <- Node_q03Sw0Rx2br5Rq-PN9E5eQ.ReturnValue
+        (Boolean) Index <- Node_qAqF0EXkPhMqOCCae3qrCQ.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_pHvJZE9twa98F9CuSCm2BQ.Location
+    [K2Node_CallFunction] "Select Rotator" (Node_bcjjaEacIO1CF86dviIrLQ)
+      In Pins:
+        (Rotator) A = 90.000000, 0, 0
+        (Rotator) B = 0, 0, 0
+        (Boolean) bPickA <- Node_qAqF0EXkPhMqOCCae3qrCQ.ReturnValue
+      Out Pins:
+        (Rotator) ReturnValue -> Node_pHvJZE9twa98F9CuSCm2BQ.Rotation
+    [K2Node_MacroInstance] "Text Alignment Offset" (Node_nXfNeUN6SIqwouSVjVvjnw)
+      In Pins:
+        (double) Width Adjustment = 1.000000
+        (Boolean) Force Center
+      Out Pins:
+        (double) ReturnValue -> Node_lFfwAEz34xg0sY6XwHqj0g.Y
+    [K2Node_VariableGet] "Get Height" (Node_9K-zgEsCCsrqQu-7K0SVtw)
+      Out Pins:
+        (double) Height -> Node_2unjvUZV-esYd527R_jW4A.Option 0
+    [K2Node_PromotableOperator] "float * float" (Node_8iPDlkZ290I_7l-UYB299g)
+      In Pins:
+        (double) A <- Node_2unjvUZV-esYd527R_jW4A.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node__vr4zEtjC-Q8thWg9qoX4A.A
+    [K2Node_Select] "Select" (Node_2unjvUZV-esYd527R_jW4A)
+      In Pins:
+        (double) Option 0 <- Node_9K-zgEsCCsrqQu-7K0SVtw.Height
+        (double) Option 1 <- Node_9G69skkf3JGwKIa43DE_lQ.Depth
+        (Boolean) Index <- Node_gbEyG0QwpGaccpmWsCUchw.ReturnValue
+      Out Pins:
+        (double) ReturnValue -> Node_8iPDlkZ290I_7l-UYB299g.A
+    [K2Node_VariableGet] "Get Depth" (Node_9G69skkf3JGwKIa43DE_lQ)
+      Out Pins:
+        (double) Depth -> Node_2unjvUZV-esYd527R_jW4A.Option 1
+    [K2Node_AddComponent] "Add Spot Light Component
+" (Node_E49N00y1bjMjMOOI0jEOXA)
+      In Pins:
+        (exec) execute <- Node_Hj8UN0Pc-OaLoFa0g4fFrA.then
+        (Actor) self
+        (Boolean) bManualAttachment = false
+        (Transform) RelativeTransform
+      Out Pins:
+        (exec) then -> Node_97Dtw0X-uKqetmiMTMh_gA.execute
+        (SpotLightComponent) ReturnValue -> Node_97Dtw0X-uKqetmiMTMh_gA.self, Node_pFBf00i-zGzLnKuuJ-Ja1Q.self
+    [K2Node_IfThenElse] "Branch" (Node_Hj8UN0Pc-OaLoFa0g4fFrA)
+      In Pins:
+        (exec) execute <- Node_0QJppUTsm5ZdtHWAMuC-Mw.then_2
+        (Boolean) Condition <- Node_pvXp30-hiHf8f52s-gusrA.Spotlight
+      Out Pins:
+        (exec) then -> Node_E49N00y1bjMjMOOI0jEOXA.execute
+        (exec) else
+    [K2Node_VariableGet] "Get Spotlight" (Node_pvXp30-hiHf8f52s-gusrA)
+      Out Pins:
+        (Boolean) Spotlight -> Node_Hj8UN0Pc-OaLoFa0g4fFrA.Condition
+    [K2Node_VariableGet] "Get DescriptionFinal" (Node_PJiQNkij-xszItyKuRn_yQ)
+      Out Pins:
+        (String) DescriptionFinal -> Node_ziVrrkb78jwoyQy571JG9w.InString
+    [K2Node_CallFunction] "Is Empty" (Node_ziVrrkb78jwoyQy571JG9w)
+      In Pins:
+        (String) InString <- Node_PJiQNkij-xszItyKuRn_yQ.DescriptionFinal
+      Out Pins:
+        (Boolean) ReturnValue -> Node_hwgslU_FYBrJJbCR55tCiQ.A
+    [K2Node_VariableGet] "Get DescriptionFinal" (Node_kGqJDESV84R_qHGvtAQrXg)
+      Out Pins:
+        (String) DescriptionFinal -> Node_sVTKxUtnDqbpreWAhe_maQ.InString
+    [K2Node_CallFunction] "To Text (String)" (Node_sVTKxUtnDqbpreWAhe_maQ)
+      In Pins:
+        (String) InString <- Node_kGqJDESV84R_qHGvtAQrXg.DescriptionFinal
+      Out Pins:
+        (Text) ReturnValue -> Node_SyZkd0fwzvYhhu-_dsv9gg.Value
+    [K2Node_CallFunction] "Format Text
+Target is BP Demo Display" (Node_e4BfVE5OoQTQiLayAsRE_Q)
+      In Pins:
+        (exec) execute <- Node_0QJppUTsm5ZdtHWAMuC-Mw.then_1
+        (Object) self
+      Out Pins:
+        (exec) then -> Node_c4hnm07WAYADjmOJZGbfbQ.execute
+    [K2Node_VariableGet] "Get Floor Text" (Node_eN8D90ZgVzMP-EuWe6DLnA)
+      Out Pins:
+        (Boolean) Floor Text -> Node_gbEyG0QwpGaccpmWsCUchw.A
+    [K2Node_VariableGet] "Get Height" (Node_fatnY0Ot2vDhTFe_9NFa4w)
+      Out Pins:
+        (double) Height -> Node_PyGKzk1F-f1sxIaqwlVupw.A
+    [K2Node_PromotableOperator] "float < float" (Node_PyGKzk1F-f1sxIaqwlVupw)
+      In Pins:
+        (double) A <- Node_fatnY0Ot2vDhTFe_9NFa4w.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_gbEyG0QwpGaccpmWsCUchw.B
+    [K2Node_CommutativeAssociativeBinaryOperator] "OR Boolean" (Node_gbEyG0QwpGaccpmWsCUchw)
+      In Pins:
+        (Boolean) A <- Node_eN8D90ZgVzMP-EuWe6DLnA.Floor Text
+        (Boolean) B <- Node_PyGKzk1F-f1sxIaqwlVupw.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_2unjvUZV-esYd527R_jW4A.Index
+    [K2Node_CallFunction] "Set Vertical Alignment
+Target is Text Render Component" (Node_6hvWLE5LQMXn6pOyFqgQ5Q)
+      In Pins:
+        (exec) execute <- Node_-o4ifEk5rf-kDEelHQmYew.then
+        (TextRenderComponent) self <- Node_s_tsfUzwgCqmO5ycLVsHPA.ReturnValue
+        (Byte) Value <- Node_TE6XY0BrNeRAfbKkvHvm5Q.ReturnValue
+      Out Pins:
+        (exec) then
+    [K2Node_Select] "Select" (Node_TE6XY0BrNeRAfbKkvHvm5Q)
+      In Pins:
+        (Byte) Option 0 = EVRTA_TextTop
+        (Byte) Option 1 = EVRTA_TextBottom
+        (Boolean) Index <- Node_qAqF0EXkPhMqOCCae3qrCQ.ReturnValue
+      Out Pins:
+        (Byte) ReturnValue -> Node_6hvWLE5LQMXn6pOyFqgQ5Q.Value
+    [K2Node_VariableGet] "Get Title Scale" (Node_U_UzKk7qxQLpZjyoIR6WQQ)
+      Out Pins:
+        (double) Title Scale -> Node_gxCIg0nwx4Z_-yW51yg4Sw.A
+    [K2Node_PromotableOperator] "float - float" (Node__vr4zEtjC-Q8thWg9qoX4A)
+      In Pins:
+        (double) A <- Node_8iPDlkZ290I_7l-UYB299g.ReturnValue
+        (double) B <- Node_gxCIg0nwx4Z_-yW51yg4Sw.ReturnValue
+      Out Pins:
+        (double) ReturnValue -> Node_lFfwAEz34xg0sY6XwHqj0g.Z
+    [K2Node_PromotableOperator] "float + float" (Node_gxCIg0nwx4Z_-yW51yg4Sw)
+      In Pins:
+        (double) A <- Node_U_UzKk7qxQLpZjyoIR6WQQ.Title Scale
+        (double) B = 60.000000
+      Out Pins:
+        (double) ReturnValue -> Node__vr4zEtjC-Q8thWg9qoX4A.B
+    [EdGraphNode_Comment] "Add Spotlight" (Node_-kSJgUI2STf86mCyZT13qQ)
+      Comment: Add Spotlight
+    [EdGraphNode_Comment] "Set Description Text Position" (Node_ZNaEU0sjfUTNwBCkam2HAQ)
+      Comment: Set Description Text Position
+    [K2Node_CallFunction] "Add Title Panel
+Target is BP Demo Display" (Node_9mLkNEuXM6kBDhSCJ3cUwA)
+      In Pins:
+        (exec) execute <- Node_v_DYaU23u9fBuOOnq_OTQQ.then
+        (Object) self
+      Out Pins:
+        (exec) then -> Node_3CY4MkQSpmcqsoicFR0pMg.execute
+    [K2Node_CallFunction] "Select Transform" (Node_qH114EeGgbsELta35hchEQ)
+      In Pins:
+        (Transform) A <- Node_oLUivEnviinbmSmpur1Bqg.ReturnValue
+        (Transform) B <- Node_Vqkg6UYmMOA4-HuO7cXEIA.ReturnValue
+        (Boolean) bPickA <- Node_hxMjAEBLo0rOugqlCRUZCQ.Seperate Title Panel
+      Out Pins:
+        (Transform) ReturnValue -> Node_ZnfvNkROnyTSaFWJFxlIoQ.RelativeTransform
+    [K2Node_VariableGet] "Get Seperate Title Panel" (Node_hxMjAEBLo0rOugqlCRUZCQ)
+      Out Pins:
+        (Boolean) Seperate Title Panel -> Node_qH114EeGgbsELta35hchEQ.bPickA
+    [K2Node_MacroInstance] "Title Panel Text Transform" (Node_oLUivEnviinbmSmpur1Bqg)
+      Out Pins:
+        (Transform) ReturnValue -> Node_qH114EeGgbsELta35hchEQ.A
+    [K2Node_CallFunction] "Select Float" (Node_v2sflUJgh0uSTnmWDbdlzw)
+      In Pins:
+        (double) A <- Node__Fdi50M6jJYaH_-X8-Ngtg.ReturnValue
+        (double) B <- Node_tQ6XxUpqdzjlJI-XG0R6SA.Title Scale
+        (Boolean) bPickA <- Node_VAmlpUWrME5QoxmxT62kCw.Seperate Title Panel
+      Out Pins:
+        (double) ReturnValue -> Node_MhsV6kKGwoTpJoShPtqhEA.Value
+    [K2Node_PromotableOperator] "float / float" (Node__Fdi50M6jJYaH_-X8-Ngtg)
+      In Pins:
+        (double) A <- Node_tQ6XxUpqdzjlJI-XG0R6SA.Title Scale
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_v2sflUJgh0uSTnmWDbdlzw.A
+    [K2Node_VariableGet] "Get Seperate Title Panel" (Node_VAmlpUWrME5QoxmxT62kCw)
+      Out Pins:
+        (Boolean) Seperate Title Panel -> Node_v2sflUJgh0uSTnmWDbdlzw.bPickA, Node_aI3Y-Exb2de-M8iAr4DEHw.A
+    [K2Node_MacroInstance] "Title Text Transform" (Node_Vqkg6UYmMOA4-HuO7cXEIA)
+      Out Pins:
+        (Transform) ReturnValue -> Node_qH114EeGgbsELta35hchEQ.B
+    [K2Node_CallFunction] "Set Vertical Alignment
+Target is Text Render Component" (Node_l2ecE0_j3sFWCqSAebhVkg)
+      In Pins:
+        (exec) execute <- Node_aaavlUBCn2JKCwaBtHyipQ.then
+        (TextRenderComponent) self <- Node_ZnfvNkROnyTSaFWJFxlIoQ.ReturnValue
+        (Byte) Value <- Node_xxIje0wCVBysM9O_o0QkCQ.ReturnValue
+      Out Pins:
+        (exec) then
+    [K2Node_Select] "Select" (Node_xxIje0wCVBysM9O_o0QkCQ)
+      In Pins:
+        (Byte) Option 0 = EVRTA_TextTop
+        (Byte) Option 1 = EVRTA_TextCenter
+        (Boolean) Index <- Node_aI3Y-Exb2de-M8iAr4DEHw.ReturnValue
+      Out Pins:
+        (Byte) ReturnValue -> Node_l2ecE0_j3sFWCqSAebhVkg.Value
+    [K2Node_Select] "Select" (Node_5-iTYUtA3TklIN-UEVgKYg)
+      In Pins:
+        (Byte) Option 0 <- Node_k6DjaUB18yUxsx2vK9hfzw.Text Alignment
+        (Byte) Option 1 = EHTA_Center
+        (Boolean) Index <- Node_XmMfh0VzBg62FHaNXh8I3g.Seperate Title Panel
+      Out Pins:
+        (Byte) ReturnValue -> Node_tAMcJEPbqeSsg2SbjLcEOw.Value
+    [K2Node_VariableGet] "Get Seperate Title Panel" (Node_XmMfh0VzBg62FHaNXh8I3g)
+      Out Pins:
+        (Boolean) Seperate Title Panel -> Node_5-iTYUtA3TklIN-UEVgKYg.Index
+    [K2Node_CallFunction] "Set Cast Shadows
+Target is Light Component Base" (Node_pFBf00i-zGzLnKuuJ-Ja1Q)
+      In Pins:
+        (exec) execute <- Node_97Dtw0X-uKqetmiMTMh_gA.then
+        (LightComponentBase) self <- Node_E49N00y1bjMjMOOI0jEOXA.ReturnValue
+        (Boolean) bNewValue <- Node_vbFPjkriVO8ne4W6YXcLHQ.Cast Shadows
+      Out Pins:
+        (exec) then
+    [K2Node_VariableGet] "Get Cast Shadows" (Node_vbFPjkriVO8ne4W6YXcLHQ)
+      Out Pins:
+        (Boolean) Cast Shadows -> Node_pFBf00i-zGzLnKuuJ-Ja1Q.bNewValue
+    [K2Node_CallFunction] "Shadow Box
+Target is BP Demo Display" (Node_3CY4MkQSpmcqsoicFR0pMg)
+      In Pins:
+        (exec) execute <- Node_9mLkNEuXM6kBDhSCJ3cUwA.then
+        (Object) self
+      Out Pins:
+        (exec) then -> Node_0QJppUTsm5ZdtHWAMuC-Mw.execute
+    [K2Node_CommutativeAssociativeBinaryOperator] "OR Boolean" (Node_aI3Y-Exb2de-M8iAr4DEHw)
+      In Pins:
+        (Boolean) A <- Node_VAmlpUWrME5QoxmxT62kCw.Seperate Title Panel
+        (Boolean) B <- Node_C-RAQ0DEWcXgh7qCxPnzVQ.Floor Text
+        (Boolean) C <- Node_kQbMYkENuc6ep12YdzDj7A.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_xxIje0wCVBysM9O_o0QkCQ.Index
+    [K2Node_VariableGet] "Get Floor Text" (Node_C-RAQ0DEWcXgh7qCxPnzVQ)
+      Out Pins:
+        (Boolean) Floor Text -> Node_aI3Y-Exb2de-M8iAr4DEHw.B
+    [K2Node_VariableGet] "Get Height" (Node_ddcKq0gX18rPyh-x2IvTMA)
+      Out Pins:
+        (double) Height -> Node_kQbMYkENuc6ep12YdzDj7A.A
+    [K2Node_PromotableOperator] "float < float" (Node_kQbMYkENuc6ep12YdzDj7A)
+      In Pins:
+        (double) A <- Node_ddcKq0gX18rPyh-x2IvTMA.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_aI3Y-Exb2de-M8iAr4DEHw.C
+    [K2Node_VariableSet] "Set TitleText_Component" (Node_h9BNEUMicViDWQOg1sbfzw)
+      In Pins:
+        (exec) execute <- Node_ZnfvNkROnyTSaFWJFxlIoQ.then
+        (TextRenderComponent) TitleText_Component <- Node_ZnfvNkROnyTSaFWJFxlIoQ.ReturnValue
+      Out Pins:
+        (exec) then -> Node_8l6PWkVukpsdfeazvk1EhQ.execute
+        (TextRenderComponent) Output_Get
+    [K2Node_VariableSet] "Set DescriptionText_Component" (Node_7EfkdUDOwhswAXSwz5_FlQ)
+      In Pins:
+        (exec) execute <- Node_s_tsfUzwgCqmO5ycLVsHPA.then
+        (TextRenderComponent) DescriptionText_Component <- Node_s_tsfUzwgCqmO5ycLVsHPA.ReturnValue
+      Out Pins:
+        (exec) then -> Node_SyZkd0fwzvYhhu-_dsv9gg.execute
+        (TextRenderComponent) Output_Get
+
+--- Function: Format Text ---
+  Execution Flows:
+    [1] Format Text -> Set Paragraph Carriage Returns -> Set Single Line carriage returns -> For Loop
+          [LoopBody] -> Set Single Line carriage returns
+          [Completed] -> For Loop
+            [LoopBody] -> Set Paragraph Carriage Returns
+            [Completed] -> For Each Loop
+              [LoopBody] -> Add
+              [Completed] -> For Each Loop
+                [LoopBody] -> Set New Paragraph
+                 -> Append Array
+                 -> Set TempParagraphArray
+                 -> For Each Loop
+                 -> Add
+                 -> Set New Paragraph
+                [Completed] -> For Each Loop
+                  [LoopBody] -> Set Array Elem
+                  [Completed] -> For Each Loop
+                    [LoopBody] -> Branch
+                      [then] -> Set Array Elem
+                       -> Set Char Counter
+                    [Completed] -> Set Final Text
+                     -> For Each Loop
+                      [LoopBody] -> Set Final Text
+                      [else] -> Branch
+                        [then] -> Set Array Elem
+                         -> Set Char Counter
+                      [Completed] -> Set DescriptionFinal
+                        [else] -> Set Char Counter
+
+  Nodes (103):
+    [K2Node_FunctionEntry] "Format Text" (Node_WhLGW0e2Y4ixwleUE1xY5g)
+      Out Pins:
+        (exec) then -> Node_M2Dqvkw0d3HzcVGbR5OnMw.execute
+    [K2Node_CallFunction] "Parse Into Array" (Node_rA5UmUPpouY_L6CJYtxBjg)
+      Comment: space
+      In Pins:
+        (String) SourceString <- Node_9v9oGUHEN0fCrOuO6KzjOg.Array Element
+        (String) Delimiter =  
+        (Boolean) CullEmptyStrings = true
+      Out Pins:
+        (TArray<String>) ReturnValue -> Node_UMgcM05hjq3vb-W3PvJ1OA.SourceArray, Node_0nG0mkheY-rAtiqWXDe_0g.TempParagraphArray
+    [K2Node_VariableGet] "Get Word Array" (Node_k9rAgUg2-FsSrqKvUu9vEg)
+      Out Pins:
+        (TArray<String>) Word Array -> Node_xgNcDkxqM8tbckmzcP_zWw.Array
+    [K2Node_MacroInstance] "For Each Loop" (Node_xgNcDkxqM8tbckmzcP_zWw)
+      In Pins:
+        (exec) Exec <- Node_uiaRy0FPhcycL4-JQU4K4g.Completed
+        (TArray<String>) Array <- Node_k9rAgUg2-FsSrqKvUu9vEg.Word Array
+      Out Pins:
+        (exec) LoopBody -> Node_UcuIHE8MnhJA676CLAxxmA.execute
+        (String) Array Element -> Node_17zEckmGoHtRZ3KIbazJoA.B, Node_sWFOHU98GClr8Tezr3QDvw.B, Node_NFnJPU4ThjRo1wi9H7uaYQ.S, Node_3ITXyUiZy1x79_2IJf4PyA.B
+        (Integer) Array Index -> Node_KDxBAU1gb2nKWTS2-5mbSw.Index, Node_4NOnmk8HQEme46mN7p6qCQ.Index, Node_FpeeEUQZZgdKjOelswG6yQ.A, Node_PZ6Xt0ztsSUBJYS2kfNVmg.A, Node_0HK9fULLUzvH_K22-8iY0w.A, Node_YXnOsUngsElxL1GEv8EIhQ.Dimension 1
+        (exec) Completed -> Node_rC_yDUztv3zWuXGXTsP7fg.execute
+    [K2Node_VariableGet] "Get Char Counter" (Node_xkHrlUF8cg_vbWi8Q0h9hw)
+      Out Pins:
+        (Integer) Char Counter -> Node_sVQhOk_np_Im_yuHgePLzQ.A
+    [K2Node_CommutativeAssociativeBinaryOperator] "int + int" (Node_sVQhOk_np_Im_yuHgePLzQ)
+      In Pins:
+        (Integer) A <- Node_xkHrlUF8cg_vbWi8Q0h9hw.Char Counter
+        (Integer) B <- Node_YwB_-E6a-I6rXUycsVsLxw.ReturnValue
+      Out Pins:
+        (Integer) ReturnValue -> Node_ike7YEOpK3GNBHWygDOP7A.A
+    [K2Node_IfThenElse] "Branch" (Node_NfHUpUQELcgaQmq_OjQUSg)
+      In Pins:
+        (exec) execute <- Node_UcuIHE8MnhJA676CLAxxmA.else
+        (Boolean) Condition <- Node_byERokGRd0gxomOIY-Alzg.ReturnValue
+      Out Pins:
+        (exec) then -> Node_4NOnmk8HQEme46mN7p6qCQ.execute
+        (exec) else -> Node_HnzY_ku68FupiJ-g2gmeIQ.execute
+    [K2Node_VariableSet] "Set Char Counter" (Node_PFicu0u6aeAyz52leFubHQ)
+      In Pins:
+        (exec) execute <- Node_4NOnmk8HQEme46mN7p6qCQ.then
+        (Integer) Char Counter <- Node_YwB_-E6a-I6rXUycsVsLxw.ReturnValue
+      Out Pins:
+        (exec) then
+        (Integer) Output_Get
+    [K2Node_VariableSet] "Set Char Counter" (Node_HnzY_ku68FupiJ-g2gmeIQ)
+      In Pins:
+        (exec) execute <- Node_NfHUpUQELcgaQmq_OjQUSg.else
+        (Integer) Char Counter <- Node_ike7YEOpK3GNBHWygDOP7A.ReturnValue
+      Out Pins:
+        (exec) then
+        (Integer) Output_Get
+    [K2Node_CommutativeAssociativeBinaryOperator] "int + int" (Node_ike7YEOpK3GNBHWygDOP7A)
+      In Pins:
+        (Integer) A <- Node_sVQhOk_np_Im_yuHgePLzQ.ReturnValue
+        (Integer) B = 1
+      Out Pins:
+        (Integer) ReturnValue -> Node_HnzY_ku68FupiJ-g2gmeIQ.Char Counter, Node_byERokGRd0gxomOIY-Alzg.A
+    [K2Node_CallFunction] "integer >= integer" (Node_byERokGRd0gxomOIY-Alzg)
+      In Pins:
+        (Integer) A <- Node_ike7YEOpK3GNBHWygDOP7A.ReturnValue
+        (Integer) B <- Node_ypMMuELMyjmhRVCscLr3iA.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_NfHUpUQELcgaQmq_OjQUSg.Condition
+    [EdGraphNode_Comment] "Sort the words into lines" (Node_-h1o6k4wRhZVeByXqlENqQ)
+      Comment: Sort the words into lines
+    [EdGraphNode_Comment] "Create word array - parsed by spaces" (Node_IvINGUgf7VYmVeGLawjQcg)
+      Comment: Create word array - parsed by spaces
+    [EdGraphNode_Comment] "Define width with a gizmo" (Node_5YWWV0szcdq2Tci-5VdyMA)
+      Comment: Define width with a gizmo
+    [K2Node_CallFunction] "Absolute (Float)" (Node_OAYzLkN4m1jWbSeFmaMq2Q)
+      In Pins:
+        (double) A <- Node_-6xgJk3eQrlQvm6DLE61fA.ReturnValue
+      Out Pins:
+        (double) ReturnValue -> Node_I_u7VUppqDL4oPOHLWvYcg.A
+    [K2Node_CallFunction] "float / float" (Node_I_u7VUppqDL4oPOHLWvYcg)
+      In Pins:
+        (double) A <- Node_OAYzLkN4m1jWbSeFmaMq2Q.ReturnValue
+        (double) B <- Node_dMwaGEEnJWnT4tGO-xyprA.Description Scale
+      Out Pins:
+        (double) ReturnValue -> Node_CpGNPE6rWkNmHwuLDnGnKg.A
+    [K2Node_CommutativeAssociativeBinaryOperator] "float * float" (Node_CpGNPE6rWkNmHwuLDnGnKg)
+      In Pins:
+        (double) A <- Node_I_u7VUppqDL4oPOHLWvYcg.ReturnValue
+        (double) B = 3.5
+      Out Pins:
+        (double) ReturnValue -> Node_ypMMuELMyjmhRVCscLr3iA.A
+    [K2Node_CallFunction] "Floor" (Node_ypMMuELMyjmhRVCscLr3iA)
+      In Pins:
+        (double) A <- Node_CpGNPE6rWkNmHwuLDnGnKg.ReturnValue
+      Out Pins:
+        (Integer) ReturnValue -> Node_byERokGRd0gxomOIY-Alzg.B
+    [K2Node_VariableGet] "Get TextPara" (Node_9-5aZkNB6yH8CCW17x6VEQ)
+      Out Pins:
+        (TArray<String>) TextPara -> Node_9v9oGUHEN0fCrOuO6KzjOg.Array
+    [K2Node_MacroInstance] "For Each Loop" (Node_9v9oGUHEN0fCrOuO6KzjOg)
+      In Pins:
+        (exec) Exec <- Node_ZRTld0QfaGVhPrGxAZs2ww.Completed
+        (TArray<String>) Array <- Node_9-5aZkNB6yH8CCW17x6VEQ.TextPara
+      Out Pins:
+        (exec) LoopBody -> Node_fzAjzElamprEzqaA1kBUQg.execute
+        (String) Array Element -> Node_rA5UmUPpouY_L6CJYtxBjg.SourceString
+        (Integer) Array Index
+        (exec) Completed -> Node_uiaRy0FPhcycL4-JQU4K4g.Exec
+    [K2Node_VariableSet] "Set New Paragraph" (Node_fzAjzElamprEzqaA1kBUQg)
+      In Pins:
+        (exec) execute <- Node_9v9oGUHEN0fCrOuO6KzjOg.LoopBody
+        (Boolean) New Paragraph = true
+      Out Pins:
+        (exec) then -> Node_UMgcM05hjq3vb-W3PvJ1OA.execute
+        (Boolean) Output_Get
+    [K2Node_VariableGet] "Get Word Array" (Node_ahQ0GkJ3VATw9mOI-BFBvw)
+      Out Pins:
+        (TArray<String>) Word Array -> Node_UMgcM05hjq3vb-W3PvJ1OA.TargetArray
+    [K2Node_CallArrayFunction] "Append Array" (Node_UMgcM05hjq3vb-W3PvJ1OA)
+      In Pins:
+        (exec) execute <- Node_fzAjzElamprEzqaA1kBUQg.then
+        (TArray<String>) TargetArray <- Node_ahQ0GkJ3VATw9mOI-BFBvw.Word Array
+        (TArray<String>) SourceArray <- Node_rA5UmUPpouY_L6CJYtxBjg.ReturnValue
+      Out Pins:
+        (exec) then -> Node_0nG0mkheY-rAtiqWXDe_0g.execute
+    [K2Node_VariableGet] "Get New paragraph bool array" (Node_H98NTUNKVAaF4CKI7hYOWg)
+      Out Pins:
+        (TArray<Boolean>) New paragraph bool array -> Node_sC6ja0ngwxvFOFKEVuZclA.TargetArray
+    [K2Node_CallArrayFunction] "Add" (Node_sC6ja0ngwxvFOFKEVuZclA)
+      In Pins:
+        (exec) execute <- Node_lWe3JE_mdROdrSCjbbwK6g.LoopBody
+        (TArray<Boolean>) TargetArray <- Node_H98NTUNKVAaF4CKI7hYOWg.New paragraph bool array
+        (Boolean) NewItem <- Node_wHF4vUmF64kQ7xqqqGOtZw.New Paragraph
+      Out Pins:
+        (exec) then -> Node_LGefl0nqMUokMJaXNwCrFw.execute
+        (Integer) ReturnValue
+    [K2Node_MacroInstance] "For Each Loop" (Node_lWe3JE_mdROdrSCjbbwK6g)
+      In Pins:
+        (exec) Exec <- Node_0nG0mkheY-rAtiqWXDe_0g.then
+        (TArray<String>) Array <- Node_QCll_E9-YDkCjeWF8dz6tg.TempParagraphArray
+      Out Pins:
+        (exec) LoopBody -> Node_sC6ja0ngwxvFOFKEVuZclA.execute
+        (String) Array Element
+        (Integer) Array Index
+        (exec) Completed
+    [K2Node_VariableGet] "Get New Paragraph" (Node_wHF4vUmF64kQ7xqqqGOtZw)
+      Out Pins:
+        (Boolean) New Paragraph -> Node_sC6ja0ngwxvFOFKEVuZclA.NewItem
+    [K2Node_VariableSet] "Set New Paragraph" (Node_LGefl0nqMUokMJaXNwCrFw)
+      In Pins:
+        (exec) execute <- Node_sC6ja0ngwxvFOFKEVuZclA.then
+        (Boolean) New Paragraph = false
+      Out Pins:
+        (exec) then
+        (Boolean) Output_Get
+    [K2Node_VariableGet] "Get New paragraph bool array" (Node__qATrkKVmEloL8WrodAR2g)
+      Out Pins:
+        (TArray<Boolean>) New paragraph bool array -> Node_YXnOsUngsElxL1GEv8EIhQ.Array
+    [K2Node_IfThenElse] "Branch" (Node_UcuIHE8MnhJA676CLAxxmA)
+      In Pins:
+        (exec) execute <- Node_xgNcDkxqM8tbckmzcP_zWw.LoopBody
+        (Boolean) Condition <- Node_4IvAi0yFKxoDrYCZYm8Vyw.ReturnValue
+      Out Pins:
+        (exec) then -> Node_KDxBAU1gb2nKWTS2-5mbSw.execute
+        (exec) else -> Node_NfHUpUQELcgaQmq_OjQUSg.execute
+    [K2Node_VariableSet] "Set Char Counter" (Node_Re3BW0LTdPU7ur2K8MGUEw)
+      In Pins:
+        (exec) execute <- Node_KDxBAU1gb2nKWTS2-5mbSw.then
+        (Integer) Char Counter <- Node_YwB_-E6a-I6rXUycsVsLxw.ReturnValue
+      Out Pins:
+        (exec) then
+        (Integer) Output_Get
+    [K2Node_CallFunction] "Append" (Node_17zEckmGoHtRZ3KIbazJoA)
+      In Pins:
+        (String) A <- Node_rWRurk1ruYoYz1WPUpQInA.ReturnValue
+        (String) B <- Node_xgNcDkxqM8tbckmzcP_zWw.Array Element
+      Out Pins:
+        (String) ReturnValue -> Node_sWFOHU98GClr8Tezr3QDvw.A
+    [K2Node_CallArrayFunction] "Set Array Elem" (Node_KDxBAU1gb2nKWTS2-5mbSw)
+      In Pins:
+        (exec) execute <- Node_UcuIHE8MnhJA676CLAxxmA.then
+        (TArray<String>) TargetArray <- Node_OpFiyE3x0eZsMo2CW8ppew.Word Array
+        (Integer) Index <- Node_xgNcDkxqM8tbckmzcP_zWw.Array Index
+        (String) Item <- Node_sWFOHU98GClr8Tezr3QDvw.ReturnValue
+        (Boolean) bSizeToFit = false
+      Out Pins:
+        (exec) then -> Node_Re3BW0LTdPU7ur2K8MGUEw.execute
+    [K2Node_CallFunction] "Select String" (Node_sWFOHU98GClr8Tezr3QDvw)
+      In Pins:
+        (String) A <- Node_17zEckmGoHtRZ3KIbazJoA.ReturnValue
+        (String) B <- Node_xgNcDkxqM8tbckmzcP_zWw.Array Element
+        (Boolean) bPickA <- Node_YXnOsUngsElxL1GEv8EIhQ.Output
+      Out Pins:
+        (String) ReturnValue -> Node_KDxBAU1gb2nKWTS2-5mbSw.Item
+    [K2Node_VariableGet] "Get New Paragraph indentation" (Node_RghyyUak2pNIODqytTQ_Cw)
+      Out Pins:
+        (String) New Paragraph indentation -> Node_Xcp3jkGgsCyYOzeoMLgSKg.A
+    [K2Node_CallFunction] "Len" (Node_Mg4KSk_GHDfvv2uIAGqOrw)
+      In Pins:
+        (String) S <- Node_Xcp3jkGgsCyYOzeoMLgSKg.ReturnValue
+      Out Pins:
+        (Integer) ReturnValue -> Node_HkvybkACknWEz-uQJrADgA.A
+    [K2Node_CallFunction] "Len" (Node_NFnJPU4ThjRo1wi9H7uaYQ)
+      In Pins:
+        (String) S <- Node_xgNcDkxqM8tbckmzcP_zWw.Array Element
+      Out Pins:
+        (Integer) ReturnValue -> Node_YwB_-E6a-I6rXUycsVsLxw.B, Node_MAh_cUcLACmz4YGxPKwXAg.B
+    [K2Node_CallFunction] "Select Int" (Node_YwB_-E6a-I6rXUycsVsLxw)
+      In Pins:
+        (Integer) A <- Node_MAh_cUcLACmz4YGxPKwXAg.ReturnValue
+        (Integer) B <- Node_NFnJPU4ThjRo1wi9H7uaYQ.ReturnValue
+        (Boolean) bPickA <- Node_4IvAi0yFKxoDrYCZYm8Vyw.ReturnValue
+      Out Pins:
+        (Integer) ReturnValue -> Node_PFicu0u6aeAyz52leFubHQ.Char Counter, Node_sVQhOk_np_Im_yuHgePLzQ.B, Node_Re3BW0LTdPU7ur2K8MGUEw.Char Counter
+    [K2Node_CommutativeAssociativeBinaryOperator] "int + int" (Node_MAh_cUcLACmz4YGxPKwXAg)
+      In Pins:
+        (Integer) A <- Node_dCuhDEOQLcEHtLyib8DCig.ReturnValue
+        (Integer) B <- Node_NFnJPU4ThjRo1wi9H7uaYQ.ReturnValue
+      Out Pins:
+        (Integer) ReturnValue -> Node_YwB_-E6a-I6rXUycsVsLxw.A
+    [K2Node_VariableGet] "Get Space multiplier" (Node_7Aam3EVsoHXSFsWDymfsag)
+      Out Pins:
+        (double) Space multiplier -> Node_HkvybkACknWEz-uQJrADgA.B, Node_zFfNikoxtnQ2RlaeLxDW8A.B
+    [K2Node_CallFunction] "int * float" (Node_HkvybkACknWEz-uQJrADgA)
+      In Pins:
+        (Integer) A <- Node_Mg4KSk_GHDfvv2uIAGqOrw.ReturnValue
+        (double) B <- Node_7Aam3EVsoHXSFsWDymfsag.Space multiplier
+      Out Pins:
+        (double) ReturnValue -> Node_zFfNikoxtnQ2RlaeLxDW8A.A
+    [K2Node_CallFunction] "Floor" (Node_dCuhDEOQLcEHtLyib8DCig)
+      In Pins:
+        (double) A <- Node_zFfNikoxtnQ2RlaeLxDW8A.ReturnValue
+      Out Pins:
+        (Integer) ReturnValue -> Node_MAh_cUcLACmz4YGxPKwXAg.A
+    [K2Node_CallFunction] "Append" (Node_iTPuvUJy6HR8sI-PYvrj8A)
+      In Pins:
+        (String) A <- Node__g2J4kMpVGjZebOUILIUWg.Single Line carriage returns
+        (String) B = <br>
+      Out Pins:
+        (String) ReturnValue -> Node_pB6ICkMvyMqMjmqCmT4SLw.Single Line carriage returns
+    [K2Node_MacroInstance] "For Loop" (Node_LfIg3k2HsaMdubKnbFv4qA)
+      In Pins:
+        (exec) execute <- Node_lJ3YokBUdtngYIuHt-3YJA.then
+        (Integer) FirstIndex
+        (Integer) LastIndex <- Node_0FLxb0czks6iojev00I7bQ.ReturnValue
+      Out Pins:
+        (exec) LoopBody -> Node_pB6ICkMvyMqMjmqCmT4SLw.execute
+        (Integer) Index
+        (exec) Completed -> Node_Bn7Cm0otnTz8bgeHZPFeaA.execute
+    [K2Node_VariableGet] "Get Number of spaces between lines" (Node_HhfoB0nosVj6WhqE9vfT1w)
+      Out Pins:
+        (Integer) Number of spaces between lines -> Node_0FLxb0czks6iojev00I7bQ.A
+    [K2Node_VariableGet] "Get Single Line carriage returns" (Node__g2J4kMpVGjZebOUILIUWg)
+      Out Pins:
+        (String) Single Line carriage returns -> Node_iTPuvUJy6HR8sI-PYvrj8A.A
+    [K2Node_VariableSet] "Set Single Line carriage returns" (Node_pB6ICkMvyMqMjmqCmT4SLw)
+      In Pins:
+        (exec) execute <- Node_LfIg3k2HsaMdubKnbFv4qA.LoopBody
+        (String) Single Line carriage returns <- Node_iTPuvUJy6HR8sI-PYvrj8A.ReturnValue
+      Out Pins:
+        (exec) then
+        (String) Output_Get
+    [K2Node_CallFunction] "Append" (Node_ZmT1HUD0FMc-Lg-EBjgn-g)
+      In Pins:
+        (String) A <- Node_KCSAJkKVX_CnNASkbigUrw.Paragraph Carriage Returns
+        (String) B = <br>
+      Out Pins:
+        (String) ReturnValue -> Node_UTymdU011r4Bmiu5VzrQlA.Paragraph Carriage Returns
+    [K2Node_MacroInstance] "For Loop" (Node_Bn7Cm0otnTz8bgeHZPFeaA)
+      In Pins:
+        (exec) execute <- Node_LfIg3k2HsaMdubKnbFv4qA.Completed
+        (Integer) FirstIndex
+        (Integer) LastIndex <- Node_vYTlX0qpLZYIfI-Gr3iNqQ.ReturnValue
+      Out Pins:
+        (exec) LoopBody -> Node_UTymdU011r4Bmiu5VzrQlA.execute
+        (Integer) Index
+        (exec) Completed -> Node_ZRTld0QfaGVhPrGxAZs2ww.Exec
+    [K2Node_VariableGet] "Get Number of lines between paragraphs" (Node_lf4QQ0oFjBhKe7mWzL3c8Q)
+      Out Pins:
+        (Integer) Number of lines between paragraphs -> Node_vYTlX0qpLZYIfI-Gr3iNqQ.A
+    [K2Node_VariableGet] "Get Paragraph Carriage Returns" (Node_KCSAJkKVX_CnNASkbigUrw)
+      Out Pins:
+        (String) Paragraph Carriage Returns -> Node_ZmT1HUD0FMc-Lg-EBjgn-g.A
+    [K2Node_VariableSet] "Set Paragraph Carriage Returns" (Node_UTymdU011r4Bmiu5VzrQlA)
+      In Pins:
+        (exec) execute <- Node_Bn7Cm0otnTz8bgeHZPFeaA.LoopBody
+        (String) Paragraph Carriage Returns <- Node_ZmT1HUD0FMc-Lg-EBjgn-g.ReturnValue
+      Out Pins:
+        (exec) then
+        (String) Output_Get
+    [K2Node_VariableSet] "Set Single Line carriage returns" (Node_lJ3YokBUdtngYIuHt-3YJA)
+      In Pins:
+        (exec) execute <- Node_M2Dqvkw0d3HzcVGbR5OnMw.then
+        (String) Single Line carriage returns
+      Out Pins:
+        (exec) then -> Node_LfIg3k2HsaMdubKnbFv4qA.execute
+        (String) Output_Get
+    [K2Node_VariableSet] "Set Paragraph Carriage Returns" (Node_M2Dqvkw0d3HzcVGbR5OnMw)
+      In Pins:
+        (exec) execute <- Node_WhLGW0e2Y4ixwleUE1xY5g.then
+        (String) Paragraph Carriage Returns
+      Out Pins:
+        (exec) then -> Node_lJ3YokBUdtngYIuHt-3YJA.execute
+        (String) Output_Get
+    [K2Node_VariableGet] "Get Single Line carriage returns" (Node_nXSMnElBJSFXdWGZ1PbgRw)
+      Out Pins:
+        (String) Single Line carriage returns -> Node_3ITXyUiZy1x79_2IJf4PyA.A
+    [K2Node_VariableGet] "Get Word Array" (Node_laSxzkY_lcKgojaOebv7Zw)
+      Out Pins:
+        (TArray<String>) Word Array -> Node_4NOnmk8HQEme46mN7p6qCQ.TargetArray
+    [K2Node_CallArrayFunction] "Set Array Elem" (Node_4NOnmk8HQEme46mN7p6qCQ)
+      In Pins:
+        (exec) execute <- Node_NfHUpUQELcgaQmq_OjQUSg.then
+        (TArray<String>) TargetArray <- Node_laSxzkY_lcKgojaOebv7Zw.Word Array
+        (Integer) Index <- Node_xgNcDkxqM8tbckmzcP_zWw.Array Index
+        (String) Item <- Node_3ITXyUiZy1x79_2IJf4PyA.ReturnValue
+        (Boolean) bSizeToFit = false
+      Out Pins:
+        (exec) then -> Node_PFicu0u6aeAyz52leFubHQ.execute
+    [K2Node_CallFunction] "Append" (Node_3ITXyUiZy1x79_2IJf4PyA)
+      In Pins:
+        (String) A <- Node_nXSMnElBJSFXdWGZ1PbgRw.Single Line carriage returns
+        (String) B <- Node_xgNcDkxqM8tbckmzcP_zWw.Array Element
+      Out Pins:
+        (String) ReturnValue -> Node_4NOnmk8HQEme46mN7p6qCQ.Item
+    [K2Node_CallFunction] "Append" (Node_rWRurk1ruYoYz1WPUpQInA)
+      In Pins:
+        (String) A <- Node_Q13W_U3Aij-phiSzeU5CpA.ReturnValue
+        (String) B <- Node_Xcp3jkGgsCyYOzeoMLgSKg.ReturnValue
+      Out Pins:
+        (String) ReturnValue -> Node_17zEckmGoHtRZ3KIbazJoA.A
+    [K2Node_VariableGet] "Get Paragraph Carriage Returns" (Node_FqlIy0zZjqPjAWG_A26nig)
+      Out Pins:
+        (String) Paragraph Carriage Returns -> Node_Q13W_U3Aij-phiSzeU5CpA.A
+    [EdGraphNode_Comment] "Setup line spacing" (Node_6gfTVUVFPf0-d6OhYMS1SQ)
+      Comment: Setup line spacing
+    [K2Node_VariableGet] "Get Word Array" (Node_SP4q00G6C3-y17mP3_8HQw)
+      Out Pins:
+        (TArray<String>) Word Array -> Node_GLaVSkzgHHyCSOaz95y0YA.Array
+    [K2Node_MacroInstance] "For Each Loop" (Node_GLaVSkzgHHyCSOaz95y0YA)
+      In Pins:
+        (exec) Exec <- Node_rC_yDUztv3zWuXGXTsP7fg.then
+        (TArray<String>) Array <- Node_SP4q00G6C3-y17mP3_8HQw.Word Array
+      Out Pins:
+        (exec) LoopBody -> Node_hHSwmU6rwmeo6qqeauMHPQ.execute
+        (String) Array Element -> Node_iPN-L0KetJPqBSmXSZkCEw.B
+        (Integer) Array Index
+        (exec) Completed -> Node_AfwcDUBOL-5rTuutQMLUTA.execute
+    [K2Node_VariableSet] "Set Final Text" (Node_rC_yDUztv3zWuXGXTsP7fg)
+      In Pins:
+        (exec) execute <- Node_xgNcDkxqM8tbckmzcP_zWw.Completed
+        (String) Final Text
+      Out Pins:
+        (exec) then -> Node_GLaVSkzgHHyCSOaz95y0YA.Exec
+        (String) Output_Get
+    [K2Node_VariableGet] "Get Final Text" (Node_mE0g0Emb19f7Wb2hyTkTHg)
+      Out Pins:
+        (String) Final Text -> Node_iPN-L0KetJPqBSmXSZkCEw.A
+    [K2Node_VariableSet] "Set Final Text" (Node_hHSwmU6rwmeo6qqeauMHPQ)
+      In Pins:
+        (exec) execute <- Node_GLaVSkzgHHyCSOaz95y0YA.LoopBody
+        (String) Final Text <- Node_iPN-L0KetJPqBSmXSZkCEw.ReturnValue
+      Out Pins:
+        (exec) then
+        (String) Output_Get
+    [K2Node_CallFunction] "Append" (Node_iPN-L0KetJPqBSmXSZkCEw)
+      In Pins:
+        (String) A <- Node_mE0g0Emb19f7Wb2hyTkTHg.Final Text
+        (String) B <- Node_GLaVSkzgHHyCSOaz95y0YA.Array Element
+      Out Pins:
+        (String) ReturnValue -> Node_hHSwmU6rwmeo6qqeauMHPQ.Final Text
+    [K2Node_VariableGet] "Get Word Array" (Node_OpFiyE3x0eZsMo2CW8ppew)
+      Out Pins:
+        (TArray<String>) Word Array -> Node_KDxBAU1gb2nKWTS2-5mbSw.TargetArray
+    [K2Node_VariableGet] "Get Indent First Paragraph" (Node_PMn9fUTrn27_xvCHa419Tg)
+      Out Pins:
+        (Boolean) Indent First Paragraph -> Node_TQYgvkpCTwzZt52HdVrjUQ.B
+    [K2Node_CallFunction] "Equal (Integer)" (Node_FpeeEUQZZgdKjOelswG6yQ)
+      Comment: first line first paragraph
+      In Pins:
+        (Integer) A <- Node_xgNcDkxqM8tbckmzcP_zWw.Array Index
+        (Integer) B = 0
+      Out Pins:
+        (Boolean) ReturnValue -> Node_TQYgvkpCTwzZt52HdVrjUQ.A
+    [K2Node_CommutativeAssociativeBinaryOperator] "AND Boolean" (Node_TQYgvkpCTwzZt52HdVrjUQ)
+      Comment: indent
+      In Pins:
+        (Boolean) A <- Node_FpeeEUQZZgdKjOelswG6yQ.ReturnValue
+        (Boolean) B <- Node_PMn9fUTrn27_xvCHa419Tg.Indent First Paragraph
+      Out Pins:
+        (Boolean) ReturnValue -> Node_4IvAi0yFKxoDrYCZYm8Vyw.A
+    [K2Node_CallFunction] "Not Equal (Integer)" (Node_PZ6Xt0ztsSUBJYS2kfNVmg)
+      In Pins:
+        (Integer) A <- Node_xgNcDkxqM8tbckmzcP_zWw.Array Index
+        (Integer) B = 0
+      Out Pins:
+        (Boolean) ReturnValue -> Node_6nkpA0IVhjKIoEKBZBX6yg.A
+    [K2Node_CommutativeAssociativeBinaryOperator] "AND Boolean" (Node_6nkpA0IVhjKIoEKBZBX6yg)
+      In Pins:
+        (Boolean) A <- Node_PZ6Xt0ztsSUBJYS2kfNVmg.ReturnValue
+        (Boolean) B <- Node_YXnOsUngsElxL1GEv8EIhQ.Output
+      Out Pins:
+        (Boolean) ReturnValue -> Node_4IvAi0yFKxoDrYCZYm8Vyw.B
+    [K2Node_CommutativeAssociativeBinaryOperator] "OR Boolean" (Node_4IvAi0yFKxoDrYCZYm8Vyw)
+      Comment: indent on the first p if bool ==1 else indent if not first paragraph
+      In Pins:
+        (Boolean) A <- Node_TQYgvkpCTwzZt52HdVrjUQ.ReturnValue
+        (Boolean) B <- Node_6nkpA0IVhjKIoEKBZBX6yg.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_UcuIHE8MnhJA676CLAxxmA.Condition, Node_Xcp3jkGgsCyYOzeoMLgSKg.bPickA, Node_YwB_-E6a-I6rXUycsVsLxw.bPickA
+    [K2Node_CallFunction] "Not Equal (Integer)" (Node_0HK9fULLUzvH_K22-8iY0w)
+      Comment: do not add carriage returns to the first p
+      In Pins:
+        (Integer) A <- Node_xgNcDkxqM8tbckmzcP_zWw.Array Index
+        (Integer) B = 0
+      Out Pins:
+        (Boolean) ReturnValue -> Node_Q13W_U3Aij-phiSzeU5CpA.bPickA
+    [K2Node_CallFunction] "Select String" (Node_Q13W_U3Aij-phiSzeU5CpA)
+      In Pins:
+        (String) A <- Node_FqlIy0zZjqPjAWG_A26nig.Paragraph Carriage Returns
+        (String) B
+        (Boolean) bPickA <- Node_0HK9fULLUzvH_K22-8iY0w.ReturnValue
+      Out Pins:
+        (String) ReturnValue -> Node_rWRurk1ruYoYz1WPUpQInA.A
+    [K2Node_CallFunction] "Select String" (Node_Xcp3jkGgsCyYOzeoMLgSKg)
+      In Pins:
+        (String) A <- Node_RghyyUak2pNIODqytTQ_Cw.New Paragraph indentation
+        (String) B
+        (Boolean) bPickA <- Node_4IvAi0yFKxoDrYCZYm8Vyw.ReturnValue
+      Out Pins:
+        (String) ReturnValue -> Node_rWRurk1ruYoYz1WPUpQInA.B, Node_Mg4KSk_GHDfvv2uIAGqOrw.S
+    [K2Node_VariableGet] "Get Word Array" (Node_2goqZkBiYwyuMy-nPH4JCA)
+      Out Pins:
+        (TArray<String>) Word Array -> Node_dq94yElqR5AUImueFyHfXQ.TargetArray
+    [K2Node_CallArrayFunction] "Set Array Elem" (Node_dq94yElqR5AUImueFyHfXQ)
+      In Pins:
+        (exec) execute <- Node_uiaRy0FPhcycL4-JQU4K4g.LoopBody
+        (TArray<String>) TargetArray <- Node_2goqZkBiYwyuMy-nPH4JCA.Word Array
+        (Integer) Index <- Node_uiaRy0FPhcycL4-JQU4K4g.Array Index
+        (String) Item <- Node_K0vi20scdxRb9A-lfg2vJQ.ReturnValue
+        (Boolean) bSizeToFit = false
+      Out Pins:
+        (exec) then
+    [K2Node_CallFunction] "Append" (Node_K0vi20scdxRb9A-lfg2vJQ)
+      Comment: add space
+      In Pins:
+        (String) A <- Node_uiaRy0FPhcycL4-JQU4K4g.Array Element
+        (String) B =  
+      Out Pins:
+        (String) ReturnValue -> Node_dq94yElqR5AUImueFyHfXQ.Item
+    [K2Node_CallFunction] "float - float" (Node_zFfNikoxtnQ2RlaeLxDW8A)
+      In Pins:
+        (double) A <- Node_HkvybkACknWEz-uQJrADgA.ReturnValue
+        (double) B <- Node_7Aam3EVsoHXSFsWDymfsag.Space multiplier
+      Out Pins:
+        (double) ReturnValue -> Node_dCuhDEOQLcEHtLyib8DCig.A
+    [K2Node_MacroInstance] "For Each Loop" (Node_uiaRy0FPhcycL4-JQU4K4g)
+      In Pins:
+        (exec) Exec <- Node_9v9oGUHEN0fCrOuO6KzjOg.Completed
+        (TArray<String>) Array <- Node_rx0sb0LrA8vse4-sI1LmOw.Word Array
+      Out Pins:
+        (exec) LoopBody -> Node_dq94yElqR5AUImueFyHfXQ.execute
+        (String) Array Element -> Node_K0vi20scdxRb9A-lfg2vJQ.A
+        (Integer) Array Index -> Node_dq94yElqR5AUImueFyHfXQ.Index
+        (exec) Completed -> Node_xgNcDkxqM8tbckmzcP_zWw.Exec
+    [K2Node_VariableGet] "Get Word Array" (Node_rx0sb0LrA8vse4-sI1LmOw)
+      Out Pins:
+        (TArray<String>) Word Array -> Node_uiaRy0FPhcycL4-JQU4K4g.Array
+    [K2Node_VariableSet] "Set TempParagraphArray" (Node_0nG0mkheY-rAtiqWXDe_0g)
+      In Pins:
+        (exec) execute <- Node_UMgcM05hjq3vb-W3PvJ1OA.then
+        (TArray<String>) TempParagraphArray <- Node_rA5UmUPpouY_L6CJYtxBjg.ReturnValue
+      Out Pins:
+        (exec) then -> Node_lWe3JE_mdROdrSCjbbwK6g.Exec
+        (TArray<String>) Output_Get
+    [K2Node_VariableGet] "Get TempParagraphArray" (Node_QCll_E9-YDkCjeWF8dz6tg)
+      Out Pins:
+        (TArray<String>) TempParagraphArray -> Node_lWe3JE_mdROdrSCjbbwK6g.Array
+    [K2Node_CallFunction] "int - int" (Node_0FLxb0czks6iojev00I7bQ)
+      In Pins:
+        (Integer) A <- Node_HhfoB0nosVj6WhqE9vfT1w.Number of spaces between lines
+        (Integer) B = 1
+      Out Pins:
+        (Integer) ReturnValue -> Node_LfIg3k2HsaMdubKnbFv4qA.LastIndex
+    [K2Node_CallFunction] "int - int" (Node_vYTlX0qpLZYIfI-Gr3iNqQ)
+      In Pins:
+        (Integer) A <- Node_lf4QQ0oFjBhKe7mWzL3c8Q.Number of lines between paragraphs
+        (Integer) B = 1
+      Out Pins:
+        (Integer) ReturnValue -> Node_Bn7Cm0otnTz8bgeHZPFeaA.LastIndex
+    [K2Node_GetArrayItem] "GET" (Node_YXnOsUngsElxL1GEv8EIhQ)
+      In Pins:
+        (TArray<Boolean>) Array <- Node__qATrkKVmEloL8WrodAR2g.New paragraph bool array
+        (Integer) Dimension 1 <- Node_xgNcDkxqM8tbckmzcP_zWw.Array Index
+      Out Pins:
+        (Boolean) Output -> Node_sWFOHU98GClr8Tezr3QDvw.bPickA, Node_6nkpA0IVhjKIoEKBZBX6yg.B
+    [K2Node_VariableGet] "Get Description Text" (Node_ta_M3USSVGrF_TGwwvceGg)
+      Out Pins:
+        (TArray<Text>) Description Text -> Node_ZRTld0QfaGVhPrGxAZs2ww.Array
+    [K2Node_MacroInstance] "For Each Loop" (Node_ZRTld0QfaGVhPrGxAZs2ww)
+      In Pins:
+        (exec) Exec <- Node_Bn7Cm0otnTz8bgeHZPFeaA.Completed
+        (TArray<Text>) Array <- Node_ta_M3USSVGrF_TGwwvceGg.Description Text
+      Out Pins:
+        (exec) LoopBody -> Node_Y-kq0U2XppoMOlaZKdPg-A.execute
+        (Text) Array Element -> Node_W4elXU5oMkX4FtOpm-Lk3Q.InText
+        (Integer) Array Index
+        (exec) Completed -> Node_9v9oGUHEN0fCrOuO6KzjOg.Exec
+    [K2Node_VariableGet] "Get TextPara" (Node_OiVu8E8qA8kPqDe7AV_-fw)
+      Out Pins:
+        (TArray<String>) TextPara -> Node_Y-kq0U2XppoMOlaZKdPg-A.TargetArray
+    [K2Node_CallArrayFunction] "Add" (Node_Y-kq0U2XppoMOlaZKdPg-A)
+      In Pins:
+        (exec) execute <- Node_ZRTld0QfaGVhPrGxAZs2ww.LoopBody
+        (TArray<String>) TargetArray <- Node_OiVu8E8qA8kPqDe7AV_-fw.TextPara
+        (String) NewItem <- Node_W4elXU5oMkX4FtOpm-Lk3Q.ReturnValue
+      Out Pins:
+        (exec) then
+        (Integer) ReturnValue
+    [K2Node_CallFunction] "To String (Text)" (Node_W4elXU5oMkX4FtOpm-Lk3Q)
+      In Pins:
+        (Text) InText <- Node_ZRTld0QfaGVhPrGxAZs2ww.Array Element
+      Out Pins:
+        (String) ReturnValue -> Node_Y-kq0U2XppoMOlaZKdPg-A.NewItem
+    [K2Node_VariableSet] "Set DescriptionFinal" (Node_AfwcDUBOL-5rTuutQMLUTA)
+      In Pins:
+        (exec) execute <- Node_GLaVSkzgHHyCSOaz95y0YA.Completed
+        (String) DescriptionFinal <- Node_LoQiskYZqZCZxRODhkvKyw.Final Text
+      Out Pins:
+        (exec) then
+        (String) Output_Get
+    [K2Node_VariableGet] "Get Final Text" (Node_LoQiskYZqZCZxRODhkvKyw)
+      Out Pins:
+        (String) Final Text -> Node_AfwcDUBOL-5rTuutQMLUTA.DescriptionFinal
+    [K2Node_VariableGet] "Get Description Scale" (Node_dMwaGEEnJWnT4tGO-xyprA)
+      Out Pins:
+        (double) Description Scale -> Node_I_u7VUppqDL4oPOHLWvYcg.B
+    [K2Node_VariableGet] "Get Width" (Node_Vd-AYki3iD5EU82y30OlCQ)
+      Out Pins:
+        (double) Width -> Node_JiT8i07nLgh89XqnKbugew.A
+    [K2Node_PromotableOperator] "float * float" (Node_-6xgJk3eQrlQvm6DLE61fA)
+      In Pins:
+        (double) A <- Node_rxg3Xkwhgr-_6UaOlkXJNQ.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_OAYzLkN4m1jWbSeFmaMq2Q.A
+    [K2Node_PromotableOperator] "float - float" (Node_JiT8i07nLgh89XqnKbugew)
+      In Pins:
+        (double) A <- Node_Vd-AYki3iD5EU82y30OlCQ.Width
+        (double) B = 1.500000
+      Out Pins:
+        (double) ReturnValue -> Node_rxg3Xkwhgr-_6UaOlkXJNQ.A
+    [EdGraphNode_Comment] "Convert Text Array to String Array" (Node_Hs8KNkkyTOY_ewyLIFsDiA)
+      Comment: Convert Text Array to String Array
+    [EdGraphNode_Comment] "Append final text together into single string" (Node_T1-mnEFpjEvcXE6-XPGtEQ)
+      Comment: Append final text together into single string
+    [K2Node_PromotableOperator] "float * float" (Node_rxg3Xkwhgr-_6UaOlkXJNQ)
+      In Pins:
+        (double) A <- Node_JiT8i07nLgh89XqnKbugew.ReturnValue
+        (double) B <- Node_pVwBYkP11mA5H321sTSoOg.Text Padding
+      Out Pins:
+        (double) ReturnValue -> Node_-6xgJk3eQrlQvm6DLE61fA.A
+    [K2Node_VariableGet] "Get Text Padding" (Node_pVwBYkP11mA5H321sTSoOg)
+      Out Pins:
+        (float) Text Padding -> Node_rxg3Xkwhgr-_6UaOlkXJNQ.B
+
+--- Function: Add Title Panel ---
+  Execution Flows:
+    [1] Add Title Panel -> Get -> Add Instance
+Target is Instanced Static Mesh Component -> Add Instances
+Target is Instanced Static Mesh Component
+
+  Nodes (19):
+    [K2Node_FunctionEntry] "Add Title Panel" (Node_K6TPoUSWdZhU_8Gykp0cDw)
+      Out Pins:
+        (exec) then -> Node_O5dK0UQLsV5S-vSMXTZGTQ.execute
+    [K2Node_VariableGet] "Get" (Node_O5dK0UQLsV5S-vSMXTZGTQ)
+      In Pins:
+        (exec) execute <- Node_K6TPoUSWdZhU_8Gykp0cDw.then
+      Out Pins:
+        (exec) then -> Node_YbT5ZEUsfXOEMG2iVyl_PQ.execute
+        (exec) else
+        (InstancedStaticMeshComponent) ISM_TitleBarMain -> Node_YbT5ZEUsfXOEMG2iVyl_PQ.self
+    [K2Node_CallFunction] "Add Instance
+Target is Instanced Static Mesh Component" (Node_YbT5ZEUsfXOEMG2iVyl_PQ)
+      In Pins:
+        (exec) execute <- Node_O5dK0UQLsV5S-vSMXTZGTQ.then
+        (InstancedStaticMeshComponent) self <- Node_O5dK0UQLsV5S-vSMXTZGTQ.ISM_TitleBarMain
+        (Transform) InstanceTransform <- Node_tTYky0HSoe7MLnqfY6Q1SA.ReturnValue
+        (Boolean) bWorldSpace = false
+      Out Pins:
+        (exec) then -> Node_DE4Oa0K3yyghDKOM97u-Og.execute
+        (Integer) ReturnValue
+    [K2Node_CallFunction] "Make Transform" (Node_tTYky0HSoe7MLnqfY6Q1SA)
+      In Pins:
+        (Vector) Location <- Node_rpZZtkzXeSLwN0yZzAd2HA.ReturnValue
+        (Rotator) Rotation = 0, 0, 0
+        (Vector) Scale <- Node__M7x0UL_g74hPUCE-5JnoQ.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue -> Node_YbT5ZEUsfXOEMG2iVyl_PQ.InstanceTransform, Node_zKXcx0vNElvOVsid6lmr9g.InTransform
+    [K2Node_VariableGet] "Get Depth" (Node_gBYyk0mHmK75IqiJqu0QfQ)
+      Out Pins:
+        (double) Depth -> Node_fZ_iw0F9UUWhgz2iIIh5Sg.A
+    [K2Node_CallFunction] "Make Vector" (Node_rpZZtkzXeSLwN0yZzAd2HA)
+      In Pins:
+        (double) X <- Node_rITHukBhVOlQk8GSWoRnUQ.ReturnValue
+        (double) Y = 0.0
+        (double) Z = 0.0
+      Out Pins:
+        (Vector) ReturnValue -> Node_tTYky0HSoe7MLnqfY6Q1SA.Location
+    [K2Node_PromotableOperator] "float * float" (Node_rITHukBhVOlQk8GSWoRnUQ)
+      In Pins:
+        (double) A <- Node_fZ_iw0F9UUWhgz2iIIh5Sg.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_rpZZtkzXeSLwN0yZzAd2HA.X
+    [K2Node_CallFunction] "Make Vector" (Node__M7x0UL_g74hPUCE-5JnoQ)
+      In Pins:
+        (double) X = 1.000000
+        (double) Y <- Node_wf1Z1k72tRHE8JaWEAXhfA.ReturnValue
+        (double) Z = 1.000000
+      Out Pins:
+        (Vector) ReturnValue -> Node_tTYky0HSoe7MLnqfY6Q1SA.Scale
+    [K2Node_VariableGet] "Get Width" (Node_bYLNY0A3_zD51ZaP7EHELw)
+      Out Pins:
+        (double) Width -> Node_wf1Z1k72tRHE8JaWEAXhfA.A
+    [K2Node_VariableGet] "Get ISM_TitleBarEnd" (Node__JWRp0kGg9nriFW_ME-3Vw)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_TitleBarEnd -> Node_DE4Oa0K3yyghDKOM97u-Og.self
+    [K2Node_CallFunction] "Add Instances
+Target is Instanced Static Mesh Component" (Node_DE4Oa0K3yyghDKOM97u-Og)
+      In Pins:
+        (exec) execute <- Node_YbT5ZEUsfXOEMG2iVyl_PQ.then
+        (InstancedStaticMeshComponent) self <- Node__JWRp0kGg9nriFW_ME-3Vw.ISM_TitleBarEnd
+        (TArray<Transform>) InstanceTransforms <- Node_K1B3dULUB05fXdmHJpJEbA.Array
+        (Boolean) bShouldReturnIndices = false
+        (Boolean) bWorldSpace = false
+        (Boolean) bUpdateNavigation = true
+      Out Pins:
+        (exec) then
+        (TArray<Integer>) ReturnValue
+    [K2Node_MakeArray] "Make Array" (Node_K1B3dULUB05fXdmHJpJEbA)
+      In Pins:
+        (Vector) [0]_Location <- Node_j5OBuUH5PmccTYCreu7QrQ.ReturnValue
+        (Rotator) [0]_Rotation = 0, 0, 0
+        (Vector) [0]_Scale = 1.000000,-1.000000,1.000000
+        (Vector) [1]_Location <- Node_VjyMIUE2zE1pSt-aYrrhuA.ReturnValue
+        (Rotator) [1]_Rotation = 0, 0, 0
+        (Vector) [1]_Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (TArray<Transform>) Array -> Node_DE4Oa0K3yyghDKOM97u-Og.InstanceTransforms
+    [K2Node_CallFunction] "Break Transform" (Node_zKXcx0vNElvOVsid6lmr9g)
+      In Pins:
+        (Transform) InTransform <- Node_tTYky0HSoe7MLnqfY6Q1SA.ReturnValue
+      Out Pins:
+        (Vector) Location -> Node_j5OBuUH5PmccTYCreu7QrQ.A, Node_VjyMIUE2zE1pSt-aYrrhuA.A
+        (Rotator) Rotation
+        (Vector) Scale
+    [K2Node_PromotableOperator] "vector + vector" (Node_j5OBuUH5PmccTYCreu7QrQ)
+      In Pins:
+        (Vector) A <- Node_zKXcx0vNElvOVsid6lmr9g.Location
+        (double) B_X = 0.0
+        (double) B_Y <- Node_DsPx4U0SLXn9xEqsxhPJTg.ReturnValue
+        (double) B_Z = 0.0
+      Out Pins:
+        (Vector) ReturnValue -> Node_K1B3dULUB05fXdmHJpJEbA.[0]_Location
+    [K2Node_PromotableOperator] "vector + vector" (Node_VjyMIUE2zE1pSt-aYrrhuA)
+      In Pins:
+        (Vector) A <- Node_zKXcx0vNElvOVsid6lmr9g.Location
+        (double) B_X = 0.0
+        (double) B_Y <- Node_StZ-9EwyDtxaqpGP7K1oCQ.ReturnValue
+        (double) B_Z = 0.0
+      Out Pins:
+        (Vector) ReturnValue -> Node_K1B3dULUB05fXdmHJpJEbA.[1]_Location
+    [K2Node_PromotableOperator] "float * float" (Node_DsPx4U0SLXn9xEqsxhPJTg)
+      In Pins:
+        (double) A <- Node_wf1Z1k72tRHE8JaWEAXhfA.ReturnValue
+        (double) B = 50.000000
+      Out Pins:
+        (double) ReturnValue -> Node_j5OBuUH5PmccTYCreu7QrQ.B_Y, Node_StZ-9EwyDtxaqpGP7K1oCQ.A
+    [K2Node_PromotableOperator] "float * float" (Node_StZ-9EwyDtxaqpGP7K1oCQ)
+      In Pins:
+        (double) A <- Node_DsPx4U0SLXn9xEqsxhPJTg.ReturnValue
+        (double) B = -1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_VjyMIUE2zE1pSt-aYrrhuA.B_Y
+    [K2Node_PromotableOperator] "float - float" (Node_wf1Z1k72tRHE8JaWEAXhfA)
+      In Pins:
+        (double) A <- Node_bYLNY0A3_zD51ZaP7EHELw.Width
+        (double) B = 3.000000
+      Out Pins:
+        (double) ReturnValue -> Node_DsPx4U0SLXn9xEqsxhPJTg.A, Node__M7x0UL_g74hPUCE-5JnoQ.Y
+    [K2Node_PromotableOperator] "float - float" (Node_fZ_iw0F9UUWhgz2iIIh5Sg)
+      In Pins:
+        (double) A <- Node_gBYyk0mHmK75IqiJqu0QfQ.Depth
+        (double) B = 1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_rITHukBhVOlQk8GSWoRnUQ.A
+
+--- Function: Shadow Box ---
+  Execution Flows:
+    [1] Shadow Box -> Branch -> Add Instances
+Target is Instanced Static Mesh Component -> Add Instances
+Target is Instanced Static Mesh Component
+
+  Nodes (62):
+    [K2Node_FunctionEntry] "Shadow Box" (Node_1Sx6aEzXlXyq7KuOoA38Xw)
+      Out Pins:
+        (exec) then -> Node_YlEZZE-YYZ1-qVCLVQgldw.execute
+    [K2Node_VariableGet] "Get ISM_ShadowStraight" (Node_-tcekkIIJLf-QdydcbqUYw)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_ShadowStraight -> Node_eVVVnUdv1QD27dmyV3IvQg.self
+    [K2Node_CallFunction] "Make Transform" (Node_SGoI9097UCov-DuS8kRkrQ)
+      In Pins:
+        (Vector) Location <- Node_XXmRXEfh6x6Ih6m2ouACRg.ReturnValue
+        (Rotator) Rotation = 0, 0, 0
+        (Vector) Scale <- Node_i5JK50gtdKacA8G3sSvYnA.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue -> Node_WKqEuE90pfmdfmy4iyQmcg.InTransform, Node_F1y7JE_ovcEnyQ-RqMy41w.[0]
+    [K2Node_CallFunction] "Make Vector" (Node_XXmRXEfh6x6Ih6m2ouACRg)
+      In Pins:
+        (double) X = 0.0
+        (double) Y <- Node_ReWiSE3hX4wYBfGoJyuKig.ReturnValue
+        (double) Z = 0.0
+      Out Pins:
+        (Vector) ReturnValue -> Node_SGoI9097UCov-DuS8kRkrQ.Location
+    [K2Node_VariableGet] "Get Width" (Node_JAQWsU5MGzBb6L-0-qJe8Q)
+      Out Pins:
+        (double) Width -> Node_ReWiSE3hX4wYBfGoJyuKig.A
+    [K2Node_VariableGet] "Get Height" (Node_F3KHzk0aRlMWuR6yuNhuZw)
+      Out Pins:
+        (double) Height -> Node_G9AC0Uo7Twnut66E2JERIQ.A
+    [K2Node_VariableGet] "Get Depth" (Node_eY6euEc7gqtubw2NYpxUhA)
+      Out Pins:
+        (double) Depth -> Node_Qpnmg0BMG_PFdYyu9eQJ-A.A
+    [K2Node_PromotableOperator] "float * float" (Node_ReWiSE3hX4wYBfGoJyuKig)
+      In Pins:
+        (double) A <- Node_JAQWsU5MGzBb6L-0-qJe8Q.Width
+        (double) B = 50.000000
+      Out Pins:
+        (double) ReturnValue -> Node_XXmRXEfh6x6Ih6m2ouACRg.Y
+    [K2Node_CallFunction] "Make Vector" (Node_i5JK50gtdKacA8G3sSvYnA)
+      In Pins:
+        (double) X <- Node_YGsvn0GdGrDPrhK3ZazT_g.ReturnValue
+        (double) Y = 1.000000
+        (double) Z <- Node_WjhZtkRhrrxlTlWj5_GFbw.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_SGoI9097UCov-DuS8kRkrQ.Scale
+    [K2Node_PromotableOperator] "float / float" (Node_WjhZtkRhrrxlTlWj5_GFbw)
+      In Pins:
+        (double) A <- Node_G9AC0Uo7Twnut66E2JERIQ.ReturnValue
+        (double) B = 5.000000
+      Out Pins:
+        (double) ReturnValue -> Node_i5JK50gtdKacA8G3sSvYnA.Z
+    [K2Node_PromotableOperator] "float * float" (Node_YGsvn0GdGrDPrhK3ZazT_g)
+      In Pins:
+        (double) A <- Node_Qpnmg0BMG_PFdYyu9eQJ-A.ReturnValue
+        (double) B <- Node_uQ3tU0LRRb5I3LakN3_qCQ.ShadowCover
+      Out Pins:
+        (double) ReturnValue -> Node_i5JK50gtdKacA8G3sSvYnA.X
+    [K2Node_VariableGet] "Get ShadowCover" (Node_uQ3tU0LRRb5I3LakN3_qCQ)
+      Out Pins:
+        (double) ShadowCover -> Node_YGsvn0GdGrDPrhK3ZazT_g.B
+    [K2Node_PromotableOperator] "float - float" (Node_G9AC0Uo7Twnut66E2JERIQ)
+      In Pins:
+        (double) A <- Node_F3KHzk0aRlMWuR6yuNhuZw.Height
+        (double) B = 1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_WjhZtkRhrrxlTlWj5_GFbw.A
+    [K2Node_PromotableOperator] "float - float" (Node_Qpnmg0BMG_PFdYyu9eQJ-A)
+      In Pins:
+        (double) A <- Node_eY6euEc7gqtubw2NYpxUhA.Depth
+        (double) B = 1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_YGsvn0GdGrDPrhK3ZazT_g.A
+    [K2Node_CallFunction] "Add Instances
+Target is Instanced Static Mesh Component" (Node_eVVVnUdv1QD27dmyV3IvQg)
+      In Pins:
+        (exec) execute <- Node_YlEZZE-YYZ1-qVCLVQgldw.then
+        (InstancedStaticMeshComponent) self <- Node_-tcekkIIJLf-QdydcbqUYw.ISM_ShadowStraight
+        (TArray<Transform>) InstanceTransforms <- Node_F1y7JE_ovcEnyQ-RqMy41w.Array
+        (Boolean) bShouldReturnIndices = false
+        (Boolean) bWorldSpace = false
+        (Boolean) bUpdateNavigation = true
+      Out Pins:
+        (exec) then -> Node_I5tWikX6CJRHp5Ov0M4juw.execute
+        (TArray<Integer>) ReturnValue
+    [K2Node_MakeArray] "Make Array" (Node_F1y7JE_ovcEnyQ-RqMy41w)
+      In Pins:
+        (Transform) [0] <- Node_SGoI9097UCov-DuS8kRkrQ.ReturnValue
+        (Transform) [1] <- Node_NjE47Ew-P0BAOF2gOqEEWw.ReturnValue
+        (Transform) [2] <- Node_O255qEYUhq9EpUSTmSsBhQ.ReturnValue
+      Out Pins:
+        (TArray<Transform>) Array -> Node_eVVVnUdv1QD27dmyV3IvQg.InstanceTransforms
+    [K2Node_CallFunction] "Break Transform" (Node_WKqEuE90pfmdfmy4iyQmcg)
+      In Pins:
+        (Transform) InTransform <- Node_SGoI9097UCov-DuS8kRkrQ.ReturnValue
+      Out Pins:
+        (Vector) Location -> Node_tE9ruU91eqy0p1q5qld-PQ.A
+        (Rotator) Rotation -> Node_NjE47Ew-P0BAOF2gOqEEWw.Rotation
+        (double) Scale_X -> Node_NjE47Ew-P0BAOF2gOqEEWw.Scale_X
+        (double) Scale_Y -> Node_gQhbQUab3jNWmImzA2s-6A.A
+        (double) Scale_Z -> Node_9VPNrEVNmFfmboG7TNWCqA.InputPin
+    [K2Node_PromotableOperator] "vector * vector" (Node_tE9ruU91eqy0p1q5qld-PQ)
+      In Pins:
+        (Vector) A <- Node_WKqEuE90pfmdfmy4iyQmcg.Location
+        (float) B = -1.000000
+      Out Pins:
+        (Vector) ReturnValue -> Node_NjE47Ew-P0BAOF2gOqEEWw.Location
+    [K2Node_CallFunction] "Make Transform" (Node_NjE47Ew-P0BAOF2gOqEEWw)
+      In Pins:
+        (Vector) Location <- Node_tE9ruU91eqy0p1q5qld-PQ.ReturnValue
+        (Rotator) Rotation <- Node_WKqEuE90pfmdfmy4iyQmcg.Rotation
+        (double) Scale_X <- Node_WKqEuE90pfmdfmy4iyQmcg.Scale_X
+        (double) Scale_Y <- Node_gQhbQUab3jNWmImzA2s-6A.ReturnValue
+        (double) Scale_Z <- Node_hG5vSklzEbD1JvCUlS-Wtw.OutputPin
+      Out Pins:
+        (Transform) ReturnValue -> Node_F1y7JE_ovcEnyQ-RqMy41w.[1]
+    [K2Node_PromotableOperator] "float * float" (Node_gQhbQUab3jNWmImzA2s-6A)
+      In Pins:
+        (double) A <- Node_WKqEuE90pfmdfmy4iyQmcg.Scale_Y
+        (double) B = -1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_NjE47Ew-P0BAOF2gOqEEWw.Scale_Y
+    [K2Node_Knot] "Reroute Node" (Node_9VPNrEVNmFfmboG7TNWCqA)
+      In Pins:
+        (double) InputPin <- Node_WKqEuE90pfmdfmy4iyQmcg.Scale_Z
+      Out Pins:
+        (double) OutputPin -> Node_hG5vSklzEbD1JvCUlS-Wtw.InputPin
+    [K2Node_Knot] "Reroute Node" (Node_hG5vSklzEbD1JvCUlS-Wtw)
+      In Pins:
+        (double) InputPin <- Node_9VPNrEVNmFfmboG7TNWCqA.OutputPin
+      Out Pins:
+        (double) OutputPin -> Node_NjE47Ew-P0BAOF2gOqEEWw.Scale_Z
+    [K2Node_CallFunction] "Make Transform" (Node_O255qEYUhq9EpUSTmSsBhQ)
+      In Pins:
+        (Vector) Location <- Node_lwm4WUnqFX84eEWtMYTyww.ReturnValue
+        (Rotator) Rotation = 0, 0,-90.000000
+        (Vector) Scale <- Node_k_d2_Ur_2oNM7uO1uSwecg.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue -> Node_F1y7JE_ovcEnyQ-RqMy41w.[2]
+    [K2Node_CallFunction] "Make Vector" (Node_lwm4WUnqFX84eEWtMYTyww)
+      In Pins:
+        (double) X = 0.0
+        (double) Y <- Node_xEBuzEqX9BNkqSyvH-7wkQ.ReturnValue
+        (double) Z <- Node_-qE9hE6hG4-Uxx2-MUyJUQ.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_O255qEYUhq9EpUSTmSsBhQ.Location
+    [K2Node_VariableGet] "Get Width" (Node_mnpoQkf0VLILn2Oopgwo6w)
+      Out Pins:
+        (double) Width -> Node_seMci0jE8_--f-6CCTBRcw.A
+    [K2Node_VariableGet] "Get Depth" (Node_NWphTEPPykxO4BynFrR3pQ)
+      Out Pins:
+        (double) Depth -> Node_46qkmUEmDXKF2Q24GiWEMg.A
+    [K2Node_PromotableOperator] "float * float" (Node_xEBuzEqX9BNkqSyvH-7wkQ)
+      In Pins:
+        (double) A <- Node_seMci0jE8_--f-6CCTBRcw.ReturnValue
+        (double) B = 50.000000
+      Out Pins:
+        (double) ReturnValue -> Node_lwm4WUnqFX84eEWtMYTyww.Y
+    [K2Node_CallFunction] "Make Vector" (Node_k_d2_Ur_2oNM7uO1uSwecg)
+      In Pins:
+        (double) X <- Node_lq1nYUVXF17B3nO5pJk58Q.ReturnValue
+        (double) Y = 1.000000
+        (double) Z <- Node__4p98UspRuh3l7iwKGBHYg.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_O255qEYUhq9EpUSTmSsBhQ.Scale
+    [K2Node_PromotableOperator] "float / float" (Node__4p98UspRuh3l7iwKGBHYg)
+      In Pins:
+        (double) A <- Node_RTgxs0rPQBrc8Ei4BEV03Q.ReturnValue
+        (double) B = 5.000000
+      Out Pins:
+        (double) ReturnValue -> Node_k_d2_Ur_2oNM7uO1uSwecg.Z
+    [K2Node_PromotableOperator] "float * float" (Node_lq1nYUVXF17B3nO5pJk58Q)
+      In Pins:
+        (double) A <- Node_46qkmUEmDXKF2Q24GiWEMg.ReturnValue
+        (double) B <- Node_cfFcvEG4tbdCeFK7aMVVNw.ShadowCover
+      Out Pins:
+        (double) ReturnValue -> Node_k_d2_Ur_2oNM7uO1uSwecg.X
+    [K2Node_VariableGet] "Get ShadowCover" (Node_cfFcvEG4tbdCeFK7aMVVNw)
+      Out Pins:
+        (double) ShadowCover -> Node_lq1nYUVXF17B3nO5pJk58Q.B
+    [K2Node_PromotableOperator] "float - float" (Node_RTgxs0rPQBrc8Ei4BEV03Q)
+      In Pins:
+        (double) A <- Node_98AqxEw9e4bsWoWBKh2AOQ.Width
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node__4p98UspRuh3l7iwKGBHYg.A
+    [K2Node_PromotableOperator] "float - float" (Node_46qkmUEmDXKF2Q24GiWEMg)
+      In Pins:
+        (double) A <- Node_NWphTEPPykxO4BynFrR3pQ.Depth
+        (double) B = 1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_lq1nYUVXF17B3nO5pJk58Q.A
+    [K2Node_PromotableOperator] "float - float" (Node_seMci0jE8_--f-6CCTBRcw)
+      In Pins:
+        (double) A <- Node_mnpoQkf0VLILn2Oopgwo6w.Width
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_xEBuzEqX9BNkqSyvH-7wkQ.A
+    [K2Node_VariableGet] "Get Width" (Node_98AqxEw9e4bsWoWBKh2AOQ)
+      Out Pins:
+        (double) Width -> Node_RTgxs0rPQBrc8Ei4BEV03Q.A
+    [K2Node_VariableGet] "Get Height" (Node_eaOKH0RJTPv3RGydWYBzLQ)
+      Out Pins:
+        (double) Height -> Node_-qE9hE6hG4-Uxx2-MUyJUQ.A
+    [K2Node_PromotableOperator] "float * float" (Node_-qE9hE6hG4-Uxx2-MUyJUQ)
+      In Pins:
+        (double) A <- Node_eaOKH0RJTPv3RGydWYBzLQ.Height
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_lwm4WUnqFX84eEWtMYTyww.Z
+    [K2Node_CallFunction] "Add Instances
+Target is Instanced Static Mesh Component" (Node_I5tWikX6CJRHp5Ov0M4juw)
+      In Pins:
+        (exec) execute <- Node_eVVVnUdv1QD27dmyV3IvQg.then
+        (InstancedStaticMeshComponent) self <- Node_PwcwtUvk0BoE0ZiyEtrTpg.ISM_ShadowRound
+        (TArray<Transform>) InstanceTransforms <- Node_W22O8EVGpEnXVEeN2Idsgw.Array
+        (Boolean) bShouldReturnIndices = false
+        (Boolean) bWorldSpace = false
+        (Boolean) bUpdateNavigation = true
+      Out Pins:
+        (exec) then
+        (TArray<Integer>) ReturnValue
+    [K2Node_VariableGet] "Get ISM_ShadowRound" (Node_PwcwtUvk0BoE0ZiyEtrTpg)
+      Out Pins:
+        (InstancedStaticMeshComponent) ISM_ShadowRound -> Node_I5tWikX6CJRHp5Ov0M4juw.self
+    [K2Node_MakeArray] "Make Array" (Node_W22O8EVGpEnXVEeN2Idsgw)
+      In Pins:
+        (Transform) [0] <- Node_cgrusU882xvgOjWwwRRCxA.ReturnValue
+        (Transform) [1] <- Node_2pcYDkdbmVGohOSdyoFDAw.ReturnValue
+      Out Pins:
+        (TArray<Transform>) Array -> Node_I5tWikX6CJRHp5Ov0M4juw.InstanceTransforms
+    [K2Node_CallFunction] "Make Transform" (Node_cgrusU882xvgOjWwwRRCxA)
+      In Pins:
+        (Vector) Location <- Node_L06sfEyHIG_yV2KLNX9F0Q.ReturnValue
+        (Rotator) Rotation = 0, 0, 0
+        (Vector) Scale <- Node_DxpG3kbxPGv4okq-lUPWiQ.ReturnValue
+      Out Pins:
+        (Transform) ReturnValue -> Node_W22O8EVGpEnXVEeN2Idsgw.[0], Node_-HHQyEBtL-CUeouiTxMGHQ.InTransform
+    [K2Node_CallFunction] "Make Vector" (Node_L06sfEyHIG_yV2KLNX9F0Q)
+      In Pins:
+        (double) X = 0.0
+        (double) Y <- Node_3FcsFkEgDGA40NOlvJ9YMQ.ReturnValue
+        (double) Z <- Node_JT_zQEDBcbfdVPmi09x6DQ.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_cgrusU882xvgOjWwwRRCxA.Location
+    [K2Node_VariableGet] "Get Width" (Node_FygHqU6KAKG8W7u4f6NaMQ)
+      Out Pins:
+        (double) Width -> Node_3FcsFkEgDGA40NOlvJ9YMQ.A
+    [K2Node_PromotableOperator] "float * float" (Node_3FcsFkEgDGA40NOlvJ9YMQ)
+      In Pins:
+        (double) A <- Node_FygHqU6KAKG8W7u4f6NaMQ.Width
+        (double) B = 50.000000
+      Out Pins:
+        (double) ReturnValue -> Node_L06sfEyHIG_yV2KLNX9F0Q.Y
+    [K2Node_CallFunction] "Make Vector" (Node_DxpG3kbxPGv4okq-lUPWiQ)
+      In Pins:
+        (double) X <- Node_BKeL2ULjzGE3sqaWUrjr1Q.ReturnValue
+        (double) Y = 1.000000
+        (double) Z = 1.000000
+      Out Pins:
+        (Vector) ReturnValue -> Node_cgrusU882xvgOjWwwRRCxA.Scale
+    [K2Node_VariableGet] "Get Height" (Node_mMopHk1ud0zy5c2mVEGkdQ)
+      Out Pins:
+        (double) Height -> Node_MHMxrkrLtWInOGisk58iNw.A
+    [K2Node_PromotableOperator] "float * float" (Node_JT_zQEDBcbfdVPmi09x6DQ)
+      In Pins:
+        (double) A <- Node_MHMxrkrLtWInOGisk58iNw.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_L06sfEyHIG_yV2KLNX9F0Q.Z
+    [K2Node_PromotableOperator] "float - float" (Node_MHMxrkrLtWInOGisk58iNw)
+      In Pins:
+        (double) A <- Node_mMopHk1ud0zy5c2mVEGkdQ.Height
+        (double) B = 1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_JT_zQEDBcbfdVPmi09x6DQ.A
+    [K2Node_VariableGet] "Get Depth" (Node_mjkdzkU9VJaALMayWoMZZw)
+      Out Pins:
+        (double) Depth -> Node_xdIY-ED2xHikDKGHTKr68A.A
+    [K2Node_PromotableOperator] "float * float" (Node_BKeL2ULjzGE3sqaWUrjr1Q)
+      In Pins:
+        (double) A <- Node_xdIY-ED2xHikDKGHTKr68A.ReturnValue
+        (double) B <- Node_htWRMEodK3U8Bte5uicrzA.ShadowCover
+      Out Pins:
+        (double) ReturnValue -> Node_DxpG3kbxPGv4okq-lUPWiQ.X
+    [K2Node_VariableGet] "Get ShadowCover" (Node_htWRMEodK3U8Bte5uicrzA)
+      Out Pins:
+        (double) ShadowCover -> Node_BKeL2ULjzGE3sqaWUrjr1Q.B
+    [K2Node_PromotableOperator] "float - float" (Node_xdIY-ED2xHikDKGHTKr68A)
+      In Pins:
+        (double) A <- Node_mjkdzkU9VJaALMayWoMZZw.Depth
+        (double) B = 1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_BKeL2ULjzGE3sqaWUrjr1Q.A
+    [K2Node_CallFunction] "Break Transform" (Node_-HHQyEBtL-CUeouiTxMGHQ)
+      In Pins:
+        (Transform) InTransform <- Node_cgrusU882xvgOjWwwRRCxA.ReturnValue
+      Out Pins:
+        (double) Location_X -> Node_2pcYDkdbmVGohOSdyoFDAw.Location_X
+        (double) Location_Y -> Node_5d0JJUD_bAkesOuRXISkmg.A
+        (double) Location_Z -> Node_2pcYDkdbmVGohOSdyoFDAw.Location_Z
+        (Rotator) Rotation -> Node_2pcYDkdbmVGohOSdyoFDAw.Rotation
+        (double) Scale_X -> Node_2pcYDkdbmVGohOSdyoFDAw.Scale_X
+        (double) Scale_Y -> Node_HM2ydUvX7VG8wlyx3vjLGQ.A
+        (double) Scale_Z -> Node_2pcYDkdbmVGohOSdyoFDAw.Scale_Z
+    [K2Node_CallFunction] "Make Transform" (Node_2pcYDkdbmVGohOSdyoFDAw)
+      In Pins:
+        (double) Location_X <- Node_-HHQyEBtL-CUeouiTxMGHQ.Location_X
+        (double) Location_Y <- Node_5d0JJUD_bAkesOuRXISkmg.ReturnValue
+        (double) Location_Z <- Node_-HHQyEBtL-CUeouiTxMGHQ.Location_Z
+        (Rotator) Rotation <- Node_-HHQyEBtL-CUeouiTxMGHQ.Rotation
+        (double) Scale_X <- Node_-HHQyEBtL-CUeouiTxMGHQ.Scale_X
+        (double) Scale_Y <- Node_HM2ydUvX7VG8wlyx3vjLGQ.ReturnValue
+        (double) Scale_Z <- Node_-HHQyEBtL-CUeouiTxMGHQ.Scale_Z
+      Out Pins:
+        (Transform) ReturnValue -> Node_W22O8EVGpEnXVEeN2Idsgw.[1]
+    [K2Node_PromotableOperator] "float * float" (Node_HM2ydUvX7VG8wlyx3vjLGQ)
+      In Pins:
+        (double) A <- Node_-HHQyEBtL-CUeouiTxMGHQ.Scale_Y
+        (double) B = -1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_2pcYDkdbmVGohOSdyoFDAw.Scale_Y
+    [K2Node_PromotableOperator] "float * float" (Node_5d0JJUD_bAkesOuRXISkmg)
+      In Pins:
+        (double) A <- Node_-HHQyEBtL-CUeouiTxMGHQ.Location_Y
+        (double) B = -1.000000
+      Out Pins:
+        (double) ReturnValue -> Node_2pcYDkdbmVGohOSdyoFDAw.Location_Y
+    [K2Node_VariableGet] "Get ShadowCover" (Node_2F5uLk19QO84KnCO8t8lyA)
+      Out Pins:
+        (double) ShadowCover -> Node_xot5vEP_jFVH86OUDP3zQQ.A
+    [K2Node_IfThenElse] "Branch" (Node_YlEZZE-YYZ1-qVCLVQgldw)
+      In Pins:
+        (exec) execute <- Node_1Sx6aEzXlXyq7KuOoA38Xw.then
+        (Boolean) Condition <- Node_7iL9GUCUzEvvK4assdxp1w.ReturnValue
+      Out Pins:
+        (exec) then -> Node_eVVVnUdv1QD27dmyV3IvQg.execute
+        (exec) else
+    [K2Node_PromotableOperator] "float > float" (Node_xot5vEP_jFVH86OUDP3zQQ)
+      In Pins:
+        (double) A <- Node_2F5uLk19QO84KnCO8t8lyA.ShadowCover
+        (double) B = 0.050000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_7iL9GUCUzEvvK4assdxp1w.A
+    [K2Node_VariableGet] "Get Height" (Node_9D4e3E2vFurH_6WjZ4Vx1w)
+      Out Pins:
+        (double) Height -> Node_VLAAGE8SwlNErUypJc1beA.A
+    [K2Node_CommutativeAssociativeBinaryOperator] "AND Boolean" (Node_7iL9GUCUzEvvK4assdxp1w)
+      In Pins:
+        (Boolean) A <- Node_xot5vEP_jFVH86OUDP3zQQ.ReturnValue
+        (Boolean) B <- Node_VLAAGE8SwlNErUypJc1beA.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_YlEZZE-YYZ1-qVCLVQgldw.Condition
+    [K2Node_PromotableOperator] "float > float" (Node_VLAAGE8SwlNErUypJc1beA)
+      In Pins:
+        (double) A <- Node_9D4e3E2vFurH_6WjZ4Vx1w.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_7iL9GUCUzEvvK4assdxp1w.B
+
+--- Function: ScaleSafeInstance ---
+  Execution Flows:
+    [1] ScaleSafeInstance -> Branch -> Add Instance
+Target is Instanced Static Mesh Component
+
+  Nodes (8):
+    [K2Node_FunctionEntry] "ScaleSafeInstance" (Node_xMLcGkrYyPA-obS0Spp1IQ)
+      Out Pins:
+        (exec) then -> Node_KPqVm09QN7pZFpSp6bV8NA.execute
+        (InstancedStaticMeshComponent) Instance -> Node_qskb_Ue_H2hyzOGN0onzTA.self
+        (Transform) Transform -> Node_qskb_Ue_H2hyzOGN0onzTA.InstanceTransform, Node_4af1B068gpIBa2GPeWPRQg.InTransform
+    [K2Node_CallFunction] "Add Instance
+Target is Instanced Static Mesh Component" (Node_qskb_Ue_H2hyzOGN0onzTA)
+      In Pins:
+        (exec) execute <- Node_KPqVm09QN7pZFpSp6bV8NA.then
+        (InstancedStaticMeshComponent) self <- Node_xMLcGkrYyPA-obS0Spp1IQ.Instance
+        (Transform) InstanceTransform <- Node_xMLcGkrYyPA-obS0Spp1IQ.Transform
+        (Boolean) bWorldSpace = false
+      Out Pins:
+        (exec) then
+        (Integer) ReturnValue
+    [K2Node_CallFunction] "Break Transform" (Node_4af1B068gpIBa2GPeWPRQg)
+      In Pins:
+        (Transform) InTransform <- Node_xMLcGkrYyPA-obS0Spp1IQ.Transform
+      Out Pins:
+        (Vector) Location
+        (Rotator) Rotation
+        (double) Scale_X -> Node_LJE_okkBdO9P2bujB1tLsA.A
+        (double) Scale_Y -> Node_3h212k85d9ilCKayW2jheg.A
+        (double) Scale_Z -> Node_3BZWykRuhjgdh72upJh77g.A
+    [K2Node_IfThenElse] "Branch" (Node_KPqVm09QN7pZFpSp6bV8NA)
+      In Pins:
+        (exec) execute <- Node_xMLcGkrYyPA-obS0Spp1IQ.then
+        (Boolean) Condition <- Node_U29Cik5FfjL_BXW000PHsA.ReturnValue
+      Out Pins:
+        (exec) then -> Node_qskb_Ue_H2hyzOGN0onzTA.execute
+        (exec) else
+    [K2Node_PromotableOperator] "float > float" (Node_LJE_okkBdO9P2bujB1tLsA)
+      In Pins:
+        (double) A <- Node_4af1B068gpIBa2GPeWPRQg.Scale_X
+        (double) B
+      Out Pins:
+        (Boolean) ReturnValue -> Node_U29Cik5FfjL_BXW000PHsA.A
+    [K2Node_PromotableOperator] "float > float" (Node_3h212k85d9ilCKayW2jheg)
+      In Pins:
+        (double) A <- Node_4af1B068gpIBa2GPeWPRQg.Scale_Y
+        (double) B
+      Out Pins:
+        (Boolean) ReturnValue -> Node_U29Cik5FfjL_BXW000PHsA.B
+    [K2Node_PromotableOperator] "float > float" (Node_3BZWykRuhjgdh72upJh77g)
+      In Pins:
+        (double) A <- Node_4af1B068gpIBa2GPeWPRQg.Scale_Z
+        (double) B
+      Out Pins:
+        (Boolean) ReturnValue -> Node_U29Cik5FfjL_BXW000PHsA.C
+    [K2Node_CommutativeAssociativeBinaryOperator] "AND Boolean" (Node_U29Cik5FfjL_BXW000PHsA)
+      In Pins:
+        (Boolean) A <- Node_LJE_okkBdO9P2bujB1tLsA.ReturnValue
+        (Boolean) B <- Node_3h212k85d9ilCKayW2jheg.ReturnValue
+        (Boolean) C <- Node_3BZWykRuhjgdh72upJh77g.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_KPqVm09QN7pZFpSp6bV8NA.Condition
+
+--- Function: OnRep_In Entity Script Handle ---
+  Execution Flows:
+    [1] OnRep_In Entity Script Handle -> Print String
+
+  Nodes (4):
+    [K2Node_FunctionEntry] "OnRep_In Entity Script Handle" (Node_2HQ2iklb-srPF4ujVvr99g)
+      Out Pins:
+        (exec) then -> Node_MN-v4El1vYx1UwCmdiE4BA.execute
+    [K2Node_CallFunction] "Print String" (Node_MN-v4El1vYx1UwCmdiE4BA)
+      In Pins:
+        (exec) execute <- Node_2HQ2iklb-srPF4ujVvr99g.then
+        (String) InString <- Node_b3_-KUsgTQgIv8WYi-LNZQ.ReturnValue
+        (Boolean) bPrintToScreen = true
+        (Boolean) bPrintToLog = true
+        (LinearColor) TextColor = (R=0.000000,G=0.660000,B=1.000000,A=1.000000)
+        (float) Duration = 2.000000
+        (Name) Key = None
+      Out Pins:
+        (exec) then
+    [K2Node_VariableGet] "Get In Entity Script Handle" (Node_U_sllEDwLxQu6iaU5AVojA)
+      Out Pins:
+        (Ck_Handle_EntityScript) In Entity Script Handle -> Node_b3_-KUsgTQgIv8WYi-LNZQ.InHandle
+    [K2Node_CallFunction] "[Ck] Handle -> String" (Node_b3_-KUsgTQgIv8WYi-LNZQ)
+      In Pins:
+        (Ck_Handle) InHandle <- Node_U_sllEDwLxQu6iaU5AVojA.In Entity Script Handle
+      Out Pins:
+        (String) ReturnValue -> Node_MN-v4El1vYx1UwCmdiE4BA.InString
+
+--- Macro: Text Alignment Offset ---
+  Nodes (10):
+    [K2Node_Tunnel] "Inputs" (Node_B1pznUJIKqn7FIOaWVisZw)
+      Out Pins:
+        (double) Width Adjustment -> Node_1k9IZU9xUDHjEYi41SLxxA.B
+        (Boolean) Force Center -> Node_fkPgRk3Te6l2SqqBakPcmQ.Index
+    [K2Node_Tunnel] "Outputs" (Node_IMDIokld5YS2dyaopWTxeQ)
+      In Pins:
+        (double) ReturnValue <- Node_MQJtm0PhqLygDYaBRVMUoA.ReturnValue
+    [K2Node_Select] "Select" (Node_MQJtm0PhqLygDYaBRVMUoA)
+      In Pins:
+        (double) EHTA_Left <- Node_hkdXXUiZwDkKXcade3__7A.ReturnValue
+        (double) EHTA_Center = 0.0
+        (double) EHTA_Right <- Node_ROtX70sdLNwayCu2NUXRBw.ReturnValue
+        (Byte) Index <- Node_fkPgRk3Te6l2SqqBakPcmQ.ReturnValue
+      Out Pins:
+        (double) ReturnValue -> Node_IMDIokld5YS2dyaopWTxeQ.ReturnValue
+    [K2Node_VariableGet] "Get Width" (Node_ISWiIkN2_9fBU1ecHUyHAw)
+      Out Pins:
+        (double) Width -> Node_1k9IZU9xUDHjEYi41SLxxA.A
+    [K2Node_PromotableOperator] "float * float" (Node_hkdXXUiZwDkKXcade3__7A)
+      In Pins:
+        (double) A <- Node_AFZFyE0CpiZuHkiXti0KNw.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_MQJtm0PhqLygDYaBRVMUoA.EHTA_Left
+    [K2Node_PromotableOperator] "float * float" (Node_ROtX70sdLNwayCu2NUXRBw)
+      In Pins:
+        (double) A <- Node_AFZFyE0CpiZuHkiXti0KNw.ReturnValue
+        (double) B = -100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_MQJtm0PhqLygDYaBRVMUoA.EHTA_Right
+    [K2Node_PromotableOperator] "float / float" (Node_AFZFyE0CpiZuHkiXti0KNw)
+      In Pins:
+        (double) A <- Node_1k9IZU9xUDHjEYi41SLxxA.ReturnValue
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_hkdXXUiZwDkKXcade3__7A.A, Node_ROtX70sdLNwayCu2NUXRBw.A
+    [K2Node_PromotableOperator] "float - float" (Node_1k9IZU9xUDHjEYi41SLxxA)
+      In Pins:
+        (double) A <- Node_ISWiIkN2_9fBU1ecHUyHAw.Width
+        (double) B <- Node_B1pznUJIKqn7FIOaWVisZw.Width Adjustment
+      Out Pins:
+        (double) ReturnValue -> Node_AFZFyE0CpiZuHkiXti0KNw.A
+    [K2Node_Select] "Select" (Node_fkPgRk3Te6l2SqqBakPcmQ)
+      In Pins:
+        (Byte) Option 0 <- Node_qq-MS0A13dSgV4yH4ebfgQ.Text Alignment
+        (Byte) Option 1 = EHTA_Center
+        (Boolean) Index <- Node_B1pznUJIKqn7FIOaWVisZw.Force Center
+      Out Pins:
+        (Byte) ReturnValue -> Node_MQJtm0PhqLygDYaBRVMUoA.Index
+    [K2Node_VariableGet] "Get Text Alignment" (Node_qq-MS0A13dSgV4yH4ebfgQ)
+      Out Pins:
+        (Byte) Text Alignment -> Node_fkPgRk3Te6l2SqqBakPcmQ.Option 0
+
+--- Macro: TitlePanelTextTransform ---
+  Nodes (9):
+    [K2Node_Tunnel] "Inputs" (Node_9D0skkUmjFRlHs-mNr3xbA)
+    [K2Node_Tunnel] "Outputs" (Node_sSYKMEAJHUS_5p-XXCO8cQ)
+      In Pins:
+        (Transform) ReturnValue <- Node_oMcK20IyVGJi6l6oJQuJlw.ReturnValue
+    [K2Node_CallFunction] "Make Transform" (Node_oMcK20IyVGJi6l6oJQuJlw)
+      In Pins:
+        (Vector) Location <- Node_rqyfykeapD1Acb-TZ3ZTOA.ReturnValue
+        (Rotator) Rotation = 40.000000,0.000000, 0
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_sSYKMEAJHUS_5p-XXCO8cQ.ReturnValue
+    [K2Node_VariableGet] "Get Depth" (Node_rDNzg07QXgFChJeRnbP28Q)
+      Out Pins:
+        (double) Depth -> Node_iwluWEEqmiMX_5-GppDIug.A
+    [K2Node_CallFunction] "Make Vector" (Node_rqyfykeapD1Acb-TZ3ZTOA)
+      In Pins:
+        (double) X <- Node_JBsf20KLvDr1cL2WzyhETQ.ReturnValue
+        (double) Y <- Node_GXHqUUORMnOUePKqZ4VVVw.ReturnValue
+        (double) Z = 22.000000
+      Out Pins:
+        (Vector) ReturnValue -> Node_oMcK20IyVGJi6l6oJQuJlw.Location
+    [K2Node_PromotableOperator] "float * float" (Node_iwluWEEqmiMX_5-GppDIug)
+      In Pins:
+        (double) A <- Node_rDNzg07QXgFChJeRnbP28Q.Depth
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_JBsf20KLvDr1cL2WzyhETQ.A
+    [K2Node_MacroInstance] "Text Alignment Offset" (Node_GXHqUUORMnOUePKqZ4VVVw)
+      In Pins:
+        (double) Width Adjustment = 3.000000
+        (Boolean) Force Center <- Node_YpOjwEwGOqwOufiMlAH-ZQ.Seperate Title Panel
+      Out Pins:
+        (double) ReturnValue -> Node_rqyfykeapD1Acb-TZ3ZTOA.Y
+    [K2Node_PromotableOperator] "float + float" (Node_JBsf20KLvDr1cL2WzyhETQ)
+      In Pins:
+        (double) A <- Node_iwluWEEqmiMX_5-GppDIug.ReturnValue
+        (double) B = -12.000000
+      Out Pins:
+        (double) ReturnValue -> Node_rqyfykeapD1Acb-TZ3ZTOA.X
+    [K2Node_VariableGet] "Get Seperate Title Panel" (Node_YpOjwEwGOqwOufiMlAH-ZQ)
+      Out Pins:
+        (Boolean) Seperate Title Panel -> Node_GXHqUUORMnOUePKqZ4VVVw.Force Center
+
+--- Macro: Title Text Transform ---
+  Nodes (25):
+    [K2Node_Tunnel] "Inputs" (Node_uwJ9u06VwQFk38a9LvDbdQ)
+    [K2Node_Tunnel] "Outputs" (Node_qgqbuUSdcn8fp6igSWNS8A)
+      In Pins:
+        (Transform) ReturnValue <- Node_uJq5LkWtcg99DTCtUGlUag.ReturnValue
+    [K2Node_CallFunction] "Make Vector" (Node_xBzN1kIQQE2lGgm9pDnajA)
+      In Pins:
+        (double) X = 15.000000
+        (double) Y <- Node_SGFWJkkbGhcbUaqCtOzm1A.ReturnValue
+        (double) Z <- Node_3pHGjEA-51RdMHSbf0ytRA.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_twp8n03rHZRSRBCSJ8uMBA.InVec, Node_zb7Hv0wSjXJXxGWrRbxr1A.Option 0
+    [K2Node_CallFunction] "Break Vector" (Node_twp8n03rHZRSRBCSJ8uMBA)
+      In Pins:
+        (Vector) InVec <- Node_xBzN1kIQQE2lGgm9pDnajA.ReturnValue
+      Out Pins:
+        (double) X -> Node_bsrg9U2fSrwGuOOBUyhwHw.Z
+        (double) Y -> Node_bsrg9U2fSrwGuOOBUyhwHw.Y
+        (double) Z -> Node_bsrg9U2fSrwGuOOBUyhwHw.X
+    [K2Node_VariableGet] "Get Floor Text" (Node_Iy8FckOJqpRjFyKfUpNz-A)
+      Out Pins:
+        (Boolean) Floor Text -> Node_YJ9X7kcMqE2COm61eqtvuw.A
+    [K2Node_VariableGet] "Get Height" (Node_LihNYEqaK1-rXCiqRsmXoA)
+      Out Pins:
+        (double) Height -> Node_vU9OhESCIGTJRlyNmBL91g.A
+    [K2Node_PromotableOperator] "float < float" (Node_vU9OhESCIGTJRlyNmBL91g)
+      In Pins:
+        (double) A <- Node_LihNYEqaK1-rXCiqRsmXoA.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_YJ9X7kcMqE2COm61eqtvuw.B
+    [K2Node_CommutativeAssociativeBinaryOperator] "OR Boolean" (Node_YJ9X7kcMqE2COm61eqtvuw)
+      In Pins:
+        (Boolean) A <- Node_Iy8FckOJqpRjFyKfUpNz-A.Floor Text
+        (Boolean) B <- Node_vU9OhESCIGTJRlyNmBL91g.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_zb7Hv0wSjXJXxGWrRbxr1A.Index, Node_h9ZDokGW89nJEai2FG0_8g.bPickA
+    [K2Node_VariableGet] "Get Depth" (Node_4tq4TEzLB7KhftGHJnZS6A)
+      Out Pins:
+        (double) Depth -> Node_RltJ2k-nb92F6-2NbN51PQ.Option 1
+    [K2Node_VariableGet] "Get Height" (Node_PV_5okCfoQGYXFKTcOowUQ)
+      Out Pins:
+        (double) Height -> Node_RltJ2k-nb92F6-2NbN51PQ.Option 0
+    [K2Node_PromotableOperator] "float * float" (Node_aoj7I0D0tbOlrue8EtG_rg)
+      In Pins:
+        (double) A <- Node_RltJ2k-nb92F6-2NbN51PQ.ReturnValue
+        (double) B = 100.000000
+      Out Pins:
+        (double) ReturnValue -> Node_3pHGjEA-51RdMHSbf0ytRA.A
+    [K2Node_PromotableOperator] "float - float" (Node_3pHGjEA-51RdMHSbf0ytRA)
+      In Pins:
+        (double) A <- Node_aoj7I0D0tbOlrue8EtG_rg.ReturnValue
+        (double) B <- Node_pigmakrIku-OiUegyOAxmg.ReturnValue
+      Out Pins:
+        (double) ReturnValue -> Node_xBzN1kIQQE2lGgm9pDnajA.Z
+    [K2Node_VariableGet] "Get Title Scale" (Node_A-iomEsI3t3ghOeeq7G0eg)
+      Out Pins:
+        (double) Title Scale -> Node_HSAKhk97-kNfKPGccHGcMg.A
+    [K2Node_PromotableOperator] "float / float" (Node_pigmakrIku-OiUegyOAxmg)
+      In Pins:
+        (double) A <- Node_HSAKhk97-kNfKPGccHGcMg.ReturnValue
+        (double) B = 2.000000
+      Out Pins:
+        (double) ReturnValue -> Node_3pHGjEA-51RdMHSbf0ytRA.B
+    [K2Node_PromotableOperator] "float + float" (Node_HSAKhk97-kNfKPGccHGcMg)
+      In Pins:
+        (double) A <- Node_A-iomEsI3t3ghOeeq7G0eg.Title Scale
+        (double) B = 60.000000
+      Out Pins:
+        (double) ReturnValue -> Node_pigmakrIku-OiUegyOAxmg.A
+    [K2Node_Select] "Select" (Node_RltJ2k-nb92F6-2NbN51PQ)
+      In Pins:
+        (double) Option 0 <- Node_PV_5okCfoQGYXFKTcOowUQ.Height
+        (double) Option 1 <- Node_4tq4TEzLB7KhftGHJnZS6A.Depth
+        (Boolean) Index <- Node_hZwSQEUe6yDNNw2y04egnw.ReturnValue
+      Out Pins:
+        (double) ReturnValue -> Node_aoj7I0D0tbOlrue8EtG_rg.A
+    [K2Node_CallFunction] "Make Vector" (Node_bsrg9U2fSrwGuOOBUyhwHw)
+      In Pins:
+        (double) X <- Node_twp8n03rHZRSRBCSJ8uMBA.Z
+        (double) Y <- Node_twp8n03rHZRSRBCSJ8uMBA.Y
+        (double) Z <- Node_twp8n03rHZRSRBCSJ8uMBA.X
+      Out Pins:
+        (Vector) ReturnValue -> Node_zb7Hv0wSjXJXxGWrRbxr1A.Option 1
+    [K2Node_Select] "Select" (Node_zb7Hv0wSjXJXxGWrRbxr1A)
+      In Pins:
+        (Vector) Option 0 <- Node_xBzN1kIQQE2lGgm9pDnajA.ReturnValue
+        (Vector) Option 1 <- Node_bsrg9U2fSrwGuOOBUyhwHw.ReturnValue
+        (Boolean) Index <- Node_YJ9X7kcMqE2COm61eqtvuw.ReturnValue
+      Out Pins:
+        (Vector) ReturnValue -> Node_uJq5LkWtcg99DTCtUGlUag.Location
+    [K2Node_CallFunction] "Select Rotator" (Node_h9ZDokGW89nJEai2FG0_8g)
+      In Pins:
+        (Rotator) A = 90.000000, 0, 0
+        (Rotator) B = 0, 0, 0
+        (Boolean) bPickA <- Node_YJ9X7kcMqE2COm61eqtvuw.ReturnValue
+      Out Pins:
+        (Rotator) ReturnValue -> Node_uJq5LkWtcg99DTCtUGlUag.Rotation
+    [K2Node_MacroInstance] "Text Alignment Offset" (Node_SGFWJkkbGhcbUaqCtOzm1A)
+      In Pins:
+        (double) Width Adjustment = 1.000000
+        (Boolean) Force Center
+      Out Pins:
+        (double) ReturnValue -> Node_xBzN1kIQQE2lGgm9pDnajA.Y
+    [K2Node_VariableGet] "Get Floor Text" (Node_t88aw0rBfk3ze8Sh11ioAg)
+      Out Pins:
+        (Boolean) Floor Text -> Node_hZwSQEUe6yDNNw2y04egnw.A
+    [K2Node_VariableGet] "Get Height" (Node_dhxAVUR54nKpWIqxvxMu5Q)
+      Out Pins:
+        (double) Height -> Node_A0Xiv03n8ypU4U6l26AysA.A
+    [K2Node_PromotableOperator] "float < float" (Node_A0Xiv03n8ypU4U6l26AysA)
+      In Pins:
+        (double) A <- Node_dhxAVUR54nKpWIqxvxMu5Q.Height
+        (double) B = 2.000000
+      Out Pins:
+        (Boolean) ReturnValue -> Node_hZwSQEUe6yDNNw2y04egnw.B
+    [K2Node_CommutativeAssociativeBinaryOperator] "OR Boolean" (Node_hZwSQEUe6yDNNw2y04egnw)
+      In Pins:
+        (Boolean) A <- Node_t88aw0rBfk3ze8Sh11ioAg.Floor Text
+        (Boolean) B <- Node_A0Xiv03n8ypU4U6l26AysA.ReturnValue
+      Out Pins:
+        (Boolean) ReturnValue -> Node_RltJ2k-nb92F6-2NbN51PQ.Index
+    [K2Node_CallFunction] "Make Transform" (Node_uJq5LkWtcg99DTCtUGlUag)
+      In Pins:
+        (Vector) Location <- Node_zb7Hv0wSjXJXxGWrRbxr1A.ReturnValue
+        (Rotator) Rotation <- Node_h9ZDokGW89nJEai2FG0_8g.ReturnValue
+        (Vector) Scale = 1.000000,1.000000,1.000000
+      Out Pins:
+        (Transform) ReturnValue -> Node_qgqbuUSdcn8fp6igSWNS8A.ReturnValue
+
