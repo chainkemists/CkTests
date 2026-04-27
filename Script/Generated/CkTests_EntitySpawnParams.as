@@ -1604,6 +1604,123 @@ namespace UCk_EntityScript_GoapGym_Tea
 }
 
 USTRUCT()
+struct FCk_EntityScript_GymStation_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    float Width = 6.0;
+
+    UPROPERTY()
+    float Depth = 5.0;
+
+    UPROPERTY()
+    float Height = 5.0;
+
+    UPROPERTY()
+    float WallThickness = 15.0;
+
+    UPROPERTY()
+    float FloorThickness = 15.0;
+
+    UPROPERTY()
+    float TrimDepth = 30.0;
+
+    UPROPERTY()
+    float AgentSpawnOffset = 0.0;
+
+    UPROPERTY()
+    FLinearColor BodyColour = FLinearColor(0.019999999552965164f, 0.019999999552965164f, 0.019999999552965164f, 1.0f);
+
+    UPROPERTY()
+    FLinearColor TrimColour = FLinearColor(0.30000001192092896f, 0.30000001192092896f, 0.30000001192092896f, 1.0f);
+
+    UPROPERTY()
+    FText TitleText = FText::FromString("Title");
+
+    UPROPERTY()
+    float TitleScale = 20.0;
+
+    UPROPERTY()
+    FColor TitleColour = FColor(255, 255, 255, 255);
+
+    UPROPERTY()
+    TArray<FText> DescriptionText;
+
+    UPROPERTY()
+    float DescriptionScale = 12.0;
+
+    UPROPERTY()
+    FColor DescriptionColour = FColor(255, 255, 255, 255);
+
+    UPROPERTY()
+    EHorizTextAligment TextAlignment = EHorizTextAligment::EHTA_Left;
+
+    UPROPERTY()
+    TArray<FText> FloorDescriptionText;
+
+    UPROPERTY()
+    float FloorDescriptionScale = 12.0;
+
+    UPROPERTY()
+    FColor FloorDescriptionColour = FColor(255, 255, 255, 255);
+
+    UPROPERTY()
+    EHorizTextAligment FloorTextAlignment = EHorizTextAligment::EHTA_Center;
+
+    UPROPERTY()
+    ECk_GymStation_FloorTextPlacement FloorTextPlacement = ECk_GymStation_FloorTextPlacement::Center;
+
+    UPROPERTY()
+    bool ShowSpotlight = true;
+
+    UPROPERTY()
+    bool ShowAnchors = false;
+
+    FCk_EntityScript_GymStation_SpawnParams(FTransform InInitialTransform, float InWidth, float InDepth, float InHeight, float InWallThickness, float InFloorThickness, float InTrimDepth, float InAgentSpawnOffset, FLinearColor InBodyColour, FLinearColor InTrimColour, FText InTitleText, float InTitleScale, FColor InTitleColour, TArray<FText> InDescriptionText, float InDescriptionScale, FColor InDescriptionColour, EHorizTextAligment InTextAlignment, TArray<FText> InFloorDescriptionText, float InFloorDescriptionScale, FColor InFloorDescriptionColour, EHorizTextAligment InFloorTextAlignment, ECk_GymStation_FloorTextPlacement InFloorTextPlacement, bool InShowSpotlight, bool InShowAnchors)
+    {
+        InitialTransform = InInitialTransform;
+        Width = InWidth;
+        Depth = InDepth;
+        Height = InHeight;
+        WallThickness = InWallThickness;
+        FloorThickness = InFloorThickness;
+        TrimDepth = InTrimDepth;
+        AgentSpawnOffset = InAgentSpawnOffset;
+        BodyColour = InBodyColour;
+        TrimColour = InTrimColour;
+        TitleText = InTitleText;
+        TitleScale = InTitleScale;
+        TitleColour = InTitleColour;
+        DescriptionText = InDescriptionText;
+        DescriptionScale = InDescriptionScale;
+        DescriptionColour = InDescriptionColour;
+        TextAlignment = InTextAlignment;
+        FloorDescriptionText = InFloorDescriptionText;
+        FloorDescriptionScale = InFloorDescriptionScale;
+        FloorDescriptionColour = InFloorDescriptionColour;
+        FloorTextAlignment = InFloorTextAlignment;
+        FloorTextPlacement = InFloorTextPlacement;
+        ShowSpotlight = InShowSpotlight;
+        ShowAnchors = InShowAnchors;
+    }
+}
+
+namespace UCk_EntityScript_GymStation
+{
+    FCk_EntityScript_GymStation_SpawnParams Params()
+    {
+        return FCk_EntityScript_GymStation_SpawnParams();
+    }
+
+    FCk_EntityScript_GymStation_SpawnParams Params(FTransform InInitialTransform, float InWidth, float InDepth, float InHeight, float InWallThickness, float InFloorThickness, float InTrimDepth, float InAgentSpawnOffset, FLinearColor InBodyColour, FLinearColor InTrimColour, FText InTitleText, float InTitleScale, FColor InTitleColour, TArray<FText> InDescriptionText, float InDescriptionScale, FColor InDescriptionColour, EHorizTextAligment InTextAlignment, TArray<FText> InFloorDescriptionText, float InFloorDescriptionScale, FColor InFloorDescriptionColour, EHorizTextAligment InFloorTextAlignment, ECk_GymStation_FloorTextPlacement InFloorTextPlacement, bool InShowSpotlight, bool InShowAnchors)
+    {
+        return FCk_EntityScript_GymStation_SpawnParams(InInitialTransform, InWidth, InDepth, InHeight, InWallThickness, InFloorThickness, InTrimDepth, InAgentSpawnOffset, InBodyColour, InTrimColour, InTitleText, InTitleScale, InTitleColour, InDescriptionText, InDescriptionScale, InDescriptionColour, InTextAlignment, InFloorDescriptionText, InFloorDescriptionScale, InFloorDescriptionColour, InFloorTextAlignment, InFloorTextPlacement, InShowSpotlight, InShowAnchors);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_IntegerGym_Basic_SpawnParams
 {
     UPROPERTY()
@@ -2179,6 +2296,47 @@ namespace UCk_EntityScript_MessagingGym_OneShot
 }
 
 USTRUCT()
+struct FCk_EntityScript_NavigationGym_MovingAgent_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FString StationTitle = "";
+
+    UPROPERTY()
+    FString StationDescription = "";
+
+    UPROPERTY()
+    float PingPongDistance = 600.0;
+
+    UPROPERTY()
+    float ArrivalSpeedThreshold = 25.0;
+
+    FCk_EntityScript_NavigationGym_MovingAgent_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, float InPingPongDistance, float InArrivalSpeedThreshold)
+    {
+        InitialTransform = InInitialTransform;
+        StationTitle = InStationTitle;
+        StationDescription = InStationDescription;
+        PingPongDistance = InPingPongDistance;
+        ArrivalSpeedThreshold = InArrivalSpeedThreshold;
+    }
+}
+
+namespace UCk_EntityScript_NavigationGym_MovingAgent
+{
+    FCk_EntityScript_NavigationGym_MovingAgent_SpawnParams Params()
+    {
+        return FCk_EntityScript_NavigationGym_MovingAgent_SpawnParams();
+    }
+
+    FCk_EntityScript_NavigationGym_MovingAgent_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, float InPingPongDistance, float InArrivalSpeedThreshold)
+    {
+        return FCk_EntityScript_NavigationGym_MovingAgent_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InPingPongDistance, InArrivalSpeedThreshold);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_NavigationGym_Station_SpawnParams
 {
     UPROPERTY()
@@ -2699,6 +2857,35 @@ namespace UCk_EntityScript_TransformGym_Display
     FCk_EntityScript_TransformGym_Display_SpawnParams Params(FTransform InInitialTransform, ACk_TransformGym_Cube InLinkedCube)
     {
         return FCk_EntityScript_TransformGym_Display_SpawnParams(InInitialTransform, InLinkedCube);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_UnrealComponentGym_Display_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    ACk_UnrealComponentGym_Driver LinkedDriver = nullptr;
+
+    FCk_EntityScript_UnrealComponentGym_Display_SpawnParams(FTransform InInitialTransform, ACk_UnrealComponentGym_Driver InLinkedDriver)
+    {
+        InitialTransform = InInitialTransform;
+        LinkedDriver = InLinkedDriver;
+    }
+}
+
+namespace UCk_EntityScript_UnrealComponentGym_Display
+{
+    FCk_EntityScript_UnrealComponentGym_Display_SpawnParams Params()
+    {
+        return FCk_EntityScript_UnrealComponentGym_Display_SpawnParams();
+    }
+
+    FCk_EntityScript_UnrealComponentGym_Display_SpawnParams Params(FTransform InInitialTransform, ACk_UnrealComponentGym_Driver InLinkedDriver)
+    {
+        return FCk_EntityScript_UnrealComponentGym_Display_SpawnParams(InInitialTransform, InLinkedDriver);
     }
 }
 
