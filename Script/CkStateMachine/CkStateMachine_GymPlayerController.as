@@ -65,6 +65,31 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.StateMachine.DivergenceFirstBranch");
+            Station.Title = FText::FromString("DIVERGENCE FIRST-BRANCH");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Sub-SM with a divergence-point state (two outgoing transitions). Asserts that the first-added transition's target state-task chain is built exactly once when that branch is chosen."));
+            Description.Add(FText::FromString("Vacuous-transition variant: linear hops have no conditions, so transitions Pass on first evaluation. Exercises the fast-path race window between transition-firing and source-state teardown."));
+            Description.Add(FText::FromString("Two passes (Pass A: AddLeft-first + ChooseLeft; Pass B: AddRight-first + ChooseRight) confirm doubling tracks add-order, not state class or direction."));
+            Description.Add(FText::FromString("PASS = every per-state task counter == 1. FAIL = first-added-and-chosen branch counter == 2."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.StateMachine.DivergenceTimed");
+            Station.Title = FText::FromString("DIVERGENCE FIRST-BRANCH (TIMED)");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Same divergence-point assertion as DIVERGENCE FIRST-BRANCH, but every linear transition is gated by a 0.05s event-driven timer condition. Exercises the slow-path race: condition Pass arrives asynchronously while the source state is in PendingExit."));
+            Description.Add(FText::FromString("Together with the vacuous variant, covers both immediate-Pass and timer-Pass divergence handling during state teardown."));
+            Description.Add(FText::FromString("Toggle the framework fix off and rebuild to confirm this station FAILs with the bug present (chosen-and-first-added counter reads 2)."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
         return Stations;
     }
 
@@ -79,6 +104,8 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
         Request_StartComplex();
         Request_StartHierarchical();
         Request_StartGraphWalkRegression();
+        Request_StartDivergenceFirstBranch();
+        Request_StartDivergenceTimed();
         ck::Trace("SM Gym - All stations started");
     }
 
@@ -216,6 +243,58 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymSm_RestartGraphWalkRegression()
     {
         Request_StartGraphWalkRegression();
+    }
+
+    // ========================================================================
+    // DIVERGENCE FIRST-BRANCH STATION
+    // ========================================================================
+
+    void Request_StartDivergenceFirstBranch()
+    {
+        auto StationTransform = Get_StationTransform("Gym.StateMachine.DivergenceFirstBranch");
+
+        auto SpawnedActor = SpawnActor(
+            ACk_SmTest_DivergenceFirstBranch_GymActor,
+            StationTransform.GetLocation(),
+            FRotator(0, 180, 0),
+            NAME_None,
+            true);
+
+        SpawnedActor.StationHandle = Get_StationHandle("Gym.StateMachine.DivergenceFirstBranch");
+
+        FinishSpawningActor(SpawnedActor);
+    }
+
+    UFUNCTION(Exec, DisplayName="SM Gym - Restart Divergence FirstBranch")
+    void Ck_GymSm_RestartDivergenceFirstBranch()
+    {
+        Request_StartDivergenceFirstBranch();
+    }
+
+    // ========================================================================
+    // DIVERGENCE FIRST-BRANCH (TIMED) STATION
+    // ========================================================================
+
+    void Request_StartDivergenceTimed()
+    {
+        auto StationTransform = Get_StationTransform("Gym.StateMachine.DivergenceTimed");
+
+        auto SpawnedActor = SpawnActor(
+            ACk_SmTest_DivergenceTimed_GymActor,
+            StationTransform.GetLocation(),
+            FRotator(0, 180, 0),
+            NAME_None,
+            true);
+
+        SpawnedActor.StationHandle = Get_StationHandle("Gym.StateMachine.DivergenceTimed");
+
+        FinishSpawningActor(SpawnedActor);
+    }
+
+    UFUNCTION(Exec, DisplayName="SM Gym - Restart Divergence Timed")
+    void Ck_GymSm_RestartDivergenceTimed()
+    {
+        Request_StartDivergenceTimed();
     }
 };
 
