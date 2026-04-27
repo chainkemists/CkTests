@@ -13,5 +13,6 @@ namespace Ck
 	asset NavigationGym_Tags of UCk_GameplayTags
 	{
 		GameplayTags.Add(n"Gym.Navigation.FindPath");
+		GameplayTags.Add(n"Gym.Navigation.Move");
 	}
 }
