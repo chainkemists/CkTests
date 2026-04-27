@@ -7,6 +7,9 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 		Stations.Add(MakeStationPayload(n"Gym.Navigation.FindPath", "Find Path",
 			"Single agent issues Request_FindPath every 5s.\nWatch the waypoint count and status text — if the level has\na NavMeshBoundsVolume baked, the path resolves on the same frame."));
 
+		Stations.Add(MakeStationPayload(n"Gym.Navigation.Move", "Moving Agent",
+			"Single agent ping-pongs between two waypoints.\nDrives the full crowd loop end-to-end:\n  Add → CrowdSetup → CrowdUpdateTarget → CrowdStep → CrowdReadVelocity\n  → script reads velocity, integrates, calls Request_SetTransform.\nWatch the agent visibly move; arrivals count up each leg."));
+
 		return Stations;
 	}
 
@@ -23,13 +26,18 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartGym() override
 	{
-		SpawnStation("Gym.Navigation.FindPath", "FIND PATH",
+		SpawnFindPathStation("Gym.Navigation.FindPath", "FIND PATH",
 			"Spawns a single nav agent at the station origin.\nIssues Request_FindPath to a target 500cm in +X every 5s.\nDisplays waypoint count and last path status.",
 			FVector(500.0f, 0.0f, 0.0f),
 			5.0f);
+
+		SpawnMovingAgentStation("Gym.Navigation.Move", "MOVING AGENT",
+			"Single agent ping-pongs between two waypoints.\nReads CurrentVelocity from dtCrowd each tick and integrates\ninto the entity transform — the agent visibly moves.",
+			600.0f,
+			25.0f);
 	}
 
-	private void SpawnStation(
+	private void SpawnFindPathStation(
 		FString InTag,
 		FString InTitle,
 		FString InDescription,
@@ -46,6 +54,26 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle(InTag),
 			UCk_EntityScript_NavigationGym_Station,
+			FInstancedStruct::Make(Params));
+	}
+
+	private void SpawnMovingAgentStation(
+		FString InTag,
+		FString InTitle,
+		FString InDescription,
+		float InPingPongDistance,
+		float InArrivalSpeedThreshold)
+	{
+		auto Params = FCkNavigationGym_MovingAgentSpawnParams();
+		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.StationTitle = InTitle;
+		Params.StationDescription = InDescription;
+		Params.PingPongDistance = InPingPongDistance;
+		Params.ArrivalSpeedThreshold = InArrivalSpeedThreshold;
+
+		utils_entity_script::Request_SpawnEntity(
+			Get_StationHandle(InTag),
+			UCk_EntityScript_NavigationGym_MovingAgent,
 			FInstancedStruct::Make(Params));
 	}
 
