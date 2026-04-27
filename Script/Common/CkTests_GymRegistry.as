@@ -14,6 +14,7 @@ namespace CkTests_Gyms
 {
     void RegisterAll()
     {
+        CkGym_Cycler::RegisterProjectGym("Unreal Component",    ACk_UnrealComponentGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Attribute Basic",    ACk_AttributeGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Attribute Byte",     ACk_ByteAttributeGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Attribute Float",    ACk_FloatAttributeGym_GameMode);
