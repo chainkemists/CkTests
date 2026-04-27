@@ -35,5 +35,38 @@ class ACk_NavigationGym_GameMode : ACk_Gym_Base_GameMode
 		// After that, this gym's path requests will succeed. Until then the gym exercises the
 		// failure path (Status: FAILED) which is itself a valid test scenario.
 		Print("[NavigationGym] To enable READY-status paths in this gym, place a NavMeshBoundsVolume in the level (see CkNavigationGym_GameMode.as comment)");
+
+		// Spawn one ACk_GymStation off to the side so we can visually verify the AS port:
+		// pivot at ground level, anchors recompute from Width/Depth/Height. PIE the gym, walk
+		// to (-2000, 0, ~-300) to find it. Adjust Width/Depth/Height in the actor in PIE
+		// (or via console) and the geometry + anchors should re-fit on construction-script rerun.
+		const auto TestStationLocation = FVector(-2000.0, 0.0, -300.0);
+		auto TestStation = SpawnActor(ACk_GymStation, TestStationLocation, FRotator());
+		if (TestStation != nullptr)
+		{
+			TestStation.Width = 6.0;
+			TestStation.Depth = 5.0;
+			TestStation.Height = 5.0;
+			TestStation.TitleText = FText::FromString("CkGymStation");
+
+			TArray<FText> TestDesc;
+			TestDesc.Add(FText::FromString("AS port of BP_DemoDisplay."));
+			TestDesc.Add(FText::FromString("Pivot at ground (Z=0)."));
+			TestDesc.Add(FText::FromString("Anchors: AgentSpawnFront, Left, Right, Back, FootprintCenter, PanelTopFront, PanelCenter."));
+			TestStation.Update_Display(TestStation.TitleText, TestDesc);
+
+			Print(f"[NavigationGym] Spawned ACk_GymStation at {TestStationLocation}");
+			Print(f"[NavigationGym]   FootprintCenter   world = {TestStation.FootprintCenterAnchor.GetWorldLocation()}");
+			Print(f"[NavigationGym]   AgentSpawnFront   world = {TestStation.AgentSpawnFrontAnchor.GetWorldLocation()}");
+			Print(f"[NavigationGym]   AgentSpawnLeft    world = {TestStation.AgentSpawnLeftAnchor.GetWorldLocation()}");
+			Print(f"[NavigationGym]   AgentSpawnRight   world = {TestStation.AgentSpawnRightAnchor.GetWorldLocation()}");
+			Print(f"[NavigationGym]   AgentSpawnBack    world = {TestStation.AgentSpawnBackAnchor.GetWorldLocation()}");
+			Print(f"[NavigationGym]   PanelTopFront     world = {TestStation.PanelTopFrontAnchor.GetWorldLocation()}");
+			Print(f"[NavigationGym]   PanelCenter       world = {TestStation.PanelCenterAnchor.GetWorldLocation()}");
+		}
+		else
+		{
+			Print("[NavigationGym] FAILED to spawn ACk_GymStation");
+		}
 	}
 };
