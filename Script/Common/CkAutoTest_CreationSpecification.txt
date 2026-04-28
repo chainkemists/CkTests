@@ -432,6 +432,37 @@ class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
 //        in the C++ constructor of the parent. (TimeLimit uses this — set
 //        to 5.0 in ACk_AutoTestRunner::ACk_AutoTestRunner.)
 
+// GOTCHA 10 — CkAttribute requests COALESCE within a frame; multi-call
+//             tests need a processor tick between requests.
+//   `Request_Override`, `Request_Add`, `Request_Sub` etc. on
+//   FCk_Handle_IntegerAttribute (and the float/byte equivalents) do NOT
+//   enqueue events. They manage a persistent non-revocable modifier on
+//   the attribute:
+//     - Override: latest call wins (modifier value replaced).
+//     - Add/Sub:  delta accumulates into the same modifier.
+//     - Mul/Div:  multiplied into the same modifier.
+//   When the processor next ticks, it sees the FINAL coalesced state and
+//   fires one OnValueChanged + at most one OnMin/MaxClamped signal.
+//
+//   Wrong shape (only ONE clamp signal fires):
+//     Request_Override(Attr, 200);   // would clamp to 100
+//     Request_Override(Attr, -50);   // overwrites the 200 before processor sees it
+//     // Processor sees only -50, fires OnMinClamped once. OnMaxClamped never fires.
+//
+//   Right shape (Pattern A, signal-driven):
+//     // Step 1: Request_Override(Attr, 200), wait for OnMaxClamped, advance.
+//     // Step 2: Request_Override(Attr, -50), wait for OnMinClamped, finish.
+//   The wait between steps gives the processor a tick to drain the first
+//   request before the second one mutates the same modifier.
+//
+//   This applies to all attribute mutations, not just Override. Reference:
+//   CkAutoTest_Attribute_IntegerClamping.as.
+//
+//   See also: CkAttribute/CLAUDE.md — `Add_NotRevocable` is the coalescing
+//   path (single modifier per operation type). `Add_Revocable` creates a
+//   distinct modifier entity per call but ALSO doesn't help here, because
+//   the modifier processor batches dirty-flagged recomputes per tick.
+
 //============================================================================
 // 9. MAP SETUP
 //============================================================================
