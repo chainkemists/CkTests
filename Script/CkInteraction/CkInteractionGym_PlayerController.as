@@ -18,7 +18,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("Source and target on same entity with Instant completion."));
             Description.Add(FText::FromString("Tests OnNewInteraction and OnInteractionFinished signals."));
             Station.Description = Description;
-            Station.Height = 7.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -30,7 +30,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("Source and target on separate entities with 3s timed completion."));
             Description.Add(FText::FromString("Displays elapsed time and completion tracking."));
             Station.Description = Description;
-            Station.Height = 7.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -42,7 +42,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("ManuallyCompleted policy - must explicitly end or cancel."));
             Description.Add(FText::FromString("Tests EndInteraction with Succeeded/Failed and CancelInteraction."));
             Station.Description = Description;
-            Station.Height = 7.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -54,7 +54,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("Target with custom CanInteractWith validation delegate."));
             Description.Add(FText::FromString("Toggle enabled state and custom validation to test rejection."));
             Station.Description = Description;
-            Station.Height = 7.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -66,7 +66,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("Resolver with intent-channel mapping and distance sorting."));
             Description.Add(FText::FromString("Source + 3 targets at varying distances."));
             Station.Description = Description;
-            Station.Height = 7.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -78,7 +78,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("ResolverSource + ResolverTarget with phased resolution."));
             Description.Add(FText::FromString("Calculate phase (base+bonus) then Apply phase (multiplier)."));
             Station.Description = Description;
-            Station.Height = 7.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -102,7 +102,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartInstantStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Interaction.Instant");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Interaction.Instant", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Interaction.Instant"),
             UCk_EntityScript_InteractionGym_Instant,
@@ -114,7 +114,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartTimedStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Interaction.Timed");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Interaction.Timed", ECk_GymStation_Anchor::PanelCenter);
         auto StationHandle = Get_StationHandle("Gym.Interaction.Timed");
         auto BaseLocation = StationTransform.GetLocation();
 
@@ -132,7 +132,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartManualStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Interaction.Manual");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Interaction.Manual", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Interaction.Manual"),
             UCk_EntityScript_InteractionGym_Manual,
@@ -144,7 +144,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartValidationStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Interaction.Validation");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Interaction.Validation", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Interaction.Validation"),
             UCk_EntityScript_InteractionGym_Validation,
@@ -156,7 +156,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartResolverStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Interaction.Resolver");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Interaction.Resolver", ECk_GymStation_Anchor::PanelCenter);
         auto StationHandle = Get_StationHandle("Gym.Interaction.Resolver");
         auto BaseLocation = StationTransform.GetLocation();
 
@@ -180,7 +180,7 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartDataBundleStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Interaction.DataBundle");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Interaction.DataBundle", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Interaction.DataBundle"),
             UCk_EntityScript_InteractionGym_DataBundle,

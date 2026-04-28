@@ -13,7 +13,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.DataOnlyUnbounded");
-            Station.Height = 10.0f;
+            Station.AutoSize = true;
             Station.Title = FText::FromString("DATA-ONLY UNBOUNDED");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Unlimited-capacity data-only inventory."));
@@ -26,7 +26,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.DataOnlyBounded");
-            Station.Height = 10.0f;
+            Station.AutoSize = true;
             Station.Title = FText::FromString("DATA-ONLY BOUNDED");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Bounded inventory (max 5)."));
@@ -39,7 +39,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.Spatial");
-            Station.Height = 10.0f;
+            Station.AutoSize = true;
             Station.Title = FText::FromString("SPATIAL INVENTORY");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("8x6 grid with auto-placement, explicit coords,"));
@@ -51,7 +51,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.StackableTrait");
-            Station.Height = 10.0f;
+            Station.AutoSize = true;
             Station.Title = FText::FromString("STACKABLE TRAIT");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Request_StackItems, Request_SplitStack."));
@@ -63,7 +63,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.TagsTrait");
-            Station.Height = 10.0f;
+            Station.AutoSize = true;
             Station.Title = FText::FromString("TAGS TRAIT");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Runtime tag add/remove via Request_AddTag /"));
@@ -76,7 +76,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Inventory.ShelfDesync");
-            Station.Height = 10.0f;
+            Station.AutoSize = true;
             Station.Title = FText::FromString("SHELF LOOT/STOCK");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Rapid stock/loot pump simulating in-game"));
@@ -106,7 +106,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartStation_DataOnlyUnbounded()
     {
-        auto T = Get_StationTransform("Gym.Inventory.DataOnlyUnbounded");
+        auto T = Get_StationAnchorTransform("Gym.Inventory.DataOnlyUnbounded", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FInventoryGymSpawnParams(T);
         auto Req = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Inventory.DataOnlyUnbounded"),
@@ -118,7 +118,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartStation_DataOnlyBounded()
     {
-        auto T = Get_StationTransform("Gym.Inventory.DataOnlyBounded");
+        auto T = Get_StationAnchorTransform("Gym.Inventory.DataOnlyBounded", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FInventoryGymSpawnParams(T);
         auto Req = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Inventory.DataOnlyBounded"),
@@ -130,7 +130,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartStation_Spatial()
     {
-        auto T = Get_StationTransform("Gym.Inventory.Spatial");
+        auto T = Get_StationAnchorTransform("Gym.Inventory.Spatial", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FInventoryGymSpawnParams(T);
         auto Req = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Inventory.Spatial"),
@@ -142,7 +142,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartStation_StackableTrait()
     {
-        auto T = Get_StationTransform("Gym.Inventory.StackableTrait");
+        auto T = Get_StationAnchorTransform("Gym.Inventory.StackableTrait", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FInventoryGymSpawnParams(T);
         auto Req = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Inventory.StackableTrait"),
@@ -154,7 +154,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartStation_TagsTrait()
     {
-        auto T = Get_StationTransform("Gym.Inventory.TagsTrait");
+        auto T = Get_StationAnchorTransform("Gym.Inventory.TagsTrait", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FInventoryGymSpawnParams(T);
         auto Req = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Inventory.TagsTrait"),
@@ -166,7 +166,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartStation_ShelfDesync()
     {
-        auto T = Get_StationTransform("Gym.Inventory.ShelfDesync");
+        auto T = Get_StationAnchorTransform("Gym.Inventory.ShelfDesync", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FInventoryGymSpawnParams(T);
         auto Req = utils_entity_script::Request_SpawnEntity(
             Get_StationHandle("Gym.Inventory.ShelfDesync"),
