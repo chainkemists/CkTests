@@ -45,6 +45,17 @@ struct FCkGym_Station_SpawnParams_Payload
     UPROPERTY()
     bool FloorText = false;
 
+    // When true, the spawned GymStation auto-sizes Width/Height from the
+    // title + description text content (and grows at runtime if Update_StationDisplay
+    // pushes more text). Width/Height fields above are ignored when AutoSize=true.
+    UPROPERTY()
+    bool AutoSize = false;
+
+    // Diagnostic overlays — translucent wireframe PMG boxes drawn at each
+    // piece's expected world transform. Useful for spotting misaligned pieces.
+    UPROPERTY()
+    bool ShowDebugOverlays = false;
+
     UPROPERTY()
     int32 NumberOfLinesBetweenParagraphs = 1;
 
@@ -93,12 +104,36 @@ struct FCk_Gym_TransformSpawnParams
 
 namespace CkGym_Common
 {
-    void
+    // Spawns a UCk_EntityScript_GymStation entity for the given payload.
+    // The entity is tagged with all of InPayload.Tags so the base PC's
+    // Get_StationHandle / Get_StationTransform can look it up later.
+    //
+    // Returns the pending handle so the caller can await OnConstructed —
+    // the base PC uses this to count outstanding stations and only call
+    // Request_StartGym once they're all up.
+    FCk_Handle_PendingEntityScript
     Request_SpawnNewStation(
         FCkGym_Station_SpawnParams_Payload InPayload)
     {
-        auto Entity = Subsystem::GetWorldSubsystem(UCk_EcsWorld_Subsystem_UE).Get_TransientEntity();
-        utils_messaging::Broadcast(Entity, InPayload);
+        auto Params = FCk_GymStation_SpawnParams();
+        Params.InitialTransform     = InPayload.Transform;
+        Params.Width                = double(InPayload.Width);
+        Params.Depth                = double(InPayload.Depth);
+        Params.Height               = double(InPayload.Height);
+        Params.TitleText            = InPayload.Title;
+        Params.DescriptionText      = InPayload.Description;
+        Params.TitleScale           = double(InPayload.TitleScale);
+        Params.DescriptionScale     = double(InPayload.DescriptionScale);
+        Params.TitleColour          = InPayload.TitleColour.ToFColor(true);
+        Params.DescriptionColour    = InPayload.DescriptionColour.ToFColor(true);
+        Params.AutoSize             = InPayload.AutoSize;
+        Params.ShowDebugOverlays    = InPayload.ShowDebugOverlays;
+        Params.StationTags          = InPayload.Tags;
+
+        return utils_entity_script::Request_SpawnEntity(
+            ck::TransientEntity(),
+            UCk_EntityScript_GymStation,
+            FInstancedStruct::Make(Params));
     }
 
 
