@@ -29,7 +29,7 @@ class ACk_NavigationGym_GameMode : ACk_Gym_Base_GameMode
 		// world via a code-spawned NavMeshBoundsVolume produces a 0-sized navmesh (verified
 		// empirically). The standard workflow is:
 		//
-		//   1. Open CkGym_AllTests.umap in the editor
+		//   1. Open TestGyms_CkTests_Level.umap in the editor
 		//   2. Drag a NavMeshBoundsVolume from the Place Actors panel into the level, scale
 		//      it to cover ~7000x7000x1200 cm centered at origin
 		//   3. Press P (or Build → Build Paths) to bake
