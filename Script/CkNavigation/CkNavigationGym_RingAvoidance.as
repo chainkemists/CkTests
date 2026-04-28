@@ -45,7 +45,10 @@ class UCk_EntityScript_NavigationGym_RingAvoidance : UCk_GenericEntityScript_UE
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-		const auto Center = InitialTransform.GetLocation();
+		// Ring + targets are computed in the station's LOCAL frame, then routed through
+		// TransformPosition so the grid-layout 180° yaw doesn't mirror them out of view.
+		// The ring is symmetric so it'd look the same either way, but consistent with the
+		// other nav stations (and correct if a station is ever placed at a non-180 yaw).
 		const auto TwoPi = 6.28318530718;
 
 		for (int32 i = 0; i < AgentCount; ++i)
@@ -54,8 +57,8 @@ class UCk_EntityScript_NavigationGym_RingAvoidance : UCk_GenericEntityScript_UE
 			const auto Cos = Math::Cos(Angle);
 			const auto Sin = Math::Sin(Angle);
 
-			const auto Spawn  = Center + FVector(Cos * RingRadius,  Sin * RingRadius,  0.0);
-			const auto Target = Center + FVector(-Cos * RingRadius, -Sin * RingRadius, 0.0);
+			const auto Spawn  = InitialTransform.TransformPosition(FVector( Cos * RingRadius,  Sin * RingRadius, 0.0));
+			const auto Target = InitialTransform.TransformPosition(FVector(-Cos * RingRadius, -Sin * RingRadius, 0.0));
 
 			Spawn_Agent(InHandle, Spawn, Target);
 		}

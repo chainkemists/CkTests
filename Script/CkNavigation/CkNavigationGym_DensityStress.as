@@ -51,8 +51,10 @@ class UCk_EntityScript_NavigationGym_DensityStress : UCk_GenericEntityScript_UE
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-		const auto Center = InitialTransform.GetLocation();
-		const auto Target = Center + FVector(TargetDistance, 0.0, 0.0);
+		// All offsets here are LOCAL to the station. Routed through TransformPosition so
+		// the grid-layout 180° yaw plants the dense pack in front of the player and the
+		// shared target ahead of them — not behind the alcove.
+		const auto Target = InitialTransform.TransformPosition(FVector(TargetDistance, 0.0, 0.0));
 
 		// Lay agents out in a roughly-square grid across the spawn area.
 		// SideCount = ceil(sqrt(N)) so we always have enough cells.
@@ -73,7 +75,7 @@ class UCk_EntityScript_NavigationGym_DensityStress : UCk_GenericEntityScript_UE
 
 				const auto X = -HalfArea + (float(ix) + 0.5) * Step;
 				const auto Y = -HalfArea + (float(iy) + 0.5) * Step;
-				const auto Spawn = Center + FVector(X, Y, 0.0);
+				const auto Spawn = InitialTransform.TransformPosition(FVector(X, Y, 0.0));
 
 				Spawn_Agent(InHandle, Spawn, Target);
 				Spawned = Spawned + 1;

@@ -69,8 +69,10 @@ class UCk_EntityScript_NavigationGym_ClusterTarget : UCk_GenericEntityScript_UE
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-		const auto Center = InitialTransform.GetLocation();
-		_CurrentTarget = Pick_TargetForMove(Center, 0);
+		// Both agent ring + target sit in the station's LOCAL frame, then route through
+		// TransformPosition so the grid-layout 180° yaw plants the cluster in front of
+		// the player rather than mirrored behind the station.
+		_CurrentTarget = InitialTransform.TransformPosition(Pick_TargetLocalForMove(0));
 
 		// Yellow target marker — bigger than the agent markers so it's easy to spot.
 		_TargetMarker = UCk_Utils_Pmg_BasicShapes::Create_Sphere(
@@ -91,7 +93,7 @@ class UCk_EntityScript_NavigationGym_ClusterTarget : UCk_GenericEntityScript_UE
 		for (int32 i = 0; i < AgentCount; ++i)
 		{
 			const auto Angle = float(TwoPi * float(i) / float(AgentCount));
-			const auto Spawn = Center + FVector(Math::Cos(Angle) * ClusterRadius, Math::Sin(Angle) * ClusterRadius, 0.0);
+			const auto Spawn = InitialTransform.TransformPosition(FVector(Math::Cos(Angle) * ClusterRadius, Math::Sin(Angle) * ClusterRadius, 0.0));
 
 			Spawn_Agent(InHandle, Spawn, _CurrentTarget);
 		}
@@ -137,8 +139,7 @@ class UCk_EntityScript_NavigationGym_ClusterTarget : UCk_GenericEntityScript_UE
 		_ElapsedSinceLastMove = 0.0;
 		_MoveCount = _MoveCount + 1;
 
-		const auto Center = InitialTransform.GetLocation();
-		_CurrentTarget = Pick_TargetForMove(Center, _MoveCount);
+		_CurrentTarget = InitialTransform.TransformPosition(Pick_TargetLocalForMove(_MoveCount));
 
 		// Move the target marker.
 		utils_transform::Request_SetLocation(_TargetMarker, _CurrentTarget, ECk_LocalWorld::World);
@@ -155,13 +156,14 @@ class UCk_EntityScript_NavigationGym_ClusterTarget : UCk_GenericEntityScript_UE
 		Request_UpdateDisplay();
 	}
 
-	// Picks a deterministic-but-varied target around the centre using golden-angle
-	// rotation so successive moves don't land in obvious patterns.
-	private FVector Pick_TargetForMove(FVector InCenter, int32 InMoveIndex)
+	// Picks a deterministic-but-varied target offset (in the station's LOCAL frame) using
+	// golden-angle rotation so successive moves don't land in obvious patterns. Caller
+	// composes the world location via InitialTransform.TransformPosition.
+	private FVector Pick_TargetLocalForMove(int32 InMoveIndex)
 	{
 		const auto GoldenAngle = 2.39996323;    // radians (137.5 degrees)
 		const auto Angle = float(GoldenAngle * float(InMoveIndex));
-		return InCenter + FVector(Math::Cos(Angle) * TargetMoveDistance, Math::Sin(Angle) * TargetMoveDistance, 0.0);
+		return FVector(Math::Cos(Angle) * TargetMoveDistance, Math::Sin(Angle) * TargetMoveDistance, 0.0);
 	}
 
 	private void Request_UpdateDisplay()
