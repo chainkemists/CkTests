@@ -39,7 +39,7 @@ class ACk_TweenTest_GymPlayerController : ACk_Gym_Base_PlayerController
     void Request_SpawnTweenActor(ECk_TweenEasing InEasingMethod)
     {
         auto StationTag = "Gym.Tween." + f"{InEasingMethod}";
-        auto StationTransform = Get_StationTransform(StationTag);
+        auto StationTransform = Get_StationAnchorTransform(StationTag, ECk_GymStation_Anchor::PanelCenter);
 
         auto SpawnedActor = SpawnActor(ACk_TweenTest_GymActor, StationTransform.GetLocation(), FRotator(0, 180, 0), NAME_None, true);
         SpawnedActor.TweenEasingMethod = InEasingMethod;
