@@ -51,7 +51,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 		Desc.Add(FText::FromString(InDesc1));
 		Desc.Add(FText::FromString(InDesc2));
 		Station.Description = Desc;
-		Station.Height = 9.0f;
+		Station.AutoSize = true;
 		return Station;
 	}
 
@@ -72,7 +72,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartDoor()
 	{
-		auto T = Get_StationTransform("Gym.Goap.Door");
+		auto T = Get_StationAnchorTransform("Gym.Goap.Door", ECk_GymStation_Anchor::PanelCenter);
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Goap.Door"),
 			UCk_EntityScript_GoapGym_Door,
@@ -81,7 +81,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartTea()
 	{
-		auto T = Get_StationTransform("Gym.Goap.Tea");
+		auto T = Get_StationAnchorTransform("Gym.Goap.Tea", ECk_GymStation_Anchor::PanelCenter);
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Goap.Tea"),
 			UCk_EntityScript_GoapGym_Tea,
@@ -90,7 +90,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartCombat()
 	{
-		auto T = Get_StationTransform("Gym.Goap.Combat");
+		auto T = Get_StationAnchorTransform("Gym.Goap.Combat", ECk_GymStation_Anchor::PanelCenter);
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Goap.Combat"),
 			UCk_EntityScript_GoapGym_Combat,
@@ -99,7 +99,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartPriorities()
 	{
-		auto T = Get_StationTransform("Gym.Goap.Priorities");
+		auto T = Get_StationAnchorTransform("Gym.Goap.Priorities", ECk_GymStation_Anchor::PanelCenter);
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Goap.Priorities"),
 			UCk_EntityScript_GoapGym_Priorities,
@@ -108,7 +108,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartNoPlan()
 	{
-		auto T = Get_StationTransform("Gym.Goap.NoPlan");
+		auto T = Get_StationAnchorTransform("Gym.Goap.NoPlan", ECk_GymStation_Anchor::PanelCenter);
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Goap.NoPlan"),
 			UCk_EntityScript_GoapGym_NoPlan,
@@ -117,7 +117,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartCircularDep()
 	{
-		auto T = Get_StationTransform("Gym.Goap.CircularDep");
+		auto T = Get_StationAnchorTransform("Gym.Goap.CircularDep", ECk_GymStation_Anchor::PanelCenter);
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Goap.CircularDep"),
 			UCk_EntityScript_GoapGym_CircularDep,
