@@ -108,7 +108,7 @@ class ACk_[GymName]Gym_GameMode : ACkTests_Gym_Base_GameMode
 // Your project: MyProject_GymRegistry.as   → CkGym_Cycler::RegisterProjectGym("Name", AMyGym_GameMode, "MyGymLevel");
 //
 // The LevelName parameter is optional — omit it to use the subsystem's default
-// (CkGym_AllTests). Project gyms that live in their own levels should provide
+// (TestGyms_CkTests_Level). Project gyms that live in their own levels should provide
 // their level name explicitly.
 
 //============================================================================
@@ -865,8 +865,9 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 //      components on the display actor each tick
 //
 // This means:
-//   - Creating a new gym level: duplicate an existing gym level (CkGym_AllTests
-//     or AllTests_Gym_BB_MAP) so you get the spawn-listener Blueprint for free.
+//   - Creating a new gym level: duplicate an existing gym level
+//     (TestGyms_CkTests_Level or TestGyms_BB_MAP) so you get the
+//     spawn-listener Blueprint for free.
 //     Then change the World Settings game mode override.
 //   - BP_DemoDisplay is a Content asset in Plugins/CkTests/Content/Common/DemoRoom/.
 //     Both CkTests and BB levels reference it — it's part of the framework.
