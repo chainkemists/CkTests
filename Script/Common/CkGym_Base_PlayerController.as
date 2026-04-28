@@ -2,6 +2,14 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
 {
     default Replicates = false;
 
+    // Z offset applied to every station's default grid placement. Override
+    // in subclasses whose world floor isn't at Z=0 — the GymStation's alcove
+    // floor sits at Z=FloorThickness/2 above the station origin, so without
+    // adjustment that floor protrudes above any world floor whose top is at
+    // Z=0. Negative values pull the alcove down. See ACk_NavigationGym_PlayerController.
+    UPROPERTY()
+    float DefaultStationGridZ = 0.0f;
+
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
@@ -19,40 +27,6 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
     {
         Request_EnsureStationsExist();
-        Request_MakeStationsEcsReady();
-    }
-
-    void Request_MakeStationsEcsReady()
-    {
-        auto RequiredStations = Get_RequiredStations();
-        _PendingStationCount = 0;
-
-        for (auto StationParams : RequiredStations)
-        {
-            for (auto Tag : StationParams.Tags)
-            {
-                auto StationActor = utils_actor::Get_FirstActorWithNameContaining(Tag.ToString(), ECk_ActorSearchMethod::SearchByTag);
-                if (!ck::IsValid(StationActor))
-                { continue; }
-
-                if (utils_owning_actor::Get_IsActorEcsReady(StationActor))
-                { continue; }
-
-                _PendingStationCount++;
-                auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
-                SpawnParams._OwningActor = StationActor;
-                auto PendingEntity = utils_entity_script::Request_SpawnEntity(
-                    ck::TransientEntity(), UCk_EntityScript_WithActor_UE, SpawnParams);
-                utils_pending_entity_script::Promise_OnConstructed(
-                    PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnStationEntityConstructed"));
-                break;
-            }
-        }
-
-        if (_PendingStationCount == 0)
-        {
-            Request_StartGym();
-        }
     }
 
     UFUNCTION()
@@ -77,21 +51,31 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         auto RequiredStations = Get_RequiredStations();
         if (RequiredStations.Num() == 0)
         {
+            // No stations to spawn — proceed straight to gym startup.
+            Request_StartGym();
             return;
         }
 
-        // Apply default grid layout if transforms not explicitly set
+        // Apply default grid layout if transforms not explicitly set.
         Request_ApplyDefaultGridLayout(RequiredStations);
 
-        // Spawn stations that don't already exist
+        _PendingStationCount = 0;
+
         for (auto StationParams : RequiredStations)
         {
             if (Request_StationExists(StationParams.Tags))
-            {
-                continue;
-            }
+            { continue; }
 
-            CkGym_Common::Request_SpawnNewStation(StationParams);
+            _PendingStationCount++;
+            auto Pending = CkGym_Common::Request_SpawnNewStation(StationParams);
+            utils_pending_entity_script::Promise_OnConstructed(
+                Pending, FCk_Delegate_EntityScript_Constructed(this, n"OnStationEntityConstructed"));
+        }
+
+        if (_PendingStationCount == 0)
+        {
+            // All stations already existed — nothing to await.
+            Request_StartGym();
         }
     }
 
@@ -116,7 +100,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
                 auto DefaultTransform = FTransform::Identity;
                 auto XPos = BaseXOffset + (RowIndex * RowSpacing);
                 auto YPos = RowStartOffset + (ColIndex * StationSpacing);
-                DefaultTransform.SetLocation(FVector(XPos, YPos, 0.0f));
+                DefaultTransform.SetLocation(FVector(XPos, YPos, DefaultStationGridZ));
                 DefaultTransform.SetRotation(Rotation180.Quaternion());
                 InOutStations[i].Transform = DefaultTransform;
             }
@@ -130,11 +114,11 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
             return false;
         }
 
-        // Check if any station with any of these tags exists
+        // Check if any station entity with any of these tags exists.
         for (auto Tag : InTags)
         {
-            auto StationActor = utils_actor::Get_FirstActorWithNameContaining(Tag.ToString(), ECk_ActorSearchMethod::SearchByTag);
-            if (ck::IsValid(StationActor))
+            auto Entities = utils_entity_tag::ForEach_Entity(ck::TransientEntity(), Tag);
+            if (Entities.Num() > 0)
             {
                 return true;
             }
@@ -154,66 +138,88 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         }
     }
 
-    // Utility function for derived classes to find station by tag
-    AActor Get_StationByTag(FString InStationTag)
-    {
-        auto StationActor = utils_actor::Get_FirstActorWithNameContaining(InStationTag, ECk_ActorSearchMethod::SearchByTag);
-        if (!ck::IsValid(StationActor))
-        {
-            ck::Error("❌ Station not found with tag: " + InStationTag);
-            return nullptr;
-        }
-
-        return StationActor;
-    }
-
+    // Look up the station entity tagged with InStationTag. Stations are
+    // pure ECS entities now (UCk_EntityScript_GymStation) — no underlying
+    // AActor — so all station lookups go through utils_entity_tag.
     FCk_Handle Get_StationHandle(FString InStationTag)
     {
-        auto StationActor = Get_StationByTag(InStationTag);
-        if (!ck::IsValid(StationActor))
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::TransientEntity(), FName(InStationTag));
+        if (Entities.Num() == 0)
         {
-            ck::Warning("Cannot get station handle - station not found: " + InStationTag);
+            ck::Warning("Cannot get station handle - station entity not found: " + InStationTag);
             return FCk_Handle();
         }
+        return Entities[0];
+    }
 
-        auto Handle = utils_owning_actor::TryGet_ActorEntityHandle(StationActor);
+    FTransform Get_StationTransform(FString InStationTag)
+    {
+        auto Handle = Get_StationHandle(InStationTag);
         if (!ck::IsValid(Handle))
         {
-            ck::Warning("Station [" + InStationTag + "] is not ECS-ready");
+            return FTransform::Identity;
         }
-        return Handle;
+
+        auto TH = Handle.As_Transform();
+        if (!ck::IsValid(TH))
+        {
+            ck::Warning("Station [" + InStationTag + "] entity has no Transform fragment");
+            return FTransform::Identity;
+        }
+
+        return utils_transform::Get_EntityCurrentTransform(TH);
     }
 
     void Set_StationTitleAndDescription(FString InStationTag, FCkGym_Station_TitleAndDescription InTextAndDescription)
     {
-        auto StationActor = Get_StationByTag(InStationTag);
-        if (!ck::IsValid(StationActor))
-        {
-            ck::Warning("Cannot set station text - station not found: " + InStationTag);
-            return;
-        }
-
-        auto Handle = utils_owning_actor::TryGet_ActorEntityHandle(StationActor);
+        auto Handle = Get_StationHandle(InStationTag);
         if (!ck::IsValid(Handle))
         {
-            ck::Warning("Station [" + InStationTag + "] is not ECS-ready, cannot set title");
+            ck::Warning("Cannot set station text - station entity not found: " + InStationTag);
             return;
         }
         auto& Fragment = Handle.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
         Fragment = InTextAndDescription;
     }
 
-    // Utility function for derived classes to get station transform
-    FTransform Get_StationTransform(FString InStationTag)
+    // Cross-gym anchor lookup. Reads the FCkGym_Station_Anchors snapshot
+    // fragment that the GymStation EntityScript populates in DoConstruct.
+    // Returns FVector::ZeroVector if the station entity isn't found.
+    //
+    // Picking the right anchor:
+    //   - PanelCenter      → DEFAULT for most gyms. Inside the alcove at
+    //                        mid-height; debug visuals don't intersect geometry.
+    //   - FootprintCenter  → For nav / physics / spatial / AStar gyms whose
+    //                        test elements need to sit on the floor / navmesh.
+    //   - AgentSpawn*      → Perimeter pickup points (respects AgentSpawnOffset).
+    //   - PanelTopFront    → Banner / label attach point.
+    FVector Get_StationAnchorLocation(FString InStationTag, ECk_GymStation_Anchor InAnchor)
     {
-        auto StationActor = Get_StationByTag(InStationTag);
-        if (!ck::IsValid(StationActor))
+        auto Handle = Get_StationHandle(InStationTag);
+        if (!ck::IsValid(Handle))
         {
-            ck::Warning("❌ Cannot get transform - station not found: " + InStationTag);
-            return FTransform::Identity;
+            return FVector::ZeroVector;
         }
+        auto Anchors = Handle.Get_Fragment(FCkGym_Station_Anchors);
+        if (InAnchor == ECk_GymStation_Anchor::FootprintCenter) { return Anchors.FootprintCenter; }
+        if (InAnchor == ECk_GymStation_Anchor::AgentSpawnFront) { return Anchors.AgentSpawnFront; }
+        if (InAnchor == ECk_GymStation_Anchor::AgentSpawnBack)  { return Anchors.AgentSpawnBack; }
+        if (InAnchor == ECk_GymStation_Anchor::AgentSpawnLeft)  { return Anchors.AgentSpawnLeft; }
+        if (InAnchor == ECk_GymStation_Anchor::AgentSpawnRight) { return Anchors.AgentSpawnRight; }
+        if (InAnchor == ECk_GymStation_Anchor::PanelTopFront)   { return Anchors.PanelTopFront; }
+        return Anchors.PanelCenter;
+    }
 
-        return StationActor.GetActorTransform();
+    // Convenience for callers that want a full FTransform at the named anchor
+    // (anchor location + station's existing rotation). Replaces the common
+    // pattern of Get_StationTransform(tag) when migrating gyms to use a
+    // specific anchor — the inventory entity / cube / etc. still gets the
+    // station's facing direction, just placed at the chosen anchor.
+    FTransform Get_StationAnchorTransform(FString InStationTag, ECk_GymStation_Anchor InAnchor)
+    {
+        auto StationT = Get_StationTransform(InStationTag);
+        auto Location = Get_StationAnchorLocation(InStationTag, InAnchor);
+        return FTransform(StationT.Rotator(), Location, FVector(1.0, 1.0, 1.0));
     }
 
     UFUNCTION(Exec, DisplayName="Gym - Restart")
