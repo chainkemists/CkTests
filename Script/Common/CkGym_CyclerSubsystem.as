@@ -6,7 +6,7 @@ class UCkGym_CyclerSubsystem : UScriptGameInstanceSubsystem
     // Default level used when a gym entry doesn't specify its own LevelName.
     // Must match the level asset name without path or extension.
     UPROPERTY()
-    FString GymLevelName = "CkGym_AllTests";
+    FString GymLevelName = "TestGyms_CkTests_Level";
 
     // Project-provided gyms, registered by external modules (e.g. BusterBlock)
     // via CkGym_Cycler::RegisterProjectGym. Appended after built-in CK gyms in
