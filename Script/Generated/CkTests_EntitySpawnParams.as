@@ -112,6 +112,32 @@ namespace UCk_AdvancedMusicDirectorCue
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_IntegerBasic_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_IntegerBasic
+{
+    FCk_AutoTest_Attribute_IntegerBasic_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_IntegerBasic_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Base_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Base
+{
+    FCk_AutoTest_Base_SpawnParams Params()
+    {
+        return FCk_AutoTest_Base_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_CueGym_Cue_AfterOneFrame_SpawnParams
 {
     UPROPERTY()
@@ -2823,6 +2849,435 @@ namespace UCk_SmTest_Condition_ShortDelay
     FCk_SmTest_Condition_ShortDelay_SpawnParams Params()
     {
         return FCk_SmTest_Condition_ShortDelay_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_Condition_PaymentIsLeft_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_Condition_PaymentIsLeft
+{
+    FCk_SmTest_Divergence_Condition_PaymentIsLeft_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_Condition_PaymentIsLeft_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_Condition_PaymentIsRight_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_Condition_PaymentIsRight
+{
+    FCk_SmTest_Divergence_Condition_PaymentIsRight_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_Condition_PaymentIsRight_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_ParentState_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_ParentState
+{
+    FCk_SmTest_Divergence_ParentState_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_ParentState_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_State_Branch_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_State_Branch
+{
+    FCk_SmTest_Divergence_State_Branch_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_State_Branch_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_State_Enter_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_State_Enter
+{
+    FCk_SmTest_Divergence_State_Enter_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_State_Enter_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_State_Finish_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_State_Finish
+{
+    FCk_SmTest_Divergence_State_Finish_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_State_Finish_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_State_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_State_Idle
+{
+    FCk_SmTest_Divergence_State_Idle_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_State_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_State_Left_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_State_Left
+{
+    FCk_SmTest_Divergence_State_Left_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_State_Left_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_State_Right_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_State_Right
+{
+    FCk_SmTest_Divergence_State_Right_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_State_Right_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_SubSmTask_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_SubSmTask
+{
+    FCk_SmTest_Divergence_SubSmTask_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_SubSmTask_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_Task_Branch_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_Task_Branch
+{
+    FCk_SmTest_Divergence_Task_Branch_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_Task_Branch_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_Task_Enter_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_Task_Enter
+{
+    FCk_SmTest_Divergence_Task_Enter_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_Task_Enter_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_Task_Finish_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_Task_Finish
+{
+    FCk_SmTest_Divergence_Task_Finish_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_Task_Finish_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_Task_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_Task_Idle
+{
+    FCk_SmTest_Divergence_Task_Idle_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_Task_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_Task_Left_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_Task_Left
+{
+    FCk_SmTest_Divergence_Task_Left_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_Task_Left_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Divergence_Task_Right_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Divergence_Task_Right
+{
+    FCk_SmTest_Divergence_Task_Right_SpawnParams Params()
+    {
+        return FCk_SmTest_Divergence_Task_Right_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_Condition_FastDelay_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_Condition_FastDelay
+{
+    FCk_SmTest_DivergenceTimed_Condition_FastDelay_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_Condition_FastDelay_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_Condition_PaymentIsLeft_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_Condition_PaymentIsLeft
+{
+    FCk_SmTest_DivergenceTimed_Condition_PaymentIsLeft_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_Condition_PaymentIsLeft_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_Condition_PaymentIsRight_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_Condition_PaymentIsRight
+{
+    FCk_SmTest_DivergenceTimed_Condition_PaymentIsRight_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_Condition_PaymentIsRight_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_ParentState_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_ParentState
+{
+    FCk_SmTest_DivergenceTimed_ParentState_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_ParentState_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_State_Branch_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_State_Branch
+{
+    FCk_SmTest_DivergenceTimed_State_Branch_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_State_Branch_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_State_Enter_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_State_Enter
+{
+    FCk_SmTest_DivergenceTimed_State_Enter_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_State_Enter_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_State_Finish_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_State_Finish
+{
+    FCk_SmTest_DivergenceTimed_State_Finish_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_State_Finish_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_State_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_State_Idle
+{
+    FCk_SmTest_DivergenceTimed_State_Idle_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_State_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_State_Left_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_State_Left
+{
+    FCk_SmTest_DivergenceTimed_State_Left_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_State_Left_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_State_Right_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_State_Right
+{
+    FCk_SmTest_DivergenceTimed_State_Right_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_State_Right_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_SubSmTask_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_SubSmTask
+{
+    FCk_SmTest_DivergenceTimed_SubSmTask_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_SubSmTask_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_Task_Branch_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_Task_Branch
+{
+    FCk_SmTest_DivergenceTimed_Task_Branch_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_Task_Branch_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_Task_Enter_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_Task_Enter
+{
+    FCk_SmTest_DivergenceTimed_Task_Enter_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_Task_Enter_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_Task_Finish_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_Task_Finish
+{
+    FCk_SmTest_DivergenceTimed_Task_Finish_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_Task_Finish_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_Task_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_Task_Idle
+{
+    FCk_SmTest_DivergenceTimed_Task_Idle_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_Task_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_Task_Left_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_Task_Left
+{
+    FCk_SmTest_DivergenceTimed_Task_Left_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_Task_Left_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_DivergenceTimed_Task_Right_SpawnParams
+{
+}
+
+namespace UCk_SmTest_DivergenceTimed_Task_Right
+{
+    FCk_SmTest_DivergenceTimed_Task_Right_SpawnParams Params()
+    {
+        return FCk_SmTest_DivergenceTimed_Task_Right_SpawnParams();
     }
 }
 
