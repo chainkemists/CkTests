@@ -83,9 +83,11 @@ class UCk_EntityScript_NavigationGym_MovingAgent : UCk_GenericEntityScript_UE
 
 		NavAgentHandle = utils_nav::Add(TransformHandle, AgentParams);
 
-		auto Origin = InitialTransform.GetLocation();
-		TargetA = Origin;
-		TargetB = Origin + FVector(PingPongDistance, 0.0, 0.0);
+		// TargetB is offset along the station's LOCAL +X (ping-pong forward of the alcove).
+		// The grid layout yaws the station 180° so we route through TransformPosition to
+		// flip this into world space — agent walks toward the player, not behind the wall.
+		TargetA = InitialTransform.GetLocation();
+		TargetB = InitialTransform.TransformPosition(FVector(PingPongDistance, 0.0, 0.0));
 
 		auto OnReady = FCk_Delegate_Nav_OnPathReady(this, n"OnNavPathReady");
 		utils_nav::BindTo_OnPathReady(
