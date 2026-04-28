@@ -14,5 +14,9 @@ namespace Ck
 	{
 		GameplayTags.Add(n"Gym.Navigation.FindPath");
 		GameplayTags.Add(n"Gym.Navigation.Move");
+		GameplayTags.Add(n"Gym.Navigation.RingAvoidance");
+		GameplayTags.Add(n"Gym.Navigation.CounterFlow");
+		GameplayTags.Add(n"Gym.Navigation.ClusterTarget");
+		GameplayTags.Add(n"Gym.Navigation.DensityStress");
 	}
 }

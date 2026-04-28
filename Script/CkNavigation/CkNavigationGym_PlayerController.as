@@ -10,6 +10,18 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 		Stations.Add(MakeStationPayload(n"Gym.Navigation.Move", "Moving Agent",
 			"Single agent ping-pongs between two waypoints.\nDrives the full crowd loop end-to-end:\n  Add → CrowdSetup → CrowdUpdateTarget → CrowdStep → CrowdReadVelocity\n  → script reads velocity, integrates, calls Request_SetTransform.\nWatch the agent visibly move; arrivals count up each leg."));
 
+		Stations.Add(MakeStationPayload(n"Gym.Navigation.RingAvoidance", "Ring Avoidance",
+			"N agents on a circle, each targeting the diametric opposite.\nAll converge through the centre simultaneously — exercises\ndtCrowd's inter-agent avoidance. Loops forever."));
+
+		Stations.Add(MakeStationPayload(n"Gym.Navigation.CounterFlow", "Counter Flow",
+			"Two columns walking past each other in opposite directions.\nClassic separation stress — magenta walks +X, yellow walks -X.\nLoops forever."));
+
+		Stations.Add(MakeStationPayload(n"Gym.Navigation.ClusterTarget", "Cluster Target",
+			"N agents around a moving target marker.\nDirector picks a new target every 5s and re-issues paths to\nevery agent — tests repeated re-pathing under cluster density."));
+
+		Stations.Add(MakeStationPayload(n"Gym.Navigation.DensityStress", "Density Stress",
+			"N agents packed tightly, all targeting one point in +X.\nTests dtCrowd separation under high density.\nOne-shot — agents arrive and idle."));
+
 		return Stations;
 	}
 
@@ -35,6 +47,22 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 			"Single agent ping-pongs between two waypoints.\nReads CurrentVelocity from dtCrowd each tick and integrates\ninto the entity transform — the agent visibly moves.",
 			600.0f,
 			25.0f);
+
+		SpawnRingAvoidanceStation("Gym.Navigation.RingAvoidance", "RING AVOIDANCE",
+			"12 agents on a circle of radius 800cm, each targeting the\ndiametric opposite. All converge through the centre at once.",
+			12, 800.0f);
+
+		SpawnCounterFlowStation("Gym.Navigation.CounterFlow", "COUNTER FLOW",
+			"Two columns of 8 agents each walking past each other.\nClassic dtCrowd separation stress.",
+			8, 600.0f, 80.0f);
+
+		SpawnClusterTargetStation("Gym.Navigation.ClusterTarget", "CLUSTER TARGET",
+			"12 agents around a moving target marker.\nDirector picks a new target every 5s and re-issues paths.",
+			12, 250.0f, 900.0f, 5.0f);
+
+		SpawnDensityStressStation("Gym.Navigation.DensityStress", "DENSITY STRESS",
+			"24 agents packed in a 300cm square, all targeting +X 1500cm.\nOne-shot — agents arrive and idle.",
+			24, 300.0f, 1500.0f);
 	}
 
 	private void SpawnFindPathStation(
@@ -74,6 +102,94 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle(InTag),
 			UCk_EntityScript_NavigationGym_MovingAgent,
+			FInstancedStruct::Make(Params));
+	}
+
+	private void SpawnRingAvoidanceStation(
+		FString InTag,
+		FString InTitle,
+		FString InDescription,
+		int32 InAgentCount,
+		float InRingRadius)
+	{
+		auto Params = FCkNavigationGym_RingAvoidanceSpawnParams();
+		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.StationTitle = InTitle;
+		Params.StationDescription = InDescription;
+		Params.AgentCount = InAgentCount;
+		Params.RingRadius = InRingRadius;
+
+		utils_entity_script::Request_SpawnEntity(
+			Get_StationHandle(InTag),
+			UCk_EntityScript_NavigationGym_RingAvoidance,
+			FInstancedStruct::Make(Params));
+	}
+
+	private void SpawnCounterFlowStation(
+		FString InTag,
+		FString InTitle,
+		FString InDescription,
+		int32 InAgentsPerColumn,
+		float InColumnHalfDistance,
+		float InColumnSpacing)
+	{
+		auto Params = FCkNavigationGym_CounterFlowSpawnParams();
+		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.StationTitle = InTitle;
+		Params.StationDescription = InDescription;
+		Params.AgentsPerColumn = InAgentsPerColumn;
+		Params.ColumnHalfDistance = InColumnHalfDistance;
+		Params.ColumnSpacing = InColumnSpacing;
+
+		utils_entity_script::Request_SpawnEntity(
+			Get_StationHandle(InTag),
+			UCk_EntityScript_NavigationGym_CounterFlow,
+			FInstancedStruct::Make(Params));
+	}
+
+	private void SpawnClusterTargetStation(
+		FString InTag,
+		FString InTitle,
+		FString InDescription,
+		int32 InAgentCount,
+		float InClusterRadius,
+		float InTargetMoveDistance,
+		float InTargetMoveIntervalSeconds)
+	{
+		auto Params = FCkNavigationGym_ClusterTargetSpawnParams();
+		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.StationTitle = InTitle;
+		Params.StationDescription = InDescription;
+		Params.AgentCount = InAgentCount;
+		Params.ClusterRadius = InClusterRadius;
+		Params.TargetMoveDistance = InTargetMoveDistance;
+		Params.TargetMoveIntervalSeconds = InTargetMoveIntervalSeconds;
+
+		utils_entity_script::Request_SpawnEntity(
+			Get_StationHandle(InTag),
+			UCk_EntityScript_NavigationGym_ClusterTarget,
+			FInstancedStruct::Make(Params));
+	}
+
+	private void SpawnDensityStressStation(
+		FString InTag,
+		FString InTitle,
+		FString InDescription,
+		int32 InAgentCount,
+		float InSpawnAreaSize,
+		float InTargetDistance)
+	{
+		auto Params = FCkNavigationGym_DensityStressSpawnParams();
+		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.StationTitle = InTitle;
+		Params.StationDescription = InDescription;
+		Params.AgentCount = InAgentCount;
+		Params.SpawnAreaSize = InSpawnAreaSize;
+		Params.TargetDistance = InTargetDistance;
+
+		utils_entity_script::Request_SpawnEntity(
+			Get_StationHandle(InTag),
+			UCk_EntityScript_NavigationGym_DensityStress,
 			FInstancedStruct::Make(Params));
 	}
 
