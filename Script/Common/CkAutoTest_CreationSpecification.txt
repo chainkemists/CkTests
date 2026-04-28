@@ -1,0 +1,653 @@
+// Language=plaintext
+
+//============================================================================
+// CK AUTOMATION TEST FRAMEWORK — CREATION SPECIFICATION
+//============================================================================
+
+/*
+This spec describes the AUTOMATION TEST framework provided by CkTests. It is
+project-agnostic: BusterBlock, future projects, and CkTests' own framework
+tests all use the same harness.
+
+For the gym framework (visual, manually-driven, no assertions), see:
+  CkGym_CreationSpecification.txt
+
+Gyms and AutoTests serve different purposes:
+  - Gyms = visual playgrounds for eyeballing a feature.
+  - AutoTests = headless assertions that pass/fail in Session Frontend / CI.
+
+A single feature can have BOTH (the gym demonstrates the feature; the
+AutoTest verifies it). They share the same .as files where convenient
+(both call utils_*::Add, BindTo_*, etc.) but they're independent — the
+AutoTest does not need the gym, and vice versa.
+*/
+
+//============================================================================
+// 1. ARCHITECTURE OVERVIEW
+//============================================================================
+
+// Two layers, both small:
+//
+//   Layer A — Reusable harness (lives in CkTests):
+//     C++:
+//       FCk_AutoTest_Result            — USTRUCT result fragment
+//       ECk_AutoTest_Status            — Pending/Running/Passed/Failed/TimedOut
+//       UCk_Utils_AutoTest_UE          — Set_Result / Has_Result / Get_Result
+//       ACk_AutoTestRunner             — AFunctionalTest subclass that drives
+//                                        the AS test, applies _TimeoutSeconds
+//                                        to the engine TimeLimit, and reports
+//                                        pass/fail
+//     AngelScript:
+//       UCk_AutoTest_Base              — base entity script: Assert_*,
+//                                        FinishSuccess/Failure
+//
+//   Layer B — Per-test code (lives in the project):
+//     One AS file per test, declaring TWO classes:
+//       1. The entity script (subclass of UCk_AutoTest_Base) — the test body.
+//       2. The actor wrapper (subclass of ACk_AutoTestRunner) — bakes in
+//          _TestEntityScriptClass so the actor is drag-and-go.
+//
+// Lifecycle (single test run):
+//
+//   PIE starts on the test map
+//       -> AFunctionalTest framework picks up the placed *_Actor
+//       -> Runner.PrepareTest syncs TimeLimit to _TimeoutSeconds, then
+//          spawns the AS entity on the transient entity via Request_SpawnEntity
+//       -> AS DoConstruct runs (base writes Status=Running result fragment)
+//       -> AS DoBeginPlay runs (subclass: exercise feature, bind signals)
+//       -> Test eventually calls FinishSuccess / FinishFailure
+//          -> base class writes Status=Passed/Failed result fragment
+//       -> Runner.Tick polls Has_Result; on terminal status, calls
+//          FinishTest(Succeeded/Failed, message)
+//       -> Session Frontend shows green/red row + assertion message
+//
+//   If the AS test never writes a terminal result, the engine TimeLimit
+//   fires automatically (TimesUpResult=Failed) — no extra harness logic.
+
+//============================================================================
+// 2. WHEN TO USE THIS HARNESS (vs C++ FAutomationTestBase)
+//============================================================================
+
+// USE THIS HARNESS when the feature under test:
+//   - Has processors that mutate state (CkAttribute, CkTimer, Economy, etc.)
+//   - Uses Request_*, BindTo_*, signal/messaging infrastructure
+//   - Spawns entities, attaches fragments, listens for delegates
+//   - Anything that requires a ticking world to behave correctly
+//
+// In practice, this is ~95% of CkFoundation features and ~all of project
+// gameplay code. Decision rule:
+//
+//   Does the test need processors to tick / signals to fire / a world to exist?
+//   |--- Yes -> AS test via this harness.
+//   |--- No  -> Plain C++ FAutomationTestBase (no harness needed).
+//
+// USE PURE C++ TESTS (FAutomationTestBase / IMPLEMENT_SIMPLE_AUTOMATION_TEST)
+// only for genuinely-non-world utilities:
+//   - ck::Format string utilities
+//   - ck::algo::* algorithm helpers
+//   - FCk_Chrono / FCk_ValueRange math
+//   - SPUD save shape / serialization round-trips
+//   - Compile-time / template constraint checks
+//   - Any code path that does NOT touch FCk_Handle, processors, or signals
+//
+// See section 14 for the C++ unit-test layout, naming, and reference example.
+//
+// NEVER write tests in Blueprint. BPs work via the same UFUNCTION dispatch
+// AS uses, but BPs are binary assets — terrible for diffs, code review,
+// version control. AS-authored tests are the standard.
+
+//============================================================================
+// 3. DEPENDENCY DIRECTION (where tests live)
+//============================================================================
+
+// CkFoundation <- CkTests <- ProjectModule (e.g. BusterBlock)
+//
+// Tests follow the same direction:
+//
+//   CkFoundation feature tests (CkAttribute, CkTimer, etc.):
+//     -> Plugins/CkTests/Script/<ModuleName>/CkAutoTest_<Module>_<Scenario>.as
+//
+//   Project-specific feature tests (Economy, Inventory, etc. for BusterBlock):
+//     -> ProjectRepo/Script/Tests/<Feature>/<Prefix>_AutoTest_<Feature>_<Scenario>.as
+//
+// The harness in CkTests must NOT depend on project-specific types. The
+// per-test AS files own all feature-specific knowledge. The C++ harness only
+// references the AS class via TSubclassOf<UCk_EntityScript_UE> and the
+// generic FCk_AutoTest_Result struct.
+
+//============================================================================
+// 4. NAMING CONVENTIONS
+//============================================================================
+
+// Entity-script class:    U<Prefix>_AutoTest_<Feature>_<Scenario>
+//   Examples:
+//     UCk_AutoTest_Attribute_IntegerBasic        (CkTests, Ck prefix)
+//     UBb_AutoTest_Economy_BasicFlow             (BusterBlock, Bb prefix)
+//
+// Actor wrapper class:    A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor
+//   Examples:
+//     ACk_AutoTest_Attribute_IntegerBasic_Actor
+//     ABb_AutoTest_Economy_BasicFlow_Actor
+//
+// File name:              <Prefix>_AutoTest_<Feature>_<Scenario>.as
+//   Both classes (entity script + actor wrapper) live in the same .as file.
+//
+// Folder layout:
+//   CkTests:    Plugins/CkTests/Script/<Module>/CkAutoTest_*.as
+//   Project:    Script/Tests/<Feature>/<Prefix>_AutoTest_*.as
+//
+// Test scenario name (the <Scenario> portion):
+//   Should describe what the test verifies, not what it does. Good:
+//     BasicFlow, MoneyFloor, XPOverflow, IntegerBasic, ClampMaxValue.
+//   Bad:
+//     Test1, Sanity, Demo, ScratchPad.
+
+//============================================================================
+// 5. FILE TEMPLATE
+//============================================================================
+
+// Every test file follows this shape:
+
+class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
+{
+    // ---- Per-test state (handles, step counters, observation fields) ----
+
+    private FCk_Handle_<Feature> FeatureHandle;
+    private int32 _Step = 0;
+
+    // ---- Lifecycle: subclasses override DoBeginPlay only ----
+    //
+    // The base class (UCk_AutoTest_Base) handles DoConstruct: it adds the
+    // timeout timer and initializes the Result fragment to Status=Running.
+    // Do NOT override DoConstruct unless you have a specific reason to.
+
+    UFUNCTION(BlueprintOverride)
+    void DoBeginPlay(FCk_Handle InHandle)
+    {
+        // 1. Set up the feature being tested.
+        //    NOTE: most utils_*::Add calls take FCk_Handle& (ref). DoBeginPlay
+        //    receives FCk_Handle by value; copy to a local lvalue first.
+        auto LocalHandle = InHandle;
+        auto Params = FCk_Fragment_<Feature>_ParamsData(...);
+        FeatureHandle = utils_<feature>::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
+
+        // 2. Bind signals. Use these to drive test progression.
+        FeatureHandle.BindTo_OnSomething(
+            FCk_Delegate_<Feature>_OnSomething(this, n"OnSomethingHandler"));
+
+        // 3. Kick off the first step.
+        Step1_DoSomething();
+    }
+
+    // ---- Steps: usually one private void Step<N>_<What>() per phase ----
+
+    private void Step1_DoSomething()
+    {
+        _Step = 1;
+        FeatureHandle.Request_DoSomething(...);
+    }
+
+    // ---- Signal handlers: assert, then advance to next step or finish ----
+
+    UFUNCTION()
+    private void OnSomethingHandler(... payload args ...)
+    {
+        if (IsFinished()) { return; }
+
+        if (_Step == 1)
+        {
+            Assert_Equals_Int(observed, expected, "What this assertion verifies");
+            FinishSuccess();   // or Step2_DoNext();
+        }
+    }
+}
+
+// The actor wrapper. Bakes in the test entity script class so the actor
+// can be dragged from the Place Actors panel without per-instance config.
+//
+// _TestEntityScriptClass uses the CK convention (private + AllowPrivateAccess
+// + BlueprintReadOnly), which allows AS's `default` syntax to set it.
+
+class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = U<Prefix>_AutoTest_<Feature>_<Scenario>;
+    // Optional: override the default 5s timeout for slow tests.
+    // default _TimeoutSeconds = 10.0f;
+}
+
+// Escape hatch: if a subclass needs to compute the class dynamically (e.g.
+// based on a console var or runtime state), override Get_TestEntityScriptClass
+// instead:
+//   UFUNCTION(BlueprintOverride)
+//   TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+//   { return SomeCondition ? UClassA : UClassB; }
+
+//============================================================================
+// 6. THE BASE CLASS API (UCk_AutoTest_Base)
+//============================================================================
+
+// Construction (handled by base, do not override unless you need to):
+//   - DoConstruct: adds a TAG_CkAutoTest_Runner tag, initializes the
+//     Result fragment to Status=Running.
+//
+// Timeout: configured on the actor wrapper, not on the entity script:
+//   class A..._Actor : ACk_AutoTestRunner
+//   {
+//       default _TimeoutSeconds = 3.0f;   // optional; default is 5s
+//   }
+// The C++ runner syncs the engine's TimeLimit to _TimeoutSeconds in
+// PrepareTest, so there is exactly one knob to configure per test.
+
+// Assertion helpers (call from signal handlers or step functions):
+//
+//   void Assert_True(bool Condition, const FString& Message);
+//   void Assert_Equals_Int(int32 Actual, int32 Expected, const FString& Message);
+//   void Assert_Equals_String(const FString& Actual, const FString& Expected,
+//                             const FString& Message);
+//
+// Each assertion increments AssertionsRun. On failure, it increments
+// AssertionsFailed and stashes the message as the first failure reason.
+// Assertions do NOT auto-finish the test — the subclass decides when.
+
+// Finish helpers (call exactly one of these to end the test):
+//
+//   void FinishSuccess();                          // No-op if already finished
+//   void FinishFailure(const FString& Message);    // No-op if already finished
+//   bool IsFinished() const;                       // Use as guard at the
+//                                                  // top of signal handlers
+
+// Timeout (automatic):
+//   If FinishSuccess/Failure is never called within _TimeoutSeconds (set
+//   on the actor wrapper, default 5s), the engine's AFunctionalTest
+//   TimeLimit fires and the test is reported as failed. There is no
+//   AS-side timer — the engine handles this directly.
+
+//============================================================================
+// 7. COMMON PATTERNS
+//============================================================================
+
+// PATTERN A — Signal-driven step machine
+// Use when: the feature emits a signal per state transition and you want
+//           to advance exactly one step per signal.
+//
+//   void DoBeginPlay(FCk_Handle InHandle) {
+//       ...bind signal, start step 1...
+//   }
+//   void Step1() { _Step = 1; FeatureHandle.Request_X(); }
+//   void Step2() { _Step = 2; FeatureHandle.Request_Y(); }
+//   UFUNCTION() void OnSignal(...) {
+//       if (IsFinished()) return;
+//       if (_Step == 1) { Assert_*(...); Step2(); }
+//       else if (_Step == 2) { Assert_*(...); FinishSuccess(); }
+//   }
+//
+// See: BB_AutoTest_Economy_BasicFlow.as
+
+// PATTERN B — Settle-timer poll
+// Use when: a single request triggers complex async behavior (cascading
+//           level-ups, multi-frame replication, etc.) and you want to
+//           assert on the final state regardless of signal timing.
+//
+//   void DoBeginPlay(FCk_Handle InHandle) {
+//       auto Local = InHandle;
+//       FeatureHandle = utils_*::Add(Local, ...);
+//       // Issue the request immediately.
+//       FeatureHandle.Request_X(...);
+//       // Schedule a 0.25s settle, then poll.
+//       auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.25f));
+//       Params.Set_StartingState(ECk_Timer_State::Running)
+//             .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+//       auto T = utils_timer::Add(Local, Params);
+//       T.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnSettled"));
+//   }
+//   UFUNCTION() void OnSettled(FCk_Handle_Timer, FCk_Chrono, FCk_Time) {
+//       Assert_Equals_Int(FeatureHandle.Get_<X>(), Expected, "...");
+//       FinishSuccess();
+//   }
+//
+// See: BB_AutoTest_Economy_XPOverflow.as
+
+// PATTERN C — Single-shot assertion
+// Use when: the feature has a one-line behavior to verify (clamp, bounds,
+//           conversion, etc.).
+//
+//   void DoBeginPlay(FCk_Handle InHandle) {
+//       auto Local = InHandle;
+//       FeatureHandle = utils_*::Add(Local, ...);
+//       FeatureHandle.BindTo_OnSomething(FCk_Delegate_*(this, n"OnFired"));
+//       FeatureHandle.Request_X(...);
+//   }
+//   UFUNCTION() void OnFired(...) {
+//       if (IsFinished()) return;
+//       Assert_*(...);
+//       FinishSuccess();
+//   }
+//
+// See: BB_AutoTest_Economy_MoneyFloor.as
+
+//============================================================================
+// 8. GOTCHAS & FAILURE MODES
+//============================================================================
+
+// GOTCHA 1 — UE_LOG(Warning) during a test = automatic test failure.
+//   The automation framework captures all Warning- and Error-level log
+//   output and treats it as a test failure regardless of your FinishTest
+//   result. Use UE_LOG(Log, ...) for diagnostic prints, or remove them
+//   before committing. ck::Trace() with LogLevel::Warning has the same
+//   effect — avoid in test code paths.
+
+// GOTCHA 2 — AngelScript boolean negation: use ! NOT NOT.
+//   The framework's `NOT` macro is C++-only. AS uses standard `!`:
+//     if (!IsFinished()) { ... }   // OK
+//     if (NOT IsFinished()) { ... } // Compile error in AS
+
+// GOTCHA 3 — utils_*::Add takes FCk_Handle& (reference), not value.
+//   DoBeginPlay receives FCk_Handle by value. Copy to a local first:
+//     auto LocalHandle = InHandle;
+//     FeatureHandle = utils_*::Add(LocalHandle, Params, ...);
+
+// GOTCHA 4 — Typed handles are typed.
+//   utils_integer_attribute::Add returns FCk_Handle_IntegerAttribute.
+//   Subsequent calls (BindTo_OnValueChanged, Request_Override, Get_FinalValue)
+//   require that typed handle, not generic FCk_Handle. Declare the member
+//   as the typed handle.
+
+// GOTCHA 5 — String interpolation of enums.
+//   AS f-strings cannot directly format enum values:
+//     Print(f"status={MyEnum}");   // Error: invalid type to append
+//   Either omit the enum or convert to int/string explicitly.
+
+// GOTCHA 6 — Fragment writes from AS are NOT visible to C++ template Has<T>.
+//   AngelScript's FCk_Handle.AddOrGet_Fragment(FType) and C++ template
+//   FCk_Handle::Has<T>() use different storage indexing. To bridge data
+//   from AS to C++, route through a UFUNCTION on a UBlueprintFunctionLibrary
+//   that uses the C++ template path on both sides. The harness already
+//   does this for FCk_AutoTest_Result via UCk_Utils_AutoTest_UE.
+
+// GOTCHA 7 — Discovered behavior gaps are real findings.
+//   If a test fails because the feature doesn't behave as expected, the
+//   test is correct and the feature has a bug. Don't relax assertions to
+//   match buggy behavior — the test is the spec.
+
+// GOTCHA 8 — Authority and replication.
+//   Set _Replication = ECk_Replication::DoesNotReplicate on test entity
+//   scripts (the base class default does this). PIE Standalone runs as
+//   listen server, so requests have authority by default.
+
+// GOTCHA 9 — AS `default` syntax requires specific UPROPERTY shapes.
+//   AS's `default <Property> = <Value>;` only works when the property
+//   has an AS-generated setter binding. Two property shapes get one:
+//     a) Engine-module properties (e.g. APawn::bReplicates,
+//        AGameModeBase::PlayerControllerClass) — special-cased.
+//     b) The CK convention: private/protected field + BlueprintReadOnly +
+//        meta=(AllowPrivateAccess=true), e.g. UCk_EntityScript_UE::_Replication.
+//   Properties that are PUBLIC + BlueprintReadOnly with NO AllowPrivateAccess
+//   on a non-Engine class do NOT get a setter binding, even with NoClear.
+//   This is why these all fail:
+//     default TimeLimit = 5.0f;                  // public, FunctionalTesting
+//     default TestEntityScriptClass = UFoo;      // would fail if public
+//   Workarounds (in order of preference):
+//     1. For values an AS subclass should provide: declare a
+//        UFUNCTION(BlueprintNativeEvent) on the C++ parent and override it
+//        via UFUNCTION(BlueprintOverride) in AS. Universal — works for any
+//        property regardless of shape. ACk_AutoTestRunner uses this for
+//        Get_TestEntityScriptClass.
+//     2. For new properties we control on harness classes: follow the CK
+//        convention (private `_Field` + AllowPrivateAccess + BPRO). Then
+//        `default _Field = Value;` works.
+//     3. For class-default values that don't change at runtime: set them
+//        in the C++ constructor of the parent. (TimeLimit uses this — set
+//        to 5.0 in ACk_AutoTestRunner::ACk_AutoTestRunner.)
+
+//============================================================================
+// 9. MAP SETUP
+//============================================================================
+
+// Tests run inside a level so the AFunctionalTest framework can discover
+// and tick them. Two maps live in the repo, mirroring the test split:
+//
+//   Framework-side tests (CkTests plugin features — CkAttribute, CkTimer, ...):
+//     Plugins/CkTests/Content/AutoTests/AutoTests_CkTests_Level.umap
+//     Place ACk_AutoTest_*_Actor instances here for any test whose AS file
+//     lives under Plugins/CkTests/Script/.
+//
+//   Project-side tests (BusterBlock features — Economy, Inventory, Store, ...):
+//     Content/BusterBlock/Map/AutoTests/AutoTests_BB_MAP.umap
+//     Place ABb_AutoTest_*_Actor instances here for any test whose AS file
+//     lives under Script/Tests/.
+//
+// Both maps are minimal: empty level, World Settings -> GameMode Override
+// = AGameModeBase. The split mirrors the dependency direction (CkFoundation
+// <- CkTests <- BusterBlock) — keep CkTests-side actors out of BB-side maps
+// and vice versa, so framework tests are runnable without the project loaded.
+//
+// IMPORTANT: always set GameMode Override = AGameModeBase. If you leave it
+// unset, the project's default GameMode (e.g. BbGameMode) runs in the test
+// PIE session — initializing player pawn, controllers, gameplay subsystems,
+// and any other startup work. That couples every test to project state and
+// makes failures depend on project evolution unrelated to the feature under
+// test. Tests should be isolated from the game.
+//
+// Once per project, create the map(s):
+//   1. New empty Level. Save at the path above.
+//   2. World Settings -> GameMode Override = AGameModeBase.
+//      (Use the picker; or set "Game Mode Override" -> AGameModeBase.)
+//   3. Save.
+//
+// Per test:
+//   1. Place Actors panel -> search for the actor wrapper class
+//      (e.g. Ck_AutoTest_Attribute_IntegerBasic_Actor or
+//       Bb_AutoTest_Economy_BasicFlow_Actor).
+//   2. Drag into the corresponding map.
+//   3. Optional: rename the placed actor in the Outliner to match the
+//      test class name (improves Session Frontend display).
+//   4. Save the map.
+//
+// Each placed actor becomes one row under
+//   Project.Functional Tests.<MapPath>.<ActorLabel>
+// in Session Frontend.
+
+//============================================================================
+// 10. RUNNING TESTS
+//============================================================================
+
+// EDITOR (Session Frontend):
+//   Tools -> Test Automation -> Automation tab
+//   Filter by "Project.Functional Tests" or by name
+//   Check the desired tests, click "Start Tests"
+//
+// EDITOR (console command):
+//   Automation RunTests Project.Functional Tests
+//   Automation RunTests Project.Functional Tests.<MapName>
+//
+// HEADLESS / CI:
+//   <Editor>.exe <Project>.uproject -ExecCmds="Automation RunTests \
+//       Project.Functional Tests; Quit" -unattended -nosplash -nullrhi
+//
+//   Exit code reflects pass/fail. Add -ReportExportPath=<dir> for JUnit-style
+//   XML output suitable for CI dashboards.
+
+//============================================================================
+// 11. SCALING — WHEN TO RESTRUCTURE
+//============================================================================
+
+// At ~5 tests:    one map is fine, all tests in it.
+// At ~10 tests:   consider splitting maps by feature
+//                 (AutoTests_Economy_MAP, AutoTests_Inventory_MAP, ...).
+// At ~20+ tests:  per-feature maps are mandatory; running the full suite
+//                 in one map gets slow due to PIE startup amortization.
+//
+// You never need a BP subclass for a test. Anything you might reach for
+// BPs to do — variant configs, parameterized reuse, alternate timeouts —
+// is expressible as an AS subclass with `default` overrides:
+//
+//   // Same test body, longer timeout:
+//   class A..._SlowActor : A..._Actor { default _TimeoutSeconds = 30.0f; }
+//
+//   // Parameterized entity script:
+//   class U..._BaseTest : UCk_AutoTest_Base
+//   {
+//       UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+//       private int32 _ParamA = 10;
+//       // ... use _ParamA in DoBeginPlay ...
+//   }
+//   class U..._VariantTest : U..._BaseTest
+//   {
+//       default _ParamA = 99;   // override one value, inherit the rest
+//   }
+//
+// CK-shaped UPROPERTYs propagate inheritance naturally — that's the only
+// configuration mechanism this harness needs.
+
+//============================================================================
+// 12. REFERENCE TESTS
+//============================================================================
+
+// Project-side examples (BusterBlock):
+//   AS files: Script/Tests/Economy/BB_AutoTest_Economy_BasicFlow.as    (Pattern A)
+//             Script/Tests/Economy/BB_AutoTest_Economy_MoneyFloor.as   (Pattern C)
+//             Script/Tests/Economy/BB_AutoTest_Economy_XPOverflow.as   (Pattern B)
+//   Map:      Content/BusterBlock/Map/AutoTests/AutoTests_BB_MAP.umap
+//
+// Framework-side example (CkTests):
+//   AS file:  Plugins/CkTests/Script/CkAttribute/CkAutoTest_Attribute_IntegerBasic.as
+//   Map:      Plugins/CkTests/Content/AutoTests/AutoTests_CkTests_Level.umap
+
+//============================================================================
+// 13. HARNESS SOURCE (for reference / debugging)
+//============================================================================
+
+//   AS base class:
+//     Plugins/CkTests/Script/Common/CkAutoTest_Base.as
+//
+//   C++ runner actor:
+//     Plugins/CkTests/Source/CkTests/Public/CkAutoTestRunner.h
+//     Plugins/CkTests/Source/CkTests/Private/CkAutoTestRunner.cpp
+//
+//   Result struct + utils:
+//     Plugins/CkTests/Source/CkTests/Public/CkAutoTest_Bridge.h
+//     Plugins/CkTests/Source/CkTests/Public/CkAutoTest_Utils.h
+//     Plugins/CkTests/Source/CkTests/Private/CkAutoTest_Utils.cpp
+
+//============================================================================
+// 14. PURE-C++ UNIT TESTS (the OTHER variation)
+//============================================================================
+
+// For features that DO NOT need a ticking world (string formatting, math
+// helpers, algorithm utilities, fragment data shape, serialization
+// round-trips), skip the AS harness entirely and write a plain C++
+// FAutomationTestBase test. Faster to run, no PIE, no actor placement.
+//
+// DECISION RULE (re-stated):
+//   Does the test need processors to tick / signals to fire / a world?
+//     Yes -> AS harness (sections 1-13)
+//     No  -> C++ unit test (this section)
+
+//----------------------------------------------------------------------------
+// FOLDER LAYOUT
+//----------------------------------------------------------------------------
+//
+// Framework-side (CkFoundation utilities):
+//   Plugins/CkTests/Source/CkTests/Private/UnitTests/<Module>/Test_<Subject>_<Scenario>.cpp
+//
+// Project-side (BusterBlock utilities):
+//   Source/BusterBlock/Tests/UnitTests/<Module>/Test_<Subject>_<Scenario>.cpp
+//
+// Mirror the AS path conventions: <Module> groups by feature area, file
+// name follows Test_<Subject>_<Scenario> so a directory listing reads as
+// a coverage map.
+
+//----------------------------------------------------------------------------
+// FILE TEMPLATE
+//----------------------------------------------------------------------------
+//
+//  #include "Misc/AutomationTest.h"
+//  #include "<header for subject under test>"
+//
+//  namespace
+//  {
+//      // Standard flags for editor-context unit tests. Local constant so
+//      // each test file can copy-and-tweak without touching others.
+//      constexpr auto kCkUnitTestFlags =
+//          EAutomationTestFlags::EditorContext |
+//          EAutomationTestFlags::ClientContext |
+//          EAutomationTestFlags::ProductFilter;
+//  }
+//
+//  IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+//      FCkTest_<Subject>_<Scenario>,
+//      "CkTests.UnitTests.<Module>.<Subject>.<Scenario>",
+//      kCkUnitTestFlags)
+//
+//  bool FCkTest_<Subject>_<Scenario>::RunTest(const FString& Parameters)
+//  {
+//      // ... arrange / act / assert via TestEqual / TestTrue / TestFalse / TestNull / TestNotNull ...
+//      return true;   // return false ONLY if the test infrastructure itself failed,
+//                     // not for assertion failures (those are tracked by Test*).
+//  }
+//
+// Multiple IMPLEMENT_SIMPLE_AUTOMATION_TEST blocks per file are fine — group
+// related scenarios on the same subject. SPUDTest.cpp does this; so does
+// Plugins/CkTests/Source/CkTests/Private/UnitTests/Math/Test_CkValueRange_IntRange.cpp.
+
+//----------------------------------------------------------------------------
+// NAMING
+//----------------------------------------------------------------------------
+//
+// Class:    FCkTest_<Subject>_<Scenario>      (CkTests-side)
+//           FBbTest_<Subject>_<Scenario>      (BusterBlock-side)
+// Pretty:   "CkTests.UnitTests.<Module>.<Subject>.<Scenario>"
+//           "BusterBlock.UnitTests.<Module>.<Subject>.<Scenario>"
+// File:     Test_<Subject>_<Scenario>.cpp
+//
+// The pretty name is what shows up in Session Frontend. Group all CkTests
+// unit tests under "CkTests.UnitTests.*" so they sort together and can be
+// filtered as a set.
+
+//----------------------------------------------------------------------------
+// ASSERTION API CHEATSHEET (FAutomationTestBase methods)
+//----------------------------------------------------------------------------
+//
+//   TestEqual(What, Actual, Expected)               — compares with ==
+//   TestNotEqual(What, Actual, Expected)
+//   TestTrue(What, Condition)
+//   TestFalse(What, Condition)
+//   TestNull(What, Pointer)
+//   TestNotNull(What, Pointer)
+//   AddError(Message)                                — manual failure
+//   AddWarning(Message)                              — non-failing notice
+//
+// All return bool indicating whether the assertion passed; you can chain
+// or guard further work on a previous result if needed.
+
+//----------------------------------------------------------------------------
+// WHAT NOT TO DO IN A C++ UNIT TEST
+//----------------------------------------------------------------------------
+//
+//   - Don't touch FCk_Handle, the ECS registry, or any UCk_Utils_*_UE
+//     function that requires a world. If you find yourself reaching for
+//     these, stop — write an AS test instead.
+//   - Don't spawn AActors. They need a world.
+//   - Don't tick anything. Tests run synchronously inside RunTest.
+//   - Don't UE_LOG(Warning, ...) — automation framework treats warnings
+//     as failures (same gotcha as the AS harness, gotcha 1).
+
+//----------------------------------------------------------------------------
+// REFERENCE TEST
+//----------------------------------------------------------------------------
+//
+//   Plugins/CkTests/Source/CkTests/Private/UnitTests/Math/Test_CkValueRange_IntRange.cpp
+//
+// Three IMPLEMENT_SIMPLE_AUTOMATION_TEST blocks covering FCk_IntRange:
+// clamping behavior, inclusive/exclusive containment, accessor inclusiveness.
+// Copy this file's structure for new C++ unit tests.
+
+//----------------------------------------------------------------------------
+// WHEN A "PURE" TEST WANTS A WORLD-LIKE THING
+//----------------------------------------------------------------------------
+//
+// Some utilities take a UWorld* but don't actually require it to tick
+// (e.g. asset loaders, UWorld-as-context-handle). Don't try to spin up
+// a transient world in a unit test — promote the test to an AS test
+// (PIE provides the world for free) instead. The friction of setting up
+// a world manually outweighs the convenience of a unit test.
