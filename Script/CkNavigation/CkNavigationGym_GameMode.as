@@ -6,10 +6,13 @@ class ACk_NavigationGym_GameMode : ACk_Gym_Base_GameMode
 	UFUNCTION(BlueprintOverride)
 	void BeginPlay()
 	{
-		// Floor at Z=-300 so gym stations (which spawn around Z=0 with mesh extending below)
-		// have clear visual separation. Cube default mesh is 100x100x100cm. Scale (60, 60, 0.5)
-		// → 6000x6000x50cm floor — wide enough for any reasonable station spread.
-		const auto FloorLocation = FVector(0.0, 0.0, -300.0);
+		// Floor at world origin so agents spawned at the station's Z=0 land directly
+		// on the navmesh — no vertical projection mismatch (the dtCrowd
+		// DefaultQueryExtent footgun fires when the agent transform is significantly
+		// off the navmesh surface). Cube default mesh is 100x100x100cm; scale
+		// (60, 60, 0.5) → 6000x6000x50cm floor, wide enough for any reasonable
+		// station spread.
+		const auto FloorLocation = FVector(0.0, 0.0, 0.0);
 		auto Floor = SpawnActor(ACk_NavigationGym_Floor, FloorLocation, FRotator());
 		if (Floor != nullptr)
 		{
@@ -36,37 +39,23 @@ class ACk_NavigationGym_GameMode : ACk_Gym_Base_GameMode
 		// failure path (Status: FAILED) which is itself a valid test scenario.
 		Print("[NavigationGym] To enable READY-status paths in this gym, place a NavMeshBoundsVolume in the level (see CkNavigationGym_GameMode.as comment)");
 
-		// Spawn one ACk_GymStation off to the side so we can visually verify the AS port:
-		// pivot at ground level, anchors recompute from Width/Depth/Height. PIE the gym, walk
-		// to (-2000, 0, ~-300) to find it. Adjust Width/Depth/Height in the actor in PIE
-		// (or via console) and the geometry + anchors should re-fit on construction-script rerun.
-		const auto TestStationLocation = FVector(-2000.0, 0.0, -300.0);
-		auto TestStation = SpawnActor(ACk_GymStation, TestStationLocation, FRotator());
-		if (TestStation != nullptr)
-		{
-			TestStation.Width = 6.0;
-			TestStation.Depth = 5.0;
-			TestStation.Height = 5.0;
-			TestStation.TitleText = FText::FromString("CkGymStation");
+		// Spawn a UCk_EntityScript_GymStation off to the side as a visual reference
+		// for the crowd tests — pivot at ground (Z=0) with ShowAnchors=true so the
+		// cyan agent-spawn spheres + magenta panel/footprint spheres are visible.
+		// PIE the gym and fly to (-2000, 0, 0) to inspect it.
+		auto StationParams = FCk_GymStation_SpawnParams();
+		StationParams.InitialTransform = FTransform(FRotator::ZeroRotator, FVector(-2000.0, 0.0, 0.0), FVector(1.0, 1.0, 1.0));
+		StationParams.TitleText = FText::FromString("Nav GymStation");
+		StationParams.DescriptionText.Add(FText::FromString("Visual reference for the crowd tests."));
+		StationParams.DescriptionText.Add(FText::FromString("Anchor spheres show the canonical agent-spawn"));
+		StationParams.DescriptionText.Add(FText::FromString("locations relative to a station footprint."));
+		StationParams.ShowAnchors = true;
 
-			TArray<FText> TestDesc;
-			TestDesc.Add(FText::FromString("AS port of BP_DemoDisplay."));
-			TestDesc.Add(FText::FromString("Pivot at ground (Z=0)."));
-			TestDesc.Add(FText::FromString("Anchors: AgentSpawnFront, Left, Right, Back, FootprintCenter, PanelTopFront, PanelCenter."));
-			TestStation.Update_Display(TestStation.TitleText, TestDesc);
+		utils_entity_script::Request_SpawnEntity(
+			ck::TransientEntity(),
+			UCk_EntityScript_GymStation,
+			FInstancedStruct::Make(StationParams));
 
-			Print(f"[NavigationGym] Spawned ACk_GymStation at {TestStationLocation}");
-			Print(f"[NavigationGym]   FootprintCenter   world = {TestStation.FootprintCenterAnchor.GetWorldLocation()}");
-			Print(f"[NavigationGym]   AgentSpawnFront   world = {TestStation.AgentSpawnFrontAnchor.GetWorldLocation()}");
-			Print(f"[NavigationGym]   AgentSpawnLeft    world = {TestStation.AgentSpawnLeftAnchor.GetWorldLocation()}");
-			Print(f"[NavigationGym]   AgentSpawnRight   world = {TestStation.AgentSpawnRightAnchor.GetWorldLocation()}");
-			Print(f"[NavigationGym]   AgentSpawnBack    world = {TestStation.AgentSpawnBackAnchor.GetWorldLocation()}");
-			Print(f"[NavigationGym]   PanelTopFront     world = {TestStation.PanelTopFrontAnchor.GetWorldLocation()}");
-			Print(f"[NavigationGym]   PanelCenter       world = {TestStation.PanelCenterAnchor.GetWorldLocation()}");
-		}
-		else
-		{
-			Print("[NavigationGym] FAILED to spawn ACk_GymStation");
-		}
+		Print(f"[NavigationGym] Spawned UCk_EntityScript_GymStation at (-2000, 0, 0)");
 	}
 };
