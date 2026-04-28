@@ -91,7 +91,7 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartBasicStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Messaging.BasicBroadcast");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Messaging.BasicBroadcast", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FMessagingGymSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
@@ -112,7 +112,7 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartMultiListenerStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Messaging.MultiListener");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Messaging.MultiListener", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FMessagingGymSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
@@ -133,7 +133,7 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartOneShotStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Messaging.OneShot");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Messaging.OneShot", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FMessagingGymSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
@@ -154,7 +154,7 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartDynamicBindStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Messaging.DynamicBind");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Messaging.DynamicBind", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FMessagingGymSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
@@ -175,7 +175,7 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartMultiTypeStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Messaging.MultiType");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Messaging.MultiType", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FMessagingGymSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
