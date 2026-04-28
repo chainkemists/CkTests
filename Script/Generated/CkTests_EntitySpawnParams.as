@@ -138,6 +138,45 @@ namespace UCk_AutoTest_Base
 }
 
 USTRUCT()
+struct FCk_AutoTest_StateMachine_BasicTransition_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_BasicTransition
+{
+    FCk_AutoTest_StateMachine_BasicTransition_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_BasicTransition_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_DivergenceFirstBranch_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_DivergenceFirstBranch
+{
+    FCk_AutoTest_StateMachine_DivergenceFirstBranch_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_DivergenceFirstBranch_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_DivergenceFirstBranchTimed_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_DivergenceFirstBranchTimed
+{
+    FCk_AutoTest_StateMachine_DivergenceFirstBranchTimed_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_DivergenceFirstBranchTimed_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_CueGym_Cue_AfterOneFrame_SpawnParams
 {
     UPROPERTY()
