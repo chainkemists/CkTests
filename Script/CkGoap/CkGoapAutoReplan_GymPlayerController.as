@@ -20,9 +20,7 @@ class ACk_GoapAutoReplanGym_PlayerController : ACk_Gym_Base_PlayerController
 		Desc.Add(FText::FromString("Spatial demo: 1 AI capsule + 8 drifting enemy capsules."));
 		Desc.Add(FText::FromString("Auto-replan on world-state/cost dirty (0.25s throttle). Enemies die/revive randomly."));
 		Station.Description = Desc;
-		Station.Width = 15.0f;
-		Station.Depth = 15.0f;
-		Station.Height = 9.0f;
+		Station.AutoSize = true;
 		Stations.Add(Station);
 
 		return Stations;
@@ -30,7 +28,7 @@ class ACk_GoapAutoReplanGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartGym() override
 	{
-		auto T = Get_StationTransform("Gym.Goap.AutoReplan");
+		auto T = Get_StationAnchorTransform("Gym.Goap.AutoReplan", ECk_GymStation_Anchor::PanelCenter);
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Goap.AutoReplan"),
 			UCk_EntityScript_GoapGym_AutoReplan,
