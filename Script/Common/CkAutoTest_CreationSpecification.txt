@@ -23,6 +23,39 @@ AutoTest does not need the gym, and vice versa.
 */
 
 //============================================================================
+// !!! READ THIS FIRST — WRITING THE .AS FILE IS NOT ENOUGH !!!
+//============================================================================
+//
+// Authoring an autotest is a TWO-PART workflow. The .as file alone does NOT
+// produce a runnable test — the actor wrapper must also be PLACED IN A MAP
+// in the editor before Session Frontend can discover it.
+//
+// IF YOU (HUMAN OR LLM) JUST CREATED OR MODIFIED A TEST:
+//   You MUST tell the user to:
+//     1. Save the .as file (AS plugin auto-recompiles; if not, restart editor).
+//     2. Place the *_Actor class in the appropriate test map:
+//          - CkTests-side tests:
+//            Plugins/CkTests/Content/AutoTests/AutoTests_CkTests_Level.umap
+//          - BusterBlock-side tests:
+//            Content/BusterBlock/Map/AutoTests/AutoTests_BB_MAP.umap
+//        Drag from Place Actors panel; the AS class with the *_Actor suffix.
+//        WARNING: don't accidentally pick a *_GymActor — those look similar
+//        in search but are display-only and won't show in Session Frontend.
+//     3. Save the map.
+//     4. Run via Session Frontend → Automation tab → check the test → Start
+//        Tests. (Or console: `Automation RunTests <pattern>`.)
+//
+// IF YOU SEE A TEST IN THE OUTLINER BUT NOT IN SESSION FRONTEND:
+//   You almost certainly placed the gym actor instead of the autotest
+//   wrapper. Check the actor name — autotests end in `_Actor` and inherit
+//   ACk_AutoTestRunner; gym actors end in `_GymActor` and inherit AActor
+//   directly. Delete the gym actor, drag the *_Actor wrapper.
+//
+// The full per-step authoring workflow is in section 5 (file template) and
+// section 9 (map setup). Section 10 covers running. Section 11 covers
+// reading results.
+
+//============================================================================
 // 1. ARCHITECTURE OVERVIEW
 //============================================================================
 
@@ -466,6 +499,36 @@ class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
 //
 //   Exit code reflects pass/fail. Add -ReportExportPath=<dir> for JUnit-style
 //   XML output suitable for CI dashboards.
+
+//============================================================================
+// 10b. READING RESULTS
+//============================================================================
+//
+// After a run completes, four surfaces show what happened. From most useful
+// to least:
+//
+// 1. Session Frontend → click the failed test row → details panel below
+//    shows the assertion failure messages from your Assert_*() calls. THIS
+//    IS THE PRIMARY DEBUGGING SURFACE — the message you wrote in
+//    Assert_Equals_Int(actual, expected, "<message>") shows up here verbatim
+//    plus "(expected X, got Y)" appended.
+//    If the panel isn't visible, drag the bottom edge of the test tree
+//    upward — it's a collapsible split.
+//
+// 2. Automation Test Graphical Results bar — bottom of Session Frontend's
+//    Automation tab, shows a green/red strip per test. Best for "did
+//    everything pass?" at a glance.
+//
+// 3. Output Log filtered to LogAutomationController — structured per-test
+//    output: Test Started / Test Completed / failure messages with
+//    file:line. Cleaner than the unfiltered log; closer to what CI parses.
+//
+// 4. Message Log → Automation Testing tab — parallel view of the same
+//    data, useful as a fallback if Session Frontend's panel is collapsed
+//    or scrubbed.
+//
+// For headless / CI runs, point -ReportExportPath at a directory and read
+// the generated index.html / JSON.
 
 //============================================================================
 // 11. SCALING — WHEN TO RESTRUCTURE
