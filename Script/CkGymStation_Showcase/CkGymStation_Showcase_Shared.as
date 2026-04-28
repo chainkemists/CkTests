@@ -18,5 +18,8 @@ namespace Ck
 		GameplayTags.Add(n"Gym.StationShowcase.Large");
 		GameplayTags.Add(n"Gym.StationShowcase.NoSpotlight");
 		GameplayTags.Add(n"Gym.StationShowcase.RightAlign");
+		GameplayTags.Add(n"Gym.StationShowcase.AutoSize.Wide");
+		GameplayTags.Add(n"Gym.StationShowcase.AutoSize.Tall");
+		GameplayTags.Add(n"Gym.StationShowcase.AutoSize.Runtime");
 	}
 }
