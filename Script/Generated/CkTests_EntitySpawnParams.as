@@ -138,6 +138,19 @@ namespace UCk_AutoTest_Attribute_IntegerClamping
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_IntegerOverflow_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_IntegerOverflow
+{
+    FCk_AutoTest_Attribute_IntegerOverflow_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_IntegerOverflow_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Base_SpawnParams
 {
 }
