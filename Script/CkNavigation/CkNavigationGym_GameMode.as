@@ -6,13 +6,14 @@ class ACk_NavigationGym_GameMode : ACk_Gym_Base_GameMode
 	UFUNCTION(BlueprintOverride)
 	void BeginPlay()
 	{
-		// Floor at world origin so agents spawned at the station's Z=0 land directly
-		// on the navmesh — no vertical projection mismatch (the dtCrowd
-		// DefaultQueryExtent footgun fires when the agent transform is significantly
-		// off the navmesh surface). Cube default mesh is 100x100x100cm; scale
-		// (60, 60, 0.5) → 6000x6000x50cm floor, wide enough for any reasonable
-		// station spread.
-		const auto FloorLocation = FVector(0.0, 0.0, 0.0);
+		// Floor positioned so its TOP face lines up with Z=0 — this is what
+		// the navmesh bakes onto, and what agents spawned at Z=0 stand on. The
+		// cube default mesh is 100x100x100cm with a centered pivot, so at
+		// scale.Z=0.5 the floor is 50cm thick (extent ±25cm). Pulling the
+		// actor down by 25cm puts the top face exactly at Z=0; otherwise
+		// agents sit 25cm inside the mesh and debug arrows clip through it.
+		// Plan footprint stays large (6000x6000cm) for any reasonable spread.
+		const auto FloorLocation = FVector(0.0, 0.0, -25.0);
 		auto Floor = SpawnActor(ACk_NavigationGym_Floor, FloorLocation, FRotator());
 		if (Floor != nullptr)
 		{
@@ -38,24 +39,5 @@ class ACk_NavigationGym_GameMode : ACk_Gym_Base_GameMode
 		// After that, this gym's path requests will succeed. Until then the gym exercises the
 		// failure path (Status: FAILED) which is itself a valid test scenario.
 		Print("[NavigationGym] To enable READY-status paths in this gym, place a NavMeshBoundsVolume in the level (see CkNavigationGym_GameMode.as comment)");
-
-		// Spawn a UCk_EntityScript_GymStation off to the side as a visual reference
-		// for the crowd tests — pivot at ground (Z=0) with ShowAnchors=true so the
-		// cyan agent-spawn spheres + magenta panel/footprint spheres are visible.
-		// PIE the gym and fly to (-2000, 0, 0) to inspect it.
-		auto StationParams = FCk_GymStation_SpawnParams();
-		StationParams.InitialTransform = FTransform(FRotator::ZeroRotator, FVector(-2000.0, 0.0, 0.0), FVector(1.0, 1.0, 1.0));
-		StationParams.TitleText = FText::FromString("Nav GymStation");
-		StationParams.DescriptionText.Add(FText::FromString("Visual reference for the crowd tests."));
-		StationParams.DescriptionText.Add(FText::FromString("Anchor spheres show the canonical agent-spawn"));
-		StationParams.DescriptionText.Add(FText::FromString("locations relative to a station footprint."));
-		StationParams.ShowAnchors = true;
-
-		utils_entity_script::Request_SpawnEntity(
-			ck::TransientEntity(),
-			UCk_EntityScript_GymStation,
-			FInstancedStruct::Make(StationParams));
-
-		Print(f"[NavigationGym] Spawned UCk_EntityScript_GymStation at (-2000, 0, 0)");
 	}
 };

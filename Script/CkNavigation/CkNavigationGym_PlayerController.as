@@ -1,5 +1,12 @@
 class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 {
+	// Pull stations down so the alcove floor (loc.Z = FloorThickness/2 = 7.5cm,
+	// extent = FloorThickness/2 = 7.5cm — total 15cm tall above the station
+	// origin) sits flush with the nav floor mesh whose top face is at Z=0. We
+	// leave 0.1cm of overhang so the alcove floor + floor description text
+	// stay visible from above instead of getting Z-fought into invisibility.
+	default DefaultStationGridZ = -14.9f;
+
 	TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
 	{
 		auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
