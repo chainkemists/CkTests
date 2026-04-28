@@ -113,7 +113,7 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartHandleAndEntity()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.EntityLifecycle.HandleAndEntity"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.EntityLifecycle.HandleAndEntity", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.EntityLifecycle.HandleAndEntity"),
 			UCk_EntityScript_EntityLifecycleGym_HandleAndEntity,
@@ -122,7 +122,7 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartOwnershipTree()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.EntityLifecycle.OwnershipTree"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.EntityLifecycle.OwnershipTree", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.EntityLifecycle.OwnershipTree"),
 			UCk_EntityScript_EntityLifecycleGym_OwnershipTree,
@@ -131,7 +131,7 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartDestroyCallbacks()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.EntityLifecycle.DestroyCallbacks"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.EntityLifecycle.DestroyCallbacks", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.EntityLifecycle.DestroyCallbacks"),
 			UCk_EntityScript_EntityLifecycleGym_DestroyCallbacks,
@@ -140,7 +140,7 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartActorBridge()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.EntityLifecycle.ActorBridge"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.EntityLifecycle.ActorBridge", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.EntityLifecycle.ActorBridge"),
 			UCk_EntityScript_EntityLifecycleGym_ActorBridge,
@@ -149,7 +149,7 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartTagSystem()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.EntityLifecycle.TagSystem"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.EntityLifecycle.TagSystem", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.EntityLifecycle.TagSystem"),
 			UCk_EntityScript_EntityLifecycleGym_TagSystem,
@@ -158,7 +158,7 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartDeferredSetup()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.EntityLifecycle.DeferredSetup"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.EntityLifecycle.DeferredSetup", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.EntityLifecycle.DeferredSetup"),
 			UCk_EntityScript_EntityLifecycleGym_DeferredSetup,
@@ -167,7 +167,7 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartScriptSpawnCast()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.EntityLifecycle.ScriptSpawnCast"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.EntityLifecycle.ScriptSpawnCast", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.EntityLifecycle.ScriptSpawnCast"),
 			UCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast,

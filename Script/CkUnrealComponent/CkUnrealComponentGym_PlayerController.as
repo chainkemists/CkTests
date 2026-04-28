@@ -73,7 +73,7 @@ class ACk_UnrealComponentGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_SpawnDriver(FString InStationTag, ECk_UnrealComponentGym_Type InType)
 	{
-		auto StationTransform = Get_StationTransform(InStationTag);
+		auto StationTransform = Get_StationAnchorTransform(InStationTag, ECk_GymStation_Anchor::PanelCenter);
 
 		auto SpawnedActor = SpawnActor(ACk_UnrealComponentGym_Driver, StationTransform.GetLocation(), FRotator(0, 180, 0), NAME_None, true);
 		SpawnedActor.ComponentType = InType;

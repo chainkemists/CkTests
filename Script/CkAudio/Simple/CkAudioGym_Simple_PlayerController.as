@@ -11,7 +11,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartBackgroundMusic()
     {
-        auto BackgroundMusicTransform = Get_StationTransform("Gym.Audio.BackgroundMusic");
+        auto BackgroundMusicTransform = Get_StationAnchorTransform("Gym.Audio.BackgroundMusic", ECk_GymStation_Anchor::PanelCenter);
 
         utils_cue_audio::Request_ExecuteCue(ck::ToEntity(this),
             utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.BackgroundMusic"),
@@ -24,7 +24,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartSpatialAudio()
     {
-        auto SpatialAudioTransform = Get_StationTransform("Gym.Audio.SpatialAudio");
+        auto SpatialAudioTransform = Get_StationAnchorTransform("Gym.Audio.SpatialAudio", ECk_GymStation_Anchor::PanelCenter);
 
         utils_cue_audio::Request_ExecuteCue(ck::ToEntity(this),
             utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Simple.SpatialAudio"),

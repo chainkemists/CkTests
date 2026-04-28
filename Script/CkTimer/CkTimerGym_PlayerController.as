@@ -87,7 +87,7 @@ class ACk_TimerGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartBasics()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Timer.Basics"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Timer.Basics", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Timer.Basics"),
 			UCk_EntityScript_TimerGym_Basics,
@@ -96,7 +96,7 @@ class ACk_TimerGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartBehaviors()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Timer.Behaviors"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Timer.Behaviors", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Timer.Behaviors"),
 			UCk_EntityScript_TimerGym_Behaviors,
@@ -105,7 +105,7 @@ class ACk_TimerGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartSignals()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Timer.Signals"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Timer.Signals", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Timer.Signals"),
 			UCk_EntityScript_TimerGym_Signals,
@@ -114,7 +114,7 @@ class ACk_TimerGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartControl()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Timer.Control"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Timer.Control", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Timer.Control"),
 			UCk_EntityScript_TimerGym_Control,
@@ -123,7 +123,7 @@ class ACk_TimerGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartCountdown()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Timer.Countdown"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Timer.Countdown", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Timer.Countdown"),
 			UCk_EntityScript_TimerGym_Countdown,

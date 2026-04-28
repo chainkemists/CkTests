@@ -115,7 +115,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartAutoCycle()
     {
-        auto StationTransform = Get_StationTransform("Gym.StateMachine.AutoCycle");
+        auto StationTransform = Get_StationAnchorTransform("Gym.StateMachine.AutoCycle", ECk_GymStation_Anchor::PanelCenter);
 
         auto SpawnedActor = SpawnActor(
             ACk_SmTest_GymActor,
@@ -134,7 +134,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartPauseResume()
     {
-        auto StationTransform = Get_StationTransform("Gym.StateMachine.PauseResume");
+        auto StationTransform = Get_StationAnchorTransform("Gym.StateMachine.PauseResume", ECk_GymStation_Anchor::PanelCenter);
 
         auto SpawnedActor = SpawnActor(
             ACk_SmTest_GymActor,
@@ -156,7 +156,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartComplex()
     {
-        auto StationTransform = Get_StationTransform("Gym.StateMachine.Complex");
+        auto StationTransform = Get_StationAnchorTransform("Gym.StateMachine.Complex", ECk_GymStation_Anchor::PanelCenter);
 
         auto SpawnedActor = SpawnActor(
             ACk_SmTest_GymActor,
@@ -176,7 +176,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartHierarchical()
     {
-        auto StationTransform = Get_StationTransform("Gym.StateMachine.Hierarchical");
+        auto StationTransform = Get_StationAnchorTransform("Gym.StateMachine.Hierarchical", ECk_GymStation_Anchor::PanelCenter);
 
         auto SpawnedActor = SpawnActor(
             ACk_SmTest_GymActor,
@@ -195,7 +195,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartGraphWalkRegression()
     {
-        auto StationTransform = Get_StationTransform("Gym.StateMachine.GraphWalkRegression");
+        auto StationTransform = Get_StationAnchorTransform("Gym.StateMachine.GraphWalkRegression", ECk_GymStation_Anchor::PanelCenter);
 
         auto SpawnedActor = SpawnActor(
             ACk_SmTest_GraphWalkRegression_GymActor,
@@ -251,7 +251,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartDivergenceFirstBranch()
     {
-        auto StationTransform = Get_StationTransform("Gym.StateMachine.DivergenceFirstBranch");
+        auto StationTransform = Get_StationAnchorTransform("Gym.StateMachine.DivergenceFirstBranch", ECk_GymStation_Anchor::PanelCenter);
 
         auto SpawnedActor = SpawnActor(
             ACk_SmTest_DivergenceFirstBranch_GymActor,
@@ -277,7 +277,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartDivergenceTimed()
     {
-        auto StationTransform = Get_StationTransform("Gym.StateMachine.DivergenceTimed");
+        auto StationTransform = Get_StationAnchorTransform("Gym.StateMachine.DivergenceTimed", ECk_GymStation_Anchor::PanelCenter);
 
         auto SpawnedActor = SpawnActor(
             ACk_SmTest_DivergenceTimed_GymActor,

@@ -108,7 +108,7 @@ class ACk_AStarGym_PlayerController : ACk_Gym_Base_PlayerController
 		TArray<FIntPoint> InBlockedCells)
 	{
 		auto Params = FCkAStar_GymStationSpawnParams();
-		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.InitialTransform = Get_StationAnchorTransform(InTag, ECk_GymStation_Anchor::PanelCenter);
 		Params.StationTitle = InTitle;
 		Params.StationDescription = InDescription;
 		Params.GridWidth = InGridW;

@@ -112,7 +112,7 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartLifetime()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Cue.Lifetime"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Cue.Lifetime", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Cue.Lifetime"),
 			UCk_EntityScript_CueGym_Lifetime,
@@ -121,7 +121,7 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartConcurrency()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Cue.Concurrency"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Cue.Concurrency", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Cue.Concurrency"),
 			UCk_EntityScript_CueGym_Concurrency,
@@ -130,7 +130,7 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartOwnerValidation()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Cue.OwnerValidation"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Cue.OwnerValidation", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Cue.OwnerValidation"),
 			UCk_EntityScript_CueGym_OwnerValidation,
@@ -139,7 +139,7 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartRestart()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Cue.Restart"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Cue.Restart", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Cue.Restart"),
 			UCk_EntityScript_CueGym_Restart,
@@ -148,7 +148,7 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartTransient()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Cue.Transient"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Cue.Transient", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Cue.Transient"),
 			UCk_EntityScript_CueGym_Transient,
@@ -157,7 +157,7 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartOwnerDestruction()
 	{
-		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationTransform("Gym.Cue.OwnerDestruction"));
+		auto SpawnParams = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform("Gym.Cue.OwnerDestruction", ECk_GymStation_Anchor::PanelCenter));
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.Cue.OwnerDestruction"),
 			UCk_EntityScript_CueGym_OwnerDestruction,

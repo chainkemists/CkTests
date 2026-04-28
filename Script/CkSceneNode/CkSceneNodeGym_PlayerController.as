@@ -82,7 +82,7 @@ class ACk_SceneNodeGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_SpawnCube(FString InStationTag, ECk_SceneNodeGym_Behavior InBehavior)
 	{
-		auto StationTransform = Get_StationTransform(InStationTag);
+		auto StationTransform = Get_StationAnchorTransform(InStationTag, ECk_GymStation_Anchor::PanelCenter);
 
 		// Spawn cube actor
 		auto SpawnedActor = SpawnActor(ACk_SceneNodeGym_Cube, StationTransform.GetLocation(), FRotator(0, 180, 0), NAME_None, true);
