@@ -86,25 +86,6 @@ struct FCkGym_AutoConfig
 namespace gym_auto
 {
     //------------------------------------------------------------------------
-    // Station height normalization — call after building all stations in
-    // Get_RequiredStations(). Sets every station to the tallest height
-    // so that all displays in a gym are the same size.
-    //------------------------------------------------------------------------
-
-    void NormalizeStationHeights(TArray<FCkGym_Station_SpawnParams_Payload>& InStations)
-    {
-        auto MaxHeight = 0.0;
-        for (auto& Station : InStations)
-        {
-            if (Station.Height > MaxHeight) { MaxHeight = Station.Height; }
-        }
-        for (auto& Station : InStations)
-        {
-            Station.Height = MaxHeight;
-        }
-    }
-
-    //------------------------------------------------------------------------
     // Setup — call from DoConstruct. Creates timer + binds AutoSet message.
     // The caller must still define OnAutoSet and AutoTick as UFUNCTIONs
     // on their class (delegates need a UObject target).
@@ -153,40 +134,6 @@ namespace gym_auto
         InAutoRunning = Typed.Enabled;
         if (InAutoRunning) { utils_timer::Request_Resume(InTimer); }
         else { utils_timer::Request_Pause(InTimer); }
-    }
-
-    //------------------------------------------------------------------------
-    // Station height estimation
-    //------------------------------------------------------------------------
-
-    // Estimates station height from AutoConfig + expected live-data lines.
-    // Call from Get_RequiredStations() to avoid hand-tuning heights.
-    //   InLiveDataLines: how many lines of station-specific data you expect
-    //   InLineHeight: world units per text line (tweak if text scale changes)
-    float EstimateStationHeight(const FCkGym_AutoConfig& InConfig, int32 InLiveDataLines = 10, float InLineHeight = 0.35f)
-    {
-        auto Lines = 2;  // status line + blank
-        if (InConfig.Description != "") { Lines += 2; }  // description + blank
-        Lines += InLiveDataLines;
-        Lines += 1 + InConfig.Steps.Num();  // "===== Auto Sequence =====" + steps
-        Lines += 2 + InConfig.ManualCommands.Num();  // "===== Commands =====" + commands + global
-        if (InConfig.PerStationAutoCommand != "") { Lines += 1; }
-        return float(Lines) * InLineHeight;
-    }
-
-    // Lightweight overload when you don't have the config handy (e.g. in PlayerController).
-    //   InAutoStepCount: number of step descriptions
-    //   InCommandCount: number of manual commands
-    //   InLiveDataLines: how many lines of station-specific data
-    //   InHasDescription: whether the station has a description block
-    float EstimateStationHeight(int32 InAutoStepCount, int32 InCommandCount, int32 InLiveDataLines = 10, bool InHasDescription = true, float InLineHeight = 0.35f)
-    {
-        auto Lines = 2;
-        if (InHasDescription) { Lines += 2; }
-        Lines += InLiveDataLines;
-        Lines += 1 + InAutoStepCount;
-        Lines += 3 + InCommandCount;  // header + commands + global + per-station
-        return float(Lines) * InLineHeight;
     }
 
     //------------------------------------------------------------------------

@@ -244,25 +244,23 @@ class ACk_[GymName]Gym_Pawn : ACk_Gym_Base_Pawn
 // - Title: FText displayed at top of station
 // - Description: TArray<FText> for multi-paragraph descriptions
 // - Transform: Optional override (defaults to grid layout)
-// - Height: Use gym_auto::EstimateStationHeight() to compute from content
+// - AutoSize: Set true to size Width/Height from content (recommended)
 // - Dimensions, colors, text scaling (use defaults unless needed)
 //
-// STATION HEIGHT — ESTIMATION & NORMALIZATION:
-// Use gym_auto::EstimateStationHeight() to compute station height from the
-// number of auto steps, manual commands, and expected live-data lines.
-// This avoids hardcoding heights that drift out of sync with content.
+// STATION SIZING — AUTO-SIZE FROM CONTENT:
+// Set Station.AutoSize = true so the spawned UCk_EntityScript_GymStation
+// computes Width/Height from the title + description text at spawn time
+// (Apply_AutoSize_FromSpawnParams) and grows the alcove at runtime if
+// Update_StationDisplay pushes longer text (Refit_FromMeasuredBounds).
+// Avoids hardcoded dimensions that drift out of sync with content.
 //
-//   Station.Height = gym_auto::EstimateStationHeight(
-//       6,    // auto step count
-//       1,    // manual command count
-//       14);  // expected live-data lines
+//   Station.AutoSize = true;
 //
-// After building all stations, call gym_auto::NormalizeStationHeights() to
-// set every station to the tallest height, so all displays in a gym are
-// the same size:
-//
-//   gym_auto::NormalizeStationHeights(Stations);
-//   return Stations;
+// Don't hand-tune Width/Height/Depth unless you specifically need a
+// non-content-driven layout (e.g. the Station Showcase gym deliberately
+// uses fixed dimensions to validate static-size paths). For any gym whose
+// station's job is to display its title + description, AutoSize is the
+// right answer.
 
 // Manual Override:
 // - Place BP_DemoDisplay in level with matching tag to override automatic spawn
@@ -443,8 +441,8 @@ AFTER IMPLEMENTATION:
 // FINDING STATIONS
 //------------------------------------------------------------------------
 
-// Get station actor (with null check handling)
-auto StationActor = Get_StationByTag("Gym.Category.Feature");
+// Get station entity handle (with null check handling)
+auto StationHandle = Get_StationHandle("Gym.Category.Feature");
 
 // Get station transform (with automatic fallback to FTransform::Identity)
 auto StationTransform = Get_StationTransform("Gym.Category.Feature");

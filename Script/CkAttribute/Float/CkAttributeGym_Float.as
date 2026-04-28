@@ -13,7 +13,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatValues");
             Station.Title = FText::FromString("FLOAT VALUES");
-            Station.Height = gym_auto::EstimateStationHeight(6, 0, 20);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Basic float attribute value operations and display."));
             Description.Add(FText::FromString("Tests Base/Bonus/Final retrieval, percentage, and magnitude calculations."));
@@ -26,7 +26,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatClamping");
             Station.Title = FText::FromString("FLOAT CLAMPING");
-            Station.Height = gym_auto::EstimateStationHeight(1, 1, 16);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Demonstrates automatic value clamping within min/max boundaries."));
             Description.Add(FText::FromString("Cycles fractional values beyond limits to show float-precision clamping."));
@@ -40,7 +40,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatModifiers");
             Station.Title = FText::FromString("FLOAT MODIFIERS");
-            Station.Height = gym_auto::EstimateStationHeight(8, 0, 14);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests attribute modifier system with add/multiply operations."));
             Description.Add(FText::FromString("See how modifiers stack and affect final attribute values."));
@@ -53,7 +53,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatMinMaxCurrent");
             Station.Title = FText::FromString("FLOAT MIN/MAX/CURRENT");
-            Station.Height = gym_auto::EstimateStationHeight(6, 0, 16);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Displays all three attribute components: Min, Max, and Current."));
             Description.Add(FText::FromString("Watch how they update independently and interact."));
@@ -66,7 +66,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatSignals");
             Station.Title = FText::FromString("FLOAT SIGNALS");
-            Station.Height = gym_auto::EstimateStationHeight(6, 0, 18);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests attribute signal system and callbacks."));
             Description.Add(FText::FromString("Monitors OnValueChanged, OnMinClamped, OnMaxClamped events."));
@@ -79,7 +79,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatRefill");
             Station.Title = FText::FromString("FLOAT REFILL");
-            Station.Height = gym_auto::EstimateStationHeight(6, 1, 14);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests the float-exclusive refill/regeneration system."));
             Description.Add(FText::FromString("Drains energy, then watches it auto-refill. Pause/resume controls."));
@@ -92,7 +92,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatIncrementDecrement");
             Station.Title = FText::FromString("FLOAT INC/DEC");
-            Station.Height = gym_auto::EstimateStationHeight(7, 0, 12);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests the float mixin increment/decrement helpers."));
             Description.Add(FText::FromString("Revocable vs non-revocable +1/-1 operations and revocation."));
@@ -105,7 +105,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.FloatMultiple");
             Station.Title = FText::FromString("FLOAT MULTIPLE ATTRIBUTES");
-            Station.Height = gym_auto::EstimateStationHeight(6, 0, 10);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Entity with multiple float attributes working simultaneously."));
             Description.Add(FText::FromString("Tests attribute independence, batch creation, and iteration patterns."));
@@ -113,7 +113,6 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
-        gym_auto::NormalizeStationHeights(Stations);
         return Stations;
     }
 
@@ -131,7 +130,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartFloatValues()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.FloatValues");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.FloatValues", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -143,7 +142,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartFloatClamping()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.FloatClamping");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.FloatClamping", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -155,7 +154,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartFloatModifiers()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.FloatModifiers");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.FloatModifiers", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -167,7 +166,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartFloatMinMaxCurrent()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.FloatMinMaxCurrent");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.FloatMinMaxCurrent", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -179,7 +178,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartFloatSignals()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.FloatSignals");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.FloatSignals", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -191,7 +190,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartFloatRefill()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.FloatRefill");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.FloatRefill", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -203,7 +202,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartFloatIncrementDecrement()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.FloatIncrementDecrement");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.FloatIncrementDecrement", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -215,7 +214,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartFloatMultiple()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.FloatMultiple");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.FloatMultiple", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(

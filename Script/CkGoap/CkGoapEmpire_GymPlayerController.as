@@ -21,7 +21,7 @@ class ACk_GoapEmpireGym_PlayerController : ACk_Gym_Base_PlayerController
 		Desc.Add(FText::FromString("~45 actions, 4 progressive goals, one villager. Planner drives the tech tree; gameplay owns numeric resources."));
 		Desc.Add(FText::FromString("Auto-cycles Feudal -> Castle -> Imperial -> Wonder, then resets."));
 		Station.Description = Desc;
-		Station.Height = 14.0f;
+		Station.AutoSize = true;
 		Stations.Add(Station);
 
 		return Stations;
@@ -35,7 +35,7 @@ class ACk_GoapEmpireGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartEmpire()
 	{
-		auto T = Get_StationTransform("Gym.GoapEmpire.Station");
+		auto T = Get_StationAnchorTransform("Gym.GoapEmpire.Station", ECk_GymStation_Anchor::PanelCenter);
 		utils_entity_script::Request_SpawnEntity(
 			Get_StationHandle("Gym.GoapEmpire.Station"),
 			UCk_EntityScript_GoapEmpire_Station,
