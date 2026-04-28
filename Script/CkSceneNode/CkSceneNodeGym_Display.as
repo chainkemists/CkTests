@@ -80,9 +80,12 @@ class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 		OutDisplay = f"{OutDisplay}Orbit Radius: {LinkedCube.OrbitRadius}\n";
 		OutDisplay = f"{OutDisplay}Orbit Speed: {LinkedCube.OrbitSpeed}";
 
-		OutInstructions = "Child scene node orbits around parent entity.\n"
-			+ "Uses utils_scene_node::Create() and Request_UpdateOffset_Location().\n"
-			+ "Offset updated each frame with sin/cos circular path.";
+		OutInstructions = "Child scene node orbits around\n"
+			+ "parent entity.\n"
+			+ "Uses utils_scene_node::Create()\n"
+			+ "and Request_UpdateOffset_Location().\n"
+			+ "Offset updated each frame with\n"
+			+ "sin/cos circular path.";
 	}
 
 	private void Display_OffsetUpdates(FString& OutDisplay, FString& OutInstructions)
@@ -99,9 +102,12 @@ class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 		OutDisplay = f"{OutDisplay}Offset Scale:\n";
 		OutDisplay = f"{OutDisplay}  X: {OffsetScale.X}  Y: {OffsetScale.Y}  Z: {OffsetScale.Z}";
 
-		OutInstructions = "Animates location, rotation, and scale offsets simultaneously.\n"
-			+ "Uses Request_UpdateOffset_Location/Rotation/Scale().\n"
-			+ "All three components oscillate via sine wave.";
+		OutInstructions = "Animates location, rotation,\n"
+			+ "and scale offsets simultaneously.\n"
+			+ "Uses Request_UpdateOffset_Location\n"
+			+ "/Rotation/Scale().\n"
+			+ "All three components oscillate\n"
+			+ "via sine wave.";
 	}
 
 	private void Display_MultipleChildren(FString& OutDisplay, FString& OutInstructions)
@@ -119,8 +125,10 @@ class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 			OutDisplay = f"{OutDisplay}Child {Index + 1}: ({ChildLoc.X}, {ChildLoc.Y}, {ChildLoc.Z})\n";
 		}
 
-		OutInstructions = "Parent rotates with 4 children at cardinal offsets.\n"
-			+ "Children follow parent automatically via hierarchy.\n"
+		OutInstructions = "Parent rotates with 4 children\n"
+			+ "at cardinal offsets.\n"
+			+ "Children follow parent\n"
+			+ "automatically via hierarchy.\n"
 			+ "Rotation speed: " + f"{LinkedCube.ParentRotationSpeed}" + " deg/s.";
 	}
 
@@ -138,8 +146,11 @@ class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 		OutDisplay = f"{OutDisplay}Grandchild Offset Yaw: {GrandchildRot.Yaw}\n";
 		OutDisplay = f"{OutDisplay}Grandchild Offset X: {GrandchildOffset.GetLocation().X}";
 
-		OutInstructions = "Nested chain: root -> child -> grandchild (3 levels).\n"
-			+ "Root rotates, child adds its own rotation, grandchild counter-rotates.\n"
-			+ "Shows compounding transforms through hierarchy.";
+		OutInstructions = "Nested chain:\n"
+			+ "root -> child -> grandchild (3 levels).\n"
+			+ "Root rotates, child adds its own rotation,\n"
+			+ "grandchild counter-rotates.\n"
+			+ "Shows compounding transforms\n"
+			+ "through hierarchy.";
 	}
 }
