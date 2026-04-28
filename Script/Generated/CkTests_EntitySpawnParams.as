@@ -1667,10 +1667,10 @@ struct FCk_EntityScript_GymStation_SpawnParams
     FColor FloorDescriptionColour = FColor(255, 255, 255, 255);
 
     UPROPERTY()
-    EHorizTextAligment FloorTextAlignment = EHorizTextAligment::EHTA_Center;
+    EHorizTextAligment FloorTextAlignment = EHorizTextAligment::EHTA_Left;
 
     UPROPERTY()
-    ECk_GymStation_FloorTextPlacement FloorTextPlacement = ECk_GymStation_FloorTextPlacement::Center;
+    ECk_GymStation_FloorTextPlacement FloorTextPlacement = ECk_GymStation_FloorTextPlacement::Front;
 
     UPROPERTY()
     bool ShowSpotlight = true;
@@ -1678,7 +1678,16 @@ struct FCk_EntityScript_GymStation_SpawnParams
     UPROPERTY()
     bool ShowAnchors = false;
 
-    FCk_EntityScript_GymStation_SpawnParams(FTransform InInitialTransform, float InWidth, float InDepth, float InHeight, float InWallThickness, float InFloorThickness, float InTrimDepth, float InAgentSpawnOffset, FLinearColor InBodyColour, FLinearColor InTrimColour, FText InTitleText, float InTitleScale, FColor InTitleColour, TArray<FText> InDescriptionText, float InDescriptionScale, FColor InDescriptionColour, EHorizTextAligment InTextAlignment, TArray<FText> InFloorDescriptionText, float InFloorDescriptionScale, FColor InFloorDescriptionColour, EHorizTextAligment InFloorTextAlignment, ECk_GymStation_FloorTextPlacement InFloorTextPlacement, bool InShowSpotlight, bool InShowAnchors)
+    UPROPERTY()
+    bool ShowDebugOverlays = false;
+
+    UPROPERTY()
+    bool AutoSize = false;
+
+    UPROPERTY()
+    TArray<FName> StationTags;
+
+    FCk_EntityScript_GymStation_SpawnParams(FTransform InInitialTransform, float InWidth, float InDepth, float InHeight, float InWallThickness, float InFloorThickness, float InTrimDepth, float InAgentSpawnOffset, FLinearColor InBodyColour, FLinearColor InTrimColour, FText InTitleText, float InTitleScale, FColor InTitleColour, TArray<FText> InDescriptionText, float InDescriptionScale, FColor InDescriptionColour, EHorizTextAligment InTextAlignment, TArray<FText> InFloorDescriptionText, float InFloorDescriptionScale, FColor InFloorDescriptionColour, EHorizTextAligment InFloorTextAlignment, ECk_GymStation_FloorTextPlacement InFloorTextPlacement, bool InShowSpotlight, bool InShowAnchors, bool InShowDebugOverlays, bool InAutoSize, TArray<FName> InStationTags)
     {
         InitialTransform = InInitialTransform;
         Width = InWidth;
@@ -1704,6 +1713,9 @@ struct FCk_EntityScript_GymStation_SpawnParams
         FloorTextPlacement = InFloorTextPlacement;
         ShowSpotlight = InShowSpotlight;
         ShowAnchors = InShowAnchors;
+        ShowDebugOverlays = InShowDebugOverlays;
+        AutoSize = InAutoSize;
+        StationTags = InStationTags;
     }
 }
 
@@ -1714,9 +1726,46 @@ namespace UCk_EntityScript_GymStation
         return FCk_EntityScript_GymStation_SpawnParams();
     }
 
-    FCk_EntityScript_GymStation_SpawnParams Params(FTransform InInitialTransform, float InWidth, float InDepth, float InHeight, float InWallThickness, float InFloorThickness, float InTrimDepth, float InAgentSpawnOffset, FLinearColor InBodyColour, FLinearColor InTrimColour, FText InTitleText, float InTitleScale, FColor InTitleColour, TArray<FText> InDescriptionText, float InDescriptionScale, FColor InDescriptionColour, EHorizTextAligment InTextAlignment, TArray<FText> InFloorDescriptionText, float InFloorDescriptionScale, FColor InFloorDescriptionColour, EHorizTextAligment InFloorTextAlignment, ECk_GymStation_FloorTextPlacement InFloorTextPlacement, bool InShowSpotlight, bool InShowAnchors)
+    FCk_EntityScript_GymStation_SpawnParams Params(FTransform InInitialTransform, float InWidth, float InDepth, float InHeight, float InWallThickness, float InFloorThickness, float InTrimDepth, float InAgentSpawnOffset, FLinearColor InBodyColour, FLinearColor InTrimColour, FText InTitleText, float InTitleScale, FColor InTitleColour, TArray<FText> InDescriptionText, float InDescriptionScale, FColor InDescriptionColour, EHorizTextAligment InTextAlignment, TArray<FText> InFloorDescriptionText, float InFloorDescriptionScale, FColor InFloorDescriptionColour, EHorizTextAligment InFloorTextAlignment, ECk_GymStation_FloorTextPlacement InFloorTextPlacement, bool InShowSpotlight, bool InShowAnchors, bool InShowDebugOverlays, bool InAutoSize, TArray<FName> InStationTags)
     {
-        return FCk_EntityScript_GymStation_SpawnParams(InInitialTransform, InWidth, InDepth, InHeight, InWallThickness, InFloorThickness, InTrimDepth, InAgentSpawnOffset, InBodyColour, InTrimColour, InTitleText, InTitleScale, InTitleColour, InDescriptionText, InDescriptionScale, InDescriptionColour, InTextAlignment, InFloorDescriptionText, InFloorDescriptionScale, InFloorDescriptionColour, InFloorTextAlignment, InFloorTextPlacement, InShowSpotlight, InShowAnchors);
+        return FCk_EntityScript_GymStation_SpawnParams(InInitialTransform, InWidth, InDepth, InHeight, InWallThickness, InFloorThickness, InTrimDepth, InAgentSpawnOffset, InBodyColour, InTrimColour, InTitleText, InTitleScale, InTitleColour, InDescriptionText, InDescriptionScale, InDescriptionColour, InTextAlignment, InFloorDescriptionText, InFloorDescriptionScale, InFloorDescriptionColour, InFloorTextAlignment, InFloorTextPlacement, InShowSpotlight, InShowAnchors, InShowDebugOverlays, InAutoSize, InStationTags);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GymStation_Showcase_AutoSizeTicker_SpawnParams
+{
+    UPROPERTY()
+    FName StationTag = n"None";
+
+    UPROPERTY()
+    FText Title = FText::FromString("AUTO-SIZE RUNTIME");
+
+    UPROPERTY()
+    TArray<FText> DescriptionLines;
+
+    UPROPERTY()
+    float LineRevealInterval = 1.0;
+
+    FCk_EntityScript_GymStation_Showcase_AutoSizeTicker_SpawnParams(FName InStationTag, FText InTitle, TArray<FText> InDescriptionLines, float InLineRevealInterval)
+    {
+        StationTag = InStationTag;
+        Title = InTitle;
+        DescriptionLines = InDescriptionLines;
+        LineRevealInterval = InLineRevealInterval;
+    }
+}
+
+namespace UCk_EntityScript_GymStation_Showcase_AutoSizeTicker
+{
+    FCk_EntityScript_GymStation_Showcase_AutoSizeTicker_SpawnParams Params()
+    {
+        return FCk_EntityScript_GymStation_Showcase_AutoSizeTicker_SpawnParams();
+    }
+
+    FCk_EntityScript_GymStation_Showcase_AutoSizeTicker_SpawnParams Params(FName InStationTag, FText InTitle, TArray<FText> InDescriptionLines, float InLineRevealInterval)
+    {
+        return FCk_EntityScript_GymStation_Showcase_AutoSizeTicker_SpawnParams(InStationTag, InTitle, InDescriptionLines, InLineRevealInterval);
     }
 }
 
