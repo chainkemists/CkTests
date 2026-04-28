@@ -125,6 +125,19 @@ namespace UCk_AutoTest_Attribute_IntegerBasic
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_IntegerClamping_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_IntegerClamping
+{
+    FCk_AutoTest_Attribute_IntegerClamping_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_IntegerClamping_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Base_SpawnParams
 {
 }
