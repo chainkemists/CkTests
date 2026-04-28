@@ -195,11 +195,9 @@ class UCk_EntityScript_GoapGym_AutoReplan :  UCk_GenericEntityScript_UE
 		utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_GoapGym_AutoReplan_ReviveAll,
 			FCk_Delegate_Messaging_OnBroadcast(this, n"OnReviveAll"));
 
-		// Display text panel — shows plan status, target info, kill/revive countdown.
-		auto DisplayParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
-		DisplayParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-		auto DisplayTimer = utils_timer::Add(InHandle, DisplayParams);
-		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
+		// Display text panel — disabled while we re-baseline the GymStation.
+		// Re-enable with the timer + DisplayTick binding once the station
+		// renders correctly with the static spawn-param text.
 
 		return ECk_EntityScript_ConstructionFlow::Finished;
 	}
