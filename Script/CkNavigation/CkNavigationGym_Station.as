@@ -92,7 +92,11 @@ class UCk_EntityScript_NavigationGym_Station : UCk_GenericEntityScript_UE
 		if (ck::IsValid(NavAgentHandle) == false)
 		{ return; }
 
-		auto Target = InitialTransform.GetLocation() + TargetOffset;
+		// TargetOffset is in the station's LOCAL frame (e.g. +X = "in front of the alcove
+		// opening"). The station's grid placement applies a 180° yaw so the alcove faces
+		// the player; passing through TransformPosition rotates the offset accordingly so
+		// the path lands in front of the station instead of behind it.
+		auto Target = InitialTransform.TransformPosition(TargetOffset);
 		auto Request = FCk_Request_Nav_FindPath(Target);
 
 		utils_nav::Request_FindPath(NavAgentHandle, Request);

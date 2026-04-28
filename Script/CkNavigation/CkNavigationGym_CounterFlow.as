@@ -52,23 +52,24 @@ class UCk_EntityScript_NavigationGym_CounterFlow : UCk_GenericEntityScript_UE
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-		const auto Center = InitialTransform.GetLocation();
-		// Y offset so the column is centred on the station.
+		// All offsets here are in the station's LOCAL frame (±X along the alcove forward
+		// axis, Y along the alcove width). Routed through TransformPosition so the
+		// grid-layout 180° yaw places the columns symmetrically in front of the player.
 		const auto ColumnLength = float(AgentsPerColumn - 1) * ColumnSpacing;
 		const auto ColumnYStart = -ColumnLength * 0.5;
 
-		// Left column: at -X, walking toward +X. Magenta.
-		// Right column: at +X, walking toward -X. Yellow.
+		// Left column: at -X local, walking toward +X local. Magenta.
+		// Right column: at +X local, walking toward -X local. Yellow.
 		for (int32 i = 0; i < AgentsPerColumn; ++i)
 		{
 			const auto Y = ColumnYStart + float(i) * ColumnSpacing;
 
-			const auto LeftSpawn  = Center + FVector(-ColumnHalfDistance, Y, 0.0);
-			const auto LeftTarget = Center + FVector( ColumnHalfDistance, Y, 0.0);
+			const auto LeftSpawn  = InitialTransform.TransformPosition(FVector(-ColumnHalfDistance, Y, 0.0));
+			const auto LeftTarget = InitialTransform.TransformPosition(FVector( ColumnHalfDistance, Y, 0.0));
 			Spawn_Agent(InHandle, LeftSpawn, LeftTarget, FLinearColor(1.0, 0.0, 1.0, 0.45));   // magenta
 
-			const auto RightSpawn  = Center + FVector( ColumnHalfDistance, Y, 0.0);
-			const auto RightTarget = Center + FVector(-ColumnHalfDistance, Y, 0.0);
+			const auto RightSpawn  = InitialTransform.TransformPosition(FVector( ColumnHalfDistance, Y, 0.0));
+			const auto RightTarget = InitialTransform.TransformPosition(FVector(-ColumnHalfDistance, Y, 0.0));
 			Spawn_Agent(InHandle, RightSpawn, RightTarget, FLinearColor(1.0, 1.0, 0.0, 0.45)); // yellow
 		}
 
