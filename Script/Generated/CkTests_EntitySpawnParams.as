@@ -2296,6 +2296,182 @@ namespace UCk_EntityScript_MessagingGym_OneShot
 }
 
 USTRUCT()
+struct FCk_EntityScript_NavigationGym_ClusterTarget_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FString StationTitle = "";
+
+    UPROPERTY()
+    FString StationDescription = "";
+
+    UPROPERTY()
+    int AgentCount = 12;
+
+    UPROPERTY()
+    float ClusterRadius = 250.0;
+
+    UPROPERTY()
+    float TargetMoveDistance = 900.0;
+
+    UPROPERTY()
+    float TargetMoveIntervalSeconds = 5.0;
+
+    FCk_EntityScript_NavigationGym_ClusterTarget_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int InAgentCount, float InClusterRadius, float InTargetMoveDistance, float InTargetMoveIntervalSeconds)
+    {
+        InitialTransform = InInitialTransform;
+        StationTitle = InStationTitle;
+        StationDescription = InStationDescription;
+        AgentCount = InAgentCount;
+        ClusterRadius = InClusterRadius;
+        TargetMoveDistance = InTargetMoveDistance;
+        TargetMoveIntervalSeconds = InTargetMoveIntervalSeconds;
+    }
+}
+
+namespace UCk_EntityScript_NavigationGym_ClusterTarget
+{
+    FCk_EntityScript_NavigationGym_ClusterTarget_SpawnParams Params()
+    {
+        return FCk_EntityScript_NavigationGym_ClusterTarget_SpawnParams();
+    }
+
+    FCk_EntityScript_NavigationGym_ClusterTarget_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int InAgentCount, float InClusterRadius, float InTargetMoveDistance, float InTargetMoveIntervalSeconds)
+    {
+        return FCk_EntityScript_NavigationGym_ClusterTarget_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InAgentCount, InClusterRadius, InTargetMoveDistance, InTargetMoveIntervalSeconds);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_NavigationGym_CounterFlow_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FString StationTitle = "";
+
+    UPROPERTY()
+    FString StationDescription = "";
+
+    UPROPERTY()
+    int AgentsPerColumn = 8;
+
+    UPROPERTY()
+    float ColumnHalfDistance = 600.0;
+
+    UPROPERTY()
+    float ColumnSpacing = 80.0;
+
+    FCk_EntityScript_NavigationGym_CounterFlow_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int InAgentsPerColumn, float InColumnHalfDistance, float InColumnSpacing)
+    {
+        InitialTransform = InInitialTransform;
+        StationTitle = InStationTitle;
+        StationDescription = InStationDescription;
+        AgentsPerColumn = InAgentsPerColumn;
+        ColumnHalfDistance = InColumnHalfDistance;
+        ColumnSpacing = InColumnSpacing;
+    }
+}
+
+namespace UCk_EntityScript_NavigationGym_CounterFlow
+{
+    FCk_EntityScript_NavigationGym_CounterFlow_SpawnParams Params()
+    {
+        return FCk_EntityScript_NavigationGym_CounterFlow_SpawnParams();
+    }
+
+    FCk_EntityScript_NavigationGym_CounterFlow_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int InAgentsPerColumn, float InColumnHalfDistance, float InColumnSpacing)
+    {
+        return FCk_EntityScript_NavigationGym_CounterFlow_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InAgentsPerColumn, InColumnHalfDistance, InColumnSpacing);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_NavigationGym_CrowdAgent_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FVector TargetLocation = FVector::ZeroVector;
+
+    UPROPERTY()
+    bool LoopBackOnArrival = false;
+
+    UPROPERTY()
+    FLinearColor MarkerColour = FLinearColor(0.0f, 1.0f, 1.0f, 0.4000000059604645f);
+
+    FCk_EntityScript_NavigationGym_CrowdAgent_SpawnParams(FTransform InInitialTransform, FVector InTargetLocation, bool InLoopBackOnArrival, FLinearColor InMarkerColour)
+    {
+        InitialTransform = InInitialTransform;
+        TargetLocation = InTargetLocation;
+        LoopBackOnArrival = InLoopBackOnArrival;
+        MarkerColour = InMarkerColour;
+    }
+}
+
+namespace UCk_EntityScript_NavigationGym_CrowdAgent
+{
+    FCk_EntityScript_NavigationGym_CrowdAgent_SpawnParams Params()
+    {
+        return FCk_EntityScript_NavigationGym_CrowdAgent_SpawnParams();
+    }
+
+    FCk_EntityScript_NavigationGym_CrowdAgent_SpawnParams Params(FTransform InInitialTransform, FVector InTargetLocation, bool InLoopBackOnArrival, FLinearColor InMarkerColour)
+    {
+        return FCk_EntityScript_NavigationGym_CrowdAgent_SpawnParams(InInitialTransform, InTargetLocation, InLoopBackOnArrival, InMarkerColour);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_NavigationGym_DensityStress_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FString StationTitle = "";
+
+    UPROPERTY()
+    FString StationDescription = "";
+
+    UPROPERTY()
+    int AgentCount = 24;
+
+    UPROPERTY()
+    float SpawnAreaSize = 300.0;
+
+    UPROPERTY()
+    float TargetDistance = 1500.0;
+
+    FCk_EntityScript_NavigationGym_DensityStress_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int InAgentCount, float InSpawnAreaSize, float InTargetDistance)
+    {
+        InitialTransform = InInitialTransform;
+        StationTitle = InStationTitle;
+        StationDescription = InStationDescription;
+        AgentCount = InAgentCount;
+        SpawnAreaSize = InSpawnAreaSize;
+        TargetDistance = InTargetDistance;
+    }
+}
+
+namespace UCk_EntityScript_NavigationGym_DensityStress
+{
+    FCk_EntityScript_NavigationGym_DensityStress_SpawnParams Params()
+    {
+        return FCk_EntityScript_NavigationGym_DensityStress_SpawnParams();
+    }
+
+    FCk_EntityScript_NavigationGym_DensityStress_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int InAgentCount, float InSpawnAreaSize, float InTargetDistance)
+    {
+        return FCk_EntityScript_NavigationGym_DensityStress_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InAgentCount, InSpawnAreaSize, InTargetDistance);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_NavigationGym_MovingAgent_SpawnParams
 {
     UPROPERTY()
@@ -2333,6 +2509,47 @@ namespace UCk_EntityScript_NavigationGym_MovingAgent
     FCk_EntityScript_NavigationGym_MovingAgent_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, float InPingPongDistance, float InArrivalSpeedThreshold)
     {
         return FCk_EntityScript_NavigationGym_MovingAgent_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InPingPongDistance, InArrivalSpeedThreshold);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_NavigationGym_RingAvoidance_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FString StationTitle = "";
+
+    UPROPERTY()
+    FString StationDescription = "";
+
+    UPROPERTY()
+    int AgentCount = 12;
+
+    UPROPERTY()
+    float RingRadius = 800.0;
+
+    FCk_EntityScript_NavigationGym_RingAvoidance_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int InAgentCount, float InRingRadius)
+    {
+        InitialTransform = InInitialTransform;
+        StationTitle = InStationTitle;
+        StationDescription = InStationDescription;
+        AgentCount = InAgentCount;
+        RingRadius = InRingRadius;
+    }
+}
+
+namespace UCk_EntityScript_NavigationGym_RingAvoidance
+{
+    FCk_EntityScript_NavigationGym_RingAvoidance_SpawnParams Params()
+    {
+        return FCk_EntityScript_NavigationGym_RingAvoidance_SpawnParams();
+    }
+
+    FCk_EntityScript_NavigationGym_RingAvoidance_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, int InAgentCount, float InRingRadius)
+    {
+        return FCk_EntityScript_NavigationGym_RingAvoidance_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InAgentCount, InRingRadius);
     }
 }
 
