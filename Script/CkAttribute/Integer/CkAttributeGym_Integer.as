@@ -13,7 +13,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 			auto Station = FCkGym_Station_SpawnParams_Payload();
 			Station.Tags.Add(n"Gym.Attribute.IntegerBasic");
 			Station.Title = FText::FromString("INTEGER BASIC ATTRIBUTES");
-			Station.Height = gym_auto::EstimateStationHeight(6, 4, 14);
+			Station.AutoSize = true;
 			auto Description = TArray<FText>();
 			Description.Add(FText::FromString("Tests integer attributes: Health (0-100), Armor (0-50), Experience (0+)."));
 			Description.Add(FText::FromString("Auto-cycles through 6 phases every 2s."));
@@ -27,7 +27,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 			auto Station = FCkGym_Station_SpawnParams_Payload();
 			Station.Tags.Add(n"Gym.Attribute.IntegerMinMaxCurrent");
 			Station.Title = FText::FromString("INTEGER MIN/MAX/CURRENT");
-			Station.Height = gym_auto::EstimateStationHeight(6, 3, 16);
+			Station.AutoSize = true;
 			auto Description = TArray<FText>();
 			Description.Add(FText::FromString("Displays all three attribute components independently."));
 			Description.Add(FText::FromString("Shows how Min, Max, and Current values interact and update."));
@@ -40,7 +40,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 			auto Station = FCkGym_Station_SpawnParams_Payload();
 			Station.Tags.Add(n"Gym.Attribute.IntegerModifiers");
 			Station.Title = FText::FromString("INTEGER MODIFIERS");
-			Station.Height = gym_auto::EstimateStationHeight(4, 5, 12);
+			Station.AutoSize = true;
 			auto Description = TArray<FText>();
 			Description.Add(FText::FromString("Tests attribute modifier system with add/remove operations."));
 			Description.Add(FText::FromString("Demonstrates weapon and buff modifier stacking."));
@@ -54,7 +54,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 			auto Station = FCkGym_Station_SpawnParams_Payload();
 			Station.Tags.Add(n"Gym.Attribute.IntegerClamping");
 			Station.Title = FText::FromString("INTEGER CLAMPING & SIGNALS");
-			Station.Height = gym_auto::EstimateStationHeight(1, 3, 10);
+			Station.AutoSize = true;
 			auto Description = TArray<FText>();
 			Description.Add(FText::FromString("Tests automatic value clamping and signal callbacks."));
 			Description.Add(FText::FromString("Monitors OnMinClamped, OnMaxClamped events."));
@@ -63,7 +63,6 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 			Stations.Add(Station);
 		}
 
-		gym_auto::NormalizeStationHeights(Stations);
 		return Stations;
 	}
 
@@ -81,7 +80,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartBasicStation()
 	{
-		auto StationTransform = Get_StationTransform("Gym.Attribute.IntegerBasic");
+		auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.IntegerBasic", ECk_GymStation_Anchor::PanelCenter);
 		auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
 		utils_entity_script::Request_SpawnEntity(
@@ -93,7 +92,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartMinMaxCurrentStation()
 	{
-		auto StationTransform = Get_StationTransform("Gym.Attribute.IntegerMinMaxCurrent");
+		auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.IntegerMinMaxCurrent", ECk_GymStation_Anchor::PanelCenter);
 		auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
 		utils_entity_script::Request_SpawnEntity(
@@ -105,7 +104,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartModifiersStation()
 	{
-		auto StationTransform = Get_StationTransform("Gym.Attribute.IntegerModifiers");
+		auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.IntegerModifiers", ECk_GymStation_Anchor::PanelCenter);
 		auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
 		utils_entity_script::Request_SpawnEntity(
@@ -117,7 +116,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
 	void Request_StartClampingStation()
 	{
-		auto StationTransform = Get_StationTransform("Gym.Attribute.IntegerClamping");
+		auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.IntegerClamping", ECk_GymStation_Anchor::PanelCenter);
 		auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
 		utils_entity_script::Request_SpawnEntity(

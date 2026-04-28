@@ -13,7 +13,7 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Replication.ReplicatedActor");
             Station.Title = FText::FromString("REPLICATION — REPLICATED ACTOR");
-            Station.Height = gym_auto::EstimateStationHeight(0, 3, 14);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Scenario A: a replicated AActor (mirror of ABB_Store) spawns a"));
             Description.Add(FText::FromString("UCk_EntityScript_WithActor_UE subclass with _Replication=Replicates"));
@@ -30,7 +30,7 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Replication.PawnTransient");
             Station.Title = FText::FromString("REPLICATION — PAWN TRANSIENT-ENTITY CHILD");
-            Station.Height = gym_auto::EstimateStationHeight(0, 2, 14);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Scenario B: the replicated pawn attaches a SECOND WithActor entity"));
             Description.Add(FText::FromString("script with ck::TransientEntity() as lifetime, and that script adds"));
@@ -40,7 +40,6 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
-        gym_auto::NormalizeStationHeights(Stations);
         return Stations;
     }
 
@@ -62,7 +61,7 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
         if (!HasAuthority())
         { return; }
 
-        auto StationTransform = Get_StationTransform("Gym.Replication.ReplicatedActor");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Replication.ReplicatedActor", ECk_GymStation_Anchor::PanelCenter);
 
         // Destroy any previous one (used by the respawn exec command).
         if (ck::IsValid(_SpawnedReplicatedActor))

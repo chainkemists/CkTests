@@ -49,7 +49,7 @@ class ACk_SceneNodeTweenGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.SceneNodeTween.Simple");
             Station.Title = FText::FromString("TWEEN + SCENE NODE (SIMPLE)");
-            Station.Height = gym_auto::EstimateStationHeight(1, 1, 18);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Root tween + 1 scene-node child."));
             Description.Add(FText::FromString("Child tracks the tweened root via"));
@@ -65,7 +65,7 @@ class ACk_SceneNodeTweenGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.SceneNodeTween.Chain");
             Station.Title = FText::FromString("TWEEN + SCENE NODE (CHAIN)");
-            Station.Height = gym_auto::EstimateStationHeight(1, 1, 20);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Root tween + 3-level chain"));
             Description.Add(FText::FromString("(root -> A yaw45 -> B roll30)."));
@@ -82,7 +82,7 @@ class ACk_SceneNodeTweenGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.SceneNodeTween.Deep");
             Station.Title = FText::FromString("TWEEN + SCENE NODE (DEEP)");
-            Station.Height = gym_auto::EstimateStationHeight(1, 1, 22);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Root tween + 5-level chain."));
             Description.Add(FText::FromString("Stress-tests propagation depth —"));
@@ -97,7 +97,6 @@ class ACk_SceneNodeTweenGym_PlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
-        gym_auto::NormalizeStationHeights(Stations);
         return Stations;
     }
 
@@ -110,7 +109,7 @@ class ACk_SceneNodeTweenGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void Request_SpawnStation(FString InStationTag, TSubclassOf<UCk_EntityScript_UE> InScriptClass)
     {
-        auto StationTransform = Get_StationTransform(InStationTag);
+        auto StationTransform = Get_StationAnchorTransform(InStationTag, ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
         utils_entity_script::Request_SpawnEntity(
             Get_StationHandle(InStationTag),

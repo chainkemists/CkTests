@@ -36,9 +36,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("Shapes shown in XY (Red), XZ (Green), and YZ (Blue) planes."));
             Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
             Station.Description = Description;
-            Station.Width = 8.0f;
-            Station.Depth = 5.0f;
-            Station.Height = 20.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -51,9 +49,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("8 shapes shown in 3 orientations each (Red/Green/Blue)."));
             Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
             Station.Description = Description;
-            Station.Width = 8.0f;
-            Station.Depth = 5.0f;
-            Station.Height = 20.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -66,9 +62,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("3 shapes shown in 3 orientations each (Red/Green/Blue)."));
             Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
             Station.Description = Description;
-            Station.Width = 8.0f;
-            Station.Depth = 5.0f;
-            Station.Height = 20.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -81,9 +75,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("3 shapes shown in 3 orientations each (Red/Green/Blue)."));
             Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
             Station.Description = Description;
-            Station.Width = 8.0f;
-            Station.Depth = 5.0f;
-            Station.Height = 20.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -96,9 +88,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("4 shapes shown in 3 orientations each (Red/Green/Blue)."));
             Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
             Station.Description = Description;
-            Station.Width = 8.0f;
-            Station.Depth = 5.0f;
-            Station.Height = 20.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -111,9 +101,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("5 shapes shown in 3 orientations each (Red/Green/Blue)."));
             Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
             Station.Description = Description;
-            Station.Width = 8.0f;
-            Station.Depth = 5.0f;
-            Station.Height = 20.0f;
+            Station.AutoSize = true;
             Stations.Add(Station);
         }
 
@@ -136,7 +124,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_ClearAllShapes();
 
         // Spawn flat shapes station
-        auto FlatStationTransform = Get_StationTransform("Gym.Pmg.FlatShapes");
+        auto FlatStationTransform = Get_StationAnchorTransform("Gym.Pmg.FlatShapes", ECk_GymStation_Anchor::PanelCenter);
         auto FlatBaseLocation = FlatStationTransform.GetLocation();
 
         int FlatRow = 0;
@@ -152,7 +140,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("📐 Spawned " + FlatRow + " rows of flat shapes (3 orientations each)");
 
         // Spawn basic 3D shapes station
-        auto BasicStationTransform = Get_StationTransform("Gym.Pmg.BasicShapes");
+        auto BasicStationTransform = Get_StationAnchorTransform("Gym.Pmg.BasicShapes", ECk_GymStation_Anchor::PanelCenter);
         auto BasicBaseLocation = BasicStationTransform.GetLocation();
 
         int BasicRow = 0;
@@ -168,7 +156,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("🔷 Spawned " + BasicRow + " basic 3D shapes");
 
         // Spawn angular shapes station
-        auto AngularStationTransform = Get_StationTransform("Gym.Pmg.AngularShapes");
+        auto AngularStationTransform = Get_StationAnchorTransform("Gym.Pmg.AngularShapes", ECk_GymStation_Anchor::PanelCenter);
         auto AngularBaseLocation = AngularStationTransform.GetLocation();
 
         int AngularRow = 0;
@@ -179,7 +167,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("📐 Spawned " + AngularRow + " angular shapes");
 
         // Spawn directional shapes station
-        auto DirectionalStationTransform = Get_StationTransform("Gym.Pmg.DirectionalShapes");
+        auto DirectionalStationTransform = Get_StationAnchorTransform("Gym.Pmg.DirectionalShapes", ECk_GymStation_Anchor::PanelCenter);
         auto DirectionalBaseLocation = DirectionalStationTransform.GetLocation();
 
         int DirectionalRow = 0;
@@ -190,7 +178,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("➡️ Spawned " + DirectionalRow + " directional shapes");
 
         // Spawn icon shapes station
-        auto IconStationTransform = Get_StationTransform("Gym.Pmg.IconShapes");
+        auto IconStationTransform = Get_StationAnchorTransform("Gym.Pmg.IconShapes", ECk_GymStation_Anchor::PanelCenter);
         auto IconBaseLocation = IconStationTransform.GetLocation();
 
         int IconRow = 0;
@@ -202,7 +190,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("⚠️ Spawned " + IconRow + " icon shapes");
 
         // Spawn symbol shapes station
-        auto SymbolStationTransform = Get_StationTransform("Gym.Pmg.SymbolShapes");
+        auto SymbolStationTransform = Get_StationAnchorTransform("Gym.Pmg.SymbolShapes", ECk_GymStation_Anchor::PanelCenter);
         auto SymbolBaseLocation = SymbolStationTransform.GetLocation();
 
         int SymbolRow = 0;

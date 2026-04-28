@@ -395,7 +395,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.BasicAttributes");
-            Station.Height = 9.0f;
+            Station.AutoSize = true;
             Station.Title = FText::FromString("BASIC ATTRIBUTES - AUTO CLAMPING");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests float, byte, and vector attributes with auto-clamping."));
@@ -416,7 +416,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartBasicAttributes()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.BasicAttributes");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.BasicAttributes", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FBasicAttributesSpawnParams(StationTransform, "BasicAttributes");
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(

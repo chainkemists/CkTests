@@ -22,7 +22,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Probe.Debug");
             Station.Title = FText::FromString("PROBE DEBUG");
-            Station.Height = gym_auto::EstimateStationHeight(4, 3, 14);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests raw Probe API: Request_Begin/EndOverlap + dedup."));
             Description.Add(FText::FromString("Console: ForceEnter / ForceExit / Reset / Auto"));
@@ -35,7 +35,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Probe.Physical.Single");
             Station.Title = FText::FromString("PROBE PHYSICAL (SINGLE)");
-            Station.Height = gym_auto::EstimateStationHeight(1, 1, 14);
+            Station.AutoSize = true;
             auto SingleDescription = TArray<FText>();
             SingleDescription.Add(FText::FromString("Single ball tweens through the detector."));
             SingleDescription.Add(FText::FromString("Simplest case; yellow = Jolt body desync."));
@@ -48,7 +48,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Probe.Physical");
             Station.Title = FText::FromString("PROBE PHYSICAL (MULTI)");
-            Station.Height = gym_auto::EstimateStationHeight(1, 1, 14);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Multi-ball tween demo. Yellow ball = Jolt body desync vs AABB."));
             Description.Add(FText::FromString("Walk the pawn through too."));
@@ -61,7 +61,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Probe.StationaryHierarchy");
             Station.Title = FText::FromString("PROBE STATIC HIERARCHY");
-            Station.Height = gym_auto::EstimateStationHeight(1, 1, 24);
+            Station.AutoSize = true;
             auto StaticDescription = TArray<FText>();
             StaticDescription.Add(FText::FromString("Same Z45->X30 chain but stationary."));
             StaticDescription.Add(FText::FromString("Detector at expected probe world pos."));
@@ -74,7 +74,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Probe.NestedSceneNode");
             Station.Title = FText::FromString("PROBE NESTED SCENE NODES");
-            Station.Height = gym_auto::EstimateStationHeight(1, 1, 24);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Kinematic probe at end of Z45->X30 scene-node chain."));
             Description.Add(FText::FromString("Static detector fires when chained probe crosses it."));
@@ -83,7 +83,6 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
-        gym_auto::NormalizeStationHeights(Stations);
         return Stations;
     }
 
@@ -98,7 +97,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartStationaryHierarchyStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Probe.StationaryHierarchy");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Probe.StationaryHierarchy", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -109,7 +108,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartSinglePhysicalStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Probe.Physical.Single");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Probe.Physical.Single", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -120,7 +119,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartDebugStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Probe.Debug");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Probe.Debug", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -131,7 +130,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartPhysicalStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Probe.Physical");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Probe.Physical", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(
@@ -142,7 +141,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartNestedSceneNodeStation()
     {
-        auto StationTransform = Get_StationTransform("Gym.Probe.NestedSceneNode");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Probe.NestedSceneNode", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         utils_entity_script::Request_SpawnEntity(

@@ -13,7 +13,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteClamping");
             Station.Title = FText::FromString("BYTE CLAMPING");
-            Station.Height = gym_auto::EstimateStationHeight(1, 2, 16);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Demonstrates automatic value clamping within min/max boundaries."));
             Description.Add(FText::FromString("Watch attributes cycle and clamp when exceeding their limits."));
@@ -27,7 +27,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteModifiers");
             Station.Title = FText::FromString("BYTE MODIFIERS");
-            Station.Height = gym_auto::EstimateStationHeight(8, 2, 14);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests attribute modifier system with add/multiply operations."));
             Description.Add(FText::FromString("See how modifiers stack and affect final attribute values."));
@@ -40,7 +40,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteMinMaxCurrent");
             Station.Title = FText::FromString("BYTE MIN/MAX/CURRENT");
-            Station.Height = gym_auto::EstimateStationHeight(6, 3, 16);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Displays all three attribute values: Min, Max, and Current."));
             Description.Add(FText::FromString("Watch how they update independently and interact."));
@@ -53,7 +53,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteMultiple");
             Station.Title = FText::FromString("BYTE MULTIPLE ATTRIBUTES");
-            Station.Height = gym_auto::EstimateStationHeight(6, 2, 12);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Entity with multiple byte attributes working simultaneously."));
             Description.Add(FText::FromString("Tests attribute independence and concurrent updates."));
@@ -66,7 +66,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteValues");
             Station.Title = FText::FromString("BYTE VALUES");
-            Station.Height = gym_auto::EstimateStationHeight(6, 2, 16);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Basic attribute value operations and display."));
             Description.Add(FText::FromString("Tests get/set operations and value updates."));
@@ -79,7 +79,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Attribute.ByteSignals");
             Station.Title = FText::FromString("BYTE SIGNALS");
-            Station.Height = gym_auto::EstimateStationHeight(6, 1, 12);
+            Station.AutoSize = true;
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Tests attribute signal system and callbacks."));
             Description.Add(FText::FromString("Monitors OnValueChanged, OnMinClamped, OnMaxClamped events."));
@@ -87,7 +87,6 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
-        gym_auto::NormalizeStationHeights(Stations);
         return Stations;
     }
 
@@ -103,7 +102,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartByteClamping()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.ByteClamping");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.ByteClamping", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
@@ -115,7 +114,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartByteModifiers()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.ByteModifiers");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.ByteModifiers", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
@@ -127,7 +126,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartByteMinMaxCurrent()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.ByteMinMaxCurrent");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.ByteMinMaxCurrent", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
@@ -139,7 +138,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartByteMultiple()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.ByteMultiple");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.ByteMultiple", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
@@ -151,7 +150,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartByteValues()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.ByteValues");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.ByteValues", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
@@ -163,7 +162,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartByteSignals()
     {
-        auto StationTransform = Get_StationTransform("Gym.Attribute.ByteSignals");
+        auto StationTransform = Get_StationAnchorTransform("Gym.Attribute.ByteSignals", ECk_GymStation_Anchor::PanelCenter);
         auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
 
         auto SpawnRequest = utils_entity_script::Request_SpawnEntity(
