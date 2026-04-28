@@ -72,6 +72,19 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 			24, 300.0f, 1500.0f);
 	}
 
+	// Returns the station's transform with Z snapped to the navmesh surface (Z=0 in this gym).
+	// We intentionally pull stations down via DefaultStationGridZ so the alcove floor sits
+	// flush with the world floor, but nav agents themselves must spawn ON the navmesh — not
+	// at the station's pulled-down origin — otherwise their transforms (and PMG markers)
+	// end up buried below the floor mesh and dtCrowd has to project them up every frame.
+	private FTransform Get_NavSurfaceTransform(FString InTag)
+	{
+		auto T = Get_StationTransform(InTag);
+		auto Loc = T.GetLocation();
+		Loc.Z = 0.0;
+		return FTransform(T.Rotator(), Loc, FVector(1.0, 1.0, 1.0));
+	}
+
 	private void SpawnFindPathStation(
 		FString InTag,
 		FString InTitle,
@@ -80,7 +93,7 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 		float InRepathInterval)
 	{
 		auto Params = FCkNavigationGym_StationSpawnParams();
-		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.InitialTransform = Get_NavSurfaceTransform(InTag);
 		Params.StationTitle = InTitle;
 		Params.StationDescription = InDescription;
 		Params.TargetOffset = InTargetOffset;
@@ -100,7 +113,7 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 		float InArrivalSpeedThreshold)
 	{
 		auto Params = FCkNavigationGym_MovingAgentSpawnParams();
-		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.InitialTransform = Get_NavSurfaceTransform(InTag);
 		Params.StationTitle = InTitle;
 		Params.StationDescription = InDescription;
 		Params.PingPongDistance = InPingPongDistance;
@@ -120,7 +133,7 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 		float InRingRadius)
 	{
 		auto Params = FCkNavigationGym_RingAvoidanceSpawnParams();
-		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.InitialTransform = Get_NavSurfaceTransform(InTag);
 		Params.StationTitle = InTitle;
 		Params.StationDescription = InDescription;
 		Params.AgentCount = InAgentCount;
@@ -141,7 +154,7 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 		float InColumnSpacing)
 	{
 		auto Params = FCkNavigationGym_CounterFlowSpawnParams();
-		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.InitialTransform = Get_NavSurfaceTransform(InTag);
 		Params.StationTitle = InTitle;
 		Params.StationDescription = InDescription;
 		Params.AgentsPerColumn = InAgentsPerColumn;
@@ -164,7 +177,7 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 		float InTargetMoveIntervalSeconds)
 	{
 		auto Params = FCkNavigationGym_ClusterTargetSpawnParams();
-		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.InitialTransform = Get_NavSurfaceTransform(InTag);
 		Params.StationTitle = InTitle;
 		Params.StationDescription = InDescription;
 		Params.AgentCount = InAgentCount;
@@ -187,7 +200,7 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 		float InTargetDistance)
 	{
 		auto Params = FCkNavigationGym_DensityStressSpawnParams();
-		Params.InitialTransform = Get_StationTransform(InTag);
+		Params.InitialTransform = Get_NavSurfaceTransform(InTag);
 		Params.StationTitle = InTitle;
 		Params.StationDescription = InDescription;
 		Params.AgentCount = InAgentCount;
