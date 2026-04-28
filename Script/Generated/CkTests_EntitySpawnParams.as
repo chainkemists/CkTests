@@ -203,6 +203,19 @@ namespace UCk_AutoTest_StateMachine_DivergenceFirstBranchTimed
 }
 
 USTRUCT()
+struct FCk_AutoTest_StateMachine_TransitionExitBeforeEnter_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_TransitionExitBeforeEnter
+{
+    FCk_AutoTest_StateMachine_TransitionExitBeforeEnter_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_TransitionExitBeforeEnter_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_CueGym_Cue_AfterOneFrame_SpawnParams
 {
     UPROPERTY()
@@ -4175,6 +4188,71 @@ namespace UCk_SmTest_Hier_SubSmTask
     FCk_SmTest_Hier_SubSmTask_SpawnParams Params()
     {
         return FCk_SmTest_Hier_SubSmTask_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Ordering_Condition_QuickDelay_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Ordering_Condition_QuickDelay
+{
+    FCk_SmTest_Ordering_Condition_QuickDelay_SpawnParams Params()
+    {
+        return FCk_SmTest_Ordering_Condition_QuickDelay_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Ordering_State_A_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Ordering_State_A
+{
+    FCk_SmTest_Ordering_State_A_SpawnParams Params()
+    {
+        return FCk_SmTest_Ordering_State_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Ordering_State_B_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Ordering_State_B
+{
+    FCk_SmTest_Ordering_State_B_SpawnParams Params()
+    {
+        return FCk_SmTest_Ordering_State_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Ordering_Task_A_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Ordering_Task_A
+{
+    FCk_SmTest_Ordering_Task_A_SpawnParams Params()
+    {
+        return FCk_SmTest_Ordering_Task_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Ordering_Task_B_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Ordering_Task_B
+{
+    FCk_SmTest_Ordering_Task_B_SpawnParams Params()
+    {
+        return FCk_SmTest_Ordering_Task_B_SpawnParams();
     }
 }
 
