@@ -13,6 +13,7 @@ public class CkTests : CkModuleRules
         {
             "Core",
             "CoreUObject",
+            "DeveloperSettings",
             "Engine",
             "GameplayTags",
             "FunctionalTesting",
