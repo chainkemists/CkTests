@@ -44,6 +44,26 @@ level's game mode. See "PROJECT-LEVEL GAME MODES" below.
 //
 // These call their project's registration namespace in BeginPlay, which feeds
 // the Tab menu via CkGym_Cycler::RegisterProjectGym().
+//
+// REQUIRED: A project-level base GameMode that overrides BeginPlay() MUST call
+// Super::BeginPlay() AFTER its RegisterAll() call. The framework's
+// ACk_Gym_Base_GameMode::BeginPlay() runs the startup-gym auto-travel hook
+// (Editor Preferences -> Ck Tests -> Gym Cycler). Without the Super call,
+// Default-mode and Last-mode auto-travel silently never fires — every PIE
+// session lands on the launcher level regardless of the user's preference.
+// The Super call must come AFTER RegisterAll() so the resolve runs against
+// a populated registry.
+//
+// Canonical shape:
+//   class AMyProject_Gym_Base_GameMode : ACk_Gym_Base_GameMode
+//   {
+//       UFUNCTION(BlueprintOverride)
+//       void BeginPlay()
+//       {
+//           MyProject_Gyms::RegisterAll();
+//           Super::BeginPlay();  // <-- runs the startup-gym auto-travel
+//       }
+//   }
 
 //============================================================================
 // 3. FILE STRUCTURE STANDARD
