@@ -97,6 +97,16 @@ class ACkGym_MenuHUD : AHUD
     UFUNCTION(BlueprintOverride)
     void DrawHUD(int32 SizeX, int32 SizeY)
     {
+        // Suppress all HUD output (and ignore Tab) while a startup-gym
+        // auto-travel is in flight. This prevents the cycler menu / tab-hint
+        // from flashing on the launcher level during the brief transition
+        // to the user's chosen Default / Last gym.
+        auto CyclerSubsystem = UCkGym_CyclerSubsystem::Get();
+        if (ck::IsValid(CyclerSubsystem) && CyclerSubsystem.SuppressHUDDuringStartup)
+        {
+            return;
+        }
+
         auto PC = GetOwningPlayerController();
         auto DeltaTime = GetWorld().GetDeltaSeconds();
         CursorBlinkTimer = CursorBlinkTimer + DeltaTime;

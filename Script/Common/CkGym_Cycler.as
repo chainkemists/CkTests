@@ -94,9 +94,62 @@ namespace CkGym_Cycler
         auto ClassPath = Entry.GameModeClass.Get().GetPathName();
         auto LevelName = Entry.LevelName != "" ? Entry.LevelName : Subsystem.GymLevelName;
 
+        // Persist the chosen gym so the "Last" startup mode can resume it next launch.
+        UCk_Utils_GymStartup_UE::Request_Set_LastGymName(Entry.DisplayName);
+
         auto TravelURL = f"{LevelName}?game={ClassPath}";
         ck::Trace(f"[GymCycler] ServerTravel {TravelURL}");
         System::ExecuteConsoleCommand(f"ServerTravel {TravelURL}");
+    }
+
+    int32 Find_GymIndexByName(FString InName)
+    {
+        if (InName == "")
+        {
+            return -1;
+        }
+
+        auto Registry = Get_GymRegistry();
+        for (int32 i = 0; i < Registry.Num(); i++)
+        {
+            if (Registry[i].DisplayName == InName)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    void Request_TravelToGymByName(FString InName)
+    {
+        auto Index = Find_GymIndexByName(InName);
+        if (Index < 0)
+        {
+            ck::Warning(f"[GymCycler] Request_TravelToGymByName: no gym registered with DisplayName '{InName}'");
+            return;
+        }
+        Request_TravelToGym(Index);
+    }
+
+    // Returns the registry index the gym GameMode should auto-travel to on
+    // BeginPlay, based on the user's startup preference. Returns -1 when the
+    // cycler menu should handle entry (mode = Cycler, or the saved name no
+    // longer resolves to a registered gym).
+    int32 Resolve_StartupGymIndex()
+    {
+        auto Mode = UCk_Utils_GymStartup_UE::Get_StartupMode();
+
+        if (Mode == ECkGym_StartupMode::Default)
+        {
+            return Find_GymIndexByName(UCk_Utils_GymStartup_UE::Get_DefaultGymName());
+        }
+
+        if (Mode == ECkGym_StartupMode::Last)
+        {
+            return Find_GymIndexByName(UCk_Utils_GymStartup_UE::Get_LastGymName());
+        }
+
+        return -1;
     }
 
     void Request_NextGym()
