@@ -202,6 +202,71 @@ namespace UCk_AutoTest_SceneNode_AttachedActor_EntityScript
 }
 
 USTRUCT()
+struct FCk_AutoTest_SceneNode_BareChildOfBareParent_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNode_BareChildOfBareParent
+{
+    FCk_AutoTest_SceneNode_BareChildOfBareParent_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNode_BareChildOfBareParent_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNode_DeepHierarchy_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNode_DeepHierarchy
+{
+    FCk_AutoTest_SceneNode_DeepHierarchy_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNode_DeepHierarchy_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNode_MeshSocketAnchor_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNode_MeshSocketAnchor
+{
+    FCk_AutoTest_SceneNode_MeshSocketAnchor_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNode_MeshSocketAnchor_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNode_MultipleChildren_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNode_MultipleChildren
+{
+    FCk_AutoTest_SceneNode_MultipleChildren_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNode_MultipleChildren_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNode_OffsetUpdates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNode_OffsetUpdates
+{
+    FCk_AutoTest_SceneNode_OffsetUpdates_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNode_OffsetUpdates_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_BasicTransition_SpawnParams
 {
 }
