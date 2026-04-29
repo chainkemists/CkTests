@@ -164,6 +164,44 @@ namespace UCk_AutoTest_Base
 }
 
 USTRUCT()
+struct FCk_AutoTest_SceneNode_ActorAttachedToActor_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNode_ActorAttachedToActor
+{
+    FCk_AutoTest_SceneNode_ActorAttachedToActor_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNode_ActorAttachedToActor_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams
+{
+    UPROPERTY()
+    TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams(TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_SceneNode_AttachedActor_EntityScript
+{
+    FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams();
+    }
+
+    FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams Params(TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_BasicTransition_SpawnParams
 {
 }
@@ -199,6 +237,19 @@ namespace UCk_AutoTest_StateMachine_DivergenceFirstBranchTimed
     FCk_AutoTest_StateMachine_DivergenceFirstBranchTimed_SpawnParams Params()
     {
         return FCk_AutoTest_StateMachine_DivergenceFirstBranchTimed_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_RacingEventDrivenTransitions_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_RacingEventDrivenTransitions
+{
+    FCk_AutoTest_StateMachine_RacingEventDrivenTransitions_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_RacingEventDrivenTransitions_SpawnParams();
     }
 }
 
@@ -4253,6 +4304,97 @@ namespace UCk_SmTest_Ordering_Task_B
     FCk_SmTest_Ordering_Task_B_SpawnParams Params()
     {
         return FCk_SmTest_Ordering_Task_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Racing_Condition_FastTimer_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Racing_Condition_FastTimer
+{
+    FCk_SmTest_Racing_Condition_FastTimer_SpawnParams Params()
+    {
+        return FCk_SmTest_Racing_Condition_FastTimer_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Racing_Condition_SlowTimer_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Racing_Condition_SlowTimer
+{
+    FCk_SmTest_Racing_Condition_SlowTimer_SpawnParams Params()
+    {
+        return FCk_SmTest_Racing_Condition_SlowTimer_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Racing_State_DestA_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Racing_State_DestA
+{
+    FCk_SmTest_Racing_State_DestA_SpawnParams Params()
+    {
+        return FCk_SmTest_Racing_State_DestA_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Racing_State_DestB_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Racing_State_DestB
+{
+    FCk_SmTest_Racing_State_DestB_SpawnParams Params()
+    {
+        return FCk_SmTest_Racing_State_DestB_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Racing_State_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Racing_State_Idle
+{
+    FCk_SmTest_Racing_State_Idle_SpawnParams Params()
+    {
+        return FCk_SmTest_Racing_State_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Racing_Task_DestA_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Racing_Task_DestA
+{
+    FCk_SmTest_Racing_Task_DestA_SpawnParams Params()
+    {
+        return FCk_SmTest_Racing_Task_DestA_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Racing_Task_DestB_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Racing_Task_DestB
+{
+    FCk_SmTest_Racing_Task_DestB_SpawnParams Params()
+    {
+        return FCk_SmTest_Racing_Task_DestB_SpawnParams();
     }
 }
 
