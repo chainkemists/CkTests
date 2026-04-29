@@ -122,12 +122,3 @@ class UCk_AutoTest_Attribute_IntegerOverflow : UCk_AutoTest_Base
         }
     }
 }
-
-//============================================================================
-// Test actor wrapper.
-//============================================================================
-
-class ACk_AutoTest_Attribute_IntegerOverflow_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_Attribute_IntegerOverflow;
-}
