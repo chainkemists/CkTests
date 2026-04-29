@@ -81,8 +81,3 @@ class UCk_AutoTest_Attribute_IntegerBasic : UCk_AutoTest_Base
         }
     }
 }
-
-class ACk_AutoTest_Attribute_IntegerBasic_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_Attribute_IntegerBasic;
-}
