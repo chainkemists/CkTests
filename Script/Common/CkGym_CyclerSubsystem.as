@@ -14,4 +14,12 @@ class UCkGym_CyclerSubsystem : UScriptGameInstanceSubsystem
     // modifying CkTests' hardcoded list.
     UPROPERTY()
     TArray<FCkGym_Entry> ProjectGyms;
+
+    // Set to true by ACk_Gym_Base_GameMode::BeginPlay when it has decided to
+    // auto-travel to a startup gym; cleared when the destination level loads
+    // (and on no-travel code paths). The cycler HUD reads this and skips
+    // drawing while it's true, so the user doesn't briefly see the menu /
+    // tab-hint during the launcher → destination transition.
+    UPROPERTY()
+    bool SuppressHUDDuringStartup = false;
 }
