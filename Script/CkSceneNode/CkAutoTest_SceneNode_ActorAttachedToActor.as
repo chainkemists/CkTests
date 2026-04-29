@@ -80,6 +80,8 @@ class ACk_AutoTest_SceneNode_AttachedActor_Helper : AActor
     UPROPERTY(DefaultComponent, RootComponent)
     USceneComponent RootComponent;
 
+    default RootComponent.Mobility = EComponentMobility::Movable;
+
     FCk_Handle_PendingEntityScript PendingEntity;
 
     UFUNCTION(BlueprintOverride)
