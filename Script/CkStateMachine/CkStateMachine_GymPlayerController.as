@@ -90,6 +90,19 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.StateMachine.RacingEventDriven");
+            Station.Title = FText::FromString("RACING EVENT-DRIVEN");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("State with two racing event-driven transitions: ToDestA (slow timer, declared FIRST) and ToDestB (fast timer, declared SECOND)."));
+            Description.Add(FText::FromString("Guards FProcessor_SmState_Evaluate's first-Undetermined-Break behavior. With the bug, only the slow timer ever starts ticking; SM lands on DestA at the slower delay."));
+            Description.Add(FText::FromString("PASS = SM lands on DestB (the second-declared, faster transition wins)."));
+            Description.Add(FText::FromString("FAIL = SM lands on DestA (state evaluator Break'd on ToDestA's Undetermined and never inspected ToDestB)."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
         return Stations;
     }
 
@@ -106,6 +119,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
         Request_StartGraphWalkRegression();
         Request_StartDivergenceFirstBranch();
         Request_StartDivergenceTimed();
+        Request_StartRacingEventDriven();
         ck::Trace("SM Gym - All stations started");
     }
 
@@ -295,6 +309,37 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymSm_RestartDivergenceTimed()
     {
         Request_StartDivergenceTimed();
+    }
+
+    // ========================================================================
+    // RACING EVENT-DRIVEN STATION
+    // ========================================================================
+
+    void Request_StartRacingEventDriven()
+    {
+        auto StationTransform = Get_StationAnchorTransform("Gym.StateMachine.RacingEventDriven", ECk_GymStation_Anchor::PanelCenter);
+
+        auto SpawnedActor = SpawnActor(
+            ACk_SmTest_RacingEventDriven_GymActor,
+            StationTransform.GetLocation(),
+            FRotator(0, 180, 0),
+            NAME_None,
+            true);
+
+        // Watchable timings for the visual gym (autotest uses defaults).
+        SpawnedActor.SlowDelaySeconds = 2.0f;
+        SpawnedActor.FastDelaySeconds = 0.5f;
+        SpawnedActor.SettleSeconds    = 2.5f;
+
+        SpawnedActor.StationHandle = Get_StationHandle("Gym.StateMachine.RacingEventDriven");
+
+        FinishSpawningActor(SpawnedActor);
+    }
+
+    UFUNCTION(Exec, DisplayName="SM Gym - Restart Racing Event-Driven")
+    void Ck_GymSm_RestartRacingEventDriven()
+    {
+        Request_StartRacingEventDriven();
     }
 };
 
