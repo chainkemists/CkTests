@@ -28,6 +28,13 @@ struct CKTESTSEDITOR_API FCkAutoTestSyncResult
     UPROPERTY(BlueprintReadOnly, Category = "Ck|AutoTest")
     int32 AlreadyPresent = 0;
 
+    // Wrapper actors whose Outliner label was stale (e.g. placed manually
+    // before the populator existed and still carrying the unstripped class
+    // name) and got rewritten this pass. Counts toward Has_Delta() so the
+    // auto-save path persists the fix.
+    UPROPERTY(BlueprintReadOnly, Category = "Ck|AutoTest")
+    int32 Relabeled = 0;
+
     UPROPERTY(BlueprintReadOnly, Category = "Ck|AutoTest")
     bool bSkipped = false;
 
@@ -38,7 +45,7 @@ struct CKTESTSEDITOR_API FCkAutoTestSyncResult
     FString SkipReason;
 
     auto
-    Has_Delta() const -> bool { return Spawned > 0 || Removed > 0; }
+    Has_Delta() const -> bool { return Spawned > 0 || Removed > 0 || Relabeled > 0; }
 };
 
 // --------------------------------------------------------------------------------------------------------------------
