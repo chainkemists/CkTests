@@ -7,6 +7,13 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 	// stay visible from above instead of getting Z-fought into invisibility.
 	default DefaultStationGridZ = -14.9f;
 
+	// When true, only the two single-agent stations (Find Path + Moving Agent) spawn.
+	// The crowd-stress stations (Ring/CounterFlow/Cluster/Density) are skipped — their
+	// 60+ background agents drown out logs when debugging the basic nav loop. The
+	// CkNavigationGymSimple_GameMode flips this on; otherwise the full gym spawns.
+	UPROPERTY()
+	bool _SimpleMode = false;
+
 	TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
 	{
 		auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
@@ -16,6 +23,11 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 
 		Stations.Add(MakeStationPayload(n"Gym.Navigation.Move", "Moving Agent",
 			"Single agent ping-pongs between two waypoints.\nDrives the full crowd loop end-to-end:\n  Add → CrowdSetup → CrowdUpdateTarget → CrowdStep → CrowdReadVelocity\n  → script reads velocity, integrates, calls Request_SetTransform.\nWatch the agent visibly move; arrivals count up each leg."));
+
+		if (_SimpleMode)
+		{
+			return Stations;
+		}
 
 		Stations.Add(MakeStationPayload(n"Gym.Navigation.RingAvoidance", "Ring Avoidance",
 			"N agents on a circle, each targeting the diametric opposite.\nAll converge through the centre simultaneously — exercises\ndtCrowd's inter-agent avoidance. Loops forever."));
@@ -54,6 +66,11 @@ class ACk_NavigationGym_PlayerController : ACk_Gym_Base_PlayerController
 			"Single agent ping-pongs between two waypoints.\nReads CurrentVelocity from dtCrowd each tick and integrates\ninto the entity transform — the agent visibly moves.",
 			600.0f,
 			25.0f);
+
+		if (_SimpleMode)
+		{
+			return;
+		}
 
 		SpawnRingAvoidanceStation("Gym.Navigation.RingAvoidance", "RING AVOIDANCE",
 			"12 agents on a circle of radius 800cm, each targeting the\ndiametric opposite. All converge through the centre at once.",
