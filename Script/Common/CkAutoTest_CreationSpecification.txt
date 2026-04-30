@@ -703,8 +703,13 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //     ScriptAssetFilename metadata on the asset's package), then matches
 //     against IPluginManager to find the plugin → scope = "/<PluginName>/".
 //   - AS-defined project assets — when the source .as filename lives under
-//     FPaths::ProjectDir() (i.e. it's NOT in a plugin), falls back to using
-//     the project name → scope = "/<ProjectName>/" (e.g. "/BusterBlock/").
+//     FPaths::ProjectDir() (i.e. it's NOT in a plugin), derives the scope as
+//     "<ProjectName>/Script/" (e.g. "BusterBlock/Script/"). The /Script/
+//     anchor matters: a bare "/<ProjectName>/" scope would over-match into
+//     "<ProjectName>/Plugins/<X>/Script/..." paths and bleed nested-plugin
+//     tests into the project's level. Project-side C++ tests under Source/
+//     are NOT auto-scoped by this; if you need that, set ClassScanRoot
+//     explicitly on the project-side config.
 //   - On-disk .uasset configs — uses the package mount point.
 // In all cases, with no string fields set the result wraps the owning
 // plugin or project naturally, scoping the populator to test classes
