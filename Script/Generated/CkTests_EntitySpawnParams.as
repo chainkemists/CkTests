@@ -319,6 +319,19 @@ namespace UCk_AutoTest_StateMachine_DivergencePolled
 }
 
 USTRUCT()
+struct FCk_AutoTest_StateMachine_EventDrivenMultiCondition_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_EventDrivenMultiCondition
+{
+    FCk_AutoTest_StateMachine_EventDrivenMultiCondition_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_EventDrivenMultiCondition_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_RacingEventDrivenTransitions_SpawnParams
 {
 }
@@ -4200,6 +4213,71 @@ namespace UCk_SmTest_DivergenceTimed_Task_Right
     FCk_SmTest_DivergenceTimed_Task_Right_SpawnParams Params()
     {
         return FCk_SmTest_DivergenceTimed_Task_Right_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_EventDrivenMultiCondition_Condition_FastEvent_SpawnParams
+{
+}
+
+namespace UCk_SmTest_EventDrivenMultiCondition_Condition_FastEvent
+{
+    FCk_SmTest_EventDrivenMultiCondition_Condition_FastEvent_SpawnParams Params()
+    {
+        return FCk_SmTest_EventDrivenMultiCondition_Condition_FastEvent_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_EventDrivenMultiCondition_Condition_SlowEvent_SpawnParams
+{
+}
+
+namespace UCk_SmTest_EventDrivenMultiCondition_Condition_SlowEvent
+{
+    FCk_SmTest_EventDrivenMultiCondition_Condition_SlowEvent_SpawnParams Params()
+    {
+        return FCk_SmTest_EventDrivenMultiCondition_Condition_SlowEvent_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_EventDrivenMultiCondition_State_Finish_SpawnParams
+{
+}
+
+namespace UCk_SmTest_EventDrivenMultiCondition_State_Finish
+{
+    FCk_SmTest_EventDrivenMultiCondition_State_Finish_SpawnParams Params()
+    {
+        return FCk_SmTest_EventDrivenMultiCondition_State_Finish_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_EventDrivenMultiCondition_State_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmTest_EventDrivenMultiCondition_State_Idle
+{
+    FCk_SmTest_EventDrivenMultiCondition_State_Idle_SpawnParams Params()
+    {
+        return FCk_SmTest_EventDrivenMultiCondition_State_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_EventDrivenMultiCondition_Task_Finish_SpawnParams
+{
+}
+
+namespace UCk_SmTest_EventDrivenMultiCondition_Task_Finish
+{
+    FCk_SmTest_EventDrivenMultiCondition_Task_Finish_SpawnParams Params()
+    {
+        return FCk_SmTest_EventDrivenMultiCondition_Task_Finish_SpawnParams();
     }
 }
 
