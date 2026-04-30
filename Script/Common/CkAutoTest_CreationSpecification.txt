@@ -699,19 +699,16 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //
 // The populator auto-derives the owner-scope filter from where the asset
 // is authored:
-//   - AS-defined assets — uses the source .as filename (read from
+//   - AS-defined plugin assets — uses the source .as filename (read from
 //     ScriptAssetFilename metadata on the asset's package), then matches
 //     against IPluginManager to find the plugin → scope = "/<PluginName>/".
+//   - AS-defined project assets — when the source .as filename lives under
+//     FPaths::ProjectDir() (i.e. it's NOT in a plugin), falls back to using
+//     the project name → scope = "/<ProjectName>/" (e.g. "/BusterBlock/").
 //   - On-disk .uasset configs — uses the package mount point.
-// In both cases, the result is "/<YourPlugin>/" with no string fields set.
-//
-// **Project-side configs need an explicit ClassScanRoot.** BusterBlock is
-// a project, not a plugin — auto-derive walks `IPluginManager` and returns
-// empty for project paths. The scope filter must also be broad enough to
-// cover the wrapper-generator's output directory (`Script/Generated/`),
-// not just the per-test entity-script dir (`Script/Tests/`). BB's config
-// uses `ClassScanRoot = "BusterBlock/Script/"` — see
-// `Script/Tests/BB_AutoTestMapConfig.as` for the full pattern.
+// In all cases, with no string fields set the result wraps the owning
+// plugin or project naturally, scoping the populator to test classes
+// authored inside that owner's source tree.
 //
 // Fallback if the registry-scan setup isn't viable: TargetMap accepts a
 // hand-typed `FSoftObjectPath("/<Path>/<Map>.<Map>")` directly. Works, but
@@ -719,8 +716,7 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //
 // Reference configs (drop-in templates):
 //   Plugins/CkTests/Script/Common/CkTests_AutoTestMapConfig.as — plugin case
-//   <BB>/Script/Tests/BB_AutoTestMapConfig.as — project case (with explicit
-//                                                ClassScanRoot)
+//   <BB>/Script/Tests/BB_AutoTestMapConfig.as — project case
 //
 // Alternative: a plain UCkAutoTestMapConfig .uasset created via the Content
 // Browser still works (Miscellaneous → Data Asset → CkAutoTestMapConfig),
