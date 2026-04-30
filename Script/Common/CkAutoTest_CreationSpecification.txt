@@ -341,28 +341,46 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 // emission for that test, so the runtime override is authoritative.
 
 //----------------------------------------------------------------------------
-// 5b. OPT-OUT: hand-authored wrappers (custom timeout, etc.)
+// 5b. PER-TEST TIMEOUT (and the rare-case opt-out)
 //----------------------------------------------------------------------------
 //
-// The generator emits wrappers with the engine-default 5s _TimeoutSeconds.
-// To use a different timeout — or any other wrapper customization — hand-
-// author the wrapper next to the entity-script class:
+// CUSTOM TIMEOUT (the common case):
+//   Override _TimeoutSeconds directly on the entity-script class. The
+//   generator reads the CDO, sees the override, and propagates it to
+//   the wrapper's _TimeoutSeconds field — which the C++ runner reads
+//   in PrepareTest to set AFunctionalTest::TimeLimit.
+//
+//   class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
+//   {
+//       default _TimeoutSeconds = 2.0f;   // fail-fast race test
+//       // ... test body ...
+//   }
+//
+//   Reference: CkAutoTest_StateMachine_RacingEventDrivenTransitions.as.
+//   No wrapper file to write — the generator handles everything.
+//
+// WRAPPER-LEVEL OPT-OUT (rare):
+//   For tests that need wrapper customization beyond timeout (e.g. a fully
+//   custom Get_TestEntityScriptClass override that picks the test class
+//   based on a console var), hand-author the wrapper next to the entity-
+//   script class:
 //
 //   class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
 //   {
 //       default _TestEntityScriptClass = U<Prefix>_AutoTest_<Feature>_<Scenario>;
-//       default _TimeoutSeconds = 2.0f;   // fail-fast race-condition test
+//       UFUNCTION(BlueprintOverride)
+//       TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+//       { return SomeCondition ? UClassA : UClassB; }
 //   }
 //
-// The generator recognises any class with the conventional `A<...>_Actor`
-// name living OUTSIDE Script/Generated/ as hand-authored and skips emission
-// for that test. Reference: CkAutoTest_StateMachine_RacingEventDrivenTransitions.as
-// (uses _TimeoutSeconds = 2.0f to surface regressions quickly).
+//   The generator detects any class with the conventional `A<...>_Actor`
+//   name living OUTSIDE Script/Generated/ as hand-authored and skips
+//   emission for that test.
 //
-// Note: hand-authored wrappers can use the simpler compile-time
-// `default _TestEntityScriptClass = U...;` form because both classes live
-// in the same .as file — deleting the file removes both atomically, no
-// stale generated wrapper to leave the editor in a bad state.
+//   Note: hand-authored wrappers can use the simpler compile-time
+//   `default _TestEntityScriptClass = U...;` form because both classes
+//   live in the same .as file — deleting the file removes both atomically,
+//   no stale generated wrapper to leave the editor in a bad state.
 
 //============================================================================
 // 6. THE BASE CLASS API (UCk_AutoTest_Base)
