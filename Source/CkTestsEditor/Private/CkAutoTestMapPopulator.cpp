@@ -239,34 +239,17 @@ auto
         return Result;
     }
 
-    // Layer 2A scope: we only operate on the currently-open editor world. If the user
-    // hasn't opened the AutoTests map, sync is a no-op for this config. Layer 2B will
-    // load unopened packages on demand.
-    if (NOT ck::IsValid(GEditor, ck::IsValid_Policy_NullptrOnly{}))
-    {
-        Result.bSkipped = true;
-        Result.SkipReason = TEXT("GEditor not available");
-        return Result;
-    }
-
-    auto* CurrentWorld = GEditor->GetEditorWorldContext().World();
+    // Resolve the world to sync against. If the target map is the currently-open
+    // editor world, we operate on it live (path A). Otherwise we load the package
+    // off-disk and edit the unloaded UWorld in place (path B). Either way, the
+    // downstream sync logic is identical.
+    auto bWasLoadedFresh = false;
+    auto LoadSkipReason = FString{};
+    auto* CurrentWorld = Find_OrLoad_TargetWorld(InConfig, bWasLoadedFresh, LoadSkipReason);
     if (NOT ck::IsValid(CurrentWorld, ck::IsValid_Policy_NullptrOnly{}))
     {
         Result.bSkipped = true;
-        Result.SkipReason = TEXT("No editor world");
-        return Result;
-    }
-
-    const auto CurrentWorldPath = CurrentWorld->GetPackage()->GetName();
-    const auto TargetWorldPath = InConfig->TargetMap.ToSoftObjectPath().GetLongPackageName();
-
-    if (NOT CurrentWorldPath.Equals(TargetWorldPath, ESearchCase::IgnoreCase))
-    {
-        ck::tests_editor::VeryVerbose(
-            TEXT("[CkAutoTest Populator] [{}] Skipping — target map '{}' is not currently open (current: '{}')."),
-            InConfig->Get_DisplayName(), TargetWorldPath, CurrentWorldPath);
-        Result.bSkipped = true;
-        Result.SkipReason = FString::Printf(TEXT("Target map not open (have %s)"), *CurrentWorldPath);
+        Result.SkipReason = LoadSkipReason;
         return Result;
     }
 
@@ -278,10 +261,18 @@ auto
         return Result;
     }
 
-    // Snapshot dirty state BEFORE we make changes so we can decide whether auto-save
-    // is safe. If the package was already dirty, there's an unrelated edit in flight
-    // and we must not silently save it.
-    const auto WasDirtyBeforeSync = Package->IsDirty();
+    // Snapshot dirty state BEFORE we make changes.
+    //
+    // For path A (currently-open editor world): catches unrelated user edits in
+    // flight. We must NOT silently commit those.
+    //
+    // For path B (freshly loaded off-disk): catches dirty state induced by the
+    // *load itself* — e.g. UE drops unresolved actor references when the level
+    // file points at a class that no longer exists, and that drop sets the dirty
+    // flag. If we don't save in that case, the on-disk .umap retains the dead
+    // reference until the next manual save, and the load-time warning fires every
+    // time the level is opened.
+    const auto WasDirtyOnEntry = Package->IsDirty();
 
     // ---- Build "wanted" set --------------------------------------------------------
     const auto WantedClasses = Discover_TestClasses(InConfig);
@@ -385,20 +376,36 @@ auto
         }
     }
 
-    if (NOT Result.Has_Delta())
+    // Compose the "needs save" signal from two sources:
+    //   1. Our sync logic produced a delta (spawn/remove/relabel). Standard case.
+    //   2. Path B's LoadPackage induced dirty state without our help — typically the
+    //      level file referenced a class that no longer exists, UE silently dropped
+    //      the actor entry, and marked the package dirty. The level on disk still
+    //      contains the dead reference until we save here.
+    const auto bHasMyDelta = Result.Has_Delta();
+    const auto bLoadInducedDirty = bWasLoadedFresh && WasDirtyOnEntry;
+
+    if (bHasMyDelta)
+    {
+        Package->MarkPackageDirty();
+        ck::tests_editor::Log(
+            TEXT("[CkAutoTest Populator] [{}] {} spawned, {} removed, {} relabeled, {} already present."),
+            InConfig->Get_DisplayName(),
+            Result.Spawned, Result.Removed, Result.Relabeled, Result.AlreadyPresent);
+    }
+    else if (bLoadInducedDirty)
+    {
+        ck::tests_editor::Log(
+            TEXT("[CkAutoTest Populator] [{}] No actor delta, but load dropped stale references — saving to clean up disk state."),
+            InConfig->Get_DisplayName());
+    }
+    else
     {
         ck::tests_editor::VeryVerbose(
             TEXT("[CkAutoTest Populator] [{}] No changes — {} wrappers in sync."),
             InConfig->Get_DisplayName(), Result.AlreadyPresent);
         return Result;
     }
-
-    Package->MarkPackageDirty();
-
-    ck::tests_editor::Log(
-        TEXT("[CkAutoTest Populator] [{}] {} spawned, {} removed, {} relabeled, {} already present."),
-        InConfig->Get_DisplayName(),
-        Result.Spawned, Result.Removed, Result.Relabeled, Result.AlreadyPresent);
 
     // ---- Auto-save guard ------------------------------------------------------------
     if (NOT InConfig->bAutoSaveOnSync)
@@ -407,7 +414,10 @@ auto
         return Result;
     }
 
-    if (WasDirtyBeforeSync)
+    // Path A's safety check: don't silently commit a user's in-flight edits.
+    // Path B doesn't trip this — the only dirty source is the load itself, which
+    // we explicitly want to persist.
+    if (NOT bWasLoadedFresh && WasDirtyOnEntry)
     {
         ck::tests_editor::Warning(
             TEXT("[CkAutoTest Populator] [{}] Map was dirty before sync — leaving for manual save (unrelated edits would be silently committed otherwise)."),
@@ -629,6 +639,90 @@ auto
     }
 
     return FString{};
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Find_OrLoad_TargetWorld(
+        UCkAutoTestMapConfig* InConfig,
+        bool& OutWasLoadedFresh,
+        FString& OutSkipReason) const
+    -> UWorld*
+{
+    OutWasLoadedFresh = false;
+    OutSkipReason.Reset();
+
+    if (NOT ck::IsValid(InConfig, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        OutSkipReason = TEXT("Null config");
+        return nullptr;
+    }
+
+    const auto TargetWorldPath = InConfig->TargetMap.ToSoftObjectPath().GetLongPackageName();
+    if (TargetWorldPath.IsEmpty())
+    {
+        OutSkipReason = TEXT("Target map path is empty");
+        return nullptr;
+    }
+
+    // ---- Path A: target IS the currently-active editor world -----------------------
+    // Preferred when it applies — edits become visible to the user immediately, and
+    // saves go through the normal Ctrl+S / dirty-state machinery they're used to.
+    if (ck::IsValid(GEditor, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        if (auto* EditorWorld = GEditor->GetEditorWorldContext().World();
+            ck::IsValid(EditorWorld, ck::IsValid_Policy_NullptrOnly{}))
+        {
+            const auto EditorWorldPath = EditorWorld->GetPackage()->GetName();
+            if (EditorWorldPath.Equals(TargetWorldPath, ESearchCase::IgnoreCase))
+            {
+                ck::tests_editor::VeryVerbose(
+                    TEXT("[CkAutoTest Populator] [{}] Path A — target map is the active editor world."),
+                    InConfig->Get_DisplayName());
+                OutWasLoadedFresh = false;
+                return EditorWorld;
+            }
+        }
+    }
+
+    // ---- Path B: load the unopened target package off-disk -------------------------
+    // The package may already be in memory from a previous sync (we don't unload it
+    // after first use, by design); LoadPackage returns the existing UPackage in that
+    // case and is essentially free.
+    auto* Package = LoadPackage(nullptr, *TargetWorldPath, LOAD_None);
+    if (NOT ck::IsValid(Package, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        OutSkipReason = FString::Printf(TEXT("LoadPackage failed for '%s'"), *TargetWorldPath);
+        ck::tests_editor::Warning(
+            TEXT("[CkAutoTest Populator] [{}] {}"),
+            InConfig->Get_DisplayName(), OutSkipReason);
+        return nullptr;
+    }
+
+    auto* World = UWorld::FindWorldInPackage(Package);
+    if (NOT ck::IsValid(World, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        OutSkipReason = FString::Printf(TEXT("Package '%s' has no UWorld inside"), *TargetWorldPath);
+        ck::tests_editor::Warning(
+            TEXT("[CkAutoTest Populator] [{}] {}"),
+            InConfig->Get_DisplayName(), OutSkipReason);
+        return nullptr;
+    }
+
+    // Heads-up: World Partition maps store actors in external packages, not in the
+    // .umap's persistent level. The minimal AutoTests maps the populator manages
+    // shouldn't be WP, but if a project switches their AutoTests level to WP, the
+    // sync will see PersistentLevel as a stub and silently no-op. Worth the comment
+    // even though it's not currently a code path we need to handle.
+
+    ck::tests_editor::VeryVerbose(
+        TEXT("[CkAutoTest Populator] [{}] Path B — loaded target map off-disk: '{}'."),
+        InConfig->Get_DisplayName(), TargetWorldPath);
+
+    OutWasLoadedFresh = true;
+    return World;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
