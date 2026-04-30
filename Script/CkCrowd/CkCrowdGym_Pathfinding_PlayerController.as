@@ -61,6 +61,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
             ECk_Signal_PostFireBehavior::DoNothing);
 
         _BindingsAttached = true;
+        ck::Trace(f"Pathfinding gym: bindings attached on station handle {_StationHandle}");
     }
 
     UFUNCTION()
@@ -69,6 +70,32 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         _LastResult = InResult;
         ck::Trace(f"Pathfinding gym: OnPathReady — status={InResult.Get_Status()} waypoints={InResult.Get_Waypoints().Num()}");
         UpdateStationDisplay();
+        DrawPathOverlay();
+    }
+
+    private void DrawPathOverlay()
+    {
+        // Draw the waypoints + connecting lines in the world for ~10s. Gives visual
+        // confirmation that the path actually landed even if the station-text update
+        // didn't render. Cyan = healthy path. Spheres at each waypoint, lines between.
+        const auto Waypoints = _LastResult.Get_Waypoints();
+        if (Waypoints.Num() == 0)
+        { return; }
+
+        const auto Color = FLinearColor(0.42, 0.85, 1.0, 1.0); // cyan
+        const auto SphereRadius = 25.0f;
+        const auto LineThickness = 4.0f;
+        const auto Duration = 10.0f;
+
+        for (int32 i = 0; i < Waypoints.Num(); ++i)
+        {
+            UCk_Utils_DebugDraw_UE::DrawDebugSphere(this, Waypoints[i], SphereRadius, 12, Color, Duration, LineThickness);
+        }
+
+        for (int32 i = 0; i < Waypoints.Num() - 1; ++i)
+        {
+            UCk_Utils_DebugDraw_UE::DrawDebugLine(this, Waypoints[i], Waypoints[i + 1], Color, Duration, LineThickness);
+        }
     }
 
     UFUNCTION()
@@ -87,14 +114,14 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         const auto FailReason = _LastResult.Get_Diagnostics().Get_LastFailReason();
         const auto QueryMs = _LastResult.Get_Diagnostics().Get_LastQueryDurationMs();
 
-        auto Description = TArray<FText>();
-        Description.Add(FText::FromString("Console: Ck_GymCrowd_Path_IssueGood / IssueBad / Status"));
-        Description.Add(FText::FromString("Open the debugger:  ck.CrowdDebugger 1"));
-        Description.Add(FText::FromString(f"Status: {Status}   Waypoints: {WaypointCount}"));
-        Description.Add(FText::FromString(f"Fail reason: {FailReason}"));
-        Description.Add(FText::FromString(f"Last query: {QueryMs} ms"));
+        const auto Description =
+            FString("Console: Ck_GymCrowd_Path_IssueGood / IssueBad / Status\n") +
+            FString("Open the debugger:  ck.CrowdDebugger 1\n") +
+            f"Status: {Status}   Waypoints: {WaypointCount}\n" +
+            f"Fail reason: {FailReason}\n" +
+            f"Last query: {QueryMs} ms";
 
-        CkGym_Common::Update_StationDisplay(_StationHandle, FText::FromString("PATHFINDING"), Description, FText());
+        CkGym_Common::Update_StationDisplay(_StationHandle, "PATHFINDING", Description, "");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Pathfinding - Issue Good Path")
@@ -111,7 +138,9 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         // Project setting NavQuerySearchHalfExtent is 500cm; the navmesh must contain a
         // walkable area within this distance of (StationXY+500, StationZ). For the
         // CkTests_Level the floor extends well past 500cm so this should always succeed.
-        const auto StationXform = utils_transform::Get_EntityCurrentTransform(utils_transform::Cast(_StationHandle));
+        // Use the station-anchor helper rather than casting the handle to a typesafe
+        // transform — 'Cast' is an AS reserved word, and this avoids the conversion entirely.
+        const auto StationXform = Get_StationAnchorTransform("Gym.Crowd.Pathfinding", ECk_GymStation_Anchor::FootprintCenter);
         const auto Target = StationXform.GetLocation() + FVector(500.0, 0.0, 0.0);
 
         auto Request = FCk_Request_Nav_FindPath(Target);
@@ -150,5 +179,32 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         }
         const auto Result = utils_nav::Get_PathResult(_StationHandle);
         ck::Trace(f"Pathfinding gym status: {Result.Get_Status()}  waypoints={Result.Get_Waypoints().Num()}  fail={Result.Get_Diagnostics().Get_LastFailReason()}  duration={Result.Get_Diagnostics().Get_LastQueryDurationMs()}ms");
+    }
+
+    UFUNCTION(Exec, DisplayName="Crowd Pathfinding - Diagnostics")
+    void Ck_GymCrowd_Path_Diag()
+    {
+        ck::Trace("============ Pathfinding Gym Diagnostics ============");
+        ck::Trace(f"  HasAuthority         : {HasAuthority()}");
+        ck::Trace(f"  _StationHandle valid : {ck::IsValid(_StationHandle)}  ({_StationHandle})");
+        ck::Trace(f"  _BindingsAttached    : {_BindingsAttached}");
+
+        if (ck::IsValid(_StationHandle))
+        {
+            ck::Trace(f"  Has PathResult      : {utils_nav::Has_Path(_StationHandle)}");
+            ck::Trace(f"  Current PathStatus  : {utils_nav::Get_PathStatus(_StationHandle)}");
+
+            const auto Result = utils_nav::Get_PathResult(_StationHandle);
+            const auto Diag = Result.Get_Diagnostics();
+            ck::Trace(f"  Last fail reason    : {Diag.Get_LastFailReason()}");
+            ck::Trace(f"  Last target         : {Diag.Get_LastTargetLocation()}");
+            ck::Trace(f"  Last agent loc      : {Diag.Get_LastAgentLocation()}");
+            ck::Trace(f"  Start projected     : {Diag.Get_StartProjected()}  -> {Diag.Get_LastProjectedStart()}");
+            ck::Trace(f"  End projected       : {Diag.Get_EndProjected()}  -> {Diag.Get_LastProjectedEnd()}");
+            ck::Trace(f"  Raw / Extracted     : {Diag.Get_RawPathPointCount()} / {Diag.Get_ExtractedWaypointCount()}");
+            ck::Trace(f"  Last query duration : {Diag.Get_LastQueryDurationMs()} ms");
+            ck::Trace(f"  Waypoints           : {Result.Get_Waypoints().Num()} entries");
+        }
+        ck::Trace("=====================================================");
     }
 }
