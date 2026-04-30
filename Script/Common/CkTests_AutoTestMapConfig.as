@@ -1,0 +1,33 @@
+// Language=angelscript
+
+//============================================================================
+// CK TESTS — AUTOTEST MAP CONFIG (AS-defined asset)
+//============================================================================
+//
+// Tells UCkAutoTestMapPopulator which level to keep in sync, scoped to test
+// classes authored under this plugin. Replaces the on-disk .uasset config.
+//
+// The AS `asset` keyword materialises a real UCkAutoTestMapConfig instance
+// at module load — discoverable by the asset registry like any .uasset, but
+// versioned alongside the test code with no editor round-trip required.
+//
+// Why ClassScanRoot is unset:
+//   The populator auto-derives the owner scope from this file's location
+//   (Plugins/CkTests/Script/...) and resolves it to "/CkTests/". Only test
+//   classes whose source path contains "/CkTests/" sync into TargetMap, so
+//   downstream projects placing their own tests in /Game/ or another plugin
+//   never collide with this config.
+//
+// Override ClassScanRoot only for non-standard scopes (e.g., a config that
+// wants to manage tests across multiple plugins).
+//============================================================================
+
+// UCkAutoTestMapConfig lives in CkTestsEditor (UncookedOnly) — gate the declaration
+// behind #if EDITOR so the AS compiler doesn't try to bind the type in cooked builds.
+#if EDITOR
+asset CkTests_AutoTestMapConfig of UCkAutoTestMapConfig
+{
+    TargetMap = FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level");
+    // bAutoSaveOnSync defaults to true on the C++ side.
+}
+#endif
