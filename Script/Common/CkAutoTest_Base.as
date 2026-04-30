@@ -31,6 +31,16 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
 
+    // Per-test timeout override. Authors override this on their entity-script
+    // subclass via `default _TimeoutSeconds = X.Xf;` and the wrapper generator
+    // reads the CDO at emit time, propagating it to the generated wrapper's
+    // own _TimeoutSeconds (which the C++ runner applies to the engine
+    // TimeLimit in PrepareTest). Default 5.0f matches ACk_AutoTestRunner's
+    // compile-time default — leave it alone unless your test needs a tighter
+    // or looser bound.
+    UPROPERTY()
+    float _TimeoutSeconds = 5.0f;
+
     // ----- Internal state -----
     private FCk_Handle SelfEntity;
     private bool _Finished = false;
