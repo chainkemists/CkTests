@@ -114,6 +114,18 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.StateMachine.EventDrivenMultiCondition");
+            Station.Title = FText::FromString("EVENT-DRIVEN MULTI-CONDITION");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Single transition Idle->Finish gated by TWO event-driven timer conditions: FastEvent (resolves at 0.1s) and SlowEvent (resolves at 0.4s)."));
+            Description.Add(FText::FromString("Guards the framework contract that event-driven cond Pass results are preserved across transition Reset cycles. Between 0.1s and 0.4s the transition is in Fail (one Pass, one Fail) and state.Evaluate cycles through Reset many times; FastEvent's Pass MUST survive those cycles."));
+            Description.Add(FText::FromString("PASS = Counter_Finish == 1 (transition fired after SlowEvent resolved). FAIL = Counter_Finish == 0 (FastEvent's Pass was lost across Reset)."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
         return Stations;
     }
 
@@ -132,6 +144,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
         Request_StartDivergenceTimed();
         Request_StartRacingEventDriven();
         Request_StartDivergencePolled();
+        Request_StartEventDrivenMultiCondition();
         ck::Trace("SM Gym - All stations started");
     }
 
@@ -378,6 +391,37 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymSm_RestartDivergencePolled()
     {
         Request_StartDivergencePolled();
+    }
+
+    // ========================================================================
+    // EVENT-DRIVEN MULTI-CONDITION STATION
+    // ========================================================================
+
+    void Request_StartEventDrivenMultiCondition()
+    {
+        auto StationTransform = Get_StationAnchorTransform("Gym.StateMachine.EventDrivenMultiCondition", ECk_GymStation_Anchor::PanelCenter);
+
+        auto SpawnedActor = SpawnActor(
+            ACk_SmTest_EventDrivenMultiCondition_GymActor,
+            StationTransform.GetLocation(),
+            FRotator(0, 180, 0),
+            NAME_None,
+            true);
+
+        // Watchable timings for the visual gym (autotest uses defaults).
+        SpawnedActor.FastDelaySeconds = 0.5f;
+        SpawnedActor.SlowDelaySeconds = 2.0f;
+        SpawnedActor.SettleSeconds    = 2.5f;
+
+        SpawnedActor.StationHandle = Get_StationHandle("Gym.StateMachine.EventDrivenMultiCondition");
+
+        FinishSpawningActor(SpawnedActor);
+    }
+
+    UFUNCTION(Exec, DisplayName="SM Gym - Restart Event-Driven Multi-Condition")
+    void Ck_GymSm_RestartEventDrivenMultiCondition()
+    {
+        Request_StartEventDrivenMultiCondition();
     }
 };
 
