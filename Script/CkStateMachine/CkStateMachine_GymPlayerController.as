@@ -103,6 +103,17 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.StateMachine.DivergencePolled");
+            Station.Title = FText::FromString("DIVERGENCE FIRST-BRANCH (POLLED)");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Polled mirror of DIVERGENCE FIRST-BRANCH (TIMED). Same topology, but every linear hop's gate is a polled time-elapsed condition (DoEvaluate returns true after 0.05s) instead of an event-driven timer."));
+            Description.Add(FText::FromString("Diagnostic comparison: lets us observe whether the pump-budget cascade we see in the Timed variant also reproduces under polled-only conditions, or is specific to event-driven activation."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+
         return Stations;
     }
 
@@ -120,6 +131,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
         Request_StartDivergenceFirstBranch();
         Request_StartDivergenceTimed();
         Request_StartRacingEventDriven();
+        Request_StartDivergencePolled();
         ck::Trace("SM Gym - All stations started");
     }
 
@@ -340,6 +352,32 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymSm_RestartRacingEventDriven()
     {
         Request_StartRacingEventDriven();
+    }
+
+    // ========================================================================
+    // DIVERGENCE FIRST-BRANCH (POLLED) STATION
+    // ========================================================================
+
+    void Request_StartDivergencePolled()
+    {
+        auto StationTransform = Get_StationAnchorTransform("Gym.StateMachine.DivergencePolled", ECk_GymStation_Anchor::PanelCenter);
+
+        auto SpawnedActor = SpawnActor(
+            ACk_SmTest_DivergencePolled_GymActor,
+            StationTransform.GetLocation(),
+            FRotator(0, 180, 0),
+            NAME_None,
+            true);
+
+        SpawnedActor.StationHandle = Get_StationHandle("Gym.StateMachine.DivergencePolled");
+
+        FinishSpawningActor(SpawnedActor);
+    }
+
+    UFUNCTION(Exec, DisplayName="SM Gym - Restart Divergence Polled")
+    void Ck_GymSm_RestartDivergencePolled()
+    {
+        Request_StartDivergencePolled();
     }
 };
 
