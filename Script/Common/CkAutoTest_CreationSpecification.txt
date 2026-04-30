@@ -23,45 +23,64 @@ AutoTest does not need the gym, and vice versa.
 */
 
 //============================================================================
-// !!! READ THIS FIRST — WRITING THE .AS FILE IS NOT ENOUGH !!!
+// !!! READ THIS FIRST — THE WORKFLOW IS NOW FULLY AUTOMATED !!!
 //============================================================================
 //
-// Authoring an autotest is a TWO-PART workflow. The .as file alone does NOT
-// produce a runnable test — the actor wrapper must also be PLACED IN A MAP
-// in the editor before Session Frontend can discover it.
+// Authoring an autotest is a ONE-PART workflow. Write the entity-script .as
+// file. Save. Done. The editor pipeline takes care of the rest:
+//
+//   1. CkAutoTestWrapperGenerator (CkFoundation) — emits the matching
+//      A<...>_Actor wrapper class into <Plugin>/Script/Generated/
+//      <Plugin>_AutoTestActors.as on every AS post-compile.
+//
+//   2. UCkAutoTestMapPopulator (CkTestsEditor) — per-config sync that
+//      spawns the wrapper actor into the right AutoTests level, sets a
+//      readable Outliner label, and auto-saves the level. Triggered by
+//      AS post-compile, AssetRegistry first-load, or the
+//      `Ck.SyncAutoTestMaps` console command.
 //
 // IF YOU (HUMAN OR LLM) JUST CREATED OR MODIFIED A TEST:
-//   You MUST tell the user to:
-//     1. Save the .as file (AS plugin auto-recompiles; if not, restart editor).
-//     2. Place the *_Actor class in the appropriate test map:
-//          - CkTests-side tests:
-//            Plugins/CkTests/Content/AutoTests/AutoTests_CkTests_Level.umap
-//          - BusterBlock-side tests:
-//            Content/BusterBlock/Map/AutoTests/AutoTests_BB_MAP.umap
-//        Drag from Place Actors panel; the AS class with the *_Actor suffix.
-//        WARNING: don't accidentally pick a *_GymActor — those look similar
-//        in search but are display-only and won't show in Session Frontend.
-//     3. Save the map.
-//     4. Run via Session Frontend → Automation tab → check the test → Start
-//        Tests. (Or console: `Automation RunTests <pattern>`.)
+//   1. Save the .as file. AS auto-recompiles; the wrapper appears in
+//      Script/Generated/<Plugin>_AutoTestActors.as.
+//   2. The populator runs (you'll see `[CkAutoTest Populator] === ...`
+//      in Output Log) and places the wrapper actor into the configured
+//      AutoTests level. Layer 2A note: the populator only operates if
+//      that level is the currently-loaded editor world; otherwise it
+//      logs `Skipping — target map not currently open` and waits.
+//   3. Save the AutoTests map if auto-save is disabled in the config
+//      (default: enabled — no Ctrl+S needed).
+//   4. Run via Session Frontend → Automation tab → check the test →
+//      Start Tests. (Or console: `Automation RunTests <pattern>`.)
 //
-// IF YOU SEE A TEST IN THE OUTLINER BUT NOT IN SESSION FRONTEND:
-//   You almost certainly placed the gym actor instead of the autotest
-//   wrapper. Check the actor name — autotests end in `_Actor` and inherit
-//   ACk_AutoTestRunner; gym actors end in `_GymActor` and inherit AActor
-//   directly. Delete the gym actor, drag the *_Actor wrapper.
+// IF YOU SEE A TEST IN THE .AS FILE BUT NOT IN SESSION FRONTEND:
+//   - Did the AutoTests level get the wrapper actor? Open it; the populator
+//     spawns one actor per discovered test class. If the actor is missing,
+//     check Output Log for the populator's last summary line.
+//   - Was the populator's target map open when AS recompiled? In Layer 2A
+//     it has to be. If not, run `Ck.SyncAutoTestMaps` with the AutoTests
+//     map open. (Layer 2B will lift this; until then, open-then-recompile
+//     is the workflow.)
+//   - Is there a UCkAutoTestMapConfig for the plugin/project authoring
+//     the test? See section 9b for setup.
 //
-// The full per-step authoring workflow is in section 5 (file template) and
-// section 9 (map setup). Section 10 covers running. Section 11 covers
-// reading results.
+// The full per-step authoring workflow is in section 5 (file template),
+// 5b (per-project config asset), and 9 (one-time map setup).
+//
+// HISTORICAL NOTE: earlier versions of this framework required authors to
+// hand-write the `A<...>_Actor` wrapper class next to the entity script and
+// drag it into the AutoTests map manually from the Place Actors panel. Both
+// steps are now automated. Hand-authored wrappers still work as an opt-out
+// (the generator detects them by class name and skips emission for that
+// test) — useful if you need a non-default `_TimeoutSeconds` or a fully
+// custom subclass.
 
 //============================================================================
 // 1. ARCHITECTURE OVERVIEW
 //============================================================================
 
-// Two layers, both small:
+// Three layers — runtime harness, editor automation, per-test code.
 //
-//   Layer A — Reusable harness (lives in CkTests):
+//   Layer A — Reusable runtime harness (lives in CkTests):
 //     C++:
 //       FCk_AutoTest_Result            — USTRUCT result fragment
 //       ECk_AutoTest_Status            — Pending/Running/Passed/Failed/TimedOut
@@ -74,11 +93,34 @@ AutoTest does not need the gym, and vice versa.
 //       UCk_AutoTest_Base              — base entity script: Assert_*,
 //                                        FinishSuccess/Failure
 //
-//   Layer B — Per-test code (lives in the project):
-//     One AS file per test, declaring TWO classes:
-//       1. The entity script (subclass of UCk_AutoTest_Base) — the test body.
-//       2. The actor wrapper (subclass of ACk_AutoTestRunner) — bakes in
-//          _TestEntityScriptClass so the actor is drag-and-go.
+//   Layer B — Editor automation (CkAngelscriptGenerator + CkTestsEditor):
+//       FCkAutoTestWrapperGenerator    — on every AS post-compile, scans
+//                                        live UCk_AutoTest_Base subclasses
+//                                        and emits matching A<...>_Actor
+//                                        wrapper classes into <Plugin>/Script/
+//                                        Generated/<Plugin>_AutoTestActors.as.
+//                                        Skips emission for any test whose
+//                                        wrapper class already exists with a
+//                                        non-Generated/ source path (the
+//                                        opt-out mechanism for hand-authored
+//                                        wrappers).
+//       UCkAutoTestMapConfig           — UDataAsset (typically authored as
+//                                        an AS `asset` declaration) carrying
+//                                        target map + auto-save toggle +
+//                                        optional scope override.
+//       UCkAutoTestMapPopulator        — UEditorSubsystem that, per config,
+//                                        ensures one placed wrapper actor
+//                                        per discovered test class in the
+//                                        config's target level. Triggers on
+//                                        AssetRegistry first-load, AS post-
+//                                        compile, or `Ck.SyncAutoTestMaps`.
+//
+//   Layer C — Per-test code (lives in the project):
+//     One AS file per test, declaring ONE class — the entity script
+//     (subclass of UCk_AutoTest_Base). The corresponding actor wrapper
+//     is auto-generated and auto-placed by Layer B. Authors only need
+//     to hand-write a wrapper for advanced cases (custom _TimeoutSeconds,
+//     fully custom subclass). See section 5b for opt-out details.
 //
 // Lifecycle (single test run):
 //
@@ -156,14 +198,21 @@ AutoTest does not need the gym, and vice versa.
 //   Examples:
 //     UCk_AutoTest_Attribute_IntegerBasic        (CkTests, Ck prefix)
 //     UBb_AutoTest_Economy_BasicFlow             (BusterBlock, Bb prefix)
+//   Authored in the per-test .as file.
 //
 // Actor wrapper class:    A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor
 //   Examples:
 //     ACk_AutoTest_Attribute_IntegerBasic_Actor
 //     ABb_AutoTest_Economy_BasicFlow_Actor
+//   Auto-generated by FCkAutoTestWrapperGenerator into
+//     <Plugin>/Script/Generated/<Plugin>_AutoTestActors.as
+//   The naming convention IS load-bearing — the generator computes the
+//   wrapper name as `A` + entity-script-name-with-`U`-stripped + `_Actor`,
+//   and the populator strips the `_Actor` suffix to derive the Outliner
+//   label shown in Session Frontend. Don't deviate.
 //
 // File name:              <Prefix>_AutoTest_<Feature>_<Scenario>.as
-//   Both classes (entity script + actor wrapper) live in the same .as file.
+//   Holds the entity-script class (and only that, in the typical case).
 //
 // Folder layout:
 //   CkTests:    Plugins/CkTests/Script/<Module>/CkAutoTest_*.as
@@ -179,7 +228,10 @@ AutoTest does not need the gym, and vice versa.
 // 5. FILE TEMPLATE
 //============================================================================
 
-// Every test file follows this shape:
+// Every test file follows this shape — ONE class. The actor wrapper is
+// auto-generated by Layer B (see section 1) into Script/Generated/
+// <Plugin>_AutoTestActors.as on the next AS recompile. Don't write it
+// by hand unless you need an opt-out (section 5b).
 
 class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 {
@@ -235,25 +287,52 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
     }
 }
 
-// The actor wrapper. Bakes in the test entity script class so the actor
-// can be dragged from the Place Actors panel without per-instance config.
+// That's it. After saving the .as file, the generator emits this:
 //
-// _TestEntityScriptClass uses the CK convention (private + AllowPrivateAccess
-// + BlueprintReadOnly), which allows AS's `default` syntax to set it.
+//   // Script/Generated/<Plugin>_AutoTestActors.as  -- DO NOT EDIT
+//   class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
+//   {
+//       default _TestEntityScriptClass = U<Prefix>_AutoTest_<Feature>_<Scenario>;
+//   }
+//
+// And the populator places one instance of that wrapper into the configured
+// AutoTests level. Session Frontend picks it up next refresh.
 
-class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = U<Prefix>_AutoTest_<Feature>_<Scenario>;
-    // Optional: override the default 5s timeout for slow tests.
-    // default _TimeoutSeconds = 10.0f;
-}
+//----------------------------------------------------------------------------
+// 5a. ESCAPE HATCH: dynamic test-class resolution
+//----------------------------------------------------------------------------
+//
+// If a wrapper needs to compute its test class at runtime (e.g. based on a
+// console var), hand-author the wrapper and override Get_TestEntityScriptClass:
+//
+//   class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
+//   {
+//       UFUNCTION(BlueprintOverride)
+//       TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+//       { return SomeCondition ? UClassA : UClassB; }
+//   }
+//
+// The generator detects the hand-authored wrapper by class name and skips
+// emission for that test, so the runtime override is authoritative.
 
-// Escape hatch: if a subclass needs to compute the class dynamically (e.g.
-// based on a console var or runtime state), override Get_TestEntityScriptClass
-// instead:
-//   UFUNCTION(BlueprintOverride)
-//   TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
-//   { return SomeCondition ? UClassA : UClassB; }
+//----------------------------------------------------------------------------
+// 5b. OPT-OUT: hand-authored wrappers (custom timeout, etc.)
+//----------------------------------------------------------------------------
+//
+// The generator emits wrappers with the engine-default 5s _TimeoutSeconds.
+// To use a different timeout — or any other wrapper customization — hand-
+// author the wrapper next to the entity-script class:
+//
+//   class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
+//   {
+//       default _TestEntityScriptClass = U<Prefix>_AutoTest_<Feature>_<Scenario>;
+//       default _TimeoutSeconds = 2.0f;   // fail-fast race-condition test
+//   }
+//
+// The generator recognises any class with the conventional `A<...>_Actor`
+// name living OUTSIDE Script/Generated/ as hand-authored and skips emission
+// for that test. Reference: CkAutoTest_StateMachine_RacingEventDrivenTransitions.as
+// (uses _TimeoutSeconds = 2.0f to surface regressions quickly).
 
 //============================================================================
 // 6. THE BASE CLASS API (UCk_AutoTest_Base)
@@ -464,26 +543,37 @@ class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
 //   the modifier processor batches dirty-flagged recomputes per tick.
 
 //============================================================================
-// 9. MAP SETUP
+// 9. ONE-TIME PER-PROJECT SETUP
 //============================================================================
+//
+// Each plugin/project that hosts AutoTests sets up two artefacts ONCE:
+//   (a) A bare AutoTests level for the AFunctionalTest framework to live in.
+//   (b) A UCkAutoTestMapConfig asset telling the populator which level
+//       to keep in sync. The populator handles per-test placement after that.
+//
+// Authors creating new tests after this setup do NOT touch either artefact —
+// see section 5 (just write the entity script).
 
-// Tests run inside a level so the AFunctionalTest framework can discover
-// and tick them. Two maps live in the repo, mirroring the test split:
+//----------------------------------------------------------------------------
+// 9a. THE AUTOTESTS LEVEL
+//----------------------------------------------------------------------------
 //
-//   Framework-side tests (CkTests plugin features — CkAttribute, CkTimer, ...):
+// One level per plugin/project. Two live in the repo, mirroring the test split:
+//
+//   Framework-side tests (CkTests plugin — CkAttribute, CkTimer, ...):
 //     Plugins/CkTests/Content/AutoTests/AutoTests_CkTests_Level.umap
-//     Place ACk_AutoTest_*_Actor instances here for any test whose AS file
-//     lives under Plugins/CkTests/Script/.
 //
-//   Project-side tests (BusterBlock features — Economy, Inventory, Store, ...):
+//   Project-side tests (BusterBlock — Economy, Inventory, Store, ...):
 //     Content/BusterBlock/Map/AutoTests/AutoTests_BB_MAP.umap
-//     Place ABb_AutoTest_*_Actor instances here for any test whose AS file
-//     lives under Script/Tests/.
 //
-// Both maps are minimal: empty level, World Settings -> GameMode Override
-// = AGameModeBase. The split mirrors the dependency direction (CkFoundation
-// <- CkTests <- BusterBlock) — keep CkTests-side actors out of BB-side maps
-// and vice versa, so framework tests are runnable without the project loaded.
+// The split mirrors the dependency direction (CkFoundation <- CkTests <-
+// BusterBlock) so framework tests are runnable without the project loaded.
+//
+// Creating the level:
+//   1. New empty Level. Save at the path above (or any path your config
+//      will point at).
+//   2. World Settings -> GameMode Override = AGameModeBase.
+//   3. Save.
 //
 // IMPORTANT: always set GameMode Override = AGameModeBase. If you leave it
 // unset, the project's default GameMode (e.g. BbGameMode) runs in the test
@@ -491,21 +581,71 @@ class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
 // and any other startup work. That couples every test to project state and
 // makes failures depend on project evolution unrelated to the feature under
 // test. Tests should be isolated from the game.
+
+//----------------------------------------------------------------------------
+// 9b. THE UCkAutoTestMapConfig ASSET
+//----------------------------------------------------------------------------
 //
-// Once per project, create the map(s):
-//   1. New empty Level. Save at the path above.
-//   2. World Settings -> GameMode Override = AGameModeBase.
-//      (Use the picker; or set "Game Mode Override" -> AGameModeBase.)
-//   3. Save.
+// Tells the populator which level to keep in sync, scoped to test classes
+// authored within the owning plugin. Best authored as an AngelScript
+// `asset` declaration — versioned alongside test code, no editor round-trip.
 //
-// Per test:
-//   1. Place Actors panel -> search for the actor wrapper class
-//      (e.g. Ck_AutoTest_Attribute_IntegerBasic_Actor or
-//       Bb_AutoTest_Economy_BasicFlow_Actor).
-//   2. Drag into the corresponding map.
-//   3. Optional: rename the placed actor in the Outliner to match the
-//      test class name (improves Session Frontend display).
-//   4. Save the map.
+//   // Plugins/<YourPlugin>/Script/Common/<Plugin>_AutoTestMapConfig.as
+//   #if EDITOR
+//   asset <Plugin>_AutoTestMapConfig of UCkAutoTestMapConfig
+//   {
+//       TargetMap = FSoftObjectPath(
+//           "/<YourPlugin>/AutoTests/<YourMap>.<YourMap>");
+//       // bAutoSaveOnSync defaults to true — no Ctrl+S needed after each
+//       // populator pass. Set to false here if you want manual control.
+//       // ClassScanRoot is auto-derived from this file's plugin path; only
+//       // set it for unusual scopes (multi-plugin, /Game/-only, etc.).
+//   }
+//   #endif
+//
+// The #if EDITOR gate is required: UCkAutoTestMapConfig lives in
+// CkTestsEditor (UncookedOnly), and AS refuses to bind editor-only types
+// in runtime code.
+//
+// The populator auto-derives the owner-scope filter from where the asset
+// is authored:
+//   - AS-defined assets — uses the source .as filename (read from
+//     ScriptAssetFilename metadata on the asset's package), then matches
+//     against IPluginManager to find the plugin → scope = "/<PluginName>/".
+//   - On-disk .uasset configs — uses the package mount point.
+// In both cases, the result is "/<YourPlugin>/" with no string fields set.
+//
+// Reference: Plugins/CkTests/Script/Common/CkTests_AutoTestMapConfig.as
+// (the framework's own validation rig — drop-in template for downstream
+// projects).
+//
+// Alternative: a plain UCkAutoTestMapConfig .uasset created via the Content
+// Browser still works (Miscellaneous → Data Asset → CkAutoTestMapConfig),
+// but offers no benefit over the AS form and adds a binary file to the repo.
+
+//----------------------------------------------------------------------------
+// 9c. WHAT THE POPULATOR DOES PER TEST
+//----------------------------------------------------------------------------
+//
+// On every AS post-compile (and on AssetRegistry first-load, and on
+// Ck.SyncAutoTestMaps), the populator walks every UCkAutoTestMapConfig
+// in the asset registry. Per config:
+//   - Resolve the owning plugin from the config's source location.
+//   - Discover all live ACk_AutoTestRunner subclasses whose source
+//     path is under that plugin (filtered via the auto-derived scope or
+//     an explicit ClassScanRoot override).
+//   - Compare against the wrapper actors currently placed in the
+//     CURRENTLY-LOADED editor world. If that world isn't the config's
+//     TargetMap, log `Skipping — target map not currently open` and bail.
+//     (Layer 2A constraint; Layer 2B will lift this.)
+//   - Spawn missing wrappers; remove orphans (wrapper classes whose
+//     entity script was deleted); set Outliner labels by stripping the
+//     `_Actor` suffix so Session Frontend rows read cleanly.
+//   - On a non-empty delta, MarkPackageDirty + auto-save (via
+//     UEditorLoadingAndSavingUtils::SavePackages) UNLESS the level was
+//     already dirty before the sync — in which case it logs a warning
+//     and leaves the dirty state for the human to resolve, so unrelated
+//     in-flight edits aren't silently committed.
 //
 // Each placed actor becomes one row under
 //   Project.Functional Tests.<MapPath>.<ActorLabel>
@@ -575,10 +715,16 @@ class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
 // BPs to do — variant configs, parameterized reuse, alternate timeouts —
 // is expressible as an AS subclass with `default` overrides:
 //
-//   // Same test body, longer timeout:
-//   class A..._SlowActor : A..._Actor { default _TimeoutSeconds = 30.0f; }
+//   // Same test body, longer timeout. Hand-authored = generator opts out;
+//   // populator picks the hand-authored class up by name. Place it next to
+//   // the entity script (NOT under Script/Generated/).
+//   class A..._SlowActor : ACk_AutoTestRunner
+//   {
+//       default _TestEntityScriptClass = U..._BaseTest;
+//       default _TimeoutSeconds = 30.0f;
+//   }
 //
-//   // Parameterized entity script:
+//   // Parameterized entity script (variant pattern):
 //   class U..._BaseTest : UCk_AutoTest_Base
 //   {
 //       UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -591,7 +737,10 @@ class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
 //   }
 //
 // CK-shaped UPROPERTYs propagate inheritance naturally — that's the only
-// configuration mechanism this harness needs.
+// configuration mechanism this harness needs. When you author variant
+// entity-script subclasses (U..._VariantTest above), the generator emits a
+// fresh A..._VariantTest_Actor wrapper for each, and the populator places
+// each wrapper as a separate Session Frontend row. Zero manual upkeep.
 
 //============================================================================
 // 12. REFERENCE TESTS
@@ -622,6 +771,23 @@ class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
 //     Plugins/CkTests/Source/CkTests/Public/CkAutoTest_Bridge.h
 //     Plugins/CkTests/Source/CkTests/Public/CkAutoTest_Utils.h
 //     Plugins/CkTests/Source/CkTests/Private/CkAutoTest_Utils.cpp
+//
+//   Wrapper generator (Layer B — emits A<...>_Actor classes per AS recompile):
+//     Plugins/CkFoundation/Source/CkAngelscriptGenerator/AutoTests/
+//       CkAutoTestWrapperGenerator.h
+//       CkAutoTestWrapperGenerator.cpp
+//     Hooked from CkAngelscriptGenerator_Module.cpp's
+//       OnPostEngineInit + FAngelscriptCodeModule::GetPostCompile.
+//
+//   Map populator (Layer B — places wrapper actors per config):
+//     Plugins/CkTests/Source/CkTestsEditor/
+//       Public/CkAutoTestMapConfig.h
+//       Public/CkAutoTestMapPopulator.h
+//       Private/CkAutoTestMapConfig.cpp
+//       Private/CkAutoTestMapPopulator.cpp
+//
+//   Framework-side validation rig (the canonical AS-defined config):
+//     Plugins/CkTests/Script/Common/CkTests_AutoTestMapConfig.as
 
 //============================================================================
 // 14. PURE-C++ UNIT TESTS (the OTHER variation)
