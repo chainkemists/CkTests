@@ -628,10 +628,18 @@ auto
 
             // Fallback: project-side AS asset (the project itself is not a plugin,
             // so IPluginManager doesn't enumerate it). Compare the .as path against
-            // FPaths::ProjectDir() — if it lives under there, use the project name
-            // as the scope. This means a project-side AS-defined config gets
-            // auto-derive for free (e.g. BB's BB_AutoTestMapConfig.as resolves to
-            // "/BusterBlock/" without an explicit ClassScanRoot).
+            // FPaths::ProjectDir() — if it lives under there, derive a scope rooted
+            // at the project's own Script/ directory.
+            //
+            // We deliberately do NOT use just "/<ProjectName>/" the way the plugin
+            // branch uses "/<PluginName>/": the project name appears in the path
+            // ABOVE the Plugins/ folder (e.g. "D:/Repos/BusterBlock/Plugins/CkTests/
+            // Script/...as" contains "/BusterBlock/"), so a bare project-name scope
+            // would over-match into every nested plugin's tests. Anchoring to
+            // "<ProjectName>/Script/" keeps the match scoped to the project's own
+            // source tree because plugin paths go through "<ProjectName>/Plugins/"
+            // instead. Note this means project-side C++ tests under Source/ are NOT
+            // auto-scoped; if a project ever needs that, set ClassScanRoot explicitly.
             auto NormalizedAsFilename = FPaths::ConvertRelativePathToFull(AsFilename);
             FPaths::NormalizeFilename(NormalizedAsFilename);
 
@@ -641,7 +649,7 @@ auto
             if (NOT ProjectDir.IsEmpty() &&
                 NormalizedAsFilename.StartsWith(ProjectDir, ESearchCase::IgnoreCase))
             {
-                return FString::Printf(TEXT("/%s/"), FApp::GetProjectName());
+                return FString::Printf(TEXT("%s/Script/"), FApp::GetProjectName());
             }
         }
 #endif
