@@ -51,6 +51,9 @@ class UCk_EntityScript_NavigationGym_CrowdAgent : UCk_GenericEntityScript_UE
 	private float AgentHeight = 144.0;
 	private float ArrivalSpeedThreshold = 25.0;
 	private float MarkerRadius = 30.0;
+	// Comfortably exceeds the 0.5s nav-regen debounce so an initial path failure
+	// (navmesh not baked yet on first spawn) self-heals on the next attempt.
+	private float RetryDelaySeconds = 1.0f;
 
 	private FCk_Handle_Transform _TransformH;
 	private FCk_Handle_NavAgent _NavH;
@@ -60,6 +63,14 @@ class UCk_EntityScript_NavigationGym_CrowdAgent : UCk_GenericEntityScript_UE
 	private FVector _CurrentTarget = FVector::ZeroVector;
 	private bool _MovingToTarget = true;
 	private bool _HasArrivedOnce = false;
+	// dtCrowd needs a frame or two to ramp velocity from 0 once a target is set.
+	// Without this latch, the spawn-frame Speed=0 trips arrival immediately and
+	// loops back before the agent ever moves — agent never visibly steers.
+	private bool _HasStartedMoving = false;
+	// Retry bookkeeping — track the last reported path status (via OnPathReady /
+	// OnPathFailed) so OnTick can re-issue once the retry delay elapses.
+	private ECk_Nav_PathStatus _LastStatus = ECk_Nav_PathStatus::None;
+	private float _TimeSinceLastFailedRequest = 0.0f;
 
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow
@@ -101,7 +112,9 @@ class UCk_EntityScript_NavigationGym_CrowdAgent : UCk_GenericEntityScript_UE
 	{
 		_CurrentTarget = InTarget;
 		_HasArrivedOnce = false;
+		_HasStartedMoving = false;
 		_MovingToTarget = true;
+		_TimeSinceLastFailedRequest = 0.0f;
 		Request_PathToCurrentTarget();
 	}
 
@@ -116,8 +129,31 @@ class UCk_EntityScript_NavigationGym_CrowdAgent : UCk_GenericEntityScript_UE
 	{
 		auto Dt = float(InDeltaT.Get_Seconds());
 
+		// Snapshot the latest path status. We read it directly each tick (rather than
+		// binding OnPathReady/OnPathFailed) to avoid a per-agent delegate allocation —
+		// dozens of agents per gym, many gyms, and we only need polling here.
+		_LastStatus = utils_nav::Get_PathStatus(_NavH);
+
+		// FindPath retry runs INDEPENDENT of dtCrowd registration. Path queries go through
+		// FProcessor_Nav_HandleRequests which doesn't touch dtCrowd at all — gating retry on
+		// IsCrowdRegistered keeps a navmesh-not-yet-baked-at-spawn agent stuck even after
+		// the navmesh comes up, because crowd setup and path retry get coupled.
+		if (_LastStatus == ECk_Nav_PathStatus::Failed && utils_nav::Get_HasPath(_NavH) == false)
+		{
+			_TimeSinceLastFailedRequest += Dt;
+			if (_TimeSinceLastFailedRequest >= RetryDelaySeconds)
+			{
+				_TimeSinceLastFailedRequest = 0.0f;
+				Request_PathToCurrentTarget();
+			}
+		}
+
 		if (utils_nav::Get_IsCrowdRegistered(_NavH) == false) { return; }
-		if (utils_nav::Get_HasPath(_NavH) == false) { return; }
+
+		// No usable path yet — waiting for OnPathReady (the retry block above keeps
+		// re-issuing if the last attempt failed).
+		if (utils_nav::Get_HasPath(_NavH) == false)
+		{ return; }
 
 		auto Velocity = utils_nav::Get_CurrentVelocity(_NavH);
 		auto Speed = Velocity.Size();
@@ -133,20 +169,26 @@ class UCk_EntityScript_NavigationGym_CrowdAgent : UCk_GenericEntityScript_UE
 		// a transform — utils_transform works directly on the handle.
 		utils_transform::Request_SetLocation(_MarkerH, NewLoc, ECk_LocalWorld::World);
 
-		// Arrival detection — dtCrowd ramps velocity to ~0 as the agent reaches its destination.
-		if (Speed < ArrivalSpeedThreshold && _HasArrivedOnce == false)
+		// Latch HasStartedMoving the first time the agent crosses the speed threshold —
+		// only then is "speed dipped below the threshold" a real arrival signal. Without
+		// this guard, the spawn-frame Speed=0 fires arrival immediately, flips back to
+		// _Origin (== current location → degenerate path → failure), agent gets stuck.
+		if (Speed >= ArrivalSpeedThreshold)
+		{
+			_HasStartedMoving = true;
+			_HasArrivedOnce = false;
+		}
+
+		if (_HasStartedMoving && Speed < ArrivalSpeedThreshold && _HasArrivedOnce == false)
 		{
 			_HasArrivedOnce = true;
+			_HasStartedMoving = false;
 			if (LoopBackOnArrival)
 			{
 				_MovingToTarget = !_MovingToTarget;
 				_CurrentTarget = _MovingToTarget ? TargetLocation : _Origin;
 				Request_PathToCurrentTarget();
 			}
-		}
-		else if (Speed >= ArrivalSpeedThreshold)
-		{
-			_HasArrivedOnce = false;
 		}
 	}
 }
