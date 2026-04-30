@@ -594,13 +594,17 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 // 9. ONE-TIME PER-PROJECT SETUP
 //============================================================================
 //
-// Each plugin/project that hosts AutoTests sets up two artefacts ONCE:
+// Each plugin/project that hosts AutoTests sets up three artefacts ONCE:
 //   (a) A bare AutoTests level for the AFunctionalTest framework to live in.
-//   (b) A UCkAutoTestMapConfig asset telling the populator which level
-//       to keep in sync. The populator handles per-test placement after that.
+//   (b) A UCkAssetRegistryConfig that scans the project/plugin's content
+//       and emits typed `assets::<MapName>()` accessors. Most projects
+//       already have one for gameplay assets — reuse if present.
+//   (c) A UCkAutoTestMapConfig that points at the level via the typed
+//       accessor and tells the populator which test classes belong to it.
+//       The populator handles per-test placement after that.
 //
-// Authors creating new tests after this setup do NOT touch either artefact —
-// see section 5 (just write the entity script).
+// Authors creating new tests after this setup do NOT touch any of these
+// artefacts — see section 5 (just write the entity script).
 
 //----------------------------------------------------------------------------
 // 9a. THE AUTOTESTS LEVEL
@@ -631,7 +635,44 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 // test. Tests should be isolated from the game.
 
 //----------------------------------------------------------------------------
-// 9b. THE UCkAutoTestMapConfig ASSET
+// 9b. THE UCkAssetRegistryConfig (typed-accessor scan)
+//----------------------------------------------------------------------------
+//
+// Prerequisite for the recommended UCkAutoTestMapConfig form below. Authors
+// the typed `assets::<MapName>()` accessor for your AutoTests level so the
+// AutoTestMapConfig can reference it without a magic-string FSoftObjectPath.
+//
+// Most projects already have one for their gameplay assets — check for an
+// existing `asset <Project>Assets of UCkAssetRegistryConfig` declaration
+// before authoring a new one. BB's lives at `Script/BB_Assets.as`. CkTests
+// has its own at `Plugins/CkTests/Script/CkTests_Assets.as` (covering the
+// /CkTests/ plugin content).
+//
+// Authoring a new config:
+//
+//   // Plugins/<YourPlugin>/Script/<Plugin>_Assets.as
+//   #if editor
+//   asset <Plugin>Assets of UCkAssetRegistryConfig
+//   {
+//       AssetDiscoveryRoot = "/<YourPlugin>/";   // or "/Game/<Subfolder>" for projects
+//       OutputFileName = "<Plugin>Assets.as";
+//   }
+//   #endif
+//
+// First-time scan: the UCkAssetRegistrySubsystem auto-detects asset
+// add/remove/rename inside an existing config's scan root, but does NOT
+// auto-scan a brand-new config asset on its first appearance. After
+// authoring the .as config, trigger the scan manually via the
+// `GenerateAllAssets_CkEditorTools_EUW` editor utility widget in
+// CkFoundation/Content/CkEditorOnly/. After the first scan, day-to-day
+// asset add/rename/delete inside the scan root regenerates automatically.
+//
+// Once the scan runs, your level appears in `Plugins/<Plugin>/Script/
+// Generated/<Plugin>Assets.as` (or `Script/Generated/<Project>Assets.as`)
+// as `assets::<MapName>()` returning `TSoftObjectPtr<UWorld>`.
+
+//----------------------------------------------------------------------------
+// 9c. THE UCkAutoTestMapConfig ASSET
 //----------------------------------------------------------------------------
 //
 // Tells the populator which level to keep in sync, scoped to test classes
@@ -642,8 +683,9 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //   #if EDITOR
 //   asset <Plugin>_AutoTestMapConfig of UCkAutoTestMapConfig
 //   {
-//       TargetMap = FSoftObjectPath(
-//           "/<YourPlugin>/AutoTests/<YourMap>.<YourMap>");
+//       // Typed accessor from the registry scan in 9b. Refactor-safe:
+//       // renaming the .umap regenerates this accessor automatically.
+//       TargetMap = assets::<MapName>();
 //       // bAutoSaveOnSync defaults to true — no Ctrl+S needed after each
 //       // populator pass. Set to false here if you want manual control.
 //       // ClassScanRoot is auto-derived from this file's plugin path; only
@@ -663,16 +705,29 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //   - On-disk .uasset configs — uses the package mount point.
 // In both cases, the result is "/<YourPlugin>/" with no string fields set.
 //
-// Reference: Plugins/CkTests/Script/Common/CkTests_AutoTestMapConfig.as
-// (the framework's own validation rig — drop-in template for downstream
-// projects).
+// **Project-side configs need an explicit ClassScanRoot.** BusterBlock is
+// a project, not a plugin — auto-derive walks `IPluginManager` and returns
+// empty for project paths. The scope filter must also be broad enough to
+// cover the wrapper-generator's output directory (`Script/Generated/`),
+// not just the per-test entity-script dir (`Script/Tests/`). BB's config
+// uses `ClassScanRoot = "BusterBlock/Script/"` — see
+// `Script/Tests/BB_AutoTestMapConfig.as` for the full pattern.
+//
+// Fallback if the registry-scan setup isn't viable: TargetMap accepts a
+// hand-typed `FSoftObjectPath("/<Path>/<Map>.<Map>")` directly. Works, but
+// loses refactor-safety — renaming the .umap silently breaks the config.
+//
+// Reference configs (drop-in templates):
+//   Plugins/CkTests/Script/Common/CkTests_AutoTestMapConfig.as — plugin case
+//   <BB>/Script/Tests/BB_AutoTestMapConfig.as — project case (with explicit
+//                                                ClassScanRoot)
 //
 // Alternative: a plain UCkAutoTestMapConfig .uasset created via the Content
 // Browser still works (Miscellaneous → Data Asset → CkAutoTestMapConfig),
 // but offers no benefit over the AS form and adds a binary file to the repo.
 
 //----------------------------------------------------------------------------
-// 9c. WHAT THE POPULATOR DOES PER TEST
+// 9d. WHAT THE POPULATOR DOES PER TEST
 //----------------------------------------------------------------------------
 //
 // On every AS post-compile (and on AssetRegistry first-load, and on
