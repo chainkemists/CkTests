@@ -46,11 +46,16 @@ AutoTest does not need the gym, and vice versa.
 //      in Output Log) and places the wrapper actor into the configured
 //      AutoTests level. The level does NOT need to be open — the populator
 //      will load the .umap off-disk, edit it, and save it back transparently.
-//   3. Run via Session Frontend → Automation tab → check the test →
-//      Start Tests. (Or console: `Automation RunTests <pattern>`.)
+//   3. Hit the **refresh button in Session Frontend's Automation tab** to
+//      re-scan for tests. The whole pipeline above is invisible to Session
+//      Frontend's cached test list, so without a refresh new tests won't
+//      show up — even though they're properly placed in the level on disk.
+//   4. Check the test → Start Tests. (Or console: `Automation RunTests
+//      <pattern>`.)
 //
 // IF YOU SEE A TEST IN THE .AS FILE BUT NOT IN SESSION FRONTEND:
-//   - Refresh Session Frontend (it caches its discovered test list).
+//   - **Refresh Session Frontend first** (step 3 above — it caches its
+//     discovered test list and won't see new placements until refreshed).
 //   - Check Output Log for the populator's last summary line — did it find
 //     the test? If so, the wrapper actor was spawned in the AutoTests map.
 //   - Is there a UCkAutoTestMapConfig for the plugin/project authoring
@@ -68,39 +73,6 @@ AutoTest does not need the gym, and vice versa.
 // (the generator detects them by class name and skips emission for that
 // test) — useful if you need a non-default `_TimeoutSeconds` or a fully
 // custom subclass.
-
-//============================================================================
-// !!! KNOWN CAVEAT — FILESYSTEM DELETES CAN STRAND THE GENERATED FILE !!!
-//============================================================================
-//
-// AS-UE's file watcher catches modifications reliably but can miss outright
-// deletes when they bypass the editor (e.g. `rm`, `git rm`, agent-driven
-// filesystem operations). When that happens:
-//
-//   1. The generator's next PostCompile pass still sees the deleted class
-//      as live in AS's class table.
-//   2. It emits a wrapper class referencing that now-stale entity script.
-//   3. AS's NEXT recompile (triggered by the generator writing the file)
-//      fails because the wrapper's `default _TestEntityScriptClass = ...`
-//      line references a class AS no longer knows about.
-//   4. PostCompile no longer fires (AS compile is broken), so the generator
-//      can't fix the file it just emitted. Deadlock.
-//
-// Recovery (manual):
-//   a. Open Script/Generated/<Plugin>_AutoTestActors.as in any editor.
-//   b. Delete the broken `class A<DeletedTest>_Actor : ACk_AutoTestRunner
-//      { default _TestEntityScriptClass = U<DeletedTest>; }` block.
-//   c. Save. AS recompiles cleanly; PostCompile resumes; populator runs.
-//   d. The AutoTests map may still have the orphan actor reference on disk;
-//      open the level and Ctrl+S once to drop it (or wait for the populator's
-//      next path-B sync to detect the load-induced dirty state and save).
-//
-// PREVENTION:
-//   Use the editor's Content Browser to delete .as assets (right-click →
-//   Delete). UE-AS's file watcher fires properly through that path and the
-//   class is cleanly purged before the generator's next pass. Filesystem
-//   deletes are an edge case for power users / scripts; the editor flow
-//   is the supported workflow.
 
 //============================================================================
 // 1. ARCHITECTURE OVERVIEW
@@ -127,6 +99,16 @@ AutoTest does not need the gym, and vice versa.
 //                                        and emits matching A<...>_Actor
 //                                        wrapper classes into <Plugin>/Script/
 //                                        Generated/<Plugin>_AutoTestActors.as.
+//                                        The emitted wrapper resolves its
+//                                        entity-script class at runtime via
+//                                        FSoftClassPath rather than a compile-
+//                                        time `default` reference — so the
+//                                        generated file always compiles, even
+//                                        if an entity-script .as gets deleted
+//                                        out from under it. Self-healing on
+//                                        the next pass; no race conditions.
+//                                        See the generated file's header for
+//                                        the full rationale.
 //                                        Skips emission for any test whose
 //                                        wrapper class already exists with a
 //                                        non-Generated/ source path (the
@@ -320,11 +302,26 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //   // Script/Generated/<Plugin>_AutoTestActors.as  -- DO NOT EDIT
 //   class A<Prefix>_AutoTest_<Feature>_<Scenario>_Actor : ACk_AutoTestRunner
 //   {
-//       default _TestEntityScriptClass = U<Prefix>_AutoTest_<Feature>_<Scenario>;
+//       UFUNCTION(BlueprintOverride)
+//       TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+//       {
+//           auto Path = FSoftClassPath(
+//               "/Script/Angelscript.Ck_AutoTest_<Feature>_<Scenario>");
+//           TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+//           ResolvedClass = Path.TryLoadClass();
+//           return ResolvedClass;
+//       }
 //   }
 //
-// And the populator places one instance of that wrapper into the configured
-// AutoTests level. Session Frontend picks it up next refresh.
+// (The runtime FSoftClassPath form — instead of the simpler-looking
+//  `default _TestEntityScriptClass = U...;` — exists to make the generated
+//  file race-immune against filesystem .as deletes. See the generated file's
+//  header comment for the full why. You don't need to know this to author
+//  tests; the generator handles the form for you.)
+//
+// The populator places one instance of that wrapper into the configured
+// AutoTests level. Hit refresh in Session Frontend's Automation tab and
+// the new test row appears.
 
 //----------------------------------------------------------------------------
 // 5a. ESCAPE HATCH: dynamic test-class resolution
@@ -361,6 +358,11 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 // name living OUTSIDE Script/Generated/ as hand-authored and skips emission
 // for that test. Reference: CkAutoTest_StateMachine_RacingEventDrivenTransitions.as
 // (uses _TimeoutSeconds = 2.0f to surface regressions quickly).
+//
+// Note: hand-authored wrappers can use the simpler compile-time
+// `default _TestEntityScriptClass = U...;` form because both classes live
+// in the same .as file — deleting the file removes both atomically, no
+// stale generated wrapper to leave the editor in a bad state.
 
 //============================================================================
 // 6. THE BASE CLASS API (UCk_AutoTest_Base)
