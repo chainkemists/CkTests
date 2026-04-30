@@ -29,16 +29,18 @@ public:
 
     // Optional source-path filter for which test classes apply to this config.
     // Only ACk_AutoTestRunner subclasses whose authoring source file (the .as file
-    // for AS-defined classes) starts with this path will be synced into TargetMap.
+    // for AS-defined classes) contains this path will be synced into TargetMap.
     //
-    // Leave empty to match every discovered test class. Typical values:
-    //   "/CkTests/"   — only sync framework tests authored under the CkTests plugin.
-    //   "/Game/"      — only sync project-level tests (in the current .uproject).
-    //
-    // The match is case-insensitive and uses the AS source file path; for C++ tests
-    // with no AS source path, the class's package path is used as a fallback.
+    // **Leave empty for the common case** — the populator auto-derives the scope from
+    // where this config asset lives:
+    //   - For an AS-defined `asset` declaration in `Plugins/Foo/Script/...`, the scope
+    //     becomes `/Foo/` automatically.
+    //   - For a .uasset config under `/Foo/Content/...`, the scope is also `/Foo/`.
+    // So a config authored inside the CkTests plugin scopes to /CkTests/ with no
+    // fields set. Override here only when you need a non-standard scope (e.g., `/Game/`
+    // for project-level tests, or empty `+` an explicit override means "scan everything").
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AutoTest Map",
-              meta = (Tooltip = "Source path prefix that test classes must match to be synced into this config's map. Empty = match all."))
+              meta = (Tooltip = "Override the auto-derived owner-scope filter. Leave empty to use the plugin/project this config lives in."))
     FString ClassScanRoot;
 
     // When true, the populator saves the target map automatically after spawning or

@@ -101,6 +101,18 @@ private:
         UClass* InClass,
         UClass* InAutoTestRunnerBase) -> bool;
 
+    // Returns the implicit "owner scope" of a config: a path fragment used to filter
+    // test classes when the config's ClassScanRoot field is left empty. Resolves
+    // automatically from where the config was authored:
+    //   - AS-defined assets — uses the ScriptAssetFilename metadata (set by AS-UE)
+    //     to find the plugin whose Source dir contains the .as file.
+    //   - On-disk .uasset configs — uses the package mount point (e.g., /CkTests/).
+    // Returns an empty string if no owner can be determined; the caller treats that
+    // as "scan everything".
+    static auto
+    Get_OwnerScopeForConfig(
+        UCkAutoTestMapConfig* InConfig) -> FString;
+
     auto
     OnAngelscriptPostCompile() -> void;
 

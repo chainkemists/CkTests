@@ -16,7 +16,10 @@
 #include <Engine/World.h>
 #include <FileHelpers.h>
 #include <HAL/IConsoleManager.h>
+#include <Interfaces/IPluginManager.h>
+#include <Misc/PackageName.h>
 #include <Misc/Paths.h>
+#include <UObject/MetaData.h>
 #include <UObject/Package.h>
 #include <UObject/UObjectIterator.h>
 
@@ -416,16 +419,23 @@ auto
 
     auto* RunnerBase = ACk_AutoTestRunner::StaticClass();
 
+    // Effective scope for this config: explicit override > auto-derived owner scope.
+    // The owner scope is "/<PluginName>/" for both AS-defined and on-disk configs, so
+    // a config authored in CkTests scopes to /CkTests/ automatically with no fields set.
+    auto EffectiveScanRoot = InConfig->ClassScanRoot;
+    if (EffectiveScanRoot.IsEmpty())
+    { EffectiveScanRoot = Get_OwnerScopeForConfig(InConfig); }
+
     for (TObjectIterator<UClass> It; It; ++It)
     {
         auto* Class = *It;
         if (NOT Is_LiveTestRunnerSubclass(Class, RunnerBase))
         { continue; }
 
-        if (NOT InConfig->ClassScanRoot.IsEmpty())
+        if (NOT EffectiveScanRoot.IsEmpty())
         {
             const auto SourcePath = Get_AssertedSourcePathForClass(Class);
-            if (NOT SourcePath.Contains(InConfig->ClassScanRoot, ESearchCase::IgnoreCase))
+            if (NOT SourcePath.Contains(EffectiveScanRoot, ESearchCase::IgnoreCase))
             { continue; }
         }
 
@@ -510,6 +520,89 @@ auto
     // Fallback for C++ classes (no AS source): use the package path so users can
     // still scope by `/Script/CkTests` or similar.
     return InClass->GetOutermost()->GetName();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_autotest_map_populator
+{
+    // Mirrors FCkAutoTestWrapperGenerator's plugin-prefix matcher: walk every enabled
+    // plugin's BaseDir and pick the longest one that prefixes the input path. Used to
+    // resolve an AS asset's source .as file to its owning plugin.
+    auto Find_PluginByPathPrefix(const FString& InPath) -> TSharedPtr<IPlugin>
+    {
+        if (InPath.IsEmpty())
+        { return nullptr; }
+
+        auto NormalizedPath = FPaths::ConvertRelativePathToFull(InPath);
+        FPaths::NormalizeFilename(NormalizedPath);
+
+        TSharedPtr<IPlugin> BestMatch = nullptr;
+        auto BestMatchLen = int32{0};
+
+        for (const auto& Plugin : IPluginManager::Get().GetEnabledPlugins())
+        {
+            auto PluginDir = FPaths::ConvertRelativePathToFull(Plugin->GetBaseDir());
+            FPaths::NormalizeDirectoryName(PluginDir);
+
+            if (NormalizedPath.StartsWith(PluginDir, ESearchCase::IgnoreCase))
+            {
+                if (PluginDir.Len() > BestMatchLen)
+                {
+                    BestMatch = Plugin;
+                    BestMatchLen = PluginDir.Len();
+                }
+            }
+        }
+        return BestMatch;
+    }
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    Get_OwnerScopeForConfig(
+        UCkAutoTestMapConfig* InConfig)
+    -> FString
+{
+    if (NOT ck::IsValid(InConfig, ck::IsValid_Policy_NullptrOnly{}))
+    { return FString{}; }
+
+    auto* Package = InConfig->GetPackage();
+    if (NOT ck::IsValid(Package, ck::IsValid_Policy_NullptrOnly{}))
+    { return FString{}; }
+
+    // ---- AS-defined assets ---------------------------------------------------------
+    // AS-UE writes the source .as filename into the asset package's metadata under
+    // ScriptAssetFilename when the asset is materialized at module load time
+    // (Bind_UObject.cpp:466). For configs authored as `asset Name of UClass { ... }`
+    // this is the most reliable identity — package mount-point alone is "/Script/
+    // AngelscriptAssets/" for every AS asset and doesn't tell us which plugin authored it.
+    {
+#if WITH_EDITOR
+        const auto AsFilename = Package->GetMetaData().GetValue(InConfig, TEXT("ScriptAssetFilename"));
+        if (NOT AsFilename.IsEmpty())
+        {
+            if (auto Plugin = ck_autotest_map_populator::Find_PluginByPathPrefix(AsFilename);
+                Plugin.IsValid())
+            {
+                return FString::Printf(TEXT("/%s/"), *Plugin->GetName());
+            }
+        }
+#endif
+    }
+
+    // ---- On-disk .uasset configs ---------------------------------------------------
+    // Use the package mount-point: e.g., a config at `/CkTests/AutoTests/Foo` lives
+    // in the CkTests plugin and scopes to "/CkTests/".
+    {
+        const auto MountPoint = FPackageName::GetPackageMountPoint(Package->GetName()).ToString();
+        if (NOT MountPoint.IsEmpty())
+        {
+            return FString::Printf(TEXT("/%s/"), *MountPoint);
+        }
+    }
+
+    return FString{};
 }
 
 // --------------------------------------------------------------------------------------------------------------------
