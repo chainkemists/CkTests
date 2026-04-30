@@ -26,3 +26,53 @@ class ACk_AutoTest_Attribute_IntegerOverflow_Actor : ACk_AutoTestRunner
     default _TestEntityScriptClass = UCk_AutoTest_Attribute_IntegerOverflow;
 }
 
+class ACk_AutoTest_SceneNode_ActorAttachedToActor_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_ActorAttachedToActor;
+}
+
+class ACk_AutoTest_SceneNode_BareChildOfBareParent_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_BareChildOfBareParent;
+}
+
+class ACk_AutoTest_SceneNode_DeepHierarchy_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_DeepHierarchy;
+}
+
+class ACk_AutoTest_SceneNode_MeshSocketAnchor_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_MeshSocketAnchor;
+}
+
+class ACk_AutoTest_SceneNode_MultipleChildren_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_MultipleChildren;
+}
+
+class ACk_AutoTest_SceneNode_OffsetUpdates_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_OffsetUpdates;
+}
+
+class ACk_AutoTest_StateMachine_BasicTransition_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_StateMachine_BasicTransition;
+}
+
+class ACk_AutoTest_StateMachine_DivergenceFirstBranch_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_StateMachine_DivergenceFirstBranch;
+}
+
+class ACk_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_StateMachine_DivergenceFirstBranchTimed;
+}
+
+class ACk_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_StateMachine_TransitionExitBeforeEnter;
+}
+

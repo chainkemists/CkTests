@@ -106,14 +106,3 @@ class UCk_AutoTest_StateMachine_TransitionExitBeforeEnter : UCk_AutoTest_Base
         FinishSuccess();
     }
 }
-
-//============================================================================
-// Test actor wrapper.
-//============================================================================
-
-class ACk_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_StateMachine_TransitionExitBeforeEnter;
-    // 0.5s delay condition + 0.5s settle window + buffer.
-    default _TimeoutSeconds = 5.0f;
-}

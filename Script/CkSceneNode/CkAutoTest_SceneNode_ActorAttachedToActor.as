@@ -266,9 +266,3 @@ class UCk_AutoTest_SceneNode_ActorAttachedToActor : UCk_AutoTest_Base
             f"[{InContext}] ActorB world rotation | expected {ExpectedRot}, got {ActualRot}");
     }
 }
-
-class ACk_AutoTest_SceneNode_ActorAttachedToActor_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_ActorAttachedToActor;
-    default _TimeoutSeconds = 5.0f;
-}

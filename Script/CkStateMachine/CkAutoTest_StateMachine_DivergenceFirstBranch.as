@@ -102,13 +102,3 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranch : UCk_AutoTest_Base
         FinishSuccess();
     }
 }
-
-//============================================================================
-// Test actor wrapper.
-//============================================================================
-
-class ACk_AutoTest_StateMachine_DivergenceFirstBranch_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_StateMachine_DivergenceFirstBranch;
-    default _TimeoutSeconds = 5.0f;
-}

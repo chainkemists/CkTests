@@ -129,9 +129,3 @@ class UCk_AutoTest_SceneNode_BareChildOfBareParent : UCk_AutoTest_Base
             f"[{InContext}] child rotation | expected {ExpectedRot}, got {ActualRot}");
     }
 }
-
-class ACk_AutoTest_SceneNode_BareChildOfBareParent_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_BareChildOfBareParent;
-    default _TimeoutSeconds = 5.0f;
-}
