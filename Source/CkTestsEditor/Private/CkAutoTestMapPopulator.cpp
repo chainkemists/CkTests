@@ -1,0 +1,515 @@
+#include "CkAutoTestMapPopulator.h"
+
+#include "CkAutoTestMapConfig.h"
+#include "CkTestsEditor/CkTestsEditor_Log.h"
+
+#include "CkAutoTestRunner.h"
+
+#include "CkCore/Ensure/CkEnsure.h"
+#include "CkCore/Format/CkFormat.h"
+
+#include <AssetRegistry/AssetRegistryModule.h>
+#include <Containers/Ticker.h>
+#include <Editor.h>
+#include <Editor/EditorEngine.h>
+#include <Engine/Level.h>
+#include <Engine/World.h>
+#include <FileHelpers.h>
+#include <HAL/IConsoleManager.h>
+#include <Misc/Paths.h>
+#include <UObject/Package.h>
+#include <UObject/UObjectIterator.h>
+
+#if WITH_ANGELSCRIPT_CK
+#include <AngelscriptCodeModule.h>
+#include "ClassGenerator/ASClass.h"
+#endif
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_autotest_map_populator
+{
+    static FAutoConsoleCommand GSyncCommand(
+        TEXT("Ck.SyncAutoTestMaps"),
+        TEXT("Force a sync of every UCkAutoTestMapConfig against the currently-open editor world."),
+        FConsoleCommandDelegate::CreateLambda([]()
+        {
+            if (NOT GEditor)
+            { return; }
+            if (auto* Subsystem = GEditor->GetEditorSubsystem<UCkAutoTestMapPopulator>();
+                ck::IsValid(Subsystem, ck::IsValid_Policy_NullptrOnly{}))
+            {
+                Subsystem->Sync_AllConfigs();
+            }
+        }));
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Initialize(
+        FSubsystemCollectionBase& Collection)
+    -> void
+{
+    Super::Initialize(Collection);
+
+    ck::tests_editor::Log(TEXT("[CkAutoTest Populator] Subsystem initialized."));
+
+#if WITH_ANGELSCRIPT_CK
+    _PostAngelscriptCompileHandle = FAngelscriptCodeModule::GetPostCompile().AddLambda(
+        [this]() { OnAngelscriptPostCompile(); });
+#endif
+
+    // Initial sync waits for the asset registry's first scan to complete — that's both the
+    // earliest point we can actually discover UCkAutoTestMapConfig assets AND a safe moment
+    // to use the editor timer manager. Subscribing to GEditor->GetTimerManager() any earlier
+    // (e.g. straight from Initialize) tripped a check inside ToSharedRef because the timer
+    // manager isn't constructed until later in UEditorEngine startup.
+    auto& AssetRegistry = FAssetRegistryModule::GetRegistry();
+    if (AssetRegistry.IsLoadingAssets())
+    {
+        _AssetRegistryFilesLoadedHandle = AssetRegistry.OnFilesLoaded().AddUObject(
+            this, &UCkAutoTestMapPopulator::OnAssetRegistryFilesLoaded);
+    }
+    else
+    {
+        // Already loaded (e.g. on hot-reload of this subsystem) — sync at next opportunity.
+        Defer_SyncToNextTick();
+    }
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    Deinitialize()
+    -> void
+{
+#if WITH_ANGELSCRIPT_CK
+    if (_PostAngelscriptCompileHandle.IsValid())
+    {
+        FAngelscriptCodeModule::GetPostCompile().Remove(_PostAngelscriptCompileHandle);
+        _PostAngelscriptCompileHandle.Reset();
+    }
+#endif
+
+    if (_AssetRegistryFilesLoadedHandle.IsValid())
+    {
+        if (auto* Module = FModuleManager::GetModulePtr<FAssetRegistryModule>(TEXT("AssetRegistry")))
+        {
+            Module->Get().OnFilesLoaded().Remove(_AssetRegistryFilesLoadedHandle);
+        }
+        _AssetRegistryFilesLoadedHandle.Reset();
+    }
+
+    Super::Deinitialize();
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    OnAssetRegistryFilesLoaded()
+    -> void
+{
+    Defer_SyncToNextTick();
+}
+
+auto
+    UCkAutoTestMapPopulator::
+    Defer_SyncToNextTick()
+    -> void
+{
+    // FTSTicker is always available regardless of editor init state, unlike
+    // GEditor->GetTimerManager() which trips a check inside ToSharedRef if called
+    // before the timer manager has been constructed (early in UEditorEngine::Init).
+    auto WeakSelf = TWeakObjectPtr<UCkAutoTestMapPopulator>{this};
+    FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+        [WeakSelf](float /*DeltaSeconds*/)
+        {
+            if (auto* Self = WeakSelf.Get();
+                ck::IsValid(Self, ck::IsValid_Policy_NullptrOnly{}))
+            {
+                Self->Sync_AllConfigs();
+            }
+            return false; // one-shot — don't re-tick
+        }));
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    OnAngelscriptPostCompile()
+    -> void
+{
+    // Defer to next tick — calling SpawnActor / SavePackages from inside the AS engine's
+    // post-compile callback risks re-entrancy issues, and deferring also coalesces bursts
+    // of compiles into a single sync pass.
+    Defer_SyncToNextTick();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+void UCkAutoTestMapPopulator::Sync_AllConfigs()
+{
+    ck::tests_editor::Log(TEXT("[CkAutoTest Populator] === Sync_AllConfigs ==="));
+
+    const auto Configs = Discover_AllConfigs();
+    if (Configs.Num() == 0)
+    {
+        ck::tests_editor::Log(TEXT("[CkAutoTest Populator] No UCkAutoTestMapConfig assets found in the project."));
+        return;
+    }
+
+    auto TotalSpawned = int32{0};
+    auto TotalRemoved = int32{0};
+    auto TotalSkipped = int32{0};
+
+    for (auto* Config : Configs)
+    {
+        const auto Result = Sync_Config_Internal(Config);
+        TotalSpawned += Result.Spawned;
+        TotalRemoved += Result.Removed;
+        if (Result.bSkipped) { ++TotalSkipped; }
+    }
+
+    ck::tests_editor::Log(
+        TEXT("[CkAutoTest Populator] Done — {} configs, {} spawned, {} removed, {} skipped."),
+        Configs.Num(), TotalSpawned, TotalRemoved, TotalSkipped);
+}
+
+FCkAutoTestSyncResult UCkAutoTestMapPopulator::Sync_Config(UCkAutoTestMapConfig* InConfig)
+{
+    return Sync_Config_Internal(InConfig);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Discover_AllConfigs()
+    -> TArray<UCkAutoTestMapConfig*>
+{
+    auto Result = TArray<UCkAutoTestMapConfig*>{};
+
+    auto& AssetRegistry = FAssetRegistryModule::GetRegistry();
+
+    auto AssetData = TArray<FAssetData>{};
+    AssetRegistry.GetAssetsByClass(UCkAutoTestMapConfig::StaticClass()->GetClassPathName(), AssetData, /*bSearchSubClasses=*/true);
+
+    for (const auto& Data : AssetData)
+    {
+        if (auto* Config = Cast<UCkAutoTestMapConfig>(Data.GetAsset());
+            ck::IsValid(Config, ck::IsValid_Policy_NullptrOnly{}))
+        {
+            Result.Add(Config);
+        }
+    }
+
+    return Result;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Sync_Config_Internal(
+        UCkAutoTestMapConfig* InConfig)
+    -> FCkAutoTestSyncResult
+{
+    auto Result = FCkAutoTestSyncResult{};
+
+    if (ck::Is_NOT_Valid(InConfig, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        Result.bSkipped = true;
+        Result.SkipReason = TEXT("Null config");
+        return Result;
+    }
+
+    if (InConfig->TargetMap.IsNull())
+    {
+        ck::tests_editor::Warning(
+            TEXT("[CkAutoTest Populator] [{}] Skipping — TargetMap is unset."),
+            InConfig->Get_DisplayName());
+        Result.bSkipped = true;
+        Result.SkipReason = TEXT("TargetMap is unset");
+        return Result;
+    }
+
+    // Layer 2A scope: we only operate on the currently-open editor world. If the user
+    // hasn't opened the AutoTests map, sync is a no-op for this config. Layer 2B will
+    // load unopened packages on demand.
+    if (NOT ck::IsValid(GEditor, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        Result.bSkipped = true;
+        Result.SkipReason = TEXT("GEditor not available");
+        return Result;
+    }
+
+    auto* CurrentWorld = GEditor->GetEditorWorldContext().World();
+    if (NOT ck::IsValid(CurrentWorld, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        Result.bSkipped = true;
+        Result.SkipReason = TEXT("No editor world");
+        return Result;
+    }
+
+    const auto CurrentWorldPath = CurrentWorld->GetPackage()->GetName();
+    const auto TargetWorldPath = InConfig->TargetMap.ToSoftObjectPath().GetLongPackageName();
+
+    if (NOT CurrentWorldPath.Equals(TargetWorldPath, ESearchCase::IgnoreCase))
+    {
+        ck::tests_editor::VeryVerbose(
+            TEXT("[CkAutoTest Populator] [{}] Skipping — target map '{}' is not currently open (current: '{}')."),
+            InConfig->Get_DisplayName(), TargetWorldPath, CurrentWorldPath);
+        Result.bSkipped = true;
+        Result.SkipReason = FString::Printf(TEXT("Target map not open (have %s)"), *CurrentWorldPath);
+        return Result;
+    }
+
+    auto* Package = CurrentWorld->GetPackage();
+    if (NOT ck::IsValid(Package, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        Result.bSkipped = true;
+        Result.SkipReason = TEXT("World has no package");
+        return Result;
+    }
+
+    // Snapshot dirty state BEFORE we make changes so we can decide whether auto-save
+    // is safe. If the package was already dirty, there's an unrelated edit in flight
+    // and we must not silently save it.
+    const auto WasDirtyBeforeSync = Package->IsDirty();
+
+    // ---- Build "wanted" set --------------------------------------------------------
+    const auto WantedClasses = Discover_TestClasses(InConfig);
+    auto WantedSet = TSet<UClass*>{};
+    WantedSet.Append(WantedClasses);
+
+    // ---- Inventory currently-placed wrapper actors ----------------------------------
+    auto CurrentByClass = TMap<UClass*, TArray<AActor*>>{};
+    if (ck::IsValid(CurrentWorld->PersistentLevel.Get(), ck::IsValid_Policy_NullptrOnly{}))
+    {
+        for (AActor* Actor : CurrentWorld->PersistentLevel->Actors)
+        {
+            if (NOT ck::IsValid(Actor, ck::IsValid_Policy_NullptrOnly{}))
+            { continue; }
+
+            if (NOT Actor->IsA(ACk_AutoTestRunner::StaticClass()))
+            { continue; }
+
+            CurrentByClass.FindOrAdd(Actor->GetClass()).Add(Actor);
+        }
+    }
+
+    // ---- Spawn missing classes ------------------------------------------------------
+    for (auto* Class : WantedClasses)
+    {
+        const auto* ExistingActors = CurrentByClass.Find(Class);
+        if (ExistingActors != nullptr && ExistingActors->Num() > 0)
+        {
+            ++Result.AlreadyPresent;
+            // Remove all but the first if duplicates exist.
+            for (auto Index = int32{1}; Index < ExistingActors->Num(); ++Index)
+            {
+                if (auto* Duplicate = (*ExistingActors)[Index];
+                    ck::IsValid(Duplicate, ck::IsValid_Policy_NullptrOnly{}))
+                {
+                    CurrentWorld->DestroyActor(Duplicate);
+                    ++Result.Removed;
+                }
+            }
+            continue;
+        }
+
+        auto SpawnParams = FActorSpawnParameters{};
+        SpawnParams.ObjectFlags |= RF_Transactional;
+        SpawnParams.OverrideLevel = CurrentWorld->PersistentLevel;
+
+        auto* NewActor = CurrentWorld->SpawnActor<ACk_AutoTestRunner>(Class, FTransform::Identity, SpawnParams);
+        if (NOT ck::IsValid(NewActor, ck::IsValid_Policy_NullptrOnly{}))
+        {
+            ck::tests_editor::Error(
+                TEXT("[CkAutoTest Populator] Failed to spawn wrapper actor for class '{}'"),
+                Class->GetName());
+            continue;
+        }
+
+        // Strip the conventional "_Actor" suffix off the wrapper name to get the
+        // logical test name shown in Session Frontend.
+        auto Label = Class->GetName();
+        if (Label.EndsWith(TEXT("_Actor"), ESearchCase::IgnoreCase))
+        { Label.LeftChopInline(FString(TEXT("_Actor")).Len(), EAllowShrinking::No); }
+        NewActor->SetActorLabel(Label, /*bMarkDirty=*/true);
+
+        ++Result.Spawned;
+    }
+
+    // ---- Remove orphaned actors -----------------------------------------------------
+    for (const auto& Pair : CurrentByClass)
+    {
+        if (WantedSet.Contains(Pair.Key))
+        { continue; }
+
+        for (auto* Actor : Pair.Value)
+        {
+            if (NOT ck::IsValid(Actor, ck::IsValid_Policy_NullptrOnly{}))
+            { continue; }
+            CurrentWorld->DestroyActor(Actor);
+            ++Result.Removed;
+        }
+    }
+
+    if (NOT Result.Has_Delta())
+    {
+        ck::tests_editor::VeryVerbose(
+            TEXT("[CkAutoTest Populator] [{}] No changes — {} wrappers in sync."),
+            InConfig->Get_DisplayName(), Result.AlreadyPresent);
+        return Result;
+    }
+
+    Package->MarkPackageDirty();
+
+    ck::tests_editor::Log(
+        TEXT("[CkAutoTest Populator] [{}] {} spawned, {} removed, {} already present."),
+        InConfig->Get_DisplayName(), Result.Spawned, Result.Removed, Result.AlreadyPresent);
+
+    // ---- Auto-save guard ------------------------------------------------------------
+    if (NOT InConfig->bAutoSaveOnSync)
+    {
+        ck::tests_editor::Log(TEXT("[CkAutoTest Populator] Auto-save disabled by config — leaving map dirty for manual save."));
+        return Result;
+    }
+
+    if (WasDirtyBeforeSync)
+    {
+        ck::tests_editor::Warning(
+            TEXT("[CkAutoTest Populator] [{}] Map was dirty before sync — leaving for manual save (unrelated edits would be silently committed otherwise)."),
+            InConfig->Get_DisplayName());
+        return Result;
+    }
+
+    auto PackagesToSave = TArray<UPackage*>{Package};
+    const auto bSaved = UEditorLoadingAndSavingUtils::SavePackages(PackagesToSave, /*bOnlyDirty=*/true);
+    Result.bSaved = bSaved;
+
+    if (bSaved)
+    {
+        ck::tests_editor::Log(TEXT("[CkAutoTest Populator] [{}] Auto-saved."), InConfig->Get_DisplayName());
+    }
+    else
+    {
+        ck::tests_editor::Warning(
+            TEXT("[CkAutoTest Populator] [{}] Auto-save failed — map left dirty. Use Ctrl+S to save manually."),
+            InConfig->Get_DisplayName());
+    }
+
+    return Result;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Discover_TestClasses(
+        UCkAutoTestMapConfig* InConfig) const
+    -> TArray<UClass*>
+{
+    auto Result = TArray<UClass*>{};
+
+    auto* RunnerBase = ACk_AutoTestRunner::StaticClass();
+
+    for (TObjectIterator<UClass> It; It; ++It)
+    {
+        auto* Class = *It;
+        if (NOT Is_LiveTestRunnerSubclass(Class, RunnerBase))
+        { continue; }
+
+        if (NOT InConfig->ClassScanRoot.IsEmpty())
+        {
+            const auto SourcePath = Get_AssertedSourcePathForClass(Class);
+            if (NOT SourcePath.Contains(InConfig->ClassScanRoot, ESearchCase::IgnoreCase))
+            { continue; }
+        }
+
+        Result.Add(Class);
+    }
+
+    Result.Sort([](const UClass& A, const UClass& B)
+    {
+        return A.GetPathName() < B.GetPathName();
+    });
+
+    return Result;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Is_LiveTestRunnerSubclass(
+        UClass* InClass,
+        UClass* InRunnerBase)
+    -> bool
+{
+    if (ck::Is_NOT_Valid(InClass, ck::IsValid_Policy_NullptrOnly{}))
+    { return false; }
+
+    if (InClass == InRunnerBase)
+    { return false; }
+
+    if (NOT InClass->IsChildOf(InRunnerBase))
+    { return false; }
+
+    constexpr auto DisqualifyingFlags =
+        CLASS_Abstract | CLASS_Deprecated | CLASS_NewerVersionExists;
+
+    if (InClass->HasAnyClassFlags(DisqualifyingFlags))
+    { return false; }
+
+    if (InClass->IsUnreachable() ||
+        InClass->HasAnyFlags(RF_BeginDestroyed | RF_FinishDestroyed))
+    { return false; }
+
+#if WITH_ANGELSCRIPT_CK
+    // Same staleness checks as the wrapper generator: an AS class whose source file
+    // has been deleted, or whose newer version replaced this slot, is dead and must
+    // not be placed in the level.
+    if (auto* ASClass = UASClass::GetFirstASClass(InClass))
+    {
+        if (ASClass->NewerVersion != nullptr)
+        { return false; }
+
+        const auto SourcePath = ASClass->GetSourceFilePath();
+        if (NOT SourcePath.IsEmpty() && NOT FPaths::FileExists(SourcePath))
+        { return false; }
+    }
+#endif
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCkAutoTestMapPopulator::
+    Get_AssertedSourcePathForClass(
+        UClass* InClass)
+    -> FString
+{
+#if WITH_ANGELSCRIPT_CK
+    if (auto* ASClass = UASClass::GetFirstASClass(InClass))
+    {
+        const auto Path = ASClass->GetSourceFilePath();
+        if (NOT Path.IsEmpty())
+        {
+            auto Normalized = FPaths::ConvertRelativePathToFull(Path);
+            FPaths::NormalizeFilename(Normalized);
+            return Normalized;
+        }
+    }
+#endif
+
+    // Fallback for C++ classes (no AS source): use the package path so users can
+    // still scope by `/Script/CkTests` or similar.
+    return InClass->GetOutermost()->GetName();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
