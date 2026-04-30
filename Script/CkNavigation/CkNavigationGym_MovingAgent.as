@@ -54,6 +54,11 @@ class UCk_EntityScript_NavigationGym_MovingAgent : UCk_GenericEntityScript_UE
 	UPROPERTY(ExposeOnSpawn)
 	float ArrivalSpeedThreshold = 25.0f;
 
+	// Seconds to wait before re-issuing a path request after a failure. Tuned to comfortably
+	// exceed the 0.5s nav-regen debounce so a navmesh-not-ready-yet failure on the first
+	// request resolves on the next attempt. Same idea covers dynamic-nav rebake hiccups.
+	private float RetryDelaySeconds = 1.0f;
+
 	private FCk_Handle_Transform TransformHandle;
 	private FCk_Handle_NavAgent NavAgentHandle;
 
@@ -68,6 +73,16 @@ class UCk_EntityScript_NavigationGym_MovingAgent : UCk_GenericEntityScript_UE
 	private FVector LastVelocity = FVector::ZeroVector;
 	private bool HasArrivedOnce = false;
 	private int32 ArrivalCount = 0;
+
+	// Movement-state guard for arrival detection. dtCrowd needs a frame or two to ramp
+	// velocity from 0 once a target is set, so we'd otherwise mistake "haven't started yet"
+	// for "arrived" and flip targets immediately. Only after Speed exceeds the threshold
+	// at least once is the next dip below the threshold a real arrival.
+	private bool HasStartedMoving = false;
+
+	// Retry bookkeeping for failed path queries (initial-spawn case where the navmesh isn't
+	// ready yet, plus any later transient failures).
+	private float TimeSinceLastFailedRequest = 0.0f;
 
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow
@@ -127,6 +142,10 @@ class UCk_EntityScript_NavigationGym_MovingAgent : UCk_GenericEntityScript_UE
 	{
 		LastStatus = InResult.Get_Status();
 		LastWaypointCount = InResult.Get_Waypoints().Num();
+		// Reset arrival/retry state so the new path can be detected as arriving naturally.
+		HasArrivedOnce = false;
+		HasStartedMoving = false;
+		TimeSinceLastFailedRequest = 0.0f;
 		Request_UpdateDisplay();
 	}
 
@@ -135,6 +154,10 @@ class UCk_EntityScript_NavigationGym_MovingAgent : UCk_GenericEntityScript_UE
 	{
 		LastStatus = ECk_Nav_PathStatus::Failed;
 		LastWaypointCount = 0;
+		// OnTick will count up TimeSinceLastFailedRequest and re-issue once it exceeds
+		// RetryDelaySeconds. Avoids spinning a re-request every frame while the navmesh
+		// is still being built.
+		TimeSinceLastFailedRequest = 0.0f;
 		Request_UpdateDisplay();
 	}
 
@@ -143,6 +166,20 @@ class UCk_EntityScript_NavigationGym_MovingAgent : UCk_GenericEntityScript_UE
 	{
 		auto DeltaSeconds = float(InDeltaT.Get_Seconds());
 
+		// FindPath retry runs INDEPENDENT of dtCrowd registration. Path queries go through
+		// FProcessor_Nav_HandleRequests which doesn't touch dtCrowd at all — gating retry
+		// on IsCrowdRegistered means a navmesh-not-yet-baked spawn keeps the agent stuck
+		// even after the navmesh comes up, because crowd setup and path retry are coupled.
+		if (LastStatus == ECk_Nav_PathStatus::Failed && utils_nav::Get_HasPath(NavAgentHandle) == false)
+		{
+			TimeSinceLastFailedRequest += DeltaSeconds;
+			if (TimeSinceLastFailedRequest >= RetryDelaySeconds)
+			{
+				TimeSinceLastFailedRequest = 0.0f;
+				Request_PathToCurrentTarget();
+			}
+		}
+
 		// dtCrowd hasn't registered the agent yet (one-frame setup latency, P3-3 debounce, etc.).
 		if (utils_nav::Get_IsCrowdRegistered(NavAgentHandle) == false)
 		{
@@ -150,8 +187,8 @@ class UCk_EntityScript_NavigationGym_MovingAgent : UCk_GenericEntityScript_UE
 			return;
 		}
 
-		// No usable path — wait for the next OnNavPathReady before integrating velocity.
-		// (Reading velocity without a path produces near-zero noise; harmless but pointless.)
+		// No usable path yet — waiting for OnNavPathReady (the retry block above keeps
+		// re-issuing if the last attempt failed).
 		if (utils_nav::Get_HasPath(NavAgentHandle) == false)
 		{
 			Request_UpdateDisplay();
@@ -161,21 +198,27 @@ class UCk_EntityScript_NavigationGym_MovingAgent : UCk_GenericEntityScript_UE
 		LastVelocity = utils_nav::Get_CurrentVelocity(NavAgentHandle);
 		auto Speed = LastVelocity.Size();
 
-		// Arrival detection: dtCrowd ramps velocity to zero as the agent reaches its destination.
-		// Below the threshold for a frame → flip target and re-issue path.
-		if (Speed < ArrivalSpeedThreshold && HasArrivedOnce == false)
+		// Latch HasStartedMoving the first time the agent crosses the speed threshold —
+		// only then is "speed dipped below the threshold" a meaningful arrival signal.
+		// Without this guard, the spawn-frame Speed=0 fires arrival immediately, flips
+		// the target back to TargetA (which equals the spawn location → degenerate path
+		// → fails), and the agent gets stuck forever.
+		if (Speed >= ArrivalSpeedThreshold)
+		{
+			HasStartedMoving = true;
+			HasArrivedOnce = false;
+		}
+
+		if (HasStartedMoving && Speed < ArrivalSpeedThreshold && HasArrivedOnce == false)
 		{
 			HasArrivedOnce = true;
+			HasStartedMoving = false;
 			ArrivalCount++;
 			MovingTowardB = !MovingTowardB;
 			Request_PathToCurrentTarget();
 			Request_UpdateDisplay();
 			return;
 		}
-
-		// Reset arrival latch once we're moving again so the next destination's arrival is detected.
-		if (Speed >= ArrivalSpeedThreshold)
-		{ HasArrivedOnce = false; }
 
 		// Integrate: NewLocation = CurrentLocation + Velocity * DeltaSeconds.
 		// CrowdPushPosition reads this transform back next frame; below TeleportThresholdUu
