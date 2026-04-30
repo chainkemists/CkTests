@@ -28,6 +28,11 @@
 
 class UCk_AutoTest_StateMachine_RacingEventDrivenTransitions : UCk_AutoTest_Base
 {
+    // Tight 2s budget — 1.0s settle + buffer. Race-condition coverage; we
+    // want regressions that slow it down to surface as failures, not pass
+    // under the harness's 5s default.
+    default _TimeoutSeconds = 2.0f;
+
     private ACk_SmTest_RacingEventDriven_GymActor _GymActor;
 
     UFUNCTION(BlueprintOverride)
@@ -82,15 +87,4 @@ class UCk_AutoTest_StateMachine_RacingEventDrivenTransitions : UCk_AutoTest_Base
 
         FinishSuccess();
     }
-}
-
-//============================================================================
-// Test actor wrapper.
-//============================================================================
-
-class ACk_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_StateMachine_RacingEventDrivenTransitions;
-    // 1.0s settle + buffer.
-    default _TimeoutSeconds = 2.0f;
 }
