@@ -26,8 +26,6 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Interaction",        ACk_InteractionGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Inventory",          ACk_InventoryGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Messaging",          ACk_MessagingGym_GameMode);
-        CkGym_Cycler::RegisterProjectGym("Navigation",         ACk_NavigationGym_GameMode);
-        CkGym_Cycler::RegisterProjectGym("Navigation (Simple)", ACk_NavigationGymSimple_GameMode);
         CkGym_Cycler::RegisterProjectGym("PMG Shapes",         ACk_PmgShapesGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Probe",              ACk_ProbeGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Replication",        ACk_ReplicationGym_GameMode);
