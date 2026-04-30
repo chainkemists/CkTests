@@ -25,6 +25,16 @@
 				"Mac",
 				"Linux"
 			]
+		},
+		{
+			"Name": "CkTestsEditor",
+			"Type": "UncookedOnly",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Mac",
+				"Linux"
+			]
 		}
 	],
 	"Plugins": [
