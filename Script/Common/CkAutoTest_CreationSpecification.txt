@@ -44,24 +44,19 @@ AutoTest does not need the gym, and vice versa.
 //      Script/Generated/<Plugin>_AutoTestActors.as.
 //   2. The populator runs (you'll see `[CkAutoTest Populator] === ...`
 //      in Output Log) and places the wrapper actor into the configured
-//      AutoTests level. Layer 2A note: the populator only operates if
-//      that level is the currently-loaded editor world; otherwise it
-//      logs `Skipping — target map not currently open` and waits.
-//   3. Save the AutoTests map if auto-save is disabled in the config
-//      (default: enabled — no Ctrl+S needed).
-//   4. Run via Session Frontend → Automation tab → check the test →
+//      AutoTests level. The level does NOT need to be open — the populator
+//      will load the .umap off-disk, edit it, and save it back transparently.
+//   3. Run via Session Frontend → Automation tab → check the test →
 //      Start Tests. (Or console: `Automation RunTests <pattern>`.)
 //
 // IF YOU SEE A TEST IN THE .AS FILE BUT NOT IN SESSION FRONTEND:
-//   - Did the AutoTests level get the wrapper actor? Open it; the populator
-//     spawns one actor per discovered test class. If the actor is missing,
-//     check Output Log for the populator's last summary line.
-//   - Was the populator's target map open when AS recompiled? In Layer 2A
-//     it has to be. If not, run `Ck.SyncAutoTestMaps` with the AutoTests
-//     map open. (Layer 2B will lift this; until then, open-then-recompile
-//     is the workflow.)
+//   - Refresh Session Frontend (it caches its discovered test list).
+//   - Check Output Log for the populator's last summary line — did it find
+//     the test? If so, the wrapper actor was spawned in the AutoTests map.
 //   - Is there a UCkAutoTestMapConfig for the plugin/project authoring
 //     the test? See section 9b for setup.
+//   - Did AS report a compile error? A broken .as file blocks PostCompile
+//     and stops the generator from running. Fix the AS error first.
 //
 // The full per-step authoring workflow is in section 5 (file template),
 // 5b (per-project config asset), and 9 (one-time map setup).
@@ -73,6 +68,39 @@ AutoTest does not need the gym, and vice versa.
 // (the generator detects them by class name and skips emission for that
 // test) — useful if you need a non-default `_TimeoutSeconds` or a fully
 // custom subclass.
+
+//============================================================================
+// !!! KNOWN CAVEAT — FILESYSTEM DELETES CAN STRAND THE GENERATED FILE !!!
+//============================================================================
+//
+// AS-UE's file watcher catches modifications reliably but can miss outright
+// deletes when they bypass the editor (e.g. `rm`, `git rm`, agent-driven
+// filesystem operations). When that happens:
+//
+//   1. The generator's next PostCompile pass still sees the deleted class
+//      as live in AS's class table.
+//   2. It emits a wrapper class referencing that now-stale entity script.
+//   3. AS's NEXT recompile (triggered by the generator writing the file)
+//      fails because the wrapper's `default _TestEntityScriptClass = ...`
+//      line references a class AS no longer knows about.
+//   4. PostCompile no longer fires (AS compile is broken), so the generator
+//      can't fix the file it just emitted. Deadlock.
+//
+// Recovery (manual):
+//   a. Open Script/Generated/<Plugin>_AutoTestActors.as in any editor.
+//   b. Delete the broken `class A<DeletedTest>_Actor : ACk_AutoTestRunner
+//      { default _TestEntityScriptClass = U<DeletedTest>; }` block.
+//   c. Save. AS recompiles cleanly; PostCompile resumes; populator runs.
+//   d. The AutoTests map may still have the orphan actor reference on disk;
+//      open the level and Ctrl+S once to drop it (or wait for the populator's
+//      next path-B sync to detect the load-induced dirty state and save).
+//
+// PREVENTION:
+//   Use the editor's Content Browser to delete .as assets (right-click →
+//   Delete). UE-AS's file watcher fires properly through that path and the
+//   class is cleanly purged before the generator's next pass. Filesystem
+//   deletes are an edge case for power users / scripts; the editor flow
+//   is the supported workflow.
 
 //============================================================================
 // 1. ARCHITECTURE OVERVIEW
@@ -634,18 +662,26 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //   - Discover all live ACk_AutoTestRunner subclasses whose source
 //     path is under that plugin (filtered via the auto-derived scope or
 //     an explicit ClassScanRoot override).
-//   - Compare against the wrapper actors currently placed in the
-//     CURRENTLY-LOADED editor world. If that world isn't the config's
-//     TargetMap, log `Skipping — target map not currently open` and bail.
-//     (Layer 2A constraint; Layer 2B will lift this.)
-//   - Spawn missing wrappers; remove orphans (wrapper classes whose
+//   - Pick the world to operate on:
+//       * Path A — if the config's TargetMap is the currently-open editor
+//         world, sync against that live world. Edits become visible
+//         immediately; saves go through the same flow as user edits.
+//       * Path B — otherwise, LoadPackage the target .umap off-disk,
+//         locate its UWorld, and operate on the unloaded copy. The user's
+//         current map is untouched.
+//     Either path runs the same downstream logic.
+//   - Compare against the wrapper actors currently placed in the chosen
+//     world. Spawn missing wrappers; remove orphans (wrapper classes whose
 //     entity script was deleted); set Outliner labels by stripping the
 //     `_Actor` suffix so Session Frontend rows read cleanly.
-//   - On a non-empty delta, MarkPackageDirty + auto-save (via
-//     UEditorLoadingAndSavingUtils::SavePackages) UNLESS the level was
-//     already dirty before the sync — in which case it logs a warning
-//     and leaves the dirty state for the human to resolve, so unrelated
-//     in-flight edits aren't silently committed.
+//   - On a non-empty delta, MarkPackageDirty + auto-save.
+//   - Path A safety guard: if the package was already dirty when the sync
+//     started, leave it dirty for manual save. Unrelated user edits in
+//     flight must not be silently committed.
+//   - Path B "load-induced dirty" handling: if LoadPackage itself dirtied
+//     the package (e.g. UE dropped an actor entry whose class no longer
+//     exists), the populator saves to persist the cleanup, even if no
+//     spawn/remove delta was detected.
 //
 // Each placed actor becomes one row under
 //   Project.Functional Tests.<MapPath>.<ActorLabel>
