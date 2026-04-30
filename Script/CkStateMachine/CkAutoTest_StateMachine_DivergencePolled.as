@@ -80,13 +80,3 @@ class UCk_AutoTest_StateMachine_DivergencePolled : UCk_AutoTest_Base
         FinishSuccess();
     }
 }
-
-//============================================================================
-// Test actor wrapper.
-//============================================================================
-
-class ACk_AutoTest_StateMachine_DivergencePolled_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_StateMachine_DivergencePolled;
-    default _TimeoutSeconds = 5.0f;
-}
