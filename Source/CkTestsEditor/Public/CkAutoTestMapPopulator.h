@@ -120,6 +120,20 @@ private:
     Get_OwnerScopeForConfig(
         UCkAutoTestMapConfig* InConfig) -> FString;
 
+    // Resolves the UWorld to sync against for the given config. Two paths:
+    //   1. If the config's TargetMap IS the currently-active editor world, returns
+    //      that live world (OutWasLoadedFresh = false). Edits become user-visible
+    //      immediately and the existing dirty-state guard applies.
+    //   2. Otherwise, loads the target package via LoadPackage, locates the world
+    //      inside (OutWasLoadedFresh = true). The package was clean before our load,
+    //      so post-edit auto-save is unconditionally safe.
+    // Returns nullptr (and a populated SkipReason via OutSkipReason) on any failure.
+    auto
+    Find_OrLoad_TargetWorld(
+        UCkAutoTestMapConfig* InConfig,
+        bool& OutWasLoadedFresh,
+        FString& OutSkipReason) const -> UWorld*;
+
     auto
     OnAngelscriptPostCompile() -> void;
 
