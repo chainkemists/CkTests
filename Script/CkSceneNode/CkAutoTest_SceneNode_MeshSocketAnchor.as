@@ -164,9 +164,3 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
             f"[{InContext}] mesh-anchored node rotation | expected {ExpectedRot}, got {ActualRot}");
     }
 }
-
-class ACk_AutoTest_SceneNode_MeshSocketAnchor_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_MeshSocketAnchor;
-    default _TimeoutSeconds = 5.0f;
-}

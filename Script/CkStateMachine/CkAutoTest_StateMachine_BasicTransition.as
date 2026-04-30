@@ -46,15 +46,3 @@ class UCk_AutoTest_StateMachine_BasicTransition : UCk_AutoTest_Base
         FinishSuccess();
     }
 }
-
-//============================================================================
-// Test actor wrapper.
-//============================================================================
-
-class ACk_AutoTest_StateMachine_BasicTransition_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_StateMachine_BasicTransition;
-    // The Idle->Patrol transition fires after 2s (the AfterDelay condition's
-    // default). Give the SM enough time plus ample buffer.
-    default _TimeoutSeconds = 5.0f;
-}

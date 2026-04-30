@@ -144,9 +144,3 @@ class UCk_AutoTest_SceneNode_OffsetUpdates : UCk_AutoTest_Base
             f"[{InContext}] Get_Offset_Scale | expected {InExpectedScale}, got {OffsetScale}");
     }
 }
-
-class ACk_AutoTest_SceneNode_OffsetUpdates_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_OffsetUpdates;
-    default _TimeoutSeconds = 5.0f;
-}
