@@ -17,6 +17,7 @@
 #include <FileHelpers.h>
 #include <HAL/IConsoleManager.h>
 #include <Interfaces/IPluginManager.h>
+#include <Misc/App.h>
 #include <Misc/PackageName.h>
 #include <Misc/Paths.h>
 #include <UObject/MetaData.h>
@@ -618,10 +619,29 @@ auto
         const auto AsFilename = Package->GetMetaData().GetValue(InConfig, TEXT("ScriptAssetFilename"));
         if (NOT AsFilename.IsEmpty())
         {
+            // First try: the .as file lives under a plugin's BaseDir.
             if (auto Plugin = ck_autotest_map_populator::Find_PluginByPathPrefix(AsFilename);
                 Plugin.IsValid())
             {
                 return FString::Printf(TEXT("/%s/"), *Plugin->GetName());
+            }
+
+            // Fallback: project-side AS asset (the project itself is not a plugin,
+            // so IPluginManager doesn't enumerate it). Compare the .as path against
+            // FPaths::ProjectDir() — if it lives under there, use the project name
+            // as the scope. This means a project-side AS-defined config gets
+            // auto-derive for free (e.g. BB's BB_AutoTestMapConfig.as resolves to
+            // "/BusterBlock/" without an explicit ClassScanRoot).
+            auto NormalizedAsFilename = FPaths::ConvertRelativePathToFull(AsFilename);
+            FPaths::NormalizeFilename(NormalizedAsFilename);
+
+            auto ProjectDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
+            FPaths::NormalizeDirectoryName(ProjectDir);
+
+            if (NOT ProjectDir.IsEmpty() &&
+                NormalizedAsFilename.StartsWith(ProjectDir, ESearchCase::IgnoreCase))
+            {
+                return FString::Printf(TEXT("/%s/"), FApp::GetProjectName());
             }
         }
 #endif
