@@ -133,9 +133,3 @@ class UCk_AutoTest_SceneNode_DeepHierarchy : UCk_AutoTest_Base
             f"[{InContext}] grandchild location | expected {GrandchildExpected.GetLocation()}, got {GrandchildLoc}");
     }
 }
-
-class ACk_AutoTest_SceneNode_DeepHierarchy_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_DeepHierarchy;
-    default _TimeoutSeconds = 5.0f;
-}

@@ -118,9 +118,3 @@ class UCk_AutoTest_SceneNode_MultipleChildren : UCk_AutoTest_Base
         }
     }
 }
-
-class ACk_AutoTest_SceneNode_MultipleChildren_Actor : ACk_AutoTestRunner
-{
-    default _TestEntityScriptClass = UCk_AutoTest_SceneNode_MultipleChildren;
-    default _TimeoutSeconds = 5.0f;
-}
