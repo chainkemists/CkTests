@@ -164,6 +164,7 @@ void UCkAutoTestMapPopulator::Sync_AllConfigs()
 
     auto TotalSpawned = int32{0};
     auto TotalRemoved = int32{0};
+    auto TotalRelabeled = int32{0};
     auto TotalSkipped = int32{0};
 
     for (auto* Config : Configs)
@@ -171,12 +172,13 @@ void UCkAutoTestMapPopulator::Sync_AllConfigs()
         const auto Result = Sync_Config_Internal(Config);
         TotalSpawned += Result.Spawned;
         TotalRemoved += Result.Removed;
+        TotalRelabeled += Result.Relabeled;
         if (Result.bSkipped) { ++TotalSkipped; }
     }
 
     ck::tests_editor::Log(
-        TEXT("[CkAutoTest Populator] Done — {} configs, {} spawned, {} removed, {} skipped."),
-        Configs.Num(), TotalSpawned, TotalRemoved, TotalSkipped);
+        TEXT("[CkAutoTest Populator] Done — {} configs, {} spawned, {} removed, {} relabeled, {} skipped."),
+        Configs.Num(), TotalSpawned, TotalRemoved, TotalRelabeled, TotalSkipped);
 }
 
 FCkAutoTestSyncResult UCkAutoTestMapPopulator::Sync_Config(UCkAutoTestMapConfig* InConfig)
@@ -302,13 +304,41 @@ auto
         }
     }
 
-    // ---- Spawn missing classes ------------------------------------------------------
+    // ---- Spawn missing classes + relabel stale ones ---------------------------------
+    //
+    // The expected Outliner label is the wrapper's class name with the conventional
+    // "_Actor" suffix stripped — e.g. `ACk_AutoTest_Foo_Bar_Actor` -> "Ck_AutoTest_
+    // Foo_Bar". This is what Session Frontend displays in its tree row. Existing
+    // actors that were placed manually before the populator existed (or that got
+    // their labels reset somehow) get rewritten here, so the level converges to a
+    // uniform display state without a separate maintenance pass.
+    const auto Compute_ExpectedLabel = [](const UClass* InClass) -> FString
+    {
+        auto Label = InClass->GetName();
+        if (Label.EndsWith(TEXT("_Actor"), ESearchCase::IgnoreCase))
+        { Label.LeftChopInline(FString(TEXT("_Actor")).Len(), EAllowShrinking::No); }
+        return Label;
+    };
+
     for (auto* Class : WantedClasses)
     {
         const auto* ExistingActors = CurrentByClass.Find(Class);
         if (ExistingActors != nullptr && ExistingActors->Num() > 0)
         {
             ++Result.AlreadyPresent;
+
+            // Relabel the keeper if its current label drifted from the convention.
+            if (auto* Keeper = (*ExistingActors)[0];
+                ck::IsValid(Keeper, ck::IsValid_Policy_NullptrOnly{}))
+            {
+                const auto ExpectedLabel = Compute_ExpectedLabel(Class);
+                if (Keeper->GetActorLabel() != ExpectedLabel)
+                {
+                    Keeper->SetActorLabel(ExpectedLabel, /*bMarkDirty=*/true);
+                    ++Result.Relabeled;
+                }
+            }
+
             // Remove all but the first if duplicates exist.
             for (auto Index = int32{1}; Index < ExistingActors->Num(); ++Index)
             {
@@ -335,12 +365,7 @@ auto
             continue;
         }
 
-        // Strip the conventional "_Actor" suffix off the wrapper name to get the
-        // logical test name shown in Session Frontend.
-        auto Label = Class->GetName();
-        if (Label.EndsWith(TEXT("_Actor"), ESearchCase::IgnoreCase))
-        { Label.LeftChopInline(FString(TEXT("_Actor")).Len(), EAllowShrinking::No); }
-        NewActor->SetActorLabel(Label, /*bMarkDirty=*/true);
+        NewActor->SetActorLabel(Compute_ExpectedLabel(Class), /*bMarkDirty=*/true);
 
         ++Result.Spawned;
     }
@@ -371,8 +396,9 @@ auto
     Package->MarkPackageDirty();
 
     ck::tests_editor::Log(
-        TEXT("[CkAutoTest Populator] [{}] {} spawned, {} removed, {} already present."),
-        InConfig->Get_DisplayName(), Result.Spawned, Result.Removed, Result.AlreadyPresent);
+        TEXT("[CkAutoTest Populator] [{}] {} spawned, {} removed, {} relabeled, {} already present."),
+        InConfig->Get_DisplayName(),
+        Result.Spawned, Result.Removed, Result.Relabeled, Result.AlreadyPresent);
 
     // ---- Auto-save guard ------------------------------------------------------------
     if (NOT InConfig->bAutoSaveOnSync)
