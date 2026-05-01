@@ -24,6 +24,15 @@ class ACk_CrowdGym_Floor : AActor
             FloorMesh.SetStaticMesh(CubeMesh);
         }
 
+        // Replace the default WorldGridMaterial (which tiles infinitely + looks like a checkered
+        // grid that visually overflows the mesh) with the engine's plain BasicShapeMaterial:
+        // flat shaded, no tiling pattern, no grid. The mesh footprint becomes obvious.
+        auto FloorMaterial = Cast<UMaterialInterface>(LoadObject(this, "/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+        if (FloorMaterial != nullptr)
+        {
+            FloorMesh.SetMaterial(0, FloorMaterial);
+        }
+
         // Collision must block the static channel + be WorldStatic for Recast to bake
         // the surface as nav-walkable. AS 'default Component.SetXxx(...)' syntax doesn't
         // run at construct time — these must be runtime calls inside ConstructionScript.
