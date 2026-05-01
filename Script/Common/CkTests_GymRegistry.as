@@ -22,6 +22,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Audio Simple",       ACk_AudioGym_Simple_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Foundation",   ACk_CrowdGym_Foundation_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Pathfinding",  ACk_CrowdGym_Pathfinding_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Crowd Locomotion",   ACk_CrowdGym_Locomotion_GameMode);
         CkGym_Cycler::RegisterProjectGym("Cue",                ACk_CueGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Entity Lifecycle",   ACk_EntityLifecycleGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Entity Script",      ACk_EntityScriptGym_Spawn_GameMode);
