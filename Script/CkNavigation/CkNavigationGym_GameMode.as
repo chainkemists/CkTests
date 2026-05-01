@@ -6,6 +6,7 @@ class ACk_NavigationGym_GameMode : ACk_Gym_Base_GameMode
 	UFUNCTION(BlueprintOverride)
 	void BeginPlay()
 	{
+		Super::BeginPlay();
 		// Floor positioned so its TOP face lines up with Z=0 — this is what
 		// the navmesh bakes onto, and what agents spawned at Z=0 stand on. The
 		// cube default mesh is 100x100x100cm with a centered pivot, so at
