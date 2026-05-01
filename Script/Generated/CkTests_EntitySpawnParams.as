@@ -112,6 +112,45 @@ namespace UCk_AdvancedMusicDirectorCue
 }
 
 USTRUCT()
+struct FCk_AutoTest_AStar_BasicSearch_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_AStar_BasicSearch
+{
+    FCk_AutoTest_AStar_BasicSearch_SpawnParams Params()
+    {
+        return FCk_AutoTest_AStar_BasicSearch_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_AStar_CostThreshold_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_AStar_CostThreshold
+{
+    FCk_AutoTest_AStar_CostThreshold_SpawnParams Params()
+    {
+        return FCk_AutoTest_AStar_CostThreshold_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_AStar_NoPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_AStar_NoPath
+{
+    FCk_AutoTest_AStar_NoPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_AStar_NoPath_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_FloatBasic_SpawnParams
 {
 }
@@ -255,6 +294,45 @@ namespace UCk_AutoTest_Attribute_IntegerClamping
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_IntegerModifierAdd_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_IntegerModifierAdd
+{
+    FCk_AutoTest_Attribute_IntegerModifierAdd_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_IntegerModifierAdd_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_IntegerModifierRemove_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_IntegerModifierRemove
+{
+    FCk_AutoTest_Attribute_IntegerModifierRemove_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_IntegerModifierRemove_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_IntegerModifierStacking_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_IntegerModifierStacking
+{
+    FCk_AutoTest_Attribute_IntegerModifierStacking_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_IntegerModifierStacking_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_IntegerOverflow_SpawnParams
 {
 }
@@ -294,6 +372,32 @@ namespace UCk_AutoTest_EntityLifecycle_BatchDestroy
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks
+{
+    FCk_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_DeferredSetupState_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_DeferredSetupState
+{
+    FCk_AutoTest_EntityLifecycle_DeferredSetupState_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_DeferredSetupState_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityLifecycle_HandleAndEntity_SpawnParams
 {
 }
@@ -329,6 +433,19 @@ namespace UCk_AutoTest_EntityLifecycle_OwnershipTree
     FCk_AutoTest_EntityLifecycle_OwnershipTree_SpawnParams Params()
     {
         return FCk_AutoTest_EntityLifecycle_OwnershipTree_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_ScriptCastQueries_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_ScriptCastQueries
+{
+    FCk_AutoTest_EntityLifecycle_ScriptCastQueries_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_ScriptCastQueries_SpawnParams();
     }
 }
 
@@ -433,6 +550,45 @@ namespace UCk_AutoTest_Interaction_Timed
     FCk_AutoTest_Interaction_Timed_SpawnParams Params()
     {
         return FCk_AutoTest_Interaction_Timed_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_ValidationAllows_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_ValidationAllows
+{
+    FCk_AutoTest_Interaction_ValidationAllows_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_ValidationAllows_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_ValidationCustomFails_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_ValidationCustomFails
+{
+    FCk_AutoTest_Interaction_ValidationCustomFails_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_ValidationCustomFails_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_ValidationTargetDisabled_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_ValidationTargetDisabled
+{
+    FCk_AutoTest_Interaction_ValidationTargetDisabled_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_ValidationTargetDisabled_SpawnParams();
     }
 }
 
