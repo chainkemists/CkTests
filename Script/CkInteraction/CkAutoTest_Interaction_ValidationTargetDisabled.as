@@ -1,0 +1,82 @@
+// Language=angelscript
+
+//============================================================================
+// CK INTERACTION — AUTOMATION TEST: VALIDATION REJECTS DISABLED TARGET
+//============================================================================
+//
+// Verifies the TargetDisabled rejection path:
+//   1. Source + Target on same entity, channel matches.
+//   2. Set_Enabled(Disable) on the target.
+//   3. Get_CanInteractWith returns TargetDisabled (NOT CanInteractWith).
+//   4. Request_StartInteraction does NOT fire OnNewInteraction across
+//      several follow-up ticks.
+//
+// Pattern: bind OnNewInteraction defensively; assert in a tick callback
+// that no fire arrived after a few frames. The test's success path is
+// "we waited and nothing happened", which the harness times out on if
+// disabling silently allows interactions through (regression).
+//============================================================================
+
+class UCk_AutoTest_Interaction_ValidationTargetDisabled : UCk_AutoTest_Base
+{
+    private FCk_Handle_InteractSource _Source;
+    private FCk_Handle_InteractTarget _Target;
+    private bool _NewInteractionFired = false;
+    private int32 _TicksSinceRequest = 0;
+
+    UFUNCTION(BlueprintOverride)
+    void DoBeginPlay(FCk_Handle InHandle)
+    {
+        auto LocalHandle = InHandle;
+        auto Channel = interaction_gym_helpers::DefaultChannel();
+
+        auto SourceParams = FCk_Fragment_InteractSource_ParamsData();
+        SourceParams._InteractionChannel = Channel;
+        _Source = utils_interact_source::Add(LocalHandle, SourceParams);
+
+        auto TargetParams = FCk_Fragment_InteractTarget_ParamsData(Channel);
+        TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::Instant);
+        _Target = utils_interact_target::Add(LocalHandle, TargetParams);
+
+        utils_interact_target::BindTo_OnNewInteraction(
+            _Target,
+            FCk_Delegate_InteractTarget_OnNewInteraction(this, n"OnNewInteraction"));
+
+        // Disable the target before attempting.
+        utils_interact_target::Set_Enabled(_Target, ECk_EnableDisable::Disable);
+
+        auto MyEntity = ck::ToEntity(this);
+        auto CanResult = utils_interact_target::Get_CanInteractWith(_Target, MyEntity);
+        Assert_True(CanResult == ECk_CanInteractWithResult::TargetDisabled,
+            f"Get_CanInteractWith on disabled target should return TargetDisabled (got {CanResult})");
+
+        auto Request = FCk_Try_InteractTarget_StartInteraction();
+        Request.Set_InteractSource(MyEntity);
+        Request.Set_InteractInstigator(MyEntity);
+        utils_interact_target::Request_StartInteraction(_Target, Request);
+
+        utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
+    }
+
+    UFUNCTION()
+    private void OnNewInteraction(
+        FCk_Handle_InteractTarget InTarget,
+        FCk_Handle_Interaction InInteraction)
+    {
+        _NewInteractionFired = true;
+    }
+
+    UFUNCTION()
+    private void OnTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        _TicksSinceRequest++;
+        if (_TicksSinceRequest >= 5)
+        {
+            Assert_True(!_NewInteractionFired,
+                "OnNewInteraction should NOT fire when target is disabled");
+            FinishSuccess();
+        }
+    }
+}
