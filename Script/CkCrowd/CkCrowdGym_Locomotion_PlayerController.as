@@ -15,11 +15,11 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Crowd.Locomotion");
-            Station.Title = FText::FromString("LOCOMOTION (2A+2B)");
+            Station.Title = FText::FromString("LOCOMOTION (2A+2B+2C)");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Console: Ck_GymCrowd_Loco_Spawn / PrintPos / RequestPath / PrintDesired / Stop"));
-            Description.Add(FText::FromString("2A: Spawn -> +X at 100 cm/s (ApplyOffset)"));
-            Description.Add(FText::FromString("2B: Spawn + RequestPath -> Get_DesiredVelocity reflects steering"));
+            Description.Add(FText::FromString("Spawn -> agent stationary (zero velocity, no path)"));
+            Description.Add(FText::FromString("RequestPath -> bridge writes _CurrentVelocity from steering, agent walks"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -101,8 +101,11 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         FCk_Handle GenericAgent = _Agent;
         utils_transform::Add(GenericAgent, InitialXform, ECk_Replication::DoesNotReplicate);
 
-        // Velocity feature with starting velocity (100, 0, 0) in world space.
-        const auto VelocityStart = FVector(100.0, 0.0, 0.0);
+        // Velocity feature with zero starting velocity. Sub-task 2C's velocity-bridge processor
+        // overwrites _CurrentVelocity from FFragment_CrowdAgent_DesiredVelocity every frame, so any
+        // non-zero starting value would be wiped on the first tick anyway. The bridge is the source
+        // of motion now; the agent stays put until a path request lands.
+        const auto VelocityStart = FVector::ZeroVector;
         auto VelocityParams = FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, VelocityStart);
         utils_velocity::Add(GenericAgent, VelocityParams, ECk_Replication::DoesNotReplicate);
 
@@ -116,7 +119,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
 
         _AgentValid = true;
 
-        ck::Trace(f"Locomotion gym: spawned agent at {_SpawnLocation} with velocity {VelocityStart}");
+        ck::Trace(f"Locomotion gym: spawned agent at {_SpawnLocation} (velocity={VelocityStart}, stationary until RequestPath)");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Position")
@@ -139,7 +142,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         const auto CurrentLoc = utils_transform::Get_EntityCurrentLocation(TransformHandle);
         const auto Delta = CurrentLoc - _SpawnLocation;
 
-        ck::Trace(f"Locomotion gym: pos={CurrentLoc}  delta_from_spawn={Delta}  (expect +X advancing at 100 cm/s)");
+        ck::Trace(f"Locomotion gym: pos={CurrentLoc}  delta_from_spawn={Delta}  (stationary until RequestPath; up to 240 cm/s after)");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Request Path To +X 800cm")
