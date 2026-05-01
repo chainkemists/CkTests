@@ -112,6 +112,123 @@ namespace UCk_AdvancedMusicDirectorCue
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_FloatBasic_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatBasic
+{
+    FCk_AutoTest_Attribute_FloatBasic_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatBasic_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_FloatClamping_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatClamping
+{
+    FCk_AutoTest_Attribute_FloatClamping_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatClamping_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_FloatIncrement_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatIncrement
+{
+    FCk_AutoTest_Attribute_FloatIncrement_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatIncrement_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_FloatMinMaxComponents_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatMinMaxComponents
+{
+    FCk_AutoTest_Attribute_FloatMinMaxComponents_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatMinMaxComponents_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_FloatModifierAdd_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatModifierAdd
+{
+    FCk_AutoTest_Attribute_FloatModifierAdd_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatModifierAdd_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_FloatModifierRemove_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatModifierRemove
+{
+    FCk_AutoTest_Attribute_FloatModifierRemove_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatModifierRemove_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_FloatModifierStacking_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatModifierStacking
+{
+    FCk_AutoTest_Attribute_FloatModifierStacking_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatModifierStacking_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_FloatOverflow_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatOverflow
+{
+    FCk_AutoTest_Attribute_FloatOverflow_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatOverflow_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_FloatRefill_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatRefill
+{
+    FCk_AutoTest_Attribute_FloatRefill_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatRefill_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_IntegerBasic_SpawnParams
 {
 }
@@ -164,6 +281,344 @@ namespace UCk_AutoTest_Base
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_BatchDestroy_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_BatchDestroy
+{
+    FCk_AutoTest_EntityLifecycle_BatchDestroy_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_BatchDestroy_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_HandleAndEntity_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_HandleAndEntity
+{
+    FCk_AutoTest_EntityLifecycle_HandleAndEntity_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_HandleAndEntity_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_OnBeginDestroy_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_OnBeginDestroy
+{
+    FCk_AutoTest_EntityLifecycle_OnBeginDestroy_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_OnBeginDestroy_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_OwnershipTree_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_OwnershipTree
+{
+    FCk_AutoTest_EntityLifecycle_OwnershipTree_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_OwnershipTree_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_TagAddRemove_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_TagAddRemove
+{
+    FCk_AutoTest_EntityLifecycle_TagAddRemove_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_TagAddRemove_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityScript_BasicSpawn_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityScript_BasicSpawn
+{
+    FCk_AutoTest_EntityScript_BasicSpawn_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityScript_BasicSpawn_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityScript_SpawnedEntityHasTag_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityScript_SpawnedEntityHasTag
+{
+    FCk_AutoTest_EntityScript_SpawnedEntityHasTag_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityScript_SpawnedEntityHasTag_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityScript_SpawnParamsRoundTrip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityScript_SpawnParamsRoundTrip
+{
+    FCk_AutoTest_EntityScript_SpawnParamsRoundTrip_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityScript_SpawnParamsRoundTrip_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_Instant_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_Instant
+{
+    FCk_AutoTest_Interaction_Instant_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_Instant_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_ManualFail_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_ManualFail
+{
+    FCk_AutoTest_Interaction_ManualFail_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_ManualFail_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_ManualSuccess_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_ManualSuccess
+{
+    FCk_AutoTest_Interaction_ManualSuccess_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_ManualSuccess_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_Timed_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_Timed
+{
+    FCk_AutoTest_Interaction_Timed_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_Timed_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_DataOnly_AddItem_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_DataOnly_AddItem
+{
+    FCk_AutoTest_Inventory_DataOnly_AddItem_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_DataOnly_AddItem_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_DataOnly_BoundedReject_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_DataOnly_BoundedReject
+{
+    FCk_AutoTest_Inventory_DataOnly_BoundedReject_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_DataOnly_BoundedReject_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_DataOnly_OverrideBounds_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_DataOnly_OverrideBounds
+{
+    FCk_AutoTest_Inventory_DataOnly_OverrideBounds_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_DataOnly_OverrideBounds_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_DataOnly_RemoveItem_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_DataOnly_RemoveItem
+{
+    FCk_AutoTest_Inventory_DataOnly_RemoveItem_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_DataOnly_RemoveItem_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_DataOnly_Unbounded_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_DataOnly_Unbounded
+{
+    FCk_AutoTest_Inventory_DataOnly_Unbounded_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_DataOnly_Unbounded_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_StackableTrait_SplitStack_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_StackableTrait_SplitStack
+{
+    FCk_AutoTest_Inventory_StackableTrait_SplitStack_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_StackableTrait_SplitStack_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_StackableTrait_StackItems_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_StackableTrait_StackItems
+{
+    FCk_AutoTest_Inventory_StackableTrait_StackItems_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_StackableTrait_StackItems_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_TagsTrait_AddTag_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_TagsTrait_AddTag
+{
+    FCk_AutoTest_Inventory_TagsTrait_AddTag_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_TagsTrait_AddTag_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_TagsTrait_RemoveTag_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_TagsTrait_RemoveTag
+{
+    FCk_AutoTest_Inventory_TagsTrait_RemoveTag_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_TagsTrait_RemoveTag_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Messaging_BasicBroadcast_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Messaging_BasicBroadcast
+{
+    FCk_AutoTest_Messaging_BasicBroadcast_SpawnParams Params()
+    {
+        return FCk_AutoTest_Messaging_BasicBroadcast_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Messaging_MultiListener_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Messaging_MultiListener
+{
+    FCk_AutoTest_Messaging_MultiListener_SpawnParams Params()
+    {
+        return FCk_AutoTest_Messaging_MultiListener_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Messaging_MultipleTypes_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Messaging_MultipleTypes
+{
+    FCk_AutoTest_Messaging_MultipleTypes_SpawnParams Params()
+    {
+        return FCk_AutoTest_Messaging_MultipleTypes_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Messaging_PostFireUnbind_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Messaging_PostFireUnbind
+{
+    FCk_AutoTest_Messaging_PostFireUnbind_SpawnParams Params()
+    {
+        return FCk_AutoTest_Messaging_PostFireUnbind_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Messaging_Unbind_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Messaging_Unbind
+{
+    FCk_AutoTest_Messaging_Unbind_SpawnParams Params()
+    {
+        return FCk_AutoTest_Messaging_Unbind_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_SceneNode_ActorAttachedToActor_SpawnParams
 {
 }
@@ -180,9 +635,9 @@ USTRUCT()
 struct FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams
 {
     UPROPERTY()
-    TObjectPtr<AActor> _OwningActor = nullptr;
+    const TObjectPtr<AActor> _OwningActor = nullptr;
 
-    FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams(TObjectPtr<AActor> In_OwningActor)
+    FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
     {
         _OwningActor = In_OwningActor;
     }
@@ -195,7 +650,7 @@ namespace UCk_AutoTest_SceneNode_AttachedActor_EntityScript
         return FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams();
     }
 
-    FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams Params(TObjectPtr<AActor> In_OwningActor)
+    FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
     {
         return FCk_AutoTest_SceneNode_AttachedActor_EntityScript_SpawnParams(In_OwningActor);
     }
@@ -341,6 +796,162 @@ namespace UCk_AutoTest_StateMachine_TransitionExitBeforeEnter
     FCk_AutoTest_StateMachine_TransitionExitBeforeEnter_SpawnParams Params()
     {
         return FCk_AutoTest_StateMachine_TransitionExitBeforeEnter_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_BasicCompletion_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_BasicCompletion
+{
+    FCk_AutoTest_Timer_BasicCompletion_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_BasicCompletion_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_CountdownCompletion_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_CountdownCompletion
+{
+    FCk_AutoTest_Timer_CountdownCompletion_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_CountdownCompletion_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_PauseHaltsElapsed_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_PauseHaltsElapsed
+{
+    FCk_AutoTest_Timer_PauseHaltsElapsed_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_PauseHaltsElapsed_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_RequestComplete_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_RequestComplete
+{
+    FCk_AutoTest_Timer_RequestComplete_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_RequestComplete_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_RequestConsume_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_RequestConsume
+{
+    FCk_AutoTest_Timer_RequestConsume_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_RequestConsume_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_ResetOnDone_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_ResetOnDone
+{
+    FCk_AutoTest_Timer_ResetOnDone_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_ResetOnDone_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_ResumeAfterPause_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_ResumeAfterPause
+{
+    FCk_AutoTest_Timer_ResumeAfterPause_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_ResumeAfterPause_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_StopOnDone_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_StopOnDone
+{
+    FCk_AutoTest_Timer_StopOnDone_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_StopOnDone_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Tween_FloatCompletion_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Tween_FloatCompletion
+{
+    FCk_AutoTest_Tween_FloatCompletion_SpawnParams Params()
+    {
+        return FCk_AutoTest_Tween_FloatCompletion_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Tween_FloatUpdateCallback_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Tween_FloatUpdateCallback
+{
+    FCk_AutoTest_Tween_FloatUpdateCallback_SpawnParams Params()
+    {
+        return FCk_AutoTest_Tween_FloatUpdateCallback_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Tween_LoopRestart_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Tween_LoopRestart
+{
+    FCk_AutoTest_Tween_LoopRestart_SpawnParams Params()
+    {
+        return FCk_AutoTest_Tween_LoopRestart_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Tween_VectorCompletion_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Tween_VectorCompletion
+{
+    FCk_AutoTest_Tween_VectorCompletion_SpawnParams Params()
+    {
+        return FCk_AutoTest_Tween_VectorCompletion_SpawnParams();
     }
 }
 
@@ -3301,9 +3912,9 @@ USTRUCT()
 struct FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams
 {
     UPROPERTY()
-    TObjectPtr<AActor> _OwningActor = nullptr;
+    const TObjectPtr<AActor> _OwningActor = nullptr;
 
-    FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams(TObjectPtr<AActor> In_OwningActor)
+    FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
     {
         _OwningActor = In_OwningActor;
     }
@@ -3316,7 +3927,7 @@ namespace UCk_ReplicationGym_PawnExtra_EntityScript
         return FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams();
     }
 
-    FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams Params(TObjectPtr<AActor> In_OwningActor)
+    FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
     {
         return FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams(In_OwningActor);
     }
@@ -3326,9 +3937,9 @@ USTRUCT()
 struct FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams
 {
     UPROPERTY()
-    TObjectPtr<AActor> _OwningActor = nullptr;
+    const TObjectPtr<AActor> _OwningActor = nullptr;
 
-    FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams(TObjectPtr<AActor> In_OwningActor)
+    FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
     {
         _OwningActor = In_OwningActor;
     }
@@ -3341,7 +3952,7 @@ namespace UCk_ReplicationGym_ReplicatedActor_EntityScript
         return FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams();
     }
 
-    FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams Params(TObjectPtr<AActor> In_OwningActor)
+    FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
     {
         return FCk_ReplicationGym_ReplicatedActor_EntityScript_SpawnParams(In_OwningActor);
     }
