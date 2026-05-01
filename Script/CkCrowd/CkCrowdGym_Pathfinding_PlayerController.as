@@ -31,6 +31,8 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         if (HasAuthority() == false)
         { return; }
 
+        SpawnFloor();
+
         _StationHandle = Get_StationHandle("Gym.Crowd.Pathfinding");
         if (ck::Is_NOT_Valid(_StationHandle))
         {
@@ -40,6 +42,28 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
 
         AttachBindings();
         ck::Trace("Pathfinding gym started. Run Ck_GymCrowd_Path_IssueGood from the console.");
+    }
+
+    private void SpawnFloor()
+    {
+        // 6000cm x 6000cm flat cube, top face at Z=0 (origin Z=-25, half-height = 25cm
+        // from scale Z=0.5 over the engine cube's 100cm). The station is placed near
+        // origin with a default Z that puts it above this floor surface, well within
+        // the 500cm projection half-extent that Nav settings use to snap start/end onto
+        // the navmesh.
+        const auto FloorLocation = FVector(0.0, 0.0, -25.0);
+        const auto FloorScale    = FVector(60.0, 60.0, 0.5);
+
+        auto Floor = SpawnActor(ACk_CrowdGym_Floor, FloorLocation, FRotator::ZeroRotator, NAME_None, true);
+        if (Floor == nullptr)
+        {
+            ck::Warning("Pathfinding gym: failed to spawn floor actor");
+            return;
+        }
+        Floor.SetActorScale3D(FloorScale);
+        FinishSpawningActor(Floor);
+
+        ck::Trace(f"Pathfinding gym: floor spawned at {FloorLocation} scale={FloorScale}");
     }
 
     private void AttachBindings()
@@ -61,7 +85,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
             ECk_Signal_PostFireBehavior::DoNothing);
 
         _BindingsAttached = true;
-        ck::Trace(f"Pathfinding gym: bindings attached on station handle {_StationHandle}");
+        ck::Trace(f"Pathfinding gym: bindings attached on station handle {_StationHandle.ToString()}");
     }
 
     UFUNCTION()
@@ -89,21 +113,32 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
 
         for (int32 i = 0; i < Waypoints.Num(); ++i)
         {
-            UCk_Utils_DebugDraw_UE::DrawDebugSphere(this, Waypoints[i], SphereRadius, 12, Color, Duration, LineThickness);
+            UCk_Utils_DebugDraw_UE::DrawDebugSphere(Waypoints[i], SphereRadius, 12, Color, Duration, LineThickness);
         }
 
         for (int32 i = 0; i < Waypoints.Num() - 1; ++i)
         {
-            UCk_Utils_DebugDraw_UE::DrawDebugLine(this, Waypoints[i], Waypoints[i + 1], Color, Duration, LineThickness);
+            UCk_Utils_DebugDraw_UE::DrawDebugLine(Waypoints[i], Waypoints[i + 1], Color, Duration, LineThickness);
         }
     }
 
     UFUNCTION()
     void OnPathFailed(FCk_Handle InHandle)
     {
-        // Read the result back to surface the diagnostics fail-reason.
         _LastResult = utils_nav::Get_PathResult(_StationHandle);
-        ck::Warning(f"Pathfinding gym: OnPathFailed — reason={_LastResult.Get_Diagnostics().Get_LastFailReason()}");
+        const auto Diag = _LastResult.Get_Diagnostics();
+
+        // Surface the full projection picture in one log line so we don't need to chase
+        // a separate diag command after every failure.
+        ck::Warning(
+            f"Pathfinding gym: OnPathFailed — reason={Diag.Get_LastFailReason()}\n" +
+            f"  agent loc           = {Diag.Get_LastAgentLocation()}\n" +
+            f"  target              = {Diag.Get_LastTargetLocation()}\n" +
+            f"  start projected     = {Diag.Get_StartProjected()}  -> {Diag.Get_LastProjectedStart()}\n" +
+            f"  end projected       = {Diag.Get_EndProjected()}    -> {Diag.Get_LastProjectedEnd()}\n" +
+            f"  raw / extracted pts = {Diag.Get_RawPathPointCount()} / {Diag.Get_ExtractedWaypointCount()}\n" +
+            f"  last query duration = {Diag.Get_LastQueryDurationMs()} ms");
+
         UpdateStationDisplay();
     }
 
@@ -186,7 +221,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
     {
         ck::Trace("============ Pathfinding Gym Diagnostics ============");
         ck::Trace(f"  HasAuthority         : {HasAuthority()}");
-        ck::Trace(f"  _StationHandle valid : {ck::IsValid(_StationHandle)}  ({_StationHandle})");
+        ck::Trace(f"  _StationHandle valid : {ck::IsValid(_StationHandle)}  ({_StationHandle.ToString()})");
         ck::Trace(f"  _BindingsAttached    : {_BindingsAttached}");
 
         if (ck::IsValid(_StationHandle))
