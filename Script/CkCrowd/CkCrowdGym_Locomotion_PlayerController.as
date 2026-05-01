@@ -17,9 +17,9 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
             Station.Tags.Add(n"Gym.Crowd.Locomotion");
             Station.Title = FText::FromString("LOCOMOTION (2A+2B+2C)");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Console: Ck_GymCrowd_Loco_Spawn / PrintPos / RequestPath / PrintDesired / Stop"));
-            Description.Add(FText::FromString("Spawn -> agent stationary (zero velocity, no path)"));
-            Description.Add(FText::FromString("RequestPath -> bridge writes _CurrentVelocity from steering, agent walks"));
+            Description.Add(FText::FromString("Console: Spawn / PrintPos / RequestPath / PrintDesired / Stop"));
+            Description.Add(FText::FromString("Spawn -> cyan capsule appears (live-tracking)"));
+            Description.Add(FText::FromString("RequestPath -> path waypoints visible; agent walks the path"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -37,32 +37,33 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         _StationHandle = Get_StationHandle("Gym.Crowd.Locomotion");
         if (ck::Is_NOT_Valid(_StationHandle))
         {
-            ck::Warning("Locomotion gym: station handle invalid at StartGym");
+            ck::crowd::Warning("Locomotion gym: station handle invalid at StartGym");
             return;
         }
 
-        ck::Trace("Locomotion gym started. Run Ck_GymCrowd_Loco_Spawn from the console.");
+        ck::crowd::Log("Locomotion gym started. Run Ck_GymCrowd_Loco_Spawn from the console.");
     }
 
     private void SpawnFloor()
     {
-        // Mirrors the Pathfinding gym floor: 2000cm x 2000cm flat cube, top face at Z=0.
-        // Covers the 500cm navmesh projection extent and gives the agent room to walk for
-        // ~10 seconds at 100 cm/s. Sub-task 2A doesn't issue path queries, but 2B onward
-        // will — keeping the floor here means the gym is ready for navmesh-backed moves.
-        const auto FloorLocation = FVector(0.0, 0.0, -25.0);
+        // 2000cm x 2000cm flat cube centered at world origin (Z=0). Cube mesh is 100cm tall scaled
+        // by 0.5 → 50cm tall, so the floor extends from Z=-25 to Z=+25. Stations sit with their
+        // actor-Z=0 at world Z=0 (DefaultStationGridZ); after the Build_Alcove fix the station's
+        // floor slab extends from actor-Z=-FT to 0, which lands inside the gym floor's volume —
+        // visually flush with the gym floor's lower half rather than poking up through it.
+        const auto FloorLocation = FVector::ZeroVector;
         const auto FloorScale    = FVector(20.0, 20.0, 0.5);
 
         auto Floor = SpawnActor(ACk_CrowdGym_Floor, FloorLocation, FRotator::ZeroRotator, NAME_None, true);
         if (Floor == nullptr)
         {
-            ck::Warning("Locomotion gym: failed to spawn floor actor");
+            ck::crowd::Warning("Locomotion gym: failed to spawn floor actor");
             return;
         }
         Floor.SetActorScale3D(FloorScale);
         FinishSpawningActor(Floor);
 
-        ck::Trace(f"Locomotion gym: floor spawned at {FloorLocation} scale={FloorScale}");
+        ck::crowd::Log(f"Locomotion gym: floor spawned at {FloorLocation} scale={FloorScale}");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Spawn Agent")
@@ -77,13 +78,13 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
 
         if (ck::Is_NOT_Valid(_StationHandle))
         {
-            ck::Warning("Locomotion gym: station handle invalid; cannot spawn");
+            ck::crowd::Warning("Locomotion gym: station handle invalid; cannot spawn");
             return;
         }
 
         if (_AgentValid)
         {
-            ck::Warning("Locomotion gym: an agent already exists. Run Ck_GymCrowd_Loco_Stop first.");
+            ck::crowd::Warning("Locomotion gym: an agent already exists. Run Ck_GymCrowd_Loco_Stop first.");
             return;
         }
 
@@ -117,9 +118,79 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         // on the entity. The view of FProcessor_CrowdAgent_ApplyOffset is then satisfied each tick.
         utils_euler_integrator::Request_Start(GenericAgent);
 
+        // Visualize the agent: cyan capsule sized to the agent's _Radius / _Height.
+        //
+        // We can't Add_Capsule on the agent itself — it does Add<FFragment_Transform>, not AddOrGet,
+        // and the agent already has Transform from utils_transform::Add above → ENSURE.
+        //
+        // Instead, Create_Capsule spawns a SEPARATE child entity owned by the agent (so it
+        // cascade-destroys with the agent), then SceneNode-parent the child's Transform to the
+        // agent's Transform with a vertical offset of HalfHeight. The agent's Transform location is
+        // its FEET (NPC convention); the capsule's local origin is its CENTER, so the offset puts
+        // the capsule's bottom at the agent's feet rather than HalfHeight below them. SceneNode
+        // propagation makes the capsule track the agent's apply-offset moves automatically — no
+        // per-tick sync.
+        const auto AgentColor = FLinearColor(0.42, 0.85, 1.0, 0.6);
+        auto CapsuleHandle = utils_pmg_basic_shapes::Create_Capsule(
+            GenericAgent,
+            FTransform::Identity,
+            42.0f,           // radius matches agent params (_Radius default)
+            96.0f,           // half-height matches agent params (_Height / 2)
+            16,              // segments
+            8,               // rings
+            ECk_Plane_Axis::XY,
+            AgentColor,
+            true,            // wireframe overlay
+            2.0f,            // line thickness
+            -1.0f);          // -1 = persist until the agent (and child) is destroyed
+
+        FCk_Handle CapsuleGeneric = CapsuleHandle;
+        auto CapsuleXform = utils_transform::DoCastChecked(CapsuleGeneric);
+        auto AgentXform = utils_transform::DoCastChecked(GenericAgent);
+        const auto CapsuleLocalOffset = FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 96.0), FVector::OneVector);
+        utils_scene_node::Add(CapsuleXform, AgentXform, CapsuleLocalOffset);
+
+        // Bind OnPathReady on the agent so we can draw the path overlay when navigation lands the result.
+        utils_nav::BindTo_OnPathReady(GenericAgent,
+            FCk_Delegate_Nav_OnPathReady(this, n"OnAgentPathReady"),
+            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
+            ECk_Signal_PostFireBehavior::DoNothing);
+
         _AgentValid = true;
 
-        ck::Trace(f"Locomotion gym: spawned agent at {_SpawnLocation} (velocity={VelocityStart}, stationary until RequestPath)");
+        ck::crowd::Log(f"Locomotion gym: spawned agent at {_SpawnLocation} (velocity={VelocityStart}, stationary until RequestPath)");
+    }
+
+    UFUNCTION()
+    void OnAgentPathReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
+    {
+        // Draw a marker at each waypoint with PMG. Fire-and-forget; the spheres auto-destroy after 30s.
+        // Lines between waypoints are drawn via UCk_Utils_DebugDraw_UE since PMG covers filled shapes only.
+        const auto Waypoints = InResult.Get_Waypoints();
+        const auto Color = FLinearColor(0.42, 0.85, 1.0, 0.7);
+        const auto Duration = 30.0f;
+        const auto SphereRadius = 15.0f;
+
+        for (int32 i = 0; i < Waypoints.Num(); ++i)
+        {
+            utils_pmg_basic_shapes::DrawFilledSphere(
+                Waypoints[i],
+                SphereRadius,
+                12,            // segments
+                12,            // rings
+                Color,
+                true,          // wireframe overlay
+                2.0f,          // line thickness
+                ECk_Plane_Axis::XY,
+                Duration);
+        }
+
+        for (int32 i = 0; i < Waypoints.Num() - 1; ++i)
+        {
+            UCk_Utils_DebugDraw_UE::DrawDebugLine(Waypoints[i], Waypoints[i + 1], Color, Duration, 4.0f);
+        }
+
+        ck::crowd::Log(f"Locomotion gym: OnPathReady — waypoints={Waypoints.Num()}, drew overlay (decays in {Duration}s)");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Position")
@@ -127,7 +198,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
         {
-            ck::Trace("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            ck::crowd::Log("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
             return;
         }
 
@@ -135,36 +206,54 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         auto TransformHandle = utils_transform::DoCastChecked(GenericAgent);
         if (ck::Is_NOT_Valid(TransformHandle))
         {
-            ck::Warning("Locomotion gym: agent has no Transform feature — cannot read position");
+            ck::crowd::Warning("Locomotion gym: agent has no Transform feature — cannot read position");
             return;
         }
 
         const auto CurrentLoc = utils_transform::Get_EntityCurrentLocation(TransformHandle);
         const auto Delta = CurrentLoc - _SpawnLocation;
 
-        ck::Trace(f"Locomotion gym: pos={CurrentLoc}  delta_from_spawn={Delta}  (stationary until RequestPath; up to 240 cm/s after)");
+        ck::crowd::Log(f"Locomotion gym: pos={CurrentLoc}  delta_from_spawn={Delta}  (stationary until RequestPath; up to 240 cm/s after)");
+
+        // Drop a small cyan capsule at the agent's current position. Spam PrintPos to leave a
+        // breadcrumb trail along the walk. Offset upward by HalfHeight so the capsule's bottom sits
+        // at the agent's feet (CurrentLoc) rather than HalfHeight below them.
+        const auto TrailColor = FLinearColor(0.42, 0.85, 1.0, 0.4);
+        const auto TrailHalfHeight = 48.0f;
+        utils_pmg_basic_shapes::DrawFilledCapsule(
+            CurrentLoc + FVector(0.0, 0.0, TrailHalfHeight),
+            20.0f,           // radius — smaller than spawn marker to distinguish trail vs origin
+            TrailHalfHeight, // half-height — half of spawn marker's
+            12,              // segments
+            6,               // rings
+            TrailColor,
+            true,
+            1.5f,
+            ECk_Plane_Axis::XY,
+            30.0f);          // 30s decay
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Request Path To +X 800cm")
+    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Request Path To -X 800cm")
     void Ck_GymCrowd_Loco_RequestPath()
     {
         if (HasAuthority() == false) { return; }
         if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
         {
-            ck::Trace("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            ck::crowd::Log("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
             return;
         }
 
-        // Target chosen to be reachable on the gym's 2000cm floor (well within the 500cm projection
-        // half-extent for both endpoints) and forward of the spawn so the steering's _DesiredVelocity
-        // points along +X — easy to eyeball against the agent's existing 2A motion.
-        const auto Target = _SpawnLocation + FVector(800.0, 0.0, -100.0);
+        // Stations face -X (rotated 180° in Request_ApplyDefaultGridLayout so they face the player
+        // who spawns at +X). The path target is chosen forward of the station — i.e., negative X
+        // from the station origin — so the agent walks out toward the player camera and the path
+        // overlay is visible in the foreground rather than going through the station's back wall.
+        const auto Target = _SpawnLocation + FVector(-800.0, 0.0, -100.0);
 
         FCk_Handle GenericAgent = _Agent;
         auto Request = FCk_Request_Nav_FindPath(Target);
         utils_nav::Request_FindPath(GenericAgent, Request);
 
-        ck::Trace(f"Locomotion gym: enqueued FindPath -> {Target}");
+        ck::crowd::Log(f"Locomotion gym: enqueued FindPath -> {Target}");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Desired Velocity")
@@ -172,12 +261,12 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
         {
-            ck::Trace("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            ck::crowd::Log("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
             return;
         }
 
         const auto Desired = utils_crowd_agent::Get_DesiredVelocity(_Agent);
-        ck::Trace(f"Locomotion gym: desired_velocity={Desired}  speed={Desired.Size()} cm/s");
+        ck::crowd::Log(f"Locomotion gym: desired_velocity={Desired}  speed={Desired.Size()} cm/s");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Stop / Destroy Agent")
@@ -187,7 +276,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
 
         if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
         {
-            ck::Trace("Locomotion gym: no agent to stop");
+            ck::crowd::Log("Locomotion gym: no agent to stop");
             return;
         }
 
@@ -195,6 +284,6 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         utils_entity_lifetime::Request_DestroyEntity(GenericAgent);
         _AgentValid = false;
 
-        ck::Trace("Locomotion gym: agent destroyed");
+        ck::crowd::Log("Locomotion gym: agent destroyed");
     }
 }
