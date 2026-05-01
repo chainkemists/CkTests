@@ -15,11 +15,11 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Crowd.Locomotion");
-            Station.Title = FText::FromString("LOCOMOTION (2A)");
+            Station.Title = FText::FromString("LOCOMOTION (2A+2B)");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Console: Ck_GymCrowd_Loco_Spawn / PrintPos / Stop"));
-            Description.Add(FText::FromString("Sub-task 2A: ApplyOffset processor smoke test"));
-            Description.Add(FText::FromString("After Spawn, agent should move +X at 100 cm/s"));
+            Description.Add(FText::FromString("Console: Ck_GymCrowd_Loco_Spawn / PrintPos / RequestPath / PrintDesired / Stop"));
+            Description.Add(FText::FromString("2A: Spawn -> +X at 100 cm/s (ApplyOffset)"));
+            Description.Add(FText::FromString("2B: Spawn + RequestPath -> Get_DesiredVelocity reflects steering"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -140,6 +140,41 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         const auto Delta = CurrentLoc - _SpawnLocation;
 
         ck::Trace(f"Locomotion gym: pos={CurrentLoc}  delta_from_spawn={Delta}  (expect +X advancing at 100 cm/s)");
+    }
+
+    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Request Path To +X 800cm")
+    void Ck_GymCrowd_Loco_RequestPath()
+    {
+        if (HasAuthority() == false) { return; }
+        if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
+        {
+            ck::Trace("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            return;
+        }
+
+        // Target chosen to be reachable on the gym's 2000cm floor (well within the 500cm projection
+        // half-extent for both endpoints) and forward of the spawn so the steering's _DesiredVelocity
+        // points along +X — easy to eyeball against the agent's existing 2A motion.
+        const auto Target = _SpawnLocation + FVector(800.0, 0.0, -100.0);
+
+        FCk_Handle GenericAgent = _Agent;
+        auto Request = FCk_Request_Nav_FindPath(Target);
+        utils_nav::Request_FindPath(GenericAgent, Request);
+
+        ck::Trace(f"Locomotion gym: enqueued FindPath -> {Target}");
+    }
+
+    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Desired Velocity")
+    void Ck_GymCrowd_Loco_PrintDesired()
+    {
+        if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
+        {
+            ck::Trace("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            return;
+        }
+
+        const auto Desired = utils_crowd_agent::Get_DesiredVelocity(_Agent);
+        ck::Trace(f"Locomotion gym: desired_velocity={Desired}  speed={Desired.Size()} cm/s");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Stop / Destroy Agent")
