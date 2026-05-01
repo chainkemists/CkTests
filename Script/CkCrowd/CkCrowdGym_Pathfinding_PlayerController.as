@@ -46,11 +46,10 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
 
     private void SpawnFloor()
     {
-        // 2000cm x 2000cm flat cube, top face at Z=0 (origin Z=-25, half-height = 25cm
-        // from scale Z=0.5 over the engine cube's 100cm). Comfortably covers the 500cm
-        // navmesh projection half-extent around origin and the 500cm IssueGood target,
-        // without dominating the viewport.
-        const auto FloorLocation = FVector(0.0, 0.0, -25.0);
+        // 2000cm x 2000cm flat cube centered at world origin (Z=0, top at Z=+25, bottom at Z=-25
+        // with the cube's 100cm height scaled by 0.5). Comfortably covers the 500cm navmesh
+        // projection half-extent and the 500cm IssueGood target without dominating the viewport.
+        const auto FloorLocation = FVector::ZeroVector;
         const auto FloorScale    = FVector(20.0, 20.0, 0.5);
 
         auto Floor = SpawnActor(ACk_CrowdGym_Floor, FloorLocation, FRotator::ZeroRotator, NAME_None, true);
