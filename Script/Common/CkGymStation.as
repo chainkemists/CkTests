@@ -214,8 +214,12 @@ class ACk_GymStation : AActor
 		RightWall.SetRelativeRotation(FRotator::ZeroRotator);
 		RightWall.SetRelativeScale3D(FVector(Depth, WT / 100.0, Height));
 
-		// Floor stage: flat slab at Z=0, full Width × full Depth.
-		FloorStage.SetRelativeLocation(FVector(0.0, 0.0, FT * 0.5));
+		// Floor stage: flat slab whose TOP face sits at actor-local Z=0, extending DOWN to Z=-FT.
+		// This makes the actor's anchor coincide with the walkable surface — so when the gym
+		// places the station at world Z=0 (DefaultStationGridZ), the floor's top is flush with
+		// the world floor / navmesh height instead of poking up by FT cm and penetrating
+		// path waypoints + agent capsules that ride on world Z=0.
+		FloorStage.SetRelativeLocation(FVector(0.0, 0.0, -FT * 0.5));
 		FloorStage.SetRelativeRotation(FRotator::ZeroRotator);
 		FloorStage.SetRelativeScale3D(FVector(Depth, Width, FT / 100.0));
 
@@ -255,8 +259,11 @@ class ACk_GymStation : AActor
 
 		// Description.
 		const auto DescY = TextAlignmentOffset(1.0, false);
+		// Floor-text mode: text sits 5cm above the floor's top. With FloorStage relocated so its
+		// top is at actor-local Z=0 (see Build_Alcove), 5cm above the surface is just Z=5 — no
+		// FloorThickness component needed any more.
 		const auto DescLocation = IsFloorText
-			? FVector(0.0, DescY, FloorThickness + 5.0)
+			? FVector(0.0, DescY, 5.0)
 			: FVector(TextX, DescY, DescZ);
 
 		const auto DescRotation = IsFloorText
@@ -274,7 +281,7 @@ class ACk_GymStation : AActor
 
 		// Title.
 		const auto TitleLocation = IsFloorText
-			? FVector(0.0, TextAlignmentOffset(1.0, false), FloorThickness + 5.0)
+			? FVector(0.0, TextAlignmentOffset(1.0, false), 5.0)
 			: FVector(TextX, TextAlignmentOffset(1.0, false), TitleZ);
 
 		const auto TitleRotation = IsFloorText
