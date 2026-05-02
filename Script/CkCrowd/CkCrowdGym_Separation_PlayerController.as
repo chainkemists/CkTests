@@ -137,7 +137,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         // as the spawn distance for the cardinal commands so behaviour is comparable.
         const auto Centre = Get_StationOrigin();
         const auto Count = 5;
-        const auto AngleStep = (2.0 * Math::Pi) / float(Count);
+        const auto AngleStep = (2.0 * Math::PI) / float(Count);
         for (int32 i = 0; i < Count; ++i)
         {
             const auto Angle = AngleStep * float(i);
