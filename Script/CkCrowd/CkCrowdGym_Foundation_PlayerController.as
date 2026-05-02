@@ -45,7 +45,7 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         if (HasAuthority() == false)
         { return; }
 
-        ck::Trace("Crowd Foundation Gym - Started. Use Ck_GymCrowd_Spawn from the console.");
+        ck::crowd::Log("Crowd Foundation Gym - Started. Use Ck_GymCrowd_Spawn from the console.");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Foundation - Spawn Agent")
@@ -57,15 +57,32 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         auto StationHandle = Get_StationHandle("Gym.Crowd.Foundation");
         if (ck::Is_NOT_Valid(StationHandle))
         {
-            ck::Warning("CrowdGym: station handle invalid — has the gym finished spawning stations?");
+            ck::crowd::Warning("CrowdGym: station handle invalid — has the gym finished spawning stations?");
             return;
         }
 
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
         auto Agent = utils_crowd_agent::Add(StationHandle, Params);
+
+        // Gate 3+: Setup processor requires FFragment_Transform to spawn the probe child entity.
+        // Foundation gym doesn't pathfind or move, but a Transform at the station origin (jittered
+        // so successive spawns don't pile on one point) lets the probe + neighbor cache exercise
+        // without needing a navmesh.
+        FCk_Handle GenericAgent = Agent;
+        const auto StationXform = Get_StationAnchorTransform("Gym.Crowd.Foundation", ECk_GymStation_Anchor::FootprintCenter);
+        const auto Jitter = FVector(
+            Math::RandRange(-50.0, 50.0),
+            Math::RandRange(-50.0, 50.0),
+            100.0);
+        const auto SpawnXform = FTransform(
+            FRotator::ZeroRotator,
+            StationXform.GetLocation() + Jitter,
+            FVector::OneVector);
+        utils_transform::Add(GenericAgent, SpawnXform, ECk_Replication::DoesNotReplicate);
+
         _Agents.Add(Agent);
 
-        ck::Trace(f"CrowdGym: spawned agent — total now {_Agents.Num()}");
+        ck::crowd::Log(f"CrowdGym: spawned agent at {SpawnXform.GetLocation()} — total now {_Agents.Num()}");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Foundation - Spawn 10 Agents")
@@ -83,7 +100,7 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
 
         if (_Agents.Num() == 0)
         {
-            ck::Warning("CrowdGym: no agents to remove");
+            ck::crowd::Warning("CrowdGym: no agents to remove");
             return;
         }
 
@@ -93,7 +110,7 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
 
         utils_entity_lifetime::Request_DestroyEntity(Last);
 
-        ck::Trace(f"CrowdGym: removed last agent — {_Agents.Num()} remaining");
+        ck::crowd::Log(f"CrowdGym: removed last agent — {_Agents.Num()} remaining");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Foundation - Clear All Agents")
@@ -109,6 +126,6 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         }
         _Agents.Empty();
 
-        ck::Trace(f"CrowdGym: cleared {Count} agents");
+        ck::crowd::Log(f"CrowdGym: cleared {Count} agents");
     }
 }
