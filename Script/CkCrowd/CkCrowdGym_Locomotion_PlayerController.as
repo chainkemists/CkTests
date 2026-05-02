@@ -15,12 +15,13 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Crowd.Locomotion");
-            Station.Title = FText::FromString("LOCOMOTION (2A+2B+2C+2D)");
+            Station.Title = FText::FromString("LOCOMOTION (2A+2B+2C+2D+2E)");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Console: Spawn / RequestPath / PrintPos / PrintDesired / PrintYaw / Stop"));
+            Description.Add(FText::FromString("Console: Spawn / RequestPath / RequestStop / Print* / Stop"));
             Description.Add(FText::FromString("Spawn -> cyan capsule (agent body) + orange cone (current facing)"));
-            Description.Add(FText::FromString("RequestPath -> path waypoints; agent walks + cone rotates to track yaw"));
-            Description.Add(FText::FromString("PrintYaw -> log current vs target yaw in degrees (FaceAngle progress)"));
+            Description.Add(FText::FromString("RequestPath -> goes through utils_crowd_agent::Request_MoveTo"));
+            Description.Add(FText::FromString("RequestStop -> cancels active move via Request_Stop API"));
+            Description.Add(FText::FromString("OnGoalReached / OnGoalFailed log when the agent arrives or fails"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -182,9 +183,31 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
+        // Bind the lifecycle signals so we can log arrival / failure (and exercise the public 2E API).
+        utils_crowd_agent::BindTo_OnGoalReached(_Agent,
+            FCk_Delegate_CrowdAgent_OnGoalReached(this, n"OnAgentGoalReached"),
+            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
+            ECk_Signal_PostFireBehavior::DoNothing);
+        utils_crowd_agent::BindTo_OnGoalFailed(_Agent,
+            FCk_Delegate_CrowdAgent_OnGoalFailed(this, n"OnAgentGoalFailed"),
+            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
+            ECk_Signal_PostFireBehavior::DoNothing);
+
         _AgentValid = true;
 
         ck::crowd::Log(f"Locomotion gym: spawned agent at {_SpawnLocation} (velocity={VelocityStart}, stationary until RequestPath)");
+    }
+
+    UFUNCTION()
+    void OnAgentGoalReached(FCk_Handle_CrowdAgent InAgent)
+    {
+        ck::crowd::Log(f"Locomotion gym: OnGoalReached fired — agent arrived at destination");
+    }
+
+    UFUNCTION()
+    void OnAgentGoalFailed(FCk_Handle_CrowdAgent InAgent)
+    {
+        ck::crowd::Warning(f"Locomotion gym: OnGoalFailed fired — path could not be resolved");
     }
 
     UFUNCTION()
@@ -259,7 +282,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
             30.0f);          // 30s decay
     }
 
-    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Request Path To -X 800cm")
+    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Request Move To -X 800cm")
     void Ck_GymCrowd_Loco_RequestPath()
     {
         if (HasAuthority() == false) { return; }
@@ -275,11 +298,13 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         // overlay is visible in the foreground rather than going through the station's back wall.
         const auto Target = _SpawnLocation + FVector(-800.0, 0.0, -100.0);
 
-        FCk_Handle GenericAgent = _Agent;
-        auto Request = FCk_Request_Nav_FindPath(Target);
-        utils_nav::Request_FindPath(GenericAgent, Request);
+        // Sub-task 2E: go through the public utils_crowd_agent::Request_MoveTo API instead of
+        // poking utils_nav directly. The handler stamps PathPending, fires FindPath, and the
+        // OnPathResolved processor flips PathPending → Walking when the result lands.
+        auto Request = FCk_Request_CrowdAgent_MoveTo(Target);
+        utils_crowd_agent::Request_MoveTo(_Agent, Request);
 
-        ck::crowd::Log(f"Locomotion gym: enqueued FindPath -> {Target}");
+        ck::crowd::Log(f"Locomotion gym: enqueued MoveTo -> {Target}");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Desired Velocity")
@@ -293,6 +318,20 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
 
         const auto Desired = utils_crowd_agent::Get_DesiredVelocity(_Agent);
         ck::crowd::Log(f"Locomotion gym: desired_velocity={Desired}  speed={Desired.Size()} cm/s");
+    }
+
+    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Request Stop (cancel active move)")
+    void Ck_GymCrowd_Loco_RequestStop()
+    {
+        if (HasAuthority() == false) { return; }
+        if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
+        {
+            ck::crowd::Log("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            return;
+        }
+
+        utils_crowd_agent::Request_Stop(_Agent);
+        ck::crowd::Log("Locomotion gym: enqueued Stop");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Yaw (current vs target)")
