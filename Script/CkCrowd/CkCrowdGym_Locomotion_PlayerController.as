@@ -15,11 +15,12 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Crowd.Locomotion");
-            Station.Title = FText::FromString("LOCOMOTION (2A+2B+2C)");
+            Station.Title = FText::FromString("LOCOMOTION (2A+2B+2C+2D)");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Console: Spawn / PrintPos / RequestPath / PrintDesired / Stop"));
-            Description.Add(FText::FromString("Spawn -> cyan capsule appears (live-tracking)"));
-            Description.Add(FText::FromString("RequestPath -> path waypoints visible; agent walks the path"));
+            Description.Add(FText::FromString("Console: Spawn / RequestPath / PrintPos / PrintDesired / PrintYaw / Stop"));
+            Description.Add(FText::FromString("Spawn -> cyan capsule (agent body) + orange cone (current facing)"));
+            Description.Add(FText::FromString("RequestPath -> path waypoints; agent walks + cone rotates to track yaw"));
+            Description.Add(FText::FromString("PrintYaw -> log current vs target yaw in degrees (FaceAngle progress)"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -150,6 +151,31 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         const auto CapsuleLocalOffset = FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 96.0), FVector::OneVector);
         utils_scene_node::Add(CapsuleXform, AgentXform, CapsuleLocalOffset);
 
+        // Forward-direction indicator (Sub-task 2D): small orange cone in front of the capsule,
+        // SceneNode-parented to the agent's Transform so it rotates with the FaceAngle processor's
+        // yaw lerp. PMG's ECk_Plane_Axis::YZ rotates the cone's apex to point along -X local (per
+        // the AxisRotation in CkPmg_Processor_BasicShapes.cpp), which is BACKWARD from agent's
+        // forward. So we keep the default XY axis (apex along +Z = up in cone-local) and tilt the
+        // cone forward via Pitch=-90 in the SceneNode local rotation: this maps cone-local +Z to
+        // parent-local +X so the apex points where the agent is facing.
+        const auto ForwardConeColor = FLinearColor(1.0, 0.55, 0.15, 0.7);
+        auto ConeHandle = utils_pmg_basic_shapes::Create_Cone(
+            GenericAgent,
+            FTransform::Identity,
+            15.0f,           // radius
+            60.0f,           // height — small enough not to overlap the capsule
+            12,              // segments
+            ECk_Plane_Axis::XY,
+            ForwardConeColor,
+            true,
+            1.5f,
+            -1.0f);          // persist with the agent
+
+        FCk_Handle ConeGeneric = ConeHandle;
+        auto ConeXform = utils_transform::DoCastChecked(ConeGeneric);
+        const auto ConeLocalOffset = FTransform(FRotator(-90.0, 0.0, 0.0), FVector(60.0, 0.0, 96.0), FVector::OneVector);
+        utils_scene_node::Add(ConeXform, AgentXform, ConeLocalOffset);
+
         // Bind OnPathReady on the agent so we can draw the path overlay when navigation lands the result.
         utils_nav::BindTo_OnPathReady(GenericAgent,
             FCk_Delegate_Nav_OnPathReady(this, n"OnAgentPathReady"),
@@ -267,6 +293,28 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
 
         const auto Desired = utils_crowd_agent::Get_DesiredVelocity(_Agent);
         ck::crowd::Log(f"Locomotion gym: desired_velocity={Desired}  speed={Desired.Size()} cm/s");
+    }
+
+    UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Yaw (current vs target)")
+    void Ck_GymCrowd_Loco_PrintYaw()
+    {
+        if (_AgentValid == false || ck::Is_NOT_Valid(_Agent))
+        {
+            ck::crowd::Log("Locomotion gym: no agent. Run Ck_GymCrowd_Loco_Spawn first.");
+            return;
+        }
+
+        FCk_Handle GenericAgent = _Agent;
+        auto TransformHandle = utils_transform::DoCastChecked(GenericAgent);
+        if (ck::Is_NOT_Valid(TransformHandle))
+        {
+            ck::crowd::Warning("Locomotion gym: agent has no Transform feature — cannot read rotation");
+            return;
+        }
+
+        const auto CurrentRot = utils_transform::Get_EntityCurrentRotation(TransformHandle);
+        const auto TargetYaw = utils_crowd_agent::Get_TargetYawDegrees(_Agent);
+        ck::crowd::Log(f"Locomotion gym: current_yaw={CurrentRot.Yaw}°  target_yaw={TargetYaw}°  (lerping at MaxTurnRate=4 rad/s)");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Stop / Destroy Agent")
