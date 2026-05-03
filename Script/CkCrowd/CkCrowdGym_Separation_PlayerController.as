@@ -248,12 +248,15 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     void OnAgentGoalReached(FCk_Handle_CrowdAgent InAgent)
     {
-        ck::crowd::Log(f"Separation gym: agent {InAgent} reached goal");
+        // Format via the generic FCk_Handle — typesafe handles aren't directly stringifiable in AS.
+        FCk_Handle Generic = InAgent;
+        ck::crowd::Log(f"Separation gym: agent {Generic} reached goal");
     }
 
     UFUNCTION()
     void OnAgentGoalFailed(FCk_Handle_CrowdAgent InAgent)
     {
-        ck::crowd::Warning(f"Separation gym: agent {InAgent} failed to reach goal");
+        FCk_Handle Generic = InAgent;
+        ck::crowd::Warning(f"Separation gym: agent {Generic} failed to reach goal");
     }
 }
