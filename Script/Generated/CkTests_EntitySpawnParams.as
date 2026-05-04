@@ -359,6 +359,19 @@ namespace UCk_AutoTest_Attribute_IntegerModifierStacking
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_IntegerMultiplyComposes_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_IntegerMultiplyComposes
+{
+    FCk_AutoTest_Attribute_IntegerMultiplyComposes_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_IntegerMultiplyComposes_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_IntegerOverflow_SpawnParams
 {
 }
@@ -368,6 +381,45 @@ namespace UCk_AutoTest_Attribute_IntegerOverflow
     FCk_AutoTest_Attribute_IntegerOverflow_SpawnParams Params()
     {
         return FCk_AutoTest_Attribute_IntegerOverflow_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_OnClampedPayloadDirection_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_OnClampedPayloadDirection
+{
+    FCk_AutoTest_Attribute_OnClampedPayloadDirection_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_OnClampedPayloadDirection_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_PreClampAsymmetry_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_PreClampAsymmetry
+{
+    FCk_AutoTest_Attribute_PreClampAsymmetry_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_PreClampAsymmetry_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_RevokeModifierDuringValueChanged_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_RevokeModifierDuringValueChanged
+{
+    FCk_AutoTest_Attribute_RevokeModifierDuringValueChanged_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_RevokeModifierDuringValueChanged_SpawnParams();
     }
 }
 
@@ -411,6 +463,32 @@ namespace UCk_AutoTest_EntityLifecycle_BatchDestroy
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_CircularContextOwnership_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_CircularContextOwnership
+{
+    FCk_AutoTest_EntityLifecycle_CircularContextOwnership_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_CircularContextOwnership_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_ContextOwnerGrandparent_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_ContextOwnerGrandparent
+{
+    FCk_AutoTest_EntityLifecycle_ContextOwnerGrandparent_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_ContextOwnerGrandparent_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityLifecycle_ContextOwnerOverride_SpawnParams
 {
 }
@@ -450,6 +528,19 @@ namespace UCk_AutoTest_EntityLifecycle_DeferredSetupState
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_DependentsCountMutations_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_DependentsCountMutations
+{
+    FCk_AutoTest_EntityLifecycle_DependentsCountMutations_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_DependentsCountMutations_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityLifecycle_HandleAndEntity_SpawnParams
 {
 }
@@ -459,6 +550,19 @@ namespace UCk_AutoTest_EntityLifecycle_HandleAndEntity
     FCk_AutoTest_EntityLifecycle_HandleAndEntity_SpawnParams Params()
     {
         return FCk_AutoTest_EntityLifecycle_HandleAndEntity_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityLifecycle_IsTransientEntityVsContext_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityLifecycle_IsTransientEntityVsContext
+{
+    FCk_AutoTest_EntityLifecycle_IsTransientEntityVsContext_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityLifecycle_IsTransientEntityVsContext_SpawnParams();
     }
 }
 
@@ -632,6 +736,19 @@ namespace UCk_AutoTest_Grid_CellsAreEnabledByDefault
 }
 
 USTRUCT()
+struct FCk_AutoTest_Grid_DisabledCellRejectsPlacement_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_DisabledCellRejectsPlacement
+{
+    FCk_AutoTest_Grid_DisabledCellRejectsPlacement_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_DisabledCellRejectsPlacement_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Grid_DisjointIntersection_SpawnParams
 {
 }
@@ -645,6 +762,19 @@ namespace UCk_AutoTest_Grid_DisjointIntersection
 }
 
 USTRUCT()
+struct FCk_AutoTest_Grid_IntersectionCardinality_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_IntersectionCardinality
+{
+    FCk_AutoTest_Grid_IntersectionCardinality_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_IntersectionCardinality_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Grid_OverlappingIntersection_SpawnParams
 {
 }
@@ -654,6 +784,45 @@ namespace UCk_AutoTest_Grid_OverlappingIntersection
     FCk_AutoTest_Grid_OverlappingIntersection_SpawnParams Params()
     {
         return FCk_AutoTest_Grid_OverlappingIntersection_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_RotationLocalCoordMapping_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_RotationLocalCoordMapping
+{
+    FCk_AutoTest_Grid_RotationLocalCoordMapping_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_RotationLocalCoordMapping_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_CanInteractWithComplexValidation_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_CanInteractWithComplexValidation
+{
+    FCk_AutoTest_Interaction_CanInteractWithComplexValidation_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_CanInteractWithComplexValidation_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_ConcurrentInteractionsSameTarget_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_ConcurrentInteractionsSameTarget
+{
+    FCk_AutoTest_Interaction_ConcurrentInteractionsSameTarget_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_ConcurrentInteractionsSameTarget_SpawnParams();
     }
 }
 
@@ -693,6 +862,19 @@ namespace UCk_AutoTest_Interaction_ManualSuccess
     FCk_AutoTest_Interaction_ManualSuccess_SpawnParams Params()
     {
         return FCk_AutoTest_Interaction_ManualSuccess_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_OnNewInteractionPayload_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_OnNewInteractionPayload
+{
+    FCk_AutoTest_Interaction_OnNewInteractionPayload_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_OnNewInteractionPayload_SpawnParams();
     }
 }
 
@@ -762,6 +944,32 @@ namespace UCk_AutoTest_Interaction_ValidationTargetDisabled
 }
 
 USTRUCT()
+struct FCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset
+{
+    FCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_CustomCanAcceptItem_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_CustomCanAcceptItem
+{
+    FCk_AutoTest_Inventory_CustomCanAcceptItem_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_CustomCanAcceptItem_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Inventory_DataOnly_AddItem_SpawnParams
 {
 }
@@ -827,6 +1035,19 @@ namespace UCk_AutoTest_Inventory_DataOnly_Unbounded
 }
 
 USTRUCT()
+struct FCk_AutoTest_Inventory_SpatialPlacementRejection_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_SpatialPlacementRejection
+{
+    FCk_AutoTest_Inventory_SpatialPlacementRejection_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_SpatialPlacementRejection_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Inventory_StackableTrait_SplitStack_SpawnParams
 {
 }
@@ -875,6 +1096,19 @@ namespace UCk_AutoTest_Inventory_TagsTrait_RemoveTag
     FCk_AutoTest_Inventory_TagsTrait_RemoveTag_SpawnParams Params()
     {
         return FCk_AutoTest_Inventory_TagsTrait_RemoveTag_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_TransferItemPayload_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_TransferItemPayload
+{
+    FCk_AutoTest_Inventory_TransferItemPayload_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_TransferItemPayload_SpawnParams();
     }
 }
 
@@ -1073,6 +1307,19 @@ namespace UCk_AutoTest_SceneNode_MultipleChildren
 }
 
 USTRUCT()
+struct FCk_AutoTest_SceneNode_NonUniformScalePropagation_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNode_NonUniformScalePropagation
+{
+    FCk_AutoTest_SceneNode_NonUniformScalePropagation_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNode_NonUniformScalePropagation_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_SceneNode_OffsetUpdates_SpawnParams
 {
 }
@@ -1082,6 +1329,19 @@ namespace UCk_AutoTest_SceneNode_OffsetUpdates
     FCk_AutoTest_SceneNode_OffsetUpdates_SpawnParams Params()
     {
         return FCk_AutoTest_SceneNode_OffsetUpdates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNode_ParentDestroyCascade_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNode_ParentDestroyCascade
+{
+    FCk_AutoTest_SceneNode_ParentDestroyCascade_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNode_ParentDestroyCascade_SpawnParams();
     }
 }
 
@@ -1147,6 +1407,19 @@ namespace UCk_AutoTest_StateMachine_HierarchicalFirstTransition
     FCk_AutoTest_StateMachine_HierarchicalFirstTransition_SpawnParams Params()
     {
         return FCk_AutoTest_StateMachine_HierarchicalFirstTransition_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_NegatedEventDrivenCondition_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_NegatedEventDrivenCondition
+{
+    FCk_AutoTest_StateMachine_NegatedEventDrivenCondition_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_NegatedEventDrivenCondition_SpawnParams();
     }
 }
 
@@ -5591,6 +5864,45 @@ namespace UCk_SmTest_Hier_SubSmTask
     FCk_SmTest_Hier_SubSmTask_SpawnParams Params()
     {
         return FCk_SmTest_Hier_SubSmTask_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Negated_Condition_AfterDelay_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Negated_Condition_AfterDelay
+{
+    FCk_SmTest_Negated_Condition_AfterDelay_SpawnParams Params()
+    {
+        return FCk_SmTest_Negated_Condition_AfterDelay_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Negated_State_Finish_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Negated_State_Finish
+{
+    FCk_SmTest_Negated_State_Finish_SpawnParams Params()
+    {
+        return FCk_SmTest_Negated_State_Finish_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Negated_State_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Negated_State_Idle
+{
+    FCk_SmTest_Negated_State_Idle_SpawnParams Params()
+    {
+        return FCk_SmTest_Negated_State_Idle_SpawnParams();
     }
 }
 
