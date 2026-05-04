@@ -1282,6 +1282,19 @@ namespace UCk_AutoTest_Messaging_Unbind
 }
 
 USTRUCT()
+struct FCk_AutoTest_Nav_PathQueuedDuringBake_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Nav_PathQueuedDuringBake
+{
+    FCk_AutoTest_Nav_PathQueuedDuringBake_SpawnParams Params()
+    {
+        return FCk_AutoTest_Nav_PathQueuedDuringBake_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_SceneNode_ActorAttachedToActor_SpawnParams
 {
 }
