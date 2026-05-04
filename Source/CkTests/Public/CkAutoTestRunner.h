@@ -95,6 +95,15 @@ public:
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const;
     virtual TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass_Implementation() const;
 
+    // AS-overridable hook for the expected-log-errors list. AS can't brace-init a
+    // TArray<FString> via `default`, so subclasses that need suppression patterns
+    // override this BPNE and build the array imperatively. Default impl returns
+    // the editor-settable _ExpectedLogErrors UPROPERTY (which IS settable from
+    // the Details panel for actor instances placed in the test map).
+    UFUNCTION(BlueprintNativeEvent, Category = "Ck|AutoTest")
+    TArray<FString> Get_ExpectedLogErrors() const;
+    virtual TArray<FString> Get_ExpectedLogErrors_Implementation() const;
+
 public:
     virtual auto PrepareTest() -> void override;
     virtual auto Tick(float DeltaSeconds) -> void override;

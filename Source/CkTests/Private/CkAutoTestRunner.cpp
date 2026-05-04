@@ -84,6 +84,15 @@ TSubclassOf<UCk_EntityScript_UE>
 
 // --------------------------------------------------------------------------------------------------------------------
 
+TArray<FString>
+    ACk_AutoTestRunner::
+    Get_ExpectedLogErrors_Implementation() const
+{
+    return _ExpectedLogErrors;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 auto
     ACk_AutoTestRunner::
     PrepareTest()
@@ -357,7 +366,11 @@ auto
         }
     }
 
-    for (const auto& Pattern : _ExpectedLogErrors)
+    // Route through the BPNE so AS subclasses overriding Get_ExpectedLogErrors
+    // (the canonical entry point — AS can't brace-init TArray<FString> via
+    // `default`) take effect here instead of being silently bypassed by a
+    // direct field read.
+    for (const auto& Pattern : Get_ExpectedLogErrors())
     {
         if (Pattern.IsEmpty())
         { continue; }
