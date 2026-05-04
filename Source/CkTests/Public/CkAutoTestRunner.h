@@ -73,14 +73,19 @@ private:
         meta = (AllowPrivateAccess = "true"))
     bool _DisableDefaultLogSuppressions = false;
 
-    // Extra patterns this specific test should accept as noise on top of
-    // (or instead of, when _DisableDefaultLogSuppressions=true) the default
-    // list. Substring match, case-insensitive, any number of occurrences
-    // (including zero).
+    // Regex / substring patterns matching LogError/LogWarning lines this test
+    // is expected to emit (e.g. a Pathfinding_Failure test deliberately
+    // triggers a path projection error). Each entry is registered via
+    // AddExpectedErrorPlain(Contains, Occurrences=-1) in PrepareTest so the
+    // automation framework doesn't auto-fail the test on its own deliberate
+    // output. Set in AS via:
+    //   default _ExpectedLogErrors = { "FindPathSync.*projection FAILED" };
+    // These layer ON TOP OF the harness's built-in default noise list (see
+    // _DisableDefaultLogSuppressions to opt out of those defaults).
     UPROPERTY(EditAnywhere, BlueprintReadOnly,
         Category = "Ck|AutoTest",
         meta = (AllowPrivateAccess = "true"))
-    TArray<FString> _AdditionalExpectedLogErrors;
+    TArray<FString> _ExpectedLogErrors;
 
 public:
     // Escape hatch: if a subclass needs to compute the class dynamically
