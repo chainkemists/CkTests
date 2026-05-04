@@ -70,8 +70,16 @@ class UCk_AutoTest_Crowd_Pathfinding_Failure : UCk_AutoTest_Base
 class ACk_AutoTest_Crowd_Pathfinding_Failure_Actor : ACk_AutoTestRunner
 {
     default _TestEntityScriptClass = UCk_AutoTest_Crowd_Pathfinding_Failure;
+
     // The off-mesh target deliberately triggers a CkNavigation projection failure
     // log line. Suppress so the automation framework doesn't auto-fail the test
-    // on its own deliberate output.
-    default _ExpectedLogErrors = { "FindPathSync.*projection FAILED" };
+    // on its own deliberate output. AS can't brace-init a TArray<FString> via
+    // default, so build the list imperatively in the BPNE override.
+    UFUNCTION(BlueprintOverride)
+    TArray<FString> Get_ExpectedLogErrors() const
+    {
+        TArray<FString> Out;
+        Out.Add("FindPathSync.*projection FAILED");
+        return Out;
+    }
 }
