@@ -450,6 +450,71 @@ namespace UCk_AutoTest_Chrono_TickAndComplete
 }
 
 USTRUCT()
+struct FCk_AutoTest_Crowd_Pathfinding_Failure_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Crowd_Pathfinding_Failure
+{
+    FCk_AutoTest_Crowd_Pathfinding_Failure_SpawnParams Params()
+    {
+        return FCk_AutoTest_Crowd_Pathfinding_Failure_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Crowd_Pathfinding_Success_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Crowd_Pathfinding_Success
+{
+    FCk_AutoTest_Crowd_Pathfinding_Success_SpawnParams Params()
+    {
+        return FCk_AutoTest_Crowd_Pathfinding_Success_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Crowd_Separation_Convergence_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Crowd_Separation_Convergence
+{
+    FCk_AutoTest_Crowd_Separation_Convergence_SpawnParams Params()
+    {
+        return FCk_AutoTest_Crowd_Separation_Convergence_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Crowd_Separation_HeadOnPass_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Crowd_Separation_HeadOnPass
+{
+    FCk_AutoTest_Crowd_Separation_HeadOnPass_SpawnParams Params()
+    {
+        return FCk_AutoTest_Crowd_Separation_HeadOnPass_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Crowd_Separation_Vibration_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Crowd_Separation_Vibration
+{
+    FCk_AutoTest_Crowd_Separation_Vibration_SpawnParams Params()
+    {
+        return FCk_AutoTest_Crowd_Separation_Vibration_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityLifecycle_BatchDestroy_SpawnParams
 {
 }
