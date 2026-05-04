@@ -357,7 +357,7 @@ auto
         }
     }
 
-    for (const auto& Pattern : _AdditionalExpectedLogErrors)
+    for (const auto& Pattern : _ExpectedLogErrors)
     {
         if (Pattern.IsEmpty())
         { continue; }
