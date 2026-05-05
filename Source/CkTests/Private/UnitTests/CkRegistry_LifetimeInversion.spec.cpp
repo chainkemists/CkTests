@@ -43,10 +43,10 @@ bool FCkRegistry_LifetimeInversion_HandleSurvivesRegistry::RunTest(const FString
     //    AddToRoot prevents it being GC'd before we explicitly release it.
     auto* Holder = NewObject<UCk_LifetimeInversion_Holder>();
     Holder->AddToRoot();
-    Holder->_SlotHandle = SlotHandle;
+    Holder->SlotHandle = SlotHandle;
 
     TestTrue(TEXT("Slot resolves before registry teardown"),
-        Resolve(Holder->_SlotHandle) == OwnedRegistry);
+        Resolve(Holder->SlotHandle) == OwnedRegistry);
 
     // 3. Tear down the registry — analog of UCk_EcsWorld_Subsystem_UE::Deinitialize.
     //    Slot is freed BEFORE the entt registry is deleted (matches subsystem
@@ -60,7 +60,7 @@ bool FCkRegistry_LifetimeInversion_HandleSurvivesRegistry::RunTest(const FString
     //    migration (this test): TryResolve cleanly returns nullptr — the
     //    POD bytes carry no ownership.
     TestNull(TEXT("Stale slot reports null (no crash)"),
-        TryResolve(Holder->_SlotHandle));
+        TryResolve(Holder->SlotHandle));
 
     // 5. Force GC on the Holder. With the slot table holding a POD handle,
     //    UObject teardown is an 8-byte memcpy — a no-op. Pre-migration,
