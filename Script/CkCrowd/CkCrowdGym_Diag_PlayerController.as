@@ -3,12 +3,14 @@
 //
 // Auto-cycling driver. See CkCrowdGym_Diag_GameMode.as for the cycle timeline.
 //
-// Layout: TWO stations (HeadOn + Cluster), MANUALLY placed (bypass cycler grid layout) so the
-// spacing between them is controlled — Cluster sits 3000cm from HeadOn (≥4× the head-on agents'
-// goal distance of 750cm) so the two test regions can't influence each other.
+// Layout: TWO stations (HeadOn + Cluster) registered via Get_RequiredStations and placed by
+// the cycler grid layout — so they appear in the same place every other gym's stations do
+// (relative to player spawn). Agents and floor are anchored to the actual station transforms
+// via Get_StationAnchorTransform + TransformPosition, so wherever the cycler puts the stations,
+// the content follows.
 //
 // EmitDigest() is a stub here; Task E swaps in per-agent digest emission backed by the C++
-// FProcessor_CrowdDiag_PathRecorder samples (Task D adds the recorder).
+// FProcessor_CrowdAgent_DiagRecorder samples (Task D).
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
@@ -26,34 +28,65 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
     private int32 _CycleNumber = 0;
     private float _CycleElapsedSec = 0.0;
 
-    // 100ms phase tracker — coarse on purpose. The C++ recorder (Task D) samples agents
-    // independently at ck.Crowd.DiagSampleHz so visual cycling and data sampling decouple.
+    // 100ms phase tracker — coarse on purpose. The C++ recorder samples at ck.Crowd.DiagSampleHz
+    // independently so visual cycling and data sampling decouple.
     private const float TickIntervalSec = 0.1;
     private const float DigestAtSec     = 9.0;
     private const float CleanupAtSec    = 10.0;
 
-    // ---- Layout (hand-placed station world locations) ------------------------------------------
+    // ---- Per-station spawn offsets (in station-LOCAL space) ------------------------------------
 
-    // Stations placed manually so spacing is controllable. Both at X=-3000 (in front of player
-    // who spawns near origin, looking toward -X), split along ±Y by 3000cm. With default
-    // rotation the alcove opens toward +X (toward the player), so station-local +X is "in front".
-    private const FVector HeadOnStationWorld  = FVector(-3000.0, +1500.0, 0.0);
-    private const FVector ClusterStationWorld = FVector(-3000.0, -1500.0, 0.0);
-
-    // Spawn offsets are in station-LOCAL space. Local +X is the station's forward (alcove side),
-    // which after default-rotation placement maps to world +X.
+    // After the cycler's 180° rotation, station-local +X maps to "in front of the alcove" (toward
+    // the player camera). Putting agents at +X local means they spawn in front of their station
+    // and are visible from the default player viewpoint. Y splits agents side-to-side.
     private const float SpawnZ           = 100.0;
     private const float HeadOnFwdOffset  = 600.0;   // 600cm in front of HeadOn station
-    private const float HeadOnHalfSpan   = 750.0;   // ±750cm sideways → 1500cm head-on apart, mirrors HeadOnPass autotest
+    private const float HeadOnHalfSpan   = 750.0;   // ±750cm sideways → 1500cm head-on apart
     private const float ClusterFwdOffset = 800.0;  // 800cm in front of Cluster station
-    private const float ClusterRadius    = 600.0;   // mirrors Convergence autotest
+    private const float ClusterRadius    = 600.0;
     private const int32 ClusterCount     = 5;
 
-    // Bypass the cycler grid layout — we want manual control over station spacing. Spawn happens
-    // in Request_StartGym via Request_SpawnEntity instead.
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
-        return TArray<FCkGym_Station_SpawnParams_Payload>();
+        if (HasAuthority() == false)
+        { return TArray<FCkGym_Station_SpawnParams_Payload>(); }
+
+        // Default grid layout would place these 800cm apart in Y — too close: HeadOn agents fan
+        // out ±750cm and Cluster has a 600cm radius, so the regions would touch the moment they
+        // spawn. Set explicit transforms with 3000cm Y spacing so the regions are well clear of
+        // each other (≥4× the head-on agents' goal distance of 750cm). X=500 + Yaw=180 mirrors
+        // what Request_ApplyDefaultGridLayout would set if we didn't override.
+        const auto StationX     = 500.0;
+        const auto StationYHalf = 1500.0;
+        const auto StationRot   = FRotator(0.0, 180.0, 0.0);
+
+        auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Crowd.Diag.HeadOn");
+            Station.AutoSize = true;
+            Station.Transform = FTransform(StationRot, FVector(StationX, +StationYHalf, 0.0), FVector::OneVector);
+            Station.Title = FText::FromString("HEAD-ON (auto-cycle)");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("2 agents 1500cm apart on a head-on collision course."));
+            Description.Add(FText::FromString("Cycles every 10s; digest log at +9s."));
+            Description.Add(FText::FromString("Console: Ck_GymCrowd_Diag_Pause / Resume / DumpNow"));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Crowd.Diag.Cluster");
+            Station.AutoSize = true;
+            Station.Transform = FTransform(StationRot, FVector(StationX, -StationYHalf, 0.0), FVector::OneVector);
+            Station.Title = FText::FromString("CLUSTER (auto-cycle)");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("5 agents on a 600cm circle, all targeting the centre."));
+            Description.Add(FText::FromString("Breadcrumb trail: ck.Crowd.DiagDrawBreadcrumb 1 (default on)."));
+            Station.Description = Description;
+            Stations.Add(Station);
+        }
+        return Stations;
     }
 
     void Request_StartGym() override
@@ -61,50 +94,41 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         if (HasAuthority() == false)
         { return; }
 
-        SpawnStation("Gym.Crowd.Diag.HeadOn", HeadOnStationWorld,
-            "HEAD-ON (auto-cycle)",
-            "2 agents 1500cm apart, head-on collision course.");
-
-        SpawnStation("Gym.Crowd.Diag.Cluster", ClusterStationWorld,
-            "CLUSTER (auto-cycle)",
-            "5 agents on a 600cm circle, all targeting the centre.");
+        _HeadOnStation = Get_StationHandle("Gym.Crowd.Diag.HeadOn");
+        _ClusterStation = Get_StationHandle("Gym.Crowd.Diag.Cluster");
+        if (ck::Is_NOT_Valid(_HeadOnStation) || ck::Is_NOT_Valid(_ClusterStation))
+        {
+            ck::crowd::Warning("Diag gym: station handle(s) invalid at StartGym");
+            return;
+        }
 
         SpawnFloor();
 
-        // Recurring 100ms ticker drives the cycle state machine. Owner is the world transient
-        // entity (not a station) so the ticker survives even if a station entity is mid-spawn
-        // when the ticker's owner-check would otherwise fire.
+        // Recurring 100ms ticker drives the cycle state machine. Owned by the HeadOn station so
+        // it cascade-destroys on gym change.
         auto TickerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(TickIntervalSec));
         TickerParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
-        auto TransientOwner = ck::TransientEntity();
-        auto Ticker = utils_timer::Add(TransientOwner, TickerParams);
+        auto Ticker = utils_timer::Add(_HeadOnStation, TickerParams);
         Ticker.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnCycleTick"));
 
-        ck::crowd::Log(f"Diag gym started. Stations placed at {HeadOnStationWorld} and {ClusterStationWorld}.");
-    }
+        BeginCycle();
 
-    private void SpawnStation(FString InTag, FVector InWorldLocation, FString InTitle, FString InDescription)
-    {
-        auto Params = FCk_GymStation_SpawnParams();
-        Params.InitialTransform = FTransform(FRotator::ZeroRotator, InWorldLocation, FVector(1.0, 1.0, 1.0));
-        Params.TitleText = FText::FromString(InTitle);
-        Params.DescriptionText.Add(FText::FromString(InDescription));
-        Params.DescriptionText.Add(FText::FromString("Cycles every 10s; digest log at +9s."));
-        Params.StationTags.Add(FName(InTag));
-
-        utils_entity_script::Request_SpawnEntity(
-            ck::TransientEntity(),
-            UCk_EntityScript_GymStation,
-            FInstancedStruct::Make(Params));
+        ck::crowd::Log("Diag gym started. Auto-cycling on; pause via Ck_GymCrowd_Diag_Pause.");
     }
 
     private void SpawnFloor()
     {
-        // Hardcoded floor centred between the two known station positions (we placed them
-        // ourselves above). 8000x8000cm gives generous margin for spawn radii + nav projection.
-        const auto FloorLocation = (HeadOnStationWorld + ClusterStationWorld) * 0.5;
-        const auto FloorScale    = FVector(80.0, 80.0, 0.5);
+        // Single big floor at world origin — the cycler map's NavMeshBoundsVolume is centred
+        // at origin, so a floor at origin lands fully inside it. 7500x7500x50cm covers both
+        // stations (placed at X=500, Y=±1500) plus their spawn radii with margin.
+        //
+        // Z SCALE MUST BE >= 0.5 — anything thinner and the navmesh bake silently produces
+        // no walkable tiles on the surface (grey floor in the navmesh viewer). Recast's tile
+        // generator filters out geometry below a height threshold relative to the agent's
+        // CellHeight; 50cm slabs sit comfortably above it.
+        const auto FloorLocation = FVector::ZeroVector;
+        const auto FloorScale    = FVector(75.0, 75.0, 0.5);   // 7500x7500x50cm
 
         auto Floor = SpawnActor(ACk_CrowdGym_Floor, FloorLocation, FRotator::ZeroRotator, NAME_None, true);
         if (Floor == nullptr)
@@ -121,8 +145,9 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
     // ---- Station-local -> world ----------------------------------------------------------------
 
     // Project a station-LOCAL offset into world space using the station's actual placed transform.
-    // With default-rotation placement, station-local +X maps to world +X (so +X local = "in front
-    // of station's alcove" = visible to player).
+    // Station-local +X maps to "in front of station's alcove" (toward the player camera) after the
+    // cycler's 180° rotation. So local +X offsets always land in the visible play area regardless
+    // of where the grid layout positioned the station.
     private FVector StationLocal_To_World(FString InStationTag, FVector InLocalOffset)
     {
         const auto StationXform = Get_StationAnchorTransform(InStationTag, ECk_GymStation_Anchor::FootprintCenter);
@@ -133,16 +158,6 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
     private void BeginCycle()
     {
-        // Cache station handles on first use — by the time the startup grace expires, the
-        // manually-spawned station entities have completed Request_SpawnEntity construction.
-        if (ck::Is_NOT_Valid(_HeadOnStation))  { _HeadOnStation  = Get_StationHandle("Gym.Crowd.Diag.HeadOn"); }
-        if (ck::Is_NOT_Valid(_ClusterStation)) { _ClusterStation = Get_StationHandle("Gym.Crowd.Diag.Cluster"); }
-        if (ck::Is_NOT_Valid(_HeadOnStation) || ck::Is_NOT_Valid(_ClusterStation))
-        {
-            ck::crowd::Warning("Diag gym: station handle(s) still invalid at BeginCycle — postponing one tick");
-            return;
-        }
-
         ++_CycleNumber;
         _CycleElapsedSec = 0.0;
         _CycleActive = true;
@@ -169,7 +184,6 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
         if (_CycleActive == false)
         {
-            // Just resumed or first tick after cleanup — start the next cycle.
             BeginCycle();
             return;
         }
@@ -185,8 +199,6 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         if (_CycleElapsedSec >= CleanupAtSec)
         {
             EndCycle();
-            // Next tick's _CycleActive==false branch starts the next cycle, giving one frame
-            // of "agents gone" visual gap before respawn.
         }
     }
 
@@ -194,8 +206,6 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
     private void SpawnHeadOnAgents()
     {
-        // Both agents in front of the HeadOn station, separated 1500cm side-to-side along the
-        // station's local Y axis. Targets reversed → head-on collision near (HeadOnFwdOffset, 0).
         const auto SpawnA = StationLocal_To_World("Gym.Crowd.Diag.HeadOn", FVector(HeadOnFwdOffset, +HeadOnHalfSpan, SpawnZ));
         const auto SpawnB = StationLocal_To_World("Gym.Crowd.Diag.HeadOn", FVector(HeadOnFwdOffset, -HeadOnHalfSpan, SpawnZ));
         _HeadOnAgents.Add(SpawnAgent(_HeadOnStation, SpawnA, SpawnB, FLinearColor(0.42, 0.85, 1.0, 0.6)));
@@ -204,7 +214,6 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
     private void SpawnClusterAgents()
     {
-        // 5 agents on a 600cm circle in front of the Cluster station, all targeting that centre.
         const auto Centre = StationLocal_To_World("Gym.Crowd.Diag.Cluster", FVector(ClusterFwdOffset, 0.0, SpawnZ));
         const auto AngleStep = (2.0 * Math::PI) / float(ClusterCount);
         for (int32 i = 0; i < ClusterCount; ++i)
@@ -212,7 +221,6 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
             const auto Angle = AngleStep * float(i);
             const auto Offset = FVector(ClusterRadius * Math::Cos(Angle), ClusterRadius * Math::Sin(Angle), 0.0);
             const auto SpawnLoc = Centre + Offset;
-            // Hue varies around the wheel so individuals are distinguishable in the cluster.
             const auto HueDeg = (360.0 / float(ClusterCount)) * float(i);
             const auto Color = FLinearColor::MakeFromHSV8(uint8(HueDeg * 255.0 / 360.0), 200, 220);
             _ClusterAgents.Add(SpawnAgent(_ClusterStation, SpawnLoc, Centre, Color));
@@ -236,11 +244,13 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
     private FCk_Handle_CrowdAgent SpawnAgent(FCk_Handle& InOwnerStation, FVector SpawnLoc, FVector TargetLoc, FLinearColor InColor)
     {
-        // Same spawn recipe as the Separation gym — agent + Transform + Velocity + Acceleration +
-        // EulerIntegrator started, capsule body + forward cone for visuals, MoveTo issued. Owner
-        // is the station so the agent cascade-destroys when the gym tears the station down.
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
         auto Agent = utils_crowd_agent::Add(InOwnerStation, Params);
+
+        // Stamp the agent's identity colour so all visualisations (capsule, breadcrumb path,
+        // planned-path overlay, debugger swatch) coordinate. The capsule/cone below still pass
+        // InColor directly for now; refactor to read the fragment is a follow-up.
+        utils_crowd_agent::Set_DebugColor(Agent, InColor);
 
         FCk_Handle Generic = Agent;
         const auto Rot = (TargetLoc - SpawnLoc).GetSafeNormal().Rotation();
@@ -274,6 +284,12 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         utils_scene_node::Add(ConeXform, AgentXform, ConeLocalOffset);
 
         utils_crowd_agent::Request_MoveTo(Agent, FCk_Request_CrowdAgent_MoveTo(TargetLoc));
+
+        // Opt this agent into the diagnostic recorder so the path-recorder processor samples it
+        // and the cycle-end digest (Task E) has data to dump. The breadcrumb-draw processor
+        // (default-on) will draw the trail in PIE.
+        utils_crowd_agent_diag::Track(Agent, SpawnLoc, TargetLoc);
+
         return Agent;
     }
 
@@ -281,10 +297,6 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
     private void EmitDigest()
     {
-        // Task E will replace this with full per-agent digest emission backed by the
-        // FProcessor_CrowdDiag_PathRecorder samples (Task D). For Task C we just log the
-        // cycle phase boundary so the auto-cycle is visible in the log even before the
-        // recorder lands.
         ck::crowd::Log(f"[CrowdDiag][C{_CycleNumber}] cycle digest — TODO(Task E): per-agent metrics + RDP-simplified path");
     }
 
