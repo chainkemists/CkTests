@@ -4,6 +4,7 @@
 
 #include "FunctionalTest.h"
 
+#include "CkCore/Settings/CkCore_Settings.h"
 #include "CkEcs/Handle/CkHandle.h"
 
 #include "CkAutoTestRunner.generated.h"
@@ -74,12 +75,29 @@ public:
 public:
     virtual auto PrepareTest() -> void override;
     virtual auto Tick(float DeltaSeconds) -> void override;
+    virtual auto FinishTest(EFunctionalTestResult TestResult, const FString& Message) -> void override;
+    virtual auto BeginDestroy() -> void override;
 
 private:
     UFUNCTION()
     void OnRunnerConstructed(struct FCk_Handle_EntityScript InEntityScriptHandle);
 
+    // Forces CkEnsure's display policy to LogOnly for the duration of a test
+    // run. CkFoundation's CK_ENSURE_IF_NOT path normally pops a modal dialog
+    // (ECk_EnsureDisplay_Policy::ModalDialog) which blocks automated runs.
+    // Under LogOnly, ensures still log a full message + callstack — so the
+    // automation framework still sees the error and fails the test — but no
+    // dialog appears. Saved policy is restored on FinishTest / BeginDestroy.
+    void Install_EnsurePolicyOverride();
+    void Restore_EnsurePolicyOverride();
+
 private:
     FCk_Handle _RunnerEntity;
     bool _ResultReported = false;
+
+    // Per-instance idempotency guard so FinishTest + BeginDestroy don't
+    // double-decrement the process-wide override refcount. The actual
+    // saved policy and refcount live in file-scope statics in the .cpp
+    // (see ck::auto_test::ensure_override).
+    bool _EnsurePolicyOverridden = false;
 };
