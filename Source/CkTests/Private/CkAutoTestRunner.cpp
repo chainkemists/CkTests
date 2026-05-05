@@ -8,7 +8,53 @@
 #include "CkEcs/EntityScript/CkEntityScript_Fragment_Data.h"
 #include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
 
+#include "CkCore/Settings/CkCore_Settings.h"
+
 #include <StructUtils/InstancedStruct.h>
+
+DEFINE_LOG_CATEGORY_STATIC(LogCkAutoTest_Ensure, Log, All);
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// Process-wide ensure-policy override state.
+//
+// Goal: while ANY ACk_AutoTestRunner is active, force ECk_EnsureDisplay_Policy
+// to LogOnly so dialogs don't block automated runs. Restore the user's
+// original policy as soon as the LAST runner finishes — robust against:
+//   - Overlapping actor lifecycles (Test A's BeginDestroy delayed past Test
+//     B's PrepareTest): without ref-counting, B would capture A's leftover
+//     LogOnly as "previous" and we'd never restore the real value.
+//   - Engine shutdown with active runners: OnEnginePreExit forces a final
+//     restore even if BeginDestroy never fires.
+//   - Crash mid-test: nothing persists to disk anyway (Set_EnsureDisplay-
+//     Policy is in-memory CDO only), so a process death always recovers
+//     the user's .ini value on next launch.
+//
+// The per-instance _EnsurePolicyOverridden flag still exists — it makes
+// each instance's Install/Restore idempotent (FinishTest AND BeginDestroy
+// both call Restore on the same actor).
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck::auto_test::ensure_override
+{
+    static int32 GActiveCount = 0;
+    static ECk_EnsureDisplay_Policy GOriginalPolicy = ECk_EnsureDisplay_Policy::ModalDialog;
+    static FDelegateHandle GPreExitHandle;
+
+    static auto Force_Restore_OnEnginePreExit() -> void
+    {
+        if (GActiveCount > 0)
+        {
+            UE_LOG(LogCkAutoTest_Ensure, Warning,
+                TEXT("Engine pre-exit with [%d] AutoTest runner(s) still active — "
+                     "forcing ensure display policy restore."),
+                GActiveCount);
+            UCk_Utils_Core_UserSettings_UE::Set_EnsureDisplayPolicy(GOriginalPolicy);
+            GActiveCount = 0;
+        }
+    }
+}
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -46,6 +92,12 @@ auto
 
     _RunnerEntity = FCk_Handle{};
     _ResultReported = false;
+
+    // Scope: override CkEnsure's display policy to LogOnly for the duration
+    // of this test run, restored in FinishTest (and BeginDestroy as a safety
+    // net). Outside test runs, ensures behave normally — devs running the
+    // editor still see the modal dialog if their settings ask for it.
+    Install_EnsurePolicyOverride();
 
     // Sync engine TimeLimit to the AS-author-configured _TimeoutSeconds.
     TimeLimit = FMath::Max(_TimeoutSeconds, 0.1f);
@@ -152,6 +204,113 @@ auto
                 *TestResult.FailureMessage, TestResult.AssertionsFailed, TestResult.AssertionsRun);
             FinishTest(EFunctionalTestResult::Failed, Msg);
             return;
+        }
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    FinishTest(
+        EFunctionalTestResult TestResult,
+        const FString& Message)
+    -> void
+{
+    // Always restore the ensure policy before delegating to the base
+    // implementation — covers both the engine-driven TimesUp path and
+    // our own FinishTest calls from PrepareTest/Tick.
+    Restore_EnsurePolicyOverride();
+
+    Super::FinishTest(TestResult, Message);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    BeginDestroy()
+    -> void
+{
+    // Safety net: if the actor is torn down without FinishTest ever firing
+    // (e.g. world teardown mid-run), make sure we don't leave the policy
+    // override in place — it's a process-wide setting via the CDO.
+    Restore_EnsurePolicyOverride();
+
+    Super::BeginDestroy();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    Install_EnsurePolicyOverride()
+    -> void
+{
+    using namespace ck::auto_test::ensure_override;
+
+    if (_EnsurePolicyOverridden)
+    { return; }
+
+    if (GActiveCount == 0)
+    {
+        // First runner in this batch: capture the user's *real* policy now,
+        // before we overwrite it. Subsequent runners in the same batch will
+        // not re-capture (otherwise they'd record the temporary LogOnly).
+        GOriginalPolicy = UCk_Utils_Core_UserSettings_UE::Get_EnsureDisplayPolicy();
+
+        if (GOriginalPolicy == ECk_EnsureDisplay_Policy::ModalDialog)
+        {
+            UE_LOG(LogCkAutoTest_Ensure, Display,
+                TEXT("Overriding ensure display policy: ModalDialog -> LogOnly for AutoTest run"));
+            UCk_Utils_Core_UserSettings_UE::Set_EnsureDisplayPolicy(
+                ECk_EnsureDisplay_Policy::LogOnly);
+        }
+
+        // Belt-and-suspenders: if engine shuts down with an override still
+        // active (e.g. our BeginDestroy never fires), force a restore.
+        if (NOT GPreExitHandle.IsValid())
+        {
+            GPreExitHandle = FCoreDelegates::OnEnginePreExit.AddStatic(
+                &Force_Restore_OnEnginePreExit);
+        }
+    }
+
+    ++GActiveCount;
+    _EnsurePolicyOverridden = true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    Restore_EnsurePolicyOverride()
+    -> void
+{
+    using namespace ck::auto_test::ensure_override;
+
+    if (NOT _EnsurePolicyOverridden)
+    { return; }
+
+    _EnsurePolicyOverridden = false;
+    --GActiveCount;
+
+    if (GActiveCount <= 0)
+    {
+        GActiveCount = 0;
+
+        const auto CurrentPolicy = UCk_Utils_Core_UserSettings_UE::Get_EnsureDisplayPolicy();
+        if (CurrentPolicy != GOriginalPolicy)
+        {
+            UE_LOG(LogCkAutoTest_Ensure, Display,
+                TEXT("Restoring ensure display policy after last AutoTest runner finished"));
+            UCk_Utils_Core_UserSettings_UE::Set_EnsureDisplayPolicy(GOriginalPolicy);
+        }
+
+        if (GPreExitHandle.IsValid())
+        {
+            FCoreDelegates::OnEnginePreExit.Remove(GPreExitHandle);
+            GPreExitHandle.Reset();
         }
     }
 }
