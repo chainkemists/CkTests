@@ -10,6 +10,7 @@
 
 #include "CkCore/Settings/CkCore_Settings.h"
 
+#include <Misc/AutomationTest.h>
 #include <StructUtils/InstancedStruct.h>
 
 DEFINE_LOG_CATEGORY_STATIC(LogCkAutoTest_Ensure, Log, All);
@@ -98,6 +99,7 @@ auto
     // net). Outside test runs, ensures behave normally — devs running the
     // editor still see the modal dialog if their settings ask for it.
     Install_EnsurePolicyOverride();
+    Install_ExpectedLogErrors();
 
     // Sync engine TimeLimit to the AS-author-configured _TimeoutSeconds.
     TimeLimit = FMath::Max(_TimeoutSeconds, 0.1f);
@@ -312,5 +314,54 @@ auto
             FCoreDelegates::OnEnginePreExit.Remove(GPreExitHandle);
             GPreExitHandle.Reset();
         }
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck::auto_test::expected_errors
+{
+    // Default noise list. Substrings — case-insensitive, matched against any
+    // captured Warning/Error during the test window.
+    //
+    // EOS RTC TickTracker: the EOS SDK emits a Warning whenever its internal
+    // tick loop slips past 40ms. In PIE/headless that fires constantly on
+    // GC, asset loads, breakpoints, etc. — irrelevant to gameplay logic
+    // tests, and registered here so the automation harness ignores it.
+    static const TArray<FString> GDefaultPlainPatterns =
+    {
+        TEXT("TickTracker Ticks have been delayed"),
+    };
+}
+
+auto
+    ACk_AutoTestRunner::
+    Install_ExpectedLogErrors()
+    -> void
+{
+    auto* CurrentTest = FAutomationTestFramework::Get().GetCurrentTest();
+    if (CurrentTest == nullptr)
+    { return; }
+
+    // Negative Occurrences = suppress all matches regardless of count, and
+    // don't flag as "missing" if zero matches occur. See FAutomationExpected-
+    // Message: "If negative, it will suppress all matching messages."
+    constexpr int32 SuppressAll = -1;
+
+    if (NOT _DisableDefaultLogSuppressions)
+    {
+        for (const auto& Pattern : ck::auto_test::expected_errors::GDefaultPlainPatterns)
+        {
+            CurrentTest->AddExpectedErrorPlain(Pattern,
+                EAutomationExpectedErrorFlags::Contains, SuppressAll);
+        }
+    }
+
+    for (const auto& Pattern : _AdditionalExpectedLogErrors)
+    {
+        if (Pattern.IsEmpty())
+        { continue; }
+        CurrentTest->AddExpectedErrorPlain(Pattern,
+            EAutomationExpectedErrorFlags::Contains, SuppressAll);
     }
 }

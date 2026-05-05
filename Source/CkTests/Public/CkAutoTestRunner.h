@@ -64,6 +64,24 @@ private:
                 Tooltip = "Per-test timeout in seconds. Engine TimeLimit is set from this in PrepareTest."))
     float _TimeoutSeconds = 5.0f;
 
+    // Suppresses the harness's built-in expected-log-error list (EOS RTC
+    // TickTracker chatter, etc). Flip to true on a subclass that legitimately
+    // wants those warnings to fail the test (e.g. a perf/hitch-detection
+    // test that uses RTC scheduling as a stall signal).
+    UPROPERTY(EditAnywhere, BlueprintReadOnly,
+        Category = "Ck|AutoTest",
+        meta = (AllowPrivateAccess = "true"))
+    bool _DisableDefaultLogSuppressions = false;
+
+    // Extra patterns this specific test should accept as noise on top of
+    // (or instead of, when _DisableDefaultLogSuppressions=true) the default
+    // list. Substring match, case-insensitive, any number of occurrences
+    // (including zero).
+    UPROPERTY(EditAnywhere, BlueprintReadOnly,
+        Category = "Ck|AutoTest",
+        meta = (AllowPrivateAccess = "true"))
+    TArray<FString> _AdditionalExpectedLogErrors;
+
 public:
     // Escape hatch: if a subclass needs to compute the class dynamically
     // (rather than baking it in via `default`), override this BPNE.
@@ -90,6 +108,11 @@ private:
     // dialog appears. Saved policy is restored on FinishTest / BeginDestroy.
     void Install_EnsurePolicyOverride();
     void Restore_EnsurePolicyOverride();
+
+    // Registers expected-log-error patterns with the active automation test
+    // so chatty third-party warnings (EOS RTC TickTracker, etc.) don't auto-
+    // fail tests that don't care about them. Called once from PrepareTest.
+    void Install_ExpectedLogErrors();
 
 private:
     FCk_Handle _RunnerEntity;
