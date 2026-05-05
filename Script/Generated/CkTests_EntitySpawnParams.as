@@ -1295,6 +1295,32 @@ namespace UCk_AutoTest_Nav_PathQueuedDuringBake
 }
 
 USTRUCT()
+struct FCk_AutoTest_Registry_HandleCopyDestroy_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Registry_HandleCopyDestroy
+{
+    FCk_AutoTest_Registry_HandleCopyDestroy_SpawnParams Params()
+    {
+        return FCk_AutoTest_Registry_HandleCopyDestroy_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Registry_HandleInFragmentLifecycle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Registry_HandleInFragmentLifecycle
+{
+    FCk_AutoTest_Registry_HandleInFragmentLifecycle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Registry_HandleInFragmentLifecycle_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_SceneNode_ActorAttachedToActor_SpawnParams
 {
 }

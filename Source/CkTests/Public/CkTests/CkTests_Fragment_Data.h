@@ -1,6 +1,42 @@
 #pragma once
 
+#include "CkEcs/Handle/CkHandle.h"
+#include "CkCore/Macros/CkMacros.h"
+
+#include <CoreMinimal.h>
 #include <NativeGameplayTags.h>
+
+#include "CkTests_Fragment_Data.generated.h"
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// FCk_Fragment_AutoTest_HandleHolder
+//
+// Test-only fragment that stores a single FCk_Handle inside an entity. Used by
+// the Phase-0 generational-handle migration AutoTests to characterise the
+// "handle stored in a fragment that lives in the same registry the handle
+// references" cycle scenario. Pre-migration this requires Registry::Shutdown()
+// to break the cycle; post-migration the handle is just (slot, gen) bytes
+// and there should be no cycle to break.
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+USTRUCT(BlueprintType)
+struct CKTESTS_API FCk_Fragment_AutoTest_HandleHolder
+{
+    GENERATED_BODY()
+
+public:
+    CK_GENERATED_BODY(FCk_Fragment_AutoTest_HandleHolder);
+
+private:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+              meta = (AllowPrivateAccess = true))
+    FCk_Handle _StoredHandle;
+
+public:
+    CK_PROPERTY(_StoredHandle);
+};
 
 // --------------------------------------------------------------------------------------------------------------------
 
