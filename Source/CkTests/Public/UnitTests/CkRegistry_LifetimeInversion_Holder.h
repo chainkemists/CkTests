@@ -1,7 +1,9 @@
 #pragma once
 
 #include "UObject/Object.h"
+
 #include "CkEcs/Registry/CkRegistry_Handle.h"
+
 #include "CkRegistry_LifetimeInversion_Holder.generated.h"
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -14,6 +16,10 @@
 // raw FCk_RegistryHandle — characterizing the slot-table-level invariant. Once
 // FCk_Handle is migrated (Phase 2+), this struct will be extended (or replaced)
 // with a full FCk_Handle field to exercise the higher-level handle dtor.
+//
+// Field is intentionally a public UPROPERTY: this is a test-only fixture, and
+// the project's _-prefix-with-CK_PROPERTY-accessor convention applies to
+// USTRUCTs (which carry CK_GENERATED_BODY), not UCLASSes.
 // --------------------------------------------------------------------------------------------------------------------
 
 UCLASS()
@@ -23,5 +29,5 @@ class CKTESTS_API UCk_LifetimeInversion_Holder : public UObject
 
 public:
     UPROPERTY()
-    FCk_RegistryHandle _SlotHandle;
+    FCk_RegistryHandle SlotHandle;
 };
