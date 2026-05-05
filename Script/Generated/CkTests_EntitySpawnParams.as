@@ -1295,6 +1295,19 @@ namespace UCk_AutoTest_Nav_PathQueuedDuringBake
 }
 
 USTRUCT()
+struct FCk_AutoTest_Registry_AllocatorStress_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Registry_AllocatorStress
+{
+    FCk_AutoTest_Registry_AllocatorStress_SpawnParams Params()
+    {
+        return FCk_AutoTest_Registry_AllocatorStress_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Registry_HandleCopyDestroy_SpawnParams
 {
 }
