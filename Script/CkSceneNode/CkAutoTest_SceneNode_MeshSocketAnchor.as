@@ -155,9 +155,11 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
             return;
         }
 
-        // Component-world transform — what CreateAndAttachToUnrealComponent
-        // anchors to.
-        auto MeshWorld = Helper.Mesh.GetComponentTransform();
+        // Mesh component is rigidly attached to the actor root with no offset,
+        // so its component-world transform equals the actor's world transform.
+        // GetActorTransform is AS-bound; UMeshComponent::GetComponentTransform
+        // is not.
+        auto MeshWorld = Helper.GetActorTransform();
         auto ExpectedLoc = MeshWorld.GetLocation();
         auto ExpectedRot = MeshWorld.GetRotation().Rotator();
 
