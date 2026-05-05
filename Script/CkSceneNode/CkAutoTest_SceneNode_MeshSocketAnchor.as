@@ -8,23 +8,30 @@
 // utils_scene_node::Add to mark its child FTag_Transform_ExternallyDriven so
 // scene-node parents drive the child (Unreal AttachToComponent semantics),
 // the Create*-flavored overloads must keep doing the OPPOSITE: their resulting
-// SceneNode entity is supposed to track a foreign Unreal anchor (a
-// USceneComponent or mesh socket), so the ExternallyDriven tag must NOT be
-// stamped on those.
+// SceneNode entity is supposed to track a foreign Unreal anchor, so the
+// ExternallyDriven tag must NOT be stamped on those.
 //
-// This test exercises CreateAndAttachToUnrealMesh:
+// This test exercises CreateAndAttachToUnrealComponent (component-world
+// tracking — no socket name; the SceneNode tracks the mesh component's world
+// transform directly):
 //   1. Spawn a helper actor with a UStaticMeshComponent.
-//   2. Create a SceneNode via CreateAndAttachToUnrealMesh against that mesh
-//      with a sentinel socket name "FakeSocket_TestOnly". GetSocketTransform
-//      falls back to the component's world transform for unknown names, so
-//      this test pins down the mesh-component world tracking path.
+//   2. Create a SceneNode via CreateAndAttachToUnrealComponent against that
+//      mesh.
 //   3. Move the actor.
 //   4. After a settle, assert the SceneNode entity transform matches the
 //      mesh component's world transform.
 //
+// **Why no socket name here:** UCk_Utils_Transform_UE::AddAndAttachToUnrealMesh
+// fails loud (CK_ENSURE_IF_NOT) on an unknown socket name — the original
+// version of this test passed "FakeSocket_TestOnly" intending to exercise
+// UE's silent fallback to component-world transform, which we explicitly
+// rejected: a typo in a socket name silently anchoring to component world is
+// a QA-difficult class of bug. If you need genuine socket coverage, write a
+// sibling test against a SkeletalMesh asset with real sockets.
+//
 // If this test fails after the ExternallyDriven patch lands, the
-// CreateAndAttachToUnrealMesh path accidentally got the tag stamped, or the
-// SyncFromMeshSocket / UpdateLocal_FromMeshSocket exclude is too broad.
+// CreateAndAttachToUnrealComponent path accidentally got the tag stamped,
+// or SyncFromActor / UpdateLocal_FromRootComponent excludes are too broad.
 //============================================================================
 
 class ACk_AutoTest_SceneNode_MeshSocketAnchor_Helper : AActor
@@ -90,11 +97,10 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
             return;
         }
 
-        MeshNode = utils_scene_node::CreateAndAttachToUnrealMesh(
-            StructuralParent, Helper.Mesh, n"FakeSocket_TestOnly");
+        MeshNode = utils_scene_node::CreateAndAttachToUnrealComponent(StructuralParent, Helper.Mesh);
         if (ck::Is_NOT_Valid(MeshNode))
         {
-            FinishFailure("CreateAndAttachToUnrealMesh returned an invalid handle");
+            FinishFailure("CreateAndAttachToUnrealComponent returned an invalid handle");
             return;
         }
 
@@ -122,13 +128,11 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
         if (_Step == 1)
         {
             // After settle: SceneNode entity should track the mesh component world.
-            // GetSocketTransform falls back to the component's world for unknown
-            // socket names — same as the test's name "FakeSocket_TestOnly".
             AssertNodeTracksMeshWorld("Initial");
             if (IsFinished()) { return; }
 
             // Move the actor — the mesh component world moves with it,
-            // SyncFromMeshSocket should pull that into the SceneNode entity.
+            // SyncFromActor should pull that into the SceneNode entity.
             Helper.SetActorLocation(HelperMoveLocation);
 
             _Step = 2;
@@ -151,7 +155,9 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
             return;
         }
 
-        auto MeshWorld = Helper.Mesh.GetSocketTransform(n"FakeSocket_TestOnly");
+        // Component-world transform — what CreateAndAttachToUnrealComponent
+        // anchors to.
+        auto MeshWorld = Helper.Mesh.GetComponentTransform();
         auto ExpectedLoc = MeshWorld.GetLocation();
         auto ExpectedRot = MeshWorld.GetRotation().Rotator();
 
