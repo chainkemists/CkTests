@@ -25,14 +25,16 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
     private bool  _AutoCycleEnabled = true;
     private bool  _CycleActive = false;
     private bool  _DigestEmittedForCycle = false;
+    private bool  _OverlapWaveFiredForCycle = false;
     private int32 _CycleNumber = 0;
     private float _CycleElapsedSec = 0.0;
 
     // 100ms phase tracker — coarse on purpose. The C++ recorder samples at ck.Crowd.DiagSampleHz
     // independently so visual cycling and data sampling decouple.
-    private const float TickIntervalSec = 0.1;
-    private const float DigestAtSec     = 9.0;
-    private const float CleanupAtSec    = 10.0;
+    private const float TickIntervalSec   = 0.1;
+    private const float OverlapWaveAtSec  = 4.5;   // originals have converged near goal; spawn 2nd wave on top
+    private const float DigestAtSec       = 9.0;
+    private const float CleanupAtSec      = 10.0;
 
     // ---- Per-station spawn offsets (in station-LOCAL space) ------------------------------------
 
@@ -69,8 +71,8 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
             Station.Title = FText::FromString("HEAD-ON (auto-cycle)");
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("2 agents 1500cm apart on a head-on collision course."));
-            Description.Add(FText::FromString("Cycles every 10s; digest log at +9s."));
-            Description.Add(FText::FromString("Console: Ck_GymCrowd_Diag_Pause / Resume / DumpNow"));
+            Description.Add(FText::FromString("Cycles every 10s; digest log at +9s; overlap wave at +4.5s."));
+            Description.Add(FText::FromString("Console: Ck_GymCrowd_Diag_Pause / Resume / DumpNow / SpawnOverlapNow"));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -83,6 +85,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("5 agents on a 600cm circle, all targeting the centre."));
             Description.Add(FText::FromString("Breadcrumb trail: ck.Crowd.DiagDrawBreadcrumb 1 (default on)."));
+            Description.Add(FText::FromString("Overlap wave at +4.5s: 5 more agents spawn ON TOP of the originals (Z-bug repro)."));
             Station.Description = Description;
             Stations.Add(Station);
         }
@@ -162,6 +165,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         _CycleElapsedSec = 0.0;
         _CycleActive = true;
         _DigestEmittedForCycle = false;
+        _OverlapWaveFiredForCycle = false;
 
         SpawnHeadOnAgents();
         SpawnClusterAgents();
@@ -189,6 +193,12 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         }
 
         _CycleElapsedSec += TickIntervalSec;
+
+        if (_OverlapWaveFiredForCycle == false && _CycleElapsedSec >= OverlapWaveAtSec)
+        {
+            SpawnOverlapWave();
+            _OverlapWaveFiredForCycle = true;
+        }
 
         if (_DigestEmittedForCycle == false && _CycleElapsedSec >= DigestAtSec)
         {
@@ -227,6 +237,47 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
+    // Spawn a second wave AT the current world positions of every existing agent. The fresh
+    // agent and the original instantly occupy the same XY (and Z) — push-apart engages on the
+    // same frame. This is the canonical repro for the Z-offset / floor-clip bug: under enough
+    // overlap pressure, push-apart is observed to shove one capsule downward through the floor.
+    //
+    // Targets are reused from each station's "centre" (HeadOnFwdOffset / ClusterFwdOffset along
+    // local +X) so the new wave has somewhere to walk and the recorder collects path data.
+    // For HeadOn, originals have already arrived near (and past) centre, so the new wave walks
+    // to the alcove-front midpoint. For Cluster, the centre IS where originals are clumped.
+    private void SpawnOverlapWave()
+    {
+        const auto OrigHeadOnCount  = _HeadOnAgents.Num();
+        const auto OrigClusterCount = _ClusterAgents.Num();
+
+        const auto HeadOnTarget = StationLocal_To_World("Gym.Crowd.Diag.HeadOn", FVector(HeadOnFwdOffset, 0.0, SpawnZ));
+        for (int32 i = 0; i < OrigHeadOnCount; ++i)
+        {
+            const auto OrigAgent = _HeadOnAgents[i];
+            if (ck::Is_NOT_Valid(OrigAgent)) { continue; }
+            const auto CurLoc = utils_transform::Get_EntityCurrentLocation(utils_transform::DoCastChecked(FCk_Handle(OrigAgent)));
+            // Orange-ish tint so wave-1 is visually distinct from wave-0's cyan/pink in PIE.
+            const auto Color = FLinearColor(1.0, 0.55, 0.15, 0.6);
+            _HeadOnAgents.Add(SpawnAgent(_HeadOnStation, CurLoc, HeadOnTarget, Color));
+        }
+
+        const auto ClusterTarget = StationLocal_To_World("Gym.Crowd.Diag.Cluster", FVector(ClusterFwdOffset, 0.0, SpawnZ));
+        for (int32 i = 0; i < OrigClusterCount; ++i)
+        {
+            const auto OrigAgent = _ClusterAgents[i];
+            if (ck::Is_NOT_Valid(OrigAgent)) { continue; }
+            const auto CurLoc = utils_transform::Get_EntityCurrentLocation(utils_transform::DoCastChecked(FCk_Handle(OrigAgent)));
+            // Hue-shift wave-1 cluster colours by +30° so they're distinguishable from wave-0's
+            // even-spaced ring colours.
+            const auto HueDeg = (360.0 / float(OrigClusterCount)) * float(i) + 30.0;
+            const auto Color = FLinearColor::MakeFromHSV8(uint8(HueDeg * 255.0 / 360.0), 200, 220);
+            _ClusterAgents.Add(SpawnAgent(_ClusterStation, CurLoc, ClusterTarget, Color));
+        }
+
+        ck::crowd::Log(f"[CrowdDiag][C{_CycleNumber}] overlap wave: {OrigHeadOnCount} HeadOn + {OrigClusterCount} Cluster spawned on top of originals");
+    }
+
     private void DestroyAgents()
     {
         for (auto Agent : _HeadOnAgents)
@@ -253,7 +304,12 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         utils_crowd_agent::Set_DebugColor(Agent, InColor);
 
         FCk_Handle Generic = Agent;
-        const auto Rot = (TargetLoc - SpawnLoc).GetSafeNormal().Rotation();
+        // Project the look direction to planar — crowd agents are yaw-only (capsule walks on the
+        // navmesh). Without this, overlap-wave agents whose spawn Z ≠ target Z spawn pitched
+        // (~30-45° tilt) since FaceAngle's per-tick yaw lerp can't correct pitch.
+        const auto LookDir   = TargetLoc - SpawnLoc;
+        const auto PlanarDir = FVector(LookDir.X, LookDir.Y, 0.0);
+        const auto Rot       = PlanarDir.GetSafeNormal().Rotation();
         utils_transform::Add(Generic, FTransform(Rot, SpawnLoc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
         utils_velocity::Add(Generic, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(Generic, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
@@ -293,11 +349,31 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         return Agent;
     }
 
-    // ---- Digest stub (filled in by Task E) -----------------------------------------------------
+    // ---- Cycle digest --------------------------------------------------------------------------
 
+    // For every tracked agent in this cycle, emit grep-able [CrowdDiag] log lines summarising
+    // its run: start/goal, reached + time-to-goal, path length + efficiency, min-sep, dir
+    // reversals + max angular delta, and an RDP-simplified breadcrumb of its actual path.
+    // Devs grep Saved/Logs/CkTests.log for [CrowdDiag] to compare cycle-to-cycle metrics
+    // without staring at the viewport.
     private void EmitDigest()
     {
-        ck::crowd::Log(f"[CrowdDiag][C{_CycleNumber}] cycle digest — TODO(Task E): per-agent metrics + RDP-simplified path");
+        // Wave-0 = original spawn (first 2 HeadOn / first ClusterCount Cluster). Wave-1 = overlap.
+        // Index in label resets per wave so cycle-to-cycle comparison stays clean even if wave-0
+        // spawn count changes later.
+        const auto HeadOnWave0Count = 2;
+        for (int32 i = 0; i < _HeadOnAgents.Num(); ++i)
+        {
+            const auto WaveIdx        = i < HeadOnWave0Count ? 0 : 1;
+            const auto AgentIdxInWave = i < HeadOnWave0Count ? i : i - HeadOnWave0Count;
+            utils_crowd_agent_diag::EmitDigest_ForAgent(_HeadOnAgents[i], _CycleNumber, f"HeadOn_W{WaveIdx}", AgentIdxInWave);
+        }
+        for (int32 i = 0; i < _ClusterAgents.Num(); ++i)
+        {
+            const auto WaveIdx        = i < ClusterCount ? 0 : 1;
+            const auto AgentIdxInWave = i < ClusterCount ? i : i - ClusterCount;
+            utils_crowd_agent_diag::EmitDigest_ForAgent(_ClusterAgents[i], _CycleNumber, f"Cluster_W{WaveIdx}", AgentIdxInWave);
+        }
     }
 
     // ---- Console commands ----------------------------------------------------------------------
@@ -321,5 +397,20 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
     {
         EmitDigest();
         ck::crowd::Log("Diag gym: forced digest dump — cycle continues");
+    }
+
+    UFUNCTION(Exec, DisplayName="Crowd Diag - Spawn Overlap Wave Now")
+    void Ck_GymCrowd_Diag_SpawnOverlapNow()
+    {
+        if (HasAuthority() == false) { return; }
+        if (_CycleActive == false)
+        {
+            ck::crowd::Warning("Diag gym: no active cycle to overlap (wait for next cycle to start)");
+            return;
+        }
+        SpawnOverlapWave();
+        // Suppress the auto-fire for this cycle so we don't get a third wave on top.
+        _OverlapWaveFiredForCycle = true;
+        ck::crowd::Log("Diag gym: manually fired overlap wave");
     }
 }
