@@ -47,19 +47,34 @@ bool FCkRegistrySlotTable_BasicAllocateFreeResolve::RunTest(const FString& Param
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkRegistrySlotTable_UnsetHandleResolvesNullSilently,
-    "Ck.Registry.SlotTable.UnsetHandleResolvesNullSilently",
+    FCkRegistrySlotTable_UnsetHandleContract,
+    "Ck.Registry.SlotTable.UnsetHandleContract",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
 
-bool FCkRegistrySlotTable_UnsetHandleResolvesNullSilently::RunTest(const FString& Parameters)
+bool FCkRegistrySlotTable_UnsetHandleContract::RunTest(const FString& Parameters)
 {
+    // Contract: strict Resolve fires ensure on an unset handle. Default-
+    // constructed FCk_Registry / FCk_Handle being used before it has been
+    // bound to a slot is almost always a bug — pre-migration the default
+    // ctor auto-allocated a private registry and hid these sites.
+    //
+    // TryResolve stays silent because callers like ck::IsValid use it to
+    // ASK the question "is this bound yet?" — firing on unset there would
+    // spam every validity check on a default-constructed handle.
     using namespace ck::registry_table;
     auto Unset = FCk_RegistryHandle::Unset();
 
-    TestTrue(TEXT("Unset handle resolves nullptr"),  Resolve(Unset) == nullptr);
-    // Strict Resolve on Unset does NOT fire ensure (SlotIndex == INDEX_NONE
-    // is the legitimate "no registry bound yet" sentinel, not a stale-handle).
-    TestTrue(TEXT("Unset TryResolve nullptr"),       TryResolve(Unset) == nullptr);
+    // Occurrences=-1: whitelist all matching messages without enforcing a count.
+    // CK_ENSURE_IF_NOT emits both a log entry and an Error line for one fire,
+    // which counts as 2 — match-suppression is the right semantics here.
+    AddExpectedError(
+        TEXT("registry_table::Resolve called with an unset handle"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
+
+    TestTrue(TEXT("Unset handle: strict Resolve fires ensure and returns nullptr"),
+             Resolve(Unset) == nullptr);
+    TestTrue(TEXT("Unset handle: silent TryResolve returns nullptr without firing"),
+             TryResolve(Unset) == nullptr);
     return true;
 }
 
