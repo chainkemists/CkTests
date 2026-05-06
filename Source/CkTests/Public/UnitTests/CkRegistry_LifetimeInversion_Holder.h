@@ -2,6 +2,7 @@
 
 #include "UObject/Object.h"
 
+#include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/Registry/CkRegistry_Handle.h"
 
 #include "CkRegistry_LifetimeInversion_Holder.generated.h"
@@ -12,13 +13,18 @@
 // leave dangling past the registry's destruction. Used only by the
 // lifetime-inversion test.
 //
-// During Phase 1 of the generational-handle migration this only carries the
-// raw FCk_RegistryHandle — characterizing the slot-table-level invariant. Once
-// FCk_Handle is migrated (Phase 2+), this struct will be extended (or replaced)
-// with a full FCk_Handle field to exercise the higher-level handle dtor.
+// Two fields exercise two layers of the migration's safety claim:
+//   * SlotHandle (FCk_RegistryHandle, 12-byte POD) — the slot-table layer.
+//     Trivial dtor; characterizes the storage-side invariant.
+//   * Handle (FCk_Handle) — the high-level handle layer. Non-trivial dtor
+//     because of TWeakObjectPtr fields. Characterizes the actual UObject
+//     UPROPERTY pattern that triggered the original lifetime-inversion bug
+//     (a UObject's handle field outliving the registry). The migration's
+//     load-bearing claim is that this dtor is now safe even if the slot has
+//     been Free'd before GC reaches the holder.
 //
-// Field is intentionally a public UPROPERTY: this is a test-only fixture, and
-// the project's _-prefix-with-CK_PROPERTY-accessor convention applies to
+// Fields are intentionally public UPROPERTYs: this is a test-only fixture,
+// and the project's _-prefix-with-CK_PROPERTY-accessor convention applies to
 // USTRUCTs (which carry CK_GENERATED_BODY), not UCLASSes.
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -30,4 +36,7 @@ class CKTESTS_API UCk_LifetimeInversion_Holder : public UObject
 public:
     UPROPERTY()
     FCk_RegistryHandle SlotHandle;
+
+    UPROPERTY()
+    FCk_Handle Handle;
 };
