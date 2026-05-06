@@ -41,8 +41,10 @@ public:
     auto GetContainerName() const -> FName override;
     auto GetCategoryName()  const -> FName override;
     auto GetSectionName()   const -> FName override;
+#if WITH_EDITOR
     auto GetSectionText()   const -> FText override;
     auto GetSectionDescription() const -> FText override;
+#endif
 
     // Settings --------------------------------------------------------------------------------------------------------
 
