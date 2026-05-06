@@ -20,26 +20,24 @@
 
 class UCk_AutoTest_Inventory_DataOnly_RemoveItem : UCk_AutoTest_Base
 {
-    private FCk_Handle_Inventory _Inventory;
+    private FCk_Handle_Inventory_DataOnly _Inventory;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto LocalHandle = InHandle;
 
-        auto Params = utils_inventory::Make_InventoryParams_DataOnly_Bounded(
+        auto Params = utils_inventory_data_only::Make_Params_Bounded(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_Bounded"),
             5,
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
 
-        _Inventory = utils_inventory::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
+        _Inventory = utils_inventory_data_only::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
         auto Request = FCk_Request_Inventory_AddItemByDefinition(inv_gym_items::Potion(), 1);
         Request.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
-        utils_inventory::Request_AddItemByDefinition(
-            _Inventory,
-            Request,
+        _Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnAddResult"));
     }
 
@@ -58,9 +56,7 @@ class UCk_AutoTest_Inventory_DataOnly_RemoveItem : UCk_AutoTest_Base
         }
 
         auto Item = InItemsCreated[0];
-        utils_inventory::Request_RemoveItem(
-            _Inventory,
-            FCk_Request_Inventory_RemoveItem(Item),
+        _Inventory.Request_RemoveItem(FCk_Request_Inventory_RemoveItem(Item),
             FCk_Delegate_Inventory_OnOperationResult_Remove(this, n"OnRemoveResult"));
     }
 
@@ -74,7 +70,7 @@ class UCk_AutoTest_Inventory_DataOnly_RemoveItem : UCk_AutoTest_Base
 
         Assert_True(InResult == ECk_Inventory_OperationResult_Remove::Success,
             f"Remove result should be Success (got {InResult})");
-        Assert_Equals_Int(utils_inventory::Get_NumItems(_Inventory), 0,
+        Assert_Equals_Int(_Inventory.Get_NumItems(), 0,
             "Inventory should report 0 items after a successful remove");
 
         FinishSuccess();

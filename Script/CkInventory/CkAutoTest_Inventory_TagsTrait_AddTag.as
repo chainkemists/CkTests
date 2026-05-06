@@ -22,7 +22,7 @@
 
 class UCk_AutoTest_Inventory_TagsTrait_AddTag : UCk_AutoTest_Base
 {
-    private FCk_Handle_Inventory _Inventory;
+    private FCk_Handle_Inventory_DataOnly _Inventory;
     private FCk_Handle_Item _Sword;
     private FGameplayTag _RareTag;
 
@@ -33,17 +33,15 @@ class UCk_AutoTest_Inventory_TagsTrait_AddTag : UCk_AutoTest_Base
 
         _RareTag = utils_gameplay_tag::ResolveGameplayTag(n"Item.Rarity.Rare");
 
-        auto Params = utils_inventory::Make_InventoryParams_DataOnly(
+        auto Params = utils_inventory_data_only::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_Tags"),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
 
-        _Inventory = utils_inventory::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
+        _Inventory = utils_inventory_data_only::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
         auto Request = FCk_Request_Inventory_AddItemByDefinition(inv_gym_items::Sword(), 1);
-        utils_inventory::Request_AddItemByDefinition(
-            _Inventory,
-            Request,
+        _Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnAddResult"));
     }
 

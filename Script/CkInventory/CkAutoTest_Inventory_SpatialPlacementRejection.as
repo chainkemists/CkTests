@@ -37,34 +37,30 @@ class UCk_AutoTest_Inventory_SpatialPlacementRejection : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
 
         // Staging: 3x3 — large enough for the 3x1 Sword.
-        auto StagingParams = utils_inventory::Make_InventoryParams_Spatial(
+        auto StagingParams = utils_inventory_spatial::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_SpatialStaging"),
             FIntPoint(3, 3),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
-        auto StagingGeneric = utils_inventory::Add(LocalHandle, StagingParams, ECk_Replication::DoesNotReplicate);
-        _Staging = utils_inventory_spatial::DoCastChecked(FCk_Handle(StagingGeneric));
+        _Staging = utils_inventory_spatial::Add(LocalHandle, StagingParams, ECk_Replication::DoesNotReplicate);
         if (ck::Is_NOT_Valid(_Staging))
         {
-            FinishFailure("Staging inventory should be a spatial inventory after Make_InventoryParams_Spatial");
+            FinishFailure("Staging inventory should be a spatial inventory after Make_Params");
             return;
         }
 
         // Target: 2x2 — too small for a 3x1 Sword.
-        auto TargetParams = utils_inventory::Make_InventoryParams_Spatial(
+        auto TargetParams = utils_inventory_spatial::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_SpatialTarget"),
             FIntPoint(2, 2),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
-        auto TargetGeneric = utils_inventory::Add(LocalHandle, TargetParams, ECk_Replication::DoesNotReplicate);
-        _Target = utils_inventory_spatial::DoCastChecked(FCk_Handle(TargetGeneric));
+        _Target = utils_inventory_spatial::Add(LocalHandle, TargetParams, ECk_Replication::DoesNotReplicate);
 
         auto SwordDef = inv_gym_items::Sword();
         auto AddRequest = FCk_Request_Inventory_AddItemByDefinition(SwordDef, 1);
         AddRequest.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
-        utils_inventory::Request_AddItemByDefinition(
-            StagingGeneric,
-            AddRequest,
+        _Staging.Request_AddItemByDefinition(AddRequest,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnSwordCreated"));
     }
 
@@ -85,11 +81,11 @@ class UCk_AutoTest_Inventory_SpatialPlacementRejection : UCk_AutoTest_Base
         }
         auto Sword = InItemsCreated[0];
 
-        auto FirstPlacement = utils_inventory_spatial::Get_FirstAvailablePlacement(_Target, Sword);
+        auto FirstPlacement = _Target.Get_FirstAvailablePlacement(Sword);
         Assert_True(FirstPlacement.Get_Succeeded() == false,
             "Get_FirstAvailablePlacement on a 2x2 spatial inventory must reject a 3x1 Sword (no rotation makes it fit)");
 
-        auto AtZero = utils_inventory_spatial::Get_CanPlaceItemAt(_Target, Sword, FIntPoint(0, 0));
+        auto AtZero = _Target.Get_CanPlaceItemAt(Sword, FIntPoint(0, 0));
         Assert_True(AtZero.Get_Succeeded() == false,
             "Get_CanPlaceItemAt at (0,0) on a 2x2 grid must reject a 3x1 Sword");
 

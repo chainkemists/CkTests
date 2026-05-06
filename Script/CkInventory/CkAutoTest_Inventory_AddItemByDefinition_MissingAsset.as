@@ -41,27 +41,25 @@
 
 class UCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset : UCk_AutoTest_Base
 {
-    private FCk_Handle_Inventory _Inventory;
+    private FCk_Handle_Inventory_DataOnly _Inventory;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto LocalHandle = InHandle;
 
-        auto Params = utils_inventory::Make_InventoryParams_DataOnly_Bounded(
+        auto Params = utils_inventory_data_only::Make_Params_Bounded(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_NullDef"),
             5,
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
-        _Inventory = utils_inventory::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
+        _Inventory = utils_inventory_data_only::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
         // Null definition deliberately.
         UCk_InventoryItem_Definition NullDef = nullptr;
         auto Request = FCk_Request_Inventory_AddItemByDefinition(NullDef, 1);
         Request.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
-        utils_inventory::Request_AddItemByDefinition(
-            _Inventory,
-            Request,
+        _Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnAddResult"));
     }
 
@@ -78,7 +76,7 @@ class UCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset : UCk_AutoTest_Bas
             f"Null definition should produce Failed_InvalidDefinition (got {InResult})");
         Assert_Equals_Int(InAmountAdded, 0, "AmountAdded must be 0 for an invalid definition");
         Assert_Equals_Int(InItemsCreated.Num(), 0, "ItemsCreated must be empty for an invalid definition");
-        Assert_Equals_Int(utils_inventory::Get_NumItems(_Inventory), 0,
+        Assert_Equals_Int(_Inventory.Get_NumItems(), 0,
             "Inventory must remain empty after a rejected add — no partial-state leakage");
 
         FinishSuccess();

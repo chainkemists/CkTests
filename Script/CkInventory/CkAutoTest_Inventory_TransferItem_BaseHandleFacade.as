@@ -1,31 +1,36 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: TRANSFER-ITEM RESULT PAYLOAD
+// CK INVENTORY — AUTOMATION TEST: TRANSFER VIA BASE-HANDLE FACADE
 //============================================================================
 //
-// Pins the result payload of Request_TransferItem between two data-only
-// inventories. Existing inventory tests cover Add/Remove on a single
-// inventory; transfer is a distinct operation with a 6-arg result delegate
-// (source inventory, source item, target inventory, amount, target item,
-// result enum) that nothing else asserts.
+// Pins the Tier C base-handle facade introduced by the inventory refactor:
+// FCk_Handle_Inventory (the *base* handle) now exposes Request_TransferItem_*
+// directly via mixin propagation, with a single runtime shape-branch at the
+// public Utils boundary that dispatches to the correct typed Utils.
 //
-// Procedure:
-//   1. Create two bounded(5) data-only inventories on the test entity.
-//   2. Add a Sword to the source inventory (Tags+Dimensions item, no
-//      Stackable trait — keeps the test robust against any lingering
-//      Stackable-construction issues).
-//   3. Request_TransferItem(source item, target inventory).
-//   4. Assert in the result delegate: result == Success_FullyTransferred
-//      (or another Success_* enum), the source inventory now reports 0
-//      items, the target inventory reports 1 item.
+// This test exercises the Spatial→DataOnly direction *via the base handle*:
+//   1. Create a Spatial(2x2) source and a DataOnly(5) target on the test entity.
+//   2. Seed the source with one Sword.
+//   3. Transfer via the base handle:
+//        utils_inventory::Request_TransferItem_ToDataOnly(SourceAsBase, ...)
+//      where SourceAsBase is implicitly converted from FCk_Handle_Inventory_Spatial
+//      to FCk_Handle_Inventory (this is the call shape the brief asked for —
+//      callers stop having to know the source's shape).
+//   4. Assert Success (or Success_Partial), source.NumItems == 0,
+//      target.NumItems == 1.
+//
+// If the Utils-boundary shape-branch is broken (e.g. dispatches to the wrong
+// typed Utils, or doesn't dispatch at all), no signal fires and the test
+// times out. If the branch dispatches but to the wrong typed handler, the
+// transfer outcome won't match.
 //============================================================================
 
-class UCk_AutoTest_Inventory_TransferItemPayload : UCk_AutoTest_Base
+class UCk_AutoTest_Inventory_TransferItem_BaseHandleFacade : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 4.0f;
 
-    private FCk_Handle_Inventory_DataOnly _Source;
+    private FCk_Handle_Inventory_Spatial _Source;
     private FCk_Handle_Inventory_DataOnly _Target;
     private bool _SourceItemSeen = false;
 
@@ -34,15 +39,15 @@ class UCk_AutoTest_Inventory_TransferItemPayload : UCk_AutoTest_Base
     {
         auto LocalHandle = InHandle;
 
-        auto SourceParams = utils_inventory_data_only::Make_Params_Bounded(
-            utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_TransferSource"),
-            5,
+        auto SourceParams = utils_inventory_spatial::Make_Params(
+            utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_BaseFacade_Source"),
+            FIntPoint(2, 2),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
-        _Source = utils_inventory_data_only::Add(LocalHandle, SourceParams, ECk_Replication::DoesNotReplicate);
+        _Source = utils_inventory_spatial::Add(LocalHandle, SourceParams, ECk_Replication::DoesNotReplicate);
 
         auto TargetParams = utils_inventory_data_only::Make_Params_Bounded(
-            utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_TransferTarget"),
+            utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_BaseFacade_Target"),
             5,
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
@@ -68,15 +73,19 @@ class UCk_AutoTest_Inventory_TransferItemPayload : UCk_AutoTest_Base
         if (InResult != ECk_Inventory_OperationResult_AddByDefinition::Success_AllAdded ||
             InItemsCreated.Num() != 1)
         {
-            FinishFailure(f"Pre-transfer setup: failed to seed source inventory (result={InResult}, items={InItemsCreated.Num()})");
+            FinishFailure(f"Pre-transfer setup: failed to seed source spatial inventory (result={InResult}, items={InItemsCreated.Num()})");
             return;
         }
         _SourceItemSeen = true;
 
         auto SourceItem = InItemsCreated[0];
         auto Request = FCk_Request_Inventory_TransferItem_ToDataOnly(SourceItem, _Target);
-        // _Count default is -1 ("all"); for a single non-stackable item, that's fine.
-        _Source.Request_TransferItem_ToDataOnly(Request,
+
+        // KEY ASSERTION: call via the *base* handle. The Spatial source implicitly
+        // converts to FCk_Handle_Inventory; the base Utils shape-branches and
+        // delegates to the typed Spatial Utils internally.
+        FCk_Handle_Inventory SourceAsBase = _Source;
+        utils_inventory::Request_TransferItem_ToDataOnly(SourceAsBase, Request,
             FCk_Delegate_Inventory_OnOperationResult_Transfer(this, n"OnTransferResult"));
     }
 
@@ -91,19 +100,18 @@ class UCk_AutoTest_Inventory_TransferItemPayload : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // Result must indicate success (Success or Success_Partial).
         auto IsSuccess =
             InResult == ECk_Inventory_OperationResult_Transfer::Success ||
             InResult == ECk_Inventory_OperationResult_Transfer::Success_Partial;
         Assert_True(IsSuccess,
-            f"Transfer of a single Sword between two empty bounded inventories should succeed (got {InResult})");
+            f"Base-handle transfer Spatial->DataOnly should succeed (got {InResult})");
         Assert_True(InAmountTransferred >= 1,
-            f"AmountTransferred should be >= 1 for a successful single-item transfer (got {InAmountTransferred})");
+            f"AmountTransferred should be >= 1 (got {InAmountTransferred})");
 
         Assert_Equals_Int(_Source.Get_NumItems(), 0,
-            "Source inventory should hold 0 items after a successful full transfer");
+            "Source spatial inventory should hold 0 items after successful base-handle transfer");
         Assert_Equals_Int(_Target.Get_NumItems(), 1,
-            "Target inventory should hold 1 item after a successful transfer");
+            "Target dataonly inventory should hold 1 item after successful base-handle transfer");
 
         FinishSuccess();
     }

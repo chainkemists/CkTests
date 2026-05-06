@@ -38,7 +38,7 @@
 
 class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
 {
-    private FCk_Handle_Inventory _Inventory;
+    private FCk_Handle_Inventory_DataOnly _Inventory;
     private FCk_Handle_Item _OriginalStack;
 
     UFUNCTION(BlueprintOverride)
@@ -46,19 +46,17 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
     {
         auto LocalHandle = InHandle;
 
-        auto Params = utils_inventory::Make_InventoryParams_DataOnly(
+        auto Params = utils_inventory_data_only::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_Split"),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
 
-        _Inventory = utils_inventory::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
+        _Inventory = utils_inventory_data_only::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
         // Default add policy (NOT ForceNewItem) so 3 Potions land as a
         // single stack of count 3.
         auto Request = FCk_Request_Inventory_AddItemByDefinition(inv_gym_items::Potion(), 3);
-        utils_inventory::Request_AddItemByDefinition(
-            _Inventory,
-            Request,
+        _Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnAddResult"));
     }
 
@@ -74,7 +72,7 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
         Assert_True(InResult == ECk_Inventory_OperationResult_AddByDefinition::Success_AllAdded,
             f"Initial Add(Potion x3) should succeed (got {InResult})");
 
-        auto Items = utils_inventory::Get_Items(_Inventory);
+        auto Items = _Inventory.Get_Items();
         if (Items.Num() != 1)
         {
             FinishFailure(f"Expected 1 stack of count 3, got {Items.Num()} items");
@@ -84,9 +82,7 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
         Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(_OriginalStack), 3,
             "Initial stack should hold count 3");
 
-        utils_inventory::Request_SplitStack(
-            _Inventory,
-            FCk_Request_Inventory_SplitStack(_OriginalStack, 1),
+        _Inventory.Request_SplitStack(FCk_Request_Inventory_SplitStack(_OriginalStack, 1),
             FCk_Delegate_Inventory_OnOperationResult_Split(this, n"OnSplitResult"));
     }
 
@@ -101,7 +97,7 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
 
         Assert_True(InResult == ECk_Inventory_OperationResult_Split::Success,
             f"Split result should be Success (got {InResult})");
-        Assert_Equals_Int(utils_inventory::Get_NumItems(_Inventory), 2,
+        Assert_Equals_Int(_Inventory.Get_NumItems(), 2,
             "After split, inventory should hold 2 stacks (original + new)");
         Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(InSource), 2,
             "Source stack should retain count 2 (3 - 1)");

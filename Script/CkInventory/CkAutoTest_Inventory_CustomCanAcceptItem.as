@@ -52,7 +52,7 @@
 
 class UCk_AutoTest_Inventory_CustomCanAcceptItem : UCk_AutoTest_Base
 {
-    private FCk_Handle_Inventory _Inventory;
+    private FCk_Handle_Inventory_DataOnly _Inventory;
     private bool _PredicateInvoked = false;
 
     UFUNCTION(BlueprintOverride)
@@ -61,19 +61,17 @@ class UCk_AutoTest_Inventory_CustomCanAcceptItem : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
 
         auto AcceptDelegate = FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(this, n"OnCanAcceptItem");
-        auto Params = utils_inventory::Make_InventoryParams_DataOnly_Bounded(
+        auto Params = utils_inventory_data_only::Make_Params_Bounded(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_CustomReject"),
             5,
             AcceptDelegate,
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
-        _Inventory = utils_inventory::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
+        _Inventory = utils_inventory_data_only::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
         auto SwordDef = inv_gym_items::Sword();
         auto Request = FCk_Request_Inventory_AddItemByDefinition(SwordDef, 1);
         Request.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
-        utils_inventory::Request_AddItemByDefinition(
-            _Inventory,
-            Request,
+        _Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnAddResult"));
     }
 
@@ -102,7 +100,7 @@ class UCk_AutoTest_Inventory_CustomCanAcceptItem : UCk_AutoTest_Base
             f"When predicate returns false, result must be Failed_RejectedByCustomAcceptanceLogic (got {InResult})");
         Assert_Equals_Int(InAmountAdded, 0, "AmountAdded must be 0 when rejected by custom predicate");
         Assert_Equals_Int(InItemsCreated.Num(), 0, "ItemsCreated must be empty when rejected by custom predicate");
-        Assert_Equals_Int(utils_inventory::Get_NumItems(_Inventory), 0,
+        Assert_Equals_Int(_Inventory.Get_NumItems(), 0,
             "Inventory must remain empty after a custom-rejected add");
 
         FinishSuccess();

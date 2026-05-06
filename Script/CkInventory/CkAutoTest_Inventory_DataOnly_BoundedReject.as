@@ -30,7 +30,7 @@
 
 class UCk_AutoTest_Inventory_DataOnly_BoundedReject : UCk_AutoTest_Base
 {
-    private FCk_Handle_Inventory _Inventory;
+    private FCk_Handle_Inventory_DataOnly _Inventory;
     private int32 _AddsObserved = 0;
 
     UFUNCTION(BlueprintOverride)
@@ -38,13 +38,13 @@ class UCk_AutoTest_Inventory_DataOnly_BoundedReject : UCk_AutoTest_Base
     {
         auto LocalHandle = InHandle;
 
-        auto Params = utils_inventory::Make_InventoryParams_DataOnly_Bounded(
+        auto Params = utils_inventory_data_only::Make_Params_Bounded(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_Bounded"),
             2,
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
 
-        _Inventory = utils_inventory::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
+        _Inventory = utils_inventory_data_only::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
         QueueAdd();
     }
@@ -53,9 +53,7 @@ class UCk_AutoTest_Inventory_DataOnly_BoundedReject : UCk_AutoTest_Base
     {
         auto Request = FCk_Request_Inventory_AddItemByDefinition(inv_gym_items::Potion(), 1);
         Request.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
-        utils_inventory::Request_AddItemByDefinition(
-            _Inventory,
-            Request,
+        _Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnAddResult"));
     }
 
@@ -80,7 +78,7 @@ class UCk_AutoTest_Inventory_DataOnly_BoundedReject : UCk_AutoTest_Base
         // Third add — should be rejected with NoSpaceAvailable.
         Assert_True(InResult == ECk_Inventory_OperationResult_AddByDefinition::Failed_NoSpaceAvailable,
             f"Add #3 over bounded(2) capacity should fail with Failed_NoSpaceAvailable (got {InResult})");
-        Assert_Equals_Int(utils_inventory::Get_NumItems(_Inventory), 2,
+        Assert_Equals_Int(_Inventory.Get_NumItems(), 2,
             "Inventory should remain at 2 items after a rejected add");
 
         FinishSuccess();

@@ -11,7 +11,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    FCk_Handle_Inventory Inventory;
+    FCk_Handle_Inventory_Spatial Inventory;
     FCk_Handle_Timer AutoTimer;
     bool AutoRunning = true;
     int32 AutoStep = 0;
@@ -34,13 +34,13 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
-        auto Params = utils_inventory::Make_InventoryParams_Spatial(
+        auto Params = utils_inventory_spatial::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.Equipment"),
             FIntPoint(8, 6),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
 
-        Inventory = utils_inventory::Add(InHandle, Params, ECk_Replication::DoesNotReplicate);
+        Inventory = utils_inventory_spatial::Add(InHandle, Params, ECk_Replication::DoesNotReplicate);
 
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemByDef, FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemByDef"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemAt,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemAt"));
@@ -87,10 +87,9 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
         auto SelfEntity = ck::ToEntity(this);
         if (ck::IsValid(Inventory) == false) { return; }
 
-        auto Spatial = utils_inventory_spatial::DoCastChecked(Inventory);
-        auto Dims = utils_inventory_spatial::Get_Dimensions(Spatial);
-        auto NumItems = utils_inventory::Get_NumItems(Inventory);
-        auto Items = utils_inventory::Get_Items(Inventory);
+        auto Dims = Inventory.Get_Dimensions();
+        auto NumItems = Inventory.Get_NumItems();
+        auto Items = Inventory.Get_Items();
 
         auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
         DisplayText = f"{DisplayText}Items: {NumItems}  Grid: {Dims.X}x{Dims.Y}\n\n";
@@ -111,7 +110,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
         {
             for (auto X = 0; X < Dims.X; X++)
             {
-                auto ItemAtCell = utils_inventory_spatial::Get_ItemAtCoordinate(Spatial, FIntPoint(X, Y));
+                auto ItemAtCell = Inventory.Get_ItemAtCoordinate(FIntPoint(X, Y));
                 auto CellChar = ck::IsValid(ItemAtCell) ? Get_ItemCellChar(ItemAtCell) : "-";
                 DisplayText = f"{DisplayText}{CellChar} ";
             }
@@ -149,9 +148,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
 
         auto SelfEntity = ck::ToEntity(this);
         auto Request = FCk_Request_Inventory_AddItemByDefinition(Def, Typed.Amount);
-        utils_inventory::Request_AddItemByDefinition(
-            Inventory,
-            Request,
+        Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
     }
 
@@ -167,8 +164,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
         auto NewItem = utils_item::Create(SelfEntity, Def);
         if (ck::IsValid(NewItem) == false) { return; }
 
-        auto Spatial = utils_inventory_spatial::DoCastChecked(Inventory);
-        auto Placement = utils_inventory_spatial::Get_CanPlaceItemAt(Spatial, NewItem, Typed.Coordinate);
+        auto Placement = Inventory.Get_CanPlaceItemAt(NewItem, Typed.Coordinate);
         if (Placement._Succeeded == false)
         {
             LastFailedCoord = Typed.Coordinate;
@@ -177,10 +173,9 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
         }
 
         auto Request = FCk_Request_Inventory_AddItem(NewItem);
-        Request.Set_PlacementCoordinate(Typed.Coordinate);
-        utils_inventory::Request_AddItem(
-            Inventory,
-            Request,
+        auto NewPlacement = FCk_SpatialPlacement();
+        NewPlacement.Set_Coordinate(Typed.Coordinate);
+        Inventory.Request_AddItem(Request, NewPlacement,
             FCk_Delegate_Inventory_OnOperationResult_Add(this, n"OnAddResult"));
     }
 
@@ -194,13 +189,11 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
     private void OnRemoveFirst(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
-        auto Items = utils_inventory::Get_Items(Inventory);
+        auto Items = Inventory.Get_Items();
         if (Items.Num() == 0) { return; }
 
         auto Request = FCk_Request_Inventory_RemoveItem(Items[0]);
-        utils_inventory::Request_RemoveItem(
-            Inventory,
-            Request,
+        Inventory.Request_RemoveItem(Request,
             FCk_Delegate_Inventory_OnOperationResult_Remove());
     }
 
@@ -223,16 +216,15 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
 
         if (Step <= 1 && SwordDef != nullptr)
         {
-            utils_inventory::Request_AddItemByDefinition(Inventory, FCk_Request_Inventory_AddItemByDefinition(SwordDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
+            Inventory.Request_AddItemByDefinition(FCk_Request_Inventory_AddItemByDefinition(SwordDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
         else if (Step == 2 && ShieldDef != nullptr)
         {
-            utils_inventory::Request_AddItemByDefinition(Inventory, FCk_Request_Inventory_AddItemByDefinition(ShieldDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
+            Inventory.Request_AddItemByDefinition(FCk_Request_Inventory_AddItemByDefinition(ShieldDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
         else if (Step == 3 && SwordDef != nullptr)
         {
-            auto Spatial = utils_inventory_spatial::DoCastChecked(Inventory);
-            auto GridDims = utils_inventory_spatial::Get_Dimensions(Spatial);
+            auto GridDims = Inventory.Get_Dimensions();
             auto RandX = Math::RandRange(0, GridDims.X - 1);
             auto RandY = Math::RandRange(0, GridDims.Y - 1);
             auto RandRot = Math::RandRange(0, 3);
@@ -246,23 +238,24 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
             if (ck::IsValid(NewItem))
             {
                 auto Req = FCk_Request_Inventory_AddItem(NewItem);
-                Req.Set_PlacementCoordinate(FIntPoint(RandX, RandY));
-                Req.Set_Rotation(Rotation);
-                utils_inventory::Request_AddItem(Inventory, Req, FCk_Delegate_Inventory_OnOperationResult_Add(this, n"OnAddResult"));
+                auto Placement = FCk_SpatialPlacement();
+                Placement.Set_Coordinate(FIntPoint(RandX, RandY));
+                Placement.Set_Rotation(Rotation);
+                Inventory.Request_AddItem(Req, Placement, FCk_Delegate_Inventory_OnOperationResult_Add(this, n"OnAddResult"));
             }
         }
         else if (Step == 4 && ShieldDef != nullptr)
         {
             LastFailedCoord = FIntPoint(0, 0);
-            utils_inventory::Request_AddItemByDefinition(Inventory, FCk_Request_Inventory_AddItemByDefinition(ShieldDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
+            Inventory.Request_AddItemByDefinition(FCk_Request_Inventory_AddItemByDefinition(ShieldDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
         else if (Step >= 5)
         {
             // 5 removes to match 5 adds (steps 0-4)
-            auto Items = utils_inventory::Get_Items(Inventory);
+            auto Items = Inventory.Get_Items();
             if (Items.Num() > 0)
             {
-                utils_inventory::Request_RemoveItem(Inventory, FCk_Request_Inventory_RemoveItem(Items[0]), FCk_Delegate_Inventory_OnOperationResult_Remove());
+                Inventory.Request_RemoveItem(FCk_Request_Inventory_RemoveItem(Items[0]), FCk_Delegate_Inventory_OnOperationResult_Remove());
             }
         }
 

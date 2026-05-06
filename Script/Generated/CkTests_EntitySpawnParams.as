@@ -1100,6 +1100,19 @@ namespace UCk_AutoTest_Inventory_DataOnly_Unbounded
 }
 
 USTRUCT()
+struct FCk_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace
+{
+    FCk_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Inventory_SpatialPlacementRejection_SpawnParams
 {
 }
@@ -1122,6 +1135,19 @@ namespace UCk_AutoTest_Inventory_StackableTrait_SplitStack
     FCk_AutoTest_Inventory_StackableTrait_SplitStack_SpawnParams Params()
     {
         return FCk_AutoTest_Inventory_StackableTrait_SplitStack_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount
+{
+    FCk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_SpawnParams();
     }
 }
 
@@ -1161,6 +1187,32 @@ namespace UCk_AutoTest_Inventory_TagsTrait_RemoveTag
     FCk_AutoTest_Inventory_TagsTrait_RemoveTag_SpawnParams Params()
     {
         return FCk_AutoTest_Inventory_TagsTrait_RemoveTag_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept
+{
+    FCk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_TransferItem_BaseHandleFacade_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_TransferItem_BaseHandleFacade
+{
+    FCk_AutoTest_Inventory_TransferItem_BaseHandleFacade_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_TransferItem_BaseHandleFacade_SpawnParams();
     }
 }
 

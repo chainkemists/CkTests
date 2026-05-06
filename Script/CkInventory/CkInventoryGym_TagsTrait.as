@@ -11,7 +11,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    FCk_Handle_Inventory Inventory;
+    FCk_Handle_Inventory_DataOnly Inventory;
     FCk_Handle_Timer AutoTimer;
     bool AutoRunning = true;
     int32 AutoStep = 0;
@@ -32,16 +32,14 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
-        auto Params = utils_inventory::Make_InventoryParams_DataOnly(
+        auto Params = utils_inventory_data_only::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.Backpack"),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
 
-        Inventory = utils_inventory::Add(InHandle, Params, ECk_Replication::DoesNotReplicate);
+        Inventory = utils_inventory_data_only::Add(InHandle, Params, ECk_Replication::DoesNotReplicate);
 
-        utils_inventory::BindTo_OnItemsChanged(
-            Inventory,
-            FCk_Delegate_Inventory_OnItemsChanged(this, n"OnItemsChanged"));
+        Inventory.BindTo_OnItemsChanged(FCk_Delegate_Inventory_OnItemsChanged(this, n"OnItemsChanged"));
 
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemByDef, FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemByDef"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddTag,       FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddTag"));
@@ -79,7 +77,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
         auto SelfEntity = ck::ToEntity(this);
         if (ck::IsValid(Inventory) == false) { return; }
 
-        auto NumItems = utils_inventory::Get_NumItems(Inventory);
+        auto NumItems = Inventory.Get_NumItems();
 
         auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
         DisplayText = f"{DisplayText}Items: {NumItems}   Tag changes: {TagChangeCount}\n";
@@ -87,7 +85,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
         DisplayText = f"{DisplayText}\n";
 
         DisplayText = f"{DisplayText}===== Items and Tags =====\n";
-        auto Items = utils_inventory::Get_Items(Inventory);
+        auto Items = Inventory.Get_Items();
         auto Index = 0;
         for (auto Item : Items)
         {
@@ -144,9 +142,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
         if (Def == nullptr) { return; }
 
         auto Request = FCk_Request_Inventory_AddItemByDefinition(Def, Typed.Amount);
-        utils_inventory::Request_AddItemByDefinition(
-            Inventory,
-            Request,
+        Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
     }
 
@@ -155,7 +151,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_InvGym_AddTag);
-        auto Items = utils_inventory::Get_Items(Inventory);
+        auto Items = Inventory.Get_Items();
         for (auto Item : Items)
         {
             if (utils_item_trait_tags::Get_HasTagsFeature(Item))
@@ -171,7 +167,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_InvGym_RemoveTag);
-        auto Items = utils_inventory::Get_Items(Inventory);
+        auto Items = Inventory.Get_Items();
         for (auto Item : Items)
         {
             if (utils_item_trait_tags::Get_HasTagsFeature(Item))
@@ -202,12 +198,12 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
 
         if (Step == 0 && SwordDef != nullptr)
         {
-            utils_inventory::Request_AddItemByDefinition(Inventory, FCk_Request_Inventory_AddItemByDefinition(SwordDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
+            Inventory.Request_AddItemByDefinition(FCk_Request_Inventory_AddItemByDefinition(SwordDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
         else if (Step == 1 || Step == 2)
         {
             auto TagToAdd = (Step == 1) ? RareTag : LegendaryTag;
-            auto Items = utils_inventory::Get_Items(Inventory);
+            auto Items = Inventory.Get_Items();
             for (auto Item : Items)
             {
                 if (utils_item_trait_tags::Get_HasTagsFeature(Item))
@@ -219,7 +215,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
         else if (Step == 3 || Step == 4)
         {
             auto TagToRemove = (Step == 3) ? RareTag : LegendaryTag;
-            auto Items = utils_inventory::Get_Items(Inventory);
+            auto Items = Inventory.Get_Items();
             for (auto Item : Items)
             {
                 if (utils_item_trait_tags::Get_HasTagsFeature(Item))
@@ -230,10 +226,10 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
         }
         else if (Step == 5)
         {
-            auto Items = utils_inventory::Get_Items(Inventory);
+            auto Items = Inventory.Get_Items();
             if (Items.Num() > 0)
             {
-                utils_inventory::Request_RemoveItem(Inventory, FCk_Request_Inventory_RemoveItem(Items[0]), FCk_Delegate_Inventory_OnOperationResult_Remove());
+                Inventory.Request_RemoveItem(FCk_Request_Inventory_RemoveItem(Items[0]), FCk_Delegate_Inventory_OnOperationResult_Remove());
             }
         }
 
