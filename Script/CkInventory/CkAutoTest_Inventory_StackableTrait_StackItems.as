@@ -38,7 +38,7 @@
 
 class UCk_AutoTest_Inventory_StackableTrait_StackItems : UCk_AutoTest_Base
 {
-    private FCk_Handle_Inventory _Inventory;
+    private FCk_Handle_Inventory_DataOnly _Inventory;
     private int32 _AddsObserved = 0;
     private FCk_Handle_Item _Source;
     private FCk_Handle_Item _Target;
@@ -48,12 +48,12 @@ class UCk_AutoTest_Inventory_StackableTrait_StackItems : UCk_AutoTest_Base
     {
         auto LocalHandle = InHandle;
 
-        auto Params = utils_inventory::Make_InventoryParams_DataOnly(
+        auto Params = utils_inventory_data_only::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_Stackable"),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
 
-        _Inventory = utils_inventory::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
+        _Inventory = utils_inventory_data_only::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
         QueueAdd();
     }
@@ -62,9 +62,7 @@ class UCk_AutoTest_Inventory_StackableTrait_StackItems : UCk_AutoTest_Base
     {
         auto Request = FCk_Request_Inventory_AddItemByDefinition(inv_gym_items::Potion(), 1);
         Request.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
-        utils_inventory::Request_AddItemByDefinition(
-            _Inventory,
-            Request,
+        _Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnAddResult"));
     }
 
@@ -85,7 +83,7 @@ class UCk_AutoTest_Inventory_StackableTrait_StackItems : UCk_AutoTest_Base
         }
 
         // After the second add, both items exist as separate stacks.
-        auto Items = utils_inventory::Get_Items(_Inventory);
+        auto Items = _Inventory.Get_Items();
         if (Items.Num() < 2)
         {
             FinishFailure(f"Expected 2 separate stacks after ForceNewItem adds (got {Items.Num()})");
@@ -94,9 +92,7 @@ class UCk_AutoTest_Inventory_StackableTrait_StackItems : UCk_AutoTest_Base
         _Source = Items[0];
         _Target = Items[1];
 
-        utils_inventory::Request_StackItems(
-            _Inventory,
-            FCk_Request_Inventory_StackItems(_Source, _Target),
+        _Inventory.Request_StackItems(FCk_Request_Inventory_StackItems(_Source, _Target),
             FCk_Delegate_Inventory_OnOperationResult_Stack(this, n"OnStackResult"));
     }
 
@@ -111,11 +107,11 @@ class UCk_AutoTest_Inventory_StackableTrait_StackItems : UCk_AutoTest_Base
 
         Assert_True(InResult == ECk_Inventory_OperationResult_Stack::Success,
             f"Stack result should be Success (got {InResult})");
-        Assert_Equals_Int(utils_inventory::Get_NumItems(_Inventory), 1,
+        Assert_Equals_Int(_Inventory.Get_NumItems(), 1,
             "After merge, inventory should hold a single stack");
 
         // The surviving stack should have its count increased to 2.
-        auto Items = utils_inventory::Get_Items(_Inventory);
+        auto Items = _Inventory.Get_Items();
         if (Items.Num() == 1)
         {
             auto Survivor = Items[0];

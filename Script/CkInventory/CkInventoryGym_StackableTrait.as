@@ -11,7 +11,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    FCk_Handle_Inventory Inventory;
+    FCk_Handle_Inventory_DataOnly Inventory;
     FCk_Handle_Timer AutoTimer;
     bool AutoRunning = true;
     int32 AutoStep = 0;
@@ -32,16 +32,14 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
-        auto Params = utils_inventory::Make_InventoryParams_DataOnly(
+        auto Params = utils_inventory_data_only::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.Backpack"),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
 
-        Inventory = utils_inventory::Add(InHandle, Params, ECk_Replication::DoesNotReplicate);
+        Inventory = utils_inventory_data_only::Add(InHandle, Params, ECk_Replication::DoesNotReplicate);
 
-        utils_inventory::BindTo_OnItemsChanged(
-            Inventory,
-            FCk_Delegate_Inventory_OnItemsChanged(this, n"OnItemsChanged"));
+        Inventory.BindTo_OnItemsChanged(FCk_Delegate_Inventory_OnItemsChanged(this, n"OnItemsChanged"));
 
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemByDef,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemByDef"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_StackFirstTwo,   FCk_Delegate_Messaging_OnBroadcast(this, n"OnStackFirstTwo"));
@@ -79,7 +77,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
         auto SelfEntity = ck::ToEntity(this);
         if (ck::IsValid(Inventory) == false) { return; }
 
-        auto NumItems = utils_inventory::Get_NumItems(Inventory);
+        auto NumItems = Inventory.Get_NumItems();
 
         auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
         DisplayText = f"{DisplayText}Items: {NumItems}   Stack events: {StackEventsCount}\n";
@@ -87,7 +85,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
         DisplayText = f"{DisplayText}\n";
 
         DisplayText = f"{DisplayText}===== Stacks =====\n";
-        auto Items = utils_inventory::Get_Items(Inventory);
+        auto Items = Inventory.Get_Items();
         auto Index = 0;
         for (auto Item : Items)
         {
@@ -148,9 +146,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
         auto Request = FCk_Request_Inventory_AddItemByDefinition(Def, Typed.Amount);
         // Force new item so each add creates a separate stack for the manual stack demo
         Request.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
-        utils_inventory::Request_AddItemByDefinition(
-            Inventory,
-            Request,
+        Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
     }
 
@@ -158,7 +154,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
     private void OnStackFirstTwo(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
-        auto Items = utils_inventory::Get_Items(Inventory);
+        auto Items = Inventory.Get_Items();
         if (Items.Num() < 2)
         {
             ck::Warning("[InvGym Stackable] Need at least 2 items to stack");
@@ -166,9 +162,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
         }
 
         auto Request = FCk_Request_Inventory_StackItems(Items[0], Items[1]);
-        utils_inventory::Request_StackItems(
-            Inventory,
-            Request,
+        Inventory.Request_StackItems(Request,
             FCk_Delegate_Inventory_OnOperationResult_Stack(this, n"OnStackResult"));
     }
 
@@ -183,7 +177,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_InvGym_SplitFirst);
-        auto Items = utils_inventory::Get_Items(Inventory);
+        auto Items = Inventory.Get_Items();
         if (Items.Num() == 0)
         {
             ck::Warning("[InvGym Stackable] No item to split");
@@ -191,9 +185,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
         }
 
         auto Request = FCk_Request_Inventory_SplitStack(Items[0], Typed.SplitCount);
-        utils_inventory::Request_SplitStack(
-            Inventory,
-            Request,
+        Inventory.Request_SplitStack(Request,
             FCk_Delegate_Inventory_OnOperationResult_Split(this, n"OnSplitResult"));
     }
 
@@ -223,30 +215,30 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
         {
             auto Req = FCk_Request_Inventory_AddItemByDefinition(PotionDef, 1);
             Req.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
-            utils_inventory::Request_AddItemByDefinition(Inventory, Req, FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
+            Inventory.Request_AddItemByDefinition(Req, FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
         else if (Step == 2 || Step == 4)
         {
-            auto Items = utils_inventory::Get_Items(Inventory);
+            auto Items = Inventory.Get_Items();
             if (Items.Num() >= 2)
             {
-                utils_inventory::Request_StackItems(Inventory, FCk_Request_Inventory_StackItems(Items[0], Items[1]), FCk_Delegate_Inventory_OnOperationResult_Stack());
+                Inventory.Request_StackItems(FCk_Request_Inventory_StackItems(Items[0], Items[1]), FCk_Delegate_Inventory_OnOperationResult_Stack());
             }
         }
         else if (Step == 3)
         {
-            auto Items = utils_inventory::Get_Items(Inventory);
+            auto Items = Inventory.Get_Items();
             if (Items.Num() > 0)
             {
-                utils_inventory::Request_SplitStack(Inventory, FCk_Request_Inventory_SplitStack(Items[0], 1), FCk_Delegate_Inventory_OnOperationResult_Split());
+                Inventory.Request_SplitStack(FCk_Request_Inventory_SplitStack(Items[0], 1), FCk_Delegate_Inventory_OnOperationResult_Split());
             }
         }
         else if (Step == 5)
         {
-            auto Items = utils_inventory::Get_Items(Inventory);
+            auto Items = Inventory.Get_Items();
             if (Items.Num() > 0)
             {
-                utils_inventory::Request_RemoveItem(Inventory, FCk_Request_Inventory_RemoveItem(Items[0]), FCk_Delegate_Inventory_OnOperationResult_Remove());
+                Inventory.Request_RemoveItem(FCk_Request_Inventory_RemoveItem(Items[0]), FCk_Delegate_Inventory_OnOperationResult_Remove());
             }
         }
 
