@@ -11,7 +11,7 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    FCk_Handle_Inventory Inventory;
+    FCk_Handle_Inventory_DataOnly Inventory;
     FCk_Handle_Timer AutoTimer;
     bool AutoRunning = true;
     int32 AutoStep = 0;
@@ -33,16 +33,14 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_GenericEntityScript_UE
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
-        auto Params = utils_inventory::Make_InventoryParams_DataOnly(
+        auto Params = utils_inventory_data_only::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.Backpack"),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
 
-        Inventory = utils_inventory::Add(InHandle, Params, ECk_Replication::DoesNotReplicate);
+        Inventory = utils_inventory_data_only::Add(InHandle, Params, ECk_Replication::DoesNotReplicate);
 
-        utils_inventory::BindTo_OnItemsChanged(
-            Inventory,
-            FCk_Delegate_Inventory_OnItemsChanged(this, n"OnItemsChanged"));
+        Inventory.BindTo_OnItemsChanged(FCk_Delegate_Inventory_OnItemsChanged(this, n"OnItemsChanged"));
 
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_AddItemByDef,   FCk_Delegate_Messaging_OnBroadcast(this, n"OnAddItemByDef"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InvGym_RemoveFirst,    FCk_Delegate_Messaging_OnBroadcast(this, n"OnRemoveFirst"));
@@ -79,8 +77,8 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_GenericEntityScript_UE
         auto SelfEntity = ck::ToEntity(this);
         if (ck::IsValid(Inventory) == false) { return; }
 
-        auto NumItems = utils_inventory::Get_NumItems(Inventory);
-        auto Items = utils_inventory::Get_Items(Inventory);
+        auto NumItems = Inventory.Get_NumItems();
+        auto Items = Inventory.Get_Items();
 
         auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
         DisplayText = f"{DisplayText}Items: {NumItems} (no limit)\n";
@@ -130,9 +128,7 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_GenericEntityScript_UE
         if (Def == nullptr) { return; }
 
         auto Request = FCk_Request_Inventory_AddItemByDefinition(Def, Typed.Amount);
-        utils_inventory::Request_AddItemByDefinition(
-            Inventory,
-            Request,
+        Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnAddByDefResult"));
     }
 
@@ -146,13 +142,11 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_GenericEntityScript_UE
     private void OnRemoveFirst(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
-        auto Items = utils_inventory::Get_Items(Inventory);
+        auto Items = Inventory.Get_Items();
         if (Items.Num() == 0) { return; }
 
         auto Request = FCk_Request_Inventory_RemoveItem(Items[0]);
-        utils_inventory::Request_RemoveItem(
-            Inventory,
-            Request,
+        Inventory.Request_RemoveItem(Request,
             FCk_Delegate_Inventory_OnOperationResult_Remove());
     }
 
@@ -160,9 +154,7 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_GenericEntityScript_UE
     private void OnSort(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
-        utils_inventory::Request_Sort(
-            Inventory,
-            FCk_Request_Inventory_Sort(),
+        Inventory.Request_Sort(FCk_Request_Inventory_Sort(),
             FCk_Delegate_Inventory_OnOperationResult_Sort());
     }
 
@@ -186,26 +178,26 @@ class UCk_EntityScript_InvGym_DataOnlyUnbounded : UCk_GenericEntityScript_UE
 
         if (Step == 0 && PotionDef != nullptr)
         {
-            utils_inventory::Request_AddItemByDefinition(Inventory, FCk_Request_Inventory_AddItemByDefinition(PotionDef, 3), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
+            Inventory.Request_AddItemByDefinition(FCk_Request_Inventory_AddItemByDefinition(PotionDef, 3), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
         else if (Step == 1 && ArrowDef != nullptr)
         {
-            utils_inventory::Request_AddItemByDefinition(Inventory, FCk_Request_Inventory_AddItemByDefinition(ArrowDef, 5), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
+            Inventory.Request_AddItemByDefinition(FCk_Request_Inventory_AddItemByDefinition(ArrowDef, 5), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
         else if (Step == 2 && SwordDef != nullptr)
         {
-            utils_inventory::Request_AddItemByDefinition(Inventory, FCk_Request_Inventory_AddItemByDefinition(SwordDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
+            Inventory.Request_AddItemByDefinition(FCk_Request_Inventory_AddItemByDefinition(SwordDef, 1), FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
         else if (Step == 3)
         {
-            utils_inventory::Request_Sort(Inventory, FCk_Request_Inventory_Sort(), FCk_Delegate_Inventory_OnOperationResult_Sort());
+            Inventory.Request_Sort(FCk_Request_Inventory_Sort(), FCk_Delegate_Inventory_OnOperationResult_Sort());
         }
         else if (Step >= 4)
         {
-            auto Items = utils_inventory::Get_Items(Inventory);
+            auto Items = Inventory.Get_Items();
             if (Items.Num() > 0)
             {
-                utils_inventory::Request_RemoveItem(Inventory, FCk_Request_Inventory_RemoveItem(Items[0]), FCk_Delegate_Inventory_OnOperationResult_Remove());
+                Inventory.Request_RemoveItem(FCk_Request_Inventory_RemoveItem(Items[0]), FCk_Delegate_Inventory_OnOperationResult_Remove());
             }
         }
 

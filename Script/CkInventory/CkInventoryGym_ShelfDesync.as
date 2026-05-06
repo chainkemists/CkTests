@@ -31,8 +31,8 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    FCk_Handle_Inventory PlayerInv;
-    FCk_Handle_Inventory ShelfInv;
+    FCk_Handle_Inventory_DataOnly PlayerInv;
+    FCk_Handle_Inventory_DataOnly ShelfInv;
     FCk_Handle_Timer PumpTimer;
     bool PumpRunning = true;
     int32 AutoStep = 0;
@@ -59,18 +59,18 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
         // Player inventory (unbounded data-only)
-        auto PlayerParams = utils_inventory::Make_InventoryParams_DataOnly(
+        auto PlayerParams = utils_inventory_data_only::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.Backpack"),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
-        PlayerInv = utils_inventory::Add(InHandle, PlayerParams, ECk_Replication::DoesNotReplicate);
+        PlayerInv = utils_inventory_data_only::Add(InHandle, PlayerParams, ECk_Replication::DoesNotReplicate);
 
         // Shelf inventory (unbounded data-only)
-        auto ShelfParams = utils_inventory::Make_InventoryParams_DataOnly(
+        auto ShelfParams = utils_inventory_data_only::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.Equipment"),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
-        ShelfInv = utils_inventory::Add(InHandle, ShelfParams, ECk_Replication::DoesNotReplicate);
+        ShelfInv = utils_inventory_data_only::Add(InHandle, ShelfParams, ECk_Replication::DoesNotReplicate);
 
         // Seed player with initial potion stack
         auto PotionDef = inv_gym_items::Potion();
@@ -78,9 +78,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
         {
             auto SeedReq = FCk_Request_Inventory_AddItemByDefinition(PotionDef, InitialPotionCount);
             SeedReq.Set_Policy(ECk_Inventory_AddPolicy::PreferStacking);
-            utils_inventory::Request_AddItemByDefinition(
-                PlayerInv,
-                SeedReq,
+            PlayerInv.Request_AddItemByDefinition(SeedReq,
                 FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
 
@@ -113,7 +111,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
     int32 Get_PlayerPotionCount()
     {
         if (ck::IsValid(PlayerInv) == false) { return 0; }
-        auto Items = utils_inventory::Get_Items(PlayerInv);
+        auto Items = PlayerInv.Get_Items();
         auto Total = 0;
         for (auto Item : Items)
         {
@@ -133,7 +131,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
     int32 Get_ShelfPotionCount()
     {
         if (ck::IsValid(ShelfInv) == false) { return 0; }
-        auto Items = utils_inventory::Get_Items(ShelfInv);
+        auto Items = ShelfInv.Get_Items();
         auto Total = 0;
         for (auto Item : Items)
         {
@@ -152,7 +150,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
 
     FCk_Handle_Item Get_PlayerPotionStack()
     {
-        auto Items = utils_inventory::Get_Items(PlayerInv);
+        auto Items = PlayerInv.Get_Items();
         for (auto Item : Items)
         {
             if (utils_item::Get_Definition(Item) == inv_gym_items::Potion()) { return Item; }
@@ -190,12 +188,10 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
 
         // Single TransferItem with Count=1, ForceNewItem -- the processor handles
         // the stack decrement + new item creation in one pass, no intermediate state.
-        auto TransferReq = FCk_Request_Inventory_TransferItem(PlayerStack, ShelfInv);
+        auto TransferReq = FCk_Request_Inventory_TransferItem_ToDataOnly(PlayerStack, ShelfInv);
         TransferReq.Set_Count(1);
         TransferReq.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
-        utils_inventory::Request_TransferItem(
-            PlayerInv,
-            TransferReq,
+        PlayerInv.Request_TransferItem_ToDataOnly(TransferReq,
             FCk_Delegate_Inventory_OnOperationResult_Transfer());
 
         StockOps++;
@@ -207,7 +203,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
 
     void Do_Loot()
     {
-        auto ShelfItems = utils_inventory::Get_Items(ShelfInv);
+        auto ShelfItems = ShelfInv.Get_Items();
         FCk_Handle_Item ShelfPotion = utils_item::Get_InvalidHandle();
         for (auto Item : ShelfItems)
         {
@@ -220,11 +216,9 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
 
         if (ck::IsValid(ShelfPotion) == false) { return; }
 
-        auto TransferReq = FCk_Request_Inventory_TransferItem(ShelfPotion, PlayerInv);
+        auto TransferReq = FCk_Request_Inventory_TransferItem_ToDataOnly(ShelfPotion, PlayerInv);
         TransferReq.Set_Policy(ECk_Inventory_AddPolicy::PreferStacking);
-        utils_inventory::Request_TransferItem(
-            ShelfInv,
-            TransferReq,
+        ShelfInv.Request_TransferItem_ToDataOnly(TransferReq,
             FCk_Delegate_Inventory_OnOperationResult_Transfer());
 
         LootOps++;
@@ -280,20 +274,16 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
         PumpRunning = false;
         NextOpIsStock = true;
 
-        auto PlayerItems = utils_inventory::Get_Items(PlayerInv);
+        auto PlayerItems = PlayerInv.Get_Items();
         for (auto Item : PlayerItems)
         {
-            utils_inventory::Request_RemoveItem(
-                PlayerInv,
-                FCk_Request_Inventory_RemoveItem(Item),
+            PlayerInv.Request_RemoveItem(FCk_Request_Inventory_RemoveItem(Item),
                 FCk_Delegate_Inventory_OnOperationResult_Remove());
         }
-        auto ShelfItems = utils_inventory::Get_Items(ShelfInv);
+        auto ShelfItems = ShelfInv.Get_Items();
         for (auto Item : ShelfItems)
         {
-            utils_inventory::Request_RemoveItem(
-                ShelfInv,
-                FCk_Request_Inventory_RemoveItem(Item),
+            ShelfInv.Request_RemoveItem(FCk_Request_Inventory_RemoveItem(Item),
                 FCk_Delegate_Inventory_OnOperationResult_Remove());
         }
 
@@ -302,9 +292,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
         {
             auto SeedReq = FCk_Request_Inventory_AddItemByDefinition(PotionDef, InitialPotionCount);
             SeedReq.Set_Policy(ECk_Inventory_AddPolicy::PreferStacking);
-            utils_inventory::Request_AddItemByDefinition(
-                PlayerInv,
-                SeedReq,
+            PlayerInv.Request_AddItemByDefinition(SeedReq,
                 FCk_Delegate_Inventory_OnOperationResult_AddByDefinition());
         }
 
