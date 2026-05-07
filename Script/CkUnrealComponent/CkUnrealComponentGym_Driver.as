@@ -88,10 +88,7 @@ class ACk_UnrealComponentGym_Driver : AActor
 		if (ck::IsValid(ComponentClass) == false)
 		{ return; }
 
-		auto Params = FCk_Fragment_UnrealComponent_ParamsData(ComponentClass);
-		Params.Set_TickPolicy(ECk_UnrealComponent_TickPolicy::DoNotTick);
-		Params.Set_DebugName(n"UnrealComponentGym");
-
+		const auto Params = utils_unreal_component::Make_Params(ComponentClass, ECk_UnrealComponent_TickPolicy::DoNotTick, n"UnrealComponentGym");
 		ComponentHandle = utils_unreal_component::Add(InEntity, Params);
 
 		utils_unreal_component::BindTo_OnAdded(
