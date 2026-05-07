@@ -470,10 +470,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		auto PieceTH = OutSCN.As_Transform();
 		auto PieceEntity = FCk_Handle(PieceTH);
 
-		auto Params = FCk_Fragment_UnrealComponent_ParamsData(UStaticMeshComponent);
-		Params.Set_TickPolicy(ECk_UnrealComponent_TickPolicy::DoNotTick);
-		Params.Set_DebugName(InDebugName);
-
+		const auto Params = utils_unreal_component::Make_Params(UStaticMeshComponent, ECk_UnrealComponent_TickPolicy::DoNotTick, InDebugName);
 		auto ComponentHandle = utils_unreal_component::Add(PieceEntity, Params);
 
 		utils_unreal_component::BindTo_OnAdded(
@@ -562,9 +559,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		auto PieceTH = OutSCN.As_Transform();
 		auto PieceEntity = FCk_Handle(PieceTH);
 
-		auto Params = FCk_Fragment_UnrealComponent_ParamsData(UTextRenderComponent);
-		Params.Set_TickPolicy(ECk_UnrealComponent_TickPolicy::DoNotTick);
-		Params.Set_DebugName(InDebugName);
+		const auto Params = utils_unreal_component::Make_Params(UTextRenderComponent, ECk_UnrealComponent_TickPolicy::DoNotTick, InDebugName);
 
 		auto ComponentHandle = utils_unreal_component::Add(PieceEntity, Params);
 
@@ -679,9 +674,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		auto PieceTH = _SpotlightSCN.As_Transform();
 		auto PieceEntity = FCk_Handle(PieceTH);
 
-		auto Params = FCk_Fragment_UnrealComponent_ParamsData(USpotLightComponent);
-		Params.Set_TickPolicy(ECk_UnrealComponent_TickPolicy::DoNotTick);
-		Params.Set_DebugName(n"Spotlight");
+		const auto Params = utils_unreal_component::Make_Params(USpotLightComponent, ECk_UnrealComponent_TickPolicy::DoNotTick, n"Spotlight");
 
 		_SpotlightHandle = utils_unreal_component::Add(PieceEntity, Params);
 
