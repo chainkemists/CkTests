@@ -149,8 +149,8 @@ class UCk_EntityScript_GoapGym_AutoReplan :  UCk_GenericEntityScript_UE
 		GoapParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnEitherDirty);
 		GoapParams.Set_MinReplanIntervalSeconds(0.25f);
 		GoapParams.Set_PlanOnStart(true);
-		GoapEntity = utils_goap::Add(InHandle, GoapParams);
-		utils_gameplay_label::Add(GoapEntity, goap_auto_replan::T(n"Gym.Goap.AutoReplan"));
+		GoapEntity = utils_goap::Create(InHandle,
+			goap_auto_replan::T(n"Gym.Goap.AutoReplan"), GoapParams);
 		GoapEntity.AddAction(UCk_GoapAutoReplan_Action_MoveTo);
 		GoapEntity.AddAction(UCk_GoapAutoReplan_Action_Attack);
 		GoapEntity.AddGoal  (UCk_GoapAutoReplan_Goal_KillTarget);

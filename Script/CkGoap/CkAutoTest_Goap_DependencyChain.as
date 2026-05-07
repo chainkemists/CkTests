@@ -33,9 +33,8 @@ class UCk_AutoTest_Goap_DependencyChain : UCk_AutoTest_Base
 
         auto GoapParams = FCk_Fragment_Goap_ParamsData();
         GoapParams.Set_PlanOnStart(false);
-        _Goap = utils_goap::Add(LocalHandle, GoapParams);
-
-        utils_gameplay_label::Add(_Goap, planner_test_util::T(n"AutoTest.Goap.DependencyChain"));
+        _Goap = utils_goap::Create(LocalHandle,
+            planner_test_util::T(n"AutoTest.Goap.DependencyChain"), GoapParams);
 
         _Goap.AddAction(UCk_GoapT2_Action_DoStep1);
         _Goap.AddAction(UCk_GoapT2_Action_DoStep2);
