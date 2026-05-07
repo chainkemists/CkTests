@@ -58,9 +58,8 @@ class UCk_AutoTest_Goap_BasicPlan : UCk_AutoTest_Base
 
         auto GoapParams = FCk_Fragment_Goap_ParamsData();
         GoapParams.Set_PlanOnStart(false);
-        _Goap = utils_goap::Add(LocalHandle, GoapParams);
-
-        utils_gameplay_label::Add(_Goap, planner_test_util::T(n"AutoTest.Goap.BasicPlan"));
+        _Goap = utils_goap::Create(LocalHandle,
+            planner_test_util::T(n"AutoTest.Goap.BasicPlan"), GoapParams);
 
         _Goap.AddAction(UCk_GoapT1_Action_CreateTool);
         _Goap.AddGoal(UCk_GoapT1_Goal_HasTool);
