@@ -105,7 +105,7 @@ class UCk_AutoTest_IskmRenderer_PdaSmoke : UCk_AutoTest_Base
             Assert_True(RendererData.Get_AnimCollection() == nullptr,
                 "Default Renderer PDA should have no AnimCollection");
 
-            Assert_Equals_Int(int32(RendererData.Get_MaxSubmeshPerInstance()), 15,
+            Assert_Equals_Int(RendererData.Get_MaxSubmeshPerInstance(), 15,
                 "Default MaxSubmeshPerInstance should be 15 (Plan-2 GPU cap)");
 
             Assert_Equals_Int(RendererData.Get_NumCustomDataFloat(), 0,
