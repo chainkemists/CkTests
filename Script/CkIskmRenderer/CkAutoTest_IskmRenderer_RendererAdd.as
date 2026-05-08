@@ -43,21 +43,21 @@ class UCk_AutoTest_IskmRenderer_RendererAdd : UCk_AutoTest_Base
 
         // ----- Fresh entity has no renderer -----
 
-        Assert_True(!UCk_Utils_IskmRenderer_UE::Has(LocalHandle),
+        Assert_True(utils_iskm_renderer::Has(LocalHandle) == false,
             "Has() should return false on an entity with no renderer added");
 
         // ----- Default-constructed handle is invalid -----
 
         FCk_Handle_IskmRenderer EmptyHandle;
-        Assert_True(!EmptyHandle.IsValid(),
+        Assert_True(ck::Is_NOT_Valid(EmptyHandle),
             "Default-constructed FCk_Handle_IskmRenderer should be invalid");
 
         // ----- Get_* accessors are null-safe on invalid handles -----
 
-        Assert_True(UCk_Utils_IskmRenderer_UE::Get_RendererData(EmptyHandle) == nullptr,
+        Assert_True(utils_iskm_renderer::Get_RendererData(EmptyHandle) == nullptr,
             "Get_RendererData(invalid handle) should return nullptr (early-out on handle.IsValid())");
 
-        Assert_True(UCk_Utils_IskmRenderer_UE::Get_AnimCollection(EmptyHandle) == nullptr,
+        Assert_True(utils_iskm_renderer::Get_AnimCollection(EmptyHandle) == nullptr,
             "Get_AnimCollection(invalid handle) should return nullptr (chained null-check via Get_RendererData)");
 
         FinishSuccess();
