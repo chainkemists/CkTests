@@ -298,9 +298,8 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
         auto Agent = utils_crowd_agent::Add(InOwnerStation, Params);
 
-        // Stamp the agent's identity colour so all visualisations (capsule, breadcrumb path,
-        // planned-path overlay, debugger swatch) coordinate. The capsule/cone below still pass
-        // InColor directly for now; refactor to read the fragment is a follow-up.
+        // Stamp the agent's identity colour so every visualisation (DrawBody capsule + cone,
+        // breadcrumb path, planned-path overlay, debugger swatch) coordinates on the same color.
         utils_crowd_agent::Set_DebugColor(Agent, InColor);
 
         FCk_Handle Generic = Agent;
@@ -315,29 +314,9 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         utils_acceleration::Add(Generic, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(Generic);
 
-        // Capsule body
-        auto CapsuleHandle = utils_pmg_basic_shapes::Create_Capsule(
-            Generic, FTransform::Identity,
-            42.0f, 96.0f, 16, 8,
-            ECk_Plane_Axis::XY,
-            InColor, true, 2.0f, -1.0f);
-        FCk_Handle CapsuleGeneric = CapsuleHandle;
-        auto CapsuleXform = utils_transform::DoCastChecked(CapsuleGeneric);
-        auto AgentXform = utils_transform::DoCastChecked(Generic);
-        const auto CapsuleLocalOffset = FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 96.0), FVector::OneVector);
-        utils_scene_node::Add(CapsuleXform, AgentXform, CapsuleLocalOffset);
-
-        // Forward cone
-        const auto ConeColor = FLinearColor(InColor.R * 0.8, InColor.G * 0.8, InColor.B * 0.8, 0.85);
-        auto ConeHandle = utils_pmg_basic_shapes::Create_Cone(
-            Generic, FTransform::Identity,
-            15.0f, 60.0f, 12,
-            ECk_Plane_Axis::XY,
-            ConeColor, true, 1.5f, -1.0f);
-        FCk_Handle ConeGeneric = ConeHandle;
-        auto ConeXform = utils_transform::DoCastChecked(ConeGeneric);
-        const auto ConeLocalOffset = FTransform(FRotator(-90.0, 0.0, 0.0), FVector(60.0, 0.0, 96.0), FVector::OneVector);
-        utils_scene_node::Add(ConeXform, AgentXform, ConeLocalOffset);
+        // Body capsule + forward cone come from FProcessor_CrowdAgent_DrawBody (CkCrowd
+        // framework). Color comes from the Set_DebugColor fragment above. Enable in PIE via
+        // the Crowd Debugger's "Agent Body" checkbox or `ck.Crowd.Debug.AgentBody 1`.
 
         utils_crowd_agent::Request_MoveTo(Agent, FCk_Request_CrowdAgent_MoveTo(TargetLoc));
 
