@@ -18,6 +18,7 @@
 //   3. utils_iskm_proxy::Get_PlayLength(empty) returns 0.0
 //   4. Calling Request_PlayAnimation with an invalid handle is a safe no-op
 //   5. Calling Request_StopAnimation with an invalid handle is a safe no-op
+//   6. Calling Request_SetPlayRate with an invalid handle is a safe no-op
 //
 // What this test does NOT cover (deferred to Phase Q with real .uasset content):
 //   - Request_PlayAnimation success path: requires a Renderer PDA with a linked
@@ -60,6 +61,10 @@ class UCk_AutoTest_IskmRenderer_AnimationPlayback : UCk_AutoTest_Base
         FCk_Handle_IskmProxy StopResult = utils_iskm_proxy::Request_StopAnimation(EmptyHandle, StopReq);
         Assert_True(ck::Is_NOT_Valid(StopResult),
             "Request_StopAnimation on invalid handle should return invalid handle");
+
+        FCk_Handle_IskmProxy RateResult = utils_iskm_proxy::Request_SetPlayRate(EmptyHandle, 1.5f);
+        Assert_True(ck::Is_NOT_Valid(RateResult),
+            "Request_SetPlayRate on invalid handle should return invalid handle");
 
         FinishSuccess();
     }
