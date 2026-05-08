@@ -120,62 +120,12 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         // on the entity. The view of FProcessor_CrowdAgent_ApplyOffset is then satisfied each tick.
         utils_euler_integrator::Request_Start(GenericAgent);
 
-        // Visualize the agent: cyan capsule sized to the agent's _Radius / _Height.
-        //
-        // We can't Add_Capsule on the agent itself — it does Add<FFragment_Transform>, not AddOrGet,
-        // and the agent already has Transform from utils_transform::Add above → ENSURE.
-        //
-        // Instead, Create_Capsule spawns a SEPARATE child entity owned by the agent (so it
-        // cascade-destroys with the agent), then SceneNode-parent the child's Transform to the
-        // agent's Transform with a vertical offset of HalfHeight. The agent's Transform location is
-        // its FEET (NPC convention); the capsule's local origin is its CENTER, so the offset puts
-        // the capsule's bottom at the agent's feet rather than HalfHeight below them. SceneNode
-        // propagation makes the capsule track the agent's apply-offset moves automatically — no
-        // per-tick sync.
-        const auto AgentColor = FLinearColor(0.42, 0.85, 1.0, 0.6);
-        auto CapsuleHandle = utils_pmg_basic_shapes::Create_Capsule(
-            GenericAgent,
-            FTransform::Identity,
-            42.0f,           // radius matches agent params (_Radius default)
-            96.0f,           // half-height matches agent params (_Height / 2)
-            16,              // segments
-            8,               // rings
-            ECk_Plane_Axis::XY,
-            AgentColor,
-            true,            // wireframe overlay
-            2.0f,            // line thickness
-            -1.0f);          // -1 = persist until the agent (and child) is destroyed
-
-        FCk_Handle CapsuleGeneric = CapsuleHandle;
-        auto CapsuleXform = utils_transform::DoCastChecked(CapsuleGeneric);
-        auto AgentXform = utils_transform::DoCastChecked(GenericAgent);
-        const auto CapsuleLocalOffset = FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 96.0), FVector::OneVector);
-        utils_scene_node::Add(CapsuleXform, AgentXform, CapsuleLocalOffset);
-
-        // Forward-direction indicator (Sub-task 2D): small orange cone in front of the capsule,
-        // SceneNode-parented to the agent's Transform so it rotates with the FaceAngle processor's
-        // yaw lerp. PMG's ECk_Plane_Axis::YZ rotates the cone's apex to point along -X local (per
-        // the AxisRotation in CkPmg_Processor_BasicShapes.cpp), which is BACKWARD from agent's
-        // forward. So we keep the default XY axis (apex along +Z = up in cone-local) and tilt the
-        // cone forward via Pitch=-90 in the SceneNode local rotation: this maps cone-local +Z to
-        // parent-local +X so the apex points where the agent is facing.
-        const auto ForwardConeColor = FLinearColor(1.0, 0.55, 0.15, 0.7);
-        auto ConeHandle = utils_pmg_basic_shapes::Create_Cone(
-            GenericAgent,
-            FTransform::Identity,
-            15.0f,           // radius
-            60.0f,           // height — small enough not to overlap the capsule
-            12,              // segments
-            ECk_Plane_Axis::XY,
-            ForwardConeColor,
-            true,
-            1.5f,
-            -1.0f);          // persist with the agent
-
-        FCk_Handle ConeGeneric = ConeHandle;
-        auto ConeXform = utils_transform::DoCastChecked(ConeGeneric);
-        const auto ConeLocalOffset = FTransform(FRotator(-90.0, 0.0, 0.0), FVector(60.0, 0.0, 96.0), FVector::OneVector);
-        utils_scene_node::Add(ConeXform, AgentXform, ConeLocalOffset);
+        // Body capsule + forward-facing cone now come from the framework processor
+        // FProcessor_CrowdAgent_DrawBody (CkCrowd/Agent/CkCrowdAgent_DrawBody_Processor).
+        // Enable in PIE via the Crowd Debugger's "Agent Body" checkbox or
+        //   ck.Crowd.Debug.AgentBody 1
+        // Color comes from UCk_Utils_CrowdAgent_UE::Get_DebugColor — to override per-agent
+        // (e.g. blue+pink for the head-on test pair), call Set_DebugColor after Add.
 
         // Bind OnPathReady on the agent so we can draw the path overlay when navigation lands the result.
         utils_nav::BindTo_OnPathReady(GenericAgent,

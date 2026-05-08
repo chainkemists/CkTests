@@ -197,33 +197,11 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
 
         utils_euler_integrator::Request_Start(GenericAgent);
 
-        // Capsule body — Create_* spawns a child entity and SceneNode-parents it; cascade-destroys
-        // when the agent does. Z offset matches Locomotion gym's convention (HalfHeight=96).
-        auto CapsuleHandle = utils_pmg_basic_shapes::Create_Capsule(
-            GenericAgent, FTransform::Identity,
-            42.0f, 96.0f, 16, 8,
-            ECk_Plane_Axis::XY,
-            InColor, true, 2.0f, -1.0f);
-
-        FCk_Handle CapsuleGeneric = CapsuleHandle;
-        auto CapsuleXform = utils_transform::DoCastChecked(CapsuleGeneric);
-        auto AgentXform = utils_transform::DoCastChecked(GenericAgent);
-        const auto CapsuleLocalOffset = FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 96.0), FVector::OneVector);
-        utils_scene_node::Add(CapsuleXform, AgentXform, CapsuleLocalOffset);
-
-        // Forward-direction cone (matches Locomotion gym's Pitch=-90 trick to tilt cone-local +Z
-        // into parent-local +X — the agent's facing direction).
-        const auto ConeColor = FLinearColor(InColor.R * 0.8, InColor.G * 0.8, InColor.B * 0.8, 0.85);
-        auto ConeHandle = utils_pmg_basic_shapes::Create_Cone(
-            GenericAgent, FTransform::Identity,
-            15.0f, 60.0f, 12,
-            ECk_Plane_Axis::XY,
-            ConeColor, true, 1.5f, -1.0f);
-
-        FCk_Handle ConeGeneric = ConeHandle;
-        auto ConeXform = utils_transform::DoCastChecked(ConeGeneric);
-        const auto ConeLocalOffset = FTransform(FRotator(-90.0, 0.0, 0.0), FVector(60.0, 0.0, 96.0), FVector::OneVector);
-        utils_scene_node::Add(ConeXform, AgentXform, ConeLocalOffset);
+        // Body capsule + forward cone come from FProcessor_CrowdAgent_DrawBody (CkCrowd
+        // framework). Pin the per-agent override color so the multi-agent test's "blue vs pink
+        // vs green vs orange" identity is preserved — without this, Get_DebugColor falls back
+        // to a hash-derived color and the directions become indistinguishable.
+        utils_crowd_agent::Set_DebugColor(Agent, InColor);
 
         // Bind goal signals so we can log arrivals — useful when the cluster test is busy and we
         // need to see "agent X reached goal" without staring at the viewport.
