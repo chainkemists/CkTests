@@ -41,7 +41,7 @@ class UCk_AutoTest_IskmRenderer_SubsystemSmoke : UCk_AutoTest_Base
             "Get_WorldForEntity should return a valid world");
         if (!ck::IsValid(EntityWorld))
         {
-            FinishFailure();
+            FinishFailure("EntityWorld was invalid; cannot exercise the subsystem.");
             return;
         }
 
@@ -53,7 +53,7 @@ class UCk_AutoTest_IskmRenderer_SubsystemSmoke : UCk_AutoTest_Base
             "NewObject(UCk_IskmRenderer_Data) should construct a valid PDA instance");
         if (!IsValid(RendererPDA_A))
         {
-            FinishFailure();
+            FinishFailure("NewObject(UCk_IskmRenderer_Data) failed; cannot exercise GetOrCreate.");
             return;
         }
 
