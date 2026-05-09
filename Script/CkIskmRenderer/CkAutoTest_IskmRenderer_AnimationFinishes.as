@@ -7,45 +7,47 @@
 // Plays a non-looping anim sequence on a proxy and asserts the
 // OnAnimationFinished signal fires with reason=Completed within timeout.
 //
-// REQUIRES authored content: the test entity's RendererData must point at a
-// real UCk_IskmRenderer_Data asset whose AnimCollection has at least one
-// non-looping sequence. With null RendererData (Plan-1 default until the
-// engineer wires content), this test FinishSuccess()-skips with a log line —
-// it doesn't fail-red on missing content. Wire RendererData via a Blueprint
-// subclass of the test runner once content is authored.
+// Auto-loads:
+//   /CkTests/CkIskmRenderer/Demo/RendererData_Demo  (UCk_IskmRenderer_Data)
+//   /CkTests/CkIskmRenderer/Anim/A_NonLoopTest      (UAnimSequence — non-looping)
+//
+// Either asset missing → test FinishSuccess()-skips. With both present, the
+// real assertion runs.
 //
 //============================================================================
 
 class UCk_AutoTest_IskmRenderer_AnimationFinishes : UCk_AutoTest_Base
 {
-    UPROPERTY(ExposeOnSpawn)
-    UCk_IskmRenderer_Data RendererData;
-
-    UPROPERTY(ExposeOnSpawn)
-    UAnimSequenceBase TestSequence;
-
     private FCk_Handle_IskmProxy _Proxy;
     private bool _Fired = false;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        // Skip-when-no-content gate: Plan-1 ships without authored content.
-        // Engineer wires both RendererData + TestSequence via Blueprint subclass.
+        auto RendererResult = utils_i_o::LoadAssetByName(
+            "/CkTests/CkIskmRenderer/Demo/RendererData_Demo",
+            ECk_AssetSearchScope::Plugins,
+            ECk_AssetSearchStrategy::ExactOnly);
+        auto RendererData = Cast<UCk_IskmRenderer_Data>(RendererResult._Asset);
+
+        auto SeqResult = utils_i_o::LoadAssetByName(
+            "/CkTests/CkIskmRenderer/Anim/A_NonLoopTest",
+            ECk_AssetSearchScope::Plugins,
+            ECk_AssetSearchStrategy::ExactOnly);
+        auto TestSequence = Cast<UAnimSequenceBase>(SeqResult._Asset);
+
         if (ck::Is_NOT_Valid(RendererData) || ck::Is_NOT_Valid(TestSequence))
         { FinishSuccess(); return; }
 
         auto LocalHandle = InHandle;
-        auto LocalRendererData = RendererData;
 
-        auto Renderer = utils_iskm_renderer::Add(LocalHandle, LocalRendererData);
+        auto Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
         auto Params = FCk_Fragment_IskmProxy_ParamsData(Renderer, FTransform::Identity);
         _Proxy = utils_iskm_proxy::Add(LocalHandle, Params);
 
         utils_iskm_proxy::BindTo_OnAnimationFinished(_Proxy,
             FCk_Delegate_IskmProxy_OnAnimationFinished(this, n"OnFinished"));
 
-        // _Sequence is CK_PROPERTY_GET-only, so use the constructor to set it.
         auto PlayReq = FCk_Request_IskmProxy_PlayAnimation(TestSequence);
         PlayReq.Set_bLoop(false);
         utils_iskm_proxy::Request_PlayAnimation(_Proxy, PlayReq);
@@ -57,9 +59,7 @@ class UCk_AutoTest_IskmRenderer_AnimationFinishes : UCk_AutoTest_Base
     private void OnFinished(FCk_Handle_IskmProxy InHandle, FCk_IskmProxy_AnimSequenceRef InSeq, ECk_IskmProxy_AnimFinishReason InReason)
     {
         if (InReason == ECk_IskmProxy_AnimFinishReason::Completed)
-        {
-            _Fired = true;
-        }
+        { _Fired = true; }
     }
 
     UFUNCTION()

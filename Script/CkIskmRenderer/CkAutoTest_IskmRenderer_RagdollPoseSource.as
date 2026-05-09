@@ -4,22 +4,17 @@
 // CK ISKM RENDERER — AUTOMATION TEST: PHASE Q4 RAGDOLL POSE-SOURCE FLIP
 //============================================================================
 //
-// Adds a proxy, calls Request_BeginRagdoll, asserts Get_PoseSource flips to
-// Ragdoll. Then Request_EndRagdoll, asserts pose source returns to Sequence
-// (or AnimBP if a default AnimInstanceClass is configured).
+// Calls Request_BeginRagdoll, asserts Get_PoseSource flips to Ragdoll. Then
+// Request_EndRagdoll, asserts pose source returns to Sequence (or AnimBP).
 //
-// REQUIRES authored content: the RendererData's mesh (via AnimCollection's
-// DefaultMesh) must have a bound PhysicsAsset. With null content (or no
-// PhysicsAsset), Request_BeginRagdoll's handler logs a warning and bails
-// without flipping pose source — so the test FinishSuccess()-skips.
+// Auto-loads RendererData_Demo. The renderer's mesh must have a bound
+// PhysicsAsset for ragdoll to engage — otherwise the handler logs a warning
+// and bails (no pose-source flip), which the test treats as a skip.
 //
 //============================================================================
 
 class UCk_AutoTest_IskmRenderer_RagdollPoseSource : UCk_AutoTest_Base
 {
-    UPROPERTY(ExposeOnSpawn)
-    UCk_IskmRenderer_Data RendererData;
-
     private FCk_Handle_IskmProxy _Proxy;
     private int32 _Phase = 0;
     private int32 _TicksInPhase = 0;
@@ -27,12 +22,17 @@ class UCk_AutoTest_IskmRenderer_RagdollPoseSource : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto Result = utils_i_o::LoadAssetByName(
+            "/CkTests/CkIskmRenderer/Demo/RendererData_Demo",
+            ECk_AssetSearchScope::Plugins,
+            ECk_AssetSearchStrategy::ExactOnly);
+        auto RendererData = Cast<UCk_IskmRenderer_Data>(Result._Asset);
+
         if (ck::Is_NOT_Valid(RendererData)) { FinishSuccess(); return; }
 
         auto LocalHandle = InHandle;
-        auto LocalRendererData = RendererData;
 
-        auto Renderer = utils_iskm_renderer::Add(LocalHandle, LocalRendererData);
+        auto Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
         auto Params = FCk_Fragment_IskmProxy_ParamsData(Renderer, FTransform::Identity);
         _Proxy = utils_iskm_proxy::Add(LocalHandle, Params);
 
@@ -47,7 +47,6 @@ class UCk_AutoTest_IskmRenderer_RagdollPoseSource : UCk_AutoTest_Base
 
         if (_Phase == 0 && _TicksInPhase >= 2)
         {
-            // After Setup is done, request Begin.
             FCk_Request_IskmProxy_BeginRagdoll Req;
             utils_iskm_proxy::Request_BeginRagdoll(_Proxy, Req);
             _Phase = 1;
@@ -56,8 +55,7 @@ class UCk_AutoTest_IskmRenderer_RagdollPoseSource : UCk_AutoTest_Base
         else if (_Phase == 1 && _TicksInPhase >= 2)
         {
             const auto Pose = utils_iskm_proxy::Get_PoseSource(_Proxy);
-            // Without a PhysicsAsset (Plan-1 default), the handler bails and pose source
-            // stays Sequence. Treat that as the skip condition.
+            // No PhysicsAsset → pose source stays Sequence (skip condition).
             if (Pose != ECk_IskmProxy_PoseSource::Ragdoll) { FinishSuccess(); return; }
 
             utils_iskm_proxy::Request_EndRagdoll(_Proxy);

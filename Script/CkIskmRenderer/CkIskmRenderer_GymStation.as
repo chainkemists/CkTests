@@ -11,24 +11,42 @@
 //   - RagdollDemo:  single proxy, alternating Begin/End ragdoll
 //   - CustomData:   single proxy, sin-wave custom data slot
 //
-// Each station takes RendererData via ExposeOnSpawn on the spawn-params struct.
-// Plan-1 leaves it null (the AS-declared empty-body asset stamps in
-// CkIskmRenderer_Shared.as need an engineer to populate skeleton/mesh/sequences
-// in the editor before they're useful). With null RendererData each station
-// is a no-op — proxies are not added, timers don't fire any visible work.
-// Wire RendererData in a Blueprint subclass of the gym GameMode/PlayerController
-// once content is authored.
+// Content discovery: each station tries to load the demo renderer data via
+// `utils_i_o::LoadAssetByName("/CkTests/CkIskmRenderer/Demo/RendererData_Demo")`.
+// If the asset isn't present (Plan-1 default until the engineer authors content),
+// the station prints an on-screen warning naming the missing asset path and
+// skips the proxy creation. With content authored, the demo runs.
+//
+// Required assets (see the Plan-1 wrap-up notes):
+//   /CkTests/CkIskmRenderer/Demo/RendererData_Demo  (UCk_IskmRenderer_Data)
+//     -> _AnimCollection: ref to a UCk_IskmAnimCollection_Data with skeleton
+//                         + DefaultMesh + at least one looping sequence
+//     -> _Submeshes:     entries with Name "Hat" (or rename in OutfitSwap below)
+//     -> _NumCustomDataFloat: >= 1 for the CustomData station
 //
 //============================================================================
+
+const FString IskmGym_RendererDataPath = "/CkTests/CkIskmRenderer/Demo/RendererData_Demo";
+
+UCk_IskmRenderer_Data IskmGym_LoadRendererData()
+{
+    auto Result = utils_i_o::LoadAssetByName(
+        IskmGym_RendererDataPath,
+        ECk_AssetSearchScope::Plugins,
+        ECk_AssetSearchStrategy::ExactOnly);
+    return Cast<UCk_IskmRenderer_Data>(Result._Asset);
+}
+
+void IskmGym_PrintMissingContent(FString InStationName)
+{
+    Print(f"[IskmRenderer Gym/{InStationName}] Missing content — author UCk_IskmRenderer_Data at {IskmGym_RendererDataPath}", 10.0f);
+}
 
 USTRUCT()
 struct FCkIskmRenderer_GymStationSpawnParams
 {
     UPROPERTY()
     FTransform InitialTransform = FTransform::Identity;
-
-    UPROPERTY()
-    UCk_IskmRenderer_Data RendererData;
 }
 
 // ====================================================================================================================
@@ -42,9 +60,6 @@ class UCk_EntityScript_IskmRendererGym_SpawnArmy : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    UPROPERTY(ExposeOnSpawn)
-    UCk_IskmRenderer_Data RendererData;
-
     private TArray<FCk_Handle_IskmProxy> _Proxies;
 
     UFUNCTION(BlueprintOverride)
@@ -53,7 +68,12 @@ class UCk_EntityScript_IskmRendererGym_SpawnArmy : UCk_GenericEntityScript_UE
     {
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-        if (ck::Is_NOT_Valid(RendererData)) { return ECk_EntityScript_ConstructionFlow::Finished; }
+        auto RendererData = IskmGym_LoadRendererData();
+        if (ck::Is_NOT_Valid(RendererData))
+        {
+            IskmGym_PrintMissingContent("SpawnArmy");
+            return ECk_EntityScript_ConstructionFlow::Finished;
+        }
         auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
 
         const int32 Rows = 5;
@@ -65,7 +85,6 @@ class UCk_EntityScript_IskmRendererGym_SpawnArmy : UCk_GenericEntityScript_UE
         {
             for (int32 Col = 0; Col < Cols; ++Col)
             {
-                // Stations face -X (per the gym convention) — lay agents out behind the panel.
                 auto Offset = FVector(float32(Row) * -Spacing, (float32(Col) - ColCenter) * Spacing, 0.0f);
                 auto SpawnXf = InitialTransform;
                 SpawnXf.AddToTranslation(Offset);
@@ -92,9 +111,6 @@ class UCk_EntityScript_IskmRendererGym_OutfitSwap : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    UPROPERTY(ExposeOnSpawn)
-    UCk_IskmRenderer_Data RendererData;
-
     private FCk_Handle_IskmProxy _Proxy;
     private bool _SubmeshAttached = false;
     private float _Elapsed = 0.0f;
@@ -105,7 +121,12 @@ class UCk_EntityScript_IskmRendererGym_OutfitSwap : UCk_GenericEntityScript_UE
     {
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-        if (ck::Is_NOT_Valid(RendererData)) { return ECk_EntityScript_ConstructionFlow::Finished; }
+        auto RendererData = IskmGym_LoadRendererData();
+        if (ck::Is_NOT_Valid(RendererData))
+        {
+            IskmGym_PrintMissingContent("OutfitSwap");
+            return ECk_EntityScript_ConstructionFlow::Finished;
+        }
         auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
 
         auto AgentEntity = InHandle.Request_CreateEntity();
@@ -148,10 +169,8 @@ class UCk_EntityScript_IskmRendererGym_MontageBurst : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    UPROPERTY(ExposeOnSpawn)
-    UCk_IskmRenderer_Data RendererData;
-
     private FCk_Handle_IskmProxy _Proxy;
+    private UAnimMontage _Montage;
     private float _Elapsed = 0.0f;
 
     UFUNCTION(BlueprintOverride)
@@ -160,8 +179,21 @@ class UCk_EntityScript_IskmRendererGym_MontageBurst : UCk_GenericEntityScript_UE
     {
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-        if (ck::Is_NOT_Valid(RendererData)) { return ECk_EntityScript_ConstructionFlow::Finished; }
+        auto RendererData = IskmGym_LoadRendererData();
+        if (ck::Is_NOT_Valid(RendererData))
+        {
+            IskmGym_PrintMissingContent("MontageBurst");
+            return ECk_EntityScript_ConstructionFlow::Finished;
+        }
         auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
+
+        // Optional: load a montage asset for the demo. If missing, the timer still
+        // fires but Request_PlayMontage is a no-op (handler bails on null _Montage).
+        auto MontageResult = utils_i_o::LoadAssetByName(
+            "/CkTests/CkIskmRenderer/Anim/AM_NotifyTest",
+            ECk_AssetSearchScope::Plugins,
+            ECk_AssetSearchStrategy::ExactOnly);
+        _Montage = Cast<UAnimMontage>(MontageResult._Asset);
 
         auto AgentEntity = InHandle.Request_CreateEntity();
         utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
@@ -180,10 +212,7 @@ class UCk_EntityScript_IskmRendererGym_MontageBurst : UCk_GenericEntityScript_UE
         if (_Elapsed < 3.0f) { return; }
         _Elapsed = 0.0f;
 
-        // Default-constructed request: _Montage is null. Engineer fills in a real
-        // UAnimMontage at content-authoring time; until then the handler short-circuits
-        // on the null-montage guard.
-        FCk_Request_IskmProxy_PlayMontage Req;
+        auto Req = FCk_Request_IskmProxy_PlayMontage(_Montage);
         utils_iskm_proxy::Request_PlayMontage(_Proxy, Req);
     }
 }
@@ -199,9 +228,6 @@ class UCk_EntityScript_IskmRendererGym_RagdollDemo : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    UPROPERTY(ExposeOnSpawn)
-    UCk_IskmRenderer_Data RendererData;
-
     private FCk_Handle_IskmProxy _Proxy;
     private bool _Ragdolling = false;
     private float _Elapsed = 0.0f;
@@ -212,7 +238,12 @@ class UCk_EntityScript_IskmRendererGym_RagdollDemo : UCk_GenericEntityScript_UE
     {
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-        if (ck::Is_NOT_Valid(RendererData)) { return ECk_EntityScript_ConstructionFlow::Finished; }
+        auto RendererData = IskmGym_LoadRendererData();
+        if (ck::Is_NOT_Valid(RendererData))
+        {
+            IskmGym_PrintMissingContent("RagdollDemo");
+            return ECk_EntityScript_ConstructionFlow::Finished;
+        }
         auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
 
         auto AgentEntity = InHandle.Request_CreateEntity();
@@ -257,9 +288,6 @@ class UCk_EntityScript_IskmRendererGym_CustomData : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    UPROPERTY(ExposeOnSpawn)
-    UCk_IskmRenderer_Data RendererData;
-
     private FCk_Handle_IskmProxy _Proxy;
     private float _Elapsed = 0.0f;
 
@@ -269,7 +297,12 @@ class UCk_EntityScript_IskmRendererGym_CustomData : UCk_GenericEntityScript_UE
     {
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-        if (ck::Is_NOT_Valid(RendererData)) { return ECk_EntityScript_ConstructionFlow::Finished; }
+        auto RendererData = IskmGym_LoadRendererData();
+        if (ck::Is_NOT_Valid(RendererData))
+        {
+            IskmGym_PrintMissingContent("CustomData");
+            return ECk_EntityScript_ConstructionFlow::Finished;
+        }
         auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
 
         auto AgentEntity = InHandle.Request_CreateEntity();
