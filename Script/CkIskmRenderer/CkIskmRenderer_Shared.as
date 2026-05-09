@@ -1,29 +1,25 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER GYM — shared assets
+// CK ISKM RENDERER GYM — shared tags
 //============================================================================
 //
-// Tags + asset stamps used across the IskmRenderer gym stations.
+// Tags used by the IskmRenderer gym stations. The actual demo content lives
+// at /CkTests/CkIskmRenderer/Demo/ — the gym stations and Phase Q tests load
+// it via utils_i_o::LoadAssetByName, with skip-on-missing-content semantics.
 //
-// The asset stamps below are intentionally empty-body — they declare the
-// asset shape so the engineer can find them in the Content Browser and
-// populate the fields manually:
-//
-//   IskmRenderer_DemoAnimCollectionData : UCk_IskmAnimCollection_Data
-//     - Skeleton:    set to a real USkeleton (e.g. UE Mannequin)
-//     - DefaultMesh: set to a real USkeletalMesh
-//     - Sequences:   add 2-3 entries (Idle, Walk, Wave) with valid UAnimSequenceBase
-//
-//   IskmRenderer_DemoRendererData : UCk_IskmRenderer_Data
-//     - AnimCollection: set to IskmRenderer_DemoAnimCollectionData
-//     - Submeshes: 3+ entries, each with Name + Mesh (e.g. Hat / Jacket / Body)
-//     - NumCustomDataFloat: 4 (Tint.r, Tint.g, Tint.b, FadeAlpha)
-//     - DefaultAnimInstanceClass: leave empty for sequence mode
-//
-// The gym stations will silently no-op if these fields are unauthored —
-// they early-return on null AnimCollection / null Sequences. Authoring the
-// content turns the visual demo on.
+// Required content (engineer authors in editor + populates fields):
+//   /CkTests/CkIskmRenderer/Demo/RendererData_Demo  (UCk_IskmRenderer_Data)
+//     -> _AnimCollection: ref to AnimCollection_Demo (below)
+//     -> _Submeshes: at least one entry with Name "Hat"
+//     -> _NumCustomDataFloat: >= 1 for the CustomData station/test
+//   /CkTests/CkIskmRenderer/Demo/AnimCollection_Demo  (UCk_IskmAnimCollection_Data)
+//     -> _Skeleton, _DefaultMesh, _Sequences populated against migrated
+//        UE Mannequin assets
+//   /CkTests/CkIskmRenderer/Anim/A_NonLoopTest  (UAnimSequence, non-looping)
+//     -> for Phase Q1 AnimationFinishes test
+//   /CkTests/CkIskmRenderer/Anim/AM_NotifyTest  (UAnimMontage with >=1 notify)
+//     -> for Phase Q2 MontageNotify test, and the gym's MontageBurst station
 //
 //============================================================================
 
@@ -36,16 +32,5 @@ namespace Ck
         GameplayTags.Add(n"Gym.Iskm.MontageBurst");
         GameplayTags.Add(n"Gym.Iskm.RagdollDemo");
         GameplayTags.Add(n"Gym.Iskm.CustomData");
-    }
-
-    asset IskmRenderer_DemoAnimCollectionData of UCk_IskmAnimCollection_Data
-    {
-        // Engineer fills Skeleton, DefaultMesh, Sequences in the editor.
-    }
-
-    asset IskmRenderer_DemoRendererData of UCk_IskmRenderer_Data
-    {
-        // Engineer fills AnimCollection (point at IskmRenderer_DemoAnimCollectionData),
-        // Submeshes, NumCustomDataFloat in the editor.
     }
 }
