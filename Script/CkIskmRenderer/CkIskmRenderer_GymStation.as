@@ -278,6 +278,90 @@ class UCk_EntityScript_IskmRendererGym_RagdollDemo : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
+// Station 6 — TransitionCycle: single proxy, alternates loop ↔ non-loop sequences.
+// Demonstrates the Replaced (interrupting a loop) + Completed (non-looping ends naturally)
+// paths in OnAnimationFinished.
+// ====================================================================================================================
+
+class UCk_EntityScript_IskmRendererGym_TransitionCycle : UCk_GenericEntityScript_UE
+{
+    default _Replication = ECk_Replication::DoesNotReplicate;
+
+    UPROPERTY(ExposeOnSpawn)
+    FTransform InitialTransform = FTransform::Identity;
+
+    private FCk_Handle_IskmProxy _Proxy;
+    private UAnimSequenceBase _SeqLoop;
+    private UAnimSequenceBase _SeqNonLoop;
+    private bool _PlayingNonLoop = false;
+    private float _Elapsed = 0.0f;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
+    {
+        utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
+
+        auto RendererData = IskmGym_LoadRendererData();
+        if (ck::Is_NOT_Valid(RendererData))
+        {
+            IskmGym_PrintMissingContent("TransitionCycle");
+            return ECk_EntityScript_ConstructionFlow::Finished;
+        }
+        auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
+
+        auto LoopResult = utils_i_o::LoadAssetByName(
+            "/CkTests/CkIskmRenderer/Anim/MM_Idle",
+            ECk_AssetSearchScope::Plugins,
+            ECk_AssetSearchStrategy::ExactOnly);
+        _SeqLoop = Cast<UAnimSequenceBase>(LoopResult._Asset);
+
+        auto NonLoopResult = utils_i_o::LoadAssetByName(
+            "/CkTests/CkIskmRenderer/Anim/MM_Jump",
+            ECk_AssetSearchScope::Plugins,
+            ECk_AssetSearchStrategy::ExactOnly);
+        _SeqNonLoop = Cast<UAnimSequenceBase>(NonLoopResult._Asset);
+
+        auto AgentEntity = InHandle.Request_CreateEntity();
+        utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
+        _Proxy = utils_iskm_proxy::Add(AgentEntity, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
+
+        // Kick off with the looping sequence. If unauthored, the timer still
+        // runs but Request_PlayAnimation is a no-op (handler bails on null sequence).
+        if (ck::IsValid(_SeqLoop))
+        {
+            auto Req = FCk_Request_IskmProxy_PlayAnimation(_SeqLoop);
+            Req.Set_bLoop(true);
+            utils_iskm_proxy::Request_PlayAnimation(_Proxy, Req);
+        }
+
+        utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+
+    UFUNCTION()
+    private void OnTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (ck::Is_NOT_Valid(_Proxy)) { return; }
+        if (ck::Is_NOT_Valid(_SeqLoop) || ck::Is_NOT_Valid(_SeqNonLoop)) { return; }
+
+        _Elapsed += float(InDeltaT.Get_Seconds());
+        if (_Elapsed < 2.5f) { return; }
+        _Elapsed = 0.0f;
+
+        auto NextSeq = (_PlayingNonLoop == false) ? _SeqNonLoop : _SeqLoop;
+        // Currently non-loop → switch to loop next; currently loop → switch to non-loop.
+        const bool NextLoop = _PlayingNonLoop;
+
+        auto Req = FCk_Request_IskmProxy_PlayAnimation(NextSeq);
+        Req.Set_bLoop(NextLoop);
+        utils_iskm_proxy::Request_PlayAnimation(_Proxy, Req);
+
+        _PlayingNonLoop = (_PlayingNonLoop == false);
+    }
+}
+
+// ====================================================================================================================
 // Station 5 — CustomData: single proxy, sin-wave custom data slot.
 // ====================================================================================================================
 

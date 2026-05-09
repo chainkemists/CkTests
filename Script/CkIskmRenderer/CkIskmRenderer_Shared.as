@@ -5,8 +5,8 @@
 //============================================================================
 //
 // Tags used by the IskmRenderer gym stations. The actual demo content lives
-// at /CkTests/CkIskmRenderer/Demo/ — the gym stations and Phase Q tests load
-// it via utils_i_o::LoadAssetByName, with skip-on-missing-content semantics.
+// at /CkTests/CkIskmRenderer/ — the gym stations and Phase Q tests load it
+// via utils_i_o::LoadAssetByName, with skip-on-missing-content semantics.
 //
 // Required content (engineer authors in editor + populates fields):
 //   /CkTests/CkIskmRenderer/Demo/RendererData_Demo  (UCk_IskmRenderer_Data)
@@ -16,10 +16,12 @@
 //   /CkTests/CkIskmRenderer/Demo/AnimCollection_Demo  (UCk_IskmAnimCollection_Data)
 //     -> _Skeleton, _DefaultMesh, _Sequences populated against migrated
 //        UE Mannequin assets
-//   /CkTests/CkIskmRenderer/Anim/A_NonLoopTest  (UAnimSequence, non-looping)
-//     -> for Phase Q1 AnimationFinishes test
+//   /CkTests/CkIskmRenderer/Anim/MM_Idle  (UAnimSequence, looping)
+//     -> for SpawnArmy + TransitionCycle gym stations + TransitionReplaced test
+//   /CkTests/CkIskmRenderer/Anim/MM_Jump  (UAnimSequence, non-looping)
+//     -> for AnimationFinishes + TransitionReplaced tests + TransitionCycle station
 //   /CkTests/CkIskmRenderer/Anim/AM_NotifyTest  (UAnimMontage with >=1 notify)
-//     -> for Phase Q2 MontageNotify test, and the gym's MontageBurst station
+//     -> for MontageNotify test + MontageBurst station
 //
 //============================================================================
 
@@ -32,5 +34,6 @@ namespace Ck
         GameplayTags.Add(n"Gym.Iskm.MontageBurst");
         GameplayTags.Add(n"Gym.Iskm.RagdollDemo");
         GameplayTags.Add(n"Gym.Iskm.CustomData");
+        GameplayTags.Add(n"Gym.Iskm.TransitionCycle");
     }
 }

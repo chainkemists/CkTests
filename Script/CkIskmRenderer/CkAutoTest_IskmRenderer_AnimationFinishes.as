@@ -9,7 +9,7 @@
 //
 // Auto-loads:
 //   /CkTests/CkIskmRenderer/Demo/RendererData_Demo  (UCk_IskmRenderer_Data)
-//   /CkTests/CkIskmRenderer/Anim/A_NonLoopTest      (UAnimSequence — non-looping)
+//   /CkTests/CkIskmRenderer/Anim/MM_Jump            (UAnimSequence — non-looping)
 //
 // Either asset missing → test FinishSuccess()-skips. With both present, the
 // real assertion runs.
@@ -31,7 +31,7 @@ class UCk_AutoTest_IskmRenderer_AnimationFinishes : UCk_AutoTest_Base
         auto RendererData = Cast<UCk_IskmRenderer_Data>(RendererResult._Asset);
 
         auto SeqResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Anim/A_NonLoopTest",
+            "/CkTests/CkIskmRenderer/Anim/MM_Jump",
             ECk_AssetSearchScope::Plugins,
             ECk_AssetSearchStrategy::ExactOnly);
         auto TestSequence = Cast<UAnimSequenceBase>(SeqResult._Asset);
