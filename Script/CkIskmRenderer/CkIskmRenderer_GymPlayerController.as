@@ -16,6 +16,8 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
             "Single proxy, alternates ragdoll/get-up.\nDemonstrates Request_BeginRagdoll / EndRagdoll."));
         Stations.Add(MakeStationPayload(n"Gym.Iskm.CustomData", "Custom Data",
             "Single proxy, oscillates custom-data floats.\nDrives material tint via Request_SetCustomDataFloat."));
+        Stations.Add(MakeStationPayload(n"Gym.Iskm.TransitionCycle", "Transition Cycle",
+            "Single proxy, alternates a looping seq and a non-looping seq.\nDemonstrates the Replaced + Completed paths in OnAnimationFinished."));
 
         return Stations;
     }
@@ -38,6 +40,7 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnStation("Gym.Iskm.MontageBurst",  UCk_EntityScript_IskmRendererGym_MontageBurst);
         SpawnStation("Gym.Iskm.RagdollDemo",   UCk_EntityScript_IskmRendererGym_RagdollDemo);
         SpawnStation("Gym.Iskm.CustomData",    UCk_EntityScript_IskmRendererGym_CustomData);
+        SpawnStation("Gym.Iskm.TransitionCycle", UCk_EntityScript_IskmRendererGym_TransitionCycle);
     }
 
     private void SpawnStation(FString InTag, TSubclassOf<UCk_EntityScript_UE> InScriptClass)
