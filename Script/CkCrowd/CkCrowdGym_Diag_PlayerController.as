@@ -133,7 +133,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         const auto FloorLocation = FVector::ZeroVector;
         const auto FloorScale    = FVector(75.0, 75.0, 0.5);   // 7500x7500x50cm
 
-        auto Floor = SpawnActor(ACk_CrowdGym_Floor, FloorLocation, FRotator::ZeroRotator, NAME_None, true);
+        auto Floor = SpawnActor(ACk_Gym_Floor, FloorLocation, FRotator::ZeroRotator, NAME_None, true);
         if (Floor == nullptr)
         {
             ck::crowd::Warning("Diag gym: failed to spawn floor actor");

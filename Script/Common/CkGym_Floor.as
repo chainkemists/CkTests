@@ -1,14 +1,16 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Floor actor for any CkCrowd gym that needs a navmesh.
+// Floor actor for any gym that needs a navmesh-bakeable surface.
 //
 // Construction-script wires a /Engine/BasicShapes/Cube static mesh with collision
-// + nav settings so Recast treats the top face as walkable. The owning gym
-// spawns this and SetActorScale3D's it to whatever footprint they want
-// (default scale = (60, 60, 0.5) → 6000cm × 6000cm × 50cm with top face at Z=0
-// when placed at Z=-25).
+// + nav settings so Recast treats the top face as walkable. The owning gym spawns
+// this and SetActorScale3D's it to whatever footprint it wants (typical scale =
+// (60, 60, 0.5) → 6000cm × 6000cm × 50cm with top face at Z=0 when placed at Z=-25).
+//
+// IMPORTANT: navmesh bake requires Z scale >= 0.5; thinner slabs silently bake
+// to zero walkable tiles.
 // --------------------------------------------------------------------------------------------------------------------
 
-class ACk_CrowdGym_Floor : AActor
+class ACk_Gym_Floor : AActor
 {
     UPROPERTY(DefaultComponent, RootComponent)
     UStaticMeshComponent FloorMesh;
