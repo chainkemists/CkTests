@@ -362,6 +362,76 @@ class UCk_EntityScript_IskmRendererGym_TransitionCycle : UCk_GenericEntityScript
 }
 
 // ====================================================================================================================
+// Station 7 — AnimBPDemo: side-by-side AnimBP-driven vs Sequence-driven proxies.
+//
+// Left proxy: lets Setup apply the Renderer PDA's _DefaultAnimInstanceClass, which
+//             the engineer wires to ABP_Unarmed (or any UAnimInstance subclass) on
+//             /CkTests/CkIskmRenderer/Demo/RendererData_Demo. With nothing set, the
+//             proxy stays in the fallback UCk_IskmNotify_AnimInstance (sequence mode
+//             by default) — looks like the right proxy.
+// Right proxy: explicitly forced to Sequence mode via Request_SetAnimInstanceClass(null)
+//              + a looping MM_Idle so it doesn't sit in T-pose.
+// ====================================================================================================================
+
+class UCk_EntityScript_IskmRendererGym_AnimBPDemo : UCk_GenericEntityScript_UE
+{
+    default _Replication = ECk_Replication::DoesNotReplicate;
+
+    UPROPERTY(ExposeOnSpawn)
+    FTransform InitialTransform = FTransform::Identity;
+
+    private FCk_Handle_IskmProxy _ProxyAnimBP;
+    private FCk_Handle_IskmProxy _ProxySequence;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
+    {
+        utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
+
+        auto RendererData = IskmGym_LoadRendererData();
+        if (ck::Is_NOT_Valid(RendererData))
+        {
+            IskmGym_PrintMissingContent("AnimBPDemo");
+            return ECk_EntityScript_ConstructionFlow::Finished;
+        }
+        auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
+
+        // Left (Y -100): AnimBP mode. Setup applies _DefaultAnimInstanceClass automatically.
+        auto LeftXf = InitialTransform;
+        LeftXf.AddToTranslation(FVector(0.0f, -100.0f, 0.0f));
+        auto LeftEntity = InHandle.Request_CreateEntity();
+        utils_transform::Add(LeftEntity, LeftXf, ECk_Replication::DoesNotReplicate);
+        _ProxyAnimBP = utils_iskm_proxy::Add(LeftEntity, FCk_Fragment_IskmProxy_ParamsData(Renderer, LeftXf));
+
+        // Right (Y +100): forced to Sequence mode + plays MM_Idle.
+        auto RightXf = InitialTransform;
+        RightXf.AddToTranslation(FVector(0.0f, 100.0f, 0.0f));
+        auto RightEntity = InHandle.Request_CreateEntity();
+        utils_transform::Add(RightEntity, RightXf, ECk_Replication::DoesNotReplicate);
+        _ProxySequence = utils_iskm_proxy::Add(RightEntity, FCk_Fragment_IskmProxy_ParamsData(Renderer, RightXf));
+
+        TSubclassOf<UAnimInstance> NullClass;
+        utils_iskm_proxy::Request_SetAnimInstanceClass(_ProxySequence, NullClass);
+
+        // Optional: drive the sequence-mode proxy with a looping idle so it's not T-posed.
+        auto IdleResult = utils_i_o::LoadAssetByName(
+            "/CkTests/CkIskmRenderer/Anim/MM_Idle",
+            ECk_AssetSearchScope::Plugins,
+            ECk_AssetSearchStrategy::ExactOnly);
+        auto IdleSeq = Cast<UAnimSequenceBase>(IdleResult._Asset);
+        if (ck::IsValid(IdleSeq))
+        {
+            auto PlayReq = FCk_Request_IskmProxy_PlayAnimation(IdleSeq);
+            PlayReq.Set_bLoop(true);
+            utils_iskm_proxy::Request_PlayAnimation(_ProxySequence, PlayReq);
+        }
+
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+}
+
+// ====================================================================================================================
 // Station 5 — CustomData: single proxy, sin-wave custom data slot.
 // ====================================================================================================================
 
