@@ -736,6 +736,97 @@ namespace UCk_AutoTest_EntityScript_SpawnParamsRoundTrip
 }
 
 USTRUCT()
+struct FCk_AutoTest_Eqs_BasicQuery_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Eqs_BasicQuery
+{
+    FCk_AutoTest_Eqs_BasicQuery_SpawnParams Params()
+    {
+        return FCk_AutoTest_Eqs_BasicQuery_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Eqs_Cancel_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Eqs_Cancel
+{
+    FCk_AutoTest_Eqs_Cancel_SpawnParams Params()
+    {
+        return FCk_AutoTest_Eqs_Cancel_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Eqs_Immediate_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Eqs_Immediate
+{
+    FCk_AutoTest_Eqs_Immediate_SpawnParams Params()
+    {
+        return FCk_AutoTest_Eqs_Immediate_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Eqs_NavProjection_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Eqs_NavProjection
+{
+    FCk_AutoTest_Eqs_NavProjection_SpawnParams Params()
+    {
+        return FCk_AutoTest_Eqs_NavProjection_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Eqs_OnCircle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Eqs_OnCircle
+{
+    FCk_AutoTest_Eqs_OnCircle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Eqs_OnCircle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Eqs_RandomRunMode_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Eqs_RandomRunMode
+{
+    FCk_AutoTest_Eqs_RandomRunMode_SpawnParams Params()
+    {
+        return FCk_AutoTest_Eqs_RandomRunMode_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Eqs_VolumeCheck_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Eqs_VolumeCheck
+{
+    FCk_AutoTest_Eqs_VolumeCheck_SpawnParams Params()
+    {
+        return FCk_AutoTest_Eqs_VolumeCheck_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_BasicPlan_SpawnParams
 {
 }
@@ -1226,6 +1317,240 @@ namespace UCk_AutoTest_Inventory_TransferItemPayload
     FCk_AutoTest_Inventory_TransferItemPayload_SpawnParams Params()
     {
         return FCk_AutoTest_Inventory_TransferItemPayload_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_AnimationFinishes_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_AnimationFinishes
+{
+    FCk_AutoTest_IskmRenderer_AnimationFinishes_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_AnimationFinishes_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_AnimationPlayback_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_AnimationPlayback
+{
+    FCk_AutoTest_IskmRenderer_AnimationPlayback_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_AnimationPlayback_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_AnimBP_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_AnimBP
+{
+    FCk_AutoTest_IskmRenderer_AnimBP_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_AnimBP_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_AsyncLoad_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_AsyncLoad
+{
+    FCk_AutoTest_IskmRenderer_AsyncLoad_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_AsyncLoad_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_CustomData_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_CustomData
+{
+    FCk_AutoTest_IskmRenderer_CustomData_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_CustomData_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_CustomDataSuccess_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_CustomDataSuccess
+{
+    FCk_AutoTest_IskmRenderer_CustomDataSuccess_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_CustomDataSuccess_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_Montage_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_Montage
+{
+    FCk_AutoTest_IskmRenderer_Montage_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_Montage_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_MontageNotify_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_MontageNotify
+{
+    FCk_AutoTest_IskmRenderer_MontageNotify_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_MontageNotify_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_OutfitAttach_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_OutfitAttach
+{
+    FCk_AutoTest_IskmRenderer_OutfitAttach_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_OutfitAttach_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_OutfitSubmesh_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_OutfitSubmesh
+{
+    FCk_AutoTest_IskmRenderer_OutfitSubmesh_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_OutfitSubmesh_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_PdaSmoke_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_PdaSmoke
+{
+    FCk_AutoTest_IskmRenderer_PdaSmoke_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_PdaSmoke_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_ProxyAdd_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_ProxyAdd
+{
+    FCk_AutoTest_IskmRenderer_ProxyAdd_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_ProxyAdd_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_Ragdoll_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_Ragdoll
+{
+    FCk_AutoTest_IskmRenderer_Ragdoll_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_Ragdoll_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_RagdollPoseSource_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_RagdollPoseSource
+{
+    FCk_AutoTest_IskmRenderer_RagdollPoseSource_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_RagdollPoseSource_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_RendererAdd_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_RendererAdd
+{
+    FCk_AutoTest_IskmRenderer_RendererAdd_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_RendererAdd_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_Sockets_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_Sockets
+{
+    FCk_AutoTest_IskmRenderer_Sockets_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_Sockets_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_SubsystemSmoke_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_SubsystemSmoke
+{
+    FCk_AutoTest_IskmRenderer_SubsystemSmoke_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_SubsystemSmoke_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_TransitionReplaced_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_TransitionReplaced
+{
+    FCk_AutoTest_IskmRenderer_TransitionReplaced_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_TransitionReplaced_SpawnParams();
     }
 }
 
@@ -3197,6 +3522,47 @@ namespace UCk_EntityScript_EntityScriptGym_SpawnReplicated
 }
 
 USTRUCT()
+struct FCk_EntityScript_EqsGym_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    FString StationTitle = "";
+
+    UPROPERTY()
+    FString StationDescription = "";
+
+    UPROPERTY()
+    ECkEqsGym_Scenario Scenario = ECkEqsGym_Scenario::SimpleGrid_Distance;
+
+    UPROPERTY()
+    float RestartIntervalSeconds = 5.0;
+
+    FCk_EntityScript_EqsGym_Station_SpawnParams(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, ECkEqsGym_Scenario InScenario, float InRestartIntervalSeconds)
+    {
+        InitialTransform = InInitialTransform;
+        StationTitle = InStationTitle;
+        StationDescription = InStationDescription;
+        Scenario = InScenario;
+        RestartIntervalSeconds = InRestartIntervalSeconds;
+    }
+}
+
+namespace UCk_EntityScript_EqsGym_Station
+{
+    FCk_EntityScript_EqsGym_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_EqsGym_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_EqsGym_Station_SpawnParams Params(FTransform InInitialTransform, FString InStationTitle, FString InStationDescription, ECkEqsGym_Scenario InScenario, float InRestartIntervalSeconds)
+    {
+        return FCk_EntityScript_EqsGym_Station_SpawnParams(InInitialTransform, InStationTitle, InStationDescription, InScenario, InRestartIntervalSeconds);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_GoapEmpire_Station_SpawnParams
 {
     UPROPERTY()
@@ -4009,6 +4375,181 @@ namespace UCk_EntityScript_InvGym_TagsTrait
     FCk_EntityScript_InvGym_TagsTrait_SpawnParams Params(FTransform InInitialTransform)
     {
         return FCk_EntityScript_InvGym_TagsTrait_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IskmRendererGym_AnimBPDemo_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IskmRendererGym_AnimBPDemo_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IskmRendererGym_AnimBPDemo
+{
+    FCk_EntityScript_IskmRendererGym_AnimBPDemo_SpawnParams Params()
+    {
+        return FCk_EntityScript_IskmRendererGym_AnimBPDemo_SpawnParams();
+    }
+
+    FCk_EntityScript_IskmRendererGym_AnimBPDemo_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IskmRendererGym_AnimBPDemo_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IskmRendererGym_CustomData_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IskmRendererGym_CustomData_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IskmRendererGym_CustomData
+{
+    FCk_EntityScript_IskmRendererGym_CustomData_SpawnParams Params()
+    {
+        return FCk_EntityScript_IskmRendererGym_CustomData_SpawnParams();
+    }
+
+    FCk_EntityScript_IskmRendererGym_CustomData_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IskmRendererGym_CustomData_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IskmRendererGym_MontageBurst_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IskmRendererGym_MontageBurst_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IskmRendererGym_MontageBurst
+{
+    FCk_EntityScript_IskmRendererGym_MontageBurst_SpawnParams Params()
+    {
+        return FCk_EntityScript_IskmRendererGym_MontageBurst_SpawnParams();
+    }
+
+    FCk_EntityScript_IskmRendererGym_MontageBurst_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IskmRendererGym_MontageBurst_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IskmRendererGym_OutfitSwap_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IskmRendererGym_OutfitSwap_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IskmRendererGym_OutfitSwap
+{
+    FCk_EntityScript_IskmRendererGym_OutfitSwap_SpawnParams Params()
+    {
+        return FCk_EntityScript_IskmRendererGym_OutfitSwap_SpawnParams();
+    }
+
+    FCk_EntityScript_IskmRendererGym_OutfitSwap_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IskmRendererGym_OutfitSwap_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IskmRendererGym_RagdollDemo_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IskmRendererGym_RagdollDemo_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IskmRendererGym_RagdollDemo
+{
+    FCk_EntityScript_IskmRendererGym_RagdollDemo_SpawnParams Params()
+    {
+        return FCk_EntityScript_IskmRendererGym_RagdollDemo_SpawnParams();
+    }
+
+    FCk_EntityScript_IskmRendererGym_RagdollDemo_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IskmRendererGym_RagdollDemo_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IskmRendererGym_SpawnArmy_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IskmRendererGym_SpawnArmy_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IskmRendererGym_SpawnArmy
+{
+    FCk_EntityScript_IskmRendererGym_SpawnArmy_SpawnParams Params()
+    {
+        return FCk_EntityScript_IskmRendererGym_SpawnArmy_SpawnParams();
+    }
+
+    FCk_EntityScript_IskmRendererGym_SpawnArmy_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IskmRendererGym_SpawnArmy_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_IskmRendererGym_TransitionCycle_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_IskmRendererGym_TransitionCycle_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_IskmRendererGym_TransitionCycle
+{
+    FCk_EntityScript_IskmRendererGym_TransitionCycle_SpawnParams Params()
+    {
+        return FCk_EntityScript_IskmRendererGym_TransitionCycle_SpawnParams();
+    }
+
+    FCk_EntityScript_IskmRendererGym_TransitionCycle_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_IskmRendererGym_TransitionCycle_SpawnParams(InInitialTransform);
     }
 }
 
