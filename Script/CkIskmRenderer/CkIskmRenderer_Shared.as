@@ -35,5 +35,6 @@ namespace Ck
         GameplayTags.Add(n"Gym.Iskm.RagdollDemo");
         GameplayTags.Add(n"Gym.Iskm.CustomData");
         GameplayTags.Add(n"Gym.Iskm.TransitionCycle");
+        GameplayTags.Add(n"Gym.Iskm.AnimBPDemo");
     }
 }

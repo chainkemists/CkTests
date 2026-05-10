@@ -18,6 +18,8 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
             "Single proxy, oscillates custom-data floats.\nDrives material tint via Request_SetCustomDataFloat."));
         Stations.Add(MakeStationPayload(n"Gym.Iskm.TransitionCycle", "Transition Cycle",
             "Single proxy, alternates a looping seq and a non-looping seq.\nDemonstrates the Replaced + Completed paths in OnAnimationFinished."));
+        Stations.Add(MakeStationPayload(n"Gym.Iskm.AnimBPDemo", "AnimBP Demo",
+            "Two proxies side-by-side. Left uses the Renderer PDA's default AnimBP (set _DefaultAnimInstanceClass on RendererData_Demo to enable).\nRight is forced to Sequence mode via Request_SetAnimInstanceClass(null) and plays MM_Idle.\nDemonstrates both pose-source modes simultaneously."));
 
         return Stations;
     }
@@ -41,6 +43,7 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnStation("Gym.Iskm.RagdollDemo",   UCk_EntityScript_IskmRendererGym_RagdollDemo);
         SpawnStation("Gym.Iskm.CustomData",    UCk_EntityScript_IskmRendererGym_CustomData);
         SpawnStation("Gym.Iskm.TransitionCycle", UCk_EntityScript_IskmRendererGym_TransitionCycle);
+        SpawnStation("Gym.Iskm.AnimBPDemo",      UCk_EntityScript_IskmRendererGym_AnimBPDemo);
     }
 
     private void SpawnStation(FString InTag, TSubclassOf<UCk_EntityScript_UE> InScriptClass)
