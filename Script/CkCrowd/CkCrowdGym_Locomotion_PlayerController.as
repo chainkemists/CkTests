@@ -56,7 +56,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         const auto FloorLocation = FVector::ZeroVector;
         const auto FloorScale    = FVector(20.0, 20.0, 0.5);
 
-        auto Floor = SpawnActor(ACk_CrowdGym_Floor, FloorLocation, FRotator::ZeroRotator, NAME_None, true);
+        auto Floor = SpawnActor(ACk_Gym_Floor, FloorLocation, FRotator::ZeroRotator, NAME_None, true);
         if (Floor == nullptr)
         {
             ck::crowd::Warning("Locomotion gym: failed to spawn floor actor");
