@@ -7,7 +7,7 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
         Stations.Add(MakeStationPayload(n"Gym.Iskm.SpawnArmy", "Spawn Army",
-            "5x5 grid of skeletal-mesh proxies.\nEach plays a random looping sequence."));
+            "5x5 grid of skeletal-mesh proxies.\nEach plays a random looping sequence (idle / walk / jog) at a jittered play rate."));
         Stations.Add(MakeStationPayload(n"Gym.Iskm.OutfitSwap", "Outfit Swap",
             "Single proxy, cycles submesh attach/detach.\nDemonstrates Request_AttachSubmesh / DetachSubmesh."));
         Stations.Add(MakeStationPayload(n"Gym.Iskm.MontageBurst", "Montage Burst",

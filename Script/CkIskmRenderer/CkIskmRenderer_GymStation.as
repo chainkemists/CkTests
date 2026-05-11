@@ -77,6 +77,10 @@ class UCk_EntityScript_IskmRendererGym_SpawnArmy : UCk_GenericEntityScript_UE
         }
         auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
 
+        UAnimSequenceBase Seq_Idle = assets::load::MM_Idle();
+        UAnimSequenceBase Seq_Walk = assets::load::MF_Unarmed_Walk_Fwd();
+        UAnimSequenceBase Seq_Jog  = assets::load::MF_Unarmed_Jog_Fwd();
+
         const int32 Rows = 5;
         const int32 Cols = 5;
         const float32 Spacing = 150.0f;
@@ -93,7 +97,21 @@ class UCk_EntityScript_IskmRendererGym_SpawnArmy : UCk_GenericEntityScript_UE
                 auto Entity = InHandle.Request_CreateEntity();
                 utils_transform::Add(Entity, SpawnXf, ECk_Replication::DoesNotReplicate);
                 auto Proxy = utils_iskm_proxy::Add(Entity, FCk_Fragment_IskmProxy_ParamsData(Renderer, SpawnXf));
-                IskmGym_OptIn_AnimBP(Proxy);
+
+                const int32 Pick = Math::RandRange(0, 2);
+                UAnimSequenceBase ChosenSeq;
+                if      (Pick == 0) { ChosenSeq = Seq_Idle; }
+                else if (Pick == 1) { ChosenSeq = Seq_Walk; }
+                else                { ChosenSeq = Seq_Jog;  }
+
+                if (ck::IsValid(ChosenSeq))
+                {
+                    auto PlayReq = FCk_Request_IskmProxy_PlayAnimation(ChosenSeq);
+                    PlayReq.Set_Loop(true);
+                    PlayReq.Set_PlayRate(Math::RandRange(0.85f, 1.15f));
+                    utils_iskm_proxy::Request_PlayAnimation(Proxy, PlayReq);
+                }
+
                 _Proxies.Add(Proxy);
             }
         }
