@@ -86,11 +86,12 @@ class UCk_EntityScript_IskmRendererGym_StressArmy : UCk_GenericEntityScript_UE
         UAnimSequenceBase Seq_Jog  = assets::load::MF_Unarmed_Jog_Fwd();
 
         // Grid layout: roughly square, biased to fit the existing 4000x4000 floor.
+        // X grows in -X only (away from the station's back wall, toward the player
+        // camera) so the grid never intersects the station. Y stays centered.
         const int32 Cols = 23;
         const int32 Rows = 22;
         const float32 Spacing = 80.0f;
         const float32 ColCenter = float32(Cols) * 0.5f;
-        const float32 RowCenter = float32(Rows) * 0.5f;
         const int32 Total = (Count < Rows * Cols) ? Count : (Rows * Cols);
 
         int32 Spawned = 0;
@@ -102,7 +103,7 @@ class UCk_EntityScript_IskmRendererGym_StressArmy : UCk_GenericEntityScript_UE
                 if (Spawned >= Total) { break; }
 
                 const auto Offset = FVector(
-                    (float32(Row) - RowCenter) * -Spacing,
+                    float32(Row) * -Spacing,
                     (float32(Col) - ColCenter) * Spacing,
                     0.0f);
                 auto SpawnXf = InitialTransform;
