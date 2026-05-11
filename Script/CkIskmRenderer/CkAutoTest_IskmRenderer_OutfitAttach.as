@@ -7,10 +7,10 @@
 // Adds a proxy, requests AttachSubmesh by name "Hat", and after one tick
 // asserts Get_NumAttachedSubmeshes incremented.
 //
-// Auto-loads RendererData_Demo. The asset's _Submeshes array must contain at
-// least one entry whose Name matches "Hat" — otherwise the handler's
-// Find_SubmeshIndex_ByName returns INDEX_NONE and the attach is a no-op
-// (which the test treats as a skip).
+// Pulls iskm_assets::RendererData_Demo() (AS-authored). Its _Submeshes array must
+// contain at least one entry whose Name matches "Hat" — otherwise the
+// handler's Find_SubmeshIndex_ByName returns INDEX_NONE and the attach is a
+// no-op (treated as a skip).
 //
 //============================================================================
 
@@ -22,11 +22,7 @@ class UCk_AutoTest_IskmRenderer_OutfitAttach : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto Result = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Demo/RendererData_Demo",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        auto RendererData = Cast<UCk_IskmRenderer_Data>(Result._Asset);
+        UCk_IskmRenderer_Data RendererData = iskm_assets::RendererData_Demo();
 
         if (ck::Is_NOT_Valid(RendererData)) { FinishSuccess(); return; }
 
