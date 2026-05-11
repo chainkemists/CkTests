@@ -7,8 +7,8 @@
 // Requests SetCustomDataFloat(slot=0, value=0.5), asserts that
 // Get_CustomDataFloat(0) reads back 0.5 after one tick.
 //
-// Auto-loads RendererData_Demo. The renderer's _NumCustomDataFloat must be
-// >= 1 for slot 0 to be allocated at Setup — otherwise the handler's
+// Pulls iskm_assets::RendererData_Demo() (AS-authored). Its _NumCustomDataFloat must
+// be >= 1 for slot 0 to be allocated at Setup — otherwise the handler's
 // IsValidIndex check fails and the write is a no-op (skip condition).
 //
 //============================================================================
@@ -22,11 +22,7 @@ class UCk_AutoTest_IskmRenderer_CustomDataSuccess : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto Result = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Demo/RendererData_Demo",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        auto RendererData = Cast<UCk_IskmRenderer_Data>(Result._Asset);
+        UCk_IskmRenderer_Data RendererData = iskm_assets::RendererData_Demo();
 
         if (ck::Is_NOT_Valid(RendererData)) { FinishSuccess(); return; }
 

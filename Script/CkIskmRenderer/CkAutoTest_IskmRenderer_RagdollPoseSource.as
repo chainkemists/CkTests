@@ -7,9 +7,9 @@
 // Calls Request_BeginRagdoll, asserts Get_PoseSource flips to Ragdoll. Then
 // Request_EndRagdoll, asserts pose source returns to Sequence (or AnimBP).
 //
-// Auto-loads RendererData_Demo. The renderer's mesh must have a bound
-// PhysicsAsset for ragdoll to engage — otherwise the handler logs a warning
-// and bails (no pose-source flip), which the test treats as a skip.
+// Pulls iskm_assets::RendererData_Demo() (AS-authored). The renderer's mesh must have
+// a bound PhysicsAsset for ragdoll to engage — otherwise the handler logs a
+// warning and bails (no pose-source flip), which the test treats as a skip.
 //
 //============================================================================
 
@@ -22,11 +22,7 @@ class UCk_AutoTest_IskmRenderer_RagdollPoseSource : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto Result = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Demo/RendererData_Demo",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        auto RendererData = Cast<UCk_IskmRenderer_Data>(Result._Asset);
+        UCk_IskmRenderer_Data RendererData = iskm_assets::RendererData_Demo();
 
         if (ck::Is_NOT_Valid(RendererData)) { FinishSuccess(); return; }
 

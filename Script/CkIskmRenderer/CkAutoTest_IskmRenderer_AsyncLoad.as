@@ -8,7 +8,7 @@
 // once a renderer asset is resident, Add(...) on the resolved pointer creates
 // a working proxy. This test exercises the post-load Add → Has flow.
 //
-// Auto-loads RendererData_Demo. Real async-load wiring (FStreamableManager
+// Pulls iskm_assets::RendererData_Demo(). Real async-load wiring (FStreamableManager
 // + lambda callback) is C++-side and not exposed cleanly to AS — this Plan-1
 // test covers the post-load activation that any caller eventually hits.
 //
@@ -21,11 +21,7 @@ class UCk_AutoTest_IskmRenderer_AsyncLoad : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto Result = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Demo/RendererData_Demo",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        auto RendererData = Cast<UCk_IskmRenderer_Data>(Result._Asset);
+        UCk_IskmRenderer_Data RendererData = iskm_assets::RendererData_Demo();
 
         if (ck::Is_NOT_Valid(RendererData)) { FinishSuccess(); return; }
 

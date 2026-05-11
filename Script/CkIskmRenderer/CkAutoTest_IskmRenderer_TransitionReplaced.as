@@ -12,12 +12,9 @@
 // Stopped, but Replaced (interrupting a still-playing sequence) had no
 // coverage until this test.
 //
-// Auto-loads:
-//   /CkTests/CkIskmRenderer/Demo/RendererData_Demo  (UCk_IskmRenderer_Data)
-//   /CkTests/CkIskmRenderer/Anim/MM_Idle            (UAnimSequence — looping)
-//   /CkTests/CkIskmRenderer/Anim/MM_Jump            (UAnimSequence — non-looping)
-//
-// Either asset missing → test FinishSuccess()-skips.
+// Pulls iskm_assets::RendererData_Demo() (AS-authored), assets::load::MM_Idle()
+// (looping) and assets::load::MM_Jump() (non-looping). Any invalid →
+// FinishSuccess()-skip.
 //
 //============================================================================
 
@@ -33,23 +30,9 @@ class UCk_AutoTest_IskmRenderer_TransitionReplaced : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto RendererResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Demo/RendererData_Demo",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        auto RendererData = Cast<UCk_IskmRenderer_Data>(RendererResult._Asset);
-
-        auto AResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Anim/MM_Idle",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        _SeqA = Cast<UAnimSequenceBase>(AResult._Asset);
-
-        auto BResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Anim/MM_Jump",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        _SeqB = Cast<UAnimSequenceBase>(BResult._Asset);
+        UCk_IskmRenderer_Data RendererData = iskm_assets::RendererData_Demo();
+        _SeqA = assets::load::MM_Idle();
+        _SeqB = assets::load::MM_Jump();
 
         if (ck::Is_NOT_Valid(RendererData) || ck::Is_NOT_Valid(_SeqA) || ck::Is_NOT_Valid(_SeqB))
         { FinishSuccess(); return; }
@@ -65,7 +48,7 @@ class UCk_AutoTest_IskmRenderer_TransitionReplaced : UCk_AutoTest_Base
 
         // Phase 0 setup: kick off seq A (looping).
         auto ReqA = FCk_Request_IskmProxy_PlayAnimation(_SeqA);
-        ReqA.Set_bLoop(true);
+        ReqA.Set_Loop(true);
         utils_iskm_proxy::Request_PlayAnimation(_Proxy, ReqA);
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
@@ -90,7 +73,7 @@ class UCk_AutoTest_IskmRenderer_TransitionReplaced : UCk_AutoTest_Base
         {
             // Seq A is now active. Swap to seq B → handler should fire Replaced for A.
             auto ReqB = FCk_Request_IskmProxy_PlayAnimation(_SeqB);
-            ReqB.Set_bLoop(false);
+            ReqB.Set_Loop(false);
             utils_iskm_proxy::Request_PlayAnimation(_Proxy, ReqB);
             _Phase = 1;
             _TicksInPhase = 0;

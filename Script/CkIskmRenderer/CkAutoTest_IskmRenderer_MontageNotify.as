@@ -7,11 +7,8 @@
 // Plays a montage on a proxy, asserts both OnAnimationNotify and
 // OnMontageFinished fire within timeout.
 //
-// Auto-loads:
-//   /CkTests/CkIskmRenderer/Demo/RendererData_Demo  (UCk_IskmRenderer_Data)
-//   /CkTests/CkIskmRenderer/Anim/AM_NotifyTest      (UAnimMontage with >=1 notify)
-//
-// Either asset missing → test FinishSuccess()-skips.
+// Pulls iskm_assets::RendererData_Demo() (AS-authored) and assets::load::AM_NotifyTest()
+// (registry-generated). Either invalid → FinishSuccess()-skip.
 //
 //============================================================================
 
@@ -24,17 +21,8 @@ class UCk_AutoTest_IskmRenderer_MontageNotify : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto RendererResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Demo/RendererData_Demo",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        auto RendererData = Cast<UCk_IskmRenderer_Data>(RendererResult._Asset);
-
-        auto MontageResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Anim/AM_NotifyTest",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        auto TestMontage = Cast<UAnimMontage>(MontageResult._Asset);
+        UCk_IskmRenderer_Data RendererData = iskm_assets::RendererData_Demo();
+        UAnimMontage TestMontage = assets::load::AM_NotifyTest();
 
         if (ck::Is_NOT_Valid(RendererData) || ck::Is_NOT_Valid(TestMontage))
         { FinishSuccess(); return; }

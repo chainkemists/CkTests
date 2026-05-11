@@ -7,12 +7,9 @@
 // Plays a non-looping anim sequence on a proxy and asserts the
 // OnAnimationFinished signal fires with reason=Completed within timeout.
 //
-// Auto-loads:
-//   /CkTests/CkIskmRenderer/Demo/RendererData_Demo  (UCk_IskmRenderer_Data)
-//   /CkTests/CkIskmRenderer/Anim/MM_Jump            (UAnimSequence — non-looping)
-//
-// Either asset missing → test FinishSuccess()-skips. With both present, the
-// real assertion runs.
+// Pulls iskm_assets::RendererData_Demo() (AS-authored, in CkIskmRenderer_Assets.as)
+// and assets::load::MM_Jump() (registry-generated). Either invalid →
+// FinishSuccess()-skip. With both present, the real assertion runs.
 //
 //============================================================================
 
@@ -24,17 +21,8 @@ class UCk_AutoTest_IskmRenderer_AnimationFinishes : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto RendererResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Demo/RendererData_Demo",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        auto RendererData = Cast<UCk_IskmRenderer_Data>(RendererResult._Asset);
-
-        auto SeqResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Anim/MM_Jump",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        auto TestSequence = Cast<UAnimSequenceBase>(SeqResult._Asset);
+        UCk_IskmRenderer_Data RendererData = iskm_assets::RendererData_Demo();
+        UAnimSequenceBase TestSequence = assets::load::MM_Jump();
 
         if (ck::Is_NOT_Valid(RendererData) || ck::Is_NOT_Valid(TestSequence))
         { FinishSuccess(); return; }
@@ -49,7 +37,7 @@ class UCk_AutoTest_IskmRenderer_AnimationFinishes : UCk_AutoTest_Base
             FCk_Delegate_IskmProxy_OnAnimationFinished(this, n"OnFinished"));
 
         auto PlayReq = FCk_Request_IskmProxy_PlayAnimation(TestSequence);
-        PlayReq.Set_bLoop(false);
+        PlayReq.Set_Loop(false);
         utils_iskm_proxy::Request_PlayAnimation(_Proxy, PlayReq);
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
