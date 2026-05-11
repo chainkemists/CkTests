@@ -4,24 +4,14 @@
 // CK ISKM RENDERER GYM — shared tags
 //============================================================================
 //
-// Tags used by the IskmRenderer gym stations. The actual demo content lives
-// at /CkTests/CkIskmRenderer/ — the gym stations and Phase Q tests load it
-// via utils_i_o::LoadAssetByName, with skip-on-missing-content semantics.
-//
-// Required content (engineer authors in editor + populates fields):
-//   /CkTests/CkIskmRenderer/Demo/RendererData_Demo  (UCk_IskmRenderer_Data)
-//     -> _AnimCollection: ref to AnimCollection_Demo (below)
-//     -> _Submeshes: at least one entry with Name "Hat"
-//     -> _NumCustomDataFloat: >= 1 for the CustomData station/test
-//   /CkTests/CkIskmRenderer/Demo/AnimCollection_Demo  (UCk_IskmAnimCollection_Data)
-//     -> _Skeleton, _DefaultMesh, _Sequences populated against migrated
-//        UE Mannequin assets
-//   /CkTests/CkIskmRenderer/Anim/MM_Idle  (UAnimSequence, looping)
-//     -> for SpawnArmy + TransitionCycle gym stations + TransitionReplaced test
-//   /CkTests/CkIskmRenderer/Anim/MM_Jump  (UAnimSequence, non-looping)
-//     -> for AnimationFinishes + TransitionReplaced tests + TransitionCycle station
-//   /CkTests/CkIskmRenderer/Anim/AM_NotifyTest  (UAnimMontage with >=1 notify)
-//     -> for MontageNotify test + MontageBurst station
+// Tags used by the IskmRenderer gym stations. The wrapper assets are
+// AS-authored in CkIskmRenderer_Assets.as (Asset_RendererData_Demo,
+// Asset_AnimCollection_Demo); raw UE Mannequin content lives under
+// /CkTests/Characters/Mannequins/ and is surfaced via the generated
+// `assets::` namespace (see /CkTests/Script/Generated/CkTestsAssets.as).
+// The single editor-authored artifact is AM_NotifyTest (UAnimMontage
+// with >=1 notify), pulled by MontageNotify test + MontageBurst station
+// via assets::load::AM_NotifyTest().
 //
 //============================================================================
 
