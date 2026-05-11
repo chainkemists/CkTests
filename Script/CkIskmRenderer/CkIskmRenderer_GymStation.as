@@ -48,6 +48,12 @@ struct FCkIskmRenderer_GymStationSpawnParams
 {
     UPROPERTY()
     FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    int32 Count = 25;
+
+    UPROPERTY()
+    bool Moving = false;
 }
 
 // ====================================================================================================================

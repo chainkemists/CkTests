@@ -4542,6 +4542,39 @@ namespace UCk_EntityScript_IskmRendererGym_SpawnArmy
 }
 
 USTRUCT()
+struct FCk_EntityScript_IskmRendererGym_StressArmy_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    int Count = 500;
+
+    UPROPERTY()
+    bool Moving = false;
+
+    FCk_EntityScript_IskmRendererGym_StressArmy_SpawnParams(FTransform InInitialTransform, int InCount, bool InMoving)
+    {
+        InitialTransform = InInitialTransform;
+        Count = InCount;
+        Moving = InMoving;
+    }
+}
+
+namespace UCk_EntityScript_IskmRendererGym_StressArmy
+{
+    FCk_EntityScript_IskmRendererGym_StressArmy_SpawnParams Params()
+    {
+        return FCk_EntityScript_IskmRendererGym_StressArmy_SpawnParams();
+    }
+
+    FCk_EntityScript_IskmRendererGym_StressArmy_SpawnParams Params(FTransform InInitialTransform, int InCount, bool InMoving)
+    {
+        return FCk_EntityScript_IskmRendererGym_StressArmy_SpawnParams(InInitialTransform, InCount, InMoving);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_IskmRendererGym_TransitionCycle_SpawnParams
 {
     UPROPERTY()
