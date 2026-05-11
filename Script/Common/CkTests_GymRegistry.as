@@ -31,7 +31,9 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("EQS",                ACk_EqsGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Interaction",        ACk_InteractionGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Inventory",          ACk_InventoryGym_GameMode);
-        CkGym_Cycler::RegisterProjectGym("IskmRenderer",       ACk_IskmRendererGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("IskmRenderer",                  ACk_IskmRendererGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("IskmRenderer Stress (Static 500)", ACk_IskmRendererGym_StressStatic_GameMode);
+        CkGym_Cycler::RegisterProjectGym("IskmRenderer Stress (Moving 500)", ACk_IskmRendererGym_StressMoving_GameMode);
         CkGym_Cycler::RegisterProjectGym("Messaging",          ACk_MessagingGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("PMG Shapes",         ACk_PmgShapesGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Probe",              ACk_ProbeGym_GameMode);
