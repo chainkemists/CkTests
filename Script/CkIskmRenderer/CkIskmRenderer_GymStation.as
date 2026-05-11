@@ -11,35 +11,36 @@
 //   - RagdollDemo:  single proxy, alternating Begin/End ragdoll
 //   - CustomData:   single proxy, sin-wave custom data slot
 //
-// Content discovery: each station tries to load the demo renderer data via
-// `utils_i_o::LoadAssetByName("/CkTests/CkIskmRenderer/Demo/RendererData_Demo")`.
-// If the asset isn't present (Plan-1 default until the engineer authors content),
-// the station prints an on-screen warning naming the missing asset path and
-// skips the proxy creation. With content authored, the demo runs.
-//
-// Required assets (see the Plan-1 wrap-up notes):
-//   /CkTests/CkIskmRenderer/Demo/RendererData_Demo  (UCk_IskmRenderer_Data)
-//     -> _AnimCollection: ref to a UCk_IskmAnimCollection_Data with skeleton
-//                         + DefaultMesh + at least one looping sequence
-//     -> _Submeshes:     entries with Name "Hat" (or rename in OutfitSwap below)
-//     -> _NumCustomDataFloat: >= 1 for the CustomData station
+// Content discovery: each station references the AS-authored
+// `Asset_RendererData_Demo` (defined in CkIskmRenderer_Assets.as) directly —
+// no path-based LoadAssetByName, no editor-only `.uasset` to keep in sync.
+// The wrapper itself pulls migrated UE Mannequin content via the generated
+// `assets::` namespace at script-load time. If the asset somehow resolves
+// invalid at runtime (e.g. the registry hasn't regenerated since the
+// content was migrated), the station prints an on-screen warning and skips.
 //
 //============================================================================
 
-const FString IskmGym_RendererDataPath = "/CkTests/CkIskmRenderer/Demo/RendererData_Demo";
-
 UCk_IskmRenderer_Data IskmGym_LoadRendererData()
 {
-    auto Result = utils_i_o::LoadAssetByName(
-        IskmGym_RendererDataPath,
-        ECk_AssetSearchScope::Plugins,
-        ECk_AssetSearchStrategy::ExactOnly);
-    return Cast<UCk_IskmRenderer_Data>(Result._Asset);
+    return iskm_assets::RendererData_Demo();
 }
 
 void IskmGym_PrintMissingContent(FString InStationName)
 {
-    Print(f"[IskmRenderer Gym/{InStationName}] Missing content — author UCk_IskmRenderer_Data at {IskmGym_RendererDataPath}", 10.0f);
+    Print(f"[IskmRenderer Gym/{InStationName}] iskm_assets::RendererData_Demo() invalid — registry may need regeneration.", 10.0f);
+}
+
+// Opts a proxy into ABP_Unarmed so the mesh idles via the BlendSpace
+// (visual gym demo). The wrapper Renderer PDA leaves _DefaultAnimInstanceClass
+// unset because ABP_Unarmed isn't a UCk_IskmNotify_AnimInstance subclass and
+// the AutoTest harness escalates the framework warning to a test failure.
+// In gym PIE the warning is harmless — montages play through DefaultSlot,
+// just OnAnimationNotify won't fire (acceptable for a visual demo).
+void IskmGym_OptIn_AnimBP(FCk_Handle_IskmProxy InProxy)
+{
+    auto Local = InProxy;
+    utils_iskm_proxy::Request_SetAnimInstanceClass(Local, assets::load::ABP_Unarmed_Class());
 }
 
 USTRUCT()
@@ -92,6 +93,7 @@ class UCk_EntityScript_IskmRendererGym_SpawnArmy : UCk_GenericEntityScript_UE
                 auto Entity = InHandle.Request_CreateEntity();
                 utils_transform::Add(Entity, SpawnXf, ECk_Replication::DoesNotReplicate);
                 auto Proxy = utils_iskm_proxy::Add(Entity, FCk_Fragment_IskmProxy_ParamsData(Renderer, SpawnXf));
+                IskmGym_OptIn_AnimBP(Proxy);
                 _Proxies.Add(Proxy);
             }
         }
@@ -132,6 +134,7 @@ class UCk_EntityScript_IskmRendererGym_OutfitSwap : UCk_GenericEntityScript_UE
         auto AgentEntity = InHandle.Request_CreateEntity();
         utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
         _Proxy = utils_iskm_proxy::Add(AgentEntity, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
+        IskmGym_OptIn_AnimBP(_Proxy);
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -187,17 +190,16 @@ class UCk_EntityScript_IskmRendererGym_MontageBurst : UCk_GenericEntityScript_UE
         }
         auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
 
-        // Optional: load a montage asset for the demo. If missing, the timer still
-        // fires but Request_PlayMontage is a no-op (handler bails on null _Montage).
-        auto MontageResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Anim/AM_NotifyTest",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        _Montage = Cast<UAnimMontage>(MontageResult._Asset);
+        // Optional: pull the AS-authored montage for the demo. If unset (e.g.
+        // the registry hasn't regenerated since the montage was authored), the
+        // timer still fires but Request_PlayMontage is a no-op (handler bails
+        // on null _Montage).
+        _Montage = assets::load::AM_NotifyTest();
 
         auto AgentEntity = InHandle.Request_CreateEntity();
         utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
         _Proxy = utils_iskm_proxy::Add(AgentEntity, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
+        IskmGym_OptIn_AnimBP(_Proxy);
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -249,6 +251,7 @@ class UCk_EntityScript_IskmRendererGym_RagdollDemo : UCk_GenericEntityScript_UE
         auto AgentEntity = InHandle.Request_CreateEntity();
         utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
         _Proxy = utils_iskm_proxy::Add(AgentEntity, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
+        IskmGym_OptIn_AnimBP(_Proxy);
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -291,6 +294,11 @@ class UCk_EntityScript_IskmRendererGym_TransitionCycle : UCk_GenericEntityScript
     FTransform InitialTransform = FTransform::Identity;
 
     private FCk_Handle_IskmProxy _Proxy;
+
+    // STEP A: re-add the member fields. NOT referenced from OnTick yet
+    // (no OnTick at all in this step) — only assigned in DoConstruct after
+    // the kickoff PlayAnimation. If this still animates, fields-and-assignment
+    // aren't the cause and we proceed to Step B (timer + empty OnTick).
     private UAnimSequenceBase _SeqLoop;
     private UAnimSequenceBase _SeqNonLoop;
     private bool _PlayingNonLoop = false;
@@ -310,32 +318,32 @@ class UCk_EntityScript_IskmRendererGym_TransitionCycle : UCk_GenericEntityScript
         }
         auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
 
-        auto LoopResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Anim/MM_Idle",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        _SeqLoop = Cast<UAnimSequenceBase>(LoopResult._Asset);
-
-        auto NonLoopResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Anim/MM_Jump",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        _SeqNonLoop = Cast<UAnimSequenceBase>(NonLoopResult._Asset);
-
         auto AgentEntity = InHandle.Request_CreateEntity();
         utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
         _Proxy = utils_iskm_proxy::Add(AgentEntity, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
 
-        // Kick off with the looping sequence. If unauthored, the timer still
-        // runs but Request_PlayAnimation is a no-op (handler bails on null sequence).
-        if (ck::IsValid(_SeqLoop))
+        TSubclassOf<UAnimInstance> NullClass;
+        utils_iskm_proxy::Request_SetAnimInstanceClass(_Proxy, NullClass);
+
+        UAnimSequenceBase IdleSeq = assets::load::MM_Idle();
+        if (ck::IsValid(IdleSeq))
         {
-            auto Req = FCk_Request_IskmProxy_PlayAnimation(_SeqLoop);
-            Req.Set_bLoop(true);
-            utils_iskm_proxy::Request_PlayAnimation(_Proxy, Req);
+            auto PlayReq = FCk_Request_IskmProxy_PlayAnimation(IdleSeq);
+            PlayReq.Set_Loop(true);
+            utils_iskm_proxy::Request_PlayAnimation(_Proxy, PlayReq);
         }
 
+        // STEP A: cache for later steps. Assign AFTER the kickoff so the
+        // kickoff path is unchanged from the known-good version.
+        _SeqLoop = IdleSeq;
+        _SeqNonLoop = assets::load::MM_Jump();
+
+        // STEP B: add the timer + empty OnTick. If this breaks animation,
+        // the timer fragment on InHandle (which already has renderer fragments)
+        // is interfering with rendering. If still animating, Step C re-adds
+        // the elapsed-time gating.
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
+
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
 
@@ -350,11 +358,10 @@ class UCk_EntityScript_IskmRendererGym_TransitionCycle : UCk_GenericEntityScript
         _Elapsed = 0.0f;
 
         auto NextSeq = (_PlayingNonLoop == false) ? _SeqNonLoop : _SeqLoop;
-        // Currently non-loop → switch to loop next; currently loop → switch to non-loop.
         const bool NextLoop = _PlayingNonLoop;
 
         auto Req = FCk_Request_IskmProxy_PlayAnimation(NextSeq);
-        Req.Set_bLoop(NextLoop);
+        Req.Set_Loop(NextLoop);
         utils_iskm_proxy::Request_PlayAnimation(_Proxy, Req);
 
         _PlayingNonLoop = (_PlayingNonLoop == false);
@@ -364,11 +371,11 @@ class UCk_EntityScript_IskmRendererGym_TransitionCycle : UCk_GenericEntityScript
 // ====================================================================================================================
 // Station 7 — AnimBPDemo: side-by-side AnimBP-driven vs Sequence-driven proxies.
 //
-// Left proxy: lets Setup apply the Renderer PDA's _DefaultAnimInstanceClass, which
-//             the engineer wires to ABP_Unarmed (or any UAnimInstance subclass) on
-//             /CkTests/CkIskmRenderer/Demo/RendererData_Demo. With nothing set, the
-//             proxy stays in the fallback UCk_IskmNotify_AnimInstance (sequence mode
-//             by default) — looks like the right proxy.
+// Left proxy: lets Setup apply the Renderer PDA's _DefaultAnimInstanceClass,
+//             which Asset_RendererData_Demo wires to ABP_Unarmed via
+//             assets::ABP_Unarmed_Class(). With nothing set, the proxy
+//             stays in the fallback UCk_IskmNotify_AnimInstance (sequence
+//             mode by default) — looks like the right proxy.
 // Right proxy: explicitly forced to Sequence mode via Request_SetAnimInstanceClass(null)
 //              + a looping MM_Idle so it doesn't sit in T-pose.
 // ====================================================================================================================
@@ -397,12 +404,16 @@ class UCk_EntityScript_IskmRendererGym_AnimBPDemo : UCk_GenericEntityScript_UE
         }
         auto Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
 
-        // Left (Y -100): AnimBP mode. Setup applies _DefaultAnimInstanceClass automatically.
+        // Left (Y -100): AnimBP mode. Wrapper PDA leaves
+        // _DefaultAnimInstanceClass unset (so the non-IskmNotify ABP_Unarmed
+        // doesn't trip AutoTest harness on tests sharing this PDA), so we
+        // opt in here.
         auto LeftXf = InitialTransform;
         LeftXf.AddToTranslation(FVector(0.0f, -100.0f, 0.0f));
         auto LeftEntity = InHandle.Request_CreateEntity();
         utils_transform::Add(LeftEntity, LeftXf, ECk_Replication::DoesNotReplicate);
         _ProxyAnimBP = utils_iskm_proxy::Add(LeftEntity, FCk_Fragment_IskmProxy_ParamsData(Renderer, LeftXf));
+        IskmGym_OptIn_AnimBP(_ProxyAnimBP);
 
         // Right (Y +100): forced to Sequence mode + plays MM_Idle.
         auto RightXf = InitialTransform;
@@ -415,15 +426,11 @@ class UCk_EntityScript_IskmRendererGym_AnimBPDemo : UCk_GenericEntityScript_UE
         utils_iskm_proxy::Request_SetAnimInstanceClass(_ProxySequence, NullClass);
 
         // Optional: drive the sequence-mode proxy with a looping idle so it's not T-posed.
-        auto IdleResult = utils_i_o::LoadAssetByName(
-            "/CkTests/CkIskmRenderer/Anim/MM_Idle",
-            ECk_AssetSearchScope::Plugins,
-            ECk_AssetSearchStrategy::ExactOnly);
-        auto IdleSeq = Cast<UAnimSequenceBase>(IdleResult._Asset);
+        UAnimSequenceBase IdleSeq = assets::load::MM_Idle();
         if (ck::IsValid(IdleSeq))
         {
             auto PlayReq = FCk_Request_IskmProxy_PlayAnimation(IdleSeq);
-            PlayReq.Set_bLoop(true);
+            PlayReq.Set_Loop(true);
             utils_iskm_proxy::Request_PlayAnimation(_ProxySequence, PlayReq);
         }
 
@@ -462,6 +469,7 @@ class UCk_EntityScript_IskmRendererGym_CustomData : UCk_GenericEntityScript_UE
         auto AgentEntity = InHandle.Request_CreateEntity();
         utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
         _Proxy = utils_iskm_proxy::Add(AgentEntity, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
+        IskmGym_OptIn_AnimBP(_Proxy);
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
         return ECk_EntityScript_ConstructionFlow::Finished;

@@ -19,7 +19,7 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
         Stations.Add(MakeStationPayload(n"Gym.Iskm.TransitionCycle", "Transition Cycle",
             "Single proxy, alternates a looping seq and a non-looping seq.\nDemonstrates the Replaced + Completed paths in OnAnimationFinished."));
         Stations.Add(MakeStationPayload(n"Gym.Iskm.AnimBPDemo", "AnimBP Demo",
-            "Two proxies side-by-side. Left uses the Renderer PDA's default AnimBP (set _DefaultAnimInstanceClass on RendererData_Demo to enable).\nRight is forced to Sequence mode via Request_SetAnimInstanceClass(null) and plays MM_Idle.\nDemonstrates both pose-source modes simultaneously."));
+            "Two proxies side-by-side. Left uses the Renderer PDA's default AnimBP (Asset_RendererData_Demo wires this to ABP_Unarmed).\nRight is forced to Sequence mode via Request_SetAnimInstanceClass(null) and plays MM_Idle.\nDemonstrates both pose-source modes simultaneously."));
 
         return Stations;
     }
@@ -37,6 +37,8 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartGym() override
     {
+        SpawnFloor();
+
         SpawnStation("Gym.Iskm.SpawnArmy",     UCk_EntityScript_IskmRendererGym_SpawnArmy);
         SpawnStation("Gym.Iskm.OutfitSwap",    UCk_EntityScript_IskmRendererGym_OutfitSwap);
         SpawnStation("Gym.Iskm.MontageBurst",  UCk_EntityScript_IskmRendererGym_MontageBurst);
@@ -44,6 +46,21 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnStation("Gym.Iskm.CustomData",    UCk_EntityScript_IskmRendererGym_CustomData);
         SpawnStation("Gym.Iskm.TransitionCycle", UCk_EntityScript_IskmRendererGym_TransitionCycle);
         SpawnStation("Gym.Iskm.AnimBPDemo",      UCk_EntityScript_IskmRendererGym_AnimBPDemo);
+    }
+
+    // Spawns a generic collidable floor under the gym so RagdollDemo characters
+    // don't fall through the world. Reuses ACk_Gym_Floor (CkTests/Script/Common/
+    // CkGym_Floor.as) — same pattern as the CkCrowd gyms. 4000×4000cm covers
+    // all 7 station anchors and the SpawnArmy 5×5 grid (~600cm footprint).
+    private void SpawnFloor()
+    {
+        const auto FloorLocation = FVector::ZeroVector;
+        const auto FloorScale    = FVector(40.0, 40.0, 0.5);
+
+        auto Floor = SpawnActor(ACk_Gym_Floor, FloorLocation, FRotator::ZeroRotator, NAME_None, true);
+        if (Floor == nullptr) { return; }
+        Floor.SetActorScale3D(FloorScale);
+        FinishSpawningActor(Floor);
     }
 
     private void SpawnStation(FString InTag, TSubclassOf<UCk_EntityScript_UE> InScriptClass)
