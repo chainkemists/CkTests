@@ -1464,6 +1464,19 @@ namespace UCk_AutoTest_IskmRenderer_PdaSmoke
 }
 
 USTRUCT()
+struct FCk_AutoTest_IskmRenderer_PlayAnimationReissue_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_PlayAnimationReissue
+{
+    FCk_AutoTest_IskmRenderer_PlayAnimationReissue_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_PlayAnimationReissue_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_IskmRenderer_ProxyAdd_SpawnParams
 {
 }
