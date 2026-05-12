@@ -42,6 +42,8 @@ class ACkAudioGym_Advanced_StationSpawner : AActor
     UFUNCTION()
     void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
     {
+        auto InEntity = FCk_Handle(InEntityScriptHandle);
+        InEntity.Set_DebugName(n"StationSpawner");
         SpawnStation();
     }
 

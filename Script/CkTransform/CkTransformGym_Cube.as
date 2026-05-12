@@ -85,6 +85,7 @@ class ACk_TransformGym_Cube : AActor
 		{ return; }
 
 		auto InEntity = FCk_Handle(InEntityScriptHandle);
+		InEntity.Set_DebugName(FName(f"Cube_{Behavior}"));
 		EcsEntity = InEntity;
 
 		// Set up timers based on behavior

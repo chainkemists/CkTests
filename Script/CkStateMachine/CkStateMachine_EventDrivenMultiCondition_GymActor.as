@@ -107,6 +107,7 @@ class ACk_SmTest_EventDrivenMultiCondition_GymActor : AActor
         { return; }
 
         SmEntity = FCk_Handle(InEntityScriptHandle);
+        SmEntity.Set_DebugName(n"StateMachine");
         SmHandle = UCk_Utils_StateMachine_UE::Add(
             SmEntity, UCk_SmTest_EventDrivenMultiCondition_State_Idle);
     }
