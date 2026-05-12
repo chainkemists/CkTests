@@ -105,6 +105,7 @@ class ACk_SmTest_GymActor : AActor
         { return; }
 
         auto OwnerHandle = FCk_Handle(InEntityScriptHandle);
+        OwnerHandle.Set_DebugName(n"StateMachine");
         auto StateClass = InitialStateClass.IsValid()
             ? InitialStateClass
             : TSubclassOf<UCk_SmState_EntityScript>(UCk_SmTest_State_Idle);

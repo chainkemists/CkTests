@@ -61,6 +61,7 @@ class ACk_TweenTest_GymActor : AActor
 		{ return; }
 
         auto InEntity = FCk_Handle(InEntityScriptHandle);
+        InEntity.Set_DebugName(n"TweenCube");
         StartLocation = GetActorLocation();
         EndLocation = StartLocation + FVector(0.0f, 0.0f, 200.0f);
         TweenToLocation(InEntity.As_Transform());

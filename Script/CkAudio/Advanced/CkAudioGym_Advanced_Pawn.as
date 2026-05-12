@@ -21,7 +21,9 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
     UFUNCTION()
     void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
     {
-        SetupPlayer(FCk_Handle(InEntityScriptHandle));
+        auto InEntity = FCk_Handle(InEntityScriptHandle);
+        InEntity.Set_DebugName(n"Pawn");
+        SetupPlayer(InEntity);
         SetupLevel();
     }
 

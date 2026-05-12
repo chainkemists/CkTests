@@ -207,6 +207,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
         { return; }
 
         TopEntity = FCk_Handle(InEntityScriptHandle);
+        TopEntity.Set_DebugName(n"TopEntity");
 
         // Top-level linear SM — exercises the non-hierarchical graph-walk
         // path. The walk runs synchronously inside Add() and instantiates
@@ -224,6 +225,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
         { return; }
 
         SubEntity = FCk_Handle(InEntityScriptHandle);
+        SubEntity.Set_DebugName(n"SubEntity");
 
         // Sub-SM variant — parent wrapper state holds UCk_SmTask_SubStateMachine
         // pointing at Sub_State_A. Exercises the hierarchical code path in the

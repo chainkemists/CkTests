@@ -88,12 +88,14 @@ class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntitySc
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        InHandle.Set_DebugName(n"StationaryHierarchy");
         auto TransformHandle = utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_ProbeGym_StationaryHierarchyStation");
         StationWorldLocation = InitialTransform.Translation;
 
         // ---- Root (static, identity rotation) ----
         RootEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
+        utils_handle::Set_DebugName(RootEntity, n"Root");
         RootEntity.Request_OverrideToSelf();
 
         RootWorldLocation = StationWorldLocation;
@@ -122,6 +124,7 @@ class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntitySc
         DetectorWorldLocation = ComputeExpectedChainedLocation();
 
         DetectorEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
+        utils_handle::Set_DebugName(DetectorEntity, n"Detector");
         DetectorEntity.Request_OverrideToSelf();
 
         auto DetectorInitial = FTransform(FRotator::ZeroRotator, DetectorWorldLocation);

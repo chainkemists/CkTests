@@ -31,5 +31,7 @@ class ACk_ReplicationGym_ReplicatedActor : AActor
     UFUNCTION()
     private void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
     {
+        auto InEntity = FCk_Handle(InEntityScriptHandle);
+        InEntity.Set_DebugName(n"ReplicatedActor");
     }
 }

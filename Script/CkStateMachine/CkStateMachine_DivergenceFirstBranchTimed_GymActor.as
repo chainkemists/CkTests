@@ -197,6 +197,7 @@ class ACk_SmTest_DivergenceTimed_GymActor : AActor
         { return; }
 
         PassAEntity = FCk_Handle(InEntityScriptHandle);
+        PassAEntity.Set_DebugName(n"PassA");
         PassASmHandle = UCk_Utils_StateMachine_UE::Add(
             PassAEntity,
             UCk_SmTest_DivergenceTimed_ParentState);
@@ -242,6 +243,7 @@ class ACk_SmTest_DivergenceTimed_GymActor : AActor
         { return; }
 
         PassBEntity = FCk_Handle(InEntityScriptHandle);
+        PassBEntity.Set_DebugName(n"PassB");
         PassBSmHandle = UCk_Utils_StateMachine_UE::Add(
             PassBEntity,
             UCk_SmTest_DivergenceTimed_ParentState);

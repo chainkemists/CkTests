@@ -71,6 +71,7 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        InHandle.Set_DebugName(n"PhysicalStation");
         auto TransformHandle = utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_ProbeGym_PhysicalStation");
         StationWorldLocation = InitialTransform.Translation;
@@ -102,6 +103,8 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
             auto BallInitialTransform = FTransform(FRotator::ZeroRotator, BallStart);
 
             auto BallEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
+            auto BallName = FName(f"Ball_{i}");
+            BallEntity.Set_DebugName(BallName);
             BallEntity.Request_OverrideToSelf();
 
             auto BallTransformHandle = utils_transform::Add(

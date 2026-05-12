@@ -79,6 +79,7 @@ class ACk_UnrealComponentGym_Driver : AActor
 		{ return; }
 
 		auto InEntity = FCk_Handle(InEntityScriptHandle);
+		InEntity.Set_DebugName(FName(f"UnrealComponent_{ComponentType}"));
 		EcsEntity = InEntity;
 
 		// UCk_EntityScript_WithActor_UE already adds the Transform fragment
