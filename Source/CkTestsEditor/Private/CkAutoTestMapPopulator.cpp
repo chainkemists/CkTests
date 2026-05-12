@@ -14,6 +14,7 @@
 #include <Editor/EditorEngine.h>
 #include <Engine/Level.h>
 #include <Engine/World.h>
+#include <ExternalPackageHelper.h>
 #include <FileHelpers.h>
 #include <HAL/FileManager.h>
 #include <HAL/IConsoleManager.h>
@@ -855,11 +856,22 @@ auto
         return nullptr;
     }
 
-    // Heads-up: World Partition maps store actors in external packages, not in the
-    // .umap's persistent level. The minimal AutoTests maps the populator manages
-    // shouldn't be WP, but if a project switches their AutoTests level to WP, the
-    // sync will see PersistentLevel as a stub and silently no-op. Worth the comment
-    // even though it's not currently a code path we need to handle.
+    // Load external-actor packages into the level. With One File Per Actor (OFPA)
+    // enabled on a map, each placed actor lives in its own __ExternalActors__/<...>/Guid.uasset
+    // package, NOT in the .umap's persistent-level actor list. LoadPackage of the
+    // .umap alone leaves PersistentLevel->Actors empty for OFPA maps, which would
+    // cause the populator to treat every existing wrapper as missing-from-map
+    // (duplicate spawn) and every newly-emitted wrapper as orphan (delete-then-
+    // respawn churn on the external .uasset files). The editor's normal map-open
+    // flow loads external actors implicitly; off-disk loads need to do it
+    // explicitly. The callback is intentionally empty — we just need the side
+    // effect of population, not per-actor work.
+    if (auto* Level = World->PersistentLevel.Get();
+        ck::IsValid(Level, ck::IsValid_Policy_NullptrOnly{}))
+    {
+        FExternalPackageHelper::LoadObjectsFromExternalPackages<AActor>(
+            Level, [](AActor*) {});
+    }
 
     ck::tests_editor::VeryVerbose(
         TEXT("[CkAutoTest Populator] [{}] Path B — loaded target map off-disk: '{}'."),
