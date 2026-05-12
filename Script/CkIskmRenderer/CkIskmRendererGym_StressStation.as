@@ -70,6 +70,7 @@ class UCk_EntityScript_IskmRendererGym_StressArmy : UCk_GenericEntityScript_UE
     ECk_EntityScript_ConstructionFlow
     DoConstruct(FCk_Handle& InHandle)
     {
+        InHandle.Set_DebugName(n"StressArmy");
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
         auto RendererData = IskmGymStress_LoadRendererData();
@@ -110,6 +111,8 @@ class UCk_EntityScript_IskmRendererGym_StressArmy : UCk_GenericEntityScript_UE
                 SpawnXf.AddToTranslation(Offset);
 
                 auto Entity = InHandle.Request_CreateEntity();
+                auto SoldierName = FName(f"Soldier_{Spawned}");
+                Entity.Set_DebugName(SoldierName);
                 auto EntityTransform = utils_transform::Add(Entity, SpawnXf, ECk_Replication::DoesNotReplicate);
                 auto Proxy = utils_iskm_proxy::Add(Entity, FCk_Fragment_IskmProxy_ParamsData(Renderer, SpawnXf));
 

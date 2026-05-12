@@ -85,6 +85,7 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        InHandle.Set_DebugName(n"EqsStation");
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnDisplayTick"));
 
@@ -125,6 +126,8 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
             const auto TargetTransform = FTransform(FRotator::ZeroRotator, TargetLocation);
 
             auto Target = utils_entity_lifetime::Request_CreateEntity(InStation);
+            auto TargetName = FName(f"Target_{i}");
+            Target.Set_DebugName(TargetName);
             Target.Request_OverrideToSelf();
             utils_transform::Add(Target, TargetTransform, ECk_Replication::DoesNotReplicate);
             utils_entity_tag::Add_UsingGameplayTag(Target, TargetTag);
@@ -147,6 +150,7 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
         const auto BlockerTransform = FTransform(FRotator::ZeroRotator, BaseLocation + BlockerOffset);
 
         auto Blocker = utils_entity_lifetime::Request_CreateEntity(InStation);
+        Blocker.Set_DebugName(n"TraceBlocker");
         Blocker.Request_OverrideToSelf();
         auto BlockerXform = utils_transform::Add(Blocker, BlockerTransform, ECk_Replication::DoesNotReplicate);
 
@@ -175,6 +179,8 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
             const auto MarkerTransform = FTransform(FRotator::ZeroRotator, BaseLocation + Offsets[i]);
 
             auto Marker = utils_entity_lifetime::Request_CreateEntity(InStation);
+            auto MarkerName = FName(f"OverlapMarker_{i}");
+            Marker.Set_DebugName(MarkerName);
             Marker.Request_OverrideToSelf();
             auto MarkerXform = utils_transform::Add(Marker, MarkerTransform, ECk_Replication::DoesNotReplicate);
 
