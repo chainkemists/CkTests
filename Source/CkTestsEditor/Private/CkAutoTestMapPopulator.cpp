@@ -15,11 +15,14 @@
 #include <Engine/Level.h>
 #include <Engine/World.h>
 #include <FileHelpers.h>
+#include <HAL/FileManager.h>
 #include <HAL/IConsoleManager.h>
 #include <Interfaces/IPluginManager.h>
+#include <ISourceControlModule.h>
 #include <Misc/App.h>
 #include <Misc/PackageName.h>
 #include <Misc/Paths.h>
+#include <SourceControlHelpers.h>
 #include <UObject/MetaData.h>
 #include <UObject/Package.h>
 #include <UObject/UObjectIterator.h>
@@ -312,6 +315,95 @@ auto
         return Label;
     };
 
+    // ---- Pre-flight: bail with a loud notification if the .umap is locked ------------
+    //
+    // Predict whether any spawn/remove/relabel would happen this pass. If we'd produce
+    // a delta AND the underlying .umap is read-only on disk, attempt an SCC checkout;
+    // if that also fails, surface the failure unmissably and skip. Without this, the
+    // populator's downstream loops would mutate the in-memory world, then SavePackages
+    // would fail silently against the locked file — exactly the silent failure mode
+    // this work item exists to eliminate.
+    //
+    // The predict pass is precise (mirrors the spawn-loop conditions) so we don't fire
+    // a notification on every AS recompile when the locked file happens to already be
+    // in sync.
+    const auto Predict_HasDelta = [&]() -> bool
+    {
+        for (auto* Class : WantedClasses)
+        {
+            const auto* ExistingActors = CurrentByClass.Find(Class);
+            if (ExistingActors == nullptr || ExistingActors->Num() == 0)
+            { return true; }
+            if (ExistingActors->Num() > 1)
+            { return true; }
+            if (auto* Keeper = (*ExistingActors)[0];
+                ck::IsValid(Keeper, ck::IsValid_Policy_NullptrOnly{}))
+            {
+                if (Keeper->GetActorLabel() != Compute_ExpectedLabel(Class))
+                { return true; }
+            }
+        }
+        for (const auto& Pair : CurrentByClass)
+        {
+            if (NOT WantedSet.Contains(Pair.Key))
+            { return true; }
+        }
+        return false;
+    };
+
+    if (Predict_HasDelta())
+    {
+        auto MapFilePath = FString{};
+        const auto bResolvedPath = FPackageName::TryConvertLongPackageNameToFilename(
+            Package->GetName(), MapFilePath, FPackageName::GetMapPackageExtension());
+
+        if (bResolvedPath &&
+            FPaths::FileExists(MapFilePath) &&
+            IFileManager::Get().IsReadOnly(*MapFilePath))
+        {
+            // Collapses all SCC failure subkinds (no provider, server unreachable,
+            // locked-by-someone-else) into one outcome — we surface the toast
+            // regardless of the failure subkind.
+            auto bMadeWritable = false;
+            if (ISourceControlModule::Get().IsEnabled())
+            {
+                bMadeWritable = USourceControlHelpers::CheckOutOrAddFile(MapFilePath);
+            }
+
+            if (NOT bMadeWritable)
+            {
+                ck::tests_editor::Notify_Error(
+                    TEXT("[CkAutoTest Populator] [{}] AutoTests map is read-only on disk: '{}'. ")
+                    TEXT("New test wrappers were not added. Make the file writable ")
+                    TEXT("(git unlock / p4 checkout / `attrib -r`) and run `Ck.SyncAutoTestMaps`."),
+                    InConfig->Get_DisplayName(), MapFilePath);
+
+                Result.bSkipped = true;
+                Result.SkipReason = ck::Format_UE(
+                    TEXT("Target map is read-only on disk: {}"), MapFilePath);
+                return Result;
+            }
+
+            // Auto-checkout succeeded — SCC silently cleared the read-only bit
+            // and we're about to apply test placement edits. Surface this so the
+            // user knows their working tree was modified on their behalf (and
+            // that they own committing/submitting the result).
+            //
+            // No explicit throttle needed: the file's read-only state IS the
+            // throttle. After this call clears read-only, every subsequent
+            // populator pass sees IsReadOnly == false and short-circuits before
+            // ever reaching this branch. The next time we get here is after the
+            // user reverts/commits via SCC, which restores the read-only bit —
+            // i.e. a genuine "back to locked, now newly auto-checked-out again"
+            // state transition, exactly the moment a fresh toast is warranted.
+            ck::tests_editor::Notify_Info(
+                TEXT("[CkAutoTest Populator] [{}] AutoTests map was read-only on disk and has been ")
+                TEXT("auto-checked-out via source control to apply test placement: '{}'. ")
+                TEXT("The .umap is now in your working tree as modified — remember to commit/submit it."),
+                InConfig->Get_DisplayName(), MapFilePath);
+        }
+    }
+
     for (auto* Class : WantedClasses)
     {
         const auto* ExistingActors = CurrentByClass.Find(Class);
@@ -436,9 +528,33 @@ auto
     }
     else
     {
-        ck::tests_editor::Warning(
-            TEXT("[CkAutoTest Populator] [{}] Auto-save failed — map left dirty. Use Ctrl+S to save manually."),
-            InConfig->Get_DisplayName());
+        // Backstop for whatever the pre-flight didn't catch: a race where the file
+        // became read-only between pre-flight and save, an SCC provider that lied
+        // about the checkout result, a permission flap from antivirus, etc.
+        // Re-probe IsReadOnly so the user sees an actionable diagnosis rather than
+        // a generic "save failed".
+        auto MapFilePath = FString{};
+        const auto bResolvedPath = FPackageName::TryConvertLongPackageNameToFilename(
+            Package->GetName(), MapFilePath, FPackageName::GetMapPackageExtension());
+        const auto bLockedNow = bResolvedPath &&
+            FPaths::FileExists(MapFilePath) &&
+            IFileManager::Get().IsReadOnly(*MapFilePath);
+
+        if (bLockedNow)
+        {
+            ck::tests_editor::Notify_Error(
+                TEXT("[CkAutoTest Populator] [{}] Auto-save failed — AutoTests map is read-only on disk: '{}'. ")
+                TEXT("Make the file writable (git unlock / p4 checkout / `attrib -r`) and run `Ck.SyncAutoTestMaps`."),
+                InConfig->Get_DisplayName(), MapFilePath);
+        }
+        else
+        {
+            ck::tests_editor::Notify_Error(
+                TEXT("[CkAutoTest Populator] [{}] Auto-save failed for '{}' — map left dirty. ")
+                TEXT("Check the Output Log for the SavePackages reason and save manually with Ctrl+S."),
+                InConfig->Get_DisplayName(),
+                bResolvedPath ? MapFilePath : Package->GetName());
+        }
     }
 
     return Result;
