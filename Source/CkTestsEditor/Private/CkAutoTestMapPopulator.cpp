@@ -23,6 +23,7 @@
 #include <Misc/App.h>
 #include <Misc/PackageName.h>
 #include <Misc/Paths.h>
+#include <PackageSourceControlHelper.h>
 #include <SourceControlHelpers.h>
 #include <UObject/MetaData.h>
 #include <UObject/Package.h>
@@ -456,6 +457,25 @@ auto
     }
 
     // ---- Remove orphaned actors -----------------------------------------------------
+    //
+    // For OFPA-stored actors, DestroyActor strips the actor from the level manifest
+    // but the underlying external __ExternalActors__/<...>/<Guid>.uasset file is
+    // NOT physically deleted — UE's level save just stops referencing it, leaving a
+    // stranded file on disk. Without explicit cleanup these accumulate over time:
+    // every test deletion leaves dead bytes in the repo, pointing at classes that
+    // no longer exist.
+    //
+    // The canonical UE workflow is FPackageSourceControlHelper::Delete, which:
+    //   - SCC enabled (GitLink/Perforce): reverts pending edits, marks for SCC
+    //     delete via FDelete, removes from disk. Refuses to delete files locked by
+    //     someone else (we'll see the failure logged and surface a toast).
+    //   - SCC disabled: clears read-only and deletes from disk.
+    //   - Calls ResetLoaders() first to release file handles.
+    //
+    // Capture external packages BEFORE DestroyActor — GetExternalPackage() returns
+    // null after the actor is gone. Non-OFPA actors leave the list empty (the call
+    // no-ops), preserving the original behavior for that path.
+    auto OrphanedExternalPackages = TArray<UPackage*>{};
     for (const auto& Pair : CurrentByClass)
     {
         if (WantedSet.Contains(Pair.Key))
@@ -465,8 +485,30 @@ auto
         {
             if (NOT ck::IsValid(Actor, ck::IsValid_Policy_NullptrOnly{}))
             { continue; }
+
+            if (auto* ExternalPackage = Actor->GetExternalPackage();
+                ck::IsValid(ExternalPackage, ck::IsValid_Policy_NullptrOnly{}))
+            {
+                OrphanedExternalPackages.AddUnique(ExternalPackage);
+            }
+
             CurrentWorld->DestroyActor(Actor);
             ++Result.Removed;
+        }
+    }
+
+    if (NOT OrphanedExternalPackages.IsEmpty())
+    {
+        auto SccHelper = FPackageSourceControlHelper{};
+        if (NOT SccHelper.Delete(OrphanedExternalPackages))
+        {
+            ck::tests_editor::Notify_Error(
+                TEXT("[CkAutoTest Populator] [{}] Removed {} test wrappers from the level but ")
+                TEXT("could not clean up all of their external .uasset files on disk. The level ")
+                TEXT("itself is consistent; remaining stranded files need manual cleanup. ")
+                TEXT("Check the Output Log for per-file failure reasons (typical causes: a ")
+                TEXT("file is locked by another teammate, or your local copy isn't at HEAD)."),
+                InConfig->Get_DisplayName(), OrphanedExternalPackages.Num());
         }
     }
 
@@ -864,13 +906,31 @@ auto
     // (duplicate spawn) and every newly-emitted wrapper as orphan (delete-then-
     // respawn churn on the external .uasset files). The editor's normal map-open
     // flow loads external actors implicitly; off-disk loads need to do it
-    // explicitly. The callback is intentionally empty — we just need the side
-    // effect of population, not per-actor work.
+    // explicitly.
+    //
+    // The callback re-attaches each loaded actor to the level's Actors array.
+    // FExternalPackageHelper::LoadObjectsFromExternalPackages calls LoadPackage,
+    // which for already-in-memory packages returns the existing UPackage without
+    // re-firing AActor::PostLoad — the normal mechanism that adds an actor to its
+    // level on initial load. Between populator syncs, GC can drop the level's
+    // refs to OFPA actor instances while the packages themselves stay loaded,
+    // leaving Actors empty even though the actors still exist in memory. Without
+    // the explicit re-attach here, the second sync would see 0 wrappers in the
+    // level, predict a full re-spawn, and duplicate every actor — corrupting the
+    // map. The Contains check makes the re-attach idempotent on a fresh load.
     if (auto* Level = World->PersistentLevel.Get();
         ck::IsValid(Level, ck::IsValid_Policy_NullptrOnly{}))
     {
         FExternalPackageHelper::LoadObjectsFromExternalPackages<AActor>(
-            Level, [](AActor*) {});
+            Level,
+            [Level](AActor* Actor)
+            {
+                if (ck::IsValid(Actor, ck::IsValid_Policy_NullptrOnly{}) &&
+                    NOT Level->Actors.Contains(Actor))
+                {
+                    Level->Actors.Add(Actor);
+                }
+            });
     }
 
     ck::tests_editor::VeryVerbose(
