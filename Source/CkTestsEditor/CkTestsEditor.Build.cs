@@ -19,6 +19,8 @@ public class CkTestsEditor : CkModuleRules
             "Projects",
             "DeveloperSettings",
             "FunctionalTesting",
+            "MessageLog",
+            "SourceControl",
 
             "CkCore",
             "CkEcs",
