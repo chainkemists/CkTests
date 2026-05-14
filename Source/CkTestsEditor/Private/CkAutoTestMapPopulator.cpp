@@ -320,40 +320,62 @@ auto
     // ---- Pre-flight: bail with a loud notification if the .umap is locked ------------
     //
     // Predict whether any spawn/remove/relabel would happen this pass. If we'd produce
-    // a delta AND the underlying .umap is read-only on disk, attempt an SCC checkout;
-    // if that also fails, surface the failure unmissably and skip. Without this, the
-    // populator's downstream loops would mutate the in-memory world, then SavePackages
-    // would fail silently against the locked file — exactly the silent failure mode
-    // this work item exists to eliminate.
+    // a delta AND the underlying .umap is read-only on disk AND the .umap actually
+    // needs to be written, attempt an SCC checkout; if that also fails, surface the
+    // failure unmissably and skip.
     //
-    // The predict pass is precise (mirrors the spawn-loop conditions) so we don't fire
-    // a notification on every AS recompile when the locked file happens to already be
-    // in sync.
-    const auto Predict_HasDelta = [&]() -> bool
+    // The "actually needs to be written" qualifier matters for OFPA-enabled levels:
+    // adding a new external actor doesn't mutate the .umap header (the level discovers
+    // externals at load time via AssetRegistry scan of __ExternalActors__/, not from a
+    // manifest in the .umap). So for adds-only deltas on OFPA targets, the .umap lock
+    // is irrelevant — we'll save only the new external .uasset and leave the .umap
+    // alone. Removes/relabels still mutate the level's actor list and require .umap
+    // write access regardless.
+    //
+    // The predict pass returns a struct so the save-flow branch downstream can make
+    // the same adds-vs-mutations distinction without re-walking the wanted/current
+    // sets.
+    struct FPredictedDelta
     {
+        bool bSpawnNeeded         = false;  // any spawns to do
+        bool bMapMutationNeeded   = false;  // any duplicate-remove / relabel / orphan-remove
+    };
+    const auto Predict_Delta = [&]() -> FPredictedDelta
+    {
+        auto Out = FPredictedDelta{};
         for (auto* Class : WantedClasses)
         {
             const auto* ExistingActors = CurrentByClass.Find(Class);
             if (ExistingActors == nullptr || ExistingActors->Num() == 0)
-            { return true; }
+            { Out.bSpawnNeeded = true; continue; }
             if (ExistingActors->Num() > 1)
-            { return true; }
+            { Out.bMapMutationNeeded = true; continue; }
             if (auto* Keeper = (*ExistingActors)[0];
                 ck::IsValid(Keeper, ck::IsValid_Policy_NullptrOnly{}))
             {
                 if (Keeper->GetActorLabel() != Compute_ExpectedLabel(Class))
-                { return true; }
+                { Out.bMapMutationNeeded = true; }
             }
         }
         for (const auto& Pair : CurrentByClass)
         {
             if (NOT WantedSet.Contains(Pair.Key))
-            { return true; }
+            { Out.bMapMutationNeeded = true; }
         }
-        return false;
+        return Out;
     };
 
-    if (Predict_HasDelta())
+    const auto bIsOFPA =
+        ck::IsValid(CurrentWorld->PersistentLevel.Get(), ck::IsValid_Policy_NullptrOnly{}) &&
+        CurrentWorld->PersistentLevel->IsUsingExternalActors();
+    const auto Predicted    = Predict_Delta();
+    const auto bHasAnyDelta = Predicted.bSpawnNeeded || Predicted.bMapMutationNeeded;
+    // The .umap on disk needs a write only when the delta mutates the level (non-OFPA
+    // always mutates; OFPA only mutates on map-side ops). Pure OFPA adds don't write
+    // the .umap — they write a new external .uasset and leave the level header alone.
+    const auto bUmapNeedsWrite = Predicted.bMapMutationNeeded || NOT bIsOFPA;
+
+    if (bHasAnyDelta && bUmapNeedsWrite)
     {
         auto MapFilePath = FString{};
         const auto bResolvedPath = FPackageName::TryConvertLongPackageNameToFilename(
@@ -512,6 +534,77 @@ auto
         }
     }
 
+    // ---- Post-sync stranded-external scan (OFPA only) ------------------------------
+    //
+    // The orphan-remove pass above only captures external packages from actors that
+    // are still in CurrentByClass at scan time. It misses two stranded-file sources:
+    //   (1) Duplicate-remove path in the spawn loop. When ExistingActors->Num() > 1,
+    //       the loop destroys the duplicates but doesn't capture their external
+    //       packages — the cleanup helper above only collects from the orphan-remove
+    //       loop. Result: every duplicate-remove leaves an external .uasset stranded.
+    //   (2) Pre-existing strands from prior buggy runs / interrupted saves / manual
+    //       editor deletions. Files on disk whose actors aren't in the level for any
+    //       reason.
+    //
+    // After the level mutations complete, walk the level's still-associated external
+    // packages and find ones with no matching actor in Level->Actors. Those are
+    // strands. Batch-delete them via FPackageSourceControlHelper, same canonical
+    // path the orphan-remove uses.
+    //
+    // Bounded cost: GetExternalPackages() returns in-memory packages only; the set
+    // is roughly the size of the level's actor count, even after destroys (destroyed
+    // actors' packages survive until GC). Membership check is O(n) hash lookup. Safe
+    // to run on every OFPA sync; the typical no-strands case is cheap.
+    if (bIsOFPA)
+    {
+        auto LivePackages = TSet<const UPackage*>{};
+        if (auto* Level = CurrentWorld->PersistentLevel.Get();
+            ck::IsValid(Level, ck::IsValid_Policy_NullptrOnly{}))
+        {
+            for (AActor* Actor : Level->Actors)
+            {
+                if (NOT ck::IsValid(Actor, ck::IsValid_Policy_NullptrOnly{}))
+                { continue; }
+                if (auto* ExtPkg = Actor->GetExternalPackage();
+                    ck::IsValid(ExtPkg, ck::IsValid_Policy_NullptrOnly{}))
+                { LivePackages.Add(ExtPkg); }
+            }
+        }
+
+        auto StrandedExternals = TArray<UPackage*>{};
+        for (auto* ExtPkg : Package->GetExternalPackages())
+        {
+            if (ck::IsValid(ExtPkg, ck::IsValid_Policy_NullptrOnly{}) &&
+                NOT LivePackages.Contains(ExtPkg))
+            { StrandedExternals.AddUnique(ExtPkg); }
+        }
+
+        if (NOT StrandedExternals.IsEmpty())
+        {
+            ck::tests_editor::Log(
+                TEXT("[CkAutoTest Populator] [{}] Cleaning {} stranded external actor files (no matching actor in level)."),
+                InConfig->Get_DisplayName(), StrandedExternals.Num());
+
+            auto SccHelper = FPackageSourceControlHelper{};
+            if (NOT SccHelper.Delete(StrandedExternals))
+            {
+                ck::tests_editor::Notify_Error(
+                    TEXT("[CkAutoTest Populator] [{}] Found {} stranded external .uasset files but ")
+                    TEXT("could not clean up all of them. Manual cleanup may be needed for the ")
+                    TEXT("remaining ones; check the Output Log for per-file failure reasons."),
+                    InConfig->Get_DisplayName(), StrandedExternals.Num());
+            }
+            else
+            {
+                // Strand cleanup counts as a map mutation for the save-flow downstream:
+                // the cleanup updates the level's external-package set, which we want
+                // to persist. If our delta was previously adds-only, promote it now so
+                // the .umap save fires.
+                Result.Removed += StrandedExternals.Num();
+            }
+        }
+    }
+
     // Compose the "needs save" signal from two sources:
     //   1. Our sync logic produced a delta (spawn/remove/relabel). Standard case.
     //   2. Path B's LoadPackage induced dirty state without our help — typically the
@@ -521,9 +614,23 @@ auto
     const auto bHasMyDelta = Result.Has_Delta();
     const auto bLoadInducedDirty = bWasLoadedFresh && WasDirtyOnEntry;
 
+    // Same OFPA/mutation distinction as the pre-flight: if we're on an OFPA target
+    // and the actual applied delta is adds-only (no removes, no relabels), we save
+    // only the new external .uasset packages and leave the .umap header untouched on
+    // disk. This is what makes "teammate has the .umap LFS-locked, I can still add
+    // tests" actually work — OFPA's headline promise.
+    //
+    // Load-induced dirty state forces a .umap save regardless (we need to persist the
+    // dropped reference).
+    const auto bAppliedAnyMapMutation = (Result.Removed > 0) || (Result.Relabeled > 0);
+    const auto bUmapNeedsSave         =
+        bLoadInducedDirty || bAppliedAnyMapMutation || NOT bIsOFPA;
+
     if (bHasMyDelta)
     {
-        Package->MarkPackageDirty();
+        if (bUmapNeedsSave)
+        { Package->MarkPackageDirty(); }
+
         ck::tests_editor::Log(
             TEXT("[CkAutoTest Populator] [{}] {} spawned, {} removed, {} relabeled, {} already present."),
             InConfig->Get_DisplayName(),
@@ -561,8 +668,55 @@ auto
         return Result;
     }
 
-    auto PackagesToSave = TArray<UPackage*>{Package};
-    const auto bSaved = UEditorLoadingAndSavingUtils::SavePackages(PackagesToSave, /*bOnlyDirty=*/true);
+    auto bSaved = false;
+    if (bUmapNeedsSave)
+    {
+        // Standard path: save the level package; UE saves its dirty external packages
+        // along with it.
+        auto PackagesToSave = TArray<UPackage*>{Package};
+        bSaved = UEditorLoadingAndSavingUtils::SavePackages(PackagesToSave, /*bOnlyDirty=*/true);
+    }
+    else
+    {
+        // OFPA + adds-only: save only the level's dirty external .uasset packages.
+        // The .umap header stays at HEAD content on disk — locked .umap doesn't block
+        // routine test adds. UE's level-open flow discovers external actors via
+        // AssetRegistry scan of __ExternalActors__/<MapName>/, not from a manifest
+        // in the .umap, so the new wrapper will be discoverable on next load even
+        // though the .umap doesn't reference it.
+        //
+        // Critical: clear the level package's in-memory dirty flag after saving the
+        // externals, otherwise the user gets a persistent "save the level?" prompt
+        // on every Ctrl+S — confusing because the on-disk .umap doesn't need a save.
+        auto DirtyExternals = TArray<UPackage*>{};
+        for (auto* ExtPkg : Package->GetExternalPackages())
+        {
+            if (ck::IsValid(ExtPkg, ck::IsValid_Policy_NullptrOnly{}) && ExtPkg->IsDirty())
+            { DirtyExternals.Add(ExtPkg); }
+        }
+
+        if (DirtyExternals.IsEmpty())
+        {
+            // Surprising — adds happened but no external packages got dirtied? Could
+            // mean the spawned actors weren't actually attached to OFPA storage, or
+            // UE auto-saved externals out from under us mid-sync. Log VeryVerbose and
+            // count it as success (nothing further to do).
+            ck::tests_editor::VeryVerbose(
+                TEXT("[CkAutoTest Populator] [{}] OFPA adds-only path: no dirty external packages to save."),
+                InConfig->Get_DisplayName());
+            bSaved = true;
+        }
+        else
+        {
+            bSaved = UEditorLoadingAndSavingUtils::SavePackages(DirtyExternals, /*bOnlyDirty=*/true);
+        }
+
+        // Drop the level's in-memory dirty flag — the .umap on disk hasn't changed
+        // and won't change as a result of this sync. Without this, the user sees
+        // "Save level?" prompts on every subsequent Ctrl+S even though there's
+        // nothing for the level to persist.
+        Package->SetDirtyFlag(false);
+    }
     Result.bSaved = bSaved;
 
     if (bSaved)
@@ -854,6 +1008,39 @@ auto
         return nullptr;
     }
 
+    // Helper: ensure OFPA external actors are loaded AND attached to the level's
+    // Actors array. We need this in BOTH Path A (active editor world) and Path B
+    // (off-disk LoadPackage) because the editor's normal map-open flow can complete
+    // before all external actors are registered with the level, AND between
+    // populator syncs the GC can drop the level's refs to OFPA actor instances
+    // while keeping the packages loaded. Without an explicit re-attach in both
+    // paths, a subsequent sync sees Actors empty, predicts a full re-spawn, and
+    // duplicates every actor on disk — corrupting the map (observed in v0.x of
+    // the populator code, fixed there for Path B only; Path A regressed with the
+    // same shape until this helper was applied to both).
+    //
+    // Idempotent: on a fresh load the actor is already in Actors (PostLoad added
+    // it) and the Contains check short-circuits. Non-OFPA maps have no external
+    // packages so the call is a cheap no-op.
+    const auto Ensure_ExternalActorsAttached = [](UWorld* InWorld)
+    {
+        if (NOT ck::IsValid(InWorld, ck::IsValid_Policy_NullptrOnly{}))
+        { return; }
+
+        if (auto* Level = InWorld->PersistentLevel.Get();
+            ck::IsValid(Level, ck::IsValid_Policy_NullptrOnly{}))
+        {
+            FExternalPackageHelper::LoadObjectsFromExternalPackages<AActor>(
+                Level,
+                [Level](AActor* Actor)
+                {
+                    if (ck::IsValid(Actor, ck::IsValid_Policy_NullptrOnly{}) &&
+                        NOT Level->Actors.Contains(Actor))
+                    { Level->Actors.Add(Actor); }
+                });
+        }
+    };
+
     // ---- Path A: target IS the currently-active editor world -----------------------
     // Preferred when it applies — edits become visible to the user immediately, and
     // saves go through the normal Ctrl+S / dirty-state machinery they're used to.
@@ -865,6 +1052,11 @@ auto
             const auto EditorWorldPath = EditorWorld->GetPackage()->GetName();
             if (EditorWorldPath.Equals(TargetWorldPath, ESearchCase::IgnoreCase))
             {
+                // Same re-attach the off-disk path needs — see helper comment.
+                // Without this, a Path A sync after editor-side GC drops the
+                // OFPA actor refs would duplicate the entire test suite.
+                Ensure_ExternalActorsAttached(EditorWorld);
+
                 ck::tests_editor::VeryVerbose(
                     TEXT("[CkAutoTest Populator] [{}] Path A — target map is the active editor world."),
                     InConfig->Get_DisplayName());
@@ -898,40 +1090,11 @@ auto
         return nullptr;
     }
 
-    // Load external-actor packages into the level. With One File Per Actor (OFPA)
-    // enabled on a map, each placed actor lives in its own __ExternalActors__/<...>/Guid.uasset
-    // package, NOT in the .umap's persistent-level actor list. LoadPackage of the
-    // .umap alone leaves PersistentLevel->Actors empty for OFPA maps, which would
-    // cause the populator to treat every existing wrapper as missing-from-map
-    // (duplicate spawn) and every newly-emitted wrapper as orphan (delete-then-
-    // respawn churn on the external .uasset files). The editor's normal map-open
-    // flow loads external actors implicitly; off-disk loads need to do it
-    // explicitly.
-    //
-    // The callback re-attaches each loaded actor to the level's Actors array.
-    // FExternalPackageHelper::LoadObjectsFromExternalPackages calls LoadPackage,
-    // which for already-in-memory packages returns the existing UPackage without
-    // re-firing AActor::PostLoad — the normal mechanism that adds an actor to its
-    // level on initial load. Between populator syncs, GC can drop the level's
-    // refs to OFPA actor instances while the packages themselves stay loaded,
-    // leaving Actors empty even though the actors still exist in memory. Without
-    // the explicit re-attach here, the second sync would see 0 wrappers in the
-    // level, predict a full re-spawn, and duplicate every actor — corrupting the
-    // map. The Contains check makes the re-attach idempotent on a fresh load.
-    if (auto* Level = World->PersistentLevel.Get();
-        ck::IsValid(Level, ck::IsValid_Policy_NullptrOnly{}))
-    {
-        FExternalPackageHelper::LoadObjectsFromExternalPackages<AActor>(
-            Level,
-            [Level](AActor* Actor)
-            {
-                if (ck::IsValid(Actor, ck::IsValid_Policy_NullptrOnly{}) &&
-                    NOT Level->Actors.Contains(Actor))
-                {
-                    Level->Actors.Add(Actor);
-                }
-            });
-    }
+    // Same re-attach the editor-world path needs — see helper comment above.
+    // Without this, a subsequent Path B sync after GC drops the level's refs to
+    // already-loaded OFPA actor instances would see Actors empty and duplicate
+    // the entire test suite.
+    Ensure_ExternalActorsAttached(World);
 
     ck::tests_editor::VeryVerbose(
         TEXT("[CkAutoTest Populator] [{}] Path B — loaded target map off-disk: '{}'."),
