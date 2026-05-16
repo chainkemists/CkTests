@@ -28,6 +28,7 @@ public class CkTests : CkModuleRules
             "CkRecord",
             "CkSettings",
             "CkShapes",
+            "CkUI",
             "CkWatermark",
         });
     }
