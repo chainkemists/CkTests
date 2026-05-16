@@ -55,10 +55,14 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
     // ========================================================================
 
     // Per-pass settle window. The vacuous chain Enter -> Idle -> Branch is
-    // a transition per frame, so the cycle takes ~5-6 frames. 0.3s is
-    // generous (~18 frames at 60Hz).
+    // a transition per frame, but the entity-construction async hop plus the
+    // per-state SM graph walk under AutoTest load can stretch the cycle to
+    // ~600-800ms. 1.5s matches the timed sibling gym
+    // (CkStateMachine_DivergenceFirstBranchTimed_GymActor) which has run
+    // reliably with this value; under PIE the cube still appears briefly
+    // before tear-down.
     UPROPERTY(ExposeOnSpawn)
-    float32 PerPassSettleSeconds = 0.3f;
+    float32 PerPassSettleSeconds = 1.5f;
 
     // Station entity — receives the FCkGym_Station_TitleAndDescription
     // fragment for the demo display panel.
@@ -192,7 +196,9 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
             Pending,
             FCk_Delegate_EntityScript_Constructed(this, n"OnPassAConstructed"));
 
-        System::SetTimer(this, n"VerifyPassA", PerPassSettleSeconds, false);
+        // Settle timer is started in OnPassAConstructed — after the SM is actually
+        // added — so PerPassSettleSeconds measures the SM-chain duration only, not
+        // the async entity-spawn overhead (~250ms under PIE load).
     }
 
     UFUNCTION()
@@ -206,6 +212,8 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
         PassASmHandle = UCk_Utils_StateMachine_UE::Add(
             PassAEntity,
             UCk_SmTest_Divergence_ParentState);
+
+        System::SetTimer(this, n"VerifyPassA", PerPassSettleSeconds, false);
     }
 
     UFUNCTION()
@@ -238,7 +246,7 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
             Pending,
             FCk_Delegate_EntityScript_Constructed(this, n"OnPassBConstructed"));
 
-        System::SetTimer(this, n"VerifyPassB", PerPassSettleSeconds, false);
+        // Settle timer started in OnPassBConstructed — see StartPassA comment.
     }
 
     UFUNCTION()
@@ -252,6 +260,8 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
         PassBSmHandle = UCk_Utils_StateMachine_UE::Add(
             PassBEntity,
             UCk_SmTest_Divergence_ParentState);
+
+        System::SetTimer(this, n"VerifyPassB", PerPassSettleSeconds, false);
     }
 
     UFUNCTION()

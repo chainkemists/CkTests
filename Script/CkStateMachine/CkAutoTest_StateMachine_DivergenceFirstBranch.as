@@ -36,6 +36,11 @@
 
 class UCk_AutoTest_StateMachine_DivergenceFirstBranch : UCk_AutoTest_Base
 {
+    // Gym runs two passes back-to-back at 1.5s each (now measured AFTER the async
+    // entity-spawn hop completes, ~0.5s per pass), plus assertion-eval buffer.
+    // Total: 2 * (0.5 + 1.5) = 4.0s + buffer → outer settle 5.0s, timeout 7.0s.
+    default _TimeoutSeconds = 7.0f;
+
     private ACk_SmTest_DivergenceFirstBranch_GymActor _GymActor;
 
     UFUNCTION(BlueprintOverride)
@@ -63,9 +68,11 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranch : UCk_AutoTest_Base
         _GymActor.StationHandle = FCk_Handle();
         FinishSpawningActor(_GymActor);
 
-        // Settle timer — covers Pass A (~0.3s) + Pass B (~0.3s) + buffer.
+        // Settle timer — gym uses PerPassSettleSeconds=1.5f per pass (now measured
+        // after the async entity-spawn hop), so each pass takes ~2s. Two passes
+        // need ~4s; 5s gives buffer for verify timer + assertion eval.
         auto LocalHandle = InHandle;
-        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.0f));
+        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(5.0f));
         SettleParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(LocalHandle, SettleParams);
