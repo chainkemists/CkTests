@@ -42,6 +42,11 @@ class UCk_AutoTest_Crowd_Pathfinding_Success : UCk_AutoTest_Base
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
+        // Kick the navmesh: AutoTests_CkTests_Level has NavMeshBoundsVolume + floor at origin
+        // but the bake is lazy. Triggering Build() here ensures the navmesh is ready by the
+        // time the deferred-request queue drains. Mirrors CkAutoTest_Nav_PathQueuedDuringBake.
+        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+
         // Short, reachable target. Within 500cm of the start so any non-degenerate
         // navmesh covering origin satisfies it.
         auto Request = FCk_Request_Nav_FindPath(FVector(200.0, 0.0, 0.0));
