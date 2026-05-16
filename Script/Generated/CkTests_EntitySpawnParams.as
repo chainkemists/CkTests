@@ -2308,6 +2308,19 @@ namespace UCk_AutoTest_Transform_AddLocationOffset
 }
 
 USTRUCT()
+struct FCk_AutoTest_Transform_ForceRefreshRebroadcasts_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Transform_ForceRefreshRebroadcasts
+{
+    FCk_AutoTest_Transform_ForceRefreshRebroadcasts_SpawnParams Params()
+    {
+        return FCk_AutoTest_Transform_ForceRefreshRebroadcasts_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Transform_OnUpdateFires_SpawnParams
 {
 }
@@ -2334,6 +2347,19 @@ namespace UCk_AutoTest_Transform_SetLocation
 }
 
 USTRUCT()
+struct FCk_AutoTest_Transform_SetLocationAndRotationAtomic_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Transform_SetLocationAndRotationAtomic
+{
+    FCk_AutoTest_Transform_SetLocationAndRotationAtomic_SpawnParams Params()
+    {
+        return FCk_AutoTest_Transform_SetLocationAndRotationAtomic_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Transform_SetRotation_SpawnParams
 {
 }
@@ -2356,6 +2382,19 @@ namespace UCk_AutoTest_Transform_SetScale
     FCk_AutoTest_Transform_SetScale_SpawnParams Params()
     {
         return FCk_AutoTest_Transform_SetScale_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_TransformInterpolation_LocationLerps_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_TransformInterpolation_LocationLerps
+{
+    FCk_AutoTest_TransformInterpolation_LocationLerps_SpawnParams Params()
+    {
+        return FCk_AutoTest_TransformInterpolation_LocationLerps_SpawnParams();
     }
 }
 
