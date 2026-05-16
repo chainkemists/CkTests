@@ -71,10 +71,25 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount : UCk_AutoT
         auto Items = _Inventory.Get_Items();
         if (Items.Num() != 1)
         {
-            FinishFailure(f"Pre-split setup: expected 1 stack of count 3, got {Items.Num()} items");
+            FinishFailure(f"Pre-split setup: expected 1 stack, got {Items.Num()} items");
             return;
         }
         _OriginalStack = Items[0];
+
+        // AddByDefinition's count is a deferred Override modifier — wait one
+        // tick so the source's count is actually 3 before we ask the library
+        // to split 3 off it (otherwise it sees count=1 and rejects for the
+        // wrong reason).
+        WaitOneFrame(n"OnPostAddSettled");
+    }
+
+    UFUNCTION()
+    private void OnPostAddSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(_OriginalStack), 3,
+            "Pre-split setup: stack should hold count 3 before the boundary-count attempt");
 
         // Boundary case: SplitCount == CurrentCount. Must be rejected as
         // Failed_InsufficientCount (callers cannot split off the entire
@@ -102,5 +117,24 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount : UCk_AutoT
             "Inventory must still hold exactly the original stack (no new item created)");
 
         FinishSuccess();
+    }
+}
+
+class ACk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount;
+
+    // The test deliberately attempts SplitStack with Count == SourceCount to
+    // pin the boundary contract (must return Failed_InsufficientCount, no new
+    // item). The library correctly logs a Warning at that callsite — a real
+    // diagnostic for production callers who reached an illegal split. Suppress
+    // here so the harness doesn't escalate the intentional warning into a
+    // test failure. Library severity unchanged for everyone outside the test.
+    UFUNCTION(BlueprintOverride)
+    TArray<FString> Get_ExpectedLogErrors() const
+    {
+        TArray<FString> Out;
+        Out.Add("SplitStack: Invalid split count");
+        return Out;
     }
 }
