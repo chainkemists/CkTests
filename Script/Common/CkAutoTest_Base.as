@@ -124,6 +124,49 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     //------------------------------------------------------------------------
+    // Deferred-framework helpers — wait for processor-scheduler side-effects
+    // to settle before reading state in a result callback.
+    //
+    // Why: CkFoundation request handlers are deferred. A handler may complete
+    // and broadcast its result signal while downstream side-effects (attribute
+    // modifiers, fragment updates, etc.) are still queued — e.g.
+    // Request_OverrideStackCount adds a NotRevocable modifier whose value is
+    // applied by the next IntegerAttribute compute-processor tick, AFTER the
+    // AddByDefinition result callback already fired. Reading the post-effect
+    // state from inside the result callback observes the pre-effect value.
+    //
+    // WaitOneFrame schedules InCallbackName to fire on the next processor
+    // pass via a 0-duration CkTimer. By the time the callback runs, every
+    // processor in the scheduler has had a chance to tick at least once, so
+    // all in-flight modifier and request side-effects from the prior result
+    // signal have been applied.
+    //
+    // The callback must have the FCk_Delegate_Timer signature:
+    //   UFUNCTION()
+    //   private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    //
+    // Use whenever a callback needs to observe state mutated through a
+    // deferred pathway: attribute Request_Override / Request_Adjust, item-
+    // trait stack-count writes, two-stage transfers, etc. If a single frame
+    // isn't enough (multi-stage deferred chains), chain WaitOneFrame calls
+    // by calling it again from the OnSettled callback.
+    //------------------------------------------------------------------------
+
+    void WaitOneFrame(FName InCallbackName)
+    {
+        // 0.05s rather than 0.0: a zero-duration timer can fire OnDone within
+        // the same processor pass that added it, racing the very side-effect
+        // processors we're trying to wait for. 0.05s = one frame at 20fps =
+        // guaranteed to fall on a subsequent frame at any realistic tick rate,
+        // by which point every processor has had a chance to tick.
+        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        Params.Set_StartingState(ECk_Timer_State::Running)
+              .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+        auto Timer = utils_timer::Add(SelfEntity, Params);
+        Timer.BindTo_OnDone(FCk_Delegate_Timer(this, InCallbackName));
+    }
+
+    //------------------------------------------------------------------------
     // Result fragment write — single source of truth for the C++ poller.
     //------------------------------------------------------------------------
 
