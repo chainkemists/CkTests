@@ -450,6 +450,84 @@ namespace UCk_AutoTest_Chrono_TickAndComplete
 }
 
 USTRUCT()
+struct FCk_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash
+{
+    FCk_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash_SpawnParams Params()
+    {
+        return FCk_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped
+{
+    FCk_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped_SpawnParams Params()
+    {
+        return FCk_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries
+{
+    FCk_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries_SpawnParams Params()
+    {
+        return FCk_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces
+{
+    FCk_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_SpawnParams Params()
+    {
+        return FCk_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel
+{
+    FCk_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_SpawnParams Params()
+    {
+        return FCk_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces
+{
+    FCk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_SpawnParams Params()
+    {
+        return FCk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Crowd_Pathfinding_Failure_SpawnParams
 {
 }
