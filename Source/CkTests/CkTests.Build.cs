@@ -25,6 +25,7 @@ public class CkTests : CkModuleRules
             "CkProvider",
             "CkRecord",
             "CkSettings",
+            "CkShapes",
         });
     }
 }
