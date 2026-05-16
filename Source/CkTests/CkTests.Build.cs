@@ -22,6 +22,7 @@ public class CkTests : CkModuleRules
             "CkEcs",
             "CkLabel",
             "CkLog",
+            "CkPerception",
             "CkProvider",
             "CkRecord",
             "CkSettings",
