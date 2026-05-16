@@ -19,6 +19,7 @@ public class CkTests : CkModuleRules
             "FunctionalTesting",
 
             "CkCore",
+            "CkCVar",
             "CkEcs",
             "CkLabel",
             "CkLog",
