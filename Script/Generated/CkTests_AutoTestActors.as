@@ -1241,6 +1241,57 @@ class ACk_AutoTest_Messaging_Unbind_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Record_AddHasFeature_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Record_AddHasFeature");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Record_ConnectDisconnectRoundTrip_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Record_ConnectDisconnectRoundTrip");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Record_DestroyEntryPrunesFromRecord_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Record_DestroyEntryPrunesFromRecord");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Record_GetValidEntryByTagFindsLabeled_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Record_GetValidEntryByTagFindsLabeled");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Registry_AllocatorStress_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)

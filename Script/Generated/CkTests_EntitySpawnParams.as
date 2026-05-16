@@ -1763,6 +1763,58 @@ namespace UCk_AutoTest_Nav_PathQueuedDuringBake
 }
 
 USTRUCT()
+struct FCk_AutoTest_Record_AddHasFeature_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Record_AddHasFeature
+{
+    FCk_AutoTest_Record_AddHasFeature_SpawnParams Params()
+    {
+        return FCk_AutoTest_Record_AddHasFeature_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Record_ConnectDisconnectRoundTrip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Record_ConnectDisconnectRoundTrip
+{
+    FCk_AutoTest_Record_ConnectDisconnectRoundTrip_SpawnParams Params()
+    {
+        return FCk_AutoTest_Record_ConnectDisconnectRoundTrip_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Record_DestroyEntryPrunesFromRecord_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Record_DestroyEntryPrunesFromRecord
+{
+    FCk_AutoTest_Record_DestroyEntryPrunesFromRecord_SpawnParams Params()
+    {
+        return FCk_AutoTest_Record_DestroyEntryPrunesFromRecord_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Record_GetValidEntryByTagFindsLabeled_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Record_GetValidEntryByTagFindsLabeled
+{
+    FCk_AutoTest_Record_GetValidEntryByTagFindsLabeled_SpawnParams Params()
+    {
+        return FCk_AutoTest_Record_GetValidEntryByTagFindsLabeled_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Registry_AllocatorStress_SpawnParams
 {
 }
