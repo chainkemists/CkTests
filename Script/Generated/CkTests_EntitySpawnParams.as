@@ -814,6 +814,84 @@ namespace UCk_AutoTest_EntityScript_SpawnParamsRoundTrip
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityTag_AddFNameHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_AddFNameHappyPath
+{
+    FCk_AutoTest_EntityTag_AddFNameHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_AddFNameHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_AddGameplayTagHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_AddGameplayTagHappyPath
+{
+    FCk_AutoTest_EntityTag_AddGameplayTagHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_AddGameplayTagHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_HasAbsentTagFalse_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_HasAbsentTagFalse
+{
+    FCk_AutoTest_EntityTag_HasAbsentTagFalse_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_HasAbsentTagFalse_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed
+{
+    FCk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_RequestTryRemoveHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_RequestTryRemoveHappyPath
+{
+    FCk_AutoTest_EntityTag_RequestTryRemoveHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_RequestTryRemoveHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_TryGetTagNoTagReturnsNone_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_TryGetTagNoTagReturnsNone
+{
+    FCk_AutoTest_EntityTag_TryGetTagNoTagReturnsNone_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_TryGetTagNoTagReturnsNone_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Eqs_BasicQuery_SpawnParams
 {
 }
