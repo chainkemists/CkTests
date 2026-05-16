@@ -26,6 +26,11 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
+        // Kick the navmesh: AutoTests_CkTests_Level has the fixture but the bake is lazy.
+        // Each spawned agent issues a MoveTo → FindPath; the deferred-request queue holds
+        // those until the rebuild completes (~10ms in practice).
+        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+
         const auto Radius = 600.0;
         const auto Count = 5;
         const auto Step = (2.0 * Math::PI) / float(Count);

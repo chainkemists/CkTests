@@ -40,6 +40,13 @@ class UCk_AutoTest_Crowd_Pathfinding_Failure : UCk_AutoTest_Base
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
+        // Kick the navmesh: AutoTests_CkTests_Level has NavMeshBoundsVolume + floor at origin
+        // but the bake is lazy. Triggering Build() here ensures the start projection succeeds
+        // so the request reaches FindPathSync and exercises the End-projection failure path
+        // (instead of force-failing at the 5s deferred cap with NoNavData). Mirrors the pattern
+        // CkAutoTest_Nav_PathQueuedDuringBake uses successfully.
+        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
+
         // Off-mesh target. Far outside any reasonable NavMeshBoundsVolume.
         auto Request = FCk_Request_Nav_FindPath(FVector(99999.0, 99999.0, 99999.0));
         utils_nav::Request_FindPath(LocalHandle, Request);
@@ -79,7 +86,10 @@ class ACk_AutoTest_Crowd_Pathfinding_Failure_Actor : ACk_AutoTestRunner
     TArray<FString> Get_ExpectedLogErrors() const
     {
         TArray<FString> Out;
-        Out.Add("FindPathSync.*projection FAILED");
+        // Plain substring match (AddExpectedErrorPlain), not regex — the harness
+        // checks Contains on each pattern. The actual warning is:
+        //   "FindPathSync: [End] projection FAILED. ..."
+        Out.Add("FindPathSync: [End] projection FAILED");
         return Out;
     }
 }

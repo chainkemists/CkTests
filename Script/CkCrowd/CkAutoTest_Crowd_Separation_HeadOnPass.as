@@ -18,9 +18,11 @@ class UCk_AutoTest_Crowd_Separation_HeadOnPass : UCk_AutoTest_Base
     private FCk_Handle_CrowdAgent _AgentB;
     private float _MinSeparation = 999999.0;
     private float _ElapsedSec = 0.0;
+    private int32 _SamplesWithMotion = 0;
     private const float TimeoutSec = 8.0;
     private const float SampleIntervalSec = 0.05;
     private const float MinSepRequirement = 63.0;  // _Radius(42) * 1.5
+    private const int32 MinMotionSamples = 20;     // ~1s @ 50ms — must observe real motion
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -30,6 +32,11 @@ class UCk_AutoTest_Crowd_Separation_HeadOnPass : UCk_AutoTest_Base
         utils_transform::Add(LocalHandle,
             FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
+
+        // Kick the navmesh: AutoTests_CkTests_Level has the fixture but the bake is lazy.
+        // Each spawned agent issues a MoveTo → FindPath; the deferred-request queue holds
+        // those until the rebuild completes (~10ms in practice).
+        utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
 
         const auto SpawnA = FVector(-750.0, 0.0, 100.0);
         const auto SpawnB = FVector( 750.0, 0.0, 100.0);
@@ -57,8 +64,16 @@ class UCk_AutoTest_Crowd_Separation_HeadOnPass : UCk_AutoTest_Base
         const auto Sep = float((LocA - LocB).Size());
         if (Sep < _MinSeparation) { _MinSeparation = Sep; }
 
+        const auto VelA = utils_crowd_agent::Get_DesiredVelocity(_AgentA);
+        if (VelA.IsNearlyZero() == false) { ++_SamplesWithMotion; }
+
         if (_ElapsedSec > TimeoutSec)
         {
+            // Guard against the false-positive where pathing fails silently and agents never
+            // move — _MinSeparation stays at its initial 999999 and the requirement check
+            // would trivially "pass". Mirror the motion guard from Crowd_Separation_Vibration.
+            Assert_True(_SamplesWithMotion >= MinMotionSamples,
+                f"only {_SamplesWithMotion} samples saw non-zero velocity (need ≥ {MinMotionSamples}) — agents never moved, test would have falsely passed");
             Assert_True(_MinSeparation >= MinSepRequirement,
                 f"min-separation {_MinSeparation} < required {MinSepRequirement}cm — agents clipped during head-on pass");
             FinishSuccess();
