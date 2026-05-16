@@ -389,6 +389,12 @@ namespace ck::auto_test::expected_errors
         // Console-system perf warning emitted when long-running PIE keeps hitting the
         // same CVar lookup. Diagnostic, not actionable per-test.
         TEXT("FindConsoleObject() calls (consider caching"),
+        // Project Config/DefaultGameplayTags.ini references the test-side
+        // GameplayTags_Tests_CkDT DataTable, which isn't always present in the
+        // CkTests plugin's Content folder. The engine emits a Warning when the
+        // async-load flush happens to land mid-test; the test gets blamed even
+        // though the missing asset is purely a host-project config issue.
+        TEXT("Failed to find object 'DataTable /CkTests/GameplayTags_Tests_CkDT"),
     };
 }
 
