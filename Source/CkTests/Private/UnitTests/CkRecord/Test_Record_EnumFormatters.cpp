@@ -11,7 +11,7 @@
 
 namespace
 {
-    constexpr auto kCkUnitTestFlags =
+    constexpr auto kRecordFormatterTestFlags =
         EAutomationTestFlags::EditorContext |
         EAutomationTestFlags::ClientContext |
         EAutomationTestFlags::ProductFilter;
@@ -22,7 +22,7 @@ namespace
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_Record_EntryHandlingPolicy_FormatterRoundTrip,
     "CkTests.UnitTests.CkRecord.EntryHandlingPolicy.FormatterRoundTrip",
-    kCkUnitTestFlags)
+    kRecordFormatterTestFlags)
 
 bool FCkTest_Record_EntryHandlingPolicy_FormatterRoundTrip::RunTest(const FString& Parameters)
 {
@@ -41,7 +41,7 @@ bool FCkTest_Record_EntryHandlingPolicy_FormatterRoundTrip::RunTest(const FStrin
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_Record_ForEachIterationResult_FormatterRoundTrip,
     "CkTests.UnitTests.CkRecord.ForEachIterationResult.FormatterRoundTrip",
-    kCkUnitTestFlags)
+    kRecordFormatterTestFlags)
 
 bool FCkTest_Record_ForEachIterationResult_FormatterRoundTrip::RunTest(const FString& Parameters)
 {
@@ -60,7 +60,7 @@ bool FCkTest_Record_ForEachIterationResult_FormatterRoundTrip::RunTest(const FSt
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_Record_LabelRequirementPolicy_FormatterRoundTrip,
     "CkTests.UnitTests.CkRecord.LabelRequirementPolicy.FormatterRoundTrip",
-    kCkUnitTestFlags)
+    kRecordFormatterTestFlags)
 
 bool FCkTest_Record_LabelRequirementPolicy_FormatterRoundTrip::RunTest(const FString& Parameters)
 {
