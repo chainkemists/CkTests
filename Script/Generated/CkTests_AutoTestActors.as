@@ -1006,18 +1006,6 @@ class ACk_AutoTest_Inventory_StackableTrait_SplitStack_Actor : ACk_AutoTestRunne
     }
 }
 
-class ACk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor : ACk_AutoTestRunner
-{
-    UFUNCTION(BlueprintOverride)
-    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
-    {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount");
-        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
-        ResolvedClass = Path.TryLoadClass();
-        return ResolvedClass;
-    }
-}
-
 class ACk_AutoTest_Inventory_StackableTrait_StackItems_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)

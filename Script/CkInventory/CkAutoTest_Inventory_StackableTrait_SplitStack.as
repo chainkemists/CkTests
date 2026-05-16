@@ -40,6 +40,8 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
 {
     private FCk_Handle_Inventory_DataOnly _Inventory;
     private FCk_Handle_Item _OriginalStack;
+    private FCk_Handle_Item _SplitSource;
+    private FCk_Handle_Item _SplitNewItem;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -75,12 +77,24 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
         auto Items = _Inventory.Get_Items();
         if (Items.Num() != 1)
         {
-            FinishFailure(f"Expected 1 stack of count 3, got {Items.Num()} items");
+            FinishFailure(f"Expected 1 stack, got {Items.Num()} items");
             return;
         }
         _OriginalStack = Items[0];
+
+        // AddByDefinition has set the stack-count via a deferred IntegerAttribute
+        // Override modifier; wait one tick so the compute processor applies it
+        // before we read the count or issue the dependent SplitStack request.
+        WaitOneFrame(n"OnPostAddSettled");
+    }
+
+    UFUNCTION()
+    private void OnPostAddSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
         Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(_OriginalStack), 3,
-            "Initial stack should hold count 3");
+            "Initial stack should hold count 3 after deferred Override settles");
 
         _Inventory.Request_SplitStack(FCk_Request_Inventory_SplitStack(_OriginalStack, 1),
             FCk_Delegate_Inventory_OnOperationResult_Split(this, n"OnSplitResult"));
@@ -99,10 +113,23 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
             f"Split result should be Success (got {InResult})");
         Assert_Equals_Int(_Inventory.Get_NumItems(), 2,
             "After split, inventory should hold 2 stacks (original + new)");
-        Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(InSource), 2,
-            "Source stack should retain count 2 (3 - 1)");
-        Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(InNewItem), 1,
-            "New stack should hold count 1");
+
+        _SplitSource = InSource;
+        _SplitNewItem = InNewItem;
+
+        // SplitStack's count adjustments are also deferred — wait one tick.
+        WaitOneFrame(n"OnPostSplitSettled");
+    }
+
+    UFUNCTION()
+    private void OnPostSplitSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(_SplitSource), 2,
+            "Source stack should retain count 2 (3 - 1) after deferred adjust settles");
+        Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(_SplitNewItem), 1,
+            "New stack should hold count 1 after deferred adjust settles");
 
         FinishSuccess();
     }

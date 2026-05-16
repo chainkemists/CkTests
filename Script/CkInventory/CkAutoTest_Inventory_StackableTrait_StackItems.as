@@ -110,14 +110,26 @@ class UCk_AutoTest_Inventory_StackableTrait_StackItems : UCk_AutoTest_Base
         Assert_Equals_Int(_Inventory.Get_NumItems(), 1,
             "After merge, inventory should hold a single stack");
 
-        // The surviving stack should have its count increased to 2.
+        // StackItems applies its count delta to the target via a deferred
+        // IntegerAttribute Adjust modifier; wait one tick before reading.
+        WaitOneFrame(n"OnPostStackSettled");
+    }
+
+    UFUNCTION()
+    private void OnPostStackSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
         auto Items = _Inventory.Get_Items();
-        if (Items.Num() == 1)
+        if (Items.Num() != 1)
         {
-            auto Survivor = Items[0];
-            Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(Survivor), 2,
-                "Surviving stack should hold count 2 (1 + 1) after merge");
+            FinishFailure(f"Expected 1 surviving stack after merge, got {Items.Num()}");
+            return;
         }
+
+        auto Survivor = Items[0];
+        Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(Survivor), 2,
+            "Surviving stack should hold count 2 (1 + 1) after deferred Adjust settles");
 
         FinishSuccess();
     }
