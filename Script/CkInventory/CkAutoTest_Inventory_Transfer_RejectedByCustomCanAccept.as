@@ -125,3 +125,24 @@ class UCk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept : UCk_AutoTest_B
         FinishSuccess();
     }
 }
+
+class ACk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept;
+    default _TimeoutSeconds = 4.0f;
+
+    // The test asserts the rejection-with-rollback contract: target's CustomCanAcceptItem
+    // returns false → AddItem fails internally → transfer rolls back the source remove.
+    // The library correctly logs both the AddItem rejection and the rollback as Warnings
+    // for any production caller; the test deliberately exercises this path. Suppress both
+    // lines so the harness doesn't escalate them into a test failure. The library keeps
+    // the Warning severity for everyone outside this test.
+    UFUNCTION(BlueprintOverride)
+    TArray<FString> Get_ExpectedLogErrors() const
+    {
+        TArray<FString> Out;
+        Out.Add("Rejected by Custom Acceptance Logic");
+        Out.Add("rolled back source remove");
+        return Out;
+    }
+}
