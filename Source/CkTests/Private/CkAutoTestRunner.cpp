@@ -234,6 +234,8 @@ auto
     Restore_EnsurePolicyOverride();
 
     Super::FinishTest(TestResult, Message);
+
+    Destroy_RunnerEntity();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -249,6 +251,45 @@ auto
     Restore_EnsurePolicyOverride();
 
     Super::BeginDestroy();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    EndPlay(
+        const EEndPlayReason::Type EndPlayReason)
+    -> void
+{
+    // Safety net: world teardown / PIE stop. The runner entity lives on the
+    // world's TransientEntity which outlives this actor — without an explicit
+    // destroy here, every test that didn't reach FinishTest leaks its full
+    // entity graph for the lifetime of the world.
+    Destroy_RunnerEntity();
+
+    Super::EndPlay(EndPlayReason);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    Destroy_RunnerEntity()
+    -> void
+{
+    if (ck::Is_NOT_Valid(_RunnerEntity))
+    { return; }
+
+    // Destroys the EntityScript root entity and (via the standard ECS lifetime
+    // cascade) every child entity the AS test spawned. ForceDestroy bypasses
+    // any pending-kill guards so cleanup is immediate — the next test must see
+    // a clean world.
+    FCk_Handle DestroyHandle = _RunnerEntity;
+    UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(
+        DestroyHandle,
+        ECk_EntityLifetime_DestructionBehavior::ForceDestroy);
+
+    _RunnerEntity = FCk_Handle{};
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -340,6 +381,14 @@ namespace ck::auto_test::expected_errors
     static const TArray<FString> GDefaultPlainPatterns =
     {
         TEXT("TickTracker Ticks have been delayed"),
+        // Unreal asset-indexer SQLite warning when the Saved/Search dir is locked
+        // by another process (e.g. another PIE editor) or simply absent. Not actionable
+        // for gameplay tests — the indexer is editor-only and unrelated to test work.
+        TEXT("LogSQLiteDatabase"),
+        TEXT("LogFileInfo: Failed to open database"),
+        // Console-system perf warning emitted when long-running PIE keeps hitting the
+        // same CVar lookup. Diagnostic, not actionable per-test.
+        TEXT("FindConsoleObject() calls (consider caching"),
     };
 }
 
