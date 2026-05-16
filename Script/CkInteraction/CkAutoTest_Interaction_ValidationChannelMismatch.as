@@ -15,18 +15,20 @@
 // ValidationCustomFails tests to cover the full rejection enum surface
 // that's reachable without exotic setup.
 //
-// EXPECTED FAILURE — finding documented for investigation.
-// Observed: Get_CanInteractWith returns CanInteractWith (success) when
-// source channel != target channel. The ChannelMismatch enum value is
-// never returned in this scenario. Possible causes:
-//   1. Get_CanInteractWith doesn't check channels at all — channel
-//      matching happens elsewhere (perhaps inside Request_StartInteraction).
-//   2. Channel comparison uses the instigator handle differently than I
-//      expected (passing MyEntity, which IS the source carrier, may
-//      invert the comparison).
-// Worth resolving via framework investigation: either ChannelMismatch
-// is reachable through a different setup, or the enum value is dead
-// code and the triggering condition should be documented.
+// RESOLUTION:
+// The library's channel check at CkInteractTarget_Utils.cpp:156-163 only
+// runs when UCk_Utils_InteractSource_UE::Cast(InSource) succeeds — i.e.,
+// when InSource refers to the entity that owns the InteractSource fragment.
+// utils_interact_source::Add(carrier, ...) creates a CHILD entity that holds
+// the fragment; the carrier itself does NOT have FFragment_InteractSource_Params.
+// Passing the carrier (MyEntity) to Get_CanInteractWith therefore makes the
+// Cast return invalid, the channel branch is skipped, and the function falls
+// through to CanInteractWith.
+//
+// The fix is to pass _Source (the typed handle for the source sub-entity)
+// instead — both to Get_CanInteractWith and to the StartInteraction request.
+// Cast now succeeds, channels are compared (Default vs Secondary), and the
+// ChannelMismatch path returns as designed.
 //============================================================================
 
 class UCk_AutoTest_Interaction_ValidationChannelMismatch : UCk_AutoTest_Base
@@ -55,13 +57,17 @@ class UCk_AutoTest_Interaction_ValidationChannelMismatch : UCk_AutoTest_Base
             _Target,
             FCk_Delegate_InteractTarget_OnNewInteraction(this, n"OnNewInteraction"));
 
+        // Pass _Source (the typed source handle) so the library's Cast<InteractSource>
+        // succeeds and the channel-mismatch branch runs. MyEntity is the carrier; the
+        // source fragment lives on a child entity that utils_interact_source::Add created.
+        FCk_Handle SourceHandle = _Source;
         auto MyEntity = ck::ToEntity(this);
-        auto CanResult = utils_interact_target::Get_CanInteractWith(_Target, MyEntity);
+        auto CanResult = utils_interact_target::Get_CanInteractWith(_Target, SourceHandle);
         Assert_True(CanResult == ECk_CanInteractWithResult::ChannelMismatch,
             f"Get_CanInteractWith with mismatched channels should return ChannelMismatch (got {CanResult})");
 
         auto Request = FCk_Try_InteractTarget_StartInteraction();
-        Request.Set_InteractSource(MyEntity);
+        Request.Set_InteractSource(SourceHandle);
         Request.Set_InteractInstigator(MyEntity);
         utils_interact_target::Request_StartInteraction(_Target, Request);
 
