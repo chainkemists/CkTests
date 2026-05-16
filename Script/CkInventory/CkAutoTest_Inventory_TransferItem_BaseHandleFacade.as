@@ -10,7 +10,9 @@
 // public Utils boundary that dispatches to the correct typed Utils.
 //
 // This test exercises the Spatial→DataOnly direction *via the base handle*:
-//   1. Create a Spatial(2x2) source and a DataOnly(5) target on the test entity.
+//   1. Create a Spatial(3x3) source and a DataOnly(5) target on the test entity.
+//      (3x3 large enough for the 3x1 Sword — see CkAutoTest_Inventory_SpatialPlacementRejection
+//      which uses the same staging dimensions.)
 //   2. Seed the source with one Sword.
 //   3. Transfer via the base handle:
 //        utils_inventory::Request_TransferItem_ToDataOnly(SourceAsBase, ...)
@@ -41,7 +43,7 @@ class UCk_AutoTest_Inventory_TransferItem_BaseHandleFacade : UCk_AutoTest_Base
 
         auto SourceParams = utils_inventory_spatial::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_BaseFacade_Source"),
-            FIntPoint(2, 2),
+            FIntPoint(3, 3),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
         _Source = utils_inventory_spatial::Add(LocalHandle, SourceParams, ECk_Replication::DoesNotReplicate);
