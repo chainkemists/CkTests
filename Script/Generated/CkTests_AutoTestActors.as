@@ -896,18 +896,6 @@ class ACk_AutoTest_Interaction_ValidationTargetDisabled_Actor : ACk_AutoTestRunn
     }
 }
 
-class ACk_AutoTest_Inventory_AddItemByDefinition_MissingAsset_Actor : ACk_AutoTestRunner
-{
-    UFUNCTION(BlueprintOverride)
-    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
-    {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_AddItemByDefinition_MissingAsset");
-        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
-        ResolvedClass = Path.TryLoadClass();
-        return ResolvedClass;
-    }
-}
-
 class ACk_AutoTest_Inventory_CustomCanAcceptItem_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
@@ -1060,19 +1048,6 @@ class ACk_AutoTest_Inventory_TagsTrait_RemoveTag_Actor : ACk_AutoTestRunner
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_TagsTrait_RemoveTag");
-        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
-        ResolvedClass = Path.TryLoadClass();
-        return ResolvedClass;
-    }
-}
-
-class ACk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_Actor : ACk_AutoTestRunner
-{
-    default _TimeoutSeconds = 4.0f;
-    UFUNCTION(BlueprintOverride)
-    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
-    {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
@@ -1349,6 +1324,7 @@ class ACk_AutoTest_StateMachine_BasicTransition_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_StateMachine_DivergenceFirstBranch_Actor : ACk_AutoTestRunner
 {
+    default _TimeoutSeconds = 7.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {

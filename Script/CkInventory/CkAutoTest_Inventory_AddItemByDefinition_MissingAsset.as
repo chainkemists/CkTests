@@ -82,3 +82,21 @@ class UCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset : UCk_AutoTest_Bas
         FinishSuccess();
     }
 }
+
+class ACk_AutoTest_Inventory_AddItemByDefinition_MissingAsset_Actor : ACk_AutoTestRunner
+{
+    default _TestEntityScriptClass = UCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset;
+
+    // The test intentionally passes a null definition. CkInventory_Processor logs
+    // `AddItemByDefinition: Invalid definition` — a legitimate warning for production
+    // callers (caller-side bug indicator), but this test exercises the path on purpose.
+    // Suppress so the harness doesn't escalate the warning into a test failure.
+    // The library keeps the Warning severity for everyone outside this test.
+    UFUNCTION(BlueprintOverride)
+    TArray<FString> Get_ExpectedLogErrors() const
+    {
+        TArray<FString> Out;
+        Out.Add("AddItemByDefinition: Invalid definition");
+        return Out;
+    }
+}
