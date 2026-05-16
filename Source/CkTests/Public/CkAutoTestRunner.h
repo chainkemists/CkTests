@@ -109,10 +109,17 @@ public:
     virtual auto Tick(float DeltaSeconds) -> void override;
     virtual auto FinishTest(EFunctionalTestResult TestResult, const FString& Message) -> void override;
     virtual auto BeginDestroy() -> void override;
+    virtual auto EndPlay(const EEndPlayReason::Type EndPlayReason) -> void override;
 
 private:
     UFUNCTION()
     void OnRunnerConstructed(struct FCk_Handle_EntityScript InEntityScriptHandle);
+
+    // Destroys the spawned runner entity (and its entire child graph — every
+    // entity the AS test created during Construct/BeginPlay). Idempotent.
+    // Called from FinishTest and EndPlay so leaked agents from one test
+    // cannot contaminate the dynamic-navmesh / world-state of the next.
+    void Destroy_RunnerEntity();
 
     // Forces CkEnsure's display policy to LogOnly for the duration of a test
     // run. CkFoundation's CK_ENSURE_IF_NOT path normally pops a modal dialog
