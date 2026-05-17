@@ -40,6 +40,7 @@ public class CkTests : CkModuleRules
             "CkSubstep",
             "CkTargeting",
             "CkUI",
+            "CkUnrealComponent",
             "CkWatermark",
         });
     }
