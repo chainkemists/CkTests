@@ -37,6 +37,7 @@ public class CkTests : CkModuleRules
             "CkSettings",
             "CkShapes",
             "CkSubstep",
+            "CkTargeting",
             "CkUI",
             "CkWatermark",
         });
