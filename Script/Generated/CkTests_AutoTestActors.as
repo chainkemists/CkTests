@@ -2910,6 +2910,32 @@ class ACk_AutoTest_TransformInterpolation_LocationLerps_Actor : ACk_AutoTestRunn
     }
 }
 
+class ACk_AutoTest_Tween_CompletionBehavior_KeepEntity_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Tween_CompletionBehavior_KeepEntity");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Tween_EasingCurve_OutCubic_VsLinear");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Tween_FloatCompletion_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
