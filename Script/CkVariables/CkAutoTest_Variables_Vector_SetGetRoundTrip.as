@@ -17,7 +17,7 @@ class UCk_AutoTest_Variables_Vector_SetGetRoundTrip : UCk_AutoTest_Base
 
         utils_variables_vector::Set(Entity, Tag, SeedValue);
 
-        ECk_SucceededFailed Status;
+        ECk_SucceededFailed Status = ECk_SucceededFailed::Failed;
         auto Value = utils_variables_vector::Get_ByName(Entity, Tag.GetTagName(), ECk_Recursion::NotRecursive, Status);
         Assert_True(Status == ECk_SucceededFailed::Succeeded,
             "Get_ByName on a Set variable should report Succeeded");

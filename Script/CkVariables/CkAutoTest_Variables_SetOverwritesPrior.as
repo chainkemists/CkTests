@@ -17,7 +17,7 @@ class UCk_AutoTest_Variables_SetOverwritesPrior : UCk_AutoTest_Base
         utils_variables_int32::Set(Entity, Tag, 10);
         utils_variables_int32::Set(Entity, Tag, 25);
 
-        ECk_SucceededFailed Status;
+        ECk_SucceededFailed Status = ECk_SucceededFailed::Failed;
         auto Value = utils_variables_int32::Get_ByName(Entity, Tag.GetTagName(), ECk_Recursion::NotRecursive, Status);
         Assert_True(Status == ECk_SucceededFailed::Succeeded,
             "Get_ByName should still report Succeeded after re-Set");
