@@ -40,8 +40,7 @@ class UCk_AutoTest_Aggro_GetBestAggroSingle : UCk_AutoTest_Base
 
         auto Best = utils_aggro_owner::Get_BestAggro(_OwnerHandle);
         Assert_True(!utils_handle::Get_IsValid(Best),
-            "With FilterByDistance and FilterByLoS both disabled, no processor scores "
-            "the Aggros and Get_BestAggro stays invalid");
+            "With FilterByDistance and FilterByLoS both disabled, no processor scores the Aggros and Get_BestAggro stays invalid");
 
         FinishSuccess();
     }
