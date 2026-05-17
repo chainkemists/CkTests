@@ -33,6 +33,7 @@ public class CkTests : CkModuleRules
             "CkPerception",
             "CkProvider",
             "CkRecord",
+            "CkRelationship",
             "CkResourceLoader",
             "CkSettings",
             "CkShapes",

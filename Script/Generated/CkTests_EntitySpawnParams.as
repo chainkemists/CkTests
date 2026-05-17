@@ -2075,6 +2075,227 @@ namespace UCk_AutoTest_Registry_HandleInFragmentLifecycle
 }
 
 USTRUCT()
+struct FCk_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile
+{
+    FCk_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_AttitudeNoTeamIsNeutral_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_AttitudeNoTeamIsNeutral
+{
+    FCk_AutoTest_Relationship_AttitudeNoTeamIsNeutral_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_AttitudeNoTeamIsNeutral_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral
+{
+    FCk_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_AttitudeOwnershipChainHostile_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_AttitudeOwnershipChainHostile
+{
+    FCk_AutoTest_Relationship_AttitudeOwnershipChainHostile_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_AttitudeOwnershipChainHostile_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_AttitudeSameTeamIsFriendly_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_AttitudeSameTeamIsFriendly
+{
+    FCk_AutoTest_Relationship_AttitudeSameTeamIsFriendly_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_AttitudeSameTeamIsFriendly_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_AttitudeSelfIsFriendly_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_AttitudeSelfIsFriendly
+{
+    FCk_AutoTest_Relationship_AttitudeSelfIsFriendly_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_AttitudeSelfIsFriendly_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_AddDefaultUnassigned_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_AddDefaultUnassigned
+{
+    FCk_AutoTest_Relationship_Team_AddDefaultUnassigned_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_AddDefaultUnassigned_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_AddHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_AddHappyPath
+{
+    FCk_AutoTest_Relationship_Team_AddHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_AddHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_AssignChanges_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_AssignChanges
+{
+    FCk_AutoTest_Relationship_Team_AssignChanges_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_AssignChanges_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo
+{
+    FCk_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_GetIsAssignedTo_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_GetIsAssignedTo
+{
+    FCk_AutoTest_Relationship_Team_GetIsAssignedTo_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_GetIsAssignedTo_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_GetIsSame_False_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_GetIsSame_False
+{
+    FCk_AutoTest_Relationship_Team_GetIsSame_False_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_GetIsSame_False_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_GetIsSame_True_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_GetIsSame_True
+{
+    FCk_AutoTest_Relationship_Team_GetIsSame_True_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_GetIsSame_True_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_HasFalseBeforeAdd_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_HasFalseBeforeAdd
+{
+    FCk_AutoTest_Relationship_Team_HasFalseBeforeAdd_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_HasFalseBeforeAdd_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner
+{
+    FCk_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam
+{
+    FCk_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Relationship_Team_UnassignSetsUnassigned_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Relationship_Team_UnassignSetsUnassigned
+{
+    FCk_AutoTest_Relationship_Team_UnassignSetsUnassigned_SpawnParams Params()
+    {
+        return FCk_AutoTest_Relationship_Team_UnassignSetsUnassigned_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_SceneNode_ActorAttachedToActor_SpawnParams
 {
 }
