@@ -19,13 +19,6 @@
 //      exactly one item, and no new item entity must be created
 //      (`InNewItem` invalid).
 //
-// EXPECTED FAILURE — FRAMEWORK BUG: see CkAutoTest_Inventory_DataOnly_AddItem.as
-// for the canonical explanation. This test fails at the framework level
-// (Stackable+Tags trait double-apply warnings) until the trait-application
-// regression is fixed. The boundary contract this test pins is independent
-// of that bug — once the warning regression is resolved, this test should
-// turn green automatically.
-//
 // This is the boundary counterpart to CkAutoTest_Inventory_StackableTrait_SplitStack
 // (which covers the success path: split 1 from a stack of 3).
 //============================================================================

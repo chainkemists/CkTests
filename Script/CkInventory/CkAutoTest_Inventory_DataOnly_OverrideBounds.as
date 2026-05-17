@@ -21,10 +21,6 @@
 //   OLD bound. The first revision of this test made that mistake. The
 //   correct pattern is to poll Get_BoundsInfo in a tick callback and
 //   only queue the post-override add once the new bound is observable.
-//
-// EXPECTED FAILURE — FRAMEWORK BUG: see CkAutoTest_Inventory_DataOnly_AddItem.as
-// for the canonical explanation. This test fails at the framework level
-// (warnings on item creation) until the trait-application regression is fixed.
 //============================================================================
 
 class UCk_AutoTest_Inventory_DataOnly_OverrideBounds : UCk_AutoTest_Base
