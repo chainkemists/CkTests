@@ -19,6 +19,7 @@ public class CkTests : CkModuleRules
             "FunctionalTesting",
 
             "CkActorRelay",
+            "CkAggro",
             "CkAudio",
             "CkCore",
             "CkCue",
@@ -34,6 +35,7 @@ public class CkTests : CkModuleRules
             "CkProvider",
             "CkRecord",
             "CkRelationship",
+            "CkResolver",
             "CkResourceLoader",
             "CkSettings",
             "CkShapes",
