@@ -12,41 +12,6 @@
 //      and ItemsCreated.Num()=1.
 //   4. Get_NumItems(Inventory) == 1.
 //
-//============================================================================
-// EXPECTED FAILURE — FRAMEWORK BUG (canonical explanation)
-//============================================================================
-//
-// This test (and the other Stackable-using inventory AutoTests) currently
-// FAILS at the framework level even when every assertion passes. Cause:
-//
-//   Constructing items from a definition that carries
-//   UCk_ItemTrait_Stackable (e.g. inv_gym_items::Potion, Arrow) emits
-//   CkEnsure warnings during item creation:
-//     - "Cannot Connect RecordEntry [...StackCount]... already an entry"
-//     - "Fragment [FFragment_TagSet] already exists in Entity"
-//
-//   The bug is narrowed to the Stackable trait setup path specifically:
-//   item defs with only Tags+Dimensions (e.g. Sword) construct cleanly
-//   without warnings — verified by CkAutoTest_Inventory_TagsTrait_*
-//   passing green. So Stackable's init code appears to double-apply
-//   both its own StackCount fragment AND the Tags trait's TagSet
-//   fragment when both are present on the same item def.
-//
-//   UE's automation framework treats Warning-level log output during a
-//   Functional Test as a test failure regardless of assertion outcome.
-//   The same warnings fire on entry to CkInventoryGym_DataOnly_Bounded
-//   interactively — this is a real framework regression.
-//
-// We DELIBERATELY use the traited Potion def (rather than a bare-trait
-// item workaround) so this test and its siblings fail loudly until the
-// framework regression is fixed. Once the warning regression is resolved,
-// the four CkAutoTest_Inventory_DataOnly_* tests should turn green
-// automatically with no test-side changes required.
-//
-// The CkAutoTest_Inventory_StackableTrait_* tests carry an ADDITIONAL
-// caveat — see their banners for separate count-semantic anomalies that
-// will need investigation independent of the framework warning fix.
-//============================================================================
 
 class UCk_AutoTest_Inventory_DataOnly_AddItem : UCk_AutoTest_Base
 {

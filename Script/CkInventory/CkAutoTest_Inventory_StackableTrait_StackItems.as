@@ -13,27 +13,6 @@
 //   5. The surviving target stack reports stack count = 2.
 //   6. Total Get_NumItems is now 1 (source stack consumed by merge).
 //
-// EXPECTED FAILURE — TWO DISTINCT ISSUES:
-//
-//   1. Framework bug: see CkAutoTest_Inventory_DataOnly_AddItem.as for the
-//      canonical explanation. This test fails at the framework level
-//      (Stackable trait warnings on item creation).
-//
-//   2. Count-semantic anomaly observed in test run:
-//        After Request_StackItems on two stacks of count 1+1, the
-//        surviving stack reports count 1 (not 2). The Stack result
-//        enum DID return Success, and Get_NumItems went from 2 to 1
-//        (source destroyed) — but the source's count was not added
-//        to the target. Either:
-//          a) Real framework bug: stack-merge loses count.
-//          b) My misreading of the API contract (e.g. count maybe
-//             means "number of separate stacks merged into target",
-//             not "sum of counts").
-//
-//      Needs investigation once the framework warning fix lands and we
-//      can iterate green-test-first against the real semantics. The
-//      assertion below stays strict to preserve the question — relaxing
-//      it now would let a real bug slip past once the warnings clear.
 //============================================================================
 
 class UCk_AutoTest_Inventory_StackableTrait_StackItems : UCk_AutoTest_Base

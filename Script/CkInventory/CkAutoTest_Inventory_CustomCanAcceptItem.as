@@ -20,35 +20,6 @@
 //   4. Assert: the predicate WAS invoked (proving the rejection went
 //      through the user delegate, not a short-circuit elsewhere).
 //
-//============================================================================
-// EXPECTED FAILURE — FRAMEWORK BUG (CkInventory_Processor.cpp:510 vs 558)
-//============================================================================
-//
-// This test currently FAILS the result-enum assertion only — the predicate
-// IS invoked (verified) and the inventory IS empty after rejection
-// (verified). What's wrong is the *enum value reported*:
-//
-//   CkInventory_Processor.cpp:510 sets
-//     Result = Failed_RejectedByCustomAcceptanceLogic
-//   then `break`s out of the CreateNewItems while loop. Subsequently,
-//   DetermineResult at lines 551-560 runs unconditionally and clobbers
-//   that value:
-//
-//     if (Remaining <= 0)        { Result = Success_AllAdded; }
-//     else if (AmountAdded > 0)  { Result = Success_PartiallyAdded; }
-//     else                       { Result = Failed_NoSpaceAvailable; }  // <-- here
-//
-//   With Remaining=1 and AmountAdded=0, the else-branch fires and
-//   Failed_RejectedByCustomAcceptanceLogic is overwritten with the
-//   misleading Failed_NoSpaceAvailable.
-//
-// Fix shape: have DetermineResult skip the overwrite if Result was already
-// set to a more specific Failed_* value by an earlier step (or hoist the
-// "RejectedByCustomAcceptanceLogic" determination out of CreateNewItems).
-//
-// Test is left strict so the assertion goes green automatically once the
-// framework is fixed. No test-side change required at that point.
-//============================================================================
 
 class UCk_AutoTest_Inventory_CustomCanAcceptItem : UCk_AutoTest_Base
 {

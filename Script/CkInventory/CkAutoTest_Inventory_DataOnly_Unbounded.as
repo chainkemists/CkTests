@@ -10,10 +10,6 @@
 //
 // Mirrors the unbounded variant of the bounded gym, exercising the
 // utils_inventory_dataonly::Make_Params factory (no max-size argument).
-//
-// EXPECTED FAILURE — FRAMEWORK BUG: see CkAutoTest_Inventory_DataOnly_AddItem.as
-// for the canonical explanation. This test fails at the framework level
-// (warnings on item creation) until the trait-application regression is fixed.
 //============================================================================
 
 class UCk_AutoTest_Inventory_DataOnly_Unbounded : UCk_AutoTest_Base

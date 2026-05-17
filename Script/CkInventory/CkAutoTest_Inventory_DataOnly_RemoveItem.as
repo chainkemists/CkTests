@@ -12,10 +12,6 @@
 //
 // Step-machine pattern: removal is queued only after the add result has
 // been observed, so the request handlers don't race or coalesce.
-//
-// EXPECTED FAILURE — FRAMEWORK BUG: see CkAutoTest_Inventory_DataOnly_AddItem.as
-// for the canonical explanation. This test fails at the framework level
-// (warnings on item creation) until the trait-application regression is fixed.
 //============================================================================
 
 class UCk_AutoTest_Inventory_DataOnly_RemoveItem : UCk_AutoTest_Base
