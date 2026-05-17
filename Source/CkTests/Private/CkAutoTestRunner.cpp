@@ -31,8 +31,24 @@ DEFINE_LOG_CATEGORY_STATIC(LogCkAutoTest_Ensure, Log, All);
 //     Policy is in-memory CDO only), so a process death always recovers
 //     the user's .ini value on next launch.
 //
+// IMPORTANT — restore happens in EndPlay, NOT FinishTest. The per-test
+// teardown path is:
+//
+//   FinishTest -> Destroy_RunnerEntity (Request_DestroyEntity, deferred)
+//             -> next-tick ECS cleanup processors run for the just-destroyed
+//                runner entity AND every child entity the AS test spawned
+//             -> any of those processors may fire CK_ENSURE_IF_NOT
+//
+// If we restored the policy at FinishTest, that cleanup tick would see the
+// real (likely ModalDialog) policy, pop a modal on the very first ensure,
+// and hang the headless test process indefinitely. Holding the override
+// until EndPlay means every cleanup tick within the actor's lifetime
+// inherits LogOnly. Multiple runners interleave through GActiveCount, so a
+// long-running cleanup chain followed by the next test's PrepareTest keeps
+// the override continuously installed.
+//
 // The per-instance _EnsurePolicyOverridden flag still exists — it makes
-// each instance's Install/Restore idempotent (FinishTest AND BeginDestroy
+// each instance's Install/Restore idempotent (EndPlay AND BeginDestroy
 // both call Restore on the same actor).
 //
 // --------------------------------------------------------------------------------------------------------------------
@@ -228,11 +244,11 @@ auto
         const FString& Message)
     -> void
 {
-    // Always restore the ensure policy before delegating to the base
-    // implementation — covers both the engine-driven TimesUp path and
-    // our own FinishTest calls from PrepareTest/Tick.
-    Restore_EnsurePolicyOverride();
-
+    // Note: do NOT Restore_EnsurePolicyOverride here. Destroy_RunnerEntity
+    // queues a deferred destroy; ECS cleanup processors for the runner
+    // entity and its child entities run on subsequent ticks, and any of
+    // them may fire CK_ENSURE_IF_NOT. We need the LogOnly policy to remain
+    // in force across that cleanup window. EndPlay owns the restore.
     Super::FinishTest(TestResult, Message);
 
     Destroy_RunnerEntity();
@@ -261,11 +277,14 @@ auto
         const EEndPlayReason::Type EndPlayReason)
     -> void
 {
-    // Safety net: world teardown / PIE stop. The runner entity lives on the
-    // world's TransientEntity which outlives this actor — without an explicit
-    // destroy here, every test that didn't reach FinishTest leaks its full
-    // entity graph for the lifetime of the world.
+    // World teardown / PIE stop. Destroy the runner entity first — for any
+    // test that skipped FinishTest, this is also the safety net that
+    // prevents the AS test's entity graph from leaking on the world's
+    // TransientEntity. THEN drop our ref on the ensure-policy override:
+    // restoring before destruction would leave the destruction-driven
+    // cleanup ensures exposed to the modal-dialog policy.
     Destroy_RunnerEntity();
+    Restore_EnsurePolicyOverride();
 
     Super::EndPlay(EndPlayReason);
 }
