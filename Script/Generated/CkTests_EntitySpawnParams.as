@@ -2400,6 +2400,136 @@ namespace UCk_AutoTest_Relationship_Team_UnassignSetsUnassigned
 }
 
 USTRUCT()
+struct FCk_AutoTest_Resolver_Source_AddHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Resolver_Source_AddHappyPath
+{
+    FCk_AutoTest_Resolver_Source_AddHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Resolver_Source_AddHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Resolver_Source_CreateHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Resolver_Source_CreateHappyPath
+{
+    FCk_AutoTest_Resolver_Source_CreateHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Resolver_Source_CreateHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Resolver_Source_CreateTransientHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Resolver_Source_CreateTransientHappyPath
+{
+    FCk_AutoTest_Resolver_Source_CreateTransientHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Resolver_Source_CreateTransientHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Resolver_Source_ForEachDataBundleEmpty_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Resolver_Source_ForEachDataBundleEmpty
+{
+    FCk_AutoTest_Resolver_Source_ForEachDataBundleEmpty_SpawnParams Params()
+    {
+        return FCk_AutoTest_Resolver_Source_ForEachDataBundleEmpty_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Resolver_Source_HasFalseBeforeAdd_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Resolver_Source_HasFalseBeforeAdd
+{
+    FCk_AutoTest_Resolver_Source_HasFalseBeforeAdd_SpawnParams Params()
+    {
+        return FCk_AutoTest_Resolver_Source_HasFalseBeforeAdd_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Resolver_Target_AddHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Resolver_Target_AddHappyPath
+{
+    FCk_AutoTest_Resolver_Target_AddHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Resolver_Target_AddHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Resolver_Target_CreateHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Resolver_Target_CreateHappyPath
+{
+    FCk_AutoTest_Resolver_Target_CreateHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Resolver_Target_CreateHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Resolver_Target_CreateTransientHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Resolver_Target_CreateTransientHappyPath
+{
+    FCk_AutoTest_Resolver_Target_CreateTransientHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Resolver_Target_CreateTransientHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Resolver_Target_ForEachDataBundleEmpty_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Resolver_Target_ForEachDataBundleEmpty
+{
+    FCk_AutoTest_Resolver_Target_ForEachDataBundleEmpty_SpawnParams Params()
+    {
+        return FCk_AutoTest_Resolver_Target_ForEachDataBundleEmpty_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Resolver_Target_HasFalseBeforeAdd_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Resolver_Target_HasFalseBeforeAdd
+{
+    FCk_AutoTest_Resolver_Target_HasFalseBeforeAdd_SpawnParams Params()
+    {
+        return FCk_AutoTest_Resolver_Target_HasFalseBeforeAdd_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_SceneNode_ActorAttachedToActor_SpawnParams
 {
 }
