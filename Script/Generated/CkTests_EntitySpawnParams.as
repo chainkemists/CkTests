@@ -1464,6 +1464,19 @@ namespace UCk_AutoTest_Interaction_ConcurrentInteractionsSameTarget
 }
 
 USTRUCT()
+struct FCk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight
+{
+    FCk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Interaction_Instant_SpawnParams
 {
 }
@@ -1503,6 +1516,19 @@ namespace UCk_AutoTest_Interaction_ManualSuccess
 }
 
 USTRUCT()
+struct FCk_AutoTest_Interaction_OnInteractionFinished_PayloadShape_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_OnInteractionFinished_PayloadShape
+{
+    FCk_AutoTest_Interaction_OnInteractionFinished_PayloadShape_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_OnInteractionFinished_PayloadShape_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Interaction_OnNewInteractionPayload_SpawnParams
 {
 }
@@ -1516,6 +1542,19 @@ namespace UCk_AutoTest_Interaction_OnNewInteractionPayload
 }
 
 USTRUCT()
+struct FCk_AutoTest_Interaction_ResetAfterCompletion_Reusable_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_ResetAfterCompletion_Reusable
+{
+    FCk_AutoTest_Interaction_ResetAfterCompletion_Reusable_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_ResetAfterCompletion_Reusable_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Interaction_Timed_SpawnParams
 {
 }
@@ -1525,6 +1564,19 @@ namespace UCk_AutoTest_Interaction_Timed
     FCk_AutoTest_Interaction_Timed_SpawnParams Params()
     {
         return FCk_AutoTest_Interaction_Timed_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_TryGet_Interaction_ReturnsActive_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_TryGet_Interaction_ReturnsActive
+{
+    FCk_AutoTest_Interaction_TryGet_Interaction_ReturnsActive_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_TryGet_Interaction_ReturnsActive_SpawnParams();
     }
 }
 
