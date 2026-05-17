@@ -23,9 +23,6 @@
 //   without the gym noticing) would not be caught visually. This test
 //   pins down the actual rejection contract.
 //
-// EXPECTED FAILURE — FRAMEWORK BUG: see CkAutoTest_Inventory_DataOnly_AddItem.as
-// for the canonical explanation. This test fails at the framework level
-// (warnings on item creation) until the trait-application regression is fixed.
 //============================================================================
 
 class UCk_AutoTest_Inventory_DataOnly_BoundedReject : UCk_AutoTest_Base
