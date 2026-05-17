@@ -593,6 +593,149 @@ namespace UCk_AutoTest_Crowd_Separation_Vibration
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityCollection_AddHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityCollection_AddHappyPath
+{
+    FCk_AutoTest_EntityCollection_AddHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityCollection_AddHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityCollection_AddMultipleAddsAll_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityCollection_AddMultipleAddsAll
+{
+    FCk_AutoTest_EntityCollection_AddMultipleAddsAll_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityCollection_AddMultipleAddsAll_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityCollection_RequestAddEntitiesBatch_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityCollection_RequestAddEntitiesBatch
+{
+    FCk_AutoTest_EntityCollection_RequestAddEntitiesBatch_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityCollection_RequestAddEntitiesBatch_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityCollection_RequestAddSingleEntity_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityCollection_RequestAddSingleEntity
+{
+    FCk_AutoTest_EntityCollection_RequestAddSingleEntity_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityCollection_RequestAddSingleEntity_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityCollection_RequestRemoveSingleEntity_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityCollection_RequestRemoveSingleEntity
+{
+    FCk_AutoTest_EntityCollection_RequestRemoveSingleEntity_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityCollection_RequestRemoveSingleEntity_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityCollection_TryGetAbsentInvalid_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityCollection_TryGetAbsentInvalid
+{
+    FCk_AutoTest_EntityCollection_TryGetAbsentInvalid_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityCollection_TryGetAbsentInvalid_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityExtension_AddHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityExtension_AddHappyPath
+{
+    FCk_AutoTest_EntityExtension_AddHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityExtension_AddHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityExtension_DistinctOwnersIsolated_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityExtension_DistinctOwnersIsolated
+{
+    FCk_AutoTest_EntityExtension_DistinctOwnersIsolated_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityExtension_DistinctOwnersIsolated_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityExtension_ForEachListsAll_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityExtension_ForEachListsAll
+{
+    FCk_AutoTest_EntityExtension_ForEachListsAll_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityExtension_ForEachListsAll_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityExtension_RemoveHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityExtension_RemoveHappyPath
+{
+    FCk_AutoTest_EntityExtension_RemoveHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityExtension_RemoveHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityExtension_RemoveLeavesOthers_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityExtension_RemoveLeavesOthers
+{
+    FCk_AutoTest_EntityExtension_RemoveLeavesOthers_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityExtension_RemoveLeavesOthers_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityLifecycle_BatchDestroy_SpawnParams
 {
 }
