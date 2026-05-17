@@ -3517,6 +3517,32 @@ namespace UCk_AutoTest_TransformInterpolation_LocationLerps
 }
 
 USTRUCT()
+struct FCk_AutoTest_Tween_CompletionBehavior_KeepEntity_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Tween_CompletionBehavior_KeepEntity
+{
+    FCk_AutoTest_Tween_CompletionBehavior_KeepEntity_SpawnParams Params()
+    {
+        return FCk_AutoTest_Tween_CompletionBehavior_KeepEntity_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Tween_EasingCurve_OutCubic_VsLinear
+{
+    FCk_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_SpawnParams Params()
+    {
+        return FCk_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Tween_FloatCompletion_SpawnParams
 {
 }
