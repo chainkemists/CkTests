@@ -3036,6 +3036,110 @@ namespace UCk_AutoTest_Tween_YoyoLoop
 }
 
 USTRUCT()
+struct FCk_AutoTest_UnrealComponent_AddHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_UnrealComponent_AddHappyPath
+{
+    FCk_AutoTest_UnrealComponent_AddHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_UnrealComponent_AddHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_UnrealComponent_GetAllComponentsListsAdded_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_UnrealComponent_GetAllComponentsListsAdded
+{
+    FCk_AutoTest_UnrealComponent_GetAllComponentsListsAdded_SpawnParams Params()
+    {
+        return FCk_AutoTest_UnrealComponent_GetAllComponentsListsAdded_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_UnrealComponent_GetAllHandlesListsAdded_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_UnrealComponent_GetAllHandlesListsAdded
+{
+    FCk_AutoTest_UnrealComponent_GetAllHandlesListsAdded_SpawnParams Params()
+    {
+        return FCk_AutoTest_UnrealComponent_GetAllHandlesListsAdded_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_UnrealComponent_GetOwningEntity_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_UnrealComponent_GetOwningEntity
+{
+    FCk_AutoTest_UnrealComponent_GetOwningEntity_SpawnParams Params()
+    {
+        return FCk_AutoTest_UnrealComponent_GetOwningEntity_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_UnrealComponent_RequestRemoveAfterFrame_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_UnrealComponent_RequestRemoveAfterFrame
+{
+    FCk_AutoTest_UnrealComponent_RequestRemoveAfterFrame_SpawnParams Params()
+    {
+        return FCk_AutoTest_UnrealComponent_RequestRemoveAfterFrame_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_UnrealComponent_TryGetHandleByTypeFound_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_UnrealComponent_TryGetHandleByTypeFound
+{
+    FCk_AutoTest_UnrealComponent_TryGetHandleByTypeFound_SpawnParams Params()
+    {
+        return FCk_AutoTest_UnrealComponent_TryGetHandleByTypeFound_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound
+{
+    FCk_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_SpawnParams Params()
+    {
+        return FCk_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent
+{
+    FCk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_SpawnParams Params()
+    {
+        return FCk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_CueGym_Cue_AfterOneFrame_SpawnParams
 {
     UPROPERTY()
