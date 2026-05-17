@@ -3179,6 +3179,32 @@ namespace UCk_AutoTest_Timer_CountdownCompletion
 }
 
 USTRUCT()
+struct FCk_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_Get_CurrentTimerValue_DuringPause
+{
+    FCk_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_Jump_Forward_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_Jump_Forward
+{
+    FCk_AutoTest_Timer_Jump_Forward_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_Jump_Forward_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Timer_MultipleConcurrent_SpawnParams
 {
 }
@@ -3188,6 +3214,19 @@ namespace UCk_AutoTest_Timer_MultipleConcurrent
     FCk_AutoTest_Timer_MultipleConcurrent_SpawnParams Params()
     {
         return FCk_AutoTest_Timer_MultipleConcurrent_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive
+{
+    FCk_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_SpawnParams();
     }
 }
 
@@ -3270,6 +3309,19 @@ namespace UCk_AutoTest_Timer_ResumeAfterPause
 }
 
 USTRUCT()
+struct FCk_AutoTest_Timer_ReverseDirection_MidFlight_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_ReverseDirection_MidFlight
+{
+    FCk_AutoTest_Timer_ReverseDirection_MidFlight_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_ReverseDirection_MidFlight_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Timer_StopOnDone_SpawnParams
 {
 }
@@ -3279,6 +3331,19 @@ namespace UCk_AutoTest_Timer_StopOnDone
     FCk_AutoTest_Timer_StopOnDone_SpawnParams Params()
     {
         return FCk_AutoTest_Timer_StopOnDone_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple
+{
+    FCk_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple_SpawnParams();
     }
 }
 
