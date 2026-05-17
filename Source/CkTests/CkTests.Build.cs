@@ -41,6 +41,7 @@ public class CkTests : CkModuleRules
             "CkTargeting",
             "CkUI",
             "CkUnrealComponent",
+            "CkVariables",
             "CkWatermark",
         });
     }

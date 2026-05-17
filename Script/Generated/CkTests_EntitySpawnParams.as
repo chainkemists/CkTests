@@ -3140,6 +3140,97 @@ namespace UCk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent
 }
 
 USTRUCT()
+struct FCk_AutoTest_Variables_Bool_SetGetRoundTrip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Variables_Bool_SetGetRoundTrip
+{
+    FCk_AutoTest_Variables_Bool_SetGetRoundTrip_SpawnParams Params()
+    {
+        return FCk_AutoTest_Variables_Bool_SetGetRoundTrip_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Variables_Float_SetGetRoundTrip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Variables_Float_SetGetRoundTrip
+{
+    FCk_AutoTest_Variables_Float_SetGetRoundTrip_SpawnParams Params()
+    {
+        return FCk_AutoTest_Variables_Float_SetGetRoundTrip_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Variables_GameplayTag_SetGetRoundTrip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Variables_GameplayTag_SetGetRoundTrip
+{
+    FCk_AutoTest_Variables_GameplayTag_SetGetRoundTrip_SpawnParams Params()
+    {
+        return FCk_AutoTest_Variables_GameplayTag_SetGetRoundTrip_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Variables_Int32_SetGetRoundTrip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Variables_Int32_SetGetRoundTrip
+{
+    FCk_AutoTest_Variables_Int32_SetGetRoundTrip_SpawnParams Params()
+    {
+        return FCk_AutoTest_Variables_Int32_SetGetRoundTrip_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Variables_SetOverwritesPrior_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Variables_SetOverwritesPrior
+{
+    FCk_AutoTest_Variables_SetOverwritesPrior_SpawnParams Params()
+    {
+        return FCk_AutoTest_Variables_SetOverwritesPrior_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Variables_String_SetGetRoundTrip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Variables_String_SetGetRoundTrip
+{
+    FCk_AutoTest_Variables_String_SetGetRoundTrip_SpawnParams Params()
+    {
+        return FCk_AutoTest_Variables_String_SetGetRoundTrip_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Variables_Vector_SetGetRoundTrip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Variables_Vector_SetGetRoundTrip
+{
+    FCk_AutoTest_Variables_Vector_SetGetRoundTrip_SpawnParams Params()
+    {
+        return FCk_AutoTest_Variables_Vector_SetGetRoundTrip_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_CueGym_Cue_AfterOneFrame_SpawnParams
 {
     UPROPERTY()
