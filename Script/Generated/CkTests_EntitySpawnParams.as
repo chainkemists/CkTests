@@ -1672,6 +1672,19 @@ namespace UCk_AutoTest_Inventory_DataOnly_Unbounded
 }
 
 USTRUCT()
+struct FCk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses
+{
+    FCk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_SpawnParams
 {
 }
@@ -1681,6 +1694,45 @@ namespace UCk_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace
     FCk_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_SpawnParams Params()
     {
         return FCk_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther
+{
+    FCk_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_Spatial_RelocateItem_RotationChange_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_Spatial_RelocateItem_RotationChange
+{
+    FCk_AutoTest_Inventory_Spatial_RelocateItem_RotationChange_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_Spatial_RelocateItem_RotationChange_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_Spatial_RelocateItem_Success_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_Spatial_RelocateItem_Success
+{
+    FCk_AutoTest_Inventory_Spatial_RelocateItem_Success_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_Spatial_RelocateItem_Success_SpawnParams();
     }
 }
 
@@ -1798,6 +1850,19 @@ namespace UCk_AutoTest_Inventory_TransferItemPayload
     FCk_AutoTest_Inventory_TransferItemPayload_SpawnParams Params()
     {
         return FCk_AutoTest_Inventory_TransferItemPayload_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_TryGet_Inventory_ByName_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_TryGet_Inventory_ByName
+{
+    FCk_AutoTest_Inventory_TryGet_Inventory_ByName_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_TryGet_Inventory_ByName_SpawnParams();
     }
 }
 
