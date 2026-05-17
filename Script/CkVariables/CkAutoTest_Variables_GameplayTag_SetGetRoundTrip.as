@@ -15,7 +15,7 @@ class UCk_AutoTest_Variables_GameplayTag_SetGetRoundTrip : UCk_AutoTest_Base
 
         utils_variables_gameplay_tag::Set(Entity, SlotTag, Stored);
 
-        ECk_SucceededFailed Status;
+        ECk_SucceededFailed Status = ECk_SucceededFailed::Failed;
         auto Value = utils_variables_gameplay_tag::Get_ByName(Entity, SlotTag.GetTagName(), ECk_Recursion::NotRecursive, Status);
         Assert_True(Status == ECk_SucceededFailed::Succeeded,
             "Get_ByName on a Set variable should report Succeeded");
