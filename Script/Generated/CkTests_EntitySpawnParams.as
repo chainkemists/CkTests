@@ -1581,6 +1581,19 @@ namespace UCk_AutoTest_Interaction_ValidationTargetDisabled
 }
 
 USTRUCT()
+struct FCk_AutoTest_Inventory_AddItem_DuplicateInsertRejected_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_AddItem_DuplicateInsertRejected
+{
+    FCk_AutoTest_Inventory_AddItem_DuplicateInsertRejected_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_AddItem_DuplicateInsertRejected_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset_SpawnParams
 {
 }
@@ -1681,6 +1694,19 @@ namespace UCk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses
     FCk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_SpawnParams Params()
     {
         return FCk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_Sort_DataOnly_BasicOrder_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_Sort_DataOnly_BasicOrder
+{
+    FCk_AutoTest_Inventory_Sort_DataOnly_BasicOrder_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_Sort_DataOnly_BasicOrder_SpawnParams();
     }
 }
 
@@ -1824,6 +1850,19 @@ namespace UCk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept
     FCk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_SpawnParams Params()
     {
         return FCk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Inventory_Transfer_Spatial_To_Spatial_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Inventory_Transfer_Spatial_To_Spatial
+{
+    FCk_AutoTest_Inventory_Transfer_Spatial_To_Spatial_SpawnParams Params()
+    {
+        return FCk_AutoTest_Inventory_Transfer_Spatial_To_Spatial_SpawnParams();
     }
 }
 
