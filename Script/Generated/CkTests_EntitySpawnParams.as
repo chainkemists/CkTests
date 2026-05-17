@@ -489,6 +489,32 @@ namespace UCk_AutoTest_Attribute_IntegerOverflow
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_NotRevocable_AddCoalesces_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_NotRevocable_AddCoalesces
+{
+    FCk_AutoTest_Attribute_NotRevocable_AddCoalesces_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_NotRevocable_AddCoalesces_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_NotRevocable_OverrideReplaces_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_NotRevocable_OverrideReplaces
+{
+    FCk_AutoTest_Attribute_NotRevocable_OverrideReplaces_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_NotRevocable_OverrideReplaces_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_OnClampedPayloadDirection_SpawnParams
 {
 }
@@ -498,6 +524,19 @@ namespace UCk_AutoTest_Attribute_OnClampedPayloadDirection
     FCk_AutoTest_Attribute_OnClampedPayloadDirection_SpawnParams Params()
     {
         return FCk_AutoTest_Attribute_OnClampedPayloadDirection_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_Override_ChangesDeltaInPlace_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_Override_ChangesDeltaInPlace
+{
+    FCk_AutoTest_Attribute_Override_ChangesDeltaInPlace_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_Override_ChangesDeltaInPlace_SpawnParams();
     }
 }
 
@@ -515,6 +554,32 @@ namespace UCk_AutoTest_Attribute_PreClampAsymmetry
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_Request_ClearAllModifiers_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_Request_ClearAllModifiers
+{
+    FCk_AutoTest_Attribute_Request_ClearAllModifiers_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_Request_ClearAllModifiers_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness
+{
+    FCk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_RevokeModifierDuringValueChanged_SpawnParams
 {
 }
@@ -524,6 +589,19 @@ namespace UCk_AutoTest_Attribute_RevokeModifierDuringValueChanged
     FCk_AutoTest_Attribute_RevokeModifierDuringValueChanged_SpawnParams Params()
     {
         return FCk_AutoTest_Attribute_RevokeModifierDuringValueChanged_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal
+{
+    FCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_SpawnParams();
     }
 }
 
