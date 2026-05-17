@@ -85,8 +85,8 @@ class UCk_AutoTest_Inventory_Sort_DataOnly_BasicOrder : UCk_AutoTest_Base
         // All three items seeded. Build the Sort request with a dynamic
         // predicate UFUNCTION bound to this test entity.
         auto SortRequest = FCk_Request_Inventory_Sort();
-        SortRequest._SortPredicateDynamic =
-            FCk_Delegate_Inventory_SortPredicate_Dynamic(this, n"ComparePair");
+        SortRequest.Set_SortPredicateDynamic(
+            FCk_Delegate_Inventory_SortPredicate_Dynamic(this, n"ComparePair"));
 
         FCk_Handle_Inventory InvAsBase = _Inventory;
         utils_inventory::Request_Sort(InvAsBase, SortRequest,
