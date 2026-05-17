@@ -24,6 +24,8 @@ public class CkTests : CkModuleRules
             "CkCue",
             "CkCVar",
             "CkEcs",
+            "CkEntityCollection",
+            "CkEntityExtension",
             "CkGraphics",
             "CkIsmRenderer",
             "CkLabel",
