@@ -112,6 +112,110 @@ namespace UCk_AdvancedMusicDirectorCue
 }
 
 USTRUCT()
+struct FCk_AutoTest_Aggro_AddHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Aggro_AddHappyPath
+{
+    FCk_AutoTest_Aggro_AddHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Aggro_AddHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Aggro_ForEachExclusionPolicy_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Aggro_ForEachExclusionPolicy
+{
+    FCk_AutoTest_Aggro_ForEachExclusionPolicy_SpawnParams Params()
+    {
+        return FCk_AutoTest_Aggro_ForEachExclusionPolicy_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Aggro_GetBestAggroSingle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Aggro_GetBestAggroSingle
+{
+    FCk_AutoTest_Aggro_GetBestAggroSingle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Aggro_GetBestAggroSingle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Aggro_GetTarget_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Aggro_GetTarget
+{
+    FCk_AutoTest_Aggro_GetTarget_SpawnParams Params()
+    {
+        return FCk_AutoTest_Aggro_GetTarget_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Aggro_OwnerAddHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Aggro_OwnerAddHappyPath
+{
+    FCk_AutoTest_Aggro_OwnerAddHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Aggro_OwnerAddHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Aggro_RequestIncludeRestores_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Aggro_RequestIncludeRestores
+{
+    FCk_AutoTest_Aggro_RequestIncludeRestores_SpawnParams Params()
+    {
+        return FCk_AutoTest_Aggro_RequestIncludeRestores_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Aggro_TryGetAggroByTargetFound_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Aggro_TryGetAggroByTargetFound
+{
+    FCk_AutoTest_Aggro_TryGetAggroByTargetFound_SpawnParams Params()
+    {
+        return FCk_AutoTest_Aggro_TryGetAggroByTargetFound_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Aggro_TryGetAggroByTargetNotFound_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Aggro_TryGetAggroByTargetNotFound
+{
+    FCk_AutoTest_Aggro_TryGetAggroByTargetNotFound_SpawnParams Params()
+    {
+        return FCk_AutoTest_Aggro_TryGetAggroByTargetNotFound_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_AStar_BasicSearch_SpawnParams
 {
 }
