@@ -2360,6 +2360,97 @@ namespace UCk_AutoTest_TagSet_RequestAddRemove
 }
 
 USTRUCT()
+struct FCk_AutoTest_Targeting_CreateFromLocation_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Targeting_CreateFromLocation
+{
+    FCk_AutoTest_Targeting_CreateFromLocation_SpawnParams Params()
+    {
+        return FCk_AutoTest_Targeting_CreateFromLocation_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Targeting_CreateFromLocationAndRotation_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Targeting_CreateFromLocationAndRotation
+{
+    FCk_AutoTest_Targeting_CreateFromLocationAndRotation_SpawnParams Params()
+    {
+        return FCk_AutoTest_Targeting_CreateFromLocationAndRotation_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Targeting_CreateHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Targeting_CreateHappyPath
+{
+    FCk_AutoTest_Targeting_CreateHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Targeting_CreateHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Targeting_CreateTransientFromLocation_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Targeting_CreateTransientFromLocation
+{
+    FCk_AutoTest_Targeting_CreateTransientFromLocation_SpawnParams Params()
+    {
+        return FCk_AutoTest_Targeting_CreateTransientFromLocation_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Targeting_CreateTransientFromLocationAndRotation_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Targeting_CreateTransientFromLocationAndRotation
+{
+    FCk_AutoTest_Targeting_CreateTransientFromLocationAndRotation_SpawnParams Params()
+    {
+        return FCk_AutoTest_Targeting_CreateTransientFromLocationAndRotation_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Targeting_CreateTransientHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Targeting_CreateTransientHappyPath
+{
+    FCk_AutoTest_Targeting_CreateTransientHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_Targeting_CreateTransientHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity
+{
+    FCk_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity_SpawnParams Params()
+    {
+        return FCk_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Timer_BasicCompletion_SpawnParams
 {
 }
