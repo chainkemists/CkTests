@@ -1516,6 +1516,19 @@ namespace UCk_AutoTest_Interaction_ManualSuccess
 }
 
 USTRUCT()
+struct FCk_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond
+{
+    FCk_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Interaction_OnInteractionFinished_PayloadShape_SpawnParams
 {
 }
@@ -1564,6 +1577,19 @@ namespace UCk_AutoTest_Interaction_Timed
     FCk_AutoTest_Interaction_Timed_SpawnParams Params()
     {
         return FCk_AutoTest_Interaction_Timed_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_TimedInterruptedByCancel_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_TimedInterruptedByCancel
+{
+    FCk_AutoTest_Interaction_TimedInterruptedByCancel_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_TimedInterruptedByCancel_SpawnParams();
     }
 }
 
@@ -2971,6 +2997,19 @@ namespace UCk_AutoTest_StateMachine_NegatedEventDrivenCondition
 }
 
 USTRUCT()
+struct FCk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew
+{
+    FCk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_RacingEventDrivenTransitions_SpawnParams
 {
 }
@@ -2980,6 +3019,19 @@ namespace UCk_AutoTest_StateMachine_RacingEventDrivenTransitions
     FCk_AutoTest_StateMachine_RacingEventDrivenTransitions_SpawnParams Params()
     {
         return FCk_AutoTest_StateMachine_RacingEventDrivenTransitions_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_Stop_FiresOnStopped_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_Stop_FiresOnStopped
+{
+    FCk_AutoTest_StateMachine_Stop_FiresOnStopped_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_Stop_FiresOnStopped_SpawnParams();
     }
 }
 
