@@ -2533,6 +2533,32 @@ class ACk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_Actor : ACk_AutoT
     }
 }
 
+class ACk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_StateMachine_BasicTransition_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
