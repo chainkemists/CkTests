@@ -138,6 +138,32 @@ class ACk_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_Actor : ACk_AutoTestRunn
     }
 }
 
+class ACk_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 2.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Aggro_AddHappyPath_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;

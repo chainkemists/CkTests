@@ -203,6 +203,32 @@ namespace UCk_AutoTest_Actor_SpawnActor_FiresOnActorSpawned
 }
 
 USTRUCT()
+struct FCk_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor
+{
+    FCk_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_SpawnParams Params()
+    {
+        return FCk_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic
+{
+    FCk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_SpawnParams Params()
+    {
+        return FCk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Aggro_AddHappyPath_SpawnParams
 {
 }
