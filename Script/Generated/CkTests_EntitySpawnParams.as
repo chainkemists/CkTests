@@ -2582,6 +2582,19 @@ namespace UCk_AutoTest_Label_MatchesAny_FromContainer
 }
 
 USTRUCT()
+struct FCk_AutoTest_Marker_Add_Box_CreatesValidHandle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Marker_Add_Box_CreatesValidHandle
+{
+    FCk_AutoTest_Marker_Add_Box_CreatesValidHandle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Marker_Add_Box_CreatesValidHandle_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Messaging_BasicBroadcast_SpawnParams
 {
 }
