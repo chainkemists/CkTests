@@ -814,6 +814,45 @@ namespace UCk_AutoTest_Crowd_Separation_Vibration
 }
 
 USTRUCT()
+struct FCk_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Cue_AfterOneFrame_DestroyedQuickly
+{
+    FCk_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_SpawnParams Params()
+    {
+        return FCk_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Cue_Persistent_StaysAlive_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Cue_Persistent_StaysAlive
+{
+    FCk_AutoTest_Cue_Persistent_StaysAlive_SpawnParams Params()
+    {
+        return FCk_AutoTest_Cue_Persistent_StaysAlive_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Cue_Timed_DestroyedAfterDuration_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Cue_Timed_DestroyedAfterDuration
+{
+    FCk_AutoTest_Cue_Timed_DestroyedAfterDuration_SpawnParams Params()
+    {
+        return FCk_AutoTest_Cue_Timed_DestroyedAfterDuration_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityCollection_AddHappyPath_SpawnParams
 {
 }
@@ -4189,6 +4228,81 @@ namespace UCk_AutoTest_Variables_Vector_SetGetRoundTrip
     FCk_AutoTest_Variables_Vector_SetGetRoundTrip_SpawnParams Params()
     {
         return FCk_AutoTest_Variables_Vector_SetGetRoundTrip_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTestCue_AfterOneFrame_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_AutoTestCue_AfterOneFrame_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_AutoTestCue_AfterOneFrame
+{
+    FCk_AutoTestCue_AfterOneFrame_SpawnParams Params()
+    {
+        return FCk_AutoTestCue_AfterOneFrame_SpawnParams();
+    }
+
+    FCk_AutoTestCue_AfterOneFrame_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_AutoTestCue_AfterOneFrame_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTestCue_Persistent_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_AutoTestCue_Persistent_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_AutoTestCue_Persistent
+{
+    FCk_AutoTestCue_Persistent_SpawnParams Params()
+    {
+        return FCk_AutoTestCue_Persistent_SpawnParams();
+    }
+
+    FCk_AutoTestCue_Persistent_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_AutoTestCue_Persistent_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTestCue_Timed_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_AutoTestCue_Timed_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_AutoTestCue_Timed
+{
+    FCk_AutoTestCue_Timed_SpawnParams Params()
+    {
+        return FCk_AutoTestCue_Timed_SpawnParams();
+    }
+
+    FCk_AutoTestCue_Timed_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_AutoTestCue_Timed_SpawnParams(InInitialTransform);
     }
 }
 
