@@ -2439,6 +2439,71 @@ namespace UCk_AutoTest_Nav_PathQueuedDuringBake
 }
 
 USTRUCT()
+struct FCk_AutoTest_Probe_Add_Box_CreatesProbeEntity_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Probe_Add_Box_CreatesProbeEntity
+{
+    FCk_AutoTest_Probe_Add_Box_CreatesProbeEntity_SpawnParams Params()
+    {
+        return FCk_AutoTest_Probe_Add_Box_CreatesProbeEntity_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Probe_Add_Sphere_CreatesProbeEntity
+{
+    FCk_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_SpawnParams Params()
+    {
+        return FCk_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured
+{
+    FCk_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_SpawnParams Params()
+    {
+        return FCk_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Probe_GetName_ReturnsConfiguredTag_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Probe_GetName_ReturnsConfiguredTag
+{
+    FCk_AutoTest_Probe_GetName_ReturnsConfiguredTag_SpawnParams Params()
+    {
+        return FCk_AutoTest_Probe_GetName_ReturnsConfiguredTag_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Probe_Request_EnableDisable_StateFlips_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Probe_Request_EnableDisable_StateFlips
+{
+    FCk_AutoTest_Probe_Request_EnableDisable_StateFlips_SpawnParams Params()
+    {
+        return FCk_AutoTest_Probe_Request_EnableDisable_StateFlips_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Record_AddHasFeature_SpawnParams
 {
 }
