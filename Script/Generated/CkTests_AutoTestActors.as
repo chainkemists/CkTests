@@ -49,13 +49,13 @@
 // deleting the .as file removes BOTH classes atomically — no stale
 // generated file to get out of sync.)
 
-class ACk_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 4.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
@@ -531,6 +531,19 @@ class ACk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor : ACk_Au
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CameraShake_Add_CreatesEntry_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CameraShake_Add_CreatesEntry");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
@@ -1203,6 +1216,19 @@ class ACk_AutoTest_Eqs_VolumeCheck_Actor : ACk_AutoTestRunner
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Eqs_VolumeCheck");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
