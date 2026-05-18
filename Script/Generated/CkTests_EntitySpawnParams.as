@@ -138,6 +138,32 @@ namespace UCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded
 }
 
 USTRUCT()
+struct FCk_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate
+{
+    FCk_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_SpawnParams Params()
+    {
+        return FCk_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent
+{
+    FCk_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_SpawnParams Params()
+    {
+        return FCk_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_SpawnParams
 {
 }

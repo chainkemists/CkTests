@@ -75,6 +75,31 @@ class ACk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor : ACk_Aut
     }
 }
 
+class ACk_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 2.0f;
