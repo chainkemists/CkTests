@@ -42,8 +42,11 @@ class UCk_AutoTest_StateMachine_HierarchicalFirstTransition : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto NewStateClass = InPayload.Get_NewStateClass();
-        Assert_True(NewStateClass == UCk_SmTest_Hier_Parent_Approach,
+        // OnStateChanged fires for the initial Spawn entry too — skip that
+        // and wait for the real Spawn->Approach transition.
+        if (InPayload.Get_NewStateClass() != UCk_SmTest_Hier_Parent_Approach) { return; }
+
+        Assert_True(InPayload.Get_NewStateClass() == UCk_SmTest_Hier_Parent_Approach,
             "First transition from Spawn in the hierarchical SM should reach Approach");
         FinishSuccess();
     }

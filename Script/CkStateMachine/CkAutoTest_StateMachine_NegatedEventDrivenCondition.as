@@ -103,8 +103,16 @@ class UCk_AutoTest_StateMachine_NegatedEventDrivenCondition : UCk_AutoTest_Base
         FCk_Sm_Payload_OnStateChanged InPayload)
     {
         if (IsFinished()) { return; }
+
+        // OnStateChanged fires on the initial state entry into Idle too;
+        // that's NOT a transition. The contract we're pinning is that the
+        // negated condition keeps the transition Idle->Finish from firing,
+        // so only treat a fire whose NewStateClass is the target Finish
+        // state as a failure.
+        if (InPayload.Get_NewStateClass() != UCk_SmTest_Negated_State_Finish) { return; }
+
         _StateChangeObserved = true;
-        FinishFailure("SM transitioned despite negated event-driven condition — negate Pass→Fail mapping is broken. Transition fired when it should never fire.");
+        FinishFailure("SM transitioned to Finish despite negated event-driven condition — negate Pass→Fail mapping is broken. Transition fired when it should never fire.");
     }
 
     UFUNCTION()
