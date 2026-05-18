@@ -5,7 +5,7 @@
 //============================================================================
 //
 // Verifies the entity-tag API:
-//   1. Add a tag to a child entity, TryGet_Tag returns the same tag.
+//   1. Add a tag to a child entity, Has reports true.
 //   2. ForEach_Entity(parent, tag) finds the child.
 //   3. Request_TryRemove returns Succeeded.
 //   4. ForEach_Entity returns empty after removal.
@@ -32,12 +32,11 @@ class UCk_AutoTest_EntityLifecycle_TagAddRemove : UCk_AutoTest_Base
         _Child = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         utils_handle::Set_DebugName(_Child, n"AutoTest_TagChild");
 
-        // Phase 1: Add tag and verify both via TryGet and ForEach.
+        // Phase 1: Add tag and verify both via Has and ForEach.
         utils_entity_tag::Add(_Child, _TestTag);
 
-        auto Retrieved = utils_entity_tag::TryGet_Tag(_Child);
-        Assert_True(Retrieved == _TestTag,
-            f"TryGet_Tag should return the added tag (got '{Retrieved.ToString()}')");
+        Assert_True(utils_entity_tag::Has(_Child, _TestTag),
+            f"Has should report the added tag '{_TestTag}'");
 
         auto FoundBefore = utils_entity_tag::ForEach_Entity(_SelfHandle, _TestTag);
         Assert_True(FoundBefore.Num() >= 1,
