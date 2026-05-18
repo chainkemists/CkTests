@@ -39,9 +39,12 @@ class UCk_AutoTest_StateMachine_BasicTransition : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // First transition out of Idle should land on Patrol.
-        auto NewStateClass = InPayload.Get_NewStateClass();
-        Assert_True(NewStateClass == UCk_SmTest_State_Patrol,
+        // OnStateChanged also fires on the initial state entry into Idle
+        // (NewStateClass == Idle, PreviousStateClass == nullptr). Skip that
+        // and wait for the real Idle->Patrol transition.
+        if (InPayload.Get_NewStateClass() != UCk_SmTest_State_Patrol) { return; }
+
+        Assert_True(InPayload.Get_NewStateClass() == UCk_SmTest_State_Patrol,
             "First transition from Idle should reach Patrol");
         FinishSuccess();
     }
