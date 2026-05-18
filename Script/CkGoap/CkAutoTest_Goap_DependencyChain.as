@@ -22,6 +22,7 @@
 class UCk_AutoTest_Goap_DependencyChain : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap _Goap;
+    private FCk_Handle_Goap_WorldState _WorldState;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -31,8 +32,13 @@ class UCk_AutoTest_Goap_DependencyChain : UCk_AutoTest_Base
         // Gym pattern: transform fragment exists on owner before Goap is added.
         utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
+        _WorldState = utils_goap_worldstate::Create(LocalHandle,
+            planner_test_util::T(n"AutoTest.Goap.DependencyChain.WS"),
+            FCk_Fragment_Goap_WorldState_ParamsData());
+
         auto GoapParams = FCk_Fragment_Goap_ParamsData();
         GoapParams.Set_PlanOnStart(false);
+        GoapParams.Set_WorldStateSource(_WorldState);
         _Goap = utils_goap::Create(LocalHandle,
             planner_test_util::T(n"AutoTest.Goap.DependencyChain"), GoapParams);
 

@@ -47,6 +47,7 @@
 class UCk_AutoTest_Goap_BasicPlan : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap _Goap;
+    private FCk_Handle_Goap_WorldState _WorldState;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -56,15 +57,20 @@ class UCk_AutoTest_Goap_BasicPlan : UCk_AutoTest_Base
         // Gym pattern: transform fragment exists on owner before Goap is added.
         utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
+        _WorldState = utils_goap_worldstate::Create(LocalHandle,
+            planner_test_util::T(n"AutoTest.Goap.BasicPlan.WS"),
+            FCk_Fragment_Goap_WorldState_ParamsData());
+
         auto GoapParams = FCk_Fragment_Goap_ParamsData();
         GoapParams.Set_PlanOnStart(false);
+        GoapParams.Set_WorldStateSource(_WorldState);
         _Goap = utils_goap::Create(LocalHandle,
             planner_test_util::T(n"AutoTest.Goap.BasicPlan"), GoapParams);
 
         _Goap.AddAction(UCk_GoapT1_Action_CreateTool);
         _Goap.AddGoal(UCk_GoapT1_Goal_HasTool);
-        utils_goap::Set_WorldStateValue(
-            _Goap, planner_test_util::T(t1_tags::HasTool), false);
+        utils_goap_worldstate::Set_Value(
+            _WorldState, planner_test_util::T(t1_tags::HasTool), false);
 
         _Goap.BindTo_OnPlanComplete(
             FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlanComplete"));

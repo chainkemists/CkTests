@@ -88,6 +88,7 @@ class UCk_EntityScript_PlannerT1 : UCk_GenericEntityScript_UE
 	UPROPERTY(ExposeOnSpawn) FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FString Status = "PENDING";
 	FString Note = "";
 	TArray<TSubclassOf<UCk_GoapAction_EntityScript>> LastPlan;
@@ -100,14 +101,19 @@ class UCk_EntityScript_PlannerT1 : UCk_GenericEntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T1");
 
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			planner_test_util::T(n"Gym.PlannerTest.T1.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_PlanOnStart(false);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, planner_test_util::T(n"Gym.PlannerTest.T1"));
 
 		GoapEntity.AddAction(UCk_GoapT1_Action_CreateTool);
 		GoapEntity.AddGoal  (UCk_GoapT1_Goal_HasTool);
-		utils_goap::Set_WorldStateValue(GoapEntity, planner_test_util::T(t1_tags::HasTool), false);
+		utils_goap_worldstate::Set_Value(WorldStateEntity, planner_test_util::T(t1_tags::HasTool), false);
 
 		GoapEntity.BindTo_OnPlanComplete(FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlanComplete"));
 		GoapEntity.BindTo_OnPlanFailed  (FCk_Delegate_Goap_OnPlanFailed  (this, n"OnPlanFailed"));
@@ -139,7 +145,7 @@ class UCk_EntityScript_PlannerT1 : UCk_GenericEntityScript_UE
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDt)
 	{
 		auto SelfEntity = ck::ToEntity(this);
-		auto HasTool = utils_goap::Get_WorldStateValue(GoapEntity, planner_test_util::T(t1_tags::HasTool));
+		auto HasTool = utils_goap_worldstate::Get_Value(WorldStateEntity, planner_test_util::T(t1_tags::HasTool));
 		auto Text = f"Status: {Status}\n";
 		if (Note.Len() > 0) { Text = Text + f"Note: {Note}\n"; }
 		Text = Text + f"Cost: {LastPlanCost}  Length: {LastPlan.Num()}\n";
@@ -217,6 +223,7 @@ class UCk_EntityScript_PlannerT2 : UCk_GenericEntityScript_UE
 	UPROPERTY(ExposeOnSpawn) FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FString Status = "PENDING";
 	FString Note = "";
 	TArray<TSubclassOf<UCk_GoapAction_EntityScript>> LastPlan;
@@ -228,8 +235,14 @@ class UCk_EntityScript_PlannerT2 : UCk_GenericEntityScript_UE
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T2");
+
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			planner_test_util::T(n"Gym.PlannerTest.T2.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_PlanOnStart(false);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, planner_test_util::T(n"Gym.PlannerTest.T2"));
 
@@ -272,10 +285,10 @@ class UCk_EntityScript_PlannerT2 : UCk_GenericEntityScript_UE
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDt)
 	{
 		auto SelfEntity = ck::ToEntity(this);
-		auto S1 = utils_goap::Get_WorldStateValue(GoapEntity, planner_test_util::T(t2_tags::Step1));
-		auto S2 = utils_goap::Get_WorldStateValue(GoapEntity, planner_test_util::T(t2_tags::Step2));
-		auto S3 = utils_goap::Get_WorldStateValue(GoapEntity, planner_test_util::T(t2_tags::Step3));
-		auto SF = utils_goap::Get_WorldStateValue(GoapEntity, planner_test_util::T(t2_tags::StepFinal));
+		auto S1 = utils_goap_worldstate::Get_Value(WorldStateEntity, planner_test_util::T(t2_tags::Step1));
+		auto S2 = utils_goap_worldstate::Get_Value(WorldStateEntity, planner_test_util::T(t2_tags::Step2));
+		auto S3 = utils_goap_worldstate::Get_Value(WorldStateEntity, planner_test_util::T(t2_tags::Step3));
+		auto SF = utils_goap_worldstate::Get_Value(WorldStateEntity, planner_test_util::T(t2_tags::StepFinal));
 		auto Text = f"Status: {Status}\n";
 		if (Note.Len() > 0) { Text = Text + f"Note: {Note}\n"; }
 		Text = Text + f"Cost: {LastPlanCost}  Length: {LastPlan.Num()}\n";
@@ -352,6 +365,7 @@ class UCk_EntityScript_PlannerT4 : UCk_GenericEntityScript_UE
 	UPROPERTY(ExposeOnSpawn) FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FString Status = "PENDING";
 	FString Note = "";
 	TArray<TSubclassOf<UCk_GoapAction_EntityScript>> LastPlan;
@@ -363,8 +377,14 @@ class UCk_EntityScript_PlannerT4 : UCk_GenericEntityScript_UE
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T4");
+
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			planner_test_util::T(n"Gym.PlannerTest.T4.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_PlanOnStart(false);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, planner_test_util::T(n"Gym.PlannerTest.T4"));
 
@@ -407,9 +427,9 @@ class UCk_EntityScript_PlannerT4 : UCk_GenericEntityScript_UE
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDt)
 	{
 		auto SelfEntity = ck::ToEntity(this);
-		auto HasWood  = utils_goap::Get_WorldStateValue(GoapEntity, planner_test_util::T(t4_tags::HasWood));
-		auto HasStone = utils_goap::Get_WorldStateValue(GoapEntity, planner_test_util::T(t4_tags::HasStone));
-		auto HasTool  = utils_goap::Get_WorldStateValue(GoapEntity, planner_test_util::T(t4_tags::HasTool));
+		auto HasWood  = utils_goap_worldstate::Get_Value(WorldStateEntity, planner_test_util::T(t4_tags::HasWood));
+		auto HasStone = utils_goap_worldstate::Get_Value(WorldStateEntity, planner_test_util::T(t4_tags::HasStone));
+		auto HasTool  = utils_goap_worldstate::Get_Value(WorldStateEntity, planner_test_util::T(t4_tags::HasTool));
 		auto Text = f"Status: {Status}\n";
 		if (Note.Len() > 0) { Text = Text + f"Note: {Note}\n"; }
 		Text = Text + f"Cost: {LastPlanCost}  Length: {LastPlan.Num()}\n";
@@ -476,6 +496,7 @@ class UCk_EntityScript_PlannerT5 : UCk_GenericEntityScript_UE
 	UPROPERTY(ExposeOnSpawn) FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FString Status = "PENDING";
 	FString Note = "";
 	TArray<TSubclassOf<UCk_GoapAction_EntityScript>> LastPlan;
@@ -487,8 +508,14 @@ class UCk_EntityScript_PlannerT5 : UCk_GenericEntityScript_UE
 	{
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_PlannerTest_T5");
+
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			planner_test_util::T(n"Gym.PlannerTest.T5.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_PlanOnStart(false);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, planner_test_util::T(n"Gym.PlannerTest.T5"));
 
@@ -532,8 +559,8 @@ class UCk_EntityScript_PlannerT5 : UCk_GenericEntityScript_UE
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDt)
 	{
 		auto SelfEntity = ck::ToEntity(this);
-		auto Mat  = utils_goap::Get_WorldStateValue(GoapEntity, planner_test_util::T(t5_tags::HasMaterial));
-		auto Tool = utils_goap::Get_WorldStateValue(GoapEntity, planner_test_util::T(t5_tags::HasTool));
+		auto Mat  = utils_goap_worldstate::Get_Value(WorldStateEntity, planner_test_util::T(t5_tags::HasMaterial));
+		auto Tool = utils_goap_worldstate::Get_Value(WorldStateEntity, planner_test_util::T(t5_tags::HasTool));
 		auto Text = f"Status: {Status}\n";
 		if (Note.Len() > 0) { Text = Text + f"Note: {Note}\n"; }
 		Text = Text + f"Cost: {LastPlanCost}  Length: {LastPlan.Num()}\n";
