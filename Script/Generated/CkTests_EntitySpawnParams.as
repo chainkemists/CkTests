@@ -983,6 +983,58 @@ namespace UCk_AutoTest_Cue_Timed_DestroyedAfterDuration
 }
 
 USTRUCT()
+struct FCk_AutoTest_DynamicFragment_Add_HasReturnsTrue_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_DynamicFragment_Add_HasReturnsTrue
+{
+    FCk_AutoTest_DynamicFragment_Add_HasReturnsTrue_SpawnParams Params()
+    {
+        return FCk_AutoTest_DynamicFragment_Add_HasReturnsTrue_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_DynamicFragment_AddGet_RoundTripsValue_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_DynamicFragment_AddGet_RoundTripsValue
+{
+    FCk_AutoTest_DynamicFragment_AddGet_RoundTripsValue_SpawnParams Params()
+    {
+        return FCk_AutoTest_DynamicFragment_AddGet_RoundTripsValue_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_DynamicFragment_RequestRemove_ClearsHas_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_DynamicFragment_RequestRemove_ClearsHas
+{
+    FCk_AutoTest_DynamicFragment_RequestRemove_ClearsHas_SpawnParams Params()
+    {
+        return FCk_AutoTest_DynamicFragment_RequestRemove_ClearsHas_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed
+{
+    FCk_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_SpawnParams Params()
+    {
+        return FCk_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityCollection_AddHappyPath_SpawnParams
 {
 }
