@@ -67,6 +67,7 @@ class UCk_EntityScript_GoapGym_Door : UCk_GenericEntityScript_UE
 	FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FCk_Handle_Timer AutoTimer;
 
 	int32 AutoStep = 0;
@@ -82,8 +83,13 @@ class UCk_EntityScript_GoapGym_Door : UCk_GenericEntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Door");
 
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			goap_gym_util::T(n"Gym.Goap.Door.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_PlanOnStart(false);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Door"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_FindKey);
@@ -125,8 +131,8 @@ class UCk_EntityScript_GoapGym_Door : UCk_GenericEntityScript_UE
 
 	private void ResetWorldState(bool InHasKey, bool InUnlocked)
 	{
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Door.HasKey"), InHasKey);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Door.Unlocked"), InUnlocked);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Door.HasKey"), InHasKey);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Door.Unlocked"), InUnlocked);
 	}
 
 	private void RequestPlan()
@@ -149,17 +155,17 @@ class UCk_EntityScript_GoapGym_Door : UCk_GenericEntityScript_UE
 
 	UFUNCTION() private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning); }
 	UFUNCTION() private void OnReplan   (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); RequestPlan(); }
-	UFUNCTION() private void OnGiveKey  (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Door.HasKey"),   true);  RequestPlan(); }
-	UFUNCTION() private void OnLoseKey  (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Door.HasKey"),   false); RequestPlan(); }
-	UFUNCTION() private void OnPreUnlock(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Door.Unlocked"), true);  RequestPlan(); }
+	UFUNCTION() private void OnGiveKey  (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Door.HasKey"),   true);  RequestPlan(); }
+	UFUNCTION() private void OnLoseKey  (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Door.HasKey"),   false); RequestPlan(); }
+	UFUNCTION() private void OnPreUnlock(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Door.Unlocked"), true);  RequestPlan(); }
 
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
 		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
-		auto HasKey    = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Door.HasKey"));
-		auto Unlocked  = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Door.Unlocked"));
+		auto HasKey    = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Door.HasKey"));
+		auto Unlocked  = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Door.Unlocked"));
 
 		auto Text = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 		Text = f"{Text}===== World State =====\n";
@@ -186,6 +192,7 @@ class UCk_EntityScript_GoapGym_Tea : UCk_GenericEntityScript_UE
 	FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FCk_Handle_Timer AutoTimer;
 
 	int32 AutoStep = 0;
@@ -201,8 +208,13 @@ class UCk_EntityScript_GoapGym_Tea : UCk_GenericEntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Tea");
 
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			goap_gym_util::T(n"Gym.Goap.Tea.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_PlanOnStart(false);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Tea"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_FillKettle);
@@ -249,10 +261,10 @@ class UCk_EntityScript_GoapGym_Tea : UCk_GenericEntityScript_UE
 
 	private void SetWS(bool InHasWater, bool InWaterHot, bool InTeaSteeped, bool InTeaReady)
 	{
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.HasWater"),   InHasWater);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.WaterHot"),   InWaterHot);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.TeaSteeped"), InTeaSteeped);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.TeaReady"),   InTeaReady);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.HasWater"),   InHasWater);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.WaterHot"),   InWaterHot);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.TeaSteeped"), InTeaSteeped);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.TeaReady"),   InTeaReady);
 	}
 
 	private void RequestPlan() { GoapEntity.Request_Plan(); PlanCount++; }
@@ -272,9 +284,9 @@ class UCk_EntityScript_GoapGym_Tea : UCk_GenericEntityScript_UE
 
 	UFUNCTION() private void OnAutoSet (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning); }
 	UFUNCTION() private void OnReplan  (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); RequestPlan(); }
-	UFUNCTION() private void OnFillWater(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.HasWater"),   true); RequestPlan(); }
-	UFUNCTION() private void OnBoilWater(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.WaterHot"),   true); RequestPlan(); }
-	UFUNCTION() private void OnSteepTea (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.TeaSteeped"), true); RequestPlan(); }
+	UFUNCTION() private void OnFillWater(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.HasWater"),   true); RequestPlan(); }
+	UFUNCTION() private void OnBoilWater(FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.WaterHot"),   true); RequestPlan(); }
+	UFUNCTION() private void OnSteepTea (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.TeaSteeped"), true); RequestPlan(); }
 	UFUNCTION() private void OnResetAll (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); SetWS(false, false, false, false); RequestPlan(); }
 
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
@@ -282,10 +294,10 @@ class UCk_EntityScript_GoapGym_Tea : UCk_GenericEntityScript_UE
 		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
-		auto HasWater   = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.HasWater"));
-		auto WaterHot   = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.WaterHot"));
-		auto TeaSteeped = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.TeaSteeped"));
-		auto TeaReady   = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Tea.TeaReady"));
+		auto HasWater   = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.HasWater"));
+		auto WaterHot   = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.WaterHot"));
+		auto TeaSteeped = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.TeaSteeped"));
+		auto TeaReady   = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Tea.TeaReady"));
 
 		auto Text = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 		Text = f"{Text}===== World State =====\n";
@@ -313,6 +325,7 @@ class UCk_EntityScript_GoapGym_Combat : UCk_GenericEntityScript_UE
 	FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FCk_Handle_Timer AutoTimer;
 
 	int32 AutoStep = 0;
@@ -329,8 +342,13 @@ class UCk_EntityScript_GoapGym_Combat : UCk_GenericEntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Combat");
 
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			goap_gym_util::T(n"Gym.Goap.Combat.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_PlanOnStart(false);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Combat"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_PickUpWeapon);
@@ -376,10 +394,10 @@ class UCk_EntityScript_GoapGym_Combat : UCk_GenericEntityScript_UE
 
 	private void ResetScenario()
 	{
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"),    false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.HasAmmo"),      false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.EnemyInRange"), true);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.EnemyAlive"),   true);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"),    false);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.HasAmmo"),      false);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.EnemyInRange"), true);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.EnemyAlive"),   true);
 	}
 
 	private void SetMeleeCost(float InCost)
@@ -397,7 +415,7 @@ class UCk_EntityScript_GoapGym_Combat : UCk_GenericEntityScript_UE
 		if      (Step == 0) { ResetScenario(); SetMeleeCost(6.0f); }
 		else if (Step == 1) { ResetScenario(); SetMeleeCost(3.0f); }
 		else if (Step == 2) { ResetScenario(); SetMeleeCost(6.0f); }
-		else if (Step == 3) { ResetScenario(); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"), true); SetMeleeCost(6.0f); }
+		else if (Step == 3) { ResetScenario(); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"), true); SetMeleeCost(6.0f); }
 		RequestPlan();
 		AutoStep++;
 	}
@@ -406,18 +424,18 @@ class UCk_EntityScript_GoapGym_Combat : UCk_GenericEntityScript_UE
 	UFUNCTION() private void OnReplan         (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); RequestPlan(); }
 	UFUNCTION() private void OnMeleeCheap     (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); SetMeleeCost(3.0f); RequestPlan(); }
 	UFUNCTION() private void OnMeleeExpensive (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); SetMeleeCost(6.0f); RequestPlan(); }
-	UFUNCTION() private void OnRemoveWeapon   (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"), false); RequestPlan(); }
-	UFUNCTION() private void OnGiveWeapon     (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"), true);  RequestPlan(); }
+	UFUNCTION() private void OnRemoveWeapon   (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"), false); RequestPlan(); }
+	UFUNCTION() private void OnGiveWeapon     (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"), true);  RequestPlan(); }
 
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
 		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
-		auto HasWeapon    = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"));
-		auto HasAmmo      = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.HasAmmo"));
-		auto EnemyInRange = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.EnemyInRange"));
-		auto EnemyAlive   = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.EnemyAlive"));
+		auto HasWeapon    = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.HasWeapon"));
+		auto HasAmmo      = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.HasAmmo"));
+		auto EnemyInRange = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.EnemyInRange"));
+		auto EnemyAlive   = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.EnemyAlive"));
 
 		auto Text = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 		Text = f"{Text}===== World State =====\n";
@@ -446,6 +464,7 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_GenericEntityScript_UE
 	FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FCk_Handle_Timer AutoTimer;
 
 	int32 AutoStep = 0;
@@ -461,8 +480,13 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_GenericEntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_Priorities");
 
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			goap_gym_util::T(n"Gym.Goap.Priorities.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_PlanOnStart(false);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.Priorities"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_Hide);
@@ -512,12 +536,12 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_GenericEntityScript_UE
 
 	private void ResetWS()
 	{
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.UnderFire"),    false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.InCover"),      false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.IsHungry"),     false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.HasFood"),      false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.EnemySpotted"), false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.EnemyDown"),    false);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.UnderFire"),    false);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.InCover"),      false);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.IsHungry"),     false);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.HasFood"),      false);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.EnemySpotted"), false);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.EnemyDown"),    false);
 	}
 
 	private void RequestPlan() { GoapEntity.Request_Plan(); PlanCount++; }
@@ -528,8 +552,8 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_GenericEntityScript_UE
 		auto Step = AutoStep % AutoConfig.TotalSteps;
 		ResetWS();
 		if      (Step == 0) { /* calm - Neutralize is the only achievable goal */ }
-		else if (Step == 1) { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.IsHungry"), true); }
-		else if (Step == 2) { GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.UnderFire"), true); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.IsHungry"), true); }
+		else if (Step == 1) { utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.IsHungry"), true); }
+		else if (Step == 2) { utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.UnderFire"), true); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.IsHungry"), true); }
 		else if (Step == 3) { /* reset only */ }
 		RequestPlan();
 		AutoStep++;
@@ -537,9 +561,9 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_GenericEntityScript_UE
 
 	UFUNCTION() private void OnAutoSet   (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning); }
 	UFUNCTION() private void OnReplan    (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); RequestPlan(); }
-	UFUNCTION() private void OnTakeFire  (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.UnderFire"), true);     RequestPlan(); }
-	UFUNCTION() private void OnGetHungry (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.IsHungry"), true);      RequestPlan(); }
-	UFUNCTION() private void OnSpotEnemy (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.EnemySpotted"), true);  RequestPlan(); }
+	UFUNCTION() private void OnTakeFire  (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.UnderFire"), true);     RequestPlan(); }
+	UFUNCTION() private void OnGetHungry (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.IsHungry"), true);      RequestPlan(); }
+	UFUNCTION() private void OnSpotEnemy (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.EnemySpotted"), true);  RequestPlan(); }
 	UFUNCTION() private void OnResetAll  (FCk_Handle InHandle, FGameplayTag InMsg, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); ResetWS(); RequestPlan(); }
 
 	UFUNCTION() private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
@@ -548,9 +572,9 @@ class UCk_EntityScript_GoapGym_Priorities : UCk_GenericEntityScript_UE
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
 
-		auto UnderFire    = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.UnderFire"));
-		auto IsHungry     = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.IsHungry"));
-		auto EnemySpotted = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Pri.EnemySpotted"));
+		auto UnderFire    = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.UnderFire"));
+		auto IsHungry     = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.IsHungry"));
+		auto EnemySpotted = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Pri.EnemySpotted"));
 
 		auto Text = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 		Text = f"{Text}===== Goals (priority) =====\n";
@@ -581,6 +605,7 @@ class UCk_EntityScript_GoapGym_NoPlan : UCk_GenericEntityScript_UE
 	FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FCk_Handle_Timer AutoTimer;
 
 	int32 AutoStep = 0;
@@ -596,8 +621,13 @@ class UCk_EntityScript_GoapGym_NoPlan : UCk_GenericEntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_NoPlan");
 
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			goap_gym_util::T(n"Gym.Goap.NoPlan.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_PlanOnStart(false);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.NoPlan"));
 		// Intentionally register actions that CANNOT reach KillEnemy
@@ -605,7 +635,7 @@ class UCk_EntityScript_GoapGym_NoPlan : UCk_GenericEntityScript_UE
 		GoapEntity.AddAction(UCk_GoapTest_Action_Hide);
 		GoapEntity.AddGoal(UCk_GoapTest_Goal_KillEnemy);
 
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Combat.EnemyAlive"), true);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Combat.EnemyAlive"), true);
 		RequestPlan();
 
 
@@ -672,6 +702,7 @@ class UCk_EntityScript_GoapGym_CircularDep : UCk_GenericEntityScript_UE
 	FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FCk_Handle_Timer AutoTimer;
 
 	int32 AutoStep = 0;
@@ -688,8 +719,13 @@ class UCk_EntityScript_GoapGym_CircularDep : UCk_GenericEntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_CircularDep");
 
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			goap_gym_util::T(n"Gym.Goap.CircularDep.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_PlanOnStart(false);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Add(InHandle, GoapParams);
 		utils_gameplay_label::Add(GoapEntity, goap_gym_util::T(n"Gym.Goap.CircularDep"));
 		GoapEntity.AddAction(UCk_GoapTest_Action_ChargeDevice);
@@ -728,8 +764,8 @@ class UCk_EntityScript_GoapGym_CircularDep : UCk_GenericEntityScript_UE
 
 	private void ResetWS()
 	{
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Cycle.HasPower"),   false);
-		GoapEntity.Set_WorldStateValue(goap_gym_util::T(n"Goap.WS.Cycle.HasBattery"), BatterySeeded);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Cycle.HasPower"),   false);
+		utils_goap_worldstate::Set_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Cycle.HasBattery"), BatterySeeded);
 	}
 
 	private void RequestPlan() { GoapEntity.Request_Plan(); PlanCount++; }
@@ -755,8 +791,8 @@ class UCk_EntityScript_GoapGym_CircularDep : UCk_GenericEntityScript_UE
 		if (ck::Is_NOT_Valid(GoapEntity)) { return; }
 		auto SelfEntity = ck::ToEntity(this);
 		auto Status = utils_goap::Get_PlanStatus(GoapEntity);
-		auto HasPower   = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Cycle.HasPower"));
-		auto HasBattery = GoapEntity.Get_WorldStateValue(goap_gym_util::T(n"Goap.WS.Cycle.HasBattery"));
+		auto HasPower   = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Cycle.HasPower"));
+		auto HasBattery = utils_goap_worldstate::Get_Value(WorldStateEntity,goap_gym_util::T(n"Goap.WS.Cycle.HasBattery"));
 
 		auto Text = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 		Text = f"{Text}===== Graph =====\n";

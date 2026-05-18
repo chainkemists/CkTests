@@ -12,8 +12,9 @@
 // Every-tick re-targeting + distance-tier-gated cost updates + random
 // kill/revive flips feed the new ECk_Goap_ReplanPolicy::OnEitherDirty with
 // a 0.25s throttle. No explicit Request_Plan calls from the gym — the
-// planner re-fires on dirty flags from Set_WorldStateValue / Set_ActionCost
-// value-change detection, demonstrating the full auto-replan pipeline.
+// planner re-fires on dirty flags from utils_goap_worldstate::Set_Value /
+// utils_goap::Set_ActionCost value-change detection, demonstrating the full
+// auto-replan pipeline.
 //============================================================================
 
 namespace Ck
@@ -108,6 +109,7 @@ class UCk_EntityScript_GoapGym_AutoReplan :  UCk_GenericEntityScript_UE
 	FTransform InitialTransform = FTransform::Identity;
 
 	FCk_Handle_Goap GoapEntity;
+	FCk_Handle_Goap_WorldState WorldStateEntity;
 	FCk_Handle_Timer StepTimer;
 	FCk_Handle_Pmg_DebugShape AIShape;
 	FCk_Handle_Pmg_DebugShape PlanLine;
@@ -144,11 +146,16 @@ class UCk_EntityScript_GoapGym_AutoReplan :  UCk_GenericEntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_AutoReplan");
 
+		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+			goap_auto_replan::T(n"Gym.Goap.AutoReplan.WS"),
+			FCk_Fragment_Goap_WorldState_ParamsData());
+
 		// GOAP entity — auto-replan on either dirty, 0.25s throttle, plan-on-start.
 		auto GoapParams = FCk_Fragment_Goap_ParamsData();
 		GoapParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnEitherDirty);
 		GoapParams.Set_MinReplanIntervalSeconds(0.25f);
 		GoapParams.Set_PlanOnStart(true);
+		GoapParams.Set_WorldStateSource(WorldStateEntity);
 		GoapEntity = utils_goap::Create(InHandle,
 			goap_auto_replan::T(n"Gym.Goap.AutoReplan"), GoapParams);
 		GoapEntity.AddAction(UCk_GoapAutoReplan_Action_MoveTo);
@@ -290,9 +297,9 @@ class UCk_EntityScript_GoapGym_AutoReplan :  UCk_GenericEntityScript_UE
 		return BestIdx;
 	}
 
-	// WS updates are value-change gated by Set_WorldStateValue semantics —
-	// the SetWorldState request handler only raises the dirty tag when the
-	// slot value actually changes. We can therefore Set unconditionally.
+	// WS updates are value-change gated — the WorldState request handler only
+	// broadcasts OnValueChanged when the slot value actually changes. We can
+	// therefore Set unconditionally.
 	private void UpdateWorldState_ForTarget()
 	{
 		bool InRange = false;
@@ -305,8 +312,8 @@ class UCk_EntityScript_GoapGym_AutoReplan :  UCk_GenericEntityScript_UE
 			Alive   = T.IsAlive;
 		}
 
-		GoapEntity.Set_WorldStateValue(goap_auto_replan::T(n"Goap.WS.AutoReplan.EnemyInRange"), InRange);
-		GoapEntity.Set_WorldStateValue(goap_auto_replan::T(n"Goap.WS.AutoReplan.EnemyAlive"),   Alive);
+		utils_goap_worldstate::Set_Value(WorldStateEntity, goap_auto_replan::T(n"Goap.WS.AutoReplan.EnemyInRange"), InRange);
+		utils_goap_worldstate::Set_Value(WorldStateEntity, goap_auto_replan::T(n"Goap.WS.AutoReplan.EnemyAlive"),   Alive);
 
 		LastTargetInRange = InRange;
 		LastTargetAlive   = Alive;
