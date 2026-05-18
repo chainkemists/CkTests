@@ -281,6 +281,19 @@ namespace UCk_AutoTest_Attribute_ByteModifierAdd
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_ByteMultiplyComposes_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_ByteMultiplyComposes
+{
+    FCk_AutoTest_Attribute_ByteMultiplyComposes_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_ByteMultiplyComposes_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_FloatBasic_SpawnParams
 {
 }
