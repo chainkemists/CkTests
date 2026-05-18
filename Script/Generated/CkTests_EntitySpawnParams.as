@@ -112,15 +112,15 @@ namespace UCk_AdvancedMusicDirectorCue
 }
 
 USTRUCT()
-struct FCk_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero_SpawnParams
+struct FCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero
+namespace UCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded
 {
-    FCk_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero_SpawnParams Params()
+    FCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_SpawnParams Params()
     {
-        return FCk_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero_SpawnParams();
+        return FCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_SpawnParams();
     }
 }
 
@@ -641,6 +641,19 @@ namespace UCk_AutoTest_Base
     FCk_AutoTest_Base_SpawnParams Params()
     {
         return FCk_AutoTest_Base_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CameraShake_Add_CreatesEntry_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CameraShake_Add_CreatesEntry
+{
+    FCk_AutoTest_CameraShake_Add_CreatesEntry_SpawnParams Params()
+    {
+        return FCk_AutoTest_CameraShake_Add_CreatesEntry_SpawnParams();
     }
 }
 
@@ -1408,6 +1421,19 @@ namespace UCk_AutoTest_Eqs_VolumeCheck
     FCk_AutoTest_Eqs_VolumeCheck_SpawnParams Params()
     {
         return FCk_AutoTest_Eqs_VolumeCheck_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature
+{
+    FCk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_SpawnParams Params()
+    {
+        return FCk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_SpawnParams();
     }
 }
 
@@ -9129,6 +9155,31 @@ namespace UCkAudioGym_Advanced_SpatialStation
     FCkAudioGym_Advanced_SpatialStation_SpawnParams Params(FTransform InTransform)
     {
         return FCkAudioGym_Advanced_SpatialStation_SpawnParams(InTransform);
+    }
+}
+
+USTRUCT()
+struct FCkAutoTest_ActorEntity_EntityScript_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCkAutoTest_ActorEntity_EntityScript_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCkAutoTest_ActorEntity_EntityScript
+{
+    FCkAutoTest_ActorEntity_EntityScript_SpawnParams Params()
+    {
+        return FCkAutoTest_ActorEntity_EntityScript_SpawnParams();
+    }
+
+    FCkAutoTest_ActorEntity_EntityScript_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCkAutoTest_ActorEntity_EntityScript_SpawnParams(In_OwningActor);
     }
 }
 
