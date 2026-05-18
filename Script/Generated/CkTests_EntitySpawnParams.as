@@ -3192,6 +3192,19 @@ namespace UCk_AutoTest_StateMachine_NegatedEventDrivenCondition
 }
 
 USTRUCT()
+struct FCk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState
+{
+    FCk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_SpawnParams
 {
 }
@@ -8115,6 +8128,19 @@ namespace UCk_SmTest_Negated_State_Idle
     FCk_SmTest_Negated_State_Idle_SpawnParams Params()
     {
         return FCk_SmTest_Negated_State_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_NoTransition_State_Sink_SpawnParams
+{
+}
+
+namespace UCk_SmTest_NoTransition_State_Sink
+{
+    FCk_SmTest_NoTransition_State_Sink_SpawnParams Params()
+    {
+        return FCk_SmTest_NoTransition_State_Sink_SpawnParams();
     }
 }
 
