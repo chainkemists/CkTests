@@ -632,6 +632,19 @@ namespace UCk_AutoTest_Base
 }
 
 USTRUCT()
+struct FCk_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear
+{
+    FCk_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_SpawnParams Params()
+    {
+        return FCk_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Chrono_TickAndComplete_SpawnParams
 {
 }
@@ -641,6 +654,19 @@ namespace UCk_AutoTest_Chrono_TickAndComplete
     FCk_AutoTest_Chrono_TickAndComplete_SpawnParams Params()
     {
         return FCk_AutoTest_Chrono_TickAndComplete_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration
+{
+    FCk_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_SpawnParams Params()
+    {
+        return FCk_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_SpawnParams();
     }
 }
 
