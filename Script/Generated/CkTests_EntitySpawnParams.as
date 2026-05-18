@@ -3582,6 +3582,19 @@ namespace UCk_AutoTest_Tween_LinearColorCompletion
 }
 
 USTRUCT()
+struct FCk_AutoTest_Tween_LoopCount_Finite_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Tween_LoopCount_Finite
+{
+    FCk_AutoTest_Tween_LoopCount_Finite_SpawnParams Params()
+    {
+        return FCk_AutoTest_Tween_LoopCount_Finite_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Tween_LoopRestart_SpawnParams
 {
 }
