@@ -91,10 +91,10 @@ class UCk_EntityScript_EntityLifecycleGym_TagSystem : UCk_GenericEntityScript_UE
 			utils_entity_tag::Add(ChildEntity, TestTagName);
 			Pass_AddTag = true;
 
-			// Verify with TryGet_Tag
-			auto Retrieved = utils_entity_tag::TryGet_Tag(ChildEntity);
-			RetrievedTagName = Retrieved.ToString();
-			Pass_TryGetTag = (Retrieved == TestTagName);
+			// Verify with Has
+			auto HasTag = utils_entity_tag::Has(ChildEntity, TestTagName);
+			RetrievedTagName = HasTag ? TestTagName.ToString() : FString("<absent>");
+			Pass_TryGetTag = HasTag;
 		}
 		else if (CurrentPhase == 1)
 		{
@@ -135,7 +135,7 @@ class UCk_EntityScript_EntityLifecycleGym_TagSystem : UCk_GenericEntityScript_UE
 
 		D = f"{D}--- Tag Operations ---\n";
 		D = f"{D}" + (Pass_AddTag ? "[+] " : "[-] ") + f"Add tag '{TestTagName}'\n";
-		D = f"{D}" + (Pass_TryGetTag ? "[+] " : "[-] ") + f"TryGet_Tag = '{RetrievedTagName}'\n";
+		D = f"{D}" + (Pass_TryGetTag ? "[+] " : "[-] ") + f"Has tag = '{RetrievedTagName}'\n";
 		D = f"{D}" + (Pass_ForEachFound ? "[+] " : "[-] ") + f"ForEach_Entity found >= 1 (count: {ForEachCount_BeforeRemove})\n";
 		D = f"{D}" + (Pass_RemoveTag ? "[+] " : "[-] ") + "Request_TryRemove succeeded\n";
 		D = f"{D}" + (Pass_ForEachEmpty ? "[+] " : "[-] ") + f"ForEach_Entity after remove == 0 (count: {ForEachCount_AfterRemove})\n";

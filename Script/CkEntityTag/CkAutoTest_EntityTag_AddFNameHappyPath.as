@@ -1,7 +1,7 @@
 // Language=angelscript
 //
 // CK ENTITY TAG — AUTOMATION TEST: Add(FName) round-trip
-// Add an FName tag; Has reports true; TryGet returns the same tag.
+// Add an FName tag; Has reports true; Get_AllTags lists it.
 
 class UCk_AutoTest_EntityTag_AddFNameHappyPath : UCk_AutoTest_Base
 {
@@ -15,8 +15,8 @@ class UCk_AutoTest_EntityTag_AddFNameHappyPath : UCk_AutoTest_Base
 
         Assert_True(utils_entity_tag::Has(LocalHandle, n"AutoTest_Foo"),
             "Has should return true for the just-added FName tag");
-        Assert_True(utils_entity_tag::TryGet_Tag(LocalHandle) == n"AutoTest_Foo",
-            "TryGet_Tag should return the added FName tag");
+        Assert_True(utils_entity_tag::Get_AllTags(LocalHandle).Contains(n"AutoTest_Foo"),
+            "Get_AllTags should list the added FName tag");
 
         FinishSuccess();
     }
