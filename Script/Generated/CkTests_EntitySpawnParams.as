@@ -359,6 +359,19 @@ namespace UCk_AutoTest_Aggro_TryGetAggroByTargetNotFound
 }
 
 USTRUCT()
+struct FCk_AutoTest_AnimAsset_Add_CreatesValidHandle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_AnimAsset_Add_CreatesValidHandle
+{
+    FCk_AutoTest_AnimAsset_Add_CreatesValidHandle_SpawnParams Params()
+    {
+        return FCk_AutoTest_AnimAsset_Add_CreatesValidHandle_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_AStar_BasicSearch_SpawnParams
 {
 }
