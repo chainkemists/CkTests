@@ -125,6 +125,58 @@ namespace UCk_AutoTest_Acceleration_Add_CreatesFeature
 }
 
 USTRUCT()
+struct FCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded
+{
+    FCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_SpawnParams Params()
+    {
+        return FCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction
+{
+    FCk_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_SpawnParams Params()
+    {
+        return FCk_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved
+{
+    FCk_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved_SpawnParams Params()
+    {
+        return FCk_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Actor_SpawnActor_FiresOnActorSpawned
+{
+    FCk_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_SpawnParams Params()
+    {
+        return FCk_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Aggro_AddHappyPath_SpawnParams
 {
 }
