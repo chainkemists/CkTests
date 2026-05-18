@@ -49,13 +49,13 @@
 // deleting the .as file removes BOTH classes atomically — no stale
 // generated file to get out of sync.)
 
-class ACk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Acceleration_Add_CreatesFeature_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Acceleration_Add_CreatesFeature");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
@@ -2069,6 +2069,19 @@ class ACk_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor : ACk_AutoTestRu
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Probe_Request_EnableDisable_StateFlips");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
