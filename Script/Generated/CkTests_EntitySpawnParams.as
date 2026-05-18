@@ -112,6 +112,19 @@ namespace UCk_AdvancedMusicDirectorCue
 }
 
 USTRUCT()
+struct FCk_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero
+{
+    FCk_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero_SpawnParams Params()
+    {
+        return FCk_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Aggro_AddHappyPath_SpawnParams
 {
 }
@@ -2903,6 +2916,19 @@ namespace UCk_AutoTest_Relationship_Team_UnassignSetsUnassigned
     FCk_AutoTest_Relationship_Team_UnassignSetsUnassigned_SpawnParams Params()
     {
         return FCk_AutoTest_Relationship_Team_UnassignSetsUnassigned_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_RenderStatus_Add_CreatesFeature_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_RenderStatus_Add_CreatesFeature
+{
+    FCk_AutoTest_RenderStatus_Add_CreatesFeature_SpawnParams Params()
+    {
+        return FCk_AutoTest_RenderStatus_Add_CreatesFeature_SpawnParams();
     }
 }
 
