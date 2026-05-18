@@ -112,15 +112,15 @@ namespace UCk_AdvancedMusicDirectorCue
 }
 
 USTRUCT()
-struct FCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_SpawnParams
+struct FCk_AutoTest_Acceleration_Add_CreatesFeature_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded
+namespace UCk_AutoTest_Acceleration_Add_CreatesFeature
 {
-    FCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_SpawnParams Params()
+    FCk_AutoTest_Acceleration_Add_CreatesFeature_SpawnParams Params()
     {
-        return FCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_SpawnParams();
+        return FCk_AutoTest_Acceleration_Add_CreatesFeature_SpawnParams();
     }
 }
 
@@ -2617,6 +2617,19 @@ namespace UCk_AutoTest_Probe_Request_EnableDisable_StateFlips
     FCk_AutoTest_Probe_Request_EnableDisable_StateFlips_SpawnParams Params()
     {
         return FCk_AutoTest_Probe_Request_EnableDisable_StateFlips_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration
+{
+    FCk_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_SpawnParams Params()
+    {
+        return FCk_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_SpawnParams();
     }
 }
 
