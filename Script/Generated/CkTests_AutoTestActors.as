@@ -2972,6 +2972,19 @@ class ACk_AutoTest_Tween_LinearColorCompletion_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Tween_LoopCount_Finite_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Tween_LoopCount_Finite");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Tween_LoopRestart_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
