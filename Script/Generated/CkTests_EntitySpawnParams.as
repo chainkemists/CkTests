@@ -1178,6 +1178,19 @@ namespace UCk_AutoTest_EntityScript_SpawnParamsRoundTrip
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityTag_AddEmptyName_Rejected_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_AddEmptyName_Rejected
+{
+    FCk_AutoTest_EntityTag_AddEmptyName_Rejected_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_AddEmptyName_Rejected_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityTag_AddFNameHappyPath_SpawnParams
 {
 }
@@ -1473,6 +1486,19 @@ namespace UCk_AutoTest_Grid_RotationLocalCoordMapping
     FCk_AutoTest_Grid_RotationLocalCoordMapping_SpawnParams Params()
     {
         return FCk_AutoTest_Grid_RotationLocalCoordMapping_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed
+{
+    FCk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_SpawnParams Params()
+    {
+        return FCk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_SpawnParams();
     }
 }
 
