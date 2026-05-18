@@ -2270,6 +2270,19 @@ namespace UCk_AutoTest_Label_HierarchicalMatching
 }
 
 USTRUCT()
+struct FCk_AutoTest_Label_MatchesAny_FromContainer_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Label_MatchesAny_FromContainer
+{
+    FCk_AutoTest_Label_MatchesAny_FromContainer_SpawnParams Params()
+    {
+        return FCk_AutoTest_Label_MatchesAny_FromContainer_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Messaging_BasicBroadcast_SpawnParams
 {
 }
