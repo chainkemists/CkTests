@@ -1282,6 +1282,110 @@ namespace UCk_AutoTest_EntityTag_AddGameplayTagHappyPath
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityTag_AddIsCounted_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_AddIsCounted
+{
+    FCk_AutoTest_EntityTag_AddIsCounted_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_AddIsCounted_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_BindRelevantTagsFilter_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_BindRelevantTagsFilter
+{
+    FCk_AutoTest_EntityTag_BindRelevantTagsFilter_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_BindRelevantTagsFilter_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_ForEachEntityFindsByParent_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_ForEachEntityFindsByParent
+{
+    FCk_AutoTest_EntityTag_ForEachEntityFindsByParent_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_ForEachEntityFindsByParent_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_FragmentCleanupOnEmpty_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_FragmentCleanupOnEmpty
+{
+    FCk_AutoTest_EntityTag_FragmentCleanupOnEmpty_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_FragmentCleanupOnEmpty_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_GameplayTagParentFlatten_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_GameplayTagParentFlatten
+{
+    FCk_AutoTest_EntityTag_GameplayTagParentFlatten_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_GameplayTagParentFlatten_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly
+{
+    FCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip
+{
+    FCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit
+{
+    FCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityTag_HasAbsentTagFalse_SpawnParams
 {
 }
@@ -1291,6 +1395,19 @@ namespace UCk_AutoTest_EntityTag_HasAbsentTagFalse
     FCk_AutoTest_EntityTag_HasAbsentTagFalse_SpawnParams Params()
     {
         return FCk_AutoTest_EntityTag_HasAbsentTagFalse_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial
+{
+    FCk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_SpawnParams();
     }
 }
 
@@ -1321,15 +1438,15 @@ namespace UCk_AutoTest_EntityTag_RequestTryRemoveHappyPath
 }
 
 USTRUCT()
-struct FCk_AutoTest_EntityTag_TryGetTagNoTagReturnsNone_SpawnParams
+struct FCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_EntityTag_TryGetTagNoTagReturnsNone
+namespace UCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip
 {
-    FCk_AutoTest_EntityTag_TryGetTagNoTagReturnsNone_SpawnParams Params()
+    FCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_SpawnParams Params()
     {
-        return FCk_AutoTest_EntityTag_TryGetTagNoTagReturnsNone_SpawnParams();
+        return FCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_SpawnParams();
     }
 }
 
