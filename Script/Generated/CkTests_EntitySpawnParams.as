@@ -3075,6 +3075,19 @@ namespace UCk_AutoTest_StateMachine_TransitionOrdering
 }
 
 USTRUCT()
+struct FCk_AutoTest_TagSet_AddDuplicate_NoSignalFire_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_TagSet_AddDuplicate_NoSignalFire
+{
+    FCk_AutoTest_TagSet_AddDuplicate_NoSignalFire_SpawnParams Params()
+    {
+        return FCk_AutoTest_TagSet_AddDuplicate_NoSignalFire_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_TagSet_AddInitialAndQuery_SpawnParams
 {
 }
@@ -3088,6 +3101,19 @@ namespace UCk_AutoTest_TagSet_AddInitialAndQuery
 }
 
 USTRUCT()
+struct FCk_AutoTest_TagSet_HasTag_HasAny_HasAll_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_TagSet_HasTag_HasAny_HasAll
+{
+    FCk_AutoTest_TagSet_HasTag_HasAny_HasAll_SpawnParams Params()
+    {
+        return FCk_AutoTest_TagSet_HasTag_HasAny_HasAll_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_TagSet_OnTagsChangedSignal_SpawnParams
 {
 }
@@ -3097,6 +3123,19 @@ namespace UCk_AutoTest_TagSet_OnTagsChangedSignal
     FCk_AutoTest_TagSet_OnTagsChangedSignal_SpawnParams Params()
     {
         return FCk_AutoTest_TagSet_OnTagsChangedSignal_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_TagSet_RemoveAbsent_NoSignalFire_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_TagSet_RemoveAbsent_NoSignalFire
+{
+    FCk_AutoTest_TagSet_RemoveAbsent_NoSignalFire_SpawnParams Params()
+    {
+        return FCk_AutoTest_TagSet_RemoveAbsent_NoSignalFire_SpawnParams();
     }
 }
 
