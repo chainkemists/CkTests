@@ -229,6 +229,32 @@ namespace UCk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic
 }
 
 USTRUCT()
+struct FCk_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero
+{
+    FCk_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_SpawnParams Params()
+    {
+        return FCk_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid
+{
+    FCk_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_SpawnParams Params()
+    {
+        return FCk_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Aggro_AddHappyPath_SpawnParams
 {
 }
