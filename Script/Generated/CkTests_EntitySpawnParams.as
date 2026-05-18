@@ -3114,6 +3114,32 @@ namespace UCk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth
 }
 
 USTRUCT()
+struct FCk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState
+{
+    FCk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately
+{
+    FCk_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_BasicTransition_SpawnParams
 {
 }
@@ -7105,6 +7131,32 @@ namespace UCk_SimpleSpatialAudioCue
 }
 
 USTRUCT()
+struct FCk_SmTest_AlwaysTrue_State_Finish_SpawnParams
+{
+}
+
+namespace UCk_SmTest_AlwaysTrue_State_Finish
+{
+    FCk_SmTest_AlwaysTrue_State_Finish_SpawnParams Params()
+    {
+        return FCk_SmTest_AlwaysTrue_State_Finish_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_AlwaysTrue_State_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmTest_AlwaysTrue_State_Idle
+{
+    FCk_SmTest_AlwaysTrue_State_Idle_SpawnParams Params()
+    {
+        return FCk_SmTest_AlwaysTrue_State_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_SmTest_Complex_State_Attack_SpawnParams
 {
 }
@@ -8206,6 +8258,32 @@ namespace UCk_SmTest_Ordering_Task_B
     FCk_SmTest_Ordering_Task_B_SpawnParams Params()
     {
         return FCk_SmTest_Ordering_Task_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Override_Base_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Override_Base
+{
+    FCk_SmTest_Override_Base_SpawnParams Params()
+    {
+        return FCk_SmTest_Override_Base_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTest_Override_Replacement_SpawnParams
+{
+}
+
+namespace UCk_SmTest_Override_Replacement
+{
+    FCk_SmTest_Override_Replacement_SpawnParams Params()
+    {
+        return FCk_SmTest_Override_Replacement_SpawnParams();
     }
 }
 
