@@ -2971,6 +2971,110 @@ namespace UCk_AutoTest_SceneNode_ParentDestroyCascade
 }
 
 USTRUCT()
+struct FCk_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected
+{
+    FCk_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected
+{
+    FCk_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected
+{
+    FCk_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf
+{
+    FCk_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp
+{
+    FCk_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly
+{
+    FCk_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget
+{
+    FCk_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth
+{
+    FCk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_SpawnParams Params()
+    {
+        return FCk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_BasicTransition_SpawnParams
 {
 }
