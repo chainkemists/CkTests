@@ -49,6 +49,19 @@
 // deleting the .as file removes BOTH classes atomically — no stale
 // generated file to get out of sync.)
 
+class ACk_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_ActorRelay_AcquireChannel_NoActor_ResultEntityCountZero");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Aggro_AddHappyPath_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;
@@ -2351,6 +2364,19 @@ class ACk_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor : ACk_AutoTest
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Relationship_Team_UnassignSetsUnassigned");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_RenderStatus_Add_CreatesFeature_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_RenderStatus_Add_CreatesFeature");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
