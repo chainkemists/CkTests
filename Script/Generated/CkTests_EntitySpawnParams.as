@@ -2283,6 +2283,19 @@ namespace UCk_AutoTest_Label_AddAndQuery
 }
 
 USTRUCT()
+struct FCk_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd
+{
+    FCk_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd_SpawnParams Params()
+    {
+        return FCk_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Label_HierarchicalMatching_SpawnParams
 {
 }
