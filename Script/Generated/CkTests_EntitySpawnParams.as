@@ -2478,6 +2478,45 @@ namespace UCk_AutoTest_Nav_PathQueuedDuringBake
 }
 
 USTRUCT()
+struct FCk_AutoTest_ObjectiveOwner_Add_CreatesFeature_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_ObjectiveOwner_Add_CreatesFeature
+{
+    FCk_AutoTest_ObjectiveOwner_Add_CreatesFeature_SpawnParams Params()
+    {
+        return FCk_AutoTest_ObjectiveOwner_Add_CreatesFeature_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle
+{
+    FCk_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle
+{
+    FCk_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Probe_Add_Box_CreatesProbeEntity_SpawnParams
 {
 }
@@ -2539,6 +2578,19 @@ namespace UCk_AutoTest_Probe_Request_EnableDisable_StateFlips
     FCk_AutoTest_Probe_Request_EnableDisable_StateFlips_SpawnParams Params()
     {
         return FCk_AutoTest_Probe_Request_EnableDisable_StateFlips_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_RaySense_Add_CreatesEntity_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_RaySense_Add_CreatesEntity
+{
+    FCk_AutoTest_RaySense_Add_CreatesEntity_SpawnParams Params()
+    {
+        return FCk_AutoTest_RaySense_Add_CreatesEntity_SpawnParams();
     }
 }
 
@@ -3218,6 +3270,45 @@ namespace UCk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth
 }
 
 USTRUCT()
+struct FCk_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Shape_Box_Add_RoundTripsHalfExtents
+{
+    FCk_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_SpawnParams Params()
+    {
+        return FCk_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Shape_Capsule_Add_RoundTripsDimensions
+{
+    FCk_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_SpawnParams Params()
+    {
+        return FCk_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Shape_Sphere_Add_RoundTripsRadius_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Shape_Sphere_Add_RoundTripsRadius
+{
+    FCk_AutoTest_Shape_Sphere_Add_RoundTripsRadius_SpawnParams Params()
+    {
+        return FCk_AutoTest_Shape_Sphere_Add_RoundTripsRadius_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_SpawnParams
 {
 }
@@ -3396,6 +3487,19 @@ namespace UCk_AutoTest_StateMachine_TransitionOrdering
     FCk_AutoTest_StateMachine_TransitionOrdering_SpawnParams Params()
     {
         return FCk_AutoTest_StateMachine_TransitionOrdering_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Substep_Add_CreatesFeature_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Substep_Add_CreatesFeature
+{
+    FCk_AutoTest_Substep_Add_CreatesFeature_SpawnParams Params()
+    {
+        return FCk_AutoTest_Substep_Add_CreatesFeature_SpawnParams();
     }
 }
 
