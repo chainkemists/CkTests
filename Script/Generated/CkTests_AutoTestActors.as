@@ -2222,6 +2222,32 @@ class ACk_AutoTest_Marker_Add_Box_CreatesValidHandle_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Marker_Add_Capsule_CreatesValidHandle_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Marker_Add_Capsule_CreatesValidHandle");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Marker_Add_Sphere_CreatesValidHandle_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Marker_Add_Sphere_CreatesValidHandle");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Messaging_BasicBroadcast_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
