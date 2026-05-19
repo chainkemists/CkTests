@@ -57,7 +57,7 @@ class UCk_AutoTest_Goap_BasicPlan : UCk_AutoTest_Base
         // Gym pattern: transform fragment exists on owner before Goap is added.
         utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        _WorldState = utils_goap_worldstate::Create(LocalHandle,
+        _WorldState = utils_goap_world_state::Create(LocalHandle,
             planner_test_util::T(n"AutoTest.Goap.BasicPlan.WS"),
             FCk_Fragment_Goap_WorldState_ParamsData());
 
@@ -69,7 +69,7 @@ class UCk_AutoTest_Goap_BasicPlan : UCk_AutoTest_Base
 
         _Goap.AddAction(UCk_GoapT1_Action_CreateTool);
         _Goap.AddGoal(UCk_GoapT1_Goal_HasTool);
-        utils_goap_worldstate::Set_Value(
+        utils_goap_world_state::Set_Value(
             _WorldState, planner_test_util::T(t1_tags::HasTool), false);
 
         _Goap.BindTo_OnPlanComplete(

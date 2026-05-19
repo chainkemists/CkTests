@@ -32,7 +32,7 @@ class UCk_AutoTest_Goap_DependencyChain : UCk_AutoTest_Base
         // Gym pattern: transform fragment exists on owner before Goap is added.
         utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        _WorldState = utils_goap_worldstate::Create(LocalHandle,
+        _WorldState = utils_goap_world_state::Create(LocalHandle,
             planner_test_util::T(n"AutoTest.Goap.DependencyChain.WS"),
             FCk_Fragment_Goap_WorldState_ParamsData());
 

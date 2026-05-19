@@ -12,7 +12,7 @@
 // Every-tick re-targeting + distance-tier-gated cost updates + random
 // kill/revive flips feed the new ECk_Goap_ReplanPolicy::OnEitherDirty with
 // a 0.25s throttle. No explicit Request_Plan calls from the gym — the
-// planner re-fires on dirty flags from utils_goap_worldstate::Set_Value /
+// planner re-fires on dirty flags from utils_goap_world_state::Set_Value /
 // utils_goap::Set_ActionCost value-change detection, demonstrating the full
 // auto-replan pipeline.
 //============================================================================
@@ -146,7 +146,7 @@ class UCk_EntityScript_GoapGym_AutoReplan :  UCk_GenericEntityScript_UE
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_GoapGym_AutoReplan");
 
-		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+		WorldStateEntity = utils_goap_world_state::Create(InHandle,
 			goap_auto_replan::T(n"Gym.Goap.AutoReplan.WS"),
 			FCk_Fragment_Goap_WorldState_ParamsData());
 
@@ -312,8 +312,8 @@ class UCk_EntityScript_GoapGym_AutoReplan :  UCk_GenericEntityScript_UE
 			Alive   = T.IsAlive;
 		}
 
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goap_auto_replan::T(n"Goap.WS.AutoReplan.EnemyInRange"), InRange);
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goap_auto_replan::T(n"Goap.WS.AutoReplan.EnemyAlive"),   Alive);
+		utils_goap_world_state::Set_Value(WorldStateEntity, goap_auto_replan::T(n"Goap.WS.AutoReplan.EnemyInRange"), InRange);
+		utils_goap_world_state::Set_Value(WorldStateEntity, goap_auto_replan::T(n"Goap.WS.AutoReplan.EnemyAlive"),   Alive);
 
 		LastTargetInRange = InRange;
 		LastTargetAlive   = Alive;
