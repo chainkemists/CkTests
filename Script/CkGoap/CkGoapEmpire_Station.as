@@ -112,7 +112,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_GenericEntityScript_UE
 		DrawLocation(InitialTransform, empire_layout::FarmField(),   FLinearColor(0.88f, 0.62f, 0.32f, 0.4f), FVector(120.0f, 120.0f, 20.0f));
 
 		// WorldState entity (owned by the gym station, shared with the planner)
-		WorldStateEntity = utils_goap_worldstate::Create(InHandle,
+		WorldStateEntity = utils_goap_world_state::Create(InHandle,
 			goapempire_tags::T(n"Gym.GoapEmpire.Station.WS"),
 			FCk_Fragment_Goap_WorldState_ParamsData());
 
@@ -239,10 +239,10 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_GenericEntityScript_UE
 		PopulationCap = empire_tuning::InitialPopCap;
 
 		// Ages — Dark only at start.
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInDarkAge),      true);
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInFeudalAge),    false);
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInCastleAge),    false);
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInImperialAge),  false);
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInDarkAge),      true);
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInFeudalAge),    false);
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInCastleAge),    false);
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInImperialAge),  false);
 
 		// Seed all building/research/army flags to false so they appear in the
 		// debugger's world-state panel from the first frame.
@@ -283,7 +283,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_GenericEntityScript_UE
 		AllFlags.Add(empire_tags::HasEnoughVillagers);
 		for (auto Tag : AllFlags)
 		{
-			utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(Tag), false);
+			utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(Tag), false);
 		}
 
 		// Resource flags — driven by gameplay each tick, seed them explicitly.
@@ -299,17 +299,17 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_GenericEntityScript_UE
 
 	private void ProjectGameplayFlags()
 	{
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasEnoughWood),
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasEnoughWood),
 			Wood >= empire_tuning::ThresholdWood);
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasEnoughFood),
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasEnoughFood),
 			Food >= empire_tuning::ThresholdFood);
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasEnoughGold),
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasEnoughGold),
 			Gold >= empire_tuning::ThresholdGold);
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasEnoughStone),
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasEnoughStone),
 			Stone >= empire_tuning::ThresholdStone);
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasFreePopulation),
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasFreePopulation),
 			(PopulationCap - Villagers) >= 1);
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasEnoughVillagers),
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasEnoughVillagers),
 			Villagers >= empire_tuning::EnoughVillagersThreshold);
 	}
 
@@ -342,8 +342,8 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_GenericEntityScript_UE
 		// binding, this will still show the real step count.
 		auto FragmentPlan = utils_goap::Get_Plan(GoapEntity);
 		auto FragmentStatus = utils_goap::Get_PlanStatus(GoapEntity);
-		auto IsFeudal = utils_goap_worldstate::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInFeudalAge));
-		auto IsDark = utils_goap_worldstate::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInDarkAge));
+		auto IsFeudal = utils_goap_world_state::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInFeudalAge));
+		auto IsDark = utils_goap_world_state::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInDarkAge));
 		ck::Trace(f"[Empire] OnPlanComplete: payload={CurrentPlan.Num()} frag={FragmentPlan.Num()} cost={CurrentPlanCost} status={FragmentStatus} IsDark={IsDark} IsFeudal={IsFeudal}");
 
 		// If the payload's TArray was lost in binding, rehydrate from the
@@ -668,7 +668,7 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_GenericEntityScript_UE
 		Food  = Math::Max(0, Food  - InFoodCost);
 		Gold  = Math::Max(0, Gold  - InGoldCost);
 		Stone = Math::Max(0, Stone - InStoneCost);
-		utils_goap_worldstate::Set_Value(WorldStateEntity, goapempire_tags::T(InFlag), true);
+		utils_goap_world_state::Set_Value(WorldStateEntity, goapempire_tags::T(InFlag), true);
 		ProjectGameplayFlags();
 	}
 
@@ -757,11 +757,11 @@ class UCk_EntityScript_GoapEmpire_Station : UCk_GenericEntityScript_UE
 
 		// Current active goal's class name (best we can do from AS without more bindings)
 		auto ActiveAge = "Dark";
-		if (utils_goap_worldstate::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInImperialAge))) { ActiveAge = "Imperial"; }
-		else if (utils_goap_worldstate::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInCastleAge)))  { ActiveAge = "Castle"; }
-		else if (utils_goap_worldstate::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInFeudalAge)))  { ActiveAge = "Feudal"; }
+		if (utils_goap_world_state::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInImperialAge))) { ActiveAge = "Imperial"; }
+		else if (utils_goap_world_state::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInCastleAge)))  { ActiveAge = "Castle"; }
+		else if (utils_goap_world_state::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::IsInFeudalAge)))  { ActiveAge = "Feudal"; }
 
-		auto HasWonder = utils_goap_worldstate::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasWonder));
+		auto HasWonder = utils_goap_world_state::Get_Value(WorldStateEntity, goapempire_tags::T(empire_tags::HasWonder));
 
 		auto PhaseStr = "Idle";
 		if (Phase == ECk_GoapEmpire_Phase::Travel) { PhaseStr = f"Travel {int32(PhaseElapsed / Math::Max(0.01f, PhaseDuration) * 100.0f)}%"; }
