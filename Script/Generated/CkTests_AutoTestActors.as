@@ -486,6 +486,18 @@ class ACk_AutoTest_Attribute_FloatRefill_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Attribute_FloatRefill_StopsAtMax");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Attribute_IntegerBasic_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)

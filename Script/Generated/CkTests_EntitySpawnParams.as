@@ -567,6 +567,19 @@ namespace UCk_AutoTest_Attribute_FloatRefill
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_FloatRefill_StopsAtMax_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatRefill_StopsAtMax
+{
+    FCk_AutoTest_Attribute_FloatRefill_StopsAtMax_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatRefill_StopsAtMax_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_IntegerBasic_SpawnParams
 {
 }
