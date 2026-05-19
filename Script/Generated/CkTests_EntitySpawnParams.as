@@ -3972,6 +3972,19 @@ namespace UCk_AutoTest_TagSet_HasTag_HasAny_HasAll
 }
 
 USTRUCT()
+struct FCk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick
+{
+    FCk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_SpawnParams Params()
+    {
+        return FCk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_TagSet_OnTagsChangedSignal_SpawnParams
 {
 }

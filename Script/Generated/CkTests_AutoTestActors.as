@@ -3381,6 +3381,19 @@ class ACk_AutoTest_TagSet_HasTag_HasAny_HasAll_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 2.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_TagSet_OnTagsChangedSignal_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
