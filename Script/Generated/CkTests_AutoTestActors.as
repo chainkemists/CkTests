@@ -3077,6 +3077,19 @@ class ACk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_Actor : ACk_AutoT
     }
 }
 
+class ACk_AutoTest_Sfx_Add_CreatesValidHandle_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 2.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Sfx_Add_CreatesValidHandle");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;
