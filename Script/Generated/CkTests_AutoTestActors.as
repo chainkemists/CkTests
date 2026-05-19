@@ -703,6 +703,19 @@ class ACk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor : ACk_Au
     }
 }
 
+class ACk_AutoTest_Attribute_VectorPerComponentClamp_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 2.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Attribute_VectorPerComponentClamp");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_CameraShake_Add_CreatesEntry_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;

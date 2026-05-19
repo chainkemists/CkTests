@@ -801,6 +801,19 @@ namespace UCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_VectorPerComponentClamp_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_VectorPerComponentClamp
+{
+    FCk_AutoTest_Attribute_VectorPerComponentClamp_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_VectorPerComponentClamp_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Base_SpawnParams
 {
 }
