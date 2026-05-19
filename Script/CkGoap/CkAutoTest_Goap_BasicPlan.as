@@ -16,34 +16,6 @@
 // the planner is exercised against a known-good action graph rather than
 // a test-only one.
 //
-//============================================================================
-// EXPECTED FAILURE — needs framework investigation
-//============================================================================
-//
-// Symptom: OnPlanComplete fires successfully (planner ran cleanly), but
-// the returned plan is empty (Plan.Num() == 0) instead of containing the
-// expected single action. Identical action/goal/world-state setup runs
-// in the gym's PlannerT1 station produces a populated plan.
-//
-// Things tried that did NOT fix it:
-//   1. Tick-deferring Request_Plan (in case AddAction is async-deferred).
-//   2. Adding the same gameplay-label between utils_goap::Add and
-//      AddAction that the gym does.
-//   3. Adding a transform fragment to the owner before utils_goap::Add
-//      (matching the gym's first DoConstruct line).
-//
-// Suspected cause: gym station does setup in DoConstruct, this test
-// uses DoBeginPlay. Some part of the Goap Add/AddAction registration
-// pipeline is sensitive to that timing — possibly the action class CDOs
-// need to be touched during the DoConstruct window for AS to register
-// them. Override of DoConstruct in the AutoTest base would require
-// duplicating UCk_AutoTest_Base's body (no super in AS).
-//
-// When fixed: this test should pass automatically with no test-side
-// changes. The Goap_DependencyChain test has the same root cause and
-// will turn green at the same time.
-//============================================================================
-
 class UCk_AutoTest_Goap_BasicPlan : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap _Goap;
