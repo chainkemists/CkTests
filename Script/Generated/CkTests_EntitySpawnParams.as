@@ -3985,6 +3985,19 @@ namespace UCk_AutoTest_TagSet_HasTag_HasAny_HasAll
 }
 
 USTRUCT()
+struct FCk_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent
+{
+    FCk_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent_SpawnParams Params()
+    {
+        return FCk_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_SpawnParams
 {
 }
