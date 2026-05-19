@@ -54,8 +54,7 @@ class UCk_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved : UCk_Auto
 
         _OwnedEntity = FCk_Handle(InEntityScriptHandle);
 
-        auto ComponentParams = FCk_AddActorComponent_Params();
-        ComponentParams.Set_Parent(_Helper.SceneRoot);
+        auto ComponentParams = FCk_AddActorComponent_Params(_Helper.SceneRoot);
         ComponentParams.Set_AttachmentType(ECk_ActorComponent_AttachmentPolicy::DoNotAttach);
 
         auto Req = FCk_Request_ActorModifier_AddActorComponent(UStaticMeshComponent);

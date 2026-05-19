@@ -29,9 +29,9 @@ class UCk_AutoTest_AnimAsset_Add_CreatesValidHandle : UCk_AutoTest_Base
             return;
         }
 
-        auto Animation = FCk_AnimAsset_Animation();
-        Animation.Set_ID(utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.AnimAsset.Seed"));
-        Animation.Set_Animation(TestSequence);
+        auto Animation = FCk_AnimAsset_Animation(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.AnimAsset.Seed"),
+            TestSequence);
 
         auto Params = FCk_Fragment_AnimAsset_ParamsData(Animation);
 

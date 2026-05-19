@@ -57,8 +57,7 @@ class UCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded : UCk_AutoTest_
         // ComponentParent->GetOwner() to resolve the actor. Pass the helper's
         // SceneRoot to satisfy the validity ensure; DoNotAttach then skips
         // the actual attachment step.
-        auto ComponentParams = FCk_AddActorComponent_Params();
-        ComponentParams.Set_Parent(_Helper.SceneRoot);
+        auto ComponentParams = FCk_AddActorComponent_Params(_Helper.SceneRoot);
         ComponentParams.Set_AttachmentType(ECk_ActorComponent_AttachmentPolicy::DoNotAttach);
 
         auto Req = FCk_Request_ActorModifier_AddActorComponent(UStaticMeshComponent);

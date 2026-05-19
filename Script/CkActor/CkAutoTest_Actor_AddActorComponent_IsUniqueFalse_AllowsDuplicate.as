@@ -66,8 +66,7 @@ class UCk_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate : UCk_A
 
     private void DispatchAdd(FName InCallbackName)
     {
-        auto ComponentParams = FCk_AddActorComponent_Params();
-        ComponentParams.Set_Parent(_Helper.SceneRoot);
+        auto ComponentParams = FCk_AddActorComponent_Params(_Helper.SceneRoot);
         ComponentParams.Set_AttachmentType(ECk_ActorComponent_AttachmentPolicy::DoNotAttach);
 
         auto Req = FCk_Request_ActorModifier_AddActorComponent(UStaticMeshComponent);
