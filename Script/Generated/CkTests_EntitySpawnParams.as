@@ -3959,6 +3959,19 @@ namespace UCk_AutoTest_TagSet_AddInitialAndQuery
 }
 
 USTRUCT()
+struct FCk_AutoTest_TagSet_ClearAll_FiresSignalOnce_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_TagSet_ClearAll_FiresSignalOnce
+{
+    FCk_AutoTest_TagSet_ClearAll_FiresSignalOnce_SpawnParams Params()
+    {
+        return FCk_AutoTest_TagSet_ClearAll_FiresSignalOnce_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_TagSet_HasTag_HasAny_HasAll_SpawnParams
 {
 }
