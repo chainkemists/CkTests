@@ -12,11 +12,6 @@
 //      Step1 -> Step2 -> Step3 -> StepFinal.
 //
 // Reuses the gym's T2 action/goal classes from CkGoap_PlannerTests.as.
-//
-// EXPECTED FAILURE — see CkAutoTest_Goap_BasicPlan.as for the canonical
-// explanation. Plan returns empty (Plan.Num()==0) despite the planner
-// running cleanly. Same suspected root cause as Goap_BasicPlan; both
-// will pass automatically once the underlying lifecycle issue is fixed.
 //============================================================================
 
 class UCk_AutoTest_Goap_DependencyChain : UCk_AutoTest_Base
