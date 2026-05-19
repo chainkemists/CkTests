@@ -1503,19 +1503,6 @@ namespace UCk_AutoTest_EntityTag_AddEmptyName_Rejected
 }
 
 USTRUCT()
-struct FCk_AutoTest_EntityTag_AddFNameHappyPath_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_EntityTag_AddFNameHappyPath
-{
-    FCk_AutoTest_EntityTag_AddFNameHappyPath_SpawnParams Params()
-    {
-        return FCk_AutoTest_EntityTag_AddFNameHappyPath_SpawnParams();
-    }
-}
-
-USTRUCT()
 struct FCk_AutoTest_EntityTag_AddGameplayTagHappyPath_SpawnParams
 {
 }
@@ -1542,19 +1529,6 @@ namespace UCk_AutoTest_EntityTag_AddIsCounted
 }
 
 USTRUCT()
-struct FCk_AutoTest_EntityTag_BindRelevantTagsFilter_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_EntityTag_BindRelevantTagsFilter
-{
-    FCk_AutoTest_EntityTag_BindRelevantTagsFilter_SpawnParams Params()
-    {
-        return FCk_AutoTest_EntityTag_BindRelevantTagsFilter_SpawnParams();
-    }
-}
-
-USTRUCT()
 struct FCk_AutoTest_EntityTag_ForEachEntityFindsByParent_SpawnParams
 {
 }
@@ -1564,19 +1538,6 @@ namespace UCk_AutoTest_EntityTag_ForEachEntityFindsByParent
     FCk_AutoTest_EntityTag_ForEachEntityFindsByParent_SpawnParams Params()
     {
         return FCk_AutoTest_EntityTag_ForEachEntityFindsByParent_SpawnParams();
-    }
-}
-
-USTRUCT()
-struct FCk_AutoTest_EntityTag_FragmentCleanupOnEmpty_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_EntityTag_FragmentCleanupOnEmpty
-{
-    FCk_AutoTest_EntityTag_FragmentCleanupOnEmpty_SpawnParams Params()
-    {
-        return FCk_AutoTest_EntityTag_FragmentCleanupOnEmpty_SpawnParams();
     }
 }
 
@@ -1603,32 +1564,6 @@ namespace UCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly
     FCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_SpawnParams Params()
     {
         return FCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_SpawnParams();
-    }
-}
-
-USTRUCT()
-struct FCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip
-{
-    FCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_SpawnParams Params()
-    {
-        return FCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_SpawnParams();
-    }
-}
-
-USTRUCT()
-struct FCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit
-{
-    FCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_SpawnParams Params()
-    {
-        return FCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_SpawnParams();
     }
 }
 
@@ -1681,19 +1616,6 @@ namespace UCk_AutoTest_EntityTag_RequestTryRemoveHappyPath
     FCk_AutoTest_EntityTag_RequestTryRemoveHappyPath_SpawnParams Params()
     {
         return FCk_AutoTest_EntityTag_RequestTryRemoveHappyPath_SpawnParams();
-    }
-}
-
-USTRUCT()
-struct FCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip
-{
-    FCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_SpawnParams Params()
-    {
-        return FCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_SpawnParams();
     }
 }
 
@@ -1824,6 +1746,45 @@ namespace UCk_AutoTest_Goap_DependencyChain
     FCk_AutoTest_Goap_DependencyChain_SpawnParams Params()
     {
         return FCk_AutoTest_Goap_DependencyChain_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_Basic_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_Basic
+{
+    FCk_AutoTest_Goap_SharedWS_Basic_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_Basic_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_DirtyTriggersSibling_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_DirtyTriggersSibling
+{
+    FCk_AutoTest_Goap_SharedWS_DirtyTriggersSibling_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_DirtyTriggersSibling_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_SubPlannerDestroyPreservesShared_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_SubPlannerDestroyPreservesShared
+{
+    FCk_AutoTest_Goap_SharedWS_SubPlannerDestroyPreservesShared_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_SubPlannerDestroyPreservesShared_SpawnParams();
     }
 }
 
