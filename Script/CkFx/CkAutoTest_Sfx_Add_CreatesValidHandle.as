@@ -25,8 +25,9 @@ class UCk_AutoTest_Sfx_Add_CreatesValidHandle : UCk_AutoTest_Base
     {
         auto OwnerHandle = InHandle;
 
-        auto Params = FCk_Fragment_Sfx_ParamsData();
-        Params.Set_Name(utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Sfx.Add_Seed"));
+        auto Params = FCk_Fragment_Sfx_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Sfx.Add_Seed"),
+            nullptr);
 
         auto SfxHandle = utils_sfx::Add(OwnerHandle, Params);
 

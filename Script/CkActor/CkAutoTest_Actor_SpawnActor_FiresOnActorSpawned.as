@@ -47,9 +47,7 @@ class UCk_AutoTest_Actor_SpawnActor_FiresOnActorSpawned : UCk_AutoTest_Base
 
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
 
-        auto SpawnParams = FCk_Utils_Actor_SpawnActor_Params();
-        SpawnParams.Set_OwnerOrWorld(_Helper);
-        SpawnParams.Set_ActorClass(AActor);
+        auto SpawnParams = FCk_Utils_Actor_SpawnActor_Params(_Helper, AActor);
 
         auto Req = FCk_Request_ActorModifier_SpawnActor(SpawnParams);
         // The default SpawnPolicy (SpawnOnInstanceWithOwnership) requires the

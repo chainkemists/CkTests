@@ -50,8 +50,7 @@ class UCk_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent : UCk_AutoT
         Tags.Add(n"AutoTest.Tag.Alpha");
         Tags.Add(n"AutoTest.Tag.Beta");
 
-        auto ComponentParams = FCk_AddActorComponent_Params();
-        ComponentParams.Set_Parent(_Helper.SceneRoot);
+        auto ComponentParams = FCk_AddActorComponent_Params(_Helper.SceneRoot);
         ComponentParams.Set_AttachmentType(ECk_ActorComponent_AttachmentPolicy::DoNotAttach);
         ComponentParams.Set_Tags(Tags);
 

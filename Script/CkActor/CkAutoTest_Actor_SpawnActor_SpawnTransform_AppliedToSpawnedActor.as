@@ -78,9 +78,7 @@ class UCk_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor : UCk_A
 
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
 
-        auto SpawnParams = FCk_Utils_Actor_SpawnActor_Params();
-        SpawnParams.Set_OwnerOrWorld(_Helper);
-        SpawnParams.Set_ActorClass(ACkAutoTest_RootedSpawnTarget);
+        auto SpawnParams = FCk_Utils_Actor_SpawnActor_Params(_Helper, ACkAutoTest_RootedSpawnTarget);
         SpawnParams.Set_SpawnTransform(FTransform(ExpectedRotation, ExpectedLocation, FVector::OneVector));
 
         auto Req = FCk_Request_ActorModifier_SpawnActor(SpawnParams);
