@@ -4154,6 +4154,19 @@ namespace UCk_AutoTest_Timer_Get_CurrentTimerValue_DuringPause
 }
 
 USTRUCT()
+struct FCk_AutoTest_Timer_Jump_Backward_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_Jump_Backward
+{
+    FCk_AutoTest_Timer_Jump_Backward_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_Jump_Backward_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Timer_Jump_Forward_SpawnParams
 {
 }
