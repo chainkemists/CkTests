@@ -1503,6 +1503,19 @@ namespace UCk_AutoTest_EntityTag_AddEmptyName_Rejected
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityTag_AddFNameHappyPath_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_AddFNameHappyPath
+{
+    FCk_AutoTest_EntityTag_AddFNameHappyPath_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_AddFNameHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityTag_AddGameplayTagHappyPath_SpawnParams
 {
 }
@@ -1529,6 +1542,19 @@ namespace UCk_AutoTest_EntityTag_AddIsCounted
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityTag_BindRelevantTagsFilter_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_BindRelevantTagsFilter
+{
+    FCk_AutoTest_EntityTag_BindRelevantTagsFilter_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_BindRelevantTagsFilter_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityTag_ForEachEntityFindsByParent_SpawnParams
 {
 }
@@ -1538,6 +1564,19 @@ namespace UCk_AutoTest_EntityTag_ForEachEntityFindsByParent
     FCk_AutoTest_EntityTag_ForEachEntityFindsByParent_SpawnParams Params()
     {
         return FCk_AutoTest_EntityTag_ForEachEntityFindsByParent_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_FragmentCleanupOnEmpty_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_FragmentCleanupOnEmpty
+{
+    FCk_AutoTest_EntityTag_FragmentCleanupOnEmpty_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_FragmentCleanupOnEmpty_SpawnParams();
     }
 }
 
@@ -1564,6 +1603,32 @@ namespace UCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly
     FCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_SpawnParams Params()
     {
         return FCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip
+{
+    FCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit
+{
+    FCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_SpawnParams();
     }
 }
 
@@ -1616,6 +1681,19 @@ namespace UCk_AutoTest_EntityTag_RequestTryRemoveHappyPath
     FCk_AutoTest_EntityTag_RequestTryRemoveHappyPath_SpawnParams Params()
     {
         return FCk_AutoTest_EntityTag_RequestTryRemoveHappyPath_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip
+{
+    FCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_SpawnParams();
     }
 }
 
@@ -1763,6 +1841,32 @@ namespace UCk_AutoTest_Goap_SharedWS_Basic
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_CostDirtyAndWsDirty_OnEitherDirty_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_CostDirtyAndWsDirty_OnEitherDirty
+{
+    FCk_AutoTest_Goap_SharedWS_CostDirtyAndWsDirty_OnEitherDirty_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_CostDirtyAndWsDirty_OnEitherDirty_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_CrossPlannerActionChaining_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_CrossPlannerActionChaining
+{
+    FCk_AutoTest_Goap_SharedWS_CrossPlannerActionChaining_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_CrossPlannerActionChaining_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_SharedWS_DirtyTriggersSibling_SpawnParams
 {
 }
@@ -1776,6 +1880,97 @@ namespace UCk_AutoTest_Goap_SharedWS_DirtyTriggersSibling
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_ExplicitPolicy_NoAutoReplan_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_ExplicitPolicy_NoAutoReplan
+{
+    FCk_AutoTest_Goap_SharedWS_ExplicitPolicy_NoAutoReplan_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_ExplicitPolicy_NoAutoReplan_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_GoalSatisfiedMidLife_EmptyReplan_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_GoalSatisfiedMidLife_EmptyReplan
+{
+    FCk_AutoTest_Goap_SharedWS_GoalSatisfiedMidLife_EmptyReplan_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_GoalSatisfiedMidLife_EmptyReplan_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_MaxKeysOverflow_Rejected_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_MaxKeysOverflow_Rejected
+{
+    FCk_AutoTest_Goap_SharedWS_MaxKeysOverflow_Rejected_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_MaxKeysOverflow_Rejected_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_MultipleWorldStates_Isolated_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_MultipleWorldStates_Isolated
+{
+    FCk_AutoTest_Goap_SharedWS_MultipleWorldStates_Isolated_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_MultipleWorldStates_Isolated_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_OwnerCascadeDestroy_DoesNotCrash_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_OwnerCascadeDestroy_DoesNotCrash
+{
+    FCk_AutoTest_Goap_SharedWS_OwnerCascadeDestroy_DoesNotCrash_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_OwnerCascadeDestroy_DoesNotCrash_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_PlanOnStart_ObservesSeededValues_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_PlanOnStart_ObservesSeededValues
+{
+    FCk_AutoTest_Goap_SharedWS_PlanOnStart_ObservesSeededValues_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_PlanOnStart_ObservesSeededValues_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_ReplanThrottling_CoalescesWrites_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_ReplanThrottling_CoalescesWrites
+{
+    FCk_AutoTest_Goap_SharedWS_ReplanThrottling_CoalescesWrites_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_ReplanThrottling_CoalescesWrites_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_SharedWS_SubPlannerDestroyPreservesShared_SpawnParams
 {
 }
@@ -1785,6 +1980,45 @@ namespace UCk_AutoTest_Goap_SharedWS_SubPlannerDestroyPreservesShared
     FCk_AutoTest_Goap_SharedWS_SubPlannerDestroyPreservesShared_SpawnParams Params()
     {
         return FCk_AutoTest_Goap_SharedWS_SubPlannerDestroyPreservesShared_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_SubscriberLazyPrune_HandlesMultipleDead_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_SubscriberLazyPrune_HandlesMultipleDead
+{
+    FCk_AutoTest_Goap_SharedWS_SubscriberLazyPrune_HandlesMultipleDead_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_SubscriberLazyPrune_HandlesMultipleDead_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_ThreePlusSubscribers_AllTagged_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_ThreePlusSubscribers_AllTagged
+{
+    FCk_AutoTest_Goap_SharedWS_ThreePlusSubscribers_AllTagged_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_ThreePlusSubscribers_AllTagged_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_SharedWS_WorldStateDestroyed_PlanFailsGracefully_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_SharedWS_WorldStateDestroyed_PlanFailsGracefully
+{
+    FCk_AutoTest_Goap_SharedWS_WorldStateDestroyed_PlanFailsGracefully_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_SharedWS_WorldStateDestroyed_PlanFailsGracefully_SpawnParams();
     }
 }
 
