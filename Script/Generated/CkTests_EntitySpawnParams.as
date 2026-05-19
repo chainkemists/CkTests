@@ -3660,6 +3660,19 @@ namespace UCk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth
 }
 
 USTRUCT()
+struct FCk_AutoTest_Sfx_Add_CreatesValidHandle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Sfx_Add_CreatesValidHandle
+{
+    FCk_AutoTest_Sfx_Add_CreatesValidHandle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Sfx_Add_CreatesValidHandle_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_SpawnParams
 {
 }
