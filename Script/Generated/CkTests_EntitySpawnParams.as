@@ -684,6 +684,19 @@ namespace UCk_AutoTest_Attribute_IntegerOverflow
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_MayRequireReplicationToggle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_MayRequireReplicationToggle
+{
+    FCk_AutoTest_Attribute_MayRequireReplicationToggle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_MayRequireReplicationToggle_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_NotRevocable_AddCoalesces_SpawnParams
 {
 }
