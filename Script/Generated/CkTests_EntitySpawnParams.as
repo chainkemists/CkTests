@@ -4102,6 +4102,19 @@ namespace UCk_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity
 }
 
 USTRUCT()
+struct FCk_AutoTest_Timer_AddOrReplace_ReplacesExisting_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_AddOrReplace_ReplacesExisting
+{
+    FCk_AutoTest_Timer_AddOrReplace_ReplacesExisting_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_AddOrReplace_ReplacesExisting_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Timer_BasicCompletion_SpawnParams
 {
 }
