@@ -4219,6 +4219,19 @@ namespace UCk_AutoTest_Timer_MultipleConcurrent
 }
 
 USTRUCT()
+struct FCk_AutoTest_Timer_OnDepleted_FiresOnConsume_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_OnDepleted_FiresOnConsume
+{
+    FCk_AutoTest_Timer_OnDepleted_FiresOnConsume_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_OnDepleted_FiresOnConsume_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_SpawnParams
 {
 }
