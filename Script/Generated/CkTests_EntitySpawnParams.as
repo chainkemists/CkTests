@@ -2790,6 +2790,19 @@ namespace UCk_AutoTest_Label_MatchesAny_FromContainer
 }
 
 USTRUCT()
+struct FCk_AutoTest_Label_RecordLookupAndDestroyCleanup_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Label_RecordLookupAndDestroyCleanup
+{
+    FCk_AutoTest_Label_RecordLookupAndDestroyCleanup_SpawnParams Params()
+    {
+        return FCk_AutoTest_Label_RecordLookupAndDestroyCleanup_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Marker_Add_Box_CreatesValidHandle_SpawnParams
 {
 }

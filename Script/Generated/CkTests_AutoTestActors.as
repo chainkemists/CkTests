@@ -2259,6 +2259,18 @@ class ACk_AutoTest_Label_MatchesAny_FromContainer_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Label_RecordLookupAndDestroyCleanup_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Label_RecordLookupAndDestroyCleanup");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Marker_Add_Box_CreatesValidHandle_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
