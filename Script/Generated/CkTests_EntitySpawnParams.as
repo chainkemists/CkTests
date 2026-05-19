@@ -2751,6 +2751,32 @@ namespace UCk_AutoTest_Marker_Add_Box_CreatesValidHandle
 }
 
 USTRUCT()
+struct FCk_AutoTest_Marker_Add_Capsule_CreatesValidHandle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Marker_Add_Capsule_CreatesValidHandle
+{
+    FCk_AutoTest_Marker_Add_Capsule_CreatesValidHandle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Marker_Add_Capsule_CreatesValidHandle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Marker_Add_Sphere_CreatesValidHandle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Marker_Add_Sphere_CreatesValidHandle
+{
+    FCk_AutoTest_Marker_Add_Sphere_CreatesValidHandle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Marker_Add_Sphere_CreatesValidHandle_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Messaging_BasicBroadcast_SpawnParams
 {
 }
