@@ -541,6 +541,19 @@ namespace UCk_AutoTest_Attribute_FloatModifierStacking
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand
+{
+    FCk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_FloatOverflow_SpawnParams
 {
 }
