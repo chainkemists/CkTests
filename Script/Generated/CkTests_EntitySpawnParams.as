@@ -4141,6 +4141,19 @@ namespace UCk_AutoTest_Timer_CountdownCompletion
 }
 
 USTRUCT()
+struct FCk_AutoTest_Timer_ForEach_Timer_VisitsAll_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Timer_ForEach_Timer_VisitsAll
+{
+    FCk_AutoTest_Timer_ForEach_Timer_VisitsAll_SpawnParams Params()
+    {
+        return FCk_AutoTest_Timer_ForEach_Timer_VisitsAll_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_SpawnParams
 {
 }
