@@ -462,6 +462,19 @@ class ACk_AutoTest_Attribute_FloatModifierStacking_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Attribute_FloatOverflow_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
