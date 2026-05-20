@@ -1802,6 +1802,45 @@ namespace UCk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_AtomicLeaf_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_AtomicLeaf
+{
+    FCk_AutoTest_Goap_ActionSet_AtomicLeaf_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_AtomicLeaf_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_GoalIsEffects_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_GoalIsEffects
+{
+    FCk_AutoTest_Goap_ActionSet_GoalIsEffects_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_GoalIsEffects_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_InvalidGoal_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_InvalidGoal
+{
+    FCk_AutoTest_Goap_ActionSet_InvalidGoal_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_InvalidGoal_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams
 {
 }
