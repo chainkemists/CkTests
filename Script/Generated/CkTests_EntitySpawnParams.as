@@ -1815,6 +1815,19 @@ namespace UCk_AutoTest_Goap_ActionSet_AtomicLeaf
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_ChainGrowth_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_ChainGrowth
+{
+    FCk_AutoTest_Goap_ActionSet_ChainGrowth_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_ChainGrowth_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_ActionSet_DeferOneFrame_SpawnParams
 {
 }
@@ -1863,6 +1876,32 @@ namespace UCk_AutoTest_Goap_ActionSet_InvalidGoal
     FCk_AutoTest_Goap_ActionSet_InvalidGoal_SpawnParams Params()
     {
         return FCk_AutoTest_Goap_ActionSet_InvalidGoal_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_MultiActionSet_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_MultiActionSet
+{
+    FCk_AutoTest_Goap_ActionSet_MultiActionSet_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_MultiActionSet_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy
+{
+    FCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy_SpawnParams();
     }
 }
 
