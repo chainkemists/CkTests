@@ -1828,6 +1828,19 @@ namespace UCk_AutoTest_Goap_ActionSet_ChainGrowth
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_ChainTruncation_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_ChainTruncation
+{
+    FCk_AutoTest_Goap_ActionSet_ChainTruncation_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_ChainTruncation_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_ActionSet_DeferOneFrame_SpawnParams
 {
 }
