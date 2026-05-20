@@ -1802,15 +1802,15 @@ namespace UCk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_BundleTier_RootOnly_SpawnParams
+struct FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_BundleTier_RootOnly
+namespace UCk_AutoTest_Goap_ActionSet_RootOnly
 {
-    FCk_AutoTest_Goap_BundleTier_RootOnly_SpawnParams Params()
+    FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_BundleTier_RootOnly_SpawnParams();
+        return FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams();
     }
 }
 
