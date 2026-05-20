@@ -1815,6 +1815,32 @@ namespace UCk_AutoTest_Goap_ActionSet_AtomicLeaf
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_DeferOneFrame_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_DeferOneFrame
+{
+    FCk_AutoTest_Goap_ActionSet_DeferOneFrame_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_DeferOneFrame_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_DirtyPropagation_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_DirtyPropagation
+{
+    FCk_AutoTest_Goap_ActionSet_DirtyPropagation_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_DirtyPropagation_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_ActionSet_GoalIsEffects_SpawnParams
 {
 }
@@ -1841,6 +1867,19 @@ namespace UCk_AutoTest_Goap_ActionSet_InvalidGoal
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_ResetChain_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_ResetChain
+{
+    FCk_AutoTest_Goap_ActionSet_ResetChain_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_ResetChain_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams
 {
 }
@@ -1850,6 +1889,45 @@ namespace UCk_AutoTest_Goap_ActionSet_RootOnly
     FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams Params()
     {
         return FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_Toggle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_Toggle
+{
+    FCk_AutoTest_Goap_ActionSet_Toggle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_Toggle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_WSInheritance_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_WSInheritance
+{
+    FCk_AutoTest_Goap_ActionSet_WSInheritance_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_WSInheritance_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_WSOverride_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_WSOverride
+{
+    FCk_AutoTest_Goap_ActionSet_WSOverride_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_WSOverride_SpawnParams();
     }
 }
 
