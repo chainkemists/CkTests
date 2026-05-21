@@ -1815,6 +1815,19 @@ namespace UCk_AutoTest_Goap_ActionSet_AtomicLeaf
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_CancelInflightPlan_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_CancelInflightPlan
+{
+    FCk_AutoTest_Goap_ActionSet_CancelInflightPlan_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_CancelInflightPlan_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_ActionSet_ChainGrowth_SpawnParams
 {
 }
@@ -1850,6 +1863,19 @@ namespace UCk_AutoTest_Goap_ActionSet_DeferOneFrame
     FCk_AutoTest_Goap_ActionSet_DeferOneFrame_SpawnParams Params()
     {
         return FCk_AutoTest_Goap_ActionSet_DeferOneFrame_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_DependencyCycleDetection_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_DependencyCycleDetection
+{
+    FCk_AutoTest_Goap_ActionSet_DependencyCycleDetection_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_DependencyCycleDetection_SpawnParams();
     }
 }
 
@@ -1906,6 +1932,19 @@ namespace UCk_AutoTest_Goap_ActionSet_MultiActionSet
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal
+{
+    FCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy_SpawnParams
 {
 }
@@ -1941,6 +1980,32 @@ namespace UCk_AutoTest_Goap_ActionSet_RootOnly
     FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams Params()
     {
         return FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_SiblingActions_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_SiblingActions
+{
+    FCk_AutoTest_Goap_ActionSet_SiblingActions_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_SiblingActions_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_ActionSet_SwapRootAction_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_ActionSet_SwapRootAction
+{
+    FCk_AutoTest_Goap_ActionSet_SwapRootAction_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_ActionSet_SwapRootAction_SpawnParams();
     }
 }
 
