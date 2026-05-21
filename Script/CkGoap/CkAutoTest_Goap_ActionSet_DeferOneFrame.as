@@ -18,23 +18,27 @@
 //   - Mid (child of Root): CDO effect=BKey=true. Composite (has Leaf_B).
 //   - Leaf_B (child of Mid): CDO effect=BKey=true. Atomic.
 //
-// Note: Mid is created with _PlanOnStart=false so it does NOT start planning
-//   before ChainUpdate activates it. This isolates the "deferred planning on
-//   activation" property. AddAction_ToAction resolves Mid's WS immediately from
-//   Root's resolved WS, so Setup runs early — but without _PlanOnStart=true and
-//   without ChainUpdate yet having added RequiresInitialPlan, Mid stays Idle.
+// Mid uses the DEFAULT _PlanOnStart=true. The framework's parent-plan gating
+// (FTag_Goap_Action_PlanInFlight + parent status check in HandleRequests)
+// keeps Mid Idle until Root's plan reaches a terminal status. AutoReplan
+// enqueues Mid's initial Plan request, but HandleRequests defers it (re-enqueues
+// to the same queue) while Root is still planning. Once Root's plan settles
+// to PlanFound, the gate releases and Mid's next HandleRequests pass drains
+// the request and starts Mid's search.
 //
 // Phase 1: Root plans and finds Mid (satisfies BKey=true). OnPlanComplete
 //   fires for Root.
 //
 // Phase 2: In OnRootPlan, retrieve Mid via Find_ActionByClass. ChainUpdate has
 //   NOT yet run for this frame (HandleResult fires OnPlanComplete before
-//   ChainUpdate processes). Mid's PlanStatus must be Idle — ChainUpdate hasn't
-//   added RequiresInitialPlan yet and _PlanOnStart=false prevents early planning.
+//   ChainUpdate processes). Mid's PlanStatus must be Idle — the parent-plan
+//   gate held Mid's Plan request deferred while Root was Planning, so Mid
+//   never transitioned out of Idle.
 //
 // Phase 3: Wait one frame (ChainUpdate runs, appends Mid to chain, adds
-//   RequiresInitialPlan). Then poll until Mid has PlanFound — AutoReplan picks
-//   up RequiresInitialPlan on the NEXT frame after ChainUpdate.
+//   RequiresInitialPlan). Then poll until Mid has PlanFound — with Root now
+//   in PlanFound, Mid's deferred Plan request drains on the next HandleRequests
+//   pass and Mid's search completes.
 //
 // The key invariant: Mid is Idle in the same frame as Root's HandleResult
 // (activation frame). Mid plans in frame+1 or later, not the same frame.
@@ -84,15 +88,14 @@ class UCk_AutoTest_Goap_ActionSet_DeferOneFrame : UCk_AutoTest_Base
         _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
-        // Add Mid as a composite child of Root.
-        // Set _PlanOnStart=false so Mid does NOT start planning before ChainUpdate
-        // activates it. This isolates the "deferred planning on activation" property:
-        // Mid stays Idle until ChainUpdate appends it to the chain and adds
-        // RequiresInitialPlan; only then does AutoReplan enqueue Mid's first plan
-        // (on the subsequent frame).
+        // Add Mid as a composite child of Root. Mid keeps the default
+        // _PlanOnStart=true: AutoReplan will enqueue Mid's initial Plan request,
+        // but the framework's parent-plan gate (FTag_Goap_Action_PlanInFlight +
+        // parent PlanStatus check) defers it until Root reaches a terminal
+        // status. Mid therefore stays Idle through Root's planning frame
+        // without needing a per-test PlanOnStart=false workaround.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        MidParams.Set_PlanOnStart(false);
         auto MidAction = utils_goap_action::AddAction_ToAction(_RootAction, MidParams);
         Assert_True(ck::IsValid(MidAction), "Mid AddAction_ToAction should succeed");
 
@@ -123,8 +126,9 @@ class UCk_AutoTest_Goap_ActionSet_DeferOneFrame : UCk_AutoTest_Base
             "Root Plan[0] should be Mid");
 
         // At this moment (inside HandleResult's signal callback), ChainUpdate
-        // has NOT yet run for this frame. Mid has _PlanOnStart=false and no
-        // RequiresInitialPlan, so its PlanStatus must be Idle.
+        // has NOT yet run for this frame. Mid had its initial Plan request
+        // enqueued by AutoReplan but the parent-plan gate deferred it while
+        // Root was Planning, so Mid's PlanStatus must still be Idle.
         auto MidHandle = utils_goap_action_set::Find_ActionByClass(
             _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in ActionSet catalog");
@@ -133,7 +137,7 @@ class UCk_AutoTest_Goap_ActionSet_DeferOneFrame : UCk_AutoTest_Base
         {
             auto MidStatusBeforeChainUpdate = utils_goap_action::Get_PlanStatus(MidHandle);
             Assert_True(MidStatusBeforeChainUpdate == ECk_GoapPlanStatus::Idle,
-                "Mid PlanStatus must be Idle before ChainUpdate runs (_PlanOnStart=false, no RequiresInitialPlan yet)");
+                "Mid PlanStatus must be Idle before ChainUpdate runs (parent-plan gate defers Mid until Root settles)");
         }
 
         // Wait one frame so ChainUpdate appends Mid and sets RequiresInitialPlan.
