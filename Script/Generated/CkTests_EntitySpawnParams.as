@@ -6472,6 +6472,185 @@ namespace UCk_EntityScript_EqsGym_Station
 }
 
 USTRUCT()
+struct FCk_EntityScript_GoapGym_AutoReplan_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    int Mode = 0;
+
+    FCk_EntityScript_GoapGym_AutoReplan_Station_SpawnParams(FTransform InInitialTransform, int InMode)
+    {
+        InitialTransform = InInitialTransform;
+        Mode = InMode;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_AutoReplan_Station
+{
+    FCk_EntityScript_GoapGym_AutoReplan_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_AutoReplan_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_AutoReplan_Station_SpawnParams Params(FTransform InInitialTransform, int InMode)
+    {
+        return FCk_EntityScript_GoapGym_AutoReplan_Station_SpawnParams(InInitialTransform, InMode);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_CrossRiver_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_CrossRiver_Station_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_CrossRiver_Station
+{
+    FCk_EntityScript_GoapGym_CrossRiver_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_CrossRiver_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_CrossRiver_Station_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_CrossRiver_Station_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_Empire_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_Empire_Station_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_Empire_Station
+{
+    FCk_EntityScript_GoapGym_Empire_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_Empire_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_Empire_Station_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_Empire_Station_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_MakeTea_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_MakeTea_Station_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_MakeTea_Station
+{
+    FCk_EntityScript_GoapGym_MakeTea_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_MakeTea_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_MakeTea_Station_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_MakeTea_Station_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_OpenDoor_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_OpenDoor_Station_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_OpenDoor_Station
+{
+    FCk_EntityScript_GoapGym_OpenDoor_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_OpenDoor_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_OpenDoor_Station_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_OpenDoor_Station_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_Patrol_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_Patrol_Station_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_Patrol_Station
+{
+    FCk_EntityScript_GoapGym_Patrol_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_Patrol_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_Patrol_Station_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_Patrol_Station_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_Survival_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_Survival_Station_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_Survival_Station
+{
+    FCk_EntityScript_GoapGym_Survival_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_Survival_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_Survival_Station_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_Survival_Station_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_GymStation_SpawnParams
 {
     UPROPERTY()
