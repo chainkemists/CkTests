@@ -45,7 +45,8 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Timer",              ACk_TimerGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Transform",          ACk_TransformGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Tween",              ACk_TweenTest_GymGameMode);
-        // GOAP gym entries removed by Bundle/Tier refactor — gyms will be
-        // re-authored against the new Bundle/Tier API in a follow-up.
+        CkGym_Cycler::RegisterProjectGym("Goap",               ACk_GoapGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Goap AutoReplan",    ACk_GoapAutoReplanGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Goap Empire",        ACk_GoapEmpireGym_GameMode);
     }
 }

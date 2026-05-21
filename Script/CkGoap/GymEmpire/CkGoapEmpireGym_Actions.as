@@ -1,0 +1,92 @@
+// Language=angelscript
+
+//============================================================================
+// CkGoapEmpire_Gym — Empire-research Actions
+//
+// 5-step plan resolving Feudal-age research from raw gathering:
+//   GatherFood     pre {}                              eff {Food.Have}      cost 3
+//   GatherGold     pre {}                              eff {Gold.Have}      cost 4
+//   GatherWood     pre {}                              eff {Wood.Have}      cost 2
+//   BuildBarracks  pre {Food.Have, Gold.Have, Wood.Have}  eff {Barracks.Built} cost 5
+//   ResearchFeudal pre {Barracks.Built, Food.Have}      eff {Feudal.Researched} cost 6
+//
+// Root goal {Feudal.Researched=true}. Initial WS has all booleans false.
+// Plan = [GatherWood, GatherFood, GatherGold, BuildBarracks, ResearchFeudal]
+// (gather order is by cost — wood cheapest, gold dearest).
+//============================================================================
+
+class UCk_GoapGym_Empire_Root : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.FeudalResearched"), true);
+        SetCost(0.0);
+    }
+}
+
+class UCk_GoapGym_Empire_GatherFood : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.HasFood"), true);
+        SetCost(3.0);
+    }
+}
+
+class UCk_GoapGym_Empire_GatherGold : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.HasGold"), true);
+        SetCost(4.0);
+    }
+}
+
+class UCk_GoapGym_Empire_GatherWood : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.HasWood"), true);
+        SetCost(2.0);
+    }
+}
+
+class UCk_GoapGym_Empire_BuildBarracks : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.HasFood"), true);
+        AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.HasGold"), true);
+        AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.HasWood"), true);
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.BarracksBuilt"), true);
+        SetCost(5.0);
+    }
+}
+
+class UCk_GoapGym_Empire_ResearchFeudal : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.BarracksBuilt"), true);
+        AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.HasFood"), true);
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.FeudalResearched"), true);
+        SetCost(6.0);
+    }
+}
