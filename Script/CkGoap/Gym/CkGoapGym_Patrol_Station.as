@@ -219,8 +219,8 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         auto ChainLen = Chain.Num();
 
         // Root tier display.
-        auto RootStatus = utils_goap_action::Get_PlanStatus(_RootAction);
-        auto RootPlan = utils_goap_action::Get_Plan(_RootAction);
+        auto RootStatus = utils_goap_planner::Get_PlanStatus(_TopPlanner);
+        auto RootPlan = utils_goap_planner::Get_PlanClasses(_TopPlanner);
 
         // GoToWaypoint sub-planner — only meaningful once chain reaches Tier-2.
         auto GoToStatus = "(not yet active)";

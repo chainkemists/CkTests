@@ -154,10 +154,10 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
             _FirstPlanReceived = true;
 
             // First plan: Mid_A should be chosen (cost 1 < Mid_B cost 2).
-            Assert_True(utils_goap_action::Get_PlanStatus(_RootAction) == ECk_GoapPlanStatus::PlanFound,
+            Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
                 "Root PlanStatus should be PlanFound on first plan");
 
-            auto RootPlan = utils_goap_action::Get_Plan(_RootAction);
+            auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
             Assert_True(RootPlan.Num() == 1,
                 f"Root first plan should have exactly 1 entry (got {RootPlan.Num()})");
             Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_MidA_ChainTruncation,
@@ -174,10 +174,10 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
             _SecondPlanReceived = true;
 
             // Second plan: Mid_B should be chosen (Mid_A cost now 100 > Mid_B cost 2).
-            Assert_True(utils_goap_action::Get_PlanStatus(_RootAction) == ECk_GoapPlanStatus::PlanFound,
+            Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
                 "Root PlanStatus should be PlanFound on second plan");
 
-            auto RootPlan = utils_goap_action::Get_Plan(_RootAction);
+            auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
             Assert_True(RootPlan.Num() == 1,
                 f"Root second plan should have exactly 1 entry (got {RootPlan.Num()})");
             Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_MidB_ChainTruncation,
@@ -218,7 +218,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
 
         // Chain is [Root, Mid_A]. Now trigger the replan by bumping Mid_A's cost.
         // OnEitherDirty policy (set at Root construction) will auto-trigger replan.
-        utils_goap_action::Request_SetActionCost(_RootAction,
+        utils_goap_planner::Request_SetChildActionCost(_ActionSet,
             UCk_AutoTestAction_Goap_ActionSet_MidA_ChainTruncation, 100.0);
     }
 

@@ -86,8 +86,8 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
 
         auto IsOpen = utils_goap_world_state::Get_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Door.IsOpen"));
-        auto Status = utils_goap_action::Get_PlanStatus(_RootAction);
-        auto Plan = utils_goap_action::Get_Plan(_RootAction);
+        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
 
         auto WSLine = f"  Door.IsOpen      {CkGoapGym_Common::Render_Bool(IsOpen)}";
         auto StatusLine = f"  Status           {CkGoapGym_Common::Format_PlanStatus(Status)}";

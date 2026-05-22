@@ -106,7 +106,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         if (Mode == 1)
         {
             // OnWSDirty station — 0.5s throttle interval to show coalescing.
-            utils_goap_action::Request_SetReplanInterval(_RootAction, 0.5);
+            utils_goap_planner::Request_SetReplanInterval(_ActionSet, 0.5);
         }
 
         // Plan-counter bind. FireIfPayloadInFlightThisFrame default policy
@@ -183,7 +183,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         {
             _AltCostIncreased = !_AltCostIncreased;
             auto NewCost = _AltCostIncreased ? 0.5 : 2.0;
-            utils_goap_action::Request_SetActionCost(_RootAction,
+            utils_goap_planner::Request_SetChildActionCost(_ActionSet,
                 UCk_GoapGym_AutoReplan_AltOp, NewCost);
         }
     }
@@ -198,11 +198,11 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         if (Self.Has_Fragment(FCk_Fragment_GoapGym_ForceReplanPending))
         {
             Self.Request_Remove(FCk_Fragment_GoapGym_ForceReplanPending);
-            utils_goap_action::Request_Plan(_RootAction);
+            utils_goap_planner::Request_Plan(_ActionSet);
         }
 
-        auto Status = utils_goap_action::Get_PlanStatus(_RootAction);
-        auto Plan = utils_goap_action::Get_Plan(_RootAction);
+        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
 
         auto ModeLabel = Get_PolicyLabel();
         auto Title = "";

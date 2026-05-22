@@ -89,7 +89,7 @@ class UCk_AutoTest_Goap_Planner_WSOverride : UCk_AutoTest_Base
         Assert_True(ck::IsValid(MidAction), "AddAction should return a valid handle");
 
         // WS resolution is synchronous (eager-resolve in AddAction).
-        auto RootWS = utils_goap_action::Get_WorldStateSource(RootAction);
+        auto RootWS = utils_goap_planner::Get_WorldStateSource(ActionSet);
         auto MidWS  = utils_goap_action::Get_WorldStateSource(MidAction);
 
         Assert_True(ck::IsValid(RootWS),

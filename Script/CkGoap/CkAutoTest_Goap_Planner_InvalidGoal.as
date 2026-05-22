@@ -82,10 +82,10 @@ class UCk_AutoTest_Goap_Planner_InvalidGoal : UCk_AutoTest_Base
         // Request_SetGoal was enqueued in DoBeginPlay. The handler set
         // _InvalidGoal = [{UnknownKey, true}] and _Goal = []. Plan ran
         // on the empty goal → PlanFound with empty plan. _InvalidGoal persists.
-        Assert_True(utils_goap_action::Get_PlanStatus(_RootAction) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
             "Root PlanStatus should be PlanFound (empty goal satisfied immediately)");
 
-        auto InvalidGoal = utils_goap_action::Get_InvalidGoal(_RootAction);
+        auto InvalidGoal = utils_goap_planner::Get_InvalidGoal(_ActionSet);
         Assert_True(InvalidGoal.Num() == 1,
             f"Get_InvalidGoal should contain 1 entry for the unregistered UnknownKey (got {InvalidGoal.Num()})");
 

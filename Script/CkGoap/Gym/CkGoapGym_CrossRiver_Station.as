@@ -102,9 +102,9 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
         auto HasCoin = Get(n"Gym.Goap.WS.CrossRiver.HasCoin");
         auto Crossed = Get(n"Gym.Goap.WS.CrossRiver.Crossed");
 
-        auto Status = utils_goap_action::Get_PlanStatus(_RootAction);
-        auto Plan = utils_goap_action::Get_Plan(_RootAction);
-        auto Cost = utils_goap_action::Get_PlanCost(_RootAction);
+        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto Cost = utils_goap_planner::Get_PlanCost(_ActionSet);
 
         auto Body = "World State\n"
             + f"  BridgeIsOpen   {CkGoapGym_Common::Render_Bool(BridgeOpen)}\n"

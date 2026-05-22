@@ -117,8 +117,8 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
         auto TeaPoured  = Get(n"Gym.Goap.WS.Tea.TeaPoured");
         auto TeaServed  = Get(n"Gym.Goap.WS.Tea.TeaServed");
 
-        auto Status = utils_goap_action::Get_PlanStatus(_RootAction);
-        auto Plan = utils_goap_action::Get_Plan(_RootAction);
+        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
 
         auto Body = "Ingredients\n"
             + f"  HasKettle      {CkGoapGym_Common::Render_Bool(HasKettle)}\n"

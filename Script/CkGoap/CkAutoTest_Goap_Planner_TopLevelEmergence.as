@@ -36,6 +36,8 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
 
     private FCk_Handle_Goap_Action _RootA;
     private FCk_Handle_Goap_Action _RootB;
+    private FCk_Handle_Goap_Planner _PlannerA;
+    private FCk_Handle_Goap_Planner _PlannerB;
     private bool _PlanAReceived = false;
     private bool _PlanBReceived = false;
 
@@ -67,12 +69,12 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParamsA.Set_Goal(GoalA);
         PlannerParamsA.Set_WorldStateSource(WS);
-        auto PlannerA = utils_goap_planner::Add(Local, PlannerParamsA);
-        Assert_True(ck::IsValid(PlannerA), "Planner A Add should return a valid handle");
+        _PlannerA = utils_goap_planner::Add(Local, PlannerParamsA);
+        Assert_True(ck::IsValid(_PlannerA), "Planner A Add should return a valid handle");
 
         auto RootParamsA = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiA);
-        _RootA = utils_goap_planner::AddAction(PlannerA, RootParamsA);
+        _RootA = utils_goap_planner::AddAction(_PlannerA, RootParamsA);
         Assert_True(ck::IsValid(_RootA), "AddAction A should return a valid handle");
 
         // ---- Planner B ---- goal {BKey=true}, pre-satisfied.
@@ -85,12 +87,12 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set2"));
         PlannerParamsB.Set_Goal(GoalB);
         PlannerParamsB.Set_WorldStateSource(WS);
-        auto PlannerB = utils_goap_planner::Add(Local, PlannerParamsB);
-        Assert_True(ck::IsValid(PlannerB), "Planner B Add should return a valid handle");
+        _PlannerB = utils_goap_planner::Add(Local, PlannerParamsB);
+        Assert_True(ck::IsValid(_PlannerB), "Planner B Add should return a valid handle");
 
         auto RootParamsB = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiB);
-        _RootB = utils_goap_planner::AddAction(PlannerB, RootParamsB);
+        _RootB = utils_goap_planner::AddAction(_PlannerB, RootParamsB);
         Assert_True(ck::IsValid(_RootB), "AddAction B should return a valid handle");
 
         // The two roots must be distinct handles (different Planner entities).
@@ -122,7 +124,7 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
         if (_PlanAReceived) { return; }
         _PlanAReceived = true;
 
-        Assert_True(utils_goap_action::Get_PlanStatus(_RootA) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_PlannerA) == ECk_GoapPlanStatus::PlanFound,
             "Planner A root PlanStatus should be PlanFound");
 
         // Verify top-level identity is still observable after planning.
@@ -140,7 +142,7 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
         if (_PlanBReceived) { return; }
         _PlanBReceived = true;
 
-        Assert_True(utils_goap_action::Get_PlanStatus(_RootB) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_PlannerB) == ECk_GoapPlanStatus::PlanFound,
             "Planner B root PlanStatus should be PlanFound");
 
         // Verify top-level identity is still observable after planning.

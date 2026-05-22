@@ -4,7 +4,7 @@
 // CK GOAP — AUTOMATION TEST: ACTIONSET CANCEL IN-FLIGHT PLAN
 //============================================================================
 //
-// Validates utils_goap_action::Request_CancelPlan(Action).
+// Validates utils_goap_planner::Request_CancelPlan(Planner).
 //
 // Per FProcessor_Goap_Action_HandleRequests:
 //   FCk_Request_Goap_Action_CancelPlan handler:
@@ -116,7 +116,7 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         // Sanity: status is Idle (no plan started yet — _PlanOnStart=false).
-        auto InitialStatus = utils_goap_action::Get_PlanStatus(_RootAction);
+        auto InitialStatus = utils_goap_planner::Get_PlanStatus(_ActionSet);
         Assert_True(InitialStatus == ECk_GoapPlanStatus::Idle,
             f"Root PlanStatus should be Idle before Request_Plan (got {InitialStatus})");
 
@@ -124,8 +124,8 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
         // in order by FProcessor_Goap_Action_HandleRequests on the next tick:
         // Plan seeds the search (status → Planning, _PlanInFlight tag added);
         // Cancel immediately tears it down (status → Idle, tag removed).
-        utils_goap_action::Request_Plan(_RootAction);
-        utils_goap_action::Request_CancelPlan(_RootAction);
+        utils_goap_planner::Request_Plan(_ActionSet);
+        utils_goap_planner::Request_CancelPlan(_ActionSet);
 
         // Give the processor a few frames to drain requests and settle.
         _SettleFrameCount = 0;
@@ -149,11 +149,11 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
 
         // After settling: status must be Idle (cancel won), plan empty,
         // and OnPlanComplete must NOT have fired.
-        auto Status = utils_goap_action::Get_PlanStatus(_RootAction);
+        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
         Assert_True(Status == ECk_GoapPlanStatus::Idle,
             f"Root PlanStatus should be Idle after Request_CancelPlan tears down the in-flight plan (got {Status})");
 
-        auto Plan = utils_goap_action::Get_Plan(_RootAction);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
         Assert_True(Plan.Num() == 0,
             f"Root plan should be empty after cancel (got {Plan.Num()} entries)");
 
