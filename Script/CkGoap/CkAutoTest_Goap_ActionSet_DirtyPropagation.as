@@ -46,21 +46,23 @@ class UCk_AutoTest_Goap_ActionSet_DirtyPropagation : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
-
         // Root goal: {AKey=true}. WS starts false → Root plans and picks LeafA.
         // Default ReplanPolicy=OnWorldStateDirty means mutating AKey will trigger
         // a replan on the next frame (via FTag_Goap_Dirty_WorldState mechanism).
+        // U11.1: goal authored on PlannerParams.
         auto InitialGoal = TArray<FCk_GoapWS_Condition_Authored>();
         InitialGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true));
+
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        ActionSetParams.Set_Goal(InitialGoal);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-        RootParams.Set_InitialGoal_RootOnly(InitialGoal);
 
         _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");

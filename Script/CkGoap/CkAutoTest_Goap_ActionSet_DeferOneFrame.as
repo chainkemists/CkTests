@@ -68,20 +68,22 @@ class UCk_AutoTest_Goap_ActionSet_DeferOneFrame : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
-
         // Root goal: {BKey=true}. Root CDO effect: AKey=true (distinct intentionally).
         // Mid's CDO effect: BKey=true → Root's planner picks Mid.
+        // U11.1: goal authored on PlannerParams.
         auto InitialGoal = TArray<FCk_GoapWS_Condition_Authored>();
         InitialGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             true));
+
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        ActionSetParams.Set_Goal(InitialGoal);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-        RootParams.Set_InitialGoal_RootOnly(InitialGoal);
 
         _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
@@ -96,6 +98,17 @@ class UCk_AutoTest_Goap_ActionSet_DeferOneFrame : UCk_AutoTest_Base
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         auto MidAction = utils_goap_action::AddAction_ToAction(_RootAction, MidParams);
         Assert_True(ck::IsValid(MidAction), "Mid AddAction_ToAction should succeed");
+
+        // U11.1: set Mid's planner goal explicitly. Pre-U11.1, Mid's goal was
+        // implicitly injected from Mid's CDO effects {BKey=true}. The new
+        // independent-goal model requires an explicit set; we preserve the
+        // test's original intent by setting the same {BKey=true} goal so Mid's
+        // deferred plan resolves to [Leaf_B].
+        auto MidGoal = TArray<FCk_GoapWS_Condition_Authored>();
+        MidGoal.Add(FCk_GoapWS_Condition_Authored(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
+            true));
+        utils_goap_action::Request_SetGoalWorldState(MidAction, MidGoal);
 
         // Add Leaf_B as child of Mid (makes Mid composite).
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(

@@ -41,16 +41,18 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_WorldState_ParamsData());
         Reset_WS();
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Empire"));
-        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
-
+        // U11.1: Planner goal on PlannerParams.
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Empire.FeudalResearched"),
             true));
+
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Empire"));
+        ActionSetParams.Set_Goal(Goal);
+        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
+
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_Root);
-        RootParams.Set_InitialGoal_RootOnly(Goal);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
 
         _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);

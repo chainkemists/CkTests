@@ -48,18 +48,19 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Door.IsOpen"),
             false);
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Door"));
-        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
-
-        // Root: goal Door.IsOpen=true. OnWorldStateDirty so toggling the WS
-        // automatically retriggers planning.
+        // U11.1: Planner goal Door.IsOpen=true. OnWorldStateDirty so toggling
+        // the WS automatically retriggers planning.
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Door.IsOpen"),
             true));
+
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Door"));
+        ActionSetParams.Set_Goal(Goal);
+        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
+
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_Root);
-        RootParams.Set_InitialGoal_RootOnly(Goal);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
 
         _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);

@@ -54,21 +54,22 @@ class UCk_AutoTest_Goap_ActionSet_CancelInflightPlan : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
-
-        // Root: _InitialGoal_RootOnly={BKey=true} — NOT pre-satisfied (BKey=false),
+        // U11.1: Planner goal={BKey=true} — NOT pre-satisfied (BKey=false),
         // so the planner has actual A* search work.
         // _PlanOnStart=false so no implicit plan races the test's manual sequence.
         auto InitialGoal = TArray<FCk_GoapWS_Condition_Authored>();
         InitialGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             true));
+
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        ActionSetParams.Set_Goal(InitialGoal);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-        RootParams.Set_InitialGoal_RootOnly(InitialGoal);
         RootParams.Set_PlanOnStart(false);
         // Explicit replan policy: never replan automatically. Only our manual
         // Request_Plan should trigger planning.
