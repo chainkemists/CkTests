@@ -39,7 +39,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
             "Branching cost-sensitive plan.\nGoal: Crossed=true."));
 
         Stations.Add(MakeStationPayload(n"Gym.Goap.Station.Patrol", "STATION 4 / PATROL ROUTE",
-            "Composite Action / chain extension.\nGoal: PatrolComplete=true."));
+            "Multi-tier Planner (U11.6).\nGoToWaypoint + Observe promoted to Planners.\nChain: [Root, Composite, Leaf]."));
 
         Stations.Add(MakeStationPayload(n"Gym.Goap.Station.Survival", "STATION 5 / SURVIVAL DECISION",
             "Two independent ActionSets.\nGoals: Hungry=false AND SafeFromThreat=true."));
@@ -225,36 +225,35 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         Set(WS, n"Gym.Goap.WS.CrossRiver.Crossed", false);
     }
 
-    // ---- Patrol ----
-    UFUNCTION(Exec, DisplayName="Goap.Patrol.AdvanceB")
-    void Goap_Patrol_AdvanceB()
+    // ---- Patrol (U11.6 multi-tier WS keys) ----
+    UFUNCTION(Exec, DisplayName="Goap.Patrol.SetAtWaypoint")
+    void Goap_Patrol_SetAtWaypoint()
     {
         Set(Find_StationWS("Gym.Goap.Station.Patrol", n"Gym.Goap.WS.Patrol"),
-            n"Gym.Goap.WS.Patrol.AtPostB", true);
+            n"Gym.Goap.WS.Patrol.AtWaypoint", true);
     }
 
-    UFUNCTION(Exec, DisplayName="Goap.Patrol.AdvanceC")
-    void Goap_Patrol_AdvanceC()
+    UFUNCTION(Exec, DisplayName="Goap.Patrol.SetAreaScanned")
+    void Goap_Patrol_SetAreaScanned()
     {
         Set(Find_StationWS("Gym.Goap.Station.Patrol", n"Gym.Goap.WS.Patrol"),
-            n"Gym.Goap.WS.Patrol.AtPostC", true);
+            n"Gym.Goap.WS.Patrol.AreaScanned", true);
     }
 
     UFUNCTION(Exec, DisplayName="Goap.Patrol.Complete")
     void Goap_Patrol_Complete()
     {
         Set(Find_StationWS("Gym.Goap.Station.Patrol", n"Gym.Goap.WS.Patrol"),
-            n"Gym.Goap.WS.Patrol.Complete", true);
+            n"Gym.Goap.WS.Patrol.AreaPatrolled", true);
     }
 
     UFUNCTION(Exec, DisplayName="Goap.Patrol.Reset")
     void Goap_Patrol_Reset()
     {
         auto WS = Find_StationWS("Gym.Goap.Station.Patrol", n"Gym.Goap.WS.Patrol");
-        Set(WS, n"Gym.Goap.WS.Patrol.AtPostA", true);
-        Set(WS, n"Gym.Goap.WS.Patrol.AtPostB", false);
-        Set(WS, n"Gym.Goap.WS.Patrol.AtPostC", false);
-        Set(WS, n"Gym.Goap.WS.Patrol.Complete", false);
+        Set(WS, n"Gym.Goap.WS.Patrol.AtWaypoint", false);
+        Set(WS, n"Gym.Goap.WS.Patrol.AreaScanned", false);
+        Set(WS, n"Gym.Goap.WS.Patrol.AreaPatrolled", false);
     }
 
     // ---- Survival ----

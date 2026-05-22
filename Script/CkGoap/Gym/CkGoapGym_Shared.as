@@ -78,11 +78,12 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.WS.CrossRiver.HasCoin");
         GameplayTags.Add(n"Gym.Goap.WS.CrossRiver.Crossed");
 
-        // World-state keys — Patrol station.
-        GameplayTags.Add(n"Gym.Goap.WS.Patrol.AtPostA");
-        GameplayTags.Add(n"Gym.Goap.WS.Patrol.AtPostB");
-        GameplayTags.Add(n"Gym.Goap.WS.Patrol.AtPostC");
-        GameplayTags.Add(n"Gym.Goap.WS.Patrol.Complete");
+        // World-state keys — Patrol station (U11.6 multi-tier shape).
+        // Top goal: AreaPatrolled=true (replaces old Complete).
+        // Mid-tier composites each satisfy one sub-key before MarkDone fires.
+        GameplayTags.Add(n"Gym.Goap.WS.Patrol.AtWaypoint");
+        GameplayTags.Add(n"Gym.Goap.WS.Patrol.AreaScanned");
+        GameplayTags.Add(n"Gym.Goap.WS.Patrol.AreaPatrolled");
 
         // World-state keys — Survival station.
         GameplayTags.Add(n"Gym.Goap.WS.Survival.Hungry");

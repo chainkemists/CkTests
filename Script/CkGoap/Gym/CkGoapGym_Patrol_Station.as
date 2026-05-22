@@ -1,26 +1,38 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Patrol Route station entity
+// CkGoapGym — Patrol Route station entity  (U11.6 multi-tier rewrite)
 //
-// Composite Action that extends the active chain. Tree:
-//   Root           goal {Complete=true}
-//     └── DoPatrol (composite — has 3 children below)
-//           ├── WalkToB     pre {AtPostA}  eff {AtPostB}
-//           ├── WalkToC     pre {AtPostB}  eff {AtPostC}
-//           └── MarkComplete pre {AtPostC} eff {Complete}
+// Canonical multi-tier Planner example demonstrating spec §2.2.
 //
-// Initial WS: AtPostA=true, all others false.
+// Construction pattern (the key U11.6 idiom):
+//   1. utils_goap_planner::Add               → top-level Planner
+//   2. utils_goap_planner::SetRootAction      → Root action under Planner
+//   3. utils_goap_action::AddAction_ToAction  → add GoToWaypoint child to Root
+//   4. utils_goap_planner::PromoteActionToPlanner(GoToWaypoint, subParams)
+//        → GoToWaypoint is now ALSO a Planner with goal AtWaypoint=true
+//   5. utils_goap_planner::AddAction(GoToWaypoint_AsPlanner, RunParams)
+//      utils_goap_planner::AddAction(GoToWaypoint_AsPlanner, WalkParams)
+//        → Tier-3 leaves under GoToWaypoint's own Planner
+//   6. Repeat for Observe composite (goal AreaScanned=true)
 //
-// Expected runtime:
-//   1. Root plans → picks DoPatrol → chain extends to [Root, DoPatrol].
-//   2. DoPatrol plans → backchain produces [WalkToB, WalkToC, MarkComplete].
-//   3. Player drives sub-plan progression by toggling AtPostB, AtPostC, etc.
-//      Each toggle triggers a DoPatrol replan.
+// Entity hierarchy after construction:
+//   Owner entity
+//     Patrol_Planner              [Planner only]     goal: AreaPatrolled=true
+//       Root                      [Action + root]    eff: AreaPatrolled=true
+//         GoToWaypoint            [Action+Planner]   eff: AtWaypoint=true
+//           Run                   [Action]            eff: AtWaypoint=true (cost 1)
+//           Walk                  [Action]            eff: AtWaypoint=true (cost 2)
+//         Observe                 [Action+Planner]   eff: AreaScanned=true
+//           LookAround            [Action]            eff: AreaScanned=true (cost 1)
+//           WaitAtPost            [Action]            eff: AreaScanned=true (cost 3)
+//         MarkDone                [Action]            eff: AreaPatrolled=true
 //
 // Player commands:
-//   Goap.Patrol.AdvanceB / AdvanceC / Complete — set per-waypoint WS keys.
-//   Goap.Patrol.Reset                            — back to AtPostA only.
+//   Goap.Patrol.SetAtWaypoint    — set AtWaypoint=true
+//   Goap.Patrol.SetAreaScanned   — set AreaScanned=true
+//   Goap.Patrol.Complete         — set AreaPatrolled=true
+//   Goap.Patrol.Reset            — all back to false
 //============================================================================
 
 USTRUCT()
@@ -37,14 +49,26 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    private FCk_Handle_Goap_Planner _ActionSet;
-    private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_Action _DoPatrolAction;
+    // ---- Tier-1 ----
+    private FCk_Handle_Goap_Planner _TopPlanner;
+    private FCk_Handle_Goap_Action  _RootAction;
+
+    // ---- Tier-2 composites (Action+Planner) ----
+    private FCk_Handle_Goap_Action  _GoToWaypoint_AsAction;
+    private FCk_Handle_Goap_Planner _GoToWaypoint_AsPlanner;
+    private FCk_Handle_Goap_Action  _Observe_AsAction;
+    private FCk_Handle_Goap_Planner _Observe_AsPlanner;
+
+    // ---- WorldState ----
     private FCk_Handle_Goap_WorldState _WS;
+
+    // ---- Label maps for plan rendering ----
     private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses_Root;
     private TArray<FString> _KnownLabels_Root;
-    private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses_Patrol;
-    private TArray<FString> _KnownLabels_Patrol;
+    private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses_GoTo;
+    private TArray<FString> _KnownLabels_GoTo;
+    private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses_Observe;
+    private TArray<FString> _KnownLabels_Observe;
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow
@@ -52,67 +76,124 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
     {
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
+        // ------------------------------------------------------------------
+        // WorldState — all keys start false.
+        // ------------------------------------------------------------------
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol"),
             FCk_Fragment_Goap_WorldState_ParamsData());
         Reset_WS();
 
-        // U11.1: Planner goal Complete=true on PlannerParams.
+        // ------------------------------------------------------------------
+        // Tier 1 — Top-level Planner, goal: AreaPatrolled=true.
+        // ------------------------------------------------------------------
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
-            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol.Complete"),
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol.AreaPatrolled"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol"));
-        ActionSetParams.Set_Goal(Goal);
-        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
+        PlannerParams.Set_Goal(Goal);
+        _TopPlanner = utils_goap_planner::Add(InHandle, PlannerParams);
 
+        // Root action: single mandatory child at Tier 1.
+        // ReplanPolicy OnWorldStateDirty so WS changes auto-trigger replans.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Root);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);
+        _RootAction = utils_goap_planner::SetRootAction(_TopPlanner, RootParams, _WS);
 
-        // DoPatrol — composite child of Root.
-        auto DoPatrolParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_DoPatrol);
-        DoPatrolParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _DoPatrolAction = utils_goap_action::AddAction_ToAction(_RootAction, DoPatrolParams);
+        // ------------------------------------------------------------------
+        // Tier 2a — GoToWaypoint composite.
+        // Step 1: add as an Action child of Root.
+        // Step 2: promote to Planner with its own independent goal (AtWaypoint=true).
+        // Step 3: add Tier-3 leaf actions under its Planner role.
+        // ------------------------------------------------------------------
+        auto GoToWaypointActionParams = FCk_Fragment_Goap_ActionParamsData(
+            UCk_GoapGym_Patrol_GoToWaypoint);
+        GoToWaypointActionParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
+        _GoToWaypoint_AsAction = utils_goap_action::AddAction_ToAction(
+            _RootAction, GoToWaypointActionParams);
 
-        // Atomic children of DoPatrol.
-        utils_goap_action::AddAction_ToAction(_DoPatrolAction,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_WalkToB));
-        utils_goap_action::AddAction_ToAction(_DoPatrolAction,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_WalkToC));
-        utils_goap_action::AddAction_ToAction(_DoPatrolAction,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_MarkComplete));
+        // Promote: GoToWaypoint entity now carries BOTH Action and Planner roles.
+        auto GoToWaypointGoal = TArray<FCk_GoapWS_Condition_Authored>();
+        GoToWaypointGoal.Add(FCk_GoapWS_Condition_Authored(
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol.AtWaypoint"),
+            true));
+        auto GoToWaypointPlannerParams = FCk_Fragment_Goap_PlannerParamsData();
+        GoToWaypointPlannerParams.Set_Goal(GoToWaypointGoal);
+        // Note: replan policy is carried by the ActionParamsData (set above on
+        // GoToWaypointActionParams), not by PlannerParamsData.
+        _GoToWaypoint_AsPlanner = utils_goap_planner::PromoteActionToPlanner(
+            _GoToWaypoint_AsAction, GoToWaypointPlannerParams);
 
-        _KnownClasses_Root.Add(UCk_GoapGym_Patrol_DoPatrol);
-        _KnownLabels_Root.Add("DoPatrol");
+        // Tier-3 leaves under GoToWaypoint's Planner.
+        utils_goap_planner::AddAction(_GoToWaypoint_AsPlanner,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Run));
+        utils_goap_planner::AddAction(_GoToWaypoint_AsPlanner,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Walk));
 
-        _KnownClasses_Patrol.Add(UCk_GoapGym_Patrol_WalkToB);      _KnownLabels_Patrol.Add("WalkToB");
-        _KnownClasses_Patrol.Add(UCk_GoapGym_Patrol_WalkToC);      _KnownLabels_Patrol.Add("WalkToC");
-        _KnownClasses_Patrol.Add(UCk_GoapGym_Patrol_MarkComplete); _KnownLabels_Patrol.Add("MarkComplete");
+        // ------------------------------------------------------------------
+        // Tier 2b — Observe composite (same promotion pattern).
+        // ------------------------------------------------------------------
+        auto ObserveActionParams = FCk_Fragment_Goap_ActionParamsData(
+            UCk_GoapGym_Patrol_Observe);
+        ObserveActionParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
+        _Observe_AsAction = utils_goap_action::AddAction_ToAction(
+            _RootAction, ObserveActionParams);
+
+        auto ObserveGoal = TArray<FCk_GoapWS_Condition_Authored>();
+        ObserveGoal.Add(FCk_GoapWS_Condition_Authored(
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol.AreaScanned"),
+            true));
+        auto ObservePlannerParams = FCk_Fragment_Goap_PlannerParamsData();
+        ObservePlannerParams.Set_Goal(ObserveGoal);
+        // Note: replan policy carried by ObserveActionParams (OnWorldStateDirty).
+        _Observe_AsPlanner = utils_goap_planner::PromoteActionToPlanner(
+            _Observe_AsAction, ObservePlannerParams);
+
+        utils_goap_planner::AddAction(_Observe_AsPlanner,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_LookAround));
+        utils_goap_planner::AddAction(_Observe_AsPlanner,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_WaitAtPost));
+
+        // ------------------------------------------------------------------
+        // Tier 2c — MarkDone atomic leaf (no Planner promotion needed).
+        // ------------------------------------------------------------------
+        utils_goap_action::AddAction_ToAction(_RootAction,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_MarkDone));
+
+        // ---- Label maps ----
+        _KnownClasses_Root.Add(UCk_GoapGym_Patrol_GoToWaypoint); _KnownLabels_Root.Add("GoToWaypoint");
+        _KnownClasses_Root.Add(UCk_GoapGym_Patrol_Observe);      _KnownLabels_Root.Add("Observe");
+        _KnownClasses_Root.Add(UCk_GoapGym_Patrol_MarkDone);     _KnownLabels_Root.Add("MarkDone");
+
+        _KnownClasses_GoTo.Add(UCk_GoapGym_Patrol_Run);  _KnownLabels_GoTo.Add("Run");
+        _KnownClasses_GoTo.Add(UCk_GoapGym_Patrol_Walk); _KnownLabels_GoTo.Add("Walk");
+
+        _KnownClasses_Observe.Add(UCk_GoapGym_Patrol_LookAround); _KnownLabels_Observe.Add("LookAround");
+        _KnownClasses_Observe.Add(UCk_GoapGym_Patrol_WaitAtPost); _KnownLabels_Observe.Add("WaitAtPost");
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnDisplayTick"));
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
 
-    private void Reset_WS()
+    void Reset_WS()
     {
         if (ck::Is_NOT_Valid(_WS)) { return; }
-        Set(n"Gym.Goap.WS.Patrol.AtPostA", true);
-        Set(n"Gym.Goap.WS.Patrol.AtPostB", false);
-        Set(n"Gym.Goap.WS.Patrol.AtPostC", false);
-        Set(n"Gym.Goap.WS.Patrol.Complete", false);
+        SetWS(n"Gym.Goap.WS.Patrol.AtWaypoint", false);
+        SetWS(n"Gym.Goap.WS.Patrol.AreaScanned", false);
+        SetWS(n"Gym.Goap.WS.Patrol.AreaPatrolled", false);
     }
 
-    private void Set(FName InKey, bool InValue)
+    void SetWS(FName InKey, bool InValue)
     {
         utils_goap_world_state::Set_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(InKey), InValue);
     }
 
-    private bool Get(FName InKey)
+    private bool GetWS(FName InKey)
     {
         return utils_goap_world_state::Get_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(InKey));
@@ -123,48 +204,61 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
     {
         if (ck::Is_NOT_Valid(_RootAction)) { return; }
 
-        auto AtA = Get(n"Gym.Goap.WS.Patrol.AtPostA");
-        auto AtB = Get(n"Gym.Goap.WS.Patrol.AtPostB");
-        auto AtC = Get(n"Gym.Goap.WS.Patrol.AtPostC");
-        auto Done = Get(n"Gym.Goap.WS.Patrol.Complete");
+        auto AtWaypoint   = GetWS(n"Gym.Goap.WS.Patrol.AtWaypoint");
+        auto AreaScanned  = GetWS(n"Gym.Goap.WS.Patrol.AreaScanned");
+        auto AreaPatrolled = GetWS(n"Gym.Goap.WS.Patrol.AreaPatrolled");
 
+        auto Chain = utils_goap_planner::Get_ActiveChain(_TopPlanner);
+        auto ChainLen = Chain.Num();
+
+        // Root tier display.
         auto RootStatus = utils_goap_action::Get_PlanStatus(_RootAction);
         auto RootPlan = utils_goap_action::Get_Plan(_RootAction);
 
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
-        auto ChainLen = Chain.Num();
-
-        // Patrol composite's own planner may not be active until ChainUpdate
-        // extends the chain to include it. Read its plan defensively.
-        auto PatrolStatusLabel = "(not yet active)";
-        auto PatrolPlanLabel = "(waiting for chain to extend)";
-        if (ChainLen >= 2 && ck::IsValid(_DoPatrolAction))
+        // GoToWaypoint sub-planner — only meaningful once chain reaches Tier-2.
+        auto GoToStatus = "(not yet active)";
+        auto GotoPlan = "(waiting)";
+        if (ChainLen >= 2 && ck::IsValid(_GoToWaypoint_AsAction))
         {
-            PatrolStatusLabel = CkGoapGym_Common::Format_PlanStatus(
-                utils_goap_action::Get_PlanStatus(_DoPatrolAction));
-            PatrolPlanLabel = CkGoapGym_Common::Format_Plan(
-                utils_goap_action::Get_Plan(_DoPatrolAction),
-                _KnownClasses_Patrol, _KnownLabels_Patrol);
+            GoToStatus = CkGoapGym_Common::Format_PlanStatus(
+                utils_goap_action::Get_PlanStatus(_GoToWaypoint_AsAction));
+            GotoPlan = CkGoapGym_Common::Format_Plan(
+                utils_goap_action::Get_Plan(_GoToWaypoint_AsAction),
+                _KnownClasses_GoTo, _KnownLabels_GoTo);
+        }
+
+        // Observe sub-planner.
+        auto ObserveStatus = "(not yet active)";
+        auto ObservePlan = "(waiting)";
+        if (ChainLen >= 2 && ck::IsValid(_Observe_AsAction))
+        {
+            ObserveStatus = CkGoapGym_Common::Format_PlanStatus(
+                utils_goap_action::Get_PlanStatus(_Observe_AsAction));
+            ObservePlan = CkGoapGym_Common::Format_Plan(
+                utils_goap_action::Get_Plan(_Observe_AsAction),
+                _KnownClasses_Observe, _KnownLabels_Observe);
         }
 
         auto Body = "World State\n"
-            + f"  AtPostA        {CkGoapGym_Common::Render_Bool(AtA)}\n"
-            + f"  AtPostB        {CkGoapGym_Common::Render_Bool(AtB)}\n"
-            + f"  AtPostC        {CkGoapGym_Common::Render_Bool(AtC)}\n"
-            + f"  Complete       {CkGoapGym_Common::Render_Bool(Done)}\n\n"
-            + "Root planner\n"
-            + f"  Status         {CkGoapGym_Common::Format_PlanStatus(RootStatus)}\n"
-            + f"  Plan           {CkGoapGym_Common::Format_Plan(RootPlan, _KnownClasses_Root, _KnownLabels_Root)}\n"
-            + f"  Chain length   {ChainLen}\n\n"
-            + "DoPatrol planner (composite child)\n"
-            + f"  Status         {PatrolStatusLabel}\n"
-            + f"  Plan           {PatrolPlanLabel}\n\n"
+            + f"  AtWaypoint      {CkGoapGym_Common::Render_Bool(AtWaypoint)}\n"
+            + f"  AreaScanned     {CkGoapGym_Common::Render_Bool(AreaScanned)}\n"
+            + f"  AreaPatrolled   {CkGoapGym_Common::Render_Bool(AreaPatrolled)}\n\n"
+            + "Tier-1 Root Planner (goal: AreaPatrolled=true)\n"
+            + f"  Status          {CkGoapGym_Common::Format_PlanStatus(RootStatus)}\n"
+            + f"  Plan            {CkGoapGym_Common::Format_Plan(RootPlan, _KnownClasses_Root, _KnownLabels_Root)}\n"
+            + f"  Chain length    {ChainLen}\n\n"
+            + "Tier-2a GoToWaypoint Planner (goal: AtWaypoint=true)\n"
+            + f"  Status          {GoToStatus}\n"
+            + f"  Plan            {GotoPlan}\n\n"
+            + "Tier-2b Observe Planner (goal: AreaScanned=true)\n"
+            + f"  Status          {ObserveStatus}\n"
+            + f"  Plan            {ObservePlan}\n\n"
             + "Buttons\n"
-            + "  Goap.Patrol.AdvanceB / AdvanceC / Complete\n"
-            + "  Goap.Patrol.Reset";
+            + "  Goap.Patrol.SetAtWaypoint  / SetAreaScanned\n"
+            + "  Goap.Patrol.Complete       / Reset";
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "STATION 4 / PATROL ROUTE", Body,
-            "Composite Action: chain extends to [Root, DoPatrol].\nSub-plan = [WalkToB, WalkToC, MarkComplete].");
+            "Multi-tier Planner (U11.6). 3-deep chain:\n[Root, GoToWaypoint/Observe, Run/LookAround].");
     }
 }
