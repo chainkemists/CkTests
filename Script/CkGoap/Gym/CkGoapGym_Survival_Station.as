@@ -69,16 +69,17 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
         auto HungerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Hunger"));
         HungerParams.Set_Goal(HungerGoal);
+        HungerParams.Set_WorldStateSource(_WS);
         _ActionSet_Hunger = utils_goap_planner::Add(InHandle, HungerParams);
 
         auto HungerRootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Survival_HungerRoot);
         HungerRootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _Root_Hunger = utils_goap_planner::SetRootAction(_ActionSet_Hunger, HungerRootParams, _WS);
+        _Root_Hunger = utils_goap_planner::AddAction(_ActionSet_Hunger, HungerRootParams);
 
-        utils_goap_action::AddAction_ToAction(_Root_Hunger,
+        utils_goap_planner::AddAction(_ActionSet_Hunger,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_EatFood));
-        utils_goap_action::AddAction_ToAction(_Root_Hunger,
+        utils_goap_planner::AddAction(_ActionSet_Hunger,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_Forage));
 
         _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_EatFood); _KnownLabels_Hunger.Add("EatFood");
@@ -93,16 +94,17 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
         auto DefenseParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Defense"));
         DefenseParams.Set_Goal(DefenseGoal);
+        DefenseParams.Set_WorldStateSource(_WS);
         _ActionSet_Defense = utils_goap_planner::Add(InHandle, DefenseParams);
 
         auto DefenseRootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Survival_DefenseRoot);
         DefenseRootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _Root_Defense = utils_goap_planner::SetRootAction(_ActionSet_Defense, DefenseRootParams, _WS);
+        _Root_Defense = utils_goap_planner::AddAction(_ActionSet_Defense, DefenseRootParams);
 
-        utils_goap_action::AddAction_ToAction(_Root_Defense,
+        utils_goap_planner::AddAction(_ActionSet_Defense,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_FightEnemy));
-        utils_goap_action::AddAction_ToAction(_Root_Defense,
+        utils_goap_planner::AddAction(_ActionSet_Defense,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_RunAway));
 
         _KnownClasses_Defense.Add(UCk_GoapGym_Survival_FightEnemy); _KnownLabels_Defense.Add("FightEnemy");

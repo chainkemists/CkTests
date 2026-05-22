@@ -17,15 +17,9 @@
 //   through normal usage because:
 //     - DoCreateOrFindActionEntity dedupes by action class — a class
 //       registered twice returns the existing handle (and emits a Warning).
-//     - AddAction_ToAction enforces a strict tree invariant: a child Action
-//       cannot be re-parented once it has a parent (CK_ENSURE_IF_NOT on
-//       _ParentAction validity).
-//   The only path that could form a cycle is calling AddAction_ToAction with
-//   a NewChildClass whose existing entity has no parent yet (e.g. the Root
-//   action, which has no _ParentAction). That would reparent the Root and
-//   create a Root→Mid→Root cycle — but doing so produces a Warning that the
-//   AutoTest harness escalates to test failure (per feedback_autotest_
-//   warning_escalation), so we cannot exercise that path in a test.
+//     - AddAction enforces a strict tree invariant: a child Action cannot be
+//       re-parented once it has a parent (it early-returns on a re-add of
+//       an already-parented handle).
 //
 // This test therefore validates the INVARIANT side of cycle detection:
 // for a well-formed tree (Root → Mid → LeafB, Root → MidB → LeafA), the
@@ -76,24 +70,30 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
+        ActionSetParams.Set_WorldStateSource(WS);
         _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
 
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        auto MidAction = utils_goap_action::AddAction_ToAction(_RootAction, MidParams);
-        Assert_True(ck::IsValid(MidAction), "Mid AddAction_ToAction should succeed");
+        auto MidAction = utils_goap_planner::AddAction(_ActionSet, MidParams);
+        Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
+
+        auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        auto MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(MidAction, MidPlannerParams);
+        Assert_True(ck::IsValid(MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
 
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
-        auto LeafBAction = utils_goap_action::AddAction_ToAction(MidAction, LeafBParams);
-        Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction_ToAction should succeed");
+        auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
+        Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
 
         // Wait for Root to plan — confirms every catalog Action has completed
         // Setup, which in turn means FProcessor_Goap_ActionSet_Setup has run

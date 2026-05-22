@@ -48,14 +48,15 @@ class UCk_AutoTest_Goap_Planner_InvalidGoal : UCk_AutoTest_Base
 
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        ActionSetParams.Set_WorldStateSource(WS);
         _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
 
         // Root with no goal on PlannerParams — empty goal, PlanFound immediately.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_InvalidGoal);
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Request_SetGoal with a tag that is NOT registered in the WS key registry.
         // Only Ready is registered (via Root's CDO effect). UnknownKey never appears

@@ -59,8 +59,9 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
+        ActionSetParams.Set_WorldStateSource(WS);
         _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
 
         // Disable ChainUpdate immediately — before any actions are planned.
         utils_goap_planner::Request_SetEnableToggle(_ActionSet, ECk_EnableDisable::Disable);
@@ -71,22 +72,28 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_Toggle);
 
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Add Mid as composite child of Root. Mid's effect = BKey=true →
         // Root's planner picks Mid to satisfy {BKey=true}.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        auto MidAction = utils_goap_action::AddAction_ToAction(_RootAction, MidParams);
-        Assert_True(ck::IsValid(MidAction), "Mid AddAction_ToAction should succeed");
+        auto MidAction = utils_goap_planner::AddAction(_ActionSet, MidParams);
+        Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
+
+        // Promote Mid so LeafB becomes its tree child (makes Mid composite).
+        auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        auto MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(MidAction, MidPlannerParams);
+        Assert_True(ck::IsValid(MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
 
         // Add LeafB as child of Mid — makes Mid composite so ChainUpdate
         // would extend the chain to [Root, Mid] once enabled.
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
-        auto LeafBAction = utils_goap_action::AddAction_ToAction(MidAction, LeafBParams);
-        Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction_ToAction should succeed");
+        auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
+        Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
 
         // Initial chain has only Root.
         auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);

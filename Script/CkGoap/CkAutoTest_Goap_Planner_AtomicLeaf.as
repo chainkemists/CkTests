@@ -48,20 +48,21 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
+        ActionSetParams.Set_WorldStateSource(WS);
         _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_AtomicLeaf);
 
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Add AtomicChild as a child of Root. No grandchildren added — atomic.
         auto ChildParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_AtomicChild);
-        auto ChildAction = utils_goap_action::AddAction_ToAction(_RootAction, ChildParams);
-        Assert_True(ck::IsValid(ChildAction), "AddAction_ToAction should return a valid handle");
+        auto ChildAction = utils_goap_planner::AddAction(_ActionSet, ChildParams);
+        Assert_True(ck::IsValid(ChildAction), "AddAction (subsequent → tree child of implicit root) should return a valid handle");
 
         utils_goap_action::BindTo_OnPlanComplete(_RootAction,
             FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnRootPlan"));

@@ -9,16 +9,16 @@
 //      satisfied at start, so the planner returns an empty plan).
 //   2. Add a Goap root container.
 //   3. AddActionSet.
-//   4. SetRootAction with the Simple action class as the root. Its effects
-//      (Ready=true) ARE the root's goal in the unified model.
+//   4. AddAction with the Simple action class — first call becomes implicit root.
+//      Its effects (Ready=true) ARE the root's goal in the unified model.
 //   5. BindTo_OnPlanComplete on the root.
 //
 // Expected: within a couple of frames, OnPlanComplete fires.
 // PlanStatus = PlanFound, plan may be empty (goal already satisfied at
 // start — no operators needed).
 //
-// This exercises: Add, AddActionSet, SetRootAction (root entity creation,
-//                 chain seeding, WS source storage), Action_Setup (CDO
+// This exercises: Add, AddAction (implicit-root entity creation,
+//                 chain seeding, WS source resolution), Action_Setup (CDO
 //                 extraction + goal resolution + WS key registration),
 //                 AutoReplan (initial-plan tag), HandleRequests (Plan
 //                 build), Execute (A* search), HandleResult (path -> plan
@@ -45,27 +45,27 @@ class UCk_AutoTest_Goap_Planner_MinimalPlan : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             true);
 
-        // Goap root container.
-
-        // ActionSet.
+        // Top-level Planner.
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        ActionSetParams.Set_WorldStateSource(WS);
         auto ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(ActionSet), "AddActionSet should return a valid handle");
+        Assert_True(ck::IsValid(ActionSet), "Add Planner should return a valid handle");
 
-        // Designate root Action. In the unified model the root's effects
-        // ARE its goal — no separate Initial_Goal needed when the action's
-        // own effects describe the world target.
+        // First AddAction = implicit root Action. In the unified model the
+        // root's effects ARE its goal when the Planner's _Goal is empty —
+        // no separate Initial_Goal needed when the action's own effects
+        // describe the world target.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Simple);
 
-        _RootAction = utils_goap_planner::SetRootAction(ActionSet, RootParams, WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(ActionSet, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction should return a valid handle");
 
         // Active chain should contain the root immediately.
         auto Chain = utils_goap_planner::Get_ActiveChain(ActionSet);
         Assert_True(Chain.Num() == 1,
-            f"ActiveChain should contain just the root after SetRootAction (got {Chain.Num()})");
+            f"ActiveChain should contain just the root after AddAction (got {Chain.Num()})");
 
         utils_goap_action::BindTo_OnPlanComplete(_RootAction,
             FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnPlan"));

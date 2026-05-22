@@ -62,14 +62,15 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
         auto ActionSetParamsA = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParamsA.Set_Goal(GoalA);
+        ActionSetParamsA.Set_WorldStateSource(WS);
         auto ActionSetA = utils_goap_planner::Add(Local, ActionSetParamsA);
-        Assert_True(ck::IsValid(ActionSetA), "AddActionSet A should return a valid handle");
+        Assert_True(ck::IsValid(ActionSetA), "Add Planner A should return a valid handle");
 
         auto RootParamsA = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiA);
 
-        _RootA = utils_goap_planner::SetRootAction(ActionSetA, RootParamsA, WS);
-        Assert_True(ck::IsValid(_RootA), "SetRootAction A should return a valid handle");
+        _RootA = utils_goap_planner::AddAction(ActionSetA, RootParamsA);
+        Assert_True(ck::IsValid(_RootA), "AddAction A should return a valid handle");
 
         // ---- ActionSet B ---- (U11.1: goal on PlannerParams)
         auto GoalB = TArray<FCk_GoapWS_Condition_Authored>();
@@ -80,14 +81,15 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
         auto ActionSetParamsB = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set2"));
         ActionSetParamsB.Set_Goal(GoalB);
+        ActionSetParamsB.Set_WorldStateSource(WS);
         auto ActionSetB = utils_goap_planner::Add(Local, ActionSetParamsB);
-        Assert_True(ck::IsValid(ActionSetB), "AddActionSet B should return a valid handle");
+        Assert_True(ck::IsValid(ActionSetB), "Add Planner B should return a valid handle");
 
         auto RootParamsB = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiB);
 
-        _RootB = utils_goap_planner::SetRootAction(ActionSetB, RootParamsB, WS);
-        Assert_True(ck::IsValid(_RootB), "SetRootAction B should return a valid handle");
+        _RootB = utils_goap_planner::AddAction(ActionSetB, RootParamsB);
+        Assert_True(ck::IsValid(_RootB), "AddAction B should return a valid handle");
 
         // The two roots must be distinct handles.
         Assert_True(!(_RootA == _RootB),

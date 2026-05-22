@@ -13,7 +13,7 @@
 //   - Two independent top-level Planners on the owner:
 //       Planner_A: tag AutoTest.Goap.ActionSet.Set,  WS pre-seeded AKey=true.
 //       Planner_B: tag AutoTest.Goap.ActionSet.Set2, WS pre-seeded BKey=true.
-//   - Each Planner gets its own SetRootAction call with a distinct Action class.
+//   - Each Planner gets its own AddAction call with a distinct Action class.
 //   - Both Planners have pre-satisfied goals → empty plans → PlanFound.
 //
 // Assertions (driven by OnPlanComplete on each root):
@@ -25,7 +25,7 @@
 // After both roots plan:
 //   5. FinishSuccess.
 //
-// This exercises: Add (two independent Planners), SetRootAction, OnPlanComplete
+// This exercises: Add (two independent Planners), AddAction, OnPlanComplete
 //                 (parallel independent ticking), and the observable top-level
 //                 identity invariant (Get_ActiveParentAction == nullptr on roots).
 //============================================================================
@@ -66,13 +66,14 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
         auto PlannerParamsA = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParamsA.Set_Goal(GoalA);
+        PlannerParamsA.Set_WorldStateSource(WS);
         auto PlannerA = utils_goap_planner::Add(Local, PlannerParamsA);
         Assert_True(ck::IsValid(PlannerA), "Planner A Add should return a valid handle");
 
         auto RootParamsA = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiA);
-        _RootA = utils_goap_planner::SetRootAction(PlannerA, RootParamsA, WS);
-        Assert_True(ck::IsValid(_RootA), "SetRootAction A should return a valid handle");
+        _RootA = utils_goap_planner::AddAction(PlannerA, RootParamsA);
+        Assert_True(ck::IsValid(_RootA), "AddAction A should return a valid handle");
 
         // ---- Planner B ---- goal {BKey=true}, pre-satisfied.
         auto GoalB = TArray<FCk_GoapWS_Condition_Authored>();
@@ -83,19 +84,20 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
         auto PlannerParamsB = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set2"));
         PlannerParamsB.Set_Goal(GoalB);
+        PlannerParamsB.Set_WorldStateSource(WS);
         auto PlannerB = utils_goap_planner::Add(Local, PlannerParamsB);
         Assert_True(ck::IsValid(PlannerB), "Planner B Add should return a valid handle");
 
         auto RootParamsB = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiB);
-        _RootB = utils_goap_planner::SetRootAction(PlannerB, RootParamsB, WS);
-        Assert_True(ck::IsValid(_RootB), "SetRootAction B should return a valid handle");
+        _RootB = utils_goap_planner::AddAction(PlannerB, RootParamsB);
+        Assert_True(ck::IsValid(_RootB), "AddAction B should return a valid handle");
 
         // The two roots must be distinct handles (different Planner entities).
         Assert_True(!(_RootA == _RootB),
             "Root A and Root B must be distinct Action handles (different Planner entities)");
 
-        // Top-level identity assertion: immediately after SetRootAction, before
+        // Top-level identity assertion: immediately after AddAction, before
         // any plan runs, Get_ActiveParentAction returns null on both roots.
         // This is the invariant: root Actions of top-level Planners have no parent.
         auto ParentA = utils_goap_action::Get_ActiveParentAction(_RootA);

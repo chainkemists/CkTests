@@ -65,21 +65,22 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(RootGoal);
+        ActionSetParams.Set_WorldStateSource(WS);
         _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
 
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Add Mid as a child of Root. Mid is composite (will have Leaf_B and
         // Leaf_A as its children below).
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        _MidAction = utils_goap_action::AddAction_ToAction(_RootAction, MidParams);
-        Assert_True(ck::IsValid(_MidAction), "Mid AddAction_ToAction should succeed");
+        _MidAction = utils_goap_planner::AddAction(_ActionSet, MidParams);
+        Assert_True(ck::IsValid(_MidAction), "Mid AddAction should succeed");
 
         // U11.1 INVERSION — promote Mid to a Planner with goal {AKey=true}
         // EXPLICITLY, diverging from Mid's own CDO effect ({BKey=true}). The U10
@@ -93,18 +94,18 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         MidPlannerParams.Set_Goal(MidGoal);
-        utils_goap_planner::PromoteActionToPlanner(_MidAction, MidPlannerParams);
+        auto MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAction, MidPlannerParams);
 
         // Add Leaf_B and Leaf_A as children of Mid.
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
-        auto LeafBAction = utils_goap_action::AddAction_ToAction(_MidAction, LeafBParams);
-        Assert_True(ck::IsValid(LeafBAction), "Leaf_B AddAction_ToAction should succeed");
+        auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
+        Assert_True(ck::IsValid(LeafBAction), "Leaf_B AddAction should succeed");
 
         auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects);
-        auto LeafAAction = utils_goap_action::AddAction_ToAction(_MidAction, LeafAParams);
-        Assert_True(ck::IsValid(LeafAAction), "Leaf_A AddAction_ToAction should succeed");
+        auto LeafAAction = utils_goap_planner::AddAction(MidAsPlanner, LeafAParams);
+        Assert_True(ck::IsValid(LeafAAction), "Leaf_A AddAction should succeed");
 
         utils_goap_action::BindTo_OnPlanComplete(_RootAction,
             FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnRootPlan"));

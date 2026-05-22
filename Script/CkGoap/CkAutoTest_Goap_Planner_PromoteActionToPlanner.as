@@ -69,30 +69,20 @@ class UCk_AutoTest_Goap_Planner_PromoteActionToPlanner : UCk_AutoTest_Base
         auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParams.Set_Goal(RootGoal);
+        PlannerParams.Set_WorldStateSource(WS);
         _RootPlanner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_RootPlanner), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-        _RootAction = utils_goap_planner::SetRootAction(_RootPlanner, RootParams, WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_RootPlanner, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Mid is a composite child of Root.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        _MidAction = utils_goap_action::AddAction_ToAction(_RootAction, MidParams);
-        Assert_True(ck::IsValid(_MidAction), "Mid AddAction_ToAction should succeed");
-
-        // Mid's children — Leaf_A (effect AKey=true) and Leaf_B (effect BKey=true).
-        auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects);
-        auto LeafAAction = utils_goap_action::AddAction_ToAction(_MidAction, LeafAParams);
-        Assert_True(ck::IsValid(LeafAAction), "Leaf_A AddAction_ToAction should succeed");
-
-        auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
-        auto LeafBAction = utils_goap_action::AddAction_ToAction(_MidAction, LeafBParams);
-        Assert_True(ck::IsValid(LeafBAction), "Leaf_B AddAction_ToAction should succeed");
+        _MidAction = utils_goap_planner::AddAction(_RootPlanner, MidParams);
+        Assert_True(ck::IsValid(_MidAction), "Mid AddAction should succeed");
 
         // ---------------------------------------------------------------
         // U11.3 CORE — Promote Mid to a Planner with goal {AKey=true}.
@@ -110,6 +100,20 @@ class UCk_AutoTest_Goap_Planner_PromoteActionToPlanner : UCk_AutoTest_Base
         _MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAction, PromoteParams);
         Assert_True(ck::IsValid(_MidAsPlanner),
             "PromoteActionToPlanner should return a valid Planner-cast handle");
+
+        // Mid's children — Leaf_A (effect AKey=true) and Leaf_B (effect BKey=true).
+        // Under PR-A, every child must be registered under the planner host that
+        // owns it. Mid is now a promoted Planner, so AddAction(MidAsPlanner, ...)
+        // wires Leaf_A/Leaf_B as direct tree children of Mid.
+        auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
+            UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects);
+        auto LeafAAction = utils_goap_planner::AddAction(_MidAsPlanner, LeafAParams);
+        Assert_True(ck::IsValid(LeafAAction), "Leaf_A AddAction should succeed");
+
+        auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
+            UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
+        auto LeafBAction = utils_goap_planner::AddAction(_MidAsPlanner, LeafBParams);
+        Assert_True(ck::IsValid(LeafBAction), "Leaf_B AddAction should succeed");
 
         // ---------------------------------------------------------------
         // U11.3 — Both casts must succeed on the promoted entity.
