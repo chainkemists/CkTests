@@ -146,7 +146,7 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
         auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
 
         // If Root hasn't planned yet (PlanStatus != PlanFound), wait one more frame.
-        auto RootStatus = utils_goap_action::Get_PlanStatus(_RootAction);
+        auto RootStatus = utils_goap_planner::Get_PlanStatus(_ActionSet);
         if (RootStatus != ECk_GoapPlanStatus::PlanFound)
         {
             WaitOneFrame(n"OnCheckChainExtended");

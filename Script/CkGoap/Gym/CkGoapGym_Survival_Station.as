@@ -148,10 +148,10 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
         auto HasWeapon = Get(n"Gym.Goap.WS.Survival.HasWeapon");
         auto Safe = Get(n"Gym.Goap.WS.Survival.SafeFromThreat");
 
-        auto HStatus = utils_goap_action::Get_PlanStatus(_Root_Hunger);
-        auto HPlan = utils_goap_action::Get_Plan(_Root_Hunger);
-        auto DStatus = utils_goap_action::Get_PlanStatus(_Root_Defense);
-        auto DPlan = utils_goap_action::Get_Plan(_Root_Defense);
+        auto HStatus = utils_goap_planner::Get_PlanStatus(_ActionSet_Hunger);
+        auto HPlan = utils_goap_planner::Get_PlanClasses(_ActionSet_Hunger);
+        auto DStatus = utils_goap_planner::Get_PlanStatus(_ActionSet_Defense);
+        auto DPlan = utils_goap_planner::Get_PlanClasses(_ActionSet_Defense);
 
         auto Body = "World State (shared by both ActionSets)\n"
             + f"  Hungry          {CkGoapGym_Common::Render_Bool(Hungry)}\n"

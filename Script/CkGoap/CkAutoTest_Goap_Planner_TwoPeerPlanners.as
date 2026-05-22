@@ -30,6 +30,8 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
 
     private FCk_Handle_Goap_Action _RootA;
     private FCk_Handle_Goap_Action _RootB;
+    private FCk_Handle_Goap_Planner _ActionSetA;
+    private FCk_Handle_Goap_Planner _ActionSetB;
     private bool _PlanAReceived = false;
     private bool _PlanBReceived = false;
 
@@ -63,13 +65,13 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParamsA.Set_Goal(GoalA);
         ActionSetParamsA.Set_WorldStateSource(WS);
-        auto ActionSetA = utils_goap_planner::Add(Local, ActionSetParamsA);
-        Assert_True(ck::IsValid(ActionSetA), "Add Planner A should return a valid handle");
+        _ActionSetA = utils_goap_planner::Add(Local, ActionSetParamsA);
+        Assert_True(ck::IsValid(_ActionSetA), "Add Planner A should return a valid handle");
 
         auto RootParamsA = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiA);
 
-        _RootA = utils_goap_planner::AddAction(ActionSetA, RootParamsA);
+        _RootA = utils_goap_planner::AddAction(_ActionSetA, RootParamsA);
         Assert_True(ck::IsValid(_RootA), "AddAction A should return a valid handle");
 
         // ---- ActionSet B ---- (U11.1: goal on PlannerParams)
@@ -82,13 +84,13 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set2"));
         ActionSetParamsB.Set_Goal(GoalB);
         ActionSetParamsB.Set_WorldStateSource(WS);
-        auto ActionSetB = utils_goap_planner::Add(Local, ActionSetParamsB);
-        Assert_True(ck::IsValid(ActionSetB), "Add Planner B should return a valid handle");
+        _ActionSetB = utils_goap_planner::Add(Local, ActionSetParamsB);
+        Assert_True(ck::IsValid(_ActionSetB), "Add Planner B should return a valid handle");
 
         auto RootParamsB = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiB);
 
-        _RootB = utils_goap_planner::AddAction(ActionSetB, RootParamsB);
+        _RootB = utils_goap_planner::AddAction(_ActionSetB, RootParamsB);
         Assert_True(ck::IsValid(_RootB), "AddAction B should return a valid handle");
 
         // The two roots must be distinct handles.
@@ -109,7 +111,7 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
         if (_PlanAReceived) { return; }
         _PlanAReceived = true;
 
-        Assert_True(utils_goap_action::Get_PlanStatus(_RootA) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSetA) == ECk_GoapPlanStatus::PlanFound,
             "ActionSet A root PlanStatus should be PlanFound");
 
         TryFinish();
@@ -122,7 +124,7 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
         if (_PlanBReceived) { return; }
         _PlanBReceived = true;
 
-        Assert_True(utils_goap_action::Get_PlanStatus(_RootB) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSetB) == ECk_GoapPlanStatus::PlanFound,
             "ActionSet B root PlanStatus should be PlanFound");
 
         TryFinish();

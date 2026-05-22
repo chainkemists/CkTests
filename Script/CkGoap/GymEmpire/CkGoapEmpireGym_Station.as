@@ -113,9 +113,9 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
         auto B = Get(n"Gym.Goap.WS.Empire.BarracksBuilt");
         auto Fr = Get(n"Gym.Goap.WS.Empire.FeudalResearched");
 
-        auto Status = utils_goap_action::Get_PlanStatus(_RootAction);
-        auto Plan = utils_goap_action::Get_Plan(_RootAction);
-        auto Cost = utils_goap_action::Get_PlanCost(_RootAction);
+        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto Cost = utils_goap_planner::Get_PlanCost(_ActionSet);
 
         auto Body = "Resources / Progress\n"
             + f"  HasFood            {CkGoapGym_Common::Render_Bool(F)}\n"

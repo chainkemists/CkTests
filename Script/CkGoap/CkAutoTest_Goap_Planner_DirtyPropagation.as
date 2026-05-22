@@ -93,10 +93,10 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
         if (_PlanCompleteCount == 1)
         {
             // First plan: WS has AKey=false, so Root should have picked LeafA.
-            Assert_True(utils_goap_action::Get_PlanStatus(_RootAction) == ECk_GoapPlanStatus::PlanFound,
+            Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
                 "Root PlanStatus should be PlanFound on first plan");
 
-            auto RootPlan = utils_goap_action::Get_Plan(_RootAction);
+            auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
             Assert_True(RootPlan.Num() == 1,
                 f"Root plan should have exactly 1 entry on first plan (got {RootPlan.Num()})");
             Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects,
@@ -117,10 +117,10 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
         if (_PlanCompleteCount == 2)
         {
             // Second plan: AKey=true, goal satisfied → empty plan (PlanFound + empty).
-            Assert_True(utils_goap_action::Get_PlanStatus(_RootAction) == ECk_GoapPlanStatus::PlanFound,
+            Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
                 "Root PlanStatus should be PlanFound on dirty-triggered replan");
 
-            auto RootPlan = utils_goap_action::Get_Plan(_RootAction);
+            auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
             Assert_True(RootPlan.Num() == 0,
                 f"Root plan should be empty after WS mutation satisfies goal (got {RootPlan.Num()})");
 

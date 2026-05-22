@@ -75,10 +75,10 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
         if (_PlanReceived) { return; }
         _PlanReceived = true;
 
-        Assert_True(utils_goap_action::Get_PlanStatus(_RootAction) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
             "Root PlanStatus should be PlanFound");
 
-        auto Plan = utils_goap_action::Get_Plan(_RootAction);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
         Assert_True(Plan.Num() == 1,
             f"Root plan should have exactly 1 entry (got {Plan.Num()})");
         Assert_True(Plan.Num() > 0 && Plan[0] == UCk_AutoTestAction_Goap_ActionSet_AtomicChild,
