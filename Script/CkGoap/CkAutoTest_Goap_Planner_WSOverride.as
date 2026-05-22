@@ -10,19 +10,19 @@
 // Setup:
 //   - WS_Parent: WorldState for Root. Registers AKey=false.
 //   - WS_Child:  WorldState for Mid override. Registers AKey=false.
-//   - Root Action: effect AKey=true, _InitialGoal_RootOnly={AKey=true}.
-//     SetRootAction with WS_Parent → Root resolved WS = WS_Parent.
+//   - Root Action: effect AKey=true. Planner _Goal = {AKey=true}.
+//     PlannerParams._WorldStateSource = WS_Parent → Root resolves WS = WS_Parent.
 //   - Mid Action: effect AKey=true, _WorldStateSource_Override = WS_Child.
-//     AddAction_ToAction(Root, MidParamsWithOverride) → Mid resolved WS = WS_Child.
+//     AddAction(Planner, MidParamsWithOverride) → Mid resolved WS = WS_Child.
 //
-// Assert (synchronous — WS resolution is eager at AddAction_ToAction time):
+// Assert (synchronous — WS resolution is eager at AddAction time):
 //   Get_WorldStateSource(RootAction) == WS_Parent
 //   Get_WorldStateSource(MidAction)  == WS_Child
 //   WS_Parent != WS_Child  (distinct entities)
 //   Get_WorldStateSource(MidAction) != Get_WorldStateSource(RootAction)
 //
 // The test does NOT need to wait for planning; WS resolution is performed
-// synchronously inside AddAction_ToAction (eager-resolve).
+// synchronously inside AddAction (eager-resolve).
 //============================================================================
 
 class UCk_AutoTest_Goap_Planner_WSOverride : UCk_AutoTest_Base
@@ -69,25 +69,26 @@ class UCk_AutoTest_Goap_Planner_WSOverride : UCk_AutoTest_Base
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
+        ActionSetParams.Set_WorldStateSource(WS_Parent);
         auto ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(ActionSet), "AddActionSet should return a valid handle");
+        Assert_True(ck::IsValid(ActionSet), "Add Planner should return a valid handle");
 
-        // Root Action: WS source = WS_Parent.
+        // Root Action: WS source = WS_Parent (inherited from PlannerParams).
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_WSInheritance);
 
-        auto RootAction = utils_goap_planner::SetRootAction(ActionSet, RootParams, WS_Parent);
-        Assert_True(ck::IsValid(RootAction), "SetRootAction should return a valid handle");
+        auto RootAction = utils_goap_planner::AddAction(ActionSet, RootParams);
+        Assert_True(ck::IsValid(RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Mid Action: explicit WS override = WS_Child.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_WSInheritance);
         MidParams.Set_WorldStateSource_Override(WS_Child);
 
-        auto MidAction = utils_goap_action::AddAction_ToAction(RootAction, MidParams);
-        Assert_True(ck::IsValid(MidAction), "AddAction_ToAction should return a valid handle");
+        auto MidAction = utils_goap_planner::AddAction(ActionSet, MidParams);
+        Assert_True(ck::IsValid(MidAction), "AddAction should return a valid handle");
 
-        // WS resolution is synchronous (eager-resolve in AddAction_ToAction).
+        // WS resolution is synchronous (eager-resolve in AddAction).
         auto RootWS = utils_goap_action::Get_WorldStateSource(RootAction);
         auto MidWS  = utils_goap_action::Get_WorldStateSource(MidAction);
 

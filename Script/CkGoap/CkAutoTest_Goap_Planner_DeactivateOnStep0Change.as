@@ -74,39 +74,50 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
+        ActionSetParams.Set_WorldStateSource(WS);
         _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_ChainTruncation);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnEitherDirty);
 
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Mid_A: child of Root. Cost 1.0 — Root picks this first.
         // Add Leaf_A as child to make Mid_A composite (chain extends to it).
         auto MidAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_MidA_ChainTruncation);
-        _MidAAction = utils_goap_action::AddAction_ToAction(_RootAction, MidAParams);
-        Assert_True(ck::IsValid(_MidAAction), "Mid_A AddAction_ToAction should succeed");
+        _MidAAction = utils_goap_planner::AddAction(_ActionSet, MidAParams);
+        Assert_True(ck::IsValid(_MidAAction), "Mid_A AddAction should succeed");
+
+        auto MidAPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        auto MidAAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAAction, MidAPlannerParams);
+        Assert_True(ck::IsValid(MidAAsPlanner), "Mid_A PromoteActionToPlanner should succeed");
 
         auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafA_ChainTruncation);
-        auto LeafAAction = utils_goap_action::AddAction_ToAction(_MidAAction, LeafAParams);
-        Assert_True(ck::IsValid(LeafAAction), "Leaf_A AddAction_ToAction should succeed");
+        auto LeafAAction = utils_goap_planner::AddAction(MidAAsPlanner, LeafAParams);
+        Assert_True(ck::IsValid(LeafAAction), "Leaf_A AddAction should succeed");
 
         // Mid_B: child of Root. Cost 2.0 — Root picks this after Mid_A is bumped.
         // Add Leaf_B as child to make Mid_B composite (chain extends to it).
         auto MidBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_MidB_ChainTruncation);
-        _MidBAction = utils_goap_action::AddAction_ToAction(_RootAction, MidBParams);
-        Assert_True(ck::IsValid(_MidBAction), "Mid_B AddAction_ToAction should succeed");
+        _MidBAction = utils_goap_planner::AddAction(_ActionSet, MidBParams);
+        Assert_True(ck::IsValid(_MidBAction), "Mid_B AddAction should succeed");
+
+        auto MidBPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        auto MidBAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidBAction, MidBPlannerParams);
+        Assert_True(ck::IsValid(MidBAsPlanner), "Mid_B PromoteActionToPlanner should succeed");
 
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_ChainTruncation);
-        auto LeafBAction = utils_goap_action::AddAction_ToAction(_MidBAction, LeafBParams);
-        Assert_True(ck::IsValid(LeafBAction), "Leaf_B AddAction_ToAction should succeed");
+        auto LeafBAction = utils_goap_planner::AddAction(MidBAsPlanner, LeafBParams);
+        Assert_True(ck::IsValid(LeafBAction), "Leaf_B AddAction should succeed");
 
         // Bind OnPlannerDeactivated on Mid_A NOW — before ChainUpdate activates it —
         // so we cannot miss the deactivation signal when truncation fires.

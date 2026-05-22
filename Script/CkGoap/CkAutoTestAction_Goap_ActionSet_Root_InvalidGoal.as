@@ -5,7 +5,7 @@
 //============================================================================
 //
 // Root action for the InvalidGoal test. Effect: Ready=true. Used purely as
-// a class reference for SetRootAction; its CDO registers the Ready key in
+// a class reference for the first AddAction call; its CDO registers the Ready key in
 // the WS. No goal set on PlannerParams, so the root plans with an empty
 // goal (immediately PlanFound with empty plan). The test overrides the goal
 // via utils_goap_planner::Request_SetGoal with an unregistered key to populate

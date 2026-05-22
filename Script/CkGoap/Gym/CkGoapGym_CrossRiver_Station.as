@@ -56,18 +56,19 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.CrossRiver"));
         ActionSetParams.Set_Goal(Goal);
+        ActionSetParams.Set_WorldStateSource(_WS);
         _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_Root);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
 
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
 
-        utils_goap_action::AddAction_ToAction(_RootAction,
+        utils_goap_planner::AddAction(_ActionSet,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_UseBridge));
-        utils_goap_action::AddAction_ToAction(_RootAction,
+        utils_goap_planner::AddAction(_ActionSet,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_UseFerry));
-        utils_goap_action::AddAction_ToAction(_RootAction,
+        utils_goap_planner::AddAction(_ActionSet,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_SwimAcross));
 
         _KnownClasses.Add(UCk_GoapGym_CrossRiver_UseBridge);  _KnownLabels.Add("UseBridge");

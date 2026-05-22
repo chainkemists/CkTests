@@ -58,22 +58,23 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
+        ActionSetParams.Set_WorldStateSource(_WS);
         _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
 
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Add LeafA as a child of Root. LeafA's effect AKey=true satisfies
         // Root's goal {AKey=true}. LeafA is atomic (no children) so it won't
         // extend the active chain.
         auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects);
-        auto LeafAAction = utils_goap_action::AddAction_ToAction(_RootAction, LeafAParams);
-        Assert_True(ck::IsValid(LeafAAction), "LeafA AddAction_ToAction should succeed");
+        auto LeafAAction = utils_goap_planner::AddAction(_ActionSet, LeafAParams);
+        Assert_True(ck::IsValid(LeafAAction), "LeafA AddAction should succeed");
 
         // Bind OnPlanComplete on Root to count replans.
         utils_goap_action::BindTo_OnPlanComplete(_RootAction,

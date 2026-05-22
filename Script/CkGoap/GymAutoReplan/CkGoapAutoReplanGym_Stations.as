@@ -85,20 +85,21 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             Get_ActionSetTagForMode());
         ActionSetParams.Set_Goal(Goal);
+        ActionSetParams.Set_WorldStateSource(_WS);
         _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_Root);
         RootParams.Set_ReplanPolicy(Get_ReplanPolicyForMode());
 
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
 
-        utils_goap_action::AddAction_ToAction(_RootAction,
+        utils_goap_planner::AddAction(_ActionSet,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_FlipOp));
 
         // OnCostDirty station gets a second operator to demonstrate cost-swap.
         if (Mode == 2)
         {
-            utils_goap_action::AddAction_ToAction(_RootAction,
+            utils_goap_planner::AddAction(_ActionSet,
                 FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_AltOp));
         }
 

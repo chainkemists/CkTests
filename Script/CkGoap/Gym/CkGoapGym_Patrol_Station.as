@@ -1,25 +1,29 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Patrol Route station entity  (U11.6 multi-tier rewrite)
+// CkGoapGym — Patrol Route station entity  (PR-A canonical multi-tier)
 //
 // Canonical multi-tier Planner example demonstrating spec §2.2.
 //
-// Construction pattern (the key U11.6 idiom):
-//   1. utils_goap_planner::Add               → top-level Planner
-//   2. utils_goap_planner::SetRootAction      → Root action under Planner
-//   3. utils_goap_action::AddAction_ToAction  → add GoToWaypoint child to Root
+// Construction pattern (PR-A canonical idiom — only one construction verb):
+//   1. utils_goap_planner::Add                → top-level Planner
+//                                                (Set_WorldStateSource + Set_Goal
+//                                                 on PlannerParams)
+//   2. utils_goap_planner::AddAction          → first child = implicit root of
+//                                                Patrol_Planner (runs A*)
+//   3. utils_goap_planner::AddAction          → tree children of implicit root
+//                                                (GoToWaypoint / Observe / MarkDone)
 //   4. utils_goap_planner::PromoteActionToPlanner(GoToWaypoint, subParams)
 //        → GoToWaypoint is now ALSO a Planner with goal AtWaypoint=true
 //   5. utils_goap_planner::AddAction(GoToWaypoint_AsPlanner, RunParams)
 //      utils_goap_planner::AddAction(GoToWaypoint_AsPlanner, WalkParams)
-//        → Tier-3 leaves under GoToWaypoint's own Planner
+//        → Tier-3 leaves: direct tree children of the promoted GoToWaypoint
 //   6. Repeat for Observe composite (goal AreaScanned=true)
 //
 // Entity hierarchy after construction:
 //   Owner entity
 //     Patrol_Planner              [Planner only]     goal: AreaPatrolled=true
-//       Root                      [Action + root]    eff: AreaPatrolled=true
+//       Root                      [Action + implicit root]  eff: AreaPatrolled=true
 //         GoToWaypoint            [Action+Planner]   eff: AtWaypoint=true
 //           Run                   [Action]            eff: AtWaypoint=true (cost 1)
 //           Walk                  [Action]            eff: AtWaypoint=true (cost 2)
@@ -95,39 +99,42 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol"));
         PlannerParams.Set_Goal(Goal);
+        PlannerParams.Set_WorldStateSource(_WS);
         _TopPlanner = utils_goap_planner::Add(InHandle, PlannerParams);
 
-        // Root action: single mandatory child at Tier 1.
+        // Root action: first AddAction = implicit root that runs A*.
         // ReplanPolicy OnWorldStateDirty so WS changes auto-trigger replans.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Root);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _RootAction = utils_goap_planner::SetRootAction(_TopPlanner, RootParams, _WS);
+        _RootAction = utils_goap_planner::AddAction(_TopPlanner, RootParams);
 
         // ------------------------------------------------------------------
         // Tier 2a — GoToWaypoint composite.
-        // Step 1: add as an Action child of Root.
-        // Step 2: promote to Planner with its own independent goal (AtWaypoint=true).
-        // Step 3: add Tier-3 leaf actions under its Planner role.
+        // Step 1: AddAction on the top-level Planner wires GoToWaypoint as a
+        //         tree child of the implicit root (Root_Action).
+        // Step 2: Promote to Planner with its own independent goal (AtWaypoint=true).
+        // Step 3: Add Tier-3 leaf actions under its promoted Planner role.
         // ------------------------------------------------------------------
         auto GoToWaypointActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Patrol_GoToWaypoint);
         GoToWaypointActionParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _GoToWaypoint_AsAction = utils_goap_action::AddAction_ToAction(
-            _RootAction, GoToWaypointActionParams);
+        _GoToWaypoint_AsAction = utils_goap_planner::AddAction(_TopPlanner, GoToWaypointActionParams);
 
         // Promote: GoToWaypoint entity now carries BOTH Action and Planner roles.
         auto GoToWaypointGoal = TArray<FCk_GoapWS_Condition_Authored>();
         GoToWaypointGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol.AtWaypoint"),
             true));
-        auto GoToWaypointPlannerParams = FCk_Fragment_Goap_PlannerParamsData();
+        auto GoToWaypointPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol.GoToWaypoint"));
         GoToWaypointPlannerParams.Set_Goal(GoToWaypointGoal);
         // Note: replan policy is carried by the ActionParamsData (set above on
         // GoToWaypointActionParams), not by PlannerParamsData.
         _GoToWaypoint_AsPlanner = utils_goap_planner::PromoteActionToPlanner(
             _GoToWaypoint_AsAction, GoToWaypointPlannerParams);
 
-        // Tier-3 leaves under GoToWaypoint's Planner.
+        // Tier-3 leaves under GoToWaypoint's Planner (direct tree children of
+        // the promoted host — PR-A IsPromotedMidTier branch).
         utils_goap_planner::AddAction(_GoToWaypoint_AsPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Run));
         utils_goap_planner::AddAction(_GoToWaypoint_AsPlanner,
@@ -139,14 +146,14 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         auto ObserveActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Patrol_Observe);
         ObserveActionParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _Observe_AsAction = utils_goap_action::AddAction_ToAction(
-            _RootAction, ObserveActionParams);
+        _Observe_AsAction = utils_goap_planner::AddAction(_TopPlanner, ObserveActionParams);
 
         auto ObserveGoal = TArray<FCk_GoapWS_Condition_Authored>();
         ObserveGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol.AreaScanned"),
             true));
-        auto ObservePlannerParams = FCk_Fragment_Goap_PlannerParamsData();
+        auto ObservePlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol.Observe"));
         ObservePlannerParams.Set_Goal(ObserveGoal);
         // Note: replan policy carried by ObserveActionParams (OnWorldStateDirty).
         _Observe_AsPlanner = utils_goap_planner::PromoteActionToPlanner(
@@ -160,7 +167,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         // ------------------------------------------------------------------
         // Tier 2c — MarkDone atomic leaf (no Planner promotion needed).
         // ------------------------------------------------------------------
-        utils_goap_action::AddAction_ToAction(_RootAction,
+        utils_goap_planner::AddAction(_TopPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_MarkDone));
 
         // ---- Label maps ----

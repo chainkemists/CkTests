@@ -65,8 +65,9 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
+        ActionSetParams.Set_WorldStateSource(WS);
         _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
@@ -75,21 +76,27 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
         // Request_Plan should trigger planning.
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::Explicit);
 
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Mid (composite child of Root) — gives the planner a candidate operator.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        auto MidAction = utils_goap_action::AddAction_ToAction(_RootAction, MidParams);
-        Assert_True(ck::IsValid(MidAction), "Mid AddAction_ToAction should succeed");
+        auto MidAction = utils_goap_planner::AddAction(_ActionSet, MidParams);
+        Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
+
+        // Promote Mid so its own children can be registered under it.
+        auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        auto MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(MidAction, MidPlannerParams);
+        Assert_True(ck::IsValid(MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
 
         // LeafB makes Mid composite. Not strictly needed for the Plan/Cancel
         // semantics on Root, but mirrors the standard hierarchy.
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
-        auto LeafBAction = utils_goap_action::AddAction_ToAction(MidAction, LeafBParams);
-        Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction_ToAction should succeed");
+        auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
+        Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
 
         // Track OnPlanComplete — must NOT fire after the cancel.
         utils_goap_action::BindTo_OnPlanComplete(_RootAction,

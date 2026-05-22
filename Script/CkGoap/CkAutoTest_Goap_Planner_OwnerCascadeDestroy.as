@@ -56,6 +56,8 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
         // Add Planner to SubOwner (post-U11.0a: no separate Goap-root container).
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        ActionSetParams.Set_Goal(TArray<FCk_GoapWS_Condition_Authored>());
+        ActionSetParams.Set_WorldStateSource(WS);
         _ActionSet = utils_goap_planner::Add(_SubOwner, ActionSetParams);
         Assert_True(ck::IsValid(_ActionSet), "Add should return a valid handle");
         _GoapHandle = _ActionSet;  // U11.0a: Planner is the only Goap entity.
@@ -63,8 +65,8 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
         // Add root Action (Simple: effect Ready=true; goal already satisfied).
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Simple);
-        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
-        Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // All handles are valid before destroy.
         Assert_True(utils_handle::Get_IsValid(_SubOwner),
