@@ -4,10 +4,10 @@
 // CK GOAP — AUTOMATION TEST: ACTIONSET SIBLING ACTIONS
 //============================================================================
 //
-// Validates utils_goap_action_set::AddAction_ToActionSet(ActionSet,
+// Validates utils_goap_planner::AddAction(ActionSet,
 // ActionParams).
 //
-// Per spec §3.1: AddAction_ToActionSet adds a top-level Action as a sibling
+// Per spec §3.1: AddAction adds a top-level Action as a sibling
 // of the root — catalog-only, NOT inserted into the active chain. These
 // siblings exist for Request_SetRootAction to pick from later (or for
 // designers who want to register multiple top-level Actions).
@@ -18,7 +18,7 @@
 //   - Wait for Root's OnPlanComplete to confirm chain is settled.
 //
 // Phase 2:
-//   - Call AddAction_ToActionSet(ActionSet, SiblingParams) with the
+//   - Call AddAction(ActionSet, SiblingParams) with the
 //     AtomicLeaf root class (a distinct class from Root).
 //   - Assert sibling handle is valid.
 //   - Assert sibling is in the catalog: Find_ActionByClass returns the
@@ -30,7 +30,7 @@
 
 class UCk_AutoTest_Goap_ActionSet_SiblingActions : UCk_AutoTest_Base
 {
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Action _SiblingAction;
     private bool _RootPlanReceived = false;
@@ -48,17 +48,15 @@ class UCk_AutoTest_Goap_ActionSet_SiblingActions : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             true);
 
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
 
         // Root = Simple. Effect Ready=true IS the goal.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Simple);
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         utils_goap_action::BindTo_OnPlanComplete(_RootAction,
@@ -75,7 +73,7 @@ class UCk_AutoTest_Goap_ActionSet_SiblingActions : UCk_AutoTest_Base
         _RootPlanReceived = true;
 
         // Chain settled at [Root].
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(Chain.Num() == 1,
             f"Chain should be [Root] before sibling Add (got {Chain.Num()})");
 
@@ -83,16 +81,16 @@ class UCk_AutoTest_Goap_ActionSet_SiblingActions : UCk_AutoTest_Base
         // creates a fresh entity rather than returning the existing Root.
         auto SiblingParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_AtomicLeaf);
-        _SiblingAction = utils_goap_action_set::AddAction_ToActionSet(_ActionSet, SiblingParams);
+        _SiblingAction = utils_goap_planner::AddAction(_ActionSet, SiblingParams);
 
         Assert_True(ck::IsValid(_SiblingAction),
-            "AddAction_ToActionSet should return a valid handle for a sibling Action");
+            "AddAction should return a valid handle for a sibling Action");
 
         Assert_True(_SiblingAction != _RootAction,
             "Sibling Action handle should differ from Root handle");
 
         // Sibling is in the catalog.
-        auto FoundByClass = utils_goap_action_set::Find_ActionByClass(
+        auto FoundByClass = utils_goap_planner::Find_ActionByClass(
             _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Root_AtomicLeaf);
         Assert_True(ck::IsValid(FoundByClass),
             "Find_ActionByClass should locate the sibling in the catalog");
@@ -100,15 +98,15 @@ class UCk_AutoTest_Goap_ActionSet_SiblingActions : UCk_AutoTest_Base
             "Find_ActionByClass should return the sibling's handle");
 
         // Root is still findable by its class.
-        auto FoundRootByClass = utils_goap_action_set::Find_ActionByClass(
+        auto FoundRootByClass = utils_goap_planner::Find_ActionByClass(
             _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Simple);
         Assert_True(FoundRootByClass == _RootAction,
             "Find_ActionByClass(Simple) should still return the Root handle");
 
         // Get_RootAction is unchanged — sibling Add did not promote the sibling.
-        auto CurrentRoot = utils_goap_action_set::Get_RootAction(_ActionSet);
+        auto CurrentRoot = utils_goap_planner::Get_RootAction(_ActionSet);
         Assert_True(CurrentRoot == _RootAction,
-            "Get_RootAction should be unchanged after AddAction_ToActionSet");
+            "Get_RootAction should be unchanged after AddAction");
 
         // Active chain should still be [Root] only — sibling is catalog-only.
         // ChainUpdate runs after the next tick, so wait one frame and assert.
@@ -123,9 +121,9 @@ class UCk_AutoTest_Goap_ActionSet_SiblingActions : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(Chain.Num() == 1,
-            f"Chain should remain [Root] (length 1) after AddAction_ToActionSet — siblings are catalog-only (got {Chain.Num()})");
+            f"Chain should remain [Root] (length 1) after AddAction — siblings are catalog-only (got {Chain.Num()})");
 
         if (Chain.Num() >= 1)
         {

@@ -45,17 +45,15 @@ class UCk_AutoTest_Goap_ActionSet_InvalidGoal : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             false);
 
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        auto ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        auto ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(ActionSet), "AddActionSet should return a valid handle");
 
         // Root with no _InitialGoal_RootOnly — empty goal, PlanFound immediately.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_InvalidGoal);
-        _RootAction = utils_goap_action_set::SetRootAction(ActionSet, RootParams, WS);
+        _RootAction = utils_goap_planner::SetRootAction(ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         // Issue SetGoalWorldState with a tag that is NOT registered in the WS

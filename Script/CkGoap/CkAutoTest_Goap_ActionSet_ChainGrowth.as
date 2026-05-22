@@ -35,7 +35,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Action _MidAction;
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private bool _RootPlanReceived = false;
     private int32 _ActivatedCount = 0;
 
@@ -55,11 +55,9 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
 
         // Root's planning goal = {BKey=true}. Root's CDO effect = AKey=true
@@ -73,7 +71,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
         RootParams.Set_InitialGoal_RootOnly(InitialGoal);
 
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         // Add Mid as composite child of Root.
@@ -96,7 +94,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
             FCk_Delegate_Goap_OnActionActivated(this, n"OnMidActivated"));
 
         // Initial chain has only Root.
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should start with only Root (got {Chain.Num()})");
 
@@ -138,7 +136,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
         _ActivatedCount = _ActivatedCount + 1;
 
         // Verify chain has extended to [Root, Mid].
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(Chain.Num() == 2,
             f"ActiveChain should be [Root, Mid] when OnActionActivated fires (got {Chain.Num()})");
 
@@ -164,7 +162,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         if (Chain.Num() < 2)
         {
             // ChainUpdate hasn't extended yet — wait another frame.

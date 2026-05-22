@@ -4,7 +4,7 @@
 // CK GOAP — AUTOMATION TEST: ACTIONSET OnActiveChainChanged SIGNAL
 //============================================================================
 //
-// Validates utils_goap_action_set::BindTo_OnActiveChainChanged and the
+// Validates utils_goap_planner::BindTo_OnActiveChainChanged and the
 // FCk_Goap_Payload_OnActiveChainChanged payload.
 //
 // Per CkGoap_ActionSet_Processor.cpp (ChainUpdate): the signal fires
@@ -28,7 +28,7 @@
 
 class UCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal : UCk_AutoTest_Base
 {
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Action _MidAction;
     private int32 _SignalFiredCount = 0;
@@ -50,11 +50,9 @@ class UCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
 
         // Root: _InitialGoal_RootOnly={BKey=true}. Mid satisfies it.
@@ -66,7 +64,7 @@ class UCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal : UCk_AutoTest_Base
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
         RootParams.Set_InitialGoal_RootOnly(InitialGoal);
 
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         // Mid (composite, effect BKey=true).
@@ -83,18 +81,18 @@ class UCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal : UCk_AutoTest_Base
 
         // Bind the signal NOW — before any ChainUpdate runs. Default policy
         // (FireIfPayloadInFlightThisFrame) catches even a same-frame fire.
-        utils_goap_action_set::BindTo_OnActiveChainChanged(_ActionSet,
+        utils_goap_planner::BindTo_OnActiveChainChanged(_ActionSet,
             FCk_Delegate_Goap_OnActiveChainChanged(this, n"OnChainChanged"));
 
         // Sanity: initial chain has only Root.
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should start with only Root (got {Chain.Num()})");
     }
 
     UFUNCTION()
     private void OnChainChanged(
-        FCk_Handle_Goap_ActionSet InActionSet,
+        FCk_Handle_Goap_Planner InActionSet,
         FCk_Goap_Payload_OnActiveChainChanged InPayload)
     {
         if (IsFinished()) { return; }
@@ -117,7 +115,7 @@ class UCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal : UCk_AutoTest_Base
         }
 
         // Current chain (post-mutation) is queryable via Get_ActiveChain.
-        auto NewChain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto NewChain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(NewChain.Num() == 2,
             f"Get_ActiveChain inside OnChainChanged handler should reflect new chain [Root, Mid] (got {NewChain.Num()})");
 

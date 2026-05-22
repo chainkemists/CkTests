@@ -46,13 +46,11 @@ class UCk_AutoTest_Goap_ActionSet_RootOnly : UCk_AutoTest_Base
             true);
 
         // Goap root container.
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-        Assert_True(utils_goap::Has(Goap), "Has(Goap) should be true after Add");
 
         // ActionSet.
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        auto ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        auto ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(ActionSet), "AddActionSet should return a valid handle");
 
         // Designate root Action. In the unified model the root's effects
@@ -61,11 +59,11 @@ class UCk_AutoTest_Goap_ActionSet_RootOnly : UCk_AutoTest_Base
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Simple);
 
-        _RootAction = utils_goap_action_set::SetRootAction(ActionSet, RootParams, WS);
+        _RootAction = utils_goap_planner::SetRootAction(ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         // Active chain should contain the root immediately.
-        auto Chain = utils_goap_action_set::Get_ActiveChain(ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(ActionSet);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should contain just the root after SetRootAction (got {Chain.Num()})");
 

@@ -50,7 +50,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     int32 Mode = 0;
 
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_WorldState _WS;
     private int32 _PlanCount = 0;
@@ -76,11 +76,9 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.AutoReplan.Flip"),
             false);
 
-        auto Goap = utils_goap::Add(InHandle, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             Get_ActionSetTagForMode());
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
@@ -90,7 +88,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         RootParams.Set_InitialGoal_RootOnly(Goal);
         RootParams.Set_ReplanPolicy(Get_ReplanPolicyForMode());
 
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, _WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);
 
         utils_goap_action::AddAction_ToAction(_RootAction,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_FlipOp));

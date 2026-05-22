@@ -33,7 +33,7 @@
 
 class UCk_AutoTest_Goap_ActionSet_CancelInflightPlan : UCk_AutoTest_Base
 {
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private FCk_Handle_Goap_Action _RootAction;
     private int32 _PlanCompleteFiredCount = 0;
     private int32 _SettleFrameCount = 0;
@@ -54,11 +54,9 @@ class UCk_AutoTest_Goap_ActionSet_CancelInflightPlan : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
 
         // Root: _InitialGoal_RootOnly={BKey=true} — NOT pre-satisfied (BKey=false),
@@ -76,7 +74,7 @@ class UCk_AutoTest_Goap_ActionSet_CancelInflightPlan : UCk_AutoTest_Base
         // Request_Plan should trigger planning.
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::Explicit);
 
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         // Mid (composite child of Root) — gives the planner a candidate operator.

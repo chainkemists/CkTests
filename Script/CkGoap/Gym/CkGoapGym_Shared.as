@@ -11,7 +11,7 @@
 // Each gym station is its own ECS entity carrying:
 //   - utils_transform   (so the GymStation alcove can render where we place it)
 //   - utils_goap        (a Goap root)
-//   - one or more utils_goap_action_set::AddActionSet entries
+//   - one or more utils_goap_planner::AddActionSet entries
 //   - a Tick timer that re-pushes the status panel text every frame
 //
 // World-state mutations and "buttons" are exposed as UFUNCTION(Exec) console

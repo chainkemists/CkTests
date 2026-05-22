@@ -29,7 +29,7 @@
 class UCk_AutoTest_Goap_ActionSet_DirtyPropagation : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private FCk_Handle_Goap_WorldState _WS;
     private int32 _PlanCompleteCount = 0;
 
@@ -46,11 +46,9 @@ class UCk_AutoTest_Goap_ActionSet_DirtyPropagation : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
 
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
 
         // Root goal: {AKey=true}. WS starts false → Root plans and picks LeafA.
@@ -64,7 +62,7 @@ class UCk_AutoTest_Goap_ActionSet_DirtyPropagation : UCk_AutoTest_Base
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
         RootParams.Set_InitialGoal_RootOnly(InitialGoal);
 
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, _WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         // Add LeafA as a child of Root. LeafA's effect AKey=true satisfies

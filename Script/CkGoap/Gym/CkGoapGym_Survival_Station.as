@@ -38,8 +38,8 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    private FCk_Handle_Goap_ActionSet _ActionSet_Hunger;
-    private FCk_Handle_Goap_ActionSet _ActionSet_Defense;
+    private FCk_Handle_Goap_Planner _ActionSet_Hunger;
+    private FCk_Handle_Goap_Planner _ActionSet_Defense;
     private FCk_Handle_Goap_Action _Root_Hunger;
     private FCk_Handle_Goap_Action _Root_Defense;
     private FCk_Handle_Goap_WorldState _WS;
@@ -60,12 +60,10 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_WorldState_ParamsData());
         Reset_WS();
 
-        auto Goap = utils_goap::Add(InHandle, FCk_Fragment_Goap_RootParamsData());
-
         // -------- Hunger ActionSet --------
-        auto HungerParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto HungerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Hunger"));
-        _ActionSet_Hunger = utils_goap_action_set::AddActionSet(Goap, HungerParams);
+        _ActionSet_Hunger = utils_goap_planner::Add(InHandle, HungerParams);
 
         auto HungerGoal = TArray<FCk_GoapWS_Condition_Authored>();
         HungerGoal.Add(FCk_GoapWS_Condition_Authored(
@@ -75,7 +73,7 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             UCk_GoapGym_Survival_HungerRoot);
         HungerRootParams.Set_InitialGoal_RootOnly(HungerGoal);
         HungerRootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _Root_Hunger = utils_goap_action_set::SetRootAction(_ActionSet_Hunger, HungerRootParams, _WS);
+        _Root_Hunger = utils_goap_planner::SetRootAction(_ActionSet_Hunger, HungerRootParams, _WS);
 
         utils_goap_action::AddAction_ToAction(_Root_Hunger,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_EatFood));
@@ -86,9 +84,9 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
         _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_Forage);  _KnownLabels_Hunger.Add("Forage");
 
         // -------- Defense ActionSet --------
-        auto DefenseParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto DefenseParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Defense"));
-        _ActionSet_Defense = utils_goap_action_set::AddActionSet(Goap, DefenseParams);
+        _ActionSet_Defense = utils_goap_planner::Add(InHandle, DefenseParams);
 
         auto DefenseGoal = TArray<FCk_GoapWS_Condition_Authored>();
         DefenseGoal.Add(FCk_GoapWS_Condition_Authored(
@@ -98,7 +96,7 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             UCk_GoapGym_Survival_DefenseRoot);
         DefenseRootParams.Set_InitialGoal_RootOnly(DefenseGoal);
         DefenseRootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _Root_Defense = utils_goap_action_set::SetRootAction(_ActionSet_Defense, DefenseRootParams, _WS);
+        _Root_Defense = utils_goap_planner::SetRootAction(_ActionSet_Defense, DefenseRootParams, _WS);
 
         utils_goap_action::AddAction_ToAction(_Root_Defense,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_FightEnemy));

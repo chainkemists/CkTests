@@ -4,7 +4,7 @@
 // CK GOAP — AUTOMATION TEST: ACTIONSET SWAP ROOT ACTION
 //============================================================================
 //
-// Validates utils_goap_action_set::Request_SetRootAction(ActionSet,
+// Validates utils_goap_planner::Request_SetRootAction(ActionSet,
 // NewRootParams, InitialWorldState).
 //
 // Per spec §3.4 + §4.2: swapping the root truncates the active chain,
@@ -31,7 +31,7 @@
 class UCk_AutoTest_Goap_ActionSet_SwapRootAction : UCk_AutoTest_Base
 {
     private FCk_Handle _OwnerEntity;
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private FCk_Handle_Goap_Action _RootA;
     private FCk_Handle_Goap_Action _RootB;
     private FCk_Handle_Goap_WorldState _WS_1;
@@ -56,22 +56,20 @@ class UCk_AutoTest_Goap_ActionSet_SwapRootAction : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             true);
 
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
 
         // Root_A = Simple. Effect Ready=true IS the goal in the unified model.
         auto RootAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Simple);
 
-        _RootA = utils_goap_action_set::SetRootAction(_ActionSet, RootAParams, _WS_1);
+        _RootA = utils_goap_planner::SetRootAction(_ActionSet, RootAParams, _WS_1);
         Assert_True(ck::IsValid(_RootA), "SetRootAction (Root_A) should return a valid handle");
 
         // Sanity: root before swap.
-        auto CurrentRoot = utils_goap_action_set::Get_RootAction(_ActionSet);
+        auto CurrentRoot = utils_goap_planner::Get_RootAction(_ActionSet);
         Assert_True(CurrentRoot == _RootA,
             "Get_RootAction should equal Root_A handle before swap");
 
@@ -104,16 +102,16 @@ class UCk_AutoTest_Goap_ActionSet_SwapRootAction : UCk_AutoTest_Base
         auto RootBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_AtomicLeaf);
 
-        utils_goap_action_set::Request_SetRootAction(_ActionSet, RootBParams, _WS_2);
+        utils_goap_planner::Request_SetRootAction(_ActionSet, RootBParams, _WS_2);
         _SwapPerformed = true;
 
         // After swap: chain should collapse to [Root_B] (length 1).
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(Chain.Num() == 1,
             f"After Request_SetRootAction, chain should contain only the new root (got {Chain.Num()})");
 
         // Get_RootAction should return Root_B's handle.
-        _RootB = utils_goap_action_set::Get_RootAction(_ActionSet);
+        _RootB = utils_goap_planner::Get_RootAction(_ActionSet);
         Assert_True(ck::IsValid(_RootB),
             "Get_RootAction should return a valid handle after Request_SetRootAction");
 
@@ -122,7 +120,7 @@ class UCk_AutoTest_Goap_ActionSet_SwapRootAction : UCk_AutoTest_Base
             "Get_RootAction should return a different handle after swapping to a new root class");
 
         // Catalog lookup by class should resolve to the same handle.
-        auto FoundByClass = utils_goap_action_set::Find_ActionByClass(
+        auto FoundByClass = utils_goap_planner::Find_ActionByClass(
             _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Root_AtomicLeaf);
         Assert_True(ck::IsValid(FoundByClass),
             "Find_ActionByClass should locate the new Root_B in the catalog");
@@ -156,7 +154,7 @@ class UCk_AutoTest_Goap_ActionSet_SwapRootAction : UCk_AutoTest_Base
 
         // Root should still be Root_B (chain unchanged since plan is empty —
         // Root_B is atomic from the planner's POV: no children registered).
-        auto CurrentRoot = utils_goap_action_set::Get_RootAction(_ActionSet);
+        auto CurrentRoot = utils_goap_planner::Get_RootAction(_ActionSet);
         Assert_True(CurrentRoot == _RootB,
             "Get_RootAction should still equal Root_B after Root_B plans");
 
