@@ -2049,6 +2049,19 @@ namespace UCk_AutoTest_Goap_ActionSet_WSOverride
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_Planner_PromoteActionToPlanner_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_PromoteActionToPlanner
+{
+    FCk_AutoTest_Goap_Planner_PromoteActionToPlanner_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_PromoteActionToPlanner_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Grid_AddAndDimensions_SpawnParams
 {
 }
