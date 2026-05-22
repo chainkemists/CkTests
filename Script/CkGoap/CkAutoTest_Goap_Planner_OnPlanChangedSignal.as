@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET OnActiveChainChanged SIGNAL
+// CK GOAP — AUTOMATION TEST: PLANNER OnActiveChainChanged SIGNAL
 //============================================================================
 //
 // Validates utils_goap_planner::BindTo_OnActiveChainChanged and the
 // FCk_Goap_Payload_OnActiveChainChanged payload.
 //
-// Per CkGoap_ActionSet_Processor.cpp (ChainUpdate): the signal fires
+// Per CkGoap_Planner_Processor.cpp (ChainUpdate): the signal fires
 // whenever the active chain mutates (extension OR truncation) — with the
 // pre-mutation chain snapshot in the payload's _OldChain. The new chain
 // is readable via Get_ActiveChain inside the handler.
@@ -28,7 +28,7 @@
 
 class UCk_AutoTest_Goap_Planner_OnPlanChangedSignal : UCk_AutoTest_Base
 {
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Action _MidAction;
     private int32 _SignalFiredCount = 0;
@@ -60,19 +60,19 @@ class UCk_AutoTest_Goap_Planner_OnPlanChangedSignal : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Mid (composite, effect BKey=true).
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        _MidAction = utils_goap_planner::AddAction(_ActionSet, MidParams);
+        _MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(_MidAction), "Mid AddAction should succeed");
 
         // Promote Mid so LeafB becomes its tree child.
@@ -89,18 +89,18 @@ class UCk_AutoTest_Goap_Planner_OnPlanChangedSignal : UCk_AutoTest_Base
 
         // Bind the signal NOW — before any ChainUpdate runs. Default policy
         // (FireIfPayloadInFlightThisFrame) catches even a same-frame fire.
-        utils_goap_planner::BindTo_OnActiveChainChanged(_ActionSet,
+        utils_goap_planner::BindTo_OnActiveChainChanged(_Planner,
             FCk_Delegate_Goap_OnActiveChainChanged(this, n"OnChainChanged"));
 
         // Sanity: initial chain has only Root.
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should start with only Root (got {Chain.Num()})");
     }
 
     UFUNCTION()
     private void OnChainChanged(
-        FCk_Handle_Goap_Planner InActionSet,
+        FCk_Handle_Goap_Planner InPlanner,
         FCk_Goap_Payload_OnActiveChainChanged InPayload)
     {
         if (IsFinished()) { return; }
@@ -123,7 +123,7 @@ class UCk_AutoTest_Goap_Planner_OnPlanChangedSignal : UCk_AutoTest_Base
         }
 
         // Current chain (post-mutation) is queryable via Get_ActiveChain.
-        auto NewChain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto NewChain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(NewChain.Num() == 2,
             f"Get_ActiveChain inside OnChainChanged handler should reflect new chain [Root, Mid] (got {NewChain.Num()})");
 

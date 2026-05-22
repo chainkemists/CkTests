@@ -24,7 +24,7 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_WorldState _WS;
     private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses;
@@ -51,22 +51,22 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Empire"));
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
-        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
+        _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_Root);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
 
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_GatherFood));
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_GatherGold));
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_GatherWood));
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_BuildBarracks));
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_ResearchFeudal));
 
         _KnownClasses.Add(UCk_GoapGym_Empire_GatherFood);     _KnownLabels.Add("GatherFood");
@@ -113,9 +113,9 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
         auto B = Get(n"Gym.Goap.WS.Empire.BarracksBuilt");
         auto Fr = Get(n"Gym.Goap.WS.Empire.FeudalResearched");
 
-        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
-        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
-        auto Cost = utils_goap_planner::Get_PlanCost(_ActionSet);
+        auto Status = utils_goap_planner::Get_PlanStatus(_Planner);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_Planner);
+        auto Cost = utils_goap_planner::Get_PlanCost(_Planner);
 
         auto Body = "Resources / Progress\n"
             + f"  HasFood            {CkGoapGym_Common::Render_Bool(F)}\n"

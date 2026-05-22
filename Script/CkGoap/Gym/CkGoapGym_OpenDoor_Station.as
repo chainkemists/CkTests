@@ -3,8 +3,8 @@
 //============================================================================
 // CkGoapGym — Open Door station entity
 //
-// Visual + interactive wrapper around the OpenDoor ActionSet. The station
-// entity carries its own Goap root, ActionSet, and WS. A Tick timer refreshes
+// Visual + interactive wrapper around the OpenDoor Planner. The station
+// entity carries its own Goap root, Planner, and WS. A Tick timer refreshes
 // the alcove panel with the current Door.IsOpen value, plan status, and the
 // resolved plan.
 //
@@ -28,7 +28,7 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_WorldState _WS;
     private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses;
@@ -59,16 +59,16 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Door"));
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
-        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
+        _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_Root);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
 
         // Single operator — atomic OpenDoor.
         auto OpParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_Operator);
-        utils_goap_planner::AddAction(_ActionSet, OpParams);
+        utils_goap_planner::AddAction(_Planner, OpParams);
 
         // Label map for plan rendering.
         _KnownClasses.Add(UCk_GoapGym_OpenDoor_Operator);
@@ -86,13 +86,13 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
 
         auto IsOpen = utils_goap_world_state::Get_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Door.IsOpen"));
-        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
-        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto Status = utils_goap_planner::Get_PlanStatus(_Planner);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_Planner);
 
         auto WSLine = f"  Door.IsOpen      {CkGoapGym_Common::Render_Bool(IsOpen)}";
         auto StatusLine = f"  Status           {CkGoapGym_Common::Format_PlanStatus(Status)}";
         auto PlanLine = f"  Plan             {CkGoapGym_Common::Format_Plan(Plan, _KnownClasses, _KnownLabels)}";
-        auto ChainLine = f"  Chain.Num()      {utils_goap_planner::Get_ActiveChain(_ActionSet).Num()}";
+        auto ChainLine = f"  Chain.Num()      {utils_goap_planner::Get_ActiveChain(_Planner).Num()}";
 
         auto Body = "World State\n" + WSLine
             + "\n\nPlanner\n" + StatusLine

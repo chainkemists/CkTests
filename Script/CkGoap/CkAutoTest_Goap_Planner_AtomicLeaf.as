@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET ATOMIC LEAF CHAIN STABILITY
+// CK GOAP — AUTOMATION TEST: PLANNER ATOMIC LEAF CHAIN STABILITY
 //============================================================================
 //
 // Validates: when the planner selects an atomic child (no registered
@@ -16,14 +16,14 @@
 // Expected (asserted after WaitOneFrame so ChainUpdate has run):
 //   - Get_PlanStatus(Root) == PlanFound
 //   - Get_Plan(Root)[0] == UCk_AutoTestAction_Goap_ActionSet_AtomicChild
-//   - Get_ActiveChain(ActionSet).Num() == 1  (Root only — AtomicChild is
+//   - Get_ActiveChain(Planner).Num() == 1  (Root only — AtomicChild is
 //     atomic, so ChainUpdate does NOT append it)
 //============================================================================
 
 class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private bool _PlanReceived = false;
 
     UFUNCTION(BlueprintOverride)
@@ -49,19 +49,19 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_AtomicLeaf);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Add AtomicChild as a child of Root. No grandchildren added — atomic.
         auto ChildParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_AtomicChild);
-        auto ChildAction = utils_goap_planner::AddAction(_ActionSet, ChildParams);
+        auto ChildAction = utils_goap_planner::AddAction(_Planner, ChildParams);
         Assert_True(ck::IsValid(ChildAction), "AddAction (subsequent → tree child of implicit root) should return a valid handle");
 
         utils_goap_action::BindTo_OnPlanComplete(_RootAction,
@@ -75,10 +75,10 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
         if (_PlanReceived) { return; }
         _PlanReceived = true;
 
-        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
             "Root PlanStatus should be PlanFound");
 
-        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_Planner);
         Assert_True(Plan.Num() == 1,
             f"Root plan should have exactly 1 entry (got {Plan.Num()})");
         Assert_True(Plan.Num() > 0 && Plan[0] == UCk_AutoTestAction_Goap_ActionSet_AtomicChild,
@@ -98,7 +98,7 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should remain at length 1 (Root only) after ChainUpdate — AtomicChild must NOT be appended (got {Chain.Num()})");
 

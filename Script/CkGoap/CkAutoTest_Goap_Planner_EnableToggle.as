@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET ENABLE TOGGLE
+// CK GOAP — AUTOMATION TEST: PLANNER ENABLE TOGGLE
 //============================================================================
 //
-// Validates §9 row 11: "Disabled ActionSet skips ChainUpdate; re-enable
+// Validates §9 row 11: "Disabled Planner skips ChainUpdate; re-enable
 // resumes."
 //
-// The disable toggle gates FProcessor_Goap_ActionSet_ChainUpdate only —
+// The disable toggle gates FProcessor_Goap_Planner_ChainUpdate only —
 // individual Action planners still run. So Root will plan and select Mid,
 // but while disabled ChainUpdate never appends Mid to the active chain.
 // After re-enable, ChainUpdate runs and extends the chain to [Root, Mid].
@@ -17,20 +17,20 @@
 //   - Root action: effect AKey=true, _InitialGoal_RootOnly={BKey=true}.
 //   - Mid (child of Root): effect BKey=true. Composite (has LeafB as child).
 //   - LeafB (child of Mid): effect BKey=true (makes Mid composite).
-//   - ActionSet disabled immediately after creation.
+//   - Planner disabled immediately after creation.
 //
 // Phase 1: Wait several frames. Chain should remain [Root] (length 1).
 //   ChainUpdate is suppressed; Mid is never appended even though Root's
 //   plan = [Mid].
 //
-// Phase 2: Re-enable ActionSet. Wait for ChainUpdate to extend the chain.
+// Phase 2: Re-enable Planner. Wait for ChainUpdate to extend the chain.
 //   Assert chain length == 2 and chain[1] == Mid_GoalIsEffects class.
 //============================================================================
 
 class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private int32 _DisabledFrameCount = 0;
 
     UFUNCTION(BlueprintOverride)
@@ -60,26 +60,26 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         // Disable ChainUpdate immediately — before any actions are planned.
-        utils_goap_planner::Request_SetEnableToggle(_ActionSet, ECk_EnableDisable::Disable);
+        utils_goap_planner::Request_SetEnableToggle(_Planner, ECk_EnableDisable::Disable);
         Assert_True(
-            utils_goap_planner::Get_EnableToggle(_ActionSet) == ECk_EnableDisable::Disable,
-            "ActionSet should be disabled after Request_SetEnableToggle(Disable)");
+            utils_goap_planner::Get_EnableToggle(_Planner) == ECk_EnableDisable::Disable,
+            "Planner should be disabled after Request_SetEnableToggle(Disable)");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_Toggle);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Add Mid as composite child of Root. Mid's effect = BKey=true →
         // Root's planner picks Mid to satisfy {BKey=true}.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        auto MidAction = utils_goap_planner::AddAction(_ActionSet, MidParams);
+        auto MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
 
         // Promote Mid so LeafB becomes its tree child (makes Mid composite).
@@ -96,7 +96,7 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
         Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
 
         // Initial chain has only Root.
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should have only Root at start (got {Chain.Num()})");
 
@@ -113,9 +113,9 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 1,
-            f"ActiveChain must NOT extend while ActionSet is disabled (frame {_DisabledFrameCount}, got {Chain.Num()})");
+            f"ActiveChain must NOT extend while Planner is disabled (frame {_DisabledFrameCount}, got {Chain.Num()})");
 
         _DisabledFrameCount = _DisabledFrameCount + 1;
         if (_DisabledFrameCount < 10)
@@ -125,10 +125,10 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
         }
 
         // After 10 frames disabled, re-enable and wait for chain extension.
-        utils_goap_planner::Request_SetEnableToggle(_ActionSet, ECk_EnableDisable::Enable);
+        utils_goap_planner::Request_SetEnableToggle(_Planner, ECk_EnableDisable::Enable);
         Assert_True(
-            utils_goap_planner::Get_EnableToggle(_ActionSet) == ECk_EnableDisable::Enable,
-            "ActionSet should be enabled after Request_SetEnableToggle(Enable)");
+            utils_goap_planner::Get_EnableToggle(_Planner) == ECk_EnableDisable::Enable,
+            "Planner should be enabled after Request_SetEnableToggle(Enable)");
 
         // Wait for ChainUpdate to run and extend the chain.
         WaitOneFrame(n"OnCheckChainExtended");
@@ -143,10 +143,10 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
 
         // If Root hasn't planned yet (PlanStatus != PlanFound), wait one more frame.
-        auto RootStatus = utils_goap_planner::Get_PlanStatus(_ActionSet);
+        auto RootStatus = utils_goap_planner::Get_PlanStatus(_Planner);
         if (RootStatus != ECk_GoapPlanStatus::PlanFound)
         {
             WaitOneFrame(n"OnCheckChainExtended");
@@ -164,8 +164,8 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
             f"ActiveChain should be [Root, Mid] after re-enable (got {Chain.Num()})");
 
         auto MidHandle = utils_goap_planner::Find_ActionByClass(
-            _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in ActionSet catalog");
+            _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
+        Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in Planner catalog");
 
         if (Chain.Num() >= 2)
         {

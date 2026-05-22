@@ -4,7 +4,7 @@
 // CK GOAP — AUTOMATION TEST: PLANNER ADD/REMOVE CHILDREN AT RUNTIME
 //============================================================================
 //
-// Replaces the obsolete Goap_ActionSet_SiblingActions test (spec §9 mapping
+// Replaces the obsolete Goap_Planner_SiblingActions test (spec §9 mapping
 // table). Validates that a Planner's child Action catalog can be MUTATED at
 // runtime — adding new children must be reflected in the next plan.
 //
@@ -51,7 +51,7 @@
 class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private int32 _PlansReceived = 0;
     private bool _CheaperAdded = false;
     private int32 _SettleFrameCount = 0;
@@ -79,19 +79,19 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         // Implicit root.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_AtomicLeaf);
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Initial child: AtomicChild (cost 1.0).
         auto AtomicParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_AtomicChild);
-        auto AtomicAction = utils_goap_planner::AddAction(_ActionSet, AtomicParams);
+        auto AtomicAction = utils_goap_planner::AddAction(_Planner, AtomicParams);
         Assert_True(ck::IsValid(AtomicAction), "AddAction (AtomicChild) should return a valid handle");
 
         utils_goap_action::BindTo_OnPlanComplete(_RootAction,
@@ -105,10 +105,10 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
 
         _PlansReceived = _PlansReceived + 1;
 
-        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
             "PlanStatus should be PlanFound");
 
-        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_Planner);
 
         if (_PlansReceived == 1)
         {
@@ -121,7 +121,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
             // Runtime mutation: add a cheaper sibling Action under the same planner.
             auto CheaperParams = FCk_Fragment_Goap_ActionParamsData(
                 UCk_AutoTestAction_Goap_AddRemove_Cheaper);
-            auto CheaperAction = utils_goap_planner::AddAction(_ActionSet, CheaperParams);
+            auto CheaperAction = utils_goap_planner::AddAction(_Planner, CheaperParams);
             Assert_True(ck::IsValid(CheaperAction),
                 "Runtime AddAction (Cheaper) should return a valid handle");
             _CheaperAdded = true;
@@ -162,7 +162,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
         }
 
         // Now that Cheaper has been through Setup, force a replan.
-        utils_goap_planner::Request_Plan(_ActionSet);
+        utils_goap_planner::Request_Plan(_Planner);
     }
 }
 

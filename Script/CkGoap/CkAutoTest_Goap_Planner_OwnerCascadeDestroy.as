@@ -1,20 +1,20 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET OWNER CASCADE DESTROY
+// CK GOAP — AUTOMATION TEST: PLANNER OWNER CASCADE DESTROY
 //============================================================================
 //
 // Validates spec §9 row 12: "Destroying owner cleans up GoapRoot →
-// ActionSets → Actions without leaks."
+// Planners → Actions without leaks."
 //
 // Strategy:
 //   - The test entity itself stays alive throughout.
 //   - A sub-entity (SubOwner) is spawned as a child of the test entity.
-//   - Goap is added to SubOwner. An ActionSet and a root Action are added.
-//   - Handles for Goap, ActionSet, and the root Action are captured.
+//   - Goap is added to SubOwner. A Planner and a root Action are added.
+//   - Handles for Goap, Planner, and the root Action are captured.
 //   - Request_DestroyEntity(SubOwner).
 //   - WaitOneFrame to let the destruction settle.
-//   - Assert: SubOwner handle invalid, Goap handle invalid, ActionSet handle
+//   - Assert: SubOwner handle invalid, Goap handle invalid, Planner handle
 //     invalid, root Action handle invalid (cascade destroyed with owner).
 //
 // No new action classes needed — the Simple action (Ready WS) is reused
@@ -28,7 +28,7 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
 
     private FCk_Handle _SubOwner;
     private FCk_Handle_Goap_Planner _GoapHandle;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_Action _RootAction;
 
     UFUNCTION(BlueprintOverride)
@@ -58,14 +58,14 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(TArray<FCk_GoapWS_Condition_Authored>());
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(_SubOwner, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add should return a valid handle");
-        _GoapHandle = _ActionSet;  // U11.0a: Planner is the only Goap entity.
+        _Planner = utils_goap_planner::Add(_SubOwner, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add should return a valid handle");
+        _GoapHandle = _Planner;  // U11.0a: Planner is the only Goap entity.
 
         // Add root Action (Simple: effect Ready=true; goal already satisfied).
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Simple);
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // All handles are valid before destroy.
@@ -73,13 +73,13 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
             "Pre-destroy: SubOwner should be valid");
         Assert_True(ck::IsValid(_GoapHandle),
             "Pre-destroy: Goap handle should be valid");
-        Assert_True(ck::IsValid(_ActionSet),
-            "Pre-destroy: ActionSet handle should be valid");
+        Assert_True(ck::IsValid(_Planner),
+            "Pre-destroy: Planner handle should be valid");
         Assert_True(ck::IsValid(_RootAction),
             "Pre-destroy: RootAction handle should be valid");
 
         // Destroy SubOwner. The ECS ownership chain guarantees cascade:
-        // SubOwner → Goap entity → ActionSet entity → Action entities.
+        // SubOwner → Goap entity → Planner entity → Action entities.
         utils_entity_lifetime::Request_DestroyEntity(_SubOwner);
 
         // Wait one frame for the destruction to settle.
@@ -100,8 +100,8 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
         Assert_True(!ck::IsValid(_GoapHandle),
             "Goap handle should be invalid after owner destroy (cascade)");
 
-        Assert_True(!ck::IsValid(_ActionSet),
-            "ActionSet handle should be invalid after owner destroy (cascade)");
+        Assert_True(!ck::IsValid(_Planner),
+            "Planner handle should be invalid after owner destroy (cascade)");
 
         Assert_True(!ck::IsValid(_RootAction),
             "RootAction handle should be invalid after owner destroy (cascade)");

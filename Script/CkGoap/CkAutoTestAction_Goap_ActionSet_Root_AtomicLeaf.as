@@ -5,7 +5,7 @@
 //============================================================================
 //
 // Root action for the AtomicLeaf test. Exists only as a class reference
-// for the ActionSet; its CDO effects (Ready=true) are used as the
+// for the Planner; its CDO effects (Ready=true) are used as the
 // _InitialGoal_RootOnly target. No preconditions — root is always eligible.
 //============================================================================
 

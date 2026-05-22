@@ -3,28 +3,28 @@
 //============================================================================
 // CkGoapGym — Survival Decision station Actions
 //
-// Two independent ActionSets on the SAME entity, demonstrating ActionSet
-// isolation. Each ActionSet plans independently against the shared WS.
+// Two independent Planners on the SAME entity, demonstrating Planner
+// isolation. Each Planner plans independently against the shared WS.
 //
-// ActionSet "Hunger":
+// Planner "Hunger":
 //   Root goal {Hungry=false}
 //     ├── EatFood  pre {HasFood}  eff {Hungry=false}  cost 1
 //     └── Forage   pre {}         eff {HasFood=true}  cost 4
 //   When HasFood=false, Hunger has NO valid single-step plan (Forage doesn't
 //   directly resolve Hungry=false). With HasFood=true, EatFood is selected.
 //
-// ActionSet "Defense":
+// Planner "Defense":
 //   Root goal {SafeFromThreat=true}
 //     ├── FightEnemy  pre {ThreatActive, HasWeapon}  eff {SafeFromThreat=true}  cost 1
 //     └── RunAway    pre {ThreatActive}              eff {SafeFromThreat=true}  cost 3
 //   When ThreatActive=true and HasWeapon=true, FightEnemy wins (cheaper).
 //   Drop HasWeapon → planner falls back to RunAway.
 //
-// Both ActionSets are top-level in the same Goap root — proving
-// utils_goap_planner::AddActionSet supports multiple decision domains.
+// Both Planners are top-level in the same Goap root — proving
+// utils_goap_planner::Add supports multiple decision domains.
 //============================================================================
 
-// -------------------- Hunger ActionSet --------------------
+// -------------------- Hunger Planner --------------------
 
 class UCk_GoapGym_Survival_HungerRoot : UCk_GoapAction_EntityScript
 {
@@ -62,7 +62,7 @@ class UCk_GoapGym_Survival_Forage : UCk_GoapAction_EntityScript
     }
 }
 
-// -------------------- Defense ActionSet --------------------
+// -------------------- Defense Planner --------------------
 
 class UCk_GoapGym_Survival_DefenseRoot : UCk_GoapAction_EntityScript
 {

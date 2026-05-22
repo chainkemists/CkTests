@@ -50,7 +50,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     int32 Mode = 0;
 
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_WorldState _WS;
     private int32 _PlanCount = 0;
@@ -83,30 +83,30 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
             true));
 
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
-            Get_ActionSetTagForMode());
+            Get_PlannerTagForMode());
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
-        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
+        _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_Root);
         RootParams.Set_ReplanPolicy(Get_ReplanPolicyForMode());
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
 
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_FlipOp));
 
         // OnCostDirty station gets a second operator to demonstrate cost-swap.
         if (Mode == 2)
         {
-            utils_goap_planner::AddAction(_ActionSet,
+            utils_goap_planner::AddAction(_Planner,
                 FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_AltOp));
         }
 
         if (Mode == 1)
         {
             // OnWSDirty station — 0.5s throttle interval to show coalescing.
-            utils_goap_planner::Request_SetReplanInterval(_ActionSet, 0.5);
+            utils_goap_planner::Request_SetReplanInterval(_Planner, 0.5);
         }
 
         // Plan-counter bind. FireIfPayloadInFlightThisFrame default policy
@@ -134,7 +134,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         return utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.OnCostDirty");
     }
 
-    private FGameplayTag Get_ActionSetTagForMode()
+    private FGameplayTag Get_PlannerTagForMode()
     {
         if (Mode == 0) { return utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Explicit"); }
         if (Mode == 1) { return utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.OnWSDirty"); }
@@ -183,7 +183,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         {
             _AltCostIncreased = !_AltCostIncreased;
             auto NewCost = _AltCostIncreased ? 0.5 : 2.0;
-            utils_goap_planner::Request_SetChildActionCost(_ActionSet,
+            utils_goap_planner::Request_SetChildActionCost(_Planner,
                 UCk_GoapGym_AutoReplan_AltOp, NewCost);
         }
     }
@@ -198,11 +198,11 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         if (Self.Has_Fragment(FCk_Fragment_GoapGym_ForceReplanPending))
         {
             Self.Request_Remove(FCk_Fragment_GoapGym_ForceReplanPending);
-            utils_goap_planner::Request_Plan(_ActionSet);
+            utils_goap_planner::Request_Plan(_Planner);
         }
 
-        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
-        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto Status = utils_goap_planner::Get_PlanStatus(_Planner);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_Planner);
 
         auto ModeLabel = Get_PolicyLabel();
         auto Title = "";
