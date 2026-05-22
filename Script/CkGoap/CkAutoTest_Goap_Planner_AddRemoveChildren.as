@@ -6,7 +6,8 @@
 //
 // Replaces the obsolete Goap_Planner_SiblingActions test (spec §9 mapping
 // table). Validates that a Planner's child Action catalog can be MUTATED at
-// runtime — adding new children must be reflected in the next plan.
+// runtime — both ADD and REMOVE of children must be reflected in the next
+// plan.
 //
 // Coverage map:
 //   Phase A — Initial plan: Planner has only the AtomicChild leaf as child.
@@ -15,18 +16,9 @@
 //             cost 0.5) is added under the same Planner. Request_Plan is
 //             enqueued. Plan must replan to [Cheaper] because cheaper option
 //             wins under regressive A*.
-//
-// Runtime REMOVAL of a child Action is intentionally NOT exercised here. The
-// framework today exposes no first-class "remove child Action" API
-// (UCk_Utils_Goap_Planner_UE has no Request_RemoveAction / RemoveChild verb,
-// and Request_DestroyEntity on an Action entity does not unregister it from
-// the parent Planner's FFragment_Goap_Planner_ActionCatalogIndex or the root
-// Action's FFragment_Goap_Action_Tree._ChildActions — stale references would
-// remain). Adding negative-side coverage for an unsupported operation would
-// either mis-document the runtime contract or require new framework code
-// outside the scope of this U11 tie-up. The add half is what the original
-// SiblingActions test was actually validating; the remove half is recorded
-// here as an open concern for future API expansion.
+//   Phase C — Runtime remove: Cheaper is removed via Request_RemoveAction.
+//             The planner's next plan must flip back to [AtomicChild] (the
+//             only remaining candidate operator).
 //
 // Setup:
 //   - WS: Ready=false.
@@ -45,6 +37,10 @@
 //
 // Phase B — OnRootPlan (second fire, after we add Cheaper):
 //   Assert Plan == [Cheaper] (lower cost wins).
+//   Request_RemoveAction(Cheaper) → planner catalog drops back to 1 child.
+//
+// Phase C — OnRootPlan (third fire, after we remove Cheaper):
+//   Assert Plan == [AtomicChild] (only remaining candidate operator).
 //   FinishSuccess.
 //============================================================================
 
@@ -54,6 +50,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
     private FCk_Handle_Goap_Planner _Planner;
     private int32 _PlansReceived = 0;
     private bool _CheaperAdded = false;
+    private bool _CheaperRemoved = false;
     private int32 _SettleFrameCount = 0;
 
     UFUNCTION(BlueprintOverride)
@@ -136,12 +133,31 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
             return;
         }
 
-        // Phase B — replan after the runtime add.
-        Assert_True(_CheaperAdded, "Phase B should only fire after Cheaper was added");
+        if (_PlansReceived == 2)
+        {
+            // Phase B — replan after the runtime add.
+            Assert_True(_CheaperAdded, "Phase B should only fire after Cheaper was added");
+            Assert_True(Plan.Num() == 1,
+                f"Phase B: plan should have exactly 1 entry (got {Plan.Num()})");
+            Assert_True(Plan.Num() > 0 && Plan[0] == UCk_AutoTestAction_Goap_AddRemove_Cheaper,
+                "Phase B: Plan[0] should be Cheaper (cost 0.5 < AtomicChild cost 1.0)");
+
+            // Runtime mutation: remove Cheaper from the catalog. Request_Plan
+            // is enqueued internally by Request_RemoveAction so we don't need
+            // to call it again. Settle a few frames to let the catalog mutation
+            // + setup re-run propagate before the next plan completes.
+            utils_goap_planner::Request_RemoveAction(_Planner,
+                UCk_AutoTestAction_Goap_AddRemove_Cheaper);
+            _CheaperRemoved = true;
+            return;
+        }
+
+        // Phase C — replan after the runtime remove.
+        Assert_True(_CheaperRemoved, "Phase C should only fire after Cheaper was removed");
         Assert_True(Plan.Num() == 1,
-            f"Phase B: plan should have exactly 1 entry (got {Plan.Num()})");
-        Assert_True(Plan.Num() > 0 && Plan[0] == UCk_AutoTestAction_Goap_AddRemove_Cheaper,
-            "Phase B: Plan[0] should be Cheaper (cost 0.5 < AtomicChild cost 1.0)");
+            f"Phase C: plan should have exactly 1 entry (got {Plan.Num()})");
+        Assert_True(Plan.Num() > 0 && Plan[0] == UCk_AutoTestAction_Goap_ActionSet_AtomicChild,
+            "Phase C: Plan[0] should be AtomicChild (only candidate remaining after Cheaper removed)");
 
         FinishSuccess();
     }
