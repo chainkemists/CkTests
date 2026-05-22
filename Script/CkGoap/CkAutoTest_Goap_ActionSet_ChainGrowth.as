@@ -55,21 +55,23 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
-
         // Root's planning goal = {BKey=true}. Root's CDO effect = AKey=true
         // (distinct from goal). Mid's effect BKey=true satisfies Root's goal
         // so Root's plan = [Mid].
+        // U11.1: goal authored on PlannerParams.
         auto InitialGoal = TArray<FCk_GoapWS_Condition_Authored>();
         InitialGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             true));
+
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        ActionSetParams.Set_Goal(InitialGoal);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-        RootParams.Set_InitialGoal_RootOnly(InitialGoal);
 
         _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");

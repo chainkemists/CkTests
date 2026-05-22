@@ -76,16 +76,18 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.AutoReplan.Flip"),
             false);
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
-            Get_ActionSetTagForMode());
-        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
-
+        // U11.1: Planner goal on PlannerParams.
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.AutoReplan.Goal"),
             true));
+
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+            Get_ActionSetTagForMode());
+        ActionSetParams.Set_Goal(Goal);
+        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
+
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_Root);
-        RootParams.Set_InitialGoal_RootOnly(Goal);
         RootParams.Set_ReplanPolicy(Get_ReplanPolicyForMode());
 
         _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);

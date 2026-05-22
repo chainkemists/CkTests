@@ -60,18 +60,19 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_WorldState_ParamsData());
         Reset_WS();
 
-        // -------- Hunger ActionSet --------
-        auto HungerParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Hunger"));
-        _ActionSet_Hunger = utils_goap_planner::Add(InHandle, HungerParams);
-
+        // -------- Hunger ActionSet -------- (U11.1: goal on PlannerParams)
         auto HungerGoal = TArray<FCk_GoapWS_Condition_Authored>();
         HungerGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Survival.Hungry"),
             false));
+
+        auto HungerParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Hunger"));
+        HungerParams.Set_Goal(HungerGoal);
+        _ActionSet_Hunger = utils_goap_planner::Add(InHandle, HungerParams);
+
         auto HungerRootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Survival_HungerRoot);
-        HungerRootParams.Set_InitialGoal_RootOnly(HungerGoal);
         HungerRootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Root_Hunger = utils_goap_planner::SetRootAction(_ActionSet_Hunger, HungerRootParams, _WS);
 
@@ -83,18 +84,19 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
         _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_EatFood); _KnownLabels_Hunger.Add("EatFood");
         _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_Forage);  _KnownLabels_Hunger.Add("Forage");
 
-        // -------- Defense ActionSet --------
-        auto DefenseParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Defense"));
-        _ActionSet_Defense = utils_goap_planner::Add(InHandle, DefenseParams);
-
+        // -------- Defense ActionSet -------- (U11.1: goal on PlannerParams)
         auto DefenseGoal = TArray<FCk_GoapWS_Condition_Authored>();
         DefenseGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Survival.SafeFromThreat"),
             true));
+
+        auto DefenseParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Defense"));
+        DefenseParams.Set_Goal(DefenseGoal);
+        _ActionSet_Defense = utils_goap_planner::Add(InHandle, DefenseParams);
+
         auto DefenseRootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Survival_DefenseRoot);
-        DefenseRootParams.Set_InitialGoal_RootOnly(DefenseGoal);
         DefenseRootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Root_Defense = utils_goap_planner::SetRootAction(_ActionSet_Defense, DefenseRootParams, _WS);
 

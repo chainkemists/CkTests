@@ -47,16 +47,18 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
         Set(n"Gym.Goap.WS.CrossRiver.HasCoin", true);
         Set(n"Gym.Goap.WS.CrossRiver.Crossed", false);
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.CrossRiver"));
-        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
-
+        // U11.1: Planner goal on PlannerParams.
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.CrossRiver.Crossed"),
             true));
+
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.CrossRiver"));
+        ActionSetParams.Set_Goal(Goal);
+        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
+
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_Root);
-        RootParams.Set_InitialGoal_RootOnly(Goal);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
 
         _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);
