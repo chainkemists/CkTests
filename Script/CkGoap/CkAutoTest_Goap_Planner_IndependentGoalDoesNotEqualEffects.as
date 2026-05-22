@@ -14,9 +14,8 @@
 // Discrimination mechanism (inverted from U10):
 //   - Root planner goal: {BKey=true} (set via PlannerParams._Goal)
 //   - Mid CDO effect:    BKey=true   (Mid satisfies Root's goal → Root plan = [Mid])
-//   - Mid planner goal:  {AKey=true} (set explicitly via utils_goap_action's
-//                                     Request_SetGoalWorldState — different
-//                                     from Mid's effects)
+//   - Mid planner goal:  {AKey=true} (set via PromoteActionToPlanner params —
+//                                     different from Mid's effects)
 //   - Mid children: Leaf_B (effect BKey=true), Leaf_A (effect AKey=true)
 //
 // If U11.1 is implemented correctly:
@@ -82,17 +81,19 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         _MidAction = utils_goap_action::AddAction_ToAction(_RootAction, MidParams);
         Assert_True(ck::IsValid(_MidAction), "Mid AddAction_ToAction should succeed");
 
-        // U11.1 INVERSION — set Mid's planner goal to {AKey=true} EXPLICITLY,
-        // diverging from Mid's own CDO effect ({BKey=true}). The U10 implicit
-        // "Mid's goal = Mid's effects" rule is gone. With independent goals,
-        // Mid plans toward AKey and picks Leaf_A. Setting the goal here on the
-        // Action-level Request_SetGoalWorldState updates the same authored slot
-        // that ChainUpdate re-resolves at activation — so the goal sticks.
+        // U11.1 INVERSION — promote Mid to a Planner with goal {AKey=true}
+        // EXPLICITLY, diverging from Mid's own CDO effect ({BKey=true}). The U10
+        // implicit "Mid's goal = Mid's effects" rule is gone. With independent
+        // goals, Mid plans toward AKey and picks Leaf_A. PromoteActionToPlanner
+        // stamps the goal into _GoalAuthored; Setup re-resolves it at activation.
         auto MidGoal = TArray<FCk_GoapWS_Condition_Authored>();
         MidGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true));
-        utils_goap_action::Request_SetGoalWorldState(_MidAction, MidGoal);
+        auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        MidPlannerParams.Set_Goal(MidGoal);
+        utils_goap_planner::PromoteActionToPlanner(_MidAction, MidPlannerParams);
 
         // Add Leaf_B and Leaf_A as children of Mid.
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(

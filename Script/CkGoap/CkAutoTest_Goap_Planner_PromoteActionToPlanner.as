@@ -19,7 +19,7 @@
 //     utils_goap_planner::Has(handle) == true   (Planner role stamped)
 //
 // Discrimination mechanism (similar to GoalIsEffects but goal is set via
-// Promote instead of Request_SetGoalWorldState):
+// PromoteActionToPlanner params instead of a separate Request_SetGoal call):
 //
 //   - Root planner goal: {BKey=true} (set via top-level PlannerParams._Goal)
 //   - Mid CDO effect:    BKey=true   (Mid satisfies Root's goal → Root plan = [Mid])

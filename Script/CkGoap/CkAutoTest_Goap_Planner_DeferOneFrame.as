@@ -99,16 +99,18 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
         auto MidAction = utils_goap_action::AddAction_ToAction(_RootAction, MidParams);
         Assert_True(ck::IsValid(MidAction), "Mid AddAction_ToAction should succeed");
 
-        // U11.1: set Mid's planner goal explicitly. Pre-U11.1, Mid's goal was
-        // implicitly injected from Mid's CDO effects {BKey=true}. The new
-        // independent-goal model requires an explicit set; we preserve the
-        // test's original intent by setting the same {BKey=true} goal so Mid's
-        // deferred plan resolves to [Leaf_B].
+        // Promote Mid to a Planner with goal {BKey=true}. Pre-U11.1, Mid's goal
+        // was implicitly injected from its CDO effects. The goal is now set
+        // explicitly via PromoteActionToPlanner; the original intent is preserved
+        // by using the same {BKey=true} so Mid's deferred plan resolves to [Leaf_B].
         auto MidGoal = TArray<FCk_GoapWS_Condition_Authored>();
         MidGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             true));
-        utils_goap_action::Request_SetGoalWorldState(MidAction, MidGoal);
+        auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        MidPlannerParams.Set_Goal(MidGoal);
+        utils_goap_planner::PromoteActionToPlanner(MidAction, MidPlannerParams);
 
         // Add Leaf_B as child of Mid (makes Mid composite).
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
