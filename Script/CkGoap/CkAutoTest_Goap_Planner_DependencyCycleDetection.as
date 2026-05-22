@@ -6,43 +6,42 @@
 //
 // Validates utils_goap_planner::Get_DependencyCycles(Planner).
 //
-// Per spec §7.1-7.2: Setup runs an iterative Tarjan SCC over the catalog's
-// _ChildActions edges. Any non-trivial SCC (size > 1, or size 1 with a
-// self-loop) is recorded as a diagnostic and surfaces here via
-// Get_DependencyCycles. The planner does not refuse cyclic catalogs —
-// the diagnostic is informational.
-//
-// LIMITATION:
-//   Constructing a true cycle through the public API in v1 is unreachable
-//   through normal usage because:
-//     - DoCreateOrFindActionEntity dedupes by action class — a class
-//       registered twice returns the existing handle (and emits a Warning).
-//     - AddAction enforces a strict tree invariant: a child Action cannot be
-//       re-parented once it has a parent (it early-returns on a re-add of
-//       an already-parented handle).
-//
-// This test therefore validates the INVARIANT side of cycle detection:
-// for a well-formed tree (Root → Mid → LeafB, Root → MidB → LeafA), the
-// Setup processor's Tarjan SCC pass must report zero cycles. The verb is
-// confirmed bound, callable, and returns the expected empty diagnostic list.
+// Per spec §7.1-7.2: Setup runs an iterative Tarjan SCC over the Planner's
+// direct children's PRECONDITION/EFFECT dependency graph. For sibling
+// Actions A and B, an edge A -> B exists iff some effect (Key,Value) in A
+// satisfies some precondition (Key,Value) in B. Any non-trivial SCC
+// (size > 1, or size 1 with a self-loop) is recorded as a diagnostic and
+// surfaces via Get_DependencyCycles. The planner does not refuse cyclic
+// catalogs — the diagnostic is informational.
 //
 // Setup:
 //   - WS: AKey=false, BKey=false.
-//   - Root + Mid (composite, child=LeafB) — a valid 3-deep tree.
-//   - Wait for Root.PlanComplete so we know Setup has run on every Action
-//     in the catalog (a precondition for Planner Setup to populate
-//     _DependencyCycles per CkGoap_Planner_Processor.cpp ForEachEntity).
+//   - Implicit-root Action (Root_GoalIsEffects, effect AKey=true).
+//   - Sibling direct children that form a 2-cycle:
+//       CycleA: precondition BKey=true, effect AKey=true
+//       CycleB: precondition AKey=true, effect BKey=true
+//     Edge CycleA -> CycleB (A's AKey-effect satisfies B's AKey-precondition).
+//     Edge CycleB -> CycleA (B's BKey-effect satisfies A's BKey-precondition).
+//     SCC = {CycleA, CycleB}, size 2.
 //
 // Assertions:
-//   - Get_DependencyCycles(Planner).Num() == 0  (no cycles in valid tree).
+//   - Get_DependencyCycles(Planner).Num() >= 1   (real cycle detected).
+//   - The cycle's _ActionsInCycle contains BOTH CycleA and CycleB classes.
+//   - The cycle's _CycleConditions contains AKey AND BKey.
 //   - FinishSuccess.
+//
+// Expected log noise: FProcessor_Goap_Planner_Setup emits a Warning when
+// cycles are found ("Planner [...] has [N] dependency cycle(s) ..."). The
+// actor wrapper registers that pattern in Get_ExpectedLogErrors so the
+// automation framework doesn't auto-fail the test on its own deliberate
+// diagnostic output.
 //============================================================================
 
 class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_Action _RootAction;
-    private bool _RootPlanReceived = false;
+    private int _SettleFramesRemaining = 5;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -60,75 +59,112 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        // Well-formed tree: Root → Mid → LeafB. No cycles by construction.
-        // U11.1: goal authored on PlannerParams.
+        // Goal AKey=true so Root has SOMETHING to plan toward; the cycle is
+        // among the sibling Actions, not on Root itself.
         auto InitialGoal = TArray<FCk_GoapWS_Condition_Authored>();
         InitialGoal.Add(FCk_GoapWS_Condition_Authored(
-            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        ActionSetParams.Set_Goal(InitialGoal);
-        ActionSetParams.Set_WorldStateSource(WS);
-        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        PlannerParams.Set_Goal(InitialGoal);
+        PlannerParams.Set_WorldStateSource(WS);
+        _Planner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
+        // First AddAction = implicit-root Action.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-
         _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
-        auto MidParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        auto MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
-        Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
+        // Two sibling Actions forming a precondition/effect cycle. These
+        // become direct children of the implicit root (== direct children of
+        // the Planner per FProcessor_Goap_Planner_Setup).
+        auto CycleAParams = FCk_Fragment_Goap_ActionParamsData(
+            UCk_AutoTestAction_Goap_ActionSet_CycleA);
+        auto CycleAAction = utils_goap_planner::AddAction(_Planner, CycleAParams);
+        Assert_True(ck::IsValid(CycleAAction), "CycleA AddAction should succeed");
 
-        auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        auto MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(MidAction, MidPlannerParams);
-        Assert_True(ck::IsValid(MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
+        auto CycleBParams = FCk_Fragment_Goap_ActionParamsData(
+            UCk_AutoTestAction_Goap_ActionSet_CycleB);
+        auto CycleBAction = utils_goap_planner::AddAction(_Planner, CycleBParams);
+        Assert_True(ck::IsValid(CycleBAction), "CycleB AddAction should succeed");
 
-        auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
-        auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
-        Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
-
-        // Wait for Root to plan — confirms every catalog Action has completed
-        // Setup, which in turn means FProcessor_Goap_Planner_Setup has run
-        // (it defers until all Actions are set up). Only then is the cycle
-        // diagnostic finalized.
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnRootPlan"));
+        // Settle: per-Action Setup runs first, then per-Planner Setup detects
+        // cycles. A few frames is plenty — there's no terminal signal we can
+        // bind to since the planner may not complete a successful plan with
+        // unreachable preconditions (the cycle Actions both need each other's
+        // effects, which start false).
+        WaitOneFrame(n"OnSettleTick");
     }
 
     UFUNCTION()
-    private void OnRootPlan(
-        FCk_Handle_Goap_Action InAction,
-        FCk_Goap_Payload_OnPlanComplete InPayload)
-    {
-        if (IsFinished()) { return; }
-        if (_RootPlanReceived) { return; }
-        _RootPlanReceived = true;
-
-        // Wait one more frame to ensure the Planner Setup processor has
-        // run after the last Action's Setup completed (per the deferred
-        // setup loop in FProcessor_Goap_Planner_Setup::ForEachEntity).
-        WaitOneFrame(n"OnVerifyNoCycles");
-    }
-
-    UFUNCTION()
-    private void OnVerifyNoCycles(
+    private void OnSettleTick(
         FCk_Handle_Timer InTimer,
         FCk_Chrono InChrono,
         FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
+        _SettleFramesRemaining -= 1;
+        if (_SettleFramesRemaining > 0)
+        {
+            WaitOneFrame(n"OnSettleTick");
+            return;
+        }
+
+        // ---- Positive case: real cycle must be detected.
         auto Cycles = utils_goap_planner::Get_DependencyCycles(_Planner);
-        Assert_True(Cycles.Num() == 0,
-            f"Get_DependencyCycles must return an empty list for a well-formed tree (got {Cycles.Num()} cycles)");
+        Assert_True(Cycles.Num() >= 1,
+            f"Get_DependencyCycles must return at least one cycle for the CycleA<->CycleB sibling pair (got {Cycles.Num()} cycles)");
+
+        if (Cycles.Num() == 0)
+        {
+            FinishFailure("No cycles reported");
+            return;
+        }
+
+        // ---- Verify the cycle's class list contains BOTH CycleA and CycleB.
+        bool FoundCycleWithBoth = false;
+        bool AllAKeyAndBKey = false;
+        for (int32 i = 0; i < Cycles.Num(); i++)
+        {
+            auto Diagnostic = Cycles[i];
+            auto Classes = Diagnostic.Get_ActionsInCycle();
+
+            bool HasA = false;
+            bool HasB = false;
+            for (int32 j = 0; j < Classes.Num(); j++)
+            {
+                if (Classes[j] == UCk_AutoTestAction_Goap_ActionSet_CycleA) { HasA = true; }
+                if (Classes[j] == UCk_AutoTestAction_Goap_ActionSet_CycleB) { HasB = true; }
+            }
+
+            if (HasA && HasB)
+            {
+                FoundCycleWithBoth = true;
+
+                auto Conditions = Diagnostic.Get_CycleConditions();
+                bool HasAKey = false;
+                bool HasBKey = false;
+                auto AKey = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey");
+                auto BKey = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey");
+                for (int32 k = 0; k < Conditions.Num(); k++)
+                {
+                    if (Conditions[k] == AKey) { HasAKey = true; }
+                    if (Conditions[k] == BKey) { HasBKey = true; }
+                }
+                if (HasAKey && HasBKey) { AllAKeyAndBKey = true; }
+                break;
+            }
+        }
+
+        Assert_True(FoundCycleWithBoth,
+            "A reported cycle must list BOTH CycleA and CycleB as members");
+        Assert_True(AllAKeyAndBKey,
+            "The cycle's _CycleConditions must include both AKey and BKey (the WS keys that close the loop)");
 
         FinishSuccess();
     }
@@ -142,4 +178,16 @@ class ACk_AutoTest_Goap_Planner_DependencyCycleDetection_Actor : ACk_AutoTestRun
 {
     default _TestEntityScriptClass = UCk_AutoTest_Goap_Planner_DependencyCycleDetection;
     default _TimeoutSeconds = 15.0f;
+
+    // The Planner Setup processor emits a Warning when it detects cycles; this
+    // test deliberately constructs a cycle to validate the diagnostic, so the
+    // warning is expected. Register the pattern so the automation framework
+    // doesn't auto-fail the test on its own deliberate diagnostic output.
+    UFUNCTION(BlueprintOverride)
+    TArray<FString> Get_ExpectedLogErrors() const
+    {
+        TArray<FString> Out;
+        Out.Add("dependency cycle");
+        return Out;
+    }
 }
