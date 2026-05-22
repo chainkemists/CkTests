@@ -15,7 +15,7 @@
 // Behaviour:
 //   - Root plans → picks DoPatrol (the only operator that satisfies its goal).
 //   - ChainUpdate appends DoPatrol → active chain = [Root, DoPatrol].
-//     OnActionActivated fires on DoPatrol.
+//     OnPlannerActivated fires on DoPatrol.
 //   - DoPatrol activates, its planner runs against its own goal (derived from
 //     its own _GoalFromEffects = PatrolComplete=true), backchains:
 //       MarkComplete <- WalkToC <- WalkToB

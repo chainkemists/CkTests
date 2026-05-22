@@ -5,7 +5,7 @@
 //============================================================================
 //
 // Validates §9 row 2: "Plan[0] is a composite Action → chain extends,
-// OnActionActivated fires."
+// OnPlannerActivated fires."
 //
 // Setup reuses the GoalIsEffects action class hierarchy:
 //   - Root CDO effect: AKey=true. _InitialGoal_RootOnly: {BKey=true}.
@@ -13,7 +13,7 @@
 //     Mid is composite (has LeafB as child) → ChainUpdate extends the chain.
 //   - LeafB (child of Mid): effect BKey=true → satisfies Mid's goal.
 //
-// Phase 1: Bind OnActionActivated on Mid immediately in DoBeginPlay
+// Phase 1: Bind OnPlannerActivated on Mid immediately in DoBeginPlay
 //   (before ChainUpdate can activate Mid). The binding policy is
 //   FireIfPayloadInFlightThisFrame so a same-frame activation is not missed.
 //
@@ -25,7 +25,7 @@
 //   Assert:
 //     - Get_ActiveChain.Num() == 2  (chain extended from [Root] to [Root, Mid])
 //     - Get_ActiveChain()[1] == MidHandle
-//     - OnActionActivated fired exactly once
+//     - OnPlannerActivated fired exactly once
 //   FinishSuccess.
 //
 // Reuses GoalIsEffects action class files to avoid code duplication.
@@ -89,11 +89,11 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
         auto LeafBAction = utils_goap_action::AddAction_ToAction(_MidAction, LeafBParams);
         Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction_ToAction should succeed");
 
-        // Bind OnActionActivated on Mid NOW — before ChainUpdate runs — so we
+        // Bind OnPlannerActivated on Mid NOW — before ChainUpdate runs — so we
         // cannot miss the activation signal. FireIfPayloadInFlightThisFrame
         // (default) means even a same-frame activation is caught.
-        utils_goap_action::BindTo_OnActionActivated(_MidAction,
-            FCk_Delegate_Goap_OnActionActivated(this, n"OnMidActivated"));
+        utils_goap_action::BindTo_OnPlannerActivated(_MidAction,
+            FCk_Delegate_Goap_OnPlannerActivated(this, n"OnMidActivated"));
 
         // Initial chain has only Root.
         auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
@@ -131,7 +131,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
     UFUNCTION()
     private void OnMidActivated(
         FCk_Handle_Goap_Action InAction,
-        FCk_Goap_Payload_OnActionActivated InPayload)
+        FCk_Goap_Payload_OnPlannerActivated InPayload)
     {
         if (IsFinished()) { return; }
 
@@ -140,7 +140,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
         // Verify chain has extended to [Root, Mid].
         auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(Chain.Num() == 2,
-            f"ActiveChain should be [Root, Mid] when OnActionActivated fires (got {Chain.Num()})");
+            f"ActiveChain should be [Root, Mid] when OnPlannerActivated fires (got {Chain.Num()})");
 
         if (Chain.Num() >= 2)
         {
@@ -149,7 +149,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
         }
 
         Assert_True(_ActivatedCount == 1,
-            f"OnActionActivated should have fired exactly once (fired {_ActivatedCount} times)");
+            f"OnPlannerActivated should have fired exactly once (fired {_ActivatedCount} times)");
 
         FinishSuccess();
     }
@@ -175,7 +175,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainGrowth : UCk_AutoTest_Base
         // Chain extended but OnMidActivated didn't fire (unexpected).
         // Assert here to produce a meaningful failure.
         Assert_True(_ActivatedCount == 1,
-            f"OnActionActivated should have fired once when chain extended to [Root, Mid] (fired {_ActivatedCount} times)");
+            f"OnPlannerActivated should have fired once when chain extended to [Root, Mid] (fired {_ActivatedCount} times)");
 
         Assert_True(Chain.Num() == 2,
             f"ActiveChain should be [Root, Mid] (got {Chain.Num()})");
