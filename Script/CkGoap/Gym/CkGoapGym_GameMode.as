@@ -3,12 +3,13 @@
 //============================================================================
 // CkGoap_Gym — Main Gym GameMode + PlayerController
 //
-// Spawns 5 stations of ascending complexity:
+// Spawns 6 stations of ascending complexity:
 //   1. Open Door         — atomic plan
 //   2. Make Tea          — 4-step linear chain
 //   3. Cross River       — 3-branch cost selection
 //   4. Patrol Route      — composite Action, chain extends to [Root, DoPatrol]
 //   5. Survival Decision — two independent ActionSets on one entity
+//   6. Combat Brain      — 4-tier canonical hierarchy (spec 2.2)
 //
 // Each station is its own ECS entity tagged with a station identity gameplay
 // tag. The exec console commands resolve a station entity by tag, then locate
@@ -44,6 +45,9 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         Stations.Add(MakeStationPayload(n"Gym.Goap.Station.Survival", "STATION 5 / SURVIVAL DECISION",
             "Two independent ActionSets.\nGoals: Hungry=false AND SafeFromThreat=true."));
 
+        Stations.Add(MakeStationPayload(n"Gym.Goap.Station.CombatBrain", "STATION 6 / COMBAT BRAIN",
+            "4-tier canonical Planner (spec 2.2).\nAlive -> Engage -> Light/Heavy -> leaves.\nSibling promotions at tier 3."));
+
         return Stations;
     }
 
@@ -68,6 +72,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         Spawn_CrossRiver("Gym.Goap.Station.CrossRiver");
         Spawn_Patrol("Gym.Goap.Station.Patrol");
         Spawn_Survival("Gym.Goap.Station.Survival");
+        Spawn_CombatBrain("Gym.Goap.Station.CombatBrain");
     }
 
     private void Spawn_OpenDoor(FString InTag)
@@ -117,6 +122,16 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         utils_entity_script::Request_SpawnEntity(
             Get_StationHandle(InTag),
             UCk_EntityScript_GoapGym_Survival_Station,
+            FInstancedStruct::Make(Params));
+    }
+
+    private void Spawn_CombatBrain(FString InTag)
+    {
+        auto Params = FCk_GoapGym_CombatBrain_Station_SpawnParams();
+        Params.InitialTransform = Get_StationAnchorTransform(InTag, ECk_GymStation_Anchor::PanelCenter);
+        utils_entity_script::Request_SpawnEntity(
+            Get_StationHandle(InTag),
+            UCk_EntityScript_GoapGym_CombatBrain_Station,
             FInstancedStruct::Make(Params));
     }
 
@@ -294,5 +309,74 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         Set(WS, n"Gym.Goap.WS.Survival.ThreatActive", true);
         Set(WS, n"Gym.Goap.WS.Survival.HasWeapon", true);
         Set(WS, n"Gym.Goap.WS.Survival.SafeFromThreat", false);
+    }
+
+    // ---- Combat Brain (4-tier canonical demo) ----
+    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.SetEnemyVisible")
+    void Goap_CombatBrain_SetEnemyVisible()
+    {
+        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
+            n"Gym.Goap.WS.CombatBrain.EnemyVisible", true);
+    }
+
+    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.ClearEnemyVisible")
+    void Goap_CombatBrain_ClearEnemyVisible()
+    {
+        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
+            n"Gym.Goap.WS.CombatBrain.EnemyVisible", false);
+    }
+
+    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.SetWeaponEquipped")
+    void Goap_CombatBrain_SetWeaponEquipped()
+    {
+        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
+            n"Gym.Goap.WS.CombatBrain.WeaponEquipped", true);
+    }
+
+    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.ClearWeaponEquipped")
+    void Goap_CombatBrain_ClearWeaponEquipped()
+    {
+        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
+            n"Gym.Goap.WS.CombatBrain.WeaponEquipped", false);
+    }
+
+    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.SetStaminaHigh")
+    void Goap_CombatBrain_SetStaminaHigh()
+    {
+        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
+            n"Gym.Goap.WS.CombatBrain.StaminaHigh", true);
+    }
+
+    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.ClearStaminaHigh")
+    void Goap_CombatBrain_ClearStaminaHigh()
+    {
+        Set(Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain"),
+            n"Gym.Goap.WS.CombatBrain.StaminaHigh", false);
+    }
+
+    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.Reset")
+    void Goap_CombatBrain_Reset()
+    {
+        auto WS = Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain");
+        Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyVisible", false);
+        Set(WS, n"Gym.Goap.WS.CombatBrain.WeaponEquipped", false);
+        Set(WS, n"Gym.Goap.WS.CombatBrain.StaminaHigh", false);
+        Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyHit", false);
+        Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyAttacked", false);
+        Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyDead", false);
+    }
+
+    // Drive the entire chain to terminal state — useful for showing the
+    // plan running to completion without manually flipping every key.
+    UFUNCTION(Exec, DisplayName="Goap.CombatBrain.Complete")
+    void Goap_CombatBrain_Complete()
+    {
+        auto WS = Find_StationWS("Gym.Goap.Station.CombatBrain", n"Gym.Goap.WS.CombatBrain");
+        Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyVisible", true);
+        Set(WS, n"Gym.Goap.WS.CombatBrain.WeaponEquipped", true);
+        Set(WS, n"Gym.Goap.WS.CombatBrain.StaminaHigh", true);
+        Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyHit", true);
+        Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyAttacked", true);
+        Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyDead", true);
     }
 }

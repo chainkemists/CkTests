@@ -30,6 +30,7 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.Station.CrossRiver");
         GameplayTags.Add(n"Gym.Goap.Station.Patrol");
         GameplayTags.Add(n"Gym.Goap.Station.Survival");
+        GameplayTags.Add(n"Gym.Goap.Station.CombatBrain");
 
         GameplayTags.Add(n"Gym.Goap.AutoReplan.Explicit");
         GameplayTags.Add(n"Gym.Goap.AutoReplan.OnWSDirty");
@@ -44,6 +45,10 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.ActionSet.Patrol");
         GameplayTags.Add(n"Gym.Goap.ActionSet.Survival.Hunger");
         GameplayTags.Add(n"Gym.Goap.ActionSet.Survival.Defense");
+        GameplayTags.Add(n"Gym.Goap.ActionSet.CombatBrain");
+        GameplayTags.Add(n"Gym.Goap.ActionSet.CombatBrain.Engage");
+        GameplayTags.Add(n"Gym.Goap.ActionSet.CombatBrain.LightAttacks");
+        GameplayTags.Add(n"Gym.Goap.ActionSet.CombatBrain.HeavyAttacks");
         GameplayTags.Add(n"Gym.Goap.ActionSet.Explicit");
         GameplayTags.Add(n"Gym.Goap.ActionSet.OnWSDirty");
         GameplayTags.Add(n"Gym.Goap.ActionSet.OnCostDirty");
@@ -55,6 +60,7 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.WS.CrossRiver");
         GameplayTags.Add(n"Gym.Goap.WS.Patrol");
         GameplayTags.Add(n"Gym.Goap.WS.Survival");
+        GameplayTags.Add(n"Gym.Goap.WS.CombatBrain");
         GameplayTags.Add(n"Gym.Goap.WS.Explicit");
         GameplayTags.Add(n"Gym.Goap.WS.OnWSDirty");
         GameplayTags.Add(n"Gym.Goap.WS.OnCostDirty");
@@ -91,6 +97,25 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.WS.Survival.ThreatActive");
         GameplayTags.Add(n"Gym.Goap.WS.Survival.HasWeapon");
         GameplayTags.Add(n"Gym.Goap.WS.Survival.SafeFromThreat");
+
+        // World-state keys — Combat Brain station (4-tier canonical demo).
+        // Mirrors the DeepNesting AutoTest's shape:
+        //   Alive (Planner)  goal EnemyDead=true
+        //     Engage (Action+Planner) goal EnemyAttacked=true
+        //       LightAttacks (Action+Planner) goal EnemyHit=true
+        //         Light1/Light2/Light3 (atomic leaves) effect EnemyHit
+        //       HeavyAttacks (Action+Planner) goal EnemyHit=true
+        //         Heavy1/Heavy2 (atomic leaves) effect EnemyHit
+        //     Win (atomic leaf) pre EnemyAttacked, effect EnemyDead
+        // Two additional WS keys gate the mid-tier branches and let the user
+        // observe replans when toggled: WeaponEquipped (light branch) and
+        // StaminaHigh (heavy branch).
+        GameplayTags.Add(n"Gym.Goap.WS.CombatBrain.EnemyVisible");
+        GameplayTags.Add(n"Gym.Goap.WS.CombatBrain.WeaponEquipped");
+        GameplayTags.Add(n"Gym.Goap.WS.CombatBrain.StaminaHigh");
+        GameplayTags.Add(n"Gym.Goap.WS.CombatBrain.EnemyHit");
+        GameplayTags.Add(n"Gym.Goap.WS.CombatBrain.EnemyAttacked");
+        GameplayTags.Add(n"Gym.Goap.WS.CombatBrain.EnemyDead");
 
         // World-state keys — AutoReplan stations (Explicit / OnWSDirty / OnCostDirty).
         GameplayTags.Add(n"Gym.Goap.WS.AutoReplan.Goal");
