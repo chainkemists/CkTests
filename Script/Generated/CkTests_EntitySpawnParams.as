@@ -1802,6 +1802,19 @@ namespace UCk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_Planner_AddRemoveChildren_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_AddRemoveChildren
+{
+    FCk_AutoTest_Goap_Planner_AddRemoveChildren_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_AddRemoveChildren_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_Planner_AtomicLeaf_SpawnParams
 {
 }
@@ -1854,6 +1867,19 @@ namespace UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_Planner_DeepNesting_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_DeepNesting
+{
+    FCk_AutoTest_Goap_Planner_DeepNesting_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_DeepNesting_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_Planner_DeferOneFrame_SpawnParams
 {
 }
@@ -1902,6 +1928,19 @@ namespace UCk_AutoTest_Goap_Planner_EnableToggle
     FCk_AutoTest_Goap_Planner_EnableToggle_SpawnParams Params()
     {
         return FCk_AutoTest_Goap_Planner_EnableToggle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_Planner_GetPlanEntities_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_GetPlanEntities
+{
+    FCk_AutoTest_Goap_Planner_GetPlanEntities_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_GetPlanEntities_SpawnParams();
     }
 }
 
