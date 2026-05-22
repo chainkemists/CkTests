@@ -355,6 +355,7 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor> Ck_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor_UAID_C87F5401E535F5DB02_1367560880() { return TSoftObjectPtr<ACk_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor_UAID_C87F5401E535F5DB02_1367560880")); }
     TSoftObjectPtr<ACk_AutoTest_Tween_FloatCompletion_Actor> Ck_AutoTest_Tween_FloatCompletion_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Tween_FloatCompletion_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Tween_FloatCompletion_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Tween_FloatUpdateCallback_Actor> Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Tween_FloatUpdateCallback_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Tween_FollowSpline_Actor> Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311() { return TSoftObjectPtr<ACk_AutoTest_Tween_FollowSpline_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311")); }
     TSoftObjectPtr<ACk_AutoTest_Tween_LinearColorCompletion_Actor> Ck_AutoTest_Tween_LinearColorCompletion_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Tween_LinearColorCompletion_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Tween_LinearColorCompletion_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Tween_LoopCount_Finite_Actor> Ck_AutoTest_Tween_LoopCount_Finite_Actor_UAID_C87F5401E535F9DB02_1534826583() { return TSoftObjectPtr<ACk_AutoTest_Tween_LoopCount_Finite_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Tween_LoopCount_Finite_Actor_UAID_C87F5401E535F9DB02_1534826583")); }
     TSoftObjectPtr<ACk_AutoTest_Tween_LoopRestart_Actor> Ck_AutoTest_Tween_LoopRestart_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Tween_LoopRestart_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Tween_LoopRestart_Actor_0")); }
@@ -2567,6 +2568,12 @@ namespace assets::load
         if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
         { return nullptr; }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0());
+    }
+    ACk_AutoTest_Tween_FollowSpline_Actor Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311() called before engine init. Use assets::Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311());
     }
     ACk_AutoTest_Tween_LinearColorCompletion_Actor Ck_AutoTest_Tween_LinearColorCompletion_Actor_0()
     {
