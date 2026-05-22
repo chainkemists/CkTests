@@ -38,7 +38,7 @@
 class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private bool _PlanReceived = false;
 
     UFUNCTION(BlueprintOverride)
@@ -66,26 +66,26 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, PlannerParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, PlannerParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         // Implicit root — never selected as an operator (planner goal is BKey,
         // root's effect is AKey — root just hosts the planner).
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // MakeA — effect AKey=true.
         auto MakeAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_GetPlanEntities_MakeA);
-        auto MakeAAction = utils_goap_planner::AddAction(_ActionSet, MakeAParams);
+        auto MakeAAction = utils_goap_planner::AddAction(_Planner, MakeAParams);
         Assert_True(ck::IsValid(MakeAAction), "AddAction (MakeA) should return a valid handle");
 
         // MakeB — precondition AKey=true, effect BKey=true. Chains after MakeA.
         auto MakeBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_GetPlanEntities_MakeB);
-        auto MakeBAction = utils_goap_planner::AddAction(_ActionSet, MakeBParams);
+        auto MakeBAction = utils_goap_planner::AddAction(_Planner, MakeBParams);
         Assert_True(ck::IsValid(MakeBAction), "AddAction (MakeB) should return a valid handle");
 
         utils_goap_action::BindTo_OnPlanComplete(_RootAction,
@@ -99,11 +99,11 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
         if (_PlanReceived) { return; }
         _PlanReceived = true;
 
-        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
             "PlanStatus should be PlanFound");
 
         // ---- Core coverage: Get_Plan (entity-handle variant) ----
-        auto PlanEntities = utils_goap_planner::Get_Plan(_ActionSet);
+        auto PlanEntities = utils_goap_planner::Get_Plan(_Planner);
         Assert_True(PlanEntities.Num() == 2,
             f"Get_Plan should return exactly 2 entity handles (got {PlanEntities.Num()})");
 
@@ -115,7 +115,7 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
         }
 
         // ---- Cross-check: Get_PlanClasses parallels Get_Plan slot-for-slot ----
-        auto PlanClasses = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto PlanClasses = utils_goap_planner::Get_PlanClasses(_Planner);
         Assert_True(PlanClasses.Num() == PlanEntities.Num(),
             f"Get_PlanClasses count ({PlanClasses.Num()}) should equal Get_Plan count ({PlanEntities.Num()})");
 
@@ -124,8 +124,8 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
         // entity via Find_ActionByClass and confirming it equals PlanEntities[i].
         if (PlanEntities.Num() == 2 && PlanClasses.Num() == 2)
         {
-            auto EntityForClass0 = utils_goap_planner::Find_ActionByClass(_ActionSet, PlanClasses[0]);
-            auto EntityForClass1 = utils_goap_planner::Find_ActionByClass(_ActionSet, PlanClasses[1]);
+            auto EntityForClass0 = utils_goap_planner::Find_ActionByClass(_Planner, PlanClasses[0]);
+            auto EntityForClass1 = utils_goap_planner::Find_ActionByClass(_Planner, PlanClasses[1]);
 
             Assert_True(EntityForClass0 == PlanEntities[0],
                 "Plan[0]: class-lookup entity should equal Get_Plan[0] entity");

@@ -4,7 +4,7 @@
 // CK GOAP — AUTOMATION TEST ACTION: TRIVIAL "DO IT" ACTION
 //============================================================================
 //
-// Single action used by the ActionSet smoke test:
+// Single action used by the Planner smoke test:
 //   - Pre      : AutoTest.Goap.ActionSet.WS.Ready = false
 //   - Effect   : AutoTest.Goap.ActionSet.WS.Ready = true
 //   - Cost     : 1.0

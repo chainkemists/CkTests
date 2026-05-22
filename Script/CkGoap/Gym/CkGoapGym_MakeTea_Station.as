@@ -31,7 +31,7 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_WorldState _WS;
     private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses;
@@ -58,20 +58,20 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Tea"));
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
-        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
+        _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_Root);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
 
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_BoilWater));
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_SteepLeaves));
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_PourCup));
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_Serve));
 
         _KnownClasses.Add(UCk_GoapGym_MakeTea_BoilWater);   _KnownLabels.Add("BoilWater");
@@ -117,8 +117,8 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
         auto TeaPoured  = Get(n"Gym.Goap.WS.Tea.TeaPoured");
         auto TeaServed  = Get(n"Gym.Goap.WS.Tea.TeaServed");
 
-        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
-        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto Status = utils_goap_planner::Get_PlanStatus(_Planner);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_Planner);
 
         auto Body = "Ingredients\n"
             + f"  HasKettle      {CkGoapGym_Common::Render_Bool(HasKettle)}\n"

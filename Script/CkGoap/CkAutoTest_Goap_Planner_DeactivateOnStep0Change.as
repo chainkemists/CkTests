@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET CHAIN TRUNCATION
+// CK GOAP — AUTOMATION TEST: PLANNER CHAIN TRUNCATION
 //============================================================================
 //
 // Validates §9 row 3: "Plan[0] flips mid-life → chain truncates from new
@@ -39,7 +39,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Action _MidAAction;
     private FCk_Handle_Goap_Action _MidBAction;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
 
     // Phase tracking
     private bool _FirstPlanReceived = false;
@@ -75,21 +75,21 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_ChainTruncation);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnEitherDirty);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Mid_A: child of Root. Cost 1.0 — Root picks this first.
         // Add Leaf_A as child to make Mid_A composite (chain extends to it).
         auto MidAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_MidA_ChainTruncation);
-        _MidAAction = utils_goap_planner::AddAction(_ActionSet, MidAParams);
+        _MidAAction = utils_goap_planner::AddAction(_Planner, MidAParams);
         Assert_True(ck::IsValid(_MidAAction), "Mid_A AddAction should succeed");
 
         auto MidAPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
@@ -106,7 +106,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
         // Add Leaf_B as child to make Mid_B composite (chain extends to it).
         auto MidBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_MidB_ChainTruncation);
-        _MidBAction = utils_goap_planner::AddAction(_ActionSet, MidBParams);
+        _MidBAction = utils_goap_planner::AddAction(_Planner, MidBParams);
         Assert_True(ck::IsValid(_MidBAction), "Mid_B AddAction should succeed");
 
         auto MidBPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
@@ -126,7 +126,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
             FCk_Delegate_Goap_OnPlannerDeactivated(this, n"OnMidADeactivated"));
 
         // Initial chain: only Root.
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should start with only Root (got {Chain.Num()})");
 
@@ -154,10 +154,10 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
             _FirstPlanReceived = true;
 
             // First plan: Mid_A should be chosen (cost 1 < Mid_B cost 2).
-            Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+            Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
                 "Root PlanStatus should be PlanFound on first plan");
 
-            auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+            auto RootPlan = utils_goap_planner::Get_PlanClasses(_Planner);
             Assert_True(RootPlan.Num() == 1,
                 f"Root first plan should have exactly 1 entry (got {RootPlan.Num()})");
             Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_MidA_ChainTruncation,
@@ -174,10 +174,10 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
             _SecondPlanReceived = true;
 
             // Second plan: Mid_B should be chosen (Mid_A cost now 100 > Mid_B cost 2).
-            Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+            Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
                 "Root PlanStatus should be PlanFound on second plan");
 
-            auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+            auto RootPlan = utils_goap_planner::Get_PlanClasses(_Planner);
             Assert_True(RootPlan.Num() == 1,
                 f"Root second plan should have exactly 1 entry (got {RootPlan.Num()})");
             Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_MidB_ChainTruncation,
@@ -199,7 +199,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         if (Chain.Num() < 2)
         {
             // ChainUpdate hasn't extended yet — wait another frame.
@@ -218,7 +218,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
 
         // Chain is [Root, Mid_A]. Now trigger the replan by bumping Mid_A's cost.
         // OnEitherDirty policy (set at Root construction) will auto-trigger replan.
-        utils_goap_planner::Request_SetChildActionCost(_ActionSet,
+        utils_goap_planner::Request_SetChildActionCost(_Planner,
             UCk_AutoTestAction_Goap_ActionSet_MidA_ChainTruncation, 100.0);
     }
 
@@ -231,7 +231,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
 
         // If chain still shows [Root, Mid_A], ChainUpdate hasn't processed yet.
         // Poll until chain changes to [Root, Mid_B].

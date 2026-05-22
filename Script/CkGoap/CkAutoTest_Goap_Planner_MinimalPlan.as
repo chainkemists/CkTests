@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET SMOKE — ROOT-ONLY PLAN FIRES
+// CK GOAP — AUTOMATION TEST: PLANNER SMOKE — ROOT-ONLY PLAN FIRES
 //============================================================================
 //
-// End-to-end smoke test for the unified ActionSet/Action model:
+// End-to-end smoke test for the unified Planner/Action model:
 //   1. Spawn a WorldState entity, pre-register Ready=true (goal already
 //      satisfied at start, so the planner returns an empty plan).
 //   2. Add a Goap root container.
@@ -28,7 +28,7 @@
 class UCk_AutoTest_Goap_Planner_MinimalPlan : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private bool _PlanReceived = false;
 
     UFUNCTION(BlueprintOverride)
@@ -50,8 +50,8 @@ class UCk_AutoTest_Goap_Planner_MinimalPlan : UCk_AutoTest_Base
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         // First AddAction = implicit root Action. In the unified model the
         // root's effects ARE its goal when the Planner's _Goal is empty —
@@ -60,11 +60,11 @@ class UCk_AutoTest_Goap_Planner_MinimalPlan : UCk_AutoTest_Base
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Simple);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction should return a valid handle");
 
         // Active chain should contain the root immediately.
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should contain just the root after AddAction (got {Chain.Num()})");
 
@@ -79,7 +79,7 @@ class UCk_AutoTest_Goap_Planner_MinimalPlan : UCk_AutoTest_Base
         if (_PlanReceived) { return; }   // first plan only
         _PlanReceived = true;
 
-        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
             "Action _PlanStatus should be PlanFound");
 
         // Plan may be empty (goal already satisfied at start) — that's OK

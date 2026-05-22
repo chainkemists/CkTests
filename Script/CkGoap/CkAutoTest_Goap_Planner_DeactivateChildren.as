@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET RESET ACTIVE CHAIN
+// CK GOAP — AUTOMATION TEST: PLANNER RESET ACTIVE CHAIN
 //============================================================================
 //
 // Validates §9 row 14: "`Request_ResetActiveChain` collapses chain to root;
@@ -27,7 +27,7 @@
 class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private bool _RootPlanReceived = false;
     private int32 _DeactivatedCount = 0;
 
@@ -59,19 +59,19 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Add Mid as composite child of Root.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        auto MidAction = utils_goap_planner::AddAction(_ActionSet, MidParams);
+        auto MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
 
         // Promote Mid so Leaf_A/Leaf_B become its tree children.
@@ -103,10 +103,10 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         if (_RootPlanReceived) { return; }
         _RootPlanReceived = true;
 
-        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
             "Root PlanStatus should be PlanFound");
 
-        auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto RootPlan = utils_goap_planner::Get_PlanClasses(_Planner);
         Assert_True(RootPlan.Num() == 1,
             f"Root plan should have exactly 1 entry (got {RootPlan.Num()})");
         Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects,
@@ -124,7 +124,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
 
         // ChainUpdate may need another frame if it ran before HandleResult in
         // the same frame. Poll until chain length == 2.
@@ -141,8 +141,8 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         // Request_ResetActiveChain fires the signal synchronously (inline teardown),
         // so the delegate will be invoked during the reset call itself.
         auto MidHandle = utils_goap_planner::Find_ActionByClass(
-            _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in ActionSet catalog");
+            _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
+        Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in Planner catalog");
 
         if (ck::IsValid(MidHandle))
         {
@@ -152,17 +152,17 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
 
         // Reset the chain. Teardown and OnPlannerDeactivated broadcast happen
         // synchronously inside Request_ResetActiveChain.
-        utils_goap_planner::Request_ResetActiveChain(_ActionSet);
+        utils_goap_planner::Request_ResetActiveChain(_Planner);
 
         // Verify chain collapsed immediately (synchronous operation).
-        Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should collapse to [Root] immediately after Request_ResetActiveChain (got {Chain.Num()})");
 
-        // Disable ActionSet so ChainUpdate doesn't re-extend the chain on the
+        // Disable Planner so ChainUpdate doesn't re-extend the chain on the
         // next frame (Root's plan still shows Mid, so ChainUpdate would normally
         // re-append it). We're testing the reset behavior, not re-extension.
-        utils_goap_planner::Request_SetEnableToggle(_ActionSet, ECk_EnableDisable::Disable);
+        utils_goap_planner::Request_SetEnableToggle(_Planner, ECk_EnableDisable::Disable);
 
         // Give the signal one frame to dispatch to bound delegates before asserting.
         WaitOneFrame(n"OnCheckDeactivation");
@@ -184,9 +184,9 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 1,
-            f"ActiveChain should remain at length 1 after ResetChain (ActionSet disabled to prevent re-extension; got {Chain.Num()})");
+            f"ActiveChain should remain at length 1 after ResetChain (Planner disabled to prevent re-extension; got {Chain.Num()})");
 
         Assert_True(_DeactivatedCount == 1,
             f"OnPlannerDeactivated should have fired exactly once for Mid (fired {_DeactivatedCount} times)");

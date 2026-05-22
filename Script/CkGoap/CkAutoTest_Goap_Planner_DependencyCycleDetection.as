@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET DEPENDENCY CYCLE DETECTION
+// CK GOAP — AUTOMATION TEST: PLANNER DEPENDENCY CYCLE DETECTION
 //============================================================================
 //
-// Validates utils_goap_planner::Get_DependencyCycles(ActionSet).
+// Validates utils_goap_planner::Get_DependencyCycles(Planner).
 //
 // Per spec §7.1-7.2: Setup runs an iterative Tarjan SCC over the catalog's
 // _ChildActions edges. Any non-trivial SCC (size > 1, or size 1 with a
-// self-loop) is recorded in FFragment_Goap_ActionSet_Current._DependencyCycles
-// as a diagnostic and surfaces here via Get_DependencyCycles. The planner
-// does not refuse cyclic catalogs — the diagnostic is informational.
+// self-loop) is recorded as a diagnostic and surfaces here via
+// Get_DependencyCycles. The planner does not refuse cyclic catalogs —
+// the diagnostic is informational.
 //
 // LIMITATION:
 //   Constructing a true cycle through the public API in v1 is unreachable
@@ -30,17 +30,17 @@
 //   - WS: AKey=false, BKey=false.
 //   - Root + Mid (composite, child=LeafB) — a valid 3-deep tree.
 //   - Wait for Root.PlanComplete so we know Setup has run on every Action
-//     in the catalog (a precondition for ActionSet Setup to populate
-//     _DependencyCycles per CkGoap_ActionSet_Processor.cpp ForEachEntity).
+//     in the catalog (a precondition for Planner Setup to populate
+//     _DependencyCycles per CkGoap_Planner_Processor.cpp ForEachEntity).
 //
 // Assertions:
-//   - Get_DependencyCycles(ActionSet).Num() == 0  (no cycles in valid tree).
+//   - Get_DependencyCycles(Planner).Num() == 0  (no cycles in valid tree).
 //   - FinishSuccess.
 //============================================================================
 
 class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
 {
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_Action _RootAction;
     private bool _RootPlanReceived = false;
 
@@ -71,18 +71,18 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        auto MidAction = utils_goap_planner::AddAction(_ActionSet, MidParams);
+        auto MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
 
         auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
@@ -96,7 +96,7 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
         Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
 
         // Wait for Root to plan — confirms every catalog Action has completed
-        // Setup, which in turn means FProcessor_Goap_ActionSet_Setup has run
+        // Setup, which in turn means FProcessor_Goap_Planner_Setup has run
         // (it defers until all Actions are set up). Only then is the cycle
         // diagnostic finalized.
         utils_goap_action::BindTo_OnPlanComplete(_RootAction,
@@ -112,9 +112,9 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
         if (_RootPlanReceived) { return; }
         _RootPlanReceived = true;
 
-        // Wait one more frame to ensure the ActionSet Setup processor has
+        // Wait one more frame to ensure the Planner Setup processor has
         // run after the last Action's Setup completed (per the deferred
-        // setup loop in FProcessor_Goap_ActionSet_Setup::ForEachEntity).
+        // setup loop in FProcessor_Goap_Planner_Setup::ForEachEntity).
         WaitOneFrame(n"OnVerifyNoCycles");
     }
 
@@ -126,7 +126,7 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Cycles = utils_goap_planner::Get_DependencyCycles(_ActionSet);
+        auto Cycles = utils_goap_planner::Get_DependencyCycles(_Planner);
         Assert_True(Cycles.Num() == 0,
             f"Get_DependencyCycles must return an empty list for a well-formed tree (got {Cycles.Num()} cycles)");
 

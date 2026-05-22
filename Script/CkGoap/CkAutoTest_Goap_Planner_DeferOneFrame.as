@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET DEFER ONE FRAME
+// CK GOAP — AUTOMATION TEST: PLANNER DEFER ONE FRAME
 //============================================================================
 //
 // Validates §9 row 13: "Newly-appended Action does NOT plan in activation
@@ -49,7 +49,7 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
     default _TimeoutSeconds = 15.0f;
 
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private bool _RootPlanReceived = false;
 
     UFUNCTION(BlueprintOverride)
@@ -80,13 +80,13 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Add Mid as a composite child of Root. Mid keeps the default
@@ -97,7 +97,7 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
         // without needing a per-test PlanOnStart=false workaround.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        auto MidAction = utils_goap_planner::AddAction(_ActionSet, MidParams);
+        auto MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
 
         // Promote Mid to a Planner with goal {BKey=true}. Pre-U11.1, Mid's goal
@@ -130,10 +130,10 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
         if (_RootPlanReceived) { return; }
         _RootPlanReceived = true;
 
-        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
             "Root PlanStatus should be PlanFound");
 
-        auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto RootPlan = utils_goap_planner::Get_PlanClasses(_Planner);
         Assert_True(RootPlan.Num() == 1,
             f"Root plan should have exactly 1 entry (got {RootPlan.Num()})");
         Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects,
@@ -144,8 +144,8 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
         // enqueued by AutoReplan but the parent-plan gate deferred it while
         // Root was Planning, so Mid's PlanStatus must still be Idle.
         auto MidHandle = utils_goap_planner::Find_ActionByClass(
-            _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in ActionSet catalog");
+            _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
+        Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in Planner catalog");
 
         if (ck::IsValid(MidHandle))
         {
@@ -167,7 +167,7 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto MidHandle = utils_goap_planner::Find_ActionByClass(
-            _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
+            _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         Assert_True(ck::IsValid(MidHandle), "Should still find Mid by class after one frame");
 
         if (ck::IsValid(MidHandle) == false)
@@ -177,7 +177,7 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
         }
 
         // ChainUpdate should have appended Mid to the chain by now.
-        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         if (Chain.Num() < 2)
         {
             // ChainUpdate may need another frame — poll.
@@ -204,7 +204,7 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto MidHandle = utils_goap_planner::Find_ActionByClass(
-            _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
+            _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         if (ck::IsValid(MidHandle) == false)
         {
             Assert_True(false, "Mid handle lost while waiting for its plan");

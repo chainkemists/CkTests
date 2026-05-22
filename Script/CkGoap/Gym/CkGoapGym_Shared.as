@@ -11,7 +11,7 @@
 // Each gym station is its own ECS entity carrying:
 //   - utils_transform   (so the GymStation alcove can render where we place it)
 //   - utils_goap        (a Goap root)
-//   - one or more utils_goap_planner::AddActionSet entries
+//   - one or more utils_goap_planner::Add entries
 //   - a Tick timer that re-pushes the status panel text every frame
 //
 // World-state mutations and "buttons" are exposed as UFUNCTION(Exec) console
@@ -38,7 +38,7 @@ namespace Ck
 
         GameplayTags.Add(n"Gym.Goap.Empire.Research");
 
-        // ActionSet name tags (one per ActionSet — used for Find_ByName).
+        // Planner name tags (one per Planner — used for Find_ByName).
         GameplayTags.Add(n"Gym.Goap.ActionSet.Door");
         GameplayTags.Add(n"Gym.Goap.ActionSet.Tea");
         GameplayTags.Add(n"Gym.Goap.ActionSet.CrossRiver");

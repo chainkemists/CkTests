@@ -28,7 +28,7 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_WorldState _WS;
     private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses;
@@ -57,18 +57,18 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.CrossRiver"));
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
-        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
+        _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_Root);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
 
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_UseBridge));
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_UseFerry));
-        utils_goap_planner::AddAction(_ActionSet,
+        utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_SwimAcross));
 
         _KnownClasses.Add(UCk_GoapGym_CrossRiver_UseBridge);  _KnownLabels.Add("UseBridge");
@@ -102,9 +102,9 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
         auto HasCoin = Get(n"Gym.Goap.WS.CrossRiver.HasCoin");
         auto Crossed = Get(n"Gym.Goap.WS.CrossRiver.Crossed");
 
-        auto Status = utils_goap_planner::Get_PlanStatus(_ActionSet);
-        auto Plan = utils_goap_planner::Get_PlanClasses(_ActionSet);
-        auto Cost = utils_goap_planner::Get_PlanCost(_ActionSet);
+        auto Status = utils_goap_planner::Get_PlanStatus(_Planner);
+        auto Plan = utils_goap_planner::Get_PlanClasses(_Planner);
+        auto Cost = utils_goap_planner::Get_PlanCost(_Planner);
 
         auto Body = "World State\n"
             + f"  BridgeIsOpen   {CkGoapGym_Common::Render_Bool(BridgeOpen)}\n"

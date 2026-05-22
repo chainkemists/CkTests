@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET WS DIRTY PROPAGATION
+// CK GOAP — AUTOMATION TEST: PLANNER WS DIRTY PROPAGATION
 //============================================================================
 //
 // Validates §9 row 9: "WS change → subscribed Actions replan; non-subscribed
@@ -29,7 +29,7 @@
 class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_WorldState _WS;
     private int32 _PlanCompleteCount = 0;
 
@@ -59,13 +59,13 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(_WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Add LeafA as a child of Root. LeafA's effect AKey=true satisfies
@@ -73,7 +73,7 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
         // extend the active chain.
         auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects);
-        auto LeafAAction = utils_goap_planner::AddAction(_ActionSet, LeafAParams);
+        auto LeafAAction = utils_goap_planner::AddAction(_Planner, LeafAParams);
         Assert_True(ck::IsValid(LeafAAction), "LeafA AddAction should succeed");
 
         // Bind OnPlanComplete on Root to count replans.
@@ -93,10 +93,10 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
         if (_PlanCompleteCount == 1)
         {
             // First plan: WS has AKey=false, so Root should have picked LeafA.
-            Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+            Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
                 "Root PlanStatus should be PlanFound on first plan");
 
-            auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+            auto RootPlan = utils_goap_planner::Get_PlanClasses(_Planner);
             Assert_True(RootPlan.Num() == 1,
                 f"Root plan should have exactly 1 entry on first plan (got {RootPlan.Num()})");
             Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects,
@@ -117,10 +117,10 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
         if (_PlanCompleteCount == 2)
         {
             // Second plan: AKey=true, goal satisfied → empty plan (PlanFound + empty).
-            Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+            Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
                 "Root PlanStatus should be PlanFound on dirty-triggered replan");
 
-            auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+            auto RootPlan = utils_goap_planner::Get_PlanClasses(_Planner);
             Assert_True(RootPlan.Num() == 0,
                 f"Root plan should be empty after WS mutation satisfies goal (got {RootPlan.Num()})");
 

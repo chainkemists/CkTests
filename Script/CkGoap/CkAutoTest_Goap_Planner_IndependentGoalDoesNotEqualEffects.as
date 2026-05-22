@@ -36,7 +36,7 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
 
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Action _MidAction;
-    private FCk_Handle_Goap_Planner _ActionSet;
+    private FCk_Handle_Goap_Planner _Planner;
     private bool _RootPlanReceived = false;
 
     UFUNCTION(BlueprintOverride)
@@ -66,20 +66,20 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(RootGoal);
         ActionSetParams.Set_WorldStateSource(WS);
-        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "Add Planner should return a valid handle");
+        _Planner = utils_goap_planner::Add(Local, ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
 
-        _RootAction = utils_goap_planner::AddAction(_ActionSet, RootParams);
+        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Add Mid as a child of Root. Mid is composite (will have Leaf_B and
         // Leaf_A as its children below).
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        _MidAction = utils_goap_planner::AddAction(_ActionSet, MidParams);
+        _MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(_MidAction), "Mid AddAction should succeed");
 
         // U11.1 INVERSION — promote Mid to a Planner with goal {AKey=true}
@@ -118,10 +118,10 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         if (_RootPlanReceived) { return; }
         _RootPlanReceived = true;
 
-        Assert_True(utils_goap_planner::Get_PlanStatus(_ActionSet) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
             "Root PlanStatus should be PlanFound");
 
-        auto RootPlan = utils_goap_planner::Get_PlanClasses(_ActionSet);
+        auto RootPlan = utils_goap_planner::Get_PlanClasses(_Planner);
         Assert_True(RootPlan.Num() == 1,
             f"Root plan should have exactly 1 entry (got {RootPlan.Num()})");
         Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects,
@@ -132,8 +132,8 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         // Mid and add RequiresInitialPlan. Mid will plan on the next frame.
         // We bind now (before ChainUpdate fires) so we don't miss Mid's plan.
         auto MidHandle = utils_goap_planner::Find_ActionByClass(
-            _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in ActionSet catalog");
+            _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
+        Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in Planner catalog");
 
         if (ck::IsValid(MidHandle))
         {
