@@ -1802,249 +1802,184 @@ namespace UCk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_AtomicLeaf_SpawnParams
+struct FCk_AutoTest_Goap_Planner_AtomicLeaf_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_AtomicLeaf
+namespace UCk_AutoTest_Goap_Planner_AtomicLeaf
 {
-    FCk_AutoTest_Goap_ActionSet_AtomicLeaf_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_AtomicLeaf_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_AtomicLeaf_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_AtomicLeaf_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_CancelInflightPlan_SpawnParams
+struct FCk_AutoTest_Goap_Planner_CancelInflight_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_CancelInflightPlan
+namespace UCk_AutoTest_Goap_Planner_CancelInflight
 {
-    FCk_AutoTest_Goap_ActionSet_CancelInflightPlan_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_CancelInflight_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_CancelInflightPlan_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_CancelInflight_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_ChainGrowth_SpawnParams
+struct FCk_AutoTest_Goap_Planner_DeactivateChildren_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_ChainGrowth
+namespace UCk_AutoTest_Goap_Planner_DeactivateChildren
 {
-    FCk_AutoTest_Goap_ActionSet_ChainGrowth_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_DeactivateChildren_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_ChainGrowth_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_DeactivateChildren_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_ChainTruncation_SpawnParams
+struct FCk_AutoTest_Goap_Planner_DeactivateOnStep0Change_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_ChainTruncation
+namespace UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change
 {
-    FCk_AutoTest_Goap_ActionSet_ChainTruncation_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_DeactivateOnStep0Change_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_ChainTruncation_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_DeactivateOnStep0Change_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_DeferOneFrame_SpawnParams
+struct FCk_AutoTest_Goap_Planner_DeferOneFrame_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_DeferOneFrame
+namespace UCk_AutoTest_Goap_Planner_DeferOneFrame
 {
-    FCk_AutoTest_Goap_ActionSet_DeferOneFrame_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_DeferOneFrame_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_DeferOneFrame_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_DeferOneFrame_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_DependencyCycleDetection_SpawnParams
+struct FCk_AutoTest_Goap_Planner_DependencyCycleDetection_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_DependencyCycleDetection
+namespace UCk_AutoTest_Goap_Planner_DependencyCycleDetection
 {
-    FCk_AutoTest_Goap_ActionSet_DependencyCycleDetection_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_DependencyCycleDetection_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_DependencyCycleDetection_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_DependencyCycleDetection_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_DirtyPropagation_SpawnParams
+struct FCk_AutoTest_Goap_Planner_DirtyPropagation_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_DirtyPropagation
+namespace UCk_AutoTest_Goap_Planner_DirtyPropagation
 {
-    FCk_AutoTest_Goap_ActionSet_DirtyPropagation_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_DirtyPropagation_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_DirtyPropagation_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_DirtyPropagation_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_GoalIsEffects_SpawnParams
+struct FCk_AutoTest_Goap_Planner_EnableToggle_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_GoalIsEffects
+namespace UCk_AutoTest_Goap_Planner_EnableToggle
 {
-    FCk_AutoTest_Goap_ActionSet_GoalIsEffects_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_EnableToggle_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_GoalIsEffects_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_EnableToggle_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_InvalidGoal_SpawnParams
+struct FCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_InvalidGoal
+namespace UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects
 {
-    FCk_AutoTest_Goap_ActionSet_InvalidGoal_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_InvalidGoal_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_MultiActionSet_SpawnParams
+struct FCk_AutoTest_Goap_Planner_InvalidGoal_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_MultiActionSet
+namespace UCk_AutoTest_Goap_Planner_InvalidGoal
 {
-    FCk_AutoTest_Goap_ActionSet_MultiActionSet_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_InvalidGoal_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_MultiActionSet_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_InvalidGoal_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal_SpawnParams
+struct FCk_AutoTest_Goap_Planner_MinimalPlan_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal
+namespace UCk_AutoTest_Goap_Planner_MinimalPlan
 {
-    FCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_MinimalPlan_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_OnActiveChainChangedSignal_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_MinimalPlan_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy_SpawnParams
+struct FCk_AutoTest_Goap_Planner_NestedActivation_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy
+namespace UCk_AutoTest_Goap_Planner_NestedActivation
 {
-    FCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_NestedActivation_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_NestedActivation_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_ResetChain_SpawnParams
+struct FCk_AutoTest_Goap_Planner_OnPlanChangedSignal_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_ResetChain
+namespace UCk_AutoTest_Goap_Planner_OnPlanChangedSignal
 {
-    FCk_AutoTest_Goap_ActionSet_ResetChain_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_OnPlanChangedSignal_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_ResetChain_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_OnPlanChangedSignal_SpawnParams();
     }
 }
 
 USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams
+struct FCk_AutoTest_Goap_Planner_OwnerCascadeDestroy_SpawnParams
 {
 }
 
-namespace UCk_AutoTest_Goap_ActionSet_RootOnly
+namespace UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy
 {
-    FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams Params()
+    FCk_AutoTest_Goap_Planner_OwnerCascadeDestroy_SpawnParams Params()
     {
-        return FCk_AutoTest_Goap_ActionSet_RootOnly_SpawnParams();
-    }
-}
-
-USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_SiblingActions_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_Goap_ActionSet_SiblingActions
-{
-    FCk_AutoTest_Goap_ActionSet_SiblingActions_SpawnParams Params()
-    {
-        return FCk_AutoTest_Goap_ActionSet_SiblingActions_SpawnParams();
-    }
-}
-
-USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_SwapRootAction_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_Goap_ActionSet_SwapRootAction
-{
-    FCk_AutoTest_Goap_ActionSet_SwapRootAction_SpawnParams Params()
-    {
-        return FCk_AutoTest_Goap_ActionSet_SwapRootAction_SpawnParams();
-    }
-}
-
-USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_Toggle_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_Goap_ActionSet_Toggle
-{
-    FCk_AutoTest_Goap_ActionSet_Toggle_SpawnParams Params()
-    {
-        return FCk_AutoTest_Goap_ActionSet_Toggle_SpawnParams();
-    }
-}
-
-USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_WSInheritance_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_Goap_ActionSet_WSInheritance
-{
-    FCk_AutoTest_Goap_ActionSet_WSInheritance_SpawnParams Params()
-    {
-        return FCk_AutoTest_Goap_ActionSet_WSInheritance_SpawnParams();
-    }
-}
-
-USTRUCT()
-struct FCk_AutoTest_Goap_ActionSet_WSOverride_SpawnParams
-{
-}
-
-namespace UCk_AutoTest_Goap_ActionSet_WSOverride
-{
-    FCk_AutoTest_Goap_ActionSet_WSOverride_SpawnParams Params()
-    {
-        return FCk_AutoTest_Goap_ActionSet_WSOverride_SpawnParams();
+        return FCk_AutoTest_Goap_Planner_OwnerCascadeDestroy_SpawnParams();
     }
 }
 
@@ -2058,6 +1993,58 @@ namespace UCk_AutoTest_Goap_Planner_PromoteActionToPlanner
     FCk_AutoTest_Goap_Planner_PromoteActionToPlanner_SpawnParams Params()
     {
         return FCk_AutoTest_Goap_Planner_PromoteActionToPlanner_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_Planner_TopLevelEmergence_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_TopLevelEmergence
+{
+    FCk_AutoTest_Goap_Planner_TopLevelEmergence_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_TopLevelEmergence_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_Planner_TwoPeerPlanners_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_TwoPeerPlanners
+{
+    FCk_AutoTest_Goap_Planner_TwoPeerPlanners_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_TwoPeerPlanners_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_Planner_WSInheritance_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_WSInheritance
+{
+    FCk_AutoTest_Goap_Planner_WSInheritance_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_WSInheritance_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_Planner_WSOverride_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_WSOverride
+{
+    FCk_AutoTest_Goap_Planner_WSOverride_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_WSOverride_SpawnParams();
     }
 }
 
