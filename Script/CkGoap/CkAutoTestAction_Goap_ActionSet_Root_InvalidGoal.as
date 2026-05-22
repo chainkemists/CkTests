@@ -6,9 +6,9 @@
 //
 // Root action for the InvalidGoal test. Effect: Ready=true. Used purely as
 // a class reference for SetRootAction; its CDO registers the Ready key in
-// the WS. No _InitialGoal_RootOnly is set, so the root plans with an empty
+// the WS. No goal set on PlannerParams, so the root plans with an empty
 // goal (immediately PlanFound with empty plan). The test overrides the goal
-// via Request_SetGoalWorldState with an unregistered key to populate
+// via utils_goap_planner::Request_SetGoal with an unregistered key to populate
 // _InvalidGoal diagnostics.
 //============================================================================
 
