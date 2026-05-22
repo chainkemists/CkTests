@@ -21,7 +21,7 @@
 //   Drop HasWeapon → planner falls back to RunAway.
 //
 // Both ActionSets are top-level in the same Goap root — proving
-// utils_goap_action_set::AddActionSet supports multiple decision domains.
+// utils_goap_planner::AddActionSet supports multiple decision domains.
 //============================================================================
 
 // -------------------- Hunger ActionSet --------------------

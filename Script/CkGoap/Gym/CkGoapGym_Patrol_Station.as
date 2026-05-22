@@ -37,7 +37,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Action _DoPatrolAction;
     private FCk_Handle_Goap_WorldState _WS;
@@ -57,11 +57,9 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_WorldState_ParamsData());
         Reset_WS();
 
-        auto Goap = utils_goap::Add(InHandle, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         // Root: goal Complete=true.
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
@@ -71,7 +69,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Root);
         RootParams.Set_InitialGoal_RootOnly(Goal);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, _WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);
 
         // DoPatrol — composite child of Root.
         auto DoPatrolParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_DoPatrol);
@@ -132,7 +130,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         auto RootStatus = utils_goap_action::Get_PlanStatus(_RootAction);
         auto RootPlan = utils_goap_action::Get_Plan(_RootAction);
 
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         auto ChainLen = Chain.Num();
 
         // Patrol composite's own planner may not be active until ChainUpdate

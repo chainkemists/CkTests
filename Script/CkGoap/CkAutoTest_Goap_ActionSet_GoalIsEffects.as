@@ -33,7 +33,7 @@ class UCk_AutoTest_Goap_ActionSet_GoalIsEffects : UCk_AutoTest_Base
     default _TimeoutSeconds = 10.0f;
 
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private bool _RootPlanReceived = false;
 
     UFUNCTION(BlueprintOverride)
@@ -52,11 +52,9 @@ class UCk_AutoTest_Goap_ActionSet_GoalIsEffects : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
 
         // Root's planning goal = {BKey=true}. Root's CDO effect = AKey=true
@@ -71,7 +69,7 @@ class UCk_AutoTest_Goap_ActionSet_GoalIsEffects : UCk_AutoTest_Base
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
         RootParams.Set_InitialGoal_RootOnly(InitialGoal);
 
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         // Add Mid as a child of Root. Mid is composite (will have Leaf_B and
@@ -116,7 +114,7 @@ class UCk_AutoTest_Goap_ActionSet_GoalIsEffects : UCk_AutoTest_Base
         // ChainUpdate runs after HandleResult in this frame; it will activate
         // Mid and add RequiresInitialPlan. Mid will plan on the next frame.
         // We bind now (before ChainUpdate fires) so we don't miss Mid's plan.
-        auto MidHandle = utils_goap_action_set::Find_ActionByClass(
+        auto MidHandle = utils_goap_planner::Find_ActionByClass(
             _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in ActionSet catalog");
 

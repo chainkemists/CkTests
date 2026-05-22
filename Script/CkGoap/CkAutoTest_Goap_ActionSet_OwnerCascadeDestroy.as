@@ -27,8 +27,8 @@ class UCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy : UCk_AutoTest_Base
     default _TimeoutSeconds = 5.0f;
 
     private FCk_Handle _SubOwner;
-    private FCk_Handle_Goap _GoapHandle;
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _GoapHandle;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private FCk_Handle_Goap_Action _RootAction;
 
     UFUNCTION(BlueprintOverride)
@@ -53,20 +53,17 @@ class UCk_AutoTest_Goap_ActionSet_OwnerCascadeDestroy : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             true);
 
-        // Add Goap root container to SubOwner.
-        _GoapHandle = utils_goap::Add(_SubOwner, FCk_Fragment_Goap_RootParamsData());
-        Assert_True(utils_goap::Has(_GoapHandle), "Has(Goap) should be true after Add");
-
-        // Add ActionSet.
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        // Add Planner to SubOwner (post-U11.0a: no separate Goap-root container).
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_action_set::AddActionSet(_GoapHandle, ActionSetParams);
-        Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
+        _ActionSet = utils_goap_planner::Add(_SubOwner, ActionSetParams);
+        Assert_True(ck::IsValid(_ActionSet), "Add should return a valid handle");
+        _GoapHandle = _ActionSet;  // U11.0a: Planner is the only Goap entity.
 
         // Add root Action (Simple: effect Ready=true; goal already satisfied).
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Simple);
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         // All handles are valid before destroy.

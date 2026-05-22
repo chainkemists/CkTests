@@ -24,7 +24,7 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_WorldState _WS;
     private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses;
@@ -41,11 +41,9 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_WorldState_ParamsData());
         Reset_WS();
 
-        auto Goap = utils_goap::Add(InHandle, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Empire"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(
@@ -55,7 +53,7 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
         RootParams.Set_InitialGoal_RootOnly(Goal);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
 
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, _WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, _WS);
 
         utils_goap_action::AddAction_ToAction(_RootAction,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_GatherFood));

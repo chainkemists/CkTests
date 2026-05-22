@@ -27,7 +27,7 @@
 class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
     private bool _RootPlanReceived = false;
     private int32 _DeactivatedCount = 0;
 
@@ -47,11 +47,9 @@ class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
 
         // Root's planning goal = {BKey=true}. Root's CDO effect = AKey=true.
@@ -64,7 +62,7 @@ class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
         RootParams.Set_InitialGoal_RootOnly(InitialGoal);
 
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         // Add Mid as composite child of Root.
@@ -117,7 +115,7 @@ class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
 
         // ChainUpdate may need another frame if it ran before HandleResult in
         // the same frame. Poll until chain length == 2.
@@ -133,7 +131,7 @@ class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
         // Bind OnActionDeactivated on Mid BEFORE calling ResetActiveChain.
         // Request_ResetActiveChain fires the signal synchronously (inline teardown),
         // so the delegate will be invoked during the reset call itself.
-        auto MidHandle = utils_goap_action_set::Find_ActionByClass(
+        auto MidHandle = utils_goap_planner::Find_ActionByClass(
             _ActionSet, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         Assert_True(ck::IsValid(MidHandle), "Should find Mid by class in ActionSet catalog");
 
@@ -145,17 +143,17 @@ class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
 
         // Reset the chain. Teardown and OnActionDeactivated broadcast happen
         // synchronously inside Request_ResetActiveChain.
-        utils_goap_action_set::Request_ResetActiveChain(_ActionSet);
+        utils_goap_planner::Request_ResetActiveChain(_ActionSet);
 
         // Verify chain collapsed immediately (synchronous operation).
-        Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should collapse to [Root] immediately after Request_ResetActiveChain (got {Chain.Num()})");
 
         // Disable ActionSet so ChainUpdate doesn't re-extend the chain on the
         // next frame (Root's plan still shows Mid, so ChainUpdate would normally
         // re-append it). We're testing the reset behavior, not re-extension.
-        utils_goap_action_set::Request_SetEnableToggle(_ActionSet, ECk_EnableDisable::Disable);
+        utils_goap_planner::Request_SetEnableToggle(_ActionSet, ECk_EnableDisable::Disable);
 
         // Give the signal one frame to dispatch to bound delegates before asserting.
         WaitOneFrame(n"OnCheckDeactivation");
@@ -177,7 +175,7 @@ class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should remain at length 1 after ResetChain (ActionSet disabled to prevent re-extension; got {Chain.Num()})");
 

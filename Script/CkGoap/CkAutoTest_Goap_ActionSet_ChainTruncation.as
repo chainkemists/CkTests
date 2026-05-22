@@ -39,7 +39,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainTruncation : UCk_AutoTest_Base
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Action _MidAAction;
     private FCk_Handle_Goap_Action _MidBAction;
-    private FCk_Handle_Goap_ActionSet _ActionSet;
+    private FCk_Handle_Goap_Planner _ActionSet;
 
     // Phase tracking
     private bool _FirstPlanReceived = false;
@@ -63,11 +63,9 @@ class UCk_AutoTest_Goap_ActionSet_ChainTruncation : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        _ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_ActionSet), "AddActionSet should return a valid handle");
 
         // Root: goal {AKey=true}. Both Mid_A and Mid_B satisfy it.
@@ -81,7 +79,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainTruncation : UCk_AutoTest_Base
         RootParams.Set_InitialGoal_RootOnly(InitialGoal);
         RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnEitherDirty);
 
-        _RootAction = utils_goap_action_set::SetRootAction(_ActionSet, RootParams, WS);
+        _RootAction = utils_goap_planner::SetRootAction(_ActionSet, RootParams, WS);
         Assert_True(ck::IsValid(_RootAction), "SetRootAction should return a valid handle");
 
         // Mid_A: child of Root. Cost 1.0 — Root picks this first.
@@ -115,7 +113,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainTruncation : UCk_AutoTest_Base
             FCk_Delegate_Goap_OnActionDeactivated(this, n"OnMidADeactivated"));
 
         // Initial chain: only Root.
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         Assert_True(Chain.Num() == 1,
             f"ActiveChain should start with only Root (got {Chain.Num()})");
 
@@ -188,7 +186,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainTruncation : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
         if (Chain.Num() < 2)
         {
             // ChainUpdate hasn't extended yet — wait another frame.
@@ -220,7 +218,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainTruncation : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_action_set::Get_ActiveChain(_ActionSet);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
 
         // If chain still shows [Root, Mid_A], ChainUpdate hasn't processed yet.
         // Poll until chain changes to [Root, Mid_B].

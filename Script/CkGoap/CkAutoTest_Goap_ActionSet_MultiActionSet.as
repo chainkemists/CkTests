@@ -52,13 +52,11 @@ class UCk_AutoTest_Goap_ActionSet_MultiActionSet : UCk_AutoTest_Base
             true);
 
         // Goap root container on the entity.
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
-        Assert_True(utils_goap::Has(Goap), "Has(Goap) should be true after Add");
 
         // ---- ActionSet A ----
-        auto ActionSetParamsA = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParamsA = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        auto ActionSetA = utils_goap_action_set::AddActionSet(Goap, ActionSetParamsA);
+        auto ActionSetA = utils_goap_planner::Add(Local, ActionSetParamsA);
         Assert_True(ck::IsValid(ActionSetA), "AddActionSet A should return a valid handle");
 
         auto GoalA = TArray<FCk_GoapWS_Condition_Authored>();
@@ -69,13 +67,13 @@ class UCk_AutoTest_Goap_ActionSet_MultiActionSet : UCk_AutoTest_Base
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiA);
         RootParamsA.Set_InitialGoal_RootOnly(GoalA);
 
-        _RootA = utils_goap_action_set::SetRootAction(ActionSetA, RootParamsA, WS);
+        _RootA = utils_goap_planner::SetRootAction(ActionSetA, RootParamsA, WS);
         Assert_True(ck::IsValid(_RootA), "SetRootAction A should return a valid handle");
 
         // ---- ActionSet B ----
-        auto ActionSetParamsB = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParamsB = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set2"));
-        auto ActionSetB = utils_goap_action_set::AddActionSet(Goap, ActionSetParamsB);
+        auto ActionSetB = utils_goap_planner::Add(Local, ActionSetParamsB);
         Assert_True(ck::IsValid(ActionSetB), "AddActionSet B should return a valid handle");
 
         auto GoalB = TArray<FCk_GoapWS_Condition_Authored>();
@@ -86,7 +84,7 @@ class UCk_AutoTest_Goap_ActionSet_MultiActionSet : UCk_AutoTest_Base
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiB);
         RootParamsB.Set_InitialGoal_RootOnly(GoalB);
 
-        _RootB = utils_goap_action_set::SetRootAction(ActionSetB, RootParamsB, WS);
+        _RootB = utils_goap_planner::SetRootAction(ActionSetB, RootParamsB, WS);
         Assert_True(ck::IsValid(_RootB), "SetRootAction B should return a valid handle");
 
         // The two roots must be distinct handles.

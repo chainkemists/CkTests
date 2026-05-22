@@ -42,12 +42,11 @@ class UCk_AutoTest_Goap_ActionSet_WSInheritance : UCk_AutoTest_Base
         Assert_True(ck::IsValid(WS_Parent), "WS_Parent should be a valid handle");
 
         // Goap root container.
-        auto Goap = utils_goap::Add(Local, FCk_Fragment_Goap_RootParamsData());
 
         // ActionSet.
-        auto ActionSetParams = FCk_Fragment_Goap_ActionSetParamsData(
+        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        auto ActionSet = utils_goap_action_set::AddActionSet(Goap, ActionSetParams);
+        auto ActionSet = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(ActionSet), "AddActionSet should return a valid handle");
 
         // Root Action: _InitialGoal_RootOnly={AKey=true}, WS source = WS_Parent.
@@ -59,7 +58,7 @@ class UCk_AutoTest_Goap_ActionSet_WSInheritance : UCk_AutoTest_Base
             UCk_AutoTestAction_Goap_ActionSet_Root_WSInheritance);
         RootParams.Set_InitialGoal_RootOnly(InitialGoal);
 
-        auto RootAction = utils_goap_action_set::SetRootAction(ActionSet, RootParams, WS_Parent);
+        auto RootAction = utils_goap_planner::SetRootAction(ActionSet, RootParams, WS_Parent);
         Assert_True(ck::IsValid(RootAction), "SetRootAction should return a valid handle");
 
         // Mid Action: no WS override — should inherit Root's WS.
