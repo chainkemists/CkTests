@@ -5,7 +5,7 @@
 //============================================================================
 //
 // Validates §9 row 14: "`Request_ResetActiveChain` collapses chain to root;
-// OnActionDeactivated fires per removed Action."
+// OnPlannerDeactivated fires per removed Action."
 //
 // Setup mirrors GoalIsEffects hierarchy:
 //   - Root effect: AKey=true. _InitialGoal_RootOnly: {BKey=true}.
@@ -16,10 +16,10 @@
 // Phase 1: Wait for Root to plan [Mid]. ChainUpdate extends chain to
 //   [Root, Mid]. Assert chain.Num() == 2.
 //
-// Phase 2: Bind OnActionDeactivated on Mid. Call Request_ResetActiveChain.
+// Phase 2: Bind OnPlannerDeactivated on Mid. Call Request_ResetActiveChain.
 //   After WaitOneFrame, assert:
 //   - Get_ActiveChain.Num() == 1  (root only)
-//   - OnActionDeactivated fired for Mid  (_DeactivatedCount == 1)
+//   - OnPlannerDeactivated fired for Mid  (_DeactivatedCount == 1)
 //
 // Reuses the GoalIsEffects action class files to avoid code duplication.
 //============================================================================
@@ -130,7 +130,7 @@ class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
         Assert_True(Chain.Num() == 2,
             f"ActiveChain should be [Root, Mid] before reset (got {Chain.Num()})");
 
-        // Bind OnActionDeactivated on Mid BEFORE calling ResetActiveChain.
+        // Bind OnPlannerDeactivated on Mid BEFORE calling ResetActiveChain.
         // Request_ResetActiveChain fires the signal synchronously (inline teardown),
         // so the delegate will be invoked during the reset call itself.
         auto MidHandle = utils_goap_planner::Find_ActionByClass(
@@ -139,11 +139,11 @@ class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
 
         if (ck::IsValid(MidHandle))
         {
-            utils_goap_action::BindTo_OnActionDeactivated(MidHandle,
-                FCk_Delegate_Goap_OnActionDeactivated(this, n"OnMidDeactivated"));
+            utils_goap_action::BindTo_OnPlannerDeactivated(MidHandle,
+                FCk_Delegate_Goap_OnPlannerDeactivated(this, n"OnMidDeactivated"));
         }
 
-        // Reset the chain. Teardown and OnActionDeactivated broadcast happen
+        // Reset the chain. Teardown and OnPlannerDeactivated broadcast happen
         // synchronously inside Request_ResetActiveChain.
         utils_goap_planner::Request_ResetActiveChain(_ActionSet);
 
@@ -164,7 +164,7 @@ class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
     UFUNCTION()
     private void OnMidDeactivated(
         FCk_Handle_Goap_Action InAction,
-        FCk_Goap_Payload_OnActionDeactivated InPayload)
+        FCk_Goap_Payload_OnPlannerDeactivated InPayload)
     {
         _DeactivatedCount = _DeactivatedCount + 1;
     }
@@ -182,7 +182,7 @@ class UCk_AutoTest_Goap_ActionSet_ResetChain : UCk_AutoTest_Base
             f"ActiveChain should remain at length 1 after ResetChain (ActionSet disabled to prevent re-extension; got {Chain.Num()})");
 
         Assert_True(_DeactivatedCount == 1,
-            f"OnActionDeactivated should have fired exactly once for Mid (fired {_DeactivatedCount} times)");
+            f"OnPlannerDeactivated should have fired exactly once for Mid (fired {_DeactivatedCount} times)");
 
         FinishSuccess();
     }

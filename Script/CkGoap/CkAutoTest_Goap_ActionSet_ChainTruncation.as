@@ -5,7 +5,7 @@
 //============================================================================
 //
 // Validates §9 row 3: "Plan[0] flips mid-life → chain truncates from new
-// diverge-point, OnActionDeactivated fires per removed Action."
+// diverge-point, OnPlannerDeactivated fires per removed Action."
 //
 // Setup:
 //   - WS: AKey=false.
@@ -17,7 +17,7 @@
 //
 // Phase 1 (initial plan):
 //   Root plans → picks Mid_A (lower cost). ChainUpdate extends chain to
-//   [Root, Mid_A]. OnActionActivated fires on Mid_A. OnActionDeactivated
+//   [Root, Mid_A]. OnPlannerActivated fires on Mid_A. OnPlannerDeactivated
 //   is bound on Mid_A before ChainUpdate runs.
 //
 // Phase 2 (cost bump → replan → truncation):
@@ -25,11 +25,11 @@
 //   trigger automatic replan. Request_SetActionCost(Root, Mid_A_Class, 100)
 //   → Mid_A cost exceeds Mid_B's → Root replans → Plan[0]=Mid_B.
 //   ChainUpdate sees chain[1]=Mid_A ≠ Plan[0]=Mid_B → truncates [Mid_A]
-//   (OnActionDeactivated fires on Mid_A) → appends Mid_B (OnActionActivated
+//   (OnPlannerDeactivated fires on Mid_A) → appends Mid_B (OnPlannerActivated
 //   fires on Mid_B).
 //
 // Assertions:
-//   - OnActionDeactivated fired exactly once for Mid_A.
+//   - OnPlannerDeactivated fired exactly once for Mid_A.
 //   - After second plan settles: chain.Num()==2, chain[1]==Mid_B_Handle.
 //   - FinishSuccess.
 //============================================================================
@@ -108,11 +108,11 @@ class UCk_AutoTest_Goap_ActionSet_ChainTruncation : UCk_AutoTest_Base
         auto LeafBAction = utils_goap_action::AddAction_ToAction(_MidBAction, LeafBParams);
         Assert_True(ck::IsValid(LeafBAction), "Leaf_B AddAction_ToAction should succeed");
 
-        // Bind OnActionDeactivated on Mid_A NOW — before ChainUpdate activates it —
+        // Bind OnPlannerDeactivated on Mid_A NOW — before ChainUpdate activates it —
         // so we cannot miss the deactivation signal when truncation fires.
         // FireIfPayloadInFlightThisFrame (default) catches same-frame signals.
-        utils_goap_action::BindTo_OnActionDeactivated(_MidAAction,
-            FCk_Delegate_Goap_OnActionDeactivated(this, n"OnMidADeactivated"));
+        utils_goap_action::BindTo_OnPlannerDeactivated(_MidAAction,
+            FCk_Delegate_Goap_OnPlannerDeactivated(this, n"OnMidADeactivated"));
 
         // Initial chain: only Root.
         auto Chain = utils_goap_planner::Get_ActiveChain(_ActionSet);
@@ -127,7 +127,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainTruncation : UCk_AutoTest_Base
     UFUNCTION()
     private void OnMidADeactivated(
         FCk_Handle_Goap_Action InAction,
-        FCk_Goap_Payload_OnActionDeactivated InPayload)
+        FCk_Goap_Payload_OnPlannerDeactivated InPayload)
     {
         if (IsFinished()) { return; }
         _MidADeactivatedCount = _MidADeactivatedCount + 1;
@@ -241,7 +241,7 @@ class UCk_AutoTest_Goap_ActionSet_ChainTruncation : UCk_AutoTest_Base
         }
 
         Assert_True(_MidADeactivatedCount == 1,
-            f"OnActionDeactivated should have fired exactly once for Mid_A (fired {_MidADeactivatedCount} times)");
+            f"OnPlannerDeactivated should have fired exactly once for Mid_A (fired {_MidADeactivatedCount} times)");
 
         FinishSuccess();
     }
