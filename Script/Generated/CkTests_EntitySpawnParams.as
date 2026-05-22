@@ -4635,6 +4635,19 @@ namespace UCk_AutoTest_Tween_FloatUpdateCallback
 }
 
 USTRUCT()
+struct FCk_AutoTest_Tween_FollowSpline_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Tween_FollowSpline
+{
+    FCk_AutoTest_Tween_FollowSpline_SpawnParams Params()
+    {
+        return FCk_AutoTest_Tween_FollowSpline_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Tween_LinearColorCompletion_SpawnParams
 {
 }
