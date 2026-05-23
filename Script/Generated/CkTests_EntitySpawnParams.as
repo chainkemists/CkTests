@@ -6537,6 +6537,31 @@ namespace UCk_EntityScript_EqsGym_Station
 }
 
 USTRUCT()
+struct FCk_EntityScript_GoapFEARGym_Combatant_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapFEARGym_Combatant_Station_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapFEARGym_Combatant_Station
+{
+    FCk_EntityScript_GoapFEARGym_Combatant_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapFEARGym_Combatant_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapFEARGym_Combatant_Station_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapFEARGym_Combatant_Station_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
 struct FCk_EntityScript_GoapGym_AutoReplan_Station_SpawnParams
 {
     UPROPERTY()
