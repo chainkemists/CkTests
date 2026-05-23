@@ -118,7 +118,7 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
             + f"  Status         {CkGoapGym_Common::Format_PlanStatus(Status)}\n"
             + f"  Plan           {CkGoapGym_Common::Format_Plan(Plan, _KnownClasses, _KnownLabels)}\n"
             + f"  Plan cost      {Cost}\n\n"
-            + "Buttons\n"
+            + "Console\n"
             + "  Goap.River.ToggleBridge  Block / open the bridge\n"
             + "  Goap.River.SpendCoin     Lose the coin (one-way)\n"
             + "  Goap.River.Reset         Restore initial WS";

@@ -134,7 +134,7 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
             + f"  Plan length   {Plan.Num()}\n"
             + f"  Plan          {CkGoapGym_Common::Format_Plan(Plan, _KnownClasses, _KnownLabels)}\n"
             + f"  Plan cost     {Cost}\n\n"
-            + "Buttons\n"
+            + "Console\n"
             + "  Goap.Empire.ToggleFood / Gold / Wood / Barracks / Feudal\n"
             + "  Goap.Empire.Reset";
 
