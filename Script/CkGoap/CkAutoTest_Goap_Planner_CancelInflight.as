@@ -99,8 +99,8 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
         Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
 
         // Track OnPlanComplete — must NOT fire after the cancel.
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnPlanComplete"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Planner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlanComplete"));
 
         // Wait one frame so Setup runs (the Action processor needs to see
         // the catalog + child registration before Plan requests can succeed).
@@ -165,7 +165,7 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
 
     UFUNCTION()
     private void OnPlanComplete(
-        FCk_Handle_Goap_Action InAction,
+        FCk_Handle_Goap_Planner InPlanner,
         FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }

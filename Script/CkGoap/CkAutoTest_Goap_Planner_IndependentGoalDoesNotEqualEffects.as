@@ -37,6 +37,7 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Action _MidAction;
     private FCk_Handle_Goap_Planner _Planner;
+    private FCk_Handle_Goap_Planner _MidAsPlanner;
     private bool _RootPlanReceived = false;
 
     UFUNCTION(BlueprintOverride)
@@ -94,7 +95,8 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         MidPlannerParams.Set_Goal(MidGoal);
-        auto MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAction, MidPlannerParams);
+        _MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAction, MidPlannerParams);
+        auto MidAsPlanner = _MidAsPlanner;
 
         // Add Leaf_B and Leaf_A as children of Mid.
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
@@ -107,12 +109,12 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         auto LeafAAction = utils_goap_planner::AddAction(MidAsPlanner, LeafAParams);
         Assert_True(ck::IsValid(LeafAAction), "Leaf_A AddAction should succeed");
 
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnRootPlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Planner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnRootPlan"));
     }
 
     UFUNCTION()
-    private void OnRootPlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnRootPlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_RootPlanReceived) { return; }
@@ -137,13 +139,13 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
 
         if (ck::IsValid(MidHandle))
         {
-            utils_goap_action::BindTo_OnPlanComplete(MidHandle,
-                FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnMidPlan"));
+            utils_goap_planner::BindTo_OnPlanComplete(_MidAsPlanner,
+                FCk_Delegate_Goap_OnPlanComplete(this, n"OnMidPlan"));
         }
     }
 
     UFUNCTION()
-    private void OnMidPlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnMidPlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
 
@@ -152,10 +154,10 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         // which re-resolves Mid's authored goal). Skip those early empty-plan
         // fires — we're validating the AFTER-activation plan driven by Mid's
         // EXPLICITLY-SET independent goal {AKey=true}.
-        auto MidPlan = utils_goap_action::Get_Plan(InAction);
+        auto MidPlan = utils_goap_action::Get_Plan(_MidAction);
         if (MidPlan.Num() == 0) { return; }
 
-        Assert_True(utils_goap_action::Get_PlanStatus(InAction) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_action::Get_PlanStatus(_MidAction) == ECk_GoapPlanStatus::PlanFound,
             "Mid PlanStatus should be PlanFound after activation");
 
         // U11.1 INVERSION: Mid's independent goal {AKey=true} should make it

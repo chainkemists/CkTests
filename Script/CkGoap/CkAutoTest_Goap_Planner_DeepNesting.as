@@ -175,16 +175,16 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         // ---- Bind plan-complete on all three planning entities ----
         // Bind early — sub-planners may fire before/during ChainUpdate activation.
         // FireIfPayloadInFlightThisFrame (default) catches same-frame fires.
-        utils_goap_action::BindTo_OnPlanComplete(_AliveRoot,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnAlivePlan"));
-        utils_goap_action::BindTo_OnPlanComplete(_Engage,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnEngagePlan"));
-        utils_goap_action::BindTo_OnPlanComplete(_LightAttacks,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnLightAttacksPlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Alive,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnAlivePlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Engage_AsPlanner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnEngagePlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_LightAttacks_AsPlanner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnLightAttacksPlan"));
     }
 
     UFUNCTION()
-    private void OnAlivePlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnAlivePlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_AlivePlanOK) { return; }
@@ -211,15 +211,15 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnEngagePlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnEngagePlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_EngagePlanOK) { return; }
 
-        auto Plan = utils_goap_action::Get_Plan(InAction);
+        auto Plan = utils_goap_action::Get_Plan(_Engage);
         if (Plan.Num() == 0) { return; }
 
-        Assert_True(utils_goap_action::Get_PlanStatus(InAction) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_action::Get_PlanStatus(_Engage) == ECk_GoapPlanStatus::PlanFound,
             "Engage PlanStatus should be PlanFound after activation");
         Assert_True(Plan.Num() == 1,
             f"Engage promoted-planner plan should have 1 entry [LightAttacks] (got {Plan.Num()})");
@@ -234,15 +234,15 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnLightAttacksPlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnLightAttacksPlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_LightAttacksPlanOK) { return; }
 
-        auto Plan = utils_goap_action::Get_Plan(InAction);
+        auto Plan = utils_goap_action::Get_Plan(_LightAttacks);
         if (Plan.Num() == 0) { return; }
 
-        Assert_True(utils_goap_action::Get_PlanStatus(InAction) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_action::Get_PlanStatus(_LightAttacks) == ECk_GoapPlanStatus::PlanFound,
             "LightAttacks PlanStatus should be PlanFound after activation");
         Assert_True(Plan.Num() == 1,
             f"LightAttacks promoted-planner plan should have 1 entry (got {Plan.Num()})");

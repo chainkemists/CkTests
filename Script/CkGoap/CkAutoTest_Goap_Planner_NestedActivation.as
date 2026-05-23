@@ -36,6 +36,7 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Action _MidAction;
     private FCk_Handle_Goap_Planner _Planner;
+    private FCk_Handle_Goap_Planner _MidAsPlanner;
     private bool _RootPlanReceived = false;
     private int32 _ActivatedCount = 0;
 
@@ -86,8 +87,9 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
         // Promote Mid so LeafB becomes its tree child (makes Mid composite).
         auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        auto MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAction, MidPlannerParams);
-        Assert_True(ck::IsValid(MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
+        _MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAction, MidPlannerParams);
+        Assert_True(ck::IsValid(_MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
+        auto MidAsPlanner = _MidAsPlanner;
 
         // Add LeafB as child of Mid — makes Mid composite so ChainUpdate
         // extends the chain to [Root, Mid].
@@ -99,7 +101,7 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
         // Bind OnPlannerActivated on Mid NOW — before ChainUpdate runs — so we
         // cannot miss the activation signal. FireIfPayloadInFlightThisFrame
         // (default) means even a same-frame activation is caught.
-        utils_goap_action::BindTo_OnPlannerActivated(_MidAction,
+        utils_goap_planner::BindTo_OnPlannerActivated(_MidAsPlanner,
             FCk_Delegate_Goap_OnPlannerActivated(this, n"OnMidActivated"));
 
         // Initial chain has only Root.
@@ -108,12 +110,12 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
             f"ActiveChain should start with only Root (got {Chain.Num()})");
 
         // Wait for Root to plan before asserting chain extension.
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnRootPlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Planner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnRootPlan"));
     }
 
     UFUNCTION()
-    private void OnRootPlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnRootPlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_RootPlanReceived) { return; }
@@ -137,7 +139,7 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
 
     UFUNCTION()
     private void OnMidActivated(
-        FCk_Handle_Goap_Action InAction,
+        FCk_Handle_Goap_Planner InPlanner,
         FCk_Goap_Payload_OnPlannerActivated InPayload)
     {
         if (IsFinished()) { return; }

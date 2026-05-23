@@ -88,12 +88,12 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
         auto MakeBAction = utils_goap_planner::AddAction(_Planner, MakeBParams);
         Assert_True(ck::IsValid(MakeBAction), "AddAction (MakeB) should return a valid handle");
 
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnRootPlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Planner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnRootPlan"));
     }
 
     UFUNCTION()
-    private void OnRootPlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnRootPlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_PlanReceived) { return; }

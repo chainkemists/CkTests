@@ -68,12 +68,12 @@ class UCk_AutoTest_Goap_Planner_InvalidGoal : UCk_AutoTest_Base
             true));
         utils_goap_planner::Request_SetGoal(_Planner, GoalConditions);
 
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnPlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Planner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlan"));
     }
 
     UFUNCTION()
-    private void OnPlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnPlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_PlanReceived) { return; }

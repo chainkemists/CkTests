@@ -127,12 +127,12 @@ class UCk_AutoTest_Goap_Planner_PromoteActionToPlanner : UCk_AutoTest_Base
             "Promoted entity should satisfy Goap Planner Has() — Planner role stamped");
 
         // Bind to Root's OnPlanComplete to drive the test forward.
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnRootPlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_RootPlanner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnRootPlan"));
     }
 
     UFUNCTION()
-    private void OnRootPlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnRootPlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_RootPlanReceived) { return; }
@@ -149,22 +149,22 @@ class UCk_AutoTest_Goap_Planner_PromoteActionToPlanner : UCk_AutoTest_Base
 
         // Bind to Mid's OnPlanComplete now (before ChainUpdate activates Mid)
         // so we capture the post-activation plan.
-        utils_goap_action::BindTo_OnPlanComplete(_MidAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnMidPlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_MidAsPlanner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnMidPlan"));
     }
 
     UFUNCTION()
-    private void OnMidPlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnMidPlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
 
         // Mid may receive empty-plan PlanComplete fires before activation re-
         // resolves its goal. Skip those — we want the post-activation plan
         // driven by Mid's promoted planner goal {AKey=true}.
-        auto MidPlan = utils_goap_action::Get_Plan(InAction);
+        auto MidPlan = utils_goap_action::Get_Plan(_MidAction);
         if (MidPlan.Num() == 0) { return; }
 
-        Assert_True(utils_goap_action::Get_PlanStatus(InAction) == ECk_GoapPlanStatus::PlanFound,
+        Assert_True(utils_goap_action::Get_PlanStatus(_MidAction) == ECk_GoapPlanStatus::PlanFound,
             "Mid PlanStatus should be PlanFound after activation");
 
         // U11.3 verification: Mid's promoted planner goal is {AKey=true},
