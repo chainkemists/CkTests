@@ -77,13 +77,13 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
         Assert_True(ck::IsValid(LeafAAction), "LeafA AddAction should succeed");
 
         // Bind OnPlanComplete on Root to count replans.
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnRootPlanComplete"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Planner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnRootPlanComplete"));
     }
 
     UFUNCTION()
     private void OnRootPlanComplete(
-        FCk_Handle_Goap_Action InAction,
+        FCk_Handle_Goap_Planner InPlanner,
         FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }

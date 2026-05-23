@@ -40,6 +40,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
     private FCk_Handle_Goap_Action _MidAAction;
     private FCk_Handle_Goap_Action _MidBAction;
     private FCk_Handle_Goap_Planner _Planner;
+    private FCk_Handle_Goap_Planner _MidAAsPlanner;
 
     // Phase tracking
     private bool _FirstPlanReceived = false;
@@ -94,8 +95,9 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
 
         auto MidAPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        auto MidAAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAAction, MidAPlannerParams);
-        Assert_True(ck::IsValid(MidAAsPlanner), "Mid_A PromoteActionToPlanner should succeed");
+        _MidAAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAAction, MidAPlannerParams);
+        Assert_True(ck::IsValid(_MidAAsPlanner), "Mid_A PromoteActionToPlanner should succeed");
+        auto MidAAsPlanner = _MidAAsPlanner;
 
         auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafA_ChainTruncation);
@@ -122,7 +124,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
         // Bind OnPlannerDeactivated on Mid_A NOW — before ChainUpdate activates it —
         // so we cannot miss the deactivation signal when truncation fires.
         // FireIfPayloadInFlightThisFrame (default) catches same-frame signals.
-        utils_goap_action::BindTo_OnPlannerDeactivated(_MidAAction,
+        utils_goap_planner::BindTo_OnPlannerDeactivated(_MidAAsPlanner,
             FCk_Delegate_Goap_OnPlannerDeactivated(this, n"OnMidADeactivated"));
 
         // Initial chain: only Root.
@@ -131,13 +133,13 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
             f"ActiveChain should start with only Root (got {Chain.Num()})");
 
         // Wait for Root's initial plan.
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnRootPlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Planner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnRootPlan"));
     }
 
     UFUNCTION()
     private void OnMidADeactivated(
-        FCk_Handle_Goap_Action InAction,
+        FCk_Handle_Goap_Planner InPlanner,
         FCk_Goap_Payload_OnPlannerDeactivated InPayload)
     {
         if (IsFinished()) { return; }
@@ -145,7 +147,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnRootPlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnRootPlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
 

@@ -111,8 +111,8 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
 
         // Plan-counter bind. FireIfPayloadInFlightThisFrame default policy
         // catches the same-frame initial plan.
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnPlanComplete"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Planner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlanComplete"));
 
         // Auto-flipper timer — OnWSDirty + OnCostDirty stations flip
         // Flip key 10x per second to demonstrate (un)throttled replans.
@@ -156,7 +156,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
     }
 
     UFUNCTION()
-    private void OnPlanComplete(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnPlanComplete(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         _PlanCount = _PlanCount + 1;
     }

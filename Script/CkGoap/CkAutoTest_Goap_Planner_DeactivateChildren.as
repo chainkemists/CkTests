@@ -28,6 +28,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_Planner _Planner;
+    private FCk_Handle_Goap_Planner _MidAsPlanner;
     private bool _RootPlanReceived = false;
     private int32 _DeactivatedCount = 0;
 
@@ -77,8 +78,9 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         // Promote Mid so Leaf_A/Leaf_B become its tree children.
         auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        auto MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(MidAction, MidPlannerParams);
-        Assert_True(ck::IsValid(MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
+        _MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(MidAction, MidPlannerParams);
+        Assert_True(ck::IsValid(_MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
+        auto MidAsPlanner = _MidAsPlanner;
 
         // Add Leaf_B and Leaf_A as children of Mid (makes Mid composite).
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
@@ -92,12 +94,12 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         Assert_True(ck::IsValid(LeafAAction), "LeafA AddAction should succeed");
 
         // Wait for Root to plan and ChainUpdate to extend to [Root, Mid].
-        utils_goap_action::BindTo_OnPlanComplete(_RootAction,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnRootPlan"));
+        utils_goap_planner::BindTo_OnPlanComplete(_Planner,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnRootPlan"));
     }
 
     UFUNCTION()
-    private void OnRootPlan(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnRootPlan(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_RootPlanReceived) { return; }
@@ -146,7 +148,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
 
         if (ck::IsValid(MidHandle))
         {
-            utils_goap_action::BindTo_OnPlannerDeactivated(MidHandle,
+            utils_goap_planner::BindTo_OnPlannerDeactivated(_MidAsPlanner,
                 FCk_Delegate_Goap_OnPlannerDeactivated(this, n"OnMidDeactivated"));
         }
 
@@ -170,7 +172,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
 
     UFUNCTION()
     private void OnMidDeactivated(
-        FCk_Handle_Goap_Action InAction,
+        FCk_Handle_Goap_Planner InPlanner,
         FCk_Goap_Payload_OnPlannerDeactivated InPayload)
     {
         _DeactivatedCount = _DeactivatedCount + 1;

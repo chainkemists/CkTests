@@ -98,14 +98,14 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
             "Planner A root and Planner B root must be distinct Action handles");
 
         // Bind OnPlanComplete on each root independently.
-        utils_goap_action::BindTo_OnPlanComplete(_RootA,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnPlanA"));
-        utils_goap_action::BindTo_OnPlanComplete(_RootB,
-            FCk_Delegate_Goap_OnActionPlanComplete(this, n"OnPlanB"));
+        utils_goap_planner::BindTo_OnPlanComplete(_PlannerA,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlanA"));
+        utils_goap_planner::BindTo_OnPlanComplete(_PlannerB,
+            FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlanB"));
     }
 
     UFUNCTION()
-    private void OnPlanA(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnPlanA(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_PlanAReceived) { return; }
@@ -118,7 +118,7 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnPlanB(FCk_Handle_Goap_Action InAction, FCk_Goap_Payload_OnPlanComplete InPayload)
+    private void OnPlanB(FCk_Handle_Goap_Planner InPlanner, FCk_Goap_Payload_OnPlanComplete InPayload)
     {
         if (IsFinished()) { return; }
         if (_PlanBReceived) { return; }
