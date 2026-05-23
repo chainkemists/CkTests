@@ -236,7 +236,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
             + "Planner\n"
             + f"  Status           {CkGoapGym_Common::Format_PlanStatus(Status)}\n"
             + f"  Plan length      {Plan.Num()}\n\n"
-            + "Buttons / behaviour\n"
+            + "Console / behaviour\n"
             + ButtonsBlock;
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),

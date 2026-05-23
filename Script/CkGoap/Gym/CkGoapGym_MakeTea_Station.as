@@ -133,7 +133,7 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
             + "Planner\n"
             + f"  Status         {CkGoapGym_Common::Format_PlanStatus(Status)}\n"
             + f"  Plan           {CkGoapGym_Common::Format_Plan(Plan, _KnownClasses, _KnownLabels)}\n\n"
-            + "Buttons\n"
+            + "Console\n"
             + "  Goap.Tea.ToggleKettle / Water / Leaves / Cup\n"
             + "  Goap.Tea.Reset";
 

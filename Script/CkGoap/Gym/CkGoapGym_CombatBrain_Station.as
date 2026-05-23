@@ -317,7 +317,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
             + "Tier-3 HeavyAttacks Planner (goal: EnemyHit=true)\n"
             + f"  Status          {HeavyStatusStr}\n"
             + f"  Plan            {HeavyPlanStr}\n\n"
-            + "Buttons (Goap.CombatBrain.*)\n"
+            + "Console (Goap.CombatBrain.*)\n"
             + "  Set/Clear EnemyVisible / WeaponEquipped / StaminaHigh\n"
             + "  Reset / Complete";
 

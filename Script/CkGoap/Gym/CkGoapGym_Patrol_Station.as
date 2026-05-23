@@ -260,7 +260,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
             + "Tier-2b Observe Planner (goal: AreaScanned=true)\n"
             + f"  Status          {ObserveStatus}\n"
             + f"  Plan            {ObservePlan}\n\n"
-            + "Buttons\n"
+            + "Console\n"
             + "  Goap.Patrol.SetAtWaypoint  / SetAreaScanned\n"
             + "  Goap.Patrol.Complete       / Reset";
 

@@ -165,7 +165,7 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             + "Defense Planner (goal SafeFromThreat=true)\n"
             + f"  Status   {CkGoapGym_Common::Format_PlanStatus(DStatus)}\n"
             + f"  Plan     {CkGoapGym_Common::Format_Plan(DPlan, _KnownClasses_Defense, _KnownLabels_Defense)}\n\n"
-            + "Buttons\n"
+            + "Console\n"
             + "  Goap.Survival.ToggleHungry / HasFood\n"
             + "  Goap.Survival.ToggleThreat / HasWeapon\n"
             + "  Goap.Survival.Reset";
