@@ -1919,6 +1919,19 @@ namespace UCk_AutoTest_Goap_Planner_DirtyPropagation
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_Planner_DisableTogglePreventsReplan_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_DisableTogglePreventsReplan
+{
+    FCk_AutoTest_Goap_Planner_DisableTogglePreventsReplan_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_DisableTogglePreventsReplan_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_Planner_EnableToggle_SpawnParams
 {
 }
