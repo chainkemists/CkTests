@@ -2088,6 +2088,32 @@ namespace UCk_AutoTest_Goap_Planner_WSOverride
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop
+{
+    FCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop
+{
+    FCk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Grid_AddAndDimensions_SpawnParams
 {
 }
