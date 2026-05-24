@@ -139,8 +139,6 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Eqs_RandomRunMode_Actor> Ck_AutoTest_Eqs_RandomRunMode_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_RandomRunMode_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_RandomRunMode_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Eqs_VolumeCheck_Actor> Ck_AutoTest_Eqs_VolumeCheck_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_VolumeCheck_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_VolumeCheck_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor> Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033() { return TSoftObjectPtr<ACk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033")); }
-    TSoftObjectPtr<ACk_AutoTest_Goap_BasicPlan_Actor> Ck_AutoTest_Goap_BasicPlan_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Goap_BasicPlan_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Goap_BasicPlan_Actor_0")); }
-    TSoftObjectPtr<ACk_AutoTest_Goap_DependencyChain_Actor> Ck_AutoTest_Goap_DependencyChain_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Goap_DependencyChain_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Goap_DependencyChain_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_AddAndDimensions_Actor> Ck_AutoTest_Grid_AddAndDimensions_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_AddAndDimensions_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_AddAndDimensions_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_CellCoordinatesAreUnique_Actor> Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_CellCoordinatesAreUnique_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_CellsAreEnabledByDefault_Actor> Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_CellsAreEnabledByDefault_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0")); }
@@ -1272,18 +1270,6 @@ namespace assets::load
         if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033() called before engine init. Use assets::Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033() (soft ref) with UCk_DeferredConfig_UE instead."))
         { return nullptr; }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033());
-    }
-    ACk_AutoTest_Goap_BasicPlan_Actor Ck_AutoTest_Goap_BasicPlan_Actor_0()
-    {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_BasicPlan_Actor_0() called before engine init. Use assets::Ck_AutoTest_Goap_BasicPlan_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_BasicPlan_Actor_0());
-    }
-    ACk_AutoTest_Goap_DependencyChain_Actor Ck_AutoTest_Goap_DependencyChain_Actor_0()
-    {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_DependencyChain_Actor_0() called before engine init. Use assets::Ck_AutoTest_Goap_DependencyChain_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_DependencyChain_Actor_0());
     }
     ACk_AutoTest_Grid_AddAndDimensions_Actor Ck_AutoTest_Grid_AddAndDimensions_Actor_0()
     {
