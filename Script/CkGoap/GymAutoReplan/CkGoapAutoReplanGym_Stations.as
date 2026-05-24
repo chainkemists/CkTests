@@ -51,7 +51,6 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
     int32 Mode = 0;
 
     private FCk_Handle_Goap_Planner _Planner;
-    private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_WorldState _WS;
     private int32 _PlanCount = 0;
     private int32 _WSChangeCount = 0;
@@ -88,10 +87,6 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         ActionSetParams.Set_WorldStateSource(_WS);
         ActionSetParams.Set_ReplanPolicy(Get_ReplanPolicyForMode());
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
-
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_Root);
-
-        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
 
         utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_FlipOp));
@@ -179,7 +174,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
 
         // OnCostDirty station: bump the AltOp's cost up and down every other
         // tick so the planner has a reason to flip operators based on cost.
-        if (Mode == 2 && ck::IsValid(_RootAction))
+        if (Mode == 2 && ck::IsValid(_Planner))
         {
             _AltCostIncreased = !_AltCostIncreased;
             auto NewCost = _AltCostIncreased ? 0.5 : 2.0;
@@ -191,7 +186,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
     UFUNCTION()
     private void OnDisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (ck::Is_NOT_Valid(_RootAction)) { return; }
+        if (ck::Is_NOT_Valid(_Planner)) { return; }
 
         // Drain a force-replan request stamped by the GameMode's exec.
         auto Self = ck::ToEntity(this);

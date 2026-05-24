@@ -12,18 +12,11 @@
 //
 // Toggling BridgeIsOpen / HasCoin in WS forces the planner to swap branches
 // — demonstrating cost-sensitive plan selection + OnWorldStateDirty replan.
+//
+// PR-B.1b Stage 5: the implicit-root model is gone. The three operators are
+// registered directly on the Planner; the Planner's regressive search picks
+// the cheapest whose preconditions are satisfied.
 //============================================================================
-
-class UCk_GoapGym_CrossRiver_Root : UCk_GoapAction_EntityScript
-{
-    UFUNCTION(BlueprintOverride)
-    void DoDefineAction()
-    {
-        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
-            n"Gym.Goap.WS.CrossRiver.Crossed"), true);
-        SetCost(0.0);
-    }
-}
 
 class UCk_GoapGym_CrossRiver_UseBridge : UCk_GoapAction_EntityScript
 {

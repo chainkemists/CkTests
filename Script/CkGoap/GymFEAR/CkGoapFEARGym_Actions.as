@@ -7,7 +7,6 @@
 // (FEAR_Combatant) with a sub-Planner promoted at AttackEnemy.
 //
 //   FEAR_Combatant            [Planner]   goal: EnemyNeutralized=true
-//     Combatant_Root           [Action]   eff: EnemyNeutralized   cost 0
 //     AttackEnemy              [Action + Planner]                 cost 1
 //                              pre: HasAmmo, EnemyVisible
 //                              eff: EnemyNeutralized
@@ -29,6 +28,9 @@
 //     Patrol                   [Action]   pre: (none)
 //                                          eff: Patrolling         cost 3.0
 //
+// PR-B.1b Stage 5: the implicit-root model is gone — every action above is
+// a direct child of FEAR_Combatant.
+//
 // Scenarios (see CkGoapFEARGym_Station.as header for the full table):
 //   Default reset           → PLAN FAILED (no EnemyVisible)
 //   EnemyVisible            → [AttackEnemy -> AttackOpen]    cost 2.0
@@ -37,19 +39,6 @@
 //   HeardSound (no Visible) → [Investigate -> AttackEnemy -> AttackOpen]
 //   HasAmmo=false + Reserve → [Reload -> AttackEnemy -> AttackOpen]
 //============================================================================
-
-// ---- Tier-1 implicit root of FEAR_Combatant ----
-
-class UCk_GoapFEARGym_Combatant_Root : UCk_GoapAction_EntityScript
-{
-    UFUNCTION(BlueprintOverride)
-    void DoDefineAction()
-    {
-        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
-            n"Gym.GoapFEAR.WS.Combatant.EnemyNeutralized"), true);
-        SetCost(0.0);
-    }
-}
 
 // ---- Tier-1 children under FEAR_Combatant ----
 

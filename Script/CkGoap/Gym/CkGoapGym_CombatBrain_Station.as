@@ -1,35 +1,35 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Combat Brain station entity  (4-tier canonical demo)
+// CkGoapGym — Combat Brain station entity  (3-tier canonical demo)
 //
 // Builds the canonical multi-tier example from spec §2.2 — one tier deeper
-// than the Patrol station — with two sibling composites promoted at tier 3
+// than the Patrol station — with two sibling composites promoted at tier 2
 // so the user can watch sibling branch selection happen at depth.
 //
-// Construction sequence (PR-A canonical idiom):
+// PR-B.1b Stage 5: the implicit-root model is gone — Engage and Win are
+// direct children of the Alive Planner.
+//
+// Construction sequence:
 //   1. utils_goap_planner::Add(InHandle, AlivePlannerParams)
 //        → top-level Alive Planner (goal: EnemyDead=true)
-//   2. utils_goap_planner::AddAction(_Alive, AliveRootParams)
-//        → implicit Tier-1 root of Alive
-//   3. utils_goap_planner::AddAction(_Alive, EngageActionParams)
-//        → Engage as Tier-2 Action under Alive
-//   4. utils_goap_planner::AddAction(_Alive, WinParams)
-//        → Win as Tier-2 atomic finisher under Alive
-//   5. utils_goap_planner::PromoteActionToPlanner(_Engage, EngagePlannerParams)
+//   2. utils_goap_planner::AddAction(_Alive, EngageActionParams)
+//        → Engage as Tier-1 Action under Alive
+//   3. utils_goap_planner::AddAction(_Alive, WinParams)
+//        → Win as Tier-1 atomic finisher under Alive
+//   4. utils_goap_planner::PromoteActionToPlanner(_Engage, EngagePlannerParams)
 //        → Engage gains the Planner role (sub-goal EnemyAttacked=true)
-//   6. utils_goap_planner::AddAction(_Engage_AsPlanner, LightAttacksParams)
+//   5. utils_goap_planner::AddAction(_Engage_AsPlanner, LightAttacksParams)
 //      utils_goap_planner::AddAction(_Engage_AsPlanner, HeavyAttacksParams)
-//        → Tier-3 composites under Engage
-//   7. Promote each composite to a Planner (sub-goal EnemyHit=true).
-//   8. utils_goap_planner::AddAction for Tier-4 leaves under each.
+//        → Tier-2 composites under Engage
+//   6. Promote each composite to a Planner (sub-goal EnemyHit=true).
+//   7. utils_goap_planner::AddAction for Tier-3 leaves under each.
 //
 // Entity hierarchy after construction:
 //   Owner entity
 //     Alive_Planner            [Planner only]            goal: EnemyDead
-//       Alive_Root             [Action; implicit root]   eff: EnemyDead
 //       Engage                 [Action + Planner]        eff: EnemyAttacked
-//                                                        sub-goal: EnemyHit
+//                                                        sub-goal: EnemyAttacked
 //         LightAttacks         [Action + Planner]        eff: EnemyAttacked
 //                                                        sub-goal: EnemyHit
 //           Light1/Light2/Light3 [Action only]           eff: EnemyHit
@@ -53,16 +53,15 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    // ---- Tier-1 ----
+    // ---- Top-level Planner ----
     private FCk_Handle_Goap_Planner _AlivePlanner;
-    private FCk_Handle_Goap_Action  _AliveRoot;
 
-    // ---- Tier-2 ----
+    // ---- Tier-1 ----
     private FCk_Handle_Goap_Action  _Engage_AsAction;
     private FCk_Handle_Goap_Planner _Engage_AsPlanner;
     private FCk_Handle_Goap_Action  _Win;
 
-    // ---- Tier-3 ----
+    // ---- Tier-2 ----
     private FCk_Handle_Goap_Action  _LightAttacks_AsAction;
     private FCk_Handle_Goap_Planner _LightAttacks_AsPlanner;
     private FCk_Handle_Goap_Action  _HeavyAttacks_AsAction;
@@ -96,7 +95,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         Reset_WS();
 
         // ------------------------------------------------------------------
-        // Tier 1 — Alive top-level Planner, goal: EnemyDead=true.
+        // Top-level Alive Planner, goal: EnemyDead=true.
         // ------------------------------------------------------------------
         auto AliveGoal = TArray<FCk_GoapWS_Condition_Authored>();
         AliveGoal.Add(FCk_GoapWS_Condition_Authored(
@@ -110,19 +109,14 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         AlivePlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _AlivePlanner = utils_goap_planner::Add(InHandle, AlivePlannerParams);
 
-        // Root action: direct child of the Planner.
-        auto AliveRootParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_GoapGym_CombatBrain_AliveRoot);
-        _AliveRoot = utils_goap_planner::AddAction(_AlivePlanner, AliveRootParams);
-
         // ------------------------------------------------------------------
-        // Tier 2 — Engage Action under Alive (promoted to Planner below).
+        // Tier 1 — Engage Action under Alive (promoted to Planner below).
         // ------------------------------------------------------------------
         auto EngageActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_CombatBrain_Engage);
         _Engage_AsAction = utils_goap_planner::AddAction(_AlivePlanner, EngageActionParams);
 
-        // Tier 2 — Win atomic finisher under Alive.
+        // Tier 1 — Win atomic finisher under Alive.
         auto WinParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CombatBrain_Win);
         _Win = utils_goap_planner::AddAction(_AlivePlanner, WinParams);
 
@@ -139,7 +133,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
             _Engage_AsAction, EngagePlannerParams);
 
         // ------------------------------------------------------------------
-        // Tier 3 — LightAttacks + HeavyAttacks composites under Engage.
+        // Tier 2 — LightAttacks + HeavyAttacks composites under Engage.
         // ------------------------------------------------------------------
         auto LightAttacksActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_CombatBrain_LightAttacks);
@@ -176,7 +170,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
             _HeavyAttacks_AsAction, HeavyAttacksPlannerParams);
 
         // ------------------------------------------------------------------
-        // Tier 4 — atomic leaves under each promoted composite.
+        // Tier 3 — atomic leaves under each promoted composite.
         // ------------------------------------------------------------------
         utils_goap_planner::AddAction(_LightAttacks_AsPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CombatBrain_Light1));
@@ -244,7 +238,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
     UFUNCTION()
     private void OnDisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (ck::Is_NOT_Valid(_AliveRoot)) { return; }
+        if (ck::Is_NOT_Valid(_AlivePlanner)) { return; }
 
         auto EnemyVisible    = GetWS(n"Gym.Goap.WS.CombatBrain.EnemyVisible");
         auto WeaponEquipped  = GetWS(n"Gym.Goap.WS.CombatBrain.WeaponEquipped");
@@ -256,14 +250,14 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         auto Chain = utils_goap_planner::Get_ActiveChain(_AlivePlanner);
         auto ChainLen = Chain.Num();
 
-        // Tier-1 Alive.
+        // Top-level Alive.
         auto AliveStatus = utils_goap_planner::Get_PlanStatus(_AlivePlanner);
         auto AlivePlan   = utils_goap_planner::Get_PlanClasses(_AlivePlanner);
 
-        // Tier-2 Engage (only meaningful once activation reaches it).
+        // Tier-1 Engage (only meaningful once activation reaches it).
         auto EngageStatusStr = "(not yet active)";
         auto EngagePlanStr   = "(waiting)";
-        if (ChainLen >= 2 && ck::IsValid(_Engage_AsAction))
+        if (ChainLen >= 1 && ck::IsValid(_Engage_AsAction))
         {
             EngageStatusStr = CkGoapGym_Common::Format_PlanStatus(
                 utils_goap_action::Get_PlanStatus(_Engage_AsAction));
@@ -272,10 +266,10 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
                 _KnownClasses_Engage, _KnownLabels_Engage);
         }
 
-        // Tier-3 LightAttacks.
+        // Tier-2 LightAttacks.
         auto LightStatusStr = "(not yet active)";
         auto LightPlanStr   = "(waiting)";
-        if (ChainLen >= 3 && ck::IsValid(_LightAttacks_AsAction))
+        if (ChainLen >= 2 && ck::IsValid(_LightAttacks_AsAction))
         {
             LightStatusStr = CkGoapGym_Common::Format_PlanStatus(
                 utils_goap_action::Get_PlanStatus(_LightAttacks_AsAction));
@@ -284,10 +278,10 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
                 _KnownClasses_Light, _KnownLabels_Light);
         }
 
-        // Tier-3 HeavyAttacks.
+        // Tier-2 HeavyAttacks.
         auto HeavyStatusStr = "(not yet active)";
         auto HeavyPlanStr   = "(waiting)";
-        if (ChainLen >= 3 && ck::IsValid(_HeavyAttacks_AsAction))
+        if (ChainLen >= 2 && ck::IsValid(_HeavyAttacks_AsAction))
         {
             HeavyStatusStr = CkGoapGym_Common::Format_PlanStatus(
                 utils_goap_action::Get_PlanStatus(_HeavyAttacks_AsAction));
@@ -303,17 +297,17 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
             + f"  EnemyHit        {CkGoapGym_Common::Render_Bool(EnemyHit)}\n"
             + f"  EnemyAttacked   {CkGoapGym_Common::Render_Bool(EnemyAttacked)}\n"
             + f"  EnemyDead       {CkGoapGym_Common::Render_Bool(EnemyDead)}\n\n"
-            + "Tier-1 Alive Planner (goal: EnemyDead=true)\n"
+            + "Top Alive Planner (goal: EnemyDead=true)\n"
             + f"  Status          {CkGoapGym_Common::Format_PlanStatus(AliveStatus)}\n"
             + f"  Plan            {CkGoapGym_Common::Format_Plan(AlivePlan, _KnownClasses_Alive, _KnownLabels_Alive)}\n"
             + f"  Chain length    {ChainLen}\n\n"
-            + "Tier-2 Engage Planner (goal: EnemyAttacked=true)\n"
+            + "Tier-1 Engage Planner (goal: EnemyAttacked=true)\n"
             + f"  Status          {EngageStatusStr}\n"
             + f"  Plan            {EngagePlanStr}\n\n"
-            + "Tier-3 LightAttacks Planner (goal: EnemyHit=true)\n"
+            + "Tier-2 LightAttacks Planner (goal: EnemyHit=true)\n"
             + f"  Status          {LightStatusStr}\n"
             + f"  Plan            {LightPlanStr}\n\n"
-            + "Tier-3 HeavyAttacks Planner (goal: EnemyHit=true)\n"
+            + "Tier-2 HeavyAttacks Planner (goal: EnemyHit=true)\n"
             + f"  Status          {HeavyStatusStr}\n"
             + f"  Plan            {HeavyPlanStr}\n\n"
             + "Console (Goap.CombatBrain.*)\n"
@@ -322,6 +316,6 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "STATION 6 / COMBAT BRAIN", Body,
-            "Canonical 4-tier Planner (spec 2.2).\nAlive -> Engage -> Light/Heavy -> atomic leaves.");
+            "Canonical 3-tier Planner (spec 2.2).\nAlive -> Engage -> Light/Heavy -> atomic leaves.");
     }
 }

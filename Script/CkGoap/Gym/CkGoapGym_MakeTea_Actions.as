@@ -9,22 +9,14 @@
 //   PourCup    pre {TeaSteeped, HasCup}         eff {TeaPoured}
 //   Serve      pre {TeaPoured}                  eff {TeaServed}
 //
-// Root's goal is TeaServed=true. Planner backchains through each step,
+// Planner goal is TeaServed=true. Planner backchains through each step,
 // producing a 4-step ordered plan when the player has all the ingredients.
 // Drop a precondition (e.g. HasWater=false) and the plan fails to resolve.
+//
+// PR-B.1b Stage 5: the implicit-root model is gone. The four operators are
+// registered directly on the Planner; Serve is the only one whose effect
+// satisfies TeaServed, so the backchain naturally orders the dependency chain.
 //============================================================================
-
-class UCk_GoapGym_MakeTea_Root : UCk_GoapAction_EntityScript
-{
-    UFUNCTION(BlueprintOverride)
-    void DoDefineAction()
-    {
-        // Marker effect so the planner registers the goal key in the WS.
-        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
-            n"Gym.Goap.WS.Tea.TeaServed"), true);
-        SetCost(0.0);
-    }
-}
 
 class UCk_GoapGym_MakeTea_BoilWater : UCk_GoapAction_EntityScript
 {

@@ -7,20 +7,21 @@
 // F.E.A.R. AI paper. One top-level Planner (FEAR_Combatant) with a
 // sub-Planner promoted at AttackEnemy.
 //
-// Construction sequence (mirrors CombatBrain idiom):
+// PR-B.1b Stage 5: the implicit-root model is gone — every Tier-1 Action is
+// a direct child of FEAR_Combatant.
+//
+// Construction sequence:
 //   1. utils_goap_world_state::Create(InHandle, "Gym.GoapFEAR.WS.Combatant", ...)
 //        → WS entity. All keys reset by Reset_WS().
 //   2. utils_goap_planner::Add(InHandle, CombatantPlannerParams)
 //        → top-level FEAR_Combatant Planner (goal: EnemyNeutralized=true)
-//   3. utils_goap_planner::AddAction(_Combatant, RootParams)
-//        → implicit root Combatant_Root (eff: EnemyNeutralized cost 0)
-//   4. utils_goap_planner::AddAction(_Combatant, AttackEnemyParams)
+//   3. utils_goap_planner::AddAction(_Combatant, AttackEnemyParams)
 //        → AttackEnemy as a tier-1 Action.
-//   5. utils_goap_planner::AddAction(_Combatant, ...)
+//   4. utils_goap_planner::AddAction(_Combatant, ...)
 //        → Flank, TakeCover, Reload, Investigate, Patrol siblings.
-//   6. utils_goap_planner::PromoteActionToPlanner(_AttackEnemy, ...)
+//   5. utils_goap_planner::PromoteActionToPlanner(_AttackEnemy, ...)
 //        → AttackEnemy gains the Planner role with sub-goal EnemyNeutralized.
-//   7. utils_goap_planner::AddAction(_AttackEnemy_AsPlanner, ...)
+//   6. utils_goap_planner::AddAction(_AttackEnemy_AsPlanner, ...)
 //        → AttackFromCover, AttackFromFlank, AttackOpen leaves.
 //
 // Scenarios (toggle WS keys via Goap.FEAR.* console commands):
@@ -48,9 +49,8 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
-    // ---- Tier-1 ----
+    // ---- Top-level Planner + Tier-1 ----
     private FCk_Handle_Goap_Planner _Combatant;
-    private FCk_Handle_Goap_Action  _CombatantRoot;
     private FCk_Handle_Goap_Action  _AttackEnemy_AsAction;
     private FCk_Handle_Goap_Planner _AttackEnemy_AsPlanner;
     private FCk_Handle_Goap_Action  _Flank;
@@ -83,7 +83,7 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         Reset_WS();
 
         // ------------------------------------------------------------------
-        // Tier 1 — FEAR_Combatant top-level Planner.
+        // FEAR_Combatant top-level Planner.
         // Goal: EnemyNeutralized=true.
         // ------------------------------------------------------------------
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
@@ -97,10 +97,6 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         PlannerParams.Set_WorldStateSource(_WS);
         PlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Combatant = utils_goap_planner::Add(InHandle, PlannerParams);
-
-        // Root action: direct child of the Planner.
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Combatant_Root);
-        _CombatantRoot = utils_goap_planner::AddAction(_Combatant, RootParams);
 
         // ------------------------------------------------------------------
         // Tier 1 children of FEAR_Combatant.
@@ -200,7 +196,7 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
     UFUNCTION()
     private void OnDisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (ck::Is_NOT_Valid(_CombatantRoot)) { return; }
+        if (ck::Is_NOT_Valid(_Combatant)) { return; }
 
         auto EnemyVisible     = GetWS(n"Gym.GoapFEAR.WS.Combatant.EnemyVisible");
         auto EnemyNeutralized = GetWS(n"Gym.GoapFEAR.WS.Combatant.EnemyNeutralized");
@@ -222,7 +218,7 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         // Tier-2 AttackEnemy sub-Planner (only meaningful once activation reaches it).
         auto AttackStatusStr = "(not yet active)";
         auto AttackPlanStr   = "(waiting)";
-        if (ChainLen >= 2 && ck::IsValid(_AttackEnemy_AsAction))
+        if (ChainLen >= 1 && ck::IsValid(_AttackEnemy_AsAction))
         {
             AttackStatusStr = CkGoapGym_Common::Format_PlanStatus(
                 utils_goap_action::Get_PlanStatus(_AttackEnemy_AsAction));

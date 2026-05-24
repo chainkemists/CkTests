@@ -40,8 +40,6 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
 
     private FCk_Handle_Goap_Planner _Planner_Hunger;
     private FCk_Handle_Goap_Planner _Planner_Defense;
-    private FCk_Handle_Goap_Action _Root_Hunger;
-    private FCk_Handle_Goap_Action _Root_Defense;
     private FCk_Handle_Goap_WorldState _WS;
 
     private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses_Hunger;
@@ -73,10 +71,6 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
         HungerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Planner_Hunger = utils_goap_planner::Add(InHandle, HungerParams);
 
-        auto HungerRootParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_GoapGym_Survival_HungerRoot);
-        _Root_Hunger = utils_goap_planner::AddAction(_Planner_Hunger, HungerRootParams);
-
         utils_goap_planner::AddAction(_Planner_Hunger,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_EatFood));
         utils_goap_planner::AddAction(_Planner_Hunger,
@@ -97,10 +91,6 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
         DefenseParams.Set_WorldStateSource(_WS);
         DefenseParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Planner_Defense = utils_goap_planner::Add(InHandle, DefenseParams);
-
-        auto DefenseRootParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_GoapGym_Survival_DefenseRoot);
-        _Root_Defense = utils_goap_planner::AddAction(_Planner_Defense, DefenseRootParams);
 
         utils_goap_planner::AddAction(_Planner_Defense,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_FightEnemy));
@@ -140,7 +130,7 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
     UFUNCTION()
     private void OnDisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (ck::Is_NOT_Valid(_Root_Hunger) || ck::Is_NOT_Valid(_Root_Defense)) { return; }
+        if (ck::Is_NOT_Valid(_Planner_Hunger) || ck::Is_NOT_Valid(_Planner_Defense)) { return; }
 
         auto Hungry = Get(n"Gym.Goap.WS.Survival.Hungry");
         auto HasFood = Get(n"Gym.Goap.WS.Survival.HasFood");

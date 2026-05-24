@@ -29,7 +29,6 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
     FTransform InitialTransform = FTransform::Identity;
 
     private FCk_Handle_Goap_Planner _Planner;
-    private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_WorldState _WS;
     private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses;
     private TArray<FString> _KnownLabels;
@@ -62,11 +61,7 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
         ActionSetParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_Root);
-
-        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
-
-        // Single operator — atomic OpenDoor.
+        // Single operator — atomic OpenDoor. Registered directly on the Planner.
         auto OpParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_Operator);
         utils_goap_planner::AddAction(_Planner, OpParams);
 
@@ -82,7 +77,7 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
     UFUNCTION()
     private void OnDisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (ck::Is_NOT_Valid(_RootAction)) { return; }
+        if (ck::Is_NOT_Valid(_Planner)) { return; }
 
         auto IsOpen = utils_goap_world_state::Get_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Door.IsOpen"));
