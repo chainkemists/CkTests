@@ -124,7 +124,7 @@ class UCk_SmTest_Racing_Task_DestA : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmRacing_Registry::Increment_DestA(); }
 };
 
@@ -134,7 +134,7 @@ class UCk_SmTest_Racing_Task_DestB : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmRacing_Registry::Increment_DestB(); }
 };
 

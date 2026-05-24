@@ -124,7 +124,7 @@ class UCk_SmTest_EventDrivenMultiCondition_Task_Finish : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmEventDrivenMultiCondition_Registry::Increment_Finish(); }
 };
 

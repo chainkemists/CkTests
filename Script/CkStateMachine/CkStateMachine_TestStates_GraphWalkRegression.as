@@ -82,11 +82,11 @@ class UCk_SmTest_Task_EnterCount_Top_A : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmGraphWalk_Regression::Increment(n"TopA"); }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle) {}
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -95,11 +95,11 @@ class UCk_SmTest_Task_EnterCount_Top_B : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmGraphWalk_Regression::Increment(n"TopB"); }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle) {}
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -108,11 +108,11 @@ class UCk_SmTest_Task_EnterCount_Top_C : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmGraphWalk_Regression::Increment(n"TopC"); }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle) {}
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -121,11 +121,11 @@ class UCk_SmTest_Task_EnterCount_Top_D : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmGraphWalk_Regression::Increment(n"TopD"); }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle) {}
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 // Terminal state task for the top-level SM — Request_Stop on the owning SM.
@@ -138,7 +138,7 @@ class UCk_SmTest_Task_RequestStopOwning_Top : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
         SmGraphWalk_Regression::Increment(n"TopStopE");
 
@@ -150,7 +150,7 @@ class UCk_SmTest_Task_RequestStopOwning_Top : UCk_SmTask_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle) {}
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 // ============================================================================
@@ -163,11 +163,11 @@ class UCk_SmTest_Task_EnterCount_Sub_A : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmGraphWalk_Regression::Increment(n"SubA"); }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle) {}
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -176,11 +176,11 @@ class UCk_SmTest_Task_EnterCount_Sub_B : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmGraphWalk_Regression::Increment(n"SubB"); }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle) {}
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -189,11 +189,11 @@ class UCk_SmTest_Task_EnterCount_Sub_C : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmGraphWalk_Regression::Increment(n"SubC"); }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle) {}
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -202,11 +202,11 @@ class UCk_SmTest_Task_EnterCount_Sub_D : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmGraphWalk_Regression::Increment(n"SubD"); }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle) {}
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -215,7 +215,7 @@ class UCk_SmTest_Task_RequestStopOwning_Sub : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
         SmGraphWalk_Regression::Increment(n"SubStopE");
 
@@ -227,7 +227,7 @@ class UCk_SmTest_Task_RequestStopOwning_Sub : UCk_SmTask_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle) {}
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 // ============================================================================

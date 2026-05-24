@@ -139,7 +139,7 @@ class UCk_SmTest_Divergence_Task_Enter : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmDivergenceFirstBranch_Regression::Increment(n"Enter"); }
 };
 
@@ -149,7 +149,7 @@ class UCk_SmTest_Divergence_Task_Idle : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmDivergenceFirstBranch_Regression::Increment(n"Idle"); }
 };
 
@@ -159,7 +159,7 @@ class UCk_SmTest_Divergence_Task_Branch : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmDivergenceFirstBranch_Regression::Increment(n"Branch"); }
 };
 
@@ -169,7 +169,7 @@ class UCk_SmTest_Divergence_Task_Left : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmDivergenceFirstBranch_Regression::Increment(n"Left"); }
 };
 
@@ -179,7 +179,7 @@ class UCk_SmTest_Divergence_Task_Right : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     { SmDivergenceFirstBranch_Regression::Increment(n"Right"); }
 };
 
@@ -189,7 +189,7 @@ class UCk_SmTest_Divergence_Task_Finish : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
         SmDivergenceFirstBranch_Regression::Increment(n"Finish");
 
