@@ -55,13 +55,13 @@ class UCk_SmTest_State_Idle : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("SM Test: Entered IDLE", n"SmTest", 3.0f, FLinearColor::Blue);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("SM Test: Exited IDLE", n"SmTest", 1.0f);
     }
@@ -80,13 +80,13 @@ class UCk_SmTest_State_Patrol : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("SM Test: Entered PATROL", n"SmTest", 3.0f, FLinearColor::Green);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("SM Test: Exited PATROL", n"SmTest", 1.0f);
     }
@@ -105,13 +105,13 @@ class UCk_SmTest_State_Alert : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("SM Test: Entered ALERT", n"SmTest", 3.0f, FLinearColor::Red);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("SM Test: Exited ALERT", n"SmTest", 1.0f);
     }

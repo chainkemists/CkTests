@@ -231,13 +231,13 @@ class UCk_SmTest_Complex_State_Idle : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("Complex SM: Entered IDLE", n"SmTest", 3.0f, FLinearColor::Blue);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -268,13 +268,13 @@ class UCk_SmTest_Complex_State_Patrol : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("Complex SM: Entered PATROL", n"SmTest", 3.0f, FLinearColor::Green);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -301,13 +301,13 @@ class UCk_SmTest_Complex_State_Chase : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("Complex SM: Entered CHASE", n"SmTest", 3.0f, FLinearColor(1.0f, 0.5f, 0.0f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -330,13 +330,13 @@ class UCk_SmTest_Complex_State_Attack : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("Complex SM: Entered ATTACK", n"SmTest", 3.0f, FLinearColor::Red);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -358,13 +358,13 @@ class UCk_SmTest_Complex_State_Search : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("Complex SM: Entered SEARCH", n"SmTest", 3.0f, FLinearColor(0.5f, 0.0f, 1.0f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -385,13 +385,13 @@ class UCk_SmTest_Complex_State_Flee : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("Complex SM: Entered FLEE", n"SmTest", 3.0f, FLinearColor(1.0f, 1.0f, 0.0f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };

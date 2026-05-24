@@ -252,10 +252,10 @@ class UCk_SmTest_GraphWalk_Top_State_A : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -271,10 +271,10 @@ class UCk_SmTest_GraphWalk_Top_State_B : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -290,10 +290,10 @@ class UCk_SmTest_GraphWalk_Top_State_C : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -309,10 +309,10 @@ class UCk_SmTest_GraphWalk_Top_State_D : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 // Terminal state: no outgoing transitions, RequestStopOwning task. If
@@ -327,10 +327,10 @@ class UCk_SmTest_GraphWalk_Top_State_E : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 // ============================================================================
@@ -354,10 +354,10 @@ class UCk_SmTest_GraphWalk_Sub_State_A : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -373,10 +373,10 @@ class UCk_SmTest_GraphWalk_Sub_State_B : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -392,10 +392,10 @@ class UCk_SmTest_GraphWalk_Sub_State_C : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -411,10 +411,10 @@ class UCk_SmTest_GraphWalk_Sub_State_D : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 UCLASS()
@@ -427,10 +427,10 @@ class UCk_SmTest_GraphWalk_Sub_State_E : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 // ============================================================================
@@ -458,10 +458,10 @@ class UCk_SmTest_GraphWalk_SubSmWrapper_State : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle) {}
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle) {}
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
 // ============================================================================
