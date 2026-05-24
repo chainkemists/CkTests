@@ -33,7 +33,7 @@ class UCk_SmTest_Negated_Condition_AfterDelay : UCk_SmCondition_EventDriven
     default _NegateResult = true;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.1f));
         TimerParams

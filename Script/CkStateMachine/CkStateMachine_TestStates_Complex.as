@@ -38,7 +38,7 @@ class UCk_SmTest_Condition_PolledTimer : UCk_SmCondition_Polled
     float64 StartTime = 0.0;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         StartTime = System::GetGameTimeInSeconds();
     }
@@ -60,7 +60,7 @@ class UCk_SmTest_Condition_ShortDelay : UCk_SmCondition_EventDriven
     float32 DelaySeconds = 1.0f;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(DelaySeconds));
         TimerParams
@@ -102,7 +102,7 @@ class UCk_SmTest_Condition_LongDelay : UCk_SmCondition_EventDriven
     float32 DelaySeconds = 4.0f;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(DelaySeconds));
         TimerParams
