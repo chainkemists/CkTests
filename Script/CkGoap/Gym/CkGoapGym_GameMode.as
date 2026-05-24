@@ -3,13 +3,16 @@
 //============================================================================
 // CkGoap_Gym — Main Gym GameMode + PlayerController
 //
-// Spawns 6 stations of ascending complexity:
+// Spawns 7 stations of ascending complexity:
 //   1. Open Door         — atomic plan
-//   2. Make Tea          — 4-step linear chain
+//   2. Make Tea          — 4-step linear chain (intentional PlanFailed demo —
+//                          ingredient drop; opts out of always-valid-plan tenet)
 //   3. Cross River       — 3-branch cost selection
 //   4. Patrol Route      — composite Action, chain extends to [Root, DoPatrol]
 //   5. Survival Decision — two independent ActionSets on one entity
 //   6. Combat Brain      — 4-tier canonical hierarchy (spec 2.2)
+//   7. Opt-Out Demo      — intentional permanent PlanFailed via
+//                          _AllowPlanFailed=true; counterpart to MakeTea
 //
 // Each station is its own ECS entity tagged with a station identity gameplay
 // tag. The exec console commands resolve a station entity by tag, then locate
@@ -48,6 +51,9 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         Stations.Add(MakeStationPayload(n"Gym.Goap.Station.CombatBrain", "STATION 6 / COMBAT BRAIN",
             "4-tier canonical Planner (spec 2.2).\nAlive -> Engage -> Light/Heavy -> leaves.\nSibling promotions at tier 3."));
 
+        Stations.Add(MakeStationPayload(n"Gym.Goap.Station.OptOutDemo", "STATION 7 / OPT-OUT DEMO",
+            "Intentional _AllowPlanFailed=true.\nGoal is structurally unreachable.\nDebugger should show OPT-OUT indicator."));
+
         return Stations;
     }
 
@@ -73,6 +79,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         Spawn_Patrol("Gym.Goap.Station.Patrol");
         Spawn_Survival("Gym.Goap.Station.Survival");
         Spawn_CombatBrain("Gym.Goap.Station.CombatBrain");
+        Spawn_OptOutDemo("Gym.Goap.Station.OptOutDemo");
     }
 
     private void Spawn_OpenDoor(FString InTag)
@@ -132,6 +139,16 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         utils_entity_script::Request_SpawnEntity(
             Get_StationHandle(InTag),
             UCk_EntityScript_GoapGym_CombatBrain_Station,
+            FInstancedStruct::Make(Params));
+    }
+
+    private void Spawn_OptOutDemo(FString InTag)
+    {
+        auto Params = FCk_GoapGym_OptOutDemo_Station_SpawnParams();
+        Params.InitialTransform = Get_StationAnchorTransform(InTag, ECk_GymStation_Anchor::PanelCenter);
+        utils_entity_script::Request_SpawnEntity(
+            Get_StationHandle(InTag),
+            UCk_EntityScript_GoapGym_OptOutDemo_Station,
             FInstancedStruct::Make(Params));
     }
 

@@ -179,3 +179,36 @@ class UCk_GoapGym_CombatBrain_Heavy2 : UCk_GoapAction_EntityScript
         SetCost(5.0);
     }
 }
+
+// ---- Tenet fallbacks ----
+//
+// Standby: top Alive Planner fallback (CkGoap/CLAUDE.md § "Design tenets").
+// No preconditions; effect = EnemyDead=true (the top goal); cost 999. Wins
+// only when no real combat chain is viable. Semantically: "stand down; the
+// enemy is neutralized by attrition / they leave / a teammate kills them".
+class UCk_GoapGym_CombatBrain_Standby : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.CombatBrain.EnemyDead"), true);
+        SetCost(999.0);
+    }
+}
+
+// HoldFire: Engage sub-Planner fallback. Sub-goal is EnemyAttacked=true.
+// LightAttacks (pre: WeaponEquipped) and HeavyAttacks (pre: StaminaHigh)
+// can both be blocked — without this fallback the Engage sub-Planner has
+// no unconditional path and the tenet check fires. Semantically: "wait for
+// an attack opening; EnemyAttacked satisfied by attrition".
+class UCk_GoapGym_CombatBrain_Engage_HoldFire : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.CombatBrain.EnemyAttacked"), true);
+        SetCost(999.0);
+    }
+}

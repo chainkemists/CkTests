@@ -36,7 +36,14 @@
 //         HeavyAttacks         [Action + Planner]        eff: EnemyAttacked
 //                                                        sub-goal: EnemyHit
 //           Heavy1/Heavy2      [Action only]             eff: EnemyHit
+//         Engage_HoldFire      [Action only]             eff: EnemyAttacked   (cost 999, fallback)
 //       Win                    [Action only]             eff: EnemyDead
+//       Standby                [Action only]             eff: EnemyDead       (cost 999, fallback)
+//
+// Always-valid-plan tenet (CkGoap/CLAUDE.md § "Design tenets"):
+//   Standby is the top Alive fallback; Engage_HoldFire is the Engage sub-Planner
+//   fallback. LightAttacks and HeavyAttacks sub-Planners already comply via
+//   their precondition-less Light1..3 / Heavy1..2 leaves.
 //============================================================================
 
 USTRUCT()
@@ -120,6 +127,11 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         auto WinParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CombatBrain_Win);
         _Win = utils_goap_planner::AddAction(_AlivePlanner, WinParams);
 
+        // Always-valid-plan tenet fallback for top Alive — see CkGoap/CLAUDE.md
+        // § "Design tenets".
+        utils_goap_planner::AddAction(_AlivePlanner,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CombatBrain_Standby));
+
         // Promote Engage: sub-goal EnemyAttacked=true.
         auto EngageGoal = TArray<FCk_GoapWS_Condition_Authored>();
         EngageGoal.Add(FCk_GoapWS_Condition_Authored(
@@ -144,6 +156,11 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
             UCk_GoapGym_CombatBrain_HeavyAttacks);
         _HeavyAttacks_AsAction = utils_goap_planner::AddAction(
             _Engage_AsPlanner, HeavyAttacksActionParams);
+
+        // Always-valid-plan tenet fallback for Engage sub-Planner — see
+        // CkGoap/CLAUDE.md § "Design tenets".
+        utils_goap_planner::AddAction(_Engage_AsPlanner,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CombatBrain_Engage_HoldFire));
 
         // Promote LightAttacks: sub-goal EnemyHit=true.
         auto LightAttacksGoal = TArray<FCk_GoapWS_Condition_Authored>();
@@ -189,11 +206,15 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         _KnownLabels_Alive.Add("Engage");
         _KnownClasses_Alive.Add(UCk_GoapGym_CombatBrain_Win);
         _KnownLabels_Alive.Add("Win");
+        _KnownClasses_Alive.Add(UCk_GoapGym_CombatBrain_Standby);
+        _KnownLabels_Alive.Add("Standby");
 
         _KnownClasses_Engage.Add(UCk_GoapGym_CombatBrain_LightAttacks);
         _KnownLabels_Engage.Add("LightAttacks");
         _KnownClasses_Engage.Add(UCk_GoapGym_CombatBrain_HeavyAttacks);
         _KnownLabels_Engage.Add("HeavyAttacks");
+        _KnownClasses_Engage.Add(UCk_GoapGym_CombatBrain_Engage_HoldFire);
+        _KnownLabels_Engage.Add("HoldFire");
 
         _KnownClasses_Light.Add(UCk_GoapGym_CombatBrain_Light1);
         _KnownLabels_Light.Add("Light1");

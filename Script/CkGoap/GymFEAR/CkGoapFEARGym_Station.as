@@ -35,8 +35,16 @@
 //   HasAmmo=false, Reserve=false, Visible          [WaitForEnemy] cost 999  (can't attack, can't reload — fall back)
 //
 // The WaitForEnemy fallback (no preconditions, cost 999, effect EnemyNeutralized)
-// guarantees the planner always returns a valid plan. "No plan" should always
-// indicate a misconfigured Action catalog — never a normal operational state.
+// guarantees the top planner always returns a valid plan. "No plan" should
+// always indicate a misconfigured Action catalog — never a normal operational
+// state.
+//
+// The AttackEnemy SUB-Planner has its own fallback (AttackEnemy_Standby, cost
+// 999) for the same reason: AttackFromCover/Flank/Open all carry HasAmmo +
+// EnemyVisible preconditions, so without an unconditional sub-leaf the sub-
+// Planner would hit PlanFailed whenever no concrete attack is viable. Both
+// fallbacks comply with CkGoap/CLAUDE.md § "Design tenets / Every Planner
+// must always produce a valid plan".
 //============================================================================
 
 USTRUCT()
@@ -152,6 +160,10 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackFromFlank));
         utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackOpen));
+        // Always-valid-plan tenet fallback for AttackEnemy sub-Planner — see
+        // CkGoap/CLAUDE.md § "Design tenets".
+        utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackEnemy_Standby));
 
         // ---- Label maps ----
         _KnownClasses_Combatant.Add(UCk_GoapFEARGym_AttackEnemy);
@@ -175,6 +187,8 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         _KnownLabels_Attack.Add("AttackFromFlank");
         _KnownClasses_Attack.Add(UCk_GoapFEARGym_AttackOpen);
         _KnownLabels_Attack.Add("AttackOpen");
+        _KnownClasses_Attack.Add(UCk_GoapFEARGym_AttackEnemy_Standby);
+        _KnownLabels_Attack.Add("AttackEnemy_Standby");
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnDisplayTick"));
 

@@ -58,6 +58,18 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
         ActionSetParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
+        // ----------------------------------------------------------------------
+        // Always-valid-plan tenet OPT-OUT (CkGoap/CLAUDE.md § "Design tenets").
+        // This station INTENTIONALLY demonstrates PlanFailed as a teaching
+        // exception: dropping an ingredient (HasKettle/HasWater/HasTeaLeaves/
+        // HasCup) collapses the dependency chain and the planner returns
+        // PlanFailed. Adding a fallback Action here would defeat the entire
+        // teaching purpose of the gym — we want to show what PlanFailed looks
+        // like so consumers understand why every shipping Planner must avoid it.
+        // The other CkGoap gym Planners all carry no-precondition fallbacks per
+        // the tenet; only this one and the dedicated OptOutDemo station opt out.
+        // ----------------------------------------------------------------------
+        ActionSetParams.Set_AllowPlanFailed(true);
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         utils_goap_planner::AddAction(_Planner,

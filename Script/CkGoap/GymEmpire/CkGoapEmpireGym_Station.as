@@ -63,12 +63,16 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_BuildBarracks));
         utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_ResearchFeudal));
+        // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
+        utils_goap_planner::AddAction(_Planner,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_WaitForOrders));
 
         _KnownClasses.Add(UCk_GoapGym_Empire_GatherFood);     _KnownLabels.Add("GatherFood");
         _KnownClasses.Add(UCk_GoapGym_Empire_GatherGold);     _KnownLabels.Add("GatherGold");
         _KnownClasses.Add(UCk_GoapGym_Empire_GatherWood);     _KnownLabels.Add("GatherWood");
         _KnownClasses.Add(UCk_GoapGym_Empire_BuildBarracks);  _KnownLabels.Add("BuildBarracks");
         _KnownClasses.Add(UCk_GoapGym_Empire_ResearchFeudal); _KnownLabels.Add("ResearchFeudal");
+        _KnownClasses.Add(UCk_GoapGym_Empire_WaitForOrders);  _KnownLabels.Add("WaitForOrders");
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnDisplayTick"));
 

@@ -83,3 +83,21 @@ class UCk_GoapGym_Empire_ResearchFeudal : UCk_GoapAction_EntityScript
         SetCost(6.0);
     }
 }
+
+// Always-valid-plan tenet fallback (CkGoap/CLAUDE.md § "Design tenets").
+// ResearchFeudal carries hard preconditions on BarracksBuilt + HasFood — the
+// real path goes through all five resource/build steps. Without this fallback
+// the Planner has no unconditional path to FeudalResearched and the tenet
+// check fires. Semantically: "wait for orders from the ruler; FeudalResearched
+// satisfied via off-screen / external decree." Cost 999 ensures it only wins
+// when no real research chain is viable.
+class UCk_GoapGym_Empire_WaitForOrders : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Empire.FeudalResearched"), true);
+        SetCost(999.0);
+    }
+}

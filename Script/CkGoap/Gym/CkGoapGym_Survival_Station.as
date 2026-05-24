@@ -5,11 +5,18 @@
 //
 // Single entity with TWO Planners on one Goap root:
 //   Planner "Hunger"   goal {Hungry=false}
-//     ├── EatFood   pre {HasFood}  eff {Hungry=false}  cost 1
-//     └── Forage    pre {}         eff {HasFood=true}  cost 4
+//     ├── EatFood        pre {HasFood}  eff {Hungry=false}  cost 1
+//     ├── Forage         pre {}         eff {HasFood=true}  cost 4
+//     └── HuddleInPlace  pre {}         eff {Hungry=false}  cost 999  (fallback)
 //   Planner "Defense"  goal {SafeFromThreat=true}
-//     ├── FightEnemy pre {ThreatActive, HasWeapon}  eff {SafeFromThreat=true}  cost 1
-//     └── RunAway    pre {ThreatActive}             eff {SafeFromThreat=true}  cost 3
+//     ├── FightEnemy   pre {ThreatActive, HasWeapon}  eff {SafeFromThreat=true}  cost 1
+//     ├── RunAway      pre {ThreatActive}             eff {SafeFromThreat=true}  cost 3
+//     └── RemainAlert  pre {}                          eff {SafeFromThreat=true}  cost 999  (fallback)
+//
+// Always-valid-plan tenet (CkGoap/CLAUDE.md § "Design tenets"):
+//   HuddleInPlace and RemainAlert are the unconditional fallbacks for the
+//   two Planners. They only win when no real Action chain is viable (e.g.
+//   HasFood=false on Hunger; ThreatActive=false on Defense).
 //
 // Both Planners share the same WS entity but plan independently. Toggling
 // HasFood / HasWeapon / ThreatActive on the same WS triggers replans on the
@@ -75,9 +82,13 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_EatFood));
         utils_goap_planner::AddAction(_Planner_Hunger,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_Forage));
+        // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
+        utils_goap_planner::AddAction(_Planner_Hunger,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_HuddleInPlace));
 
-        _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_EatFood); _KnownLabels_Hunger.Add("EatFood");
-        _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_Forage);  _KnownLabels_Hunger.Add("Forage");
+        _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_EatFood);       _KnownLabels_Hunger.Add("EatFood");
+        _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_Forage);        _KnownLabels_Hunger.Add("Forage");
+        _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_HuddleInPlace); _KnownLabels_Hunger.Add("HuddleInPlace");
 
         // -------- Defense Planner -------- (U11.1: goal on PlannerParams)
         auto DefenseGoal = TArray<FCk_GoapWS_Condition_Authored>();
@@ -96,9 +107,13 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_FightEnemy));
         utils_goap_planner::AddAction(_Planner_Defense,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_RunAway));
+        // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
+        utils_goap_planner::AddAction(_Planner_Defense,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_RemainAlert));
 
-        _KnownClasses_Defense.Add(UCk_GoapGym_Survival_FightEnemy); _KnownLabels_Defense.Add("FightEnemy");
-        _KnownClasses_Defense.Add(UCk_GoapGym_Survival_RunAway);    _KnownLabels_Defense.Add("RunAway");
+        _KnownClasses_Defense.Add(UCk_GoapGym_Survival_FightEnemy);  _KnownLabels_Defense.Add("FightEnemy");
+        _KnownClasses_Defense.Add(UCk_GoapGym_Survival_RunAway);     _KnownLabels_Defense.Add("RunAway");
+        _KnownClasses_Defense.Add(UCk_GoapGym_Survival_RemainAlert); _KnownLabels_Defense.Add("RemainAlert");
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnDisplayTick"));
 
