@@ -157,3 +157,28 @@ class UCk_GoapGym_Patrol_WaitAtPost : UCk_GoapAction_EntityScript
         SetCost(3.0);
     }
 }
+
+// ---- Top-level fallback ----
+
+// StandWatch: always-valid-plan tenet fallback for the TOP Patrol Planner
+// (CkGoap/CLAUDE.md § "Design tenets"). No preconditions, effect = goal
+// (AreaPatrolled=true), very high cost. Semantically: "hold position;
+// AreaPatrolled satisfied by attrition / time-out". MarkDone (the real
+// completion path) carries hard preconditions (AtWaypoint + AreaScanned),
+// so without this fallback the top Planner has no unconditional path to
+// goal and the framework's tenet check (CK_ENSURE_IF_NOT) fires.
+//
+// Note: the GoToWaypoint and Observe sub-Planners already comply with the
+// tenet via their Run/Walk and LookAround/WaitAtPost leaves respectively
+// (no preconditions; effects = sub-Planner goal). Only the top Planner
+// needed a new fallback.
+class UCk_GoapGym_Patrol_StandWatch : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Patrol.AreaPatrolled"), true);
+        SetCost(999.0);
+    }
+}

@@ -80,3 +80,40 @@ class UCk_GoapGym_Survival_RunAway : UCk_GoapAction_EntityScript
         SetCost(3.0);
     }
 }
+
+// -------------------- Tenet fallbacks --------------------
+//
+// Both Survival Planners (Hunger and Defense) need an unconditional fallback
+// Action per CkGoap/CLAUDE.md § "Design tenets / Every Planner must always
+// produce a valid plan". EatFood requires HasFood, Forage doesn't directly
+// satisfy Hungry=false. FightEnemy and RunAway both require ThreatActive.
+// In other words: drop HasFood (or set ThreatActive=false), and without a
+// fallback both Planners hit PlanFailed — the framework treats that as a
+// catalog misconfiguration. The fallbacks below cover both goals at cost 999.
+
+// HuddleInPlace: Hunger fallback — "curl up and ride out the hunger; goal
+// satisfied by attrition / time-out". Effect = Hungry=false (matches Hunger
+// Planner's goal exactly).
+class UCk_GoapGym_Survival_HuddleInPlace : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Survival.Hungry"), false);
+        SetCost(999.0);
+    }
+}
+
+// RemainAlert: Defense fallback — "stand still and stay vigilant; threat
+// passes / safety achieved by survival in place". Effect = SafeFromThreat=true.
+class UCk_GoapGym_Survival_RemainAlert : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.Goap.WS.Survival.SafeFromThreat"), true);
+        SetCost(999.0);
+    }
+}

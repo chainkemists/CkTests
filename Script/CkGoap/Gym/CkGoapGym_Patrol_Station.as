@@ -33,6 +33,14 @@
 //         LookAround              [Action]           eff: AreaScanned=true (cost 1)
 //         WaitAtPost              [Action]           eff: AreaScanned=true (cost 3)
 //       MarkDone                  [Action]           eff: AreaPatrolled=true
+//       StandWatch                [Action]           eff: AreaPatrolled=true (cost 999, fallback)
+//
+// Always-valid-plan tenet (CkGoap/CLAUDE.md § "Design tenets"):
+//   StandWatch is the top-Planner fallback (no preconditions, effect = goal).
+//   Sub-Planners GoToWaypoint (Run/Walk leaves) and Observe (LookAround/
+//   WaitAtPost leaves) already comply via their precondition-less children.
+//   Default reset → MarkDone gated by AtWaypoint+AreaScanned; planner still
+//   produces a valid plan because StandWatch (cost 999) is always selectable.
 //
 // Player commands:
 //   Goap.Patrol.SetAtWaypoint    — set AtWaypoint=true
@@ -163,10 +171,15 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         utils_goap_planner::AddAction(_TopPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_MarkDone));
 
+        // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
+        utils_goap_planner::AddAction(_TopPlanner,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_StandWatch));
+
         // ---- Label maps ----
         _KnownClasses_Top.Add(UCk_GoapGym_Patrol_GoToWaypoint); _KnownLabels_Top.Add("GoToWaypoint");
         _KnownClasses_Top.Add(UCk_GoapGym_Patrol_Observe);      _KnownLabels_Top.Add("Observe");
         _KnownClasses_Top.Add(UCk_GoapGym_Patrol_MarkDone);     _KnownLabels_Top.Add("MarkDone");
+        _KnownClasses_Top.Add(UCk_GoapGym_Patrol_StandWatch);   _KnownLabels_Top.Add("StandWatch");
 
         _KnownClasses_GoTo.Add(UCk_GoapGym_Patrol_Run);  _KnownLabels_GoTo.Add("Run");
         _KnownClasses_GoTo.Add(UCk_GoapGym_Patrol_Walk); _KnownLabels_GoTo.Add("Walk");

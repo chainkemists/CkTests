@@ -12,6 +12,12 @@
 // tag):
 //   Goap.OpenDoor.Toggle  — flips Door.IsOpen and lets OnWorldStateDirty
 //                           replan from the new state.
+//
+// Always-valid-plan tenet (CkGoap/CLAUDE.md § "Design tenets"):
+//   Catalog includes WaitAtDoor (no preconditions, effect=goal, cost 999) as
+//   the unconditional fallback. OpenDoor wins whenever the door is closed
+//   (cost 1 < 999); WaitAtDoor only ever appears if OpenDoor becomes
+//   ineligible, which guarantees the Planner never returns PlanFailed.
 //============================================================================
 
 USTRUCT()
@@ -65,9 +71,15 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
         auto OpParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_Operator);
         utils_goap_planner::AddAction(_Planner, OpParams);
 
+        // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
+        utils_goap_planner::AddAction(_Planner,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_WaitAtDoor));
+
         // Label map for plan rendering.
         _KnownClasses.Add(UCk_GoapGym_OpenDoor_Operator);
         _KnownLabels.Add("OpenDoor");
+        _KnownClasses.Add(UCk_GoapGym_OpenDoor_WaitAtDoor);
+        _KnownLabels.Add("WaitAtDoor");
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnDisplayTick"));
 

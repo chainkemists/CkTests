@@ -13,6 +13,17 @@
 // Toggling BridgeIsOpen / HasCoin in WS forces the planner to swap branches
 // — demonstrating cost-sensitive plan selection + OnWorldStateDirty replan.
 //
+// Always-valid-plan tenet (CkGoap/CLAUDE.md § "Design tenets"):
+//   SwimAcross has no preconditions and its effect is the Planner's goal —
+//   that makes it the unconditional fallback for this Planner. Even with
+//   both BridgeIsOpen and HasCoin false, the planner still produces
+//   [SwimAcross] (cost 8) instead of PlanFailed. The cost is intentionally
+//   lower than the conventional 999.0 fallback cost because cost sensitivity
+//   between SwimAcross and the gated branches IS the teaching point of this
+//   gym — but 8.0 still loses to UseBridge (2) and UseFerry (4) whenever
+//   their preconditions hold, so the cheap-when-viable / fallback-when-not
+//   semantics still hold.
+//
 // PR-B.1b Stage 5: the implicit-root model is gone. The three operators are
 // registered directly on the Planner; the Planner's regressive search picks
 // the cheapest whose preconditions are satisfied.

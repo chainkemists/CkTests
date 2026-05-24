@@ -1945,6 +1945,32 @@ namespace UCk_AutoTest_Goap_Planner_EnableToggle
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_Planner_FallbackLosesWhenChainViable_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_FallbackLosesWhenChainViable
+{
+    FCk_AutoTest_Goap_Planner_FallbackLosesWhenChainViable_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_FallbackLosesWhenChainViable_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked
+{
+    FCk_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_Planner_FEARGymShape_SpawnParams
 {
 }
@@ -6764,6 +6790,31 @@ namespace UCk_EntityScript_GoapGym_OpenDoor_Station
     FCk_EntityScript_GoapGym_OpenDoor_Station_SpawnParams Params(FTransform InInitialTransform)
     {
         return FCk_EntityScript_GoapGym_OpenDoor_Station_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_EntityScript_GoapGym_OptOutDemo_Station_SpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    FCk_EntityScript_GoapGym_OptOutDemo_Station_SpawnParams(FTransform InInitialTransform)
+    {
+        InitialTransform = InInitialTransform;
+    }
+}
+
+namespace UCk_EntityScript_GoapGym_OptOutDemo_Station
+{
+    FCk_EntityScript_GoapGym_OptOutDemo_Station_SpawnParams Params()
+    {
+        return FCk_EntityScript_GoapGym_OptOutDemo_Station_SpawnParams();
+    }
+
+    FCk_EntityScript_GoapGym_OptOutDemo_Station_SpawnParams Params(FTransform InInitialTransform)
+    {
+        return FCk_EntityScript_GoapGym_OptOutDemo_Station_SpawnParams(InInitialTransform);
     }
 }
 

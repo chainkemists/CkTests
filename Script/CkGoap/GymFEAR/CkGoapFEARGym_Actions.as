@@ -207,3 +207,23 @@ class UCk_GoapFEARGym_AttackOpen : UCk_GoapAction_EntityScript
         SetCost(2.0);
     }
 }
+
+// AttackEnemy_Standby: always-valid-plan tenet fallback for the AttackEnemy
+// SUB-PLANNER (CkGoap/CLAUDE.md § "Design tenets"). All three attack leaves
+// (AttackFromCover, AttackFromFlank, AttackOpen) carry hard preconditions
+// (HasAmmo + EnemyVisible at minimum), so the sub-Planner has no
+// unconditional path to EnemyNeutralized without this fallback. The top
+// Planner already has its own WaitForEnemy fallback covering the same goal.
+// Cost 999 so it only wins inside the sub-Planner when no concrete attack
+// leaf is viable. Semantically: "the sub-Planner stands down; an attack
+// opening will come / the engagement resolves itself by attrition".
+class UCk_GoapFEARGym_AttackEnemy_Standby : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.GoapFEAR.WS.Combatant.EnemyNeutralized"), true);
+        SetCost(999.0);
+    }
+}

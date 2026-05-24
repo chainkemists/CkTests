@@ -31,6 +31,7 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.Station.Patrol");
         GameplayTags.Add(n"Gym.Goap.Station.Survival");
         GameplayTags.Add(n"Gym.Goap.Station.CombatBrain");
+        GameplayTags.Add(n"Gym.Goap.Station.OptOutDemo");
 
         GameplayTags.Add(n"Gym.Goap.AutoReplan.Explicit");
         GameplayTags.Add(n"Gym.Goap.AutoReplan.OnWSDirty");
@@ -53,6 +54,7 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.ActionSet.OnWSDirty");
         GameplayTags.Add(n"Gym.Goap.ActionSet.OnCostDirty");
         GameplayTags.Add(n"Gym.Goap.ActionSet.Empire");
+        GameplayTags.Add(n"Gym.Goap.ActionSet.OptOutDemo");
 
         // World-state entity name tags (one per WS entity per station).
         GameplayTags.Add(n"Gym.Goap.WS.Door");
@@ -65,6 +67,12 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.WS.OnWSDirty");
         GameplayTags.Add(n"Gym.Goap.WS.OnCostDirty");
         GameplayTags.Add(n"Gym.Goap.WS.Empire");
+        GameplayTags.Add(n"Gym.Goap.WS.OptOutDemo");
+        // OptOutDemo: a key that no Action ever produces — used as the
+        // Planner's goal to deterministically force PlanFailed. The key
+        // is registered here so the world-state registry knows about it.
+        GameplayTags.Add(n"Gym.Goap.WS.OptOutDemo.Unreachable");
+        GameplayTags.Add(n"Gym.Goap.WS.OptOutDemo.Touch");
 
         // World-state keys — Open Door station.
         GameplayTags.Add(n"Gym.Goap.WS.Door.IsOpen");
