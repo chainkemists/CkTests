@@ -63,10 +63,9 @@ class UCk_AutoTest_Goap_Planner_MinimalPlan : UCk_AutoTest_Base
         _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction should return a valid handle");
 
-        // Active chain should contain the root immediately.
-        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        Assert_True(Chain.Num() == 1,
-            f"ActiveChain should contain just the root after AddAction (got {Chain.Num()})");
+        // PR-B.1b Stage 5: the implicit-root chain assertion is gone. Before any
+        // plan runs Get_ActiveChain returns empty — the test now verifies the
+        // post-plan signal flow instead.
 
         utils_goap_planner::BindTo_OnPlanComplete(_Planner,
             FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlan"));

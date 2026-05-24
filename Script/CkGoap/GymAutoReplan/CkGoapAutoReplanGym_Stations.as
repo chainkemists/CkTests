@@ -86,10 +86,10 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
             Get_PlannerTagForMode());
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
+        ActionSetParams.Set_ReplanPolicy(Get_ReplanPolicyForMode());
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_Root);
-        RootParams.Set_ReplanPolicy(Get_ReplanPolicyForMode());
 
         _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
 

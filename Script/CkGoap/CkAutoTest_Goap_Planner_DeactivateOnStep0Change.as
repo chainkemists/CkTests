@@ -76,22 +76,21 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
+        ActionSetParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnEitherDirty);
         _Planner = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_Root_ChainTruncation);
-        RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnEitherDirty);
+        // PR-B.1b Stage 5: Mid_A and Mid_B are direct children of the Planner.
+        // No implicit-root Action — the legacy Root_ChainTruncation is dropped
+        // (it had effect AKey=true cost 1.0 which would tie with Mid_A).
 
-        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
-        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
-
-        // Mid_A: child of Root. Cost 1.0 — Root picks this first.
+        // Mid_A: cost 1.0 — Planner picks this first.
         // Add Leaf_A as child to make Mid_A composite (chain extends to it).
         auto MidAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_MidA_ChainTruncation);
         _MidAAction = utils_goap_planner::AddAction(_Planner, MidAParams);
         Assert_True(ck::IsValid(_MidAAction), "Mid_A AddAction should succeed");
+        _RootAction = _MidAAction;
 
         auto MidAPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
@@ -127,10 +126,10 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
         utils_goap_planner::BindTo_OnPlannerDeactivated(_MidAAsPlanner,
             FCk_Delegate_Goap_OnPlannerDeactivated(this, n"OnMidADeactivated"));
 
-        // Initial chain: only Root.
+        // PR-B.1b Stage 5: chain starts empty before any plan runs.
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        Assert_True(Chain.Num() == 1,
-            f"ActiveChain should start with only Root (got {Chain.Num()})");
+        Assert_True(Chain.Num() == 0,
+            f"ActiveChain should start empty before any plan runs (got {Chain.Num()})");
 
         // Wait for Root's initial plan.
         utils_goap_planner::BindTo_OnPlanComplete(_Planner,
@@ -202,20 +201,20 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        if (Chain.Num() < 2)
+        // PR-B.1b Stage 5: chain starts at Plan[0] (Mid_A).
+        if (Chain.Num() < 1)
         {
-            // ChainUpdate hasn't extended yet — wait another frame.
             WaitOneFrame(n"OnWaitForFirstChainExtension");
             return;
         }
 
-        Assert_True(Chain.Num() == 2,
-            f"Chain should be [Root, Mid_A] after first plan (got {Chain.Num()})");
+        Assert_True(Chain.Num() >= 1,
+            f"Chain should include Mid_A after first plan (got {Chain.Num()})");
 
-        if (Chain.Num() >= 2)
+        if (Chain.Num() >= 1)
         {
-            Assert_True(Chain[1] == _MidAAction,
-                "Chain[1] should be Mid_A after first plan");
+            Assert_True(Chain[0] == _MidAAction,
+                "Chain[0] should be Mid_A after first plan");
         }
 
         // Chain is [Root, Mid_A]. Now trigger the replan by bumping Mid_A's cost.
@@ -235,22 +234,22 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
 
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
 
-        // If chain still shows [Root, Mid_A], ChainUpdate hasn't processed yet.
-        // Poll until chain changes to [Root, Mid_B].
-        if (Chain.Num() >= 2 && Chain[1] == _MidAAction)
+        // If chain still shows Mid_A, ChainUpdate hasn't processed yet.
+        // Poll until chain changes to Mid_B at slot 0.
+        if (Chain.Num() >= 1 && Chain[0] == _MidAAction)
         {
             WaitOneFrame(n"OnWaitForChainTruncation");
             return;
         }
 
-        // Chain should now be [Root, Mid_B].
-        Assert_True(Chain.Num() == 2,
-            f"ActiveChain should be [Root, Mid_B] after truncation (got {Chain.Num()})");
+        // Chain should now begin with Mid_B.
+        Assert_True(Chain.Num() >= 1,
+            f"ActiveChain should include Mid_B after truncation (got {Chain.Num()})");
 
-        if (Chain.Num() >= 2)
+        if (Chain.Num() >= 1)
         {
-            Assert_True(Chain[1] == _MidBAction,
-                "Chain[1] should be Mid_B after truncation");
+            Assert_True(Chain[0] == _MidBAction,
+                "Chain[0] should be Mid_B after truncation");
         }
 
         Assert_True(_MidADeactivatedCount == 1,

@@ -83,22 +83,15 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
         _Planner = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-
-        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
-        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
-
-        // Add Mid as a composite child of Root. Mid keeps the default
-        // _PlanOnStart=true: AutoReplan will enqueue Mid's initial Plan request,
-        // but the framework's parent-plan gate (FTag_Goap_Action_PlanInFlight +
-        // parent PlanStatus check) defers it until Root reaches a terminal
-        // status. Mid therefore stays Idle through Root's planning frame
-        // without needing a per-test PlanOnStart=false workaround.
+        // PR-B.1b Stage 5: Mid is a direct child of the Planner. No implicit
+        // root. Mid is promoted to a Planner with its own goal {BKey=true} so
+        // the parent-plan gate (planner-side PlanInFlight) defers Mid's
+        // initial Plan request until the top-level Planner settles.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         auto MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
+        _RootAction = MidAction;
 
         // Promote Mid to a Planner with goal {BKey=true}. Pre-U11.1, Mid's goal
         // was implicitly injected from its CDO effects. The goal is now set
@@ -176,19 +169,18 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
             return;
         }
 
-        // ChainUpdate should have appended Mid to the chain by now.
+        // ChainUpdate should have placed Mid at chain[0] by now.
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        if (Chain.Num() < 2)
+        if (Chain.Num() < 1)
         {
-            // ChainUpdate may need another frame — poll.
             WaitOneFrame(n"OnCheckAfterChainUpdate");
             return;
         }
 
-        Assert_True(Chain.Num() == 2,
-            f"ActiveChain should be [Root, Mid] after one frame (got {Chain.Num()})");
-        Assert_True(Chain.Num() >= 2 && Chain[1] == MidHandle,
-            "Chain[1] should be Mid after ChainUpdate appended it");
+        Assert_True(Chain.Num() >= 1,
+            f"ActiveChain should include Mid after one frame (got {Chain.Num()})");
+        Assert_True(Chain.Num() >= 1 && Chain[0] == MidHandle,
+            "Chain[0] should be Mid after ChainUpdate appended it");
 
         // Mid has been appended. Now poll until Mid has PlanFound to verify
         // that the deferred plan fires on frame+1 (not the same frame as appending).
