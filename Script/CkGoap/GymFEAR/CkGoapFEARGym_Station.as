@@ -95,12 +95,11 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.ActionSet.Combatant"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(_WS);
+        PlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Combatant = utils_goap_planner::Add(InHandle, PlannerParams);
 
-        // Implicit root: first AddAction. Replan on every WS flip so the
-        // user gets immediate feedback when toggling.
+        // Root action: direct child of the Planner.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Combatant_Root);
-        RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _CombatantRoot = utils_goap_planner::AddAction(_Combatant, RootParams);
 
         // ------------------------------------------------------------------
@@ -108,7 +107,6 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         // AttackEnemy comes first because it will be promoted next.
         // ------------------------------------------------------------------
         auto AttackEnemyParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackEnemy);
-        AttackEnemyParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _AttackEnemy_AsAction = utils_goap_planner::AddAction(_Combatant, AttackEnemyParams);
 
         _Flank = utils_goap_planner::AddAction(_Combatant,
@@ -134,6 +132,7 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         auto AttackPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.ActionSet.Combatant.AttackEnemy"));
         AttackPlannerParams.Set_Goal(AttackGoal);
+        AttackPlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _AttackEnemy_AsPlanner = utils_goap_planner::PromoteActionToPlanner(
             _AttackEnemy_AsAction, AttackPlannerParams);
 

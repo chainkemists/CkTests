@@ -52,17 +52,14 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
         _Planner = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_Root_AtomicLeaf);
-
-        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
-        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
-
-        // Add AtomicChild as a child of Root. No grandchildren added — atomic.
+        // PR-B.1b Stage 5: register AtomicChild directly under the Planner.
+        // The legacy "implicit root" Root_AtomicLeaf is no longer needed —
+        // AtomicChild's own effect (Ready=true) satisfies the Planner's goal.
         auto ChildParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_AtomicChild);
-        auto ChildAction = utils_goap_planner::AddAction(_Planner, ChildParams);
-        Assert_True(ck::IsValid(ChildAction), "AddAction (subsequent → tree child of implicit root) should return a valid handle");
+        _RootAction = utils_goap_planner::AddAction(_Planner, ChildParams);
+        Assert_True(ck::IsValid(_RootAction),
+            "AddAction (AtomicChild as direct Planner child) should return a valid handle");
 
         utils_goap_planner::BindTo_OnPlanComplete(_Planner,
             FCk_Delegate_Goap_OnPlanComplete(this, n"OnRootPlan"));

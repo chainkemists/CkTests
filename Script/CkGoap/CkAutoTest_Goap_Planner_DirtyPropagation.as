@@ -62,19 +62,12 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
         _Planner = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-
-        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
-        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
-
-        // Add LeafA as a child of Root. LeafA's effect AKey=true satisfies
-        // Root's goal {AKey=true}. LeafA is atomic (no children) so it won't
-        // extend the active chain.
+        // PR-B.1b Stage 5: LeafA is registered directly under the Planner. No
+        // implicit-root Action. LeafA's effect AKey=true satisfies the goal.
         auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects);
-        auto LeafAAction = utils_goap_planner::AddAction(_Planner, LeafAParams);
-        Assert_True(ck::IsValid(LeafAAction), "LeafA AddAction should succeed");
+        _RootAction = utils_goap_planner::AddAction(_Planner, LeafAParams);
+        Assert_True(ck::IsValid(_RootAction), "AddAction (LeafA) should return a valid handle");
 
         // Bind OnPlanComplete on Root to count replans.
         utils_goap_planner::BindTo_OnPlanComplete(_Planner,

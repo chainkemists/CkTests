@@ -63,17 +63,13 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         _Planner = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-
-        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
-        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
-
-        // Add Mid as composite child of Root.
+        // PR-B.1b Stage 5: Mid is a direct child of the Planner. The legacy
+        // Root_GoalIsEffects implicit-root Action is dropped.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         auto MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
+        _RootAction = MidAction;
 
         // Promote Mid so Leaf_A/Leaf_B become its tree children.
         auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
@@ -128,16 +124,16 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
 
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
 
-        // ChainUpdate may need another frame if it ran before HandleResult in
-        // the same frame. Poll until chain length == 2.
-        if (Chain.Num() < 2)
+        // PR-B.1b Stage 5: chain starts at Plan[0] (Mid) and walks through Mid's
+        // own Plan[0] (one of its leaves). Wait until at least Mid is active.
+        if (Chain.Num() < 1)
         {
             WaitOneFrame(n"OnWaitForChainExtension");
             return;
         }
 
-        Assert_True(Chain.Num() == 2,
-            f"ActiveChain should be [Root, Mid] before reset (got {Chain.Num()})");
+        Assert_True(Chain.Num() >= 1,
+            f"ActiveChain should include Mid before reset (got {Chain.Num()})");
 
         // Bind OnPlannerDeactivated on Mid BEFORE calling ResetActiveChain.
         // Request_ResetActiveChain fires the signal synchronously (inline teardown),
@@ -157,9 +153,10 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         utils_goap_planner::Request_ResetActiveChain(_Planner);
 
         // Verify chain collapsed immediately (synchronous operation).
+        // PR-B.1b Stage 5: no more implicit-root prefix — chain is fully empty.
         Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        Assert_True(Chain.Num() == 1,
-            f"ActiveChain should collapse to [Root] immediately after Request_ResetActiveChain (got {Chain.Num()})");
+        Assert_True(Chain.Num() == 0,
+            f"ActiveChain should collapse to [] immediately after Request_ResetActiveChain (got {Chain.Num()})");
 
         // Disable Planner so ChainUpdate doesn't re-extend the chain on the
         // next frame (Root's plan still shows Mid, so ChainUpdate would normally
@@ -187,8 +184,8 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        Assert_True(Chain.Num() == 1,
-            f"ActiveChain should remain at length 1 after ResetChain (Planner disabled to prevent re-extension; got {Chain.Num()})");
+        Assert_True(Chain.Num() == 0,
+            f"ActiveChain should remain empty after ResetChain (Planner disabled to prevent re-extension; got {Chain.Num()})");
 
         Assert_True(_DeactivatedCount == 1,
             f"OnPlannerDeactivated should have fired exactly once for Mid (fired {_DeactivatedCount} times)");

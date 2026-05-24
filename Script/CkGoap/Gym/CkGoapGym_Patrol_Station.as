@@ -100,12 +100,11 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(_WS);
+        PlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _TopPlanner = utils_goap_planner::Add(InHandle, PlannerParams);
 
-        // Root action: first AddAction = implicit root that runs A*.
-        // ReplanPolicy OnWorldStateDirty so WS changes auto-trigger replans.
+        // Root action: registered directly as the top-level Planner's child.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Root);
-        RootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _RootAction = utils_goap_planner::AddAction(_TopPlanner, RootParams);
 
         // ------------------------------------------------------------------
@@ -117,7 +116,6 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         // ------------------------------------------------------------------
         auto GoToWaypointActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Patrol_GoToWaypoint);
-        GoToWaypointActionParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _GoToWaypoint_AsAction = utils_goap_planner::AddAction(_TopPlanner, GoToWaypointActionParams);
 
         // Promote: GoToWaypoint entity now carries BOTH Action and Planner roles.
@@ -128,8 +126,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         auto GoToWaypointPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol.GoToWaypoint"));
         GoToWaypointPlannerParams.Set_Goal(GoToWaypointGoal);
-        // Note: replan policy is carried by the ActionParamsData (set above on
-        // GoToWaypointActionParams), not by PlannerParamsData.
+        GoToWaypointPlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _GoToWaypoint_AsPlanner = utils_goap_planner::PromoteActionToPlanner(
             _GoToWaypoint_AsAction, GoToWaypointPlannerParams);
 
@@ -145,7 +142,6 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         // ------------------------------------------------------------------
         auto ObserveActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Patrol_Observe);
-        ObserveActionParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Observe_AsAction = utils_goap_planner::AddAction(_TopPlanner, ObserveActionParams);
 
         auto ObserveGoal = TArray<FCk_GoapWS_Condition_Authored>();
@@ -155,7 +151,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         auto ObservePlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol.Observe"));
         ObservePlannerParams.Set_Goal(ObserveGoal);
-        // Note: replan policy carried by ObserveActionParams (OnWorldStateDirty).
+        ObservePlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Observe_AsPlanner = utils_goap_planner::PromoteActionToPlanner(
             _Observe_AsAction, ObservePlannerParams);
 

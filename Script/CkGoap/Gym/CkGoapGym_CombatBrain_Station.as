@@ -107,13 +107,12 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.CombatBrain"));
         AlivePlannerParams.Set_Goal(AliveGoal);
         AlivePlannerParams.Set_WorldStateSource(_WS);
+        AlivePlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _AlivePlanner = utils_goap_planner::Add(InHandle, AlivePlannerParams);
 
-        // Implicit root: first AddAction. ReplanPolicy OnWorldStateDirty so
-        // every WS flip triggers a fresh plan.
+        // Root action: direct child of the Planner.
         auto AliveRootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_CombatBrain_AliveRoot);
-        AliveRootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _AliveRoot = utils_goap_planner::AddAction(_AlivePlanner, AliveRootParams);
 
         // ------------------------------------------------------------------
@@ -121,7 +120,6 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         // ------------------------------------------------------------------
         auto EngageActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_CombatBrain_Engage);
-        EngageActionParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Engage_AsAction = utils_goap_planner::AddAction(_AlivePlanner, EngageActionParams);
 
         // Tier 2 — Win atomic finisher under Alive.
@@ -136,6 +134,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         auto EngagePlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.CombatBrain.Engage"));
         EngagePlannerParams.Set_Goal(EngageGoal);
+        EngagePlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Engage_AsPlanner = utils_goap_planner::PromoteActionToPlanner(
             _Engage_AsAction, EngagePlannerParams);
 
@@ -144,13 +143,11 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         // ------------------------------------------------------------------
         auto LightAttacksActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_CombatBrain_LightAttacks);
-        LightAttacksActionParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _LightAttacks_AsAction = utils_goap_planner::AddAction(
             _Engage_AsPlanner, LightAttacksActionParams);
 
         auto HeavyAttacksActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_CombatBrain_HeavyAttacks);
-        HeavyAttacksActionParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _HeavyAttacks_AsAction = utils_goap_planner::AddAction(
             _Engage_AsPlanner, HeavyAttacksActionParams);
 
@@ -162,6 +159,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         auto LightAttacksPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.CombatBrain.LightAttacks"));
         LightAttacksPlannerParams.Set_Goal(LightAttacksGoal);
+        LightAttacksPlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _LightAttacks_AsPlanner = utils_goap_planner::PromoteActionToPlanner(
             _LightAttacks_AsAction, LightAttacksPlannerParams);
 
@@ -173,6 +171,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         auto HeavyAttacksPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.CombatBrain.HeavyAttacks"));
         HeavyAttacksPlannerParams.Set_Goal(HeavyAttacksGoal);
+        HeavyAttacksPlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _HeavyAttacks_AsPlanner = utils_goap_planner::PromoteActionToPlanner(
             _HeavyAttacks_AsAction, HeavyAttacksPlannerParams);
 

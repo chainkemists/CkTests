@@ -113,17 +113,16 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         _Alive = utils_goap_planner::Add(Local, AliveParams);
         Assert_True(ck::IsValid(_Alive), "Add Alive Planner should return a valid handle");
 
-        // Implicit root for Alive — never selected as op (Alive has no parent).
-        auto AliveRootParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_DeepNesting_Alive);
-        _AliveRoot = utils_goap_planner::AddAction(_Alive, AliveRootParams);
-        Assert_True(ck::IsValid(_AliveRoot), "Alive implicit-root AddAction should succeed");
+        // PR-B.1b Stage 5: no implicit-root Action. The legacy Alive class is
+        // dropped — its effect (EnemyDead=true cost 0) would short-circuit the
+        // plan to a single-step Alive_Root instead of the [Engage, Win] chain.
 
-        // ---- Tier 2: Engage Action (under Alive) ----
+        // ---- Tier 2: Engage Action (direct child of Alive Planner) ----
         auto EngageParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_DeepNesting_Engage);
         _Engage = utils_goap_planner::AddAction(_Alive, EngageParams);
         Assert_True(ck::IsValid(_Engage), "Engage AddAction (under Alive) should succeed");
+        _AliveRoot = _Engage;
 
         // Win — atomic finisher under Alive (precondition EnemyAttacked=true).
         auto WinParams = FCk_Fragment_Goap_ActionParamsData(

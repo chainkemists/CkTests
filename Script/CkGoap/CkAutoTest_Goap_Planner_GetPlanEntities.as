@@ -69,18 +69,14 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
         _Planner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        // Implicit root — never selected as an operator (planner goal is BKey,
-        // root's effect is AKey — root just hosts the planner).
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
-        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
-        Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
-
-        // MakeA — effect AKey=true.
+        // PR-B.1b Stage 5: no implicit-root Action. MakeA and MakeB are direct
+        // children of the Planner. Root_GoalIsEffects (AKey effect cost 1.0)
+        // would compete with MakeA so it's dropped.
         auto MakeAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_GetPlanEntities_MakeA);
         auto MakeAAction = utils_goap_planner::AddAction(_Planner, MakeAParams);
         Assert_True(ck::IsValid(MakeAAction), "AddAction (MakeA) should return a valid handle");
+        _RootAction = MakeAAction;
 
         // MakeB — precondition AKey=true, effect BKey=true. Chains after MakeA.
         auto MakeBParams = FCk_Fragment_Goap_ActionParamsData(

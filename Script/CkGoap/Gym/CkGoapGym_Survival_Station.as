@@ -70,11 +70,11 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Hunger"));
         HungerParams.Set_Goal(HungerGoal);
         HungerParams.Set_WorldStateSource(_WS);
+        HungerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Planner_Hunger = utils_goap_planner::Add(InHandle, HungerParams);
 
         auto HungerRootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Survival_HungerRoot);
-        HungerRootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Root_Hunger = utils_goap_planner::AddAction(_Planner_Hunger, HungerRootParams);
 
         utils_goap_planner::AddAction(_Planner_Hunger,
@@ -95,11 +95,11 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Defense"));
         DefenseParams.Set_Goal(DefenseGoal);
         DefenseParams.Set_WorldStateSource(_WS);
+        DefenseParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Planner_Defense = utils_goap_planner::Add(InHandle, DefenseParams);
 
         auto DefenseRootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Survival_DefenseRoot);
-        DefenseRootParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Root_Defense = utils_goap_planner::AddAction(_Planner_Defense, DefenseRootParams);
 
         utils_goap_planner::AddAction(_Planner_Defense,
