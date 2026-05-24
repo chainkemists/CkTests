@@ -128,6 +128,29 @@ class UCk_GoapFEARGym_Patrol : UCk_GoapAction_EntityScript
     }
 }
 
+// WaitForEnemy: last-resort fallback so the planner ALWAYS produces a valid
+// plan. No preconditions — always selectable. Effect = EnemyNeutralized so
+// it directly satisfies the goal. Very high cost (999.0) so it only wins
+// when no other operator (Attack chain via AttackEnemy, Investigate chain,
+// Reload chain) is viable.
+//
+// Design rationale: in a real game, "no plan" should signal a misconfigured
+// Action catalog — a gameplay bug to surface, not a normal idle state. Every
+// planner should be able to produce a fallback "do nothing useful, but keep
+// the agent alive" plan. Semantically WaitForEnemy is the AI standing in
+// place watching for the enemy to come into view; the enemy is "neutralized"
+// by attrition / time-out from the AI's perspective.
+class UCk_GoapFEARGym_WaitForEnemy : UCk_GoapAction_EntityScript
+{
+    UFUNCTION(BlueprintOverride)
+    void DoDefineAction()
+    {
+        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
+            n"Gym.GoapFEAR.WS.Combatant.EnemyNeutralized"), true);
+        SetCost(999.0);
+    }
+}
+
 // ---- Tier-2 children under AttackEnemy (promoted to Planner) ----
 
 // AttackFromCover: ideal cover engagement. Cheaper than open (1.0).

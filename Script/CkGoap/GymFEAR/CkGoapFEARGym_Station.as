@@ -26,13 +26,17 @@
 //
 // Scenarios (toggle WS keys via Goap.FEAR.* console commands):
 //
-//   Default reset                                  Plan FAILS (no EnemyVisible)
+//   Default reset                                  [WaitForEnemy]                   cost 999  (fallback)
 //   EnemyVisible=true                              [AttackEnemy -> AttackOpen]      cost 2.0
 //   EnemyVisible=true, AtCover=true                [AttackEnemy -> AttackFromCover] cost 1.0
 //   EnemyVisible=true, BehindEnemy=true            [AttackEnemy -> AttackFromFlank] cost 0.5  ← iconic
 //   HeardSound=true, EnemyVisible=false            [Investigate -> AttackEnemy -> AttackOpen]
 //   HasAmmo=false, HasAmmoReserve=true, Visible    [Reload -> AttackEnemy -> AttackOpen]
-//   HasAmmo=false, Reserve=false, Visible          Plan FAILS — can't attack, can't reload.
+//   HasAmmo=false, Reserve=false, Visible          [WaitForEnemy] cost 999  (can't attack, can't reload — fall back)
+//
+// The WaitForEnemy fallback (no preconditions, cost 999, effect EnemyNeutralized)
+// guarantees the planner always returns a valid plan. "No plan" should always
+// indicate a misconfigured Action catalog — never a normal operational state.
 //============================================================================
 
 USTRUCT()
@@ -116,6 +120,13 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         _Patrol = utils_goap_planner::AddAction(_Combatant,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Patrol));
 
+        // WaitForEnemy: fallback satisfying EnemyNeutralized at very high cost
+        // so the planner ALWAYS has a valid plan even when no combat operator
+        // is viable. "No plan" is treated as a misconfiguration error in
+        // gameplay, never a normal idle state.
+        utils_goap_planner::AddAction(_Combatant,
+            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_WaitForEnemy));
+
         // ------------------------------------------------------------------
         // Promote AttackEnemy: sub-goal EnemyNeutralized=true.
         // The sub-Planner expands AttackEnemy into one of three concrete
@@ -155,6 +166,8 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         _KnownLabels_Combatant.Add("Investigate");
         _KnownClasses_Combatant.Add(UCk_GoapFEARGym_Patrol);
         _KnownLabels_Combatant.Add("Patrol");
+        _KnownClasses_Combatant.Add(UCk_GoapFEARGym_WaitForEnemy);
+        _KnownLabels_Combatant.Add("WaitForEnemy");
 
         _KnownClasses_Attack.Add(UCk_GoapFEARGym_AttackFromCover);
         _KnownLabels_Attack.Add("AttackFromCover");
