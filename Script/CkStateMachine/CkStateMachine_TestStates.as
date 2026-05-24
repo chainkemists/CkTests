@@ -18,7 +18,7 @@ class UCk_SmTest_Condition_AfterDelay : UCk_SmCondition_EventDriven
     float32 RetryDelayWhilePaused = 0.25f;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         System::SetTimer(this, n"TryMarkSatisfied", DelaySeconds, false);
     }

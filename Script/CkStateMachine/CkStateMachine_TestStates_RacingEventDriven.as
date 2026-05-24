@@ -76,7 +76,7 @@ UCLASS()
 class UCk_SmTest_Racing_Condition_SlowTimer : UCk_SmCondition_EventDriven
 {
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto Delay = SmRacing_Registry::Get_SlowDelaySeconds();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(Delay));
@@ -97,7 +97,7 @@ UCLASS()
 class UCk_SmTest_Racing_Condition_FastTimer : UCk_SmCondition_EventDriven
 {
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto Delay = SmRacing_Registry::Get_FastDelaySeconds();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(Delay));

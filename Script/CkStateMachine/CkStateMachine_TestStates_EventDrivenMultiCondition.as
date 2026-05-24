@@ -76,7 +76,7 @@ UCLASS()
 class UCk_SmTest_EventDrivenMultiCondition_Condition_FastEvent : UCk_SmCondition_EventDriven
 {
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto Delay = SmEventDrivenMultiCondition_Registry::Get_FastDelaySeconds();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(Delay));
@@ -97,7 +97,7 @@ UCLASS()
 class UCk_SmTest_EventDrivenMultiCondition_Condition_SlowEvent : UCk_SmCondition_EventDriven
 {
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto Delay = SmEventDrivenMultiCondition_Registry::Get_SlowDelaySeconds();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(Delay));

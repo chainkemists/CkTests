@@ -47,7 +47,7 @@ class UCk_SmTest_Ordering_Condition_QuickDelay : UCk_SmCondition_EventDriven
     float32 DelaySeconds = 0.5f;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         System::SetTimer(this, n"OnDelayElapsed", DelaySeconds, false);
     }

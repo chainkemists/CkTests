@@ -105,7 +105,7 @@ class UCk_SmTest_DivergenceTimed_Condition_FastDelay : UCk_SmCondition_EventDriv
     float32 DelaySeconds = 0.05f;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterCondition(FCk_Handle_SmCondition InHandle)
+    void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(DelaySeconds));
         TimerParams
