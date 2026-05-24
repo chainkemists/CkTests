@@ -64,6 +64,13 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
+        // Framework test mirroring the Patrol gym's current catalog. The gym
+        // itself doesn't yet include a fallback Action (separate cleanup task —
+        // gyms should be audited under the always-valid-plan tenet, CkGoap/CLAUDE.md
+        // § "Design tenets"). Opt-out here so the regression test runs cleanly;
+        // when the Patrol gym gains a fallback (e.g. StandWatch), drop this line
+        // and add the fallback Action below to mirror.
+        PlannerParams.Set_AllowPlanFailed(true);
         _TopPlanner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_TopPlanner), "Top-level Planner should be valid");
 
@@ -79,6 +86,7 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
         auto GoToPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol.GoToWaypoint"));
         GoToPlannerParams.Set_Goal(GoToGoal);
+        GoToPlannerParams.Set_AllowPlanFailed(true);  // framework test — see top-Planner comment
         auto GoToAsPlanner = utils_goap_planner::PromoteActionToPlanner(GoToWaypoint, GoToPlannerParams);
         Assert_True(ck::IsValid(GoToAsPlanner), "GoToWaypoint promotion should succeed");
 
@@ -99,6 +107,7 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
         auto ObservePlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol.Observe"));
         ObservePlannerParams.Set_Goal(ObserveGoal);
+        ObservePlannerParams.Set_AllowPlanFailed(true);  // framework test — see top-Planner comment
         auto ObserveAsPlanner = utils_goap_planner::PromoteActionToPlanner(Observe, ObservePlannerParams);
         Assert_True(ck::IsValid(ObserveAsPlanner), "Observe promotion should succeed");
 

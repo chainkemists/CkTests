@@ -49,6 +49,11 @@ class UCk_AutoTest_Goap_Planner_InvalidGoal : UCk_AutoTest_Base
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_WorldStateSource(WS);
+        // Test intentionally exercises an unregistered-goal scenario where
+        // PlanFailed is reachable. Opt out of the always-valid-plan tenet ensure
+        // (see CkGoap/CLAUDE.md § "Design tenets") — game-content Planners must
+        // never set this true.
+        ActionSetParams.Set_AllowPlanFailed(true);
         _Planner = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 

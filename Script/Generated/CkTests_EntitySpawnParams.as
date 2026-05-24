@@ -1945,6 +1945,19 @@ namespace UCk_AutoTest_Goap_Planner_EnableToggle
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_Planner_FEARGymShape_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_FEARGymShape
+{
+    FCk_AutoTest_Goap_Planner_FEARGymShape_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_FEARGymShape_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_Planner_GetPlanEntities_SpawnParams
 {
 }
@@ -2036,6 +2049,19 @@ namespace UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy
 }
 
 USTRUCT()
+struct FCk_AutoTest_Goap_Planner_PatrolGymShape_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_PatrolGymShape
+{
+    FCk_AutoTest_Goap_Planner_PatrolGymShape_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_PatrolGymShape_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Goap_Planner_PromoteActionToPlanner_SpawnParams
 {
 }
@@ -2110,6 +2136,19 @@ namespace UCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop
     FCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_SpawnParams Params()
     {
         return FCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip
+{
+    FCk_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_SpawnParams Params()
+    {
+        return FCk_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_SpawnParams();
     }
 }
 

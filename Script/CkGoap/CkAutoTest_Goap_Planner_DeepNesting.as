@@ -110,6 +110,10 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.Planner"));
         AliveParams.Set_Goal(AliveGoal);
         AliveParams.Set_WorldStateSource(WS);
+        // Framework test catalog — minimal planner shape, no fallback Action.
+        // Opt out of the always-valid-plan tenet enforcement (see CkGoap/CLAUDE.md
+        // § "Design tenets"). Game-content Planners must NEVER set this true.
+        AliveParams.Set_AllowPlanFailed(true);
         _Alive = utils_goap_planner::Add(Local, AliveParams);
         Assert_True(ck::IsValid(_Alive), "Add Alive Planner should return a valid handle");
 
@@ -138,6 +142,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         auto EngagePlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.Planner"));
         EngagePlannerParams.Set_Goal(EngageGoal);
+        EngagePlannerParams.Set_AllowPlanFailed(true);  // framework test — see top
         _Engage_AsPlanner = utils_goap_planner::PromoteActionToPlanner(_Engage, EngagePlannerParams);
         Assert_True(ck::IsValid(_Engage_AsPlanner),
             "PromoteActionToPlanner(Engage) should return a valid Planner handle");
@@ -156,6 +161,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         auto LightAttacksPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.Planner"));
         LightAttacksPlannerParams.Set_Goal(LightAttacksGoal);
+        LightAttacksPlannerParams.Set_AllowPlanFailed(true);  // framework test — see top
         _LightAttacks_AsPlanner = utils_goap_planner::PromoteActionToPlanner(_LightAttacks, LightAttacksPlannerParams);
         Assert_True(ck::IsValid(_LightAttacks_AsPlanner),
             "PromoteActionToPlanner(LightAttacks) should return a valid Planner handle");

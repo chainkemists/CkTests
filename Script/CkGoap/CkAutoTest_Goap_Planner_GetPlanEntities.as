@@ -66,6 +66,9 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
+        // Framework test catalog — opt out of always-valid-plan tenet enforcement
+        // (CkGoap/CLAUDE.md § "Design tenets"). Game-content must never opt out.
+        PlannerParams.Set_AllowPlanFailed(true);
         _Planner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
