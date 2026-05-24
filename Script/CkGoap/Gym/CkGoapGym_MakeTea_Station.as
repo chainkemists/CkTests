@@ -32,7 +32,6 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
     FTransform InitialTransform = FTransform::Identity;
 
     private FCk_Handle_Goap_Planner _Planner;
-    private FCk_Handle_Goap_Action _RootAction;
     private FCk_Handle_Goap_WorldState _WS;
     private TArray<TSubclassOf<UCk_GoapAction_EntityScript>> _KnownClasses;
     private TArray<FString> _KnownLabels;
@@ -60,10 +59,6 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
         ActionSetParams.Set_WorldStateSource(_WS);
         ActionSetParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
-
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_Root);
-
-        _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
 
         utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_BoilWater));
@@ -106,7 +101,7 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
     UFUNCTION()
     private void OnDisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (ck::Is_NOT_Valid(_RootAction)) { return; }
+        if (ck::Is_NOT_Valid(_Planner)) { return; }
 
         auto HasKettle  = Get(n"Gym.Goap.WS.Tea.HasKettle");
         auto HasWater   = Get(n"Gym.Goap.WS.Tea.HasWater");

@@ -10,21 +10,14 @@
 //   BuildBarracks  pre {Food.Have, Gold.Have, Wood.Have}  eff {Barracks.Built} cost 5
 //   ResearchFeudal pre {Barracks.Built, Food.Have}      eff {Feudal.Researched} cost 6
 //
-// Root goal {Feudal.Researched=true}. Initial WS has all booleans false.
+// Planner goal {FeudalResearched=true}. Initial WS has all booleans false.
 // Plan = [GatherWood, GatherFood, GatherGold, BuildBarracks, ResearchFeudal]
 // (gather order is by cost — wood cheapest, gold dearest).
+//
+// PR-B.1b Stage 5: the implicit-root model is gone — operators are direct
+// children of the Planner. ResearchFeudal is the only candidate whose effect
+// satisfies the goal, so the backchain naturally orders the dependency chain.
 //============================================================================
-
-class UCk_GoapGym_Empire_Root : UCk_GoapAction_EntityScript
-{
-    UFUNCTION(BlueprintOverride)
-    void DoDefineAction()
-    {
-        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
-            n"Gym.Goap.WS.Empire.FeudalResearched"), true);
-        SetCost(0.0);
-    }
-}
 
 class UCk_GoapGym_Empire_GatherFood : UCk_GoapAction_EntityScript
 {

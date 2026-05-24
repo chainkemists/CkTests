@@ -8,23 +8,26 @@
 // branch selection by cost.
 //
 //   Alive_Planner            [Planner only]            goal: EnemyDead=true
-//     Alive_Root              [Action; implicit root]   eff: EnemyDead    cost 0
 //     Engage                  [Action + Planner]        pre: EnemyVisible
 //                                                       eff: EnemyAttacked cost 1
-//                                                       (sub-goal: EnemyHit=true)
+//                                                       (sub-goal: EnemyAttacked=true)
 //       LightAttacks          [Action + Planner]        pre: WeaponEquipped
-//                                                       eff: EnemyHit      cost 1
+//                                                       eff: EnemyAttacked cost 1
 //                                                       (sub-goal: EnemyHit=true)
 //         Light1               [Action only]            eff: EnemyHit      cost 1
 //         Light2               [Action only]            eff: EnemyHit      cost 2
 //         Light3               [Action only]            eff: EnemyHit      cost 0.5
 //       HeavyAttacks          [Action + Planner]        pre: StaminaHigh
-//                                                       eff: EnemyHit      cost 1
+//                                                       eff: EnemyAttacked cost 1
 //                                                       (sub-goal: EnemyHit=true)
 //         Heavy1               [Action only]            eff: EnemyHit      cost 3
 //         Heavy2               [Action only]            eff: EnemyHit      cost 5
 //     Win                     [Action only]            pre: EnemyAttacked
 //                                                       eff: EnemyDead     cost 1
+//
+// PR-B.1b Stage 5: the implicit-root model is gone. Engage and Win are
+// direct children of the Alive Planner; Win is the only one whose effect
+// satisfies EnemyDead, so the backchain orders the plan [Engage, Win].
 //
 // Initial WS:
 //   EnemyVisible=false, WeaponEquipped=false, StaminaHigh=false,
@@ -50,20 +53,7 @@
 //   Complete — set every key true (drives the chain to terminal state)
 //============================================================================
 
-// ---- Tier 1: Alive root (implicit root of top-level Planner) ----
-
-class UCk_GoapGym_CombatBrain_AliveRoot : UCk_GoapAction_EntityScript
-{
-    UFUNCTION(BlueprintOverride)
-    void DoDefineAction()
-    {
-        AddEffect(utils_gameplay_tag::ResolveGameplayTag(
-            n"Gym.Goap.WS.CombatBrain.EnemyDead"), true);
-        SetCost(0.0);
-    }
-}
-
-// ---- Tier 2: composites under Alive ----
+// ---- Tier 1: direct children under Alive Planner ----
 
 // Engage: produces EnemyAttacked (consumed by Win). Gated by EnemyVisible so
 // the user can flip a single WS key and watch the whole tree light up.
@@ -95,7 +85,7 @@ class UCk_GoapGym_CombatBrain_Win : UCk_GoapAction_EntityScript
     }
 }
 
-// ---- Tier 3: composites under Engage's promoted Planner ----
+// ---- Tier 2: composites under Engage's promoted Planner ----
 
 // LightAttacks: produces EnemyAttacked (visible to Engage's planner) and
 // promoted to a Planner with sub-goal EnemyHit=true. Gated by WeaponEquipped.
@@ -130,7 +120,7 @@ class UCk_GoapGym_CombatBrain_HeavyAttacks : UCk_GoapAction_EntityScript
     }
 }
 
-// ---- Tier 4: atomic leaves under LightAttacks ----
+// ---- Tier 3: atomic leaves under LightAttacks ----
 
 class UCk_GoapGym_CombatBrain_Light1 : UCk_GoapAction_EntityScript
 {
@@ -166,7 +156,7 @@ class UCk_GoapGym_CombatBrain_Light3 : UCk_GoapAction_EntityScript
     }
 }
 
-// ---- Tier 4: atomic leaves under HeavyAttacks ----
+// ---- Tier 3: atomic leaves under HeavyAttacks ----
 
 class UCk_GoapGym_CombatBrain_Heavy1 : UCk_GoapAction_EntityScript
 {
