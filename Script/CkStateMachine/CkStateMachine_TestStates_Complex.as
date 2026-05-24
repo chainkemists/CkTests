@@ -164,13 +164,13 @@ class UCk_SmTest_Task_TimedWork : UCk_SmTask_EntityScript
     float32 ElapsedTime = 0.0f;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
         ElapsedTime = 0.0f;
     }
 
     UFUNCTION(BlueprintOverride)
-    ECk_SmTaskResult DoTick(FCk_Handle_SmTask InHandle, FCk_Time InDeltaT)
+    ECk_SmTaskResult DoTick(FCk_Handle_SmTask InHandle, FCk_Time InDeltaT, ECk_Sm_NetContext InNetContext)
     {
         ElapsedTime += float32(InDeltaT.Get_Seconds());
 
@@ -183,7 +183,7 @@ class UCk_SmTest_Task_TimedWork : UCk_SmTask_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle)
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -197,12 +197,12 @@ class UCk_SmTest_Task_LogOnly : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle)
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };

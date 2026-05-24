@@ -69,14 +69,14 @@ class UCk_SmTest_Ordering_Task_A : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto Sm = Get_OwningStateMachine();
         Append_OrderingEvent(Sm, "EnterTask_A");
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle)
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto Sm = Get_OwningStateMachine();
         Append_OrderingEvent(Sm, "ExitTask_A");
@@ -89,14 +89,14 @@ class UCk_SmTest_Ordering_Task_B : UCk_SmTask_EntityScript
     default _TaskMode = ECk_SmTaskMode::EnterExitOnly;
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterTask(FCk_Handle_SmTask InHandle)
+    void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto Sm = Get_OwningStateMachine();
         Append_OrderingEvent(Sm, "EnterTask_B");
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitTask(FCk_Handle_SmTask InHandle)
+    void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto Sm = Get_OwningStateMachine();
         Append_OrderingEvent(Sm, "ExitTask_B");
