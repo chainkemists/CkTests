@@ -60,13 +60,13 @@ class UCk_SmTest_Hier_Child_WindUp : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("  [Combat SM] WindUp", n"SmHier", 2.0f, FLinearColor(0.26f, 0.65f, 0.96f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -84,13 +84,13 @@ class UCk_SmTest_Hier_Child_Strike : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("  [Combat SM] Strike", n"SmHier", 2.0f, FLinearColor::Red);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -108,13 +108,13 @@ class UCk_SmTest_Hier_Child_Recover : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("  [Combat SM] Recover", n"SmHier", 2.0f, FLinearColor(0.3f, 0.69f, 0.31f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -134,13 +134,13 @@ class UCk_SmTest_Hier_Heal_Gather : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("  [Heal SM] Gather", n"SmHier", 2.0f, FLinearColor(0.56f, 0.26f, 0.96f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -158,13 +158,13 @@ class UCk_SmTest_Hier_Heal_Channel : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("  [Heal SM] Channel", n"SmHier", 2.0f, FLinearColor(0.96f, 0.26f, 0.96f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -182,13 +182,13 @@ class UCk_SmTest_Hier_Heal_Restore : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("  [Heal SM] Restore", n"SmHier", 2.0f, FLinearColor(0.26f, 0.96f, 0.56f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -208,13 +208,13 @@ class UCk_SmTest_Hier_Parent_Spawn : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("[Parent SM] Spawn", n"SmHier", 3.0f, FLinearColor(0.5f, 0.5f, 0.5f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -237,13 +237,13 @@ class UCk_SmTest_Hier_Parent_Approach : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("[Parent SM] Approach", n"SmHier", 3.0f, FLinearColor(0.0f, 0.5f, 1.0f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -263,13 +263,13 @@ class UCk_SmTest_Hier_Parent_Engage : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("[Parent SM] Engage (Combat SM active)", n"SmHier", 3.0f, FLinearColor::Red);
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("[Parent SM] Exiting Engage (Combat SM destroyed)", n"SmHier", 2.0f);
     }
@@ -288,13 +288,13 @@ class UCk_SmTest_Hier_Parent_Retreat : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("[Parent SM] Retreat", n"SmHier", 3.0f, FLinearColor(1.0f, 1.0f, 0.0f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
@@ -314,13 +314,13 @@ class UCk_SmTest_Hier_Parent_Heal : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("[Parent SM] Heal (Heal SM active)", n"SmHier", 3.0f, FLinearColor(0.3f, 0.9f, 0.3f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("[Parent SM] Exiting Heal (Heal SM destroyed)", n"SmHier", 2.0f);
     }
@@ -340,13 +340,13 @@ class UCk_SmTest_Hier_Parent_Flee : UCk_SmState_EntityScript
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoEnterState(FCk_Handle_SmState InHandle)
+    void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
         ck::Trace("[Parent SM] Flee!", n"SmHier", 3.0f, FLinearColor(1.0f, 0.4f, 0.0f));
     }
 
     UFUNCTION(BlueprintOverride)
-    void DoExitState(FCk_Handle_SmState InHandle)
+    void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
     }
 };
