@@ -39,6 +39,7 @@ public class CkTests : CkModuleRules
             "CkResourceLoader",
             "CkSettings",
             "CkShapes",
+            "CkStateMachine",
             "CkSubstep",
             "CkTargeting",
             "CkUI",
@@ -46,5 +47,14 @@ public class CkTests : CkModuleRules
             "CkVariables",
             "CkWatermark",
         });
+
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(new string[]
+            {
+                "UnrealEd",
+                "EditorSubsystem",
+            });
+        }
     }
 }
