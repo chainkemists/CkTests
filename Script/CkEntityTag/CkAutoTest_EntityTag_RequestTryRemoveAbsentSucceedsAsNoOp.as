@@ -8,7 +8,7 @@
 // pins the end-to-end no-op behavior: Succeeded boundary result AND no
 // observable state change one frame later.
 
-class UCk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed : UCk_AutoTest_Base
+class UCk_AutoTest_EntityTag_RequestTryRemoveAbsentSucceedsAsNoOp : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 5.0f;
 
