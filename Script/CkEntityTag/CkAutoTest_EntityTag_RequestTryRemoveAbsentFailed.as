@@ -7,8 +7,15 @@
 // DoApply_TryRemove silently no-ops when the tag isn't there. This test
 // pins the end-to-end no-op behavior: Succeeded boundary result AND no
 // observable state change one frame later.
+//
+// NOTE: File name + class name retained for level-asset compatibility
+//       (AutoTests_CkTests_Level.umap references the old C++ class path).
+//       The test now verifies that Request_TryRemove returns Succeeded
+//       (no-op) on an absent tag, NOT Failed. See commit 68e828b56
+//       (CkEntityTag fully deferred mutations) and the binds-and-queries
+//       plan.
 
-class UCk_AutoTest_EntityTag_RequestTryRemoveAbsentSucceedsAsNoOp : UCk_AutoTest_Base
+class UCk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 5.0f;
 

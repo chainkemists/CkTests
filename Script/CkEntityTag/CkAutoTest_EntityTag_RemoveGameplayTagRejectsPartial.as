@@ -15,9 +15,15 @@
 //      (explicit), and A.B is still present (parent of A.B.C).
 //
 // This pins end-to-end no-op behavior on partial-match removes.
+//
+// NOTE: File name + class name retained for level-asset compatibility
+//       (AutoTests_CkTests_Level.umap references the old C++ class path).
+//       The contract is now "no-op on partial match" NOT "rejects partial".
+//       See commit 68e828b56 (CkEntityTag fully deferred mutations) and the
+//       binds-and-queries plan.
 //============================================================================
 
-class UCk_AutoTest_EntityTag_RemoveGameplayTagOnPartialIsNoOp : UCk_AutoTest_Base
+class UCk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 6.0f;
 
