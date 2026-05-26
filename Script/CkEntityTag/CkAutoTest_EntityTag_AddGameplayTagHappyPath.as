@@ -5,22 +5,42 @@
 
 class UCk_AutoTest_EntityTag_AddGameplayTagHappyPath : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 5.0f;
+
+    private FCk_Handle _Entity;
+    private FGameplayTag _Tag;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto LocalHandle = InHandle;
-        auto Tag = utils_gameplay_tag::ResolveGameplayTag(n"EntityTag.AutoTest.Bar");
+        _Entity = InHandle;
+        _Tag = utils_gameplay_tag::ResolveGameplayTag(n"EntityTag.AutoTest.Bar");
 
-        utils_entity_tag::Add_UsingGameplayTag(LocalHandle, Tag);
-        Assert_True(utils_entity_tag::Has_UsingGameplayTag(LocalHandle, Tag),
+        utils_entity_tag::Add_UsingGameplayTag(_Entity, _Tag);
+        WaitOneFrame(n"AfterAdd");
+    }
+
+    UFUNCTION()
+    private void AfterAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        Assert_True(utils_entity_tag::Has_UsingGameplayTag(_Entity, _Tag),
             "Has_UsingGameplayTag should return true after Add_UsingGameplayTag");
 
-        auto Removed = utils_entity_tag::Request_TryRemove_UsingGameplayTag(LocalHandle, Tag);
+        auto Removed = utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Entity, _Tag);
         Assert_True(Removed == ECk_SucceededFailed::Succeeded,
             "Request_TryRemove_UsingGameplayTag on a present tag should succeed");
-        Assert_True(!utils_entity_tag::Has_UsingGameplayTag(LocalHandle, Tag),
+
+        WaitOneFrame(n"AfterRemove");
+    }
+
+    UFUNCTION()
+    private void AfterRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        Assert_True(!utils_entity_tag::Has_UsingGameplayTag(_Entity, _Tag),
             "After remove, Has_UsingGameplayTag should be false");
 
         FinishSuccess();

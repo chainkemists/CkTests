@@ -11,32 +11,47 @@
 
 class UCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 5.0f;
+
+    private FCk_Handle _Entity;
+    private FGameplayTag _TagABC;
+    private FGameplayTag _TagXY;
+    private FGameplayTag _TagAB;
+    private FGameplayTag _TagA;
+    private FGameplayTag _TagX;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto LocalHandle = InHandle;
-        auto TagABC = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
-        auto TagXY  = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.X.Y");
-        auto TagAB  = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B");
-        auto TagA   = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A");
-        auto TagX   = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.X");
+        _Entity = InHandle;
+        _TagABC = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
+        _TagXY  = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.X.Y");
+        _TagAB  = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B");
+        _TagA   = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A");
+        _TagX   = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.X");
 
-        utils_entity_tag::Add_UsingGameplayTag(LocalHandle, TagABC);
-        utils_entity_tag::Add_UsingGameplayTag(LocalHandle, TagXY);
+        utils_entity_tag::Add_UsingGameplayTag(_Entity, _TagABC);
+        utils_entity_tag::Add_UsingGameplayTag(_Entity, _TagXY);
 
-        auto Container = utils_entity_tag::Get_AllTagsAsContainer(LocalHandle);
+        WaitOneFrame(n"AfterAdds");
+    }
 
-        Assert_True(Container.HasTagExact(TagABC),
+    UFUNCTION()
+    private void AfterAdds(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        auto Container = utils_entity_tag::Get_AllTagsAsContainer(_Entity);
+
+        Assert_True(Container.HasTagExact(_TagABC),
             "Container must contain explicitly-added A.B.C");
-        Assert_True(Container.HasTagExact(TagXY),
+        Assert_True(Container.HasTagExact(_TagXY),
             "Container must contain explicitly-added X.Y");
-        Assert_True(!Container.HasTagExact(TagAB),
+        Assert_True(!Container.HasTagExact(_TagAB),
             "Container must NOT contain parent A.B (not explicitly added)");
-        Assert_True(!Container.HasTagExact(TagA),
+        Assert_True(!Container.HasTagExact(_TagA),
             "Container must NOT contain parent A (not explicitly added)");
-        Assert_True(!Container.HasTagExact(TagX),
+        Assert_True(!Container.HasTagExact(_TagX),
             "Container must NOT contain parent X (not explicitly added)");
 
         FinishSuccess();

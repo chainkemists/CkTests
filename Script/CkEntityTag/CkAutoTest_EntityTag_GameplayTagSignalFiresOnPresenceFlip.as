@@ -11,37 +11,71 @@
 
 class UCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
 
+    private FCk_Handle _Entity;
+    private FGameplayTag _Tag;
     private int32 _AddedCount   = 0;
     private int32 _RemovedCount = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto LocalHandle = InHandle;
-        auto Tag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
+        _Entity = InHandle;
+        _Tag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
 
         auto NoFilter = FGameplayTagContainer();
-        utils_entity_tag::BindTo_OnGameplayTagUpdated(LocalHandle,
+        utils_entity_tag::BindTo_OnGameplayTagUpdated(_Entity,
             NoFilter,
             ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
             ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_EntityTag_OnGameplayTagUpdated(this, n"OnGameplayTagUpdated"));
 
         // Add twice — only first fires Added for THIS tag.
-        utils_entity_tag::Add_UsingGameplayTag(LocalHandle, Tag);
-        utils_entity_tag::Add_UsingGameplayTag(LocalHandle, Tag);
+        utils_entity_tag::Add_UsingGameplayTag(_Entity, _Tag);
+        utils_entity_tag::Add_UsingGameplayTag(_Entity, _Tag);
+
+        WaitOneFrame(n"AfterAdds");
+    }
+
+    UFUNCTION()
+    private void AfterAdds(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
         Assert_Equals_Int(_AddedCount, 1,
             "OnGameplayTagUpdated::Added must fire exactly once for A.B.C across two Adds");
+        Assert_Equals_Int(_RemovedCount, 0,
+            "Removed must not fire before any removes");
 
         // Remove twice — only second fires Removed.
-        utils_entity_tag::Request_TryRemove_UsingGameplayTag(LocalHandle, Tag);
+        utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Entity, _Tag);
+
+        WaitOneFrame(n"AfterFirstRemove");
+    }
+
+    UFUNCTION()
+    private void AfterFirstRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
         Assert_Equals_Int(_RemovedCount, 0,
             "Removed must not fire on the first remove (count 2->1)");
-        utils_entity_tag::Request_TryRemove_UsingGameplayTag(LocalHandle, Tag);
+
+        utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Entity, _Tag);
+
+        WaitOneFrame(n"AfterSecondRemove");
+    }
+
+    UFUNCTION()
+    private void AfterSecondRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
         Assert_Equals_Int(_RemovedCount, 1,
             "Removed must fire exactly once (count 1->0)");
+        Assert_Equals_Int(_AddedCount, 1,
+            "Added count must remain 1 — no extra fires from removes");
 
         FinishSuccess();
     }

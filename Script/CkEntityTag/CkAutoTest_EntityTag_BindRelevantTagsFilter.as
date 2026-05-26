@@ -16,34 +16,55 @@
 
 class UCk_AutoTest_EntityTag_BindRelevantTagsFilter : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 5.0f;
 
+    private FCk_Handle _Entity;
+    private FGameplayTag _TagABC;
+    private FGameplayTag _TagXY;
     private int32 _CallbackCount  = 0;
     private bool  _SawIrrelevant  = false;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto LocalHandle = InHandle;
-        auto TagABC = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
-        auto TagXY  = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.X.Y");
+        _Entity = InHandle;
+        _TagABC = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
+        _TagXY  = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.X.Y");
 
         auto Filter = FGameplayTagContainer();
-        Filter.AddTag(TagABC);
+        Filter.AddTag(_TagABC);
 
-        utils_entity_tag::BindTo_OnGameplayTagUpdated(LocalHandle,
+        utils_entity_tag::BindTo_OnGameplayTagUpdated(_Entity,
             Filter,
             ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
             ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_EntityTag_OnGameplayTagUpdated(this, n"OnGameplayTagUpdated"));
 
         // Matching tag fires.
-        utils_entity_tag::Add_UsingGameplayTag(LocalHandle, TagABC);
+        utils_entity_tag::Add_UsingGameplayTag(_Entity, _TagABC);
+
+        WaitOneFrame(n"AfterMatchingAdd");
+    }
+
+    UFUNCTION()
+    private void AfterMatchingAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
         Assert_Equals_Int(_CallbackCount, 1,
             "Filtered binding must fire when the added tag matches the filter");
 
         // Non-matching tag does not fire.
-        utils_entity_tag::Add_UsingGameplayTag(LocalHandle, TagXY);
+        utils_entity_tag::Add_UsingGameplayTag(_Entity, _TagXY);
+
+        WaitOneFrame(n"AfterIrrelevantAdd");
+    }
+
+    UFUNCTION()
+    private void AfterIrrelevantAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
         Assert_Equals_Int(_CallbackCount, 1,
             "Filtered binding must NOT fire for tags outside the filter container");
         Assert_True(!_SawIrrelevant,
