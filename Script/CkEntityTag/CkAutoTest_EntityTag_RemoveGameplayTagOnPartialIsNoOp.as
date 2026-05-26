@@ -17,7 +17,7 @@
 // This pins end-to-end no-op behavior on partial-match removes.
 //============================================================================
 
-class UCk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial : UCk_AutoTest_Base
+class UCk_AutoTest_EntityTag_RemoveGameplayTagOnPartialIsNoOp : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 6.0f;
 
