@@ -1724,6 +1724,32 @@ namespace UCk_AutoTest_EntityTagQuery_BuilderWithinAFrame
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass
+{
+    FCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound
+{
+    FCk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_SpawnParams
 {
 }
@@ -1746,6 +1772,19 @@ namespace UCk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery
     FCk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_SpawnParams Params()
     {
         return FCk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_DestructionPrunesProactively_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_DestructionPrunesProactively
+{
+    FCk_AutoTest_EntityTagQuery_DestructionPrunesProactively_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_DestructionPrunesProactively_SpawnParams();
     }
 }
 
