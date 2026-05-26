@@ -15,25 +15,38 @@
 
 class UCk_AutoTest_EntityTag_ForEachEntityFindsByParent : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 5.0f;
+
+    private FCk_Handle _Owner;
+    private FCk_Handle _ChildA;
+    private FCk_Handle _ChildB;
+    private FCk_Handle _ChildX;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto LocalHandle = InHandle;
+        _Owner = InHandle;
 
-        auto ChildA = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto ChildB = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto ChildX = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
+        _ChildA = utils_entity_lifetime::Request_CreateEntity(_Owner);
+        _ChildB = utils_entity_lifetime::Request_CreateEntity(_Owner);
+        _ChildX = utils_entity_lifetime::Request_CreateEntity(_Owner);
 
-        utils_entity_tag::Add_UsingGameplayTag(ChildA,
+        utils_entity_tag::Add_UsingGameplayTag(_ChildA,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C"));
-        utils_entity_tag::Add_UsingGameplayTag(ChildB,
+        utils_entity_tag::Add_UsingGameplayTag(_ChildB,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.D"));
-        utils_entity_tag::Add_UsingGameplayTag(ChildX,
+        utils_entity_tag::Add_UsingGameplayTag(_ChildX,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.X.Y"));
 
-        auto Found = utils_entity_tag::ForEach_Entity(LocalHandle, n"AutoTestEt.A.B");
+        WaitOneFrame(n"AfterAdds");
+    }
+
+    UFUNCTION()
+    private void AfterAdds(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        auto Found = utils_entity_tag::ForEach_Entity(_Owner, n"AutoTestEt.A.B");
         Assert_Equals_Int(Found.Num(), 2,
             f"ForEach_Entity(A.B) must return exactly the two A.B.* children (got {Found.Num()})");
 
@@ -42,9 +55,9 @@ class UCk_AutoTest_EntityTag_ForEachEntityFindsByParent : UCk_AutoTest_Base
         auto FoundB = false;
         for (auto i = 0; i < Found.Num(); ++i)
         {
-            if (Found[i] == ChildA) { FoundA = true; }
-            if (Found[i] == ChildB) { FoundB = true; }
-            Assert_True(Found[i] != ChildX,
+            if (Found[i] == _ChildA) { FoundA = true; }
+            if (Found[i] == _ChildB) { FoundB = true; }
+            Assert_True(Found[i] != _ChildX,
                 "ChildX (X.Y) must not appear in ForEach_Entity(A.B)");
         }
         Assert_True(FoundA, "ChildA (A.B.C) must appear in ForEach_Entity(A.B)");

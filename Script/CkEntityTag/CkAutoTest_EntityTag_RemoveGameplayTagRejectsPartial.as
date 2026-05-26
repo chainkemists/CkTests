@@ -1,39 +1,64 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: REMOVE GAMEPLAY TAG REJECTS PARTIAL
+// CK ENTITY TAG — AUTOMATION TEST: REMOVE GAMEPLAY TAG ON PARTIAL IS NO-OP
 //============================================================================
 //
 // Adding A.B.C registers A.B.C explicitly and A.B / A as parent FNames.
-// Calling Request_TryRemove_UsingGameplayTag(A.B) must fail — A.B is not an
-// explicitly-added gameplay tag, just a parent of A.B.C. Removing it would
-// break the parent count for the genuinely-added A.B.C.
+// Calling Request_TryRemove_UsingGameplayTag(A.B) — where A.B is only a
+// parent FName, NOT an explicitly-added gameplay tag — must:
 //
-// This is the HasTagExact-style boundary guard.
+//   1. Return Succeeded at the boundary (post-A4 contract: handle/tag valid
+//      → Succeeded; the deferred apply silently no-ops on a missing
+//      _GameplayTagCounts entry, which is what "partial match" means).
+//   2. NOT remove anything: one frame later, A.B.C is still present
+//      (explicit), and A.B is still present (parent of A.B.C).
+//
+// This pins end-to-end no-op behavior on partial-match removes.
 //============================================================================
 
 class UCk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
+
+    private FCk_Handle _Entity;
+    private FGameplayTag _LeafTag;
+    private FGameplayTag _ParentTag;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto LocalHandle = InHandle;
-        auto LeafTag   = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
-        auto ParentTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B");
+        _Entity = InHandle;
+        _LeafTag   = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
+        _ParentTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B");
 
-        utils_entity_tag::Add_UsingGameplayTag(LocalHandle, LeafTag);
+        utils_entity_tag::Add_UsingGameplayTag(_Entity, _LeafTag);
 
-        auto Result = utils_entity_tag::Request_TryRemove_UsingGameplayTag(LocalHandle, ParentTag);
-        Assert_True(Result == ECk_SucceededFailed::Failed,
-            "Removing a parent gameplay tag that was never explicitly added must Fail");
+        WaitOneFrame(n"AfterAdd");
+    }
 
-        // Leaf must still be intact.
-        Assert_True(utils_entity_tag::Has(LocalHandle, n"AutoTestEt.A.B.C"),
-            "Leaf A.B.C must still be present after the rejected parent remove");
-        Assert_True(utils_entity_tag::Has(LocalHandle, n"AutoTestEt.A.B"),
-            "Parent FName A.B must still be present after the rejected parent remove");
+    UFUNCTION()
+    private void AfterAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        auto Result = utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Entity, _ParentTag);
+        Assert_True(Result == ECk_SucceededFailed::Succeeded,
+            "Request_TryRemove_UsingGameplayTag must Succeed at the boundary whenever the handle/tag are valid — partial-match enforcement is handled inside the deferred apply as a silent no-op");
+
+        WaitOneFrame(n"AfterPartialRemove");
+    }
+
+    UFUNCTION()
+    private void AfterPartialRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        // Leaf must still be intact — the partial-match remove no-ops.
+        Assert_True(utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B.C"),
+            "Leaf A.B.C must still be present after the no-op parent remove");
+        Assert_True(utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B"),
+            "Parent FName A.B must still be present after the no-op parent remove (held by A.B.C)");
 
         FinishSuccess();
     }

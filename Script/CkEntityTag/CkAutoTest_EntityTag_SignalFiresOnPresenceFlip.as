@@ -12,35 +12,60 @@
 
 class UCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
 
+    private FCk_Handle _Entity;
     private int32 _AddedCount   = 0;
     private int32 _RemovedCount = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        auto LocalHandle = InHandle;
+        _Entity = InHandle;
         const FName Tag = n"AutoTestEt_FlipSignal";
 
-        utils_entity_tag::BindTo_OnTagUpdated(LocalHandle,
+        utils_entity_tag::BindTo_OnTagUpdated(_Entity,
             ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
             ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_EntityTag_OnTagUpdated(this, n"OnTagUpdated"));
 
-        // Add twice — only the first should fire Added.
-        utils_entity_tag::Add(LocalHandle, Tag);
-        utils_entity_tag::Add(LocalHandle, Tag);
+        utils_entity_tag::Add(_Entity, Tag);
+        utils_entity_tag::Add(_Entity, Tag);
+
+        WaitOneFrame(n"AfterFirstAdds");
+    }
+
+    UFUNCTION()
+    private void AfterFirstAdds(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
         Assert_Equals_Int(_AddedCount, 1,
-            "Added must fire exactly once (count 0->1), not on the second Add (1->2)");
+            "Added must fire exactly once (count 0->1) after the pump drains both Add requests");
         Assert_Equals_Int(_RemovedCount, 0,
             "Removed must not fire before any removes");
 
-        // Remove twice — only the second should fire Removed.
-        utils_entity_tag::Request_TryRemove(LocalHandle, Tag);
+        utils_entity_tag::Request_TryRemove(_Entity, n"AutoTestEt_FlipSignal");
+        WaitOneFrame(n"AfterFirstRemove");
+    }
+
+    UFUNCTION()
+    private void AfterFirstRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
         Assert_Equals_Int(_RemovedCount, 0,
             "Removed must not fire on the first remove (count 2->1)");
-        utils_entity_tag::Request_TryRemove(LocalHandle, Tag);
+
+        utils_entity_tag::Request_TryRemove(_Entity, n"AutoTestEt_FlipSignal");
+        WaitOneFrame(n"AfterSecondRemove");
+    }
+
+    UFUNCTION()
+    private void AfterSecondRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
         Assert_Equals_Int(_RemovedCount, 1,
             "Removed must fire exactly once (count 1->0)");
         Assert_Equals_Int(_AddedCount, 1,
