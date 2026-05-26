@@ -1698,6 +1698,123 @@ namespace UCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch
+{
+    FCk_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_BuilderWithinAFrame_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_BuilderWithinAFrame
+{
+    FCk_AutoTest_EntityTagQuery_BuilderWithinAFrame_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_BuilderWithinAFrame_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable
+{
+    FCk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery
+{
+    FCk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_EmptyNeverFires_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_EmptyNeverFires
+{
+    FCk_AutoTest_EntityTagQuery_EmptyNeverFires_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_EmptyNeverFires_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_EnsureBoundFires_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_EnsureBoundFires
+{
+    FCk_AutoTest_EntityTagQuery_EnsureBoundFires_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_EnsureBoundFires_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_FactoryEquivalence_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_FactoryEquivalence
+{
+    FCk_AutoTest_EntityTagQuery_FactoryEquivalence_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_FactoryEquivalence_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_LazyValidation_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_LazyValidation
+{
+    FCk_AutoTest_EntityTagQuery_LazyValidation_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_LazyValidation_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_MixedCountAndAll_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_MixedCountAndAll
+{
+    FCk_AutoTest_EntityTagQuery_MixedCountAndAll_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_MixedCountAndAll_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Eqs_BasicQuery_SpawnParams
 {
 }

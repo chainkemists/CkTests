@@ -1292,7 +1292,6 @@ class ACk_AutoTest_EntityScript_SpawnParamsRoundTrip_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_EntityTag_AddEmptyName_Rejected_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1305,7 +1304,6 @@ class ACk_AutoTest_EntityTag_AddEmptyName_Rejected_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_EntityTag_AddFNameHappyPath_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1318,7 +1316,6 @@ class ACk_AutoTest_EntityTag_AddFNameHappyPath_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1331,7 +1328,6 @@ class ACk_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_EntityTag_AddIsCounted_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1344,7 +1340,6 @@ class ACk_AutoTest_EntityTag_AddIsCounted_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_EntityTag_BindRelevantTagsFilter_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1357,7 +1352,6 @@ class ACk_AutoTest_EntityTag_BindRelevantTagsFilter_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1370,7 +1364,6 @@ class ACk_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor : ACk_AutoTestRunn
 
 class ACk_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1383,7 +1376,6 @@ class ACk_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_EntityTag_GameplayTagParentFlatten_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1396,7 +1388,7 @@ class ACk_AutoTest_EntityTag_GameplayTagParentFlatten_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1409,7 +1401,7 @@ class ACk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_Actor : ACk_AutoTe
 
 class ACk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1422,7 +1414,6 @@ class ACk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_Actor : ACk_Au
 
 class ACk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1435,7 +1426,6 @@ class ACk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_Actor : ACk_AutoTes
 
 class ACk_AutoTest_EntityTag_HasAbsentTagFalse_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1448,7 +1438,7 @@ class ACk_AutoTest_EntityTag_HasAbsentTagFalse_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1461,7 +1451,6 @@ class ACk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_Actor : ACk_AutoTes
 
 class ACk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1474,7 +1463,7 @@ class ACk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor : ACk_AutoTestRu
 
 class ACk_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1487,11 +1476,113 @@ class ACk_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor : ACk_AutoTestRunne
 
 class ACk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityTag_SignalFiresOnPresenceFlip");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_EntityTagQuery_EmptyNeverFires_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityTagQuery_EmptyNeverFires");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_EntityTagQuery_FactoryEquivalence_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityTagQuery_FactoryEquivalence");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_EntityTagQuery_LazyValidation_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityTagQuery_LazyValidation");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_EntityTagQuery_MixedCountAndAll_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityTagQuery_MixedCountAndAll");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
