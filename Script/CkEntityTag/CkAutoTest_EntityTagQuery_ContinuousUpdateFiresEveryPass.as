@@ -78,7 +78,7 @@ class UCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass : UCk_AutoTest_
     private void OnContinuous(
         FCk_Handle_EntityTagQuery InQuery,
         bool InIsSatisfied,
-        const TArray<FCk_EntityTagQuery_Result>& InResults)
+        const TArray<FCk_EntityTagQuery_Result>&in InResults)
     {
         // No matching entity exists, so the query must report unsatisfied
         // on every continuous-update broadcast.

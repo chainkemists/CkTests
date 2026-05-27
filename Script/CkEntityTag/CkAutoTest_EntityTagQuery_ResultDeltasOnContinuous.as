@@ -98,7 +98,7 @@ class UCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous : UCk_AutoTest_Base
     UFUNCTION()
     private void OnContinuous(FCk_Handle_EntityTagQuery InQuery,
                               bool InIsSatisfied,
-                              const TArray<FCk_EntityTagQuery_Result>& InResults)
+                              const TArray<FCk_EntityTagQuery_Result>&in InResults)
     {
         if (InResults.Num() == 0) { return; }
 
