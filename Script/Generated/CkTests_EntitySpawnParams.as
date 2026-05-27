@@ -3518,6 +3518,19 @@ namespace UCk_AutoTest_Nav_PathQueuedDuringBake
 }
 
 USTRUCT()
+struct FCk_AutoTest_Net_DataOnly_AddItem_Replicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_DataOnly_AddItem_Replicates
+{
+    FCk_AutoTest_Net_DataOnly_AddItem_Replicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_DataOnly_AddItem_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Net_Float_InitialValueReplicates_SpawnParams
 {
 }
@@ -10380,6 +10393,31 @@ namespace UCk_AutoTest_NetSubject_EntityScript_UE
     FCk_AutoTest_NetSubject_EntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
     {
         return FCk_AutoTest_NetSubject_EntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_InventoryEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_InventoryEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_InventoryEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_InventoryEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_InventoryEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_InventoryEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_InventoryEntityScript_UE_SpawnParams(In_OwningActor);
     }
 }
 
