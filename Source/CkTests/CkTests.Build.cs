@@ -17,6 +17,7 @@ public class CkTests : CkModuleRules
             "Engine",
             "GameplayTags",
             "FunctionalTesting",
+            "Gauntlet",
 
             "CkActorRelay",
             "CkAggro",
