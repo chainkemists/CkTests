@@ -63,7 +63,7 @@ class UCk_AutoTest_Timer_Get_CurrentTimerValue_DuringPause : UCk_AutoTest_Base
                 FCk_Time AtPauseElapsed;
                 FCk_Time AtPauseRemaining;
                 AtPauseChrono.Break_Chrono(AtPauseGoal, AtPauseElapsed, AtPauseRemaining);
-                _ElapsedMsAtPause = AtPauseElapsed.Get_Milliseconds();
+                _ElapsedMsAtPause = int32(AtPauseElapsed.Get_Milliseconds());
             }
             return;
         }
@@ -76,7 +76,7 @@ class UCk_AutoTest_Timer_Get_CurrentTimerValue_DuringPause : UCk_AutoTest_Base
         FCk_Time NowElapsed;
         FCk_Time NowRemaining;
         NowChrono.Break_Chrono(NowGoal, NowElapsed, NowRemaining);
-        Assert_Equals_Int(NowElapsed.Get_Milliseconds(), _ElapsedMsAtPause,
+        Assert_Equals_Int(int32(NowElapsed.Get_Milliseconds()), _ElapsedMsAtPause,
             "Get_CurrentTimerValue must not advance while Paused");
 
         FinishSuccess();

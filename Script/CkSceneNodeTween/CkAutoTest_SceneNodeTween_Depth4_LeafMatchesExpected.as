@@ -108,7 +108,7 @@ class UCk_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected : UCk_AutoTest_Base
         auto DY = Math::Abs(Expected.Y - Actual.Y);
         auto DZ = Math::Abs(Expected.Z - Actual.Z);
         auto Drift = Math::Max(Math::Max(DX, DY), DZ);
-        if (Drift > _MaxDrift) { _MaxDrift = Drift; }
+        if (Drift > _MaxDrift) { _MaxDrift = float32(Drift); }
     }
 
     UFUNCTION()

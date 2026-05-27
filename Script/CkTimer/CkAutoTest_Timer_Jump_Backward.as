@@ -62,7 +62,7 @@ class UCk_AutoTest_Timer_Jump_Backward : UCk_AutoTest_Base
 
             if (LiveElapsed.Get_Milliseconds() > 30)
             {
-                _ElapsedMsBeforeJump = LiveElapsed.Get_Milliseconds();
+                _ElapsedMsBeforeJump = int32(LiveElapsed.Get_Milliseconds());
                 utils_timer::Request_Jump(_Timer, FCk_Request_Timer_Jump(_JumpDelta));
                 _JumpDone = true;
             }

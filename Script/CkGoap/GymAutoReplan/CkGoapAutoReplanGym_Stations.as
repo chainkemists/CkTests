@@ -177,7 +177,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         if (Mode == 2 && ck::IsValid(_Planner))
         {
             _AltCostIncreased = !_AltCostIncreased;
-            auto NewCost = _AltCostIncreased ? 0.5 : 2.0;
+            auto NewCost = _AltCostIncreased ? 0.5f : 2.0f;
             utils_goap_planner::Request_SetChildActionCost(_Planner,
                 UCk_GoapGym_AutoReplan_AltOp, NewCost);
         }
