@@ -37,21 +37,21 @@
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Auto-generated from AS class Ck_AutoTest_Net_Float_InitialValueReplicates (Replicated-mode).
+// Auto-generated from AS class Ck_AutoTest_Net_Player_SetReplicates (Replicated-mode).
 // DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
-    constexpr auto kAsClassPath_Float_InitialValueReplicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_Float_InitialValueReplicates");
-    constexpr auto kTimeoutSeconds_Float_InitialValueReplicates = 30.0f;
+    constexpr auto kAsClassPath_Player_SetReplicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_Player_SetReplicates");
+    constexpr auto kTimeoutSeconds_Player_SetReplicates = 30.0f;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkAttributeNet_AS_Float_InitialValueReplicates,
-    "Ck.Attribute.Net.AS_Float_InitialValueReplicates",
+    FCkRelationshipNet_AS_Player_SetReplicates,
+    "Ck.Relationship.Net.AS_Player_SetReplicates",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
 
-bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Parameters)
+bool FCkRelationshipNet_AS_Player_SetReplicates::RunTest(const FString& Parameters)
 {
     bSuppressLogErrors = true;
     bSuppressLogWarnings = true;
@@ -71,7 +71,7 @@ bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Par
         {
             auto SpawnInfo = FActorSpawnParameters{};
             SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-            const auto SubjectClassPath = FSoftClassPath(TEXT("/Script/CkTests.ACk_AutoTest_NetSubject"));
+            const auto SubjectClassPath = FSoftClassPath(TEXT("/Script/CkTests.Ck_AutoTest_NetSubject_Relationship_UE"));
             auto* SubjectClass = SubjectClassPath.TryLoadClass<ACk_AutoTest_NetSubject>();
             if (SubjectClass == nullptr)
             { AddError(TEXT("AS-test harness: failed to resolve NetSubject class via FSoftClassPath")); return; }
@@ -83,53 +83,7 @@ bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Par
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterSpawn));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_Float_InitialValueReplicates}, kTimeoutSeconds_Float_InitialValueReplicates));
-
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
-
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
-        FCk_NetAutoTest_Assertion::CreateLambda([]() -> bool
-        {
-            FAutomationTestBase::bSuppressLogErrors = false;
-            FAutomationTestBase::bSuppressLogWarnings = false;
-            return true;
-        }),
-        TEXT("restore log suppression statics")));
-
-    return true;
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-
-// Auto-generated from AS class Ck_AutoTest_Net_Float_Local_AddWorksOnBothWorlds (ServerAndClientsIndependent-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
-
-namespace
-{
-    constexpr auto kAsClassPath_Float_Local_AddWorksOnBothWorlds = TEXT("/Script/Angelscript.Ck_AutoTest_Net_Float_Local_AddWorksOnBothWorlds");
-    constexpr auto kTimeoutSeconds_Float_Local_AddWorksOnBothWorlds = 30.0f;
-}
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkAttributeNet_AS_Float_Local_AddWorksOnBothWorlds,
-    "Ck.Attribute.Net.AS_Float_Local_AddWorksOnBothWorlds",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
-
-bool FCkAttributeNet_AS_Float_Local_AddWorksOnBothWorlds::RunTest(const FString& Parameters)
-{
-    bSuppressLogErrors = true;
-    bSuppressLogWarnings = true;
-
-    constexpr auto NumPIEClients = 2;
-    constexpr auto ExpectedTotalWorlds = 2;
-    constexpr auto ReadyTimeoutSeconds = 30.0f;
-
-    const auto MapPath = FString{TEXT("/Engine/Maps/Entry")};
-
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(NumPIEClients, MapPath));
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(ExpectedTotalWorlds, ReadyTimeoutSeconds));
-
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_Float_Local_AddWorksOnBothWorlds}, kTimeoutSeconds_Float_Local_AddWorksOnBothWorlds));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_Player_SetReplicates}, kTimeoutSeconds_Player_SetReplicates));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 
