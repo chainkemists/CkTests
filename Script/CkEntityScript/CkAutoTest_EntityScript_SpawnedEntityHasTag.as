@@ -8,8 +8,9 @@
 // are observable on the resulting entity:
 //   1. Spawn the gym entity script (its DoConstruct calls
 //      utils_entity_tag::Add(InHandle, n"TAG_EntityScriptGym_Spawn")).
-//   2. After construction, looking up children by that tag from the test
-//      entity (via utils_entity_tag::ForEach_Entity) finds the spawned one.
+//   2. After construction AND a one-frame wait (so the EntityTag request pump
+//      drains the deferred Add — see CkEntityTag/Claude.md "Timing"), looking
+//      up children by that tag from the test entity finds the spawned one.
 //
 // This catches regressions where DoConstruct fragments don't actually
 // land on the entity, OR where spawned-as-child entities aren't reachable
@@ -18,6 +19,8 @@
 
 class UCk_AutoTest_EntityScript_SpawnedEntityHasTag : UCk_AutoTest_Base
 {
+    default _TimeoutSeconds = 5.0f;
+
     private FCk_Handle _Owner;
 
     UFUNCTION(BlueprintOverride)
@@ -40,6 +43,15 @@ class UCk_AutoTest_EntityScript_SpawnedEntityHasTag : UCk_AutoTest_Base
 
     UFUNCTION()
     private void OnConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
+    {
+        if (IsFinished()) { return; }
+
+        // DoConstruct's utils_entity_tag::Add is deferred — wait one pump pass before reading.
+        WaitOneFrame(n"AfterPumpDrain");
+    }
+
+    UFUNCTION()
+    private void AfterPumpDrain(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
