@@ -61,6 +61,17 @@ class UCk_AutoTest_NetBase : UCk_AutoTest_Base
     // `default _NetMode = ECk_AutoTest_NetMode::ServerAndClientsIndependent;`.
     default _NetMode = ECk_AutoTest_NetMode::Replicated;
 
+    // The subject actor class the harness spawns on the server for this test. When unset
+    // (nullptr), the generator falls back to `ACk_AutoTest_NetSubject` — the default subject
+    // whose entity-script adds a single Float attribute (`FloatAttribute.Health`). Tests that
+    // need different per-entity setup (Player + Team child entities for CkRelationship,
+    // inventory containers for CkInventory, etc.) author a subclass of `ACk_AutoTest_NetSubject`
+    // with the right Construct body and point this override at it. The generator reads this
+    // off the CDO via reflection and emits the matching `SpawnActor` class in the Replicated-
+    // mode stub.
+    UPROPERTY()
+    TSubclassOf<ACk_AutoTest_NetSubject> _NetSubjectClass;
+
     // Captured in DoConstruct so subclasses can resolve world context without needing access
     // to the base's private SelfEntity. Stored separately rather than threaded through getters
     // to keep the base class unchanged.
