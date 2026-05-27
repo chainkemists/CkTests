@@ -27,12 +27,12 @@ namespace
     // Float attribute identifier. Must match what UCk_AutoTest_NetSubject_EntityScript_UE adds
     // in its Construct — FloatAttribute.Health is registered in Config/DefaultGameplayTags.ini
     // and reused across the standalone CkAttribute AutoTests.
-    constexpr auto SubjectAttributeTagName = TEXT("FloatAttribute.Health");
+    constexpr auto Replicates_SubjectAttributeTagName = TEXT("FloatAttribute.Health");
 
     // Post-override value the server-side lambda writes. Distinct from the entity-script's
     // initial value (42.5f) so a *missing* replication shows up as a clear mismatch on the
     // client (which would still hold the initial 42.5) rather than coincidentally matching.
-    constexpr auto SubjectOverrideValue = 100.0f;
+    constexpr auto Replicates_SubjectOverrideValue = 100.0f;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ bool FCkAttributeNet_Float_InitialValue_Replicates::RunTest(const FString& Param
                 return;
             }
 
-            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{SubjectAttributeTagName});
+            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{Replicates_SubjectAttributeTagName});
             auto AttributeHandle = UCk_Utils_FloatAttribute_UE::TryGet(OwnerEntity, AttributeTag);
             if (ck::Is_NOT_Valid(AttributeHandle))
             {
@@ -129,7 +129,7 @@ bool FCkAttributeNet_Float_InitialValue_Replicates::RunTest(const FString& Param
                 return;
             }
 
-            UCk_Utils_FloatAttribute_UE::Request_Override(AttributeHandle, SubjectOverrideValue);
+            UCk_Utils_FloatAttribute_UE::Request_Override(AttributeHandle, Replicates_SubjectOverrideValue);
 
             *OwnerSlot = OwnerEntity;
         })));
@@ -152,7 +152,7 @@ bool FCkAttributeNet_Float_InitialValue_Replicates::RunTest(const FString& Param
                 return false;
             }
 
-            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{SubjectAttributeTagName});
+            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{Replicates_SubjectAttributeTagName});
 
             // Server-side sanity — the post-override value we just wrote should be readable
             // locally. Failing here means Request_Override itself didn't take, not that
@@ -169,7 +169,7 @@ bool FCkAttributeNet_Float_InitialValue_Replicates::RunTest(const FString& Param
                 {
                     const auto ServerValue = UCk_Utils_FloatAttribute_UE::Get_FinalValue(ServerAttribute);
                     TestEqual(TEXT("server FinalValue matches post-Override value"),
-                        ServerValue, SubjectOverrideValue);
+                        ServerValue, Replicates_SubjectOverrideValue);
                 }
             }
             else
@@ -206,7 +206,7 @@ bool FCkAttributeNet_Float_InitialValue_Replicates::RunTest(const FString& Param
 
             const auto ClientValue = UCk_Utils_FloatAttribute_UE::Get_FinalValue(ClientAttribute);
             TestEqual(TEXT("client FinalValue matches server-side post-Override value (replication propagated)"),
-                ClientValue, SubjectOverrideValue);
+                ClientValue, Replicates_SubjectOverrideValue);
 
             return true;
         }),

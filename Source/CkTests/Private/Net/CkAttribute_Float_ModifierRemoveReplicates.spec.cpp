@@ -26,15 +26,15 @@
 
 namespace
 {
-    constexpr auto SubjectAttributeTagName = TEXT("FloatAttribute.Health");
-    constexpr auto SubjectModifierTagName = TEXT("FloatAttribute.Health");
+    constexpr auto ModifierRemove_SubjectAttributeTagName = TEXT("FloatAttribute.Health");
+    constexpr auto ModifierRemove_SubjectModifierTagName = TEXT("FloatAttribute.Health");
 
-    constexpr auto SubjectModifierDelta = 20.0f;
+    constexpr auto ModifierRemove_SubjectModifierDelta = 20.0f;
 
     // Initial value baked into the attribute by UCk_AutoTest_NetSubject_EntityScript_UE::Construct.
     // After Add(+20) the value is 62.5; after Remove the value should revert exactly back to
     // this initial 42.5. If client sees 62.5 still, replication of the remove didn't fire.
-    constexpr auto ExpectedBaseValue = 42.5f;
+    constexpr auto ModifierRemove_ExpectedBaseValue = 42.5f;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ bool FCkAttributeNet_Float_ModifierRemove_Replicates::RunTest(const FString& Par
                 return;
             }
 
-            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{SubjectAttributeTagName});
+            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{ModifierRemove_SubjectAttributeTagName});
             auto AttributeHandle = UCk_Utils_FloatAttribute_UE::TryGet(OwnerEntity, AttributeTag);
             if (ck::Is_NOT_Valid(AttributeHandle))
             {
@@ -115,9 +115,9 @@ bool FCkAttributeNet_Float_ModifierRemove_Replicates::RunTest(const FString& Par
                 return;
             }
 
-            const auto ModifierTag = FGameplayTag::RequestGameplayTag(FName{SubjectModifierTagName});
+            const auto ModifierTag = FGameplayTag::RequestGameplayTag(FName{ModifierRemove_SubjectModifierTagName});
             const auto ModifierParams = FCk_Fragment_FloatAttributeModifier_ParamsData{
-                SubjectModifierDelta, ECk_MinMaxCurrent::Current};
+                ModifierRemove_SubjectModifierDelta, ECk_MinMaxCurrent::Current};
 
             *ModifierSlot = UCk_Utils_FloatAttributeModifier_UE::Add_Revocable(
                 AttributeHandle,
@@ -168,7 +168,7 @@ bool FCkAttributeNet_Float_ModifierRemove_Replicates::RunTest(const FString& Par
                 return false;
             }
 
-            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{SubjectAttributeTagName});
+            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{ModifierRemove_SubjectAttributeTagName});
 
             if (ck::IsValid(*OwnerSlot))
             {
@@ -182,7 +182,7 @@ bool FCkAttributeNet_Float_ModifierRemove_Replicates::RunTest(const FString& Par
                 {
                     const auto ServerValue = UCk_Utils_FloatAttribute_UE::Get_FinalValue(ServerAttribute);
                     TestEqual(TEXT("server FinalValue reverted to base after Remove"),
-                        ServerValue, ExpectedBaseValue);
+                        ServerValue, ModifierRemove_ExpectedBaseValue);
                 }
             }
             else
@@ -213,7 +213,7 @@ bool FCkAttributeNet_Float_ModifierRemove_Replicates::RunTest(const FString& Par
 
             const auto ClientValue = UCk_Utils_FloatAttribute_UE::Get_FinalValue(ClientAttribute);
             TestEqual(TEXT("client FinalValue reverted to base after server Remove (replication propagated)"),
-                ClientValue, ExpectedBaseValue);
+                ClientValue, ModifierRemove_ExpectedBaseValue);
 
             return true;
         }),
