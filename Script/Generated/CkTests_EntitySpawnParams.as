@@ -1542,6 +1542,58 @@ namespace UCk_AutoTest_EntityTag_AddIsCounted
 }
 
 USTRUCT()
+struct FCk_AutoTest_EntityTag_AnyEntity_FiresOnAdd_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_AnyEntity_FiresOnAdd
+{
+    FCk_AutoTest_EntityTag_AnyEntity_FiresOnAdd_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_AnyEntity_FiresOnAdd_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy
+{
+    FCk_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_AnyEntity_FiresOnRemove_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_AnyEntity_FiresOnRemove
+{
+    FCk_AutoTest_EntityTag_AnyEntity_FiresOnRemove_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_AnyEntity_FiresOnRemove_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse
+{
+    FCk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_EntityTag_BindRelevantTagsFilter_SpawnParams
 {
 }
@@ -1850,6 +1902,19 @@ namespace UCk_AutoTest_EntityTagQuery_MixedCountAndAll
     FCk_AutoTest_EntityTagQuery_MixedCountAndAll_SpawnParams Params()
     {
         return FCk_AutoTest_EntityTagQuery_MixedCountAndAll_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous
+{
+    FCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_SpawnParams Params()
+    {
+        return FCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_SpawnParams();
     }
 }
 
