@@ -29,16 +29,16 @@
 namespace
 {
     // Matches the attribute the refill entity script adds (see CkAutoTest_NetSubject_RefillEntityScript.cpp).
-    constexpr auto SubjectAttributeTagName = TEXT("FloatAttribute.AutoTest_Energy");
+    constexpr auto Refill_SubjectAttributeTagName = TEXT("FloatAttribute.AutoTest_Energy");
 
     // Initial value baked into the refill entity script. Test asserts both worlds see a value
     // strictly greater than this after the settle window — that's the evidence refill ran.
-    constexpr auto SubjectInitialValue = 0.0f;
+    constexpr auto Refill_SubjectInitialValue = 0.0f;
 
     // Lower bound the post-settle value must clear. Picked conservatively below the expected
     // refill amount (FillRate=20/sec over ~1s = 20.0) so that scheduler-tick-rate jitter or
     // partial frames don't false-fail.
-    constexpr auto MinExpectedPostRefillValue = 5.0f;
+    constexpr auto Refill_MinExpectedPostRefillValue = 5.0f;
 
     // Tolerance for server↔client value comparison. Refill runs on the authority side and the
     // resulting value replicates to the client via the FCk_RepData_FloatAttributes container
@@ -48,7 +48,7 @@ namespace
     // ~one settle interval's worth of fill at the configured rate. Generous tolerance lets the
     // test focus on "both worlds clearly observed refill" rather than chasing exact agreement
     // on a continuous quantity.
-    constexpr auto ServerClientToleranceValue = 10.0f;
+    constexpr auto Refill_ServerClientToleranceValue = 10.0f;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ bool FCkAttributeNet_Float_Refill_Replicates::RunTest(const FString& Parameters)
     constexpr auto ReadyTimeoutSeconds = 30.0f;
     constexpr auto FramesAfterSpawn = 30;
     // Settle window that lets refill processor tick enough on both worlds to produce an
-    // observable value > InitialValue + MinExpectedPostRefillValue. 90 frames @ 60fps ≈ 1.5s,
+    // observable value > InitialValue + Refill_MinExpectedPostRefillValue. 90 frames @ 60fps ≈ 1.5s,
     // safely past the 1s mark when refill should have added ~20.
     constexpr auto FramesForRefillToProgress = 90;
 
@@ -140,9 +140,9 @@ bool FCkAttributeNet_Float_Refill_Replicates::RunTest(const FString& Parameters)
                 return false;
             }
 
-            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{SubjectAttributeTagName});
+            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{Refill_SubjectAttributeTagName});
 
-            auto ServerValue = SubjectInitialValue;
+            auto ServerValue = Refill_SubjectInitialValue;
             if (ck::IsValid(*OwnerSlot))
             {
                 auto ServerOwner = *OwnerSlot;
@@ -155,7 +155,7 @@ bool FCkAttributeNet_Float_Refill_Replicates::RunTest(const FString& Parameters)
                 {
                     ServerValue = UCk_Utils_FloatAttribute_UE::Get_FinalValue(ServerAttribute);
                     TestTrue(TEXT("server FinalValue rose above initial after refill ran"),
-                        ServerValue > SubjectInitialValue + MinExpectedPostRefillValue);
+                        ServerValue > Refill_SubjectInitialValue + Refill_MinExpectedPostRefillValue);
                 }
             }
             else
@@ -187,10 +187,10 @@ bool FCkAttributeNet_Float_Refill_Replicates::RunTest(const FString& Parameters)
             const auto ClientValue = UCk_Utils_FloatAttribute_UE::Get_FinalValue(ClientAttribute);
 
             TestTrue(TEXT("client FinalValue rose above initial after refill ran"),
-                ClientValue > SubjectInitialValue + MinExpectedPostRefillValue);
+                ClientValue > Refill_SubjectInitialValue + Refill_MinExpectedPostRefillValue);
 
             TestTrue(TEXT("server and client refill values converge within tolerance"),
-                FMath::IsNearlyEqual(ServerValue, ClientValue, ServerClientToleranceValue));
+                FMath::IsNearlyEqual(ServerValue, ClientValue, Refill_ServerClientToleranceValue));
 
             return true;
         }),

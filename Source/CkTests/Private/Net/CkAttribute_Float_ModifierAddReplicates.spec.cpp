@@ -26,22 +26,22 @@
 namespace
 {
     // Matches the attribute name used by UCk_AutoTest_NetSubject_EntityScript_UE::Construct.
-    constexpr auto SubjectAttributeTagName = TEXT("FloatAttribute.Health");
+    constexpr auto ModifierAdd_SubjectAttributeTagName = TEXT("FloatAttribute.Health");
 
     // Tag identifying the test's modifier. We reuse FloatAttribute.Health since it's already
     // registered in DefaultGameplayTags.ini — the modifier name is a separate index from the
     // attribute name within CkAttribute and doesn't have to be a different tag string.
-    constexpr auto SubjectModifierTagName = TEXT("FloatAttribute.Health");
+    constexpr auto ModifierAdd_SubjectModifierTagName = TEXT("FloatAttribute.Health");
 
     // Modifier delta. The entity-script's initial attribute value is 42.5; with an Add-operation
     // revocable modifier of +20, the FinalValue should be 62.5 on both worlds. Negative delta
     // would also work (Subtract operation) — Add @ +20 is just the simplest distinctive case.
-    constexpr auto SubjectModifierDelta = 20.0f;
+    constexpr auto ModifierAdd_SubjectModifierDelta = 20.0f;
 
     // Expected FinalValue after the modifier is applied. Initial 42.5 + Add 20.0 = 62.5.
     // Picked so it's neither at the clamp boundary (Max=100) nor coincidentally matching the
     // initial value — both server and client must report exactly 62.5 for the test to pass.
-    constexpr auto ExpectedPostModifierValue = 62.5f;
+    constexpr auto ModifierAdd_ExpectedPostModifierValue = 62.5f;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ bool FCkAttributeNet_Float_ModifierAdd_Replicates::RunTest(const FString& Parame
                 return;
             }
 
-            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{SubjectAttributeTagName});
+            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{ModifierAdd_SubjectAttributeTagName});
             auto AttributeHandle = UCk_Utils_FloatAttribute_UE::TryGet(OwnerEntity, AttributeTag);
             if (ck::Is_NOT_Valid(AttributeHandle))
             {
@@ -120,9 +120,9 @@ bool FCkAttributeNet_Float_ModifierAdd_Replicates::RunTest(const FString& Parame
                 return;
             }
 
-            const auto ModifierTag = FGameplayTag::RequestGameplayTag(FName{SubjectModifierTagName});
+            const auto ModifierTag = FGameplayTag::RequestGameplayTag(FName{ModifierAdd_SubjectModifierTagName});
             const auto ModifierParams = FCk_Fragment_FloatAttributeModifier_ParamsData{
-                SubjectModifierDelta, ECk_MinMaxCurrent::Current};
+                ModifierAdd_SubjectModifierDelta, ECk_MinMaxCurrent::Current};
 
             UCk_Utils_FloatAttributeModifier_UE::Add_Revocable(
                 AttributeHandle,
@@ -149,7 +149,7 @@ bool FCkAttributeNet_Float_ModifierAdd_Replicates::RunTest(const FString& Parame
                 return false;
             }
 
-            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{SubjectAttributeTagName});
+            const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{ModifierAdd_SubjectAttributeTagName});
 
             if (ck::IsValid(*OwnerSlot))
             {
@@ -163,7 +163,7 @@ bool FCkAttributeNet_Float_ModifierAdd_Replicates::RunTest(const FString& Parame
                 {
                     const auto ServerValue = UCk_Utils_FloatAttribute_UE::Get_FinalValue(ServerAttribute);
                     TestEqual(TEXT("server FinalValue reflects the revocable Add modifier locally"),
-                        ServerValue, ExpectedPostModifierValue);
+                        ServerValue, ModifierAdd_ExpectedPostModifierValue);
                 }
             }
             else
@@ -194,7 +194,7 @@ bool FCkAttributeNet_Float_ModifierAdd_Replicates::RunTest(const FString& Parame
 
             const auto ClientValue = UCk_Utils_FloatAttribute_UE::Get_FinalValue(ClientAttribute);
             TestEqual(TEXT("client FinalValue matches server-side post-modifier value (replication propagated)"),
-                ClientValue, ExpectedPostModifierValue);
+                ClientValue, ModifierAdd_ExpectedPostModifierValue);
 
             return true;
         }),
