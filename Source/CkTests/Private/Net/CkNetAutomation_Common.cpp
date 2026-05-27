@@ -13,6 +13,17 @@
 #include "CkCore/Validation/CkIsValid.h"
 #include "CkCore/Format/CkFormat.h"
 
+#include "CkEcs/EntityScript/CkEntityScript_Fragment_Data.h"
+#include "CkEcs/EntityScript/CkEntityScript_Utils.h"
+#include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
+
+#include "CkAutoTest_Bridge.h"
+#include "CkAutoTest_Utils.h"
+#include "CkTests/Net/CkAutoTest_NetSubject_Utils.h"
+
+#include "UObject/SoftObjectPath.h"
+#include <StructUtils/InstancedStruct.h>
+
 DEFINE_LOG_CATEGORY_STATIC(LogCkNetAutomation, Log, All);
 
 namespace
@@ -248,6 +259,26 @@ bool
 // --------------------------------------------------------------------------------------------------------------------
 
 bool
+    FCk_Latent_RunOnClient::
+    Update()
+{
+    auto* Client = ck::auto_test::net::Get_ClientWorld(_ClientIdx);
+    if (Client == nullptr)
+    {
+        Log_Error(TEXT("FCk_Latent_RunOnClient: no client world at index [{}] — PIE not started or not enough client instances."),
+            _ClientIdx);
+        return true;
+    }
+
+    if (_Action.IsBound())
+    { _Action.Execute(Client); }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+bool
     FCk_Latent_AssertCondition::
     Update()
 {
@@ -256,13 +287,13 @@ bool
 
     if (_Assertion.IsBound() == false)
     {
-        _Test->AddError(FString::Printf(TEXT("FCk_Latent_AssertCondition [%s]: unbound assertion delegate"), *_Message));
+        _Test->AddError(ck::Format_UE(TEXT("FCk_Latent_AssertCondition [{}]: unbound assertion delegate"), _Message));
         return true;
     }
 
     const auto Passed = _Assertion.Execute();
     if (Passed == false)
-    { _Test->AddError(FString::Printf(TEXT("FCk_Latent_AssertCondition failed: %s"), *_Message)); }
+    { _Test->AddError(ck::Format_UE(TEXT("FCk_Latent_AssertCondition failed: {}"), _Message)); }
 
     return true;
 }
@@ -287,6 +318,140 @@ bool
     // Wait until all PIE worlds are gone before returning — otherwise the next test inherits
     // half-torn-down state.
     return ck::auto_test::net::Get_AllPIEWorlds().IsEmpty();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+bool
+    FCk_Latent_RunAsTestOnAllWorlds::
+    Update()
+{
+    if (_Test == nullptr)
+    { return true; }
+
+    // ---- Phase 1: spawn (first call only) -----------------------------------------------------------------------
+
+    if (NOT _Spawned)
+    {
+        _Spawned = true;
+        _StartTime = FPlatformTime::Seconds();
+
+        const auto AsClassPath = FSoftClassPath{_ClassPath};
+        auto* AsClass = AsClassPath.TryLoadClass<UCk_EntityScript_UE>();
+        if (AsClass == nullptr)
+        {
+            _Test->AddError(ck::Format_UE(
+                TEXT("FCk_Latent_RunAsTestOnAllWorlds: could not load AS class at [{}] — check the path string."),
+                _ClassPath));
+            return true;
+        }
+
+        const auto PieWorlds = ck::auto_test::net::Get_AllPIEWorlds();
+        if (PieWorlds.IsEmpty())
+        {
+            _Test->AddError(TEXT("FCk_Latent_RunAsTestOnAllWorlds: no PIE worlds available — PIE not started?"));
+            return true;
+        }
+
+        _BodyCapturer = TStrongObjectPtr{NewObject<UCk_AutoTest_BodyCapturer_UE>()};
+        _ExpectedBodyCount = PieWorlds.Num();
+
+        for (auto* World : PieWorlds)
+        {
+            auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(World);
+            if (ck::Is_NOT_Valid(TransientEntity))
+            {
+                _Test->AddError(ck::Format_UE(
+                    TEXT("FCk_Latent_RunAsTestOnAllWorlds: world [{}] has no valid TransientEntity."),
+                    World->GetName()));
+                continue;
+            }
+
+            auto Pending = UCk_Utils_EntityScript_UE::Request_SpawnEntity(
+                TransientEntity, AsClass, FInstancedStruct{});
+
+            auto OnConstructed = FCk_Delegate_EntityScript_Constructed{};
+            OnConstructed.BindDynamic(_BodyCapturer.Get(), &UCk_AutoTest_BodyCapturer_UE::OnBodyConstructed);
+            UCk_Utils_PendingEntityScript_UE::Promise_OnConstructed(Pending, OnConstructed);
+        }
+
+        return false; // wait for construction + result-fragment writes
+    }
+
+    // ---- Phase 2: poll each captured body's result fragment ------------------------------------------------------
+
+    const auto Elapsed = FPlatformTime::Seconds() - _StartTime;
+    if (Elapsed > _TimeoutSeconds)
+    {
+        _Test->AddError(ck::Format_UE(
+            TEXT("FCk_Latent_RunAsTestOnAllWorlds: timed out after [{}]s. Captured [{}/{}] bodies."),
+            _TimeoutSeconds,
+            _BodyCapturer.IsValid() ? _BodyCapturer->_CapturedBodies.Num() : 0,
+            _ExpectedBodyCount));
+        return true;
+    }
+
+    if (NOT _BodyCapturer.IsValid())
+    { return true; }
+
+    if (_BodyCapturer->_CapturedBodies.Num() < _ExpectedBodyCount)
+    { return false; } // not all worlds have constructed yet
+
+    auto AllTerminal = true;
+    auto AnyFailed   = false;
+    auto FailureMessages = TArray<FString>{};
+
+    for (auto Index = 0; Index < _BodyCapturer->_CapturedBodies.Num(); ++Index)
+    {
+        const auto& Body = _BodyCapturer->_CapturedBodies[Index];
+        if (NOT UCk_Utils_AutoTest_UE::Has_Result(Body))
+        {
+            AllTerminal = false;
+            break;
+        }
+
+        const auto Result = UCk_Utils_AutoTest_UE::Get_Result(Body);
+        switch (Result.Status)
+        {
+            case ECk_AutoTest_Status::Pending:
+            case ECk_AutoTest_Status::Running:
+                AllTerminal = false;
+                break;
+            case ECk_AutoTest_Status::Passed:
+                break;
+            case ECk_AutoTest_Status::Failed:
+            case ECk_AutoTest_Status::TimedOut:
+            {
+                AnyFailed = true;
+                // Build the world label as an FString first — feeding ck::Format_UE's result
+                // directly through `*` would dereference a temporary, garbling the label.
+                const auto WorldLabel = (Index == 0)
+                    ? FString{TEXT("Server")}
+                    : ck::Format_UE(TEXT("Client[{}]"), Index - 1);
+                FailureMessages.Add(ck::Format_UE(
+                    TEXT("[{}] {} ({}/{} assertions failed)"),
+                    WorldLabel,
+                    Result.FailureMessage,
+                    Result.AssertionsFailed,
+                    Result.AssertionsRun));
+                break;
+            }
+        }
+    }
+
+    if (NOT AllTerminal)
+    { return false; }
+
+    for (const auto& Msg : FailureMessages)
+    { _Test->AddError(Msg); }
+
+    if (NOT AnyFailed)
+    {
+        Log_Display(TEXT("FCk_Latent_RunAsTestOnAllWorlds: all [{}] worlds passed in [{}]s."),
+            _ExpectedBodyCount, Elapsed);
+    }
+
+    return true;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

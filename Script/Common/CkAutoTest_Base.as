@@ -41,6 +41,15 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     UPROPERTY()
     float _TimeoutSeconds = 5.0f;
 
+    // Multi-world shape this test expects. Default Standalone preserves the classic
+    // single-PIE flow for every existing CkAttribute / CkAStar / CkAggro / etc. test.
+    // Subclasses targeting multi-PIE override via `default _NetMode = ECk_AutoTest_NetMode::...`
+    // (UCk_AutoTest_NetBase already does this for Replicated). See ECk_AutoTest_NetMode for
+    // the per-value contract. Phase 3b is the declaration surface; Phase 3c (generator)
+    // will wire automatic stub emission off this default.
+    UPROPERTY()
+    ECk_AutoTest_NetMode _NetMode = ECk_AutoTest_NetMode::Standalone;
+
     // ----- Internal state -----
     private FCk_Handle SelfEntity;
     private bool _Finished = false;
