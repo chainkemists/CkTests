@@ -3557,6 +3557,19 @@ namespace UCk_AutoTest_Net_Player_SetReplicates
 }
 
 USTRUCT()
+struct FCk_AutoTest_Net_Team_SetReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Team_SetReplicates
+{
+    FCk_AutoTest_Net_Team_SetReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Team_SetReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_NetBase_SpawnParams
 {
 }
