@@ -101,7 +101,7 @@ class UCk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth : UCk_AutoTest_Ba
         auto DY = Math::Abs(Expected.Y - Actual.Y);
         auto DZ = Math::Abs(Expected.Z - Actual.Z);
         auto Drift = Math::Max(Math::Max(DX, DY), DZ);
-        if (Drift > _MaxDrift) { _MaxDrift = Drift; }
+        if (Drift > _MaxDrift) { _MaxDrift = float32(Drift); }
     }
 
     UFUNCTION()

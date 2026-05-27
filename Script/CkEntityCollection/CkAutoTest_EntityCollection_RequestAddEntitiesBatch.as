@@ -18,11 +18,11 @@ class UCk_AutoTest_EntityCollection_RequestAddEntitiesBatch : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto LocalHandle = InHandle;
-        auto Name = utils_gameplay_tag::ResolveGameplayTag(n"EntityCollection.AutoTest.Batch");
+        auto CollectionTag = utils_gameplay_tag::ResolveGameplayTag(n"EntityCollection.AutoTest.Batch");
 
         _Collection = utils_entity_collection::Add(
             LocalHandle,
-            FCk_Fragment_EntityCollection_ParamsData(Name),
+            FCk_Fragment_EntityCollection_ParamsData(CollectionTag),
             ECk_Replication::DoesNotReplicate);
         _M1 = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         _M2 = utils_entity_lifetime::Request_CreateEntity(LocalHandle);

@@ -24,7 +24,7 @@ class UCk_AutoTest_Tween_FollowSpline : UCk_AutoTest_Base
     private FCk_Handle_Spline _Spline;
     private FCk_Handle_Transform _Follower;
     private FVector _SplineEnd;
-    private float _SplineLength = 0.0f;
+    private float32 _SplineLength = 0.0f;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)

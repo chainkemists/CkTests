@@ -12,11 +12,11 @@ class UCk_AutoTest_EntityCollection_AddHappyPath : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto LocalHandle = InHandle;
-        auto Name = utils_gameplay_tag::ResolveGameplayTag(n"EntityCollection.AutoTest.Foo");
+        auto CollectionTag = utils_gameplay_tag::ResolveGameplayTag(n"EntityCollection.AutoTest.Foo");
 
         auto Collection = utils_entity_collection::Add(
             LocalHandle,
-            FCk_Fragment_EntityCollection_ParamsData(Name),
+            FCk_Fragment_EntityCollection_ParamsData(CollectionTag),
             ECk_Replication::DoesNotReplicate);
 
         Assert_True(utils_entity_collection::Has_Any(LocalHandle),
@@ -24,7 +24,7 @@ class UCk_AutoTest_EntityCollection_AddHappyPath : UCk_AutoTest_Base
         Assert_True(utils_handle::Get_IsValid(Collection),
             "Add should return a valid collection handle");
 
-        auto Found = utils_entity_collection::TryGet_EntityCollection(LocalHandle, Name);
+        auto Found = utils_entity_collection::TryGet_EntityCollection(LocalHandle, CollectionTag);
         Assert_True(utils_handle::IsEqual(Found, Collection),
             "TryGet_EntityCollection should return the just-added collection");
         Assert_Equals_Int(utils_entity_collection::Get_NumEntitiesInCollection(Collection), 0,
