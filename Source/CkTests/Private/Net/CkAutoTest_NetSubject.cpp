@@ -1,0 +1,72 @@
+#include "CkTests/Net/CkAutoTest_NetSubject.h"
+
+#include "CkTests/Net/CkAutoTest_NetSubject_EntityScript.h"
+
+#include "CkEcs/EntityScript/CkEntityScript_Utils.h"
+#include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
+#include "CkEcsExt/EntityScript/CkEntityScript_WithActor_Data.h"
+
+#include "EngineUtils.h"
+#include "Engine/World.h"
+
+#include <StructUtils/InstancedStruct.h>
+
+// --------------------------------------------------------------------------------------------------------------------
+
+ACk_AutoTest_NetSubject::
+    ACk_AutoTest_NetSubject()
+{
+    bReplicates = true;
+    bAlwaysRelevant = true;
+    bReplicateUsingRegisteredSubObjectList = true;
+    PrimaryActorTick.bCanEverTick = false;
+
+    // Default — the standard test entity script that adds a single Float attribute (no refill).
+    // Subclasses set this to their own UCk_EntityScript_WithActor_UE subclass in their own ctor
+    // to drive different per-test setups.
+    _EntityScriptClass = UCk_AutoTest_NetSubject_EntityScript_UE::StaticClass();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTest_NetSubject::
+    Find(
+        UWorld* InWorld)
+    -> ACk_AutoTest_NetSubject*
+{
+    if (InWorld == nullptr)
+    { return nullptr; }
+
+    for (auto It = TActorIterator<ACk_AutoTest_NetSubject>(InWorld); It; ++It)
+    { return *It; }
+
+    return nullptr;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTest_NetSubject::
+    BeginPlay()
+    -> void
+{
+    Super::BeginPlay();
+
+    if (NOT HasAuthority())
+    { return; }
+
+    // Mirror of ACk_ActorRelay_UE::BeginPlay — spawn a WithActor-based entity that owns the
+    // bridge to this actor. The configured _EntityScriptClass (set per-subclass in ctor) is the
+    // test-harness entity script that adds whatever per-test fragments Construct on both worlds
+    // (Float attribute by default; refill-enabled attribute in the Refill subclass).
+    if (ck::Is_NOT_Valid(_EntityScriptClass))
+    { return; }
+
+    auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(GetWorld());
+    auto SpawnParams = FInstancedStruct::Make<FCk_EntityScript_WithActor_SpawnParams>(this);
+    UCk_Utils_EntityScript_UE::Request_SpawnEntity(
+        TransientEntity, _EntityScriptClass, SpawnParams);
+}
+
+// --------------------------------------------------------------------------------------------------------------------

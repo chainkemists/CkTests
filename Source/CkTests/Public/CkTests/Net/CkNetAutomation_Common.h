@@ -5,6 +5,9 @@
 #if WITH_EDITOR && WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "UObject/StrongObjectPtr.h"
+
+#include "CkTests/Net/CkAutoTest_NetSubject_Utils.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 //
@@ -114,6 +117,24 @@ private:
     FCk_NetAutoTest_ServerAction _Action;
 };
 
+// Same shape as FCk_Latent_RunOnServer but targets the Nth client world. ClientIdx 0 is the
+// first non-server PIE client (matches ck::auto_test::net::Get_ClientWorld). Reuses the
+// ServerAction delegate type because the lambda payload (UWorld*) is identical — the delegate
+// name is a historical artefact, not a contract.
+class CKTESTS_API FCk_Latent_RunOnClient : public IAutomationLatentCommand
+{
+public:
+    FCk_Latent_RunOnClient(int32 InClientIdx, const FCk_NetAutoTest_ServerAction& InAction)
+        : _ClientIdx(InClientIdx), _Action(InAction) {}
+
+    virtual ~FCk_Latent_RunOnClient() = default;
+    virtual bool Update() override;
+
+private:
+    int32 _ClientIdx = 0;
+    FCk_NetAutoTest_ServerAction _Action;
+};
+
 class CKTESTS_API FCk_Latent_AssertCondition : public IAutomationLatentCommand
 {
 public:
@@ -141,6 +162,45 @@ public:
 
 private:
     bool _Requested = false;
+};
+
+// Single combined command that owns the lifecycle of an AS-authored multi-client net test:
+// resolves the AS class by `/Script/Angelscript.<Name>` path, spawns one instance on each PIE
+// world's TransientEntity, captures the constructed handles via Promise_OnConstructed, then
+// polls each world's per-body FCk_AutoTest_Result fragment until all terminal or until
+// `InTimeoutSeconds` elapses. Per-world failures + timeouts are reported via `AddError` on the
+// supplied automation test so they appear in the Session Frontend output.
+//
+// The AS class must be a subclass of `UCk_AutoTest_Base` (or `UCk_AutoTest_NetBase`), so its
+// DoBeginPlay writes a Pass/Fail to the result fragment by calling `FinishSuccess()` /
+// `FinishFailure()`. The command is spawn-only — multi-PIE startup, subject-actor spawn, and
+// settle ticks must be issued via the existing `FCk_Latent_StartPIEMultiClient` /
+// `FCk_Latent_RunOnServer` / `FCk_Latent_TickWorlds` commands first.
+class CKTESTS_API FCk_Latent_RunAsTestOnAllWorlds : public IAutomationLatentCommand
+{
+public:
+    FCk_Latent_RunAsTestOnAllWorlds(
+        FAutomationTestBase* InTest,
+        const FString& InClassPath,
+        float InTimeoutSeconds)
+        : _Test(InTest), _ClassPath(InClassPath), _TimeoutSeconds(InTimeoutSeconds) {}
+
+    virtual ~FCk_Latent_RunAsTestOnAllWorlds() = default;
+    virtual bool Update() override;
+
+private:
+    FAutomationTestBase* _Test = nullptr;
+    FString _ClassPath;
+    float _TimeoutSeconds = 30.0f;
+
+    bool _Spawned = false;
+    int32 _ExpectedBodyCount = 0;
+    double _StartTime = -1.0;
+
+    // TStrongObjectPtr keeps the capturer alive across Update() calls. Dropped when the latent
+    // command destructs — by which point all bodies are terminal (or we timed out) and the
+    // capturer has nothing left to do.
+    TStrongObjectPtr<UCk_AutoTest_BodyCapturer_UE> _BodyCapturer;
 };
 
 #endif // WITH_EDITOR && WITH_DEV_AUTOMATION_TESTS

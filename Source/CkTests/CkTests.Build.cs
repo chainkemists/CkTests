@@ -20,11 +20,13 @@ public class CkTests : CkModuleRules
 
             "CkActorRelay",
             "CkAggro",
+            "CkAttribute",
             "CkAudio",
             "CkCore",
             "CkCue",
             "CkCVar",
             "CkEcs",
+            "CkEcsExt",
             "CkEntityCollection",
             "CkEntityExtension",
             "CkGraphics",
