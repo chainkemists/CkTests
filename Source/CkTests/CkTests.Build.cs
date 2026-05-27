@@ -30,6 +30,7 @@ public class CkTests : CkModuleRules
             "CkEntityCollection",
             "CkEntityExtension",
             "CkGraphics",
+            "CkInventory",
             "CkIsmRenderer",
             "CkLabel",
             "CkLog",
