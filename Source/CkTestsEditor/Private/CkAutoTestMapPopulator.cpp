@@ -370,10 +370,12 @@ auto
         CurrentWorld->PersistentLevel->IsUsingExternalActors();
     const auto Predicted    = Predict_Delta();
     const auto bHasAnyDelta = Predicted.bSpawnNeeded || Predicted.bMapMutationNeeded;
-    // The .umap on disk needs a write only when the delta mutates the level (non-OFPA
-    // always mutates; OFPA only mutates on map-side ops). Pure OFPA adds don't write
-    // the .umap — they write a new external .uasset and leave the level header alone.
-    const auto bUmapNeedsWrite = Predicted.bMapMutationNeeded || NOT bIsOFPA;
+    // The .umap on disk only needs a write when the level isn't OFPA. Under OFPA,
+    // every kind of actor mutation (adds, removes/strand-cleanup, relabels) is
+    // persisted via the per-actor external .uasset files; the level header has
+    // nothing actor-related to store, so the .umap never has to change. Aligned
+    // with the post-execution bUmapNeedsSave predicate below.
+    const auto bUmapNeedsWrite = NOT bIsOFPA;
 
     if (bHasAnyDelta && bUmapNeedsWrite)
     {
@@ -596,16 +598,19 @@ auto
             }
             else
             {
-                // Strand cleanup counts as a map mutation for the save-flow downstream:
-                // the cleanup updates the level's external-package set, which we want
-                // to persist. If our delta was previously adds-only, promote it now so
-                // the .umap save fires.
+                // Increment Result.Removed for diagnostic reporting (the per-config log
+                // line shows the strand-cleanup count). Under OFPA this does NOT promote
+                // a .umap save: the level's external-package set is reconstructed from
+                // the AssetRegistry's filesystem scan of __ExternalActors__/<MapName>/
+                // on every load, so there's nothing about strand cleanup that needs to
+                // be persisted into the .umap header. The on-disk Delete done above is
+                // the entirety of the persistent change.
                 Result.Removed += StrandedExternals.Num();
             }
         }
     }
 
-    // Compose the "needs save" signal from two sources:
+    // Two control-flow signals drive whether the sync proceeds into the save block:
     //   1. Our sync logic produced a delta (spawn/remove/relabel). Standard case.
     //   2. Path B's LoadPackage induced dirty state without our help — typically the
     //      level file referenced a class that no longer exists, UE silently dropped
@@ -614,17 +619,25 @@ auto
     const auto bHasMyDelta = Result.Has_Delta();
     const auto bLoadInducedDirty = bWasLoadedFresh && WasDirtyOnEntry;
 
-    // Same OFPA/mutation distinction as the pre-flight: if we're on an OFPA target
-    // and the actual applied delta is adds-only (no removes, no relabels), we save
-    // only the new external .uasset packages and leave the .umap header untouched on
-    // disk. This is what makes "teammate has the .umap LFS-locked, I can still add
-    // tests" actually work — OFPA's headline promise.
+    // Under OFPA, the .umap NEVER needs to be saved for actor mutations of any kind:
+    // adds, removes (including strand-cleanup), and relabels all live in the actor's
+    // external .uasset package. The level loads its actor set by AssetRegistry scan
+    // of __ExternalActors__/<MapName>/, not from a manifest in the .umap, so there
+    // is nothing actor-related the .umap header has to persist. This is OFPA's
+    // headline promise — "teammate has the .umap LFS-locked, I can still
+    // add/remove/relabel tests" applies uniformly to every mutation shape.
     //
-    // Load-induced dirty state forces a .umap save regardless (we need to persist the
-    // dropped reference).
-    const auto bAppliedAnyMapMutation = (Result.Removed > 0) || (Result.Relabeled > 0);
-    const auto bUmapNeedsSave         =
-        bLoadInducedDirty || bAppliedAnyMapMutation || NOT bIsOFPA;
+    // Two cases still force a .umap save:
+    //   1. Non-OFPA levels — the actor data lives IN the .umap package itself, so
+    //      the save is the only persistence path. Without this, adds/removes silently
+    //      drop on the floor.
+    //   2. Path B's LoadPackage induced dirty state — e.g. the level referenced a
+    //      class that no longer exists and UE silently dropped the entry. The level
+    //      on disk still contains the dead reference until we save here. (Rare under
+    //      OFPA since the .umap doesn't carry actor refs, but kept defensively for
+    //      any non-actor class references like WorldSettings.)
+    //
+    const auto bUmapNeedsSave = bLoadInducedDirty || NOT bIsOFPA;
 
     if (bHasMyDelta)
     {
@@ -678,12 +691,16 @@ auto
     }
     else
     {
-        // OFPA + adds-only: save only the level's dirty external .uasset packages.
-        // The .umap header stays at HEAD content on disk — locked .umap doesn't block
-        // routine test adds. UE's level-open flow discovers external actors via
-        // AssetRegistry scan of __ExternalActors__/<MapName>/, not from a manifest
-        // in the .umap, so the new wrapper will be discoverable on next load even
-        // though the .umap doesn't reference it.
+        // OFPA path (every shape of actor mutation — adds, removes/strand-cleanup,
+        // relabels): save only the level's dirty external .uasset packages. The
+        // .umap header stays at HEAD content on disk. UE's level-open flow
+        // discovers external actors via AssetRegistry scan of
+        // __ExternalActors__/<MapName>/, not from a manifest in the .umap, so the
+        // new external set is correctly reflected on next load.
+        //
+        // Strand-cleanup deletes are persisted by the FPackageSourceControlHelper
+        // Delete call earlier in this function (which removes the .uasset from disk
+        // and from source control); nothing further is needed here for them.
         //
         // Critical: clear the level package's in-memory dirty flag after saving the
         // externals, otherwise the user gets a persistent "save the level?" prompt
@@ -697,12 +714,15 @@ auto
 
         if (DirtyExternals.IsEmpty())
         {
-            // Surprising — adds happened but no external packages got dirtied? Could
-            // mean the spawned actors weren't actually attached to OFPA storage, or
-            // UE auto-saved externals out from under us mid-sync. Log VeryVerbose and
-            // count it as success (nothing further to do).
+            // No dirty externals to save. Two normal cases land here:
+            //   1. A removes/relabels-only sync where the persistent changes were
+            //      already committed by SCC Delete (strand-cleanup) — nothing left.
+            //   2. An adds sync where UE auto-saved the externals out from under us
+            //      mid-sync.
+            // Less commonly: spawned actors weren't actually attached to OFPA
+            // storage. Either way, count it as success.
             ck::tests_editor::VeryVerbose(
-                TEXT("[CkAutoTest Populator] [{}] OFPA adds-only path: no dirty external packages to save."),
+                TEXT("[CkAutoTest Populator] [{}] OFPA path: no dirty external packages to save."),
                 InConfig->Get_DisplayName());
             bSaved = true;
         }
