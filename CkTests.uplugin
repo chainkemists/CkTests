@@ -49,6 +49,10 @@
 		{
 			"Name": "GameplayAbilities",
 			"Enabled": true
+		},
+		{
+			"Name": "Gauntlet",
+			"Enabled": true
 		}
 	]
 }
