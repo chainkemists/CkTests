@@ -64,8 +64,10 @@ classDiagram
         +Request_MarkHeartbeat(FString) UFUNCTION
         +Request_ExecConsoleCommand(FString) UFUNCTION
         +Request_WatchLogSubstring(FString) UFUNCTION
+        +Request_InjectInputForAction(UInputAction*, FVector) UFUNCTION
         +HasObservedLogSubstring(FString) UFUNCTION
         +Get_FirstPlayerController() UFUNCTION
+        +Get_BoundImcCount() UFUNCTION
         +Get_ElapsedTimeSeconds() UFUNCTION
     }
 
