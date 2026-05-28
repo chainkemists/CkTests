@@ -6,6 +6,7 @@
 #include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
 #include "CkEcsExt/EntityScript/CkEntityScript_WithActor_Data.h"
 
+#include "Components/SceneComponent.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
 
@@ -20,6 +21,15 @@ ACk_AutoTest_NetSubject::
     bAlwaysRelevant = true;
     bReplicateUsingRegisteredSubObjectList = true;
     PrimaryActorTick.bCanEverTick = false;
+
+    // A USceneComponent root with Movable mobility is required for UCk_EntityScript_WithActor_UE::Construct
+    // to add the Transform fragment to the bridged entity (it guards on GetRootComponent() != nullptr).
+    // Without it, CkTransform's FCk_RepData_Location/Rotation/Scale handlers have no entity to drive on
+    // the client. Mobility=Movable also avoids the "non-movable RootComponent" ensure that
+    // FProcessor_Transform_HandleRequests fires when a transform request lands on a static-rooted entity.
+    auto* Root = CreateDefaultSubobject<USceneComponent>(TEXT("DefaultSceneRoot"));
+    Root->SetMobility(EComponentMobility::Movable);
+    RootComponent = Root;
 
     // Default — the standard test entity script that adds a single Float attribute (no refill).
     // Subclasses set this to their own UCk_EntityScript_WithActor_UE subclass in their own ctor

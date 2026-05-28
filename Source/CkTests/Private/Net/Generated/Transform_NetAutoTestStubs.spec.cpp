@@ -37,21 +37,21 @@
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Auto-generated from AS class Ck_AutoTest_Net_Float_InitialValueReplicates (Replicated-mode).
+// Auto-generated from AS class Ck_AutoTest_Net_Location_Replicates (Replicated-mode).
 // DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
-    constexpr auto kAsClassPath_Float_InitialValueReplicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_Float_InitialValueReplicates");
-    constexpr auto kTimeoutSeconds_Float_InitialValueReplicates = 30.0f;
+    constexpr auto kAsClassPath_Location_Replicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_Location_Replicates");
+    constexpr auto kTimeoutSeconds_Location_Replicates = 30.0f;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkAttributeNet_AS_Float_InitialValueReplicates,
-    "Ck.Attribute.Net.AS_Float_InitialValueReplicates",
+    FCkTransformNet_AS_Location_Replicates,
+    "Ck.Transform.Net.AS_Location_Replicates",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
 
-bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Parameters)
+bool FCkTransformNet_AS_Location_Replicates::RunTest(const FString& Parameters)
 {
     bSuppressLogErrors = true;
     bSuppressLogWarnings = true;
@@ -83,7 +83,7 @@ bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Par
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterSpawn));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_Float_InitialValueReplicates}, kTimeoutSeconds_Float_InitialValueReplicates));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_Location_Replicates}, kTimeoutSeconds_Location_Replicates));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 
@@ -101,21 +101,21 @@ bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Par
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Auto-generated from AS class Ck_AutoTest_Net_Float_Local_AddWorksOnBothWorlds (ServerAndClientsIndependent-mode).
+// Auto-generated from AS class Ck_AutoTest_Net_LocationAndRotation_Replicates (Replicated-mode).
 // DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
-    constexpr auto kAsClassPath_Float_Local_AddWorksOnBothWorlds = TEXT("/Script/Angelscript.Ck_AutoTest_Net_Float_Local_AddWorksOnBothWorlds");
-    constexpr auto kTimeoutSeconds_Float_Local_AddWorksOnBothWorlds = 30.0f;
+    constexpr auto kAsClassPath_LocationAndRotation_Replicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_LocationAndRotation_Replicates");
+    constexpr auto kTimeoutSeconds_LocationAndRotation_Replicates = 30.0f;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkAttributeNet_AS_Float_Local_AddWorksOnBothWorlds,
-    "Ck.Attribute.Net.AS_Float_Local_AddWorksOnBothWorlds",
+    FCkTransformNet_AS_LocationAndRotation_Replicates,
+    "Ck.Transform.Net.AS_LocationAndRotation_Replicates",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
 
-bool FCkAttributeNet_AS_Float_Local_AddWorksOnBothWorlds::RunTest(const FString& Parameters)
+bool FCkTransformNet_AS_LocationAndRotation_Replicates::RunTest(const FString& Parameters)
 {
     bSuppressLogErrors = true;
     bSuppressLogWarnings = true;
@@ -123,13 +123,95 @@ bool FCkAttributeNet_AS_Float_Local_AddWorksOnBothWorlds::RunTest(const FString&
     constexpr auto NumPIEClients = 2;
     constexpr auto ExpectedTotalWorlds = 2;
     constexpr auto ReadyTimeoutSeconds = 30.0f;
+    constexpr auto FramesAfterSpawn = 30;
 
     const auto MapPath = FString{TEXT("/Engine/Maps/Entry")};
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(NumPIEClients, MapPath));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(ExpectedTotalWorlds, ReadyTimeoutSeconds));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_Float_Local_AddWorksOnBothWorlds}, kTimeoutSeconds_Float_Local_AddWorksOnBothWorlds));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            auto SpawnInfo = FActorSpawnParameters{};
+            SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            const auto SubjectClassPath = FSoftClassPath(TEXT("/Script/CkTests.Ck_AutoTest_NetSubject"));
+            auto* SubjectClass = SubjectClassPath.TryLoadClass<ACk_AutoTest_NetSubject>();
+            if (SubjectClass == nullptr)
+            { AddError(TEXT("AS-test harness: failed to resolve NetSubject class via FSoftClassPath")); return; }
+            auto* Subject = InServer->SpawnActor<ACk_AutoTest_NetSubject>(
+                SubjectClass, FTransform::Identity, SpawnInfo);
+            if (Subject == nullptr)
+            { AddError(TEXT("AS-test harness: server-side SpawnActor returned null")); }
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterSpawn));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_LocationAndRotation_Replicates}, kTimeoutSeconds_LocationAndRotation_Replicates));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([]() -> bool
+        {
+            FAutomationTestBase::bSuppressLogErrors = false;
+            FAutomationTestBase::bSuppressLogWarnings = false;
+            return true;
+        }),
+        TEXT("restore log suppression statics")));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Auto-generated from AS class Ck_AutoTest_Net_Rotation_Replicates (Replicated-mode).
+// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+
+namespace
+{
+    constexpr auto kAsClassPath_Rotation_Replicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_Rotation_Replicates");
+    constexpr auto kTimeoutSeconds_Rotation_Replicates = 30.0f;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTransformNet_AS_Rotation_Replicates,
+    "Ck.Transform.Net.AS_Rotation_Replicates",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkTransformNet_AS_Rotation_Replicates::RunTest(const FString& Parameters)
+{
+    bSuppressLogErrors = true;
+    bSuppressLogWarnings = true;
+
+    constexpr auto NumPIEClients = 2;
+    constexpr auto ExpectedTotalWorlds = 2;
+    constexpr auto ReadyTimeoutSeconds = 30.0f;
+    constexpr auto FramesAfterSpawn = 30;
+
+    const auto MapPath = FString{TEXT("/Engine/Maps/Entry")};
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(NumPIEClients, MapPath));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(ExpectedTotalWorlds, ReadyTimeoutSeconds));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            auto SpawnInfo = FActorSpawnParameters{};
+            SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            const auto SubjectClassPath = FSoftClassPath(TEXT("/Script/CkTests.Ck_AutoTest_NetSubject"));
+            auto* SubjectClass = SubjectClassPath.TryLoadClass<ACk_AutoTest_NetSubject>();
+            if (SubjectClass == nullptr)
+            { AddError(TEXT("AS-test harness: failed to resolve NetSubject class via FSoftClassPath")); return; }
+            auto* Subject = InServer->SpawnActor<ACk_AutoTest_NetSubject>(
+                SubjectClass, FTransform::Identity, SpawnInfo);
+            if (Subject == nullptr)
+            { AddError(TEXT("AS-test harness: server-side SpawnActor returned null")); }
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterSpawn));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_Rotation_Replicates}, kTimeoutSeconds_Rotation_Replicates));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 

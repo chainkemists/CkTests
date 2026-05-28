@@ -37,21 +37,21 @@
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Auto-generated from AS class Ck_AutoTest_Net_Float_InitialValueReplicates (Replicated-mode).
+// Auto-generated from AS class Ck_AutoTest_Net_AddEntities_Replicates (Replicated-mode).
 // DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
-    constexpr auto kAsClassPath_Float_InitialValueReplicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_Float_InitialValueReplicates");
-    constexpr auto kTimeoutSeconds_Float_InitialValueReplicates = 30.0f;
+    constexpr auto kAsClassPath_AddEntities_Replicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_AddEntities_Replicates");
+    constexpr auto kTimeoutSeconds_AddEntities_Replicates = 30.0f;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkAttributeNet_AS_Float_InitialValueReplicates,
-    "Ck.Attribute.Net.AS_Float_InitialValueReplicates",
+    FCkEntityCollectionNet_AS_AddEntities_Replicates,
+    "Ck.EntityCollection.Net.AS_AddEntities_Replicates",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
 
-bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Parameters)
+bool FCkEntityCollectionNet_AS_AddEntities_Replicates::RunTest(const FString& Parameters)
 {
     bSuppressLogErrors = true;
     bSuppressLogWarnings = true;
@@ -71,7 +71,7 @@ bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Par
         {
             auto SpawnInfo = FActorSpawnParameters{};
             SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-            const auto SubjectClassPath = FSoftClassPath(TEXT("/Script/CkTests.Ck_AutoTest_NetSubject"));
+            const auto SubjectClassPath = FSoftClassPath(TEXT("/Script/CkTests.Ck_AutoTest_NetSubject_EntityCollection_UE"));
             auto* SubjectClass = SubjectClassPath.TryLoadClass<ACk_AutoTest_NetSubject>();
             if (SubjectClass == nullptr)
             { AddError(TEXT("AS-test harness: failed to resolve NetSubject class via FSoftClassPath")); return; }
@@ -83,7 +83,7 @@ bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Par
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterSpawn));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_Float_InitialValueReplicates}, kTimeoutSeconds_Float_InitialValueReplicates));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_AddEntities_Replicates}, kTimeoutSeconds_AddEntities_Replicates));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 
@@ -101,21 +101,21 @@ bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Par
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Auto-generated from AS class Ck_AutoTest_Net_Float_Local_AddWorksOnBothWorlds (ServerAndClientsIndependent-mode).
+// Auto-generated from AS class Ck_AutoTest_Net_RemoveEntities_Replicates (Replicated-mode).
 // DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
-    constexpr auto kAsClassPath_Float_Local_AddWorksOnBothWorlds = TEXT("/Script/Angelscript.Ck_AutoTest_Net_Float_Local_AddWorksOnBothWorlds");
-    constexpr auto kTimeoutSeconds_Float_Local_AddWorksOnBothWorlds = 30.0f;
+    constexpr auto kAsClassPath_RemoveEntities_Replicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_RemoveEntities_Replicates");
+    constexpr auto kTimeoutSeconds_RemoveEntities_Replicates = 30.0f;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkAttributeNet_AS_Float_Local_AddWorksOnBothWorlds,
-    "Ck.Attribute.Net.AS_Float_Local_AddWorksOnBothWorlds",
+    FCkEntityCollectionNet_AS_RemoveEntities_Replicates,
+    "Ck.EntityCollection.Net.AS_RemoveEntities_Replicates",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
 
-bool FCkAttributeNet_AS_Float_Local_AddWorksOnBothWorlds::RunTest(const FString& Parameters)
+bool FCkEntityCollectionNet_AS_RemoveEntities_Replicates::RunTest(const FString& Parameters)
 {
     bSuppressLogErrors = true;
     bSuppressLogWarnings = true;
@@ -123,13 +123,31 @@ bool FCkAttributeNet_AS_Float_Local_AddWorksOnBothWorlds::RunTest(const FString&
     constexpr auto NumPIEClients = 2;
     constexpr auto ExpectedTotalWorlds = 2;
     constexpr auto ReadyTimeoutSeconds = 30.0f;
+    constexpr auto FramesAfterSpawn = 30;
 
     const auto MapPath = FString{TEXT("/Engine/Maps/Entry")};
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(NumPIEClients, MapPath));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(ExpectedTotalWorlds, ReadyTimeoutSeconds));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_Float_Local_AddWorksOnBothWorlds}, kTimeoutSeconds_Float_Local_AddWorksOnBothWorlds));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            auto SpawnInfo = FActorSpawnParameters{};
+            SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            const auto SubjectClassPath = FSoftClassPath(TEXT("/Script/CkTests.Ck_AutoTest_NetSubject_EntityCollection_UE"));
+            auto* SubjectClass = SubjectClassPath.TryLoadClass<ACk_AutoTest_NetSubject>();
+            if (SubjectClass == nullptr)
+            { AddError(TEXT("AS-test harness: failed to resolve NetSubject class via FSoftClassPath")); return; }
+            auto* Subject = InServer->SpawnActor<ACk_AutoTest_NetSubject>(
+                SubjectClass, FTransform::Identity, SpawnInfo);
+            if (Subject == nullptr)
+            { AddError(TEXT("AS-test harness: server-side SpawnActor returned null")); }
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterSpawn));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_RemoveEntities_Replicates}, kTimeoutSeconds_RemoveEntities_Replicates));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 
