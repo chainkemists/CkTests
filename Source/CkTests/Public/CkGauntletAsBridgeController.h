@@ -8,6 +8,7 @@
 class UCk_GauntletAsTest_Base;
 class APlayerController;
 class FCkGauntletAsLogSink;
+class UInputAction;
 
 // --------------------------------------------------------------------------------------------------------------------
 //
@@ -82,6 +83,27 @@ public:
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ck|Gauntlet|AS")
     double Get_ElapsedTimeSeconds() const;
 
+    // ----- Enhanced Input introspection / injection -----
+    //
+    // Returns the number of mapping contexts currently applied to the first
+    // local PC's EnhancedInputLocalPlayerSubsystem. 0 if PC, local-player, or
+    // subsystem is null. Tests read `> 0` as "player input stack non-empty
+    // after possession" — catches the "I refactored the GameMode and forgot
+    // to AddMappingContext at PossessedBy" regression class.
+
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ck|Gauntlet|AS")
+    int32 Get_BoundImcCount() const;
+
+    // Per-tick input injection for an InputAction. Wraps
+    // IEnhancedInputSubsystemInterface::InjectInputVectorForAction. Enhanced
+    // Input injections are NOT sticky — callers must re-inject every tick to
+    // simulate a held key. No-op (with a warning log) if PC, subsystem, or
+    // Action is null.
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Gauntlet|AS",
+        meta = (DisplayName = "Request Inject Input For Action"))
+    void Request_InjectInputForAction(UInputAction* Action, FVector Value);
+
     // ----- Log-watch API -----
     //
     // AS-side pattern:
@@ -133,6 +155,11 @@ private:
     bool _AsInitFired = false;
     bool _Ended = false;
     double _StartTimeSeconds = 0.0;
+    // Captured the instant TryConstructAsInstance succeeds. _TimeoutSeconds
+    // (the per-test watchdog) is measured from this — not from OnInit — so a
+    // slow AS module compile (cold cache, big delta) doesn't burn the entire
+    // test budget before the test body even starts running.
+    double _AsConstructedTimeSeconds = 0.0;
 
     // Seconds the bridge waits for the AS UClass named in -asgauntlet to
     // register before firing EndTest(4). AS compile is either done by the

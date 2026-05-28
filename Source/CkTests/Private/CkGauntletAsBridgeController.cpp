@@ -1,10 +1,14 @@
 #include "CkGauntletAsBridgeController.h"
 #include "CkGauntletAsTest_Base.h"
 
+#include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
+#include "EnhancedInputSubsystems.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/PlatformMisc.h"
 #include "HAL/PlatformTime.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
 #include "Logging/LogMacros.h"
 #include "Misc/CommandLine.h"
 #include "Misc/OutputDevice.h"
@@ -172,7 +176,7 @@ void UCk_GauntletAsBridgeController::OnTick(float TimeDelta)
         }
     }
 
-    const double Elapsed = FPlatformTime::Seconds() - _StartTimeSeconds;
+    const double Elapsed = FPlatformTime::Seconds() - _AsConstructedTimeSeconds;
     if (Elapsed > _AsInstance->_TimeoutSeconds)
     {
         UE_LOG(LogCkGauntletAs, Error,
@@ -289,6 +293,7 @@ void UCk_GauntletAsBridgeController::TryConstructAsInstance()
     }
 
     _AsInstance->Controller = this;
+    _AsConstructedTimeSeconds = FPlatformTime::Seconds();
 
     UE_LOG(LogCkGauntletAs, Display,
         TEXT("[CkGauntletAs] Constructed AS test instance: %s (resolved class %s)"),
@@ -394,6 +399,69 @@ double UCk_GauntletAsBridgeController::Get_TimeInCurrentState() const
 double UCk_GauntletAsBridgeController::Get_ElapsedTimeSeconds() const
 {
     return FPlatformTime::Seconds() - _StartTimeSeconds;
+}
+
+int32 UCk_GauntletAsBridgeController::Get_BoundImcCount() const
+{
+    const APlayerController* PC = GetFirstPlayerController();
+    if (PC == nullptr)
+    { return 0; }
+
+    const ULocalPlayer* LocalPlayer = PC->GetLocalPlayer();
+    if (LocalPlayer == nullptr)
+    { return 0; }
+
+    UEnhancedInputLocalPlayerSubsystem* Subsystem =
+        LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+    if (Subsystem == nullptr)
+    { return 0; }
+
+    // UEnhancedPlayerInput::GetAppliedInputContextData is protected. Probe by
+    // iterating every loaded UInputMappingContext and asking the subsystem if
+    // it's applied. Cheaper than the alternatives (friend, engine patch) and
+    // accurate enough for a smoke test — the IMC set is small.
+    int32 Count = 0;
+    for (TObjectIterator<UInputMappingContext> It; It; ++It)
+    {
+        const UInputMappingContext* Imc = *It;
+        if (Imc == nullptr)
+        { continue; }
+        if (Subsystem->HasMappingContext(Imc))
+        { ++Count; }
+    }
+    return Count;
+}
+
+void UCk_GauntletAsBridgeController::Request_InjectInputForAction(UInputAction* Action, FVector Value)
+{
+    if (Action == nullptr)
+    {
+        UE_LOG(LogCkGauntletAs, Warning,
+            TEXT("[CkGauntletAs] Request_InjectInputForAction — Action is null; ignoring."));
+        return;
+    }
+
+    APlayerController* PC = GetFirstPlayerController();
+    if (PC == nullptr)
+    {
+        UE_LOG(LogCkGauntletAs, Warning,
+            TEXT("[CkGauntletAs] Request_InjectInputForAction('%s') — no PlayerController; ignoring."),
+            *Action->GetName());
+        return;
+    }
+
+    const ULocalPlayer* LocalPlayer = PC->GetLocalPlayer();
+    UEnhancedInputLocalPlayerSubsystem* Subsystem =
+        LocalPlayer != nullptr ? LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr;
+    if (Subsystem == nullptr)
+    {
+        UE_LOG(LogCkGauntletAs, Warning,
+            TEXT("[CkGauntletAs] Request_InjectInputForAction('%s') — no EnhancedInputLocalPlayerSubsystem; ignoring."),
+            *Action->GetName());
+        return;
+    }
+
+    Subsystem->InjectInputVectorForAction(Action, Value, /*Modifiers=*/{}, /*Triggers=*/{});
 }
 
 void UCk_GauntletAsBridgeController::Request_WatchLogSubstring(const FString& Substring)
