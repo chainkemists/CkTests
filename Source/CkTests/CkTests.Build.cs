@@ -46,6 +46,7 @@ public class CkTests : CkModuleRules
             "CkShapes",
             "CkStateMachine",
             "CkSubstep",
+            "CkTagSet",
             "CkTargeting",
             "CkUI",
             "CkUnrealComponent",
