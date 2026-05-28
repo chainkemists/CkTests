@@ -11,3 +11,11 @@ ACk_AutoTest_NetSubject_StateMachine_UE::
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+
+ACk_AutoTest_NetSubject_StateMachineNoHistory_UE::
+    ACk_AutoTest_NetSubject_StateMachineNoHistory_UE()
+{
+    _EntityScriptClass = UCk_AutoTest_NetSubject_StateMachineNoHistoryEntityScript_UE::StaticClass();
+}
+
+// --------------------------------------------------------------------------------------------------------------------

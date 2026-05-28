@@ -33,3 +33,16 @@ public:
 };
 
 // --------------------------------------------------------------------------------------------------------------------
+
+// WithoutHistory variant — bridges to the NoHistory entity-script. Used by the snap-to-final-state
+// replication test.
+UCLASS()
+class CKTESTS_API ACk_AutoTest_NetSubject_StateMachineNoHistory_UE : public ACk_AutoTest_NetSubject_StateMachine_UE
+{
+    GENERATED_BODY()
+
+public:
+    ACk_AutoTest_NetSubject_StateMachineNoHistory_UE();
+};
+
+// --------------------------------------------------------------------------------------------------------------------

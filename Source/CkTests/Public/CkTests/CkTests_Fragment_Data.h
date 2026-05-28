@@ -78,3 +78,12 @@ CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gyms_Probe_InteractB);
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// EntityCollection net-test collection name. Must be a *registered* tag — the EntityCollection
+// SyncReplication processor keys its local-collection lookup by the replicated _CollectionName
+// (TryGet_EntityCollection(owner, name)), so an unregistered/empty tag (TAG_NOT_SET) makes the
+// client-side lookup fail permanently. FGameplayTag::RequestGameplayTag on an unregistered name
+// returns empty, which is exactly the bug this native definition avoids.
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_EntityCollection_AutoTest_Net);
+
+// --------------------------------------------------------------------------------------------------------------------
+

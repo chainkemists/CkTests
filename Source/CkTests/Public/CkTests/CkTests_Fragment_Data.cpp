@@ -41,3 +41,7 @@ CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Gyms_Probe_InteractB, "Probe.Gyms.Interac
 
 // --------------------------------------------------------------------------------------------------------------------
 
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_EntityCollection_AutoTest_Net, "EntityCollection.AutoTest_Net");
+
+// --------------------------------------------------------------------------------------------------------------------
+
