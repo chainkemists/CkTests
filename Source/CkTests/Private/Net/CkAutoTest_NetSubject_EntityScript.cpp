@@ -10,6 +10,7 @@
 #include "CkAttribute/VectorAttribute/CkVectorAttribute_Fragment_Data.h"
 #include "CkAttribute/VectorAttribute/CkVectorAttribute_Utils.h"
 #include "CkTagSet/CkTagSet_Utils.h"
+#include "CkPhysics/Acceleration/CkAcceleration_Utils.h"
 
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
 
@@ -92,10 +93,19 @@ auto
     // reach it without a by-name lookup (a TagSet is single-per-entity).
     auto TagSet = UCk_Utils_TagSet_UE::Add(InHandle, FGameplayTagContainer{}, ECk_Replication::Replicates);
 
+    // Replicated Acceleration (World coords, zero starting). The CkPhysics net test drives
+    // Request_OverrideAcceleration on the server and polls Get_CurrentAcceleration on the client.
+    // World coords avoid the Local-coords Transform/rotation path. Stash the handle on the actor
+    // (Acceleration is single-per-entity, no by-tag TryGet) mirroring _TestTagSet.
+    auto Acceleration = UCk_Utils_Acceleration_UE::Add(InHandle,
+        FCk_Fragment_Acceleration_ParamsData{ECk_LocalWorld::World, FVector::ZeroVector},
+        ECk_Replication::Replicates);
+
     auto* OwningActor = UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle);
     if (auto* Subject = Cast<ACk_AutoTest_NetSubject>(OwningActor))
     {
         Subject->_TestTagSet = TagSet;
+        Subject->_TestAcceleration = Acceleration;
     }
 
     return Flow;

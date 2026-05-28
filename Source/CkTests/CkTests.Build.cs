@@ -37,6 +37,7 @@ public class CkTests : CkModuleRules
             "CkLabel",
             "CkLog",
             "CkPerception",
+            "CkPhysics",
             "CkProvider",
             "CkRecord",
             "CkRelationship",
