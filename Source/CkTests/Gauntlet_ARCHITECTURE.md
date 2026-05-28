@@ -187,29 +187,29 @@ sequenceDiagram
     participant Sink as FOutputDevice sink<br/>(owned by bridge)
     participant Log as GLog<br/>(any thread)
 
-    Note over Bridge,Sink: Bridge installs sink in OnInit:<br/>GLog->AddOutputDevice(_LogSink)
+    Note over Bridge,Sink: Bridge installs sink in OnInit<br/>via GLog AddOutputDevice
 
     AS->>Bridge: Request_WatchLogSubstring("some marker")
-    Bridge->>Sink: Register substring + atomic_bool flag
+    Bridge->>Sink: Register substring and atomic_bool flag
 
     Note over Log: Log lines flow from any thread at any time
 
     par log emitted on game thread
         Log->>Sink: Serialize(line, verbosity, category)
         Sink->>Sink: Strstr each registered substring
-        Sink->>Sink: First match → atomic store(true)
+        Sink->>Sink: First match flips atomic flag true
     and log emitted on async thread
         Log->>Sink: Serialize(line, verbosity, category)
-        Sink->>Sink: same path; atomic is thread-safe
+        Sink->>Sink: same path, atomic is thread-safe
     end
 
-    loop AS test's OnAsTick on game thread
+    loop AS test OnAsTick on game thread
         AS->>Bridge: HasObservedLogSubstring("some marker")
-        Bridge->>Sink: atomic load()
+        Bridge->>Sink: load atomic flag
         Sink-->>AS: true / false
     end
 
-    Note over Bridge: BeginDestroy:<br/>GLog->RemoveOutputDevice(_LogSink)<br/>_LogSink.Reset()
+    Note over Bridge: BeginDestroy<br/>removes sink from GLog<br/>and resets the shared pointer
 ```
 
 One sink per bridge instance, shared across all registered substrings. Per-substring `std::atomic<bool>` makes the cross-thread match safe. AS reads the flag on the game thread each tick.
