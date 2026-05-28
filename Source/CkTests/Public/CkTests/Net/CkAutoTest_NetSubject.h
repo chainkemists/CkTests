@@ -5,6 +5,8 @@
 #include "GameFramework/Actor.h"
 #include "Templates/SubclassOf.h"
 
+#include "CkTagSet/CkTagSet_Fragment_Data.h"
+
 #include "CkAutoTest_NetSubject.generated.h"
 
 class UCk_EntityScript_WithActor_UE;
@@ -63,4 +65,14 @@ protected:
     // bridge contract depends on the WithActor `Construct` running on both worlds.
     UPROPERTY()
     TSubclassOf<UCk_EntityScript_WithActor_UE> _EntityScriptClass;
+
+public:
+    // Stashed by the default entity-script (UCk_AutoTest_NetSubject_EntityScript_UE) which adds a
+    // Replicates TagSet alongside the Float/Byte/Integer/Vector attributes. Transient, local-only;
+    // each world's entity-script populates its own. Used by the CkTagSet net test to drive
+    // Request_AddTag on the server and poll HasTag on the client without a by-name lookup (a
+    // TagSet is single-per-entity). Subjects spawned with a non-default entity-script leave this
+    // unset, which is fine — only the TagSet test reads it.
+    UPROPERTY(Transient, BlueprintReadOnly, Category = "Ck|AutoTest")
+    FCk_Handle_TagSet _TestTagSet;
 };
