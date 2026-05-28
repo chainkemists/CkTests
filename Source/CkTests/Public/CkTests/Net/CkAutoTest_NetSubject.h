@@ -6,6 +6,7 @@
 #include "Templates/SubclassOf.h"
 
 #include "CkTagSet/CkTagSet_Fragment_Data.h"
+#include "CkPhysics/Acceleration/CkAcceleration_Fragment_Data.h"
 
 #include "CkAutoTest_NetSubject.generated.h"
 
@@ -75,4 +76,11 @@ public:
     // unset, which is fine — only the TagSet test reads it.
     UPROPERTY(Transient, BlueprintReadOnly, Category = "Ck|AutoTest")
     FCk_Handle_TagSet _TestTagSet;
+
+    // Stashed by the default entity-script alongside the TagSet. The CkPhysics Acceleration net test
+    // drives Request_OverrideAcceleration on the server and polls Get_CurrentAcceleration on the
+    // client. Acceleration is single-per-entity (no by-tag TryGet), so the actor-stash mirrors
+    // _TestTagSet. Transient, local-only; each world's entity-script populates its own.
+    UPROPERTY(Transient, BlueprintReadOnly, Category = "Ck|AutoTest")
+    FCk_Handle_Acceleration _TestAcceleration;
 };
