@@ -87,3 +87,13 @@ CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_EntityCollection_AutoTest_Net);
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Spatial inventory net-test name. Must be a *registered* tag — the inventory SyncReplication path
+// keys its client-side inventory lookup by the inventory's name label (Record entry matched via
+// MatchesGameplayLabelExact). The default net subject now carries BOTH a DataOnly and a Spatial
+// inventory, so the Spatial one needs a distinct, valid name or the client can't disambiguate it
+// (an unregistered name resolves to empty/None and collides). Same lesson as
+// TAG_EntityCollection_AutoTest_Net above.
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Inventory_AutoTest_Net_Spatial);
+
+// --------------------------------------------------------------------------------------------------------------------
+

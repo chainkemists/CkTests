@@ -3,6 +3,7 @@
 #include "CkTests/Net/CkAutoTest_NetSubject.h"
 
 #include "CkInventory/Inventory/DataOnly/CkInventory_DataOnly_Fragment_Data.h"
+#include "CkInventory/Inventory/Spatial/CkInventory_Spatial_Fragment_Data.h"
 
 #include "CkAutoTest_NetSubject_Inventory.generated.h"
 
@@ -30,6 +31,12 @@ public:
 public:
     UPROPERTY(Transient, BlueprintReadOnly, Category = "Ck|AutoTest")
     FCk_Handle_Inventory_DataOnly _TestInventory;
+
+    // Stashed alongside _TestInventory by the entity-script's Construct (symmetric per world). The
+    // CkInventory Spatial net test adds an item to this grid-backed inventory on the server and polls
+    // its replicated item count on the client via the FCk_RepData_Inventory_Spatial_Items handler.
+    UPROPERTY(Transient, BlueprintReadOnly, Category = "Ck|AutoTest")
+    FCk_Handle_Inventory_Spatial _TestInventory_Spatial;
 };
 
 // --------------------------------------------------------------------------------------------------------------------
