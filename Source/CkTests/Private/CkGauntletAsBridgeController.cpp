@@ -3,6 +3,7 @@
 
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "HAL/PlatformMisc.h"
 #include "HAL/PlatformTime.h"
 #include "Logging/LogMacros.h"
 #include "Misc/CommandLine.h"
@@ -114,8 +115,18 @@ void UCk_GauntletAsBridgeController::OnInit()
             TEXT("[CkGauntletAs] No -asgauntlet=<UClassName> on the command line. "
                  "The bridge controller cannot dispatch to an AS test without it. Ending with exit code 2."));
         EndTest(2);
+        ForceExit(2);
         _Ended = true;
         return;
+    }
+
+    float CliWaitOverride = 0.0f;
+    if (FParse::Value(FCommandLine::Get(), TEXT("-asgauntlet-waitsec="), CliWaitOverride) && CliWaitOverride >= 1.0f)
+    {
+        UE_LOG(LogCkGauntletAs, Display,
+            TEXT("[CkGauntletAs] AS-class wait timeout overridden via CLI: %.1fs (default %.1fs)."),
+            CliWaitOverride, _AsClassWaitTimeoutSeconds);
+        _AsClassWaitTimeoutSeconds = CliWaitOverride;
     }
 
     _AsTestClassName = FName(*AsClassName);
@@ -147,13 +158,14 @@ void UCk_GauntletAsBridgeController::OnTick(float TimeDelta)
         if (_AsInstance == nullptr)
         {
             const double Elapsed = FPlatformTime::Seconds() - _StartTimeSeconds;
-            if (Elapsed > 15.0)
+            if (Elapsed > _AsClassWaitTimeoutSeconds)
             {
                 UE_LOG(LogCkGauntletAs, Error,
-                    TEXT("[CkGauntletAs] AS test class '%s' never appeared in the UClass table after %.1fs. "
-                         "Did the AS module fail to compile? Ending with exit code 4."),
-                    *_AsTestClassName.ToString(), Elapsed);
+                    TEXT("[CkGauntletAs] AS test class '%s' never appeared in the UClass table after %.1fs "
+                         "(limit=%.1fs). Did the AS module fail to compile? Ending with exit code 4."),
+                    *_AsTestClassName.ToString(), Elapsed, _AsClassWaitTimeoutSeconds);
                 EndTest(4);
+                ForceExit(4);
                 _Ended = true;
             }
             return;
@@ -167,6 +179,7 @@ void UCk_GauntletAsBridgeController::OnTick(float TimeDelta)
             TEXT("[CkGauntletAs] Watchdog timeout: AS test '%s' did not call Request_EndTest within %.1fs. Forcing exit 1."),
             *_AsTestClassName.ToString(), _AsInstance->_TimeoutSeconds);
         EndTest(1);
+        ForceExit(1);
         _Ended = true;
         return;
     }
@@ -270,6 +283,7 @@ void UCk_GauntletAsBridgeController::TryConstructAsInstance()
             TEXT("[CkGauntletAs] NewObject failed for class '%s'. Ending with exit code 3."),
             *_AsTestClassName.ToString());
         EndTest(3);
+        ForceExit(3);
         _Ended = true;
         return;
     }
@@ -279,6 +293,33 @@ void UCk_GauntletAsBridgeController::TryConstructAsInstance()
     UE_LOG(LogCkGauntletAs, Display,
         TEXT("[CkGauntletAs] Constructed AS test instance: %s (resolved class %s)"),
         *_AsTestClassName.ToString(), *FoundClass->GetName());
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+void UCk_GauntletAsBridgeController::ForceExit(int32 InExitCode)
+{
+    // Cooperative Gauntlet::EndTest routes through RequestExitWithStatus(Force=false, N),
+    // which on Windows posts WM_QUIT(N). In `-game -nullrhi -unattended` there is no
+    // message pump consuming WM_QUIT, so the code is dropped and the process exits 0
+    // via main-loop drain. Force=true here translates to TerminateProcess(N), which
+    // propagates the code reliably. Lost: ~3s of cooperative cleanup (Pak/XGE/LogExit
+    // bookkeeping). Sentry telemetry has already flushed by the time a failure path
+    // reaches this point, so the practical cost is minor for headless CI runs.
+    //
+    // We tried a delayed FTSTicker first (2s) so cooperative cleanup could win when
+    // it would have produced the right code — but FTSTicker stops ticking the moment
+    // the engine enters its exit drain, so the ticker never fires. Direct call it is.
+    const uint8 ClampedCode = static_cast<uint8>(FMath::Clamp(InExitCode, 0, 255));
+
+    UE_LOG(LogCkGauntletAs, Warning,
+        TEXT("[CkGauntletAs] Force-exiting with code %d (cooperative exit drops the code in -game -nullrhi)."),
+        InExitCode);
+
+    if (GLog != nullptr)
+    { GLog->Flush(); }
+
+    FPlatformMisc::RequestExitWithStatus(/*Force=*/true, ClampedCode);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -308,6 +349,8 @@ void UCk_GauntletAsBridgeController::Request_EndTest(int32 ExitCode)
         TEXT("[CkGauntletAs] Request_EndTest(%d) from AS test %s"),
         ExitCode, *_AsTestClassName.ToString());
     EndTest(ExitCode);
+    if (ExitCode != 0)
+    { ForceExit(ExitCode); }
 }
 
 void UCk_GauntletAsBridgeController::Request_MarkHeartbeat(const FString& StatusMessage)
