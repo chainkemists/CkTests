@@ -190,14 +190,14 @@ sequenceDiagram
     Note over Bridge,Sink: Bridge installs sink in OnInit:<br/>GLog->AddOutputDevice(_LogSink)
 
     AS->>Bridge: Request_WatchLogSubstring("some marker")
-    Bridge->>Sink: Register substring + atomic<bool> flag
+    Bridge->>Sink: Register substring + atomic_bool flag
 
     Note over Log: Log lines flow from any thread at any time
 
     par log emitted on game thread
         Log->>Sink: Serialize(line, verbosity, category)
         Sink->>Sink: Strstr each registered substring
-        Sink->>Sink: First match → atomic<bool>.store(true)
+        Sink->>Sink: First match → atomic store(true)
     and log emitted on async thread
         Log->>Sink: Serialize(line, verbosity, category)
         Sink->>Sink: same path; atomic is thread-safe
@@ -205,7 +205,7 @@ sequenceDiagram
 
     loop AS test's OnAsTick on game thread
         AS->>Bridge: HasObservedLogSubstring("some marker")
-        Bridge->>Sink: atomic<bool>.load()
+        Bridge->>Sink: atomic load()
         Sink-->>AS: true / false
     end
 
