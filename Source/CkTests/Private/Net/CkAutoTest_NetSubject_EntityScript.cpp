@@ -11,6 +11,9 @@
 #include "CkAttribute/VectorAttribute/CkVectorAttribute_Utils.h"
 #include "CkTagSet/CkTagSet_Utils.h"
 #include "CkPhysics/Acceleration/CkAcceleration_Utils.h"
+#include "CkAnimation/AnimPlan/CkAnimPlan_Utils.h"
+
+#include "CkTests/CkTests_Fragment_Data.h"
 
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
 
@@ -100,6 +103,15 @@ auto
     auto Acceleration = UCk_Utils_Acceleration_UE::Add(InHandle,
         FCk_Fragment_Acceleration_ParamsData{ECk_LocalWorld::World, FVector::ZeroVector},
         ECk_Replication::Replicates);
+
+    // Replicated AnimPlan (pure tag-state — no skeletal mesh). Starts at cluster + state A; the
+    // CkAnimation net test moves it to state B on the server and polls the replicated state on the
+    // client via the FCk_RepData_AnimPlans handler. Retrieved by goal tag (TryGet_AnimPlan), so no
+    // actor stash is needed.
+    auto AnimPlanParams = FCk_Fragment_AnimPlan_ParamsData{TAG_AnimPlan_AutoTest_Net_Goal.GetTag()};
+    AnimPlanParams.Set_StartingAnimCluster(TAG_AnimPlan_AutoTest_Net_Cluster.GetTag());
+    AnimPlanParams.Set_StartingAnimState(TAG_AnimPlan_AutoTest_Net_State_A.GetTag());
+    UCk_Utils_AnimPlan_UE::Add(InHandle, AnimPlanParams, ECk_Replication::Replicates);
 
     auto* OwningActor = UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle);
     if (auto* Subject = Cast<ACk_AutoTest_NetSubject>(OwningActor))

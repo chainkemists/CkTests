@@ -49,3 +49,10 @@ CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Inventory_AutoTest_Net_Spatial, "Inventor
 
 // --------------------------------------------------------------------------------------------------------------------
 
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_AnimPlan_AutoTest_Net_Goal, "AnimPlan.Goal.AutoTest_Net");
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_AnimPlan_AutoTest_Net_Cluster, "AnimPlan.Cluster.AutoTest_Net");
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_AnimPlan_AutoTest_Net_State_A, "AnimPlan.State.AutoTest_Net_A");
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_AnimPlan_AutoTest_Net_State_B, "AnimPlan.State.AutoTest_Net_B");
+
+// --------------------------------------------------------------------------------------------------------------------
+
