@@ -1,6 +1,7 @@
 #include "CkTests/Net/CkAutoTest_NetSubject_StateMachineEntityScript.h"
 
 #include "CkTests/Net/CkAutoTest_NetSubject_StateMachine.h"
+#include "CkTests/Net/CkAutoTest_NetSubject_StateMachineOwningClientPawn.h"
 #include "CkTests/Net/CkAutoTest_Sm_RecordingState.h"
 
 #include "CkStateMachine/StateMachine/CkStateMachine_Utils.h"
@@ -26,17 +27,44 @@ auto
     Params.Set_Replication(ECk_Replication::Replicates);
     Params.Set_AuthorityModel(Get_AuthorityModel());
     Params.Set_ReplicationModel(Get_ReplicationModel());
-    Params.Set_AutoStart(ECk_SmAutoStart::OnSetup);
+    Params.Set_AutoStart(Get_AutoStart());
 
     auto SM = UCk_Utils_StateMachine_UE::Add_WithParams(InHandle, Params);
 
     auto* OwningActor = UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle);
-    if (auto* SmActor = Cast<ACk_AutoTest_NetSubject_StateMachine_UE>(OwningActor))
-    {
-        SmActor->_TestStateMachine = SM;
-    }
+    DoStashStateMachine(OwningActor, SM);
 
     return Flow;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCk_AutoTest_NetSubject_StateMachineEntityScript_UE::
+    DoStashStateMachine(
+        AActor* InOwningActor,
+        const FCk_Handle_StateMachine& InSM)
+    -> void
+{
+    if (auto* SmActor = Cast<ACk_AutoTest_NetSubject_StateMachine_UE>(InOwningActor))
+    {
+        SmActor->_TestStateMachine = InSM;
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE::
+    DoStashStateMachine(
+        AActor* InOwningActor,
+        const FCk_Handle_StateMachine& InSM)
+    -> void
+{
+    if (auto* PawnSubject = Cast<ACk_AutoTest_NetSubject_StateMachineOwningClient_Pawn>(InOwningActor))
+    {
+        PawnSubject->_TestStateMachine = InSM;
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
