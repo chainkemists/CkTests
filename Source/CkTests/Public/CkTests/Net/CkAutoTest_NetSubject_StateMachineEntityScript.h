@@ -37,9 +37,42 @@ public:
 
 protected:
     // Overridable so cross-product variants (NoHistory, OwningClientAuth) reuse the same Construct
-    // body and only change the params. Base = ServerAuthoritative / WithHistory.
+    // body and only change the params. Base = ServerAuthoritative / WithHistory / AutoStart-OnSetup.
     virtual auto Get_AuthorityModel() const -> ECk_Sm_AuthorityModel { return ECk_Sm_AuthorityModel::ServerAuthoritative; }
     virtual auto Get_ReplicationModel() const -> ECk_Sm_ReplicationModel { return ECk_Sm_ReplicationModel::WithHistory; }
+
+    // OwningClientAuth disables AutoStart: Setup runs during Construct, BEFORE the subject pawn is
+    // possessed by the owning client, so at Setup time no world is the owning-client authority and
+    // the auto-enqueued Start request is dropped by the single-authority gate. The owning-client
+    // test issues Request_Start explicitly after possession instead. ServerAuth keeps OnSetup —
+    // the server IS the authority at Setup time.
+    virtual auto Get_AutoStart() const -> ECk_SmAutoStart { return ECk_SmAutoStart::OnSetup; }
+
+    // Stash the constructed SM handle onto the owning actor's `_TestStateMachine` slot. Virtual so
+    // the OwningClientAuth variant — whose owning actor is a Pawn, not ACk_AutoTest_NetSubject_StateMachine_UE
+    // — can cast to its own subject type. Base casts to the Actor subject.
+    virtual auto DoStashStateMachine(AActor* InOwningActor, const FCk_Handle_StateMachine& InSM) -> void;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// OwningClientAuthoritative variant. The owning client commits transitions locally and publishes
+// through ACk_StateMachineRelay_UE; the server applies + re-publishes. Authority resolves via the
+// bridged actor being an APawn that IsLocallyControlled-by-player (CkNet_Utils), so this variant's
+// subject MUST be a possessed Pawn (ACk_AutoTest_NetSubject_StateMachineOwningClient_Pawn) — the
+// stash override casts to that Pawn type.
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS(BlueprintType)
+class CKTESTS_API UCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE : public UCk_AutoTest_NetSubject_StateMachineEntityScript_UE
+{
+    GENERATED_BODY()
+
+protected:
+    virtual auto Get_AuthorityModel() const -> ECk_Sm_AuthorityModel override { return ECk_Sm_AuthorityModel::OwningClientAuthoritative; }
+    virtual auto Get_AutoStart() const -> ECk_SmAutoStart override { return ECk_SmAutoStart::Disabled; }
+    virtual auto DoStashStateMachine(AActor* InOwningActor, const FCk_Handle_StateMachine& InSM) -> void override;
 };
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -4,8 +4,10 @@
 
 #include "Editor/UnrealEdEngine.h"
 #include "Engine/Engine.h"
+#include "Engine/NetConnection.h"
 #include "Engine/World.h"
 #include "FileHelpers.h"
+#include "GameFramework/PlayerController.h"
 #include "PlayInEditorDataTypes.h"
 #include "Settings/LevelEditorPlaySettings.h"
 #include "UnrealEdGlobals.h"
@@ -138,6 +140,40 @@ namespace ck::auto_test::net
     {
         const auto AllWorlds = Get_AllPIEWorlds();
         return FMath::Max(0, AllWorlds.Num() - 1);
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    auto
+        Get_RemoteClientPlayerController(
+            UWorld* InServerWorld,
+            int32 ClientIdx)
+        -> APlayerController*
+    {
+        if (ck::Is_NOT_Valid(InServerWorld, ck::IsValid_Policy_NullptrOnly{}))
+        { return nullptr; }
+
+        // On a listen server, the local player's PlayerController has no UNetConnection; each
+        // remote client's PC carries one. Collect the net-connection-backed PCs in iterator order.
+        auto RemotePCs = TArray<APlayerController*>{};
+        for (auto It = InServerWorld->GetPlayerControllerIterator(); It; ++It)
+        {
+            auto* PC = It->Get();
+            if (ck::Is_NOT_Valid(PC, ck::IsValid_Policy_NullptrOnly{}))
+            { continue; }
+
+            if (PC->GetNetConnection() != nullptr)
+            { RemotePCs.Add(PC); }
+        }
+
+        if (RemotePCs.IsValidIndex(ClientIdx) == false)
+        {
+            Log_Error(TEXT("Get_RemoteClientPlayerController: no remote client PC at index [{}] (found [{}] net-connection PCs on server)"),
+                ClientIdx, RemotePCs.Num());
+            return nullptr;
+        }
+
+        return RemotePCs[ClientIdx];
     }
 }
 
