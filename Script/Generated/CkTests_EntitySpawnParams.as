@@ -3531,6 +3531,19 @@ namespace UCk_AutoTest_Net_DataOnly_AddItem_Replicates
 }
 
 USTRUCT()
+struct FCk_AutoTest_Net_DataOnly_RemoveItem_Replicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_DataOnly_RemoveItem_Replicates
+{
+    FCk_AutoTest_Net_DataOnly_RemoveItem_Replicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_DataOnly_RemoveItem_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Net_Float_InitialValueReplicates_SpawnParams
 {
 }
