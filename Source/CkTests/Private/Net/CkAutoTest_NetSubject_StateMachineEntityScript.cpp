@@ -24,8 +24,8 @@ auto
 
     auto Params = FCk_Fragment_StateMachine_ParamsData{UCk_AutoTest_Sm_RecordingState_A::StaticClass()};
     Params.Set_Replication(ECk_Replication::Replicates);
-    Params.Set_AuthorityModel(ECk_Sm_AuthorityModel::ServerAuthoritative);
-    Params.Set_ReplicationModel(ECk_Sm_ReplicationModel::WithHistory);
+    Params.Set_AuthorityModel(Get_AuthorityModel());
+    Params.Set_ReplicationModel(Get_ReplicationModel());
     Params.Set_AutoStart(ECk_SmAutoStart::OnSetup);
 
     auto SM = UCk_Utils_StateMachine_UE::Add_WithParams(InHandle, Params);
