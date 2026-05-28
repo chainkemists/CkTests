@@ -112,6 +112,16 @@ private:
     void TryConstructAsInstance();
     void TeardownLogSink();
 
+    // Force-exit. Gauntlet's EndTest(N) routes to
+    // FPlatformMisc::RequestExitWithStatus(Force=false, N) which on Windows
+    // calls PostQuitMessage(N). In `-game -nullrhi -unattended` there is no
+    // message pump consuming WM_QUIT, so the exit code is silently dropped
+    // and the process exits 0 via normal main-loop drain. Confirmed locally:
+    // Request_EndTest(1) from an AS test → bat sees ERRORLEVEL=0. We follow
+    // the soft EndTest with a TerminateProcess(N)-equivalent so the right
+    // code propagates.
+    void ForceExit(int32 InExitCode);
+
 private:
     // FName because OnInit captures it once and class lookup happens later;
     // FString would also work, FName is cheaper to compare against UClass->GetFName().
@@ -123,6 +133,13 @@ private:
     bool _AsInitFired = false;
     bool _Ended = false;
     double _StartTimeSeconds = 0.0;
+
+    // Seconds the bridge waits for the AS UClass named in -asgauntlet to
+    // register before firing EndTest(4). AS compile is either done by the
+    // bridge's first OnTick or hard-failed; >5s is never a legitimate case.
+    // Override at the CLI via `-asgauntlet-waitsec=<n>` for the rare test
+    // that genuinely needs longer (e.g. cold-cache compile on CI).
+    float _AsClassWaitTimeoutSeconds = 5.0f;
 
     // Shared sink. Owned by the bridge (refcounted via shared_ptr because
     // FOutputDevice is registered on GLog and we need a stable pointer).

@@ -129,7 +129,7 @@ sequenceDiagram
 
 Key timing notes:
 
-- AS compile **usually finishes before** the Gauntlet plugin's `OnInit` runs — but not always. That's why the bridge defers `NewObject` of the AS class to the first `OnTick`, not `OnInit`. Spins for up to 15s checking the `UClass` table; bails with **exit code 4** if the class never appears (typically means AS compile failed).
+- AS compile **usually finishes before** the Gauntlet plugin's `OnInit` runs — but not always. That's why the bridge defers `NewObject` of the AS class to the first `OnTick`, not `OnInit`. Spins for up to `_AsClassWaitTimeoutSeconds` (default 5s, override via `-asgauntlet-waitsec=<n>` on the CLI) checking the `UClass` table; bails with **exit code 4** if the class never appears (typically means AS compile failed).
 - The `PC+Pawn ready` gate before `OnAsInit` is controlled by `default _RequirePlayerControllerOnInit = true;` on the AS test. Default on; turn off for pre-map tests (e.g. testing config load order).
 
 ---
@@ -162,6 +162,16 @@ stateDiagram-v2
 ```
 
 The watchdog (`_TimeoutSeconds`) is enforced by the bridge before forwarding `OnAsTick`. AS-side internal timeouts (used for richer diagnostics — see the BootSmoke / NpcReachesGoal examples in the BusterBlock companion doc) need a margin under the bridge's `_TimeoutSeconds` so they win the race and get to emit their diagnostic before the bridge fires its generic timeout.
+
+### Force-exit on non-zero `EndTest(N)`
+
+`UGauntletTestController::EndTest(N)` routes through `FPlatformMisc::RequestExitWithStatus(Force=false, N)`. On Windows that posts `WM_QUIT(N)` — but `-game -nullrhi -unattended` has **no message pump consuming WM_QUIT**, so the exit code is silently dropped and the process exits 0 via normal main-loop drain. Observed locally: `Request_EndTest(1)` from an AS test → bat sees `ERRORLEVEL=0`. The same is true for every bridge-fired non-zero `EndTest`. This makes CI exit-code gating useless without a workaround.
+
+To make the exit code actually propagate, the bridge immediately follows every non-zero `EndTest(N)` call with `FPlatformMisc::RequestExitWithStatus(Force=true, N)` — covers both AS-initiated (`Request_EndTest(N)` with `N≠0`) and bridge-initiated (codes 1/2/3/4) paths. `Force=true` translates to `TerminateProcess(N)` on Windows which propagates the code reliably. Trade-off: ~3s of cooperative cleanup (Pak/XGE bookkeeping, `LogExit` lines) is skipped. Sentry telemetry has been observed to flush well before any failure path reaches `EndTest`, so the practical cost is minor for headless CI runs.
+
+The success path (`Request_EndTest(0)`) gets no force-exit — cooperative shutdown already produces exit code 0, which is what we want, and we'd rather pay the cleanup cost on the happy path.
+
+An earlier attempt scheduled the force-exit on a 2-second FTSTicker delay to give cooperative cleanup a chance to win. That didn't work: `FTSTicker` stops ticking the moment the engine enters its exit drain, so the ticker never fires. Direct call it is.
 
 Exit codes:
 
