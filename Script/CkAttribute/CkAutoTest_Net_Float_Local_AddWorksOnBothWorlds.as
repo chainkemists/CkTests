@@ -26,11 +26,11 @@ class UCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds : UCk_AutoTest_NetBase
 {
     // Independent mode — no cross-world coordination expected. Each PIE world runs DoBeginPlay
     // independently against its own ECS state.
-    default _NetMode = ECk_AutoTest_NetMode::ServerAndClientsIndependent;
+    // default _NetMode = ECk_AutoTest_NetMode::ServerAndClientsIndependent;
 
     private FName _AttributeTagName = n"FloatAttribute.Health";
-    private float _InitialValue = 42.5f;
-    private float _OverrideValue = 75.0f;
+    private float32 _InitialValue = 42.5f;
+    private float32 _OverrideValue = 75.0f;
 
     // Stored across the OnValueChanged signal so the callback can read it back without a
     // re-lookup.
@@ -70,7 +70,7 @@ class UCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds : UCk_AutoTest_NetBase
             ECk_MinMaxCurrent::Current,
             FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnLocalValueChanged"));
 
-        utils_float_attribute::Request_Override(_Attribute, _OverrideValue);
+        _Attribute.Request_Override(_OverrideValue);
     }
 
     UFUNCTION()

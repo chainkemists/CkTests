@@ -18,7 +18,7 @@
 class UCk_AutoTest_Net_Float_InitialValueReplicates : UCk_AutoTest_NetBase
 {
     private FName _AttributeTagName = n"FloatAttribute.Health";
-    private float _ExpectedValue = 100.0f;
+    private float32 _ExpectedValue = 100.0f;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -42,7 +42,7 @@ class UCk_AutoTest_Net_Float_InitialValueReplicates : UCk_AutoTest_NetBase
         {
             // Server-side: drive the mutation. The post-Override value (100.0) propagates to
             // the client via the FCk_RepData_FloatAttributes container fragment.
-            utils_float_attribute::Request_Override(Attribute, _ExpectedValue);
+            Attribute.Request_Override(_ExpectedValue);
             FinishSuccess();
             return;
         }

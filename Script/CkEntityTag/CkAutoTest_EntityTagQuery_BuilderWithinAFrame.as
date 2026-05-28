@@ -78,7 +78,7 @@ class UCk_AutoTest_EntityTagQuery_BuilderWithinAFrame : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnSatisfied(FCk_Handle_EntityTagQuery InQuery, const TArray<FCk_EntityTagQuery_Result>& InResults)
+    private void OnSatisfied(FCk_Handle_EntityTagQuery InQuery, const TArray<FCk_EntityTagQuery_Result>&in InResults)
     {
         _FireCount += 1;
     }
