@@ -97,3 +97,13 @@ CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Inventory_AutoTest_Net_Spatial);
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// AnimPlan net-test goal/cluster/state tags. AnimPlan state is pure tag data (no skeletal mesh
+// needed); the rep handler keys the client AnimPlan lookup by the goal label, so these must be
+// registered. Two states let the server move A->B and the client observe the replicated change.
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_AnimPlan_AutoTest_Net_Goal);
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_AnimPlan_AutoTest_Net_Cluster);
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_AnimPlan_AutoTest_Net_State_A);
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_AnimPlan_AutoTest_Net_State_B);
+
+// --------------------------------------------------------------------------------------------------------------------
+

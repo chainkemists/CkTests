@@ -22,6 +22,7 @@ public class CkTests : CkModuleRules
 
             "CkActorRelay",
             "CkAggro",
+            "CkAnimation",
             "CkAttribute",
             "CkAudio",
             "CkCore",
