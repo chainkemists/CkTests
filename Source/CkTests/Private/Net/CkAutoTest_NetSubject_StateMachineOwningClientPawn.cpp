@@ -32,6 +32,16 @@ ACk_AutoTest_NetSubject_StateMachineOwningClient_Pawn::
 
 // --------------------------------------------------------------------------------------------------------------------
 
+ACk_AutoTest_NetSubject_StateMachineOwningClientNoHistory_Pawn::
+    ACk_AutoTest_NetSubject_StateMachineOwningClientNoHistory_Pawn()
+{
+    // Same actor setup as the base owning-client pawn (inherited ctor already configured replication,
+    // root component, etc.); only swap the bridged entity-script to the NoHistory owning-client one.
+    _EntityScriptClass = UCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE::StaticClass();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 auto
     ACk_AutoTest_NetSubject_StateMachineOwningClient_Pawn::
     BeginPlay()

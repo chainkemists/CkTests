@@ -92,3 +92,22 @@ class CKTESTS_API UCk_AutoTest_NetSubject_StateMachineNoHistoryEntityScript_UE :
 protected:
     virtual auto Get_ReplicationModel() const -> ECk_Sm_ReplicationModel override { return ECk_Sm_ReplicationModel::WithoutHistory; }
 };
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// OwningClientAuthoritative + WithoutHistory combo — the one auth x history pairing the other
+// variants don't cover. Owning client commits locally and relays to the server; the NoHistory rep
+// payload snaps the server to the latest state (no replay ring). Reuses the OwningClient variant's
+// Pawn-targeted stash + Disabled AutoStart, overriding only the replication model. Used by
+// Ck.StateMachine.Net.OwningClientAuth_NoHistory_SnapReplicates.
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS(BlueprintType)
+class CKTESTS_API UCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE : public UCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE
+{
+    GENERATED_BODY()
+
+protected:
+    virtual auto Get_ReplicationModel() const -> ECk_Sm_ReplicationModel override { return ECk_Sm_ReplicationModel::WithoutHistory; }
+};
