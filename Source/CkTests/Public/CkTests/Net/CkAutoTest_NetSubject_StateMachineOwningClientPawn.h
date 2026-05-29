@@ -45,3 +45,20 @@ protected:
     UPROPERTY()
     TSubclassOf<UCk_EntityScript_WithActor_UE> _EntityScriptClass;
 };
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// OwningClientAuthoritative + WithoutHistory pawn subject. Identical to the base pawn except it
+// bridges to the NoHistory owning-client entity-script. Derives from the base pawn so the
+// entity-script's Pawn-targeted stash cast and `_TestStateMachine` slot are inherited unchanged.
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS()
+class CKTESTS_API ACk_AutoTest_NetSubject_StateMachineOwningClientNoHistory_Pawn : public ACk_AutoTest_NetSubject_StateMachineOwningClient_Pawn
+{
+    GENERATED_BODY()
+
+public:
+    ACk_AutoTest_NetSubject_StateMachineOwningClientNoHistory_Pawn();
+};
