@@ -1,0 +1,282 @@
+// Language=plaintext
+
+//============================================================================
+// CK GAUNTLET TEST FRAMEWORK — CREATION SPECIFICATION
+//============================================================================
+
+/*
+This spec describes the GAUNTLET TEST framework provided by CkTests. It is
+project-agnostic: any project that enables the Ck framework (the CkFoundation +
+CkTests submodules) writes Gauntlet tests this same way.
+
+A Gauntlet test boots the game as a real subprocess (-game -nullrhi
+-unattended), drives it from a single AngelScript class, and reports PASS/FAIL
+by process exit code. It catches what the in-PIE test layers structurally can't
+see: real engine boot, plugin load order, GameMode init, possession, input
+wiring, and asset-registry behaviour.
+
+THREE TEST LAYERS — pick the right one:
+  - Gauntlet (this spec)            — needs a real PROCESS boot.
+  - AutoTest (PIE, AS harness)      — needs a world / processors / signals but
+    not a full boot. See CkAutoTest_CreationSpecification.txt.
+  - C++ unit (FAutomationTestBase)  — pure utilities, no world.
+
+PROJECT LAYER: this spec covers the framework mechanism only. Navigation
+helpers (e.g. a "walk the pawn to a point" base class), interaction conventions
+(which input channel a feature listens on), and the specific log breadcrumbs a
+test asserts on are all PROJECT-SPECIFIC — they live in the consuming project's
+docs, layered on top of this spec. (For BusterBlock, see
+Source/BusterBlock/Tests/Gauntlet/BB_Gauntlet_CreationSpecification.txt and
+BB_Gauntlet_Architecture.txt.)
+*/
+
+//============================================================================
+// 1. WHAT YOU AUTHOR — ONE .as FILE, DRIVEN BY THE C++ BRIDGE
+//============================================================================
+/*
+You author a single AngelScript class. A project-agnostic C++ bridge controller,
+UCk_GauntletAsBridgeController (CkTests), constructs it and forwards the engine's
+Gauntlet lifecycle hooks. There is NO per-test C++.
+
+  <project dispatcher> .bat  ──►  CkAuto/RunGauntlet_Editor.bat  ──►
+      <Editor>-Cmd.exe <Project>.uproject <Map> -game -nullrhi -unattended
+          -gauntlet=Ck_GauntletAsBridgeController -asgauntlet=<YourASClass>
+              │
+  UCk_GauntletAsBridgeController (CkTests, C++)
+      │  • parses -asgauntlet, constructs the AS instance on the first tick
+      │    (deferred — the AS module may still be compiling at OnInit)
+      │  • owns a log-watch FOutputDevice sink
+      │  • forwards OnInit/OnTick → OnAsInit/OnAsTick on your class
+      │  • Request_EndTest(N) terminates the process with exit code N
+      ▼
+  U<Project>_GauntletAsTest_<Scenario>  ── inherits ──► UCk_GauntletAsTest_Base
+*/
+
+//============================================================================
+// 2. BASE CLASS & LIFECYCLE
+//============================================================================
+/*
+Inherit UCk_GauntletAsTest_Base and override the BlueprintImplementableEvent
+hooks:
+
+  OnAsInit()              — once, after the bridge decides the world is ready
+                            (by default: GetFirstPlayerController()->GetPawn()
+                            != nullptr, i.e. possession complete).
+  OnAsTick(float Delta)   — every frame until the test ends.
+  OnAsPostMapChange()     — optional.
+  OnAsStateChange(old,new)— optional.
+
+Tunables (set via `default`):
+  _RequirePlayerControllerOnInit = true   — gate OnAsInit on PC+Pawn. Set false
+                                            for a pre-map / pre-possession smoke.
+  _TimeoutSeconds = 30.0f                 — bridge auto-fires EndTest(1) on
+                                            expiry with a generic diagnostic.
+
+There is no separate assertion framework: pass = Request_EndTest(0),
+fail = Request_EndTest(1). Drive everything from OnAsTick.
+*/
+
+//============================================================================
+// 3. SKELETON
+//============================================================================
+/*
+class U<Project>_GauntletAsTest_MyScenario : UCk_GauntletAsTest_Base
+{
+    default _RequirePlayerControllerOnInit = true;
+    default _TimeoutSeconds = 30.0f;
+
+    private const FString k_Marker = "[MyFeature] SomethingHappened";
+    private bool _Ended = false;
+
+    UFUNCTION(BlueprintOverride)
+    void OnAsInit()
+    {
+        Controller.Request_WatchLogSubstring(k_Marker);
+        Controller.Request_MarkHeartbeat("[GauntletAs] MyScenario: init");
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void OnAsTick(float DeltaTime)
+    {
+        if (_Ended) { return; }
+
+        if (Controller.HasObservedLogSubstring(k_Marker))
+        {
+            Controller.Request_MarkHeartbeat("[GauntletAs] MyScenario: ok");
+            _Ended = true;
+            Controller.Request_EndTest(0);
+            return;
+        }
+        // The bridge auto-fires EndTest(1) at _TimeoutSeconds; add your own
+        // watchdog only if you want a richer diagnostic first.
+    }
+}
+
+CONVENTION: prefix every heartbeat / marker string so one regex scrapes all
+scenarios for a project (BusterBlock uses "[BBGauntletAs]"). Name <Scenario>
+for WHAT IS VERIFIED, not what the code does.
+*/
+
+//============================================================================
+// 4. THE BRIDGE API  (callable as Controller.X from AS)
+//============================================================================
+/*
+  CONTROL
+    Request_EndTest(int32 ExitCode)     — result. 0 pass, 1 fail. Terminates.
+    Request_MarkHeartbeat(FString)      — informational; appears as a
+                                          GauntletHeartbeat log line.
+    Request_ExecConsoleCommand(FString) — routes to PC->ConsoleCommand.
+
+  QUERY
+    Get_FirstPlayerController() → APlayerController
+    Get_ElapsedTimeSeconds()    → double   — seconds since bridge OnInit
+    Get_BoundImcCount()         → int32    — applied UInputMappingContext count
+    Get_CurrentMap() / Get_CurrentState() / Get_TimeInCurrentState()
+
+  INPUT
+    Request_InjectInputForAction(UInputAction, FVector)
+        — injects the action for ONE input-processing cycle (see §6).
+
+  LOG ASSERTION
+    Request_WatchLogSubstring(FString)      — register a substring to watch
+    HasObservedLogSubstring(FString) → bool — has it been seen yet?
+*/
+
+//============================================================================
+// 5. ASSERTING — LOG BREADCRUMBS
+//============================================================================
+/*
+Gauntlet tests assert on the LOG, not on return values, because the interesting
+effects are deferred (processors, signals, replication). Watch a substring,
+poll for it, end the test:
+
+  OnAsInit:  Controller.Request_WatchLogSubstring("[MyFeature] Bar");
+  OnAsTick:  if (Controller.HasObservedLogSubstring("[MyFeature] Bar"))
+             { Controller.Request_EndTest(0); }
+
+If the moment you want to assert has no log line, add a one-line breadcrumb in
+the production code, placed BEFORE any UI / replication dependency so it fires
+headless. In AngelScript, the log-only form is:
+
+  System::PrintString(f"[MyFeature] Bar id={Self.ToString()}",
+      false, true, FLinearColor::White, 0.0f, NAME_None);
+      //         ^^^^ bPrintToScreen=false, bPrintToLog=true
+
+These breadcrumbs double as general debug signal.
+*/
+
+//============================================================================
+// 6. INPUT INJECTION — THE ONE-FRAME QUIRK
+//============================================================================
+/*
+Request_InjectInputForAction wraps UEnhancedInputLocalPlayerSubsystem::
+InjectInputVectorForAction, which marks the action active for exactly ONE input-
+processing cycle. Between AS-test ticks, Enhanced Input sees no injection and
+fires ETriggerEvent::Completed.
+
+  • PRESS-style actions (interact / jump / fire): this is CORRECT. Each inject is
+    a clean rising edge (0→1→0). Inject once per tick (or per cadence).
+
+  • HELD-value actions (movement axes / look): the value FLICKERS (1 for a frame,
+    0 the next), so the consumer sees mostly zero. Do NOT inject these for
+    sustained motion — instead write the underlying intent state directly (e.g.
+    the movement-direction attribute) so it holds across ticks. (Projects expose
+    their own helper for this; in BusterBlock it's NavBase writing MoveDirection
+    via Request_Override.)
+*/
+
+//============================================================================
+// 7. THE DISPATCHER CONTRACT (per project)
+//============================================================================
+/*
+Each project ships its own dispatcher .bat that maps a short <TestName> to an AS
+class + a default map, then calls the shared CkAuto runner. The contract:
+
+  set "AS_CLASS=<Project>_GauntletAsTest_<TestName>"
+  set "MAP=/Game/<DefaultMap>"          (per-test override allowed)
+  call "%~dp0CkAuto\RunGauntlet_Editor.bat" \
+       Ck_GauntletAsBridgeController %AS_CLASS% %MAP%
+  exit /b %ERRORLEVEL%
+
+The shared runner (CkAuto/RunGauntlet_Editor.bat) resolves the engine, launches
+the editor in -game mode with the gauntlet flags, and returns the test's exit
+code. CI gates on %ERRORLEVEL%; the authoritative log line is
+"**** TEST COMPLETE. EXIT CODE: N ****".
+
+BusterBlock's dispatcher is RunGauntlet.bat at the project root — copy its shape
+for a new project.
+*/
+
+//============================================================================
+// 8. EXTENDING THE BRIDGE (when AS isn't enough)
+//============================================================================
+/*
+If a test genuinely needs something AngelScript can't reach via the existing
+Controller.Request_* methods, ADD a UFUNCTION(BlueprintCallable) to
+UCk_GauntletAsBridgeController rather than writing a per-test C++ controller.
+Use Request_ExecConsoleCommand / Request_WatchLogSubstring as templates — both
+wrap C++-only surface behind a UFUNCTION AS can call.
+
+Because CkTests is a submodule, this is a heavier change: commit in the submodule,
+bump the consuming project's pointer, rebuild the editor. Most needs are met from
+AS instead — query the ECS, bind feature signals, write attributes. Reach for a
+bridge addition only when none of those work.
+
+DO NOT write a per-test UGauntletTestController subclass. The bridge handles the
+Gauntlet lifecycle uniformly; per-test C++ fragments the pattern and forces an
+editor rebuild per test.
+*/
+
+//============================================================================
+// 9. EXIT CODES
+//============================================================================
+/*
+  0 = pass
+  1 = AS test failed or watchdog timeout
+  2 = no -asgauntlet=<class> on the command line
+  3 = NewObject failed
+  4 = AS class not found in the UClass table (AS compile probably failed)
+
+Exit codes propagate to %ERRORLEVEL% (the bridge follows a non-zero EndTest with
+a Force=true TerminateProcess backstop, because cooperative exit drops the code
+under -game -nullrhi). The "**** TEST COMPLETE. EXIT CODE: N ****" log line is
+the cross-check.
+*/
+
+//============================================================================
+// 10. GENERIC GOTCHAS
+//============================================================================
+/*
+  • AS hot-reload silent-fails. After ANY .as edit, grep the project's
+    Saved/Logs/<Project>.log for "Angelscript: Error" and "Warning:" naming your
+    file BEFORE trusting a result — the editor keeps the OLD compiled code on a
+    failed compile, so "it ran" proves nothing.
+  • First-time AS class registration is occasionally flaky. If the bridge logs
+    "AS test class '<X>' never appeared in the UClass table", restart the editor
+    once. Subsequent edits hot-reload fine.
+  • -nullrhi UMG: widgets may instantiate but can't be rendered or clicked.
+    Assert pre-UI breadcrumbs, not "the panel is visible / the button worked".
+  • Packaged Gauntlet path may be gated by cook/staging issues. Editor
+    -game -unattended is the supported path; gate CI on that until packaging is
+    cleared.
+  • The bridge constructs the AS instance on the FIRST tick, not OnInit — the AS
+    module may still be compiling at engine OnInit. Don't assume your class
+    exists before that.
+*/
+
+//============================================================================
+// 11. REFERENCE
+//============================================================================
+/*
+  Framework:
+    Plugins/CkTests/Source/CkTests/Public/CkGauntletAsBridgeController.h  — bridge
+    Plugins/CkTests/Source/CkTests/Public/CkGauntletAsTest_Base.h         — base
+    Plugins/CkTests/Source/CkTests/Gauntlet_ARCHITECTURE.md               — internals
+    CkAuto/RunGauntlet_Editor.bat                                         — runner
+
+  A worked consumer (BusterBlock):
+    Source/BusterBlock/Tests/Gauntlet/BB_Gauntlet_Architecture.txt        — concepts
+    Source/BusterBlock/Tests/Gauntlet/BB_Gauntlet_CreationSpecification.txt — how-to
+    Source/BusterBlock/Tests/Gauntlet/README.md                           — catalog
+    Script/Tests/Gauntlet/*.as                                           — examples
+*/
