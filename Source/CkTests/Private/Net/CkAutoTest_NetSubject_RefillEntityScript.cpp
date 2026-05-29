@@ -2,6 +2,8 @@
 
 #include "CkAttribute/FloatAttribute/CkFloatAttribute_Fragment_Data.h"
 #include "CkAttribute/FloatAttribute/CkFloatAttribute_Utils.h"
+#include "CkAttribute/IntegerAttribute/CkIntegerAttribute_Fragment_Data.h"
+#include "CkAttribute/IntegerAttribute/CkIntegerAttribute_Utils.h"
 
 #include "GameplayTagContainer.h"
 
@@ -27,6 +29,19 @@ namespace ck::auto_test::netsubject_refill
     // The spec asserts "value > InitialValue + safety margin" rather than an exact value to
     // avoid brittleness around scheduler tick rate / frame timing.
     constexpr auto FillRate = 20.0f;
+
+    // Integer refill rides the exact same templated refill + container-replication path as Float
+    // (refill is supported on Float and Integer only). The Integer net refill test reuses this
+    // subject (Get_SubjectEntity) and reads the Integer energy attribute. Tags are reused from the
+    // standalone CkAttribute IntegerRefill AutoTest — IntegerAttribute.AutoTest_Energy is an
+    // implicit parent of the registered .Refill tag, so no new registration is needed.
+    constexpr auto IntegerAttributeTagName       = TEXT("IntegerAttribute.AutoTest_Energy");
+    constexpr auto IntegerRefillAttributeTagName = TEXT("IntegerAttribute.AutoTest_Energy.Refill");
+
+    constexpr auto IntegerInitialValue = int32{0};
+    constexpr auto IntegerMinValue     = int32{0};
+    constexpr auto IntegerMaxValue     = int32{100};
+    constexpr auto IntegerFillRate     = 20.0f;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -56,6 +71,23 @@ auto
     Params.Set_RefillParams(RefillParams);
 
     UCk_Utils_FloatAttribute_UE::Add(InHandle, Params, ECk_Replication::Replicates);
+
+    // Integer refill — same templated refill + Replicates path, distinct tag so it sits alongside
+    // the Float energy attribute on the same subject without interfering.
+    const auto IntegerAttributeTag       = FGameplayTag::RequestGameplayTag(FName{IntegerAttributeTagName});
+    const auto IntegerRefillAttributeTag = FGameplayTag::RequestGameplayTag(FName{IntegerRefillAttributeTagName});
+
+    auto IntegerRefillParams = FCk_Fragment_IntegerAttributeRefill_ParamsData{IntegerRefillAttributeTag, IntegerFillRate};
+    IntegerRefillParams.Set_StartingState(ECk_Attribute_RefillState::Running);
+
+    auto IntegerParams = FCk_Fragment_IntegerAttribute_ParamsData{IntegerAttributeTag, IntegerInitialValue};
+    IntegerParams.Set_MinMax(ECk_MinMax::MinMax);
+    IntegerParams.Set_MinValue(IntegerMinValue);
+    IntegerParams.Set_MaxValue(IntegerMaxValue);
+    IntegerParams.Set_EnableRefill(true);
+    IntegerParams.Set_RefillParams(IntegerRefillParams);
+
+    UCk_Utils_IntegerAttribute_UE::Add(InHandle, IntegerParams, ECk_Replication::Replicates);
 
     return Flow;
 }
