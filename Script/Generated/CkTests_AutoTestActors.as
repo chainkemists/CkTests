@@ -3621,6 +3621,19 @@ class ACk_AutoTest_StateMachine_HierarchicalFirstTransition_Actor : ACk_AutoTest
     }
 }
 
+class ACk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_StateMachine_MultipleTasks_AllSucceed_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
@@ -3693,6 +3706,19 @@ class ACk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor : ACk_A
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_StateMachine_OverrideState_WithTransitions_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_StateMachine_OverrideState_WithTransitions");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
