@@ -3776,6 +3776,31 @@ class ACk_AutoTest_StateMachine_Stop_FiresOnStopped_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_StateMachine_SubSm_SucceedOnStop_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_StateMachine_SubSm_SucceedOnStop");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_StateMachine_TaskExitOnStop_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_StateMachine_TaskExitOnStop");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_StateMachine_TaskFailure_NoTransition_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;
