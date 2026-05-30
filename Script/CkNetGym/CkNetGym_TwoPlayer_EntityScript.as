@@ -18,6 +18,11 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
     private FCk_Handle_FloatAttribute _Health;
     private FCk_Handle_StateMachine _StateMachine;
 
+    // Owning-client SMs must NOT auto-start (the server is non-authority for a remote
+    // client's pawn and would ensure on the dropped Start request). Instead the OWNING
+    // client issues Request_Start once it is locally controlling the pawn. One-shot.
+    private bool _StartRequested = false;
+
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
@@ -37,7 +42,7 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
         SmParams.Set_Replication(ECk_Replication::Replicates);
         SmParams.Set_AuthorityModel(ECk_Sm_AuthorityModel::OwningClientAuthoritative);
         SmParams.Set_ReplicationModel(ECk_Sm_ReplicationModel::WithHistory);
-        SmParams.Set_AutoStart(ECk_SmAutoStart::OnSetup);
+        SmParams.Set_AutoStart(ECk_SmAutoStart::Disabled);
         _StateMachine = UCk_Utils_StateMachine_UE::Add_WithParams(InHandle, SmParams);
 
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -107,6 +112,14 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
         auto LocalResult = utils_net::Get_IsEntityLocallyControlled_ByPlayer(SelfEntity);
         // Get_IsEntityLocallyControlled_ByPlayer returns the LocallyControlled result enum.
         auto IsLocal = LocalResult == ECk_Utils_Net_IsLocallyControlled_Result::IsLocallyControlled;
+
+        // Owning client kicks off the SM once it is locally controlling the pawn (possession
+        // established). One-shot. Non-owning worlds receive the started SM via replication.
+        if (IsLocal && !_StartRequested && ck::IsValid(_StateMachine))
+        {
+            _StateMachine.Request_Start();
+            _StartRequested = true;
+        }
 
         auto Tint = IsLocal ? FLinearColor(0.2f, 1.0f, 0.2f) : FLinearColor(1.0f, 0.9f, 0.2f);
         auto Tag = IsLocal ? "P-LOCAL" : "P-REMOTE";
