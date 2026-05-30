@@ -275,7 +275,7 @@ the cross-check.
     CkAuto/RunGauntlet_Editor.bat                                         — runner
 
   A worked consumer (BusterBlock):
-    Source/BusterBlock/Tests/Gauntlet/BB_Gauntlet_Architecture.txt        — concepts
+    Source/BusterBlock/Tests/Gauntlet/BB_Gauntlet_Architecture.md         — concepts
     Source/BusterBlock/Tests/Gauntlet/BB_Gauntlet_CreationSpecification.txt — how-to
     Source/BusterBlock/Tests/Gauntlet/README.md                           — catalog
     Script/Tests/Gauntlet/*.as                                           — examples
