@@ -1910,6 +1910,109 @@ class ACk_AutoTest_Eqs_VolumeCheck_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_GameplayCamera_AddLayer_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_AddLayer");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GameplayCamera_BlendFovAdditive_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_BlendFovAdditive");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GameplayCamera_DefaultLayerResting_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_DefaultLayerResting");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_MultiLayerMixedOps");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GameplayCamera_OneOnlyEvicts_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_OneOnlyEvicts");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_OneOnlyPrioritySlots");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GameplayCamera_OverrideReturnsToBase_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_OverrideReturnsToBase");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_GameplayCamera_RemovePrunes_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameplayCamera_RemovePrunes");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
