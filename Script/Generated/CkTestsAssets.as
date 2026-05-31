@@ -119,6 +119,10 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_EntityTag_AddFNameHappyPath_Actor> Ck_AutoTest_EntityTag_AddFNameHappyPath_Actor_UAID_C87F5401E53557DC02_1943465127() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_AddFNameHappyPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_AddFNameHappyPath_Actor_UAID_C87F5401E53557DC02_1943465127")); }
     TSoftObjectPtr<ACk_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor> Ck_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor_UAID_C87F5401E535A2DB02_1723463272() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor_UAID_C87F5401E535A2DB02_1723463272")); }
     TSoftObjectPtr<ACk_AutoTest_EntityTag_AddIsCounted_Actor> Ck_AutoTest_EntityTag_AddIsCounted_Actor_UAID_D843AEBAD5E245DC02_1676671959() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_AddIsCounted_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_AddIsCounted_Actor_UAID_D843AEBAD5E245DC02_1676671959")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor> Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor> Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor> Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor> Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010")); }
     TSoftObjectPtr<ACk_AutoTest_EntityTag_BindRelevantTagsFilter_Actor> Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_BindRelevantTagsFilter_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128")); }
     TSoftObjectPtr<ACk_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor> Ck_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor_UAID_D843AEBAD5E245DC02_1676681961() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor_UAID_D843AEBAD5E245DC02_1676681961")); }
     TSoftObjectPtr<ACk_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor> Ck_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor_UAID_C87F5401E53557DC02_1943468129() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor_UAID_C87F5401E53557DC02_1943468129")); }
@@ -131,6 +135,19 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor> Ck_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor_UAID_C87F5401E535A2DB02_1723464274() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor_UAID_C87F5401E535A2DB02_1723464274")); }
     TSoftObjectPtr<ACk_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor> Ck_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor_UAID_C87F5401E535A2DB02_1723465275() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor_UAID_C87F5401E535A2DB02_1723465275")); }
     TSoftObjectPtr<ACk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor> Ck_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943470132() { return TSoftObjectPtr<ACk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943470132")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor> Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor> Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor> Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor> Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor> Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor> Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor> Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_EmptyNeverFires_Actor> Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_EmptyNeverFires_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_EnsureBoundFires_Actor> Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_EnsureBoundFires_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_FactoryEquivalence_Actor> Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_FactoryEquivalence_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_LazyValidation_Actor> Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_LazyValidation_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_MixedCountAndAll_Actor> Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_MixedCountAndAll_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335")); }
+    TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor> Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011() { return TSoftObjectPtr<ACk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011")); }
     TSoftObjectPtr<ACk_AutoTest_Eqs_BasicQuery_Actor> Ck_AutoTest_Eqs_BasicQuery_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_BasicQuery_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_BasicQuery_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Eqs_Cancel_Actor> Ck_AutoTest_Eqs_Cancel_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_Cancel_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_Cancel_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Eqs_Immediate_Actor> Ck_AutoTest_Eqs_Immediate_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_Immediate_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_Immediate_Actor_0")); }
@@ -138,6 +155,8 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Eqs_OnCircle_Actor> Ck_AutoTest_Eqs_OnCircle_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_OnCircle_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_OnCircle_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Eqs_RandomRunMode_Actor> Ck_AutoTest_Eqs_RandomRunMode_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_RandomRunMode_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_RandomRunMode_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Eqs_VolumeCheck_Actor> Ck_AutoTest_Eqs_VolumeCheck_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_VolumeCheck_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_VolumeCheck_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_GameplayCamera_OneOnlyEvicts_Actor> Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456() { return TSoftObjectPtr<ACk_AutoTest_GameplayCamera_OneOnlyEvicts_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456")); }
+    TSoftObjectPtr<ACk_AutoTest_GameplayCamera_RemovePrunes_Actor> Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457() { return TSoftObjectPtr<ACk_AutoTest_GameplayCamera_RemovePrunes_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457")); }
     TSoftObjectPtr<ACk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor> Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033() { return TSoftObjectPtr<ACk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033")); }
     TSoftObjectPtr<ACk_AutoTest_Goap_Planner_AddRemoveChildren_Actor> Ck_AutoTest_Goap_Planner_AddRemoveChildren_Actor_UAID_C87F5401E53557DD02_2040673183() { return TSoftObjectPtr<ACk_AutoTest_Goap_Planner_AddRemoveChildren_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Goap_Planner_AddRemoveChildren_Actor_UAID_C87F5401E53557DD02_2040673183")); }
     TSoftObjectPtr<ACk_AutoTest_Goap_Planner_AtomicLeaf_Actor> Ck_AutoTest_Goap_Planner_AtomicLeaf_Actor_UAID_C87F5401E53547DD02_1158408367() { return TSoftObjectPtr<ACk_AutoTest_Goap_Planner_AtomicLeaf_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Goap_Planner_AtomicLeaf_Actor_UAID_C87F5401E53547DD02_1158408367")); }
@@ -1181,6 +1200,30 @@ namespace assets::load
         { return nullptr; }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AddIsCounted_Actor_UAID_D843AEBAD5E245DC02_1676671959());
     }
+    ACk_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007());
+    }
+    ACk_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008());
+    }
+    ACk_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009());
+    }
+    ACk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010());
+    }
     ACk_AutoTest_EntityTag_BindRelevantTagsFilter_Actor Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128()
     {
         if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128() called before engine init. Use assets::Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128() (soft ref) with UCk_DeferredConfig_UE instead."))
@@ -1253,6 +1296,84 @@ namespace assets::load
         { return nullptr; }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943470132());
     }
+    ACk_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327());
+    }
+    ACk_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328());
+    }
+    ACk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303());
+    }
+    ACk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304());
+    }
+    ACk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329());
+    }
+    ACk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330());
+    }
+    ACk_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305());
+    }
+    ACk_AutoTest_EntityTagQuery_EmptyNeverFires_Actor Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331());
+    }
+    ACk_AutoTest_EntityTagQuery_EnsureBoundFires_Actor Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332());
+    }
+    ACk_AutoTest_EntityTagQuery_FactoryEquivalence_Actor Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333());
+    }
+    ACk_AutoTest_EntityTagQuery_LazyValidation_Actor Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334());
+    }
+    ACk_AutoTest_EntityTagQuery_MixedCountAndAll_Actor Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335());
+    }
+    ACk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011());
+    }
     ACk_AutoTest_Eqs_BasicQuery_Actor Ck_AutoTest_Eqs_BasicQuery_Actor_0()
     {
         if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Eqs_BasicQuery_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_BasicQuery_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
@@ -1294,6 +1415,18 @@ namespace assets::load
         if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Eqs_VolumeCheck_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_VolumeCheck_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
         { return nullptr; }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Eqs_VolumeCheck_Actor_0());
+    }
+    ACk_AutoTest_GameplayCamera_OneOnlyEvicts_Actor Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456());
+    }
+    ACk_AutoTest_GameplayCamera_RemovePrunes_Actor Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457()
+    {
+        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457() (soft ref) with UCk_DeferredConfig_UE instead."))
+        { return nullptr; }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457());
     }
     ACk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033()
     {

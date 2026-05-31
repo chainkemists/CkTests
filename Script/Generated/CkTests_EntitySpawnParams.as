@@ -424,6 +424,32 @@ namespace UCk_AutoTest_Attribute_ByteBasic
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_ByteClamping_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_ByteClamping
+{
+    FCk_AutoTest_Attribute_ByteClamping_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_ByteClamping_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_ByteMinMaxComponents_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_ByteMinMaxComponents
+{
+    FCk_AutoTest_Attribute_ByteMinMaxComponents_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_ByteMinMaxComponents_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_ByteModifierAdd_SpawnParams
 {
 }
@@ -437,6 +463,32 @@ namespace UCk_AutoTest_Attribute_ByteModifierAdd
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_ByteModifierRemove_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_ByteModifierRemove
+{
+    FCk_AutoTest_Attribute_ByteModifierRemove_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_ByteModifierRemove_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_ByteModifierStacking_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_ByteModifierStacking
+{
+    FCk_AutoTest_Attribute_ByteModifierStacking_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_ByteModifierStacking_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_ByteMultiplyComposes_SpawnParams
 {
 }
@@ -446,6 +498,19 @@ namespace UCk_AutoTest_Attribute_ByteMultiplyComposes
     FCk_AutoTest_Attribute_ByteMultiplyComposes_SpawnParams Params()
     {
         return FCk_AutoTest_Attribute_ByteMultiplyComposes_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand
+{
+    FCk_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_SpawnParams();
     }
 }
 
@@ -619,6 +684,19 @@ namespace UCk_AutoTest_Attribute_IntegerClamping
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_IntegerMinMaxComponents_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_IntegerMinMaxComponents
+{
+    FCk_AutoTest_Attribute_IntegerMinMaxComponents_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_IntegerMinMaxComponents_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_IntegerModifierAdd_SpawnParams
 {
 }
@@ -671,6 +749,19 @@ namespace UCk_AutoTest_Attribute_IntegerMultiplyComposes
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand
+{
+    FCk_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_IntegerOverflow_SpawnParams
 {
 }
@@ -680,6 +771,19 @@ namespace UCk_AutoTest_Attribute_IntegerOverflow
     FCk_AutoTest_Attribute_IntegerOverflow_SpawnParams Params()
     {
         return FCk_AutoTest_Attribute_IntegerOverflow_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_IntegerRefill_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_IntegerRefill
+{
+    FCk_AutoTest_Attribute_IntegerRefill_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_IntegerRefill_SpawnParams();
     }
 }
 
@@ -814,6 +918,45 @@ namespace UCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal
 }
 
 USTRUCT()
+struct FCk_AutoTest_Attribute_VectorBasic_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_VectorBasic
+{
+    FCk_AutoTest_Attribute_VectorBasic_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_VectorBasic_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_VectorModifierAdd_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_VectorModifierAdd
+{
+    FCk_AutoTest_Attribute_VectorModifierAdd_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_VectorModifierAdd_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Attribute_VectorModifierRemove_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Attribute_VectorModifierRemove
+{
+    FCk_AutoTest_Attribute_VectorModifierRemove_SpawnParams Params()
+    {
+        return FCk_AutoTest_Attribute_VectorModifierRemove_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Attribute_VectorPerComponentClamp_SpawnParams
 {
 }
@@ -836,6 +979,97 @@ namespace UCk_AutoTest_Base
     FCk_AutoTest_Base_SpawnParams Params()
     {
         return FCk_AutoTest_Base_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CameraLayer_A_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CameraLayer_A
+{
+    FCk_AutoTest_CameraLayer_A_SpawnParams Params()
+    {
+        return FCk_AutoTest_CameraLayer_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CameraLayer_ArmOverride600_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CameraLayer_ArmOverride600
+{
+    FCk_AutoTest_CameraLayer_ArmOverride600_SpawnParams Params()
+    {
+        return FCk_AutoTest_CameraLayer_ArmOverride600_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CameraLayer_B_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CameraLayer_B
+{
+    FCk_AutoTest_CameraLayer_B_SpawnParams Params()
+    {
+        return FCk_AutoTest_CameraLayer_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CameraLayer_C_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CameraLayer_C
+{
+    FCk_AutoTest_CameraLayer_C_SpawnParams Params()
+    {
+        return FCk_AutoTest_CameraLayer_C_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CameraLayer_FovAdd30_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CameraLayer_FovAdd30
+{
+    FCk_AutoTest_CameraLayer_FovAdd30_SpawnParams Params()
+    {
+        return FCk_AutoTest_CameraLayer_FovAdd30_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CameraLayer_FovAdd5_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CameraLayer_FovAdd5
+{
+    FCk_AutoTest_CameraLayer_FovAdd5_SpawnParams Params()
+    {
+        return FCk_AutoTest_CameraLayer_FovAdd5_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_CameraLayer_FovOverride70_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_CameraLayer_FovOverride70
+{
+    FCk_AutoTest_CameraLayer_FovOverride70_SpawnParams Params()
+    {
+        return FCk_AutoTest_CameraLayer_FovOverride70_SpawnParams();
     }
 }
 
@@ -2006,6 +2240,110 @@ namespace UCk_AutoTest_Eqs_VolumeCheck
     FCk_AutoTest_Eqs_VolumeCheck_SpawnParams Params()
     {
         return FCk_AutoTest_Eqs_VolumeCheck_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_GameplayCamera_AddLayer_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_GameplayCamera_AddLayer
+{
+    FCk_AutoTest_GameplayCamera_AddLayer_SpawnParams Params()
+    {
+        return FCk_AutoTest_GameplayCamera_AddLayer_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_GameplayCamera_BlendFovAdditive_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_GameplayCamera_BlendFovAdditive
+{
+    FCk_AutoTest_GameplayCamera_BlendFovAdditive_SpawnParams Params()
+    {
+        return FCk_AutoTest_GameplayCamera_BlendFovAdditive_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_GameplayCamera_DefaultLayerResting_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_GameplayCamera_DefaultLayerResting
+{
+    FCk_AutoTest_GameplayCamera_DefaultLayerResting_SpawnParams Params()
+    {
+        return FCk_AutoTest_GameplayCamera_DefaultLayerResting_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_GameplayCamera_MultiLayerMixedOps_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_GameplayCamera_MultiLayerMixedOps
+{
+    FCk_AutoTest_GameplayCamera_MultiLayerMixedOps_SpawnParams Params()
+    {
+        return FCk_AutoTest_GameplayCamera_MultiLayerMixedOps_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_GameplayCamera_OneOnlyEvicts_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_GameplayCamera_OneOnlyEvicts
+{
+    FCk_AutoTest_GameplayCamera_OneOnlyEvicts_SpawnParams Params()
+    {
+        return FCk_AutoTest_GameplayCamera_OneOnlyEvicts_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_GameplayCamera_OneOnlyPrioritySlots_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_GameplayCamera_OneOnlyPrioritySlots
+{
+    FCk_AutoTest_GameplayCamera_OneOnlyPrioritySlots_SpawnParams Params()
+    {
+        return FCk_AutoTest_GameplayCamera_OneOnlyPrioritySlots_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_GameplayCamera_OverrideReturnsToBase_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_GameplayCamera_OverrideReturnsToBase
+{
+    FCk_AutoTest_GameplayCamera_OverrideReturnsToBase_SpawnParams Params()
+    {
+        return FCk_AutoTest_GameplayCamera_OverrideReturnsToBase_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_GameplayCamera_RemovePrunes_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_GameplayCamera_RemovePrunes
+{
+    FCk_AutoTest_GameplayCamera_RemovePrunes_SpawnParams Params()
+    {
+        return FCk_AutoTest_GameplayCamera_RemovePrunes_SpawnParams();
     }
 }
 
@@ -3518,6 +3856,84 @@ namespace UCk_AutoTest_Nav_PathQueuedDuringBake
 }
 
 USTRUCT()
+struct FCk_AutoTest_Net_Acceleration_Replicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Acceleration_Replicates
+{
+    FCk_AutoTest_Net_Acceleration_Replicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Acceleration_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_AddEntities_Replicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_AddEntities_Replicates
+{
+    FCk_AutoTest_Net_AddEntities_Replicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_AddEntities_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_AddTag_Replicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_AddTag_Replicates
+{
+    FCk_AutoTest_Net_AddTag_Replicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_AddTag_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_AnimPlan_StateReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_AnimPlan_StateReplicates
+{
+    FCk_AutoTest_Net_AnimPlan_StateReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_AnimPlan_StateReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_Byte_ModifierAddReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Byte_ModifierAddReplicates
+{
+    FCk_AutoTest_Net_Byte_ModifierAddReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Byte_ModifierAddReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_Byte_OverrideReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Byte_OverrideReplicates
+{
+    FCk_AutoTest_Net_Byte_OverrideReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Byte_OverrideReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Net_DataOnly_AddItem_Replicates_SpawnParams
 {
 }
@@ -3570,6 +3986,71 @@ namespace UCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds
 }
 
 USTRUCT()
+struct FCk_AutoTest_Net_Integer_ModifierAddReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Integer_ModifierAddReplicates
+{
+    FCk_AutoTest_Net_Integer_ModifierAddReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Integer_ModifierAddReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_Integer_OverrideReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Integer_OverrideReplicates
+{
+    FCk_AutoTest_Net_Integer_OverrideReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Integer_OverrideReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_Integer_RefillReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Integer_RefillReplicates
+{
+    FCk_AutoTest_Net_Integer_RefillReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Integer_RefillReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_Location_Replicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Location_Replicates
+{
+    FCk_AutoTest_Net_Location_Replicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Location_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_LocationAndRotation_Replicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_LocationAndRotation_Replicates
+{
+    FCk_AutoTest_Net_LocationAndRotation_Replicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_LocationAndRotation_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Net_Player_SetReplicates_SpawnParams
 {
 }
@@ -3583,6 +4064,45 @@ namespace UCk_AutoTest_Net_Player_SetReplicates
 }
 
 USTRUCT()
+struct FCk_AutoTest_Net_RemoveEntities_Replicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_RemoveEntities_Replicates
+{
+    FCk_AutoTest_Net_RemoveEntities_Replicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_RemoveEntities_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_Rotation_Replicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Rotation_Replicates
+{
+    FCk_AutoTest_Net_Rotation_Replicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Rotation_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_Spatial_AddItem_Replicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Spatial_AddItem_Replicates
+{
+    FCk_AutoTest_Net_Spatial_AddItem_Replicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Spatial_AddItem_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Net_Team_SetReplicates_SpawnParams
 {
 }
@@ -3592,6 +4112,32 @@ namespace UCk_AutoTest_Net_Team_SetReplicates
     FCk_AutoTest_Net_Team_SetReplicates_SpawnParams Params()
     {
         return FCk_AutoTest_Net_Team_SetReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_Vector_ModifierAddReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Vector_ModifierAddReplicates
+{
+    FCk_AutoTest_Net_Vector_ModifierAddReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Vector_ModifierAddReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_Vector_OverrideReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Vector_OverrideReplicates
+{
+    FCk_AutoTest_Net_Vector_OverrideReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Vector_OverrideReplicates_SpawnParams();
     }
 }
 
@@ -4570,6 +5116,32 @@ namespace UCk_AutoTest_StateMachine_HierarchicalFirstTransition
 }
 
 USTRUCT()
+struct FCk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks
+{
+    FCk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_MultipleTasks_AllSucceed_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_MultipleTasks_AllSucceed
+{
+    FCk_AutoTest_StateMachine_MultipleTasks_AllSucceed_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_MultipleTasks_AllSucceed_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_NegatedEventDrivenCondition_SpawnParams
 {
 }
@@ -4579,6 +5151,19 @@ namespace UCk_AutoTest_StateMachine_NegatedEventDrivenCondition
     FCk_AutoTest_StateMachine_NegatedEventDrivenCondition_SpawnParams Params()
     {
         return FCk_AutoTest_StateMachine_NegatedEventDrivenCondition_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_NegatedPolledCondition_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_NegatedPolledCondition
+{
+    FCk_AutoTest_StateMachine_NegatedPolledCondition_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_NegatedPolledCondition_SpawnParams();
     }
 }
 
@@ -4596,6 +5181,19 @@ namespace UCk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState
 }
 
 USTRUCT()
+struct FCk_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged
+{
+    FCk_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_SpawnParams
 {
 }
@@ -4605,6 +5203,45 @@ namespace UCk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew
     FCk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_SpawnParams Params()
     {
         return FCk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_OverrideState_WithTransitions_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_OverrideState_WithTransitions
+{
+    FCk_AutoTest_StateMachine_OverrideState_WithTransitions_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_OverrideState_WithTransitions_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_PauseResume_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_PauseResume
+{
+    FCk_AutoTest_StateMachine_PauseResume_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_PauseResume_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_PolledCondition_DrivesTransition_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_PolledCondition_DrivesTransition
+{
+    FCk_AutoTest_StateMachine_PolledCondition_DrivesTransition_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_PolledCondition_DrivesTransition_SpawnParams();
     }
 }
 
@@ -4635,6 +5272,71 @@ namespace UCk_AutoTest_StateMachine_Stop_FiresOnStopped
 }
 
 USTRUCT()
+struct FCk_AutoTest_StateMachine_SubSm_SucceedOnStop_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_SubSm_SucceedOnStop
+{
+    FCk_AutoTest_StateMachine_SubSm_SucceedOnStop_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_SubSm_SucceedOnStop_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_TaskExitOnStop_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_TaskExitOnStop
+{
+    FCk_AutoTest_StateMachine_TaskExitOnStop_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_TaskExitOnStop_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_TaskFailure_NoTransition_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_TaskFailure_NoTransition
+{
+    FCk_AutoTest_StateMachine_TaskFailure_NoTransition_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_TaskFailure_NoTransition_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_TaskResults_AnyFailed_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_TaskResults_AnyFailed
+{
+    FCk_AutoTest_StateMachine_TaskResults_AnyFailed_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_TaskResults_AnyFailed_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_TaskSucceeds_DrivesTransition
+{
+    FCk_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_StateMachine_TransitionExitBeforeEnter_SpawnParams
 {
 }
@@ -4657,6 +5359,19 @@ namespace UCk_AutoTest_StateMachine_TransitionOrdering
     FCk_AutoTest_StateMachine_TransitionOrdering_SpawnParams Params()
     {
         return FCk_AutoTest_StateMachine_TransitionOrdering_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_StateMachine_VacuousTransition_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_StateMachine_VacuousTransition
+{
+    FCk_AutoTest_StateMachine_VacuousTransition_SpawnParams Params()
+    {
+        return FCk_AutoTest_StateMachine_VacuousTransition_SpawnParams();
     }
 }
 
@@ -5681,6 +6396,58 @@ namespace UCk_AutoTestCue_Timed
     FCk_AutoTestCue_Timed_SpawnParams Params(FTransform InInitialTransform)
     {
         return FCk_AutoTestCue_Timed_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_CameraLayer_FovZoom_SpawnParams
+{
+}
+
+namespace UCk_CameraLayer_FovZoom
+{
+    FCk_CameraLayer_FovZoom_SpawnParams Params()
+    {
+        return FCk_CameraLayer_FovZoom_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_CameraLayer_LockOn_SpawnParams
+{
+}
+
+namespace UCk_CameraLayer_LockOn
+{
+    FCk_CameraLayer_LockOn_SpawnParams Params()
+    {
+        return FCk_CameraLayer_LockOn_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_CameraLayer_ThirdPerson_SpawnParams
+{
+}
+
+namespace UCk_CameraLayer_ThirdPerson
+{
+    FCk_CameraLayer_ThirdPerson_SpawnParams Params()
+    {
+        return FCk_CameraLayer_ThirdPerson_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_CameraLayer_TopDown_SpawnParams
+{
+}
+
+namespace UCk_CameraLayer_TopDown
+{
+    FCk_CameraLayer_TopDown_SpawnParams Params()
+    {
+        return FCk_CameraLayer_TopDown_SpawnParams();
     }
 }
 
@@ -8642,6 +9409,500 @@ namespace UCk_SimpleSpatialAudioCue
 }
 
 USTRUCT()
+struct FCk_SmAnyFailTest_Cond_SpawnParams
+{
+}
+
+namespace UCk_SmAnyFailTest_Cond
+{
+    FCk_SmAnyFailTest_Cond_SpawnParams Params()
+    {
+        return FCk_SmAnyFailTest_Cond_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmAnyFailTest_State_Done_SpawnParams
+{
+}
+
+namespace UCk_SmAnyFailTest_State_Done
+{
+    FCk_SmAnyFailTest_State_Done_SpawnParams Params()
+    {
+        return FCk_SmAnyFailTest_State_Done_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmAnyFailTest_State_Start_SpawnParams
+{
+}
+
+namespace UCk_SmAnyFailTest_State_Start
+{
+    FCk_SmAnyFailTest_State_Start_SpawnParams Params()
+    {
+        return FCk_SmAnyFailTest_State_Start_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmAnyFailTest_Task_Bad_SpawnParams
+{
+}
+
+namespace UCk_SmAnyFailTest_Task_Bad
+{
+    FCk_SmAnyFailTest_Task_Bad_SpawnParams Params()
+    {
+        return FCk_SmAnyFailTest_Task_Bad_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmAnyFailTest_Task_Good_SpawnParams
+{
+}
+
+namespace UCk_SmAnyFailTest_Task_Good
+{
+    FCk_SmAnyFailTest_Task_Good_SpawnParams Params()
+    {
+        return FCk_SmAnyFailTest_Task_Good_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmMultiCondTest_Cond_False_SpawnParams
+{
+}
+
+namespace UCk_SmMultiCondTest_Cond_False
+{
+    FCk_SmMultiCondTest_Cond_False_SpawnParams Params()
+    {
+        return FCk_SmMultiCondTest_Cond_False_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmMultiCondTest_Cond_True_SpawnParams
+{
+}
+
+namespace UCk_SmMultiCondTest_Cond_True
+{
+    FCk_SmMultiCondTest_Cond_True_SpawnParams Params()
+    {
+        return FCk_SmMultiCondTest_Cond_True_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmMultiCondTest_State_A_SpawnParams
+{
+}
+
+namespace UCk_SmMultiCondTest_State_A
+{
+    FCk_SmMultiCondTest_State_A_SpawnParams Params()
+    {
+        return FCk_SmMultiCondTest_State_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmMultiCondTest_State_B_SpawnParams
+{
+}
+
+namespace UCk_SmMultiCondTest_State_B
+{
+    FCk_SmMultiCondTest_State_B_SpawnParams Params()
+    {
+        return FCk_SmMultiCondTest_State_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmMultiTask_State_Done_SpawnParams
+{
+}
+
+namespace UCk_SmMultiTask_State_Done
+{
+    FCk_SmMultiTask_State_Done_SpawnParams Params()
+    {
+        return FCk_SmMultiTask_State_Done_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmMultiTask_State_Start_SpawnParams
+{
+}
+
+namespace UCk_SmMultiTask_State_Start
+{
+    FCk_SmMultiTask_State_Start_SpawnParams Params()
+    {
+        return FCk_SmMultiTask_State_Start_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmMultiTask_Task_A_SpawnParams
+{
+}
+
+namespace UCk_SmMultiTask_Task_A
+{
+    FCk_SmMultiTask_Task_A_SpawnParams Params()
+    {
+        return FCk_SmMultiTask_Task_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmMultiTask_Task_B_SpawnParams
+{
+}
+
+namespace UCk_SmMultiTask_Task_B
+{
+    FCk_SmMultiTask_Task_B_SpawnParams Params()
+    {
+        return FCk_SmMultiTask_Task_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNegPolledTest_Cond_FalseNegated_SpawnParams
+{
+}
+
+namespace UCk_SmNegPolledTest_Cond_FalseNegated
+{
+    FCk_SmNegPolledTest_Cond_FalseNegated_SpawnParams Params()
+    {
+        return FCk_SmNegPolledTest_Cond_FalseNegated_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNegPolledTest_State_A_SpawnParams
+{
+}
+
+namespace UCk_SmNegPolledTest_State_A
+{
+    FCk_SmNegPolledTest_State_A_SpawnParams Params()
+    {
+        return FCk_SmNegPolledTest_State_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNegPolledTest_State_B_SpawnParams
+{
+}
+
+namespace UCk_SmNegPolledTest_State_B
+{
+    FCk_SmNegPolledTest_State_B_SpawnParams Params()
+    {
+        return FCk_SmNegPolledTest_State_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmOvrTransTest_Base_SpawnParams
+{
+}
+
+namespace UCk_SmOvrTransTest_Base
+{
+    FCk_SmOvrTransTest_Base_SpawnParams Params()
+    {
+        return FCk_SmOvrTransTest_Base_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmOvrTransTest_Final_SpawnParams
+{
+}
+
+namespace UCk_SmOvrTransTest_Final
+{
+    FCk_SmOvrTransTest_Final_SpawnParams Params()
+    {
+        return FCk_SmOvrTransTest_Final_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmOvrTransTest_Replacement_SpawnParams
+{
+}
+
+namespace UCk_SmOvrTransTest_Replacement
+{
+    FCk_SmOvrTransTest_Replacement_SpawnParams Params()
+    {
+        return FCk_SmOvrTransTest_Replacement_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmPauseTest_Cond_PolledTrue_SpawnParams
+{
+}
+
+namespace UCk_SmPauseTest_Cond_PolledTrue
+{
+    FCk_SmPauseTest_Cond_PolledTrue_SpawnParams Params()
+    {
+        return FCk_SmPauseTest_Cond_PolledTrue_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmPauseTest_State_Finish_SpawnParams
+{
+}
+
+namespace UCk_SmPauseTest_State_Finish
+{
+    FCk_SmPauseTest_State_Finish_SpawnParams Params()
+    {
+        return FCk_SmPauseTest_State_Finish_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmPauseTest_State_Idle_SpawnParams
+{
+}
+
+namespace UCk_SmPauseTest_State_Idle
+{
+    FCk_SmPauseTest_State_Idle_SpawnParams Params()
+    {
+        return FCk_SmPauseTest_State_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmPolledTest_Cond_Pass_SpawnParams
+{
+}
+
+namespace UCk_SmPolledTest_Cond_Pass
+{
+    FCk_SmPolledTest_Cond_Pass_SpawnParams Params()
+    {
+        return FCk_SmPolledTest_Cond_Pass_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmPolledTest_State_A_SpawnParams
+{
+}
+
+namespace UCk_SmPolledTest_State_A
+{
+    FCk_SmPolledTest_State_A_SpawnParams Params()
+    {
+        return FCk_SmPolledTest_State_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmPolledTest_State_B_SpawnParams
+{
+}
+
+namespace UCk_SmPolledTest_State_B
+{
+    FCk_SmPolledTest_State_B_SpawnParams Params()
+    {
+        return FCk_SmPolledTest_State_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmStartedTest_State_Only_SpawnParams
+{
+}
+
+namespace UCk_SmStartedTest_State_Only
+{
+    FCk_SmStartedTest_State_Only_SpawnParams Params()
+    {
+        return FCk_SmStartedTest_State_Only_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmSubTest_Parent_Done_SpawnParams
+{
+}
+
+namespace UCk_SmSubTest_Parent_Done
+{
+    FCk_SmSubTest_Parent_Done_SpawnParams Params()
+    {
+        return FCk_SmSubTest_Parent_Done_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmSubTest_Parent_Run_SpawnParams
+{
+}
+
+namespace UCk_SmSubTest_Parent_Run
+{
+    FCk_SmSubTest_Parent_Run_SpawnParams Params()
+    {
+        return FCk_SmSubTest_Parent_Run_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmSubTest_Sub_Final_SpawnParams
+{
+}
+
+namespace UCk_SmSubTest_Sub_Final
+{
+    FCk_SmSubTest_Sub_Final_SpawnParams Params()
+    {
+        return FCk_SmSubTest_Sub_Final_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmSubTest_SubTask_SpawnParams
+{
+}
+
+namespace UCk_SmSubTest_SubTask
+{
+    FCk_SmSubTest_SubTask_SpawnParams Params()
+    {
+        return FCk_SmSubTest_SubTask_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTaskExitTest_State_SpawnParams
+{
+}
+
+namespace UCk_SmTaskExitTest_State
+{
+    FCk_SmTaskExitTest_State_SpawnParams Params()
+    {
+        return FCk_SmTaskExitTest_State_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTaskExitTest_Task_SpawnParams
+{
+}
+
+namespace UCk_SmTaskExitTest_Task
+{
+    FCk_SmTaskExitTest_Task_SpawnParams Params()
+    {
+        return FCk_SmTaskExitTest_Task_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTaskFailTest_State_A_SpawnParams
+{
+}
+
+namespace UCk_SmTaskFailTest_State_A
+{
+    FCk_SmTaskFailTest_State_A_SpawnParams Params()
+    {
+        return FCk_SmTaskFailTest_State_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTaskFailTest_State_B_SpawnParams
+{
+}
+
+namespace UCk_SmTaskFailTest_State_B
+{
+    FCk_SmTaskFailTest_State_B_SpawnParams Params()
+    {
+        return FCk_SmTaskFailTest_State_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTaskFailTest_Task_Fail_SpawnParams
+{
+}
+
+namespace UCk_SmTaskFailTest_Task_Fail
+{
+    FCk_SmTaskFailTest_Task_Fail_SpawnParams Params()
+    {
+        return FCk_SmTaskFailTest_Task_Fail_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTaskTest_State_A_SpawnParams
+{
+}
+
+namespace UCk_SmTaskTest_State_A
+{
+    FCk_SmTaskTest_State_A_SpawnParams Params()
+    {
+        return FCk_SmTaskTest_State_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTaskTest_State_B_SpawnParams
+{
+}
+
+namespace UCk_SmTaskTest_State_B
+{
+    FCk_SmTaskTest_State_B_SpawnParams Params()
+    {
+        return FCk_SmTaskTest_State_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmTaskTest_Task_Succeed_SpawnParams
+{
+}
+
+namespace UCk_SmTaskTest_Task_Succeed
+{
+    FCk_SmTaskTest_Task_Succeed_SpawnParams Params()
+    {
+        return FCk_SmTaskTest_Task_Succeed_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_SmTest_AlwaysTrue_State_Finish_SpawnParams
 {
 }
@@ -10085,6 +11346,32 @@ namespace UCk_SmTest_Task_TimedWork
 }
 
 USTRUCT()
+struct FCk_SmVacuousTest_State_A_SpawnParams
+{
+}
+
+namespace UCk_SmVacuousTest_State_A
+{
+    FCk_SmVacuousTest_State_A_SpawnParams Params()
+    {
+        return FCk_SmVacuousTest_State_A_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmVacuousTest_State_B_SpawnParams
+{
+}
+
+namespace UCk_SmVacuousTest_State_B
+{
+    FCk_SmVacuousTest_State_B_SpawnParams Params()
+    {
+        return FCk_SmVacuousTest_State_B_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCkAudioGym_Advanced_AttenuationStation_SpawnParams
 {
     UPROPERTY()
@@ -10385,6 +11672,31 @@ namespace UTestEntt
 }
 
 USTRUCT()
+struct FCk_AutoTest_NetSubject_EntityCollectionEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_EntityCollectionEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_EntityCollectionEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_EntityCollectionEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_EntityCollectionEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_EntityCollectionEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_EntityCollectionEntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_NetSubject_EntityScript_UE_SpawnParams
 {
     UPROPERTY()
@@ -10481,6 +11793,106 @@ namespace UCk_AutoTest_NetSubject_RelationshipEntityScript_UE
     FCk_AutoTest_NetSubject_RelationshipEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
     {
         return FCk_AutoTest_NetSubject_RelationshipEntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_StateMachineEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_StateMachineEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_StateMachineEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_StateMachineEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_StateMachineEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_StateMachineEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_StateMachineEntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_StateMachineNoHistoryEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_StateMachineNoHistoryEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_StateMachineNoHistoryEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_StateMachineNoHistoryEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_StateMachineNoHistoryEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_StateMachineNoHistoryEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_StateMachineNoHistoryEntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE_SpawnParams(In_OwningActor);
     }
 }
 
