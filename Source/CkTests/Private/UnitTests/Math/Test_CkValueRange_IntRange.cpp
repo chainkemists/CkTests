@@ -13,17 +13,13 @@
 #include "CkCore/Enums/CkEnums.h"
 #include "CkCore/Math/ValueRange/CkValueRange.h"
 
+#include "../CkUnitTest_Common.h"
+
 // --------------------------------------------------------------------------------------------------------------------
 
-// Helper: standard automation flags for editor-context unit tests.
-// Keep this constant local to the file so other tests can copy-and-tweak.
-namespace
-{
-    constexpr auto kCkUnitTestFlags =
-        EAutomationTestFlags::EditorContext |
-        EAutomationTestFlags::ClientContext |
-        EAutomationTestFlags::ProductFilter;
-}
+// Standard automation flags for editor-context unit tests, shared via CkUnitTest_Common.h
+// (hoisted out of a file-local anonymous namespace to avoid unity-build redefinition).
+using ck::tests::kCkUnitTestFlags;
 
 // --------------------------------------------------------------------------------------------------------------------
 

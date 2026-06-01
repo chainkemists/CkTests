@@ -9,15 +9,14 @@
 
 #include "CkCamera/Camera/CkCamera_POV.h"
 
+#include "../CkUnitTest_Common.h"
+
 // --------------------------------------------------------------------------------------------------------------------
+
+using ck::tests::kCkUnitTestFlags;
 
 namespace
 {
-    constexpr auto kCkUnitTestFlags =
-        EAutomationTestFlags::EditorContext |
-        EAutomationTestFlags::ClientContext |
-        EAutomationTestFlags::ProductFilter;
-
     auto MakeGeometryOnlyProfile(float InBoomLength, const FVector& InFramingOffset) -> FCk_CameraProfile
     {
         auto Profile = FCk_CameraProfile{};
