@@ -7,18 +7,17 @@
 // ACk_Gym_Base_Pawn) rather than the gym base pawn, so that exactly ONE
 // entity-script is bridged to the pawn. A single bridged entity makes the
 // reverse lookup utils_owning_actor::TryGet_ActorEntityHandle(this) unambiguous
-// on BOTH worlds — which both console-command paths rely on.
+// on BOTH worlds.
 //
 // On authority it spawns the gym's replicated entity-script (which adds Health
 // + SM and replicates to clients via the WithActor lifecycle). The WithActor
 // Construct runs on the client too, so the reverse-lookup component exists on
 // every world.
 //
-// Console commands on the PlayerController call into this pawn:
-//   - Server_ApplyDamage  : reliable Server RPC -> broadcast Damage on the server
-//                           (server-authoritative attribute path).
-//   - Request_AdvanceState: local -> broadcast AdvanceState on the owning client
-//                           (owning-client-authoritative SM path).
+// The cadence is fully automatic (see the director). The director triggers state
+// changes here via Client_AdvanceState (a Client RPC that runs on the owning
+// client and issues the owning-client-authoritative transition). Damage is
+// applied server-side by the director and needs no pawn RPC.
 //============================================================================
 
 class ACk_NetGym_TwoPlayer_Pawn : ADefaultPawn
@@ -39,23 +38,17 @@ class ACk_NetGym_TwoPlayer_Pawn : ADefaultPawn
             SpawnParams);
     }
 
-    // Server-authoritative attribute path. Runs on the server (RPC). Finds this
-    // pawn's bridged entity and broadcasts the Damage message; the server-side
-    // entity-script applies Request_Override and the value replicates to clients.
-    UFUNCTION(Server)
-    void Server_ApplyDamage(float InAmount)
+    // Owning-client SM path. The server-only cadence director calls this Client RPC on the
+    // pawn's owning client when it's this pawn's turn to advance. It runs on the owning client,
+    // which broadcasts AdvanceState to its (client-world) bridged entity; the entity-script
+    // requests the transition (owning-client authority commits locally and relays to the server).
+    UFUNCTION(Client)
+    void Client_AdvanceState()
     {
-        auto Entity = utils_owning_actor::TryGet_ActorEntityHandle(this);
-        if (ck::Is_NOT_Valid(Entity))
-        { return; }
-
-        utils_messaging::Broadcast(Entity, FCk_Message_NetGym_Damage(InAmount));
+        Request_AdvanceState();
     }
 
-    // Owning-client SM path. Runs locally on the owning client. Broadcasts the
-    // AdvanceState message to this pawn's (client-world) bridged entity; the
-    // entity-script requests the transition (owning-client authority commits
-    // locally and relays to the server).
+    // Local broadcast of the AdvanceState message to this pawn's bridged entity (owning-client world).
     void Request_AdvanceState()
     {
         auto Entity = utils_owning_actor::TryGet_ActorEntityHandle(this);

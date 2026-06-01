@@ -6,9 +6,11 @@
 // Replicated (runs Construct on BOTH server and client via the entity-script
 // replication path). Adds:
 //   - Health: server-authoritative replicated CkAttribute.
-//   - StateMachine: owning-client-authoritative, WithHistory, AutoStart OnSetup.
-// Handles two messages routed from the pawn, and self-draws live state both as
-// floating world-space text above the pawn and as an on-screen line.
+//   - StateMachine: owning-client-authoritative, WithHistory, AutoStart Disabled
+//     (the owning client issues Request_Start once it controls the pawn).
+// Handles the Damage / AdvanceState messages the cadence director drives, and
+// self-draws live state both as floating world-space text above the pawn and as
+// an on-screen line.
 //============================================================================
 
 class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
@@ -26,7 +28,7 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
-        utils_entity_tag::Add(InHandle, n"TAG_NetGym_PlayerPawn");
+        utils_entity_tag::Add(InHandle, CkNetGym::PlayerPawnTag);
 
         // --- Server-authoritative Health attribute (both worlds Add it; server mutates) ---
         auto HealthParams = FCk_Fragment_FloatAttribute_ParamsData(
@@ -72,7 +74,12 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
 
         auto Typed = InPayload.Get(FCk_Message_NetGym_Damage);
         auto Current = utils_float_attribute::Get_FinalValue(_Health, ECk_MinMaxCurrent::Current);
-        utils_float_attribute::Request_Override(_Health, Current - Typed.Amount);
+
+        // Loop the showcase: once depleted, refill to full so HP visibly cycles 100 -> 0 -> 100.
+        if (Current - Typed.Amount <= CkNetGym::MinHealth)
+        { utils_float_attribute::Request_Override(_Health, CkNetGym::MaxHealth); }
+        else
+        { utils_float_attribute::Request_Override(_Health, Current - Typed.Amount); }
     }
 
     // Owning-client: broadcast LOCALLY on the owning client. Request_Transition commits locally
