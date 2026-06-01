@@ -34,8 +34,13 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_AStar_CostThreshold_Actor> Ck_AutoTest_AStar_CostThreshold_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_AStar_CostThreshold_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_AStar_CostThreshold_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_AStar_NoPath_Actor> Ck_AutoTest_AStar_NoPath_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_AStar_NoPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_AStar_NoPath_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_ByteBasic_Actor> Ck_AutoTest_Attribute_ByteBasic_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Attribute_ByteBasic_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_ByteBasic_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_ByteClamping_Actor> Ck_AutoTest_Attribute_ByteClamping_Actor_UAID_D843AEBAD5E283DF02_1765891039() { return TSoftObjectPtr<ACk_AutoTest_Attribute_ByteClamping_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_ByteClamping_Actor_UAID_D843AEBAD5E283DF02_1765891039")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_ByteMinMaxComponents_Actor> Ck_AutoTest_Attribute_ByteMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934798800() { return TSoftObjectPtr<ACk_AutoTest_Attribute_ByteMinMaxComponents_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_ByteMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934798800")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_ByteModifierAdd_Actor> Ck_AutoTest_Attribute_ByteModifierAdd_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Attribute_ByteModifierAdd_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_ByteModifierAdd_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_ByteModifierRemove_Actor> Ck_AutoTest_Attribute_ByteModifierRemove_Actor_UAID_D843AEBAD5E283DF02_1765901041() { return TSoftObjectPtr<ACk_AutoTest_Attribute_ByteModifierRemove_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_ByteModifierRemove_Actor_UAID_D843AEBAD5E283DF02_1765901041")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_ByteModifierStacking_Actor> Ck_AutoTest_Attribute_ByteModifierStacking_Actor_UAID_60CF84A99C2C8DDF02_1934802802() { return TSoftObjectPtr<ACk_AutoTest_Attribute_ByteModifierStacking_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_ByteModifierStacking_Actor_UAID_60CF84A99C2C8DDF02_1934802802")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_ByteMultiplyComposes_Actor> Ck_AutoTest_Attribute_ByteMultiplyComposes_Actor_UAID_C87F5401E535FADB02_1542516759() { return TSoftObjectPtr<ACk_AutoTest_Attribute_ByteMultiplyComposes_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_ByteMultiplyComposes_Actor_UAID_C87F5401E535FADB02_1542516759")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_Actor> Ck_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_Actor_UAID_D843AEBAD5E283DF02_1765907043() { return TSoftObjectPtr<ACk_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_Actor_UAID_D843AEBAD5E283DF02_1765907043")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_FloatBasic_Actor> Ck_AutoTest_Attribute_FloatBasic_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Attribute_FloatBasic_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_FloatBasic_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_FloatClamping_Actor> Ck_AutoTest_Attribute_FloatClamping_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Attribute_FloatClamping_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_FloatClamping_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_FloatIncrement_Actor> Ck_AutoTest_Attribute_FloatIncrement_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Attribute_FloatIncrement_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_FloatIncrement_Actor_0")); }
@@ -49,11 +54,14 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor> Ck_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor_UAID_C87F5401E5355BDC02_1945005831() { return TSoftObjectPtr<ACk_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor_UAID_C87F5401E5355BDC02_1945005831")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerBasic_Actor> Ck_AutoTest_Attribute_IntegerBasic_Actor_1() { return TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerBasic_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_IntegerBasic_Actor_1")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerClamping_Actor> Ck_AutoTest_Attribute_IntegerClamping_Actor_1() { return TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerClamping_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_IntegerClamping_Actor_1")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerMinMaxComponents_Actor> Ck_AutoTest_Attribute_IntegerMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934805804() { return TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerMinMaxComponents_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_IntegerMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934805804")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerModifierAdd_Actor> Ck_AutoTest_Attribute_IntegerModifierAdd_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerModifierAdd_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_IntegerModifierAdd_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerModifierRemove_Actor> Ck_AutoTest_Attribute_IntegerModifierRemove_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerModifierRemove_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_IntegerModifierRemove_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerModifierStacking_Actor> Ck_AutoTest_Attribute_IntegerModifierStacking_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerModifierStacking_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_IntegerModifierStacking_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerMultiplyComposes_Actor> Ck_AutoTest_Attribute_IntegerMultiplyComposes_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerMultiplyComposes_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_IntegerMultiplyComposes_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_Actor> Ck_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_Actor_UAID_60CF84A99C2C8DDF02_1934807805() { return TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_Actor_UAID_60CF84A99C2C8DDF02_1934807805")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerOverflow_Actor> Ck_AutoTest_Attribute_IntegerOverflow_Actor_2() { return TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerOverflow_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_IntegerOverflow_Actor_2")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerRefill_Actor> Ck_AutoTest_Attribute_IntegerRefill_Actor_UAID_D843AEBAD5E283DF02_1765915046() { return TSoftObjectPtr<ACk_AutoTest_Attribute_IntegerRefill_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_IntegerRefill_Actor_UAID_D843AEBAD5E283DF02_1765915046")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_MayRequireReplicationToggle_Actor> Ck_AutoTest_Attribute_MayRequireReplicationToggle_Actor_UAID_C87F5401E5355EDC02_1945373359() { return TSoftObjectPtr<ACk_AutoTest_Attribute_MayRequireReplicationToggle_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_MayRequireReplicationToggle_Actor_UAID_C87F5401E5355EDC02_1945373359")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor> Ck_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor_UAID_C87F5401E535EEDB02_1661134647() { return TSoftObjectPtr<ACk_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor_UAID_C87F5401E535EEDB02_1661134647")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor> Ck_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor_UAID_C87F5401E535EEDB02_1661136648() { return TSoftObjectPtr<ACk_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor_UAID_C87F5401E535EEDB02_1661136648")); }
@@ -64,6 +72,9 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor> Ck_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor_UAID_C87F5401E535EEDB02_1661138651() { return TSoftObjectPtr<ACk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor_UAID_C87F5401E535EEDB02_1661138651")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor> Ck_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor> Ck_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor_UAID_C87F5401E535EEDB02_1661139652() { return TSoftObjectPtr<ACk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor_UAID_C87F5401E535EEDB02_1661139652")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_VectorBasic_Actor> Ck_AutoTest_Attribute_VectorBasic_Actor_UAID_60CF84A99C2C8DDF02_1934810807() { return TSoftObjectPtr<ACk_AutoTest_Attribute_VectorBasic_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_VectorBasic_Actor_UAID_60CF84A99C2C8DDF02_1934810807")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_VectorModifierAdd_Actor> Ck_AutoTest_Attribute_VectorModifierAdd_Actor_UAID_D843AEBAD5E283DF02_1765920048() { return TSoftObjectPtr<ACk_AutoTest_Attribute_VectorModifierAdd_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_VectorModifierAdd_Actor_UAID_D843AEBAD5E283DF02_1765920048")); }
+    TSoftObjectPtr<ACk_AutoTest_Attribute_VectorModifierRemove_Actor> Ck_AutoTest_Attribute_VectorModifierRemove_Actor_UAID_60CF84A99C2C8DDF02_1934814809() { return TSoftObjectPtr<ACk_AutoTest_Attribute_VectorModifierRemove_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_VectorModifierRemove_Actor_UAID_60CF84A99C2C8DDF02_1934814809")); }
     TSoftObjectPtr<ACk_AutoTest_Attribute_VectorPerComponentClamp_Actor> Ck_AutoTest_Attribute_VectorPerComponentClamp_Actor_UAID_C87F5401E5355DDC02_1378196183() { return TSoftObjectPtr<ACk_AutoTest_Attribute_VectorPerComponentClamp_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Attribute_VectorPerComponentClamp_Actor_UAID_C87F5401E5355DDC02_1378196183")); }
     TSoftObjectPtr<ACk_AutoTest_CameraShake_Add_CreatesEntry_Actor> Ck_AutoTest_CameraShake_Add_CreatesEntry_Actor_UAID_C87F5401E53529DC02_1076844032() { return TSoftObjectPtr<ACk_AutoTest_CameraShake_Add_CreatesEntry_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_CameraShake_Add_CreatesEntry_Actor_UAID_C87F5401E53529DC02_1076844032")); }
     TSoftObjectPtr<ACk_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor> Ck_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor_UAID_C87F5401E535FDDB02_1125232287() { return TSoftObjectPtr<ACk_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor_UAID_C87F5401E535FDDB02_1125232287")); }
@@ -155,7 +166,13 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Eqs_OnCircle_Actor> Ck_AutoTest_Eqs_OnCircle_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_OnCircle_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_OnCircle_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Eqs_RandomRunMode_Actor> Ck_AutoTest_Eqs_RandomRunMode_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_RandomRunMode_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_RandomRunMode_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Eqs_VolumeCheck_Actor> Ck_AutoTest_Eqs_VolumeCheck_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Eqs_VolumeCheck_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Eqs_VolumeCheck_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_GameplayCamera_AddLayer_Actor> Ck_AutoTest_GameplayCamera_AddLayer_Actor_UAID_60CF84A99C2C0BE002_1327906975() { return TSoftObjectPtr<ACk_AutoTest_GameplayCamera_AddLayer_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GameplayCamera_AddLayer_Actor_UAID_60CF84A99C2C0BE002_1327906975")); }
+    TSoftObjectPtr<ACk_AutoTest_GameplayCamera_BlendFovAdditive_Actor> Ck_AutoTest_GameplayCamera_BlendFovAdditive_Actor_UAID_60CF84A99C2C07E002_1535147271() { return TSoftObjectPtr<ACk_AutoTest_GameplayCamera_BlendFovAdditive_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GameplayCamera_BlendFovAdditive_Actor_UAID_60CF84A99C2C07E002_1535147271")); }
+    TSoftObjectPtr<ACk_AutoTest_GameplayCamera_DefaultLayerResting_Actor> Ck_AutoTest_GameplayCamera_DefaultLayerResting_Actor_UAID_60CF84A99C2C20E002_1734593671() { return TSoftObjectPtr<ACk_AutoTest_GameplayCamera_DefaultLayerResting_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GameplayCamera_DefaultLayerResting_Actor_UAID_60CF84A99C2C20E002_1734593671")); }
+    TSoftObjectPtr<ACk_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor> Ck_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor_UAID_60CF84A99C2C20E002_1734595672() { return TSoftObjectPtr<ACk_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor_UAID_60CF84A99C2C20E002_1734595672")); }
     TSoftObjectPtr<ACk_AutoTest_GameplayCamera_OneOnlyEvicts_Actor> Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456() { return TSoftObjectPtr<ACk_AutoTest_GameplayCamera_OneOnlyEvicts_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456")); }
+    TSoftObjectPtr<ACk_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor> Ck_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor_UAID_60CF84A99C2C20E002_1734597673() { return TSoftObjectPtr<ACk_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor_UAID_60CF84A99C2C20E002_1734597673")); }
+    TSoftObjectPtr<ACk_AutoTest_GameplayCamera_OverrideReturnsToBase_Actor> Ck_AutoTest_GameplayCamera_OverrideReturnsToBase_Actor_UAID_60CF84A99C2C20E002_1734599674() { return TSoftObjectPtr<ACk_AutoTest_GameplayCamera_OverrideReturnsToBase_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GameplayCamera_OverrideReturnsToBase_Actor_UAID_60CF84A99C2C20E002_1734599674")); }
     TSoftObjectPtr<ACk_AutoTest_GameplayCamera_RemovePrunes_Actor> Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457() { return TSoftObjectPtr<ACk_AutoTest_GameplayCamera_RemovePrunes_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457")); }
     TSoftObjectPtr<ACk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor> Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033() { return TSoftObjectPtr<ACk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033")); }
     TSoftObjectPtr<ACk_AutoTest_Goap_Planner_AddRemoveChildren_Actor> Ck_AutoTest_Goap_Planner_AddRemoveChildren_Actor_UAID_C87F5401E53557DD02_2040673183() { return TSoftObjectPtr<ACk_AutoTest_Goap_Planner_AddRemoveChildren_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Goap_Planner_AddRemoveChildren_Actor_UAID_C87F5401E53557DD02_2040673183")); }
@@ -345,13 +362,26 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor> Ck_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_StateMachine_EventDrivenMultiCondition_Actor> Ck_AutoTest_StateMachine_EventDrivenMultiCondition_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_EventDrivenMultiCondition_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_EventDrivenMultiCondition_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_StateMachine_HierarchicalFirstTransition_Actor> Ck_AutoTest_StateMachine_HierarchicalFirstTransition_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_HierarchicalFirstTransition_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_HierarchicalFirstTransition_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_Actor> Ck_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_Actor_UAID_D843AEBAD5E283DF02_1765925050() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_Actor_UAID_D843AEBAD5E283DF02_1765925050")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_MultipleTasks_AllSucceed_Actor> Ck_AutoTest_StateMachine_MultipleTasks_AllSucceed_Actor_UAID_D843AEBAD5E283DF02_1765928051() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_MultipleTasks_AllSucceed_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_MultipleTasks_AllSucceed_Actor_UAID_D843AEBAD5E283DF02_1765928051")); }
     TSoftObjectPtr<ACk_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor> Ck_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_NegatedPolledCondition_Actor> Ck_AutoTest_StateMachine_NegatedPolledCondition_Actor_UAID_60CF84A99C2C8DDF02_1934819812() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_NegatedPolledCondition_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_NegatedPolledCondition_Actor_UAID_60CF84A99C2C8DDF02_1934819812")); }
     TSoftObjectPtr<ACk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor> Ck_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor_UAID_C87F5401E53523DC02_1356917975() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor_UAID_C87F5401E53523DC02_1356917975")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_Actor> Ck_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_Actor_UAID_60CF84A99C2C8DDF02_1934821813() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_Actor_UAID_60CF84A99C2C8DDF02_1934821813")); }
     TSoftObjectPtr<ACk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor> Ck_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor_UAID_C87F5401E535F3DB02_1611806527() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor_UAID_C87F5401E535F3DB02_1611806527")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_OverrideState_WithTransitions_Actor> Ck_AutoTest_StateMachine_OverrideState_WithTransitions_Actor_UAID_60CF84A99C2C8DDF02_1934823814() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_OverrideState_WithTransitions_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_OverrideState_WithTransitions_Actor_UAID_60CF84A99C2C8DDF02_1934823814")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_PauseResume_Actor> Ck_AutoTest_StateMachine_PauseResume_Actor_UAID_D843AEBAD5E283DF02_1765936055() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_PauseResume_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_PauseResume_Actor_UAID_D843AEBAD5E283DF02_1765936055")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_PolledCondition_DrivesTransition_Actor> Ck_AutoTest_StateMachine_PolledCondition_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934827816() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_PolledCondition_DrivesTransition_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_PolledCondition_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934827816")); }
     TSoftObjectPtr<ACk_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor> Ck_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_StateMachine_Stop_FiresOnStopped_Actor> Ck_AutoTest_StateMachine_Stop_FiresOnStopped_Actor_UAID_C87F5401E535F3DB02_1611809529() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_Stop_FiresOnStopped_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_Stop_FiresOnStopped_Actor_UAID_C87F5401E535F3DB02_1611809529")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_SubSm_SucceedOnStop_Actor> Ck_AutoTest_StateMachine_SubSm_SucceedOnStop_Actor_UAID_D843AEBAD5E283DF02_1765941057() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_SubSm_SucceedOnStop_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_SubSm_SucceedOnStop_Actor_UAID_D843AEBAD5E283DF02_1765941057")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_TaskExitOnStop_Actor> Ck_AutoTest_StateMachine_TaskExitOnStop_Actor_UAID_60CF84A99C2C8DDF02_1934831818() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_TaskExitOnStop_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_TaskExitOnStop_Actor_UAID_60CF84A99C2C8DDF02_1934831818")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_TaskFailure_NoTransition_Actor> Ck_AutoTest_StateMachine_TaskFailure_NoTransition_Actor_UAID_60CF84A99C2C8DDF02_1934833819() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_TaskFailure_NoTransition_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_TaskFailure_NoTransition_Actor_UAID_60CF84A99C2C8DDF02_1934833819")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_TaskResults_AnyFailed_Actor> Ck_AutoTest_StateMachine_TaskResults_AnyFailed_Actor_UAID_D843AEBAD5E283DF02_1765950060() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_TaskResults_AnyFailed_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_TaskResults_AnyFailed_Actor_UAID_D843AEBAD5E283DF02_1765950060")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_Actor> Ck_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934837821() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934837821")); }
     TSoftObjectPtr<ACk_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor> Ck_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_StateMachine_TransitionOrdering_Actor> Ck_AutoTest_StateMachine_TransitionOrdering_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_TransitionOrdering_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_TransitionOrdering_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_StateMachine_VacuousTransition_Actor> Ck_AutoTest_StateMachine_VacuousTransition_Actor_UAID_60CF84A99C2C8DDF02_1934839822() { return TSoftObjectPtr<ACk_AutoTest_StateMachine_VacuousTransition_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_StateMachine_VacuousTransition_Actor_UAID_60CF84A99C2C8DDF02_1934839822")); }
     TSoftObjectPtr<ACk_AutoTest_Substep_Add_CreatesFeature_Actor> Ck_AutoTest_Substep_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742354686() { return TSoftObjectPtr<ACk_AutoTest_Substep_Add_CreatesFeature_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Substep_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742354686")); }
     TSoftObjectPtr<ACk_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor> Ck_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647700111() { return TSoftObjectPtr<ACk_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647700111")); }
     TSoftObjectPtr<ACk_AutoTest_TagSet_AddInitialAndQuery_Actor> Ck_AutoTest_TagSet_AddInitialAndQuery_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_TagSet_AddInitialAndQuery_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_TagSet_AddInitialAndQuery_Actor_0")); }
@@ -524,3068 +554,4871 @@ namespace assets::load
 {
     AActor BP_DemoDisplay()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::BP_DemoDisplay() called before engine init. Use assets::BP_DemoDisplay() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::BP_DemoDisplay() called before engine init. Use assets::BP_DemoDisplay() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::BP_DemoDisplay());
     }
     TSubclassOf<AActor> BP_DemoDisplay_Class()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::BP_DemoDisplay_Class() called before engine init. Use assets::BP_DemoDisplay_Class() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::BP_DemoDisplay_Class() called before engine init. Use assets::BP_DemoDisplay_Class() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadClassAsset_Blocking(assets::BP_DemoDisplay_Class());
     }
     AActor BP_DemoRoom()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::BP_DemoRoom() called before engine init. Use assets::BP_DemoRoom() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::BP_DemoRoom() called before engine init. Use assets::BP_DemoRoom() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::BP_DemoRoom());
     }
     TSubclassOf<AActor> BP_DemoRoom_Class()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::BP_DemoRoom_Class() called before engine init. Use assets::BP_DemoRoom_Class() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::BP_DemoRoom_Class() called before engine init. Use assets::BP_DemoRoom_Class() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadClassAsset_Blocking(assets::BP_DemoRoom_Class());
     }
     ACk_AutoTest_Acceleration_Add_CreatesFeature_Actor Ck_AutoTest_Acceleration_Add_CreatesFeature_Actor_UAID_C87F5401E5352ADC02_2117491207()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Acceleration_Add_CreatesFeature_Actor_UAID_C87F5401E5352ADC02_2117491207() called before engine init. Use assets::Ck_AutoTest_Acceleration_Add_CreatesFeature_Actor_UAID_C87F5401E5352ADC02_2117491207() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Acceleration_Add_CreatesFeature_Actor_UAID_C87F5401E5352ADC02_2117491207() called before engine init. Use assets::Ck_AutoTest_Acceleration_Add_CreatesFeature_Actor_UAID_C87F5401E5352ADC02_2117491207() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Acceleration_Add_CreatesFeature_Actor_UAID_C87F5401E5352ADC02_2117491207());
     }
     ACk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor Ck_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor_UAID_C87F5401E5352EDC02_1490264911()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor_UAID_C87F5401E5352EDC02_1490264911() called before engine init. Use assets::Ck_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor_UAID_C87F5401E5352EDC02_1490264911() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor_UAID_C87F5401E5352EDC02_1490264911() called before engine init. Use assets::Ck_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor_UAID_C87F5401E5352EDC02_1490264911() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor_UAID_C87F5401E5352EDC02_1490264911());
     }
     ACk_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_Actor Ck_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_Actor_UAID_C87F5401E53539DC02_2091238847()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_Actor_UAID_C87F5401E53539DC02_2091238847() called before engine init. Use assets::Ck_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_Actor_UAID_C87F5401E53539DC02_2091238847() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_Actor_UAID_C87F5401E53539DC02_2091238847() called before engine init. Use assets::Ck_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_Actor_UAID_C87F5401E53539DC02_2091238847() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate_Actor_UAID_C87F5401E53539DC02_2091238847());
     }
     ACk_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_Actor Ck_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_Actor_UAID_C87F5401E53539DC02_2091240848()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_Actor_UAID_C87F5401E53539DC02_2091240848() called before engine init. Use assets::Ck_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_Actor_UAID_C87F5401E53539DC02_2091240848() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_Actor_UAID_C87F5401E53539DC02_2091240848() called before engine init. Use assets::Ck_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_Actor_UAID_C87F5401E53539DC02_2091240848() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent_Actor_UAID_C87F5401E53539DC02_2091240848());
     }
     ACk_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_Actor Ck_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_Actor_UAID_C87F5401E5352EDC02_1226933911()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_Actor_UAID_C87F5401E5352EDC02_1226933911() called before engine init. Use assets::Ck_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_Actor_UAID_C87F5401E5352EDC02_1226933911() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_Actor_UAID_C87F5401E5352EDC02_1226933911() called before engine init. Use assets::Ck_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_Actor_UAID_C87F5401E5352EDC02_1226933911() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction_Actor_UAID_C87F5401E5352EDC02_1226933911());
     }
     ACk_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved_Actor Ck_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved_Actor_UAID_C87F5401E53538DC02_2071384671()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved_Actor_UAID_C87F5401E53538DC02_2071384671() called before engine init. Use assets::Ck_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved_Actor_UAID_C87F5401E53538DC02_2071384671() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved_Actor_UAID_C87F5401E53538DC02_2071384671() called before engine init. Use assets::Ck_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved_Actor_UAID_C87F5401E53538DC02_2071384671() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved_Actor_UAID_C87F5401E53538DC02_2071384671());
     }
     ACk_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_Actor Ck_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_Actor_UAID_C87F5401E53538DC02_2071386672()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_Actor_UAID_C87F5401E53538DC02_2071386672() called before engine init. Use assets::Ck_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_Actor_UAID_C87F5401E53538DC02_2071386672() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_Actor_UAID_C87F5401E53538DC02_2071386672() called before engine init. Use assets::Ck_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_Actor_UAID_C87F5401E53538DC02_2071386672() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Actor_SpawnActor_FiresOnActorSpawned_Actor_UAID_C87F5401E53538DC02_2071386672());
     }
     ACk_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_Actor Ck_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_Actor_UAID_C87F5401E5353BDC02_1209474199()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_Actor_UAID_C87F5401E5353BDC02_1209474199() called before engine init. Use assets::Ck_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_Actor_UAID_C87F5401E5353BDC02_1209474199() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_Actor_UAID_C87F5401E5353BDC02_1209474199() called before engine init. Use assets::Ck_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_Actor_UAID_C87F5401E5353BDC02_1209474199() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor_Actor_UAID_C87F5401E5353BDC02_1209474199());
     }
     ACk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor Ck_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor_UAID_C87F5401E5353ADC02_2129272023()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor_UAID_C87F5401E5353ADC02_2129272023() called before engine init. Use assets::Ck_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor_UAID_C87F5401E5353ADC02_2129272023() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor_UAID_C87F5401E5353ADC02_2129272023() called before engine init. Use assets::Ck_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor_UAID_C87F5401E5353ADC02_2129272023() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor_UAID_C87F5401E5353ADC02_2129272023());
     }
     ACk_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor Ck_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor_UAID_C87F5401E5353FDC02_1137498903()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor_UAID_C87F5401E5353FDC02_1137498903() called before engine init. Use assets::Ck_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor_UAID_C87F5401E5353FDC02_1137498903() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor_UAID_C87F5401E5353FDC02_1137498903() called before engine init. Use assets::Ck_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor_UAID_C87F5401E5353FDC02_1137498903() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor_UAID_C87F5401E5353FDC02_1137498903());
     }
     ACk_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor Ck_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor_UAID_C87F5401E5353FDC02_1137500904()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor_UAID_C87F5401E5353FDC02_1137500904() called before engine init. Use assets::Ck_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor_UAID_C87F5401E5353FDC02_1137500904() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor_UAID_C87F5401E5353FDC02_1137500904() called before engine init. Use assets::Ck_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor_UAID_C87F5401E5353FDC02_1137500904() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor_UAID_C87F5401E5353FDC02_1137500904());
     }
     ACk_AutoTest_Aggro_AddHappyPath_Actor Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535() called before engine init. Use assets::Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535() called before engine init. Use assets::Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535());
     }
     ACk_AutoTest_Aggro_ForEachExclusionPolicy_Actor Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536() called before engine init. Use assets::Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536() called before engine init. Use assets::Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536());
     }
     ACk_AutoTest_Aggro_GetBestAggroSingle_Actor Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537() called before engine init. Use assets::Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537() called before engine init. Use assets::Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537());
     }
     ACk_AutoTest_Aggro_GetTarget_Actor Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538() called before engine init. Use assets::Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538() called before engine init. Use assets::Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538());
     }
     ACk_AutoTest_Aggro_OwnerAddHappyPath_Actor Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539() called before engine init. Use assets::Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539() called before engine init. Use assets::Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539());
     }
     ACk_AutoTest_Aggro_RequestIncludeRestores_Actor Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540() called before engine init. Use assets::Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540() called before engine init. Use assets::Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540());
     }
     ACk_AutoTest_Aggro_TryGetAggroByTargetFound_Actor Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541() called before engine init. Use assets::Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541() called before engine init. Use assets::Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541());
     }
     ACk_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542() called before engine init. Use assets::Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542() called before engine init. Use assets::Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542());
     }
     ACk_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor Ck_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor_UAID_C87F5401E53545DC02_1500773959()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor_UAID_C87F5401E53545DC02_1500773959() called before engine init. Use assets::Ck_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor_UAID_C87F5401E53545DC02_1500773959() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor_UAID_C87F5401E53545DC02_1500773959() called before engine init. Use assets::Ck_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor_UAID_C87F5401E53545DC02_1500773959() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor_UAID_C87F5401E53545DC02_1500773959());
     }
     ACk_AutoTest_AStar_BasicSearch_Actor Ck_AutoTest_AStar_BasicSearch_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_AStar_BasicSearch_Actor_0() called before engine init. Use assets::Ck_AutoTest_AStar_BasicSearch_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_AStar_BasicSearch_Actor_0() called before engine init. Use assets::Ck_AutoTest_AStar_BasicSearch_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_AStar_BasicSearch_Actor_0());
     }
     ACk_AutoTest_AStar_CostThreshold_Actor Ck_AutoTest_AStar_CostThreshold_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_AStar_CostThreshold_Actor_0() called before engine init. Use assets::Ck_AutoTest_AStar_CostThreshold_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_AStar_CostThreshold_Actor_0() called before engine init. Use assets::Ck_AutoTest_AStar_CostThreshold_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_AStar_CostThreshold_Actor_0());
     }
     ACk_AutoTest_AStar_NoPath_Actor Ck_AutoTest_AStar_NoPath_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_AStar_NoPath_Actor_0() called before engine init. Use assets::Ck_AutoTest_AStar_NoPath_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_AStar_NoPath_Actor_0() called before engine init. Use assets::Ck_AutoTest_AStar_NoPath_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_AStar_NoPath_Actor_0());
     }
     ACk_AutoTest_Attribute_ByteBasic_Actor Ck_AutoTest_Attribute_ByteBasic_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_ByteBasic_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteBasic_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_ByteBasic_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteBasic_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_ByteBasic_Actor_0());
+    }
+    ACk_AutoTest_Attribute_ByteClamping_Actor Ck_AutoTest_Attribute_ByteClamping_Actor_UAID_D843AEBAD5E283DF02_1765891039()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_ByteClamping_Actor_UAID_D843AEBAD5E283DF02_1765891039() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteClamping_Actor_UAID_D843AEBAD5E283DF02_1765891039() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_ByteClamping_Actor_UAID_D843AEBAD5E283DF02_1765891039());
+    }
+    ACk_AutoTest_Attribute_ByteMinMaxComponents_Actor Ck_AutoTest_Attribute_ByteMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934798800()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_ByteMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934798800() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934798800() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_ByteMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934798800());
     }
     ACk_AutoTest_Attribute_ByteModifierAdd_Actor Ck_AutoTest_Attribute_ByteModifierAdd_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_ByteModifierAdd_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteModifierAdd_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_ByteModifierAdd_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteModifierAdd_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_ByteModifierAdd_Actor_0());
+    }
+    ACk_AutoTest_Attribute_ByteModifierRemove_Actor Ck_AutoTest_Attribute_ByteModifierRemove_Actor_UAID_D843AEBAD5E283DF02_1765901041()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_ByteModifierRemove_Actor_UAID_D843AEBAD5E283DF02_1765901041() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteModifierRemove_Actor_UAID_D843AEBAD5E283DF02_1765901041() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_ByteModifierRemove_Actor_UAID_D843AEBAD5E283DF02_1765901041());
+    }
+    ACk_AutoTest_Attribute_ByteModifierStacking_Actor Ck_AutoTest_Attribute_ByteModifierStacking_Actor_UAID_60CF84A99C2C8DDF02_1934802802()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_ByteModifierStacking_Actor_UAID_60CF84A99C2C8DDF02_1934802802() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteModifierStacking_Actor_UAID_60CF84A99C2C8DDF02_1934802802() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_ByteModifierStacking_Actor_UAID_60CF84A99C2C8DDF02_1934802802());
     }
     ACk_AutoTest_Attribute_ByteMultiplyComposes_Actor Ck_AutoTest_Attribute_ByteMultiplyComposes_Actor_UAID_C87F5401E535FADB02_1542516759()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_ByteMultiplyComposes_Actor_UAID_C87F5401E535FADB02_1542516759() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteMultiplyComposes_Actor_UAID_C87F5401E535FADB02_1542516759() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_ByteMultiplyComposes_Actor_UAID_C87F5401E535FADB02_1542516759() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteMultiplyComposes_Actor_UAID_C87F5401E535FADB02_1542516759() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_ByteMultiplyComposes_Actor_UAID_C87F5401E535FADB02_1542516759());
+    }
+    ACk_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_Actor Ck_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_Actor_UAID_D843AEBAD5E283DF02_1765907043()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_Actor_UAID_D843AEBAD5E283DF02_1765907043() called before engine init. Use assets::Ck_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_Actor_UAID_D843AEBAD5E283DF02_1765907043() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_Actor_UAID_D843AEBAD5E283DF02_1765907043());
     }
     ACk_AutoTest_Attribute_FloatBasic_Actor Ck_AutoTest_Attribute_FloatBasic_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatBasic_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatBasic_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatBasic_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatBasic_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatBasic_Actor_0());
     }
     ACk_AutoTest_Attribute_FloatClamping_Actor Ck_AutoTest_Attribute_FloatClamping_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatClamping_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatClamping_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatClamping_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatClamping_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatClamping_Actor_0());
     }
     ACk_AutoTest_Attribute_FloatIncrement_Actor Ck_AutoTest_Attribute_FloatIncrement_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatIncrement_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatIncrement_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatIncrement_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatIncrement_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatIncrement_Actor_0());
     }
     ACk_AutoTest_Attribute_FloatMinMaxComponents_Actor Ck_AutoTest_Attribute_FloatMinMaxComponents_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatMinMaxComponents_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatMinMaxComponents_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatMinMaxComponents_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatMinMaxComponents_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatMinMaxComponents_Actor_0());
     }
     ACk_AutoTest_Attribute_FloatModifierAdd_Actor Ck_AutoTest_Attribute_FloatModifierAdd_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatModifierAdd_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatModifierAdd_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatModifierAdd_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatModifierAdd_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatModifierAdd_Actor_0());
     }
     ACk_AutoTest_Attribute_FloatModifierRemove_Actor Ck_AutoTest_Attribute_FloatModifierRemove_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatModifierRemove_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatModifierRemove_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatModifierRemove_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatModifierRemove_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatModifierRemove_Actor_0());
     }
     ACk_AutoTest_Attribute_FloatModifierStacking_Actor Ck_AutoTest_Attribute_FloatModifierStacking_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatModifierStacking_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatModifierStacking_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatModifierStacking_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatModifierStacking_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatModifierStacking_Actor_0());
     }
     ACk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_Actor Ck_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_Actor_UAID_C87F5401E5355DDC02_1076672183()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_Actor_UAID_C87F5401E5355DDC02_1076672183() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_Actor_UAID_C87F5401E5355DDC02_1076672183() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_Actor_UAID_C87F5401E5355DDC02_1076672183() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_Actor_UAID_C87F5401E5355DDC02_1076672183() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand_Actor_UAID_C87F5401E5355DDC02_1076672183());
     }
     ACk_AutoTest_Attribute_FloatOverflow_Actor Ck_AutoTest_Attribute_FloatOverflow_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatOverflow_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatOverflow_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatOverflow_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatOverflow_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatOverflow_Actor_0());
     }
     ACk_AutoTest_Attribute_FloatRefill_Actor Ck_AutoTest_Attribute_FloatRefill_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatRefill_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatRefill_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatRefill_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatRefill_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatRefill_Actor_0());
     }
     ACk_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor Ck_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor_UAID_C87F5401E5355BDC02_1945005831()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor_UAID_C87F5401E5355BDC02_1945005831() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor_UAID_C87F5401E5355BDC02_1945005831() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor_UAID_C87F5401E5355BDC02_1945005831() called before engine init. Use assets::Ck_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor_UAID_C87F5401E5355BDC02_1945005831() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_FloatRefill_StopsAtMax_Actor_UAID_C87F5401E5355BDC02_1945005831());
     }
     ACk_AutoTest_Attribute_IntegerBasic_Actor Ck_AutoTest_Attribute_IntegerBasic_Actor_1()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_IntegerBasic_Actor_1() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerBasic_Actor_1() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_IntegerBasic_Actor_1() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerBasic_Actor_1() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_IntegerBasic_Actor_1());
     }
     ACk_AutoTest_Attribute_IntegerClamping_Actor Ck_AutoTest_Attribute_IntegerClamping_Actor_1()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_IntegerClamping_Actor_1() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerClamping_Actor_1() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_IntegerClamping_Actor_1() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerClamping_Actor_1() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_IntegerClamping_Actor_1());
+    }
+    ACk_AutoTest_Attribute_IntegerMinMaxComponents_Actor Ck_AutoTest_Attribute_IntegerMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934805804()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_IntegerMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934805804() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934805804() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_IntegerMinMaxComponents_Actor_UAID_60CF84A99C2C8DDF02_1934805804());
     }
     ACk_AutoTest_Attribute_IntegerModifierAdd_Actor Ck_AutoTest_Attribute_IntegerModifierAdd_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_IntegerModifierAdd_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerModifierAdd_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_IntegerModifierAdd_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerModifierAdd_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_IntegerModifierAdd_Actor_0());
     }
     ACk_AutoTest_Attribute_IntegerModifierRemove_Actor Ck_AutoTest_Attribute_IntegerModifierRemove_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_IntegerModifierRemove_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerModifierRemove_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_IntegerModifierRemove_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerModifierRemove_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_IntegerModifierRemove_Actor_0());
     }
     ACk_AutoTest_Attribute_IntegerModifierStacking_Actor Ck_AutoTest_Attribute_IntegerModifierStacking_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_IntegerModifierStacking_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerModifierStacking_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_IntegerModifierStacking_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerModifierStacking_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_IntegerModifierStacking_Actor_0());
     }
     ACk_AutoTest_Attribute_IntegerMultiplyComposes_Actor Ck_AutoTest_Attribute_IntegerMultiplyComposes_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_IntegerMultiplyComposes_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerMultiplyComposes_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_IntegerMultiplyComposes_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerMultiplyComposes_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_IntegerMultiplyComposes_Actor_0());
+    }
+    ACk_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_Actor Ck_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_Actor_UAID_60CF84A99C2C8DDF02_1934807805()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_Actor_UAID_60CF84A99C2C8DDF02_1934807805() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_Actor_UAID_60CF84A99C2C8DDF02_1934807805() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand_Actor_UAID_60CF84A99C2C8DDF02_1934807805());
     }
     ACk_AutoTest_Attribute_IntegerOverflow_Actor Ck_AutoTest_Attribute_IntegerOverflow_Actor_2()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_IntegerOverflow_Actor_2() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerOverflow_Actor_2() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_IntegerOverflow_Actor_2() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerOverflow_Actor_2() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_IntegerOverflow_Actor_2());
+    }
+    ACk_AutoTest_Attribute_IntegerRefill_Actor Ck_AutoTest_Attribute_IntegerRefill_Actor_UAID_D843AEBAD5E283DF02_1765915046()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_IntegerRefill_Actor_UAID_D843AEBAD5E283DF02_1765915046() called before engine init. Use assets::Ck_AutoTest_Attribute_IntegerRefill_Actor_UAID_D843AEBAD5E283DF02_1765915046() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_IntegerRefill_Actor_UAID_D843AEBAD5E283DF02_1765915046());
     }
     ACk_AutoTest_Attribute_MayRequireReplicationToggle_Actor Ck_AutoTest_Attribute_MayRequireReplicationToggle_Actor_UAID_C87F5401E5355EDC02_1945373359()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_MayRequireReplicationToggle_Actor_UAID_C87F5401E5355EDC02_1945373359() called before engine init. Use assets::Ck_AutoTest_Attribute_MayRequireReplicationToggle_Actor_UAID_C87F5401E5355EDC02_1945373359() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_MayRequireReplicationToggle_Actor_UAID_C87F5401E5355EDC02_1945373359() called before engine init. Use assets::Ck_AutoTest_Attribute_MayRequireReplicationToggle_Actor_UAID_C87F5401E5355EDC02_1945373359() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_MayRequireReplicationToggle_Actor_UAID_C87F5401E5355EDC02_1945373359());
     }
     ACk_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor Ck_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor_UAID_C87F5401E535EEDB02_1661134647()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor_UAID_C87F5401E535EEDB02_1661134647() called before engine init. Use assets::Ck_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor_UAID_C87F5401E535EEDB02_1661134647() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor_UAID_C87F5401E535EEDB02_1661134647() called before engine init. Use assets::Ck_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor_UAID_C87F5401E535EEDB02_1661134647() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_NotRevocable_AddCoalesces_Actor_UAID_C87F5401E535EEDB02_1661134647());
     }
     ACk_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor Ck_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor_UAID_C87F5401E535EEDB02_1661136648()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor_UAID_C87F5401E535EEDB02_1661136648() called before engine init. Use assets::Ck_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor_UAID_C87F5401E535EEDB02_1661136648() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor_UAID_C87F5401E535EEDB02_1661136648() called before engine init. Use assets::Ck_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor_UAID_C87F5401E535EEDB02_1661136648() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_NotRevocable_OverrideReplaces_Actor_UAID_C87F5401E535EEDB02_1661136648());
     }
     ACk_AutoTest_Attribute_OnClampedPayloadDirection_Actor Ck_AutoTest_Attribute_OnClampedPayloadDirection_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_OnClampedPayloadDirection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_OnClampedPayloadDirection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_OnClampedPayloadDirection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_OnClampedPayloadDirection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_OnClampedPayloadDirection_Actor_0());
     }
     ACk_AutoTest_Attribute_Override_ChangesDeltaInPlace_Actor Ck_AutoTest_Attribute_Override_ChangesDeltaInPlace_Actor_UAID_C87F5401E535EEDB02_1661137649()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_Override_ChangesDeltaInPlace_Actor_UAID_C87F5401E535EEDB02_1661137649() called before engine init. Use assets::Ck_AutoTest_Attribute_Override_ChangesDeltaInPlace_Actor_UAID_C87F5401E535EEDB02_1661137649() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_Override_ChangesDeltaInPlace_Actor_UAID_C87F5401E535EEDB02_1661137649() called before engine init. Use assets::Ck_AutoTest_Attribute_Override_ChangesDeltaInPlace_Actor_UAID_C87F5401E535EEDB02_1661137649() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_Override_ChangesDeltaInPlace_Actor_UAID_C87F5401E535EEDB02_1661137649());
     }
     ACk_AutoTest_Attribute_PreClampAsymmetry_Actor Ck_AutoTest_Attribute_PreClampAsymmetry_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_PreClampAsymmetry_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_PreClampAsymmetry_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_PreClampAsymmetry_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_PreClampAsymmetry_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_PreClampAsymmetry_Actor_0());
     }
     ACk_AutoTest_Attribute_Request_ClearAllModifiers_Actor Ck_AutoTest_Attribute_Request_ClearAllModifiers_Actor_UAID_C87F5401E535EEDB02_1661138650()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_Request_ClearAllModifiers_Actor_UAID_C87F5401E535EEDB02_1661138650() called before engine init. Use assets::Ck_AutoTest_Attribute_Request_ClearAllModifiers_Actor_UAID_C87F5401E535EEDB02_1661138650() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_Request_ClearAllModifiers_Actor_UAID_C87F5401E535EEDB02_1661138650() called before engine init. Use assets::Ck_AutoTest_Attribute_Request_ClearAllModifiers_Actor_UAID_C87F5401E535EEDB02_1661138650() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_Request_ClearAllModifiers_Actor_UAID_C87F5401E535EEDB02_1661138650());
     }
     ACk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor Ck_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor_UAID_C87F5401E535EEDB02_1661138651()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor_UAID_C87F5401E535EEDB02_1661138651() called before engine init. Use assets::Ck_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor_UAID_C87F5401E535EEDB02_1661138651() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor_UAID_C87F5401E535EEDB02_1661138651() called before engine init. Use assets::Ck_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor_UAID_C87F5401E535EEDB02_1661138651() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_Revocable_PerCallHandleUniqueness_Actor_UAID_C87F5401E535EEDB02_1661138651());
     }
     ACk_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor Ck_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor_0() called before engine init. Use assets::Ck_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_RevokeModifierDuringValueChanged_Actor_0());
     }
     ACk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor Ck_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor_UAID_C87F5401E535EEDB02_1661139652()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor_UAID_C87F5401E535EEDB02_1661139652() called before engine init. Use assets::Ck_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor_UAID_C87F5401E535EEDB02_1661139652() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor_UAID_C87F5401E535EEDB02_1661139652() called before engine init. Use assets::Ck_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor_UAID_C87F5401E535EEDB02_1661139652() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal_Actor_UAID_C87F5401E535EEDB02_1661139652());
+    }
+    ACk_AutoTest_Attribute_VectorBasic_Actor Ck_AutoTest_Attribute_VectorBasic_Actor_UAID_60CF84A99C2C8DDF02_1934810807()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_VectorBasic_Actor_UAID_60CF84A99C2C8DDF02_1934810807() called before engine init. Use assets::Ck_AutoTest_Attribute_VectorBasic_Actor_UAID_60CF84A99C2C8DDF02_1934810807() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_VectorBasic_Actor_UAID_60CF84A99C2C8DDF02_1934810807());
+    }
+    ACk_AutoTest_Attribute_VectorModifierAdd_Actor Ck_AutoTest_Attribute_VectorModifierAdd_Actor_UAID_D843AEBAD5E283DF02_1765920048()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_VectorModifierAdd_Actor_UAID_D843AEBAD5E283DF02_1765920048() called before engine init. Use assets::Ck_AutoTest_Attribute_VectorModifierAdd_Actor_UAID_D843AEBAD5E283DF02_1765920048() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_VectorModifierAdd_Actor_UAID_D843AEBAD5E283DF02_1765920048());
+    }
+    ACk_AutoTest_Attribute_VectorModifierRemove_Actor Ck_AutoTest_Attribute_VectorModifierRemove_Actor_UAID_60CF84A99C2C8DDF02_1934814809()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_VectorModifierRemove_Actor_UAID_60CF84A99C2C8DDF02_1934814809() called before engine init. Use assets::Ck_AutoTest_Attribute_VectorModifierRemove_Actor_UAID_60CF84A99C2C8DDF02_1934814809() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_VectorModifierRemove_Actor_UAID_60CF84A99C2C8DDF02_1934814809());
     }
     ACk_AutoTest_Attribute_VectorPerComponentClamp_Actor Ck_AutoTest_Attribute_VectorPerComponentClamp_Actor_UAID_C87F5401E5355DDC02_1378196183()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Attribute_VectorPerComponentClamp_Actor_UAID_C87F5401E5355DDC02_1378196183() called before engine init. Use assets::Ck_AutoTest_Attribute_VectorPerComponentClamp_Actor_UAID_C87F5401E5355DDC02_1378196183() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Attribute_VectorPerComponentClamp_Actor_UAID_C87F5401E5355DDC02_1378196183() called before engine init. Use assets::Ck_AutoTest_Attribute_VectorPerComponentClamp_Actor_UAID_C87F5401E5355DDC02_1378196183() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Attribute_VectorPerComponentClamp_Actor_UAID_C87F5401E5355DDC02_1378196183());
     }
     ACk_AutoTest_CameraShake_Add_CreatesEntry_Actor Ck_AutoTest_CameraShake_Add_CreatesEntry_Actor_UAID_C87F5401E53529DC02_1076844032()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_CameraShake_Add_CreatesEntry_Actor_UAID_C87F5401E53529DC02_1076844032() called before engine init. Use assets::Ck_AutoTest_CameraShake_Add_CreatesEntry_Actor_UAID_C87F5401E53529DC02_1076844032() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_CameraShake_Add_CreatesEntry_Actor_UAID_C87F5401E53529DC02_1076844032() called before engine init. Use assets::Ck_AutoTest_CameraShake_Add_CreatesEntry_Actor_UAID_C87F5401E53529DC02_1076844032() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_CameraShake_Add_CreatesEntry_Actor_UAID_C87F5401E53529DC02_1076844032());
     }
     ACk_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor Ck_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor_UAID_C87F5401E535FDDB02_1125232287()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor_UAID_C87F5401E535FDDB02_1125232287() called before engine init. Use assets::Ck_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor_UAID_C87F5401E535FDDB02_1125232287() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor_UAID_C87F5401E535FDDB02_1125232287() called before engine init. Use assets::Ck_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor_UAID_C87F5401E535FDDB02_1125232287() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Chrono_GetTimeElapsed_Normalized_Linear_Actor_UAID_C87F5401E535FDDB02_1125232287());
     }
     ACk_AutoTest_Chrono_TickAndComplete_Actor Ck_AutoTest_Chrono_TickAndComplete_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Chrono_TickAndComplete_Actor_0() called before engine init. Use assets::Ck_AutoTest_Chrono_TickAndComplete_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Chrono_TickAndComplete_Actor_0() called before engine init. Use assets::Ck_AutoTest_Chrono_TickAndComplete_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Chrono_TickAndComplete_Actor_0());
     }
     ACk_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_Actor Ck_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_Actor_UAID_C87F5401E535FDDB02_1125234288()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_Actor_UAID_C87F5401E535FDDB02_1125234288() called before engine init. Use assets::Ck_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_Actor_UAID_C87F5401E535FDDB02_1125234288() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_Actor_UAID_C87F5401E535FDDB02_1125234288() called before engine init. Use assets::Ck_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_Actor_UAID_C87F5401E535FDDB02_1125234288() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_Actor_UAID_C87F5401E535FDDB02_1125234288());
     }
     ACk_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash_Actor Ck_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash_Actor_UAID_C87F5401E5359CDB02_1590165215()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash_Actor_UAID_C87F5401E5359CDB02_1590165215() called before engine init. Use assets::Ck_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash_Actor_UAID_C87F5401E5359CDB02_1590165215() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash_Actor_UAID_C87F5401E5359CDB02_1590165215() called before engine init. Use assets::Ck_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash_Actor_UAID_C87F5401E5359CDB02_1590165215() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash_Actor_UAID_C87F5401E5359CDB02_1590165215());
     }
     ACk_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped_Actor Ck_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped_Actor_UAID_C87F5401E5359CDB02_1590167216()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped_Actor_UAID_C87F5401E5359CDB02_1590167216() called before engine init. Use assets::Ck_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped_Actor_UAID_C87F5401E5359CDB02_1590167216() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped_Actor_UAID_C87F5401E5359CDB02_1590167216() called before engine init. Use assets::Ck_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped_Actor_UAID_C87F5401E5359CDB02_1590167216() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkipped_Actor_UAID_C87F5401E5359CDB02_1590167216());
     }
     ACk_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries_Actor Ck_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries_Actor_UAID_C87F5401E5359CDB02_1590167217()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries_Actor_UAID_C87F5401E5359CDB02_1590167217() called before engine init. Use assets::Ck_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries_Actor_UAID_C87F5401E5359CDB02_1590167217() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries_Actor_UAID_C87F5401E5359CDB02_1590167217() called before engine init. Use assets::Ck_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries_Actor_UAID_C87F5401E5359CDB02_1590167217() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries_Actor_UAID_C87F5401E5359CDB02_1590167217());
     }
     ACk_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor Ck_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor_UAID_C87F5401E5359CDB02_1590168218()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor_UAID_C87F5401E5359CDB02_1590168218() called before engine init. Use assets::Ck_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor_UAID_C87F5401E5359CDB02_1590168218() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor_UAID_C87F5401E5359CDB02_1590168218() called before engine init. Use assets::Ck_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor_UAID_C87F5401E5359CDB02_1590168218() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor_UAID_C87F5401E5359CDB02_1590168218());
     }
     ACk_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor Ck_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor_UAID_C87F5401E5359CDB02_1590168219()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor_UAID_C87F5401E5359CDB02_1590168219() called before engine init. Use assets::Ck_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor_UAID_C87F5401E5359CDB02_1590168219() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor_UAID_C87F5401E5359CDB02_1590168219() called before engine init. Use assets::Ck_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor_UAID_C87F5401E5359CDB02_1590168219() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor_UAID_C87F5401E5359CDB02_1590168219());
     }
     ACk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor Ck_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor_UAID_C87F5401E5359CDB02_1590169220()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor_UAID_C87F5401E5359CDB02_1590169220() called before engine init. Use assets::Ck_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor_UAID_C87F5401E5359CDB02_1590169220() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor_UAID_C87F5401E5359CDB02_1590169220() called before engine init. Use assets::Ck_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor_UAID_C87F5401E5359CDB02_1590169220() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor_UAID_C87F5401E5359CDB02_1590169220());
     }
     ACk_AutoTest_Crowd_Pathfinding_Failure_Actor Ck_AutoTest_Crowd_Pathfinding_Failure_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Crowd_Pathfinding_Failure_Actor_0() called before engine init. Use assets::Ck_AutoTest_Crowd_Pathfinding_Failure_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Crowd_Pathfinding_Failure_Actor_0() called before engine init. Use assets::Ck_AutoTest_Crowd_Pathfinding_Failure_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_Pathfinding_Failure_Actor_0());
     }
     ACk_AutoTest_Crowd_Pathfinding_Success_Actor Ck_AutoTest_Crowd_Pathfinding_Success_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Crowd_Pathfinding_Success_Actor_0() called before engine init. Use assets::Ck_AutoTest_Crowd_Pathfinding_Success_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Crowd_Pathfinding_Success_Actor_0() called before engine init. Use assets::Ck_AutoTest_Crowd_Pathfinding_Success_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_Pathfinding_Success_Actor_0());
     }
     ACk_AutoTest_Crowd_Separation_Convergence_Actor Ck_AutoTest_Crowd_Separation_Convergence_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Crowd_Separation_Convergence_Actor_0() called before engine init. Use assets::Ck_AutoTest_Crowd_Separation_Convergence_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Crowd_Separation_Convergence_Actor_0() called before engine init. Use assets::Ck_AutoTest_Crowd_Separation_Convergence_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_Separation_Convergence_Actor_0());
     }
     ACk_AutoTest_Crowd_Separation_HeadOnPass_Actor Ck_AutoTest_Crowd_Separation_HeadOnPass_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Crowd_Separation_HeadOnPass_Actor_0() called before engine init. Use assets::Ck_AutoTest_Crowd_Separation_HeadOnPass_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Crowd_Separation_HeadOnPass_Actor_0() called before engine init. Use assets::Ck_AutoTest_Crowd_Separation_HeadOnPass_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_Separation_HeadOnPass_Actor_0());
     }
     ACk_AutoTest_Crowd_Separation_Vibration_Actor Ck_AutoTest_Crowd_Separation_Vibration_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Crowd_Separation_Vibration_Actor_0() called before engine init. Use assets::Ck_AutoTest_Crowd_Separation_Vibration_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Crowd_Separation_Vibration_Actor_0() called before engine init. Use assets::Ck_AutoTest_Crowd_Separation_Vibration_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_Separation_Vibration_Actor_0());
     }
     ACk_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor Ck_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor_UAID_C87F5401E53525DC02_1985795327()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor_UAID_C87F5401E53525DC02_1985795327() called before engine init. Use assets::Ck_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor_UAID_C87F5401E53525DC02_1985795327() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor_UAID_C87F5401E53525DC02_1985795327() called before engine init. Use assets::Ck_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor_UAID_C87F5401E53525DC02_1985795327() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor_UAID_C87F5401E53525DC02_1985795327());
     }
     ACk_AutoTest_Cue_Persistent_StaysAlive_Actor Ck_AutoTest_Cue_Persistent_StaysAlive_Actor_UAID_C87F5401E53525DC02_1985797328()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Cue_Persistent_StaysAlive_Actor_UAID_C87F5401E53525DC02_1985797328() called before engine init. Use assets::Ck_AutoTest_Cue_Persistent_StaysAlive_Actor_UAID_C87F5401E53525DC02_1985797328() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Cue_Persistent_StaysAlive_Actor_UAID_C87F5401E53525DC02_1985797328() called before engine init. Use assets::Ck_AutoTest_Cue_Persistent_StaysAlive_Actor_UAID_C87F5401E53525DC02_1985797328() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Cue_Persistent_StaysAlive_Actor_UAID_C87F5401E53525DC02_1985797328());
     }
     ACk_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor Ck_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor_UAID_C87F5401E53525DC02_1985798329()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor_UAID_C87F5401E53525DC02_1985798329() called before engine init. Use assets::Ck_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor_UAID_C87F5401E53525DC02_1985798329() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor_UAID_C87F5401E53525DC02_1985798329() called before engine init. Use assets::Ck_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor_UAID_C87F5401E53525DC02_1985798329() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor_UAID_C87F5401E53525DC02_1985798329());
     }
     ACk_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor Ck_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor_UAID_C87F5401E5353BDC02_1722392199()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor_UAID_C87F5401E5353BDC02_1722392199() called before engine init. Use assets::Ck_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor_UAID_C87F5401E5353BDC02_1722392199() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor_UAID_C87F5401E5353BDC02_1722392199() called before engine init. Use assets::Ck_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor_UAID_C87F5401E5353BDC02_1722392199() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor_UAID_C87F5401E5353BDC02_1722392199());
     }
     ACk_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor Ck_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor_UAID_C87F5401E5353BDC02_1722394200()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor_UAID_C87F5401E5353BDC02_1722394200() called before engine init. Use assets::Ck_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor_UAID_C87F5401E5353BDC02_1722394200() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor_UAID_C87F5401E5353BDC02_1722394200() called before engine init. Use assets::Ck_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor_UAID_C87F5401E5353BDC02_1722394200() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor_UAID_C87F5401E5353BDC02_1722394200());
     }
     ACk_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor Ck_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor_UAID_C87F5401E5353BDC02_1722395201()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor_UAID_C87F5401E5353BDC02_1722395201() called before engine init. Use assets::Ck_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor_UAID_C87F5401E5353BDC02_1722395201() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor_UAID_C87F5401E5353BDC02_1722395201() called before engine init. Use assets::Ck_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor_UAID_C87F5401E5353BDC02_1722395201() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor_UAID_C87F5401E5353BDC02_1722395201());
     }
     ACk_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor Ck_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor_UAID_C87F5401E5353BDC02_1722396202()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor_UAID_C87F5401E5353BDC02_1722396202() called before engine init. Use assets::Ck_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor_UAID_C87F5401E5353BDC02_1722396202() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor_UAID_C87F5401E5353BDC02_1722396202() called before engine init. Use assets::Ck_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor_UAID_C87F5401E5353BDC02_1722396202() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor_UAID_C87F5401E5353BDC02_1722396202());
     }
     ACk_AutoTest_EntityCollection_AddHappyPath_Actor Ck_AutoTest_EntityCollection_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368137439()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityCollection_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368137439() called before engine init. Use assets::Ck_AutoTest_EntityCollection_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368137439() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityCollection_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368137439() called before engine init. Use assets::Ck_AutoTest_EntityCollection_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368137439() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityCollection_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368137439());
     }
     ACk_AutoTest_EntityCollection_AddMultipleAddsAll_Actor Ck_AutoTest_EntityCollection_AddMultipleAddsAll_Actor_UAID_C87F5401E535B4DB02_1368138440()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityCollection_AddMultipleAddsAll_Actor_UAID_C87F5401E535B4DB02_1368138440() called before engine init. Use assets::Ck_AutoTest_EntityCollection_AddMultipleAddsAll_Actor_UAID_C87F5401E535B4DB02_1368138440() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityCollection_AddMultipleAddsAll_Actor_UAID_C87F5401E535B4DB02_1368138440() called before engine init. Use assets::Ck_AutoTest_EntityCollection_AddMultipleAddsAll_Actor_UAID_C87F5401E535B4DB02_1368138440() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityCollection_AddMultipleAddsAll_Actor_UAID_C87F5401E535B4DB02_1368138440());
     }
     ACk_AutoTest_EntityCollection_RequestAddEntitiesBatch_Actor Ck_AutoTest_EntityCollection_RequestAddEntitiesBatch_Actor_UAID_C87F5401E535B4DB02_1368139441()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityCollection_RequestAddEntitiesBatch_Actor_UAID_C87F5401E535B4DB02_1368139441() called before engine init. Use assets::Ck_AutoTest_EntityCollection_RequestAddEntitiesBatch_Actor_UAID_C87F5401E535B4DB02_1368139441() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityCollection_RequestAddEntitiesBatch_Actor_UAID_C87F5401E535B4DB02_1368139441() called before engine init. Use assets::Ck_AutoTest_EntityCollection_RequestAddEntitiesBatch_Actor_UAID_C87F5401E535B4DB02_1368139441() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityCollection_RequestAddEntitiesBatch_Actor_UAID_C87F5401E535B4DB02_1368139441());
     }
     ACk_AutoTest_EntityCollection_RequestAddSingleEntity_Actor Ck_AutoTest_EntityCollection_RequestAddSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140442()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityCollection_RequestAddSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140442() called before engine init. Use assets::Ck_AutoTest_EntityCollection_RequestAddSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140442() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityCollection_RequestAddSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140442() called before engine init. Use assets::Ck_AutoTest_EntityCollection_RequestAddSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140442() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityCollection_RequestAddSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140442());
     }
     ACk_AutoTest_EntityCollection_RequestRemoveSingleEntity_Actor Ck_AutoTest_EntityCollection_RequestRemoveSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140443()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityCollection_RequestRemoveSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140443() called before engine init. Use assets::Ck_AutoTest_EntityCollection_RequestRemoveSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140443() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityCollection_RequestRemoveSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140443() called before engine init. Use assets::Ck_AutoTest_EntityCollection_RequestRemoveSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140443() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityCollection_RequestRemoveSingleEntity_Actor_UAID_C87F5401E535B4DB02_1368140443());
     }
     ACk_AutoTest_EntityCollection_TryGetAbsentInvalid_Actor Ck_AutoTest_EntityCollection_TryGetAbsentInvalid_Actor_UAID_C87F5401E535B4DB02_1368141444()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityCollection_TryGetAbsentInvalid_Actor_UAID_C87F5401E535B4DB02_1368141444() called before engine init. Use assets::Ck_AutoTest_EntityCollection_TryGetAbsentInvalid_Actor_UAID_C87F5401E535B4DB02_1368141444() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityCollection_TryGetAbsentInvalid_Actor_UAID_C87F5401E535B4DB02_1368141444() called before engine init. Use assets::Ck_AutoTest_EntityCollection_TryGetAbsentInvalid_Actor_UAID_C87F5401E535B4DB02_1368141444() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityCollection_TryGetAbsentInvalid_Actor_UAID_C87F5401E535B4DB02_1368141444());
     }
     ACk_AutoTest_EntityExtension_AddHappyPath_Actor Ck_AutoTest_EntityExtension_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368141445()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityExtension_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368141445() called before engine init. Use assets::Ck_AutoTest_EntityExtension_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368141445() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityExtension_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368141445() called before engine init. Use assets::Ck_AutoTest_EntityExtension_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368141445() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityExtension_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368141445());
     }
     ACk_AutoTest_EntityExtension_DistinctOwnersIsolated_Actor Ck_AutoTest_EntityExtension_DistinctOwnersIsolated_Actor_UAID_C87F5401E535B4DB02_1398486439()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityExtension_DistinctOwnersIsolated_Actor_UAID_C87F5401E535B4DB02_1398486439() called before engine init. Use assets::Ck_AutoTest_EntityExtension_DistinctOwnersIsolated_Actor_UAID_C87F5401E535B4DB02_1398486439() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityExtension_DistinctOwnersIsolated_Actor_UAID_C87F5401E535B4DB02_1398486439() called before engine init. Use assets::Ck_AutoTest_EntityExtension_DistinctOwnersIsolated_Actor_UAID_C87F5401E535B4DB02_1398486439() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityExtension_DistinctOwnersIsolated_Actor_UAID_C87F5401E535B4DB02_1398486439());
     }
     ACk_AutoTest_EntityExtension_ForEachListsAll_Actor Ck_AutoTest_EntityExtension_ForEachListsAll_Actor_UAID_C87F5401E535B4DB02_1369433446()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityExtension_ForEachListsAll_Actor_UAID_C87F5401E535B4DB02_1369433446() called before engine init. Use assets::Ck_AutoTest_EntityExtension_ForEachListsAll_Actor_UAID_C87F5401E535B4DB02_1369433446() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityExtension_ForEachListsAll_Actor_UAID_C87F5401E535B4DB02_1369433446() called before engine init. Use assets::Ck_AutoTest_EntityExtension_ForEachListsAll_Actor_UAID_C87F5401E535B4DB02_1369433446() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityExtension_ForEachListsAll_Actor_UAID_C87F5401E535B4DB02_1369433446());
     }
     ACk_AutoTest_EntityExtension_RemoveHappyPath_Actor Ck_AutoTest_EntityExtension_RemoveHappyPath_Actor_UAID_C87F5401E535B4DB02_1369434447()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityExtension_RemoveHappyPath_Actor_UAID_C87F5401E535B4DB02_1369434447() called before engine init. Use assets::Ck_AutoTest_EntityExtension_RemoveHappyPath_Actor_UAID_C87F5401E535B4DB02_1369434447() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityExtension_RemoveHappyPath_Actor_UAID_C87F5401E535B4DB02_1369434447() called before engine init. Use assets::Ck_AutoTest_EntityExtension_RemoveHappyPath_Actor_UAID_C87F5401E535B4DB02_1369434447() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityExtension_RemoveHappyPath_Actor_UAID_C87F5401E535B4DB02_1369434447());
     }
     ACk_AutoTest_EntityExtension_RemoveLeavesOthers_Actor Ck_AutoTest_EntityExtension_RemoveLeavesOthers_Actor_UAID_C87F5401E535B4DB02_1373024448()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityExtension_RemoveLeavesOthers_Actor_UAID_C87F5401E535B4DB02_1373024448() called before engine init. Use assets::Ck_AutoTest_EntityExtension_RemoveLeavesOthers_Actor_UAID_C87F5401E535B4DB02_1373024448() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityExtension_RemoveLeavesOthers_Actor_UAID_C87F5401E535B4DB02_1373024448() called before engine init. Use assets::Ck_AutoTest_EntityExtension_RemoveLeavesOthers_Actor_UAID_C87F5401E535B4DB02_1373024448() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityExtension_RemoveLeavesOthers_Actor_UAID_C87F5401E535B4DB02_1373024448());
     }
     ACk_AutoTest_EntityLifecycle_BatchDestroy_Actor Ck_AutoTest_EntityLifecycle_BatchDestroy_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_BatchDestroy_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_BatchDestroy_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_BatchDestroy_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_BatchDestroy_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_BatchDestroy_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_CircularContextOwnership_Actor Ck_AutoTest_EntityLifecycle_CircularContextOwnership_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_CircularContextOwnership_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_CircularContextOwnership_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_CircularContextOwnership_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_CircularContextOwnership_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_CircularContextOwnership_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_ContextOwnerGrandparent_Actor Ck_AutoTest_EntityLifecycle_ContextOwnerGrandparent_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_ContextOwnerGrandparent_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_ContextOwnerGrandparent_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_ContextOwnerGrandparent_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_ContextOwnerGrandparent_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_ContextOwnerGrandparent_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_ContextOwnerOverride_Actor Ck_AutoTest_EntityLifecycle_ContextOwnerOverride_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_ContextOwnerOverride_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_ContextOwnerOverride_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_ContextOwnerOverride_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_ContextOwnerOverride_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_ContextOwnerOverride_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks_Actor Ck_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_DeferredSetupState_Actor Ck_AutoTest_EntityLifecycle_DeferredSetupState_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_DeferredSetupState_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_DeferredSetupState_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_DeferredSetupState_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_DeferredSetupState_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_DeferredSetupState_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_DependentsCountMutations_Actor Ck_AutoTest_EntityLifecycle_DependentsCountMutations_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_DependentsCountMutations_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_DependentsCountMutations_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_DependentsCountMutations_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_DependentsCountMutations_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_DependentsCountMutations_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_HandleAndEntity_Actor Ck_AutoTest_EntityLifecycle_HandleAndEntity_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_HandleAndEntity_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_HandleAndEntity_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_HandleAndEntity_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_HandleAndEntity_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_HandleAndEntity_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_IsTransientEntityVsContext_Actor Ck_AutoTest_EntityLifecycle_IsTransientEntityVsContext_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_IsTransientEntityVsContext_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_IsTransientEntityVsContext_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_IsTransientEntityVsContext_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_IsTransientEntityVsContext_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_IsTransientEntityVsContext_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_OnBeginDestroy_Actor Ck_AutoTest_EntityLifecycle_OnBeginDestroy_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_OnBeginDestroy_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_OnBeginDestroy_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_OnBeginDestroy_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_OnBeginDestroy_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_OnBeginDestroy_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_OwnershipTree_Actor Ck_AutoTest_EntityLifecycle_OwnershipTree_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_OwnershipTree_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_OwnershipTree_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_OwnershipTree_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_OwnershipTree_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_OwnershipTree_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_ScriptCastQueries_Actor Ck_AutoTest_EntityLifecycle_ScriptCastQueries_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_ScriptCastQueries_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_ScriptCastQueries_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_ScriptCastQueries_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_ScriptCastQueries_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_ScriptCastQueries_Actor_0());
     }
     ACk_AutoTest_EntityLifecycle_TagAddRemove_Actor Ck_AutoTest_EntityLifecycle_TagAddRemove_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityLifecycle_TagAddRemove_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_TagAddRemove_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityLifecycle_TagAddRemove_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityLifecycle_TagAddRemove_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityLifecycle_TagAddRemove_Actor_0());
     }
     ACk_AutoTest_EntityScript_BasicSpawn_Actor Ck_AutoTest_EntityScript_BasicSpawn_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityScript_BasicSpawn_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityScript_BasicSpawn_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityScript_BasicSpawn_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityScript_BasicSpawn_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityScript_BasicSpawn_Actor_0());
     }
     ACk_AutoTest_EntityScript_SpawnedEntityHasTag_Actor Ck_AutoTest_EntityScript_SpawnedEntityHasTag_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityScript_SpawnedEntityHasTag_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityScript_SpawnedEntityHasTag_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityScript_SpawnedEntityHasTag_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityScript_SpawnedEntityHasTag_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityScript_SpawnedEntityHasTag_Actor_0());
     }
     ACk_AutoTest_EntityScript_SpawnedEntityIsDependent_Actor Ck_AutoTest_EntityScript_SpawnedEntityIsDependent_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityScript_SpawnedEntityIsDependent_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityScript_SpawnedEntityIsDependent_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityScript_SpawnedEntityIsDependent_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityScript_SpawnedEntityIsDependent_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityScript_SpawnedEntityIsDependent_Actor_0());
     }
     ACk_AutoTest_EntityScript_SpawnParamsRoundTrip_Actor Ck_AutoTest_EntityScript_SpawnParamsRoundTrip_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityScript_SpawnParamsRoundTrip_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityScript_SpawnParamsRoundTrip_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityScript_SpawnParamsRoundTrip_Actor_0() called before engine init. Use assets::Ck_AutoTest_EntityScript_SpawnParamsRoundTrip_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityScript_SpawnParamsRoundTrip_Actor_0());
     }
     ACk_AutoTest_EntityTag_AddEmptyName_Rejected_Actor Ck_AutoTest_EntityTag_AddEmptyName_Rejected_Actor_UAID_C87F5401E53522DC02_1903017799()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AddEmptyName_Rejected_Actor_UAID_C87F5401E53522DC02_1903017799() called before engine init. Use assets::Ck_AutoTest_EntityTag_AddEmptyName_Rejected_Actor_UAID_C87F5401E53522DC02_1903017799() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_AddEmptyName_Rejected_Actor_UAID_C87F5401E53522DC02_1903017799() called before engine init. Use assets::Ck_AutoTest_EntityTag_AddEmptyName_Rejected_Actor_UAID_C87F5401E53522DC02_1903017799() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AddEmptyName_Rejected_Actor_UAID_C87F5401E53522DC02_1903017799());
     }
     ACk_AutoTest_EntityTag_AddFNameHappyPath_Actor Ck_AutoTest_EntityTag_AddFNameHappyPath_Actor_UAID_C87F5401E53557DC02_1943465127()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AddFNameHappyPath_Actor_UAID_C87F5401E53557DC02_1943465127() called before engine init. Use assets::Ck_AutoTest_EntityTag_AddFNameHappyPath_Actor_UAID_C87F5401E53557DC02_1943465127() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_AddFNameHappyPath_Actor_UAID_C87F5401E53557DC02_1943465127() called before engine init. Use assets::Ck_AutoTest_EntityTag_AddFNameHappyPath_Actor_UAID_C87F5401E53557DC02_1943465127() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AddFNameHappyPath_Actor_UAID_C87F5401E53557DC02_1943465127());
     }
     ACk_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor Ck_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor_UAID_C87F5401E535A2DB02_1723463272()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor_UAID_C87F5401E535A2DB02_1723463272() called before engine init. Use assets::Ck_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor_UAID_C87F5401E535A2DB02_1723463272() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor_UAID_C87F5401E535A2DB02_1723463272() called before engine init. Use assets::Ck_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor_UAID_C87F5401E535A2DB02_1723463272() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AddGameplayTagHappyPath_Actor_UAID_C87F5401E535A2DB02_1723463272());
     }
     ACk_AutoTest_EntityTag_AddIsCounted_Actor Ck_AutoTest_EntityTag_AddIsCounted_Actor_UAID_D843AEBAD5E245DC02_1676671959()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AddIsCounted_Actor_UAID_D843AEBAD5E245DC02_1676671959() called before engine init. Use assets::Ck_AutoTest_EntityTag_AddIsCounted_Actor_UAID_D843AEBAD5E245DC02_1676671959() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_AddIsCounted_Actor_UAID_D843AEBAD5E245DC02_1676671959() called before engine init. Use assets::Ck_AutoTest_EntityTag_AddIsCounted_Actor_UAID_D843AEBAD5E245DC02_1676671959() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AddIsCounted_Actor_UAID_D843AEBAD5E245DC02_1676671959());
     }
     ACk_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor_UAID_C87F5401E535CDDE02_2064155007());
     }
     ACk_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy_Actor_UAID_C87F5401E535CDDE02_2064156008());
     }
     ACk_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AnyEntity_FiresOnRemove_Actor_UAID_C87F5401E535CDDE02_2064156009());
     }
     ACk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010() called before engine init. Use assets::Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse_Actor_UAID_C87F5401E535CDDE02_2064156010());
     }
     ACk_AutoTest_EntityTag_BindRelevantTagsFilter_Actor Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128() called before engine init. Use assets::Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128() called before engine init. Use assets::Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_BindRelevantTagsFilter_Actor_UAID_C87F5401E53557DC02_1943467128());
     }
     ACk_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor Ck_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor_UAID_D843AEBAD5E245DC02_1676681961()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor_UAID_D843AEBAD5E245DC02_1676681961() called before engine init. Use assets::Ck_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor_UAID_D843AEBAD5E245DC02_1676681961() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor_UAID_D843AEBAD5E245DC02_1676681961() called before engine init. Use assets::Ck_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor_UAID_D843AEBAD5E245DC02_1676681961() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_ForEachEntityFindsByParent_Actor_UAID_D843AEBAD5E245DC02_1676681961());
     }
     ACk_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor Ck_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor_UAID_C87F5401E53557DC02_1943468129()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor_UAID_C87F5401E53557DC02_1943468129() called before engine init. Use assets::Ck_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor_UAID_C87F5401E53557DC02_1943468129() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor_UAID_C87F5401E53557DC02_1943468129() called before engine init. Use assets::Ck_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor_UAID_C87F5401E53557DC02_1943468129() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_FragmentCleanupOnEmpty_Actor_UAID_C87F5401E53557DC02_1943468129());
     }
     ACk_AutoTest_EntityTag_GameplayTagParentFlatten_Actor Ck_AutoTest_EntityTag_GameplayTagParentFlatten_Actor_UAID_D843AEBAD5E245DC02_1676686963()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_GameplayTagParentFlatten_Actor_UAID_D843AEBAD5E245DC02_1676686963() called before engine init. Use assets::Ck_AutoTest_EntityTag_GameplayTagParentFlatten_Actor_UAID_D843AEBAD5E245DC02_1676686963() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_GameplayTagParentFlatten_Actor_UAID_D843AEBAD5E245DC02_1676686963() called before engine init. Use assets::Ck_AutoTest_EntityTag_GameplayTagParentFlatten_Actor_UAID_D843AEBAD5E245DC02_1676686963() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_GameplayTagParentFlatten_Actor_UAID_D843AEBAD5E245DC02_1676686963());
     }
     ACk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_Actor Ck_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_Actor_UAID_D843AEBAD5E245DC02_1676689964()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_Actor_UAID_D843AEBAD5E245DC02_1676689964() called before engine init. Use assets::Ck_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_Actor_UAID_D843AEBAD5E245DC02_1676689964() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_Actor_UAID_D843AEBAD5E245DC02_1676689964() called before engine init. Use assets::Ck_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_Actor_UAID_D843AEBAD5E245DC02_1676689964() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_GameplayTagParentUncountsCleanly_Actor_UAID_D843AEBAD5E245DC02_1676689964());
     }
     ACk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_Actor Ck_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943469130()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943469130() called before engine init. Use assets::Ck_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943469130() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943469130() called before engine init. Use assets::Ck_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943469130() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943469130());
     }
     ACk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_Actor Ck_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_Actor_UAID_C87F5401E53557DC02_1943470131()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_Actor_UAID_C87F5401E53557DC02_1943470131() called before engine init. Use assets::Ck_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_Actor_UAID_C87F5401E53557DC02_1943470131() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_Actor_UAID_C87F5401E53557DC02_1943470131() called before engine init. Use assets::Ck_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_Actor_UAID_C87F5401E53557DC02_1943470131() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit_Actor_UAID_C87F5401E53557DC02_1943470131());
     }
     ACk_AutoTest_EntityTag_HasAbsentTagFalse_Actor Ck_AutoTest_EntityTag_HasAbsentTagFalse_Actor_UAID_C87F5401E535A2DB02_1723464273()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_HasAbsentTagFalse_Actor_UAID_C87F5401E535A2DB02_1723464273() called before engine init. Use assets::Ck_AutoTest_EntityTag_HasAbsentTagFalse_Actor_UAID_C87F5401E535A2DB02_1723464273() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_HasAbsentTagFalse_Actor_UAID_C87F5401E535A2DB02_1723464273() called before engine init. Use assets::Ck_AutoTest_EntityTag_HasAbsentTagFalse_Actor_UAID_C87F5401E535A2DB02_1723464273() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_HasAbsentTagFalse_Actor_UAID_C87F5401E535A2DB02_1723464273());
     }
     ACk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_Actor Ck_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_Actor_UAID_D843AEBAD5E245DC02_1676698967()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_Actor_UAID_D843AEBAD5E245DC02_1676698967() called before engine init. Use assets::Ck_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_Actor_UAID_D843AEBAD5E245DC02_1676698967() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_Actor_UAID_D843AEBAD5E245DC02_1676698967() called before engine init. Use assets::Ck_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_Actor_UAID_D843AEBAD5E245DC02_1676698967() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial_Actor_UAID_D843AEBAD5E245DC02_1676698967());
     }
     ACk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor Ck_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor_UAID_C87F5401E535A2DB02_1723464274()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor_UAID_C87F5401E535A2DB02_1723464274() called before engine init. Use assets::Ck_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor_UAID_C87F5401E535A2DB02_1723464274() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor_UAID_C87F5401E535A2DB02_1723464274() called before engine init. Use assets::Ck_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor_UAID_C87F5401E535A2DB02_1723464274() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_RequestTryRemoveAbsentFailed_Actor_UAID_C87F5401E535A2DB02_1723464274());
     }
     ACk_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor Ck_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor_UAID_C87F5401E535A2DB02_1723465275()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor_UAID_C87F5401E535A2DB02_1723465275() called before engine init. Use assets::Ck_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor_UAID_C87F5401E535A2DB02_1723465275() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor_UAID_C87F5401E535A2DB02_1723465275() called before engine init. Use assets::Ck_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor_UAID_C87F5401E535A2DB02_1723465275() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_RequestTryRemoveHappyPath_Actor_UAID_C87F5401E535A2DB02_1723465275());
     }
     ACk_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor Ck_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943470132()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943470132() called before engine init. Use assets::Ck_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943470132() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943470132() called before engine init. Use assets::Ck_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943470132() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTag_SignalFiresOnPresenceFlip_Actor_UAID_C87F5401E53557DC02_1943470132());
     }
     ACk_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch_Actor_UAID_C87F5401E53596DE02_1918137327());
     }
     ACk_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor_UAID_C87F5401E53596DE02_1918138328());
     }
     ACk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor_UAID_C87F5401E535C9DE02_1715978303());
     }
     ACk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound_Actor_UAID_C87F5401E535C9DE02_1715980304());
     }
     ACk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable_Actor_UAID_C87F5401E53596DE02_1918138329());
     }
     ACk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery_Actor_UAID_C87F5401E53596DE02_1918139330());
     }
     ACk_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_DestructionPrunesProactively_Actor_UAID_C87F5401E535C9DE02_1715981305());
     }
     ACk_AutoTest_EntityTagQuery_EmptyNeverFires_Actor Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_EmptyNeverFires_Actor_UAID_C87F5401E53596DE02_1918139331());
     }
     ACk_AutoTest_EntityTagQuery_EnsureBoundFires_Actor Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_EnsureBoundFires_Actor_UAID_C87F5401E53596DE02_1918139332());
     }
     ACk_AutoTest_EntityTagQuery_FactoryEquivalence_Actor Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_FactoryEquivalence_Actor_UAID_C87F5401E53596DE02_1918140333());
     }
     ACk_AutoTest_EntityTagQuery_LazyValidation_Actor Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_LazyValidation_Actor_UAID_C87F5401E53596DE02_1918141334());
     }
     ACk_AutoTest_EntityTagQuery_MixedCountAndAll_Actor Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_MixedCountAndAll_Actor_UAID_C87F5401E53596DE02_1918141335());
     }
     ACk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011() called before engine init. Use assets::Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_EntityTagQuery_ResultDeltasOnContinuous_Actor_UAID_C87F5401E535CDDE02_2064157011());
     }
     ACk_AutoTest_Eqs_BasicQuery_Actor Ck_AutoTest_Eqs_BasicQuery_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Eqs_BasicQuery_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_BasicQuery_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Eqs_BasicQuery_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_BasicQuery_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Eqs_BasicQuery_Actor_0());
     }
     ACk_AutoTest_Eqs_Cancel_Actor Ck_AutoTest_Eqs_Cancel_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Eqs_Cancel_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_Cancel_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Eqs_Cancel_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_Cancel_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Eqs_Cancel_Actor_0());
     }
     ACk_AutoTest_Eqs_Immediate_Actor Ck_AutoTest_Eqs_Immediate_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Eqs_Immediate_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_Immediate_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Eqs_Immediate_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_Immediate_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Eqs_Immediate_Actor_0());
     }
     ACk_AutoTest_Eqs_NavProjection_Actor Ck_AutoTest_Eqs_NavProjection_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Eqs_NavProjection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_NavProjection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Eqs_NavProjection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_NavProjection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Eqs_NavProjection_Actor_0());
     }
     ACk_AutoTest_Eqs_OnCircle_Actor Ck_AutoTest_Eqs_OnCircle_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Eqs_OnCircle_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_OnCircle_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Eqs_OnCircle_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_OnCircle_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Eqs_OnCircle_Actor_0());
     }
     ACk_AutoTest_Eqs_RandomRunMode_Actor Ck_AutoTest_Eqs_RandomRunMode_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Eqs_RandomRunMode_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_RandomRunMode_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Eqs_RandomRunMode_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_RandomRunMode_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Eqs_RandomRunMode_Actor_0());
     }
     ACk_AutoTest_Eqs_VolumeCheck_Actor Ck_AutoTest_Eqs_VolumeCheck_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Eqs_VolumeCheck_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_VolumeCheck_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Eqs_VolumeCheck_Actor_0() called before engine init. Use assets::Ck_AutoTest_Eqs_VolumeCheck_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Eqs_VolumeCheck_Actor_0());
+    }
+    ACk_AutoTest_GameplayCamera_AddLayer_Actor Ck_AutoTest_GameplayCamera_AddLayer_Actor_UAID_60CF84A99C2C0BE002_1327906975()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_GameplayCamera_AddLayer_Actor_UAID_60CF84A99C2C0BE002_1327906975() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_AddLayer_Actor_UAID_60CF84A99C2C0BE002_1327906975() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_GameplayCamera_AddLayer_Actor_UAID_60CF84A99C2C0BE002_1327906975());
+    }
+    ACk_AutoTest_GameplayCamera_BlendFovAdditive_Actor Ck_AutoTest_GameplayCamera_BlendFovAdditive_Actor_UAID_60CF84A99C2C07E002_1535147271()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_GameplayCamera_BlendFovAdditive_Actor_UAID_60CF84A99C2C07E002_1535147271() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_BlendFovAdditive_Actor_UAID_60CF84A99C2C07E002_1535147271() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_GameplayCamera_BlendFovAdditive_Actor_UAID_60CF84A99C2C07E002_1535147271());
+    }
+    ACk_AutoTest_GameplayCamera_DefaultLayerResting_Actor Ck_AutoTest_GameplayCamera_DefaultLayerResting_Actor_UAID_60CF84A99C2C20E002_1734593671()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_GameplayCamera_DefaultLayerResting_Actor_UAID_60CF84A99C2C20E002_1734593671() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_DefaultLayerResting_Actor_UAID_60CF84A99C2C20E002_1734593671() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_GameplayCamera_DefaultLayerResting_Actor_UAID_60CF84A99C2C20E002_1734593671());
+    }
+    ACk_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor Ck_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor_UAID_60CF84A99C2C20E002_1734595672()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor_UAID_60CF84A99C2C20E002_1734595672() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor_UAID_60CF84A99C2C20E002_1734595672() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_GameplayCamera_MultiLayerMixedOps_Actor_UAID_60CF84A99C2C20E002_1734595672());
     }
     ACk_AutoTest_GameplayCamera_OneOnlyEvicts_Actor Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_GameplayCamera_OneOnlyEvicts_Actor_UAID_60CF84A99C2C7ADF02_1661969456());
+    }
+    ACk_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor Ck_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor_UAID_60CF84A99C2C20E002_1734597673()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor_UAID_60CF84A99C2C20E002_1734597673() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor_UAID_60CF84A99C2C20E002_1734597673() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_GameplayCamera_OneOnlyPrioritySlots_Actor_UAID_60CF84A99C2C20E002_1734597673());
+    }
+    ACk_AutoTest_GameplayCamera_OverrideReturnsToBase_Actor Ck_AutoTest_GameplayCamera_OverrideReturnsToBase_Actor_UAID_60CF84A99C2C20E002_1734599674()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_GameplayCamera_OverrideReturnsToBase_Actor_UAID_60CF84A99C2C20E002_1734599674() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_OverrideReturnsToBase_Actor_UAID_60CF84A99C2C20E002_1734599674() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_GameplayCamera_OverrideReturnsToBase_Actor_UAID_60CF84A99C2C20E002_1734599674());
     }
     ACk_AutoTest_GameplayCamera_RemovePrunes_Actor Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457() called before engine init. Use assets::Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_GameplayCamera_RemovePrunes_Actor_UAID_60CF84A99C2C7ADF02_1661971457());
     }
     ACk_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033() called before engine init. Use assets::Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033() called before engine init. Use assets::Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_GeometryCollectionOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53529DC02_1076845033());
     }
     ACk_AutoTest_Goap_Planner_AddRemoveChildren_Actor Ck_AutoTest_Goap_Planner_AddRemoveChildren_Actor_UAID_C87F5401E53557DD02_2040673183()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_AddRemoveChildren_Actor_UAID_C87F5401E53557DD02_2040673183() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_AddRemoveChildren_Actor_UAID_C87F5401E53557DD02_2040673183() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_AddRemoveChildren_Actor_UAID_C87F5401E53557DD02_2040673183() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_AddRemoveChildren_Actor_UAID_C87F5401E53557DD02_2040673183() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_AddRemoveChildren_Actor_UAID_C87F5401E53557DD02_2040673183());
     }
     ACk_AutoTest_Goap_Planner_AtomicLeaf_Actor Ck_AutoTest_Goap_Planner_AtomicLeaf_Actor_UAID_C87F5401E53547DD02_1158408367()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_AtomicLeaf_Actor_UAID_C87F5401E53547DD02_1158408367() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_AtomicLeaf_Actor_UAID_C87F5401E53547DD02_1158408367() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_AtomicLeaf_Actor_UAID_C87F5401E53547DD02_1158408367() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_AtomicLeaf_Actor_UAID_C87F5401E53547DD02_1158408367() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_AtomicLeaf_Actor_UAID_C87F5401E53547DD02_1158408367());
     }
     ACk_AutoTest_Goap_Planner_CancelInflight_Actor Ck_AutoTest_Goap_Planner_CancelInflight_Actor_UAID_C87F5401E53547DD02_1158409368()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_CancelInflight_Actor_UAID_C87F5401E53547DD02_1158409368() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_CancelInflight_Actor_UAID_C87F5401E53547DD02_1158409368() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_CancelInflight_Actor_UAID_C87F5401E53547DD02_1158409368() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_CancelInflight_Actor_UAID_C87F5401E53547DD02_1158409368() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_CancelInflight_Actor_UAID_C87F5401E53547DD02_1158409368());
     }
     ACk_AutoTest_Goap_Planner_DeactivateChildren_Actor Ck_AutoTest_Goap_Planner_DeactivateChildren_Actor_UAID_C87F5401E53547DD02_1158410369()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_DeactivateChildren_Actor_UAID_C87F5401E53547DD02_1158410369() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DeactivateChildren_Actor_UAID_C87F5401E53547DD02_1158410369() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_DeactivateChildren_Actor_UAID_C87F5401E53547DD02_1158410369() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DeactivateChildren_Actor_UAID_C87F5401E53547DD02_1158410369() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_DeactivateChildren_Actor_UAID_C87F5401E53547DD02_1158410369());
     }
     ACk_AutoTest_Goap_Planner_DeactivateOnStep0Change_Actor Ck_AutoTest_Goap_Planner_DeactivateOnStep0Change_Actor_UAID_C87F5401E53547DD02_1158410370()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_DeactivateOnStep0Change_Actor_UAID_C87F5401E53547DD02_1158410370() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DeactivateOnStep0Change_Actor_UAID_C87F5401E53547DD02_1158410370() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_DeactivateOnStep0Change_Actor_UAID_C87F5401E53547DD02_1158410370() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DeactivateOnStep0Change_Actor_UAID_C87F5401E53547DD02_1158410370() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_DeactivateOnStep0Change_Actor_UAID_C87F5401E53547DD02_1158410370());
     }
     ACk_AutoTest_Goap_Planner_DeepNesting_Actor Ck_AutoTest_Goap_Planner_DeepNesting_Actor_UAID_C87F5401E53557DD02_2040675184()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_DeepNesting_Actor_UAID_C87F5401E53557DD02_2040675184() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DeepNesting_Actor_UAID_C87F5401E53557DD02_2040675184() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_DeepNesting_Actor_UAID_C87F5401E53557DD02_2040675184() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DeepNesting_Actor_UAID_C87F5401E53557DD02_2040675184() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_DeepNesting_Actor_UAID_C87F5401E53557DD02_2040675184());
     }
     ACk_AutoTest_Goap_Planner_DeferOneFrame_Actor Ck_AutoTest_Goap_Planner_DeferOneFrame_Actor_UAID_C87F5401E53547DD02_1158411371()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_DeferOneFrame_Actor_UAID_C87F5401E53547DD02_1158411371() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DeferOneFrame_Actor_UAID_C87F5401E53547DD02_1158411371() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_DeferOneFrame_Actor_UAID_C87F5401E53547DD02_1158411371() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DeferOneFrame_Actor_UAID_C87F5401E53547DD02_1158411371() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_DeferOneFrame_Actor_UAID_C87F5401E53547DD02_1158411371());
     }
     ACk_AutoTest_Goap_Planner_DependencyCycleDetection_Actor Ck_AutoTest_Goap_Planner_DependencyCycleDetection_Actor_UAID_C87F5401E53547DD02_1158411372()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_DependencyCycleDetection_Actor_UAID_C87F5401E53547DD02_1158411372() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DependencyCycleDetection_Actor_UAID_C87F5401E53547DD02_1158411372() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_DependencyCycleDetection_Actor_UAID_C87F5401E53547DD02_1158411372() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DependencyCycleDetection_Actor_UAID_C87F5401E53547DD02_1158411372() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_DependencyCycleDetection_Actor_UAID_C87F5401E53547DD02_1158411372());
     }
     ACk_AutoTest_Goap_Planner_DirtyPropagation_Actor Ck_AutoTest_Goap_Planner_DirtyPropagation_Actor_UAID_C87F5401E53547DD02_1158412373()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_DirtyPropagation_Actor_UAID_C87F5401E53547DD02_1158412373() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DirtyPropagation_Actor_UAID_C87F5401E53547DD02_1158412373() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_DirtyPropagation_Actor_UAID_C87F5401E53547DD02_1158412373() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DirtyPropagation_Actor_UAID_C87F5401E53547DD02_1158412373() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_DirtyPropagation_Actor_UAID_C87F5401E53547DD02_1158412373());
     }
     ACk_AutoTest_Goap_Planner_DisableTogglePreventsReplan_Actor Ck_AutoTest_Goap_Planner_DisableTogglePreventsReplan_Actor_UAID_C87F5401E535CCDD02_1298914775()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_DisableTogglePreventsReplan_Actor_UAID_C87F5401E535CCDD02_1298914775() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DisableTogglePreventsReplan_Actor_UAID_C87F5401E535CCDD02_1298914775() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_DisableTogglePreventsReplan_Actor_UAID_C87F5401E535CCDD02_1298914775() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_DisableTogglePreventsReplan_Actor_UAID_C87F5401E535CCDD02_1298914775() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_DisableTogglePreventsReplan_Actor_UAID_C87F5401E535CCDD02_1298914775());
     }
     ACk_AutoTest_Goap_Planner_EnableToggle_Actor Ck_AutoTest_Goap_Planner_EnableToggle_Actor_UAID_C87F5401E53547DD02_1158412374()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_EnableToggle_Actor_UAID_C87F5401E53547DD02_1158412374() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_EnableToggle_Actor_UAID_C87F5401E53547DD02_1158412374() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_EnableToggle_Actor_UAID_C87F5401E53547DD02_1158412374() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_EnableToggle_Actor_UAID_C87F5401E53547DD02_1158412374() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_EnableToggle_Actor_UAID_C87F5401E53547DD02_1158412374());
     }
     ACk_AutoTest_Goap_Planner_FallbackLosesWhenChainViable_Actor Ck_AutoTest_Goap_Planner_FallbackLosesWhenChainViable_Actor_UAID_C87F5401E5351DDE02_1738471031()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_FallbackLosesWhenChainViable_Actor_UAID_C87F5401E5351DDE02_1738471031() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_FallbackLosesWhenChainViable_Actor_UAID_C87F5401E5351DDE02_1738471031() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_FallbackLosesWhenChainViable_Actor_UAID_C87F5401E5351DDE02_1738471031() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_FallbackLosesWhenChainViable_Actor_UAID_C87F5401E5351DDE02_1738471031() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_FallbackLosesWhenChainViable_Actor_UAID_C87F5401E5351DDE02_1738471031());
     }
     ACk_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked_Actor Ck_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked_Actor_UAID_C87F5401E5351DDE02_1738474032()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked_Actor_UAID_C87F5401E5351DDE02_1738474032() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked_Actor_UAID_C87F5401E5351DDE02_1738474032() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked_Actor_UAID_C87F5401E5351DDE02_1738474032() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked_Actor_UAID_C87F5401E5351DDE02_1738474032() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked_Actor_UAID_C87F5401E5351DDE02_1738474032());
     }
     ACk_AutoTest_Goap_Planner_FEARGymShape_Actor Ck_AutoTest_Goap_Planner_FEARGymShape_Actor_UAID_C87F5401E535EADD02_1951869055()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_FEARGymShape_Actor_UAID_C87F5401E535EADD02_1951869055() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_FEARGymShape_Actor_UAID_C87F5401E535EADD02_1951869055() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_FEARGymShape_Actor_UAID_C87F5401E535EADD02_1951869055() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_FEARGymShape_Actor_UAID_C87F5401E535EADD02_1951869055() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_FEARGymShape_Actor_UAID_C87F5401E535EADD02_1951869055());
     }
     ACk_AutoTest_Goap_Planner_GetPlanEntities_Actor Ck_AutoTest_Goap_Planner_GetPlanEntities_Actor_UAID_C87F5401E53557DD02_2040676185()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_GetPlanEntities_Actor_UAID_C87F5401E53557DD02_2040676185() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_GetPlanEntities_Actor_UAID_C87F5401E53557DD02_2040676185() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_GetPlanEntities_Actor_UAID_C87F5401E53557DD02_2040676185() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_GetPlanEntities_Actor_UAID_C87F5401E53557DD02_2040676185() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_GetPlanEntities_Actor_UAID_C87F5401E53557DD02_2040676185());
     }
     ACk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects_Actor Ck_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects_Actor_UAID_C87F5401E53547DD02_1158413375()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects_Actor_UAID_C87F5401E53547DD02_1158413375() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects_Actor_UAID_C87F5401E53547DD02_1158413375() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects_Actor_UAID_C87F5401E53547DD02_1158413375() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects_Actor_UAID_C87F5401E53547DD02_1158413375() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects_Actor_UAID_C87F5401E53547DD02_1158413375());
     }
     ACk_AutoTest_Goap_Planner_InvalidGoal_Actor Ck_AutoTest_Goap_Planner_InvalidGoal_Actor_UAID_C87F5401E53547DD02_1158413376()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_InvalidGoal_Actor_UAID_C87F5401E53547DD02_1158413376() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_InvalidGoal_Actor_UAID_C87F5401E53547DD02_1158413376() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_InvalidGoal_Actor_UAID_C87F5401E53547DD02_1158413376() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_InvalidGoal_Actor_UAID_C87F5401E53547DD02_1158413376() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_InvalidGoal_Actor_UAID_C87F5401E53547DD02_1158413376());
     }
     ACk_AutoTest_Goap_Planner_MinimalPlan_Actor Ck_AutoTest_Goap_Planner_MinimalPlan_Actor_UAID_C87F5401E53547DD02_1158414377()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_MinimalPlan_Actor_UAID_C87F5401E53547DD02_1158414377() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_MinimalPlan_Actor_UAID_C87F5401E53547DD02_1158414377() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_MinimalPlan_Actor_UAID_C87F5401E53547DD02_1158414377() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_MinimalPlan_Actor_UAID_C87F5401E53547DD02_1158414377() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_MinimalPlan_Actor_UAID_C87F5401E53547DD02_1158414377());
     }
     ACk_AutoTest_Goap_Planner_NestedActivation_Actor Ck_AutoTest_Goap_Planner_NestedActivation_Actor_UAID_C87F5401E53547DD02_1158414378()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_NestedActivation_Actor_UAID_C87F5401E53547DD02_1158414378() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_NestedActivation_Actor_UAID_C87F5401E53547DD02_1158414378() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_NestedActivation_Actor_UAID_C87F5401E53547DD02_1158414378() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_NestedActivation_Actor_UAID_C87F5401E53547DD02_1158414378() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_NestedActivation_Actor_UAID_C87F5401E53547DD02_1158414378());
     }
     ACk_AutoTest_Goap_Planner_OnPlanChangedSignal_Actor Ck_AutoTest_Goap_Planner_OnPlanChangedSignal_Actor_UAID_C87F5401E53547DD02_1158415379()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_OnPlanChangedSignal_Actor_UAID_C87F5401E53547DD02_1158415379() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_OnPlanChangedSignal_Actor_UAID_C87F5401E53547DD02_1158415379() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_OnPlanChangedSignal_Actor_UAID_C87F5401E53547DD02_1158415379() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_OnPlanChangedSignal_Actor_UAID_C87F5401E53547DD02_1158415379() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_OnPlanChangedSignal_Actor_UAID_C87F5401E53547DD02_1158415379());
     }
     ACk_AutoTest_Goap_Planner_OwnerCascadeDestroy_Actor Ck_AutoTest_Goap_Planner_OwnerCascadeDestroy_Actor_UAID_C87F5401E53547DD02_1158415380()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_OwnerCascadeDestroy_Actor_UAID_C87F5401E53547DD02_1158415380() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_OwnerCascadeDestroy_Actor_UAID_C87F5401E53547DD02_1158415380() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_OwnerCascadeDestroy_Actor_UAID_C87F5401E53547DD02_1158415380() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_OwnerCascadeDestroy_Actor_UAID_C87F5401E53547DD02_1158415380() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_OwnerCascadeDestroy_Actor_UAID_C87F5401E53547DD02_1158415380());
     }
     ACk_AutoTest_Goap_Planner_PatrolGymShape_Actor Ck_AutoTest_Goap_Planner_PatrolGymShape_Actor_UAID_C87F5401E535EADD02_1951872056()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_PatrolGymShape_Actor_UAID_C87F5401E535EADD02_1951872056() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_PatrolGymShape_Actor_UAID_C87F5401E535EADD02_1951872056() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_PatrolGymShape_Actor_UAID_C87F5401E535EADD02_1951872056() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_PatrolGymShape_Actor_UAID_C87F5401E535EADD02_1951872056() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_PatrolGymShape_Actor_UAID_C87F5401E535EADD02_1951872056());
     }
     ACk_AutoTest_Goap_Planner_PromoteActionToPlanner_Actor Ck_AutoTest_Goap_Planner_PromoteActionToPlanner_Actor_UAID_C87F5401E53545DD02_1782258015()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_PromoteActionToPlanner_Actor_UAID_C87F5401E53545DD02_1782258015() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_PromoteActionToPlanner_Actor_UAID_C87F5401E53545DD02_1782258015() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_PromoteActionToPlanner_Actor_UAID_C87F5401E53545DD02_1782258015() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_PromoteActionToPlanner_Actor_UAID_C87F5401E53545DD02_1782258015() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_PromoteActionToPlanner_Actor_UAID_C87F5401E53545DD02_1782258015());
     }
     ACk_AutoTest_Goap_Planner_TopLevelEmergence_Actor Ck_AutoTest_Goap_Planner_TopLevelEmergence_Actor_UAID_C87F5401E53547DD02_1158416381()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_TopLevelEmergence_Actor_UAID_C87F5401E53547DD02_1158416381() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_TopLevelEmergence_Actor_UAID_C87F5401E53547DD02_1158416381() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_TopLevelEmergence_Actor_UAID_C87F5401E53547DD02_1158416381() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_TopLevelEmergence_Actor_UAID_C87F5401E53547DD02_1158416381() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_TopLevelEmergence_Actor_UAID_C87F5401E53547DD02_1158416381());
     }
     ACk_AutoTest_Goap_Planner_TwoPeerPlanners_Actor Ck_AutoTest_Goap_Planner_TwoPeerPlanners_Actor_UAID_C87F5401E53547DD02_1158416382()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_TwoPeerPlanners_Actor_UAID_C87F5401E53547DD02_1158416382() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_TwoPeerPlanners_Actor_UAID_C87F5401E53547DD02_1158416382() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_TwoPeerPlanners_Actor_UAID_C87F5401E53547DD02_1158416382() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_TwoPeerPlanners_Actor_UAID_C87F5401E53547DD02_1158416382() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_TwoPeerPlanners_Actor_UAID_C87F5401E53547DD02_1158416382());
     }
     ACk_AutoTest_Goap_Planner_WSInheritance_Actor Ck_AutoTest_Goap_Planner_WSInheritance_Actor_UAID_C87F5401E53547DD02_1158416383()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_WSInheritance_Actor_UAID_C87F5401E53547DD02_1158416383() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_WSInheritance_Actor_UAID_C87F5401E53547DD02_1158416383() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_WSInheritance_Actor_UAID_C87F5401E53547DD02_1158416383() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_WSInheritance_Actor_UAID_C87F5401E53547DD02_1158416383() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_WSInheritance_Actor_UAID_C87F5401E53547DD02_1158416383());
     }
     ACk_AutoTest_Goap_Planner_WSOverride_Actor Ck_AutoTest_Goap_Planner_WSOverride_Actor_UAID_C87F5401E53547DD02_1158417384()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_WSOverride_Actor_UAID_C87F5401E53547DD02_1158417384() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_WSOverride_Actor_UAID_C87F5401E53547DD02_1158417384() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_WSOverride_Actor_UAID_C87F5401E53547DD02_1158417384() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_WSOverride_Actor_UAID_C87F5401E53547DD02_1158417384() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_WSOverride_Actor_UAID_C87F5401E53547DD02_1158417384());
     }
     ACk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_Actor Ck_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_Actor_UAID_C87F5401E53594DD02_1740590919()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_Actor_UAID_C87F5401E53594DD02_1740590919() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_Actor_UAID_C87F5401E53594DD02_1740590919() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_Actor_UAID_C87F5401E53594DD02_1740590919() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_Actor_UAID_C87F5401E53594DD02_1740590919() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop_Actor_UAID_C87F5401E53594DD02_1740590919());
     }
     ACk_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor Ck_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor_UAID_C87F5401E535EDDD02_2119480583()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor_UAID_C87F5401E535EDDD02_2119480583() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor_UAID_C87F5401E535EDDD02_2119480583() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor_UAID_C87F5401E535EDDD02_2119480583() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor_UAID_C87F5401E535EDDD02_2119480583() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor_UAID_C87F5401E535EDDD02_2119480583());
     }
     ACk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor Ck_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor_UAID_C87F5401E53594DD02_1740591920()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor_UAID_C87F5401E53594DD02_1740591920() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor_UAID_C87F5401E53594DD02_1740591920() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor_UAID_C87F5401E53594DD02_1740591920() called before engine init. Use assets::Ck_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor_UAID_C87F5401E53594DD02_1740591920() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor_UAID_C87F5401E53594DD02_1740591920());
     }
     ACk_AutoTest_Grid_AddAndDimensions_Actor Ck_AutoTest_Grid_AddAndDimensions_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Grid_AddAndDimensions_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_AddAndDimensions_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_AddAndDimensions_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_AddAndDimensions_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_AddAndDimensions_Actor_0());
     }
     ACk_AutoTest_Grid_CellCoordinatesAreUnique_Actor Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0());
     }
     ACk_AutoTest_Grid_CellsAreEnabledByDefault_Actor Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0());
     }
     ACk_AutoTest_Grid_DisabledCellRejectsPlacement_Actor Ck_AutoTest_Grid_DisabledCellRejectsPlacement_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Grid_DisabledCellRejectsPlacement_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_DisabledCellRejectsPlacement_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_DisabledCellRejectsPlacement_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_DisabledCellRejectsPlacement_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_DisabledCellRejectsPlacement_Actor_0());
     }
     ACk_AutoTest_Grid_DisjointIntersection_Actor Ck_AutoTest_Grid_DisjointIntersection_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Grid_DisjointIntersection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_DisjointIntersection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_DisjointIntersection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_DisjointIntersection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_DisjointIntersection_Actor_0());
     }
     ACk_AutoTest_Grid_IntersectionCardinality_Actor Ck_AutoTest_Grid_IntersectionCardinality_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Grid_IntersectionCardinality_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_IntersectionCardinality_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_IntersectionCardinality_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_IntersectionCardinality_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_IntersectionCardinality_Actor_0());
     }
     ACk_AutoTest_Grid_OverlappingIntersection_Actor Ck_AutoTest_Grid_OverlappingIntersection_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Grid_OverlappingIntersection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_OverlappingIntersection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_OverlappingIntersection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_OverlappingIntersection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_OverlappingIntersection_Actor_0());
     }
     ACk_AutoTest_Grid_RotationLocalCoordMapping_Actor Ck_AutoTest_Grid_RotationLocalCoordMapping_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Grid_RotationLocalCoordMapping_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_RotationLocalCoordMapping_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_RotationLocalCoordMapping_Actor_0() called before engine init. Use assets::Ck_AutoTest_Grid_RotationLocalCoordMapping_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_RotationLocalCoordMapping_Actor_0());
     }
     ACk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor Ck_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor_UAID_C87F5401E53522DC02_1678324799()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor_UAID_C87F5401E53522DC02_1678324799() called before engine init. Use assets::Ck_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor_UAID_C87F5401E53522DC02_1678324799() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor_UAID_C87F5401E53522DC02_1678324799() called before engine init. Use assets::Ck_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor_UAID_C87F5401E53522DC02_1678324799() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor_UAID_C87F5401E53522DC02_1678324799());
     }
     ACk_AutoTest_Interaction_CanInteractWithComplexValidation_Actor Ck_AutoTest_Interaction_CanInteractWithComplexValidation_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_CanInteractWithComplexValidation_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_CanInteractWithComplexValidation_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_CanInteractWithComplexValidation_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_CanInteractWithComplexValidation_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_CanInteractWithComplexValidation_Actor_0());
     }
     ACk_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor Ck_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor_0());
     }
     ACk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_Actor Ck_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_Actor_UAID_C87F5401E535F1DB02_1777033175()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_Actor_UAID_C87F5401E535F1DB02_1777033175() called before engine init. Use assets::Ck_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_Actor_UAID_C87F5401E535F1DB02_1777033175() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_Actor_UAID_C87F5401E535F1DB02_1777033175() called before engine init. Use assets::Ck_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_Actor_UAID_C87F5401E535F1DB02_1777033175() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_Actor_UAID_C87F5401E535F1DB02_1777033175());
     }
     ACk_AutoTest_Interaction_Instant_Actor Ck_AutoTest_Interaction_Instant_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_Instant_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_Instant_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_Instant_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_Instant_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_Instant_Actor_0());
     }
     ACk_AutoTest_Interaction_ManualFail_Actor Ck_AutoTest_Interaction_ManualFail_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_ManualFail_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ManualFail_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_ManualFail_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ManualFail_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_ManualFail_Actor_0());
     }
     ACk_AutoTest_Interaction_ManualSuccess_Actor Ck_AutoTest_Interaction_ManualSuccess_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_ManualSuccess_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ManualSuccess_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_ManualSuccess_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ManualSuccess_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_ManualSuccess_Actor_0());
     }
     ACk_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond_Actor Ck_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond_Actor_UAID_C87F5401E535F3DB02_2046785528()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond_Actor_UAID_C87F5401E535F3DB02_2046785528() called before engine init. Use assets::Ck_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond_Actor_UAID_C87F5401E535F3DB02_2046785528() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond_Actor_UAID_C87F5401E535F3DB02_2046785528() called before engine init. Use assets::Ck_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond_Actor_UAID_C87F5401E535F3DB02_2046785528() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecond_Actor_UAID_C87F5401E535F3DB02_2046785528());
     }
     ACk_AutoTest_Interaction_OnInteractionFinished_PayloadShape_Actor Ck_AutoTest_Interaction_OnInteractionFinished_PayloadShape_Actor_UAID_C87F5401E535F1DB02_1777035176()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_OnInteractionFinished_PayloadShape_Actor_UAID_C87F5401E535F1DB02_1777035176() called before engine init. Use assets::Ck_AutoTest_Interaction_OnInteractionFinished_PayloadShape_Actor_UAID_C87F5401E535F1DB02_1777035176() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_OnInteractionFinished_PayloadShape_Actor_UAID_C87F5401E535F1DB02_1777035176() called before engine init. Use assets::Ck_AutoTest_Interaction_OnInteractionFinished_PayloadShape_Actor_UAID_C87F5401E535F1DB02_1777035176() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_OnInteractionFinished_PayloadShape_Actor_UAID_C87F5401E535F1DB02_1777035176());
     }
     ACk_AutoTest_Interaction_OnNewInteractionPayload_Actor Ck_AutoTest_Interaction_OnNewInteractionPayload_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_OnNewInteractionPayload_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_OnNewInteractionPayload_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_OnNewInteractionPayload_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_OnNewInteractionPayload_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_OnNewInteractionPayload_Actor_0());
     }
     ACk_AutoTest_Interaction_ResetAfterCompletion_Reusable_Actor Ck_AutoTest_Interaction_ResetAfterCompletion_Reusable_Actor_UAID_C87F5401E535F1DB02_1777036177()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_ResetAfterCompletion_Reusable_Actor_UAID_C87F5401E535F1DB02_1777036177() called before engine init. Use assets::Ck_AutoTest_Interaction_ResetAfterCompletion_Reusable_Actor_UAID_C87F5401E535F1DB02_1777036177() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_ResetAfterCompletion_Reusable_Actor_UAID_C87F5401E535F1DB02_1777036177() called before engine init. Use assets::Ck_AutoTest_Interaction_ResetAfterCompletion_Reusable_Actor_UAID_C87F5401E535F1DB02_1777036177() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_ResetAfterCompletion_Reusable_Actor_UAID_C87F5401E535F1DB02_1777036177());
     }
     ACk_AutoTest_Interaction_Timed_Actor Ck_AutoTest_Interaction_Timed_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_Timed_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_Timed_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_Timed_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_Timed_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_Timed_Actor_0());
     }
     ACk_AutoTest_Interaction_TimedInterruptedByCancel_Actor Ck_AutoTest_Interaction_TimedInterruptedByCancel_Actor_UAID_C87F5401E535F3DB02_2046785529()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_TimedInterruptedByCancel_Actor_UAID_C87F5401E535F3DB02_2046785529() called before engine init. Use assets::Ck_AutoTest_Interaction_TimedInterruptedByCancel_Actor_UAID_C87F5401E535F3DB02_2046785529() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_TimedInterruptedByCancel_Actor_UAID_C87F5401E535F3DB02_2046785529() called before engine init. Use assets::Ck_AutoTest_Interaction_TimedInterruptedByCancel_Actor_UAID_C87F5401E535F3DB02_2046785529() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_TimedInterruptedByCancel_Actor_UAID_C87F5401E535F3DB02_2046785529());
     }
     ACk_AutoTest_Interaction_TryGet_Interaction_ReturnsActive_Actor Ck_AutoTest_Interaction_TryGet_Interaction_ReturnsActive_Actor_UAID_C87F5401E535F1DB02_1777036178()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_TryGet_Interaction_ReturnsActive_Actor_UAID_C87F5401E535F1DB02_1777036178() called before engine init. Use assets::Ck_AutoTest_Interaction_TryGet_Interaction_ReturnsActive_Actor_UAID_C87F5401E535F1DB02_1777036178() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_TryGet_Interaction_ReturnsActive_Actor_UAID_C87F5401E535F1DB02_1777036178() called before engine init. Use assets::Ck_AutoTest_Interaction_TryGet_Interaction_ReturnsActive_Actor_UAID_C87F5401E535F1DB02_1777036178() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_TryGet_Interaction_ReturnsActive_Actor_UAID_C87F5401E535F1DB02_1777036178());
     }
     ACk_AutoTest_Interaction_ValidationAllows_Actor Ck_AutoTest_Interaction_ValidationAllows_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_ValidationAllows_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ValidationAllows_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_ValidationAllows_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ValidationAllows_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_ValidationAllows_Actor_0());
     }
     ACk_AutoTest_Interaction_ValidationChannelMismatch_Actor Ck_AutoTest_Interaction_ValidationChannelMismatch_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_ValidationChannelMismatch_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ValidationChannelMismatch_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_ValidationChannelMismatch_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ValidationChannelMismatch_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_ValidationChannelMismatch_Actor_0());
     }
     ACk_AutoTest_Interaction_ValidationCustomFails_Actor Ck_AutoTest_Interaction_ValidationCustomFails_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_ValidationCustomFails_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ValidationCustomFails_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_ValidationCustomFails_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ValidationCustomFails_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_ValidationCustomFails_Actor_0());
     }
     ACk_AutoTest_Interaction_ValidationTargetDisabled_Actor Ck_AutoTest_Interaction_ValidationTargetDisabled_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Interaction_ValidationTargetDisabled_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ValidationTargetDisabled_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Interaction_ValidationTargetDisabled_Actor_0() called before engine init. Use assets::Ck_AutoTest_Interaction_ValidationTargetDisabled_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Interaction_ValidationTargetDisabled_Actor_0());
     }
     ACk_AutoTest_Inventory_AddItem_DuplicateInsertRejected_Actor Ck_AutoTest_Inventory_AddItem_DuplicateInsertRejected_Actor_UAID_C87F5401E535F0DB02_1393595999()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_AddItem_DuplicateInsertRejected_Actor_UAID_C87F5401E535F0DB02_1393595999() called before engine init. Use assets::Ck_AutoTest_Inventory_AddItem_DuplicateInsertRejected_Actor_UAID_C87F5401E535F0DB02_1393595999() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_AddItem_DuplicateInsertRejected_Actor_UAID_C87F5401E535F0DB02_1393595999() called before engine init. Use assets::Ck_AutoTest_Inventory_AddItem_DuplicateInsertRejected_Actor_UAID_C87F5401E535F0DB02_1393595999() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_AddItem_DuplicateInsertRejected_Actor_UAID_C87F5401E535F0DB02_1393595999());
     }
     ACk_AutoTest_Inventory_AddItemByDefinition_MissingAsset_Actor Ck_AutoTest_Inventory_AddItemByDefinition_MissingAsset_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_AddItemByDefinition_MissingAsset_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_AddItemByDefinition_MissingAsset_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_AddItemByDefinition_MissingAsset_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_AddItemByDefinition_MissingAsset_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_AddItemByDefinition_MissingAsset_Actor_0());
     }
     ACk_AutoTest_Inventory_CustomCanAcceptItem_Actor Ck_AutoTest_Inventory_CustomCanAcceptItem_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_CustomCanAcceptItem_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_CustomCanAcceptItem_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_CustomCanAcceptItem_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_CustomCanAcceptItem_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_CustomCanAcceptItem_Actor_0());
     }
     ACk_AutoTest_Inventory_DataOnly_AddItem_Actor Ck_AutoTest_Inventory_DataOnly_AddItem_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_DataOnly_AddItem_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_DataOnly_AddItem_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_DataOnly_AddItem_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_DataOnly_AddItem_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_DataOnly_AddItem_Actor_0());
     }
     ACk_AutoTest_Inventory_DataOnly_BoundedReject_Actor Ck_AutoTest_Inventory_DataOnly_BoundedReject_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_DataOnly_BoundedReject_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_DataOnly_BoundedReject_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_DataOnly_BoundedReject_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_DataOnly_BoundedReject_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_DataOnly_BoundedReject_Actor_0());
     }
     ACk_AutoTest_Inventory_DataOnly_OverrideBounds_Actor Ck_AutoTest_Inventory_DataOnly_OverrideBounds_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_DataOnly_OverrideBounds_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_DataOnly_OverrideBounds_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_DataOnly_OverrideBounds_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_DataOnly_OverrideBounds_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_DataOnly_OverrideBounds_Actor_0());
     }
     ACk_AutoTest_Inventory_DataOnly_RemoveItem_Actor Ck_AutoTest_Inventory_DataOnly_RemoveItem_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_DataOnly_RemoveItem_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_DataOnly_RemoveItem_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_DataOnly_RemoveItem_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_DataOnly_RemoveItem_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_DataOnly_RemoveItem_Actor_0());
     }
     ACk_AutoTest_Inventory_DataOnly_Unbounded_Actor Ck_AutoTest_Inventory_DataOnly_Unbounded_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_DataOnly_Unbounded_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_DataOnly_Unbounded_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_DataOnly_Unbounded_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_DataOnly_Unbounded_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_DataOnly_Unbounded_Actor_0());
     }
     ACk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_Actor Ck_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_Actor_UAID_C87F5401E535EFDB02_1793894823()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_Actor_UAID_C87F5401E535EFDB02_1793894823() called before engine init. Use assets::Ck_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_Actor_UAID_C87F5401E535EFDB02_1793894823() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_Actor_UAID_C87F5401E535EFDB02_1793894823() called before engine init. Use assets::Ck_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_Actor_UAID_C87F5401E535EFDB02_1793894823() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_Actor_UAID_C87F5401E535EFDB02_1793894823());
     }
     ACk_AutoTest_Inventory_Sort_DataOnly_BasicOrder_Actor Ck_AutoTest_Inventory_Sort_DataOnly_BasicOrder_Actor_UAID_C87F5401E535F0DB02_1393597000()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_Sort_DataOnly_BasicOrder_Actor_UAID_C87F5401E535F0DB02_1393597000() called before engine init. Use assets::Ck_AutoTest_Inventory_Sort_DataOnly_BasicOrder_Actor_UAID_C87F5401E535F0DB02_1393597000() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_Sort_DataOnly_BasicOrder_Actor_UAID_C87F5401E535F0DB02_1393597000() called before engine init. Use assets::Ck_AutoTest_Inventory_Sort_DataOnly_BasicOrder_Actor_UAID_C87F5401E535F0DB02_1393597000() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_Sort_DataOnly_BasicOrder_Actor_UAID_C87F5401E535F0DB02_1393597000());
     }
     ACk_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_Actor Ck_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_Spatial_AddByDefinition_NoSpace_Actor_0());
     }
     ACk_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther_Actor Ck_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther_Actor_UAID_C87F5401E535EFDB02_1793896824()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther_Actor_UAID_C87F5401E535EFDB02_1793896824() called before engine init. Use assets::Ck_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther_Actor_UAID_C87F5401E535EFDB02_1793896824() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther_Actor_UAID_C87F5401E535EFDB02_1793896824() called before engine init. Use assets::Ck_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther_Actor_UAID_C87F5401E535EFDB02_1793896824() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther_Actor_UAID_C87F5401E535EFDB02_1793896824());
     }
     ACk_AutoTest_Inventory_Spatial_RelocateItem_RotationChange_Actor Ck_AutoTest_Inventory_Spatial_RelocateItem_RotationChange_Actor_UAID_C87F5401E535EFDB02_1793897825()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_Spatial_RelocateItem_RotationChange_Actor_UAID_C87F5401E535EFDB02_1793897825() called before engine init. Use assets::Ck_AutoTest_Inventory_Spatial_RelocateItem_RotationChange_Actor_UAID_C87F5401E535EFDB02_1793897825() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_Spatial_RelocateItem_RotationChange_Actor_UAID_C87F5401E535EFDB02_1793897825() called before engine init. Use assets::Ck_AutoTest_Inventory_Spatial_RelocateItem_RotationChange_Actor_UAID_C87F5401E535EFDB02_1793897825() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_Spatial_RelocateItem_RotationChange_Actor_UAID_C87F5401E535EFDB02_1793897825());
     }
     ACk_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor Ck_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor_UAID_C87F5401E535EFDB02_1793898826()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor_UAID_C87F5401E535EFDB02_1793898826() called before engine init. Use assets::Ck_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor_UAID_C87F5401E535EFDB02_1793898826() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor_UAID_C87F5401E535EFDB02_1793898826() called before engine init. Use assets::Ck_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor_UAID_C87F5401E535EFDB02_1793898826() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor_UAID_C87F5401E535EFDB02_1793898826());
     }
     ACk_AutoTest_Inventory_SpatialPlacementRejection_Actor Ck_AutoTest_Inventory_SpatialPlacementRejection_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_SpatialPlacementRejection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_SpatialPlacementRejection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_SpatialPlacementRejection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_SpatialPlacementRejection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_SpatialPlacementRejection_Actor_0());
     }
     ACk_AutoTest_Inventory_StackableTrait_SplitStack_Actor Ck_AutoTest_Inventory_StackableTrait_SplitStack_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_StackableTrait_SplitStack_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_StackableTrait_SplitStack_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_StackableTrait_SplitStack_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_StackableTrait_SplitStack_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_StackableTrait_SplitStack_Actor_0());
     }
     ACk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor Ck_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor_0());
     }
     ACk_AutoTest_Inventory_StackableTrait_StackItems_Actor Ck_AutoTest_Inventory_StackableTrait_StackItems_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_StackableTrait_StackItems_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_StackableTrait_StackItems_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_StackableTrait_StackItems_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_StackableTrait_StackItems_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_StackableTrait_StackItems_Actor_0());
     }
     ACk_AutoTest_Inventory_TagsTrait_AddTag_Actor Ck_AutoTest_Inventory_TagsTrait_AddTag_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_TagsTrait_AddTag_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_TagsTrait_AddTag_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_TagsTrait_AddTag_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_TagsTrait_AddTag_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_TagsTrait_AddTag_Actor_0());
     }
     ACk_AutoTest_Inventory_TagsTrait_RemoveTag_Actor Ck_AutoTest_Inventory_TagsTrait_RemoveTag_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_TagsTrait_RemoveTag_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_TagsTrait_RemoveTag_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_TagsTrait_RemoveTag_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_TagsTrait_RemoveTag_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_TagsTrait_RemoveTag_Actor_0());
     }
     ACk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_Actor Ck_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_Actor_0());
     }
     ACk_AutoTest_Inventory_Transfer_Spatial_To_Spatial_Actor Ck_AutoTest_Inventory_Transfer_Spatial_To_Spatial_Actor_UAID_C87F5401E535F0DB02_1393598001()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_Transfer_Spatial_To_Spatial_Actor_UAID_C87F5401E535F0DB02_1393598001() called before engine init. Use assets::Ck_AutoTest_Inventory_Transfer_Spatial_To_Spatial_Actor_UAID_C87F5401E535F0DB02_1393598001() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_Transfer_Spatial_To_Spatial_Actor_UAID_C87F5401E535F0DB02_1393598001() called before engine init. Use assets::Ck_AutoTest_Inventory_Transfer_Spatial_To_Spatial_Actor_UAID_C87F5401E535F0DB02_1393598001() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_Transfer_Spatial_To_Spatial_Actor_UAID_C87F5401E535F0DB02_1393598001());
     }
     ACk_AutoTest_Inventory_TransferItem_BaseHandleFacade_Actor Ck_AutoTest_Inventory_TransferItem_BaseHandleFacade_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_TransferItem_BaseHandleFacade_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_TransferItem_BaseHandleFacade_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_TransferItem_BaseHandleFacade_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_TransferItem_BaseHandleFacade_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_TransferItem_BaseHandleFacade_Actor_0());
     }
     ACk_AutoTest_Inventory_TransferItemPayload_Actor Ck_AutoTest_Inventory_TransferItemPayload_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_TransferItemPayload_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_TransferItemPayload_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_TransferItemPayload_Actor_0() called before engine init. Use assets::Ck_AutoTest_Inventory_TransferItemPayload_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_TransferItemPayload_Actor_0());
     }
     ACk_AutoTest_Inventory_TryGet_Inventory_ByName_Actor Ck_AutoTest_Inventory_TryGet_Inventory_ByName_Actor_UAID_C87F5401E535EFDB02_1793899827()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Inventory_TryGet_Inventory_ByName_Actor_UAID_C87F5401E535EFDB02_1793899827() called before engine init. Use assets::Ck_AutoTest_Inventory_TryGet_Inventory_ByName_Actor_UAID_C87F5401E535EFDB02_1793899827() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_TryGet_Inventory_ByName_Actor_UAID_C87F5401E535EFDB02_1793899827() called before engine init. Use assets::Ck_AutoTest_Inventory_TryGet_Inventory_ByName_Actor_UAID_C87F5401E535EFDB02_1793899827() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_TryGet_Inventory_ByName_Actor_UAID_C87F5401E535EFDB02_1793899827());
     }
     ACk_AutoTest_IskmRenderer_AnimationFinishes_Actor Ck_AutoTest_IskmRenderer_AnimationFinishes_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_AnimationFinishes_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_AnimationFinishes_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_AnimationFinishes_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_AnimationFinishes_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_AnimationFinishes_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_AnimationPlayback_Actor Ck_AutoTest_IskmRenderer_AnimationPlayback_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_AnimationPlayback_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_AnimationPlayback_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_AnimationPlayback_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_AnimationPlayback_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_AnimationPlayback_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_AnimBP_Actor Ck_AutoTest_IskmRenderer_AnimBP_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_AnimBP_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_AnimBP_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_AnimBP_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_AnimBP_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_AnimBP_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_AsyncLoad_Actor Ck_AutoTest_IskmRenderer_AsyncLoad_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_AsyncLoad_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_AsyncLoad_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_AsyncLoad_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_AsyncLoad_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_AsyncLoad_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_CustomData_Actor Ck_AutoTest_IskmRenderer_CustomData_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_CustomData_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_CustomData_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_CustomData_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_CustomData_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_CustomData_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_CustomDataSuccess_Actor Ck_AutoTest_IskmRenderer_CustomDataSuccess_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_CustomDataSuccess_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_CustomDataSuccess_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_CustomDataSuccess_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_CustomDataSuccess_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_CustomDataSuccess_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_Montage_Actor Ck_AutoTest_IskmRenderer_Montage_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_Montage_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_Montage_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_Montage_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_Montage_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_Montage_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_MontageNotify_Actor Ck_AutoTest_IskmRenderer_MontageNotify_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_MontageNotify_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_MontageNotify_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_MontageNotify_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_MontageNotify_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_MontageNotify_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_OutfitAttach_Actor Ck_AutoTest_IskmRenderer_OutfitAttach_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_OutfitAttach_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_OutfitAttach_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_OutfitAttach_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_OutfitAttach_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_OutfitAttach_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_OutfitSubmesh_Actor Ck_AutoTest_IskmRenderer_OutfitSubmesh_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_OutfitSubmesh_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_OutfitSubmesh_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_OutfitSubmesh_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_OutfitSubmesh_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_OutfitSubmesh_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_PdaSmoke_Actor Ck_AutoTest_IskmRenderer_PdaSmoke_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_PdaSmoke_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_PdaSmoke_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_PdaSmoke_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_PdaSmoke_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_PdaSmoke_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_PlayAnimationReissue_Actor Ck_AutoTest_IskmRenderer_PlayAnimationReissue_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_PlayAnimationReissue_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_PlayAnimationReissue_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_PlayAnimationReissue_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_PlayAnimationReissue_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_PlayAnimationReissue_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_ProxyAdd_Actor Ck_AutoTest_IskmRenderer_ProxyAdd_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_ProxyAdd_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_ProxyAdd_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_ProxyAdd_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_ProxyAdd_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_ProxyAdd_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_Ragdoll_Actor Ck_AutoTest_IskmRenderer_Ragdoll_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_Ragdoll_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_Ragdoll_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_Ragdoll_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_Ragdoll_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_Ragdoll_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_RagdollPoseSource_Actor Ck_AutoTest_IskmRenderer_RagdollPoseSource_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_RagdollPoseSource_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_RagdollPoseSource_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_RagdollPoseSource_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_RagdollPoseSource_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_RagdollPoseSource_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_RendererAdd_Actor Ck_AutoTest_IskmRenderer_RendererAdd_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_RendererAdd_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_RendererAdd_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_RendererAdd_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_RendererAdd_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_RendererAdd_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_Sockets_Actor Ck_AutoTest_IskmRenderer_Sockets_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_Sockets_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_Sockets_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_Sockets_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_Sockets_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_Sockets_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_SubsystemSmoke_Actor Ck_AutoTest_IskmRenderer_SubsystemSmoke_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_SubsystemSmoke_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_SubsystemSmoke_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_SubsystemSmoke_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_SubsystemSmoke_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_SubsystemSmoke_Actor_0());
     }
     ACk_AutoTest_IskmRenderer_TransitionReplaced_Actor Ck_AutoTest_IskmRenderer_TransitionReplaced_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_IskmRenderer_TransitionReplaced_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_TransitionReplaced_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_TransitionReplaced_Actor_0() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_TransitionReplaced_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_TransitionReplaced_Actor_0());
     }
     ACk_AutoTest_Label_AddAndQuery_Actor Ck_AutoTest_Label_AddAndQuery_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Label_AddAndQuery_Actor_0() called before engine init. Use assets::Ck_AutoTest_Label_AddAndQuery_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Label_AddAndQuery_Actor_0() called before engine init. Use assets::Ck_AutoTest_Label_AddAndQuery_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Label_AddAndQuery_Actor_0());
     }
     ACk_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd_Actor Ck_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd_Actor_UAID_C87F5401E53521DC02_2070443623()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd_Actor_UAID_C87F5401E53521DC02_2070443623() called before engine init. Use assets::Ck_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd_Actor_UAID_C87F5401E53521DC02_2070443623() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd_Actor_UAID_C87F5401E53521DC02_2070443623() called before engine init. Use assets::Ck_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd_Actor_UAID_C87F5401E53521DC02_2070443623() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Label_AddIsSetOnce_RejectsSecondAdd_Actor_UAID_C87F5401E53521DC02_2070443623());
     }
     ACk_AutoTest_Label_HierarchicalMatching_Actor Ck_AutoTest_Label_HierarchicalMatching_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Label_HierarchicalMatching_Actor_0() called before engine init. Use assets::Ck_AutoTest_Label_HierarchicalMatching_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Label_HierarchicalMatching_Actor_0() called before engine init. Use assets::Ck_AutoTest_Label_HierarchicalMatching_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Label_HierarchicalMatching_Actor_0());
     }
     ACk_AutoTest_Label_MatchesAny_FromContainer_Actor Ck_AutoTest_Label_MatchesAny_FromContainer_Actor_UAID_C87F5401E535FCDB02_1820211112()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Label_MatchesAny_FromContainer_Actor_UAID_C87F5401E535FCDB02_1820211112() called before engine init. Use assets::Ck_AutoTest_Label_MatchesAny_FromContainer_Actor_UAID_C87F5401E535FCDB02_1820211112() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Label_MatchesAny_FromContainer_Actor_UAID_C87F5401E535FCDB02_1820211112() called before engine init. Use assets::Ck_AutoTest_Label_MatchesAny_FromContainer_Actor_UAID_C87F5401E535FCDB02_1820211112() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Label_MatchesAny_FromContainer_Actor_UAID_C87F5401E535FCDB02_1820211112());
     }
     ACk_AutoTest_Label_RecordLookupAndDestroyCleanup_Actor Ck_AutoTest_Label_RecordLookupAndDestroyCleanup_Actor_UAID_C87F5401E5355FDC02_1758135535()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Label_RecordLookupAndDestroyCleanup_Actor_UAID_C87F5401E5355FDC02_1758135535() called before engine init. Use assets::Ck_AutoTest_Label_RecordLookupAndDestroyCleanup_Actor_UAID_C87F5401E5355FDC02_1758135535() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Label_RecordLookupAndDestroyCleanup_Actor_UAID_C87F5401E5355FDC02_1758135535() called before engine init. Use assets::Ck_AutoTest_Label_RecordLookupAndDestroyCleanup_Actor_UAID_C87F5401E5355FDC02_1758135535() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Label_RecordLookupAndDestroyCleanup_Actor_UAID_C87F5401E5355FDC02_1758135535());
     }
     ACk_AutoTest_Marker_Add_Box_CreatesValidHandle_Actor Ck_AutoTest_Marker_Add_Box_CreatesValidHandle_Actor_UAID_C87F5401E5353EDC02_1824680727()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Marker_Add_Box_CreatesValidHandle_Actor_UAID_C87F5401E5353EDC02_1824680727() called before engine init. Use assets::Ck_AutoTest_Marker_Add_Box_CreatesValidHandle_Actor_UAID_C87F5401E5353EDC02_1824680727() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Marker_Add_Box_CreatesValidHandle_Actor_UAID_C87F5401E5353EDC02_1824680727() called before engine init. Use assets::Ck_AutoTest_Marker_Add_Box_CreatesValidHandle_Actor_UAID_C87F5401E5353EDC02_1824680727() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Marker_Add_Box_CreatesValidHandle_Actor_UAID_C87F5401E5353EDC02_1824680727());
     }
     ACk_AutoTest_Marker_Add_Capsule_CreatesValidHandle_Actor Ck_AutoTest_Marker_Add_Capsule_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469198303()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Marker_Add_Capsule_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469198303() called before engine init. Use assets::Ck_AutoTest_Marker_Add_Capsule_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469198303() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Marker_Add_Capsule_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469198303() called before engine init. Use assets::Ck_AutoTest_Marker_Add_Capsule_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469198303() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Marker_Add_Capsule_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469198303());
     }
     ACk_AutoTest_Marker_Add_Sphere_CreatesValidHandle_Actor Ck_AutoTest_Marker_Add_Sphere_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469200304()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Marker_Add_Sphere_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469200304() called before engine init. Use assets::Ck_AutoTest_Marker_Add_Sphere_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469200304() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Marker_Add_Sphere_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469200304() called before engine init. Use assets::Ck_AutoTest_Marker_Add_Sphere_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469200304() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Marker_Add_Sphere_CreatesValidHandle_Actor_UAID_C87F5401E53558DC02_1469200304());
     }
     ACk_AutoTest_Messaging_BasicBroadcast_Actor Ck_AutoTest_Messaging_BasicBroadcast_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Messaging_BasicBroadcast_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_BasicBroadcast_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Messaging_BasicBroadcast_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_BasicBroadcast_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Messaging_BasicBroadcast_Actor_0());
     }
     ACk_AutoTest_Messaging_BindingPolicyInFlight_Actor Ck_AutoTest_Messaging_BindingPolicyInFlight_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Messaging_BindingPolicyInFlight_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_BindingPolicyInFlight_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Messaging_BindingPolicyInFlight_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_BindingPolicyInFlight_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Messaging_BindingPolicyInFlight_Actor_0());
     }
     ACk_AutoTest_Messaging_MultiListener_Actor Ck_AutoTest_Messaging_MultiListener_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Messaging_MultiListener_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_MultiListener_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Messaging_MultiListener_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_MultiListener_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Messaging_MultiListener_Actor_0());
     }
     ACk_AutoTest_Messaging_MultipleTypes_Actor Ck_AutoTest_Messaging_MultipleTypes_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Messaging_MultipleTypes_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_MultipleTypes_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Messaging_MultipleTypes_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_MultipleTypes_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Messaging_MultipleTypes_Actor_0());
     }
     ACk_AutoTest_Messaging_PostFireUnbind_Actor Ck_AutoTest_Messaging_PostFireUnbind_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Messaging_PostFireUnbind_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_PostFireUnbind_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Messaging_PostFireUnbind_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_PostFireUnbind_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Messaging_PostFireUnbind_Actor_0());
     }
     ACk_AutoTest_Messaging_Unbind_Actor Ck_AutoTest_Messaging_Unbind_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Messaging_Unbind_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_Unbind_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Messaging_Unbind_Actor_0() called before engine init. Use assets::Ck_AutoTest_Messaging_Unbind_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Messaging_Unbind_Actor_0());
     }
     ACk_AutoTest_Nav_PathQueuedDuringBake_Actor Ck_AutoTest_Nav_PathQueuedDuringBake_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Nav_PathQueuedDuringBake_Actor_0() called before engine init. Use assets::Ck_AutoTest_Nav_PathQueuedDuringBake_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Nav_PathQueuedDuringBake_Actor_0() called before engine init. Use assets::Ck_AutoTest_Nav_PathQueuedDuringBake_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Nav_PathQueuedDuringBake_Actor_0());
     }
     ACk_AutoTest_ObjectiveOwner_Add_CreatesFeature_Actor Ck_AutoTest_ObjectiveOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742349679()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_ObjectiveOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742349679() called before engine init. Use assets::Ck_AutoTest_ObjectiveOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742349679() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_ObjectiveOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742349679() called before engine init. Use assets::Ck_AutoTest_ObjectiveOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742349679() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_ObjectiveOwner_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742349679());
     }
     ACk_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_Actor Ck_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351680()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351680() called before engine init. Use assets::Ck_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351680() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351680() called before engine init. Use assets::Ck_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351680() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351680());
     }
     ACk_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_Actor Ck_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351681()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351681() called before engine init. Use assets::Ck_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351681() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351681() called before engine init. Use assets::Ck_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351681() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_Actor_UAID_C87F5401E53527DC02_1742351681());
     }
     ACk_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor Ck_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446931327()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446931327() called before engine init. Use assets::Ck_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446931327() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446931327() called before engine init. Use assets::Ck_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446931327() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446931327());
     }
     ACk_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor Ck_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446933328()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446933328() called before engine init. Use assets::Ck_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446933328() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446933328() called before engine init. Use assets::Ck_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446933328() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446933328());
     }
     ACk_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor Ck_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor_UAID_C87F5401E53525DC02_1446934329()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor_UAID_C87F5401E53525DC02_1446934329() called before engine init. Use assets::Ck_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor_UAID_C87F5401E53525DC02_1446934329() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor_UAID_C87F5401E53525DC02_1446934329() called before engine init. Use assets::Ck_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor_UAID_C87F5401E53525DC02_1446934329() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor_UAID_C87F5401E53525DC02_1446934329());
     }
     ACk_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor Ck_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor_UAID_C87F5401E53525DC02_1446935330()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor_UAID_C87F5401E53525DC02_1446935330() called before engine init. Use assets::Ck_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor_UAID_C87F5401E53525DC02_1446935330() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor_UAID_C87F5401E53525DC02_1446935330() called before engine init. Use assets::Ck_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor_UAID_C87F5401E53525DC02_1446935330() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor_UAID_C87F5401E53525DC02_1446935330());
     }
     ACk_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor Ck_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor_UAID_C87F5401E53525DC02_1446936331()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor_UAID_C87F5401E53525DC02_1446936331() called before engine init. Use assets::Ck_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor_UAID_C87F5401E53525DC02_1446936331() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor_UAID_C87F5401E53525DC02_1446936331() called before engine init. Use assets::Ck_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor_UAID_C87F5401E53525DC02_1446936331() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor_UAID_C87F5401E53525DC02_1446936331());
     }
     ACk_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor Ck_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor_UAID_C87F5401E5352ADC02_2117494208()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor_UAID_C87F5401E5352ADC02_2117494208() called before engine init. Use assets::Ck_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor_UAID_C87F5401E5352ADC02_2117494208() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor_UAID_C87F5401E5352ADC02_2117494208() called before engine init. Use assets::Ck_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor_UAID_C87F5401E5352ADC02_2117494208() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor_UAID_C87F5401E5352ADC02_2117494208());
     }
     ACk_AutoTest_RaySense_Add_CreatesEntity_Actor Ck_AutoTest_RaySense_Add_CreatesEntity_Actor_UAID_C87F5401E53527DC02_1742352682()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_RaySense_Add_CreatesEntity_Actor_UAID_C87F5401E53527DC02_1742352682() called before engine init. Use assets::Ck_AutoTest_RaySense_Add_CreatesEntity_Actor_UAID_C87F5401E53527DC02_1742352682() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_RaySense_Add_CreatesEntity_Actor_UAID_C87F5401E53527DC02_1742352682() called before engine init. Use assets::Ck_AutoTest_RaySense_Add_CreatesEntity_Actor_UAID_C87F5401E53527DC02_1742352682() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_RaySense_Add_CreatesEntity_Actor_UAID_C87F5401E53527DC02_1742352682());
     }
     ACk_AutoTest_Record_AddHasFeature_Actor Ck_AutoTest_Record_AddHasFeature_Actor_UAID_C87F5401E5359DDB02_1135314391()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Record_AddHasFeature_Actor_UAID_C87F5401E5359DDB02_1135314391() called before engine init. Use assets::Ck_AutoTest_Record_AddHasFeature_Actor_UAID_C87F5401E5359DDB02_1135314391() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Record_AddHasFeature_Actor_UAID_C87F5401E5359DDB02_1135314391() called before engine init. Use assets::Ck_AutoTest_Record_AddHasFeature_Actor_UAID_C87F5401E5359DDB02_1135314391() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Record_AddHasFeature_Actor_UAID_C87F5401E5359DDB02_1135314391());
     }
     ACk_AutoTest_Record_ConnectDisconnectRoundTrip_Actor Ck_AutoTest_Record_ConnectDisconnectRoundTrip_Actor_UAID_C87F5401E5359DDB02_1135316392()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Record_ConnectDisconnectRoundTrip_Actor_UAID_C87F5401E5359DDB02_1135316392() called before engine init. Use assets::Ck_AutoTest_Record_ConnectDisconnectRoundTrip_Actor_UAID_C87F5401E5359DDB02_1135316392() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Record_ConnectDisconnectRoundTrip_Actor_UAID_C87F5401E5359DDB02_1135316392() called before engine init. Use assets::Ck_AutoTest_Record_ConnectDisconnectRoundTrip_Actor_UAID_C87F5401E5359DDB02_1135316392() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Record_ConnectDisconnectRoundTrip_Actor_UAID_C87F5401E5359DDB02_1135316392());
     }
     ACk_AutoTest_Record_DestroyEntryPrunesFromRecord_Actor Ck_AutoTest_Record_DestroyEntryPrunesFromRecord_Actor_UAID_C87F5401E5359DDB02_1135317393()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Record_DestroyEntryPrunesFromRecord_Actor_UAID_C87F5401E5359DDB02_1135317393() called before engine init. Use assets::Ck_AutoTest_Record_DestroyEntryPrunesFromRecord_Actor_UAID_C87F5401E5359DDB02_1135317393() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Record_DestroyEntryPrunesFromRecord_Actor_UAID_C87F5401E5359DDB02_1135317393() called before engine init. Use assets::Ck_AutoTest_Record_DestroyEntryPrunesFromRecord_Actor_UAID_C87F5401E5359DDB02_1135317393() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Record_DestroyEntryPrunesFromRecord_Actor_UAID_C87F5401E5359DDB02_1135317393());
     }
     ACk_AutoTest_Record_GetValidEntryByTagFindsLabeled_Actor Ck_AutoTest_Record_GetValidEntryByTagFindsLabeled_Actor_UAID_C87F5401E5359DDB02_1135318394()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Record_GetValidEntryByTagFindsLabeled_Actor_UAID_C87F5401E5359DDB02_1135318394() called before engine init. Use assets::Ck_AutoTest_Record_GetValidEntryByTagFindsLabeled_Actor_UAID_C87F5401E5359DDB02_1135318394() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Record_GetValidEntryByTagFindsLabeled_Actor_UAID_C87F5401E5359DDB02_1135318394() called before engine init. Use assets::Ck_AutoTest_Record_GetValidEntryByTagFindsLabeled_Actor_UAID_C87F5401E5359DDB02_1135318394() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Record_GetValidEntryByTagFindsLabeled_Actor_UAID_C87F5401E5359DDB02_1135318394());
     }
     ACk_AutoTest_Registry_AllocatorStress_Actor Ck_AutoTest_Registry_AllocatorStress_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Registry_AllocatorStress_Actor_0() called before engine init. Use assets::Ck_AutoTest_Registry_AllocatorStress_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Registry_AllocatorStress_Actor_0() called before engine init. Use assets::Ck_AutoTest_Registry_AllocatorStress_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Registry_AllocatorStress_Actor_0());
     }
     ACk_AutoTest_Registry_HandleCopyDestroy_Actor Ck_AutoTest_Registry_HandleCopyDestroy_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Registry_HandleCopyDestroy_Actor_0() called before engine init. Use assets::Ck_AutoTest_Registry_HandleCopyDestroy_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Registry_HandleCopyDestroy_Actor_0() called before engine init. Use assets::Ck_AutoTest_Registry_HandleCopyDestroy_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Registry_HandleCopyDestroy_Actor_0());
     }
     ACk_AutoTest_Registry_HandleInFragmentLifecycle_Actor Ck_AutoTest_Registry_HandleInFragmentLifecycle_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Registry_HandleInFragmentLifecycle_Actor_0() called before engine init. Use assets::Ck_AutoTest_Registry_HandleInFragmentLifecycle_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Registry_HandleInFragmentLifecycle_Actor_0() called before engine init. Use assets::Ck_AutoTest_Registry_HandleInFragmentLifecycle_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Registry_HandleInFragmentLifecycle_Actor_0());
     }
     ACk_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile_Actor Ck_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile_Actor_UAID_C87F5401E535E0DB02_1641446183()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile_Actor_UAID_C87F5401E535E0DB02_1641446183() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile_Actor_UAID_C87F5401E535E0DB02_1641446183() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile_Actor_UAID_C87F5401E535E0DB02_1641446183() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile_Actor_UAID_C87F5401E535E0DB02_1641446183() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile_Actor_UAID_C87F5401E535E0DB02_1641446183());
     }
     ACk_AutoTest_Relationship_AttitudeNoTeamIsNeutral_Actor Ck_AutoTest_Relationship_AttitudeNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641451184()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_AttitudeNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641451184() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641451184() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_AttitudeNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641451184() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641451184() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_AttitudeNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641451184());
     }
     ACk_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral_Actor Ck_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641452185()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641452185() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641452185() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641452185() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641452185() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral_Actor_UAID_C87F5401E535E0DB02_1641452185());
     }
     ACk_AutoTest_Relationship_AttitudeOwnershipChainHostile_Actor Ck_AutoTest_Relationship_AttitudeOwnershipChainHostile_Actor_UAID_C87F5401E535E0DB02_1641452186()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_AttitudeOwnershipChainHostile_Actor_UAID_C87F5401E535E0DB02_1641452186() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeOwnershipChainHostile_Actor_UAID_C87F5401E535E0DB02_1641452186() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_AttitudeOwnershipChainHostile_Actor_UAID_C87F5401E535E0DB02_1641452186() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeOwnershipChainHostile_Actor_UAID_C87F5401E535E0DB02_1641452186() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_AttitudeOwnershipChainHostile_Actor_UAID_C87F5401E535E0DB02_1641452186());
     }
     ACk_AutoTest_Relationship_AttitudeSameTeamIsFriendly_Actor Ck_AutoTest_Relationship_AttitudeSameTeamIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641453187()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_AttitudeSameTeamIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641453187() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeSameTeamIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641453187() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_AttitudeSameTeamIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641453187() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeSameTeamIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641453187() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_AttitudeSameTeamIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641453187());
     }
     ACk_AutoTest_Relationship_AttitudeSelfIsFriendly_Actor Ck_AutoTest_Relationship_AttitudeSelfIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641454188()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_AttitudeSelfIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641454188() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeSelfIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641454188() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_AttitudeSelfIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641454188() called before engine init. Use assets::Ck_AutoTest_Relationship_AttitudeSelfIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641454188() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_AttitudeSelfIsFriendly_Actor_UAID_C87F5401E535E0DB02_1641454188());
     }
     ACk_AutoTest_Relationship_Team_AddDefaultUnassigned_Actor Ck_AutoTest_Relationship_Team_AddDefaultUnassigned_Actor_UAID_C87F5401E535E0DB02_1641454189()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_AddDefaultUnassigned_Actor_UAID_C87F5401E535E0DB02_1641454189() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_AddDefaultUnassigned_Actor_UAID_C87F5401E535E0DB02_1641454189() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_AddDefaultUnassigned_Actor_UAID_C87F5401E535E0DB02_1641454189() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_AddDefaultUnassigned_Actor_UAID_C87F5401E535E0DB02_1641454189() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_AddDefaultUnassigned_Actor_UAID_C87F5401E535E0DB02_1641454189());
     }
     ACk_AutoTest_Relationship_Team_AddHappyPath_Actor Ck_AutoTest_Relationship_Team_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_1641455190()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_1641455190() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_1641455190() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_1641455190() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_1641455190() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_1641455190());
     }
     ACk_AutoTest_Relationship_Team_AssignChanges_Actor Ck_AutoTest_Relationship_Team_AssignChanges_Actor_UAID_C87F5401E535E0DB02_1641455191()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_AssignChanges_Actor_UAID_C87F5401E535E0DB02_1641455191() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_AssignChanges_Actor_UAID_C87F5401E535E0DB02_1641455191() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_AssignChanges_Actor_UAID_C87F5401E535E0DB02_1641455191() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_AssignChanges_Actor_UAID_C87F5401E535E0DB02_1641455191() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_AssignChanges_Actor_UAID_C87F5401E535E0DB02_1641455191());
     }
     ACk_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo_Actor Ck_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456192()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456192() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456192() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456192() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456192() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_AssignShiftsIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456192());
     }
     ACk_AutoTest_Relationship_Team_GetIsAssignedTo_Actor Ck_AutoTest_Relationship_Team_GetIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456193()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_GetIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456193() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_GetIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456193() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_GetIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456193() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_GetIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456193() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_GetIsAssignedTo_Actor_UAID_C87F5401E535E0DB02_1641456193());
     }
     ACk_AutoTest_Relationship_Team_GetIsSame_False_Actor Ck_AutoTest_Relationship_Team_GetIsSame_False_Actor_UAID_C87F5401E535E0DB02_1641457194()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_GetIsSame_False_Actor_UAID_C87F5401E535E0DB02_1641457194() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_GetIsSame_False_Actor_UAID_C87F5401E535E0DB02_1641457194() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_GetIsSame_False_Actor_UAID_C87F5401E535E0DB02_1641457194() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_GetIsSame_False_Actor_UAID_C87F5401E535E0DB02_1641457194() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_GetIsSame_False_Actor_UAID_C87F5401E535E0DB02_1641457194());
     }
     ACk_AutoTest_Relationship_Team_GetIsSame_True_Actor Ck_AutoTest_Relationship_Team_GetIsSame_True_Actor_UAID_C87F5401E535E0DB02_1641458195()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_GetIsSame_True_Actor_UAID_C87F5401E535E0DB02_1641458195() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_GetIsSame_True_Actor_UAID_C87F5401E535E0DB02_1641458195() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_GetIsSame_True_Actor_UAID_C87F5401E535E0DB02_1641458195() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_GetIsSame_True_Actor_UAID_C87F5401E535E0DB02_1641458195() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_GetIsSame_True_Actor_UAID_C87F5401E535E0DB02_1641458195());
     }
     ACk_AutoTest_Relationship_Team_HasFalseBeforeAdd_Actor Ck_AutoTest_Relationship_Team_HasFalseBeforeAdd_Actor_UAID_C87F5401E535E0DB02_1641458196()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_HasFalseBeforeAdd_Actor_UAID_C87F5401E535E0DB02_1641458196() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_HasFalseBeforeAdd_Actor_UAID_C87F5401E535E0DB02_1641458196() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_HasFalseBeforeAdd_Actor_UAID_C87F5401E535E0DB02_1641458196() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_HasFalseBeforeAdd_Actor_UAID_C87F5401E535E0DB02_1641458196() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_HasFalseBeforeAdd_Actor_UAID_C87F5401E535E0DB02_1641458196());
     }
     ACk_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner_Actor Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner_Actor_UAID_C87F5401E535E0DB02_1641459197()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner_Actor_UAID_C87F5401E535E0DB02_1641459197() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner_Actor_UAID_C87F5401E535E0DB02_1641459197() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner_Actor_UAID_C87F5401E535E0DB02_1641459197() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner_Actor_UAID_C87F5401E535E0DB02_1641459197() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner_Actor_UAID_C87F5401E535E0DB02_1641459197());
     }
     ACk_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor_UAID_C87F5401E535E0DB02_1641459198()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor_UAID_C87F5401E535E0DB02_1641459198() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor_UAID_C87F5401E535E0DB02_1641459198() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor_UAID_C87F5401E535E0DB02_1641459198() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor_UAID_C87F5401E535E0DB02_1641459198() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor_UAID_C87F5401E535E0DB02_1641459198());
     }
     ACk_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor Ck_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor_UAID_C87F5401E535E0DB02_1641460199()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor_UAID_C87F5401E535E0DB02_1641460199() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor_UAID_C87F5401E535E0DB02_1641460199() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor_UAID_C87F5401E535E0DB02_1641460199() called before engine init. Use assets::Ck_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor_UAID_C87F5401E535E0DB02_1641460199() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor_UAID_C87F5401E535E0DB02_1641460199());
     }
     ACk_AutoTest_RenderStatus_Add_CreatesFeature_Actor Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857() called before engine init. Use assets::Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857() called before engine init. Use assets::Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857());
     }
     ACk_AutoTest_Resolver_Source_AddHappyPath_Actor Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119() called before engine init. Use assets::Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119() called before engine init. Use assets::Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119());
     }
     ACk_AutoTest_Resolver_Source_CreateHappyPath_Actor Ck_AutoTest_Resolver_Source_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352120()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Resolver_Source_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352120() called before engine init. Use assets::Ck_AutoTest_Resolver_Source_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352120() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Resolver_Source_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352120() called before engine init. Use assets::Ck_AutoTest_Resolver_Source_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352120() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Resolver_Source_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352120());
     }
     ACk_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor Ck_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352121()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352121() called before engine init. Use assets::Ck_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352121() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352121() called before engine init. Use assets::Ck_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352121() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352121());
     }
     ACk_AutoTest_Resolver_Source_ForEachDataBundleEmpty_Actor Ck_AutoTest_Resolver_Source_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470353122()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Resolver_Source_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470353122() called before engine init. Use assets::Ck_AutoTest_Resolver_Source_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470353122() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Resolver_Source_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470353122() called before engine init. Use assets::Ck_AutoTest_Resolver_Source_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470353122() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Resolver_Source_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470353122());
     }
     ACk_AutoTest_Resolver_Source_HasFalseBeforeAdd_Actor Ck_AutoTest_Resolver_Source_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470353123()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Resolver_Source_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470353123() called before engine init. Use assets::Ck_AutoTest_Resolver_Source_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470353123() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Resolver_Source_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470353123() called before engine init. Use assets::Ck_AutoTest_Resolver_Source_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470353123() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Resolver_Source_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470353123());
     }
     ACk_AutoTest_Resolver_Target_AddHappyPath_Actor Ck_AutoTest_Resolver_Target_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354124()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Resolver_Target_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354124() called before engine init. Use assets::Ck_AutoTest_Resolver_Target_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354124() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Resolver_Target_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354124() called before engine init. Use assets::Ck_AutoTest_Resolver_Target_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354124() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Resolver_Target_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354124());
     }
     ACk_AutoTest_Resolver_Target_CreateHappyPath_Actor Ck_AutoTest_Resolver_Target_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354125()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Resolver_Target_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354125() called before engine init. Use assets::Ck_AutoTest_Resolver_Target_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354125() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Resolver_Target_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354125() called before engine init. Use assets::Ck_AutoTest_Resolver_Target_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354125() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Resolver_Target_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470354125());
     }
     ACk_AutoTest_Resolver_Target_CreateTransientHappyPath_Actor Ck_AutoTest_Resolver_Target_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470355126()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Resolver_Target_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470355126() called before engine init. Use assets::Ck_AutoTest_Resolver_Target_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470355126() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Resolver_Target_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470355126() called before engine init. Use assets::Ck_AutoTest_Resolver_Target_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470355126() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Resolver_Target_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470355126());
     }
     ACk_AutoTest_Resolver_Target_ForEachDataBundleEmpty_Actor Ck_AutoTest_Resolver_Target_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470355127()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Resolver_Target_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470355127() called before engine init. Use assets::Ck_AutoTest_Resolver_Target_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470355127() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Resolver_Target_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470355127() called before engine init. Use assets::Ck_AutoTest_Resolver_Target_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470355127() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Resolver_Target_ForEachDataBundleEmpty_Actor_UAID_C87F5401E535EBDB02_1470355127());
     }
     ACk_AutoTest_Resolver_Target_HasFalseBeforeAdd_Actor Ck_AutoTest_Resolver_Target_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470355128()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Resolver_Target_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470355128() called before engine init. Use assets::Ck_AutoTest_Resolver_Target_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470355128() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Resolver_Target_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470355128() called before engine init. Use assets::Ck_AutoTest_Resolver_Target_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470355128() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Resolver_Target_HasFalseBeforeAdd_Actor_UAID_C87F5401E535EBDB02_1470355128());
     }
     ACk_AutoTest_SceneNode_ActorAttachedToActor_Actor Ck_AutoTest_SceneNode_ActorAttachedToActor_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNode_ActorAttachedToActor_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_ActorAttachedToActor_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNode_ActorAttachedToActor_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_ActorAttachedToActor_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNode_ActorAttachedToActor_Actor_0());
     }
     ACk_AutoTest_SceneNode_BareChildOfBareParent_Actor Ck_AutoTest_SceneNode_BareChildOfBareParent_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNode_BareChildOfBareParent_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_BareChildOfBareParent_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNode_BareChildOfBareParent_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_BareChildOfBareParent_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNode_BareChildOfBareParent_Actor_0());
     }
     ACk_AutoTest_SceneNode_DeepHierarchy_Actor Ck_AutoTest_SceneNode_DeepHierarchy_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNode_DeepHierarchy_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_DeepHierarchy_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNode_DeepHierarchy_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_DeepHierarchy_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNode_DeepHierarchy_Actor_0());
     }
     ACk_AutoTest_SceneNode_MeshSocketAnchor_Actor Ck_AutoTest_SceneNode_MeshSocketAnchor_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNode_MeshSocketAnchor_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_MeshSocketAnchor_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNode_MeshSocketAnchor_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_MeshSocketAnchor_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNode_MeshSocketAnchor_Actor_0());
     }
     ACk_AutoTest_SceneNode_MultipleChildren_Actor Ck_AutoTest_SceneNode_MultipleChildren_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNode_MultipleChildren_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_MultipleChildren_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNode_MultipleChildren_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_MultipleChildren_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNode_MultipleChildren_Actor_0());
     }
     ACk_AutoTest_SceneNode_NonUniformScalePropagation_Actor Ck_AutoTest_SceneNode_NonUniformScalePropagation_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNode_NonUniformScalePropagation_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_NonUniformScalePropagation_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNode_NonUniformScalePropagation_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_NonUniformScalePropagation_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNode_NonUniformScalePropagation_Actor_0());
     }
     ACk_AutoTest_SceneNode_OffsetUpdates_Actor Ck_AutoTest_SceneNode_OffsetUpdates_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNode_OffsetUpdates_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_OffsetUpdates_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNode_OffsetUpdates_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_OffsetUpdates_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNode_OffsetUpdates_Actor_0());
     }
     ACk_AutoTest_SceneNode_ParentDestroyCascade_Actor Ck_AutoTest_SceneNode_ParentDestroyCascade_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNode_ParentDestroyCascade_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_ParentDestroyCascade_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNode_ParentDestroyCascade_Actor_0() called before engine init. Use assets::Ck_AutoTest_SceneNode_ParentDestroyCascade_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNode_ParentDestroyCascade_Actor_0());
     }
     ACk_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected_Actor Ck_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554656463()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554656463() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554656463() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554656463() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554656463() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554656463());
     }
     ACk_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected_Actor Ck_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554659464()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554659464() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554659464() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554659464() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554659464() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNodeTween_Depth1_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1554659464());
     }
     ACk_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected_Actor Ck_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1766994463()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1766994463() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1766994463() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1766994463() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1766994463() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNodeTween_Depth4_LeafMatchesExpected_Actor_UAID_C87F5401E535FEDB02_1766994463());
     }
     ACk_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_Actor Ck_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_Actor_UAID_C87F5401E535FEDB02_1923050463()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_Actor_UAID_C87F5401E535FEDB02_1923050463() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_Actor_UAID_C87F5401E535FEDB02_1923050463() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_Actor_UAID_C87F5401E535FEDB02_1923050463() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_Actor_UAID_C87F5401E535FEDB02_1923050463() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNodeTween_NonUniformScalePropagatesToLeaf_Actor_UAID_C87F5401E535FEDB02_1923050463());
     }
     ACk_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_Actor Ck_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_Actor_UAID_C87F5401E535FEDB02_1766996464()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_Actor_UAID_C87F5401E535FEDB02_1766996464() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_Actor_UAID_C87F5401E535FEDB02_1766996464() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_Actor_UAID_C87F5401E535FEDB02_1766996464() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_Actor_UAID_C87F5401E535FEDB02_1766996464() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp_Actor_UAID_C87F5401E535FEDB02_1766996464());
     }
     ACk_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly_Actor Ck_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly_Actor_UAID_C87F5401E535FEDB02_1923052464()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly_Actor_UAID_C87F5401E535FEDB02_1923052464() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly_Actor_UAID_C87F5401E535FEDB02_1923052464() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly_Actor_UAID_C87F5401E535FEDB02_1923052464() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly_Actor_UAID_C87F5401E535FEDB02_1923052464() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNodeTween_RotationTween_OrientsLeafCorrectly_Actor_UAID_C87F5401E535FEDB02_1923052464());
     }
     ACk_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget_Actor Ck_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget_Actor_UAID_C87F5401E535FEDB02_1766996465()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget_Actor_UAID_C87F5401E535FEDB02_1766996465() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget_Actor_UAID_C87F5401E535FEDB02_1766996465() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget_Actor_UAID_C87F5401E535FEDB02_1766996465() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget_Actor_UAID_C87F5401E535FEDB02_1766996465() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNodeTween_TweenCompletes_LeafLandsAtTarget_Actor_UAID_C87F5401E535FEDB02_1766996465());
     }
     ACk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_Actor Ck_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_Actor_UAID_C87F5401E535FEDB02_1766997466()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_Actor_UAID_C87F5401E535FEDB02_1766997466() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_Actor_UAID_C87F5401E535FEDB02_1766997466() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_Actor_UAID_C87F5401E535FEDB02_1766997466() called before engine init. Use assets::Ck_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_Actor_UAID_C87F5401E535FEDB02_1766997466() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth_Actor_UAID_C87F5401E535FEDB02_1766997466());
     }
     ACk_AutoTest_Sfx_Add_CreatesValidHandle_Actor Ck_AutoTest_Sfx_Add_CreatesValidHandle_Actor_UAID_C87F5401E53547DC02_1181366311()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Sfx_Add_CreatesValidHandle_Actor_UAID_C87F5401E53547DC02_1181366311() called before engine init. Use assets::Ck_AutoTest_Sfx_Add_CreatesValidHandle_Actor_UAID_C87F5401E53547DC02_1181366311() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Sfx_Add_CreatesValidHandle_Actor_UAID_C87F5401E53547DC02_1181366311() called before engine init. Use assets::Ck_AutoTest_Sfx_Add_CreatesValidHandle_Actor_UAID_C87F5401E53547DC02_1181366311() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Sfx_Add_CreatesValidHandle_Actor_UAID_C87F5401E53547DC02_1181366311());
     }
     ACk_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_Actor Ck_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_Actor_UAID_C87F5401E53527DC02_1742352683()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_Actor_UAID_C87F5401E53527DC02_1742352683() called before engine init. Use assets::Ck_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_Actor_UAID_C87F5401E53527DC02_1742352683() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_Actor_UAID_C87F5401E53527DC02_1742352683() called before engine init. Use assets::Ck_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_Actor_UAID_C87F5401E53527DC02_1742352683() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_Actor_UAID_C87F5401E53527DC02_1742352683());
     }
     ACk_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_Actor Ck_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_Actor_UAID_C87F5401E53527DC02_1742353684()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_Actor_UAID_C87F5401E53527DC02_1742353684() called before engine init. Use assets::Ck_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_Actor_UAID_C87F5401E53527DC02_1742353684() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_Actor_UAID_C87F5401E53527DC02_1742353684() called before engine init. Use assets::Ck_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_Actor_UAID_C87F5401E53527DC02_1742353684() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_Actor_UAID_C87F5401E53527DC02_1742353684());
     }
     ACk_AutoTest_Shape_Sphere_Add_RoundTripsRadius_Actor Ck_AutoTest_Shape_Sphere_Add_RoundTripsRadius_Actor_UAID_C87F5401E53527DC02_1742353685()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Shape_Sphere_Add_RoundTripsRadius_Actor_UAID_C87F5401E53527DC02_1742353685() called before engine init. Use assets::Ck_AutoTest_Shape_Sphere_Add_RoundTripsRadius_Actor_UAID_C87F5401E53527DC02_1742353685() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Shape_Sphere_Add_RoundTripsRadius_Actor_UAID_C87F5401E53527DC02_1742353685() called before engine init. Use assets::Ck_AutoTest_Shape_Sphere_Add_RoundTripsRadius_Actor_UAID_C87F5401E53527DC02_1742353685() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Shape_Sphere_Add_RoundTripsRadius_Actor_UAID_C87F5401E53527DC02_1742353685());
     }
     ACk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_Actor Ck_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_Actor_UAID_C87F5401E53524DC02_1531828151()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_Actor_UAID_C87F5401E53524DC02_1531828151() called before engine init. Use assets::Ck_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_Actor_UAID_C87F5401E53524DC02_1531828151() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_Actor_UAID_C87F5401E53524DC02_1531828151() called before engine init. Use assets::Ck_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_Actor_UAID_C87F5401E53524DC02_1531828151() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_Actor_UAID_C87F5401E53524DC02_1531828151());
     }
     ACk_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_Actor Ck_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_Actor_UAID_C87F5401E53524DC02_1531831152()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_Actor_UAID_C87F5401E53524DC02_1531831152() called before engine init. Use assets::Ck_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_Actor_UAID_C87F5401E53524DC02_1531831152() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_Actor_UAID_C87F5401E53524DC02_1531831152() called before engine init. Use assets::Ck_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_Actor_UAID_C87F5401E53524DC02_1531831152() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately_Actor_UAID_C87F5401E53524DC02_1531831152());
     }
     ACk_AutoTest_StateMachine_BasicTransition_Actor Ck_AutoTest_StateMachine_BasicTransition_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_BasicTransition_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_BasicTransition_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_BasicTransition_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_BasicTransition_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_BasicTransition_Actor_0());
     }
     ACk_AutoTest_StateMachine_DivergenceFirstBranch_Actor Ck_AutoTest_StateMachine_DivergenceFirstBranch_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_DivergenceFirstBranch_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_DivergenceFirstBranch_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_DivergenceFirstBranch_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_DivergenceFirstBranch_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_DivergenceFirstBranch_Actor_0());
     }
     ACk_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor Ck_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_DivergenceFirstBranchTimed_Actor_0());
     }
     ACk_AutoTest_StateMachine_EventDrivenMultiCondition_Actor Ck_AutoTest_StateMachine_EventDrivenMultiCondition_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_EventDrivenMultiCondition_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_EventDrivenMultiCondition_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_EventDrivenMultiCondition_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_EventDrivenMultiCondition_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_EventDrivenMultiCondition_Actor_0());
     }
     ACk_AutoTest_StateMachine_HierarchicalFirstTransition_Actor Ck_AutoTest_StateMachine_HierarchicalFirstTransition_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_HierarchicalFirstTransition_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_HierarchicalFirstTransition_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_HierarchicalFirstTransition_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_HierarchicalFirstTransition_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_HierarchicalFirstTransition_Actor_0());
+    }
+    ACk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_Actor Ck_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_Actor_UAID_D843AEBAD5E283DF02_1765925050()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_Actor_UAID_D843AEBAD5E283DF02_1765925050() called before engine init. Use assets::Ck_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_Actor_UAID_D843AEBAD5E283DF02_1765925050() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks_Actor_UAID_D843AEBAD5E283DF02_1765925050());
+    }
+    ACk_AutoTest_StateMachine_MultipleTasks_AllSucceed_Actor Ck_AutoTest_StateMachine_MultipleTasks_AllSucceed_Actor_UAID_D843AEBAD5E283DF02_1765928051()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_MultipleTasks_AllSucceed_Actor_UAID_D843AEBAD5E283DF02_1765928051() called before engine init. Use assets::Ck_AutoTest_StateMachine_MultipleTasks_AllSucceed_Actor_UAID_D843AEBAD5E283DF02_1765928051() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_MultipleTasks_AllSucceed_Actor_UAID_D843AEBAD5E283DF02_1765928051());
     }
     ACk_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor Ck_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_NegatedEventDrivenCondition_Actor_0());
+    }
+    ACk_AutoTest_StateMachine_NegatedPolledCondition_Actor Ck_AutoTest_StateMachine_NegatedPolledCondition_Actor_UAID_60CF84A99C2C8DDF02_1934819812()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_NegatedPolledCondition_Actor_UAID_60CF84A99C2C8DDF02_1934819812() called before engine init. Use assets::Ck_AutoTest_StateMachine_NegatedPolledCondition_Actor_UAID_60CF84A99C2C8DDF02_1934819812() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_NegatedPolledCondition_Actor_UAID_60CF84A99C2C8DDF02_1934819812());
     }
     ACk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor Ck_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor_UAID_C87F5401E53523DC02_1356917975()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor_UAID_C87F5401E53523DC02_1356917975() called before engine init. Use assets::Ck_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor_UAID_C87F5401E53523DC02_1356917975() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor_UAID_C87F5401E53523DC02_1356917975() called before engine init. Use assets::Ck_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor_UAID_C87F5401E53523DC02_1356917975() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_NoTransitionAvailable_StaysInState_Actor_UAID_C87F5401E53523DC02_1356917975());
+    }
+    ACk_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_Actor Ck_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_Actor_UAID_60CF84A99C2C8DDF02_1934821813()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_Actor_UAID_60CF84A99C2C8DDF02_1934821813() called before engine init. Use assets::Ck_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_Actor_UAID_60CF84A99C2C8DDF02_1934821813() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged_Actor_UAID_60CF84A99C2C8DDF02_1934821813());
     }
     ACk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor Ck_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor_UAID_C87F5401E535F3DB02_1611806527()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor_UAID_C87F5401E535F3DB02_1611806527() called before engine init. Use assets::Ck_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor_UAID_C87F5401E535F3DB02_1611806527() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor_UAID_C87F5401E535F3DB02_1611806527() called before engine init. Use assets::Ck_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor_UAID_C87F5401E535F3DB02_1611806527() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew_Actor_UAID_C87F5401E535F3DB02_1611806527());
+    }
+    ACk_AutoTest_StateMachine_OverrideState_WithTransitions_Actor Ck_AutoTest_StateMachine_OverrideState_WithTransitions_Actor_UAID_60CF84A99C2C8DDF02_1934823814()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_OverrideState_WithTransitions_Actor_UAID_60CF84A99C2C8DDF02_1934823814() called before engine init. Use assets::Ck_AutoTest_StateMachine_OverrideState_WithTransitions_Actor_UAID_60CF84A99C2C8DDF02_1934823814() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_OverrideState_WithTransitions_Actor_UAID_60CF84A99C2C8DDF02_1934823814());
+    }
+    ACk_AutoTest_StateMachine_PauseResume_Actor Ck_AutoTest_StateMachine_PauseResume_Actor_UAID_D843AEBAD5E283DF02_1765936055()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_PauseResume_Actor_UAID_D843AEBAD5E283DF02_1765936055() called before engine init. Use assets::Ck_AutoTest_StateMachine_PauseResume_Actor_UAID_D843AEBAD5E283DF02_1765936055() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_PauseResume_Actor_UAID_D843AEBAD5E283DF02_1765936055());
+    }
+    ACk_AutoTest_StateMachine_PolledCondition_DrivesTransition_Actor Ck_AutoTest_StateMachine_PolledCondition_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934827816()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_PolledCondition_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934827816() called before engine init. Use assets::Ck_AutoTest_StateMachine_PolledCondition_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934827816() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_PolledCondition_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934827816());
     }
     ACk_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor Ck_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_RacingEventDrivenTransitions_Actor_0());
     }
     ACk_AutoTest_StateMachine_Stop_FiresOnStopped_Actor Ck_AutoTest_StateMachine_Stop_FiresOnStopped_Actor_UAID_C87F5401E535F3DB02_1611809529()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_Stop_FiresOnStopped_Actor_UAID_C87F5401E535F3DB02_1611809529() called before engine init. Use assets::Ck_AutoTest_StateMachine_Stop_FiresOnStopped_Actor_UAID_C87F5401E535F3DB02_1611809529() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_Stop_FiresOnStopped_Actor_UAID_C87F5401E535F3DB02_1611809529() called before engine init. Use assets::Ck_AutoTest_StateMachine_Stop_FiresOnStopped_Actor_UAID_C87F5401E535F3DB02_1611809529() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_Stop_FiresOnStopped_Actor_UAID_C87F5401E535F3DB02_1611809529());
+    }
+    ACk_AutoTest_StateMachine_SubSm_SucceedOnStop_Actor Ck_AutoTest_StateMachine_SubSm_SucceedOnStop_Actor_UAID_D843AEBAD5E283DF02_1765941057()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_SubSm_SucceedOnStop_Actor_UAID_D843AEBAD5E283DF02_1765941057() called before engine init. Use assets::Ck_AutoTest_StateMachine_SubSm_SucceedOnStop_Actor_UAID_D843AEBAD5E283DF02_1765941057() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_SubSm_SucceedOnStop_Actor_UAID_D843AEBAD5E283DF02_1765941057());
+    }
+    ACk_AutoTest_StateMachine_TaskExitOnStop_Actor Ck_AutoTest_StateMachine_TaskExitOnStop_Actor_UAID_60CF84A99C2C8DDF02_1934831818()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_TaskExitOnStop_Actor_UAID_60CF84A99C2C8DDF02_1934831818() called before engine init. Use assets::Ck_AutoTest_StateMachine_TaskExitOnStop_Actor_UAID_60CF84A99C2C8DDF02_1934831818() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_TaskExitOnStop_Actor_UAID_60CF84A99C2C8DDF02_1934831818());
+    }
+    ACk_AutoTest_StateMachine_TaskFailure_NoTransition_Actor Ck_AutoTest_StateMachine_TaskFailure_NoTransition_Actor_UAID_60CF84A99C2C8DDF02_1934833819()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_TaskFailure_NoTransition_Actor_UAID_60CF84A99C2C8DDF02_1934833819() called before engine init. Use assets::Ck_AutoTest_StateMachine_TaskFailure_NoTransition_Actor_UAID_60CF84A99C2C8DDF02_1934833819() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_TaskFailure_NoTransition_Actor_UAID_60CF84A99C2C8DDF02_1934833819());
+    }
+    ACk_AutoTest_StateMachine_TaskResults_AnyFailed_Actor Ck_AutoTest_StateMachine_TaskResults_AnyFailed_Actor_UAID_D843AEBAD5E283DF02_1765950060()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_TaskResults_AnyFailed_Actor_UAID_D843AEBAD5E283DF02_1765950060() called before engine init. Use assets::Ck_AutoTest_StateMachine_TaskResults_AnyFailed_Actor_UAID_D843AEBAD5E283DF02_1765950060() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_TaskResults_AnyFailed_Actor_UAID_D843AEBAD5E283DF02_1765950060());
+    }
+    ACk_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_Actor Ck_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934837821()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934837821() called before engine init. Use assets::Ck_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934837821() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_TaskSucceeds_DrivesTransition_Actor_UAID_60CF84A99C2C8DDF02_1934837821());
     }
     ACk_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor Ck_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_TransitionExitBeforeEnter_Actor_0());
     }
     ACk_AutoTest_StateMachine_TransitionOrdering_Actor Ck_AutoTest_StateMachine_TransitionOrdering_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_StateMachine_TransitionOrdering_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_TransitionOrdering_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_TransitionOrdering_Actor_0() called before engine init. Use assets::Ck_AutoTest_StateMachine_TransitionOrdering_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_TransitionOrdering_Actor_0());
+    }
+    ACk_AutoTest_StateMachine_VacuousTransition_Actor Ck_AutoTest_StateMachine_VacuousTransition_Actor_UAID_60CF84A99C2C8DDF02_1934839822()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_StateMachine_VacuousTransition_Actor_UAID_60CF84A99C2C8DDF02_1934839822() called before engine init. Use assets::Ck_AutoTest_StateMachine_VacuousTransition_Actor_UAID_60CF84A99C2C8DDF02_1934839822() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_StateMachine_VacuousTransition_Actor_UAID_60CF84A99C2C8DDF02_1934839822());
     }
     ACk_AutoTest_Substep_Add_CreatesFeature_Actor Ck_AutoTest_Substep_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742354686()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Substep_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742354686() called before engine init. Use assets::Ck_AutoTest_Substep_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742354686() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Substep_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742354686() called before engine init. Use assets::Ck_AutoTest_Substep_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742354686() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Substep_Add_CreatesFeature_Actor_UAID_C87F5401E53527DC02_1742354686());
     }
     ACk_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor Ck_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647700111()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647700111() called before engine init. Use assets::Ck_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647700111() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647700111() called before engine init. Use assets::Ck_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647700111() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_TagSet_AddDuplicate_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647700111());
     }
     ACk_AutoTest_TagSet_AddInitialAndQuery_Actor Ck_AutoTest_TagSet_AddInitialAndQuery_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_TagSet_AddInitialAndQuery_Actor_0() called before engine init. Use assets::Ck_AutoTest_TagSet_AddInitialAndQuery_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_TagSet_AddInitialAndQuery_Actor_0() called before engine init. Use assets::Ck_AutoTest_TagSet_AddInitialAndQuery_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_TagSet_AddInitialAndQuery_Actor_0());
     }
     ACk_AutoTest_TagSet_ClearAll_FiresSignalOnce_Actor Ck_AutoTest_TagSet_ClearAll_FiresSignalOnce_Actor_UAID_C87F5401E5355BDC02_1594802831()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_TagSet_ClearAll_FiresSignalOnce_Actor_UAID_C87F5401E5355BDC02_1594802831() called before engine init. Use assets::Ck_AutoTest_TagSet_ClearAll_FiresSignalOnce_Actor_UAID_C87F5401E5355BDC02_1594802831() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_TagSet_ClearAll_FiresSignalOnce_Actor_UAID_C87F5401E5355BDC02_1594802831() called before engine init. Use assets::Ck_AutoTest_TagSet_ClearAll_FiresSignalOnce_Actor_UAID_C87F5401E5355BDC02_1594802831() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_TagSet_ClearAll_FiresSignalOnce_Actor_UAID_C87F5401E5355BDC02_1594802831());
     }
     ACk_AutoTest_TagSet_HasTag_HasAny_HasAll_Actor Ck_AutoTest_TagSet_HasTag_HasAny_HasAll_Actor_UAID_C87F5401E535FCDB02_1647701112()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_TagSet_HasTag_HasAny_HasAll_Actor_UAID_C87F5401E535FCDB02_1647701112() called before engine init. Use assets::Ck_AutoTest_TagSet_HasTag_HasAny_HasAll_Actor_UAID_C87F5401E535FCDB02_1647701112() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_TagSet_HasTag_HasAny_HasAll_Actor_UAID_C87F5401E535FCDB02_1647701112() called before engine init. Use assets::Ck_AutoTest_TagSet_HasTag_HasAny_HasAll_Actor_UAID_C87F5401E535FCDB02_1647701112() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_TagSet_HasTag_HasAny_HasAll_Actor_UAID_C87F5401E535FCDB02_1647701112());
     }
     ACk_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent_Actor Ck_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent_Actor_UAID_C87F5401E5355BDC02_1759293831()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent_Actor_UAID_C87F5401E5355BDC02_1759293831() called before engine init. Use assets::Ck_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent_Actor_UAID_C87F5401E5355BDC02_1759293831() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent_Actor_UAID_C87F5401E5355BDC02_1759293831() called before engine init. Use assets::Ck_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent_Actor_UAID_C87F5401E5355BDC02_1759293831() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent_Actor_UAID_C87F5401E5355BDC02_1759293831());
     }
     ACk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_Actor Ck_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_Actor_UAID_C87F5401E5355BDC02_1427463831()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_Actor_UAID_C87F5401E5355BDC02_1427463831() called before engine init. Use assets::Ck_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_Actor_UAID_C87F5401E5355BDC02_1427463831() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_Actor_UAID_C87F5401E5355BDC02_1427463831() called before engine init. Use assets::Ck_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_Actor_UAID_C87F5401E5355BDC02_1427463831() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick_Actor_UAID_C87F5401E5355BDC02_1427463831());
     }
     ACk_AutoTest_TagSet_OnTagsChangedSignal_Actor Ck_AutoTest_TagSet_OnTagsChangedSignal_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_TagSet_OnTagsChangedSignal_Actor_0() called before engine init. Use assets::Ck_AutoTest_TagSet_OnTagsChangedSignal_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_TagSet_OnTagsChangedSignal_Actor_0() called before engine init. Use assets::Ck_AutoTest_TagSet_OnTagsChangedSignal_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_TagSet_OnTagsChangedSignal_Actor_0());
     }
     ACk_AutoTest_TagSet_RemoveAbsent_NoSignalFire_Actor Ck_AutoTest_TagSet_RemoveAbsent_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647702113()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_TagSet_RemoveAbsent_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647702113() called before engine init. Use assets::Ck_AutoTest_TagSet_RemoveAbsent_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647702113() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_TagSet_RemoveAbsent_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647702113() called before engine init. Use assets::Ck_AutoTest_TagSet_RemoveAbsent_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647702113() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_TagSet_RemoveAbsent_NoSignalFire_Actor_UAID_C87F5401E535FCDB02_1647702113());
     }
     ACk_AutoTest_TagSet_RequestAddRemove_Actor Ck_AutoTest_TagSet_RequestAddRemove_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_TagSet_RequestAddRemove_Actor_0() called before engine init. Use assets::Ck_AutoTest_TagSet_RequestAddRemove_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_TagSet_RequestAddRemove_Actor_0() called before engine init. Use assets::Ck_AutoTest_TagSet_RequestAddRemove_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_TagSet_RequestAddRemove_Actor_0());
     }
     ACk_AutoTest_Targeting_CreateFromLocation_Actor Ck_AutoTest_Targeting_CreateFromLocation_Actor_UAID_C87F5401E535DEDB02_1477345831()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Targeting_CreateFromLocation_Actor_UAID_C87F5401E535DEDB02_1477345831() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateFromLocation_Actor_UAID_C87F5401E535DEDB02_1477345831() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Targeting_CreateFromLocation_Actor_UAID_C87F5401E535DEDB02_1477345831() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateFromLocation_Actor_UAID_C87F5401E535DEDB02_1477345831() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Targeting_CreateFromLocation_Actor_UAID_C87F5401E535DEDB02_1477345831());
     }
     ACk_AutoTest_Targeting_CreateFromLocationAndRotation_Actor Ck_AutoTest_Targeting_CreateFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477346832()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Targeting_CreateFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477346832() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477346832() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Targeting_CreateFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477346832() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477346832() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Targeting_CreateFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477346832());
     }
     ACk_AutoTest_Targeting_CreateHappyPath_Actor Ck_AutoTest_Targeting_CreateHappyPath_Actor_UAID_C87F5401E535DEDB02_1477347833()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Targeting_CreateHappyPath_Actor_UAID_C87F5401E535DEDB02_1477347833() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateHappyPath_Actor_UAID_C87F5401E535DEDB02_1477347833() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Targeting_CreateHappyPath_Actor_UAID_C87F5401E535DEDB02_1477347833() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateHappyPath_Actor_UAID_C87F5401E535DEDB02_1477347833() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Targeting_CreateHappyPath_Actor_UAID_C87F5401E535DEDB02_1477347833());
     }
     ACk_AutoTest_Targeting_CreateTransientFromLocation_Actor Ck_AutoTest_Targeting_CreateTransientFromLocation_Actor_UAID_C87F5401E535DEDB02_1477348834()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Targeting_CreateTransientFromLocation_Actor_UAID_C87F5401E535DEDB02_1477348834() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateTransientFromLocation_Actor_UAID_C87F5401E535DEDB02_1477348834() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Targeting_CreateTransientFromLocation_Actor_UAID_C87F5401E535DEDB02_1477348834() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateTransientFromLocation_Actor_UAID_C87F5401E535DEDB02_1477348834() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Targeting_CreateTransientFromLocation_Actor_UAID_C87F5401E535DEDB02_1477348834());
     }
     ACk_AutoTest_Targeting_CreateTransientFromLocationAndRotation_Actor Ck_AutoTest_Targeting_CreateTransientFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477348835()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Targeting_CreateTransientFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477348835() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateTransientFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477348835() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Targeting_CreateTransientFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477348835() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateTransientFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477348835() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Targeting_CreateTransientFromLocationAndRotation_Actor_UAID_C87F5401E535DEDB02_1477348835());
     }
     ACk_AutoTest_Targeting_CreateTransientHappyPath_Actor Ck_AutoTest_Targeting_CreateTransientHappyPath_Actor_UAID_C87F5401E535DEDB02_1477348836()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Targeting_CreateTransientHappyPath_Actor_UAID_C87F5401E535DEDB02_1477348836() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateTransientHappyPath_Actor_UAID_C87F5401E535DEDB02_1477348836() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Targeting_CreateTransientHappyPath_Actor_UAID_C87F5401E535DEDB02_1477348836() called before engine init. Use assets::Ck_AutoTest_Targeting_CreateTransientHappyPath_Actor_UAID_C87F5401E535DEDB02_1477348836() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Targeting_CreateTransientHappyPath_Actor_UAID_C87F5401E535DEDB02_1477348836());
     }
     ACk_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity_Actor Ck_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity_Actor_UAID_C87F5401E535DEDB02_1477349837()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity_Actor_UAID_C87F5401E535DEDB02_1477349837() called before engine init. Use assets::Ck_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity_Actor_UAID_C87F5401E535DEDB02_1477349837() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity_Actor_UAID_C87F5401E535DEDB02_1477349837() called before engine init. Use assets::Ck_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity_Actor_UAID_C87F5401E535DEDB02_1477349837() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity_Actor_UAID_C87F5401E535DEDB02_1477349837());
     }
     ACk_AutoTest_Timer_AddOrReplace_ReplacesExisting_Actor Ck_AutoTest_Timer_AddOrReplace_ReplacesExisting_Actor_UAID_C87F5401E53559DC02_1454610479()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_AddOrReplace_ReplacesExisting_Actor_UAID_C87F5401E53559DC02_1454610479() called before engine init. Use assets::Ck_AutoTest_Timer_AddOrReplace_ReplacesExisting_Actor_UAID_C87F5401E53559DC02_1454610479() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_AddOrReplace_ReplacesExisting_Actor_UAID_C87F5401E53559DC02_1454610479() called before engine init. Use assets::Ck_AutoTest_Timer_AddOrReplace_ReplacesExisting_Actor_UAID_C87F5401E53559DC02_1454610479() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_AddOrReplace_ReplacesExisting_Actor_UAID_C87F5401E53559DC02_1454610479());
     }
     ACk_AutoTest_Timer_BasicCompletion_Actor Ck_AutoTest_Timer_BasicCompletion_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_BasicCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_BasicCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_BasicCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_BasicCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_BasicCompletion_Actor_0());
     }
     ACk_AutoTest_Timer_ChangeCountDirection_Actor Ck_AutoTest_Timer_ChangeCountDirection_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_ChangeCountDirection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_ChangeCountDirection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_ChangeCountDirection_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_ChangeCountDirection_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_ChangeCountDirection_Actor_0());
     }
     ACk_AutoTest_Timer_CountdownCompletion_Actor Ck_AutoTest_Timer_CountdownCompletion_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_CountdownCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_CountdownCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_CountdownCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_CountdownCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_CountdownCompletion_Actor_0());
     }
     ACk_AutoTest_Timer_ForEach_Timer_VisitsAll_Actor Ck_AutoTest_Timer_ForEach_Timer_VisitsAll_Actor_UAID_C87F5401E53559DC02_1239788479()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_ForEach_Timer_VisitsAll_Actor_UAID_C87F5401E53559DC02_1239788479() called before engine init. Use assets::Ck_AutoTest_Timer_ForEach_Timer_VisitsAll_Actor_UAID_C87F5401E53559DC02_1239788479() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_ForEach_Timer_VisitsAll_Actor_UAID_C87F5401E53559DC02_1239788479() called before engine init. Use assets::Ck_AutoTest_Timer_ForEach_Timer_VisitsAll_Actor_UAID_C87F5401E53559DC02_1239788479() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_ForEach_Timer_VisitsAll_Actor_UAID_C87F5401E53559DC02_1239788479());
     }
     ACk_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_Actor Ck_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_Actor_UAID_C87F5401E535F3DB02_1429555527()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_Actor_UAID_C87F5401E535F3DB02_1429555527() called before engine init. Use assets::Ck_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_Actor_UAID_C87F5401E535F3DB02_1429555527() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_Actor_UAID_C87F5401E535F3DB02_1429555527() called before engine init. Use assets::Ck_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_Actor_UAID_C87F5401E535F3DB02_1429555527() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_Get_CurrentTimerValue_DuringPause_Actor_UAID_C87F5401E535F3DB02_1429555527());
     }
     ACk_AutoTest_Timer_Jump_Backward_Actor Ck_AutoTest_Timer_Jump_Backward_Actor_UAID_C87F5401E53558DC02_1854614303()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_Jump_Backward_Actor_UAID_C87F5401E53558DC02_1854614303() called before engine init. Use assets::Ck_AutoTest_Timer_Jump_Backward_Actor_UAID_C87F5401E53558DC02_1854614303() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_Jump_Backward_Actor_UAID_C87F5401E53558DC02_1854614303() called before engine init. Use assets::Ck_AutoTest_Timer_Jump_Backward_Actor_UAID_C87F5401E53558DC02_1854614303() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_Jump_Backward_Actor_UAID_C87F5401E53558DC02_1854614303());
     }
     ACk_AutoTest_Timer_Jump_Forward_Actor Ck_AutoTest_Timer_Jump_Forward_Actor_UAID_C87F5401E535F3DB02_1429557528()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_Jump_Forward_Actor_UAID_C87F5401E535F3DB02_1429557528() called before engine init. Use assets::Ck_AutoTest_Timer_Jump_Forward_Actor_UAID_C87F5401E535F3DB02_1429557528() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_Jump_Forward_Actor_UAID_C87F5401E535F3DB02_1429557528() called before engine init. Use assets::Ck_AutoTest_Timer_Jump_Forward_Actor_UAID_C87F5401E535F3DB02_1429557528() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_Jump_Forward_Actor_UAID_C87F5401E535F3DB02_1429557528());
     }
     ACk_AutoTest_Timer_MultipleConcurrent_Actor Ck_AutoTest_Timer_MultipleConcurrent_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_MultipleConcurrent_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_MultipleConcurrent_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_MultipleConcurrent_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_MultipleConcurrent_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_MultipleConcurrent_Actor_0());
     }
     ACk_AutoTest_Timer_OnDepleted_FiresOnConsume_Actor Ck_AutoTest_Timer_OnDepleted_FiresOnConsume_Actor_UAID_C87F5401E53559DC02_1838451479()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_OnDepleted_FiresOnConsume_Actor_UAID_C87F5401E53559DC02_1838451479() called before engine init. Use assets::Ck_AutoTest_Timer_OnDepleted_FiresOnConsume_Actor_UAID_C87F5401E53559DC02_1838451479() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_OnDepleted_FiresOnConsume_Actor_UAID_C87F5401E53559DC02_1838451479() called before engine init. Use assets::Ck_AutoTest_Timer_OnDepleted_FiresOnConsume_Actor_UAID_C87F5401E53559DC02_1838451479() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_OnDepleted_FiresOnConsume_Actor_UAID_C87F5401E53559DC02_1838451479());
     }
     ACk_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_Actor Ck_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_Actor_UAID_C87F5401E535F3DB02_1429557529()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_Actor_UAID_C87F5401E535F3DB02_1429557529() called before engine init. Use assets::Ck_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_Actor_UAID_C87F5401E535F3DB02_1429557529() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_Actor_UAID_C87F5401E535F3DB02_1429557529() called before engine init. Use assets::Ck_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_Actor_UAID_C87F5401E535F3DB02_1429557529() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_OnUpdate_FiresEveryTickWhileActive_Actor_UAID_C87F5401E535F3DB02_1429557529());
     }
     ACk_AutoTest_Timer_PauseHaltsElapsed_Actor Ck_AutoTest_Timer_PauseHaltsElapsed_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_PauseHaltsElapsed_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_PauseHaltsElapsed_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_PauseHaltsElapsed_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_PauseHaltsElapsed_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_PauseHaltsElapsed_Actor_0());
     }
     ACk_AutoTest_Timer_RequestComplete_Actor Ck_AutoTest_Timer_RequestComplete_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_RequestComplete_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_RequestComplete_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_RequestComplete_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_RequestComplete_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_RequestComplete_Actor_0());
     }
     ACk_AutoTest_Timer_RequestConsume_Actor Ck_AutoTest_Timer_RequestConsume_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_RequestConsume_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_RequestConsume_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_RequestConsume_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_RequestConsume_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_RequestConsume_Actor_0());
     }
     ACk_AutoTest_Timer_ResetMidFlight_Actor Ck_AutoTest_Timer_ResetMidFlight_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_ResetMidFlight_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_ResetMidFlight_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_ResetMidFlight_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_ResetMidFlight_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_ResetMidFlight_Actor_0());
     }
     ACk_AutoTest_Timer_ResetOnDone_Actor Ck_AutoTest_Timer_ResetOnDone_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_ResetOnDone_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_ResetOnDone_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_ResetOnDone_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_ResetOnDone_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_ResetOnDone_Actor_0());
     }
     ACk_AutoTest_Timer_ResumeAfterPause_Actor Ck_AutoTest_Timer_ResumeAfterPause_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_ResumeAfterPause_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_ResumeAfterPause_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_ResumeAfterPause_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_ResumeAfterPause_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_ResumeAfterPause_Actor_0());
     }
     ACk_AutoTest_Timer_ReverseDirection_MidFlight_Actor Ck_AutoTest_Timer_ReverseDirection_MidFlight_Actor_UAID_C87F5401E535F3DB02_1429558530()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_ReverseDirection_MidFlight_Actor_UAID_C87F5401E535F3DB02_1429558530() called before engine init. Use assets::Ck_AutoTest_Timer_ReverseDirection_MidFlight_Actor_UAID_C87F5401E535F3DB02_1429558530() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_ReverseDirection_MidFlight_Actor_UAID_C87F5401E535F3DB02_1429558530() called before engine init. Use assets::Ck_AutoTest_Timer_ReverseDirection_MidFlight_Actor_UAID_C87F5401E535F3DB02_1429558530() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_ReverseDirection_MidFlight_Actor_UAID_C87F5401E535F3DB02_1429558530());
     }
     ACk_AutoTest_Timer_StopOnDone_Actor Ck_AutoTest_Timer_StopOnDone_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_StopOnDone_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_StopOnDone_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_StopOnDone_Actor_0() called before engine init. Use assets::Ck_AutoTest_Timer_StopOnDone_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_StopOnDone_Actor_0());
     }
     ACk_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple_Actor Ck_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple_Actor_UAID_C87F5401E535F3DB02_1429558531()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple_Actor_UAID_C87F5401E535F3DB02_1429558531() called before engine init. Use assets::Ck_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple_Actor_UAID_C87F5401E535F3DB02_1429558531() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple_Actor_UAID_C87F5401E535F3DB02_1429558531() called before engine init. Use assets::Ck_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple_Actor_UAID_C87F5401E535F3DB02_1429558531() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple_Actor_UAID_C87F5401E535F3DB02_1429558531());
     }
     ACk_AutoTest_Transform_AddInitial_Actor Ck_AutoTest_Transform_AddInitial_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Transform_AddInitial_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_AddInitial_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Transform_AddInitial_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_AddInitial_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Transform_AddInitial_Actor_0());
     }
     ACk_AutoTest_Transform_AddLocationOffset_Actor Ck_AutoTest_Transform_AddLocationOffset_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Transform_AddLocationOffset_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_AddLocationOffset_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Transform_AddLocationOffset_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_AddLocationOffset_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Transform_AddLocationOffset_Actor_0());
     }
     ACk_AutoTest_Transform_ForceRefreshRebroadcasts_Actor Ck_AutoTest_Transform_ForceRefreshRebroadcasts_Actor_UAID_C87F5401E5359EDB02_1433251567()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Transform_ForceRefreshRebroadcasts_Actor_UAID_C87F5401E5359EDB02_1433251567() called before engine init. Use assets::Ck_AutoTest_Transform_ForceRefreshRebroadcasts_Actor_UAID_C87F5401E5359EDB02_1433251567() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Transform_ForceRefreshRebroadcasts_Actor_UAID_C87F5401E5359EDB02_1433251567() called before engine init. Use assets::Ck_AutoTest_Transform_ForceRefreshRebroadcasts_Actor_UAID_C87F5401E5359EDB02_1433251567() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Transform_ForceRefreshRebroadcasts_Actor_UAID_C87F5401E5359EDB02_1433251567());
     }
     ACk_AutoTest_Transform_OnUpdateFires_Actor Ck_AutoTest_Transform_OnUpdateFires_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Transform_OnUpdateFires_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_OnUpdateFires_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Transform_OnUpdateFires_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_OnUpdateFires_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Transform_OnUpdateFires_Actor_0());
     }
     ACk_AutoTest_Transform_SetLocation_Actor Ck_AutoTest_Transform_SetLocation_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Transform_SetLocation_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_SetLocation_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Transform_SetLocation_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_SetLocation_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Transform_SetLocation_Actor_0());
     }
     ACk_AutoTest_Transform_SetLocationAndRotationAtomic_Actor Ck_AutoTest_Transform_SetLocationAndRotationAtomic_Actor_UAID_C87F5401E5359EDB02_1433254568()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Transform_SetLocationAndRotationAtomic_Actor_UAID_C87F5401E5359EDB02_1433254568() called before engine init. Use assets::Ck_AutoTest_Transform_SetLocationAndRotationAtomic_Actor_UAID_C87F5401E5359EDB02_1433254568() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Transform_SetLocationAndRotationAtomic_Actor_UAID_C87F5401E5359EDB02_1433254568() called before engine init. Use assets::Ck_AutoTest_Transform_SetLocationAndRotationAtomic_Actor_UAID_C87F5401E5359EDB02_1433254568() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Transform_SetLocationAndRotationAtomic_Actor_UAID_C87F5401E5359EDB02_1433254568());
     }
     ACk_AutoTest_Transform_SetRotation_Actor Ck_AutoTest_Transform_SetRotation_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Transform_SetRotation_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_SetRotation_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Transform_SetRotation_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_SetRotation_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Transform_SetRotation_Actor_0());
     }
     ACk_AutoTest_Transform_SetScale_Actor Ck_AutoTest_Transform_SetScale_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Transform_SetScale_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_SetScale_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Transform_SetScale_Actor_0() called before engine init. Use assets::Ck_AutoTest_Transform_SetScale_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Transform_SetScale_Actor_0());
     }
     ACk_AutoTest_TransformInterpolation_LocationLerps_Actor Ck_AutoTest_TransformInterpolation_LocationLerps_Actor_UAID_C87F5401E5359EDB02_1433255569()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_TransformInterpolation_LocationLerps_Actor_UAID_C87F5401E5359EDB02_1433255569() called before engine init. Use assets::Ck_AutoTest_TransformInterpolation_LocationLerps_Actor_UAID_C87F5401E5359EDB02_1433255569() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_TransformInterpolation_LocationLerps_Actor_UAID_C87F5401E5359EDB02_1433255569() called before engine init. Use assets::Ck_AutoTest_TransformInterpolation_LocationLerps_Actor_UAID_C87F5401E5359EDB02_1433255569() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_TransformInterpolation_LocationLerps_Actor_UAID_C87F5401E5359EDB02_1433255569());
     }
     ACk_AutoTest_Tween_CompletionBehavior_KeepEntity_Actor Ck_AutoTest_Tween_CompletionBehavior_KeepEntity_Actor_UAID_C87F5401E535F5DB02_1367558879()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_CompletionBehavior_KeepEntity_Actor_UAID_C87F5401E535F5DB02_1367558879() called before engine init. Use assets::Ck_AutoTest_Tween_CompletionBehavior_KeepEntity_Actor_UAID_C87F5401E535F5DB02_1367558879() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_CompletionBehavior_KeepEntity_Actor_UAID_C87F5401E535F5DB02_1367558879() called before engine init. Use assets::Ck_AutoTest_Tween_CompletionBehavior_KeepEntity_Actor_UAID_C87F5401E535F5DB02_1367558879() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_CompletionBehavior_KeepEntity_Actor_UAID_C87F5401E535F5DB02_1367558879());
     }
     ACk_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor Ck_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor_UAID_C87F5401E535F5DB02_1367560880()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor_UAID_C87F5401E535F5DB02_1367560880() called before engine init. Use assets::Ck_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor_UAID_C87F5401E535F5DB02_1367560880() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor_UAID_C87F5401E535F5DB02_1367560880() called before engine init. Use assets::Ck_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor_UAID_C87F5401E535F5DB02_1367560880() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_EasingCurve_OutCubic_VsLinear_Actor_UAID_C87F5401E535F5DB02_1367560880());
     }
     ACk_AutoTest_Tween_FloatCompletion_Actor Ck_AutoTest_Tween_FloatCompletion_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_FloatCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_FloatCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_FloatCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_FloatCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_FloatCompletion_Actor_0());
     }
     ACk_AutoTest_Tween_FloatUpdateCallback_Actor Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_FloatUpdateCallback_Actor_0());
     }
     ACk_AutoTest_Tween_FollowSpline_Actor Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311() called before engine init. Use assets::Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311() called before engine init. Use assets::Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_FollowSpline_Actor_UAID_60CF84A99C2C41DD02_1556555311());
     }
     ACk_AutoTest_Tween_LinearColorCompletion_Actor Ck_AutoTest_Tween_LinearColorCompletion_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_LinearColorCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_LinearColorCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_LinearColorCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_LinearColorCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_LinearColorCompletion_Actor_0());
     }
     ACk_AutoTest_Tween_LoopCount_Finite_Actor Ck_AutoTest_Tween_LoopCount_Finite_Actor_UAID_C87F5401E535F9DB02_1534826583()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_LoopCount_Finite_Actor_UAID_C87F5401E535F9DB02_1534826583() called before engine init. Use assets::Ck_AutoTest_Tween_LoopCount_Finite_Actor_UAID_C87F5401E535F9DB02_1534826583() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_LoopCount_Finite_Actor_UAID_C87F5401E535F9DB02_1534826583() called before engine init. Use assets::Ck_AutoTest_Tween_LoopCount_Finite_Actor_UAID_C87F5401E535F9DB02_1534826583() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_LoopCount_Finite_Actor_UAID_C87F5401E535F9DB02_1534826583());
     }
     ACk_AutoTest_Tween_LoopRestart_Actor Ck_AutoTest_Tween_LoopRestart_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_LoopRestart_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_LoopRestart_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_LoopRestart_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_LoopRestart_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_LoopRestart_Actor_0());
     }
     ACk_AutoTest_Tween_RotatorCompletion_Actor Ck_AutoTest_Tween_RotatorCompletion_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_RotatorCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_RotatorCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_RotatorCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_RotatorCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_RotatorCompletion_Actor_0());
     }
     ACk_AutoTest_Tween_SelfDestructOnComplete_Actor Ck_AutoTest_Tween_SelfDestructOnComplete_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_SelfDestructOnComplete_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_SelfDestructOnComplete_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_SelfDestructOnComplete_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_SelfDestructOnComplete_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_SelfDestructOnComplete_Actor_0());
     }
     ACk_AutoTest_Tween_VectorCompletion_Actor Ck_AutoTest_Tween_VectorCompletion_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_VectorCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_VectorCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_VectorCompletion_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_VectorCompletion_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_VectorCompletion_Actor_0());
     }
     ACk_AutoTest_Tween_YoyoLoop_Actor Ck_AutoTest_Tween_YoyoLoop_Actor_0()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Tween_YoyoLoop_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_YoyoLoop_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Tween_YoyoLoop_Actor_0() called before engine init. Use assets::Ck_AutoTest_Tween_YoyoLoop_Actor_0() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Tween_YoyoLoop_Actor_0());
     }
     ACk_AutoTest_UnrealComponent_AddHappyPath_Actor Ck_AutoTest_UnrealComponent_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_2142580183()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_UnrealComponent_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_2142580183() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_2142580183() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UnrealComponent_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_2142580183() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_2142580183() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_UnrealComponent_AddHappyPath_Actor_UAID_C87F5401E535E0DB02_2142580183());
     }
     ACk_AutoTest_UnrealComponent_GetAllComponentsListsAdded_Actor Ck_AutoTest_UnrealComponent_GetAllComponentsListsAdded_Actor_UAID_C87F5401E535E0DB02_2142581184()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_UnrealComponent_GetAllComponentsListsAdded_Actor_UAID_C87F5401E535E0DB02_2142581184() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_GetAllComponentsListsAdded_Actor_UAID_C87F5401E535E0DB02_2142581184() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UnrealComponent_GetAllComponentsListsAdded_Actor_UAID_C87F5401E535E0DB02_2142581184() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_GetAllComponentsListsAdded_Actor_UAID_C87F5401E535E0DB02_2142581184() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_UnrealComponent_GetAllComponentsListsAdded_Actor_UAID_C87F5401E535E0DB02_2142581184());
     }
     ACk_AutoTest_UnrealComponent_GetAllHandlesListsAdded_Actor Ck_AutoTest_UnrealComponent_GetAllHandlesListsAdded_Actor_UAID_C87F5401E535E0DB02_2142583185()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_UnrealComponent_GetAllHandlesListsAdded_Actor_UAID_C87F5401E535E0DB02_2142583185() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_GetAllHandlesListsAdded_Actor_UAID_C87F5401E535E0DB02_2142583185() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UnrealComponent_GetAllHandlesListsAdded_Actor_UAID_C87F5401E535E0DB02_2142583185() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_GetAllHandlesListsAdded_Actor_UAID_C87F5401E535E0DB02_2142583185() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_UnrealComponent_GetAllHandlesListsAdded_Actor_UAID_C87F5401E535E0DB02_2142583185());
     }
     ACk_AutoTest_UnrealComponent_GetOwningEntity_Actor Ck_AutoTest_UnrealComponent_GetOwningEntity_Actor_UAID_C87F5401E535E0DB02_2142583186()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_UnrealComponent_GetOwningEntity_Actor_UAID_C87F5401E535E0DB02_2142583186() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_GetOwningEntity_Actor_UAID_C87F5401E535E0DB02_2142583186() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UnrealComponent_GetOwningEntity_Actor_UAID_C87F5401E535E0DB02_2142583186() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_GetOwningEntity_Actor_UAID_C87F5401E535E0DB02_2142583186() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_UnrealComponent_GetOwningEntity_Actor_UAID_C87F5401E535E0DB02_2142583186());
     }
     ACk_AutoTest_UnrealComponent_RequestRemoveAfterFrame_Actor Ck_AutoTest_UnrealComponent_RequestRemoveAfterFrame_Actor_UAID_C87F5401E535E0DB02_2142584187()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_UnrealComponent_RequestRemoveAfterFrame_Actor_UAID_C87F5401E535E0DB02_2142584187() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_RequestRemoveAfterFrame_Actor_UAID_C87F5401E535E0DB02_2142584187() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UnrealComponent_RequestRemoveAfterFrame_Actor_UAID_C87F5401E535E0DB02_2142584187() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_RequestRemoveAfterFrame_Actor_UAID_C87F5401E535E0DB02_2142584187() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_UnrealComponent_RequestRemoveAfterFrame_Actor_UAID_C87F5401E535E0DB02_2142584187());
     }
     ACk_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor Ck_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor_UAID_C87F5401E535E0DB02_2142584188()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor_UAID_C87F5401E535E0DB02_2142584188() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor_UAID_C87F5401E535E0DB02_2142584188() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor_UAID_C87F5401E535E0DB02_2142584188() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor_UAID_C87F5401E535E0DB02_2142584188() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor_UAID_C87F5401E535E0DB02_2142584188());
     }
     ACk_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor Ck_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor_UAID_C87F5401E535E0DB02_2142585189()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor_UAID_C87F5401E535E0DB02_2142585189() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor_UAID_C87F5401E535E0DB02_2142585189() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor_UAID_C87F5401E535E0DB02_2142585189() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor_UAID_C87F5401E535E0DB02_2142585189() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor_UAID_C87F5401E535E0DB02_2142585189());
     }
     ACk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor Ck_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor_UAID_C87F5401E535E0DB02_2142585190()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor_UAID_C87F5401E535E0DB02_2142585190() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor_UAID_C87F5401E535E0DB02_2142585190() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor_UAID_C87F5401E535E0DB02_2142585190() called before engine init. Use assets::Ck_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor_UAID_C87F5401E535E0DB02_2142585190() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor_UAID_C87F5401E535E0DB02_2142585190());
     }
     ACk_AutoTest_Variables_Bool_SetGetRoundTrip_Actor Ck_AutoTest_Variables_Bool_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522151359()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Variables_Bool_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522151359() called before engine init. Use assets::Ck_AutoTest_Variables_Bool_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522151359() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Variables_Bool_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522151359() called before engine init. Use assets::Ck_AutoTest_Variables_Bool_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522151359() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Variables_Bool_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522151359());
     }
     ACk_AutoTest_Variables_Float_SetGetRoundTrip_Actor Ck_AutoTest_Variables_Float_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522153360()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Variables_Float_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522153360() called before engine init. Use assets::Ck_AutoTest_Variables_Float_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522153360() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Variables_Float_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522153360() called before engine init. Use assets::Ck_AutoTest_Variables_Float_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522153360() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Variables_Float_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522153360());
     }
     ACk_AutoTest_Variables_GameplayTag_SetGetRoundTrip_Actor Ck_AutoTest_Variables_GameplayTag_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154361()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Variables_GameplayTag_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154361() called before engine init. Use assets::Ck_AutoTest_Variables_GameplayTag_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154361() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Variables_GameplayTag_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154361() called before engine init. Use assets::Ck_AutoTest_Variables_GameplayTag_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154361() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Variables_GameplayTag_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154361());
     }
     ACk_AutoTest_Variables_Int32_SetGetRoundTrip_Actor Ck_AutoTest_Variables_Int32_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154362()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Variables_Int32_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154362() called before engine init. Use assets::Ck_AutoTest_Variables_Int32_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154362() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Variables_Int32_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154362() called before engine init. Use assets::Ck_AutoTest_Variables_Int32_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154362() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Variables_Int32_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522154362());
     }
     ACk_AutoTest_Variables_SetOverwritesPrior_Actor Ck_AutoTest_Variables_SetOverwritesPrior_Actor_UAID_C87F5401E535E1DB02_1522155363()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Variables_SetOverwritesPrior_Actor_UAID_C87F5401E535E1DB02_1522155363() called before engine init. Use assets::Ck_AutoTest_Variables_SetOverwritesPrior_Actor_UAID_C87F5401E535E1DB02_1522155363() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Variables_SetOverwritesPrior_Actor_UAID_C87F5401E535E1DB02_1522155363() called before engine init. Use assets::Ck_AutoTest_Variables_SetOverwritesPrior_Actor_UAID_C87F5401E535E1DB02_1522155363() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Variables_SetOverwritesPrior_Actor_UAID_C87F5401E535E1DB02_1522155363());
     }
     ACk_AutoTest_Variables_String_SetGetRoundTrip_Actor Ck_AutoTest_Variables_String_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522155364()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Variables_String_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522155364() called before engine init. Use assets::Ck_AutoTest_Variables_String_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522155364() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Variables_String_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522155364() called before engine init. Use assets::Ck_AutoTest_Variables_String_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522155364() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Variables_String_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522155364());
     }
     ACk_AutoTest_Variables_Vector_SetGetRoundTrip_Actor Ck_AutoTest_Variables_Vector_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522156365()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Ck_AutoTest_Variables_Vector_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522156365() called before engine init. Use assets::Ck_AutoTest_Variables_Vector_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522156365() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Variables_Vector_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522156365() called before engine init. Use assets::Ck_AutoTest_Variables_Vector_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522156365() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Variables_Vector_SetGetRoundTrip_Actor_UAID_C87F5401E535E1DB02_1522156365());
     }
     ANavMeshBoundsVolume NavMeshBoundsVolume_1()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::NavMeshBoundsVolume_1() called before engine init. Use assets::NavMeshBoundsVolume_1() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::NavMeshBoundsVolume_1() called before engine init. Use assets::NavMeshBoundsVolume_1() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::NavMeshBoundsVolume_1());
     }
     ARecastNavMesh RecastNavMeshDefault()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::RecastNavMeshDefault() called before engine init. Use assets::RecastNavMeshDefault() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::RecastNavMeshDefault() called before engine init. Use assets::RecastNavMeshDefault() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::RecastNavMeshDefault());
     }
     AStaticMeshActor StaticMeshActor_1()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::StaticMeshActor_1() called before engine init. Use assets::StaticMeshActor_1() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::StaticMeshActor_1() called before engine init. Use assets::StaticMeshActor_1() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::StaticMeshActor_1());
     }
     UAnimInstance ABP_Unarmed()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::ABP_Unarmed() called before engine init. Use assets::ABP_Unarmed() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::ABP_Unarmed() called before engine init. Use assets::ABP_Unarmed() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::ABP_Unarmed());
     }
     TSubclassOf<UAnimInstance> ABP_Unarmed_Class()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::ABP_Unarmed_Class() called before engine init. Use assets::ABP_Unarmed_Class() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::ABP_Unarmed_Class() called before engine init. Use assets::ABP_Unarmed_Class() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadClassAsset_Blocking(assets::ABP_Unarmed_Class());
     }
     UAnimMontage AM_NotifyTest()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::AM_NotifyTest() called before engine init. Use assets::AM_NotifyTest() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::AM_NotifyTest() called before engine init. Use assets::AM_NotifyTest() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::AM_NotifyTest());
     }
     UAnimSequence MF_Unarmed_Jog_Bwd()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Jog_Bwd() called before engine init. Use assets::MF_Unarmed_Jog_Bwd() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Jog_Bwd() called before engine init. Use assets::MF_Unarmed_Jog_Bwd() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Jog_Bwd());
     }
     UAnimSequence MF_Unarmed_Jog_Bwd_Left()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Jog_Bwd_Left() called before engine init. Use assets::MF_Unarmed_Jog_Bwd_Left() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Jog_Bwd_Left() called before engine init. Use assets::MF_Unarmed_Jog_Bwd_Left() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Jog_Bwd_Left());
     }
     UAnimSequence MF_Unarmed_Jog_Bwd_Right()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Jog_Bwd_Right() called before engine init. Use assets::MF_Unarmed_Jog_Bwd_Right() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Jog_Bwd_Right() called before engine init. Use assets::MF_Unarmed_Jog_Bwd_Right() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Jog_Bwd_Right());
     }
     UAnimSequence MF_Unarmed_Jog_Fwd()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Jog_Fwd() called before engine init. Use assets::MF_Unarmed_Jog_Fwd() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Jog_Fwd() called before engine init. Use assets::MF_Unarmed_Jog_Fwd() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Jog_Fwd());
     }
     UAnimSequence MF_Unarmed_Jog_Fwd_Left()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Jog_Fwd_Left() called before engine init. Use assets::MF_Unarmed_Jog_Fwd_Left() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Jog_Fwd_Left() called before engine init. Use assets::MF_Unarmed_Jog_Fwd_Left() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Jog_Fwd_Left());
     }
     UAnimSequence MF_Unarmed_Jog_Fwd_Right()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Jog_Fwd_Right() called before engine init. Use assets::MF_Unarmed_Jog_Fwd_Right() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Jog_Fwd_Right() called before engine init. Use assets::MF_Unarmed_Jog_Fwd_Right() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Jog_Fwd_Right());
     }
     UAnimSequence MF_Unarmed_Jog_Left()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Jog_Left() called before engine init. Use assets::MF_Unarmed_Jog_Left() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Jog_Left() called before engine init. Use assets::MF_Unarmed_Jog_Left() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Jog_Left());
     }
     UAnimSequence MF_Unarmed_Jog_Right()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Jog_Right() called before engine init. Use assets::MF_Unarmed_Jog_Right() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Jog_Right() called before engine init. Use assets::MF_Unarmed_Jog_Right() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Jog_Right());
     }
     UAnimSequence MF_Unarmed_Walk_Bwd()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Walk_Bwd() called before engine init. Use assets::MF_Unarmed_Walk_Bwd() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Walk_Bwd() called before engine init. Use assets::MF_Unarmed_Walk_Bwd() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Walk_Bwd());
     }
     UAnimSequence MF_Unarmed_Walk_Bwd_Left()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Walk_Bwd_Left() called before engine init. Use assets::MF_Unarmed_Walk_Bwd_Left() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Walk_Bwd_Left() called before engine init. Use assets::MF_Unarmed_Walk_Bwd_Left() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Walk_Bwd_Left());
     }
     UAnimSequence MF_Unarmed_Walk_Bwd_Right()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Walk_Bwd_Right() called before engine init. Use assets::MF_Unarmed_Walk_Bwd_Right() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Walk_Bwd_Right() called before engine init. Use assets::MF_Unarmed_Walk_Bwd_Right() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Walk_Bwd_Right());
     }
     UAnimSequence MF_Unarmed_Walk_Fwd()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Walk_Fwd() called before engine init. Use assets::MF_Unarmed_Walk_Fwd() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Walk_Fwd() called before engine init. Use assets::MF_Unarmed_Walk_Fwd() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Walk_Fwd());
     }
     UAnimSequence MF_Unarmed_Walk_Fwd_Left()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Walk_Fwd_Left() called before engine init. Use assets::MF_Unarmed_Walk_Fwd_Left() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Walk_Fwd_Left() called before engine init. Use assets::MF_Unarmed_Walk_Fwd_Left() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Walk_Fwd_Left());
     }
     UAnimSequence MF_Unarmed_Walk_Fwd_Right()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Walk_Fwd_Right() called before engine init. Use assets::MF_Unarmed_Walk_Fwd_Right() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Walk_Fwd_Right() called before engine init. Use assets::MF_Unarmed_Walk_Fwd_Right() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Walk_Fwd_Right());
     }
     UAnimSequence MF_Unarmed_Walk_Left()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Walk_Left() called before engine init. Use assets::MF_Unarmed_Walk_Left() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Walk_Left() called before engine init. Use assets::MF_Unarmed_Walk_Left() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Walk_Left());
     }
     UAnimSequence MF_Unarmed_Walk_Right()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MF_Unarmed_Walk_Right() called before engine init. Use assets::MF_Unarmed_Walk_Right() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MF_Unarmed_Walk_Right() called before engine init. Use assets::MF_Unarmed_Walk_Right() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MF_Unarmed_Walk_Right());
     }
     UAnimSequence MM_ChargedAttack()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MM_ChargedAttack() called before engine init. Use assets::MM_ChargedAttack() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MM_ChargedAttack() called before engine init. Use assets::MM_ChargedAttack() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MM_ChargedAttack());
     }
     UAnimSequence MM_Death_Front_01()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MM_Death_Front_01() called before engine init. Use assets::MM_Death_Front_01() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MM_Death_Front_01() called before engine init. Use assets::MM_Death_Front_01() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MM_Death_Front_01());
     }
     UAnimSequence MM_Fall_Loop()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MM_Fall_Loop() called before engine init. Use assets::MM_Fall_Loop() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MM_Fall_Loop() called before engine init. Use assets::MM_Fall_Loop() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MM_Fall_Loop());
     }
     UAnimSequence MM_Idle()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MM_Idle() called before engine init. Use assets::MM_Idle() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MM_Idle() called before engine init. Use assets::MM_Idle() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MM_Idle());
     }
     UAnimSequence MM_Jump()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MM_Jump() called before engine init. Use assets::MM_Jump() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MM_Jump() called before engine init. Use assets::MM_Jump() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MM_Jump());
     }
     UAnimSequence MM_Land()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MM_Land() called before engine init. Use assets::MM_Land() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MM_Land() called before engine init. Use assets::MM_Land() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MM_Land());
     }
     UBlendSpace BS_Idle_Walk_Run()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::BS_Idle_Walk_Run() called before engine init. Use assets::BS_Idle_Walk_Run() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::BS_Idle_Walk_Run() called before engine init. Use assets::BS_Idle_Walk_Run() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::BS_Idle_Walk_Run());
     }
     UControlRig CR_Mannequin_Body()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::CR_Mannequin_Body() called before engine init. Use assets::CR_Mannequin_Body() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::CR_Mannequin_Body() called before engine init. Use assets::CR_Mannequin_Body() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::CR_Mannequin_Body());
     }
     TSubclassOf<UControlRig> CR_Mannequin_Body_Class()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::CR_Mannequin_Body_Class() called before engine init. Use assets::CR_Mannequin_Body_Class() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::CR_Mannequin_Body_Class() called before engine init. Use assets::CR_Mannequin_Body_Class() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadClassAsset_Blocking(assets::CR_Mannequin_Body_Class());
     }
     UControlRig CR_Mannequin_FootIK()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::CR_Mannequin_FootIK() called before engine init. Use assets::CR_Mannequin_FootIK() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::CR_Mannequin_FootIK() called before engine init. Use assets::CR_Mannequin_FootIK() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::CR_Mannequin_FootIK());
     }
     TSubclassOf<UControlRig> CR_Mannequin_FootIK_Class()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::CR_Mannequin_FootIK_Class() called before engine init. Use assets::CR_Mannequin_FootIK_Class() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::CR_Mannequin_FootIK_Class() called before engine init. Use assets::CR_Mannequin_FootIK_Class() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadClassAsset_Blocking(assets::CR_Mannequin_FootIK_Class());
     }
     UControlRig CR_Mannequin_Procedural()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::CR_Mannequin_Procedural() called before engine init. Use assets::CR_Mannequin_Procedural() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::CR_Mannequin_Procedural() called before engine init. Use assets::CR_Mannequin_Procedural() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::CR_Mannequin_Procedural());
     }
     TSubclassOf<UControlRig> CR_Mannequin_Procedural_Class()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::CR_Mannequin_Procedural_Class() called before engine init. Use assets::CR_Mannequin_Procedural_Class() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::CR_Mannequin_Procedural_Class() called before engine init. Use assets::CR_Mannequin_Procedural_Class() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadClassAsset_Blocking(assets::CR_Mannequin_Procedural_Class());
     }
     UDataTable DT_Colourways()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::DT_Colourways() called before engine init. Use assets::DT_Colourways() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::DT_Colourways() called before engine init. Use assets::DT_Colourways() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::DT_Colourways());
     }
     UMaterial M_DefaultMaterial()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::M_DefaultMaterial() called before engine init. Use assets::M_DefaultMaterial() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::M_DefaultMaterial() called before engine init. Use assets::M_DefaultMaterial() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::M_DefaultMaterial());
     }
     UMaterial M_Glow()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::M_Glow() called before engine init. Use assets::M_Glow() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::M_Glow() called before engine init. Use assets::M_Glow() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::M_Glow());
     }
     UMaterial M_Mannequin()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::M_Mannequin() called before engine init. Use assets::M_Mannequin() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::M_Mannequin() called before engine init. Use assets::M_Mannequin() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::M_Mannequin());
     }
     UMaterialInstanceConstant M_PanelCenterDefault()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::M_PanelCenterDefault() called before engine init. Use assets::M_PanelCenterDefault() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::M_PanelCenterDefault() called before engine init. Use assets::M_PanelCenterDefault() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::M_PanelCenterDefault());
     }
     UMaterialInstanceConstant M_PanelCornerDefault()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::M_PanelCornerDefault() called before engine init. Use assets::M_PanelCornerDefault() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::M_PanelCornerDefault() called before engine init. Use assets::M_PanelCornerDefault() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::M_PanelCornerDefault());
     }
     UMaterialInstanceConstant MI_Manny_01_New()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MI_Manny_01_New() called before engine init. Use assets::MI_Manny_01_New() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MI_Manny_01_New() called before engine init. Use assets::MI_Manny_01_New() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MI_Manny_01_New());
     }
     UMaterialInstanceConstant MI_Manny_02_New()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MI_Manny_02_New() called before engine init. Use assets::MI_Manny_02_New() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MI_Manny_02_New() called before engine init. Use assets::MI_Manny_02_New() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MI_Manny_02_New());
     }
     UMaterialInstanceConstant MI_Quinn_01()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MI_Quinn_01() called before engine init. Use assets::MI_Quinn_01() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MI_Quinn_01() called before engine init. Use assets::MI_Quinn_01() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MI_Quinn_01());
     }
     UMaterialInstanceConstant MI_Quinn_02()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::MI_Quinn_02() called before engine init. Use assets::MI_Quinn_02() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::MI_Quinn_02() called before engine init. Use assets::MI_Quinn_02() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::MI_Quinn_02());
     }
     UPhysicsAsset PA_Mannequin()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::PA_Mannequin() called before engine init. Use assets::PA_Mannequin() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::PA_Mannequin() called before engine init. Use assets::PA_Mannequin() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::PA_Mannequin());
     }
     USkeletalMesh SKM_Manny_Simple()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::SKM_Manny_Simple() called before engine init. Use assets::SKM_Manny_Simple() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::SKM_Manny_Simple() called before engine init. Use assets::SKM_Manny_Simple() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::SKM_Manny_Simple());
     }
     USkeletalMesh SKM_Quinn_Simple()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::SKM_Quinn_Simple() called before engine init. Use assets::SKM_Quinn_Simple() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::SKM_Quinn_Simple() called before engine init. Use assets::SKM_Quinn_Simple() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::SKM_Quinn_Simple());
     }
     USkeleton SK_Mannequin()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::SK_Mannequin() called before engine init. Use assets::SK_Mannequin() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::SK_Mannequin() called before engine init. Use assets::SK_Mannequin() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::SK_Mannequin());
     }
     UStaticMesh Display_Corner_B()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Display_Corner_B() called before engine init. Use assets::Display_Corner_B() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Display_Corner_B() called before engine init. Use assets::Display_Corner_B() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Display_Corner_B());
     }
     UStaticMesh Display_Curve_B()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Display_Curve_B() called before engine init. Use assets::Display_Curve_B() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Display_Curve_B() called before engine init. Use assets::Display_Curve_B() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Display_Curve_B());
     }
     UStaticMesh Display_EdgeCurve_B()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Display_EdgeCurve_B() called before engine init. Use assets::Display_EdgeCurve_B() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Display_EdgeCurve_B() called before engine init. Use assets::Display_EdgeCurve_B() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Display_EdgeCurve_B());
     }
     UStaticMesh Display_Main_B()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Display_Main_B() called before engine init. Use assets::Display_Main_B() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Display_Main_B() called before engine init. Use assets::Display_Main_B() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Display_Main_B());
     }
     UStaticMesh Display_Side_B()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Display_Side_B() called before engine init. Use assets::Display_Side_B() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Display_Side_B() called before engine init. Use assets::Display_Side_B() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Display_Side_B());
     }
     UStaticMesh Floor_Corner()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Floor_Corner() called before engine init. Use assets::Floor_Corner() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Floor_Corner() called before engine init. Use assets::Floor_Corner() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Floor_Corner());
     }
     UStaticMesh Floor_Edge()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Floor_Edge() called before engine init. Use assets::Floor_Edge() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Floor_Edge() called before engine init. Use assets::Floor_Edge() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Floor_Edge());
     }
     UStaticMesh Pipe()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Pipe() called before engine init. Use assets::Pipe() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Pipe() called before engine init. Use assets::Pipe() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Pipe());
     }
     UStaticMesh ShadowBox_1MPanel()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::ShadowBox_1MPanel() called before engine init. Use assets::ShadowBox_1MPanel() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::ShadowBox_1MPanel() called before engine init. Use assets::ShadowBox_1MPanel() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::ShadowBox_1MPanel());
     }
     UStaticMesh ShadowBox_RoundEdge()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::ShadowBox_RoundEdge() called before engine init. Use assets::ShadowBox_RoundEdge() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::ShadowBox_RoundEdge() called before engine init. Use assets::ShadowBox_RoundEdge() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::ShadowBox_RoundEdge());
     }
     UStaticMesh Splitter_Curve()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Splitter_Curve() called before engine init. Use assets::Splitter_Curve() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Splitter_Curve() called before engine init. Use assets::Splitter_Curve() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Splitter_Curve());
     }
     UStaticMesh Splitter_Wall()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Splitter_Wall() called before engine init. Use assets::Splitter_Wall() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Splitter_Wall() called before engine init. Use assets::Splitter_Wall() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Splitter_Wall());
     }
     UStaticMesh TagBar_Middle()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::TagBar_Middle() called before engine init. Use assets::TagBar_Middle() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::TagBar_Middle() called before engine init. Use assets::TagBar_Middle() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::TagBar_Middle());
     }
     UStaticMesh TagBar_TitleCap()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::TagBar_TitleCap() called before engine init. Use assets::TagBar_TitleCap() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::TagBar_TitleCap() called before engine init. Use assets::TagBar_TitleCap() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::TagBar_TitleCap());
     }
     UStaticMesh Tile_10MPillar()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Tile_10MPillar() called before engine init. Use assets::Tile_10MPillar() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Tile_10MPillar() called before engine init. Use assets::Tile_10MPillar() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Tile_10MPillar());
     }
     UStaticMesh Tile_10MPillar_B()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Tile_10MPillar_B() called before engine init. Use assets::Tile_10MPillar_B() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Tile_10MPillar_B() called before engine init. Use assets::Tile_10MPillar_B() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Tile_10MPillar_B());
     }
     UStaticMesh Tile_10MWall()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Tile_10MWall() called before engine init. Use assets::Tile_10MWall() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Tile_10MWall() called before engine init. Use assets::Tile_10MWall() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Tile_10MWall());
     }
     UStaticMesh Tile_Edge()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Tile_Edge() called before engine init. Use assets::Tile_Edge() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Tile_Edge() called before engine init. Use assets::Tile_Edge() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Tile_Edge());
     }
     UStaticMesh Tile_InnerCurve_B()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Tile_InnerCurve_B() called before engine init. Use assets::Tile_InnerCurve_B() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Tile_InnerCurve_B() called before engine init. Use assets::Tile_InnerCurve_B() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Tile_InnerCurve_B());
     }
     UStaticMesh Tile_InnerCurveEdge()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Tile_InnerCurveEdge() called before engine init. Use assets::Tile_InnerCurveEdge() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Tile_InnerCurveEdge() called before engine init. Use assets::Tile_InnerCurveEdge() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Tile_InnerCurveEdge());
     }
     UStaticMesh Tile_InnerCurveEdge2()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::Tile_InnerCurveEdge2() called before engine init. Use assets::Tile_InnerCurveEdge2() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Tile_InnerCurveEdge2() called before engine init. Use assets::Tile_InnerCurveEdge2() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::Tile_InnerCurveEdge2());
     }
     UStaticMesh TrimFeature_MetalTrim_Bend()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::TrimFeature_MetalTrim_Bend() called before engine init. Use assets::TrimFeature_MetalTrim_Bend() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::TrimFeature_MetalTrim_Bend() called before engine init. Use assets::TrimFeature_MetalTrim_Bend() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::TrimFeature_MetalTrim_Bend());
     }
     UStaticMesh TrimFeature_MetalTrim_Straight()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::TrimFeature_MetalTrim_Straight() called before engine init. Use assets::TrimFeature_MetalTrim_Straight() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::TrimFeature_MetalTrim_Straight() called before engine init. Use assets::TrimFeature_MetalTrim_Straight() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::TrimFeature_MetalTrim_Straight());
     }
     UTexture2D T_Manny_01_BN()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Manny_01_BN() called before engine init. Use assets::T_Manny_01_BN() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Manny_01_BN() called before engine init. Use assets::T_Manny_01_BN() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Manny_01_BN());
     }
     UTexture2D T_Manny_01_D()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Manny_01_D() called before engine init. Use assets::T_Manny_01_D() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Manny_01_D() called before engine init. Use assets::T_Manny_01_D() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Manny_01_D());
     }
     UTexture2D T_Manny_01_MRA()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Manny_01_MRA() called before engine init. Use assets::T_Manny_01_MRA() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Manny_01_MRA() called before engine init. Use assets::T_Manny_01_MRA() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Manny_01_MRA());
     }
     UTexture2D T_Manny_02_BN()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Manny_02_BN() called before engine init. Use assets::T_Manny_02_BN() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Manny_02_BN() called before engine init. Use assets::T_Manny_02_BN() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Manny_02_BN());
     }
     UTexture2D T_Manny_02_D()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Manny_02_D() called before engine init. Use assets::T_Manny_02_D() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Manny_02_D() called before engine init. Use assets::T_Manny_02_D() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Manny_02_D());
     }
     UTexture2D T_Manny_02_MRA()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Manny_02_MRA() called before engine init. Use assets::T_Manny_02_MRA() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Manny_02_MRA() called before engine init. Use assets::T_Manny_02_MRA() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Manny_02_MRA());
     }
     UTexture2D T_Manny_02_N()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Manny_02_N() called before engine init. Use assets::T_Manny_02_N() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Manny_02_N() called before engine init. Use assets::T_Manny_02_N() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Manny_02_N());
     }
     UTexture2D T_Quinn_01_D()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Quinn_01_D() called before engine init. Use assets::T_Quinn_01_D() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Quinn_01_D() called before engine init. Use assets::T_Quinn_01_D() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Quinn_01_D());
     }
     UTexture2D T_Quinn_01_MRA()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Quinn_01_MRA() called before engine init. Use assets::T_Quinn_01_MRA() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Quinn_01_MRA() called before engine init. Use assets::T_Quinn_01_MRA() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Quinn_01_MRA());
     }
     UTexture2D T_Quinn_01_N()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Quinn_01_N() called before engine init. Use assets::T_Quinn_01_N() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Quinn_01_N() called before engine init. Use assets::T_Quinn_01_N() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Quinn_01_N());
     }
     UTexture2D T_Quinn_02_D()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Quinn_02_D() called before engine init. Use assets::T_Quinn_02_D() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Quinn_02_D() called before engine init. Use assets::T_Quinn_02_D() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Quinn_02_D());
     }
     UTexture2D T_Quinn_02_MRA()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Quinn_02_MRA() called before engine init. Use assets::T_Quinn_02_MRA() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Quinn_02_MRA() called before engine init. Use assets::T_Quinn_02_MRA() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Quinn_02_MRA());
     }
     UTexture2D T_Quinn_02_N()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_Quinn_02_N() called before engine init. Use assets::T_Quinn_02_N() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_Quinn_02_N() called before engine init. Use assets::T_Quinn_02_N() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_Quinn_02_N());
     }
     UTexture2D T_UE_Logo_M()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::T_UE_Logo_M() called before engine init. Use assets::T_UE_Logo_M() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::T_UE_Logo_M() called before engine init. Use assets::T_UE_Logo_M() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::T_UE_Logo_M());
     }
     UUserDefinedEnum E_EnclosureLevel()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::E_EnclosureLevel() called before engine init. Use assets::E_EnclosureLevel() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::E_EnclosureLevel() called before engine init. Use assets::E_EnclosureLevel() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::E_EnclosureLevel());
     }
     UUserDefinedStruct E_RoomLighting()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::E_RoomLighting() called before engine init. Use assets::E_RoomLighting() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::E_RoomLighting() called before engine init. Use assets::E_RoomLighting() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::E_RoomLighting());
     }
     UUserDefinedStruct S_Colour()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::S_Colour() called before engine init. Use assets::S_Colour() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::S_Colour() called before engine init. Use assets::S_Colour() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::S_Colour());
     }
     UUserDefinedStruct S_RoomSettings()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::S_RoomSettings() called before engine init. Use assets::S_RoomSettings() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::S_RoomSettings() called before engine init. Use assets::S_RoomSettings() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::S_RoomSettings());
     }
     UWorld AutoTests_CkTests_Level()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::AutoTests_CkTests_Level() called before engine init. Use assets::AutoTests_CkTests_Level() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::AutoTests_CkTests_Level() called before engine init. Use assets::AutoTests_CkTests_Level() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::AutoTests_CkTests_Level());
     }
     UWorld TestGyms_CkTests_Level()
     {
-        if (ck::EnsureIfNot(UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads(), "assets::load::TestGyms_CkTests_Level() called before engine init. Use assets::TestGyms_CkTests_Level() (soft ref) with UCk_DeferredConfig_UE instead."))
-        { return nullptr; }
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::TestGyms_CkTests_Level() called before engine init. Use assets::TestGyms_CkTests_Level() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
         return System::LoadAsset_Blocking(assets::TestGyms_CkTests_Level());
     }
 }
