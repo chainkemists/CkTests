@@ -2050,6 +2050,32 @@ class ACk_AutoTest_Grid_AddAndDimensions_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Grid_BlockerLifecycle_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Grid_BlockerLifecycle");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Grid_BlockerTwoOverlapRefcount_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Grid_BlockerTwoOverlapRefcount");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Grid_CellCoordinatesAreUnique_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
