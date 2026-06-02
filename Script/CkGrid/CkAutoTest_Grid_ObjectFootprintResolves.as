@@ -36,6 +36,21 @@ class UCk_AutoTest_Grid_ObjectFootprintResolves : UCk_AutoTest_Base
         Assert_Equals_Int(C1.Num(), 1, "1x1 covers 1 cell");
         Assert_True(C1.Contains(FIntPoint(3,3)), "1x1 @ (3,3) Quarter -> (3,3) (identity-safe)");
 
+        // Center mode must survive rotation: the object spins in place around the anchor.
+        auto Pc = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(3, 1));
+        Pc.Set_Centering(ECk_GridObject_Centering::Center);
+        auto ObjC = utils_2d_grid_object::Add(utils_entity_lifetime::Request_CreateEntity(InHandle), Pc);
+
+        auto CcN = utils_2d_grid_object::Get_ResolvedCells(ObjC, FIntPoint(5, 5), ECk_CardinalRotation::None);
+        Assert_Equals_Int(CcN.Num(), 3, "center 3x1 covers 3 cells");
+        Assert_True(CcN.Contains(FIntPoint(4,5)) && CcN.Contains(FIntPoint(5,5)) && CcN.Contains(FIntPoint(6,5)),
+            "center 3x1 @ (5,5) None -> (4,5),(5,5),(6,5) (anchor is the middle)");
+
+        auto CcQ = utils_2d_grid_object::Get_ResolvedCells(ObjC, FIntPoint(5, 5), ECk_CardinalRotation::Quarter);
+        Assert_Equals_Int(CcQ.Num(), 3, "rotated center 3x1 still 3 cells");
+        Assert_True(CcQ.Contains(FIntPoint(5,4)) && CcQ.Contains(FIntPoint(5,5)) && CcQ.Contains(FIntPoint(5,6)),
+            "center 3x1 @ (5,5) Quarter -> (5,4),(5,5),(5,6) (still centered; spins in place)");
+
         FinishSuccess();
     }
 }
