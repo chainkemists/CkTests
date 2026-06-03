@@ -23,6 +23,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Camera",             ACk_CameraGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Foundation",   ACk_CrowdGym_Foundation_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Pathfinding",  ACk_CrowdGym_Pathfinding_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Crowd Pathing",      ACk_CrowdGym_Pathing_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Locomotion",   ACk_CrowdGym_Locomotion_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Separation",   ACk_CrowdGym_Separation_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Diagnostic",   ACk_CrowdGym_Diag_GameMode);
