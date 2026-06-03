@@ -1334,6 +1334,19 @@ namespace UCk_AutoTest_DynamicFragment_AddGet_RoundTripsValue
 }
 
 USTRUCT()
+struct FCk_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures
+{
+    FCk_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_SpawnParams Params()
+    {
+        return FCk_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_DynamicFragment_RequestRemove_ClearsHas_SpawnParams
 {
 }
@@ -3956,6 +3969,45 @@ namespace UCk_AutoTest_Net_DataOnly_RemoveItem_Replicates
     FCk_AutoTest_Net_DataOnly_RemoveItem_Replicates_SpawnParams Params()
     {
         return FCk_AutoTest_Net_DataOnly_RemoveItem_Replicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_DynamicFragment_DataReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_DynamicFragment_DataReplicates
+{
+    FCk_AutoTest_Net_DynamicFragment_DataReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_DynamicFragment_DataReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_DynamicFragment_RepNotifyFires_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_DynamicFragment_RepNotifyFires
+{
+    FCk_AutoTest_Net_DynamicFragment_RepNotifyFires_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_DynamicFragment_RepNotifyFires_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_DynamicFragment_UpdateReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_DynamicFragment_UpdateReplicates
+{
+    FCk_AutoTest_Net_DynamicFragment_UpdateReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_DynamicFragment_UpdateReplicates_SpawnParams();
     }
 }
 
@@ -9305,6 +9357,83 @@ namespace UCk_EntityScript_UnrealComponentGym_Display
     FCk_EntityScript_UnrealComponentGym_Display_SpawnParams Params(FTransform InInitialTransform, ACk_UnrealComponentGym_Driver InLinkedDriver)
     {
         return FCk_EntityScript_UnrealComponentGym_Display_SpawnParams(InInitialTransform, InLinkedDriver);
+    }
+}
+
+USTRUCT()
+struct FCk_NetGym_State_Active_SpawnParams
+{
+}
+
+namespace UCk_NetGym_State_Active
+{
+    FCk_NetGym_State_Active_SpawnParams Params()
+    {
+        return FCk_NetGym_State_Active_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_NetGym_State_Idle_SpawnParams
+{
+}
+
+namespace UCk_NetGym_State_Idle
+{
+    FCk_NetGym_State_Idle_SpawnParams Params()
+    {
+        return FCk_NetGym_State_Idle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_NetGym_State_Recovering_SpawnParams
+{
+}
+
+namespace UCk_NetGym_State_Recovering
+{
+    FCk_NetGym_State_Recovering_SpawnParams Params()
+    {
+        return FCk_NetGym_State_Recovering_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_NetGym_TwoPlayer_Director_SpawnParams
+{
+}
+
+namespace UCk_NetGym_TwoPlayer_Director
+{
+    FCk_NetGym_TwoPlayer_Director_SpawnParams Params()
+    {
+        return FCk_NetGym_TwoPlayer_Director_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_NetGym_TwoPlayer_EntityScript_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_NetGym_TwoPlayer_EntityScript_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_NetGym_TwoPlayer_EntityScript
+{
+    FCk_NetGym_TwoPlayer_EntityScript_SpawnParams Params()
+    {
+        return FCk_NetGym_TwoPlayer_EntityScript_SpawnParams();
+    }
+
+    FCk_NetGym_TwoPlayer_EntityScript_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_NetGym_TwoPlayer_EntityScript_SpawnParams(In_OwningActor);
     }
 }
 
