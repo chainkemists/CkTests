@@ -50,6 +50,7 @@ public class CkTests : CkModuleRules
             "CkResourceLoader",
             "CkSettings",
             "CkShapes",
+            "CkSnapshot",
             "CkStateMachine",
             "CkSubstep",
             "CkTagSet",
