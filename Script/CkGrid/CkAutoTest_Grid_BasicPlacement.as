@@ -69,7 +69,7 @@ class UCk_AutoTest_Grid_BasicPlacement : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto OccupantAt = utils_2d_grid_placement::Get_OccupantAt(_Grid, FIntPoint(5, 5));
+        auto OccupantAt = utils_2d_grid_occupancy::Get_OccupantAt(_Grid, FIntPoint(5, 5));
         if (OccupantAt == _Occupant)
         {
             Assert_Equals_Int(_PlacedFireCount, 1,
