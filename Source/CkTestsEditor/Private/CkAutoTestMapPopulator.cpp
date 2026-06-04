@@ -964,15 +964,22 @@ auto
             // FPaths::ProjectDir() — if it lives under there, derive a scope rooted
             // at the project's own Script/ directory.
             //
-            // We deliberately do NOT use just "/<ProjectName>/" the way the plugin
-            // branch uses "/<PluginName>/": the project name appears in the path
-            // ABOVE the Plugins/ folder (e.g. "D:/Repos/BusterBlock/Plugins/CkTests/
-            // Script/...as" contains "/BusterBlock/"), so a bare project-name scope
-            // would over-match into every nested plugin's tests. Anchoring to
-            // "<ProjectName>/Script/" keeps the match scoped to the project's own
-            // source tree because plugin paths go through "<ProjectName>/Plugins/"
-            // instead. Note this means project-side C++ tests under Source/ are NOT
-            // auto-scoped; if a project ever needs that, set ClassScanRoot explicitly.
+            // Scope to the project's own Script/ tree via the ABSOLUTE project
+            // directory, not a reconstructed "/<ProjectName>/". Two reasons:
+            //   1. A bare project-name scope ("/BusterBlock/") over-matches: the
+            //      project name also appears ABOVE the Plugins/ folder
+            //      (".../BusterBlock/Plugins/CkTests/Script/...as" contains
+            //      "/BusterBlock/"), so it would bleed into every nested plugin's tests.
+            //   2. The project FOLDER name can differ from the .uproject name — e.g.
+            //      a secondary git worktree checked out at "BusterBlock_alt/" still has
+            //      FApp::GetProjectName() == "BusterBlock". Reconstructing
+            //      "<ProjectName>/Script/" then fails to match the real on-disk path
+            //      ".../BusterBlock_alt/Script/...", so NOTHING is discovered and the
+            //      populator removes every placed test as orphaned.
+            // Anchoring to the absolute ProjectDir + "/Script" matches the real path in
+            // any worktree while still excluding ".../<dir>/Plugins/..." (plugin paths
+            // go through "<dir>/Plugins/" instead). Project-side C++ tests under Source/
+            // are still NOT auto-scoped; set ClassScanRoot explicitly if needed.
             auto NormalizedAsFilename = FPaths::ConvertRelativePathToFull(AsFilename);
             FPaths::NormalizeFilename(NormalizedAsFilename);
 
@@ -982,7 +989,10 @@ auto
             if (NOT ProjectDir.IsEmpty() &&
                 NormalizedAsFilename.StartsWith(ProjectDir, ESearchCase::IgnoreCase))
             {
-                return FString::Printf(TEXT("%s/Script/"), FApp::GetProjectName());
+                auto ProjectScriptScope = ProjectDir;
+                ProjectScriptScope /= TEXT("Script");
+                FPaths::NormalizeFilename(ProjectScriptScope);
+                return ProjectScriptScope;
             }
         }
 #endif
