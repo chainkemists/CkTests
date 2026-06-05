@@ -23,9 +23,14 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
 
     private int32 _PendingStationCount = 0;
 
+    // The PC's own ECS entity (the WithActor entity spawned in BeginPlay). Hosts
+    // the deferred-wait timer used by WaitOneFrame.
+    private FCk_Handle _SelfEntity;
+
     UFUNCTION()
     void OnEntityConstructed(FCk_Handle_EntityScript InEntityScriptHandle)
     {
+        _SelfEntity = FCk_Handle(InEntityScriptHandle);
         Request_EnsureStationsExist();
     }
 
@@ -35,8 +40,32 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         _PendingStationCount--;
         if (_PendingStationCount <= 0)
         {
-            Request_StartGym();
+            // Stations tag themselves via utils_entity_tag::Add inside DoConstruct,
+            // which is DEFERRED by one processor pass (see CkEntityTag CLAUDE.md
+            // "Timing"). Request_StartGym / Get_StationHandle query that tag store,
+            // so starting in this same construction pass finds zero stations. Wait
+            // one frame for the deferred Adds to settle before starting the gym.
+            WaitOneFrame(n"OnStationsSettled");
         }
+    }
+
+    UFUNCTION()
+    private void OnStationsSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        Request_StartGym();
+    }
+
+    // Mirrors CkAutoTest_Base::WaitOneFrame — schedules a one-frame timer on the
+    // PC's own entity and invokes InCallbackName (FCk_Delegate_Timer signature)
+    // once it fires. Use to observe state mutated through a deferred pathway
+    // (e.g. deferred CkEntityTag Adds) on a subsequent frame.
+    private void WaitOneFrame(FName InCallbackName)
+    {
+        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        Params.Set_StartingState(ECk_Timer_State::Running)
+              .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+        auto Timer = utils_timer::Add(_SelfEntity, Params);
+        Timer.BindTo_OnDone(FCk_Delegate_Timer(this, InCallbackName));
     }
 
     // Override in derived classes to define required stations
