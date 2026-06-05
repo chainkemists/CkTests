@@ -2777,6 +2777,97 @@ namespace UCk_AutoTest_Grid_AddAndDimensions
 }
 
 USTRUCT()
+struct FCk_AutoTest_Grid_AuthoringSpecToRuntime_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_AuthoringSpecToRuntime
+{
+    FCk_AutoTest_Grid_AuthoringSpecToRuntime_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_AuthoringSpecToRuntime_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_BasicPlacement_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_BasicPlacement
+{
+    FCk_AutoTest_Grid_BasicPlacement_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_BasicPlacement_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_BlockerLifecycle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_BlockerLifecycle
+{
+    FCk_AutoTest_Grid_BlockerLifecycle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_BlockerLifecycle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_BlockerNamedToggle_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_BlockerNamedToggle
+{
+    FCk_AutoTest_Grid_BlockerNamedToggle_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_BlockerNamedToggle_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_BlockerPlacementInteraction_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_BlockerPlacementInteraction
+{
+    FCk_AutoTest_Grid_BlockerPlacementInteraction_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_BlockerPlacementInteraction_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_BlockerTwoOverlapRefcount_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_BlockerTwoOverlapRefcount
+{
+    FCk_AutoTest_Grid_BlockerTwoOverlapRefcount_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_BlockerTwoOverlapRefcount_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_CanPlaceFailureReasons_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_CanPlaceFailureReasons
+{
+    FCk_AutoTest_Grid_CanPlaceFailureReasons_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_CanPlaceFailureReasons_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Grid_CellCoordinatesAreUnique_SpawnParams
 {
 }
@@ -2799,6 +2890,32 @@ namespace UCk_AutoTest_Grid_CellsAreEnabledByDefault
     FCk_AutoTest_Grid_CellsAreEnabledByDefault_SpawnParams Params()
     {
         return FCk_AutoTest_Grid_CellsAreEnabledByDefault_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_ClearThenPlaceSameTick_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_ClearThenPlaceSameTick
+{
+    FCk_AutoTest_Grid_ClearThenPlaceSameTick_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_ClearThenPlaceSameTick_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_ConnectivityEdges_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_ConnectivityEdges
+{
+    FCk_AutoTest_Grid_ConnectivityEdges_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_ConnectivityEdges_SpawnParams();
     }
 }
 
@@ -2829,6 +2946,32 @@ namespace UCk_AutoTest_Grid_DisjointIntersection
 }
 
 USTRUCT()
+struct FCk_AutoTest_Grid_ExternalOccupantDestructionCleanup_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_ExternalOccupantDestructionCleanup
+{
+    FCk_AutoTest_Grid_ExternalOccupantDestructionCleanup_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_ExternalOccupantDestructionCleanup_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_GridDestructionWithActivePlacements_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_GridDestructionWithActivePlacements
+{
+    FCk_AutoTest_Grid_GridDestructionWithActivePlacements_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_GridDestructionWithActivePlacements_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Grid_IntersectionCardinality_SpawnParams
 {
 }
@@ -2838,6 +2981,58 @@ namespace UCk_AutoTest_Grid_IntersectionCardinality
     FCk_AutoTest_Grid_IntersectionCardinality_SpawnParams Params()
     {
         return FCk_AutoTest_Grid_IntersectionCardinality_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_MultiCellOccupancy_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_MultiCellOccupancy
+{
+    FCk_AutoTest_Grid_MultiCellOccupancy_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_MultiCellOccupancy_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_ObjectFootprintResolves_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_ObjectFootprintResolves
+{
+    FCk_AutoTest_Grid_ObjectFootprintResolves_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_ObjectFootprintResolves_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_ObjectFootprintRotationsFull_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_ObjectFootprintRotationsFull
+{
+    FCk_AutoTest_Grid_ObjectFootprintRotationsFull_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_ObjectFootprintRotationsFull_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_OccupancyRawStamp_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_OccupancyRawStamp
+{
+    FCk_AutoTest_Grid_OccupancyRawStamp_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_OccupancyRawStamp_SpawnParams();
     }
 }
 
@@ -2855,6 +3050,58 @@ namespace UCk_AutoTest_Grid_OverlappingIntersection
 }
 
 USTRUCT()
+struct FCk_AutoTest_Grid_ReentrancyDuringBroadcast_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_ReentrancyDuringBroadcast
+{
+    FCk_AutoTest_Grid_ReentrancyDuringBroadcast_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_ReentrancyDuringBroadcast_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_RejectsDisabledOccupied_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_RejectsDisabledOccupied
+{
+    FCk_AutoTest_Grid_RejectsDisabledOccupied_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_RejectsDisabledOccupied_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_RePlaceDifferentRotation_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_RePlaceDifferentRotation
+{
+    FCk_AutoTest_Grid_RePlaceDifferentRotation_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_RePlaceDifferentRotation_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_RequireConnectedFootprint_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_RequireConnectedFootprint
+{
+    FCk_AutoTest_Grid_RequireConnectedFootprint_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_RequireConnectedFootprint_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Grid_RotationLocalCoordMapping_SpawnParams
 {
 }
@@ -2864,6 +3111,32 @@ namespace UCk_AutoTest_Grid_RotationLocalCoordMapping
     FCk_AutoTest_Grid_RotationLocalCoordMapping_SpawnParams Params()
     {
         return FCk_AutoTest_Grid_RotationLocalCoordMapping_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_TagFilter_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_TagFilter
+{
+    FCk_AutoTest_Grid_TagFilter_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_TagFilter_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Grid_TagFilterForbidden_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Grid_TagFilterForbidden
+{
+    FCk_AutoTest_Grid_TagFilterForbidden_SpawnParams Params()
+    {
+        return FCk_AutoTest_Grid_TagFilterForbidden_SpawnParams();
     }
 }
 
@@ -4034,6 +4307,19 @@ namespace UCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds
     FCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds_SpawnParams Params()
     {
         return FCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Net_Grid_OccupancyReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_Grid_OccupancyReplicates
+{
+    FCk_AutoTest_Net_Grid_OccupancyReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_Grid_OccupancyReplicates_SpawnParams();
     }
 }
 
@@ -11847,6 +12133,31 @@ namespace UCk_AutoTest_NetSubject_EntityScript_UE
     FCk_AutoTest_NetSubject_EntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
     {
         return FCk_AutoTest_NetSubject_EntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_GridEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_GridEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_GridEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_GridEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_GridEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_GridEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_GridEntityScript_UE_SpawnParams(In_OwningActor);
     }
 }
 
