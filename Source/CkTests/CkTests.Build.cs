@@ -54,6 +54,7 @@ public class CkTests : CkModuleRules
             "CkTargeting",
             "CkUI",
             "CkUnrealComponent",
+            "CkUsf",
             "CkVariables",
             "CkWatermark",
         });
@@ -64,6 +65,7 @@ public class CkTests : CkModuleRules
             {
                 "UnrealEd",
                 "EditorSubsystem",
+                "CkUsfEditor",
             });
         }
     }
