@@ -246,37 +246,33 @@ bool FCkSnapshot_FloatAttribute_Gate::RunTest(const FString& Parameters)
             if (RawRegistry == nullptr)
             { AddError(TEXT("Stage 7: could not resolve the raw entt registry")); return false; }
 
-            // Discover the restored attribute by its ACTUAL persistent value fragment (ck::FFragment_
-            // FloatAttribute_Current == TFragment_FloatAttribute<Current>) — NOT ParamsData, which Add
-            // consumes and never stores. Read _Base/_Final DIRECTLY off the fragment, bypassing
-            // Cast/Get_FinalValue (those ensure on non-snapshotable infra like LifetimeOwner, which restore
-            // does not reconstitute — the layer-3 gap). This isolates the DATA round-trip from the live-ness gap.
+            // LIVE-NESS GATE: discover the restored attribute entity via its persistent value fragment to obtain a
+            // raw entity, build a handle, then read through UCk_Utils_FloatAttribute_UE::Get_FinalValue — which Casts
+            // and ensures on LifetimeOwner. With Layer-3 transient adoption the infra is restored, so this resolves to
+            // a LIVE attribute (Final == 60). If liveness were still broken, Cast would ensure and fail the test.
             auto AttrEntityCount = 0;
             auto Final = -1.0f;
-            auto Base  = -1.0f;
 
             auto View = RawRegistry->view<ck::FFragment_FloatAttribute_Current>();
             for (const auto Entity : View)
             {
                 ++AttrEntityCount;
-                const auto& Frag = View.get<ck::FFragment_FloatAttribute_Current>(Entity);
-                Final = static_cast<float>(Frag.Get_Final());
-                Base  = static_cast<float>(Frag.Get_Base());
+                auto Handle = ck::MakeHandle(FCk_Entity{Entity}, CkRegistry);
+                // Cast (CastChecked typesafe) ensures on the attribute's infra incl. LifetimeOwner — this is the
+                // live-ness check. With Layer-3 transient adoption it succeeds; pre-Layer-3 it ensured (the gap).
+                auto AttrHandle = UCk_Utils_FloatAttribute_UE::Cast(Handle);
+                Final = static_cast<float>(UCk_Utils_FloatAttribute_UE::Get_FinalValue(AttrHandle));
             }
 
             AddInfo(FString::Printf(
-                TEXT("DIAG Stage 7: EntitiesRestored=%d | FloatAttribute_Current entities=%d | Base=%f | Final=%f"),
-                *RestoredCountSlot, AttrEntityCount, Base, Final));
+                TEXT("DIAG Stage 7 (LIVE): EntitiesRestored=%d | FloatAttribute_Current entities=%d | Final=%f"),
+                *RestoredCountSlot, AttrEntityCount, Final));
 
-            TestEqual(TEXT("Stage 7: exactly one float attribute (Current value fragment) survived restore"),
-                AttrEntityCount, 1);
+            TestEqual(TEXT("Stage 7: exactly one float attribute survived restore"), AttrEntityCount, 1);
 
             if (AttrEntityCount > 0)
             {
-                // GATE: does the captured value fragment round-trip the post-modifier Final (60), or did it
-                // come back as base-only (42.5) because the modifier record wasn't captured?
-                TestEqual(TEXT("GATE: restored attribute _Final round-trips to base + revocable modifier (60), "
-                               "NOT clobbered to base (42.5)"),
+                TestEqual(TEXT("GATE (LIVE): restored attribute is operational — Get_FinalValue == 60"),
                     Final, Gate_ExpectedFinal);
             }
             return true;
