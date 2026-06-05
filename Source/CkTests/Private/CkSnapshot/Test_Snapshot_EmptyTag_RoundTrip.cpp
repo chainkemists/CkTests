@@ -8,10 +8,10 @@
 
 #include "CkSnapshot/Snapshot/CkSnapshot_Capture.h"
 #include "CkSnapshot/Snapshot/CkSnapshot_Restore.h"
-#include "CkSnapshot/Context/CkSnapshot_Context.h"
-#include "CkSnapshot/Context/CkSnapshot_FragmentRegistry.h"
-#include "CkSnapshot/Archive/CkSnapshot_Archive_Writer.h"
-#include "CkSnapshot/Archive/CkSnapshot_Archive_Reader.h"
+#include "CkEcs/Snapshot/CkSnapshot_Context.h"
+#include "CkEcs/Snapshot/CkSnapshot_FragmentRegistry.h"
+#include "CkEcs/Snapshot/CkSnapshot_Archive_Writer.h"
+#include "CkEcs/Snapshot/CkSnapshot_Archive_Reader.h"
 #include "CkSnapshot/SaveGame/CkSnapshot_Header.h"
 #include "CkSnapshot/Snapshot/CkSnapshot_LoadReport.h"
 
@@ -31,16 +31,14 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 // --------------------------------------------------------------------------------------------------------------------
-// Test-only empty tag (Tier-T). CK_DEFINE_ECS_TAG produces an empty struct (static_asserts std::is_empty_v).
-// Registered globally so the capture manifest loop picks it up like any production snapshotable type.
+// Test-only empty tag. CK_DEFINE_ECS_TAG produces an empty struct (static_asserts std::is_empty_v) AND auto-registers
+// it as snapshotable via the tag registry — no explicit CK_REGISTER_SNAPSHOTABLE needed. The capture tag pass picks
+// it up like any production tag.
 
 namespace ck
 {
     CK_DEFINE_ECS_TAG(FTag_SnapshotTest_EmptyTag);
 }
-
-using FSnap_SnapshotTest_EmptyTag = ck::FTag_SnapshotTest_EmptyTag;
-CK_REGISTER_SNAPSHOTABLE(FSnap_SnapshotTest_EmptyTag);
 
 // --------------------------------------------------------------------------------------------------------------------
 
