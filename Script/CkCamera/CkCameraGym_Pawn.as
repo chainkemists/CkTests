@@ -244,7 +244,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
         Request.Set_BlendInTime(FCk_Time(0.4));
 
         if (ModeClass == UCk_CameraLayer_LockOn)
-        { Request.Set_LookAtTarget(_LockOnTarget); }
+        { Request.Set_CameraTarget(FCk_Camera_Target(_LockOnTarget, ECk_Camera_TargetMode::LookAt)); }
 
         _Camera.Request_AddLayer(Request);
 
