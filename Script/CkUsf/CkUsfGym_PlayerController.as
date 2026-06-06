@@ -1,63 +1,94 @@
 // --------------------------------------------------------------------------------------------------------------------
-// CkUsf gym PlayerController: one station that demonstrates a USF-authored material
-// (the Hologram look) rendered on a mesh via a runtime MID.
+// CkUsf gym PlayerController ("USF Materials"): one station per USF-authored look, each
+// with a sphere rendering that look via a runtime MID. Showcases what text-only USF
+// material authoring can do — from a simple hologram to per-pixel fractal math.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
 {
-    private AActor _Showcase;
+    private TArray<AActor> _Showcases;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
-        {
-            auto Station = FCkGym_Station_SpawnParams_Payload();
-            Station.Tags.Add(n"Gym.Rendering.UsfHologram");
-            Station.Title = FText::FromString("USF HOLOGRAM");
-            auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Material authored as text USF (no node graph)."));
-            Description.Add(FText::FromString("Generated master -> MID -> rendered on the sphere."));
-            Station.Description = Description;
-            Station.AutoSize = true;
-            Stations.Add(Station);
-        }
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfHologram", "HOLOGRAM",
+            "Emissive scanlines from sin(UV, Time).", "Lightest look — a few sines."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfPlasma", "PLASMA",
+            "Animated sum-of-sines colour field.", "Two-colour blend over a sine plasma."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfVoronoi", "VORONOI",
+            "Animated cellular distance field.", "3x3 neighbour search, glowing seams."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfJulia", "JULIA FRACTAL",
+            "Per-pixel escape-time fractal.", "96 iterations, orbiting constant."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfFbmWarp", "FBM DOMAIN WARP",
+            "Domain-warped fractal noise.", "fbm(fbm(fbm)) — 5 octaves each."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfSeascape", "SEASCAPE (TDM)",
+            "Raymarched procedural ocean.", "32-step heightfield trace, ported from GLSL."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfAiekick", "DISPLACEMENT (AIEKICK)",
+            "Raymarched glass sphere.", "Cubemap reflect/refract + noise displacement."));
 
         return Stations;
     }
 
-    void Request_StartGym() override
+    private FCkGym_Station_SpawnParams_Payload Make_Station(FName InTag, FString InTitle, FString InLine1, FString InLine2)
     {
-        Request_SpawnHologram();
-        ck::Trace("🟦 CkUsf Gym - Hologram showcase started");
+        auto Station = FCkGym_Station_SpawnParams_Payload();
+        Station.Tags.Add(InTag);
+        Station.Title = FText::FromString(InTitle);
+        auto Description = TArray<FText>();
+        Description.Add(FText::FromString(InLine1));
+        Description.Add(FText::FromString(InLine2));
+        Station.Description = Description;
+        Station.AutoSize = true;
+        return Station;
     }
 
-    void Request_SpawnHologram()
+    void Request_StartGym() override
     {
+        Request_SpawnAllLooks();
+        ck::Trace("🟦 USF Materials Gym - all looks started");
+    }
+
+    void Request_SpawnAllLooks()
+    {
+        // Clear any prior showcases (supports restart).
+        for (auto Existing : _Showcases)
+        {
+            if (ck::IsValid(Existing)) { Existing.DestroyActor(); }
+        }
+        _Showcases.Empty();
+
+        Request_SpawnLook(n"Gym.Rendering.UsfHologram", CkUsf::Hologram);
+        Request_SpawnLook(n"Gym.Rendering.UsfPlasma",   CkUsf::Plasma);
+        Request_SpawnLook(n"Gym.Rendering.UsfVoronoi",  CkUsf::Voronoi);
+        Request_SpawnLook(n"Gym.Rendering.UsfJulia",    CkUsf::Julia);
+        Request_SpawnLook(n"Gym.Rendering.UsfFbmWarp",  CkUsf::FbmWarp);
+        Request_SpawnLook(n"Gym.Rendering.UsfSeascape", CkUsf::Seascape);
+        Request_SpawnLook(n"Gym.Rendering.UsfAiekick",  CkUsf::Aiekick);
+    }
+
+    private void Request_SpawnLook(FName InStationTag, UCkUsf_LookDefinition InLook)
+    {
+        auto StationTransform = Get_StationTransform(InStationTag.ToString());
         // Place the sphere toward the player (world -X) and raised, in front of the station.
-        auto StationTransform = Get_StationTransform("Gym.Rendering.UsfHologram");
         auto Location = StationTransform.Location + FVector(-200.0, 0.0, 150.0);
 
-        if (_Showcase != nullptr)
+        auto Showcase = Cast<ACk_UsfGym_Showcase>(SpawnActor(ACk_UsfGym_Showcase, Location, FRotator::ZeroRotator));
+        if (Showcase != nullptr)
         {
-            _Showcase.DestroyActor();
-        }
-
-        _Showcase = SpawnActor(ACk_UsfGym_Showcase, Location, FRotator::ZeroRotator);
-        if (_Showcase != nullptr)
-        {
-            _Showcase.SetActorScale3D(FVector(2.0, 2.0, 2.0));
-            ck::Trace("✅ Hologram showcase sphere spawned at station");
+            Showcase.SetActorScale3D(FVector(2.0, 2.0, 2.0));
+            Showcase.Request_SetLook(InLook);
+            _Showcases.Add(Showcase);
         }
         else
         {
-            ck::Error("❌ Failed to spawn Hologram showcase actor");
+            ck::Error("❌ Failed to spawn USF showcase actor");
         }
     }
 
-    UFUNCTION(Exec, DisplayName="Usf Gym - Restart Hologram")
-    void Ck_GymUsf_RestartHologram()
+    UFUNCTION(Exec, DisplayName="USF Materials Gym - Restart All Looks")
+    void Ck_GymUsf_RestartAll()
     {
-        Request_SpawnHologram();
+        Request_SpawnAllLooks();
     }
 }
