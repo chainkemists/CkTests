@@ -19,6 +19,7 @@ public class CkTests : CkModuleRules
             "FunctionalTesting",
             "Gauntlet",
             "EnhancedInput",
+            "RenderCore",
 
             "CkActorRelay",
             "CkAggro",
