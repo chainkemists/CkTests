@@ -49,6 +49,15 @@ namespace
         return InServer->GetGameInstance()->GetSubsystem<UCk_Snapshot_Subsystem_UE>();
     }
 
+    // M2b-1: Request_Load now does a real OpenLevel reload, so post-load the world is NM_Standalone and
+    // Get_ServerWorld() (ListenServer/Dedicated only) returns null. Find the current PIE world netmode-agnostically.
+    auto M2a_CurrentPIEWorld() -> UWorld*
+    {
+        for (auto* W : ck::auto_test::net::Get_AllPIEWorlds())
+        { if (W != nullptr && W->HasBegunPlay()) { return W; } }
+        return nullptr;
+    }
+
     // Post-restore the actor<->entity bridge is severed by the wipe (same as the M1 FloatAttribute gate), so the
     // restored attribute is re-discovered by raw-registry view over its value fragment. Cast ensures on LifetimeOwner
     // (the liveness check); Get_FinalValue reads through. Returns the Final value; OutCount = attribute entities found.
@@ -147,7 +156,7 @@ bool FCkSnapshot_M2a_LoadOrchestration_Gate::RunTest(const FString& Parameters)
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
         {
-            auto* Server = ck::auto_test::net::Get_ServerWorld();
+            auto* Server = M2a_CurrentPIEWorld();
             auto* Sub = M2a_Subsystem(Server);
             if (Sub == nullptr) { AddError(TEXT("Stage 5: no snapshot subsystem")); return false; }
 
