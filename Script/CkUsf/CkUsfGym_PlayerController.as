@@ -26,6 +26,8 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
             "Raymarched procedural ocean.", "32-step heightfield trace, ported from GLSL."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfAiekick", "DISPLACEMENT (AIEKICK)",
             "Raymarched glass sphere.", "Cubemap reflect/refract + noise displacement."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfFeedback", "RENDER-TO-TEXTURE",
+            "Multi-pass feedback buffer (ping-pong RT).", "BufferA reads itself; Image colorizes."));
 
         return Stations;
     }
@@ -65,6 +67,20 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_SpawnLook(n"Gym.Rendering.UsfFbmWarp",  CkUsf::FbmWarp);
         Request_SpawnLook(n"Gym.Rendering.UsfSeascape", CkUsf::Seascape);
         Request_SpawnLook(n"Gym.Rendering.UsfAiekick",  CkUsf::Aiekick);
+        Request_SpawnMultiPass(n"Gym.Rendering.UsfFeedback");
+    }
+
+    private void Request_SpawnMultiPass(FName InStationTag)
+    {
+        auto StationTransform = Get_StationTransform(InStationTag.ToString());
+        auto Location = StationTransform.Location + FVector(-200.0, 0.0, 150.0);
+        auto Actor = SpawnActor(ACk_UsfGym_MultiPassShowcase, Location, FRotator::ZeroRotator);
+        if (Actor != nullptr)
+        {
+            Actor.SetActorScale3D(FVector(2.0, 2.0, 2.0));
+            _Showcases.Add(Actor);
+            ck::Trace("✅ Render-to-texture feedback showcase spawned");
+        }
     }
 
     private void Request_SpawnLook(FName InStationTag, UCkUsf_LookDefinition InLook)
