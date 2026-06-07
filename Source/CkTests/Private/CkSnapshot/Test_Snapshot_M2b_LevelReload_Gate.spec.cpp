@@ -29,6 +29,7 @@ namespace
     constexpr auto M2b_AttributeTagName = TEXT("FloatAttribute.Health");
     constexpr auto M2b_ExpectedFinal    = 42.5f; // the default subject script's base Health (per the M2a gate)
     const auto     M2b_SlotName         = FName{TEXT("CkSnapshot_M2b_GateSlot")};
+    const auto     M2b_SavedLocation    = FVector{100.0, 200.0, 300.0}; // distinct from identity → proves position round-trips
 
     static TWeakObjectPtr<UWorld> GM2b_PreTravelWorld;
 
@@ -131,7 +132,7 @@ bool FCkSnapshot_M2b_LevelReload_Gate::RunTest(const FString& Parameters)
             auto SpawnInfo = FActorSpawnParameters{};
             SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
             auto* Probe = InServer->SpawnActor<ACk_AutoTest_NetSubject_M2bProbe>(
-                ACk_AutoTest_NetSubject_M2bProbe::StaticClass(), FTransform::Identity, SpawnInfo);
+                ACk_AutoTest_NetSubject_M2bProbe::StaticClass(), FTransform{M2b_SavedLocation}, SpawnInfo);
             if (Probe == nullptr) { AddError(TEXT("Stage 1: probe spawn returned null")); }
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
@@ -188,6 +189,13 @@ bool FCkSnapshot_M2b_LevelReload_Gate::RunTest(const FString& Parameters)
 
             const auto Entity = UCk_Utils_OwningActor_UE::TryGet_ActorEntityHandle(Probe);
             TestTrue(TEXT("actor<->entity bridge resolves (re-bridge worked)"), ck::IsValid(Entity));
+
+            // Position-restore: the respawned actor is back at its SAVED world location (not identity).
+            const auto RespawnedLoc = Probe->GetActorLocation();
+            AddInfo(FString::Printf(TEXT("DIAG M2b position: respawned actor at %s (saved %s)"),
+                *RespawnedLoc.ToString(), *M2b_SavedLocation.ToString()));
+            TestTrue(TEXT("respawned actor restored to its saved world location"),
+                RespawnedLoc.Equals(M2b_SavedLocation, 1.0));
 
             // Liveness via raw-view (decoupled from the parent->attribute record round-trip, not covered by M2b-1).
             auto AttrCount = 0;
