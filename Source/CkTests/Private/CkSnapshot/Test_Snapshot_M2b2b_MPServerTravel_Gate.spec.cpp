@@ -100,19 +100,38 @@ namespace
         return Final;
     }
 
-    // UE_LOG (lands in the toolbox log, unlike AddInfo) the full bridge/attribute state of the probe in a world.
+    // UE_LOG (lands in the toolbox log, unlike AddInfo) the full bridge/attribute state of the probe in a world,
+    // PLUS the probe ACTOR's identity. Comparing the client probe pre- vs post-reload bisects the failure: same
+    // name+uid => stale actor carried across seamless travel (no fresh spawn/construct); different name+uid => a
+    // fresh replicated actor (begunPlay/bridgeValid then show whether its WithActor::Construct ran + bound).
     auto M2b2b_LogState(const TCHAR* InWhen, const TCHAR* InRole, UWorld* InWorld) -> void
     {
         auto* Probe = M2b2b_FindProbe(InWorld);
         const auto Entity = M2b2b_ResolveEntity(Probe);
         auto AttrCount = 0;
         const auto Final = M2b2b_LiveFinalFromRawView(InWorld, AttrCount);
+
+        auto ProbeName  = FString{TEXT("none")};
+        auto ProbeUid   = uint32{0};
+        auto ProbeBegun = 0;
+        auto ProbeRole  = -1;
+        auto ProbeLoc   = FString{TEXT("n/a")};
+        if (Probe != nullptr)
+        {
+            ProbeName  = Probe->GetName();
+            ProbeUid   = Probe->GetUniqueID();
+            ProbeBegun = Probe->HasActorBegunPlay() ? 1 : 0;
+            ProbeRole  = static_cast<int32>(Probe->GetLocalRole());
+            ProbeLoc   = Probe->GetActorLocation().ToString();
+        }
+
         UE_LOG(LogTemp, Display,
-            TEXT("DIAG M2b2b [%s] %s: world=[%s] map=[%s] netmode=[%d] probe=[%d] bridgeValid=[%d] attrCount=[%d] attrFinal=[%f]"),
+            TEXT("DIAG M2b2b [%s] %s: world=[%s] map=[%s] netmode=[%d] probeCount=[%d] bridgeValid=[%d] attrCount=[%d] attrFinal=[%f] | probeName=[%s] probeUid=[%u] begunPlay=[%d] localRole=[%d] loc=[%s]"),
             InWhen, InRole,
             InWorld ? *InWorld->GetName() : TEXT("null"), *M2b2b_MapNameOf(InWorld),
             InWorld ? static_cast<int32>(InWorld->GetNetMode()) : -99,
-            Probe != nullptr ? 1 : 0, ck::IsValid(Entity) ? 1 : 0, AttrCount, Final);
+            M2b2b_CountProbes(InWorld), ck::IsValid(Entity) ? 1 : 0, AttrCount, Final,
+            *ProbeName, ProbeUid, ProbeBegun, ProbeRole, *ProbeLoc);
     }
 }
 
