@@ -108,6 +108,25 @@ private:
     double _StartTime = -1.0;
 };
 
+// Polls a bool predicate every frame until it returns true or InTimeoutSeconds elapses, then advances.
+// On timeout it advances anyway (returns true) so a following FCk_Latent_AssertCondition reports the failure
+// with a clear message rather than the whole test hanging. Reuses FCk_NetAutoTest_Assertion (RetVal bool) as
+// the predicate type. Use for non-deterministic waits like "client reconnected and the replicated actor exists".
+class CKTESTS_API FCk_Latent_WaitForCondition : public IAutomationLatentCommand
+{
+public:
+    FCk_Latent_WaitForCondition(const FCk_NetAutoTest_Assertion& InPredicate, float InTimeoutSeconds)
+        : _Predicate(InPredicate), _TimeoutSeconds(InTimeoutSeconds) {}
+
+    virtual ~FCk_Latent_WaitForCondition() = default;
+    virtual bool Update() override;
+
+private:
+    FCk_NetAutoTest_Assertion _Predicate;
+    float _TimeoutSeconds = 30.0f;
+    double _StartTime = -1.0;
+};
+
 class CKTESTS_API FCk_Latent_TickWorlds : public IAutomationLatentCommand
 {
 public:

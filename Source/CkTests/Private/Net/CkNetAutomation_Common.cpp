@@ -262,6 +262,29 @@ bool
 // --------------------------------------------------------------------------------------------------------------------
 
 bool
+    FCk_Latent_WaitForCondition::
+    Update()
+{
+    if (_StartTime < 0.0)
+    { _StartTime = FPlatformTime::Seconds(); }
+
+    if (_Predicate.IsBound() && _Predicate.Execute())
+    { return true; }
+
+    const auto Elapsed = FPlatformTime::Seconds() - _StartTime;
+    if (Elapsed > _TimeoutSeconds)
+    {
+        Log_Display(TEXT("FCk_Latent_WaitForCondition: timed out after [{}]s — advancing (a following assert will report)"),
+            _TimeoutSeconds);
+        return true;
+    }
+
+    return false;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+bool
     FCk_Latent_TickWorlds::
     Update()
 {
