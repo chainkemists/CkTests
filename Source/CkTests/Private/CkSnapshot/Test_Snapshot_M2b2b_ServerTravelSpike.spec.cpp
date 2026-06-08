@@ -99,11 +99,12 @@ bool FCkSnapshot_M2b2b_ServerTravelSpike::RunTest(const FString& Parameters)
 
             TravelSpike_DumpWorlds(TEXT("pre-travel"));
 
-            // This is EXACTLY what production DoInitiate_Travel will do on a server world. Bare map name first;
-            // if the post-travel assert below shows the server dropped to Standalone, the production fallback is
-            // to append "?listen".
+            // This is EXACTLY what production DoInitiate_Travel will do on a server world. ITERATION 2: a bare
+            // map name dropped the post-travel server to NM_Standalone (DIAG iter 1) — so the client had no
+            // listen server to reconnect to and stayed orphaned. "?listen" forces the post-travel world to keep
+            // listening, so it stays NM_ListenServer and the engine can auto-travel the client back to it.
             constexpr auto AbsoluteTravel = true;
-            InServer->ServerTravel(MapName, AbsoluteTravel);
+            InServer->ServerTravel(MapName + TEXT("?listen"), AbsoluteTravel);
         })));
 
     // Tick across the hard travel — server world is destroyed+rebuilt, client disconnects+reconnects.
