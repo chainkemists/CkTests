@@ -164,7 +164,34 @@ bool FCkStateMachineNet_OwningClientAuth_LocalCommitReplicates::RunTest(const FS
                 UCk_AutoTest_Sm_RecordingState_B::StaticClass());
         })));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterTransition));
+    // Wait for actual convergence rather than a fixed frame budget: the owning client commits locally
+    // at once, but the relay → server-apply chain can land a few frames later. Push retries every tick
+    // (no MarkedDirtyBy) and the rep-driver subtree now constructs reliably (PendingOwnerRetry), so
+    // convergence is guaranteed — we just wait for it. The assert below then passes immediately.
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            auto* Server = ck::auto_test::net::Get_ServerWorld();
+            auto* Client = ck::auto_test::net::Get_ClientWorld(0);
+            if (Server == nullptr || Client == nullptr)
+            { return false; }
+
+            auto* ClientPawn = ck_sm_owningclient_test::Find_PawnSubject(Client);
+            auto* ServerPawn = ck_sm_owningclient_test::Find_PawnSubject(Server);
+            if (ClientPawn == nullptr || ServerPawn == nullptr)
+            { return false; }
+            if (ck::Is_NOT_Valid(ClientPawn->_TestStateMachine) || ck::Is_NOT_Valid(ServerPawn->_TestStateMachine))
+            { return false; }
+
+            auto* ExpectedClass = UCk_AutoTest_Sm_RecordingState_B::StaticClass();
+            const auto ClientAtB =
+                UCk_Utils_StateMachine_UE::Get_CurrentStateClass(ClientPawn->_TestStateMachine).Get() == ExpectedClass;
+            const auto ServerAtB =
+                UCk_Utils_StateMachine_UE::Get_CurrentStateClass(ServerPawn->_TestStateMachine).Get() == ExpectedClass;
+            return ClientAtB && ServerAtB;
+        }),
+        10.0,
+        TEXT("both worlds converge to B (owning-client local commit replicates to server)")));
 
     // ---- Assertions: both worlds converged to B -------------------------------------------------------------
 

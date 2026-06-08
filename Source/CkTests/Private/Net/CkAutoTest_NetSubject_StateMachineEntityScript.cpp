@@ -29,7 +29,7 @@ auto
     Params.Set_ReplicationModel(Get_ReplicationModel());
     Params.Set_AutoStart(Get_AutoStart());
 
-    auto SM = UCk_Utils_StateMachine_UE::Add_WithParams(InHandle, Params);
+    auto SM = UCk_Utils_StateMachine_UE::Add(InHandle, Params);
 
     auto* OwningActor = UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle);
     DoStashStateMachine(OwningActor, SM);

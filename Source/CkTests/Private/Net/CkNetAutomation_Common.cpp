@@ -337,6 +337,46 @@ bool
 // --------------------------------------------------------------------------------------------------------------------
 
 bool
+    FCk_Latent_WaitUntil::
+    Update()
+{
+    if (_StartTime < 0.0)
+    { _StartTime = FPlatformTime::Seconds(); }
+
+    if (_Condition.IsBound() == false)
+    {
+        if (_Test != nullptr)
+        { _Test->AddError(ck::Format_UE(TEXT("FCk_Latent_WaitUntil [{}]: unbound condition delegate"), _Message)); }
+        return true;
+    }
+
+    // Poll the condition every frame — the engine ticks the PIE worlds between Update() calls, so
+    // returning false re-checks on the next frame (replication advances in the interim).
+    if (_Condition.Execute())
+    {
+        Log_Display(TEXT("FCk_Latent_WaitUntil: condition met after [{}]s — {}"),
+            FPlatformTime::Seconds() - _StartTime, _Message);
+        return true;
+    }
+
+    const auto Elapsed = FPlatformTime::Seconds() - _StartTime;
+    if (Elapsed > _TimeoutSeconds)
+    {
+        if (_Test != nullptr)
+        {
+            _Test->AddError(ck::Format_UE(
+                TEXT("FCk_Latent_WaitUntil: timed out after [{}]s waiting for: {}"),
+                _TimeoutSeconds, _Message));
+        }
+        return true;
+    }
+
+    return false;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+bool
     FCk_Latent_EndPIE::
     Update()
 {
