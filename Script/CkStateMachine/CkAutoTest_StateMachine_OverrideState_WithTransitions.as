@@ -59,8 +59,9 @@ class UCk_AutoTest_StateMachine_OverrideState_WithTransitions : UCk_AutoTest_Bas
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto LocalHandle = InHandle;
-        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, UCk_SmOvrTransTest_Base,
-            ECk_SmAutoStart::Disabled);
+        auto SmParams = FCk_Fragment_StateMachine_ParamsData(UCk_SmOvrTransTest_Base);
+        SmParams.Set_AutoStart(ECk_SmAutoStart::Disabled);
+        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, SmParams);
 
         FCk_Delegate_Sm_OnStateChanged Delegate;
         Delegate.BindUFunction(this, n"OnStateChanged");

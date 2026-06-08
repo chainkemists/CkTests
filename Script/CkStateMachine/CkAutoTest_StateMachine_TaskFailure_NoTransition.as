@@ -56,7 +56,7 @@ class UCk_AutoTest_StateMachine_TaskFailure_NoTransition : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto LocalHandle = InHandle;
-        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, UCk_SmTaskFailTest_State_A);
+        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmTaskFailTest_State_A));
 
         FCk_Delegate_Sm_OnStateChanged Delegate;
         Delegate.BindUFunction(this, n"OnStateChanged");

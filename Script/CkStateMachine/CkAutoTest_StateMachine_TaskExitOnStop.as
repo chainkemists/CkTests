@@ -73,7 +73,7 @@ class UCk_AutoTest_StateMachine_TaskExitOnStop : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto LocalHandle = InHandle;
-        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, UCk_SmTaskExitTest_State);
+        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmTaskExitTest_State));
 
         FCk_Delegate_Sm_OnStopped Delegate;
         Delegate.BindUFunction(this, n"OnStopped");

@@ -45,7 +45,7 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
         SmParams.Set_AuthorityModel(ECk_Sm_AuthorityModel::OwningClientAuthoritative);
         SmParams.Set_ReplicationModel(ECk_Sm_ReplicationModel::WithHistory);
         SmParams.Set_AutoStart(ECk_SmAutoStart::Disabled);
-        _StateMachine = UCk_Utils_StateMachine_UE::Add_WithParams(InHandle, SmParams);
+        _StateMachine = UCk_Utils_StateMachine_UE::Add(InHandle, SmParams);
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

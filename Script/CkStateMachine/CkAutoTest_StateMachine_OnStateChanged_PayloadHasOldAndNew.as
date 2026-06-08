@@ -26,7 +26,7 @@ class UCk_AutoTest_StateMachine_OnStateChanged_PayloadHasOldAndNew : UCk_AutoTes
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto LocalHandle = InHandle;
-        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, UCk_SmTest_State_Idle);
+        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_State_Idle));
 
         FCk_Delegate_Sm_OnStateChanged Delegate;
         Delegate.BindUFunction(this, n"OnStateChanged");
