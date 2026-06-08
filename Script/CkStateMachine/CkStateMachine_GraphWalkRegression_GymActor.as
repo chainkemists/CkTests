@@ -215,7 +215,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
         // this call returns.
         TopSmHandle = UCk_Utils_StateMachine_UE::Add(
             TopEntity,
-            UCk_SmTest_GraphWalk_Top_State_A);
+            FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_GraphWalk_Top_State_A));
     }
 
     UFUNCTION()
@@ -232,7 +232,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
         // graph-walk processor independently from the top-level case.
         SubSmParentHandle = UCk_Utils_StateMachine_UE::Add(
             SubEntity,
-            UCk_SmTest_GraphWalk_SubSmWrapper_State);
+            FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_GraphWalk_SubSmWrapper_State));
     }
 
     // ========================================================================

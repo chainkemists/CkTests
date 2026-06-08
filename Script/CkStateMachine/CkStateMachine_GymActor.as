@@ -111,7 +111,7 @@ class ACk_SmTest_GymActor : AActor
             : TSubclassOf<UCk_SmState_EntityScript>(UCk_SmTest_State_Idle);
         SmHandle = UCk_Utils_StateMachine_UE::Add(
             OwnerHandle,
-            StateClass);
+            FCk_Fragment_StateMachine_ParamsData(StateClass));
 
         BindSignals();
     }
