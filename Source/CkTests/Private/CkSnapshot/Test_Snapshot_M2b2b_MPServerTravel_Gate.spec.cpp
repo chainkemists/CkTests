@@ -99,6 +99,21 @@ namespace
         }
         return Final;
     }
+
+    // UE_LOG (lands in the toolbox log, unlike AddInfo) the full bridge/attribute state of the probe in a world.
+    auto M2b2b_LogState(const TCHAR* InWhen, const TCHAR* InRole, UWorld* InWorld) -> void
+    {
+        auto* Probe = M2b2b_FindProbe(InWorld);
+        const auto Entity = M2b2b_ResolveEntity(Probe);
+        auto AttrCount = 0;
+        const auto Final = M2b2b_LiveFinalFromRawView(InWorld, AttrCount);
+        UE_LOG(LogTemp, Display,
+            TEXT("DIAG M2b2b [%s] %s: world=[%s] map=[%s] netmode=[%d] probe=[%d] bridgeValid=[%d] attrCount=[%d] attrFinal=[%f]"),
+            InWhen, InRole,
+            InWorld ? *InWorld->GetName() : TEXT("null"), *M2b2b_MapNameOf(InWorld),
+            InWorld ? static_cast<int32>(InWorld->GetNetMode()) : -99,
+            Probe != nullptr ? 1 : 0, ck::IsValid(Entity) ? 1 : 0, AttrCount, Final);
+    }
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -152,6 +167,8 @@ bool FCkSnapshot_M2b2b_MPServerTravel_Gate::RunTest(const FString& Parameters)
         {
             auto* Client = ck::auto_test::net::Get_ClientWorld(0);
             if (Client == nullptr) { AddError(TEXT("Stage 2: no client world pre-reload")); return false; }
+            M2b2b_LogState(TEXT("pre-reload"), TEXT("server"), ck::auto_test::net::Get_ServerWorld());
+            M2b2b_LogState(TEXT("pre-reload"), TEXT("client"), Client);
             TestTrue(TEXT("pre-reload: client has the replicated probe"), M2b2b_FindProbe(Client) != nullptr);
             return true;
         }),
@@ -201,7 +218,15 @@ bool FCkSnapshot_M2b2b_MPServerTravel_Gate::RunTest(const FString& Parameters)
             auto* Client = ck::auto_test::net::Get_ClientWorld(0);
             if (Client == nullptr || Client == GM2b2b_PreClientWorld.Get() || !Client->HasBegunPlay()) { return false; }
             if (M2b2b_MapNameOf(Client) != M2b2b_MapPath) { return false; }
-            return M2b2b_FindProbe(Client) != nullptr;
+            auto* ClientProbe = M2b2b_FindProbe(Client);
+            if (ClientProbe == nullptr) { return false; }
+            // Wait for FULL client re-derivation (bridge + replicated attribute), not just the actor — rules out a
+            // too-early assert. If this never becomes true the poll times out (ReloadTimeoutSeconds) and Stage 7
+            // reports the gap, with the post-reload DIAG showing the exact client state.
+            if (ck::Is_NOT_Valid(M2b2b_ResolveEntity(ClientProbe))) { return false; }
+            auto ClientAttrCount = 0;
+            M2b2b_LiveFinalFromRawView(Client, ClientAttrCount);
+            return ClientAttrCount >= 1;
         }),
         ReloadTimeoutSeconds));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPostReconnect));
@@ -252,6 +277,8 @@ bool FCkSnapshot_M2b2b_MPServerTravel_Gate::RunTest(const FString& Parameters)
         {
             auto* Client = ck::auto_test::net::Get_ClientWorld(0);
             if (Client == nullptr) { AddError(TEXT("Stage 7: no post-travel client world")); return false; }
+            M2b2b_LogState(TEXT("post-reload"), TEXT("server"), ck::auto_test::net::Get_ServerWorld());
+            M2b2b_LogState(TEXT("post-reload"), TEXT("client"), Client);
             TestTrue(TEXT("client: rode the travel to a fresh world"), Client != GM2b2b_PreClientWorld.Get());
             TestTrue(TEXT("client: on the destination map"), M2b2b_MapNameOf(Client) == M2b2b_MapPath);
             TestTrue(TEXT("client: NM_Client"), Client->GetNetMode() == NM_Client);
