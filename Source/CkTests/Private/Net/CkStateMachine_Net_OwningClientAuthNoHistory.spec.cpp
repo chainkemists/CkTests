@@ -169,7 +169,33 @@ bool FCkStateMachineNet_OwningClientAuth_NoHistory_SnapReplicates::RunTest(const
                 UCk_AutoTest_Sm_RecordingState_C::StaticClass());
         })));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterTransition));
+    // Wait for actual convergence on C rather than a fixed frame budget (see OwningClientAuth.spec for
+    // rationale). The rep-driver subtree now constructs reliably (PendingOwnerRetry) and the push
+    // retries every tick, so the server's snap-to-latest is guaranteed — we just wait for it.
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            auto* Server = ck::auto_test::net::Get_ServerWorld();
+            auto* Client = ck::auto_test::net::Get_ClientWorld(0);
+            if (Server == nullptr || Client == nullptr)
+            { return false; }
+
+            auto* ClientPawn = ck_sm_owningclient_nohistory_test::Find_PawnSubject(Client);
+            auto* ServerPawn = ck_sm_owningclient_nohistory_test::Find_PawnSubject(Server);
+            if (ClientPawn == nullptr || ServerPawn == nullptr)
+            { return false; }
+            if (ck::Is_NOT_Valid(ClientPawn->_TestStateMachine) || ck::Is_NOT_Valid(ServerPawn->_TestStateMachine))
+            { return false; }
+
+            auto* ExpectedClass = UCk_AutoTest_Sm_RecordingState_C::StaticClass();
+            const auto ClientAtC =
+                UCk_Utils_StateMachine_UE::Get_CurrentStateClass(ClientPawn->_TestStateMachine).Get() == ExpectedClass;
+            const auto ServerAtC =
+                UCk_Utils_StateMachine_UE::Get_CurrentStateClass(ServerPawn->_TestStateMachine).Get() == ExpectedClass;
+            return ClientAtC && ServerAtC;
+        }),
+        10.0,
+        TEXT("both worlds snap to final state C (owning-client NoHistory)")));
 
     // ---- Assertions: both worlds snapped to C -------------------------------------------------------------
 

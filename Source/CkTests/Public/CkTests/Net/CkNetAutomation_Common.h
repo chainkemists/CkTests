@@ -39,6 +39,11 @@
 DECLARE_DELEGATE_OneParam(FCk_NetAutoTest_ServerAction, UWorld*);
 DECLARE_DELEGATE_RetVal(bool, FCk_NetAutoTest_Assertion);
 
+// Side-effect-free predicate polled once per frame by FCk_Latent_WaitUntil. Distinct from
+// FCk_NetAutoTest_Assertion (same signature) to document intent: a Condition must NOT call
+// TestEqual/AddError — it returns true only once the awaited state is reached, false to keep waiting.
+DECLARE_DELEGATE_RetVal(bool, FCk_NetAutoTest_Condition);
+
 namespace ck::auto_test::net
 {
     // Returns the PIE world running as the server (ListenServer or DedicatedServer). nullptr if
@@ -164,6 +169,33 @@ private:
     FAutomationTestBase* _Test = nullptr;
     FCk_NetAutoTest_Assertion _Assertion;
     FString _Message;
+};
+
+// Poll-until-converged latent command. Calls the supplied Condition once per frame; advances
+// (returns true) as soon as it returns true. If TimeoutSeconds (wall-clock) elapses first, it
+// AddErrors on the test and advances so the suite never hangs. Replaces a fixed FCk_Latent_TickWorlds(N)
+// "settle" wait when the real intent is "wait until replication has converged" — removes the
+// frame-budget race. Pair with a final FCk_Latent_AssertCondition that records the actual TestEqual
+// checks (which then pass immediately, since we only proceed once converged).
+class CKTESTS_API FCk_Latent_WaitUntil : public IAutomationLatentCommand
+{
+public:
+    FCk_Latent_WaitUntil(
+        FAutomationTestBase* InTest,
+        const FCk_NetAutoTest_Condition& InCondition,
+        double InTimeoutSeconds,
+        const FString& InMessage)
+        : _Test(InTest), _Condition(InCondition), _TimeoutSeconds(InTimeoutSeconds), _Message(InMessage) {}
+
+    virtual ~FCk_Latent_WaitUntil() = default;
+    virtual bool Update() override;
+
+private:
+    FAutomationTestBase* _Test = nullptr;
+    FCk_NetAutoTest_Condition _Condition;
+    double _TimeoutSeconds = 5.0;
+    FString _Message;
+    double _StartTime = -1.0;
 };
 
 class CKTESTS_API FCk_Latent_EndPIE : public IAutomationLatentCommand
