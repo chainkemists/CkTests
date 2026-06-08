@@ -72,6 +72,13 @@ namespace
         return UCk_Utils_OwningActor_UE::TryGet_ActorEntityHandle(InProbe);
     }
 
+    auto M2b2b_ResolveAttribute(AActor* InProbe) -> FCk_Handle_FloatAttribute
+    {
+        const auto Entity = M2b2b_ResolveEntity(InProbe);
+        if (ck::Is_NOT_Valid(Entity)) { return {}; }
+        return UCk_Utils_FloatAttribute_UE::TryGet(Entity, FGameplayTag::RequestGameplayTag(FName{M2b2b_AttributeTagName}));
+    }
+
     // Reads the LIVE FloatAttribute.Health final value straight from a world's registry (independent of the
     // actor<->entity bridge). Mirrors the proven M2b-2a gate helper. OutCount = how many FloatAttribute entities.
     auto M2b2b_LiveFinalFromRawView(UWorld* InWorld, int32& OutCount) -> float
@@ -154,10 +161,11 @@ bool FCkSnapshot_M2b2b_MPServerTravel_Gate::RunTest(const FString& Parameters)
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
         {
-            auto AttrCount = 0;
-            const auto Final = M2b2b_LiveFinalFromRawView(InServer, AttrCount);
-            if (AttrCount < 1) { AddError(TEXT("Stage 3: no FloatAttribute on the server pre-save")); return; }
-            TestEqual(TEXT("pre-save server Final == 42.5"), Final, M2b2b_ExpectedFinal);
+            auto* Probe = M2b2b_FindProbe(InServer);
+            const auto Attr = M2b2b_ResolveAttribute(Probe);
+            if (ck::Is_NOT_Valid(Attr)) { AddError(TEXT("Stage 3: could not resolve attribute pre-save")); return; }
+            TestEqual(TEXT("pre-save server Final == 42.5"),
+                static_cast<float>(UCk_Utils_FloatAttribute_UE::Get_FinalValue(Attr)), M2b2b_ExpectedFinal);
 
             GM2b2b_PreServerWorld = InServer;
             GM2b2b_PreClientWorld = ck::auto_test::net::Get_ClientWorld(0);
