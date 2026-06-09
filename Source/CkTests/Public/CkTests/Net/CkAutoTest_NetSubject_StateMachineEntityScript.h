@@ -48,6 +48,12 @@ protected:
     // the server IS the authority at Setup time.
     virtual auto Get_AutoStart() const -> ECk_SmAutoStart { return ECk_SmAutoStart::OnSetup; }
 
+    // Initial state the SM is built with. Default = UCk_AutoTest_Sm_RecordingState_A (the canonical
+    // A→B→C marker states). Overridable so variants can point the SM at a different root — e.g. the
+    // SubSm variant resolves an AngelScript-authored parent state (whose DoDefineState hosts a
+    // SubStateMachine task) by class path.
+    virtual auto Get_InitialStateClass() const -> TSubclassOf<UCk_SmState_EntityScript>;
+
     // Stash the constructed SM handle onto the owning actor's `_TestStateMachine` slot. Virtual so
     // the OwningClientAuth variant — whose owning actor is a Pawn, not ACk_AutoTest_NetSubject_StateMachine_UE
     // — can cast to its own subject type. Base casts to the Actor subject.
@@ -110,4 +116,24 @@ class CKTESTS_API UCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntit
 
 protected:
     virtual auto Get_ReplicationModel() const -> ECk_Sm_ReplicationModel override { return ECk_Sm_ReplicationModel::WithoutHistory; }
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// OwningClientAuthoritative variant whose SM initial state is the AngelScript-authored
+// UCk_SmNetSubTest_Parent_Hold — a state that hosts a UCk_SmTask_SubStateMachine. Used by
+// Ck.StateMachine.Net.OwningClientAuth_SubSmTickGated to prove a sub-SM spawned under an
+// OwningClientAuth parent resolves its net identity correctly on the owning client (the sub-SM's
+// tick-gated Delay must run there). The initial-state class is resolved by path because AS state
+// classes aren't visible to C++ at compile time.
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS(BlueprintType)
+class CKTESTS_API UCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE : public UCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE
+{
+    GENERATED_BODY()
+
+protected:
+    virtual auto Get_InitialStateClass() const -> TSubclassOf<UCk_SmState_EntityScript> override;
 };

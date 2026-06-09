@@ -42,6 +42,16 @@ ACk_AutoTest_NetSubject_StateMachineOwningClientNoHistory_Pawn::
 
 // --------------------------------------------------------------------------------------------------------------------
 
+ACk_AutoTest_NetSubject_StateMachineOwningClientSubSm_Pawn::
+    ACk_AutoTest_NetSubject_StateMachineOwningClientSubSm_Pawn()
+{
+    // Inherited owning-client actor setup; bridge to the SubSm owning-client entity-script (initial
+    // state = AS UCk_SmNetSubTest_Parent_Hold, which hosts a SubStateMachine task).
+    _EntityScriptClass = UCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE::StaticClass();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 auto
     ACk_AutoTest_NetSubject_StateMachineOwningClient_Pawn::
     BeginPlay()

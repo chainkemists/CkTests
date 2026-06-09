@@ -62,3 +62,20 @@ class CKTESTS_API ACk_AutoTest_NetSubject_StateMachineOwningClientNoHistory_Pawn
 public:
     ACk_AutoTest_NetSubject_StateMachineOwningClientNoHistory_Pawn();
 };
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// OwningClientAuthoritative pawn subject whose bridged SM starts in an AngelScript parent state that
+// hosts a SubStateMachine task. Identical to the base owning-client pawn except it bridges to the
+// SubSm owning-client entity-script. Used by Ck.StateMachine.Net.OwningClientAuth_SubSmTickGated.
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS()
+class CKTESTS_API ACk_AutoTest_NetSubject_StateMachineOwningClientSubSm_Pawn : public ACk_AutoTest_NetSubject_StateMachineOwningClient_Pawn
+{
+    GENERATED_BODY()
+
+public:
+    ACk_AutoTest_NetSubject_StateMachineOwningClientSubSm_Pawn();
+};
