@@ -22,8 +22,11 @@
 
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
+#include "CkEcs/Registry/CkRegistry_SlotTable.h"
+#include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
 
 #include "CkSnapshot/Subsystem/CkSnapshot_Subsystem.h"
+#include "CkSnapshot/Snapshot/CkSnapshot_RestoreInvariants.h"
 
 #include "CkTests/Net/CkAutoTest_NetSubject_M2bProbe_Replicated.h"
 #include "CkTests/Net/CkNetAutomation_Common.h"
@@ -243,6 +246,25 @@ bool FCkSnapshot_AttributeParity_MPReload_Gate::RunTest(const FString& Parameter
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
         {
+            // Generic invariant: after a cross-world (seamless-travel) restore, NO stored handle in the
+            // structural backbone (LifetimeOwner/ContextOwner/Dependents) may dangle. Feature-agnostic check
+            // that catches the registry-rehome bug class without per-feature assertions.
+            {
+                auto* ServerWorld = ck::auto_test::net::Get_ServerWorld();
+                auto* Ecs = ServerWorld ? ServerWorld->GetSubsystem<UCk_EcsWorld_Subsystem_UE>() : nullptr;
+                if (Ecs != nullptr)
+                {
+                    auto& Reg = Ecs->Get_Registry();
+                    if (auto* Raw = ck::registry_table::TryResolve(Reg.Get_RegistryHandle()))
+                    {
+                        const auto Dangling = ck::snapshot::Verify_AllStoredHandlesResolve(*Raw);
+                        for (const auto& Entry : Dangling)
+                        { AddError(FString::Printf(TEXT("post-reload dangling handle: %s"), *Entry)); }
+                        TestEqual(TEXT("server: no dangling stored handles after reload"), Dangling.Num(), 0);
+                    }
+                }
+            }
+
             auto* Client = ck::auto_test::net::Get_ClientWorld(0);
             if (Client == nullptr) { AddError(TEXT("Stage 7: no post-travel client world")); return false; }
             auto* Probe = Parity_FindProbe(Client);
