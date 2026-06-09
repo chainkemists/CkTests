@@ -26,8 +26,16 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
             "Raymarched procedural ocean.", "32-step heightfield trace, ported from GLSL."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfAiekick", "DISPLACEMENT (AIEKICK)",
             "Raymarched glass sphere.", "Cubemap reflect/refract + noise displacement."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfTruchet", "TRUCHET CIRCUIT",
+            "Animated Truchet arc tiling.", "Per-cell arc flip; glowing connected curves."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfStarfield", "STARFIELD",
+            "Parallax twinkling starfield.", "5 jittered-grid depth layers."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfCaustics", "CAUSTICS",
+            "Underwater light caustics.", "Domain-distorted sine ridges."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfFeedback", "RENDER-TO-TEXTURE",
             "Multi-pass feedback buffer (ping-pong RT).", "BufferA reads itself; Image colorizes."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfPostProcess", "POST-PROCESS (EDGE OUTLINE)",
+            "Screen-space depth+normal outline.", "Reads SceneDepth/WorldNormal; unbound PP volume."));
 
         return Stations;
     }
@@ -67,7 +75,11 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_SpawnLook(n"Gym.Rendering.UsfFbmWarp",  CkUsf::FbmWarp);
         Request_SpawnLook(n"Gym.Rendering.UsfSeascape", CkUsf::Seascape);
         Request_SpawnLook(n"Gym.Rendering.UsfAiekick",  CkUsf::Aiekick);
+        Request_SpawnLook(n"Gym.Rendering.UsfTruchet",   CkUsf::Truchet);
+        Request_SpawnLook(n"Gym.Rendering.UsfStarfield", CkUsf::Starfield);
+        Request_SpawnLook(n"Gym.Rendering.UsfCaustics",  CkUsf::Caustics);
         Request_SpawnMultiPass(n"Gym.Rendering.UsfFeedback");
+        Request_SpawnPostProcess(n"Gym.Rendering.UsfPostProcess");
     }
 
     private void Request_SpawnMultiPass(FName InStationTag)
@@ -80,6 +92,17 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
             Actor.SetActorScale3D(FVector(2.0, 2.0, 2.0));
             _Showcases.Add(Actor);
             ck::Trace("✅ Render-to-texture feedback showcase spawned");
+        }
+    }
+
+    private void Request_SpawnPostProcess(FName InStationTag)
+    {
+        auto StationTransform = Get_StationTransform(InStationTag.ToString());
+        auto Actor = SpawnActor(ACk_UsfGym_PostProcessShowcase, StationTransform.Location, FRotator::ZeroRotator);
+        if (Actor != nullptr)
+        {
+            _Showcases.Add(Actor);
+            ck::Trace("✅ Post-process edge-outline showcase spawned");
         }
     }
 
