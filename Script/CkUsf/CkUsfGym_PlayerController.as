@@ -38,6 +38,16 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
             "Animated cutout via OpacityMask.", "Masked blend + two-sided; glowing burn edge."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfLitMetal", "LIT METAL (PBR)",
             "Scene-lit metal/dielectric checker.", "DefaultLit + Metallic/Specular/Roughness."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfDisplace", "DISPLACE (WPO)",
+            "Vertex-shader world-position offset.", "Sine wave along normal; coarse on a stock sphere."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfGlass", "GLASS (REFRACTION)",
+            "Lit translucent glass with IOR bend.", "Refraction pin + RM_IndexOfRefraction."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfSkin", "SKIN (SUBSURFACE)",
+            "Subsurface scatter shading model.", "SubsurfaceColor + opacity-driven scatter."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfCarPaint", "CAR PAINT (CLEARCOAT)",
+            "Metallic base under a clear lacquer coat.", "ClearCoat + ClearCoatRoughness custom data."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfPerInstance", "PER-INSTANCE HUE (ISM)",
+            "One material, N instances, distinct colours.", "Per-instance custom data slot 0 → hue."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfFeedback", "RENDER-TO-TEXTURE",
             "Multi-pass feedback buffer (ping-pong RT).", "BufferA reads itself; Image colorizes."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfPostProcess", "POST-PROCESS (EDGE OUTLINE)",
@@ -87,6 +97,11 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_SpawnLook(n"Gym.Rendering.UsfRimGlow",   CkUsf::RimGlow);
         Request_SpawnLook(n"Gym.Rendering.UsfDissolve",  CkUsf::Dissolve);
         Request_SpawnLook(n"Gym.Rendering.UsfLitMetal",  CkUsf::LitMetal);
+        Request_SpawnLook(n"Gym.Rendering.UsfDisplace",  CkUsf::Displace);
+        Request_SpawnLook(n"Gym.Rendering.UsfGlass",     CkUsf::Glass);
+        Request_SpawnLook(n"Gym.Rendering.UsfSkin",      CkUsf::Skin);
+        Request_SpawnLook(n"Gym.Rendering.UsfCarPaint",  CkUsf::CarPaint);
+        Request_SpawnPerInstance(n"Gym.Rendering.UsfPerInstance", CkUsf::PerInstanceHue);
         Request_SpawnMultiPass(n"Gym.Rendering.UsfFeedback");
         Request_SpawnPostProcess(n"Gym.Rendering.UsfPostProcess");
     }
@@ -101,6 +116,24 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
             Actor.SetActorScale3D(FVector(2.0, 2.0, 2.0));
             _Showcases.Add(Actor);
             ck::Trace("✅ Render-to-texture feedback showcase spawned");
+        }
+    }
+
+    private void Request_SpawnPerInstance(FName InStationTag, UCkUsf_LookDefinition InLook)
+    {
+        auto StationTransform = Get_StationTransform(InStationTag.ToString());
+        auto Location = StationTransform.Location + FVector(-200.0, 0.0, 150.0);
+        auto Actor = Cast<ACk_UsfGym_PerInstanceShowcase>(
+            SpawnActor(ACk_UsfGym_PerInstanceShowcase, Location, FRotator::ZeroRotator));
+        if (Actor != nullptr)
+        {
+            const int InstanceCount = 8;
+            Actor.Request_SetLook(InLook, InstanceCount);
+            _Showcases.Add(Actor);
+        }
+        else
+        {
+            ck::Error("❌ Failed to spawn USF per-instance showcase actor");
         }
     }
 
