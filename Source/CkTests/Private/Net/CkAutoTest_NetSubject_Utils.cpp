@@ -2,6 +2,7 @@
 
 #include "CkTests/Net/CkAutoTest_NetSubject.h"
 
+#include "CkAttribute/FloatAttribute/CkFloatAttribute_Utils.h"
 #include "CkEcs/EntityScript/CkEntityScript_Fragment_Data.h"
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -28,6 +29,23 @@ void
     // generic handle for storage so the latent command's polling code can read result fragments
     // via UCk_Utils_AutoTest_UE::Has_Result / Get_Result (both take generic FCk_Handle).
     _CapturedBodies.Add(InEntityScriptHandle);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+void
+    UCk_AutoTest_RepCompleteCapturer_UE::
+    OnReplicationComplete(
+        FCk_Handle InHandle)
+{
+    _Fired = true;
+
+    auto AttributeHandle = UCk_Utils_FloatAttribute_UE::TryGet(InHandle, _AttributeTag);
+    if (ck::Is_NOT_Valid(AttributeHandle))
+    { return; }
+
+    _AttributeWasPresentAtFire = true;
+    _FinalValueAtFire = UCk_Utils_FloatAttribute_UE::Get_FinalValue(AttributeHandle);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
