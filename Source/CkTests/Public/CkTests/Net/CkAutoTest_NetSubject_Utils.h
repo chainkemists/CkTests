@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 
+#include "GameplayTagContainer.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 
 #include "CkEcs/EntityScript/CkEntityScript_Fragment_Data.h"
@@ -67,4 +68,37 @@ public:
     // UPROPERTY because FCk_Handle isn't reflected (it's the ECS entity reference, kept alive
     // by the registry itself for the duration of the test session).
     TArray<FCk_Handle> _CapturedBodies;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// UObject helper for specs that assert on state INSIDE an OnReplicationComplete callback.
+// FCk_Delegate_EntityReplicationDriver_OnReplicationComplete is a dynamic delegate, so the
+// spec's latent commands (not UObjects) can't bind a lambda — they bind this capturer's
+// UFUNCTION instead and inspect the snapshot it records at fire time. The spec owns the
+// instance via TStrongObjectPtr shared across its latent commands.
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS()
+class CKTESTS_API UCk_AutoTest_RepCompleteCapturer_UE : public UObject
+{
+    GENERATED_BODY()
+
+public:
+    // Bound via UCk_Utils_EntityReplicationDriver_UE::Promise_OnReplicationComplete. Snapshots
+    // the Float attribute identified by _AttributeTag from the firing entity — the value the
+    // lifecycle contract guarantees is already applied when this callback runs.
+    UFUNCTION()
+    void
+    OnReplicationComplete(
+        FCk_Handle InHandle);
+
+    // Set by the spec before binding. Not UPROPERTYs — the spec reaches in directly, mirroring
+    // UCk_AutoTest_BodyCapturer_UE::_CapturedBodies.
+    FGameplayTag _AttributeTag;
+
+    bool _Fired = false;
+    bool _AttributeWasPresentAtFire = false;
+    float _FinalValueAtFire = 0.0f;
 };
