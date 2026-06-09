@@ -32,10 +32,16 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_Usf_GeneratesUsableMasters::RunTest(const FString& Parameters)
 {
-    // 1. Generate masters for every declared look.
+    // 1. Generate masters for every declared look. Generation now also force-compiles each
+    //    master's shaders and reports any HLSL compile failures (the silent fallback-to-default
+    //    case that a bare object/MID check misses — e.g. a broken PostProcess permutation).
     const auto Result = ck::usf_editor::Generate_AllLookMaterials();
     TestTrue(TEXT("at least one look material generated"), Result.NumGenerated > 0);
     TestEqual(TEXT("no looks skipped"), Result.NumSkipped, 0);
+
+    for (const auto& ShaderError : Result.Errors)
+    { AddError(ShaderError); }
+    TestEqual(TEXT("no shader compile errors across looks"), Result.Errors.Num(), 0);
 
     // 2. Discover the look definitions.
     const auto& ARM = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
