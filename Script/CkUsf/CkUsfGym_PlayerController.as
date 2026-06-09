@@ -34,6 +34,10 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
             "Underwater light caustics.", "Domain-distorted sine ridges."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfRimGlow", "RIM GLOW (FRESNEL)",
             "Fresnel rim from normal vs view dir.", "Proves the new world-space surface inputs."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfDissolve", "DISSOLVE (MASKED)",
+            "Animated cutout via OpacityMask.", "Masked blend + two-sided; glowing burn edge."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfLitMetal", "LIT METAL (PBR)",
+            "Scene-lit metal/dielectric checker.", "DefaultLit + Metallic/Specular/Roughness."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfFeedback", "RENDER-TO-TEXTURE",
             "Multi-pass feedback buffer (ping-pong RT).", "BufferA reads itself; Image colorizes."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfPostProcess", "POST-PROCESS (EDGE OUTLINE)",
@@ -81,6 +85,8 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_SpawnLook(n"Gym.Rendering.UsfStarfield", CkUsf::Starfield);
         Request_SpawnLook(n"Gym.Rendering.UsfCaustics",  CkUsf::Caustics);
         Request_SpawnLook(n"Gym.Rendering.UsfRimGlow",   CkUsf::RimGlow);
+        Request_SpawnLook(n"Gym.Rendering.UsfDissolve",  CkUsf::Dissolve);
+        Request_SpawnLook(n"Gym.Rendering.UsfLitMetal",  CkUsf::LitMetal);
         Request_SpawnMultiPass(n"Gym.Rendering.UsfFeedback");
         Request_SpawnPostProcess(n"Gym.Rendering.UsfPostProcess");
     }
