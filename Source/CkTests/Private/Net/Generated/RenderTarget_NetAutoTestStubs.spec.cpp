@@ -37,21 +37,21 @@
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Auto-generated from AS class Ck_AutoTest_Net_ChangeablePoster_TextureReplicates (Replicated-mode).
+// Auto-generated from AS class Ck_AutoTest_Net_RenderTarget_DrawReplicates (Replicated-mode).
 // DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
-    constexpr auto kAsClassPath_ChangeablePoster_TextureReplicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_ChangeablePoster_TextureReplicates");
-    constexpr auto kTimeoutSeconds_ChangeablePoster_TextureReplicates = 30.0f;
+    constexpr auto kAsClassPath_RenderTarget_DrawReplicates = TEXT("/Script/Angelscript.Ck_AutoTest_Net_RenderTarget_DrawReplicates");
+    constexpr auto kTimeoutSeconds_RenderTarget_DrawReplicates = 30.0f;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkASNet_AS_ChangeablePoster_TextureReplicates,
-    "Ck.AS.Net.AS_ChangeablePoster_TextureReplicates",
+    FCkRenderTargetNet_AS_RenderTarget_DrawReplicates,
+    "Ck.RenderTarget.Net.AS_RenderTarget_DrawReplicates",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
 
-bool FCkASNet_AS_ChangeablePoster_TextureReplicates::RunTest(const FString& Parameters)
+bool FCkRenderTargetNet_AS_RenderTarget_DrawReplicates::RunTest(const FString& Parameters)
 {
     bSuppressLogErrors = true;
     bSuppressLogWarnings = true;
@@ -71,7 +71,7 @@ bool FCkASNet_AS_ChangeablePoster_TextureReplicates::RunTest(const FString& Para
         {
             auto SpawnInfo = FActorSpawnParameters{};
             SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-            const auto SubjectClassPath = FSoftClassPath(TEXT("/Script/CkTests.Ck_AutoTest_NetSubject"));
+            const auto SubjectClassPath = FSoftClassPath(TEXT("/Script/CkTests.Ck_AutoTest_NetSubject_RenderTarget_UE"));
             auto* SubjectClass = SubjectClassPath.TryLoadClass<ACk_AutoTest_NetSubject>();
             if (SubjectClass == nullptr)
             { AddError(TEXT("AS-test harness: failed to resolve NetSubject class via FSoftClassPath")); return; }
@@ -83,7 +83,7 @@ bool FCkASNet_AS_ChangeablePoster_TextureReplicates::RunTest(const FString& Para
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterSpawn));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_ChangeablePoster_TextureReplicates}, kTimeoutSeconds_ChangeablePoster_TextureReplicates));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunAsTestOnAllWorlds(this, FString{kAsClassPath_RenderTarget_DrawReplicates}, kTimeoutSeconds_RenderTarget_DrawReplicates));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 

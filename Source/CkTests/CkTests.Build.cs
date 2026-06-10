@@ -45,6 +45,7 @@ public class CkTests : CkModuleRules
             "CkProvider",
             "CkRecord",
             "CkRelationship",
+            "CkRenderTarget",
             "CkResolver",
             "CkResourceLoader",
             "CkSettings",
