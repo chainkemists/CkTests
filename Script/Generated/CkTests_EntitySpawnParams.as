@@ -4441,6 +4441,19 @@ namespace UCk_AutoTest_Net_RemoveEntities_Replicates
 }
 
 USTRUCT()
+struct FCk_AutoTest_Net_RenderTarget_DrawReplicates_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Net_RenderTarget_DrawReplicates
+{
+    FCk_AutoTest_Net_RenderTarget_DrawReplicates_SpawnParams Params()
+    {
+        return FCk_AutoTest_Net_RenderTarget_DrawReplicates_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Net_Rotation_Replicates_SpawnParams
 {
 }
@@ -4970,6 +4983,71 @@ namespace UCk_AutoTest_RenderStatus_Add_CreatesFeature
     FCk_AutoTest_RenderStatus_Add_CreatesFeature_SpawnParams Params()
     {
         return FCk_AutoTest_RenderStatus_Add_CreatesFeature_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_RenderTarget_AddAndQuery_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_RenderTarget_AddAndQuery
+{
+    FCk_AutoTest_RenderTarget_AddAndQuery_SpawnParams Params()
+    {
+        return FCk_AutoTest_RenderTarget_AddAndQuery_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal
+{
+    FCk_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_SpawnParams Params()
+    {
+        return FCk_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving
+{
+    FCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_SpawnParams Params()
+    {
+        return FCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff
+{
+    FCk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_SpawnParams Params()
+    {
+        return FCk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures
+{
+    FCk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_SpawnParams Params()
+    {
+        return FCk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_SpawnParams();
     }
 }
 
@@ -9750,6 +9828,31 @@ namespace UCk_NetGym_TwoPlayer_EntityScript
 }
 
 USTRUCT()
+struct FCk_RenderTargetGym_Whiteboard_EntityScript_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_RenderTargetGym_Whiteboard_EntityScript_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_RenderTargetGym_Whiteboard_EntityScript
+{
+    FCk_RenderTargetGym_Whiteboard_EntityScript_SpawnParams Params()
+    {
+        return FCk_RenderTargetGym_Whiteboard_EntityScript_SpawnParams();
+    }
+
+    FCk_RenderTargetGym_Whiteboard_EntityScript_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_RenderTargetGym_Whiteboard_EntityScript_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
 struct FCk_ReplicationGym_PawnExtra_EntityScript_SpawnParams
 {
     UPROPERTY()
@@ -10054,6 +10157,71 @@ namespace UCk_SmNegPolledTest_State_B
     FCk_SmNegPolledTest_State_B_SpawnParams Params()
     {
         return FCk_SmNegPolledTest_State_B_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNetSubTest_DelayShort_SpawnParams
+{
+}
+
+namespace UCk_SmNetSubTest_DelayShort
+{
+    FCk_SmNetSubTest_DelayShort_SpawnParams Params()
+    {
+        return FCk_SmNetSubTest_DelayShort_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNetSubTest_Parent_Hold_SpawnParams
+{
+}
+
+namespace UCk_SmNetSubTest_Parent_Hold
+{
+    FCk_SmNetSubTest_Parent_Hold_SpawnParams Params()
+    {
+        return FCk_SmNetSubTest_Parent_Hold_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNetSubTest_Sub_Reached_SpawnParams
+{
+}
+
+namespace UCk_SmNetSubTest_Sub_Reached
+{
+    FCk_SmNetSubTest_Sub_Reached_SpawnParams Params()
+    {
+        return FCk_SmNetSubTest_Sub_Reached_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNetSubTest_Sub_Wait_SpawnParams
+{
+}
+
+namespace UCk_SmNetSubTest_Sub_Wait
+{
+    FCk_SmNetSubTest_Sub_Wait_SpawnParams Params()
+    {
+        return FCk_SmNetSubTest_Sub_Wait_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNetSubTest_SubTask_SpawnParams
+{
+}
+
+namespace UCk_SmNetSubTest_SubTask
+{
+    FCk_SmNetSubTest_SubTask_SpawnParams Params()
+    {
+        return FCk_SmNetSubTest_SubTask_SpawnParams();
     }
 }
 
@@ -12301,6 +12469,56 @@ namespace UCk_AutoTest_NetSubject_RelationshipEntityScript_UE
 }
 
 USTRUCT()
+struct FCk_AutoTest_NetSubject_RenderTargetClientAuthEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_RenderTargetClientAuthEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_RenderTargetClientAuthEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_RenderTargetClientAuthEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_RenderTargetClientAuthEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_RenderTargetClientAuthEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_RenderTargetClientAuthEntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_RenderTargetEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_RenderTargetEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_RenderTargetEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_RenderTargetEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_RenderTargetEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_RenderTargetEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_RenderTargetEntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_NetSubject_StateMachineEntityScript_UE_SpawnParams
 {
     UPROPERTY()
@@ -12397,6 +12615,31 @@ namespace UCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_
     FCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
     {
         return FCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams(In_OwningActor);
     }
 }
 

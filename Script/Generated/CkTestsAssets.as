@@ -96,6 +96,7 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor> Ck_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor_UAID_C87F5401E53525DC02_1985798329() { return TSoftObjectPtr<ACk_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Cue_Timed_DestroyedAfterDuration_Actor_UAID_C87F5401E53525DC02_1985798329")); }
     TSoftObjectPtr<ACk_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor> Ck_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor_UAID_C87F5401E5353BDC02_1722392199() { return TSoftObjectPtr<ACk_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_DynamicFragment_Add_HasReturnsTrue_Actor_UAID_C87F5401E5353BDC02_1722392199")); }
     TSoftObjectPtr<ACk_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor> Ck_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor_UAID_C87F5401E5353BDC02_1722394200() { return TSoftObjectPtr<ACk_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor_UAID_C87F5401E5353BDC02_1722394200")); }
+    TSoftObjectPtr<ACk_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_Actor> Ck_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_Actor_UAID_60CF84A99C2C4CE102_1422792471() { return TSoftObjectPtr<ACk_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_Actor_UAID_60CF84A99C2C4CE102_1422792471")); }
     TSoftObjectPtr<ACk_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor> Ck_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor_UAID_C87F5401E5353BDC02_1722395201() { return TSoftObjectPtr<ACk_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor_UAID_C87F5401E5353BDC02_1722395201")); }
     TSoftObjectPtr<ACk_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor> Ck_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor_UAID_C87F5401E5353BDC02_1722396202() { return TSoftObjectPtr<ACk_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed_Actor_UAID_C87F5401E5353BDC02_1722396202")); }
     TSoftObjectPtr<ACk_AutoTest_EntityCollection_AddHappyPath_Actor> Ck_AutoTest_EntityCollection_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368137439() { return TSoftObjectPtr<ACk_AutoTest_EntityCollection_AddHappyPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_EntityCollection_AddHappyPath_Actor_UAID_C87F5401E535B4DB02_1368137439")); }
@@ -206,13 +207,34 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor> Ck_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor_UAID_C87F5401E535EDDD02_2119480583() { return TSoftObjectPtr<ACk_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip_Actor_UAID_C87F5401E535EDDD02_2119480583")); }
     TSoftObjectPtr<ACk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor> Ck_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor_UAID_C87F5401E53594DD02_1740591920() { return TSoftObjectPtr<ACk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop_Actor_UAID_C87F5401E53594DD02_1740591920")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_AddAndDimensions_Actor> Ck_AutoTest_Grid_AddAndDimensions_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_AddAndDimensions_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_AddAndDimensions_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_AuthoringSpecToRuntime_Actor> Ck_AutoTest_Grid_AuthoringSpecToRuntime_Actor_UAID_C87F5401E5355CE102_1410946287() { return TSoftObjectPtr<ACk_AutoTest_Grid_AuthoringSpecToRuntime_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_AuthoringSpecToRuntime_Actor_UAID_C87F5401E5355CE102_1410946287")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_BasicPlacement_Actor> Ck_AutoTest_Grid_BasicPlacement_Actor_UAID_C87F5401E535FDE002_2075695567() { return TSoftObjectPtr<ACk_AutoTest_Grid_BasicPlacement_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_BasicPlacement_Actor_UAID_C87F5401E535FDE002_2075695567")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_BlockerLifecycle_Actor> Ck_AutoTest_Grid_BlockerLifecycle_Actor_UAID_C87F5401E535F9E002_1575058863() { return TSoftObjectPtr<ACk_AutoTest_Grid_BlockerLifecycle_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_BlockerLifecycle_Actor_UAID_C87F5401E535F9E002_1575058863")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_BlockerNamedToggle_Actor> Ck_AutoTest_Grid_BlockerNamedToggle_Actor_UAID_C87F5401E5354FE102_1480247999() { return TSoftObjectPtr<ACk_AutoTest_Grid_BlockerNamedToggle_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_BlockerNamedToggle_Actor_UAID_C87F5401E5354FE102_1480247999")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_BlockerPlacementInteraction_Actor> Ck_AutoTest_Grid_BlockerPlacementInteraction_Actor_UAID_C87F5401E5355CE102_1410950288() { return TSoftObjectPtr<ACk_AutoTest_Grid_BlockerPlacementInteraction_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_BlockerPlacementInteraction_Actor_UAID_C87F5401E5355CE102_1410950288")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_BlockerTwoOverlapRefcount_Actor> Ck_AutoTest_Grid_BlockerTwoOverlapRefcount_Actor_UAID_C87F5401E535F9E002_1575062864() { return TSoftObjectPtr<ACk_AutoTest_Grid_BlockerTwoOverlapRefcount_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_BlockerTwoOverlapRefcount_Actor_UAID_C87F5401E535F9E002_1575062864")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_CanPlaceFailureReasons_Actor> Ck_AutoTest_Grid_CanPlaceFailureReasons_Actor_UAID_C87F5401E5355CE102_1410950289() { return TSoftObjectPtr<ACk_AutoTest_Grid_CanPlaceFailureReasons_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_CanPlaceFailureReasons_Actor_UAID_C87F5401E5355CE102_1410950289")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_CellCoordinatesAreUnique_Actor> Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_CellCoordinatesAreUnique_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_CellsAreEnabledByDefault_Actor> Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_CellsAreEnabledByDefault_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_ClearThenPlaceSameTick_Actor> Ck_AutoTest_Grid_ClearThenPlaceSameTick_Actor_UAID_C87F5401E535FFE002_1229914919() { return TSoftObjectPtr<ACk_AutoTest_Grid_ClearThenPlaceSameTick_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_ClearThenPlaceSameTick_Actor_UAID_C87F5401E535FFE002_1229914919")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_ConnectivityEdges_Actor> Ck_AutoTest_Grid_ConnectivityEdges_Actor_UAID_C87F5401E5355CE102_1410951290() { return TSoftObjectPtr<ACk_AutoTest_Grid_ConnectivityEdges_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_ConnectivityEdges_Actor_UAID_C87F5401E5355CE102_1410951290")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_DisabledCellRejectsPlacement_Actor> Ck_AutoTest_Grid_DisabledCellRejectsPlacement_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_DisabledCellRejectsPlacement_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_DisabledCellRejectsPlacement_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_DisjointIntersection_Actor> Ck_AutoTest_Grid_DisjointIntersection_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_DisjointIntersection_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_DisjointIntersection_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_ExternalOccupantDestructionCleanup_Actor> Ck_AutoTest_Grid_ExternalOccupantDestructionCleanup_Actor_UAID_C87F5401E535FFE002_1229916920() { return TSoftObjectPtr<ACk_AutoTest_Grid_ExternalOccupantDestructionCleanup_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_ExternalOccupantDestructionCleanup_Actor_UAID_C87F5401E535FFE002_1229916920")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_GridDestructionWithActivePlacements_Actor> Ck_AutoTest_Grid_GridDestructionWithActivePlacements_Actor_UAID_C87F5401E535FFE002_1229917921() { return TSoftObjectPtr<ACk_AutoTest_Grid_GridDestructionWithActivePlacements_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_GridDestructionWithActivePlacements_Actor_UAID_C87F5401E535FFE002_1229917921")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_IntersectionCardinality_Actor> Ck_AutoTest_Grid_IntersectionCardinality_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_IntersectionCardinality_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_IntersectionCardinality_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_MultiCellOccupancy_Actor> Ck_AutoTest_Grid_MultiCellOccupancy_Actor_UAID_C87F5401E5355CE102_1410952291() { return TSoftObjectPtr<ACk_AutoTest_Grid_MultiCellOccupancy_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_MultiCellOccupancy_Actor_UAID_C87F5401E5355CE102_1410952291")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_ObjectFootprintResolves_Actor> Ck_AutoTest_Grid_ObjectFootprintResolves_Actor_UAID_C87F5401E535F5E002_1758828159() { return TSoftObjectPtr<ACk_AutoTest_Grid_ObjectFootprintResolves_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_ObjectFootprintResolves_Actor_UAID_C87F5401E535F5E002_1758828159")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_ObjectFootprintRotationsFull_Actor> Ck_AutoTest_Grid_ObjectFootprintRotationsFull_Actor_UAID_C87F5401E5355CE102_1410953292() { return TSoftObjectPtr<ACk_AutoTest_Grid_ObjectFootprintRotationsFull_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_ObjectFootprintRotationsFull_Actor_UAID_C87F5401E5355CE102_1410953292")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_OccupancyRawStamp_Actor> Ck_AutoTest_Grid_OccupancyRawStamp_Actor_UAID_C87F5401E535FAE002_1581582039() { return TSoftObjectPtr<ACk_AutoTest_Grid_OccupancyRawStamp_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_OccupancyRawStamp_Actor_UAID_C87F5401E535FAE002_1581582039")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_OverlappingIntersection_Actor> Ck_AutoTest_Grid_OverlappingIntersection_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_OverlappingIntersection_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_OverlappingIntersection_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_ReentrancyDuringBroadcast_Actor> Ck_AutoTest_Grid_ReentrancyDuringBroadcast_Actor_UAID_C87F5401E535FFE002_1229918922() { return TSoftObjectPtr<ACk_AutoTest_Grid_ReentrancyDuringBroadcast_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_ReentrancyDuringBroadcast_Actor_UAID_C87F5401E535FFE002_1229918922")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_RejectsDisabledOccupied_Actor> Ck_AutoTest_Grid_RejectsDisabledOccupied_Actor_UAID_C87F5401E535FDE002_2075699568() { return TSoftObjectPtr<ACk_AutoTest_Grid_RejectsDisabledOccupied_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_RejectsDisabledOccupied_Actor_UAID_C87F5401E535FDE002_2075699568")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_RePlaceDifferentRotation_Actor> Ck_AutoTest_Grid_RePlaceDifferentRotation_Actor_UAID_C87F5401E535FFE002_1229918923() { return TSoftObjectPtr<ACk_AutoTest_Grid_RePlaceDifferentRotation_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_RePlaceDifferentRotation_Actor_UAID_C87F5401E535FFE002_1229918923")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_RequireConnectedFootprint_Actor> Ck_AutoTest_Grid_RequireConnectedFootprint_Actor_UAID_C87F5401E535FEE002_1628487743() { return TSoftObjectPtr<ACk_AutoTest_Grid_RequireConnectedFootprint_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_RequireConnectedFootprint_Actor_UAID_C87F5401E535FEE002_1628487743")); }
     TSoftObjectPtr<ACk_AutoTest_Grid_RotationLocalCoordMapping_Actor> Ck_AutoTest_Grid_RotationLocalCoordMapping_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Grid_RotationLocalCoordMapping_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_RotationLocalCoordMapping_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_TagFilter_Actor> Ck_AutoTest_Grid_TagFilter_Actor_UAID_C87F5401E535FEE002_1628489744() { return TSoftObjectPtr<ACk_AutoTest_Grid_TagFilter_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_TagFilter_Actor_UAID_C87F5401E535FEE002_1628489744")); }
+    TSoftObjectPtr<ACk_AutoTest_Grid_TagFilterForbidden_Actor> Ck_AutoTest_Grid_TagFilterForbidden_Actor_UAID_C87F5401E5355CE102_1410953293() { return TSoftObjectPtr<ACk_AutoTest_Grid_TagFilterForbidden_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Grid_TagFilterForbidden_Actor_UAID_C87F5401E5355CE102_1410953293")); }
     TSoftObjectPtr<ACk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor> Ck_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor_UAID_C87F5401E53522DC02_1678324799() { return TSoftObjectPtr<ACk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor_UAID_C87F5401E53522DC02_1678324799")); }
     TSoftObjectPtr<ACk_AutoTest_Interaction_CanInteractWithComplexValidation_Actor> Ck_AutoTest_Interaction_CanInteractWithComplexValidation_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Interaction_CanInteractWithComplexValidation_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Interaction_CanInteractWithComplexValidation_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor> Ck_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor_0")); }
@@ -262,8 +284,10 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_AsyncLoad_Actor> Ck_AutoTest_IskmRenderer_AsyncLoad_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_AsyncLoad_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_AsyncLoad_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_CustomData_Actor> Ck_AutoTest_IskmRenderer_CustomData_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_CustomData_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_CustomData_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_CustomDataSuccess_Actor> Ck_AutoTest_IskmRenderer_CustomDataSuccess_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_CustomDataSuccess_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_CustomDataSuccess_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_IskmRenderer_MaterialOverride_Actor> Ck_AutoTest_IskmRenderer_MaterialOverride_Actor_UAID_C87F5401E5353CE302_1851407767() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_MaterialOverride_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_MaterialOverride_Actor_UAID_C87F5401E5353CE302_1851407767")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_Montage_Actor> Ck_AutoTest_IskmRenderer_Montage_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_Montage_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_Montage_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_MontageNotify_Actor> Ck_AutoTest_IskmRenderer_MontageNotify_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_MontageNotify_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_MontageNotify_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_IskmRenderer_MorphTargets_Actor> Ck_AutoTest_IskmRenderer_MorphTargets_Actor_UAID_C87F5401E5353DE302_2074812943() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_MorphTargets_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_MorphTargets_Actor_UAID_C87F5401E5353DE302_2074812943")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_OutfitAttach_Actor> Ck_AutoTest_IskmRenderer_OutfitAttach_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_OutfitAttach_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_OutfitAttach_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_OutfitSubmesh_Actor> Ck_AutoTest_IskmRenderer_OutfitSubmesh_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_OutfitSubmesh_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_OutfitSubmesh_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_PdaSmoke_Actor> Ck_AutoTest_IskmRenderer_PdaSmoke_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_PdaSmoke_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_PdaSmoke_Actor_0")); }
@@ -325,6 +349,10 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor> Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor_UAID_C87F5401E535E0DB02_1641459198() { return TSoftObjectPtr<ACk_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam_Actor_UAID_C87F5401E535E0DB02_1641459198")); }
     TSoftObjectPtr<ACk_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor> Ck_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor_UAID_C87F5401E535E0DB02_1641460199() { return TSoftObjectPtr<ACk_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Relationship_Team_UnassignSetsUnassigned_Actor_UAID_C87F5401E535E0DB02_1641460199")); }
     TSoftObjectPtr<ACk_AutoTest_RenderStatus_Add_CreatesFeature_Actor> Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857() { return TSoftObjectPtr<ACk_AutoTest_RenderStatus_Add_CreatesFeature_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857")); }
+    TSoftObjectPtr<ACk_AutoTest_RenderTarget_AddAndQuery_Actor> Ck_AutoTest_RenderTarget_AddAndQuery_Actor_UAID_60CF84A99C2C58E302_1636287695() { return TSoftObjectPtr<ACk_AutoTest_RenderTarget_AddAndQuery_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderTarget_AddAndQuery_Actor_UAID_60CF84A99C2C58E302_1636287695")); }
+    TSoftObjectPtr<ACk_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor> Ck_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor_UAID_60CF84A99C2C58E302_1636291696() { return TSoftObjectPtr<ACk_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor_UAID_60CF84A99C2C58E302_1636291696")); }
+    TSoftObjectPtr<ACk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor> Ck_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor_UAID_60CF84A99C2C5AE302_1260422047() { return TSoftObjectPtr<ACk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor_UAID_60CF84A99C2C5AE302_1260422047")); }
+    TSoftObjectPtr<ACk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor> Ck_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor_UAID_60CF84A99C2C58E302_1636293697() { return TSoftObjectPtr<ACk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor_UAID_60CF84A99C2C58E302_1636293697")); }
     TSoftObjectPtr<ACk_AutoTest_Resolver_Source_AddHappyPath_Actor> Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119() { return TSoftObjectPtr<ACk_AutoTest_Resolver_Source_AddHappyPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119")); }
     TSoftObjectPtr<ACk_AutoTest_Resolver_Source_CreateHappyPath_Actor> Ck_AutoTest_Resolver_Source_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352120() { return TSoftObjectPtr<ACk_AutoTest_Resolver_Source_CreateHappyPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Resolver_Source_CreateHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352120")); }
     TSoftObjectPtr<ACk_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor> Ck_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352121() { return TSoftObjectPtr<ACk_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Resolver_Source_CreateTransientHappyPath_Actor_UAID_C87F5401E535EBDB02_1470352121")); }
@@ -1362,6 +1390,15 @@ namespace assets::load
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_DynamicFragment_AddGet_RoundTripsValue_Actor_UAID_C87F5401E5353BDC02_1722394200());
     }
+    ACk_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_Actor Ck_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_Actor_UAID_60CF84A99C2C4CE102_1422792471()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_Actor_UAID_60CF84A99C2C4CE102_1422792471() called before engine init. Use assets::Ck_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_Actor_UAID_60CF84A99C2C4CE102_1422792471() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_Actor_UAID_60CF84A99C2C4CE102_1422792471());
+    }
     ACk_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor Ck_AutoTest_DynamicFragment_RequestRemove_ClearsHas_Actor_UAID_C87F5401E5353BDC02_1722395201()
     {
         if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
@@ -2352,6 +2389,69 @@ namespace assets::load
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_AddAndDimensions_Actor_0());
     }
+    ACk_AutoTest_Grid_AuthoringSpecToRuntime_Actor Ck_AutoTest_Grid_AuthoringSpecToRuntime_Actor_UAID_C87F5401E5355CE102_1410946287()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_AuthoringSpecToRuntime_Actor_UAID_C87F5401E5355CE102_1410946287() called before engine init. Use assets::Ck_AutoTest_Grid_AuthoringSpecToRuntime_Actor_UAID_C87F5401E5355CE102_1410946287() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_AuthoringSpecToRuntime_Actor_UAID_C87F5401E5355CE102_1410946287());
+    }
+    ACk_AutoTest_Grid_BasicPlacement_Actor Ck_AutoTest_Grid_BasicPlacement_Actor_UAID_C87F5401E535FDE002_2075695567()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_BasicPlacement_Actor_UAID_C87F5401E535FDE002_2075695567() called before engine init. Use assets::Ck_AutoTest_Grid_BasicPlacement_Actor_UAID_C87F5401E535FDE002_2075695567() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_BasicPlacement_Actor_UAID_C87F5401E535FDE002_2075695567());
+    }
+    ACk_AutoTest_Grid_BlockerLifecycle_Actor Ck_AutoTest_Grid_BlockerLifecycle_Actor_UAID_C87F5401E535F9E002_1575058863()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_BlockerLifecycle_Actor_UAID_C87F5401E535F9E002_1575058863() called before engine init. Use assets::Ck_AutoTest_Grid_BlockerLifecycle_Actor_UAID_C87F5401E535F9E002_1575058863() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_BlockerLifecycle_Actor_UAID_C87F5401E535F9E002_1575058863());
+    }
+    ACk_AutoTest_Grid_BlockerNamedToggle_Actor Ck_AutoTest_Grid_BlockerNamedToggle_Actor_UAID_C87F5401E5354FE102_1480247999()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_BlockerNamedToggle_Actor_UAID_C87F5401E5354FE102_1480247999() called before engine init. Use assets::Ck_AutoTest_Grid_BlockerNamedToggle_Actor_UAID_C87F5401E5354FE102_1480247999() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_BlockerNamedToggle_Actor_UAID_C87F5401E5354FE102_1480247999());
+    }
+    ACk_AutoTest_Grid_BlockerPlacementInteraction_Actor Ck_AutoTest_Grid_BlockerPlacementInteraction_Actor_UAID_C87F5401E5355CE102_1410950288()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_BlockerPlacementInteraction_Actor_UAID_C87F5401E5355CE102_1410950288() called before engine init. Use assets::Ck_AutoTest_Grid_BlockerPlacementInteraction_Actor_UAID_C87F5401E5355CE102_1410950288() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_BlockerPlacementInteraction_Actor_UAID_C87F5401E5355CE102_1410950288());
+    }
+    ACk_AutoTest_Grid_BlockerTwoOverlapRefcount_Actor Ck_AutoTest_Grid_BlockerTwoOverlapRefcount_Actor_UAID_C87F5401E535F9E002_1575062864()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_BlockerTwoOverlapRefcount_Actor_UAID_C87F5401E535F9E002_1575062864() called before engine init. Use assets::Ck_AutoTest_Grid_BlockerTwoOverlapRefcount_Actor_UAID_C87F5401E535F9E002_1575062864() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_BlockerTwoOverlapRefcount_Actor_UAID_C87F5401E535F9E002_1575062864());
+    }
+    ACk_AutoTest_Grid_CanPlaceFailureReasons_Actor Ck_AutoTest_Grid_CanPlaceFailureReasons_Actor_UAID_C87F5401E5355CE102_1410950289()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_CanPlaceFailureReasons_Actor_UAID_C87F5401E5355CE102_1410950289() called before engine init. Use assets::Ck_AutoTest_Grid_CanPlaceFailureReasons_Actor_UAID_C87F5401E5355CE102_1410950289() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_CanPlaceFailureReasons_Actor_UAID_C87F5401E5355CE102_1410950289());
+    }
     ACk_AutoTest_Grid_CellCoordinatesAreUnique_Actor Ck_AutoTest_Grid_CellCoordinatesAreUnique_Actor_0()
     {
         if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
@@ -2369,6 +2469,24 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_CellsAreEnabledByDefault_Actor_0());
+    }
+    ACk_AutoTest_Grid_ClearThenPlaceSameTick_Actor Ck_AutoTest_Grid_ClearThenPlaceSameTick_Actor_UAID_C87F5401E535FFE002_1229914919()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_ClearThenPlaceSameTick_Actor_UAID_C87F5401E535FFE002_1229914919() called before engine init. Use assets::Ck_AutoTest_Grid_ClearThenPlaceSameTick_Actor_UAID_C87F5401E535FFE002_1229914919() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_ClearThenPlaceSameTick_Actor_UAID_C87F5401E535FFE002_1229914919());
+    }
+    ACk_AutoTest_Grid_ConnectivityEdges_Actor Ck_AutoTest_Grid_ConnectivityEdges_Actor_UAID_C87F5401E5355CE102_1410951290()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_ConnectivityEdges_Actor_UAID_C87F5401E5355CE102_1410951290() called before engine init. Use assets::Ck_AutoTest_Grid_ConnectivityEdges_Actor_UAID_C87F5401E5355CE102_1410951290() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_ConnectivityEdges_Actor_UAID_C87F5401E5355CE102_1410951290());
     }
     ACk_AutoTest_Grid_DisabledCellRejectsPlacement_Actor Ck_AutoTest_Grid_DisabledCellRejectsPlacement_Actor_0()
     {
@@ -2388,6 +2506,24 @@ namespace assets::load
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_DisjointIntersection_Actor_0());
     }
+    ACk_AutoTest_Grid_ExternalOccupantDestructionCleanup_Actor Ck_AutoTest_Grid_ExternalOccupantDestructionCleanup_Actor_UAID_C87F5401E535FFE002_1229916920()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_ExternalOccupantDestructionCleanup_Actor_UAID_C87F5401E535FFE002_1229916920() called before engine init. Use assets::Ck_AutoTest_Grid_ExternalOccupantDestructionCleanup_Actor_UAID_C87F5401E535FFE002_1229916920() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_ExternalOccupantDestructionCleanup_Actor_UAID_C87F5401E535FFE002_1229916920());
+    }
+    ACk_AutoTest_Grid_GridDestructionWithActivePlacements_Actor Ck_AutoTest_Grid_GridDestructionWithActivePlacements_Actor_UAID_C87F5401E535FFE002_1229917921()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_GridDestructionWithActivePlacements_Actor_UAID_C87F5401E535FFE002_1229917921() called before engine init. Use assets::Ck_AutoTest_Grid_GridDestructionWithActivePlacements_Actor_UAID_C87F5401E535FFE002_1229917921() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_GridDestructionWithActivePlacements_Actor_UAID_C87F5401E535FFE002_1229917921());
+    }
     ACk_AutoTest_Grid_IntersectionCardinality_Actor Ck_AutoTest_Grid_IntersectionCardinality_Actor_0()
     {
         if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
@@ -2396,6 +2532,42 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_IntersectionCardinality_Actor_0());
+    }
+    ACk_AutoTest_Grid_MultiCellOccupancy_Actor Ck_AutoTest_Grid_MultiCellOccupancy_Actor_UAID_C87F5401E5355CE102_1410952291()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_MultiCellOccupancy_Actor_UAID_C87F5401E5355CE102_1410952291() called before engine init. Use assets::Ck_AutoTest_Grid_MultiCellOccupancy_Actor_UAID_C87F5401E5355CE102_1410952291() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_MultiCellOccupancy_Actor_UAID_C87F5401E5355CE102_1410952291());
+    }
+    ACk_AutoTest_Grid_ObjectFootprintResolves_Actor Ck_AutoTest_Grid_ObjectFootprintResolves_Actor_UAID_C87F5401E535F5E002_1758828159()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_ObjectFootprintResolves_Actor_UAID_C87F5401E535F5E002_1758828159() called before engine init. Use assets::Ck_AutoTest_Grid_ObjectFootprintResolves_Actor_UAID_C87F5401E535F5E002_1758828159() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_ObjectFootprintResolves_Actor_UAID_C87F5401E535F5E002_1758828159());
+    }
+    ACk_AutoTest_Grid_ObjectFootprintRotationsFull_Actor Ck_AutoTest_Grid_ObjectFootprintRotationsFull_Actor_UAID_C87F5401E5355CE102_1410953292()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_ObjectFootprintRotationsFull_Actor_UAID_C87F5401E5355CE102_1410953292() called before engine init. Use assets::Ck_AutoTest_Grid_ObjectFootprintRotationsFull_Actor_UAID_C87F5401E5355CE102_1410953292() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_ObjectFootprintRotationsFull_Actor_UAID_C87F5401E5355CE102_1410953292());
+    }
+    ACk_AutoTest_Grid_OccupancyRawStamp_Actor Ck_AutoTest_Grid_OccupancyRawStamp_Actor_UAID_C87F5401E535FAE002_1581582039()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_OccupancyRawStamp_Actor_UAID_C87F5401E535FAE002_1581582039() called before engine init. Use assets::Ck_AutoTest_Grid_OccupancyRawStamp_Actor_UAID_C87F5401E535FAE002_1581582039() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_OccupancyRawStamp_Actor_UAID_C87F5401E535FAE002_1581582039());
     }
     ACk_AutoTest_Grid_OverlappingIntersection_Actor Ck_AutoTest_Grid_OverlappingIntersection_Actor_0()
     {
@@ -2406,6 +2578,42 @@ namespace assets::load
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_OverlappingIntersection_Actor_0());
     }
+    ACk_AutoTest_Grid_ReentrancyDuringBroadcast_Actor Ck_AutoTest_Grid_ReentrancyDuringBroadcast_Actor_UAID_C87F5401E535FFE002_1229918922()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_ReentrancyDuringBroadcast_Actor_UAID_C87F5401E535FFE002_1229918922() called before engine init. Use assets::Ck_AutoTest_Grid_ReentrancyDuringBroadcast_Actor_UAID_C87F5401E535FFE002_1229918922() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_ReentrancyDuringBroadcast_Actor_UAID_C87F5401E535FFE002_1229918922());
+    }
+    ACk_AutoTest_Grid_RejectsDisabledOccupied_Actor Ck_AutoTest_Grid_RejectsDisabledOccupied_Actor_UAID_C87F5401E535FDE002_2075699568()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_RejectsDisabledOccupied_Actor_UAID_C87F5401E535FDE002_2075699568() called before engine init. Use assets::Ck_AutoTest_Grid_RejectsDisabledOccupied_Actor_UAID_C87F5401E535FDE002_2075699568() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_RejectsDisabledOccupied_Actor_UAID_C87F5401E535FDE002_2075699568());
+    }
+    ACk_AutoTest_Grid_RePlaceDifferentRotation_Actor Ck_AutoTest_Grid_RePlaceDifferentRotation_Actor_UAID_C87F5401E535FFE002_1229918923()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_RePlaceDifferentRotation_Actor_UAID_C87F5401E535FFE002_1229918923() called before engine init. Use assets::Ck_AutoTest_Grid_RePlaceDifferentRotation_Actor_UAID_C87F5401E535FFE002_1229918923() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_RePlaceDifferentRotation_Actor_UAID_C87F5401E535FFE002_1229918923());
+    }
+    ACk_AutoTest_Grid_RequireConnectedFootprint_Actor Ck_AutoTest_Grid_RequireConnectedFootprint_Actor_UAID_C87F5401E535FEE002_1628487743()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_RequireConnectedFootprint_Actor_UAID_C87F5401E535FEE002_1628487743() called before engine init. Use assets::Ck_AutoTest_Grid_RequireConnectedFootprint_Actor_UAID_C87F5401E535FEE002_1628487743() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_RequireConnectedFootprint_Actor_UAID_C87F5401E535FEE002_1628487743());
+    }
     ACk_AutoTest_Grid_RotationLocalCoordMapping_Actor Ck_AutoTest_Grid_RotationLocalCoordMapping_Actor_0()
     {
         if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
@@ -2414,6 +2622,24 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_RotationLocalCoordMapping_Actor_0());
+    }
+    ACk_AutoTest_Grid_TagFilter_Actor Ck_AutoTest_Grid_TagFilter_Actor_UAID_C87F5401E535FEE002_1628489744()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_TagFilter_Actor_UAID_C87F5401E535FEE002_1628489744() called before engine init. Use assets::Ck_AutoTest_Grid_TagFilter_Actor_UAID_C87F5401E535FEE002_1628489744() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_TagFilter_Actor_UAID_C87F5401E535FEE002_1628489744());
+    }
+    ACk_AutoTest_Grid_TagFilterForbidden_Actor Ck_AutoTest_Grid_TagFilterForbidden_Actor_UAID_C87F5401E5355CE102_1410953293()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Grid_TagFilterForbidden_Actor_UAID_C87F5401E5355CE102_1410953293() called before engine init. Use assets::Ck_AutoTest_Grid_TagFilterForbidden_Actor_UAID_C87F5401E5355CE102_1410953293() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Grid_TagFilterForbidden_Actor_UAID_C87F5401E5355CE102_1410953293());
     }
     ACk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor Ck_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor_UAID_C87F5401E53522DC02_1678324799()
     {
@@ -2856,6 +3082,15 @@ namespace assets::load
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_CustomDataSuccess_Actor_0());
     }
+    ACk_AutoTest_IskmRenderer_MaterialOverride_Actor Ck_AutoTest_IskmRenderer_MaterialOverride_Actor_UAID_C87F5401E5353CE302_1851407767()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_MaterialOverride_Actor_UAID_C87F5401E5353CE302_1851407767() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_MaterialOverride_Actor_UAID_C87F5401E5353CE302_1851407767() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_MaterialOverride_Actor_UAID_C87F5401E5353CE302_1851407767());
+    }
     ACk_AutoTest_IskmRenderer_Montage_Actor Ck_AutoTest_IskmRenderer_Montage_Actor_0()
     {
         if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
@@ -2873,6 +3108,15 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_MontageNotify_Actor_0());
+    }
+    ACk_AutoTest_IskmRenderer_MorphTargets_Actor Ck_AutoTest_IskmRenderer_MorphTargets_Actor_UAID_C87F5401E5353DE302_2074812943()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_MorphTargets_Actor_UAID_C87F5401E5353DE302_2074812943() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_MorphTargets_Actor_UAID_C87F5401E5353DE302_2074812943() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_MorphTargets_Actor_UAID_C87F5401E5353DE302_2074812943());
     }
     ACk_AutoTest_IskmRenderer_OutfitAttach_Actor Ck_AutoTest_IskmRenderer_OutfitAttach_Actor_0()
     {
@@ -3422,6 +3666,42 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857());
+    }
+    ACk_AutoTest_RenderTarget_AddAndQuery_Actor Ck_AutoTest_RenderTarget_AddAndQuery_Actor_UAID_60CF84A99C2C58E302_1636287695()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_RenderTarget_AddAndQuery_Actor_UAID_60CF84A99C2C58E302_1636287695() called before engine init. Use assets::Ck_AutoTest_RenderTarget_AddAndQuery_Actor_UAID_60CF84A99C2C58E302_1636287695() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_RenderTarget_AddAndQuery_Actor_UAID_60CF84A99C2C58E302_1636287695());
+    }
+    ACk_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor Ck_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor_UAID_60CF84A99C2C58E302_1636291696()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor_UAID_60CF84A99C2C58E302_1636291696() called before engine init. Use assets::Ck_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor_UAID_60CF84A99C2C58E302_1636291696() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor_UAID_60CF84A99C2C58E302_1636291696());
+    }
+    ACk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor Ck_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor_UAID_60CF84A99C2C5AE302_1260422047()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor_UAID_60CF84A99C2C5AE302_1260422047() called before engine init. Use assets::Ck_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor_UAID_60CF84A99C2C5AE302_1260422047() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor_UAID_60CF84A99C2C5AE302_1260422047());
+    }
+    ACk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor Ck_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor_UAID_60CF84A99C2C58E302_1636293697()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor_UAID_60CF84A99C2C58E302_1636293697() called before engine init. Use assets::Ck_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor_UAID_60CF84A99C2C58E302_1636293697() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor_UAID_60CF84A99C2C58E302_1636293697());
     }
     ACk_AutoTest_Resolver_Source_AddHappyPath_Actor Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119()
     {
