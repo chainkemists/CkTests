@@ -7,6 +7,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
     private TArray<FVector> _PendingSpawns;
     private TArray<FVector> _PendingGoals;
     private TArray<FLinearColor> _PendingColors;
+    private TArray<FName> _PendingNames;
 
     // Re-target station: an agent is ping-ponged between two close points while still moving, so it
     // is perpetually re-targeted at speed (mirroring the live NPC's mid-walk MoveTo re-issue). This
@@ -150,7 +151,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
     private void Build_Open(float InLaneY)
     {
         Queue_Agent(FVector(k_SpawnX, InLaneY, k_AgentZ), FVector(-50.0, InLaneY, k_AgentZ),
-            FLinearColor(0.42, 0.85, 1.0, 1.0));
+            FLinearColor(0.42, 0.85, 1.0, 1.0), n"PathingAgent_Open");
     }
 
     private void Build_FlushBox(float InLaneY)
@@ -159,7 +160,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         // the agent must round it and arrives laterally — the orbit seed.
         SpawnBox(FVector(180.0, InLaneY, k_BoxZ), FVector(1.0, 1.0, 1.5));
         Queue_Agent(FVector(k_SpawnX, InLaneY, k_AgentZ), FVector(100.0, InLaneY, k_AgentZ),
-            FLinearColor(1.0, 0.42, 0.42, 1.0));
+            FLinearColor(1.0, 0.42, 0.42, 1.0), n"PathingAgent_FlushBox");
     }
 
     private void Build_RoundEnd(float InLaneY)
@@ -169,7 +170,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         // (lateral) velocity. Strong orbit candidate.
         SpawnBox(FVector(150.0, InLaneY - 60.0, k_BoxZ), FVector(0.5, 2.2, 1.5));
         Queue_Agent(FVector(k_SpawnX, InLaneY - 60.0, k_AgentZ), FVector(100.0, InLaneY - 40.0, k_AgentZ),
-            FLinearColor(0.4, 1.0, 0.9, 1.0));
+            FLinearColor(0.4, 1.0, 0.9, 1.0), n"PathingAgent_RoundEnd");
     }
 
     private void Build_Hairpin(float InLaneY)
@@ -179,7 +180,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         // turn — arriving mid-turn.
         SpawnBox(FVector(240.0, InLaneY, k_BoxZ), FVector(3.0, 0.4, 1.5));
         Queue_Agent(FVector(k_SpawnX, InLaneY + 70.0, k_AgentZ), FVector(130.0, InLaneY - 70.0, k_AgentZ),
-            FLinearColor(1.0, 0.5, 0.9, 1.0));
+            FLinearColor(1.0, 0.5, 0.9, 1.0), n"PathingAgent_Hairpin");
     }
 
     private void Build_Niche(float InLaneY)
@@ -191,27 +192,29 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         SpawnBox(FVector(205.0, InLaneY + 80.0, k_BoxZ), FVector(1.9, 0.4, 1.5));
         SpawnBox(FVector(205.0, InLaneY - 80.0, k_BoxZ), FVector(1.9, 0.4, 1.5));
         Queue_Agent(FVector(k_SpawnX, InLaneY, k_AgentZ), FVector(160.0, InLaneY, k_AgentZ),
-            FLinearColor(0.7, 0.8, 1.0, 1.0));
+            FLinearColor(0.7, 0.8, 1.0, 1.0), n"PathingAgent_Niche");
     }
 
     // ---- Queued-agent plumbing (boxes first, then one nav rebuild, then moves) --------------------
 
-    private void Queue_Agent(FVector InSpawn, FVector InGoal, FLinearColor InColor)
+    private void Queue_Agent(FVector InSpawn, FVector InGoal, FLinearColor InColor, FName InDebugName)
     {
         _PendingSpawns.Add(InSpawn);
         _PendingGoals.Add(InGoal);
         _PendingColors.Add(InColor);
+        _PendingNames.Add(InDebugName);
     }
 
     private void IssueAllMoves()
     {
         for (int32 i = 0; i < _PendingSpawns.Num(); ++i)
         {
-            SpawnAgentAndMove(_PendingSpawns[i], _PendingGoals[i], _PendingColors[i]);
+            SpawnAgentAndMove(_PendingSpawns[i], _PendingGoals[i], _PendingColors[i], _PendingNames[i]);
         }
         _PendingSpawns.Empty();
         _PendingGoals.Empty();
         _PendingColors.Empty();
+        _PendingNames.Empty();
     }
 
     private void RebuildNav()
@@ -286,13 +289,18 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         _Obstacles.Add(Box);
     }
 
-    private FCk_Handle_CrowdAgent SpawnAgentAndMove(FVector InSpawn, FVector InGoal, FLinearColor InColor)
+    private FCk_Handle_CrowdAgent SpawnAgentAndMove(FVector InSpawn, FVector InGoal, FLinearColor InColor, FName InDebugName)
     {
+        // Agents are standalone top-level entities (lifetime-owned by the registry transient),
+        // NOT sub-entities of the PlayerController — they represent free-standing NPCs.
+        // ClearAll destroys them explicitly, so no owner-cascade is needed.
+        FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        auto Agent = utils_crowd_agent::Add(_OwnerHandle, Params);
+        auto Agent = utils_crowd_agent::Add(TransientOwner, Params);
         _Agents.Add(Agent);
 
         FCk_Handle GenericAgent = Agent;
+        GenericAgent.Set_DebugName(InDebugName);
 
         const auto SpawnXform = FTransform(FRotator::ZeroRotator, InSpawn, FVector::OneVector);
         utils_transform::Add(GenericAgent, SpawnXform, ECk_Replication::DoesNotReplicate);
@@ -334,7 +342,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         DrawRingsAt(_RetargetT1);
 
         _RetargetAgent = SpawnAgentAndMove(FVector(k_SpawnX, InLaneY, k_AgentZ), _RetargetT1,
-            FLinearColor(1.0, 0.25, 0.25, 1.0));
+            FLinearColor(1.0, 0.25, 0.25, 1.0), n"PathingAgent_Retarget");
         _RetargetValid = true;
     }
 

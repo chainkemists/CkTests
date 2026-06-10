@@ -90,9 +90,11 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
-        // Spawn the CrowdAgent as a child of the station.
+        // The agent is a standalone top-level entity (lifetime-owned by the registry transient),
+        // not a sub-entity of the station — Ck_GymCrowd_Loco_Stop destroys it explicitly.
+        FCk_Handle TransientOwner = ck::TransientEntity();
         auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        _Agent = utils_crowd_agent::Add(_StationHandle, AgentParams);
+        _Agent = utils_crowd_agent::Add(TransientOwner, AgentParams);
 
         // The CrowdAgent entity needs a Transform so Request_AddLocationOffset has somewhere to apply.
         // Initial transform: just above the station origin so we can see the entity in the world.
@@ -102,6 +104,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
 
         // Cast back to a generic handle so we can call utils that take FCk_Handle&.
         FCk_Handle GenericAgent = _Agent;
+        GenericAgent.Set_DebugName(n"LocomotionAgent");
         utils_transform::Add(GenericAgent, InitialXform, ECk_Replication::DoesNotReplicate);
 
         // Velocity feature with zero starting velocity. Sub-task 2C's velocity-bridge processor

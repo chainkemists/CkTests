@@ -61,14 +61,18 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
+        // Agents are standalone top-level entities (lifetime-owned by the registry transient),
+        // not sub-entities of the station — Clear/RemoveLast destroy them explicitly.
+        FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        auto Agent = utils_crowd_agent::Add(StationHandle, Params);
+        auto Agent = utils_crowd_agent::Add(TransientOwner, Params);
 
         // Gate 3+: Setup processor requires FFragment_Transform to spawn the probe child entity.
         // Foundation gym doesn't pathfind or move, but a Transform at the station origin (jittered
         // so successive spawns don't pile on one point) lets the probe + neighbor cache exercise
         // without needing a navmesh.
         FCk_Handle GenericAgent = Agent;
+        GenericAgent.Set_DebugName(FName(f"FoundationAgent_{_Agents.Num()}"));
         const auto StationXform = Get_StationAnchorTransform("Gym.Crowd.Foundation", ECk_GymStation_Anchor::FootprintCenter);
         const auto Jitter = FVector(
             Math::RandRange(-50.0, 50.0),

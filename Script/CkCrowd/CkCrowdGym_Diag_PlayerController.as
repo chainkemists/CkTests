@@ -218,8 +218,8 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
     {
         const auto SpawnA = StationLocal_To_World("Gym.Crowd.Diag.HeadOn", FVector(HeadOnFwdOffset, +HeadOnHalfSpan, SpawnZ));
         const auto SpawnB = StationLocal_To_World("Gym.Crowd.Diag.HeadOn", FVector(HeadOnFwdOffset, -HeadOnHalfSpan, SpawnZ));
-        _HeadOnAgents.Add(SpawnAgent(_HeadOnStation, SpawnA, SpawnB, FLinearColor(0.42, 0.85, 1.0, 0.6)));
-        _HeadOnAgents.Add(SpawnAgent(_HeadOnStation, SpawnB, SpawnA, FLinearColor(1.0, 0.42, 0.85, 0.6)));
+        _HeadOnAgents.Add(SpawnAgent(SpawnA, SpawnB, FLinearColor(0.42, 0.85, 1.0, 0.6), n"DiagAgent_HeadOn_W0_0"));
+        _HeadOnAgents.Add(SpawnAgent(SpawnB, SpawnA, FLinearColor(1.0, 0.42, 0.85, 0.6), n"DiagAgent_HeadOn_W0_1"));
     }
 
     private void SpawnClusterAgents()
@@ -233,7 +233,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
             const auto SpawnLoc = Centre + Offset;
             const auto HueDeg = (360.0 / float(ClusterCount)) * float(i);
             const auto Color = FLinearColor::MakeFromHSV8(uint8(HueDeg * 255.0 / 360.0), 200, 220);
-            _ClusterAgents.Add(SpawnAgent(_ClusterStation, SpawnLoc, Centre, Color));
+            _ClusterAgents.Add(SpawnAgent(SpawnLoc, Centre, Color, FName(f"DiagAgent_Cluster_W0_{i}")));
         }
     }
 
@@ -259,7 +259,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
             const auto CurLoc = utils_transform::Get_EntityCurrentLocation(utils_transform::DoCastChecked(FCk_Handle(OrigAgent)));
             // Orange-ish tint so wave-1 is visually distinct from wave-0's cyan/pink in PIE.
             const auto Color = FLinearColor(1.0, 0.55, 0.15, 0.6);
-            _HeadOnAgents.Add(SpawnAgent(_HeadOnStation, CurLoc, HeadOnTarget, Color));
+            _HeadOnAgents.Add(SpawnAgent(CurLoc, HeadOnTarget, Color, FName(f"DiagAgent_HeadOn_W1_{i}")));
         }
 
         const auto ClusterTarget = StationLocal_To_World("Gym.Crowd.Diag.Cluster", FVector(ClusterFwdOffset, 0.0, SpawnZ));
@@ -272,7 +272,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
             // even-spaced ring colours.
             const auto HueDeg = (360.0 / float(OrigClusterCount)) * float(i) + 30.0;
             const auto Color = FLinearColor::MakeFromHSV8(uint8(HueDeg * 255.0 / 360.0), 200, 220);
-            _ClusterAgents.Add(SpawnAgent(_ClusterStation, CurLoc, ClusterTarget, Color));
+            _ClusterAgents.Add(SpawnAgent(CurLoc, ClusterTarget, Color, FName(f"DiagAgent_Cluster_W1_{i}")));
         }
 
         ck::crowd::Log(f"[CrowdDiag][C{_CycleNumber}] overlap wave: {OrigHeadOnCount} HeadOn + {OrigClusterCount} Cluster spawned on top of originals");
@@ -293,16 +293,20 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         _ClusterAgents.Empty();
     }
 
-    private FCk_Handle_CrowdAgent SpawnAgent(FCk_Handle& InOwnerStation, FVector SpawnLoc, FVector TargetLoc, FLinearColor InColor)
+    private FCk_Handle_CrowdAgent SpawnAgent(FVector SpawnLoc, FVector TargetLoc, FLinearColor InColor, FName InDebugName)
     {
+        // Agents are standalone top-level entities (lifetime-owned by the registry transient),
+        // not sub-entities of the station — DestroyAgents destroys each explicitly at cycle end.
+        FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        auto Agent = utils_crowd_agent::Add(InOwnerStation, Params);
+        auto Agent = utils_crowd_agent::Add(TransientOwner, Params);
 
         // Stamp the agent's identity colour so every visualisation (DrawBody capsule + cone,
         // breadcrumb path, planned-path overlay, debugger swatch) coordinates on the same color.
         utils_crowd_agent::Set_DebugColor(Agent, InColor);
 
         FCk_Handle Generic = Agent;
+        Generic.Set_DebugName(InDebugName);
         // Project the look direction to planar — crowd agents are yaw-only (capsule walks on the
         // navmesh). Without this, overlap-wave agents whose spawn Z ≠ target Z spawn pitched
         // (~30-45° tilt) since FaceAngle's per-tick yaw lerp can't correct pitch.

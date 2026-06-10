@@ -174,13 +174,16 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
     private void SpawnAgentAt(FVector SpawnLoc, FVector TargetLoc, FLinearColor InColor)
     {
         // Mirror the Locomotion gym's spawn flow: agent + Transform + Velocity + Acceleration +
-        // EulerIntegrator started, plus a cyan capsule + orange forward cone for visuals. The
-        // station owns the agent so Clear cascades cleanly via Request_DestroyEntity.
+        // EulerIntegrator started, plus a cyan capsule + orange forward cone for visuals.
+        // Agents are standalone top-level entities (lifetime-owned by the registry transient),
+        // not sub-entities of the station — Clear destroys each agent explicitly.
+        FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        auto Agent = utils_crowd_agent::Add(_StationHandle, Params);
-        _Agents.Add(Agent);
+        auto Agent = utils_crowd_agent::Add(TransientOwner, Params);
 
         FCk_Handle GenericAgent = Agent;
+        GenericAgent.Set_DebugName(FName(f"SeparationAgent_{_Agents.Num()}"));
+        _Agents.Add(Agent);
 
         // Yaw the spawn rotation toward the target so the forward cone starts already pointing
         // the right way (vs the default zero rotator which has the cone facing world +X).
