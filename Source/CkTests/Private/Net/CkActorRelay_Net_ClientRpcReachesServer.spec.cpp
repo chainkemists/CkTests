@@ -9,6 +9,8 @@
 #if WITH_EDITOR && WITH_DEV_AUTOMATION_TESTS
 
 #include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h"
 
 #include "CkTests/Net/CkNetAutomation_Common.h"
 #include "CkTests/Net/Probes/CkActorRelay_TestProbe.h"
@@ -24,12 +26,35 @@ namespace ck_actorrelay_net_clientrpc
     constexpr auto kNumPIEClients                  = 2;
     constexpr auto kExpectedTotalWorlds            = 2; // listen-server + 1 client
     constexpr auto kReadyTimeoutSeconds            = 60.0f;
-    constexpr auto kFramesAfterPIEReady            = 30;
+    constexpr auto kResolveTimeoutSeconds          = 10.0;
     constexpr auto kFramesAfterServerRpc           = 30;
     constexpr auto kProbeValue                     = 99;
     constexpr auto kSendingClientIdx               = 0;
     constexpr auto kExpectedServerReceiveCount     = 1;
     constexpr auto kExpectedClientReceiveCount     = 0; // sender does not receive its own Server_ echo
+
+    // Resolves the channel OWNED by this client's local player. Server_* RPCs are only routed
+    // for actors owned by the calling client's connection — Request_AcquireAnyChannel can hand
+    // back ANOTHER player's channel (a SimulatedProxy on this client), on which UE silently
+    // drops the RPC. Same trap UCk_Utils_StateMachine_UE::Acquire_RelayChannel documents.
+    auto Resolve_OwningProbe(UWorld* InClient) -> ACk_ActorRelay_TestProbe_UE*
+    {
+        if (InClient == nullptr)
+        { return nullptr; }
+
+        auto* Subsystem = InClient->GetSubsystem<UCk_ActorRelay_TestProbeGroup_Subsystem_UE>();
+        if (Subsystem == nullptr)
+        { return nullptr; }
+
+        auto* PlayerController = InClient->GetFirstPlayerController();
+        auto* PlayerState = PlayerController != nullptr ? PlayerController->PlayerState.Get() : nullptr;
+        if (PlayerState == nullptr)
+        { return nullptr; }
+
+        auto Pending = Subsystem->Request_AcquireChannel_ForPlayer(PlayerState);
+        const auto Result = Subsystem->Try_ResolvePending(Pending);
+        return Cast<ACk_ActorRelay_TestProbe_UE>(Result.Get_ChannelActor().Get());
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -52,19 +77,23 @@ bool FCkActorRelayNet_ClientRpcReachesServer::RunTest(const FString& Parameters)
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(kNumPIEClients, MapPath));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(kExpectedTotalWorlds, kReadyTimeoutSeconds));
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(kFramesAfterPIEReady));
+
+    // Wait until the client's OWNING channel has replicated, registered with the client's group
+    // subsystem, and become ECS-ready — replication has no fixed-frame guarantee, so a fixed
+    // tick budget here is a race, not a contract.
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            return Resolve_OwningProbe(ck::auto_test::net::Get_ClientWorld(kSendingClientIdx)) != nullptr;
+        }),
+        kResolveTimeoutSeconds,
+        TEXT("client resolves its owning probe channel")));
 
     // Client[0] acquires its own owning channel and fires the Server_ RPC.
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnClient(kSendingClientIdx,
         FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InClient) -> void
         {
-            auto* Subsystem = InClient->GetSubsystem<UCk_ActorRelay_TestProbeGroup_Subsystem_UE>();
-            if (Subsystem == nullptr)
-            { AddError(TEXT("Probe group subsystem missing on client world")); return; }
-
-            auto Pending = Subsystem->Request_AcquireAnyChannel();
-            const auto Result = Subsystem->Try_ResolvePending(Pending);
-            auto* Probe = Cast<ACk_ActorRelay_TestProbe_UE>(Result.Get_ChannelActor().Get());
+            auto* Probe = Resolve_OwningProbe(InClient);
             if (Probe == nullptr)
             { AddError(TEXT("Client failed to resolve its owning probe channel")); return; }
 
