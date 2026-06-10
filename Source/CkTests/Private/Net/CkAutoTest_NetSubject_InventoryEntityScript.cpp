@@ -22,6 +22,14 @@ namespace ck::auto_test::netsubject_inventory
 
 auto
     UCk_AutoTest_NetSubject_InventoryEntityScript_UE::
+    Get_IsSnapshotRespawnable() const
+    -> bool
+{
+    return true;
+}
+
+auto
+    UCk_AutoTest_NetSubject_InventoryEntityScript_UE::
     Construct(
         FCk_Handle& InHandle,
         const FInstancedStruct& InSpawnParams)
