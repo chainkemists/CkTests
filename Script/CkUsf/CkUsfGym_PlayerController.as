@@ -46,6 +46,8 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
             "Subsurface scatter shading model.", "SubsurfaceColor + opacity-driven scatter."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfCarPaint", "CAR PAINT (CLEARCOAT)",
             "Metallic base under a clear lacquer coat.", "ClearCoat + ClearCoatRoughness custom data."));
+        Stations.Add(Make_Station(n"Gym.Rendering.UsfPainterlyRuins", "PAINTERLY RUINS",
+            "Concept-art landscape: arch ruin on a lake.", "SDF fills + fbm brush edges; mirrored reflection."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfPerInstance", "PER-INSTANCE HUE (ISM)",
             "One material, N instances, distinct colours.", "Per-instance custom data slot 0 → hue."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfFeedback", "RENDER-TO-TEXTURE",
@@ -101,6 +103,7 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_SpawnLook(n"Gym.Rendering.UsfGlass",     CkUsf::Glass);
         Request_SpawnLook(n"Gym.Rendering.UsfSkin",      CkUsf::Skin);
         Request_SpawnLook(n"Gym.Rendering.UsfCarPaint",  CkUsf::CarPaint);
+        Request_SpawnLook(n"Gym.Rendering.UsfPainterlyRuins", CkUsf::PainterlyRuins);
         Request_SpawnPerInstance(n"Gym.Rendering.UsfPerInstance", CkUsf::PerInstanceHue);
         Request_SpawnMultiPass(n"Gym.Rendering.UsfFeedback");
         Request_SpawnPostProcess(n"Gym.Rendering.UsfPostProcess");
