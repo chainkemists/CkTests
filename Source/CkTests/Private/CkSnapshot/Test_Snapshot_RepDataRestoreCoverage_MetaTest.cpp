@@ -49,18 +49,18 @@ namespace ck_repdata_coverage_test
     static auto Get_Deferred() -> const TMap<FString, FString>&
     {
         static const TMap<FString, FString> Deferred = {
-            { TEXT("MontagePlayer"),            TEXT("clean self-container+tag fit, but feature not currently snapshotted (design call)") },
+            { TEXT("MontagePlayer"),            TEXT("snapshot + ReplicateOnRestore wiring present (Params/Current Tier-C + seeded container + re-arm; unit round-trip Ck.Snapshot.MontagePlayer.StateRoundTrip) but no MP parity gate yet — needs a skeletal-mesh probe + montage asset (HandleRequests ensures on a missing mesh); server-side playback resume + mesh re-bind is a pending Lead design call") },
             { TEXT("Velocity"),                 TEXT("snapshot + ReplicateOnRestore wiring present (mirrors Acceleration) but no parity gate yet — a strict-value gate needs a movement-driven probe (PredictedVelocity re-derives the value on stationary actors)") },
-            { TEXT("Location"),                 TEXT("SceneNode transform; restored via custom FFragment_Transform SerializeSnapshot — may re-derive, unclear (design call)") },
-            { TEXT("Rotation"),                 TEXT("SceneNode transform; restored via custom FFragment_Transform SerializeSnapshot — may re-derive, unclear (design call)") },
-            { TEXT("Scale"),                    TEXT("SceneNode transform; restored via custom FFragment_Transform SerializeSnapshot — may re-derive, unclear (design call)") },
+            { TEXT("Location"),                 TEXT("audit complete 2026-06-10: transform fragment IS snapshotted; actor-backed entities re-derive client position from the respawned replicated actor (asserted by Ck.Snapshot.M2b2b gate); only pure-ECS SceneNode replication (no actor) lacks a restore re-push — defer until that configuration has a real use") },
+            { TEXT("Rotation"),                 TEXT("audit complete 2026-06-10: same as Location — actor-backed re-derives (M2b2b gate); pure-ECS SceneNode rep deferred until a real use") },
+            { TEXT("Scale"),                    TEXT("audit complete 2026-06-10: same as Location — actor-backed re-derives (M2b2b gate); pure-ECS SceneNode rep deferred until a real use") },
             { TEXT("Inventory_Spatial_Items"),  TEXT("snapshotted, but transient SyncReplication fragment + child-item relink — complex; needs dedicated restore design") },
             { TEXT("Inventory_DataOnly_Items"), TEXT("snapshotted, but transient SyncReplication fragment + child-item relink — complex; needs dedicated restore design") },
-            { TEXT("EntityCollections"),        TEXT("name-tag-keyed collection of child entities — identity hazard on restore; needs dedicated design") },
-            { TEXT("2dGridPlacements"),         TEXT("CkGrid placement rep architecture unconfirmed (audit incomplete) — inspect before deciding") },
-            { TEXT("GeometryCollectionOwner"),  TEXT("ephemeral destruction state (event-style); likely not meant to persist — semantics question") },
-            { TEXT("StateMachine_NoHistory"),   TEXT("event-driven history replay, not value rep — INCOMPATIBLE with the value-restore pattern") },
-            { TEXT("StateMachine_WithHistory"), TEXT("event-driven history replay ring, not value rep — INCOMPATIBLE with the value-restore pattern") },
+            { TEXT("EntityCollections"),        TEXT("audit complete 2026-06-10: identity hazard RESOLVED in principle — CkLabel (collection name) is already snapshotted, member records remap via record snapshotting; remaining work is the standard recipe (snapshot Params wrapper + both member records + RecordOfEntityCollections, ReplicateOnRestore re-creates the owner-hosted container + re-arms MayRequireReplication) — not yet implemented") },
+            { TEXT("2dGridPlacements"),         TEXT("audit complete 2026-06-10: mirrors Inventory (record-driven Replicate + MayRequireReplication + client diff reconciler; _StampedCells is derived, reconcile rebuilds it) but CkGrid has ZERO snapshot wiring — implement Grid snapshot first, then this and Spatial inventory ride the same recipe") },
+            { TEXT("GeometryCollectionOwner"),  TEXT("Lead decision 2026-06-10: ephemeral destruction state, does NOT persist — permanently deferred") },
+            { TEXT("StateMachine_NoHistory"),   TEXT("event-driven replay, not value rep — restore design AWAITING LEAD REVIEW (re-drive through Setup/Start/Transition; docs/superpowers/specs/2026-06-10-CkSnapshot-StateMachine-restore-design.md); implement after sign-off") },
+            { TEXT("StateMachine_WithHistory"), TEXT("event-driven replay ring — same design doc as StateMachine_NoHistory, awaiting Lead review; pre-save history intentionally dropped (fresh post-travel clients have no watermark into the old ring)") },
             { TEXT("Container"),                TEXT("generic template base (TFragment_ContainerEntryRef<>), not a concrete replicated feature — N/A if it reflects at all") },
         };
         return Deferred;
