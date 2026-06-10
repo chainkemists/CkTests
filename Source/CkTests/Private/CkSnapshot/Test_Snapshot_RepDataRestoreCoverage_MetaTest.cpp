@@ -36,6 +36,7 @@ namespace ck_repdata_coverage_test
             TEXT("IntegerAttributes"),
             TEXT("RotatorAttributes"),
             TEXT("VectorAttributes"),
+            TEXT("TagSet"),
         };
         return Covered;
     }
@@ -44,7 +45,6 @@ namespace ck_repdata_coverage_test
     static auto Get_Deferred() -> const TMap<FString, FString>&
     {
         static const TMap<FString, FString> Deferred = {
-            { TEXT("TagSet"),                   TEXT("clean self-container+tag fit, but feature not currently snapshotted (design call)") },
             { TEXT("MontagePlayer"),            TEXT("clean self-container+tag fit, but feature not currently snapshotted (design call)") },
             { TEXT("AnimPlans"),                TEXT("owner-container+tag, but child anim-plan entities not snapshotted (design call)") },
             { TEXT("Team"),                     TEXT("inline TryUpdate (no trigger tag / processor) — needs inline re-push on restore, not the tag pattern") },
