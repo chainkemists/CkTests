@@ -1,8 +1,7 @@
-// CkSnapshot Attribute-Parity GATE — strict value round-trip of Float/Byte/Integer attributes through a listen-server
-// SEAMLESS ServerTravel reload, asserted on the CLIENT. Each attribute is OVERRIDDEN away from its entity-script
-// Construct default before save; the client must show the override (not the default) post-reload — proving the value
-// survived save -> restore -> replication, not just Construct re-derivation. Vector is intentionally excluded
-// (VectorAttribute is not yet snapshotable — separate milestone).
+// CkSnapshot Attribute-Parity GATE — strict value round-trip of Float/Byte/Integer/Rotator/Vector attributes through
+// a listen-server SEAMLESS ServerTravel reload, asserted on the CLIENT. Each attribute is OVERRIDDEN away from its
+// entity-script Construct default before save; the client must show the override (not the default) post-reload —
+// proving the value survived save -> restore -> replication, not just Construct re-derivation.
 // Surface in Session Frontend: Ck.Snapshot.Parity.Attributes_MPReload
 
 #include "Misc/AutomationTest.h"
@@ -19,6 +18,10 @@
 #include "CkAttribute/FloatAttribute/CkFloatAttribute_Utils.h"
 #include "CkAttribute/ByteAttribute/CkByteAttribute_Utils.h"
 #include "CkAttribute/IntegerAttribute/CkIntegerAttribute_Utils.h"
+#include "CkAttribute/RotatorAttribute/CkRotatorAttribute_Utils.h"
+#include "CkAttribute/VectorAttribute/CkVectorAttribute_Utils.h"
+
+#include "CkTests/CkTests_Fragment_Data.h"
 
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
@@ -41,10 +44,14 @@ namespace
     constexpr auto FloatTagName   = TEXT("FloatAttribute.Health");      // default 42.5, clamp [0,100]
     constexpr auto ByteTagName    = TEXT("ByteAttribute.Health");       // default 7
     constexpr auto IntegerTagName = TEXT("IntegerAttribute.Health");    // default 13
+    constexpr auto VectorTagName  = TEXT("VectorAttribute.AutoTest_PerComponent"); // default {1,2,3}
+    // Rotator uses the native TAG_RotatorAttribute_AutoTest_Net                   // default {P10,Y20,R30}
 
     constexpr auto FloatOverride   = 17.0f;       // != 42.5, inside [0,100] so no clamp
     constexpr auto ByteOverride    = uint8{200};  // != 7
     constexpr auto IntegerOverride = int32{999};  // != 13
+    const auto     VectorOverride  = FVector{50.0, 60.0, 70.0};   // != {1,2,3}
+    const auto     RotatorOverride = FRotator{5.0, 15.0, 25.0};   // != {10,20,30}
 
     static TWeakObjectPtr<UWorld> GParity_PreServerWorld;
     static TWeakObjectPtr<UWorld> GParity_PreClientWorld;
@@ -108,6 +115,28 @@ namespace
         return static_cast<int32>(UCk_Utils_IntegerAttribute_UE::Get_FinalValue(Attr));
     }
 
+    auto Parity_VectorFinal(AActor* InProbe, bool& OutResolved) -> FVector
+    {
+        OutResolved = false;
+        const auto Entity = Parity_ResolveEntity(InProbe);
+        if (ck::Is_NOT_Valid(Entity)) { return FVector::ZeroVector; }
+        auto Attr = UCk_Utils_VectorAttribute_UE::TryGet(Entity, FGameplayTag::RequestGameplayTag(FName{VectorTagName}));
+        if (ck::Is_NOT_Valid(Attr)) { return FVector::ZeroVector; }
+        OutResolved = true;
+        return UCk_Utils_VectorAttribute_UE::Get_FinalValue(Attr);
+    }
+
+    auto Parity_RotatorFinal(AActor* InProbe, bool& OutResolved) -> FRotator
+    {
+        OutResolved = false;
+        const auto Entity = Parity_ResolveEntity(InProbe);
+        if (ck::Is_NOT_Valid(Entity)) { return FRotator::ZeroRotator; }
+        auto Attr = UCk_Utils_RotatorAttribute_UE::TryGet(Entity, TAG_RotatorAttribute_AutoTest_Net.GetTag());
+        if (ck::Is_NOT_Valid(Attr)) { return FRotator::ZeroRotator; }
+        OutResolved = true;
+        return UCk_Utils_RotatorAttribute_UE::Get_FinalValue(Attr);
+    }
+
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -168,15 +197,20 @@ bool FCkSnapshot_AttributeParity_MPReload_Gate::RunTest(const FString& Parameter
             const auto Entity = Parity_ResolveEntity(Probe);
             if (ck::Is_NOT_Valid(Entity)) { AddError(TEXT("Stage 3: server probe entity unresolved")); return; }
 
-            auto FloatAttr = UCk_Utils_FloatAttribute_UE::TryGet(Entity, FGameplayTag::RequestGameplayTag(FName{FloatTagName}));
-            auto ByteAttr  = UCk_Utils_ByteAttribute_UE::TryGet(Entity, FGameplayTag::RequestGameplayTag(FName{ByteTagName}));
-            auto IntAttr   = UCk_Utils_IntegerAttribute_UE::TryGet(Entity, FGameplayTag::RequestGameplayTag(FName{IntegerTagName}));
-            if (ck::Is_NOT_Valid(FloatAttr) || ck::Is_NOT_Valid(ByteAttr) || ck::Is_NOT_Valid(IntAttr))
+            auto FloatAttr   = UCk_Utils_FloatAttribute_UE::TryGet(Entity, FGameplayTag::RequestGameplayTag(FName{FloatTagName}));
+            auto ByteAttr    = UCk_Utils_ByteAttribute_UE::TryGet(Entity, FGameplayTag::RequestGameplayTag(FName{ByteTagName}));
+            auto IntAttr     = UCk_Utils_IntegerAttribute_UE::TryGet(Entity, FGameplayTag::RequestGameplayTag(FName{IntegerTagName}));
+            auto VectorAttr  = UCk_Utils_VectorAttribute_UE::TryGet(Entity, FGameplayTag::RequestGameplayTag(FName{VectorTagName}));
+            auto RotatorAttr = UCk_Utils_RotatorAttribute_UE::TryGet(Entity, TAG_RotatorAttribute_AutoTest_Net.GetTag());
+            if (ck::Is_NOT_Valid(FloatAttr) || ck::Is_NOT_Valid(ByteAttr) || ck::Is_NOT_Valid(IntAttr) ||
+                ck::Is_NOT_Valid(VectorAttr) || ck::Is_NOT_Valid(RotatorAttr))
             { AddError(TEXT("Stage 3: one or more server attributes unresolved")); return; }
 
             UCk_Utils_FloatAttribute_UE::Request_Override(FloatAttr, FloatOverride);
             UCk_Utils_ByteAttribute_UE::Request_Override(ByteAttr, ByteOverride);
             UCk_Utils_IntegerAttribute_UE::Request_Override(IntAttr, IntegerOverride);
+            UCk_Utils_VectorAttribute_UE::Request_Override(VectorAttr, VectorOverride);
+            UCk_Utils_RotatorAttribute_UE::Request_Override(RotatorAttr, RotatorOverride);
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 
@@ -189,10 +223,15 @@ bool FCkSnapshot_AttributeParity_MPReload_Gate::RunTest(const FString& Parameter
             auto FloatResolved = false; const auto FloatFinal = Parity_FloatFinal(Probe, FloatResolved);
             auto ByteResolved  = false; const auto ByteFinal  = Parity_ByteFinal(Probe, ByteResolved);
             auto IntResolved   = false; const auto IntFinal   = Parity_IntegerFinal(Probe, IntResolved);
-            TestTrue (TEXT("pre-save server: attributes resolved"), FloatResolved && ByteResolved && IntResolved);
+            auto VecResolved   = false; const auto VecFinal   = Parity_VectorFinal(Probe, VecResolved);
+            auto RotResolved   = false; const auto RotFinal   = Parity_RotatorFinal(Probe, RotResolved);
+            TestTrue (TEXT("pre-save server: attributes resolved"),
+                FloatResolved && ByteResolved && IntResolved && VecResolved && RotResolved);
             TestEqual(TEXT("pre-save server Float == override"),   FloatFinal, FloatOverride);
             TestEqual(TEXT("pre-save server Byte == override"),    ByteFinal,  static_cast<int32>(ByteOverride));
             TestEqual(TEXT("pre-save server Integer == override"), IntFinal,   IntegerOverride);
+            TestTrue (TEXT("pre-save server Vector == override"),  VecFinal.Equals(VectorOverride, 0.01));
+            TestTrue (TEXT("pre-save server Rotator == override"), RotFinal.Equals(RotatorOverride, 0.01));
         })));
 
     // Stage 4 — Save on the server; stash pre-travel worlds.
@@ -283,9 +322,19 @@ bool FCkSnapshot_AttributeParity_MPReload_Gate::RunTest(const FString& Parameter
             auto IntResolved = false; const auto IntFinal = Parity_IntegerFinal(Probe, IntResolved);
             TestTrue (TEXT("client: Integer attribute resolved"), IntResolved);
             TestEqual(TEXT("client: Integer override round-tripped (999, not default 13)"), IntFinal, IntegerOverride);
+
+            auto VecResolved = false; const auto VecFinal = Parity_VectorFinal(Probe, VecResolved);
+            TestTrue(TEXT("client: Vector attribute resolved"), VecResolved);
+            TestTrue(TEXT("client: Vector override round-tripped ({50,60,70}, not default {1,2,3})"),
+                VecFinal.Equals(VectorOverride, 0.01));
+
+            auto RotResolved = false; const auto RotFinal = Parity_RotatorFinal(Probe, RotResolved);
+            TestTrue(TEXT("client: Rotator attribute resolved"), RotResolved);
+            TestTrue(TEXT("client: Rotator override round-tripped ({5,15,25}, not default {10,20,30})"),
+                RotFinal.Equals(RotatorOverride, 0.01));
             return true;
         }),
-        TEXT("Attribute parity: Float/Byte/Integer overrides survive save -> seamless reload -> client re-derivation")));
+        TEXT("Attribute parity: Float/Byte/Integer/Rotator/Vector overrides survive save -> seamless reload -> client re-derivation")));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
     return true;

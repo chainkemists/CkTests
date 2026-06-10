@@ -34,6 +34,8 @@ namespace ck_repdata_coverage_test
             TEXT("FloatAttributes"),
             TEXT("ByteAttributes"),
             TEXT("IntegerAttributes"),
+            TEXT("RotatorAttributes"),
+            TEXT("VectorAttributes"),
         };
         return Covered;
     }
@@ -42,8 +44,6 @@ namespace ck_repdata_coverage_test
     static auto Get_Deferred() -> const TMap<FString, FString>&
     {
         static const TMap<FString, FString> Deferred = {
-            { TEXT("RotatorAttributes"),        TEXT("attribute family; same shape as Float/Byte/Integer but value fragments not yet snapshotted (design call)") },
-            { TEXT("VectorAttributes"),         TEXT("attribute family; same shape but value fragments not yet snapshotted (design call)") },
             { TEXT("TagSet"),                   TEXT("clean self-container+tag fit, but feature not currently snapshotted (design call)") },
             { TEXT("MontagePlayer"),            TEXT("clean self-container+tag fit, but feature not currently snapshotted (design call)") },
             { TEXT("AnimPlans"),                TEXT("owner-container+tag, but child anim-plan entities not snapshotted (design call)") },

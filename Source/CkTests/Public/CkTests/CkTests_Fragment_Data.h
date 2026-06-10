@@ -107,3 +107,9 @@ CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_AnimPlan_AutoTest_Net_State_B);
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Rotator-attribute name tag for the net subject. The rep handler and the snapshot parity gate key
+// the attribute lookup by this name, so it must be registered (natively — no host-project .ini edit).
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_RotatorAttribute_AutoTest_Net);
+
+// --------------------------------------------------------------------------------------------------------------------
+

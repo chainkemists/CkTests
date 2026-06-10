@@ -56,3 +56,7 @@ CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_AnimPlan_AutoTest_Net_State_B, "AnimPlan.
 
 // --------------------------------------------------------------------------------------------------------------------
 
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_RotatorAttribute_AutoTest_Net, "RotatorAttribute.AutoTest_Net");
+
+// --------------------------------------------------------------------------------------------------------------------
+
