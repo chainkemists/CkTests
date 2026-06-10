@@ -29,6 +29,16 @@ namespace ck::auto_test::netsubject_grid
 
 auto
     UCk_AutoTest_NetSubject_GridEntityScript_UE::
+    Get_IsSnapshotRespawnable() const
+    -> bool
+{
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCk_AutoTest_NetSubject_GridEntityScript_UE::
     Construct(
         FCk_Handle& InHandle,
         const FInstancedStruct& InSpawnParams)
