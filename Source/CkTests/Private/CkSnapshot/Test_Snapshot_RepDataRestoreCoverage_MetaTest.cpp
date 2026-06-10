@@ -37,6 +37,7 @@ namespace ck_repdata_coverage_test
             TEXT("RotatorAttributes"),
             TEXT("VectorAttributes"),
             TEXT("TagSet"),
+            TEXT("Acceleration"),
         };
         return Covered;
     }
@@ -49,8 +50,7 @@ namespace ck_repdata_coverage_test
             { TEXT("AnimPlans"),                TEXT("owner-container+tag, but child anim-plan entities not snapshotted (design call)") },
             { TEXT("Team"),                     TEXT("inline TryUpdate (no trigger tag / processor) — needs inline re-push on restore, not the tag pattern") },
             { TEXT("Player"),                   TEXT("inline TryUpdate (no trigger tag / processor) — needs inline re-push on restore, not the tag pattern") },
-            { TEXT("Velocity"),                 TEXT("CkPhysics owner-container; trigger mechanism unconfirmed; not snapshotted (verify + design call)") },
-            { TEXT("Acceleration"),             TEXT("CkPhysics owner-container; trigger mechanism unconfirmed; not snapshotted (verify + design call)") },
+            { TEXT("Velocity"),                 TEXT("snapshot + ReplicateOnRestore wiring present (mirrors Acceleration) but no parity gate yet — a strict-value gate needs a movement-driven probe (PredictedVelocity re-derives the value on stationary actors)") },
             { TEXT("Location"),                 TEXT("SceneNode transform; restored via custom FFragment_Transform SerializeSnapshot — may re-derive, unclear (design call)") },
             { TEXT("Rotation"),                 TEXT("SceneNode transform; restored via custom FFragment_Transform SerializeSnapshot — may re-derive, unclear (design call)") },
             { TEXT("Scale"),                    TEXT("SceneNode transform; restored via custom FFragment_Transform SerializeSnapshot — may re-derive, unclear (design call)") },
