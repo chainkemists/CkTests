@@ -14,6 +14,8 @@
 #include "CkTagSet/CkTagSet_Utils.h"
 #include "CkPhysics/Acceleration/CkAcceleration_Utils.h"
 #include "CkAnimation/AnimPlan/CkAnimPlan_Utils.h"
+#include "CkRelationship/Team/CkTeam_Utils.h"
+#include "CkRelationship/Player/CkPlayer_Utils.h"
 
 #include "CkTests/CkTests_Fragment_Data.h"
 
@@ -118,6 +120,13 @@ auto
     AnimPlanParams.Set_StartingAnimCluster(TAG_AnimPlan_AutoTest_Net_Cluster.GetTag());
     AnimPlanParams.Set_StartingAnimState(TAG_AnimPlan_AutoTest_Net_State_A.GetTag());
     UCk_Utils_AnimPlan_UE::Add(InHandle, AnimPlanParams, ECk_Replication::Replicates);
+
+    // Replicated Team + Player (Unassigned starting on both worlds). The Snapshot Team/Player parity
+    // gate Assigns non-default IDs on the server; the client-side rep handlers return NotReady until
+    // the feature is composed, so the subject must compose both on every world. Retrieved via
+    // Has/Cast on the entity (single-per-entity), so no actor stash is needed.
+    UCk_Utils_Team_UE::Add(InHandle, ECk_Team_ID::Unassigned, ECk_Replication::Replicates);
+    UCk_Utils_Player_UE::Add(InHandle, ECk_Player_ID::Unassigned, ECk_Replication::Replicates);
 
     auto* OwningActor = UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle);
     if (auto* Subject = Cast<ACk_AutoTest_NetSubject>(OwningActor))
