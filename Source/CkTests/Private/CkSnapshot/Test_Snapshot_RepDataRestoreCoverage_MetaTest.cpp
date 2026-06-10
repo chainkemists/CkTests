@@ -38,6 +38,7 @@ namespace ck_repdata_coverage_test
             TEXT("VectorAttributes"),
             TEXT("TagSet"),
             TEXT("Acceleration"),
+            TEXT("AnimPlans"),
         };
         return Covered;
     }
@@ -47,7 +48,6 @@ namespace ck_repdata_coverage_test
     {
         static const TMap<FString, FString> Deferred = {
             { TEXT("MontagePlayer"),            TEXT("clean self-container+tag fit, but feature not currently snapshotted (design call)") },
-            { TEXT("AnimPlans"),                TEXT("owner-container+tag, but child anim-plan entities not snapshotted (design call)") },
             { TEXT("Team"),                     TEXT("inline TryUpdate (no trigger tag / processor) — needs inline re-push on restore, not the tag pattern") },
             { TEXT("Player"),                   TEXT("inline TryUpdate (no trigger tag / processor) — needs inline re-push on restore, not the tag pattern") },
             { TEXT("Velocity"),                 TEXT("snapshot + ReplicateOnRestore wiring present (mirrors Acceleration) but no parity gate yet — a strict-value gate needs a movement-driven probe (PredictedVelocity re-derives the value on stationary actors)") },
