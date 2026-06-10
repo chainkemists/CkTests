@@ -40,6 +40,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Net Two-Player",     ACk_NetGym_TwoPlayer_GameMode);
         CkGym_Cycler::RegisterProjectGym("PMG Shapes",         ACk_PmgShapesGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Probe",              ACk_ProbeGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Render Target",      ACk_RenderTargetGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Replication",        ACk_ReplicationGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Scene Node",         ACk_SceneNodeGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Scene Node + Tween", ACk_SceneNodeTweenGym_GameMode);
