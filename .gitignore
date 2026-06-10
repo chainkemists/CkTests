@@ -75,3 +75,14 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# CkAngelscriptGenerator self-heal stub recovery files (gap fixed 2026-06-10 —
+# BB + CkFoundation already had these; without them recovery stubs could be committed)
+Script/Generated/_StubRecovery_*.as
+Script/Generated/_StubRecovery_*.json
+
+# Generated EntitySpawnParams — regenerated every editor boot; fresh-clone bootstrap
+# is covered by self-heal source-derived stub synthesis (see CkFoundation
+# CkAngelscriptGenerator/CLAUDE.md). *_AutoTestActors.as and *Assets.as stay
+# committed — CkTestsAssets.as hard-references the wrapper actor types.
+Script/Generated/CkTests_EntitySpawnParams.as
