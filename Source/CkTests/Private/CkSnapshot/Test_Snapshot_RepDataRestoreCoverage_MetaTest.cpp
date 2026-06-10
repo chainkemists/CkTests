@@ -42,6 +42,8 @@ namespace ck_repdata_coverage_test
             TEXT("Team"),
             TEXT("Player"),
             TEXT("Inventory_DataOnly_Items"),
+            TEXT("StateMachine_NoHistory"),
+            TEXT("StateMachine_WithHistory"),
         };
         return Covered;
     }
@@ -59,8 +61,6 @@ namespace ck_repdata_coverage_test
             { TEXT("EntityCollections"),        TEXT("audit complete 2026-06-10: identity hazard RESOLVED in principle — CkLabel (collection name) is already snapshotted, member records remap via record snapshotting; remaining work is the standard recipe (snapshot Params wrapper + both member records + RecordOfEntityCollections, ReplicateOnRestore re-creates the owner-hosted container + re-arms MayRequireReplication) — not yet implemented") },
             { TEXT("2dGridPlacements"),         TEXT("audit complete 2026-06-10: mirrors Inventory (record-driven Replicate + MayRequireReplication + client diff reconciler; _StampedCells is derived, reconcile rebuilds it) but CkGrid has ZERO snapshot wiring — implement Grid snapshot first, then this and Spatial inventory ride the same recipe") },
             { TEXT("GeometryCollectionOwner"),  TEXT("Lead decision 2026-06-10: ephemeral destruction state, does NOT persist — permanently deferred") },
-            { TEXT("StateMachine_NoHistory"),   TEXT("event-driven replay, not value rep — restore design AWAITING LEAD REVIEW (re-drive through Setup/Start/Transition; docs/superpowers/specs/2026-06-10-CkSnapshot-StateMachine-restore-design.md); implement after sign-off") },
-            { TEXT("StateMachine_WithHistory"), TEXT("event-driven replay ring — same design doc as StateMachine_NoHistory, awaiting Lead review; pre-save history intentionally dropped (fresh post-travel clients have no watermark into the old ring)") },
             { TEXT("Container"),                TEXT("generic template base (TFragment_ContainerEntryRef<>), not a concrete replicated feature — N/A if it reflects at all") },
         };
         return Deferred;

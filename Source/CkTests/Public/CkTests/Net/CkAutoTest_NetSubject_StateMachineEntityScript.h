@@ -58,6 +58,13 @@ protected:
     // the OwningClientAuth variant — whose owning actor is a Pawn, not ACk_AutoTest_NetSubject_StateMachine_UE
     // — can cast to its own subject type. Base casts to the Actor subject.
     virtual auto DoStashStateMachine(AActor* InOwningActor, const FCk_Handle_StateMachine& InSM) -> void;
+
+    // Snapshot respawn opt-in (mirrors the M2bProbe/Inventory scripts): after save -> seamless reload ->
+    // load, the restored entity re-spawns an actor of the subject class and re-bridges it. Inert for the
+    // pre-existing SM net tests (they never save/load); required by the
+    // Ck.Snapshot.Parity.StateMachine*_MPReload gates.
+    virtual auto
+    Get_IsSnapshotRespawnable() const -> bool override;
 };
 
 // --------------------------------------------------------------------------------------------------------------------
