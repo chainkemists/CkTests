@@ -3778,6 +3778,19 @@ namespace UCk_AutoTest_IskmRenderer_CustomDataSuccess
 }
 
 USTRUCT()
+struct FCk_AutoTest_IskmRenderer_MaterialOverride_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_MaterialOverride
+{
+    FCk_AutoTest_IskmRenderer_MaterialOverride_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_MaterialOverride_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_IskmRenderer_Montage_SpawnParams
 {
 }
@@ -3800,6 +3813,19 @@ namespace UCk_AutoTest_IskmRenderer_MontageNotify
     FCk_AutoTest_IskmRenderer_MontageNotify_SpawnParams Params()
     {
         return FCk_AutoTest_IskmRenderer_MontageNotify_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_IskmRenderer_MorphTargets_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_IskmRenderer_MorphTargets
+{
+    FCk_AutoTest_IskmRenderer_MorphTargets_SpawnParams Params()
+    {
+        return FCk_AutoTest_IskmRenderer_MorphTargets_SpawnParams();
     }
 }
 
@@ -12083,6 +12109,44 @@ namespace UTestEntt
     FTestEntt_SpawnParams Params(FTransform InInitialTransform)
     {
         return FTestEntt_SpawnParams(InInitialTransform);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_DependentChild_EntityScript_UE_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_NetSubject_DependentChild_EntityScript_UE
+{
+    FCk_AutoTest_NetSubject_DependentChild_EntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_DependentChild_EntityScript_UE_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_DependentSubtree_EntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_DependentSubtree_EntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_DependentSubtree_EntityScript_UE
+{
+    FCk_AutoTest_NetSubject_DependentSubtree_EntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_DependentSubtree_EntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_DependentSubtree_EntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_DependentSubtree_EntityScript_UE_SpawnParams(In_OwningActor);
     }
 }
 
