@@ -9,6 +9,8 @@
 #include "CkAttribute/IntegerAttribute/CkIntegerAttribute_Utils.h"
 #include "CkAttribute/VectorAttribute/CkVectorAttribute_Fragment_Data.h"
 #include "CkAttribute/VectorAttribute/CkVectorAttribute_Utils.h"
+#include "CkAttribute/RotatorAttribute/CkRotatorAttribute_Fragment_Data.h"
+#include "CkAttribute/RotatorAttribute/CkRotatorAttribute_Utils.h"
 #include "CkTagSet/CkTagSet_Utils.h"
 #include "CkPhysics/Acceleration/CkAcceleration_Utils.h"
 #include "CkAnimation/AnimPlan/CkAnimPlan_Utils.h"
@@ -89,6 +91,10 @@ auto
 
     UCk_Utils_VectorAttribute_UE::Add(InHandle,
         FCk_Fragment_VectorAttribute_ParamsData{FGameplayTag::RequestGameplayTag(FName{VectorAttributeTagName}), FVector{1.0, 2.0, 3.0}},
+        ECk_Replication::Replicates);
+
+    UCk_Utils_RotatorAttribute_UE::Add(InHandle,
+        FCk_Fragment_RotatorAttribute_ParamsData{TAG_RotatorAttribute_AutoTest_Net.GetTag(), FRotator{10.0, 20.0, 30.0}},
         ECk_Replication::Replicates);
 
     // Replicated TagSet (empty initial container). The CkTagSet net test drives Request_AddTag on
