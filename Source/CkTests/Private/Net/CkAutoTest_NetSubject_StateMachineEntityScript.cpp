@@ -44,6 +44,16 @@ auto
 
 auto
     UCk_AutoTest_NetSubject_StateMachineEntityScript_UE::
+    Get_IsSnapshotRespawnable() const
+    -> bool
+{
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCk_AutoTest_NetSubject_StateMachineEntityScript_UE::
     DoStashStateMachine(
         AActor* InOwningActor,
         const FCk_Handle_StateMachine& InSM)
