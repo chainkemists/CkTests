@@ -25,7 +25,7 @@ namespace ck_actorrelay_net_grouprep
     constexpr auto kNumPIEClients               = 2;
     constexpr auto kExpectedTotalWorlds         = 2; // listen-server + 1 client
     constexpr auto kReadyTimeoutSeconds         = 60.0f;
-    constexpr auto kFramesAfterPIEReady         = 30;
+    constexpr auto kWireTimeoutSeconds          = 10.0;
     constexpr auto kMinExpectedReplicatedProbes = 1; // each client sees >= 1 probe replicated from server
 }
 
@@ -49,7 +49,35 @@ bool FCkActorRelayNet_GroupSubsystemClassReplicates::RunTest(const FString& Para
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(kNumPIEClients, MapPath));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(kExpectedTotalWorlds, kReadyTimeoutSeconds));
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(kFramesAfterPIEReady));
+
+    // Wait until every client world has wired at least one replicated probe into its group
+    // subsystem — the channel actor, its Owner PlayerState, and _GroupSubsystemClass replicate
+    // independently, so a fixed tick budget races their convergence. The assert below then
+    // records the definitive per-world checks (and the timeout produces a clear error).
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            const auto NumClients = ck::auto_test::net::Get_NumClientWorlds();
+            if (NumClients < kNumPIEClients - 1)
+            { return false; }
+
+            for (auto ClientIdx = 0; ClientIdx < NumClients; ++ClientIdx)
+            {
+                auto* Client = ck::auto_test::net::Get_ClientWorld(ClientIdx);
+                if (Client == nullptr)
+                { return false; }
+
+                auto* Subsystem = Client->GetSubsystem<UCk_ActorRelay_TestProbeGroup_Subsystem_UE>();
+                if (Subsystem == nullptr)
+                { return false; }
+
+                if (Subsystem->Get_ChannelCount_Active() < kMinExpectedReplicatedProbes)
+                { return false; }
+            }
+            return true;
+        }),
+        kWireTimeoutSeconds,
+        TEXT("every client wires >=1 replicated probe into its group subsystem")));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
