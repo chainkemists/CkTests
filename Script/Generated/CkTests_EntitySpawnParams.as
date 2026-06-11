@@ -3180,6 +3180,71 @@ namespace UCk_AutoTest_Grid_TagFilterForbidden
 }
 
 USTRUCT()
+struct FCk_AutoTest_Homing_Add_AttachesFeature_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Homing_Add_AttachesFeature
+{
+    FCk_AutoTest_Homing_Add_AttachesFeature_SpawnParams Params()
+    {
+        return FCk_AutoTest_Homing_Add_AttachesFeature_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Homing_ClearTarget_StopsSteering_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Homing_ClearTarget_StopsSteering
+{
+    FCk_AutoTest_Homing_ClearTarget_StopsSteering_SpawnParams Params()
+    {
+        return FCk_AutoTest_Homing_ClearTarget_StopsSteering_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Homing_MissedTarget_FiresSignal_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Homing_MissedTarget_FiresSignal
+{
+    FCk_AutoTest_Homing_MissedTarget_FiresSignal_SpawnParams Params()
+    {
+        return FCk_AutoTest_Homing_MissedTarget_FiresSignal_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Homing_SetTargetEntity_ClosesDistance_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Homing_SetTargetEntity_ClosesDistance
+{
+    FCk_AutoTest_Homing_SetTargetEntity_ClosesDistance_SpawnParams Params()
+    {
+        return FCk_AutoTest_Homing_SetTargetEntity_ClosesDistance_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_Homing_TargetDestroyed_FiresTargetLost_SpawnParams
+{
+}
+
+namespace UCk_AutoTest_Homing_TargetDestroyed_FiresTargetLost
+{
+    FCk_AutoTest_Homing_TargetDestroyed_FiresTargetLost_SpawnParams Params()
+    {
+        return FCk_AutoTest_Homing_TargetDestroyed_FiresTargetLost_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_SpawnParams
 {
 }
