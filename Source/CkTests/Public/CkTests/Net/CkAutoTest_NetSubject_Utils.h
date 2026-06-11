@@ -102,3 +102,38 @@ public:
     bool _AttributeWasPresentAtFire = false;
     float _FinalValueAtFire = 0.0f;
 };
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// UObject helper for specs that assert on state INSIDE a Promise_OnActorEcsReady callback.
+// FCk_Delegate_OwningActor_OnEcsReady is a dynamic delegate, so latent commands bind this
+// capturer's UFUNCTION and inspect the snapshot it records at fire time. One instance per
+// bound promise — the spec owns each via TStrongObjectPtr shared across its latent commands.
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS()
+class CKTESTS_API UCk_AutoTest_EcsReadyCapturer_UE : public UObject
+{
+    GENERATED_BODY()
+
+public:
+    // Bound via UCk_Utils_OwningActor_UE::Promise_OnActorEcsReady. Snapshots the firing
+    // entity's replication-completion state and (when _AttributeTag is set) the Float
+    // attribute the harness entity-script bakes during Construct.
+    UFUNCTION()
+    void
+    OnActorEcsReady(
+        AActor* InActor,
+        FCk_Handle InEntity);
+
+    // Set by the spec before binding. Not UPROPERTYs — the spec reaches in directly.
+    FGameplayTag _AttributeTag;
+
+    bool _Fired = false;
+    int32 _FireCount = 0;
+    bool _EntityWasValidAtFire = false;
+    bool _ReplicationWasCompleteAtFire = false;
+    bool _AttributeWasPresentAtFire = false;
+    float _FinalValueAtFire = 0.0f;
+};
