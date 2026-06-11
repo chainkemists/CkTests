@@ -4,6 +4,7 @@
 
 #include "CkAttribute/FloatAttribute/CkFloatAttribute_Utils.h"
 #include "CkEcs/EntityScript/CkEntityScript_Fragment_Data.h"
+#include "CkEcs/Net/EntityReplicationDriver/CkEntityReplicationDriver_Utils.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -41,6 +42,36 @@ void
     _Fired = true;
 
     auto AttributeHandle = UCk_Utils_FloatAttribute_UE::TryGet(InHandle, _AttributeTag);
+    if (ck::Is_NOT_Valid(AttributeHandle))
+    { return; }
+
+    _AttributeWasPresentAtFire = true;
+    _FinalValueAtFire = UCk_Utils_FloatAttribute_UE::Get_FinalValue(AttributeHandle);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+void
+    UCk_AutoTest_EcsReadyCapturer_UE::
+    OnActorEcsReady(
+        AActor* InActor,
+        FCk_Handle InEntity)
+{
+    _Fired = true;
+    ++_FireCount;
+    _EntityWasValidAtFire = ck::IsValid(InEntity);
+
+    if (NOT _EntityWasValidAtFire)
+    { return; }
+
+    _ReplicationWasCompleteAtFire =
+        UCk_Utils_EntityReplicationDriver_UE::Has(InEntity) &&
+        UCk_Utils_EntityReplicationDriver_UE::Get_IsReplicationComplete(InEntity);
+
+    if (NOT _AttributeTag.IsValid())
+    { return; }
+
+    auto AttributeHandle = UCk_Utils_FloatAttribute_UE::TryGet(InEntity, _AttributeTag);
     if (ck::Is_NOT_Valid(AttributeHandle))
     { return; }
 
