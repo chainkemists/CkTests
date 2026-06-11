@@ -2,15 +2,11 @@
 
 #include "CkTests/Net/CkAutoTest_NetSubject_EntityScript.h"
 
-#include "CkEcs/EntityScript/CkEntityScript_Utils.h"
-#include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
-#include "CkEcsExt/EntityScript/CkEntityScript_WithActor_Data.h"
+#include "CkEcsExt/EntityScript/CkEntityScript_WithActor_Utils.h"
 
 #include "Components/SceneComponent.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
-
-#include <StructUtils/InstancedStruct.h>
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -63,20 +59,15 @@ auto
 {
     Super::BeginPlay();
 
-    if (NOT HasAuthority())
-    { return; }
-
     // Mirror of ACk_ActorRelay_UE::BeginPlay — spawn a WithActor-based entity that owns the
     // bridge to this actor. The configured _EntityScriptClass (set per-subclass in ctor) is the
     // test-harness entity script that adds whatever per-test fragments Construct on both worlds
     // (Float attribute by default; refill-enabled attribute in the Refill subclass).
+    // Authority-gating + spawn boilerplate live inside the helper.
     if (ck::Is_NOT_Valid(_EntityScriptClass))
     { return; }
 
-    auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(GetWorld());
-    auto SpawnParams = FInstancedStruct::Make<FCk_EntityScript_WithActor_SpawnParams>(this);
-    UCk_Utils_EntityScript_UE::Request_SpawnEntity(
-        TransientEntity, _EntityScriptClass, SpawnParams);
+    UCk_Utils_EntityScript_WithActor_UE::Request_SpawnEntityScript_OnActor(this, _EntityScriptClass);
 }
 
 // --------------------------------------------------------------------------------------------------------------------

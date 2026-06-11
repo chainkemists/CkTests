@@ -27,15 +27,8 @@ class ACk_NetGym_TwoPlayer_Pawn : ADefaultPawn
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
-        if (!HasAuthority())
-        { return; }
-
-        auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
-        SpawnParams._OwningActor = this;
-        utils_entity_script::Request_SpawnEntity(
-            ck::TransientEntity(),
-            UCk_NetGym_TwoPlayer_EntityScript,
-            SpawnParams);
+        utils_entity_script_with_actor::Request_SpawnEntityScript_OnActor(
+            this, UCk_NetGym_TwoPlayer_EntityScript);
     }
 
     // Owning-client SM path. The server-only cadence director calls this Client RPC on the
