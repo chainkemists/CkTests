@@ -34,6 +34,7 @@ public class CkTests : CkModuleRules
             "CkEcsExt",
             "CkEntityCollection",
             "CkEntityExtension",
+            "CkEqs",
             "CkGraphics",
             "CkGrid",
             "CkInventory",
