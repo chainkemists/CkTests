@@ -45,6 +45,7 @@ namespace ck_repdata_coverage_test
             TEXT("StateMachine_NoHistory"),
             TEXT("StateMachine_WithHistory"),
             TEXT("Inventory_Spatial_Items"),
+            TEXT("2dGridPlacements"),
         };
         return Covered;
     }
@@ -59,8 +60,8 @@ namespace ck_repdata_coverage_test
             { TEXT("Rotation"),                 TEXT("audit complete 2026-06-10: same as Location — actor-backed re-derives (M2b2b gate); pure-ECS SceneNode rep deferred until a real use") },
             { TEXT("Scale"),                    TEXT("audit complete 2026-06-10: same as Location — actor-backed re-derives (M2b2b gate); pure-ECS SceneNode rep deferred until a real use") },
             { TEXT("EntityCollections"),        TEXT("audit complete 2026-06-10: identity hazard RESOLVED in principle — CkLabel (collection name) is already snapshotted, member records remap via record snapshotting; remaining work is the standard recipe (snapshot Params wrapper + both member records + RecordOfEntityCollections, ReplicateOnRestore re-creates the owner-hosted container + re-arms MayRequireReplication) — not yet implemented") },
-            { TEXT("2dGridPlacements"),         TEXT("snapshot + ReplicateOnRestore wiring LANDED 2026-06-10 (grid/object params Tier-A, placement params Tier-B, record + occupant back-ref, FProcessor_2dGridSystem_RestoreRecompose + FProcessor_2dGridOccupancy_ReplicateOnRestore; unit round-trip Ck.Snapshot.GridPlacements.RoundTrip) but no MP parity gate yet — a LATENT PRE-EXISTING bug silently kills the engine when a 2dGridSystem rides the actor-bridged entity through save + seamless travel (bisect: dies with grid alone, survives without; dies identically on builds WITHOUT the grid snapshot wiring); gate lands once that engine death is fixed") },
             { TEXT("GeometryCollectionOwner"),  TEXT("Lead decision 2026-06-10: ephemeral destruction state, does NOT persist — permanently deferred") },
+            { TEXT("RenderTarget"),             TEXT("audit 2026-06-11: surfaced by the dev rebase, NOT yet covered — FCk_RepData_RenderTarget replicates but CkRenderTarget has no snapshot registration, no ReplicateOnRestore handler, and no RestoreRecompose. Whether replicated render-target pixel data should survive a snapshot reload is a pending Lead decision (it may be ephemeral GPU-backed state like GeometryCollectionOwner). Out of scope for the 2dGridPlacements grid-travel work; deferred here to keep the ratchet honest until that decision is made") },
             { TEXT("Container"),                TEXT("generic template base (TFragment_ContainerEntryRef<>), not a concrete replicated feature — N/A if it reflects at all") },
         };
         return Deferred;
