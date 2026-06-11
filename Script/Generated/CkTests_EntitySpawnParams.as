@@ -10058,6 +10058,71 @@ namespace UCk_SmNegPolledTest_State_B
 }
 
 USTRUCT()
+struct FCk_SmNetSubTest_DelayShort_SpawnParams
+{
+}
+
+namespace UCk_SmNetSubTest_DelayShort
+{
+    FCk_SmNetSubTest_DelayShort_SpawnParams Params()
+    {
+        return FCk_SmNetSubTest_DelayShort_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNetSubTest_Parent_Hold_SpawnParams
+{
+}
+
+namespace UCk_SmNetSubTest_Parent_Hold
+{
+    FCk_SmNetSubTest_Parent_Hold_SpawnParams Params()
+    {
+        return FCk_SmNetSubTest_Parent_Hold_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNetSubTest_Sub_Reached_SpawnParams
+{
+}
+
+namespace UCk_SmNetSubTest_Sub_Reached
+{
+    FCk_SmNetSubTest_Sub_Reached_SpawnParams Params()
+    {
+        return FCk_SmNetSubTest_Sub_Reached_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNetSubTest_Sub_Wait_SpawnParams
+{
+}
+
+namespace UCk_SmNetSubTest_Sub_Wait
+{
+    FCk_SmNetSubTest_Sub_Wait_SpawnParams Params()
+    {
+        return FCk_SmNetSubTest_Sub_Wait_SpawnParams();
+    }
+}
+
+USTRUCT()
+struct FCk_SmNetSubTest_SubTask_SpawnParams
+{
+}
+
+namespace UCk_SmNetSubTest_SubTask
+{
+    FCk_SmNetSubTest_SubTask_SpawnParams Params()
+    {
+        return FCk_SmNetSubTest_SubTask_SpawnParams();
+    }
+}
+
+USTRUCT()
 struct FCk_SmOvrTransTest_Base_SpawnParams
 {
 }
@@ -12397,6 +12462,31 @@ namespace UCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_
     FCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
     {
         return FCk_AutoTest_NetSubject_StateMachineOwningClientNoHistoryEntityScript_UE_SpawnParams(In_OwningActor);
+    }
+}
+
+USTRUCT()
+struct FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams
+{
+    UPROPERTY()
+    const TObjectPtr<AActor> _OwningActor = nullptr;
+
+    FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams(const TObjectPtr<AActor> In_OwningActor)
+    {
+        _OwningActor = In_OwningActor;
+    }
+}
+
+namespace UCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE
+{
+    FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams Params()
+    {
+        return FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams();
+    }
+
+    FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams Params(const TObjectPtr<AActor> In_OwningActor)
+    {
+        return FCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScript_UE_SpawnParams(In_OwningActor);
     }
 }
 
