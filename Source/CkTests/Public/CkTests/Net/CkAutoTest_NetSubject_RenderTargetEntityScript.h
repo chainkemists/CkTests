@@ -33,6 +33,14 @@ protected:
     // Overridable so the client-authoring variant reuses the same Construct body.
     virtual auto Get_ClientAuthoring() const -> ECk_RenderTarget_ClientAuthoring
     { return ECk_RenderTarget_ClientAuthoring::Disallowed; }
+
+    // Snapshot respawn opt-in (mirrors the Inventory net subject): after save -> seamless reload ->
+    // load, the restored entity re-spawns an actor of the subject class and re-bridges it. Inert for
+    // the pre-existing RenderTarget net tests (they never save/load); required by the
+    // Ck.Snapshot.Parity.RenderTarget_MPReload gate (without it, 0 bridged entities respawn and the
+    // restored render target never reappears on either world).
+    virtual auto
+    Get_IsSnapshotRespawnable() const -> bool override;
 };
 
 // --------------------------------------------------------------------------------------------------------------------

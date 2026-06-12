@@ -17,6 +17,16 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_RenderTarget_AutoTest_Net, TEXT("RenderTarget.
 
 auto
     UCk_AutoTest_NetSubject_RenderTargetEntityScript_UE::
+    Get_IsSnapshotRespawnable() const
+    -> bool
+{
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCk_AutoTest_NetSubject_RenderTargetEntityScript_UE::
     Construct(
         FCk_Handle& InHandle,
         const FInstancedStruct& InSpawnParams)
