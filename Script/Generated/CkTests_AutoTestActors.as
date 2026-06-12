@@ -439,6 +439,18 @@ class ACk_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand_Actor : ACk_AutoTest
     }
 }
 
+class ACk_AutoTest_Attribute_DeferredWritesSettleSameFrame_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Attribute_DeferredWritesSettleSameFrame");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Attribute_FloatBasic_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
