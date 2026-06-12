@@ -351,6 +351,7 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_RenderStatus_Add_CreatesFeature_Actor> Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857() { return TSoftObjectPtr<ACk_AutoTest_RenderStatus_Add_CreatesFeature_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderStatus_Add_CreatesFeature_Actor_UAID_C87F5401E53528DC02_1520972857")); }
     TSoftObjectPtr<ACk_AutoTest_RenderTarget_AddAndQuery_Actor> Ck_AutoTest_RenderTarget_AddAndQuery_Actor_UAID_60CF84A99C2C58E302_1636287695() { return TSoftObjectPtr<ACk_AutoTest_RenderTarget_AddAndQuery_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderTarget_AddAndQuery_Actor_UAID_60CF84A99C2C58E302_1636287695")); }
     TSoftObjectPtr<ACk_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor> Ck_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor_UAID_60CF84A99C2C58E302_1636291696() { return TSoftObjectPtr<ACk_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor_UAID_60CF84A99C2C58E302_1636291696")); }
+    TSoftObjectPtr<ACk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_Actor> Ck_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_Actor_UAID_60CF84A99C2C86E302_1487982791() { return TSoftObjectPtr<ACk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_Actor_UAID_60CF84A99C2C86E302_1487982791")); }
     TSoftObjectPtr<ACk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor> Ck_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor_UAID_60CF84A99C2C5AE302_1260422047() { return TSoftObjectPtr<ACk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor_UAID_60CF84A99C2C5AE302_1260422047")); }
     TSoftObjectPtr<ACk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor> Ck_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor_UAID_60CF84A99C2C58E302_1636293697() { return TSoftObjectPtr<ACk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor_UAID_60CF84A99C2C58E302_1636293697")); }
     TSoftObjectPtr<ACk_AutoTest_Resolver_Source_AddHappyPath_Actor> Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119() { return TSoftObjectPtr<ACk_AutoTest_Resolver_Source_AddHappyPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Resolver_Source_AddHappyPath_Actor_UAID_C87F5401E535EBDB02_1470350119")); }
@@ -3684,6 +3685,15 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal_Actor_UAID_60CF84A99C2C58E302_1636291696());
+    }
+    ACk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_Actor Ck_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_Actor_UAID_60CF84A99C2C86E302_1487982791()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_Actor_UAID_60CF84A99C2C86E302_1487982791() called before engine init. Use assets::Ck_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_Actor_UAID_60CF84A99C2C86E302_1487982791() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving_Actor_UAID_60CF84A99C2C86E302_1487982791());
     }
     ACk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor Ck_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor_UAID_60CF84A99C2C5AE302_1260422047()
     {
