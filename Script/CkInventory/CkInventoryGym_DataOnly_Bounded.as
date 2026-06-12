@@ -75,7 +75,7 @@ class UCk_EntityScript_InvGym_DataOnlyBounded : UCk_GenericEntityScript_UE
         if (ck::IsValid(Inventory) == false) { return; }
 
         auto BoundsInfo = Inventory.Get_BoundsInfo();
-        auto IsBounded = BoundsInfo.Get_Mode() == ECk_Inventory_DataOnly_BoundMode::Bounded;
+        auto IsBounded = BoundsInfo.Get_Mode() != ECk_Inventory_DataOnly_BoundMode::Unbounded;
         auto NumItems = Inventory.Get_NumItems();
 
         auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);

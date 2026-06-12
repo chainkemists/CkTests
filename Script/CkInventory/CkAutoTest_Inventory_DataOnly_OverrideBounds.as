@@ -102,7 +102,7 @@ class UCk_AutoTest_Inventory_DataOnly_OverrideBounds : UCk_AutoTest_Base
         if (_PostOverrideAddQueued) { return; }
 
         auto BoundsInfo = _Inventory.Get_BoundsInfo();
-        if (BoundsInfo.Get_Mode() == ECk_Inventory_DataOnly_BoundMode::Bounded && BoundsInfo.Get_Value() >= 5)
+        if (BoundsInfo.Get_Mode() == ECk_Inventory_DataOnly_BoundMode::BoundedByUniqueEntries && BoundsInfo.Get_Value() >= 5)
         {
             _PostOverrideAddQueued = true;
             QueueAdd();
