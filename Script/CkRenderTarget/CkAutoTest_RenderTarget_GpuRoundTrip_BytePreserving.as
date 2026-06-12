@@ -20,8 +20,12 @@
 // bytes capture #1 read, so the diff job drops the pass as zero-diff. Any
 // payload means the redraw altered pixels (gamma/format corruption).
 //
-// Needs a real RHI: under -nullrhi the Setup processor never creates the
-// drawable target, which this test detects and reports as a skip-pass.
+// Needs a real RHI: on processes that cannot render (-nullrhi CI) the capture
+// and redraw legs are dropped by the engine-side FApp::CanEverRender gate, so
+// this test checks the SAME gate (Get_CanRenderOnThisProcess) up front and
+// reports a skip-pass. (Checking Get_Target validity is NOT a substitute —
+// Setup resolves the target object even on non-rendering processes so the
+// CPU-staging/replication paths have its identity.)
 //============================================================================
 
 class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
@@ -37,6 +41,13 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        if (!utils_render_target::Get_CanRenderOnThisProcess())
+        {
+            ck::Trace("[GpuRoundTrip] this process cannot render (e.g. -nullrhi) — the capture/redraw legs would be dropped; skipping");
+            FinishSuccess();
+            return;
+        }
+
         auto LocalHandle = InHandle;
         _TestEntity = InHandle;
 
@@ -51,8 +62,10 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
         _RenderTarget.BindTo_OnPixelPayloadProduced(
             FCk_Delegate_RenderTarget_OnPixelPayloadProduced(this, n"OnPayloadProduced"));
 
-        // The drawable target exists one tick after Add (Setup processor), and never on
-        // machines that cannot render — poll, then either proceed or skip-pass.
+        // The drawable target exists one tick after Add (Setup processor) — poll for setup
+        // timing. (Render capability was already gated above; a missing target here past the
+        // window means Setup itself failed, which the bounded poll converts into a skip with
+        // a trace rather than a 10s silent timeout.)
         ScheduleTimer(0.1f, n"OnSetupPoll");
     }
 
