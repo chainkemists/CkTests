@@ -77,9 +77,9 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
 
         // Loop the showcase: once depleted, refill to full so HP visibly cycles 100 -> 0 -> 100.
         if (Current - Typed.Amount <= CkNetGym::MinHealth)
-        { utils_float_attribute::Request_Override(_Health, CkNetGym::MaxHealth); }
+        { utils_float_attribute::Request_Override(_Health, float32(CkNetGym::MaxHealth)); }
         else
-        { utils_float_attribute::Request_Override(_Health, Current - Typed.Amount); }
+        { utils_float_attribute::Request_Override(_Health, float32(Current - Typed.Amount)); }
     }
 
     // Owning-client: broadcast LOCALLY on the owning client. Request_Transition commits locally
