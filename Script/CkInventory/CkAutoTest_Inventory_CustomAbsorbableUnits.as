@@ -24,7 +24,7 @@ class UCk_AutoTest_Inventory_CustomAbsorbableUnits : UCk_AutoTest_Base
         FCk_Handle_Inventory InInventory,
         UCk_InventoryItem_Definition InDefinition,
         FCk_Handle_Item InItem,
-        int&out OutAbsorbableUnits)
+        int&in OutAbsorbableUnits)
     {
         OutAbsorbableUnits = Math::Max(0, 5 - InInventory.Get_TotalUnits());
     }
@@ -38,7 +38,7 @@ class UCk_AutoTest_Inventory_CustomAbsorbableUnits : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_Quota"),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
-        Params._CustomGetAbsorbableUnitsDynamic = FCk_Delegate_Inventory_CustomGetAbsorbableUnits_Dynamic(this, n"GetQuota");
+        Params.Set_CustomGetAbsorbableUnitsDynamic(FCk_Delegate_Inventory_CustomGetAbsorbableUnits_Dynamic(this, n"GetQuota"));
 
         _Inventory = utils_inventory_data_only::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 

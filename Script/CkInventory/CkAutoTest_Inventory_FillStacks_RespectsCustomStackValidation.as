@@ -24,7 +24,7 @@ class UCk_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation : UCk_Auto
         FCk_Handle_Inventory InInventory,
         FCk_Handle_Item InSourceItem,
         FCk_Handle_Item InTargetItem,
-        bool&out OutCanStack)
+        bool&in OutCanStack)
     {
         OutCanStack = false;
     }
