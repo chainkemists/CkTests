@@ -72,6 +72,10 @@ class UCk_AutoTest_Goap_Planner_CostProviderFlip : UCk_AutoTest_Base
         utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapCostProviderTest_Pricey));
 
+        // Register the Cheap action as externally cost-driven (first-class hook).
+        utils_goap_planner::Request_RegisterActionCostProvider(
+            _Planner, UCk_GoapCostProviderTest_Cheap);
+
         utils_goap_planner::BindTo_OnPlanComplete(_Planner,
             FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlan"));
     }
@@ -88,6 +92,17 @@ class UCk_AutoTest_Goap_Planner_CostProviderFlip : UCk_AutoTest_Base
         {
             Assert_True(Plan[0] == UCk_GoapCostProviderTest_Cheap,
                 f"initial plan should be [Cheap] (cheapest goal-satisfier), head was not Cheap");
+
+            auto CheapAction = utils_goap_planner::Find_ActionByClass(
+                _Planner, UCk_GoapCostProviderTest_Cheap);
+            Assert_True(utils_goap_action::Get_HasCostProvider(CheapAction),
+                "Cheap action should report HasCostProvider after registration");
+
+            auto PriceyAction = utils_goap_planner::Find_ActionByClass(
+                _Planner, UCk_GoapCostProviderTest_Pricey);
+            Assert_True(utils_goap_action::Get_HasCostProvider(PriceyAction) == false,
+                "Pricey action should NOT report HasCostProvider (never registered)");
+
             _SawCheapFirst = true;
 
             if (_PushedAlready == false)
