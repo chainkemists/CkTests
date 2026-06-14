@@ -29,7 +29,7 @@ class UCk_AutoTest_Inventory_StackingPolicy_NoStacking : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_NoStacking"),
             FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic(),
             FCk_Delegate_Inventory_CustomCanStackItems_Dynamic());
-        Params._StackingPolicy = ECk_Inventory_StackingPolicy::NoStacking;
+        Params.Set_StackingPolicy(ECk_Inventory_StackingPolicy::NoStacking);
 
         _Inventory = utils_inventory_data_only::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
