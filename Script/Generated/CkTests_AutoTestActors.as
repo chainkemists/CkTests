@@ -2859,6 +2859,19 @@ class ACk_AutoTest_Inventory_SpatialPlacementRejection_Actor : ACk_AutoTestRunne
     }
 }
 
+class ACk_AutoTest_Inventory_SplitInheritsRuntimeTag_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_SplitInheritsRuntimeTag");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Inventory_StackableTrait_SplitStack_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
