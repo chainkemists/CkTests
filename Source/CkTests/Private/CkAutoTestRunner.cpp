@@ -414,6 +414,14 @@ namespace ck::auto_test::expected_errors
         // async-load flush happens to land mid-test; the test gets blamed even
         // though the missing asset is purely a host-project config issue.
         TEXT("Failed to find object 'DataTable /CkTests/GameplayTags_Tests_CkDT"),
+        // CkEcs scheduler perf advisories (CkProcessorScheduler). "High pump count
+        // this frame" / "Pump limit [N] reached" fire when a single frame needs many
+        // pump iterations to reach quiescence — e.g. a heavy spawn burst (an NPC with
+        // customizer cosmetics, a truck whose static meshes stream in mid-settle).
+        // They are diagnostic, not gameplay correctness, and still log in real runs;
+        // a test that passes its own assertions must not be failed by them.
+        TEXT("High pump count this frame"),
+        TEXT("Pump limit ["),
     };
 }
 
