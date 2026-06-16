@@ -2773,6 +2773,84 @@ class ACk_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation_Actor : AC
     }
 }
 
+class ACk_AutoTest_Inventory_MassTransfer_FullMove_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_MassTransfer_FullMove");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Inventory_MassTransfer_NoCandidateAccepts_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_MassTransfer_NoCandidateAccepts");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Inventory_MassTransfer_NothingToTransfer_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_MassTransfer_NothingToTransfer");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Inventory_MassTransfer_Partial_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_MassTransfer_Partial");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Inventory_RequestCancelledOnDestroy_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_RequestCancelledOnDestroy");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
@@ -2791,6 +2869,19 @@ class ACk_AutoTest_Inventory_Sort_DataOnly_BasicOrder_Actor : ACk_AutoTestRunner
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_Sort_DataOnly_BasicOrder");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Inventory_Sort_NoPredicateRejected_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_Sort_NoPredicateRejected");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
@@ -2920,6 +3011,19 @@ class ACk_AutoTest_Inventory_StackingPolicy_NoStacking_Actor : ACk_AutoTestRunne
     }
 }
 
+class ACk_AutoTest_Inventory_StaleData_ConcurrentAddsRespectBound_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_StaleData_ConcurrentAddsRespectBound");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Inventory_TagsTrait_AddTag_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
@@ -2938,6 +3042,19 @@ class ACk_AutoTest_Inventory_TagsTrait_RemoveTag_Actor : ACk_AutoTestRunner
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_TagsTrait_RemoveTag");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Inventory_Transfer_FullMoveReportsSuccess_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_Transfer_FullMoveReportsSuccess");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
