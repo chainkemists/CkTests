@@ -21,7 +21,7 @@ namespace
         EAutomationTestFlags::EditorContext |
         EAutomationTestFlags::ProductFilter;
 
-    auto Get_TestWorld() -> UWorld*
+    auto Get_OutlineTestWorld() -> UWorld*
     {
         if (GEditor != nullptr)
         {
@@ -41,7 +41,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_Usf_OutlineStencilAlloc::RunTest(const FString& Parameters)
 {
-    auto* World = Get_TestWorld();
+    auto* World = Get_OutlineTestWorld();
     if (TestNotNull(TEXT("editor world available"), World) == false)
     { return false; }
 
