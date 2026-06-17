@@ -44,6 +44,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Replication",        ACk_ReplicationGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Scene Node",         ACk_SceneNodeGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Scene Node + Tween", ACk_SceneNodeTweenGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Solid Outline",      ACk_UsfOutlineGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Station Showcase",   ACk_StationShowcaseGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("State Machine",      ACk_SmTest_GymGameMode);
         CkGym_Cycler::RegisterProjectGym("Timer",              ACk_TimerGym_GameMode);
