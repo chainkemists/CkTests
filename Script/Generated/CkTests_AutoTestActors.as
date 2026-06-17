@@ -4371,6 +4371,19 @@ class ACk_AutoTest_StateMachine_OverrideState_WithTransitions_Actor : ACk_AutoTe
     }
 }
 
+class ACk_AutoTest_StateMachine_OverrideViaParams_ReplacesBaseState_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_StateMachine_OverrideViaParams_ReplacesBaseState");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_StateMachine_PauseResume_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
