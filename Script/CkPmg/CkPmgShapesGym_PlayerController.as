@@ -11,6 +11,7 @@
 // - Directional Shapes (3): Arrow, Pivot, DashedLine (with XY/XZ/YZ orientations)
 // - Icon Shapes (4): Warning, Prohibition, NoEntry, InfoCircle (with XY/XZ/YZ orientations)
 // - Symbol Shapes (5): MagnifyingGlass, QuestionMark, ExclamationMark, Flag, Pin (with XY/XZ/YZ orientations)
+// - Text Shapes (3): AllOrientations (Latin), MultiLine, CJK placeholder
 //============================================================================
 
 class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
@@ -100,6 +101,19 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             Description.Add(FText::FromString("Displays symbol PMG debug shapes (search, question, exclamation, flag, pin)."));
             Description.Add(FText::FromString("5 shapes shown in 3 orientations each (Red/Green/Blue)."));
             Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
+            Station.Description = Description;
+            Station.AutoSize = true;
+            Stations.Add(Station);
+        }
+
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Pmg.TextShapes");
+            Station.Title = FText::FromString("PMG TEXT SHAPES (UTF-8)");
+            auto Description = TArray<FText>();
+            Description.Add(FText::FromString("Displays UTF-8 text as debug geometry: Latin orientations, multi-line, and CJK placeholder."));
+            Description.Add(FText::FromString("Wireframe glyph contours + filled procmesh (FreeType + Delaunay tessellation). Default axis XZ (upright)."));
+            Description.Add(FText::FromString("CJK row renders .notdef boxes until the bundled Noto CJK font asset is imported."));
             Station.Description = Description;
             Station.AutoSize = true;
             Stations.Add(Station);
@@ -201,6 +215,17 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnShape_Pin_AllOrientations(SymbolBaseLocation, SymbolRow); ++SymbolRow;
 
         ck::Trace("🔍 Spawned " + SymbolRow + " symbol shapes");
+
+        // Spawn text shapes station
+        auto TextStationTransform = Get_StationAnchorTransform("Gym.Pmg.TextShapes", ECk_GymStation_Anchor::PanelCenter);
+        auto TextBaseLocation = TextStationTransform.GetLocation();
+
+        int TextRow = 0;
+        SpawnText_AllOrientations(TextBaseLocation, TextRow); ++TextRow;
+        SpawnText_MultiLine(TextBaseLocation, TextRow); ++TextRow;
+        SpawnText_CJK(TextBaseLocation, TextRow); ++TextRow;
+
+        ck::Trace("🔤 Spawned " + TextRow + " text-shape rows");
     }
 
     //------------------------------------------------------------------------
@@ -599,6 +624,41 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
                 GetOrientationColor(Col), true, 2.0f, GetOrientationAxis(Col), 500.0f);
             SpawnedShapes.Add(Handle);
         }
+    }
+
+    //------------------------------------------------------------------------
+    // TEXT SHAPES
+    //------------------------------------------------------------------------
+
+    void SpawnText_AllOrientations(FVector InBase, int InRow)
+    {
+        for (int Col = 0; Col < 3; ++Col)
+        {
+            auto Pos = GetGridPosition(InBase, InRow, Col - 1);
+            auto Handle = utils_pmg_text_shapes::DrawText(Pos, "Hello 123", ShapeSize,
+                GetOrientationColor(Col), true, true, 2.0f,
+                ECk_Pmg_TextAlign::Left, GetOrientationAxis(Col), nullptr, 500.0f);
+            SpawnedShapes.Add(Handle);
+        }
+    }
+
+    void SpawnText_MultiLine(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, "line one\nline two", ShapeSize,
+            FLinearColor(1.0f, 1.0f, 1.0f, 0.5f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Center, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
+    }
+
+    void SpawnText_CJK(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        // CJK renders as .notdef boxes until the bundled Noto CJK font is imported — intentional.
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, "CJK-needs-Noto", ShapeSize,
+            FLinearColor(1.0f, 0.8f, 0.0f, 0.6f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
     }
 
     //------------------------------------------------------------------------
