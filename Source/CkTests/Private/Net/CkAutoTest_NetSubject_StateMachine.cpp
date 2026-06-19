@@ -19,3 +19,11 @@ ACk_AutoTest_NetSubject_StateMachineNoHistory_UE::
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+
+ACk_AutoTest_NetSubject_StateMachineDoesNotReplicate_UE::
+    ACk_AutoTest_NetSubject_StateMachineDoesNotReplicate_UE()
+{
+    _EntityScriptClass = UCk_AutoTest_NetSubject_StateMachineDoesNotReplicateEntityScript_UE::StaticClass();
+}
+
+// --------------------------------------------------------------------------------------------------------------------

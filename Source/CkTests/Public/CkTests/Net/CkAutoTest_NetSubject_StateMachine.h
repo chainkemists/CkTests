@@ -46,3 +46,17 @@ public:
 };
 
 // --------------------------------------------------------------------------------------------------------------------
+
+// DoesNotReplicate variant — bridges to the local-only SM entity-script (tick-gated Wait→Reached,
+// AutoStart-OnSetup). Used by Ck.StateMachine.Net.DoesNotReplicate_RunsOnNonOwningClient to prove a
+// non-replicating SM still runs its lifecycle on the non-owning client.
+UCLASS()
+class CKTESTS_API ACk_AutoTest_NetSubject_StateMachineDoesNotReplicate_UE : public ACk_AutoTest_NetSubject_StateMachine_UE
+{
+    GENERATED_BODY()
+
+public:
+    ACk_AutoTest_NetSubject_StateMachineDoesNotReplicate_UE();
+};
+
+// --------------------------------------------------------------------------------------------------------------------

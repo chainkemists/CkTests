@@ -27,7 +27,7 @@ auto
     const auto Flow = Super::Construct(InHandle, InSpawnParams);
 
     auto Params = FCk_Fragment_StateMachine_ParamsData{Get_InitialStateClass()};
-    Params.Set_Replication(ECk_Replication::Replicates);
+    Params.Set_Replication(Get_Replication());
     Params.Set_AuthorityModel(Get_AuthorityModel());
     Params.Set_ReplicationModel(Get_ReplicationModel());
     Params.Set_AutoStart(Get_AutoStart());
@@ -104,6 +104,20 @@ auto
     // surfacing the real cause instead of a silent no-SM.
     static const auto AsParentHoldPath = FSoftClassPath{TEXT("/Script/Angelscript.Ck_SmNetSubTest_Parent_Hold")};
     return AsParentHoldPath.TryLoadClass<UCk_SmState_EntityScript>();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCk_AutoTest_NetSubject_StateMachineDoesNotReplicateEntityScript_UE::
+    Get_InitialStateClass() const
+    -> TSubclassOf<UCk_SmState_EntityScript>
+{
+    // Reuse the AS tick-gated Wait state authored for the SubSm test (Delay task → TaskResults
+    // transition → Sub_Reached) as a TOP-LEVEL SM root. Resolved by package path like the SubSm
+    // variant; null if the AS topology failed to compile (Add then ensures on the invalid class).
+    static const auto AsSubWaitPath = FSoftClassPath{TEXT("/Script/Angelscript.Ck_SmNetSubTest_Sub_Wait")};
+    return AsSubWaitPath.TryLoadClass<UCk_SmState_EntityScript>();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
