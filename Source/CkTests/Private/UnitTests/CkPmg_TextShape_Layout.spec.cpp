@@ -1,6 +1,6 @@
 #include "Misc/AutomationTest.h"
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
-#include "CkEcs/Ecs/CkEcsWorld.h"
+#include "CkEcs/World/CkEcsWorld.h"
 #include "CkPmg/CkPmg_Utils_TextShapes.h"
 #include "CkPmg/CkPmg_Fragment_TextShapes.h"
 #include "CkPmg/CkPmg_Fragment.h"
