@@ -41,6 +41,12 @@ protected:
     virtual auto Get_AuthorityModel() const -> ECk_Sm_AuthorityModel { return ECk_Sm_AuthorityModel::ServerAuthoritative; }
     virtual auto Get_ReplicationModel() const -> ECk_Sm_ReplicationModel { return ECk_Sm_ReplicationModel::WithHistory; }
 
+    // Whether the SM replicates at all. Default Replicates (the rep-path net tests). The
+    // DoesNotReplicate variant overrides this to prove a local-only SM — self-authoritative on
+    // every machine — still runs its lifecycle on a NonOwningClient (the NetContext gates in the
+    // task/condition/transition processors must exempt DoesNotReplicate).
+    virtual auto Get_Replication() const -> ECk_Replication { return ECk_Replication::Replicates; }
+
     // OwningClientAuth disables AutoStart: Setup runs during Construct, BEFORE the subject pawn is
     // possessed by the owning client, so at Setup time no world is the owning-client authority and
     // the auto-enqueued Start request is dropped by the single-authority gate. The owning-client
@@ -142,5 +148,30 @@ class CKTESTS_API UCk_AutoTest_NetSubject_StateMachineOwningClientSubSmEntityScr
     GENERATED_BODY()
 
 protected:
+    virtual auto Get_InitialStateClass() const -> TSubclassOf<UCk_SmState_EntityScript> override;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// DoesNotReplicate variant — a local-only SM (each machine self-authoritative). Initial state is the
+// AngelScript-authored tick-gated UCk_SmNetSubTest_Sub_Wait (a Delay task → TaskResults transition →
+// Sub_Reached), resolved by path. AutoStart stays OnSetup: a DoesNotReplicate SM's Start is accepted
+// on EVERY machine (the single-authority gate exempts DoesNotReplicate), so both worlds auto-start.
+//
+// Used by Ck.StateMachine.Net.DoesNotReplicate_RunsOnNonOwningClient to prove the SM's tick-gated
+// task advances on the NON-owning client. The SM lives on a server-replicated, non-player actor, so
+// on the client it resolves NetContext == NonOwningClient — and FProcessor_SmTask_Tick /
+// _SmCondition / _SmTransition gate NonOwningClient off WITHOUT exempting DoesNotReplicate, leaving
+// the SM stuck at Sub_Wait there. Mirrors the trashcan / shelf / truck interaction-HFSM bug.
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS(BlueprintType)
+class CKTESTS_API UCk_AutoTest_NetSubject_StateMachineDoesNotReplicateEntityScript_UE : public UCk_AutoTest_NetSubject_StateMachineEntityScript_UE
+{
+    GENERATED_BODY()
+
+protected:
+    virtual auto Get_Replication() const -> ECk_Replication override { return ECk_Replication::DoesNotReplicate; }
     virtual auto Get_InitialStateClass() const -> TSubclassOf<UCk_SmState_EntityScript> override;
 };
