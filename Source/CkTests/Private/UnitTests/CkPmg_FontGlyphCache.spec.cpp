@@ -51,6 +51,10 @@ bool FCkPmg_FontGlyph_ExtractsAndCaches::RunTest(const FString& Parameters)
 
     // 'O' has a hole -> at least 2 contours, still produces a fillable annulus.
     const auto& GlyphO = Cache.GetOrBuildGlyph(Face, 0x4F);
+    AddInfo(FString::Printf(TEXT("'A': contours=%d tessVerts=%d tessTris=%d advanceEm=%.4f"),
+        GlyphA.Contours.Num(), GlyphA.TessVerts.Num(), GlyphA.TessTris.Num(), GlyphA.AdvanceEm));
+    AddInfo(FString::Printf(TEXT("'O': contours=%d tessVerts=%d tessTris=%d"),
+        GlyphO.Contours.Num(), GlyphO.TessVerts.Num(), GlyphO.TessTris.Num()));
     TestTrue(TEXT("'O' has >=2 contours (hole)"), GlyphO.Contours.Num() >= 2);
     TestTrue(TEXT("'O' has filled triangles"), GlyphO.TessTris.Num() >= 1);
 
