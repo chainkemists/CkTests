@@ -1,6 +1,7 @@
 #include "Misc/AutomationTest.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Interfaces/IPluginManager.h"
 #include "CkPmg/CkPmg_FontGlyphCache.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -71,6 +72,38 @@ bool FCkPmg_FontGlyph_ExtractsAndCaches::RunTest(const FString& Parameters)
     // Font-fallback coverage query: Roboto has 'A' but not an emoji codepoint.
     TestTrue(TEXT("Roboto reports coverage of 'A' (U+0041)"), Cache.FaceHasCodepoint(Face, 0x41));
     TestFalse(TEXT("Roboto reports NO coverage of emoji U+1F600"), Cache.FaceHasCodepoint(Face, 0x1F600));
+#else
+    AddInfo(TEXT("CK_PMG_WITH_FREETYPE=0 — skipped"));
+#endif
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkPmg_FontGlyph_BundledEmojiFontLoads,
+    "Ck.Pmg.FontGlyph.BundledEmojiFontLoads",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkPmg_FontGlyph_BundledEmojiFontLoads::RunTest(const FString& Parameters)
+{
+#if CK_PMG_WITH_FREETYPE
+    const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("CkFoundation"));
+    if (!TestTrue(TEXT("found CkFoundation plugin"), Plugin.IsValid())) { return false; }
+
+    const FString Path = Plugin->GetBaseDir() / TEXT("Source/CkPmg/Resources/NotoEmoji-Medium.ttf");
+    TArray<uint8> Bytes;
+    if (!TestTrue(TEXT("loaded bundled NotoEmoji-Medium.ttf"), FFileHelper::LoadFileToArray(Bytes, *Path)))
+    { return false; }
+
+    auto& Cache = ck::pmg::FFontGlyphCache::Get();
+    const int32 Face = Cache.EnsureFace(Bytes);
+    TestTrue(TEXT("emoji face valid"), Face != INDEX_NONE);
+    if (Face != INDEX_NONE)
+    {
+        // U+1F600 GRINNING FACE — Noto Emoji covers it; a text font would not.
+        TestTrue(TEXT("Noto Emoji covers U+1F600"), Cache.FaceHasCodepoint(Face, 0x1F600));
+        const auto& Glyph = Cache.GetOrBuildGlyph(Face, 0x1F600);
+        TestTrue(TEXT("U+1F600 produces contours"), Glyph.Contours.Num() >= 1);
+    }
 #else
     AddInfo(TEXT("CK_PMG_WITH_FREETYPE=0 — skipped"));
 #endif
