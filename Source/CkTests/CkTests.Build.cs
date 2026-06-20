@@ -15,6 +15,7 @@ public class CkTests : CkModuleRules
             "CoreUObject",
             "DeveloperSettings",
             "Engine",
+            "Projects",
             "GameplayTags",
             "FunctionalTesting",
             "Gauntlet",
