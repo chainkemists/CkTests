@@ -11,7 +11,7 @@
 // - Directional Shapes (3): Arrow, Pivot, DashedLine (with XY/XZ/YZ orientations)
 // - Icon Shapes (4): Warning, Prohibition, NoEntry, InfoCircle (with XY/XZ/YZ orientations)
 // - Symbol Shapes (5): MagnifyingGlass, QuestionMark, ExclamationMark, Flag, Pin (with XY/XZ/YZ orientations)
-// - Text Shapes (3): AllOrientations (Latin), MultiLine, CJK placeholder
+// - Text Shapes (12): AllOrientations (Latin), MultiLine, CJK placeholder, + 9 symbol/emoji rows (font fallback)
 //============================================================================
 
 class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
@@ -111,8 +111,9 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             Station.Tags.Add(n"Gym.Pmg.TextShapes");
             Station.Title = FText::FromString("PMG TEXT SHAPES (UTF-8)");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("Displays UTF-8 text as debug geometry: Latin orientations, multi-line, and CJK placeholder."));
+            Description.Add(FText::FromString("Displays UTF-8 text as debug geometry: Latin orientations, multi-line, CJK placeholder, and symbol/emoji rows."));
             Description.Add(FText::FromString("Wireframe glyph contours + filled procmesh (FreeType + Delaunay tessellation). Default axis XZ (upright)."));
+            Description.Add(FText::FromString("Symbol/emoji rows (rows 4-12) use font fallback: primary text font -> Noto Emoji -> Noto Sans Symbols 2."));
             Description.Add(FText::FromString("CJK row renders .notdef boxes until the bundled Noto CJK font asset is imported."));
             Station.Description = Description;
             Station.AutoSize = true;
@@ -224,7 +225,17 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnText_AllOrientations(TextBaseLocation, TextRow); ++TextRow;
         SpawnText_MultiLine(TextBaseLocation, TextRow); ++TextRow;
         SpawnText_CJK(TextBaseLocation, TextRow); ++TextRow;
+        SpawnTextSymbols_MixedHP(TextBaseLocation, TextRow); ++TextRow;
+        SpawnTextSymbols_MixedStatus(TextBaseLocation, TextRow); ++TextRow;
+        SpawnTextSymbols_Arrows(TextBaseLocation, TextRow); ++TextRow;
+        SpawnTextSymbols_CardsChess(TextBaseLocation, TextRow); ++TextRow;
+        SpawnTextSymbols_MusicStars(TextBaseLocation, TextRow); ++TextRow;
+        SpawnTextSymbols_WarningDanger(TextBaseLocation, TextRow); ++TextRow;
+        SpawnTextSymbols_Dingbats(TextBaseLocation, TextRow); ++TextRow;
+        SpawnTextSymbols_GeometricMisc(TextBaseLocation, TextRow); ++TextRow;
+        SpawnTextSymbols_Emoji(TextBaseLocation, TextRow); ++TextRow;
 
+        ck::Trace("🔣 Spawned 9 symbol/emoji rows (text+symbol font fallback)");
         ck::Trace("🔤 Spawned " + TextRow + " text-shape rows");
     }
 
@@ -657,6 +668,105 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         // CJK renders as .notdef boxes until the bundled Noto CJK font is imported — intentional.
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, "CJK-needs-Noto", ShapeSize,
             FLinearColor(1.0f, 0.8f, 0.0f, 0.6f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
+    }
+
+    //------------------------------------------------------------------------
+    // TEXT SHAPES — SYMBOL/EMOJI ROWS (font fallback: text font -> Noto Emoji -> Noto Sans Symbols 2)
+    // All strings built ASCII-only via MakeText_FromHexCodepoints; no non-ASCII literals in source.
+    //------------------------------------------------------------------------
+
+    // Mixed text + symbol on one line (fallback: letters from text font, heart from Symbols 2).
+    void SpawnTextSymbols_MixedHP(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        auto S = "HP 100 " + utils_pmg_text_shapes::MakeText_FromHexCodepoints("2665");
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
+            FLinearColor(1.0f, 0.3f, 0.3f, 0.85f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
+    }
+
+    void SpawnTextSymbols_MixedStatus(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        auto S = "Wave 3 " + utils_pmg_text_shapes::MakeText_FromHexCodepoints("26A0")
+               + "  Lv 5 " + utils_pmg_text_shapes::MakeText_FromHexCodepoints("2B50")
+               + "  Boss " + utils_pmg_text_shapes::MakeText_FromHexCodepoints("2620");
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
+            FLinearColor(1.0f, 0.9f, 0.4f, 0.85f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
+    }
+
+    void SpawnTextSymbols_Arrows(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("2190 2191 2192 2193 2194 2195 2196 2197 2198 2199");
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
+            FLinearColor(0.6f, 0.9f, 1.0f, 0.85f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
+    }
+
+    void SpawnTextSymbols_CardsChess(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("2660 2665 2666 2663 2654 2655 2656 2657 2658 2659");
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
+            FLinearColor(0.9f, 0.9f, 0.9f, 0.85f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
+    }
+
+    void SpawnTextSymbols_MusicStars(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("2669 266A 266B 266C 266D 266E 266F 2605 2606 2736");
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
+            FLinearColor(0.8f, 0.7f, 1.0f, 0.85f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
+    }
+
+    void SpawnTextSymbols_WarningDanger(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("26A0 2622 2623 2620 26D4 2607 2621 2691 2692 2694");
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
+            FLinearColor(1.0f, 0.5f, 0.2f, 0.85f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
+    }
+
+    void SpawnTextSymbols_Dingbats(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("2702 2708 2709 270F 2712 2713 2714 2716 2717 2764");
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
+            FLinearColor(0.5f, 1.0f, 0.6f, 0.85f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
+    }
+
+    void SpawnTextSymbols_GeometricMisc(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("25A0 25A1 25B2 25BC 25C6 25CF 25D0 25B6 25C0 2699");
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
+            FLinearColor(0.7f, 0.85f, 0.95f, 0.85f), true, true, 2.0f,
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+        SpawnedShapes.Add(Handle);
+    }
+
+    // Emoji come from the bundled Noto Emoji font (monochrome silhouettes, U+1F300+).
+    void SpawnTextSymbols_Emoji(FVector InBase, int InRow)
+    {
+        auto Pos = GetGridPosition(InBase, InRow, 0);
+        auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("1F600 1F603 1F60E 1F525 1F480 1F3C6 1F44D 1F3AF 1F680 1F3AE");
+        auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
+            FLinearColor(1.0f, 0.85f, 0.5f, 0.9f), true, true, 2.0f,
             ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }

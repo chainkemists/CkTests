@@ -61,3 +61,19 @@ bool FCkPmg_TextShape_SetTextReArmsSetup::RunTest(const FString& Parameters)
     TestTrue(TEXT("setup gate re-armed"), Entity.Has<ck::FTag_Pmg_DebugShape_NeedsSetup>());
     return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkPmg_TextShape_MakeTextFromHexCodepoints,
+    "Ck.Pmg.TextShape.MakeTextFromHexCodepoints",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkPmg_TextShape_MakeTextFromHexCodepoints::RunTest(const FString& Parameters)
+{
+    TestEqual(TEXT("ASCII hex codepoints -> text"),
+        UCk_Utils_Pmg_TextShapes::MakeText_FromHexCodepoints(TEXT("48 49")), FString(TEXT("HI")));
+
+    // Supplementary-plane codepoint (U+1F600) encodes as a UTF-16 surrogate pair (length 2).
+    const FString Emoji = UCk_Utils_Pmg_TextShapes::MakeText_FromHexCodepoints(TEXT("1F600"));
+    TestEqual(TEXT("emoji codepoint -> 2 UTF-16 units (surrogate pair)"), Emoji.Len(), 2);
+    return true;
+}
