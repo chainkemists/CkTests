@@ -67,6 +67,10 @@ bool FCkPmg_FontGlyph_ExtractsAndCaches::RunTest(const FString& Parameters)
     const auto& Space = Cache.GetOrBuildGlyph(Face, 0x20);
     TestFalse(TEXT("space has no geometry"), Space.bHasGeometry);
     TestTrue(TEXT("space advance > 0"), Space.AdvanceEm > 0.0f);
+
+    // Font-fallback coverage query: Roboto has 'A' but not an emoji codepoint.
+    TestTrue(TEXT("Roboto reports coverage of 'A' (U+0041)"), Cache.FaceHasCodepoint(Face, 0x41));
+    TestFalse(TEXT("Roboto reports NO coverage of emoji U+1F600"), Cache.FaceHasCodepoint(Face, 0x1F600));
 #else
     AddInfo(TEXT("CK_PMG_WITH_FREETYPE=0 — skipped"));
 #endif
