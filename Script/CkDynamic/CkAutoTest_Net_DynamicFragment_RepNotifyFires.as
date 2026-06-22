@@ -40,7 +40,8 @@ class UCk_AutoTest_Net_DynamicFragment_RepNotifyFires : UCk_AutoTest_NetBase
 
         // Client: bind BEFORE the replicated fragment arrives so the normal broadcast
         // (not an in-flight replay) invokes the delegate, then poll for the callback.
-        Subject.BindTo_OnRepNotify(FCk_DynamicFragment_OnRepNotify(this, n"OnRepNotify"));
+        Subject.BindTo_OnRepNotify(FCk_Fragment_DynamicTest_Payload,
+            FCk_DynamicFragment_OnRepNotify(this, n"OnRepNotify"));
         WaitOneFrame(n"OnPoll");
     }
 

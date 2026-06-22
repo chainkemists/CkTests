@@ -1,0 +1,24 @@
+{
+	"_WARNING": "TEST-ONLY dynamic handle registry. Merged at AS pre-compile by FCkDynamic_HandleTypeRegistry::LoadFromJsonRegistry alongside the canonical DynamicHandleTypes.json, but deliberately kept OUT of the canonical (committed) registry. All TypeNames here MUST be prefixed FCk_Handle_TESTONLY_ so they are unambiguously test scaffolding. Empty RequiredFragments => permissive validator (any valid handle casts).",
+	"HandleTypes": [
+		{
+			"TypeName": "FCk_Handle_TESTONLY_NetSubject",
+			"ShortName": "TESTONLY_NetSubject",
+			"Description": "Test-only dynamic handle used by the CkDynamic net AutoTests to verify that a dynamic-handle property inside a replicated dynamic fragment round-trips (OnRepNotify fires AND the handle resolves on the client). Requires Ck_Fragment_TESTONLY_HandleMarker so the validated IsValid()/As_X() path is exercised, not the permissive empty-requirements case.",
+			"SourceAsset": "",
+			"RequiredFragments": [
+				"Ck_Fragment_TESTONLY_HandleMarker"
+			]
+		},
+		{
+			"TypeName": "FCk_Handle_TESTONLY_Subordinate",
+			"ShortName": "TESTONLY_Subordinate",
+			"Description": "Test-only dynamic handle for the StoreDriver-shaped repro: a separately-spawned replicated entity (B) whose handle rides a replicated dynamic-fragment carrier on the driver (A). Requires Ck_Fragment_TESTONLY_SubordinateFeature (composed by B's entity script on both worlds) so the validated IsValid()/As_X() path is exercised.",
+			"SourceAsset": "",
+			"RequiredFragments": [
+				"Ck_Fragment_TESTONLY_SubordinateFeature"
+			]
+		}
+	],
+	"Version": 1
+}
