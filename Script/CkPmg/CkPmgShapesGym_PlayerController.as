@@ -225,6 +225,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnText_AllOrientations(TextBaseLocation, TextRow); ++TextRow;
         SpawnText_MultiLine(TextBaseLocation, TextRow); ++TextRow;
         SpawnText_CJK(TextBaseLocation, TextRow); ++TextRow;
+        SpawnTextSymbols_AllOrientations(TextBaseLocation, TextRow); ++TextRow;
         SpawnTextSymbols_MixedHP(TextBaseLocation, TextRow); ++TextRow;
         SpawnTextSymbols_MixedStatus(TextBaseLocation, TextRow); ++TextRow;
         SpawnTextSymbols_Arrows(TextBaseLocation, TextRow); ++TextRow;
@@ -646,6 +647,8 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         for (int Col = 0; Col < 3; ++Col)
         {
             auto Pos = GetGridPosition(InBase, InRow, Col - 1);
+            // Explicit per-column axis (face_viewer = false) so this row still demonstrates the
+            // XY/XZ/YZ planes. Every other text row below uses the new default (face_viewer = true).
             auto Handle = utils_pmg_text_shapes::DrawText(Pos, "Hello 123", ShapeSize,
                 GetOrientationColor(Col), true, true, 2.0f,
                 ECk_Pmg_TextAlign::Left, GetOrientationAxis(Col), nullptr, 500.0f);
@@ -658,7 +661,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Pos = GetGridPosition(InBase, InRow, 0);
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, "line one\nline two", ShapeSize,
             FLinearColor(1.0f, 1.0f, 1.0f, 0.5f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Center, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Center, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
@@ -668,7 +671,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         // CJK renders as .notdef boxes until the bundled Noto CJK font is imported — intentional.
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, "CJK-needs-Noto", ShapeSize,
             FLinearColor(1.0f, 0.8f, 0.0f, 0.6f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
@@ -677,6 +680,22 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     // All strings built ASCII-only via MakeText_FromHexCodepoints; no non-ASCII literals in source.
     //------------------------------------------------------------------------
 
+    // 3-axis showcase for the font text/symbol feature: same mixed string in XY/XZ/YZ,
+    // coloured red/green/blue by rotation (face_viewer = false) so each axis is verifiable —
+    // matching how the non-font shape stations demonstrate their orientations.
+    void SpawnTextSymbols_AllOrientations(FVector InBase, int InRow)
+    {
+        auto S = "HP " + utils_pmg_text_shapes::MakeText_FromHexCodepoints("2665 2B50 26A0"); // heart star warning
+        for (int Col = 0; Col < 3; ++Col)
+        {
+            auto Pos = GetGridPosition(InBase, InRow, Col - 1);
+            auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
+                GetOrientationColor(Col), true, true, 2.0f,
+                ECk_Pmg_TextAlign::Left, GetOrientationAxis(Col), nullptr, 500.0f);
+            SpawnedShapes.Add(Handle);
+        }
+    }
+
     // Mixed text + symbol on one line (fallback: letters from text font, heart from Symbols 2).
     void SpawnTextSymbols_MixedHP(FVector InBase, int InRow)
     {
@@ -684,7 +703,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto S = "HP 100 " + utils_pmg_text_shapes::MakeText_FromHexCodepoints("2665");
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
             FLinearColor(1.0f, 0.3f, 0.3f, 0.85f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
@@ -696,7 +715,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
                + "  Boss " + utils_pmg_text_shapes::MakeText_FromHexCodepoints("2620");
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
             FLinearColor(1.0f, 0.9f, 0.4f, 0.85f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
@@ -706,7 +725,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("2190 2191 2192 2193 2194 2195 2196 2197 2198 2199");
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
             FLinearColor(0.6f, 0.9f, 1.0f, 0.85f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
@@ -716,7 +735,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("2660 2665 2666 2663 2654 2655 2656 2657 2658 2659");
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
             FLinearColor(0.9f, 0.9f, 0.9f, 0.85f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
@@ -726,7 +745,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("2669 266A 266B 266C 266D 266E 266F 2605 2606 2736");
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
             FLinearColor(0.8f, 0.7f, 1.0f, 0.85f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
@@ -736,7 +755,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("26A0 2622 2623 2620 26D4 2607 2621 2691 2692 2694");
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
             FLinearColor(1.0f, 0.5f, 0.2f, 0.85f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
@@ -746,7 +765,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("2702 2708 2709 270F 2712 2713 2714 2716 2717 2764");
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
             FLinearColor(0.5f, 1.0f, 0.6f, 0.85f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
@@ -756,7 +775,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("25A0 25A1 25B2 25BC 25C6 25CF 25D0 25B6 25C0 2699");
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
             FLinearColor(0.7f, 0.85f, 0.95f, 0.85f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
@@ -767,7 +786,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto S = utils_pmg_text_shapes::MakeText_FromHexCodepoints("1F600 1F603 1F60E 1F525 1F480 1F3C6 1F44D 1F3AF 1F680 1F3AE");
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, S, ShapeSize,
             FLinearColor(1.0f, 0.85f, 0.5f, 0.9f), true, true, 2.0f,
-            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::XZ, nullptr, 500.0f);
+            ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
         SpawnedShapes.Add(Handle);
     }
 
