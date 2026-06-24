@@ -2761,6 +2761,19 @@ class ACk_AutoTest_Inventory_DataOnly_Unbounded_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Inventory_FillStacks_RespectsCanStackWith_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_FillStacks_RespectsCanStackWith");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
