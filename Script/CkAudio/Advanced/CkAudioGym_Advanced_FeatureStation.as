@@ -30,6 +30,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Configure station properties
         StationName = "ADVANCED FEATURES STATION";
         StationDescription = "Experience complete AudioDirector orchestration and dynamic audio";

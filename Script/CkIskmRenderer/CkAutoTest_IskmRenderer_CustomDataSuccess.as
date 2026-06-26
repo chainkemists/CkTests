@@ -22,6 +22,7 @@ class UCk_AutoTest_IskmRenderer_CustomDataSuccess : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         UCk_IskmRenderer_Data RendererData = iskm_assets::RendererData_Demo();
 
         if (ck::Is_NOT_Valid(RendererData)) { FinishSuccess(); return; }

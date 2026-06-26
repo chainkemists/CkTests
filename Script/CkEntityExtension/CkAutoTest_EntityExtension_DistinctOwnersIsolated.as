@@ -11,6 +11,7 @@ class UCk_AutoTest_EntityExtension_DistinctOwnersIsolated : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto OwnerA = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto OwnerB = utils_entity_lifetime::Request_CreateEntity(InHandle);
 

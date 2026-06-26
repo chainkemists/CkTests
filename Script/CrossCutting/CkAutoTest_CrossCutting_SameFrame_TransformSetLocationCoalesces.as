@@ -39,6 +39,7 @@ class UCk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces : UCk_Au
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _Transform = utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);

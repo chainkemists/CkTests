@@ -23,6 +23,7 @@ class UCk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Sub-owner so the test's own entity (and this script) stay alive
         // through the cascade.
         _OwnerChild = utils_entity_lifetime::Request_CreateEntity(InHandle);

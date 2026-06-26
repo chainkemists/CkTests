@@ -54,6 +54,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Sphere = Cast<UStaticMesh>(LoadObject(this, "/Engine/BasicShapes/Sphere.Sphere"));
         auto Cube   = Cast<UStaticMesh>(LoadObject(this, "/Engine/BasicShapes/Cube.Cube"));
         auto Mat    = Cast<UMaterialInterface>(LoadObject(this, "/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
@@ -173,6 +174,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
     UFUNCTION(BlueprintOverride)
     void Tick(float32 InDeltaSeconds)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         if (ck::Is_NOT_Valid(_Camera))
         { return; }
 

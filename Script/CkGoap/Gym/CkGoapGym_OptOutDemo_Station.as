@@ -49,6 +49,7 @@ class UCk_GoapGym_OptOutDemo_CannotReach : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.OptOutDemo.Touch"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(

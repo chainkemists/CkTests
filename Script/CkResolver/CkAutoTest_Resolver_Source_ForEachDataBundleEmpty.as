@@ -11,6 +11,7 @@ class UCk_AutoTest_Resolver_Source_ForEachDataBundleEmpty : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Entity = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto SourceHandle = utils_resolver_source::Add(Entity, FCk_Fragment_ResolverSource_ParamsData());
 

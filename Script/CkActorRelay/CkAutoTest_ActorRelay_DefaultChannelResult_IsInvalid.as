@@ -21,6 +21,7 @@ class UCk_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Result = FCk_ActorRelay_ChannelResult();
 
         Assert_True(utils_actor_relay::Get_IsChannelResultValid(Result) == false,

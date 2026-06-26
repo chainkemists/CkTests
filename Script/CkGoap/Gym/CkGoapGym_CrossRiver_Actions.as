@@ -34,6 +34,7 @@ class UCk_GoapGym_CrossRiver_UseBridge : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CrossRiver.BridgeIsOpen"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -47,6 +48,7 @@ class UCk_GoapGym_CrossRiver_UseFerry : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CrossRiver.HasCoin"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -60,6 +62,7 @@ class UCk_GoapGym_CrossRiver_SwimAcross : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CrossRiver.Crossed"), true);
         SetCost(8.0);

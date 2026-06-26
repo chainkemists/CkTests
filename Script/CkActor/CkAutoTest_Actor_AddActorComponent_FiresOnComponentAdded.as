@@ -32,6 +32,7 @@ class UCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded : UCk_AutoTest_
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Helper = Cast<ACkAutoTest_ActorEntity_Helper>(SpawnActor(
             ACkAutoTest_ActorEntity_Helper, FVector::ZeroVector, FRotator::ZeroRotator));
         if (ck::Is_NOT_Valid(_Helper))

@@ -50,6 +50,7 @@ class UCk_GoapFEARGym_AttackEnemy : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.HasAmmo"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -66,6 +67,7 @@ class UCk_GoapFEARGym_Flank : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.EnemyVisible"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -80,6 +82,7 @@ class UCk_GoapFEARGym_TakeCover : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.AtCover"), true);
         SetCost(1.0);
@@ -92,6 +95,7 @@ class UCk_GoapFEARGym_Reload : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.HasAmmoReserve"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -107,6 +111,7 @@ class UCk_GoapFEARGym_Investigate : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.HeardSound"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -122,6 +127,7 @@ class UCk_GoapFEARGym_Patrol : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.Patrolling"), true);
         SetCost(3.0);
@@ -145,6 +151,7 @@ class UCk_GoapFEARGym_WaitForEnemy : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.EnemyNeutralized"), true);
         SetCost(999.0);
@@ -159,6 +166,7 @@ class UCk_GoapFEARGym_AttackFromCover : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.AtCover"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -178,6 +186,7 @@ class UCk_GoapFEARGym_AttackFromFlank : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.BehindEnemy"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -198,6 +207,7 @@ class UCk_GoapFEARGym_AttackOpen : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.HasAmmo"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -222,6 +232,7 @@ class UCk_GoapFEARGym_AttackEnemy_Standby : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.GoapFEAR.WS.Combatant.EnemyNeutralized"), true);
         SetCost(999.0);

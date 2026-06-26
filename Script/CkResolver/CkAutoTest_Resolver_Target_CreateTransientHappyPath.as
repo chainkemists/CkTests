@@ -9,6 +9,7 @@ class UCk_AutoTest_Resolver_Target_CreateTransientHappyPath : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto TargetHandle = utils_resolver_target::Create_Transient(
             FTransform::Identity,
             FCk_Fragment_ResolverTarget_ParamsData(),

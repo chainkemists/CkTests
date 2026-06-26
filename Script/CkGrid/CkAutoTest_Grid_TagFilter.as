@@ -39,6 +39,7 @@ class UCk_AutoTest_Grid_TagFilter : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto ProduceTag = utils_gameplay_tag::ResolveGameplayTag(n"Grid.Zone.Produce");

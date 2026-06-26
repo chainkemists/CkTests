@@ -10,6 +10,7 @@ class UCk_AutoTest_EntityCollection_AddMultipleAddsAll : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         auto NameA = utils_gameplay_tag::ResolveGameplayTag(n"EntityCollection.AutoTest.MultiA");
         auto NameB = utils_gameplay_tag::ResolveGameplayTag(n"EntityCollection.AutoTest.MultiB");

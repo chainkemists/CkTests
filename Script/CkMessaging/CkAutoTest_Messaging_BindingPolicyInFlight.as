@@ -28,6 +28,7 @@ class UCk_AutoTest_Messaging_BindingPolicyInFlight : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _SelfHandle = InHandle;
 
         // Step 1: broadcast BEFORE any binds. The in-flight payload sits in

@@ -20,6 +20,7 @@ class UCk_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures : UCk_AutoTest_B
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Entity = InHandle;
 
         auto TagPayload = FCk_Fragment_DynamicTest_TagPayload();

@@ -23,6 +23,7 @@ class UCk_AutoTest_Timer_ForEach_Timer_VisitsAll : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // 3 timers, all paused so they don't complete during this test

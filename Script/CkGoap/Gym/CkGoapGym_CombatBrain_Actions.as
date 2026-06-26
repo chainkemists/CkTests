@@ -62,6 +62,7 @@ class UCk_GoapGym_CombatBrain_Engage : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.EnemyVisible"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -77,6 +78,7 @@ class UCk_GoapGym_CombatBrain_Win : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.EnemyAttacked"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -96,6 +98,7 @@ class UCk_GoapGym_CombatBrain_LightAttacks : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.WeaponEquipped"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -112,6 +115,7 @@ class UCk_GoapGym_CombatBrain_HeavyAttacks : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.StaminaHigh"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -127,6 +131,7 @@ class UCk_GoapGym_CombatBrain_Light1 : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.EnemyHit"), true);
         SetCost(1.0);
@@ -138,6 +143,7 @@ class UCk_GoapGym_CombatBrain_Light2 : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.EnemyHit"), true);
         SetCost(2.0);
@@ -150,6 +156,7 @@ class UCk_GoapGym_CombatBrain_Light3 : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.EnemyHit"), true);
         SetCost(0.5);
@@ -163,6 +170,7 @@ class UCk_GoapGym_CombatBrain_Heavy1 : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.EnemyHit"), true);
         SetCost(3.0);
@@ -174,6 +182,7 @@ class UCk_GoapGym_CombatBrain_Heavy2 : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.EnemyHit"), true);
         SetCost(5.0);
@@ -191,6 +200,7 @@ class UCk_GoapGym_CombatBrain_Standby : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.EnemyDead"), true);
         SetCost(999.0);
@@ -207,6 +217,7 @@ class UCk_GoapGym_CombatBrain_Engage_HoldFire : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.CombatBrain.EnemyAttacked"), true);
         SetCost(999.0);

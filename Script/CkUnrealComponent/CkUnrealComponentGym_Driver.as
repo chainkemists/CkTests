@@ -61,6 +61,7 @@ class ACk_UnrealComponentGym_Driver : AActor
 	UFUNCTION(BlueprintOverride)
 	void BeginPlay()
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		if (HasAuthority() == false)
 		{ return; }
 

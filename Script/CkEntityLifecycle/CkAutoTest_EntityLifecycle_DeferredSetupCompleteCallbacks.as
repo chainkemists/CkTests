@@ -26,6 +26,7 @@ class UCk_AutoTest_EntityLifecycle_DeferredSetupCompleteCallbacks : UCk_AutoTest
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _Deferred = utils_deferred_entity::Create(LocalHandle);

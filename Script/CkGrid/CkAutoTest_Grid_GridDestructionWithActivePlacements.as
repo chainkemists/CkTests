@@ -32,6 +32,7 @@ class UCk_AutoTest_Grid_GridDestructionWithActivePlacements : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // Keep the base owner handle so we can destroy the grid entity itself.

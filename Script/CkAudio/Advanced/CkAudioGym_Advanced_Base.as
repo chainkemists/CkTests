@@ -84,6 +84,7 @@ class UCkAudioGym_Advanced_Base : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Get self entity and add transform
         TransformHandle = utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
 

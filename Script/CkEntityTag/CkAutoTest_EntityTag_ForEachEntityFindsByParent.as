@@ -25,6 +25,7 @@ class UCk_AutoTest_EntityTag_ForEachEntityFindsByParent : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Owner = InHandle;
 
         _ChildA = utils_entity_lifetime::Request_CreateEntity(_Owner);

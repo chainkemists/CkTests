@@ -21,6 +21,7 @@ class UCk_AutoTest_EntityTag_AnyEntity_FiresOnEntityDestroy : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Listener = InHandle;
 
         utils_entity_tag::BindTo_OnTagUpdated_AnyEntity(_Listener,

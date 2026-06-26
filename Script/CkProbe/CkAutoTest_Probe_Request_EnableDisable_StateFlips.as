@@ -23,6 +23,7 @@ class UCk_AutoTest_Probe_Request_EnableDisable_StateFlips : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         auto ParentEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto ParentTransform = utils_transform::Add(ParentEntity, FTransform::Identity, ECk_Replication::DoesNotReplicate);

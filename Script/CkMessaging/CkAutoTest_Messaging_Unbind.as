@@ -23,6 +23,7 @@ class UCk_AutoTest_Messaging_Unbind : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _SelfHandle = InHandle;
 
         utils_messaging::BindTo_OnBroadcast(_SelfHandle, FCk_Message_MessagingGym_Ping,

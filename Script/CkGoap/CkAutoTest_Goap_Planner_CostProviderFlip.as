@@ -23,6 +23,7 @@ class UCk_GoapCostProviderTest_Cheap : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapCostProvider.WS.Reached"), true);
         SetCost(3.0f);
     }
@@ -33,6 +34,7 @@ class UCk_GoapCostProviderTest_Pricey : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapCostProvider.WS.Reached"), true);
         SetCost(5.0f);
     }
@@ -47,6 +49,7 @@ class UCk_AutoTest_Goap_Planner_CostProviderFlip : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Local = InHandle;
         utils_transform::Add(Local, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 

@@ -42,6 +42,7 @@ class UCk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept : UCk_AutoTest_B
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto SourceParams = utils_inventory_data_only::Make_Params(

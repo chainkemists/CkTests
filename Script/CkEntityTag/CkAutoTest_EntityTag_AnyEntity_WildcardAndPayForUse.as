@@ -23,6 +23,7 @@ class UCk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Listener = InHandle;
 
         // NAME_None is the wildcard filter — fire on any tag.

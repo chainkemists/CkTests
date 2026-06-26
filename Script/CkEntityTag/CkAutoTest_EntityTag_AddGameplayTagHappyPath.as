@@ -13,6 +13,7 @@ class UCk_AutoTest_EntityTag_AddGameplayTagHappyPath : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Entity = InHandle;
         _Tag = utils_gameplay_tag::ResolveGameplayTag(n"EntityTag.AutoTest.Bar");
 

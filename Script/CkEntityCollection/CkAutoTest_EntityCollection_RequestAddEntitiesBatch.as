@@ -17,6 +17,7 @@ class UCk_AutoTest_EntityCollection_RequestAddEntitiesBatch : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         auto CollectionTag = utils_gameplay_tag::ResolveGameplayTag(n"EntityCollection.AutoTest.Batch");
 

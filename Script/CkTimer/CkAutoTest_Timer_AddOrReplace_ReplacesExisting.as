@@ -28,6 +28,7 @@ class UCk_AutoTest_Timer_AddOrReplace_ReplacesExisting : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto FirstParams = FCk_Fragment_Timer_ParamsData(FCk_Time(10.0f));

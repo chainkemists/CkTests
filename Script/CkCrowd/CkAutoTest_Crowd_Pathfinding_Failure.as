@@ -21,6 +21,7 @@ class UCk_AutoTest_Crowd_Pathfinding_Failure : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // Test entities live on the Transient entity by convention; they have no

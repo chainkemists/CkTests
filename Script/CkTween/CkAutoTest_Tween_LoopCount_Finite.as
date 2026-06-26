@@ -25,6 +25,7 @@ class UCk_AutoTest_Tween_LoopCount_Finite : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // 3 loops at 0.1s each = ~0.3s total, well within the 4s timeout.

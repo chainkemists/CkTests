@@ -34,6 +34,7 @@ class UCk_AutoTest_Inventory_TryGet_Inventory_ByName : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Owner = InHandle;
         _PrimaryName   = utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_Primary");
         _SecondaryName = utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_Secondary");

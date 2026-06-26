@@ -14,6 +14,7 @@ class UCk_AutoTest_EntityExtension_RemoveLeavesOthers : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto ChildA = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto ChildB = utils_entity_lifetime::Request_CreateEntity(InHandle);

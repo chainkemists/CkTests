@@ -31,6 +31,7 @@ class ACk_UsfGym_OutlineShowcase : AActor
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto SphereMesh = Cast<UStaticMesh>(LoadObject(this, "/Engine/BasicShapes/Sphere.Sphere"));
         if (SphereMesh != nullptr) { Mesh.SetStaticMesh(SphereMesh); }
 
@@ -48,6 +49,7 @@ class ACk_UsfGym_OutlineShowcase : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         Apply_Outline();
     }
 

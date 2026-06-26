@@ -80,6 +80,7 @@ class ACk_SmTest_GymActor : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ModeLabel = EnablePauseResume ? "Pause/Resume + State Graph" : "State Graph Auto";
         InfoText.SetText(ck::Text(f"SM: {ModeLabel}"));
 

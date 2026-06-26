@@ -41,6 +41,7 @@ class UCk_SmTaskExitTest_Task : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Sm = Get_OwningStateMachine();
         Append_TaskExitEvent(Sm, "Enter");
     }
@@ -48,6 +49,7 @@ class UCk_SmTaskExitTest_Task : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Sm = Get_OwningStateMachine();
         Append_TaskExitEvent(Sm, "Exit");
     }
@@ -59,6 +61,7 @@ class UCk_SmTaskExitTest_State : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTaskExitTest_Task); // sink — left only via Stop
     }
 };
@@ -72,6 +75,7 @@ class UCk_AutoTest_StateMachine_TaskExitOnStop : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmTaskExitTest_State));
 

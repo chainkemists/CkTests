@@ -88,6 +88,7 @@ class ACk_SmTest_RacingEventDriven_GymActor : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ResultText.SetText(ck::Text("SM Racing Event-Driven"));
         ResultText.SetTextRenderColor(FColor::White);
         DetailText.SetText(ck::Text("Race in progress..."));

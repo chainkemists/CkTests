@@ -88,6 +88,7 @@ class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntitySc
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         InHandle.Set_DebugName(n"StationaryHierarchy");
         auto TransformHandle = utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_ProbeGym_StationaryHierarchyStation");
@@ -172,6 +173,7 @@ class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntitySc
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_probe::BindTo_OnBeginOverlap(DetectorProbe,
             FCk_Delegate_Probe_OnBeginOverlap(this, n"OnDetectorBeginOverlap"));
 

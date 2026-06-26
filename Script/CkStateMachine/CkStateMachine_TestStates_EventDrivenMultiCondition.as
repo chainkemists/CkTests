@@ -78,6 +78,7 @@ class UCk_SmTest_EventDrivenMultiCondition_Condition_FastEvent : UCk_SmCondition
     UFUNCTION(BlueprintOverride)
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Delay = SmEventDrivenMultiCondition_Registry::Get_FastDelaySeconds();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(Delay));
         TimerParams
@@ -99,6 +100,7 @@ class UCk_SmTest_EventDrivenMultiCondition_Condition_SlowEvent : UCk_SmCondition
     UFUNCTION(BlueprintOverride)
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Delay = SmEventDrivenMultiCondition_Registry::Get_SlowDelaySeconds();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(Delay));
         TimerParams
@@ -146,6 +148,7 @@ class UCk_SmTest_EventDrivenMultiCondition_State_Idle : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Single transition with TWO event-driven conditions. The transition
         // must fire exactly once — when both conditions have resolved Pass.
         // The framework's contract is that event-driven conditions preserve

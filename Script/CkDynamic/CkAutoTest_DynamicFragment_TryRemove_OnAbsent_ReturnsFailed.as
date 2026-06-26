@@ -16,6 +16,7 @@ class UCk_AutoTest_DynamicFragment_TryRemove_OnAbsent_ReturnsFailed : UCk_AutoTe
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Entity = InHandle;
 
         Assert_True(Entity.Has_Fragment(FCk_Fragment_DynamicTest_Payload) == false,

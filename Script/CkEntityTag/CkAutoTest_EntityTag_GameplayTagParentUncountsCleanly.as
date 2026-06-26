@@ -24,6 +24,7 @@ class UCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly : UCk_AutoTest_Bas
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Entity = InHandle;
         _TagC = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
         _TagD = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.D");

@@ -26,6 +26,7 @@ class UCk_AutoTest_Messaging_MultipleTypes : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         utils_messaging::BindTo_OnBroadcast(LocalHandle, FCk_Message_MessagingGym_Ping,

@@ -19,6 +19,7 @@ class UCk_SmStartedTest_State_Only : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Sink — only the initial entry fires.
     }
 };
@@ -33,6 +34,7 @@ class UCk_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged : UCk_Aut
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmStartedTest_State_Only));
 

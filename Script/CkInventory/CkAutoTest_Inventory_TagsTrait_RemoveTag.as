@@ -29,6 +29,7 @@ class UCk_AutoTest_Inventory_TagsTrait_RemoveTag : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _WeaponTag = utils_gameplay_tag::ResolveGameplayTag(n"Item.Weapon");

@@ -27,6 +27,7 @@ class ACk_NetGym_TwoPlayer_Pawn : ADefaultPawn
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         if (!HasAuthority())
         { return; }
 

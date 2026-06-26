@@ -24,6 +24,7 @@ class UCk_AutoTest_Record_GetValidEntryByTagFindsLabeled : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto RecordOwner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);

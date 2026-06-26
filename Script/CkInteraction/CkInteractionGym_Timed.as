@@ -16,6 +16,7 @@ class UCk_EntityScript_InteractionGym_TimedSource : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_InteractionGym_TimedSource");
 
@@ -53,6 +54,7 @@ class UCk_EntityScript_InteractionGym_TimedTarget : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_InteractionGym_TimedTarget");
 

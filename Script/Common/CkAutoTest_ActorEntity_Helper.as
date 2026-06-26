@@ -77,6 +77,7 @@ class ACkAutoTest_ActorEntity_Helper : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
         SpawnParams._OwningActor = this;
         PendingEntity = utils_entity_script::Request_SpawnEntity(

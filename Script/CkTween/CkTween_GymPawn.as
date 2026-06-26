@@ -8,6 +8,7 @@ class ACk_TweenTest_GymPawn : ADefaultPawn
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         if (System::IsServer() == false)
 		{ return; }
 

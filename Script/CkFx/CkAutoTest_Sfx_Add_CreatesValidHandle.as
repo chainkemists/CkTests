@@ -23,6 +23,7 @@ class UCk_AutoTest_Sfx_Add_CreatesValidHandle : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto OwnerHandle = InHandle;
 
         auto Params = FCk_Fragment_Sfx_ParamsData(

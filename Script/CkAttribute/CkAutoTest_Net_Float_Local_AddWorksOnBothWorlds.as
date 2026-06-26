@@ -39,6 +39,7 @@ class UCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds : UCk_AutoTest_NetBase
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto Tag = utils_gameplay_tag::ResolveGameplayTag(_AttributeTagName);

@@ -30,6 +30,7 @@ class UCk_AutoTest_Inventory_Spatial_RelocateItem_RotationChange : UCk_AutoTest_
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto Params = utils_inventory_spatial::Make_Params(

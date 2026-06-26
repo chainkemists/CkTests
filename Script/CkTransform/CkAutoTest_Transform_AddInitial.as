@@ -18,6 +18,7 @@ class UCk_AutoTest_Transform_AddInitial : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto InitialLocation = FVector(100.0f, 200.0f, 300.0f);

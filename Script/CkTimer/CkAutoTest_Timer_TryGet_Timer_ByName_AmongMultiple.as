@@ -30,6 +30,7 @@ class UCk_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Owner = InHandle;
         _NameA = utils_gameplay_tag::ResolveGameplayTag(n"Timer.AutoTest_A");
         _NameB = utils_gameplay_tag::ResolveGameplayTag(n"Timer.AutoTest_B");

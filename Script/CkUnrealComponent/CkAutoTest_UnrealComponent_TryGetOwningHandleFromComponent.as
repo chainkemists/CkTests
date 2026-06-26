@@ -13,6 +13,7 @@ class UCk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent : UCk_AutoTes
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 

@@ -21,6 +21,7 @@ class UCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Entity = InHandle;
         const FName Tag = n"AutoTestEt_FlipSignal";
 

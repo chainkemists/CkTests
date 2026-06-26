@@ -30,6 +30,7 @@ class UCk_AutoTest_Inventory_StaleData_ConcurrentAddsRespectBound : UCk_AutoTest
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto Params = utils_inventory_data_only::Make_Params_BoundedByTotalUnits(

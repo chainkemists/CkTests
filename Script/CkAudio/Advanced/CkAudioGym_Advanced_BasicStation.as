@@ -20,6 +20,7 @@ class UCkAudioGym_Advanced_BasicStation : UCkAudioGym_Advanced_Base
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Configure station properties
         StationName = "BASIC AUDIO STATION";
         StationDescription = "Learn fundamental audio playback - Interface and Achievement sounds";

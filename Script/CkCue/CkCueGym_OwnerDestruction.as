@@ -17,6 +17,7 @@ class UCk_EntityScript_CueGym_OwnerDestruction : UCk_GenericEntityScript_UE
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		InHandle.Set_DebugName(n"OwnerDestruction");
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_OwnerDestruction");
@@ -191,6 +192,7 @@ class UCk_EntityScript_CueGym_DestructionOwner : UCk_GenericEntityScript_UE
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		InHandle.Set_DebugName(n"DestructionOwner");
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_DestructionOwner");

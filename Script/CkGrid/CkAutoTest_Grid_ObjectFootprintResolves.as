@@ -18,6 +18,7 @@ class UCk_AutoTest_Grid_ObjectFootprintResolves : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto P = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(2, 1));
         auto Obj = utils_2d_grid_object::Add(Owner, P);

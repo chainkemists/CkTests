@@ -107,6 +107,7 @@ class UCk_SmTest_DivergenceTimed_Condition_FastDelay : UCk_SmCondition_EventDriv
     UFUNCTION(BlueprintOverride)
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(DelaySeconds));
         TimerParams
             .Set_StartingState(ECk_Timer_State::Running)
@@ -133,6 +134,7 @@ class UCk_SmTest_DivergenceTimed_Condition_PaymentIsLeft : UCk_SmCondition_Polle
     UFUNCTION(BlueprintOverride)
     bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return SmDivergenceTimed_Regression::Get_PaymentChoice()
             == ECk_SmTest_DivergenceTimed_PaymentChoice::Left;
     }
@@ -145,6 +147,7 @@ class UCk_SmTest_DivergenceTimed_Condition_PaymentIsRight : UCk_SmCondition_Poll
     UFUNCTION(BlueprintOverride)
     bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return SmDivergenceTimed_Regression::Get_PaymentChoice()
             == ECk_SmTest_DivergenceTimed_PaymentChoice::Right;
     }
@@ -212,6 +215,7 @@ class UCk_SmTest_DivergenceTimed_Task_Finish : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         SmDivergenceTimed_Regression::Increment(n"Finish");
 
         // Stop the owning sub-SM so the gym sees a settled state and can
@@ -235,6 +239,7 @@ class UCk_SmTest_DivergenceTimed_State_Enter : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_DivergenceTimed_Task_Enter);
 
         auto ToIdle = AddTransition(InHandle, UCk_SmTest_DivergenceTimed_State_Idle);
@@ -248,6 +253,7 @@ class UCk_SmTest_DivergenceTimed_State_Idle : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_DivergenceTimed_Task_Idle);
 
         auto ToBranch = AddTransition(InHandle, UCk_SmTest_DivergenceTimed_State_Branch);
@@ -266,6 +272,7 @@ class UCk_SmTest_DivergenceTimed_State_Branch : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_DivergenceTimed_Task_Branch);
 
         if (SmDivergenceTimed_Regression::Get_AddOrderLeftFirst())
@@ -297,6 +304,7 @@ class UCk_SmTest_DivergenceTimed_State_Left : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_DivergenceTimed_Task_Left);
 
         auto ToFinish = AddTransition(InHandle, UCk_SmTest_DivergenceTimed_State_Finish);
@@ -310,6 +318,7 @@ class UCk_SmTest_DivergenceTimed_State_Right : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_DivergenceTimed_Task_Right);
 
         auto ToFinish = AddTransition(InHandle, UCk_SmTest_DivergenceTimed_State_Finish);
@@ -323,6 +332,7 @@ class UCk_SmTest_DivergenceTimed_State_Finish : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_DivergenceTimed_Task_Finish);
     }
 };
@@ -344,6 +354,7 @@ class UCk_SmTest_DivergenceTimed_ParentState : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_DivergenceTimed_SubSmTask);
     }
 };

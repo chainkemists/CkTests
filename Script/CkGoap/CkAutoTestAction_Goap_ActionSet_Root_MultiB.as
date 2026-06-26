@@ -19,6 +19,7 @@ class UCk_AutoTestAction_Goap_ActionSet_Root_MultiB : UCk_GoapAction_EntityScrip
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"AutoTest.Goap.ActionSet.WS.BKey"), true);
         SetCost(1.0);

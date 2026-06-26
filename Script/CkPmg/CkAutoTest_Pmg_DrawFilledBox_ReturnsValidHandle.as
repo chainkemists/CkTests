@@ -15,6 +15,7 @@ class UCk_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Shape = utils_pmg_basic_shapes::DrawFilledBox(
             FVector(0.0f, 0.0f, 0.0f),
             FVector(30.0f, 30.0f, 30.0f),

@@ -25,12 +25,14 @@ class ACkAudioGym_Advanced_StationSpawner : AActor
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         SetupTextRender();
     }
 
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
         SpawnParams._OwningActor = this;
         auto PendingEntity = utils_entity_script::Request_SpawnEntity(

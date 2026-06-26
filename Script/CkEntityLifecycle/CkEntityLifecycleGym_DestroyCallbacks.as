@@ -33,6 +33,7 @@ class UCk_EntityScript_EntityLifecycleGym_DestroyCallbacks : UCk_GenericEntitySc
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
 		utils_entity_tag::Add(InHandle, n"TAG_LifecycleGym_DestroyCallbacks");
 

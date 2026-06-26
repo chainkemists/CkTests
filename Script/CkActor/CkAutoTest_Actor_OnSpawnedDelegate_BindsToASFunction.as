@@ -32,6 +32,7 @@ class UCk_AutoTest_Actor_OnSpawnedDelegate_BindsToASFunction : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto MyDelegate = FCk_Delegate_ActorModifier_OnActorSpawned(this, n"OnSpawned");
         Assert_True(MyDelegate.IsBound(),
             "FCk_Delegate_ActorModifier_OnActorSpawned should report IsBound() after AS construction");

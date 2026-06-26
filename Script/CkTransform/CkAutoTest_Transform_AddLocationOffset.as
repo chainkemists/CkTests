@@ -18,6 +18,7 @@ class UCk_AutoTest_Transform_AddLocationOffset : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto Initial = FTransform(FRotator::ZeroRotator, FVector(100.0f, 0.0f, 0.0f), FVector::OneVector);

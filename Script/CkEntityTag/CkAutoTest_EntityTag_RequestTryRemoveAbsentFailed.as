@@ -24,6 +24,7 @@ class UCk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Entity = InHandle;
         // Don't add anything — pin the absent-tag no-op contract.
         auto Result = utils_entity_tag::Request_TryRemove(_Entity, n"NeverAdded");

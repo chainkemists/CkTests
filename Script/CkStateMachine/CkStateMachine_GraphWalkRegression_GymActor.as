@@ -162,6 +162,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ResultText.SetText(ck::Text("SM GraphWalk Regression"));
         ResultText.SetTextRenderColor(FColor::White);
         DetailText.SetText(ck::Text("Constructing..."));

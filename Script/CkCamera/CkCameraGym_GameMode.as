@@ -30,6 +30,7 @@ class ACk_CameraGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         Super::BeginPlay();
 
         // The Enhanced Input subsystem only exists for the local player, so this also gates input setup to it.

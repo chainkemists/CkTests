@@ -30,6 +30,7 @@ class UCk_AutoTest_StateMachine_TransitionExitBeforeEnter : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _TestEntity = InHandle;
         auto LocalHandle = InHandle;
 

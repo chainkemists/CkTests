@@ -25,6 +25,7 @@ class UCk_AutoTest_Registry_HandleCopyDestroy : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _SpawnedA = utils_entity_lifetime::Request_CreateEntity(LocalHandle);

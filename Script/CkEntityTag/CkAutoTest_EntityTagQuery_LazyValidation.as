@@ -30,6 +30,7 @@ class UCk_AutoTest_EntityTagQuery_LazyValidation : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Owner = InHandle;
 
         _Query = utils_entity_tag_query::Add(_Owner);

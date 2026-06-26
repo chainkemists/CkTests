@@ -18,6 +18,7 @@ class UCk_AutoTestAction_Goap_FallbackOnly_Gated : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"AutoTest.Goap.FallbackOnly.WS.Unreachable"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(

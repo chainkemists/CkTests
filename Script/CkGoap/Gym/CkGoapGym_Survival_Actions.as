@@ -32,6 +32,7 @@ class UCk_GoapGym_Survival_EatFood : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Survival.HasFood"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -45,6 +46,7 @@ class UCk_GoapGym_Survival_Forage : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Survival.HasFood"), true);
         SetCost(4.0);
@@ -58,6 +60,7 @@ class UCk_GoapGym_Survival_FightEnemy : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Survival.ThreatActive"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -73,6 +76,7 @@ class UCk_GoapGym_Survival_RunAway : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Survival.ThreatActive"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -99,6 +103,7 @@ class UCk_GoapGym_Survival_HuddleInPlace : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Survival.Hungry"), false);
         SetCost(999.0);
@@ -112,6 +117,7 @@ class UCk_GoapGym_Survival_RemainAlert : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Survival.SafeFromThreat"), true);
         SetCost(999.0);

@@ -25,6 +25,7 @@ class UCk_AutoTest_Eqs_VolumeCheck : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SelfEntity = LocalHandle;
 

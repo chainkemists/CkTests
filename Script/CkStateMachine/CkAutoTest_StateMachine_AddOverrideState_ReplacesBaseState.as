@@ -25,6 +25,7 @@ class UCk_SmTest_Override_Base : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Terminal state (sink). No transitions needed for the override test.
     }
 };
@@ -35,6 +36,7 @@ class UCk_SmTest_Override_Replacement : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Terminal state (sink).
     }
 
@@ -56,6 +58,7 @@ class UCk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState : UCk_AutoTes
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // Disable AutoStart so Request_AddOverrideState gets processed before

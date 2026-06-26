@@ -29,6 +29,7 @@ class UCk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed : UCk_Auto
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _MyEntity = LocalHandle;
         auto Channel = interaction_gym_helpers::DefaultChannel();

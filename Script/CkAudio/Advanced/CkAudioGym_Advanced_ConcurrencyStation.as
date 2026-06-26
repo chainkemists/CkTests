@@ -29,6 +29,7 @@ class UCkAudioGym_Advanced_ConcurrencyStation : UCkAudioGym_Advanced_Base
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Configure station properties
         StationName = "CONCURRENCY STATION";
         StationDescription = "Test multiple simultaneous audio tracks with priority management";

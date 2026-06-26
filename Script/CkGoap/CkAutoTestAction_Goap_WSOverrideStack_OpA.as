@@ -14,6 +14,7 @@ class UCk_AutoTestAction_Goap_WSOverrideStack_OpA : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"AutoTest.Goap.WSOverrideStack.KeyA"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(

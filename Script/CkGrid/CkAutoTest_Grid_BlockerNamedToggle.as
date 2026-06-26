@@ -40,6 +40,7 @@ class UCk_AutoTest_Grid_BlockerNamedToggle : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto BlockerTag  = utils_gameplay_tag::ResolveGameplayTag(n"Grid.Blocker.Test.Doorway");

@@ -16,6 +16,7 @@ class UCk_AutoTest_RaySense_Add_CreatesEntity : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         auto Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         utils_transform::Add(Entity, FTransform::Identity, ECk_Replication::DoesNotReplicate);

@@ -28,6 +28,7 @@ class UCk_AutoTest_Net_RenderTarget_DrawReplicates : UCk_AutoTest_NetBase
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
     }

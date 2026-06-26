@@ -41,6 +41,7 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         if (!utils_render_target::Get_CanRenderOnThisProcess())
         {
             ck::Trace("[GpuRoundTrip] this process cannot render (e.g. -nullrhi) — the capture/redraw legs would be dropped; skipping");

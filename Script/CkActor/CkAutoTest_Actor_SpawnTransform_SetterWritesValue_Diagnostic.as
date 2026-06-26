@@ -30,6 +30,7 @@ class UCk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic : UCk_AutoT
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto SpawnParams = FCk_Utils_Actor_SpawnActor_Params();
 
         auto BeforeXform = SpawnParams.Get_SpawnTransform();

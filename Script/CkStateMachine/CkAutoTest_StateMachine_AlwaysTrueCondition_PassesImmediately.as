@@ -24,6 +24,7 @@ class UCk_SmTest_AlwaysTrue_State_Finish : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // terminal — no transitions
     }
 };
@@ -34,6 +35,7 @@ class UCk_SmTest_AlwaysTrue_State_Idle : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Trans = AddTransition(InHandle, UCk_SmTest_AlwaysTrue_State_Finish);
         AddCondition(Trans, UCk_SmCondition_AlwaysTrue);
     }
@@ -49,6 +51,7 @@ class UCk_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately : UCk_Auto
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_AlwaysTrue_State_Idle));
 

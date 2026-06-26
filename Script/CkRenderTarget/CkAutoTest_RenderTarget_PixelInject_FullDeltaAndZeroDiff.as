@@ -40,6 +40,7 @@ class UCk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff : UCk_AutoTest_
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _TestEntity = InHandle;
         auto SyncName = utils_gameplay_tag::ResolveGameplayTag(n"RenderTarget.AutoTest.PixelInject");

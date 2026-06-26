@@ -85,6 +85,7 @@ class UCk_AutoTest_NetBase : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _TestEntity = InHandle;
         return Super::DoConstruct(InHandle);
     }

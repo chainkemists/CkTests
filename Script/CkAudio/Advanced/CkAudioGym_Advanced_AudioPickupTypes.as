@@ -6,6 +6,7 @@ class UCkAudioGym_Advanced_InterfacePickup : UCkAudioGym_Advanced_AudioPickup
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Use the correct AudioCue tag that matches our cue class
         AudioCueTag = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Pickup");
         PickupName = "INTERFACE PICKUP";
@@ -23,6 +24,7 @@ class UCkAudioGym_Advanced_LevelUpPickup : UCkAudioGym_Advanced_AudioPickup
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Use the correct AudioCue tag that matches our cue class
         AudioCueTag = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Achievement.Fanfare");
         PickupName = "LEVELUP PICKUP";
@@ -40,6 +42,7 @@ class UCkAudioGym_Advanced_NotificationsPickup : UCkAudioGym_Advanced_AudioPicku
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Use thunder sound for notifications as a distinct sound
         AudioCueTag = utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Thunder");
         PickupName = "NOTIFICATIONS PICKUP";

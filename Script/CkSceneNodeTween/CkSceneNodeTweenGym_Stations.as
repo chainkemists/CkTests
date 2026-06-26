@@ -89,6 +89,7 @@ class UCk_EntityScript_SceneNodeTweenGym_SimpleStation : UCk_GenericEntityScript
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto TH = utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_SceneNodeTweenGym_Station");
         utils_handle::Set_DebugName(InHandle, n"SceneNodeTweenGym_Simple_Station");
@@ -120,6 +121,7 @@ class UCk_EntityScript_SceneNodeTweenGym_SimpleStation : UCk_GenericEntityScript
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_SceneNodeTweenGym_Reset,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnReset"));
 
@@ -266,6 +268,7 @@ class UCk_EntityScript_SceneNodeTweenGym_ChainStation : UCk_GenericEntityScript_
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto TH = utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_SceneNodeTweenGym_Station");
         utils_handle::Set_DebugName(InHandle, n"SceneNodeTweenGym_Chain_Station");
@@ -294,6 +297,7 @@ class UCk_EntityScript_SceneNodeTweenGym_ChainStation : UCk_GenericEntityScript_
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_SceneNodeTweenGym_Reset,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnReset"));
 
@@ -444,6 +448,7 @@ class UCk_EntityScript_SceneNodeTweenGym_DeepStation : UCk_GenericEntityScript_U
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto TH = utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_SceneNodeTweenGym_Station");
         utils_handle::Set_DebugName(InHandle, n"SceneNodeTweenGym_Deep_Station");
@@ -485,6 +490,7 @@ class UCk_EntityScript_SceneNodeTweenGym_DeepStation : UCk_GenericEntityScript_U
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_SceneNodeTweenGym_Reset,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnReset"));
 

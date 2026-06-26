@@ -25,6 +25,7 @@ class UCk_SmPauseTest_Cond_PolledTrue : UCk_SmCondition_Polled
     UFUNCTION(BlueprintOverride)
     bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return true;
     }
 };
@@ -42,6 +43,7 @@ class UCk_SmPauseTest_State_Idle : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Trans = AddTransition(InHandle, UCk_SmPauseTest_State_Finish);
         AddCondition(Trans, UCk_SmPauseTest_Cond_PolledTrue);
     }
@@ -58,6 +60,7 @@ class UCk_AutoTest_StateMachine_PauseResume : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         // Disabled auto-start so we control start/pause ordering. Request_Pause only engages on a
         // Running SM (the Pause processor early-returns if not Running), so Start then Pause are

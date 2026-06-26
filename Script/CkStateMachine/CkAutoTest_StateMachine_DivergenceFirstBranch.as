@@ -46,6 +46,7 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranch : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Spawn deferred so we can null out the StationHandle (no
         // BP_DemoDisplay panel exists in this test map) before BeginPlay
         // wires it up. The gym actor's display path no-ops on an invalid

@@ -34,6 +34,7 @@ class UCk_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel : UCk_AutoTes
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _Tag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.TagSet.Buff");

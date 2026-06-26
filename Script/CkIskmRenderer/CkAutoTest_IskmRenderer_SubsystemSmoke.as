@@ -32,6 +32,7 @@ class UCk_AutoTest_IskmRenderer_SubsystemSmoke : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // ----- World retrieval (renamed from "World" to avoid shadowing GetWorld) -----

@@ -24,6 +24,7 @@ class UCk_EntityScript_InvGym_StackableTrait : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_InvGym_StackableTrait");
 

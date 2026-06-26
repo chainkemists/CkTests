@@ -17,6 +17,7 @@ class UCk_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration : UCk_AutoTest_Bas
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Tol = 0.001f;
 
         auto Chrono = FCk_Chrono();

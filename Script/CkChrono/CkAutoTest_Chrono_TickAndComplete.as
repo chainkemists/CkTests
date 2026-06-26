@@ -24,6 +24,7 @@ class UCk_AutoTest_Chrono_TickAndComplete : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Tol = 0.001f;
 
         // FCk_Chrono's explicit FCk_Time constructor isn't exposed to AS —

@@ -37,6 +37,7 @@ class UCk_AutoTest_CameraLayer_FovAdd30 : UCk_CameraLayer_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnter(FCk_Handle_CameraLayer InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Handle = InHandle;
         Handle.Acquire_CameraModifier_FOV(ECk_AttributeModifier_Operation::Add, 30.0f);
     }
@@ -48,6 +49,7 @@ class UCk_AutoTest_CameraLayer_FovAdd5 : UCk_CameraLayer_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnter(FCk_Handle_CameraLayer InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Handle = InHandle;
         Handle.Acquire_CameraModifier_FOV(ECk_AttributeModifier_Operation::Add, 5.0f);
     }
@@ -60,6 +62,7 @@ class UCk_AutoTest_CameraLayer_FovOverride70 : UCk_CameraLayer_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnter(FCk_Handle_CameraLayer InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Handle = InHandle;
         Handle.Acquire_CameraModifier_FOV(ECk_AttributeModifier_Operation::Override, 70.0f);
     }
@@ -72,6 +75,7 @@ class UCk_AutoTest_CameraLayer_ArmOverride600 : UCk_CameraLayer_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnter(FCk_Handle_CameraLayer InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Handle = InHandle;
         Handle.Acquire_CameraModifier_BoomArmLength(ECk_AttributeModifier_Operation::Override, 600.0f);
     }

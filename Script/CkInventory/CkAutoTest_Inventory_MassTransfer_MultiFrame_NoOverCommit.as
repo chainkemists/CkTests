@@ -31,6 +31,7 @@ class UCk_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit : UCk_AutoTest
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto SourceParams = utils_inventory_data_only::Make_Params(

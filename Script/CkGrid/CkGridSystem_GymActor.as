@@ -26,12 +26,14 @@ class UTestEntt : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         Print("TestEntt BeginPlay", 10.0f);
     }
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         Print("TestEntt BeginPlay", 10.0f);
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -58,6 +60,7 @@ class ACk_GridSystem_GymActor : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         if (HasAuthority())
         {
             auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();

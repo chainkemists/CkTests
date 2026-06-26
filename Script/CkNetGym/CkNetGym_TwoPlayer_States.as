@@ -14,6 +14,7 @@ class UCk_NetGym_State_Idle : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Target-only state: no tasks, no transitions.
     }
 }
@@ -24,6 +25,7 @@ class UCk_NetGym_State_Active : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 }
 
@@ -33,5 +35,6 @@ class UCk_NetGym_State_Recovering : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 }

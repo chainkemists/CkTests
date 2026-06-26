@@ -26,6 +26,7 @@ class UCk_AutoTest_Attribute_FloatMinMaxComponents : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto Params = FCk_Fragment_FloatAttribute_ParamsData(

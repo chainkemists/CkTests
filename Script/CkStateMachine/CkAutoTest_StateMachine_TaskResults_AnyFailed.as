@@ -24,6 +24,7 @@ class UCk_SmAnyFailTest_Task_Good : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_SmTaskResult DoTick(FCk_Handle_SmTask InHandle, FCk_Time InDeltaT, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return ECk_SmTaskResult::Succeeded;
     }
 };
@@ -36,6 +37,7 @@ class UCk_SmAnyFailTest_Task_Bad : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_SmTaskResult DoTick(FCk_Handle_SmTask InHandle, FCk_Time InDeltaT, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return ECk_SmTaskResult::Failed;
     }
 };
@@ -46,6 +48,7 @@ class UCk_SmAnyFailTest_State_Start : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmAnyFailTest_Task_Good);
         AddTask(InHandle, UCk_SmAnyFailTest_Task_Bad);
         auto Trans = AddTransition(InHandle, UCk_SmAnyFailTest_State_Done);
@@ -69,6 +72,7 @@ class UCk_AutoTest_StateMachine_TaskResults_AnyFailed : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmAnyFailTest_State_Start));
 

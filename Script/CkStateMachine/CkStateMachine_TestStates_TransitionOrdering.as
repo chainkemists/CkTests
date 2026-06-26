@@ -49,6 +49,7 @@ class UCk_SmTest_Ordering_Condition_QuickDelay : UCk_SmCondition_EventDriven
     UFUNCTION(BlueprintOverride)
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         System::SetTimer(this, n"OnDelayElapsed", DelaySeconds, false);
     }
 
@@ -71,6 +72,7 @@ class UCk_SmTest_Ordering_Task_A : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Sm = Get_OwningStateMachine();
         Append_OrderingEvent(Sm, "EnterTask_A");
     }
@@ -78,6 +80,7 @@ class UCk_SmTest_Ordering_Task_A : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Sm = Get_OwningStateMachine();
         Append_OrderingEvent(Sm, "ExitTask_A");
     }
@@ -91,6 +94,7 @@ class UCk_SmTest_Ordering_Task_B : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Sm = Get_OwningStateMachine();
         Append_OrderingEvent(Sm, "EnterTask_B");
     }
@@ -98,6 +102,7 @@ class UCk_SmTest_Ordering_Task_B : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Sm = Get_OwningStateMachine();
         Append_OrderingEvent(Sm, "ExitTask_B");
     }
@@ -113,6 +118,7 @@ class UCk_SmTest_Ordering_State_A : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Ordering_Task_A);
         auto Trans = AddTransition(InHandle, UCk_SmTest_Ordering_State_B);
         AddCondition(Trans, UCk_SmTest_Ordering_Condition_QuickDelay);
@@ -125,6 +131,7 @@ class UCk_SmTest_Ordering_State_B : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Ordering_Task_B);
     }
 };

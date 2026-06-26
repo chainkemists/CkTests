@@ -34,6 +34,7 @@ class UCk_AutoTest_Inventory_SpatialPlacementRejection : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // Staging: 3x3 — large enough for the 3x1 Sword.

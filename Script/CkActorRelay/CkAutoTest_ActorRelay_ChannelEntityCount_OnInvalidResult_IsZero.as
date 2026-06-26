@@ -17,6 +17,7 @@ class UCk_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero : UCk_Au
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Result = FCk_ActorRelay_ChannelResult();
 
         Assert_True(utils_actor_relay::Get_IsChannelResultValid(Result) == false,

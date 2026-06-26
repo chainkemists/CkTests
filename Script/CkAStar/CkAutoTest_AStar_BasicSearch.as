@@ -26,6 +26,7 @@ class UCk_AutoTest_AStar_BasicSearch : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _Search = utils_a_star_test::Add(LocalHandle, 5, 5, 0, 0, 4, 4, 0);

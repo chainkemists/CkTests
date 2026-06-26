@@ -39,6 +39,7 @@ class UCk_AutoTest_IskmRenderer_RendererAdd : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // ----- Fresh entity has no renderer -----

@@ -26,6 +26,7 @@ class ACk_TweenTest_GymActor : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         TextRenderer.SetText(ck::Text(f"{TweenEasingMethod}"));
 
         if (HasAuthority())

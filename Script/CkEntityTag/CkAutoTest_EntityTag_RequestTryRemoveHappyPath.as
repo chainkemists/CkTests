@@ -12,6 +12,7 @@ class UCk_AutoTest_EntityTag_RequestTryRemoveHappyPath : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Entity = InHandle;
         utils_entity_tag::Add(_Entity, n"RemoveMe");
 

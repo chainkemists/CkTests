@@ -9,6 +9,7 @@ class UCk_AutoTest_Relationship_Team_GetIsSame_False : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto EntityA = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto TeamA = utils_team::Add(EntityA, ECk_Team_ID::Two, ECk_Replication::DoesNotReplicate);
 

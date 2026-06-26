@@ -21,6 +21,7 @@ class ACk_Gym_ObstacleWall : AActor
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto CubeMesh = Cast<UStaticMesh>(LoadObject(this, "/Engine/BasicShapes/Cube.Cube"));
         if (CubeMesh != nullptr)
         {

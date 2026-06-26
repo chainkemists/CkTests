@@ -31,6 +31,7 @@ class UCk_AutoTest_Inventory_AddItem_DuplicateInsertRejected : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto Params = utils_inventory_spatial::Make_Params(
