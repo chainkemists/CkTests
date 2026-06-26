@@ -79,3 +79,21 @@ class CKTESTS_API ACk_AutoTest_NetSubject_StateMachineOwningClientSubSm_Pawn : p
 public:
     ACk_AutoTest_NetSubject_StateMachineOwningClientSubSm_Pawn();
 };
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// OwningClientAuthoritative pawn subject whose bridged SM hosts a byte-attr-gated sub-SM with an
+// authority-gated Multiply task (the distilled sprint path). Bridges to the SubSmGated entity-script,
+// which also composes the byte "input" + float "speed" attributes. Used by
+// Ck.StateMachine.Net.OwningClientAuth_SubSm_AuthorityGatedTask.
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS()
+class CKTESTS_API ACk_AutoTest_NetSubject_StateMachineOwningClientSubSmGated_Pawn : public ACk_AutoTest_NetSubject_StateMachineOwningClient_Pawn
+{
+    GENERATED_BODY()
+
+public:
+    ACk_AutoTest_NetSubject_StateMachineOwningClientSubSmGated_Pawn();
+};

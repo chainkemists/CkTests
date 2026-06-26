@@ -175,3 +175,28 @@ protected:
     virtual auto Get_Replication() const -> ECk_Replication override { return ECk_Replication::DoesNotReplicate; }
     virtual auto Get_InitialStateClass() const -> TSubclassOf<UCk_SmState_EntityScript> override;
 };
+
+// --------------------------------------------------------------------------------------------------------------------
+//
+// OwningClientAuthoritative SubSm variant that ALSO composes a byte "input" attribute + a float
+// "speed" attribute onto the SM entity, and whose AS topology (UCk_SmNetSubGatedTest_Parent_Hold)
+// gates the sub-SM on that byte attribute and applies an authority-gated Multiply modifier to the
+// float. Distilled reproduction of the BusterBlock sprint path. Used by
+// Ck.StateMachine.Net.OwningClientAuth_SubSm_AuthorityGatedTask.
+//
+//   Byte input : ByteAttribute.Gyms.Intent.R  (DoesNotReplicate — set client-local by the spec)
+//   Float speed: FloatAttribute.Gyms.A        (Replicates, base 100 — modifier x1.5 -> 150 when applied)
+//
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS(BlueprintType)
+class CKTESTS_API UCk_AutoTest_NetSubject_StateMachineOwningClientSubSmGatedEntityScript_UE : public UCk_AutoTest_NetSubject_StateMachineOwningClientEntityScript_UE
+{
+    GENERATED_BODY()
+
+public:
+    virtual auto Construct(FCk_Handle& InHandle, const FInstancedStruct& InSpawnParams) -> ECk_EntityScript_ConstructionFlow override;
+
+protected:
+    virtual auto Get_InitialStateClass() const -> TSubclassOf<UCk_SmState_EntityScript> override;
+};
