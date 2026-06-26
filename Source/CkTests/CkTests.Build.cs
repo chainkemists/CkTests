@@ -31,6 +31,7 @@ public class CkTests : CkModuleRules
             "CkCore",
             "CkCue",
             "CkCVar",
+            "CkDynamic",
             "CkEcs",
             "CkEcsExt",
             "CkEntityCollection",
