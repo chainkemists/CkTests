@@ -15,6 +15,7 @@ class ACkTests_Gym_Base_GameMode : ACk_Gym_Base_GameMode
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         CkTests_Gyms::RegisterAll();
 
         // Super runs the startup-gym resolve. It must run *after* RegisterAll()

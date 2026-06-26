@@ -29,6 +29,7 @@ class UCk_AutoTest_Timer_ResetMidFlight : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // Long goal so natural completion can't happen during the test window.

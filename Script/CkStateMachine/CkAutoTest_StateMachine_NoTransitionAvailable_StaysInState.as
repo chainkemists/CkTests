@@ -26,6 +26,7 @@ class UCk_SmTest_NoTransition_State_Sink : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // No transitions — this is a sink state.
     }
 };
@@ -41,6 +42,7 @@ class UCk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState : UCk_AutoTes
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_NoTransition_State_Sink));
 

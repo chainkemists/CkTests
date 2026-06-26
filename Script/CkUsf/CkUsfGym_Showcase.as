@@ -17,6 +17,7 @@ class ACk_UsfGym_Showcase : AActor
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto SphereMesh = Cast<UStaticMesh>(LoadObject(this, "/Engine/BasicShapes/Sphere.Sphere"));
         if (SphereMesh != nullptr)
         {

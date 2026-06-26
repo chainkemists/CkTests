@@ -38,6 +38,7 @@ class UCk_AutoTest_StateMachine_RacingEventDrivenTransitions : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Deferred = true;
         _GymActor = Cast<ACk_SmTest_RacingEventDriven_GymActor>(
             SpawnActor(

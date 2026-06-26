@@ -21,6 +21,7 @@ class UCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip : UCk_AutoTest
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Entity = InHandle;
         _Tag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
 

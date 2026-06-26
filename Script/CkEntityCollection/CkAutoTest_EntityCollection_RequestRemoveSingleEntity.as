@@ -13,6 +13,7 @@ class UCk_AutoTest_EntityCollection_RequestRemoveSingleEntity : UCk_AutoTest_Bas
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         auto CollectionTag = utils_gameplay_tag::ResolveGameplayTag(n"EntityCollection.AutoTest.RemoveFlow");
 

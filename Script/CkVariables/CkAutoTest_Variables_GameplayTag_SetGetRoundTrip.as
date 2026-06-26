@@ -9,6 +9,7 @@ class UCk_AutoTest_Variables_GameplayTag_SetGetRoundTrip : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Entity = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto SlotTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Variables.GameplayTagSlot");
         auto Stored = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Variables.GameplayTagPayload");

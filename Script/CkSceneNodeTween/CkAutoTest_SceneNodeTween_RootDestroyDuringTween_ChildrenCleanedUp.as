@@ -39,6 +39,7 @@ class UCk_AutoTest_SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp : UCk
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _ParentEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);

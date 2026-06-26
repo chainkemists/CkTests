@@ -22,6 +22,7 @@ class UCk_AutoTest_AStar_CostThreshold : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _Search = utils_a_star_test::Add(LocalHandle, 10, 10, 0, 0, 9, 9, 0);

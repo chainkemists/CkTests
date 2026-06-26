@@ -24,6 +24,7 @@ class UCk_GoapGym_Empire_GatherFood : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Empire.HasFood"), true);
         SetCost(3.0);
@@ -35,6 +36,7 @@ class UCk_GoapGym_Empire_GatherGold : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Empire.HasGold"), true);
         SetCost(4.0);
@@ -46,6 +48,7 @@ class UCk_GoapGym_Empire_GatherWood : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Empire.HasWood"), true);
         SetCost(2.0);
@@ -57,6 +60,7 @@ class UCk_GoapGym_Empire_BuildBarracks : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Empire.HasFood"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -74,6 +78,7 @@ class UCk_GoapGym_Empire_ResearchFeudal : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Empire.BarracksBuilt"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -96,6 +101,7 @@ class UCk_GoapGym_Empire_WaitForOrders : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Empire.FeudalResearched"), true);
         SetCost(999.0);

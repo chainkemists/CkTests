@@ -25,6 +25,7 @@ class UCk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound : UCk_AutoTe
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Owner = InHandle;
 
         _Query = utils_entity_tag_query::Add(_Owner);

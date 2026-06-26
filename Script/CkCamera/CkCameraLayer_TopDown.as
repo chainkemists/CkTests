@@ -13,6 +13,7 @@ class UCk_CameraLayer_TopDown : UCk_CameraLayer_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnter(FCk_Handle_CameraLayer InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         const auto Override = ECk_AttributeModifier_Operation::Override;
 
         auto Handle = InHandle;

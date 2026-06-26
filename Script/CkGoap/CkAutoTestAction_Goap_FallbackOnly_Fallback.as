@@ -15,6 +15,7 @@ class UCk_AutoTestAction_Goap_FallbackOnly_Fallback : UCk_GoapAction_EntityScrip
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"AutoTest.Goap.FallbackOnly.WS.Goal"), true);
         SetCost(999.0);

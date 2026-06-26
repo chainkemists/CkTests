@@ -23,6 +23,7 @@ class UCk_GoapGym_MakeTea_BoilWater : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Tea.HasKettle"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -38,6 +39,7 @@ class UCk_GoapGym_MakeTea_SteepLeaves : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Tea.WaterBoiled"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -53,6 +55,7 @@ class UCk_GoapGym_MakeTea_PourCup : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Tea.TeaSteeped"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -68,6 +71,7 @@ class UCk_GoapGym_MakeTea_Serve : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Tea.TeaPoured"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(

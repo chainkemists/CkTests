@@ -16,6 +16,7 @@ class UCk_AutoTest_Targeting_CreateFromLocationAndRotation : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         auto TargetPoint = utils_target_point::Create_FromLocationAndRotation(
             LocalHandle, SeedLocation, SeedRotation, ECk_Lifetime::UntilDestroyed);

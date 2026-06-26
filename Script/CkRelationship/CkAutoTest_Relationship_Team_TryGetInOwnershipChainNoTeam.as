@@ -11,6 +11,7 @@ class UCk_AutoTest_Relationship_Team_TryGetInOwnershipChainNoTeam : UCk_AutoTest
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Parent = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto Child = utils_entity_lifetime::Request_CreateEntity(Parent);
 

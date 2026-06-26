@@ -32,6 +32,7 @@ class UCk_AutoTest_Inventory_Transfer_Spatial_To_Spatial : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto SourceParams = utils_inventory_spatial::Make_Params(

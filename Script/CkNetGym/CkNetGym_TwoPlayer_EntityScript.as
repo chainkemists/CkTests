@@ -28,6 +28,7 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_entity_tag::Add(InHandle, CkNetGym::PlayerPawnTag);
 
         // --- Server-authoritative Health attribute (both worlds Add it; server mutates) ---
@@ -53,6 +54,7 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_NetGym_Damage,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnDamage"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_NetGym_AdvanceState,

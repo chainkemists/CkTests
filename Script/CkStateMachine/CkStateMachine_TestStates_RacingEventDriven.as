@@ -78,6 +78,7 @@ class UCk_SmTest_Racing_Condition_SlowTimer : UCk_SmCondition_EventDriven
     UFUNCTION(BlueprintOverride)
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Delay = SmRacing_Registry::Get_SlowDelaySeconds();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(Delay));
         TimerParams
@@ -99,6 +100,7 @@ class UCk_SmTest_Racing_Condition_FastTimer : UCk_SmCondition_EventDriven
     UFUNCTION(BlueprintOverride)
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Delay = SmRacing_Registry::Get_FastDelaySeconds();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(Delay));
         TimerParams
@@ -164,6 +166,7 @@ class UCk_SmTest_Racing_State_Idle : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // ORDER MATTERS — ToDestA is declared first. With the bug, the state
         // evaluator hits ToDestA's Undetermined transition first, Break's,
         // and never inspects ToDestB. After the fix, every Undetermined

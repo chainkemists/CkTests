@@ -30,6 +30,7 @@ class UCk_AutoTest_EntityLifecycle_IsTransientEntityVsContext : UCk_AutoTest_Bas
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // Case 1: normal owned test entity is NOT the transient root.

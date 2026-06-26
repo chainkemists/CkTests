@@ -9,6 +9,7 @@ class UCk_AutoTest_Resolver_Target_CreateHappyPath : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto TargetHandle = utils_resolver_target::Create(

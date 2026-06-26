@@ -17,6 +17,7 @@ class UCk_AutoTestAction_Goap_DeepNesting_Engage : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"AutoTest.Goap.DeepNesting.WS.EnemyAttacked"), true);
         SetCost(1.0);

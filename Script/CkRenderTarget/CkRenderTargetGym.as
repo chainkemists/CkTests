@@ -77,6 +77,7 @@ class ACk_RenderTargetGym_WhiteboardActor : AActor
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto PlaneMesh = Cast<UStaticMesh>(LoadObject(this, "/Engine/BasicShapes/Plane.Plane"));
         if (PlaneMesh != nullptr)
         { BoardMesh.SetStaticMesh(PlaneMesh); }
@@ -133,6 +134,7 @@ class ACk_RenderTargetGym_WhiteboardActor : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Authority only: this actor replicates, so BeginPlay also runs on clients —
         // spawning there would create a SECOND, orphan composition next to the one the
         // entity-script replication path re-creates (split-brain boards: the display
@@ -165,6 +167,7 @@ class UCk_RenderTargetGym_Whiteboard_EntityScript : UCk_EntityScript_WithActor_U
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_entity_tag::Add(InHandle, n"TAG_RenderTargetGym_Whiteboard");
 
         auto Params = FCk_Fragment_RenderTarget_ParamsData(
@@ -186,6 +189,7 @@ class UCk_RenderTargetGym_Whiteboard_EntityScript : UCk_EntityScript_WithActor_U
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Board.BindTo_OnInstructionsApplied(
             FCk_Delegate_RenderTarget_OnInstructionsApplied(this, n"OnInstructionsApplied"));
         _Board.BindTo_OnPixelPayloadApplied(
@@ -352,6 +356,7 @@ class ACk_RenderTargetGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(BlueprintOverride)
     void Tick(float32 InDeltaSeconds)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         if (!IsLocalController())
         { return; }
 

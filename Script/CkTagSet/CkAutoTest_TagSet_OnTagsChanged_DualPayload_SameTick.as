@@ -38,6 +38,7 @@ class UCk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _TagA = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.TagSet.Dual.A");

@@ -105,6 +105,7 @@ class UCk_SmTest_Divergence_Condition_PaymentIsLeft : UCk_SmCondition_Polled
     UFUNCTION(BlueprintOverride)
     bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return SmDivergenceFirstBranch_Regression::Get_PaymentChoice()
             == ECk_SmTest_DivergenceFirstBranch_PaymentChoice::Left;
     }
@@ -117,6 +118,7 @@ class UCk_SmTest_Divergence_Condition_PaymentIsRight : UCk_SmCondition_Polled
     UFUNCTION(BlueprintOverride)
     bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return SmDivergenceFirstBranch_Regression::Get_PaymentChoice()
             == ECk_SmTest_DivergenceFirstBranch_PaymentChoice::Right;
     }
@@ -191,6 +193,7 @@ class UCk_SmTest_Divergence_Task_Finish : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         SmDivergenceFirstBranch_Regression::Increment(n"Finish");
 
         // Stop the owning sub-SM so the gym's verify pass sees a settled
@@ -213,6 +216,7 @@ class UCk_SmTest_Divergence_State_Enter : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Divergence_Task_Enter);
 
         // Vacuous transition (no conditions) — passes on first evaluation,
@@ -227,6 +231,7 @@ class UCk_SmTest_Divergence_State_Idle : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Divergence_Task_Idle);
         AddTransition(InHandle, UCk_SmTest_Divergence_State_Branch);
     }
@@ -249,6 +254,7 @@ class UCk_SmTest_Divergence_State_Branch : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Divergence_Task_Branch);
 
         if (SmDivergenceFirstBranch_Regression::Get_AddOrderLeftFirst())
@@ -276,6 +282,7 @@ class UCk_SmTest_Divergence_State_Left : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Divergence_Task_Left);
         AddTransition(InHandle, UCk_SmTest_Divergence_State_Finish);
     }
@@ -287,6 +294,7 @@ class UCk_SmTest_Divergence_State_Right : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Divergence_Task_Right);
         AddTransition(InHandle, UCk_SmTest_Divergence_State_Finish);
     }
@@ -298,6 +306,7 @@ class UCk_SmTest_Divergence_State_Finish : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Divergence_Task_Finish);
     }
 };
@@ -323,6 +332,7 @@ class UCk_SmTest_Divergence_ParentState : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Divergence_SubSmTask);
     }
 };

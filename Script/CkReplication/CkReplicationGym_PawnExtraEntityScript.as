@@ -17,6 +17,7 @@ class UCk_ReplicationGym_PawnExtra_EntityScript : UCk_EntityScript_WithActor_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_entity_tag::Add(InHandle, n"TAG_ReplicationGym_PawnExtra");
 
         // *** REPRO LINE — Scenario B ***
@@ -33,6 +34,7 @@ class UCk_ReplicationGym_PawnExtra_EntityScript : UCk_EntityScript_WithActor_UE
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_ReplicationGym_SetAttribute,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnSetAttribute"));
 

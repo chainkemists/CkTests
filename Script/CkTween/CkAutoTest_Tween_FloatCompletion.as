@@ -18,6 +18,7 @@ class UCk_AutoTest_Tween_FloatCompletion : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _Tween = utils_tween::Create_TweenFloat(

@@ -15,6 +15,7 @@ class UCk_AutoTestAction_Goap_ActionSet_AtomicChild : UCk_GoapAction_EntityScrip
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"AutoTest.Goap.ActionSet.WS.Ready"), true);
         SetCost(1.0);

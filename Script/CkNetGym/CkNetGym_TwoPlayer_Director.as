@@ -40,6 +40,7 @@ class UCk_NetGym_TwoPlayer_Director : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_entity_tag::Add(InHandle, CkNetGym::DirectorTag);
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -47,6 +48,7 @@ class UCk_NetGym_TwoPlayer_Director : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto BeatTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(CkNetGym::BeatSeconds));
         BeatTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto BeatTimer = utils_timer::Add(InHandle, BeatTimerParams);

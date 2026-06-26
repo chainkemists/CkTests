@@ -50,6 +50,7 @@ class UCk_AutoTest_Inventory_FillStacks_RespectsCanStackWith : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _RuntimeTag = utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest.CanStackWithMark");

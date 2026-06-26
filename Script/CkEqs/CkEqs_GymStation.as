@@ -85,6 +85,7 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         InHandle.Set_DebugName(n"EqsStation");
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnDisplayTick"));

@@ -28,6 +28,7 @@ class UCk_AutoTest_EntityLifecycle_TagAddRemove : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _SelfHandle = InHandle;
 
         _Child = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);

@@ -103,6 +103,7 @@ class UCk_CueGym_Cue_AfterOneFrame : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		ck::Trace("CueGym: AfterOneFrame cue constructed - will be destroyed after one frame");
 		return ECk_EntityScript_ConstructionFlow::Finished;
@@ -130,6 +131,7 @@ class UCk_CueGym_Cue_Persistent : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_Cue_Persistent");
 
@@ -171,6 +173,7 @@ class UCk_CueGym_Cue_Timed : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
 		// Tick timer for sphere drawing while alive
@@ -210,6 +213,7 @@ class UCk_CueGym_Cue_Custom : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
 		// Tick timer for sphere drawing while alive
@@ -270,6 +274,7 @@ class UCk_CueGym_Cue_Multiple : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_Cue_Multiple");
 
@@ -324,6 +329,7 @@ class UCk_CueGym_Cue_Restart : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_Cue_Restart");
 
@@ -337,6 +343,7 @@ class UCk_CueGym_Cue_Restart : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	void DoRestart(FCk_Handle InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		RestartCount++;
 		ElapsedTime = 0.0f;
 		ck::Trace(f"CueGym: RestartExisting cue restarted (count: {RestartCount})");
@@ -387,6 +394,7 @@ class UCk_CueGym_Cue_OwnerSkip : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DrawTick"));
@@ -427,6 +435,7 @@ class UCk_CueGym_Cue_OwnerRequire : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DrawTick"));
@@ -471,6 +480,7 @@ class UCk_CueGym_Cue_Restartable : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_Cue_Restartable");
 
@@ -483,6 +493,7 @@ class UCk_CueGym_Cue_Restartable : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	void DoRestart(FCk_Handle InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		RestartCount++;
 		ck::Trace(f"CueGym: Restartable cue restarted (count: {RestartCount})");
 	}
@@ -529,6 +540,7 @@ class UCk_CueGym_Cue_Transient : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_Cue_Transient");
 
@@ -573,6 +585,7 @@ class UCk_CueGym_Cue_OwnerDestruction : UCk_GenericCue_EntityScript
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_Cue_OwnerDestruction");
 

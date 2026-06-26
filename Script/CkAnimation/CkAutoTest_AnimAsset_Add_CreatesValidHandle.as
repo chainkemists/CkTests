@@ -22,6 +22,7 @@ class UCk_AutoTest_AnimAsset_Add_CreatesValidHandle : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         UAnimSequenceBase TestSequence = assets::load::MM_Idle();
         if (ck::Is_NOT_Valid(TestSequence))
         {

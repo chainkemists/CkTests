@@ -22,6 +22,7 @@ class UCk_AutoTest_Label_HierarchicalMatching : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto Child = utils_entity_lifetime::Request_CreateEntity(LocalHandle);

@@ -26,6 +26,7 @@ class UCk_AutoTest_Timer_PauseHaltsElapsed : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // Long goal so the timer never completes during the test.

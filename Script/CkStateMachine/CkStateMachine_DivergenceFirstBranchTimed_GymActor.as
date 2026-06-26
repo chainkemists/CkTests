@@ -160,6 +160,7 @@ class ACk_SmTest_DivergenceTimed_GymActor : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ResultText.SetText(ck::Text("SM Divergence FirstBranch (Timed)"));
         ResultText.SetTextRenderColor(FColor::White);
         DetailText.SetText(ck::Text("Pass A starting..."));

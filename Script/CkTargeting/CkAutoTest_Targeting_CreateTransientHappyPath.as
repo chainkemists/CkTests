@@ -14,6 +14,7 @@ class UCk_AutoTest_Targeting_CreateTransientHappyPath : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // WorldContextObject is auto-supplied by the AS binding — do not pass `this`.
         auto TargetPoint = utils_target_point::Create_Transient(
             FTransform(SeedLocation), ECk_Lifetime::UntilDestroyed);

@@ -10,6 +10,7 @@ class UCk_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile : UCk_AutoTest_B
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto EntityA = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_team::Add(EntityA, ECk_Team_ID::Two, ECk_Replication::DoesNotReplicate);
 

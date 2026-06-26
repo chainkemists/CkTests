@@ -32,6 +32,7 @@ class UCk_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash : UCk_
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _Owner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);

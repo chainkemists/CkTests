@@ -28,6 +28,7 @@ class UCk_AutoTest_TagSet_AddDuplicate_NoSignalFire : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _TagA = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.TagSet.DupA");
 

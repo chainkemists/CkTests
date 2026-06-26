@@ -19,6 +19,7 @@ class UCk_AutoTest_Timer_RequestComplete : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // 60s goal: would never naturally complete inside the 5s harness timeout.

@@ -22,6 +22,7 @@ class UCk_AutoTest_Attribute_ByteModifierAdd : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Params = FCk_Fragment_ByteAttribute_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Armor"),
             100);

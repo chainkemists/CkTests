@@ -26,6 +26,7 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_GenericEntityScript_U
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_InteractionGym_ResolverSource");
 
@@ -194,6 +195,7 @@ class UCk_EntityScript_InteractionGym_ResolverTarget : UCk_GenericEntityScript_U
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_InteractionGym_ResolverTarget");
 

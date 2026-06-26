@@ -15,6 +15,7 @@ class UCk_AutoTestAction_Goap_AddRemove_Cheaper : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"AutoTest.Goap.ActionSet.WS.Ready"), true);
         SetCost(0.5);

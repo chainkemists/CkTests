@@ -77,6 +77,7 @@ class ACk_SceneNodeGym_Cube : AActor
 	UFUNCTION(BlueprintOverride)
 	void BeginPlay()
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		TextRenderer.SetText(ck::Text(f"{Behavior}"));
 
 		if (HasAuthority())

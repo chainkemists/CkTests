@@ -36,6 +36,7 @@ class UCk_SmOvrTransTest_Replacement : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // The override adds a transition the base did not have.
         AddTransition(InHandle, UCk_SmOvrTransTest_Final);
     }
@@ -58,6 +59,7 @@ class UCk_AutoTest_StateMachine_OverrideState_WithTransitions : UCk_AutoTest_Bas
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         auto SmParams = FCk_Fragment_StateMachine_ParamsData(UCk_SmOvrTransTest_Base);
         SmParams.Set_AutoStart(ECk_SmAutoStart::Disabled);

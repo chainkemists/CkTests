@@ -35,6 +35,7 @@ class UCk_SmTest_Negated_Condition_AfterDelay : UCk_SmCondition_EventDriven
     UFUNCTION(BlueprintOverride)
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.1f));
         TimerParams
             .Set_StartingState(ECk_Timer_State::Running)
@@ -63,6 +64,7 @@ class UCk_SmTest_Negated_State_Idle : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Trans = AddTransition(InHandle, UCk_SmTest_Negated_State_Finish);
         AddCondition(Trans, UCk_SmTest_Negated_Condition_AfterDelay);
     }
@@ -78,6 +80,7 @@ class UCk_AutoTest_StateMachine_NegatedEventDrivenCondition : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_Negated_State_Idle));
 

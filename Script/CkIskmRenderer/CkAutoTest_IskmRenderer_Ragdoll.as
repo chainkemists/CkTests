@@ -29,6 +29,7 @@ class UCk_AutoTest_IskmRenderer_Ragdoll : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         FCk_Handle_IskmProxy EmptyHandle;
 
         // ----- Request methods are safe no-ops on invalid handle -----

@@ -16,6 +16,7 @@ class UCk_AutoTestAction_Goap_ActionSet_CycleB : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"AutoTest.Goap.ActionSet.WS.AKey"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(

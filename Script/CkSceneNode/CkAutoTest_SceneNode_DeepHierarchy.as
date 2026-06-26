@@ -43,6 +43,7 @@ class UCk_AutoTest_SceneNode_DeepHierarchy : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         TestEntity = InHandle;
 
         auto RootEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);

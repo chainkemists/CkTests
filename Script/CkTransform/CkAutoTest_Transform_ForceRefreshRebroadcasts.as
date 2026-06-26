@@ -37,6 +37,7 @@ class UCk_AutoTest_Transform_ForceRefreshRebroadcasts : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto InitialXf = FTransform::Identity;

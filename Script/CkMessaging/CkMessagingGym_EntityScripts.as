@@ -38,6 +38,7 @@ class UCk_EntityScript_MessagingGym_Basic : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_MessagingGym_Basic");
 
@@ -113,6 +114,7 @@ class UCk_EntityScript_MessagingGym_MultiListener : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_MessagingGym_MultiListener");
 
@@ -199,6 +201,7 @@ class UCk_EntityScript_MessagingGym_OneShot : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_MessagingGym_OneShot");
 
@@ -286,6 +289,7 @@ class UCk_EntityScript_MessagingGym_DynamicBind : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_MessagingGym_DynamicBind");
 
@@ -399,6 +403,7 @@ class UCk_EntityScript_MessagingGym_MultiType : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_MessagingGym_MultiType");
 

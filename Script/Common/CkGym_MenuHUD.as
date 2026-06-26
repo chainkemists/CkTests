@@ -97,6 +97,7 @@ class ACkGym_MenuHUD : AHUD
     UFUNCTION(BlueprintOverride)
     void DrawHUD(int32 SizeX, int32 SizeY)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Suppress all HUD output (and ignore Tab) while a startup-gym
         // auto-travel is in flight. This prevents the cycler menu / tab-hint
         // from flashing on the launcher level during the brief transition

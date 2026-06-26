@@ -25,6 +25,7 @@ class UCk_GoapGym_OpenDoor_Operator : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Door.IsOpen"), false);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -43,6 +44,7 @@ class UCk_GoapGym_OpenDoor_WaitAtDoor : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Door.IsOpen"), true);
         SetCost(999.0);

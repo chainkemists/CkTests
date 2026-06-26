@@ -18,6 +18,7 @@ class ACk_ReplicationGym_ReplicatedActor : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
         SpawnParams._OwningActor = this;
         auto PendingEntity = utils_entity_script::Request_SpawnEntity(

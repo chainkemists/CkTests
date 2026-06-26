@@ -20,6 +20,7 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         Super::DoConstruct(InHandle);
 
         // Set up the spatial audio cue tag

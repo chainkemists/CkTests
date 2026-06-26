@@ -40,6 +40,7 @@ class UCk_AutoTest_TransformInterpolation_LocationLerps : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto StartXf = FTransform::Identity;

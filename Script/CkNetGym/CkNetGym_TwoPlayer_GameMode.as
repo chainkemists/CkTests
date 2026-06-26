@@ -12,6 +12,7 @@ class ACk_NetGym_TwoPlayer_GameMode : ACkTests_Gym_Base_GameMode
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Runs gym registration + startup resolve. GameModes exist only on the server.
         Super::BeginPlay();
 

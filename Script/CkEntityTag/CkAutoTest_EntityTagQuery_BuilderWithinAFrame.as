@@ -25,6 +25,7 @@ class UCk_AutoTest_EntityTagQuery_BuilderWithinAFrame : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Owner = InHandle;
 
         // Pre-stage matching entities so the query is born already satisfiable.

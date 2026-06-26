@@ -11,6 +11,7 @@ class UCk_AutoTest_Relationship_Team_AddDefaultUnassigned : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Entity = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto TeamHandle = utils_team::Add(Entity, ECk_Team_ID::Unassigned, ECk_Replication::DoesNotReplicate);
 

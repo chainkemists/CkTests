@@ -66,6 +66,7 @@ class UCk_GoapGym_Patrol_GoToWaypoint : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Patrol.AtWaypoint"), true);
         SetCost(1.0);
@@ -79,6 +80,7 @@ class UCk_GoapGym_Patrol_Observe : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Patrol.AtWaypoint"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
@@ -96,6 +98,7 @@ class UCk_GoapGym_Patrol_MarkDone : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Patrol.AtWaypoint"), true);
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
@@ -114,6 +117,7 @@ class UCk_GoapGym_Patrol_Run : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Patrol.AtWaypoint"), true);
         SetCost(1.0);
@@ -126,6 +130,7 @@ class UCk_GoapGym_Patrol_Walk : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Patrol.AtWaypoint"), true);
         SetCost(2.0);
@@ -140,6 +145,7 @@ class UCk_GoapGym_Patrol_LookAround : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Patrol.AreaScanned"), true);
         SetCost(1.0);
@@ -152,6 +158,7 @@ class UCk_GoapGym_Patrol_WaitAtPost : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Patrol.AreaScanned"), true);
         SetCost(3.0);
@@ -177,6 +184,7 @@ class UCk_GoapGym_Patrol_StandWatch : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.Patrol.AreaPatrolled"), true);
         SetCost(999.0);

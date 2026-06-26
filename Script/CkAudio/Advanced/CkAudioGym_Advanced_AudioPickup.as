@@ -41,6 +41,7 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Set up probe parameters
 
         // Filter to detect player probe overlaps

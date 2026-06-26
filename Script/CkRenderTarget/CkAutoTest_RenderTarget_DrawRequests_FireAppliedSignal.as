@@ -25,6 +25,7 @@ class UCk_AutoTest_RenderTarget_DrawRequests_FireAppliedSignal : UCk_AutoTest_Ba
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         auto SyncName = utils_gameplay_tag::ResolveGameplayTag(n"RenderTarget.AutoTest.DrawSignal");
 

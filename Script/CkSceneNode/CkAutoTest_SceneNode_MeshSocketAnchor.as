@@ -70,6 +70,7 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         TestEntity = InHandle;
 
         // Bare ECS structural parent — the SceneNode hierarchy needs a Transform-

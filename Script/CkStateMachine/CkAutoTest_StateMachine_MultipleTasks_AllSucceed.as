@@ -18,6 +18,7 @@ class UCk_SmMultiTask_Task_A : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_SmTaskResult DoTick(FCk_Handle_SmTask InHandle, FCk_Time InDeltaT, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return ECk_SmTaskResult::Succeeded;
     }
 };
@@ -30,6 +31,7 @@ class UCk_SmMultiTask_Task_B : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_SmTaskResult DoTick(FCk_Handle_SmTask InHandle, FCk_Time InDeltaT, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return ECk_SmTaskResult::Succeeded;
     }
 };
@@ -40,6 +42,7 @@ class UCk_SmMultiTask_State_Start : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmMultiTask_Task_A);
         AddTask(InHandle, UCk_SmMultiTask_Task_B);
         auto Trans = AddTransition(InHandle, UCk_SmMultiTask_State_Done);
@@ -53,6 +56,7 @@ class UCk_SmMultiTask_State_Done : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Sink.
     }
 };
@@ -66,6 +70,7 @@ class UCk_AutoTest_StateMachine_MultipleTasks_AllSucceed : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmMultiTask_State_Start));
 

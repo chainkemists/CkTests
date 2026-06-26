@@ -15,6 +15,7 @@ class ACk_CrowdPathingGym_NavBox : AActor
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto CubeMesh = Cast<UStaticMesh>(LoadObject(this, "/Engine/BasicShapes/Cube.Cube"));
         if (CubeMesh != nullptr)
         {

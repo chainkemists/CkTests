@@ -14,6 +14,7 @@ class UCk_AutoTest_UnrealComponent_TryGetHandleByTypeFound : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 

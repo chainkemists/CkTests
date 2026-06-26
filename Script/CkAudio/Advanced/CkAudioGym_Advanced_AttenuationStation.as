@@ -26,6 +26,7 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Configure station properties
         StationName = "ATTENUATION STATION";
         StationDescription = "Walk between zones to hear volume and frequency changes";

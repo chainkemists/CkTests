@@ -35,6 +35,7 @@ class UCk_AutoTest_EntityLifecycle_ContextOwnerGrandparent : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         _A = utils_entity_lifetime::Request_CreateEntity(LocalHandle);

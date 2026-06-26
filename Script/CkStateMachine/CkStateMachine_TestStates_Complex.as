@@ -40,12 +40,14 @@ class UCk_SmTest_Condition_PolledTimer : UCk_SmCondition_Polled
     UFUNCTION(BlueprintOverride)
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         StartTime = System::GetGameTimeInSeconds();
     }
 
     UFUNCTION(BlueprintOverride)
     bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return System::GetGameTimeInSeconds() - StartTime >= DurationSeconds;
     }
 };
@@ -62,6 +64,7 @@ class UCk_SmTest_Condition_ShortDelay : UCk_SmCondition_EventDriven
     UFUNCTION(BlueprintOverride)
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(DelaySeconds));
         TimerParams
             .Set_StartingState(ECk_Timer_State::Running)
@@ -104,6 +107,7 @@ class UCk_SmTest_Condition_LongDelay : UCk_SmCondition_EventDriven
     UFUNCTION(BlueprintOverride)
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(DelaySeconds));
         TimerParams
             .Set_StartingState(ECk_Timer_State::Running)
@@ -143,6 +147,7 @@ class UCk_SmTest_Condition_AlwaysTrue : UCk_SmCondition_Polled
     UFUNCTION(BlueprintOverride)
     bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return true;
     }
 };
@@ -166,12 +171,14 @@ class UCk_SmTest_Task_TimedWork : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ElapsedTime = 0.0f;
     }
 
     UFUNCTION(BlueprintOverride)
     ECk_SmTaskResult DoTick(FCk_Handle_SmTask InHandle, FCk_Time InDeltaT, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ElapsedTime += float32(InDeltaT.Get_Seconds());
 
         if (ElapsedTime >= WorkDuration)
@@ -185,6 +192,7 @@ class UCk_SmTest_Task_TimedWork : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 };
 
@@ -199,11 +207,13 @@ class UCk_SmTest_Task_LogOnly : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 
     UFUNCTION(BlueprintOverride)
     void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 };
 
@@ -221,6 +231,7 @@ class UCk_SmTest_Complex_State_Idle : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToPatrol = AddTransition(InHandle, UCk_SmTest_Complex_State_Patrol);
         auto Cond0 = AddCondition(ToPatrol, UCk_SmTest_Condition_ShortDelay);
 
@@ -233,12 +244,14 @@ class UCk_SmTest_Complex_State_Idle : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ck::Trace("Complex SM: Entered IDLE", n"SmTest", 3.0f, FLinearColor::Blue);
     }
 
     UFUNCTION(BlueprintOverride)
     void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 };
 
@@ -254,6 +267,7 @@ class UCk_SmTest_Complex_State_Patrol : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToChase = AddTransition(InHandle, UCk_SmTest_Complex_State_Chase);
         auto Cond0 = AddCondition(ToChase, UCk_SmTest_Condition_ShortDelay);
 
@@ -270,12 +284,14 @@ class UCk_SmTest_Complex_State_Patrol : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ck::Trace("Complex SM: Entered PATROL", n"SmTest", 3.0f, FLinearColor::Green);
     }
 
     UFUNCTION(BlueprintOverride)
     void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 };
 
@@ -290,6 +306,7 @@ class UCk_SmTest_Complex_State_Chase : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToAttack = AddTransition(InHandle, UCk_SmTest_Complex_State_Attack);
         auto Cond0 = AddCondition(ToAttack, UCk_SmTest_Condition_ShortDelay);
         auto Cond1 = AddCondition(ToAttack, UCk_SmTest_Condition_AlwaysTrue);
@@ -303,12 +320,14 @@ class UCk_SmTest_Complex_State_Chase : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ck::Trace("Complex SM: Entered CHASE", n"SmTest", 3.0f, FLinearColor(1.0f, 0.5f, 0.0f));
     }
 
     UFUNCTION(BlueprintOverride)
     void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 };
 
@@ -322,6 +341,7 @@ class UCk_SmTest_Complex_State_Attack : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToIdle = AddTransition(InHandle, UCk_SmTest_Complex_State_Idle);
         auto Cond = AddCondition(ToIdle, UCk_SmTest_Condition_ShortDelay);
 
@@ -332,12 +352,14 @@ class UCk_SmTest_Complex_State_Attack : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ck::Trace("Complex SM: Entered ATTACK", n"SmTest", 3.0f, FLinearColor::Red);
     }
 
     UFUNCTION(BlueprintOverride)
     void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 };
 
@@ -351,6 +373,7 @@ class UCk_SmTest_Complex_State_Search : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToIdle = AddTransition(InHandle, UCk_SmTest_Complex_State_Idle);
         auto Cond = AddCondition(ToIdle, UCk_SmTest_Condition_ShortDelay);
 
@@ -360,12 +383,14 @@ class UCk_SmTest_Complex_State_Search : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ck::Trace("Complex SM: Entered SEARCH", n"SmTest", 3.0f, FLinearColor(0.5f, 0.0f, 1.0f));
     }
 
     UFUNCTION(BlueprintOverride)
     void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 };
 
@@ -378,6 +403,7 @@ class UCk_SmTest_Complex_State_Flee : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToIdle = AddTransition(InHandle, UCk_SmTest_Complex_State_Idle);
         auto Cond = AddCondition(ToIdle, UCk_SmTest_Condition_ShortDelay);
 
@@ -387,12 +413,14 @@ class UCk_SmTest_Complex_State_Flee : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         ck::Trace("Complex SM: Entered FLEE", n"SmTest", 3.0f, FLinearColor(1.0f, 1.0f, 0.0f));
     }
 
     UFUNCTION(BlueprintOverride)
     void DoExitState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
     }
 };
 

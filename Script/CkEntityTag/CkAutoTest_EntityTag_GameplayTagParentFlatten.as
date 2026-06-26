@@ -20,6 +20,7 @@ class UCk_AutoTest_EntityTag_GameplayTagParentFlatten : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Entity = InHandle;
         auto LeafTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.A.B.C");
 

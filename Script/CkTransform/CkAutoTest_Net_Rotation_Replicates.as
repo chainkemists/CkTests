@@ -21,6 +21,7 @@ class UCk_AutoTest_Net_Rotation_Replicates : UCk_AutoTest_NetBase
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Subject = Get_SubjectEntity();
         if (ck::Is_NOT_Valid(Subject))
         { FinishFailure("DIAG-A: subject entity not found"); return; }

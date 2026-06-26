@@ -62,6 +62,7 @@ class UCk_SmTest_Condition_PolledFalse : UCk_SmCondition_Polled
     UFUNCTION(BlueprintOverride)
     bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return false;
     }
 };
@@ -140,6 +141,7 @@ class UCk_SmTest_Task_RequestStopOwning_Top : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         SmGraphWalk_Regression::Increment(n"TopStopE");
 
         auto OwningSm = Get_OwningStateMachine();
@@ -217,6 +219,7 @@ class UCk_SmTest_Task_RequestStopOwning_Sub : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         SmGraphWalk_Regression::Increment(n"SubStopE");
 
         auto OwningSm = Get_OwningStateMachine();
@@ -245,6 +248,7 @@ class UCk_SmTest_GraphWalk_Top_State_A : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToB = AddTransition(InHandle, UCk_SmTest_GraphWalk_Top_State_B);
         auto Cond = AddCondition(ToB, UCk_SmTest_Condition_PolledFalse);
 
@@ -264,6 +268,7 @@ class UCk_SmTest_GraphWalk_Top_State_B : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToC = AddTransition(InHandle, UCk_SmTest_GraphWalk_Top_State_C);
         auto Cond = AddCondition(ToC, UCk_SmTest_Condition_PolledFalse);
 
@@ -283,6 +288,7 @@ class UCk_SmTest_GraphWalk_Top_State_C : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToD = AddTransition(InHandle, UCk_SmTest_GraphWalk_Top_State_D);
         auto Cond = AddCondition(ToD, UCk_SmTest_Condition_PolledFalse);
 
@@ -302,6 +308,7 @@ class UCk_SmTest_GraphWalk_Top_State_D : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToE = AddTransition(InHandle, UCk_SmTest_GraphWalk_Top_State_E);
         auto Cond = AddCondition(ToE, UCk_SmTest_Condition_PolledFalse);
 
@@ -323,6 +330,7 @@ class UCk_SmTest_GraphWalk_Top_State_E : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Task_RequestStopOwning_Top);
     }
 
@@ -347,6 +355,7 @@ class UCk_SmTest_GraphWalk_Sub_State_A : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToB = AddTransition(InHandle, UCk_SmTest_GraphWalk_Sub_State_B);
         auto Cond = AddCondition(ToB, UCk_SmTest_Condition_PolledFalse);
 
@@ -366,6 +375,7 @@ class UCk_SmTest_GraphWalk_Sub_State_B : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToC = AddTransition(InHandle, UCk_SmTest_GraphWalk_Sub_State_C);
         auto Cond = AddCondition(ToC, UCk_SmTest_Condition_PolledFalse);
 
@@ -385,6 +395,7 @@ class UCk_SmTest_GraphWalk_Sub_State_C : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToD = AddTransition(InHandle, UCk_SmTest_GraphWalk_Sub_State_D);
         auto Cond = AddCondition(ToD, UCk_SmTest_Condition_PolledFalse);
 
@@ -404,6 +415,7 @@ class UCk_SmTest_GraphWalk_Sub_State_D : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto ToE = AddTransition(InHandle, UCk_SmTest_GraphWalk_Sub_State_E);
         auto Cond = AddCondition(ToE, UCk_SmTest_Condition_PolledFalse);
 
@@ -423,6 +435,7 @@ class UCk_SmTest_GraphWalk_Sub_State_E : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_Task_RequestStopOwning_Sub);
     }
 
@@ -454,6 +467,7 @@ class UCk_SmTest_GraphWalk_SubSmWrapper_State : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTest_GraphWalk_SubSmTask);
     }
 

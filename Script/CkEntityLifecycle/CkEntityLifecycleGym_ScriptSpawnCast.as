@@ -17,6 +17,7 @@ class UCk_EntityScript_EntityLifecycleGym_SpawnTarget : UCk_GenericEntityScript_
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		InHandle.Set_DebugName(n"SpawnTarget");
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
 		utils_entity_tag::Add(InHandle, n"TAG_LifecycleGym_SpawnTarget");
@@ -53,6 +54,7 @@ class UCk_EntityScript_EntityLifecycleGym_ScriptSpawnCast : UCk_GenericEntityScr
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		InHandle.Set_DebugName(n"ScriptSpawnCast");
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
 		utils_entity_tag::Add(InHandle, n"TAG_LifecycleGym_ScriptSpawnCast");

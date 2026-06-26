@@ -22,6 +22,7 @@ class AGridPlayerController : ACk_PlayerController_UE
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         RotateAction = UButtonPress();
 
         Context = UGridInputMappingContext();
@@ -31,6 +32,7 @@ class AGridPlayerController : ACk_PlayerController_UE
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         if (GetWorld().GetNetMode() != ENetMode::NM_Client)
         { return; }
 

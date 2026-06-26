@@ -15,6 +15,7 @@ class UCk_AutoTest_Shape_Sphere_Add_RoundTripsRadius : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         auto Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 

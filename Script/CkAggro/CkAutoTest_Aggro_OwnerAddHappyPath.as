@@ -11,6 +11,7 @@ class UCk_AutoTest_Aggro_OwnerAddHappyPath : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Aggressor = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto Params = FCk_Fragment_AggroOwner_Params();

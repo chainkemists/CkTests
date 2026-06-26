@@ -29,6 +29,7 @@ class UCk_AutoTest_Net_DynamicFragment_DriverCarrierOnNotify : UCk_AutoTest_NetB
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Subject = Get_SubjectEntity();
         if (ck::Is_NOT_Valid(Subject))
         { FinishFailure("subject entity not found"); return; }

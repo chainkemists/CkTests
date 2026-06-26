@@ -21,6 +21,7 @@ class ACk_UsfGym_MultiPassShowcase : AActor
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto SphereMesh = Cast<UStaticMesh>(LoadObject(this, "/Engine/BasicShapes/Sphere.Sphere"));
         if (SphereMesh != nullptr)
         {
@@ -31,6 +32,7 @@ class ACk_UsfGym_MultiPassShowcase : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Component BeginPlay already ran -> output RT exists. Blit it onto the sphere.
         auto BlitMID = UCk_Utils_Usf_UE::Create_MID_ForLook(CkUsf::Blit, this);
         if (BlitMID != nullptr)

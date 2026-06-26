@@ -157,6 +157,7 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -209,6 +210,7 @@ class UCk_AdvancedConcurrencyTestCue : UCk_AudioCue_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -257,6 +259,7 @@ class UCk_AdvancedInterfacePickupCue : UCk_AudioCue_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -305,6 +308,7 @@ class UCk_AdvancedAchievementCue : UCk_AudioCue_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, Transform, ECk_Replication::DoesNotReplicate);
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

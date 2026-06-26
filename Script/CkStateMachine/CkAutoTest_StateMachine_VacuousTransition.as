@@ -19,6 +19,7 @@ class UCk_SmVacuousTest_State_A : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Transition with NO conditions added -> vacuous, always Pass.
         AddTransition(InHandle, UCk_SmVacuousTest_State_B);
     }
@@ -30,6 +31,7 @@ class UCk_SmVacuousTest_State_B : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Sink.
     }
 };
@@ -43,6 +45,7 @@ class UCk_AutoTest_StateMachine_VacuousTransition : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmVacuousTest_State_A));
 

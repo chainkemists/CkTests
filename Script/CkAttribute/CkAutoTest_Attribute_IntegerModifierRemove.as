@@ -24,6 +24,7 @@ class UCk_AutoTest_Attribute_IntegerModifierRemove : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Damage"),
             50);

@@ -29,6 +29,7 @@ class UCk_AutoTest_Tween_FollowSpline : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // ---- Build a curved 3-point path -------------------------------------

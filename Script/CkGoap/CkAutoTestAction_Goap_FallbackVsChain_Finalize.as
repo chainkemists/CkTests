@@ -14,6 +14,7 @@ class UCk_AutoTestAction_Goap_FallbackVsChain_Finalize : UCk_GoapAction_EntitySc
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddPrecondition(utils_gameplay_tag::ResolveGameplayTag(
             n"AutoTest.Goap.FallbackVsChain.WS.MidStep"), true);
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(

@@ -11,6 +11,7 @@ class UCk_AutoTest_EntityExtension_ForEachListsAll : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto C1 = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto C2 = utils_entity_lifetime::Request_CreateEntity(InHandle);

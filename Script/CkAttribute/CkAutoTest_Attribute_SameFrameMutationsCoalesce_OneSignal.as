@@ -31,6 +31,7 @@ class UCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal : UCk_AutoTest
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Damage"),
             10);

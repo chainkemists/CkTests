@@ -64,6 +64,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         SelfEntity = InHandle;
 
         // Mark result as Running immediately so the C++ runner can

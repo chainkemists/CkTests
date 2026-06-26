@@ -26,6 +26,7 @@ class UCk_AutoTest_IskmRenderer_AnimBP : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         FCk_Handle_IskmProxy EmptyHandle;
 
         // ----- Accessor null-safety on invalid handle -----

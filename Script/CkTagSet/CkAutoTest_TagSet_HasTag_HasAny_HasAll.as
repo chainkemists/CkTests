@@ -19,6 +19,7 @@ class UCk_AutoTest_TagSet_HasTag_HasAny_HasAll : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto TagA = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.TagSet.QueryA");

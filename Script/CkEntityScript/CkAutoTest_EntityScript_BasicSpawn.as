@@ -20,6 +20,7 @@ class UCk_AutoTest_EntityScript_BasicSpawn : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Owner = InHandle;
 
         auto SpawnParams = UCk_EntityScript_EntityScriptGym_Spawn::Params();

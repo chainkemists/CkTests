@@ -11,6 +11,7 @@ class UCk_AutoTest_Resolver_Source_AddHappyPath : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Entity = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto Params = FCk_Fragment_ResolverSource_ParamsData();

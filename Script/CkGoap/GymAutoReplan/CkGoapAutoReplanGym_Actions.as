@@ -24,6 +24,7 @@ class UCk_GoapGym_AutoReplan_FlipOp : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.AutoReplan.Goal"), true);
         SetCost(1.0);
@@ -35,6 +36,7 @@ class UCk_GoapGym_AutoReplan_AltOp : UCk_GoapAction_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineAction()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddEffect(utils_gameplay_tag::ResolveGameplayTag(
             n"Gym.Goap.WS.AutoReplan.Goal"), true);
         SetCost(2.0);

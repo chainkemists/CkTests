@@ -19,6 +19,7 @@ class UCk_SmTaskFailTest_Task_Fail : UCk_SmTask_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_SmTaskResult DoTick(FCk_Handle_SmTask InHandle, FCk_Time InDeltaT, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return ECk_SmTaskResult::Failed;
     }
 };
@@ -29,6 +30,7 @@ class UCk_SmTaskFailTest_State_A : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmTaskFailTest_Task_Fail);
         auto Trans = AddTransition(InHandle, UCk_SmTaskFailTest_State_B);
         AddCondition(Trans, UCk_SmCondition_TaskResults); // default AllSucceeded
@@ -41,6 +43,7 @@ class UCk_SmTaskFailTest_State_B : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Sink — should never be reached.
     }
 };
@@ -55,6 +58,7 @@ class UCk_AutoTest_StateMachine_TaskFailure_NoTransition : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmTaskFailTest_State_A));
 

@@ -20,6 +20,7 @@ class ACk_UsfGym_PostProcessShowcase : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto MID = UCk_Utils_Usf_UE::Apply_PostProcess_ToComponent(PostProcess, Look);
         if (MID != nullptr)
         {

@@ -10,6 +10,7 @@ class UCk_AutoTest_Relationship_Team_HasFalseBeforeAdd : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Entity = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         Assert_True(!utils_team::Has(Entity),

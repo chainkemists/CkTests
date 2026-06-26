@@ -21,6 +21,7 @@ class UCk_AutoTest_Inventory_Transfer_FullMoveReportsSuccess : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         auto SourceParams = utils_inventory_data_only::Make_Params_Bounded(

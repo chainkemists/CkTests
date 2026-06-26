@@ -52,6 +52,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         InHandle.Set_DebugName(n"BasicAttributes");
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_AttributeGym_BasicAttributes");
@@ -88,6 +89,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         Request_SetupAttributes(InHandle);
         Request_BindSignals();
         Request_BindMessages(InHandle);

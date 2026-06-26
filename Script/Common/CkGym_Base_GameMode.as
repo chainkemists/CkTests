@@ -13,6 +13,7 @@ class ACk_Gym_Base_GameMode : ACk_GameMode_UE
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Subsystem = UCkGym_CyclerSubsystem::Get();
         if (ck::Is_NOT_Valid(Subsystem))
         {

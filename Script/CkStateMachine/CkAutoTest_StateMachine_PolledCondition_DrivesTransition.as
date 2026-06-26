@@ -19,6 +19,7 @@ class UCk_SmPolledTest_Cond_Pass : UCk_SmCondition_Polled
     UFUNCTION(BlueprintOverride)
     bool DoEvaluate(FCk_Handle_SmCondition InHandle, FCk_Time InDeltaT) const
     {
+        auto _CkPerfScope = ck::ScopedStat();
         return true;
     }
 };
@@ -29,6 +30,7 @@ class UCk_SmPolledTest_State_A : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Trans = AddTransition(InHandle, UCk_SmPolledTest_State_B);
         AddCondition(Trans, UCk_SmPolledTest_Cond_Pass);
     }
@@ -40,6 +42,7 @@ class UCk_SmPolledTest_State_B : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Sink.
     }
 };
@@ -53,6 +56,7 @@ class UCk_AutoTest_StateMachine_PolledCondition_DrivesTransition : UCk_AutoTest_
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmPolledTest_State_A));
 

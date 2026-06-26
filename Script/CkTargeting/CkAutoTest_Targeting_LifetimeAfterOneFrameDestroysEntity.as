@@ -13,6 +13,7 @@ class UCk_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity : UCk_AutoTest_
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _Ephemeral = utils_target_point::Create_FromLocation(
             LocalHandle, FVector(0.0f, 0.0f, 0.0f), ECk_Lifetime::AfterOneFrame);

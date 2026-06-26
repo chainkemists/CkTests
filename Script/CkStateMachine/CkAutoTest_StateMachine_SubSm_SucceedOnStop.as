@@ -29,6 +29,7 @@ class UCk_SmSubTest_Sub_Final : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Defer the self-stop by a frame via a short timer. Stopping synchronously on enter makes
         // the whole spawn->start->stop->task-succeed->parent-transition cascade resolve in a single
         // frame, which trips the SM's High-pump-count(>8) warning (escalated to a test failure).
@@ -58,6 +59,7 @@ class UCk_SmSubTest_Parent_Run : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmSubTest_SubTask);
         auto Trans = AddTransition(InHandle, UCk_SmSubTest_Parent_Done);
         AddCondition(Trans, UCk_SmCondition_TaskResults); // default AllSucceeded
@@ -80,6 +82,7 @@ class UCk_AutoTest_StateMachine_SubSm_SucceedOnStop : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmSubTest_Parent_Run));
 

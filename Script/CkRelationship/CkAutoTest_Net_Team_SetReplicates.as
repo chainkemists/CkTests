@@ -24,6 +24,7 @@ class UCk_AutoTest_Net_Team_SetReplicates : UCk_AutoTest_NetBase
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Subject = Get_SubjectEntity();
         if (ck::Is_NOT_Valid(Subject))
         { FinishFailure("subject not found — harness misconfigured?"); return; }

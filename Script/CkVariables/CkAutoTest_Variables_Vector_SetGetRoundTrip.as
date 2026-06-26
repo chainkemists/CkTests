@@ -12,6 +12,7 @@ class UCk_AutoTest_Variables_Vector_SetGetRoundTrip : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Entity = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto Tag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Variables.Vector");
 

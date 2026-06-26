@@ -49,6 +49,7 @@ class UCk_SmNetSubTest_Sub_Wait : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         AddTask(InHandle, UCk_SmNetSubTest_DelayShort);
         auto Trans = AddTransition(InHandle, UCk_SmNetSubTest_Sub_Reached);
         AddCondition(Trans, UCk_SmCondition_TaskResults); // default AllSucceeded
@@ -68,6 +69,7 @@ class UCk_SmNetSubTest_Parent_Hold : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // Host the sub-SM; the parent intentionally has no outgoing transition — the
         // assertion reads the sub-SM's current state directly.
         AddTask(InHandle, UCk_SmNetSubTest_SubTask);

@@ -29,6 +29,7 @@ class UCk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses : UCk_A
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // Source inventory has no CustomCanAcceptItem rejection — it'll

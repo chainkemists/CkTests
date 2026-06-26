@@ -17,6 +17,7 @@ class UCk_AutoTest_DynamicFragment_AddGet_RoundTripsValue : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto Entity = InHandle;
 
         auto Payload = FCk_Fragment_DynamicTest_Payload();

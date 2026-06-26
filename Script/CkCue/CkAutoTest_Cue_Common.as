@@ -60,6 +60,7 @@ class UCk_AutoTestCue_AfterOneFrame : UCk_GenericCue_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_AutoTestCue_AfterOneFrame");
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -88,6 +89,7 @@ class UCk_AutoTestCue_Persistent : UCk_GenericCue_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_AutoTestCue_Persistent");
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -117,6 +119,7 @@ class UCk_AutoTestCue_Timed : UCk_GenericCue_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_AutoTestCue_Timed");
         return ECk_EntityScript_ConstructionFlow::Finished;

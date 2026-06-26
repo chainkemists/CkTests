@@ -21,6 +21,7 @@ class UCk_AutoTest_IskmRenderer_MontageNotify : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         UCk_IskmRenderer_Data RendererData = iskm_assets::RendererData_Demo();
         UAnimMontage TestMontage = assets::load::AM_NotifyTest();
 

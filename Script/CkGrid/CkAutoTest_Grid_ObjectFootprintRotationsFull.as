@@ -24,6 +24,7 @@ class UCk_AutoTest_Grid_ObjectFootprintRotationsFull : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // ---- 1. Rectangle 180-symmetry of a 2x1. ----

@@ -18,6 +18,7 @@ class UCk_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured : UCk_AutoTest_Bas
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
         // Probe A — explicit Silent.

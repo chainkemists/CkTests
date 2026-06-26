@@ -24,6 +24,7 @@ class UCk_EntityScript_CueGym_OwnerValidation : UCk_GenericEntityScript_UE
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		InHandle.Set_DebugName(n"OwnerValidation");
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_OwnerValidation");
@@ -195,6 +196,7 @@ class UCk_EntityScript_CueGym_TempOwner : UCk_GenericEntityScript_UE
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		InHandle.Set_DebugName(n"TempOwner");
 		utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 		utils_entity_tag::Add(InHandle, n"TAG_CueGym_TempOwner");

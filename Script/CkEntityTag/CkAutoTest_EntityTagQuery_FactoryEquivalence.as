@@ -24,6 +24,7 @@ class UCk_AutoTest_EntityTagQuery_FactoryEquivalence : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         // --- Single (no ensure)
         auto R_Single = utils_entity_tag_query::Make_Requirement_Single(n"AutoTestEtq_FactoryX");
         Assert_True(R_Single.Get_Tag() == n"AutoTestEtq_FactoryX",

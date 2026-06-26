@@ -102,6 +102,7 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         return ECk_EntityScript_ConstructionFlow::Finished;
     }

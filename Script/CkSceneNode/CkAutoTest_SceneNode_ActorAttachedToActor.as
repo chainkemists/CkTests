@@ -87,6 +87,7 @@ class ACk_AutoTest_SceneNode_AttachedActor_Helper : AActor
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
         SpawnParams._OwningActor = this;
         PendingEntity = utils_entity_script::Request_SpawnEntity(
@@ -118,6 +119,7 @@ class UCk_AutoTest_SceneNode_ActorAttachedToActor : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         TestEntity = InHandle;
 
         ActorA = Cast<ACk_AutoTest_SceneNode_AttachedActor_Helper>(SpawnActor(

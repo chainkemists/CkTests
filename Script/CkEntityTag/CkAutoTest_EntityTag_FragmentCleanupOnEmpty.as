@@ -21,6 +21,7 @@ class UCk_AutoTest_EntityTag_FragmentCleanupOnEmpty : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _Entity = InHandle;
         const FName TagA = n"AutoTestEt_Cleanup_A";
         const FName TagB = n"AutoTestEt_Cleanup_B";

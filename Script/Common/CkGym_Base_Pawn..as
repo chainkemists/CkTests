@@ -6,6 +6,7 @@ class ACk_Gym_Base_Pawn : ADefaultPawn
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
     {
+        auto _CkPerfScope = ck::ScopedStat();
         if (HasAuthority())
         {
             auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();

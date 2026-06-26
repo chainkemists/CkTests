@@ -135,6 +135,7 @@ class ACk_GymStation : AActor
 	UFUNCTION(BlueprintOverride)
 	void ConstructionScript()
 	{
+	    auto _CkPerfScope = ck::ScopedStat();
 		if (DescriptionText.IsEmpty())
 		{
 			DescriptionText.Add(FText::FromString("Example paragraph line 1"));

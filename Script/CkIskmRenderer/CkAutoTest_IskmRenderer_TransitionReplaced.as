@@ -30,6 +30,7 @@ class UCk_AutoTest_IskmRenderer_TransitionReplaced : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         UCk_IskmRenderer_Data RendererData = iskm_assets::RendererData_Demo();
         _SeqA = assets::load::MM_Idle();
         _SeqB = assets::load::MM_Jump();

@@ -32,6 +32,7 @@ class UCk_AutoTest_EntityLifecycle_DependentsCountMutations : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
+        auto _CkPerfScope = ck::ScopedStat();
         _MyEntity = InHandle;
 
         _BaselineCount = utils_entity_lifetime::Get_LifetimeDependents(_MyEntity).Num();
