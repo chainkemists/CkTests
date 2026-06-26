@@ -142,6 +142,7 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_AuthorityGatedTask::RunTest(const
     constexpr auto FramesAfterPossess = 30;
     constexpr auto FramesAfterStart = 30;
     constexpr auto FramesAfterInput = 30;
+    constexpr auto FramesAfterSettle = 90;   // let the server relay-enter AND (pre-fix) self-revert settle
 
     const auto MapPath = FString{TEXT("/Engine/Maps/Entry")};
 
@@ -255,23 +256,14 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_AuthorityGatedTask::RunTest(const
         10.0,
         TEXT("owning-client sub-SM advances to Sub_Active (byte input consumed locally)")));
 
-    // ---- Give the round-trip time (client -> root relay -> server sub-SM -> modifier -> replicate back) ----
-    // WaitUntil so a slow round-trip can't read as a false-red; if the logic is broken it simply times out
-    // and the assertion below fails with the diagnostic logged.
+    // ---- Settle: the relay delivers Sub_Active to the server, and (pre-fix) the server self-evaluates
+    // ---- the release transition and reverts to Sub_Idle. Assert the STABLE state, not the transient — a
+    // ---- WaitUntil on speed==150 would falsely pass on the brief modifier-applied window before the
+    // ---- self-revert. Tick generously so any self-revert has happened and replicated before we read.
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
-        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
-        {
-            auto* Client = ck::auto_test::net::Get_ClientWorld(0);
-            if (Client == nullptr)
-            { return false; }
-            const auto Speed = Get_SpeedFinalValue(Find_Pawn(Client));
-            return Speed.IsSet() && FMath::IsNearlyEqual(*Speed, k_ExpectedSpeedWhenFixed, 0.01f);
-        }),
-        10.0,
-        TEXT("owning-client speed reaches 150 (authority-gated modifier applied + replicated)")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterSettle));
 
-    // ---- TARGET: the owning client's float speed reflects the x1.5 modifier -------------------------------
+    // ---- TARGET: server FOLLOWS the relay and does NOT self-revert; the authority-gated modifier holds ----
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
@@ -283,31 +275,38 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_AuthorityGatedTask::RunTest(const
 
             auto* ClientPawn = Find_Pawn(Client);
             auto* ServerPawn = Find_Pawn(Server);
-            if (ClientPawn == nullptr)
-            { AddError(TEXT("client pawn missing at assertion time")); return false; }
+            if (ClientPawn == nullptr || ServerPawn == nullptr)
+            { AddError(TEXT("client and/or server pawn missing at assertion time")); return false; }
 
+            const auto ClientSub   = Get_SubSmCurrentStateName(ClientPawn);
+            const auto ServerSub   = Get_SubSmCurrentStateName(ServerPawn);
             const auto ClientSpeed = Get_SpeedFinalValue(ClientPawn);
             const auto ServerSpeed = Get_SpeedFinalValue(ServerPawn);
 
             // Diagnostics to the editor log (UE_LOG, not AddInfo — AddInfo goes to the test report, not
-            // the .log the toolbox captures). Shows where the chain broke: server sub-SM state + speeds.
+            // the .log the toolbox captures). Shows the settled state on both worlds.
             UE_LOG(LogTemp, Display,
                 TEXT("[SubSmRelayDiag] client sub-SM=[%s] server sub-SM=[%s] | client speed=[%s] server speed=[%s] (expect %.1f)"),
-                *Get_SubSmCurrentStateName(ClientPawn),
-                *Get_SubSmCurrentStateName(ServerPawn),
+                *ClientSub, *ServerSub,
                 ClientSpeed.IsSet() ? *FString::SanitizeFloat(*ClientSpeed) : TEXT("<none>"),
                 ServerSpeed.IsSet() ? *FString::SanitizeFloat(*ServerSpeed) : TEXT("<none>"),
                 k_ExpectedSpeedWhenFixed);
 
+            // The crux: the server must HOLD Sub_Active. Pre-fix it self-evaluates the release (its byte
+            // input is 0) and reverts to Sub_Idle, undoing the relayed state.
+            TestEqual(TEXT("server sub-SM holds Sub_Active (followed relay, did NOT self-revert)"),
+                ServerSub, FString{k_SubActiveName});
+
             if (NOT ClientSpeed.IsSet())
             { AddError(TEXT("client-side float 'speed' attribute not found at assertion time")); return false; }
 
-            TestEqual(TEXT("owning-client speed reflects the authority-gated x1.5 sprint modifier"),
+            // ...so the authority-gated modifier holds, replicated to the owning client (stable, not transient).
+            TestEqual(TEXT("owning-client speed holds the authority-gated x1.5 modifier"),
                 *ClientSpeed, k_ExpectedSpeedWhenFixed);
 
             return true;
         }),
-        TEXT("TARGET: remote client's authority-gated sub-SM modifier takes effect")));
+        TEXT("TARGET: server follows the relay (no self-revert) and the modifier holds on the client")));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 
