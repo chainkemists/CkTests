@@ -30,3 +30,56 @@ struct FCk_Test_DynFrag_WithHandle
     UPROPERTY(SaveGame)
     TArray<FCk_Handle> TargetArray;
 };
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A SECOND, distinct handle-bearing dynamic-fragment type. Used to prove that MULTIPLE dynamic-fragment types on the
+// SAME entity (each in its own named storage) all survive a round-trip -- the core of the named-storage enumeration.
+USTRUCT()
+struct FCk_Test_DynFrag_OtherHandle
+{
+    GENERATED_BODY()
+
+    UPROPERTY(SaveGame)
+    FCk_Handle OtherTarget;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A dynamic fragment with NO handles -- isolates the data round-trip from handle remap.
+USTRUCT()
+struct FCk_Test_DynFrag_PureData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(SaveGame)
+    int32 Count = 0;
+
+    UPROPERTY(SaveGame)
+    FString Label;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A nested struct holding a handle, plus a wrapper that contains it -- exercises the recursive handle walk
+// (a handle one struct level deep must still be remapped).
+USTRUCT()
+struct FCk_Test_DynFrag_Inner
+{
+    GENERATED_BODY()
+
+    UPROPERTY(SaveGame)
+    FCk_Handle InnerHandle;
+};
+
+USTRUCT()
+struct FCk_Test_DynFrag_Nested
+{
+    GENERATED_BODY()
+
+    UPROPERTY(SaveGame)
+    int32 Tag = 0;
+
+    UPROPERTY(SaveGame)
+    FCk_Test_DynFrag_Inner Inner;
+};
