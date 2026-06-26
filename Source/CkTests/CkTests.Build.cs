@@ -45,6 +45,7 @@ public class CkTests : CkModuleRules
             "CkPerception",
             "CkPmg",
             "CkPhysics",
+            "CkProfile",
             "CkProvider",
             "CkRecord",
             "CkRelationship",
