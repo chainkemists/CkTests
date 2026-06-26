@@ -34,6 +34,10 @@
 UCLASS()
 class UCk_SmNetSubGatedTest_Condition_InputPressed : UCk_SmCondition_EventDriven
 {
+    // true  -> satisfied while the byte input == 1 (the "pressed" / enter-Sprinting edge)
+    // false -> satisfied while the byte input != 1 (the "released" edge; UCk_SmNetSubGatedTest_Condition_InputReleased)
+    protected bool _SatisfiedWhenPressed = true;
+
     private FCk_Handle_ByteAttribute _CachedAttribute;
 
     UFUNCTION(BlueprintOverride)
@@ -72,11 +76,25 @@ class UCk_SmNetSubGatedTest_Condition_InputPressed : UCk_SmCondition_EventDriven
 
     private void Evaluate(int32 InValue)
     {
-        if (InValue == 1)
+        const bool Pressed = (InValue == 1);
+        if (Pressed == _SatisfiedWhenPressed)
         { MarkSatisfied(); }
         else
         { MarkUnsatisfied(); }
     }
+}
+
+// ----------------------------------------------------------------------------
+// Release edge — satisfied while the input is NOT pressed. The sprint analog of
+// SprintReleased. The owning client (input held = 1) never satisfies this and
+// stays in Sub_Active; the SERVER's byte input is 0 (client-local), so without
+// authority-gated transition evaluation the server self-evaluates this and
+// reverts the relayed Sub_Active -> Sub_Idle (the self-eval conflict).
+// ----------------------------------------------------------------------------
+UCLASS()
+class UCk_SmNetSubGatedTest_Condition_InputReleased : UCk_SmNetSubGatedTest_Condition_InputPressed
+{
+    default _SatisfiedWhenPressed = false;
 }
 
 // ----------------------------------------------------------------------------
@@ -133,6 +151,12 @@ class UCk_SmNetSubGatedTest_Sub_Active : UCk_SmState_EntityScript
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         AddTask(InHandle, UCk_SmNetSubGatedTest_SpeedModifierTask);
+
+        // Release transition — faithful to sprint's Sprinting -> Walking on input release.
+        // The owning client holds input=1 so it stays here; the server's input is 0, so a
+        // non-authority-gated server would self-evaluate this and revert the relayed state.
+        auto ToIdle = AddTransition(InHandle, UCk_SmNetSubGatedTest_Sub_Idle);
+        AddCondition(ToIdle, UCk_SmNetSubGatedTest_Condition_InputReleased);
     }
 }
 
