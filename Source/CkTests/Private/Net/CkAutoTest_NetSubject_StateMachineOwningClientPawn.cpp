@@ -52,6 +52,17 @@ ACk_AutoTest_NetSubject_StateMachineOwningClientSubSm_Pawn::
 
 // --------------------------------------------------------------------------------------------------------------------
 
+ACk_AutoTest_NetSubject_StateMachineOwningClientSubSmGated_Pawn::
+    ACk_AutoTest_NetSubject_StateMachineOwningClientSubSmGated_Pawn()
+{
+    // Inherited owning-client actor setup; bridge to the SubSmGated entity-script (composes the byte
+    // "input" + float "speed" attributes and builds the SM whose initial state is the AS
+    // UCk_SmNetSubGatedTest_Parent_Hold — a byte-attr-gated sub-SM with an authority-gated task).
+    _EntityScriptClass = UCk_AutoTest_NetSubject_StateMachineOwningClientSubSmGatedEntityScript_UE::StaticClass();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 auto
     ACk_AutoTest_NetSubject_StateMachineOwningClient_Pawn::
     BeginPlay()

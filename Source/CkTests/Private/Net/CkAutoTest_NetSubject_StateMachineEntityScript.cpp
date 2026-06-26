@@ -8,8 +8,14 @@
 #include "CkStateMachine/StateMachine/CkStateMachine_Fragment_Data.h"
 #include "CkStateMachine/State/EntityScripts/CkSmState_EntityScript.h"
 
+#include "CkAttribute/ByteAttribute/CkByteAttribute_Utils.h"
+#include "CkAttribute/ByteAttribute/CkByteAttribute_Fragment_Data.h"
+#include "CkAttribute/FloatAttribute/CkFloatAttribute_Utils.h"
+#include "CkAttribute/FloatAttribute/CkFloatAttribute_Fragment_Data.h"
+
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
 
+#include "GameplayTagContainer.h"
 #include "UObject/SoftObjectPath.h"
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -118,6 +124,54 @@ auto
     // variant; null if the AS topology failed to compile (Add then ensures on the invalid class).
     static const auto AsSubWaitPath = FSoftClassPath{TEXT("/Script/Angelscript.Ck_SmNetSubTest_Sub_Wait")};
     return AsSubWaitPath.TryLoadClass<UCk_SmState_EntityScript>();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCk_AutoTest_NetSubject_StateMachineOwningClientSubSmGatedEntityScript_UE::
+    Construct(
+        FCk_Handle& InHandle,
+        const FInstancedStruct& InSpawnParams)
+    -> ECk_EntityScript_ConstructionFlow
+{
+    // Super builds the WithActor bridge + the OwningClientAuth SM (initial state = our AS parent via
+    // Get_InitialStateClass) + stashes the SM handle. AutoStart is Disabled for OwningClientAuth, so the
+    // SM does not run until the spec issues Request_Start post-possession — adding the attributes here
+    // (after the SM Add) is in time for the sub-SM's first evaluation.
+    const auto Flow = Super::Construct(InHandle, InSpawnParams);
+
+    // Float "speed" effect — Replicates so the authority-applied Multiply modifier's FinalValue
+    // propagates to the owning client for the assertion. Base 100 (x1.5 modifier -> 150 when applied).
+    {
+        const auto SpeedTag = FGameplayTag::RequestGameplayTag(FName{TEXT("FloatAttribute.Gyms.A")});
+        auto SpeedParams = FCk_Fragment_FloatAttribute_ParamsData{SpeedTag, 100.0f};
+        UCk_Utils_FloatAttribute_UE::Add(InHandle, SpeedParams, ECk_Replication::Replicates);
+    }
+
+    // Byte "input" intent — DoesNotReplicate so each machine owns its copy. The spec sets it ONLY on
+    // the owning client; the server's copy stays 0. This is the crux: the server's sub-SM never sees
+    // the client-local input, so it never enters Sub_Active and never runs the authority-gated task.
+    {
+        const auto InputTag = FGameplayTag::RequestGameplayTag(FName{TEXT("ByteAttribute.Gyms.Intent.R")});
+        auto InputParams = FCk_Fragment_ByteAttribute_ParamsData{InputTag, static_cast<uint8>(0)};
+        UCk_Utils_ByteAttribute_UE::Add(InHandle, InputParams, ECk_Replication::DoesNotReplicate);
+    }
+
+    return Flow;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    UCk_AutoTest_NetSubject_StateMachineOwningClientSubSmGatedEntityScript_UE::
+    Get_InitialStateClass() const
+    -> TSubclassOf<UCk_SmState_EntityScript>
+{
+    // AS-authored parent state (hosts the SubStateMachine task whose sub-SM is byte-attr-gated with an
+    // authority-gated Multiply task). Resolved by path; null if the AS topology failed to compile.
+    static const auto AsParentPath = FSoftClassPath{TEXT("/Script/Angelscript.Ck_SmNetSubGatedTest_Parent_Hold")};
+    return AsParentPath.TryLoadClass<UCk_SmState_EntityScript>();
 }
 
 // --------------------------------------------------------------------------------------------------------------------
