@@ -266,6 +266,7 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Inventory_DataOnly_SplitRespectsBound_Actor> Ck_AutoTest_Inventory_DataOnly_SplitRespectsBound_Actor_UAID_60CF84A99C2CEEE302_1127239096() { return TSoftObjectPtr<ACk_AutoTest_Inventory_DataOnly_SplitRespectsBound_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_DataOnly_SplitRespectsBound_Actor_UAID_60CF84A99C2CEEE302_1127239096")); }
     TSoftObjectPtr<ACk_AutoTest_Inventory_DataOnly_TotalUnitsBound_Actor> Ck_AutoTest_Inventory_DataOnly_TotalUnitsBound_Actor_UAID_60CF84A99C2CEEE302_1127241097() { return TSoftObjectPtr<ACk_AutoTest_Inventory_DataOnly_TotalUnitsBound_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_DataOnly_TotalUnitsBound_Actor_UAID_60CF84A99C2CEEE302_1127241097")); }
     TSoftObjectPtr<ACk_AutoTest_Inventory_DataOnly_Unbounded_Actor> Ck_AutoTest_Inventory_DataOnly_Unbounded_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Inventory_DataOnly_Unbounded_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_DataOnly_Unbounded_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Inventory_FillStacks_RespectsCanStackWith_Actor> Ck_AutoTest_Inventory_FillStacks_RespectsCanStackWith_Actor_UAID_D843AEBAD5E2BBE702_2012636343() { return TSoftObjectPtr<ACk_AutoTest_Inventory_FillStacks_RespectsCanStackWith_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_FillStacks_RespectsCanStackWith_Actor_UAID_D843AEBAD5E2BBE702_2012636343")); }
     TSoftObjectPtr<ACk_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation_Actor> Ck_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation_Actor_UAID_60CF84A99C2CEEE302_1127242098() { return TSoftObjectPtr<ACk_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation_Actor_UAID_60CF84A99C2CEEE302_1127242098")); }
     TSoftObjectPtr<ACk_AutoTest_Inventory_MassTransfer_FullMove_Actor> Ck_AutoTest_Inventory_MassTransfer_FullMove_Actor_UAID_60CF84A99C2C37E502_1645836999() { return TSoftObjectPtr<ACk_AutoTest_Inventory_MassTransfer_FullMove_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_MassTransfer_FullMove_Actor_UAID_60CF84A99C2C37E502_1645836999")); }
     TSoftObjectPtr<ACk_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit_Actor> Ck_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit_Actor_UAID_60CF84A99C2C37E502_1645839000() { return TSoftObjectPtr<ACk_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit_Actor_UAID_60CF84A99C2C37E502_1645839000")); }
@@ -2939,6 +2940,15 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_DataOnly_Unbounded_Actor_0());
+    }
+    ACk_AutoTest_Inventory_FillStacks_RespectsCanStackWith_Actor Ck_AutoTest_Inventory_FillStacks_RespectsCanStackWith_Actor_UAID_D843AEBAD5E2BBE702_2012636343()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_FillStacks_RespectsCanStackWith_Actor_UAID_D843AEBAD5E2BBE702_2012636343() called before engine init. Use assets::Ck_AutoTest_Inventory_FillStacks_RespectsCanStackWith_Actor_UAID_D843AEBAD5E2BBE702_2012636343() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_FillStacks_RespectsCanStackWith_Actor_UAID_D843AEBAD5E2BBE702_2012636343());
     }
     ACk_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation_Actor Ck_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation_Actor_UAID_60CF84A99C2CEEE302_1127242098()
     {
