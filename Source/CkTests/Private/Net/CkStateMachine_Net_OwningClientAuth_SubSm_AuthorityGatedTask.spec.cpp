@@ -135,8 +135,8 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_AuthorityGatedTask::RunTest(const
     bSuppressLogErrors = true;
     bSuppressLogWarnings = true;
 
-    constexpr auto NumPIEClients = 2;
-    constexpr auto ExpectedTotalWorlds = 2;
+    constexpr auto NumPIEClients = 3;
+    constexpr auto ExpectedTotalWorlds = 3;
     constexpr auto ReadyTimeoutSeconds = 30.0f;
     constexpr auto FramesAfterSpawn = 30;
     constexpr auto FramesAfterPossess = 30;
@@ -268,26 +268,29 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_AuthorityGatedTask::RunTest(const
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
         {
-            auto* Client = ck::auto_test::net::Get_ClientWorld(0);
-            auto* Server = ck::auto_test::net::Get_ServerWorld();
-            if (Client == nullptr || Server == nullptr)
-            { AddError(TEXT("server and/or client world unavailable at assertion time")); return false; }
+            auto* Client   = ck::auto_test::net::Get_ClientWorld(0);
+            auto* Observer = ck::auto_test::net::Get_ClientWorld(1);
+            auto* Server   = ck::auto_test::net::Get_ServerWorld();
+            if (Client == nullptr || Observer == nullptr || Server == nullptr)
+            { AddError(TEXT("server and/or client world(s) unavailable at assertion time")); return false; }
 
-            auto* ClientPawn = Find_Pawn(Client);
-            auto* ServerPawn = Find_Pawn(Server);
-            if (ClientPawn == nullptr || ServerPawn == nullptr)
-            { AddError(TEXT("client and/or server pawn missing at assertion time")); return false; }
+            auto* ClientPawn   = Find_Pawn(Client);
+            auto* ObserverPawn = Find_Pawn(Observer);
+            auto* ServerPawn   = Find_Pawn(Server);
+            if (ClientPawn == nullptr || ObserverPawn == nullptr || ServerPawn == nullptr)
+            { AddError(TEXT("client, observer and/or server pawn missing at assertion time")); return false; }
 
             const auto ClientSub   = Get_SubSmCurrentStateName(ClientPawn);
+            const auto ObserverSub = Get_SubSmCurrentStateName(ObserverPawn);
             const auto ServerSub   = Get_SubSmCurrentStateName(ServerPawn);
             const auto ClientSpeed = Get_SpeedFinalValue(ClientPawn);
             const auto ServerSpeed = Get_SpeedFinalValue(ServerPawn);
 
             // Diagnostics to the editor log (UE_LOG, not AddInfo — AddInfo goes to the test report, not
-            // the .log the toolbox captures). Shows the settled state on both worlds.
+            // the .log the toolbox captures). Shows the settled state on all three worlds.
             UE_LOG(LogTemp, Display,
-                TEXT("[SubSmRelayDiag] client sub-SM=[%s] server sub-SM=[%s] | client speed=[%s] server speed=[%s] (expect %.1f)"),
-                *ClientSub, *ServerSub,
+                TEXT("[SubSmRelayDiag] owning-client sub-SM=[%s] observer sub-SM=[%s] server sub-SM=[%s] | client speed=[%s] server speed=[%s] (expect %.1f)"),
+                *ClientSub, *ObserverSub, *ServerSub,
                 ClientSpeed.IsSet() ? *FString::SanitizeFloat(*ClientSpeed) : TEXT("<none>"),
                 ServerSpeed.IsSet() ? *FString::SanitizeFloat(*ServerSpeed) : TEXT("<none>"),
                 k_ExpectedSpeedWhenFixed);
@@ -296,6 +299,14 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_AuthorityGatedTask::RunTest(const
             // input is 0) and reverts to Sub_Idle, undoing the relayed state.
             TestEqual(TEXT("server sub-SM holds Sub_Active (followed relay, did NOT self-revert)"),
                 ServerSub, FString{k_SubActiveName});
+
+            // The leg-2 target: the OBSERVER (a non-owning, non-server client) must also reach AND HOLD
+            // Sub_Active. It learns the sub-SM transition only via the server's republish onto the root's
+            // WithHistory container — it has neither the (non-replicated) byte input nor authority. RED
+            // today: with no leg-2 republish it stays in Sub_Idle; a republish without the observer gate
+            // suppression would land Sub_Active transiently then self-revert (its local byte is 0).
+            TestEqual(TEXT("observer (non-owning client) sub-SM holds Sub_Active (followed leg-2 republish)"),
+                ObserverSub, FString{k_SubActiveName});
 
             if (NOT ClientSpeed.IsSet())
             { AddError(TEXT("client-side float 'speed' attribute not found at assertion time")); return false; }
@@ -306,7 +317,7 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_AuthorityGatedTask::RunTest(const
 
             return true;
         }),
-        TEXT("TARGET: server follows the relay (no self-revert) and the modifier holds on the client")));
+        TEXT("TARGET: server + observer follow the relay (no self-revert) and the modifier holds on the client")));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 
