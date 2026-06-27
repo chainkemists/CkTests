@@ -254,8 +254,8 @@ class ACk_GridSystem_GymActor : AActor
 			auto LocalTransform = FTransform(CellLocalPos);
 			auto WorldTransform = FTransform(CellWorldPos);
 
-			auto CellProxy = UCk_Utils_SceneNode_UE::Create(GridAsTransform, LocalTransform);
-			UCk_Utils_IsmProxy_UE::Add(CellProxy.H(), IsmParams);
+			auto CellProxy = UCk_Utils_SceneNode_UE::Create(GridAsTransform, LocalTransform).As_Transform();
+			UCk_Utils_IsmProxy_UE::Add(CellProxy, IsmParams);
 		}
 
 		return Grid;

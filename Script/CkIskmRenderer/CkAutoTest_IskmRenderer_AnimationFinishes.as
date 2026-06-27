@@ -29,10 +29,11 @@ class UCk_AutoTest_IskmRenderer_AnimationFinishes : UCk_AutoTest_Base
         { FinishSuccess(); return; }
 
         auto LocalHandle = InHandle;
+        auto TransformHandle = utils_transform::Add(LocalHandle, FTransform::Identity);
 
         auto Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
         auto Params = FCk_Fragment_IskmProxy_ParamsData(Renderer, FTransform::Identity);
-        _Proxy = utils_iskm_proxy::Add(LocalHandle, Params);
+        _Proxy = utils_iskm_proxy::Add(TransformHandle, Params);
 
         utils_iskm_proxy::BindTo_OnAnimationFinished(_Proxy,
             FCk_Delegate_IskmProxy_OnAnimationFinished(this, n"OnFinished"));

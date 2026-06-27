@@ -73,7 +73,8 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
         // Scale the 260x260x260 regular cube to match our pickup size
         FVector ScaleMultiplier = CalculateRegularCubeScale(PickupSize);
         IsmProxyParams.Set_ScaleMultiplier(ScaleMultiplier);
-        PickupRenderer = utils_ism_proxy::Add(InHandle, IsmProxyParams);
+        auto IsmProxyTransform = InHandle.As_Transform();
+        PickupRenderer = utils_ism_proxy::Add(IsmProxyTransform, IsmProxyParams);
 
         // Bind overlap events
         utils_probe::BindTo_OnBeginOverlap(ProbeHandle,

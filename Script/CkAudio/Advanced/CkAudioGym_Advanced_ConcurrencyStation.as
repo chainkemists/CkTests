@@ -153,7 +153,9 @@ class UCkAudioGym_Advanced_ConcurrencyStation : UCkAudioGym_Advanced_Base
 
             // Arrange indicators in a line above the station
             // TODO: Position indicators based on index
-            auto Indicator = utils_ism_proxy::Add(InHandle, IndicatorParams);
+
+            auto IsmProxyTransform = InHandle.As_Transform();
+            auto Indicator = utils_ism_proxy::Add(IsmProxyTransform, IndicatorParams);
             TrackIndicators.Add(Indicator);
         }
     }
