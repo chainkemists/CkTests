@@ -44,12 +44,15 @@ class UCk_AutoTest_IskmRenderer_MaterialOverride : UCk_AutoTest_Base
         if (ck::Is_NOT_Valid(_OverrideMat)) { FinishSuccess(); return; }
 
         auto LocalHandle = InHandle;
+
         _TestEntity = InHandle;
         _Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
 
         auto ChildA = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
+        auto ChildATransformHandle = utils_transform::Add(ChildA, FTransform::Identity);
+
         auto Params = FCk_Fragment_IskmProxy_ParamsData(_Renderer, FTransform::Identity);
-        _ProxyA = utils_iskm_proxy::Add(ChildA, Params);
+        _ProxyA = utils_iskm_proxy::Add(ChildATransformHandle, Params);
         _ChildA = ChildA;
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
@@ -98,7 +101,9 @@ class UCk_AutoTest_IskmRenderer_MaterialOverride : UCk_AutoTest_Base
             auto LocalHandle = _TestEntity;
             auto ChildB = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
             auto Params = FCk_Fragment_IskmProxy_ParamsData(_Renderer, FTransform::Identity);
-            _ProxyB = utils_iskm_proxy::Add(ChildB, Params);
+
+            auto ChildBTransformHandle = utils_transform::Add(ChildB, FTransform::Identity);
+            _ProxyB = utils_iskm_proxy::Add(ChildBTransformHandle, Params);
             _ChildB = ChildB;
             _Phase = 3;
             _TicksInPhase = 0;

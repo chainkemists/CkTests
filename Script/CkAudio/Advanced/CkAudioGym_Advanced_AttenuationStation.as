@@ -146,7 +146,8 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
             auto DistanceRatio = float(i) / float(AttenuationTestZones.Num() - 1);
 
             // TODO: Position markers at AttenuationTestZones[i]
-            auto Marker = utils_ism_proxy::Add(InHandle, MarkerParams);
+            auto IsmProxyTransform = InHandle.As_Transform();
+            auto Marker = utils_ism_proxy::Add(IsmProxyTransform, MarkerParams);
             ZoneMarkers.Add(Marker);
         }
     }

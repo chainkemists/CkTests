@@ -39,7 +39,7 @@ class UCk_AutoTest_IskmRenderer_Ragdoll : UCk_AutoTest_Base
         Assert_True(ck::Is_NOT_Valid(BeginResult),
             "Request_BeginRagdoll on invalid handle should return invalid handle");
 
-        FCk_Handle_IskmProxy EndResult = utils_iskm_proxy::Request_EndRagdoll(EmptyHandle);
+        FCk_Handle_IskmProxy EndResult = utils_iskm_proxy::Request_EndRagdoll(EmptyHandle, FCk_Request_IskmProxy_EndRagdoll());
         Assert_True(ck::Is_NOT_Valid(EndResult),
             "Request_EndRagdoll on invalid handle should return invalid handle");
 

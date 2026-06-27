@@ -342,6 +342,7 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor> Ck_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor_UAID_C87F5401E53525DC02_1446934329() { return TSoftObjectPtr<ACk_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured_Actor_UAID_C87F5401E53525DC02_1446934329")); }
     TSoftObjectPtr<ACk_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor> Ck_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor_UAID_C87F5401E53525DC02_1446935330() { return TSoftObjectPtr<ACk_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Probe_GetName_ReturnsConfiguredTag_Actor_UAID_C87F5401E53525DC02_1446935330")); }
     TSoftObjectPtr<ACk_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor> Ck_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor_UAID_C87F5401E53525DC02_1446936331() { return TSoftObjectPtr<ACk_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor_UAID_C87F5401E53525DC02_1446936331")); }
+    TSoftObjectPtr<ACk_AutoTest_Profile_ScopedStat_Actor> Ck_AutoTest_Profile_ScopedStat_Actor_UAID_C87F5401E53533E802_1870390463() { return TSoftObjectPtr<ACk_AutoTest_Profile_ScopedStat_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Profile_ScopedStat_Actor_UAID_C87F5401E53533E802_1870390463")); }
     TSoftObjectPtr<ACk_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor> Ck_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor_UAID_C87F5401E5352ADC02_2117494208() { return TSoftObjectPtr<ACk_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor_UAID_C87F5401E5352ADC02_2117494208")); }
     TSoftObjectPtr<ACk_AutoTest_RaySense_Add_CreatesEntity_Actor> Ck_AutoTest_RaySense_Add_CreatesEntity_Actor_UAID_C87F5401E53527DC02_1742352682() { return TSoftObjectPtr<ACk_AutoTest_RaySense_Add_CreatesEntity_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_RaySense_Add_CreatesEntity_Actor_UAID_C87F5401E53527DC02_1742352682")); }
     TSoftObjectPtr<ACk_AutoTest_Record_AddHasFeature_Actor> Ck_AutoTest_Record_AddHasFeature_Actor_UAID_C87F5401E5359DDB02_1135314391() { return TSoftObjectPtr<ACk_AutoTest_Record_AddHasFeature_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Record_AddHasFeature_Actor_UAID_C87F5401E5359DDB02_1135314391")); }
@@ -3624,6 +3625,15 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Probe_Request_EnableDisable_StateFlips_Actor_UAID_C87F5401E53525DC02_1446936331());
+    }
+    ACk_AutoTest_Profile_ScopedStat_Actor Ck_AutoTest_Profile_ScopedStat_Actor_UAID_C87F5401E53533E802_1870390463()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Profile_ScopedStat_Actor_UAID_C87F5401E53533E802_1870390463() called before engine init. Use assets::Ck_AutoTest_Profile_ScopedStat_Actor_UAID_C87F5401E53533E802_1870390463() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Profile_ScopedStat_Actor_UAID_C87F5401E53533E802_1870390463());
     }
     ACk_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor Ck_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration_Actor_UAID_C87F5401E5352ADC02_2117494208()
     {

@@ -28,10 +28,11 @@ class UCk_AutoTest_IskmRenderer_RagdollPoseSource : UCk_AutoTest_Base
         if (ck::Is_NOT_Valid(RendererData)) { FinishSuccess(); return; }
 
         auto LocalHandle = InHandle;
+        auto TransformHandle = utils_transform::Add(LocalHandle, FTransform::Identity);
 
         auto Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
         auto Params = FCk_Fragment_IskmProxy_ParamsData(Renderer, FTransform::Identity);
-        _Proxy = utils_iskm_proxy::Add(LocalHandle, Params);
+        _Proxy = utils_iskm_proxy::Add(TransformHandle, Params);
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
     }
@@ -55,7 +56,7 @@ class UCk_AutoTest_IskmRenderer_RagdollPoseSource : UCk_AutoTest_Base
             // No PhysicsAsset → pose source stays Sequence (skip condition).
             if (Pose != ECk_IskmProxy_PoseSource::Ragdoll) { FinishSuccess(); return; }
 
-            utils_iskm_proxy::Request_EndRagdoll(_Proxy);
+            utils_iskm_proxy::Request_EndRagdoll(_Proxy, FCk_Request_IskmProxy_EndRagdoll());
             _Phase = 2;
             _TicksInPhase = 0;
         }

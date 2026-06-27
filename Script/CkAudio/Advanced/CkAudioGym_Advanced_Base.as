@@ -103,7 +103,7 @@ class UCkAudioGym_Advanced_Base : UCk_GenericEntityScript_UE
         auto IsmProxyParams = FCk_Fragment_IsmProxy_ParamsData(ck::Asset_BackgroundCube);
         // Use utility function to calculate scale for 1040x1040x1040 background cube
         IsmProxyParams.Set_ScaleMultiplier(CalculateBackgroundCubeScale(ProbeSize));
-        utils_ism_proxy::Add(InHandle, IsmProxyParams);
+        utils_ism_proxy::Add(TransformHandle, IsmProxyParams);
 
         // Print station information to console for now
         Print("🎯 Station Created: " + StationName, 5.0f);

@@ -28,10 +28,11 @@ class UCk_AutoTest_IskmRenderer_OutfitAttach : UCk_AutoTest_Base
         if (ck::Is_NOT_Valid(RendererData)) { FinishSuccess(); return; }
 
         auto LocalHandle = InHandle;
+        auto TransformHandle = utils_transform::Add(LocalHandle, FTransform::Identity);
 
         auto Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
         auto Params = FCk_Fragment_IskmProxy_ParamsData(Renderer, FTransform::Identity);
-        _Proxy = utils_iskm_proxy::Add(LocalHandle, Params);
+        _Proxy = utils_iskm_proxy::Add(TransformHandle, Params);
 
         utils_iskm_proxy::Request_AttachSubmesh(_Proxy, n"Hat");
 
