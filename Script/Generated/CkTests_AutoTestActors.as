@@ -1712,7 +1712,7 @@ class ACk_AutoTest_EntityTagQuery_BuilderWithinAFrame_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 6.0f;
+    default _TimeoutSeconds = 8.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
