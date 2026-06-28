@@ -7,9 +7,9 @@
 // Verifies J1 — OnContinuousUpdate payload's _Added / _Removed arrays surface
 // the per-pass deltas without requiring caller-side diffing.
 //
-// Continuous-update fires EVERY pump pass. To survive the post-mutation pass
-// (where deltas are empty again), accumulate the delta counts across all fires
-// rather than latching the latest value.
+// Continuous-update fires on each pass whose result set changed (add or remove).
+// Accumulate the delta counts across all fires rather than latching the latest
+// value, so the assertions hold regardless of how the deltas split across fires.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous : UCk_AutoTest_Base
@@ -103,8 +103,8 @@ class UCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous : UCk_AutoTest_Base
     {
         if (InResults.Num() == 0) { return; }
 
-        // Accumulate — continuous-update fires every pass; we want cumulative deltas
-        // so the post-mutation pass (which has empty deltas) doesn't overwrite the meaningful one.
+        // Accumulate — a single mutation may surface its delta across one or more change
+        // fires; cumulative counts keep the assertions robust to that split.
         _TotalAddedSeen   += InResults[0].Get_Added().Num();
         _TotalRemovedSeen += InResults[0].Get_Removed().Num();
     }

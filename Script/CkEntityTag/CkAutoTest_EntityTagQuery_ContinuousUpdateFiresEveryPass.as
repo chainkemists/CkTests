@@ -1,27 +1,34 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: ON CONTINUOUS UPDATE FIRES EVERY PASS
+// CK ENTITY TAG QUERY — AUTOMATION TEST: ON CONTINUOUS UPDATE FIRES ONLY ON CHANGE
 //============================================================================
 //
-// Verifies improvement I2 — when a delegate is bound to OnContinuousUpdate,
-// the query broadcasts that signal on every pump pass, regardless of
-// satisfaction state. The counter must strictly increase frame over frame.
+// NOTE ON NAME: the class/file retains its historical "FiresEveryPass" name so
+// renaming it does not churn the generated autotest wrapper + the placed actor in
+// AutoTests_CkTests_Level. Its CONTRACT changed: OnContinuousUpdate is now
+// change-gated — it broadcasts ONLY on a pump pass whose result set actually
+// changed (an entity entered or left a requirement), and stays SILENT on
+// no-change passes. (Broadcasting every pass cost a per-frame payload alloc +
+// broadcast + delegate call per bound query even when nothing changed; every
+// consumer reacts to the _Added / _Removed deltas, so a no-change pass has nothing
+// to deliver.)
 //
-// Strategy: add a query with one requirement that nothing in the world satisfies
-// (so IsSatisfied stays false the whole time), bind OnContinuousUpdate, then
-// observe _FireCount across three successive frames.
+// Strategy: bind OnContinuousUpdate to a query whose requirement nothing satisfies
+// yet, prove it stays silent across idle passes, then add a matching entity and
+// prove exactly that change fires it — and that it goes silent again afterwards.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 6.0f;
+    default _TimeoutSeconds = 8.0f;
 
     private FCk_Handle                _Owner;
     private FCk_Handle_EntityTagQuery _Query;
-    private int32                     _FireCount = 0;
-    private int32                     _PassCountAfterFirstFrame  = 0;
-    private int32                     _PassCountAfterSecondFrame = 0;
+    private FCk_Handle                _E1;
+    private int32                     _FireCount         = 0;
+    private int32                     _FireCountIdle     = 0;
+    private int32                     _FireCountAfterAdd = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -40,6 +47,8 @@ class UCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass : UCk_AutoTest_
         utils_entity_tag_query::Request_AddRequirement(_Query,
             FCk_Request_EntityTagQuery_AddRequirement(Req));
 
+        // One frame for HandleRequests to install the requirement so the query is
+        // actively evaluating before we assert on its (non-)firing.
         WaitOneFrame(n"AfterAddRequirement");
     }
 
@@ -48,29 +57,50 @@ class UCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass : UCk_AutoTest_
     {
         if (IsFinished()) { return; }
 
-        _PassCountAfterFirstFrame = _FireCount;
-        WaitOneFrame(n"AfterFrame2");
+        // No matching entity exists, so the evaluate produced no delta and must not fire.
+        Assert_Equals_Int(_FireCount, 0,
+            "OnContinuousUpdate must NOT fire while the result set is empty/unchanged");
+
+        _FireCountIdle = _FireCount;
+        WaitOneFrame(n"AfterIdle");
     }
 
     UFUNCTION()
-    private void AfterFrame2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void AfterIdle(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
-        _PassCountAfterSecondFrame = _FireCount;
-        Assert_True(_PassCountAfterSecondFrame > _PassCountAfterFirstFrame,
-            "OnContinuousUpdate must have fired at least once more during the second pump pass");
+        // A further idle pass (query active, still no change) must remain silent.
+        Assert_Equals_Int(_FireCount, _FireCountIdle,
+            "An idle pass with no result-set change must NOT fire OnContinuousUpdate");
 
-        WaitOneFrame(n"AfterFrame3");
+        // Now introduce a real change: tag a matching entity.
+        _E1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
+        utils_entity_tag::Add(_E1, n"AutoTestEtq_Cont");
+        WaitOneFrame(n"AfterAdd");
     }
 
     UFUNCTION()
-    private void AfterFrame3(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void AfterAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
-        Assert_True(_FireCount > _PassCountAfterSecondFrame,
-            "OnContinuousUpdate must keep firing every pass — third frame must increment the counter again");
+        // The entity entering the result set is a change — it must fire.
+        Assert_True(_FireCount > _FireCountIdle,
+            "A result-set change (entity added) must fire OnContinuousUpdate");
+
+        _FireCountAfterAdd = _FireCount;
+        WaitOneFrame(n"AfterSettle");
+    }
+
+    UFUNCTION()
+    private void AfterSettle(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        // Once the change has settled, subsequent no-change passes must be silent again.
+        Assert_Equals_Int(_FireCount, _FireCountAfterAdd,
+            "After the change settles, an idle pass must NOT re-fire OnContinuousUpdate");
 
         FinishSuccess();
     }
@@ -81,11 +111,6 @@ class UCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass : UCk_AutoTest_
         bool InIsSatisfied,
         const TArray<FCk_EntityTagQuery_Result>&in InResults)
     {
-        // No matching entity exists, so the query must report unsatisfied
-        // on every continuous-update broadcast.
-        Assert_True(InIsSatisfied == false,
-            "OnContinuousUpdate must surface the current IsSatisfied state — no matches exist, so it must be false");
-
         _FireCount += 1;
     }
 }
