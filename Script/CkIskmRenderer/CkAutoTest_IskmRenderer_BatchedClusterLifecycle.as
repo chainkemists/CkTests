@@ -36,12 +36,11 @@ class UCk_AutoTest_IskmRenderer_BatchedClusterLifecycle : UCk_AutoTest_Base
         Assert_True(UCk_Utils_IskmAnimCollection_UE::Get_IsBaked(Collection),
             "Collection should bake before spawning a batched cluster");
 
-        // Frame at the start of the first sequence (a non-identity animated pose).
-        const int32 Frame = UCk_Utils_IskmAnimCollection_UE::Get_SequenceFrameIndex(Collection, 0);
-
         // NOTE: the WorldContext param is stripped in AngelScript (meta=(WorldContext=...)); it is auto-injected.
+        // 2x2 grid, all playing sequence 0 with independent phase; Rate defaults to 1 (animating). Under --no-nullrhi
+        // this drives the per-frame instance update (proxy UpdateInstanceBuffer + FScene::PrimitiveUpdates).
         auto BaseXf = FTransform();
-        auto Cluster = UCk_Utils_IskmBatched_UE::Debug_SpawnCluster(Collection, BaseXf, 2, 150.0f, Frame);
+        auto Cluster = UCk_Utils_IskmBatched_UE::Debug_SpawnCluster(Collection, BaseXf, 2, 150.0f, 0);
 
         Assert_True(ck::IsValid(Cluster),
             "Debug_SpawnCluster should return a valid batched cluster component");
