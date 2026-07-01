@@ -45,10 +45,12 @@ class UCk_EntityScript_IskmRendererBatched_Crowd : UCk_GenericEntityScript_UE
 
         // 144 GPU-skinned instances scattered over a ~6000cm square in front of the panel (player camera is -X),
         // spatially partitioned into 2000cm tile clusters — each tile is its own GPUScene proxy with tight bounds
-        // (per-tile frustum + per-instance occlusion culling). WorldContext is auto-injected in AS.
+        // (per-tile frustum + per-instance occlusion culling). SequenceIndex -1 = cycle idle/walk/jog per instance
+        // so the crowd is visibly alive and the per-instance (out-of-phase, independent) animation is obvious — idle
+        // alone is too subtle to read. WorldContext is auto-injected in AS.
         auto SpawnBase = InitialTransform;
         SpawnBase.AddToTranslation(FVector(-3000.0f, 0.0f, 0.0f));
-        UCk_Utils_IskmBatched_UE::Debug_SpawnScatteredCrowd(Collection, SpawnBase, 144, 3000.0f, 2000.0f, 0, 1.0f);
+        UCk_Utils_IskmBatched_UE::Debug_SpawnScatteredCrowd(Collection, SpawnBase, 144, 3000.0f, 2000.0f, -1, 1.0f);
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -162,7 +164,9 @@ class UCk_EntityScript_IskmRendererBatched_Flip : UCk_GenericEntityScript_UE
         }
     }
 
-    // Hide the batched member; stand up a per-SKMC proxy at its transform, idling (ragdoll/montage-ready).
+    // Hide the batched member; stand up a per-SKMC proxy at its transform and RAGDOLL it. Against the idle batched
+    // backdrop the flip is unmistakable — the nearest instances become real per-SKMC proxies and collapse — and it
+    // directly demonstrates the SKMC-only capability (ragdoll) the batched path can't do.
     private void Promote(int32 InIndex, FTransform InMemberXf)
     {
         UCk_Utils_IskmBatched_UE::Set_CrowdMemberVisible(_Crowd, InIndex, false);
@@ -171,13 +175,8 @@ class UCk_EntityScript_IskmRendererBatched_Flip : UCk_GenericEntityScript_UE
         auto Transform = utils_transform::Add(Entity, InMemberXf, ECk_Replication::DoesNotReplicate);
         auto Proxy = utils_iskm_proxy::Add(Transform, FCk_Fragment_IskmProxy_ParamsData(_Renderer, InMemberXf));
 
-        UAnimSequenceBase IdleSeq = assets::load::MM_Idle();
-        if (ck::IsValid(IdleSeq))
-        {
-            auto PlayReq = FCk_Request_IskmProxy_PlayAnimation(IdleSeq);
-            PlayReq.Set_Loop(true);
-            utils_iskm_proxy::Request_PlayAnimation(Proxy, PlayReq);
-        }
+        FCk_Request_IskmProxy_BeginRagdoll RagdollReq;
+        utils_iskm_proxy::Request_BeginRagdoll(Proxy, RagdollReq);
 
         _ProxyEntities[InIndex] = Entity;
         _Promoted[InIndex] = true;
