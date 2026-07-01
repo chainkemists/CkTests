@@ -57,9 +57,11 @@ class UCk_EntityScript_IskmRendererBatched_Crowd : UCk_GenericEntityScript_UE
 // ====================================================================================================================
 // Station — GPU <-> SKMC Flip: distance-LOD routing (Phase 5).
 //
-// STUB: currently spawns a batched crowd only. Once Phase 5 (distance-LOD routing + SKMC fallback)
-// lands, this station will drive the manager so the instances nearest the player flip to per-SKMC
-// proxies (Plan-1) for ragdoll/montage, then back to batched when they move away.
+// A small batched crowd. Each tick, the members within PromoteDist of the player flip OUT of the batched tile
+// (Set_CrowdMemberVisible false) and are replaced by a real per-SKMC proxy (Plan-1) at the same transform — so
+// they can ragdoll and play montages. When a promoted member moves beyond DemoteDist, its SKMC proxy is destroyed
+// (SKMC returns to the Plan-1 pool automatically on EndPlay) and it returns to batched rendering. Hysteresis
+// (700/1100) prevents thrash; MaxPromoted caps concurrent SKMCs so the pool stays small.
 // ====================================================================================================================
 
 class UCk_EntityScript_IskmRendererBatched_Flip : UCk_GenericEntityScript_UE
@@ -69,11 +71,25 @@ class UCk_EntityScript_IskmRendererBatched_Flip : UCk_GenericEntityScript_UE
     UPROPERTY(ExposeOnSpawn)
     FTransform InitialTransform = FTransform::Identity;
 
+    private ACk_Iskm_BatchedCrowd_Actor _Crowd;
+    private FCk_Handle _SelfHandle;
+    private FCk_Handle_IskmRenderer _Renderer;
+    private bool _RendererValid = false;
+
+    // Per-member flip state (parallel to crowd member indices).
+    private TArray<bool>       _Promoted;
+    private TArray<FCk_Handle> _ProxyEntities;
+
+    const float PromoteDist = 700.0f;
+    const float DemoteDist  = 1100.0f;
+    const int32 MaxPromoted = 6;
+
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow
     DoConstruct(FCk_Handle& InHandle)
     {
         InHandle.Set_DebugName(n"BatchedFlip");
+        _SelfHandle = InHandle;
 
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
@@ -81,12 +97,100 @@ class UCk_EntityScript_IskmRendererBatched_Flip : UCk_GenericEntityScript_UE
             Print("[IskmBatched Gym/Flip] AnimCollection_Demo() invalid — registry may need regeneration.", 10.0f);
             return ECk_EntityScript_ConstructionFlow::Finished;
         }
-
         UCk_Utils_IskmAnimCollection_UE::Build_BakedPoseData(Collection);
 
-        // Phase 5 will replace this with the distance-LOD crowd. For now a small batched grid stands in.
-        UCk_Utils_IskmBatched_UE::Debug_SpawnCluster(Collection, InitialTransform, 6, 150.0f, 0, 1.0f);
+        // Plan-1 renderer for the per-SKMC stand-ins. If unset, the crowd still renders batched; promotion is skipped.
+        auto RendererData = iskm_assets::RendererData_Demo();
+        if (ck::IsValid(RendererData))
+        {
+            _Renderer = utils_iskm_renderer::Add(InHandle, RendererData);
+            _RendererValid = true;
+        }
 
+        // Small walkable crowd in front of the panel (player camera is -X).
+        auto SpawnBase = InitialTransform;
+        SpawnBase.AddToTranslation(FVector(-2000.0f, 0.0f, 0.0f));
+        _Crowd = UCk_Utils_IskmBatched_UE::Debug_SpawnScatteredCrowd(Collection, SpawnBase, 36, 1200.0f, 1500.0f, 0, 1.0f);
+
+        if (ck::IsValid(_Crowd))
+        {
+            const int32 Count = UCk_Utils_IskmBatched_UE::Get_CrowdMemberCount(_Crowd);
+            _Promoted.SetNum(Count);
+            _ProxyEntities.SetNum(Count);
+            for (int32 i = 0; i < Count; ++i)
+            {
+                _Promoted[i] = false;
+            }
+        }
+
+        utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
         return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+
+    UFUNCTION()
+    private void OnTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (ck::Is_NOT_Valid(_Crowd) || !_RendererValid) { return; }
+
+        auto Pawn = Gameplay::GetPlayerPawn(0);
+        if (!IsValid(Pawn)) { return; }
+        const FVector PlayerLoc = Pawn.GetActorLocation();
+
+        const int32 Count = UCk_Utils_IskmBatched_UE::Get_CrowdMemberCount(_Crowd);
+
+        int32 PromotedCount = 0;
+        for (int32 i = 0; i < Count; ++i)
+        {
+            if (_Promoted[i]) { PromotedCount++; }
+        }
+
+        for (int32 i = 0; i < Count; ++i)
+        {
+            const FTransform MemberXf = UCk_Utils_IskmBatched_UE::Get_CrowdMemberTransform(_Crowd, i);
+            const float Dist = (MemberXf.GetLocation() - PlayerLoc).Size();
+
+            if (!_Promoted[i] && Dist < PromoteDist && PromotedCount < MaxPromoted)
+            {
+                Promote(i, MemberXf);
+                PromotedCount++;
+            }
+            else if (_Promoted[i] && Dist > DemoteDist)
+            {
+                Demote(i);
+                PromotedCount--;
+            }
+        }
+    }
+
+    // Hide the batched member; stand up a per-SKMC proxy at its transform, idling (ragdoll/montage-ready).
+    private void Promote(int32 InIndex, FTransform InMemberXf)
+    {
+        UCk_Utils_IskmBatched_UE::Set_CrowdMemberVisible(_Crowd, InIndex, false);
+
+        auto Entity = _SelfHandle.Request_CreateEntity();
+        auto Transform = utils_transform::Add(Entity, InMemberXf, ECk_Replication::DoesNotReplicate);
+        auto Proxy = utils_iskm_proxy::Add(Transform, FCk_Fragment_IskmProxy_ParamsData(_Renderer, InMemberXf));
+
+        UAnimSequenceBase IdleSeq = assets::load::MM_Idle();
+        if (ck::IsValid(IdleSeq))
+        {
+            auto PlayReq = FCk_Request_IskmProxy_PlayAnimation(IdleSeq);
+            PlayReq.Set_Loop(true);
+            utils_iskm_proxy::Request_PlayAnimation(Proxy, PlayReq);
+        }
+
+        _ProxyEntities[InIndex] = Entity;
+        _Promoted[InIndex] = true;
+    }
+
+    // Destroy the per-SKMC proxy (SKMC returns to the Plan-1 pool on EndPlay); return the member to batched.
+    private void Demote(int32 InIndex)
+    {
+        if (ck::IsValid(_ProxyEntities[InIndex]))
+        {
+            utils_entity_lifetime::Request_DestroyEntity(_ProxyEntities[InIndex]);
+        }
+        UCk_Utils_IskmBatched_UE::Set_CrowdMemberVisible(_Crowd, InIndex, true);
+        _Promoted[InIndex] = false;
     }
 }
