@@ -26,6 +26,5 @@ namespace Ck
         GameplayTags.Add(n"Gym.Iskm.CustomData");
         GameplayTags.Add(n"Gym.Iskm.TransitionCycle");
         GameplayTags.Add(n"Gym.Iskm.AnimBPDemo");
-        GameplayTags.Add(n"Gym.Iskm.BatchedArmy");
     }
 }
