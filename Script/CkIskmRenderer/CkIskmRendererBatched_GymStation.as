@@ -43,8 +43,12 @@ class UCk_EntityScript_IskmRendererBatched_Crowd : UCk_GenericEntityScript_UE
 
         UCk_Utils_IskmAnimCollection_UE::Build_BakedPoseData(Collection);
 
-        // 12x12 = 144 GPU-skinned instances, per-instance phase-offset looping, one GPUScene cluster.
-        UCk_Utils_IskmBatched_UE::Debug_SpawnCluster(Collection, InitialTransform, 12, 150.0f, 0, 1.0f);
+        // 144 GPU-skinned instances scattered over a ~6000cm square in front of the panel (player camera is -X),
+        // spatially partitioned into 2000cm tile clusters — each tile is its own GPUScene proxy with tight bounds
+        // (per-tile frustum + per-instance occlusion culling). WorldContext is auto-injected in AS.
+        auto SpawnBase = InitialTransform;
+        SpawnBase.AddToTranslation(FVector(-3000.0f, 0.0f, 0.0f));
+        UCk_Utils_IskmBatched_UE::Debug_SpawnScatteredCrowd(Collection, SpawnBase, 144, 3000.0f, 2000.0f, 0, 1.0f);
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
