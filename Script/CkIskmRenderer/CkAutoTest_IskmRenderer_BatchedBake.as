@@ -87,6 +87,22 @@ class UCk_AutoTest_IskmRenderer_BatchedBake : UCk_AutoTest_Base
             Seq1Start + (Seq1Count - 1),
             "GlobalFrame should clamp an out-of-range local frame to the last frame");
 
+        // ----- 6. Looped per-instance frame advance (Phase 3 time->frame math) -----
+        const int32 Freq = UCk_Utils_IskmAnimCollection_UE::Get_SequenceSampleFrequency(Collection, 1);
+        Assert_True(Freq > 0, "Sequence sample frequency should be positive");
+        Assert_Equals_Int(UCk_Utils_IskmAnimCollection_UE::Get_LoopedFrameAtTime(Collection, 1, 0.0f), Seq1Start,
+            "Looped frame at t=0 should be the sequence start");
+        const int32 FrameBig = UCk_Utils_IskmAnimCollection_UE::Get_LoopedFrameAtTime(Collection, 1, 100000.0f);
+        Assert_True(FrameBig >= Seq1Start && FrameBig < Seq1Start + Seq1Count,
+            "Looped frame should always stay within the sequence range");
+        if (Seq1Count > 2)
+        {
+            // (count + 2) local frames of elapsed time should wrap to start + 2.
+            const float WrapTime = float(Seq1Count + 2) / float(Freq);
+            Assert_Equals_Int(UCk_Utils_IskmAnimCollection_UE::Get_LoopedFrameAtTime(Collection, 1, WrapTime), Seq1Start + 2,
+                "Looped frame should advance and wrap: (count + 2) frames -> start + 2");
+        }
+
         FinishSuccess();
     }
 }
