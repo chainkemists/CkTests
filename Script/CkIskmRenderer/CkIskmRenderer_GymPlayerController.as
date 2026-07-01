@@ -20,8 +20,6 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
             "Single proxy, alternates a looping seq and a non-looping seq.\nDemonstrates the Replaced + Completed paths in OnAnimationFinished."));
         Stations.Add(MakeStationPayload(n"Gym.Iskm.AnimBPDemo", "AnimBP Demo",
             "Two proxies side-by-side. Left uses the Renderer PDA's default AnimBP (Asset_RendererData_Demo wires this to ABP_Unarmed).\nRight is forced to Sequence mode via Request_SetAnimInstanceClass(null) and plays MM_Idle.\nDemonstrates both pose-source modes simultaneously."));
-        Stations.Add(MakeStationPayload(n"Gym.Iskm.BatchedArmy", "Batched Army (Plan-2)",
-            "10x10 GPU-skinned crowd rendered through ONE GPUScene cluster proxy, animating independently.\nA/B vs the per-SKMC Spawn Army: compare draw calls (stat rhi / stat scenerendering) and frame time (stat unit)."));
 
         return Stations;
     }
@@ -48,7 +46,6 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnStation("Gym.Iskm.CustomData",    UCk_EntityScript_IskmRendererGym_CustomData);
         SpawnStation("Gym.Iskm.TransitionCycle", UCk_EntityScript_IskmRendererGym_TransitionCycle);
         SpawnStation("Gym.Iskm.AnimBPDemo",      UCk_EntityScript_IskmRendererGym_AnimBPDemo);
-        SpawnStation("Gym.Iskm.BatchedArmy",     UCk_EntityScript_IskmRendererGym_BatchedArmy);
     }
 
     // Spawns a generic collidable floor under the gym so RagdollDemo characters

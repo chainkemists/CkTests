@@ -36,6 +36,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("IskmRenderer",                  ACk_IskmRendererGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("IskmRenderer Stress (Static 500)", ACk_IskmRendererGym_StressStatic_GameMode);
         CkGym_Cycler::RegisterProjectGym("IskmRenderer Stress (Moving 500)", ACk_IskmRendererGym_StressMoving_GameMode);
+        CkGym_Cycler::RegisterProjectGym("IskmRenderer Batched",             ACk_IskmRendererBatchedGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Messaging",          ACk_MessagingGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Net Two-Player",     ACk_NetGym_TwoPlayer_GameMode);
         CkGym_Cycler::RegisterProjectGym("PMG Shapes",         ACk_PmgShapesGym_GameMode);
