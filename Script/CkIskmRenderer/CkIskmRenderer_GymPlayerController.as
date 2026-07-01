@@ -68,8 +68,12 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void SpawnStation(FString InTag, TSubclassOf<UCk_EntityScript_UE> InScriptClass)
     {
-        auto Params = FCkIskmRenderer_GymStationSpawnParams();
-        Params.InitialTransform = Get_StationAnchorTransform(InTag, ECk_GymStation_Anchor::PanelCenter);
+        // Transform-only spawn params: every station spawned here exposes InitialTransform and nothing else,
+        // so pass the minimal FCk_Gym_TransformSpawnParams. The 3-field FCkIskmRenderer_GymStationSpawnParams
+        // (Count/Moving) is only for the Stress stations, whose StressArmy script exposes those props.
+        // Injecting Count/Moving into a station that doesn't expose them ensures in
+        // TryInjectEntityScriptSpawnParams ("Failed to find ExposedOnSpawn Property [Count]").
+        auto Params = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform(InTag, ECk_GymStation_Anchor::PanelCenter));
 
         utils_entity_script::Request_SpawnEntity(
             Get_StationHandle(InTag),
