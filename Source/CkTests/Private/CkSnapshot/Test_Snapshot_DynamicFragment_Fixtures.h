@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CkEcs/Handle/CkHandle.h"
+#include "CkEcs/Handle/CkHandle_TypeSafe.h"
 
 #include "Test_Snapshot_DynamicFragment_Fixtures.generated.h"
 
@@ -82,4 +83,41 @@ struct FCk_Test_DynFrag_Nested
 
     UPROPERTY(SaveGame)
     FCk_Test_DynFrag_Inner Inner;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A TYPED handle, declared exactly like every production typesafe handle (FCk_Handle_Inventory,
+// FCk_Handle_IntegerAttribute, ...). Its reflected FStructProperty::Struct is FCk_Test_TypedHandle::StaticStruct(),
+// NOT FCk_Handle::StaticStruct() — the shape the remap walk's original exact-equality test silently skipped.
+USTRUCT()
+struct FCk_Test_TypedHandle : public FCk_Handle_TypeSafe
+{
+    GENERATED_BODY()
+    CK_GENERATED_BODY_HANDLE_TYPESAFE(FCk_Test_TypedHandle);
+};
+
+// The REAL shape of production AS fragments: TYPED handles (single + array — the actual FBb_Fragment_QuickUseSelector
+// shape; the bare-FCk_Handle fixtures above never covered it) plus handle-bearing containers (TSet / TMap with handle
+// keys and values — the FBb_Fragment_GridPlacement shape). The companion test proves each remaps across a round-trip
+// and that in-place key remap rehashes the containers so lookups still work.
+USTRUCT()
+struct FCk_Test_DynFrag_TypedAndContainers
+{
+    GENERATED_BODY()
+
+    UPROPERTY(SaveGame)
+    FCk_Test_TypedHandle TypedSingle;
+
+    UPROPERTY(SaveGame)
+    TArray<FCk_Test_TypedHandle> TypedArray;
+
+    UPROPERTY(SaveGame)
+    TSet<FCk_Handle> HandleSet;
+
+    UPROPERTY(SaveGame)
+    TMap<FCk_Handle, int32> HandleKeyMap;
+
+    UPROPERTY(SaveGame)
+    TMap<int32, FCk_Test_TypedHandle> TypedValueMap;
 };
