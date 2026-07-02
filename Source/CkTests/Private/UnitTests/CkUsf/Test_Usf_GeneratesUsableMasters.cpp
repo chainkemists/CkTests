@@ -7,6 +7,7 @@
 
 #include "Misc/AutomationTest.h"
 
+#include "Misc/App.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
@@ -32,6 +33,14 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_Usf_GeneratesUsableMasters::RunTest(const FString& Parameters)
 {
+    // In a process that cannot render (-nullrhi CI) materials never build shader maps, so the
+    // shader-compile gate reads every look as failed — environmental, not a shader bug.
+    if (FApp::CanEverRender() == false)
+    {
+        AddInfo(TEXT("Skipped: this process cannot render (e.g. -nullrhi) — shader maps never build, the compile gate would be meaningless."));
+        return true;
+    }
+
     // 1. Generate masters for every declared look. Generation now also force-compiles each
     //    master's shaders and reports any HLSL compile failures (the silent fallback-to-default
     //    case that a bare object/MID check misses — e.g. a broken PostProcess permutation).
