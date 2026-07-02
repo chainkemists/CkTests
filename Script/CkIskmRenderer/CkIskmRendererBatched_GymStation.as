@@ -14,7 +14,26 @@ namespace Ck
     {
         GameplayTags.Add(n"Gym.IskmBatched.Crowd");
         GameplayTags.Add(n"Gym.IskmBatched.Flip");
+        GameplayTags.Add(n"Gym.IskmBatched.MovingCrowd");
+        GameplayTags.Add(n"Gym.IskmBatched.StressMoving");
     }
+}
+
+// Spawn params for the parameterized moving-crowd station (shared by the Batched gym and the Batched Stress gym).
+USTRUCT()
+struct FCkIskmBatchedGym_CrowdSpawnParams
+{
+    UPROPERTY()
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY()
+    int32 Count = 64;
+
+    UPROPERTY()
+    float AreaExtent = 2000.0f;
+
+    UPROPERTY()
+    float TileSize = 1500.0f;
 }
 
 // ====================================================================================================================
@@ -53,6 +72,105 @@ class UCk_EntityScript_IskmRendererBatched_Crowd : UCk_GenericEntityScript_UE
         UCk_Utils_IskmBatched_UE::Debug_SpawnScatteredCrowd(Collection, SpawnBase, 144, 3000.0f, 2000.0f, -1, 1.0f);
 
         return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+}
+
+// ====================================================================================================================
+// Station — Moving Crowd: members orbit their spawn points (walk/jog), crossing tile borders.
+//
+// Parameterized (FCkIskmBatchedGym_CrowdSpawnParams) — the Batched gym spawns 64, the Batched Stress gym 600.
+// Exercises the full production movement path every tick: Set_CrowdMemberTransform (light in-tile pushes +
+// cross-tile migrations), motion vectors, and the fixed tile bounds. What to look for: no flicker/pops at tile
+// borders, no TAA smearing, smooth walking circles.
+// ====================================================================================================================
+
+class UCk_EntityScript_IskmRendererBatched_MovingCrowd : UCk_GenericEntityScript_UE
+{
+    default _Replication = ECk_Replication::DoesNotReplicate;
+
+    UPROPERTY(ExposeOnSpawn)
+    FTransform InitialTransform = FTransform::Identity;
+
+    UPROPERTY(ExposeOnSpawn)
+    int32 Count = 64;
+
+    UPROPERTY(ExposeOnSpawn)
+    float AreaExtent = 2000.0f;
+
+    UPROPERTY(ExposeOnSpawn)
+    float TileSize = 1500.0f;
+
+    private ACk_Iskm_BatchedCrowd_Actor _Crowd;
+    private TArray<FVector> _OrbitCenters;
+    private TArray<float>   _OrbitRadii;
+    private TArray<float>   _OrbitPeriods;
+    private TArray<float>   _OrbitPhases;
+    private float _Elapsed = 0.0f;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
+    {
+        InHandle.Set_DebugName(n"BatchedMovingCrowd");
+
+        auto Collection = iskm_assets::AnimCollection_Demo();
+        if (ck::Is_NOT_Valid(Collection))
+        {
+            Print("[IskmBatched Gym/MovingCrowd] AnimCollection_Demo() invalid — registry may need regeneration.", 10.0f);
+            return ECk_EntityScript_ConstructionFlow::Finished;
+        }
+        UCk_Utils_IskmAnimCollection_UE::Build_BakedPoseData(Collection);
+
+        auto SpawnBase = InitialTransform;
+        SpawnBase.AddToTranslation(FVector(-AreaExtent - 1000.0f, 0.0f, 0.0f));
+        _Crowd = UCk_Utils_IskmBatched_UE::Debug_SpawnScatteredCrowd(Collection, SpawnBase, Count, AreaExtent, TileSize, 2, 1.0f);
+        if (ck::Is_NOT_Valid(_Crowd))
+        { return ECk_EntityScript_ConstructionFlow::Finished; }
+
+        // Per-member orbit (walk/jog mix, jittered rate so the herd never syncs).
+        const int32 N = UCk_Utils_IskmBatched_UE::Get_CrowdMemberCount(_Crowd);
+        for (int32 i = 0; i < N; ++i)
+        {
+            _OrbitCenters.Add(UCk_Utils_IskmBatched_UE::Get_CrowdMemberTransform(_Crowd, i).GetTranslation());
+            _OrbitRadii.Add(Math::RandRange(150.0f, 400.0f));
+            _OrbitPeriods.Add(Math::RandRange(8.0f, 16.0f));
+            _OrbitPhases.Add(Math::RandRange(0.0f, float(2.0 * Math::PI)));
+
+            const int32 Seq = (i % 2 == 0) ? 2 : 3; // walk / jog
+            UCk_Utils_IskmBatched_UE::Set_CrowdMemberAnimation(_Crowd, i, Seq, Math::RandRange(0.9f, 1.1f), false);
+        }
+
+        utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+
+    UFUNCTION()
+    private void OnTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (ck::Is_NOT_Valid(_Crowd)) { return; }
+
+        _Elapsed += float(InDeltaT.Get_Seconds());
+
+        const int32 N = _OrbitCenters.Num();
+        for (int32 i = 0; i < N; ++i)
+        {
+            const float Theta = (float(2.0 * Math::PI) * _Elapsed / _OrbitPeriods[i]) + _OrbitPhases[i];
+            const float CosT = float(Math::Cos(Theta));
+            const float SinT = float(Math::Sin(Theta));
+
+            const auto Pos = _OrbitCenters[i] + FVector(CosT * _OrbitRadii[i], SinT * _OrbitRadii[i], 0.0f);
+
+            // Face along the motion tangent: derivative of (cos, sin) is (-sin, cos).
+            FRotator Rot = FRotator::ZeroRotator;
+            Rot.Yaw = float(Math::Atan2(CosT, -SinT)) * (180.0f / float(Math::PI));
+
+            FTransform NewXf;
+            NewXf.SetLocation(Pos);
+            NewXf.SetRotation(FQuat(Rot));
+            NewXf.SetScale3D(FVector::OneVector);
+
+            UCk_Utils_IskmBatched_UE::Set_CrowdMemberTransform(_Crowd, i, NewXf);
+        }
     }
 }
 
