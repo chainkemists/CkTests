@@ -14,6 +14,7 @@
 
 #include "Misc/AutomationTest.h"
 
+#include "Misc/App.h"
 #include "Editor.h"
 #include "Engine/World.h"
 #include "Engine/TextureRenderTarget2D.h"
@@ -93,6 +94,12 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_Usf_MultiPassRendersToTexture::RunTest(const FString& Parameters)
 {
+    if (FApp::CanEverRender() == false)
+    {
+        AddInfo(TEXT("Skipped: this process cannot render (e.g. -nullrhi) — canvas draw + RT readback need a live RHI."));
+        return true;
+    }
+
     auto* World = Get_TestWorld();
     if (TestNotNull(TEXT("editor world available"), World) == false)
     { return false; }
