@@ -29,6 +29,9 @@ class ACk_IskmRendererBatchedGym_PlayerController : ACk_Gym_Base_PlayerControlle
         Stations.Add(MakeStationPayload(n"Gym.IskmBatched.Flip", "GPU <-> SKMC Flip",
             "A batched crowd where the instances nearest the player flip to real per-SKMC proxies (Plan-1)\nso they can ragdoll and play montages, then flip back to batched when you walk away. Distance-LOD routing."));
 
+        Stations.Add(MakeStationPayload(n"Gym.IskmBatched.MovingCrowd", "Moving Crowd",
+            "64 batched instances walking/jogging in circles, crossing tile borders (the production movement path:\nlight in-tile pushes + cross-tile migration + motion vectors). Look for: no border pops, no TAA smearing."));
+
         return Stations;
     }
 
@@ -49,6 +52,22 @@ class ACk_IskmRendererBatchedGym_PlayerController : ACk_Gym_Base_PlayerControlle
 
         SpawnStation("Gym.IskmBatched.Crowd", UCk_EntityScript_IskmRendererBatched_Crowd);
         SpawnStation("Gym.IskmBatched.Flip",  UCk_EntityScript_IskmRendererBatched_Flip);
+        SpawnMovingCrowdStation();
+    }
+
+    // The MovingCrowd station takes the richer parameterized spawn struct (Count/AreaExtent/TileSize).
+    private void SpawnMovingCrowdStation()
+    {
+        auto Params = FCkIskmBatchedGym_CrowdSpawnParams();
+        Params.InitialTransform = Get_StationAnchorTransform("Gym.IskmBatched.MovingCrowd", ECk_GymStation_Anchor::PanelCenter);
+        Params.Count = 64;
+        Params.AreaExtent = 2000.0f;
+        Params.TileSize = 1500.0f;
+
+        utils_entity_script::Request_SpawnEntity(
+            Get_StationHandle("Gym.IskmBatched.MovingCrowd"),
+            UCk_EntityScript_IskmRendererBatched_MovingCrowd,
+            FInstancedStruct::Make(Params));
     }
 
     // Larger floor than the multi-station gym: the crowd + flip stations spread wide.
