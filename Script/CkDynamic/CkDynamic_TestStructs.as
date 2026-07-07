@@ -87,3 +87,27 @@ struct FCk_Fragment_TESTONLY_DriverCarrier
     UPROPERTY()
     FCk_Handle_TESTONLY_Subordinate Handle;
 }
+
+//============================================================================
+// Script-processor pump-drain repro (see CkAutoTest_ScriptProcessor_PumpDrainsSameFrame)
+//============================================================================
+
+// MarkedDirtyBy marker consumed by UCk_TESTONLY_ScriptProcessor_PumpCascade. RemainingCascades > 0
+// makes the processor re-add the marker after consuming it — each re-add lands AFTER the
+// processor's own tick, so draining the whole chain within one frame REQUIRES the scheduler's
+// pump passes to observe dynamic-marker mutations (the dirty-marker version bump in
+// UCk_Utils_DynamicFragment_UE's mutation paths).
+struct FCk_Fragment_DynamicTest_PumpCascadeMarker
+{
+    UPROPERTY()
+    int32 RemainingCascades = 0;
+}
+
+// Per-generation consumption log written by the processor and asserted by the AutoTest: all
+// entries equal ⇒ the cascade settled in one frame (pump), entries differ ⇒ generations slipped
+// to later frames' main passes (the pre-fix pump-deaf behavior).
+struct FCk_Fragment_DynamicTest_PumpCascadeResults
+{
+    UPROPERTY()
+    TArray<int64> ConsumedFrames;
+}
