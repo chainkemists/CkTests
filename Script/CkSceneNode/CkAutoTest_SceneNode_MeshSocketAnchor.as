@@ -4,34 +4,33 @@
 // CK SCENE NODE — AUTOMATION TEST: MESH SOCKET ANCHOR
 //============================================================================
 //
-// Regression guard for the anchor-authoritative path. After we taught
-// utils_scene_node::Add to mark its child FTag_Transform_ExternallyDriven so
-// scene-node parents drive the child (Unreal AttachToComponent semantics),
-// the Create*-flavored overloads must keep doing the OPPOSITE: their resulting
-// SceneNode entity is supposed to track a foreign Unreal anchor, so the
-// ExternallyDriven tag must NOT be stamped on those.
+// Regression guard for the anchor-follow path. A SceneNode created via
+// CreateAndAttachToUnrealComponent is a READ-ONLY follower of a foreign Unreal
+// component: FProcessor_SceneNode_FollowUnrealAnchor sets the node's world to
+// InLocalTransform * componentWorld every tick and never writes back onto the
+// component. These nodes carry the SceneNode-owned FFragment_SceneNode_UnrealAnchor
+// (NOT the Transform module's FFragment_Transform_RootComponent), so they are
+// excluded from TProcessor_SceneNode_Update and never engage SyncFromActor/SyncToActor.
 //
-// This test exercises CreateAndAttachToUnrealComponent (component-world
-// tracking — no socket name; the SceneNode tracks the mesh component's world
-// transform directly):
+// This test exercises BOTH offsets against a moving mesh component:
 //   1. Spawn a helper actor with a UStaticMeshComponent.
-//   2. Create a SceneNode via CreateAndAttachToUnrealComponent against that
-//      mesh.
+//   2. Create an identity-offset node (tracks component world exactly) and a
+//      non-identity-offset node (tracks InLocalTransform * componentWorld).
 //   3. Move the actor.
-//   4. After a settle, assert the SceneNode entity transform matches the
-//      mesh component's world transform.
+//   4. After a settle, assert each node's entity transform matches its expected
+//      composed world both before and after the move.
 //
-// **Why no socket name here:** UCk_Utils_Transform_UE::AddAndAttachToUnrealMesh
-// fails loud (CK_ENSURE_IF_NOT) on an unknown socket name — the original
-// version of this test passed "FakeSocket_TestOnly" intending to exercise
-// UE's silent fallback to component-world transform, which we explicitly
-// rejected: a typo in a socket name silently anchoring to component world is
-// a QA-difficult class of bug. If you need genuine socket coverage, write a
-// sibling test against a SkeletalMesh asset with real sockets.
+// **Why no socket name here:** CreateAndAttachToUnrealMesh fails loud
+// (CK_ENSURE_IF_NOT) on an unknown socket name — the original version of this
+// test passed "FakeSocket_TestOnly" intending to exercise UE's silent fallback
+// to component-world transform, which we explicitly rejected: a typo in a
+// socket name silently anchoring to component world is a QA-difficult class of
+// bug. If you need genuine socket coverage, write a sibling test against a
+// SkeletalMesh asset with real sockets.
 //
-// If this test fails after the ExternallyDriven patch lands, the
-// CreateAndAttachToUnrealComponent path accidentally got the tag stamped,
-// or SyncFromActor / UpdateLocal_FromRootComponent excludes are too broad.
+// If this test fails, FollowUnrealAnchor isn't composing offset * anchorWorld,
+// or the TProcessor_SceneNode_Update TExclude<FFragment_SceneNode_UnrealAnchor>
+// is missing (a bare SceneNode_Update pass would clobber the followed pose).
 //============================================================================
 
 class ACk_AutoTest_SceneNode_MeshSocketAnchor_Helper : AActor
@@ -54,6 +53,9 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
     private const FVector HelperStartLocation = FVector(200.0f, 0.0f, 50.0f);
     private const FVector HelperMoveLocation = FVector(750.0f, -300.0f, 175.0f);
 
+    // Non-identity offset for the second node: 120cm up, yawed 45deg.
+    private const FTransform AnchorOffset = FTransform(FRotator(0.0f, 45.0f, 0.0f), FVector(0.0f, 0.0f, 120.0f), FVector::OneVector);
+
     private const float32 PositionToleranceCm = 1.0f;
     private const float32 RotationToleranceDeg = 1.0f;
     private const float32 PropagationWaitSeconds = 0.25f;
@@ -63,6 +65,8 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
     private ACk_AutoTest_SceneNode_MeshSocketAnchor_Helper Helper;
     private FCk_Handle_SceneNode MeshNode;
     private FCk_Handle_Transform MeshNodeTransform;
+    private FCk_Handle_SceneNode OffsetNode;
+    private FCk_Handle_Transform OffsetNodeTransform;
 
     private int32 _Step = 0;
     private float32 _WaitElapsed = 0.0f;
@@ -98,7 +102,7 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
             return;
         }
 
-        MeshNode = utils_scene_node::CreateAndAttachToUnrealComponent(StructuralParent, Helper.Mesh);
+        MeshNode = utils_scene_node::CreateAndAttachToUnrealComponent(StructuralParent, Helper.Mesh, FTransform::Identity);
         if (ck::Is_NOT_Valid(MeshNode))
         {
             FinishFailure("CreateAndAttachToUnrealComponent returned an invalid handle");
@@ -109,6 +113,20 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
         if (ck::Is_NOT_Valid(MeshNodeTransform))
         {
             FinishFailure("Mesh-anchored SceneNode has no Transform handle");
+            return;
+        }
+
+        OffsetNode = utils_scene_node::CreateAndAttachToUnrealComponent(StructuralParent, Helper.Mesh, AnchorOffset);
+        if (ck::Is_NOT_Valid(OffsetNode))
+        {
+            FinishFailure("CreateAndAttachToUnrealComponent (offset) returned an invalid handle");
+            return;
+        }
+
+        OffsetNodeTransform = OffsetNode.As_Transform();
+        if (ck::Is_NOT_Valid(OffsetNodeTransform))
+        {
+            FinishFailure("Offset mesh-anchored SceneNode has no Transform handle");
             return;
         }
 
@@ -171,5 +189,18 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
             f"[{InContext}] mesh-anchored node location | expected {ExpectedLoc}, got {ActualLoc}");
         Assert_True(ActualRot.Equals(ExpectedRot, RotationToleranceDeg),
             f"[{InContext}] mesh-anchored node rotation | expected {ExpectedRot}, got {ActualRot}");
+
+        // Offset node must sit at AnchorOffset composed onto the same mesh world.
+        auto OffsetExpectedWorld = AnchorOffset * MeshWorld;
+        auto OffsetExpectedLoc = OffsetExpectedWorld.GetLocation();
+        auto OffsetExpectedRot = OffsetExpectedWorld.GetRotation().Rotator();
+
+        auto OffsetActualLoc = utils_transform::Get_EntityCurrentLocation(OffsetNodeTransform);
+        auto OffsetActualRot = utils_transform::Get_EntityCurrentRotation(OffsetNodeTransform);
+
+        Assert_True(OffsetActualLoc.Equals(OffsetExpectedLoc, PositionToleranceCm),
+            f"[{InContext}] offset node location | expected {OffsetExpectedLoc}, got {OffsetActualLoc}");
+        Assert_True(OffsetActualRot.Equals(OffsetExpectedRot, RotationToleranceDeg),
+            f"[{InContext}] offset node rotation | expected {OffsetExpectedRot}, got {OffsetActualRot}");
     }
 }
