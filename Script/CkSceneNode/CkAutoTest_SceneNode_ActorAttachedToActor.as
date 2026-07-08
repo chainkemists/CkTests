@@ -30,9 +30,10 @@
 // actor's RootComponent drives the entity's Transform fragment), so any
 // WithActor-bound entity (like ABb_ItemActor) is treated as "actor-
 // authoritative" and the scene-node parent's transform is never propagated
-// into it. A sibling processor (FProcessor_SceneNode_UpdateLocal_FromRootComponent)
-// runs the OPPOSITE direction: it reads the actor's world transform and
-// rewrites the relative offset on the scene-node fragment.
+// into it. (A sibling processor used to run the OPPOSITE direction — reading the
+// actor's world transform and rewriting the relative offset on the scene-node
+// fragment — but it was removed; anchor-follow now lives in
+// FProcessor_SceneNode_FollowUnrealAnchor for CreateAndAttachToUnreal* nodes.)
 //
 // In short: WithActor + scene-node parent are mutually exclusive in the
 // current framework. To make a held actor follow an attach point you need
