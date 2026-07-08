@@ -57,6 +57,12 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     private int32 _AssertionsFailed = 0;
     private FString _FirstFailureMessage;
 
+    // Out-of-subtree owners registered via Track_ForCleanup — destroyed at finish
+    // so heavyweight tests can't leak into the next test in the shared PIE world.
+    private TArray<FCk_Handle> _CleanupOwners;
+    private ECk_AutoTest_Status _PendingStatus = ECk_AutoTest_Status::Running;
+    private FString _PendingMessage;
+
     //------------------------------------------------------------------------
     // Lifecycle
     //------------------------------------------------------------------------
@@ -85,12 +91,30 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         return _Finished;
     }
 
+    // Register an out-of-subtree entity to destroy when the test finishes — an
+    // ActorRelay channel entity, a ck::TransientEntity() owner, a replicated
+    // subordinate: anything NOT parented to this runner entity. The harness's own
+    // per-test teardown (ACk_AutoTestRunner::Destroy_RunnerEntity) cascades ONLY the
+    // runner's lifetime subtree, so these escape it and would leak into the next
+    // test in the shared PIE world. Registering them here makes the base destroy
+    // them at finish, correctly sequenced (destroy -> settle -> result-write across
+    // frames) so a tracked destroy can never race the result the C++ runner polls.
+    protected void Track_ForCleanup(FCk_Handle InOwner)
+    {
+        if (ck::Is_NOT_Valid(InOwner)) { return; }
+        // Never the runner: its entity holds the FCk_AutoTest_Result fragment (and any
+        // feature composed onto it — e.g. a Mark_AsGlobal DayCycle — which the harness
+        // cascades anyway). Destroying it would nuke the result before it is polled.
+        if (InOwner == SelfEntity) { return; }
+        _CleanupOwners.AddUnique(InOwner);
+    }
+
     void FinishSuccess()
     {
         if (_Finished) { return; }
         _Finished = true;
-        WriteResult(_AssertionsFailed > 0 ? ECk_AutoTest_Status::Failed : ECk_AutoTest_Status::Passed,
-                    _FirstFailureMessage);
+        Finalize(_AssertionsFailed > 0 ? ECk_AutoTest_Status::Failed : ECk_AutoTest_Status::Passed,
+                 _FirstFailureMessage);
     }
 
     void FinishFailure(const FString& InMessage)
@@ -99,7 +123,38 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         _Finished = true;
         if (_FirstFailureMessage == "") { _FirstFailureMessage = InMessage; }
         _AssertionsFailed++;
-        WriteResult(ECk_AutoTest_Status::Failed, _FirstFailureMessage);
+        Finalize(ECk_AutoTest_Status::Failed, _FirstFailureMessage);
+    }
+
+    // Writes the terminal result, releasing any tracked out-of-subtree owners first.
+    // Untracked tests (the overwhelming majority) write synchronously — behaviour is
+    // identical to the classic path. Tracked tests queue the deferred destroys, then
+    // write the result one frame later so the destroys are registered before the
+    // poller next reads the result (the destroys never touch this runner, so its
+    // result fragment survives to be written in the settle callback).
+    private void Finalize(ECk_AutoTest_Status InStatus, const FString& InMessage)
+    {
+        if (_CleanupOwners.IsEmpty())
+        {
+            WriteResult(InStatus, InMessage);
+            return;
+        }
+
+        _PendingStatus = InStatus;
+        _PendingMessage = InMessage;
+        for (auto Owner : _CleanupOwners)
+        {
+            if (ck::IsValid(Owner))
+            { utils_entity_lifetime::Request_DestroyEntity(Owner); }
+        }
+        _CleanupOwners.Empty();
+        WaitOneFrame(n"INTERNAL__AutoTest_OnCleanupSettled");
+    }
+
+    UFUNCTION()
+    private void INTERNAL__AutoTest_OnCleanupSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        WriteResult(_PendingStatus, _PendingMessage);
     }
 
     //------------------------------------------------------------------------
