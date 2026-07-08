@@ -6,6 +6,7 @@ enum ECk_SceneNodeGym_Behavior
 	MultipleChildren,
 	Hierarchy,
 	PropagateOnly,
+	AnchorOffset,
 	ECk_MAX
 }
 
@@ -74,6 +75,16 @@ class ACk_SceneNodeGym_Cube : AActor
 	float32 PropagatePlanetOrbitRadius = 160.0f;
 	float32 PropagateMoonOrbitRadius = 80.0f;
 
+	// --- AnchorOffset state ---
+	// The cube's own Mesh (a moving USceneComponent) is the anchor. A SceneNode
+	// follows it at a fixed relative offset via CreateAndAttachToUnrealComponent;
+	// rotating the actor moves the mesh in world so the follower tracks it, and
+	// the offset height is animated each frame to show runtime-mutable offsets.
+	FCk_Handle_SceneNode AnchorNode;
+	ACk_SceneNodeGym_ChildCube AnchorCubeActor;
+	float32 AnchorRotationSpeed = 35.0f;
+	FVector AnchorBaseOffset = FVector(180.0f, 0.0f, 40.0f);
+
 	UFUNCTION(BlueprintOverride)
 	void BeginPlay()
 	{
@@ -121,6 +132,10 @@ class ACk_SceneNodeGym_Cube : AActor
 		else if (Behavior == ECk_SceneNodeGym_Behavior::PropagateOnly)
 		{
 			Setup_PropagateOnly();
+		}
+		else if (Behavior == ECk_SceneNodeGym_Behavior::AnchorOffset)
+		{
+			Setup_AnchorOffset();
 		}
 
 		// Per-frame tick
@@ -224,6 +239,16 @@ class ACk_SceneNodeGym_Cube : AActor
 		PropagateMoonCube = SpawnChildCube("Moon");
 	}
 
+	private void Setup_AnchorOffset()
+	{
+		// Attach a SceneNode to this actor's Mesh component (a foreign USceneComponent)
+		// at a fixed relative offset. The node follows the mesh's world at that offset —
+		// it never drives the mesh back (read-only follower).
+		auto Offset = FTransform(FRotator(), AnchorBaseOffset, FVector(0.5f, 0.5f, 0.5f));
+		AnchorNode = utils_scene_node::CreateAndAttachToUnrealComponent(ParentTransform, Mesh, Offset);
+		AnchorCubeActor = SpawnChildCube("Anchored");
+	}
+
 	//------------------------------------------------------------------------
 	// PER-FRAME TICK
 	//------------------------------------------------------------------------
@@ -253,6 +278,10 @@ class ACk_SceneNodeGym_Cube : AActor
 		else if (Behavior == ECk_SceneNodeGym_Behavior::PropagateOnly)
 		{
 			Tick_PropagateOnly(DeltaSeconds);
+		}
+		else if (Behavior == ECk_SceneNodeGym_Behavior::AnchorOffset)
+		{
+			Tick_AnchorOffset(DeltaSeconds);
 		}
 	}
 
@@ -326,5 +355,31 @@ class ACk_SceneNodeGym_Cube : AActor
 
 		SyncChildCube(PropagatePlanetCube, PropagatePlanet);
 		SyncChildCube(PropagateMoonCube, PropagateMoon);
+	}
+
+	private void Tick_AnchorOffset(float32 DeltaSeconds)
+	{
+		// Rotate the whole actor — its Mesh (the anchor component) moves in world,
+		// so the follower node tracks it at the offset.
+		utils_transform::Request_AddRotationOffset(EcsEntity, FRotator(0.0f, AnchorRotationSpeed * DeltaSeconds, 0.0f), ECk_LocalWorld::World);
+
+		// Animate the offset height to show the anchor offset is runtime-mutable —
+		// Request_UpdateOffset now sticks for anchor-follow nodes (was a no-op before).
+		auto BobbedOffset = AnchorBaseOffset + FVector(0.0f, 0.0f, Math::Sin(ElapsedTime * 1.5f) * 60.0f);
+		utils_scene_node::Request_UpdateOffset_Location(AnchorNode, BobbedOffset, ECk_RelativeAbsolute::Absolute);
+
+		SyncAnchorCube();
+	}
+
+	private void SyncAnchorCube()
+	{
+		if (ck::IsValid(AnchorCubeActor) == false)
+		{ return; }
+
+		// Read the node's OWN composed world (offset * mesh world), not the structural-
+		// parent composition — the Unreal anchor drives this node directly.
+		auto NodeWorld = utils_transform::Get_EntityCurrentTransform(AnchorNode.As_Transform());
+		AnchorCubeActor.SetActorLocationAndRotation(NodeWorld.GetLocation(), NodeWorld.GetRotation().Rotator());
+		AnchorCubeActor.SetActorScale3D(NodeWorld.GetScale3D());
 	}
 }
