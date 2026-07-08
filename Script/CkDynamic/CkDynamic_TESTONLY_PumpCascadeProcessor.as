@@ -8,8 +8,8 @@
 // FCk_Fragment_DynamicTest_PumpCascadeMarker: records the consumption frame
 // into the entity's PumpCascadeResults, removes the marker, and — while the
 // marker carried RemainingCascades > 0 — immediately re-adds a decremented
-// marker. Each re-add happens AFTER this processor's tick for the pass, so a
-// same-frame drain of the full chain is only possible via the scheduler's
+// marker. Each re-add happens AFTER this processor's dispatch for the pass, so
+// a same-frame drain of the full chain is only possible via the scheduler's
 // pump passes observing the dynamic-marker mutation (version bump).
 //
 // TESTONLY: registered globally like every script processor (the CkDynamic
@@ -17,9 +17,10 @@
 // requires BOTH test-only fragments, so outside the AutoTest it visits
 // nothing.
 //
-// Mutation-during-iteration note: the ForEach only COLLECTS handles; all
-// removes/re-adds run after the iteration completes, so the fixture makes no
-// assumptions about the dynamic-storage iterator's tolerance to mutation.
+// DIRECT MODE (Configure + ForEachBatch, no ForEachEntity): the fixture is
+// deliberately cross-entity — it collects handles from the batch, then runs
+// all removes/re-adds after the collection loop, so it makes no assumptions
+// about storage-iterator tolerance to mutation.
 //============================================================================
 
 class UCk_TESTONLY_ScriptProcessor_PumpCascade : UCk_Processor_Script_Base_UE
@@ -30,14 +31,22 @@ class UCk_TESTONLY_ScriptProcessor_PumpCascade : UCk_Processor_Script_Base_UE
     private TArray<FCk_Handle> _Collected;
 
     UFUNCTION(BlueprintOverride)
-    void Tick(FCk_Time DeltaSeconds)
+    void Configure(FCk_ScriptProcessorQuery& Query)
+    {
+        Query.Require(FCk_Fragment_DynamicTest_PumpCascadeMarker);
+        Query.Require(FCk_Fragment_DynamicTest_PumpCascadeResults);
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void ForEachBatch(FCk_ScriptQueryBatch Batch, FCk_Time InDeltaT)
     {
         auto _CkPerfScope = ck::ScopedStat();
 
         _Collected.Empty();
-        _Handle.ForEach_EntityWithTwoFragments(
-            FCk_Fragment_DynamicTest_PumpCascadeMarker, FCk_Fragment_DynamicTest_PumpCascadeResults,
-            FCk_DynamicFragment_ForEachEntity(this, n"ForEach_Collect"));
+        for (int32 i = 0; i < Batch.Num(); ++i)
+        {
+            _Collected.Add(Batch.GetHandle(i));
+        }
 
         for (int32 Index = 0; Index < _Collected.Num(); ++Index)
         {
@@ -58,11 +67,5 @@ class UCk_TESTONLY_ScriptProcessor_PumpCascade : UCk_Processor_Script_Base_UE
                 NextMarker.RemainingCascades = Remaining - 1;
             }
         }
-    }
-
-    UFUNCTION()
-    private void ForEach_Collect(FCk_Handle& InHandle)
-    {
-        _Collected.Add(InHandle);
     }
 }
