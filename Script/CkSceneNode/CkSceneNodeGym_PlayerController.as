@@ -63,6 +63,17 @@ class ACk_SceneNodeGym_PlayerController : ACk_Gym_Base_PlayerController
 			Stations.Add(Station);
 		}
 
+		{
+			auto Station = FCkGym_Station_SpawnParams_Payload();
+			Station.Tags.Add(n"Gym.SceneNode.AnchorOffset");
+			Station.Title = FText::FromString("ANCHOR OFFSET");
+			auto Description = TArray<FText>();
+			Description.Add(FText::FromString("SceneNode follows a moving Unreal mesh component at a relative offset."));
+			Description.Add(FText::FromString("Uses CreateAndAttachToUnrealComponent(offset) + runtime Request_UpdateOffset."));
+			Station.Description = Description;
+			Stations.Add(Station);
+		}
+
 		return Stations;
 	}
 
@@ -76,6 +87,7 @@ class ACk_SceneNodeGym_PlayerController : ACk_Gym_Base_PlayerController
 		Request_SpawnCube("Gym.SceneNode.MultipleChildren", ECk_SceneNodeGym_Behavior::MultipleChildren);
 		Request_SpawnCube("Gym.SceneNode.Hierarchy", ECk_SceneNodeGym_Behavior::Hierarchy);
 		Request_SpawnCube("Gym.SceneNode.PropagateOnly", ECk_SceneNodeGym_Behavior::PropagateOnly);
+		Request_SpawnCube("Gym.SceneNode.AnchorOffset", ECk_SceneNodeGym_Behavior::AnchorOffset);
 
 		ck::Trace("Scene Node Gym - All features started");
 	}
