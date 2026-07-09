@@ -66,8 +66,13 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParamsA.Set_Goal(GoalA);
         ActionSetParamsA.Set_WorldStateSource(WS);
-        _PlannerA = utils_goap_planner::Add(Local, ActionSetParamsA);
-        Assert_True(ck::IsValid(_PlannerA), "Add Planner A should return a valid handle");
+        // Two independent Planners on one owner → Create (named child Planners).
+        // Add would stamp the Planner role directly onto Local and reject the
+        // second call (one Planner role per entity).
+        _PlannerA = utils_goap_planner::Create(Local,
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"),
+            ActionSetParamsA);
+        Assert_True(ck::IsValid(_PlannerA), "Create Planner A should return a valid handle");
 
         auto RootParamsA = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiA);
@@ -85,8 +90,10 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set2"));
         ActionSetParamsB.Set_Goal(GoalB);
         ActionSetParamsB.Set_WorldStateSource(WS);
-        _PlannerB = utils_goap_planner::Add(Local, ActionSetParamsB);
-        Assert_True(ck::IsValid(_PlannerB), "Add Planner B should return a valid handle");
+        _PlannerB = utils_goap_planner::Create(Local,
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set2"),
+            ActionSetParamsB);
+        Assert_True(ck::IsValid(_PlannerB), "Create Planner B should return a valid handle");
 
         auto RootParamsB = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiB);

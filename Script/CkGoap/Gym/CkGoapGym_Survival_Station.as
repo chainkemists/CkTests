@@ -3,7 +3,7 @@
 //============================================================================
 // CkGoapGym — Survival Decision station entity
 //
-// Single entity with TWO Planners on one Goap root:
+// One owner entity hosting TWO independent child Planners (via Create):
 //   Planner "Hunger"   goal {Hungry=false}
 //     ├── EatFood        pre {HasFood}  eff {Hungry=false}  cost 1
 //     ├── Forage         pre {}         eff {HasFood=true}  cost 4
@@ -76,7 +76,12 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
         HungerParams.Set_Goal(HungerGoal);
         HungerParams.Set_WorldStateSource(_WS);
         HungerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _Planner_Hunger = utils_goap_planner::Add(InHandle, HungerParams);
+        // Two independent Planners on one owner → Create (named child Planners).
+        // Add stamps the Planner role onto InHandle directly and would reject the
+        // second (Defense) Planner — one Planner role per entity.
+        _Planner_Hunger = utils_goap_planner::Create(InHandle,
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Hunger"),
+            HungerParams);
 
         utils_goap_planner::AddAction(_Planner_Hunger,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_EatFood));
@@ -101,7 +106,9 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
         DefenseParams.Set_Goal(DefenseGoal);
         DefenseParams.Set_WorldStateSource(_WS);
         DefenseParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        _Planner_Defense = utils_goap_planner::Add(InHandle, DefenseParams);
+        _Planner_Defense = utils_goap_planner::Create(InHandle,
+            utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Defense"),
+            DefenseParams);
 
         utils_goap_planner::AddAction(_Planner_Defense,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_FightEnemy));

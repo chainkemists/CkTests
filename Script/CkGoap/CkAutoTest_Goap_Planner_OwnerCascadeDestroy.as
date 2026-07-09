@@ -54,13 +54,20 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             true);
 
-        // Add Planner to SubOwner (post-U11.0a: no separate Goap-root container).
+        // Create a Planner as a distinct CHILD entity of SubOwner. Create (not
+        // Add) is used deliberately: Add would stamp the Planner role onto
+        // SubOwner itself, collapsing the owner and the Planner into one entity
+        // and defeating the point of this test (cascade from an owner to a
+        // SEPARATE Planner child). Create keeps them distinct so the destroy
+        // genuinely exercises the SubOwner → Planner-child → Action chain.
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(TArray<FCk_GoapWS_Condition_Authored>());
         ActionSetParams.Set_WorldStateSource(WS);
-        _Planner = utils_goap_planner::Add(_SubOwner, ActionSetParams);
-        Assert_True(ck::IsValid(_Planner), "Add should return a valid handle");
+        _Planner = utils_goap_planner::Create(_SubOwner,
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"),
+            ActionSetParams);
+        Assert_True(ck::IsValid(_Planner), "Create should return a valid handle");
         _GoapHandle = _Planner;  // U11.0a: Planner is the only Goap entity.
 
         // Add root Action (Simple: effect Ready=true; goal already satisfied).
