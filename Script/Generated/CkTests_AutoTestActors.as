@@ -62,6 +62,19 @@ class ACk_AutoTest_Acceleration_Add_CreatesFeature_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Acceleration_Create_MakesDistinctChild_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Acceleration_Create_MakesDistinctChild");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
@@ -3458,6 +3471,19 @@ class ACk_AutoTest_ObjectiveOwner_Add_CreatesFeature_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_ObjectiveOwner_Create_MakesDistinctChild_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_ObjectiveOwner_Create_MakesDistinctChild");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;
@@ -3582,6 +3608,19 @@ class ACk_AutoTest_RaySense_Add_CreatesEntity_Actor : ACk_AutoTestRunner
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_RaySense_Add_CreatesEntity");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_RaySense_Create_MakesDistinctChild_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_RaySense_Create_MakesDistinctChild");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
@@ -4354,6 +4393,19 @@ class ACk_AutoTest_Shape_Box_Add_RoundTripsHalfExtents_Actor : ACk_AutoTestRunne
     }
 }
 
+class ACk_AutoTest_Shape_Box_Create_MakesDistinctChild_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Shape_Box_Create_MakesDistinctChild");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Shape_Capsule_Add_RoundTripsDimensions_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;
@@ -4731,6 +4783,19 @@ class ACk_AutoTest_Substep_Add_CreatesFeature_Actor : ACk_AutoTestRunner
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Substep_Add_CreatesFeature");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Substep_Create_MakesDistinctChild_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Substep_Create_MakesDistinctChild");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
