@@ -1,0 +1,37 @@
+// Language=angelscript
+
+//============================================================================
+// CK GRID — AUTOMATION TEST: 2dGridObject CREATE MAKES A DISTINCT CHILD
+//============================================================================
+//
+// Verifies the child-making Create verb (counterpart to the stamp-self Add):
+// Create(owner, ...) spawns a NEW child entity carrying the feature — the
+// returned handle is valid, Has(child) is true, and Has(owner) is FALSE
+// (proving Create is child-making, not stamp-self like Add).
+//============================================================================
+
+class UCk_AutoTest_2dGridObject_Create_MakesDistinctChild : UCk_AutoTest_Base
+{
+    default _TimeoutSeconds = 3.0f;
+
+    UFUNCTION(BlueprintOverride)
+    void DoBeginPlay(FCk_Handle InHandle)
+    {
+        auto _CkPerfScope = ck::ScopedStat();
+        auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
+
+        auto P = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(2, 1));
+
+        auto Child = utils_2d_grid_object::Create(Owner, P);
+        auto ChildEntity = FCk_Handle(Child);
+
+        Assert_True(ck::IsValid(Child),
+            "Create should return a valid FCk_Handle_2dGridObject");
+        Assert_True(utils_2d_grid_object::Has(ChildEntity),
+            "The created child entity should carry the 2dGridObject feature");
+        Assert_True(!utils_2d_grid_object::Has(Owner),
+            "The owner must NOT carry the feature — Create is child-making, not stamp-self");
+
+        FinishSuccess();
+    }
+}
