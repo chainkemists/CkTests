@@ -25,7 +25,8 @@ class UCk_AutoTest_EntityPool_Perf_SpawnVsPoolReuse : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 30.0f;
 
-    private int32 N = 32;
+    // large enough that the phase deltas dwarf the clock's ~1ms resolution floor
+    private int32 N = 256;
 
     private int32 _Step = 0;
     private int32 _Count = 0;
