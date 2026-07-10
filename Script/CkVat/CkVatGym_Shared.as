@@ -1,25 +1,22 @@
 // Language=angelscript
 
 //============================================================================
-// CK VAT GYM — shared tags, messages, collection loading
+// CK VAT GYM — shared tags, messages, collection resolution
 //============================================================================
 //
-// Content contract: unlike the Iskm gym (whose wrapper assets are AS-authored),
-// a VAT collection's bake outputs are SERIALIZED editor content — the gym
-// cannot author one in script. The gym loads a baked UCk_VatCollection_Data
-// from a conventional path (below) and every station renders a how-to when
-// it's missing or unbaked. Point the gym at any other collection at runtime
-// with `Ck_GymVat_SetCollection <path>` — that is the "curated setups" hook
-// (vertex vs bone mode, High vs Low precision, different meshes).
+// Content contract: ZERO setup by default. Stations start on the "AUTO"
+// sentinel path, which builds a Bone-mode Mannequin collection at PIE start
+// via UCkVat_BakerSubsystem::CreateAndBake_TransientCollection — the bake
+// runs in memory (nothing saved to disk) and re-runs each session.
 //
-// One-time setup for the default path (see also the station display text):
-//   1. Content browser -> /CkTests/CkVat/ -> new UCk_VatCollection_Data
-//      named DA_VatCollection_Gym.
-//   2. Set Skeleton + SourceMesh (e.g. SK_Mannequin + SKM_Manny_Simple) and
-//      2-3 clips (e.g. MM_Idle / MF_Unarmed_Walk_Fwd / MF_Unarmed_Jog_Fwd).
-//      NOTE: Vertex mode caps at 4096 verts — use Bone mode for the
-//      mannequin; Vertex mode (and the new VAT normals) wants a low-poly mesh.
-//   3. Click the Bake button in the details panel, save.
+// `Ck_GymVat_SetCollection <path>` swaps any BAKED on-disk collection into
+// every station — the "curated setups" hook (Vertex mode + low-poly mesh for
+// the normals check, High vs Low precision, different meshes).
+// `Ck_GymVat_SetCollection AUTO` returns to the self-baked default.
+//
+// NOTE: the default is Bone mode because the Mannequin exceeds Vertex mode's
+// 4096-vert cap; the Turntable normals check needs a Vertex-mode collection
+// on a low-poly mesh, supplied via SetCollection.
 //
 //============================================================================
 
@@ -35,7 +32,7 @@ namespace Ck
 
 namespace vat_gym
 {
-    const FString DefaultCollectionPath = "/CkTests/CkVat/DA_VatCollection_Gym.DA_VatCollection_Gym";
+    const FString DefaultCollectionPath = "AUTO";
 
     UCk_VatCollection_Data LoadCollection(FString InPath)
     {
@@ -43,23 +40,72 @@ namespace vat_gym
         return System::LoadAsset_Blocking(SoftRef);
     }
 
-    // Multi-line how-to rendered on stations while no usable collection exists.
+#if EDITOR
+    // The zero-setup default: a Bone-mode Mannequin collection baked in memory at PIE start
+    // (transient bake — nothing saved to disk). Returns nullptr if the mannequin content or the
+    // baker subsystem is unavailable; callers fall back to the missing-collection display.
+    UCk_VatCollection_Data CreateDefaultTransientCollection()
+    {
+        auto Skeleton = assets::load::SK_Mannequin();
+        auto Mesh = assets::load::SKM_Manny_Simple();
+        if (ck::Is_NOT_Valid(Skeleton) || ck::Is_NOT_Valid(Mesh))
+        { return nullptr; }
+
+        auto Clips = TArray<FCk_VatCollection_ClipDef>();
+        auto Idle = assets::load::MM_Idle();
+        auto Walk = assets::load::MF_Unarmed_Walk_Fwd();
+        auto Jog = assets::load::MF_Unarmed_Jog_Fwd();
+        if (ck::IsValid(Idle)) { Clips.Add(FCk_VatCollection_ClipDef(Idle, n"Idle")); }
+        if (ck::IsValid(Walk)) { Clips.Add(FCk_VatCollection_ClipDef(Walk, n"Walk")); }
+        if (ck::IsValid(Jog))  { Clips.Add(FCk_VatCollection_ClipDef(Jog, n"Jog")); }
+        if (Clips.Num() == 0)
+        { return nullptr; }
+
+        auto Baker = Cast<UCkVat_BakerSubsystem>(EditorSubsystem::GetEditorSubsystem(UCkVat_BakerSubsystem));
+        if (ck::Is_NOT_Valid(Baker))
+        { return nullptr; }
+
+        return Baker.CreateAndBake_TransientCollection(Skeleton, Mesh, Clips,
+            30, ECk_Vat_BakeMode::Bone, ECk_Vat_Precision::High);
+    }
+#endif
+
+    // Path -> baked collection. "AUTO" = the self-baked transient default (editor only).
+    UCk_VatCollection_Data ResolveCollection(FString InPath)
+    {
+        if (InPath == DefaultCollectionPath)
+        {
+#if EDITOR
+            return CreateDefaultTransientCollection();
+#else
+            return nullptr;
+#endif
+        }
+        return LoadCollection(InPath);
+    }
+
+    // Rendered on stations when no usable collection resolved.
     // Keep each line under ~55 chars (BP_DemoDisplay does not wrap).
     FString MissingCollectionText(FString InPath, bool InFoundButUnbaked)
     {
+        if (InPath == DefaultCollectionPath)
+        {
+            auto Text = FString("Self-bake FAILED (check the log).\n");
+            Text = f"{Text}Mannequin content or the baker\n";
+            Text = f"{Text}subsystem unavailable?\n\n";
+            Text = f"{Text}Or point at a baked collection:\n";
+            Text = f"{Text}Ck_GymVat_SetCollection <path>\n";
+            return Text;
+        }
+
         auto Text = InFoundButUnbaked
             ? "Collection found but NOT BAKED.\n"
             : "No baked VatCollection found.\n";
         Text = f"{Text}Path: {InPath}\n\n";
-        Text = f"{Text}Setup (once):\n";
-        Text = f"{Text} 1. Create a UCk_VatCollection_Data asset\n";
-        Text = f"{Text}    at the path above.\n";
-        Text = f"{Text} 2. Set Skeleton, SourceMesh and Clips\n";
-        Text = f"{Text}    (Bone mode for the Mannequin —\n";
-        Text = f"{Text}    Vertex mode caps at 4096 verts).\n";
-        Text = f"{Text} 3. Click BAKE in the details panel, save.\n";
-        Text = f"{Text} 4. Re-enter the gym, or run:\n";
-        Text = f"{Text}    Ck_GymVat_SetCollection <path>\n";
+        Text = f"{Text}Bake it: open the asset, click BAKE\n";
+        Text = f"{Text}in the details panel, save. Or return\n";
+        Text = f"{Text}to the self-baked default:\n";
+        Text = f"{Text}Ck_GymVat_SetCollection AUTO\n";
         return Text;
     }
 }

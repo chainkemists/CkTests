@@ -85,7 +85,7 @@ class UCk_EntityScript_VatGym_ClipCycle : UCk_GenericEntityScript_UE
         }
 
         _ClipNames.Empty();
-        _Collection = vat_gym::LoadCollection(_CollectionPath);
+        _Collection = vat_gym::ResolveCollection(_CollectionPath);
         if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_IsBaked() == false)
         { return; }
 
@@ -302,7 +302,7 @@ class UCk_EntityScript_VatGym_Turntable : UCk_GenericEntityScript_UE
             _Proxy = FCk_Handle_VatProxy();
         }
 
-        _Collection = vat_gym::LoadCollection(_CollectionPath);
+        _Collection = vat_gym::ResolveCollection(_CollectionPath);
         if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_IsBaked() == false)
         { return; }
 
@@ -448,7 +448,7 @@ class UCk_EntityScript_VatGym_CrowdField : UCk_GenericEntityScript_UE
         _ClipNames.Empty();
         _ActiveClipIndex = 0;
 
-        _Collection = vat_gym::LoadCollection(_CollectionPath);
+        _Collection = vat_gym::ResolveCollection(_CollectionPath);
         if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_IsBaked() == false)
         { return; }
 
