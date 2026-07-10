@@ -65,6 +65,8 @@ namespace vat_gym
         if (ck::Is_NOT_Valid(Baker))
         { return nullptr; }
 
+        // (Vertex-mode bisection attempted 2026-07-10: SKM_Manny_Simple has 48705 source verts —
+        // over the 4096 Vertex cap, so the mesh can't discriminate via mode. Bone stays default.)
         return Baker.CreateAndBake_TransientCollection(Skeleton, Mesh, Clips,
             30, ECk_Vat_BakeMode::Bone, ECk_Vat_Precision::High);
     }
