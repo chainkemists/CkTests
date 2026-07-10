@@ -100,3 +100,6 @@ class UCk_PoolTest_PooledReceiverVeto_EntityScript : UCk_PoolTest_PooledReceiver
 // Dedicated subject for the perf-comparison test — its own class = its own isolated pool,
 // keeping timings uncontaminated by the functional tests' pools
 class UCk_PoolTest_PerfSubject_EntityScript : UCk_PoolTest_PooledReceiver_EntityScript {}
+
+// Dedicated subject for the grow-batch test — isolated pool
+class UCk_PoolTest_GrowBatchSubject_EntityScript : UCk_PoolTest_PooledReceiver_EntityScript {}
