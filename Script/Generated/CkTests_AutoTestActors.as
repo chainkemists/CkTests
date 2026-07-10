@@ -3451,6 +3451,18 @@ class ACk_AutoTest_LagCompProjectile_CompensatedLaunchHitsPastPose_Actor : ACk_A
     }
 }
 
+class ACk_AutoTest_LoadingScreen_HolderSemantics_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_LoadingScreen_HolderSemantics");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Marker_Add_Box_CreatesValidHandle_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
