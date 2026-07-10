@@ -42,6 +42,11 @@ class UCk_PoolTest_PooledReceiver_EntityScript : UCk_GenericEntityScript_UE
     UPROPERTY()
     int32 ArchetypeMarker = 0;
 
+    // injection target: per-use payloads carrying a 'Marker' field stomp this property on every
+    // acquire (spawn-param injection semantics) — published separately from the payload's Marker
+    UPROPERTY()
+    FName Marker;
+
     private FCk_Handle MyEntity;
     private int32 _NumAcquired = 0;
     private int32 _NumReleased = 0;
@@ -69,6 +74,7 @@ class UCk_PoolTest_PooledReceiver_EntityScript : UCk_GenericEntityScript_UE
         auto E = MyEntity;
         utils_variables_int32::Set(E, utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Pool.NumAcquired"), _NumAcquired);
         utils_variables_int32::Set(E, utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Pool.ArchetypeMarker"), ArchetypeMarker);
+        utils_variables_name::Set(E, utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Pool.InjectedMarker"), Marker);
 
         if (!InPerUseParams.IsValid())
         { return; }
@@ -106,3 +112,6 @@ class UCk_PoolTest_GrowBatchSubject_EntityScript : UCk_PoolTest_PooledReceiver_E
 
 // Dedicated subject for the demand-ramp stress test — isolated pool
 class UCk_PoolTest_RampSubject_EntityScript : UCk_PoolTest_PooledReceiver_EntityScript {}
+
+// Dedicated subject for the per-use property-injection test — isolated pool
+class UCk_PoolTest_InjectSubject_EntityScript : UCk_PoolTest_PooledReceiver_EntityScript {}
