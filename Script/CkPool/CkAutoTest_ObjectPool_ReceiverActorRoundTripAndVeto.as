@@ -122,6 +122,15 @@ class UCk_AutoTest_ObjectPool_ReceiverActorRoundTripAndVeto : UCk_AutoTest_Base
         Assert_Equals_Int(Fresh.NumAcquired, 1, "fresh instance has no acquire history");
         Assert_Equals_Int(Fresh.NumReleased, 0, "fresh instance has no release history");
 
+        // registry entity: the pool mirrors into the world-level RecordOfObjectPools
+        auto FoundRegistryEntity = false;
+        for (auto PoolEntity : UCk_Utils_ObjectPool_UE::Get_AllPools())
+        {
+            if (UCk_Utils_ObjectPool_UE::Get_PoolObjectClass(PoolEntity) == ACk_PoolTest_PooledReceiver_Actor)
+            { FoundRegistryEntity = true; break; }
+        }
+        Assert_True(FoundRegistryEntity, "pool has a registry entity in RecordOfObjectPools carrying its class");
+
         auto Stats = UCk_Utils_ObjectPool_UE::Get_Stats(ACk_PoolTest_PooledReceiver_Actor);
         Assert_Equals_Int(Stats.Get_NumLiveInstances(), 1, "veto destroy reconciled the live count");
         Assert_Equals_Int(Stats.Get_NumHits(), 1, "one pool hit (the recycle)");

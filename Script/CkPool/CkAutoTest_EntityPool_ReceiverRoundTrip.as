@@ -105,6 +105,8 @@ class UCk_AutoTest_EntityPool_ReceiverRoundTrip : UCk_AutoTest_Base
 
             auto Pool = UCk_Utils_EntityPool_UE::TryGet_Pool_ByClass(UCk_PoolTest_PooledReceiverRoundTrip_EntityScript);
             Assert_True(ck::IsValid(Pool), "auto-created default pool is discoverable by class");
+            Assert_True(UCk_Utils_EntityPool_UE::Get_AllPools().Contains(Pool),
+                "pool registered in the world-level RecordOfEntityPools");
 
             auto Stats = Pool.Get_Stats();
             Assert_Equals_Int(Stats.Get_NumHits(), 1, "second acquire was a pool hit");
