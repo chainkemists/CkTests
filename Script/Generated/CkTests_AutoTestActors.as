@@ -1559,6 +1559,19 @@ class ACk_AutoTest_EntityPool_GrowBatch_ProvisionsExtras_Actor : ACk_AutoTestRun
     }
 }
 
+class ACk_AutoTest_EntityPool_Perf_RampTo1000_GrowBatchPreProvisions_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 120.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityPool_Perf_RampTo1000_GrowBatchPreProvisions");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_EntityPool_Perf_SpawnVsPoolReuse_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 30.0f;

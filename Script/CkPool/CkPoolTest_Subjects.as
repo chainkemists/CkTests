@@ -103,3 +103,6 @@ class UCk_PoolTest_PerfSubject_EntityScript : UCk_PoolTest_PooledReceiver_Entity
 
 // Dedicated subject for the grow-batch test — isolated pool
 class UCk_PoolTest_GrowBatchSubject_EntityScript : UCk_PoolTest_PooledReceiver_EntityScript {}
+
+// Dedicated subject for the demand-ramp stress test — isolated pool
+class UCk_PoolTest_RampSubject_EntityScript : UCk_PoolTest_PooledReceiver_EntityScript {}
