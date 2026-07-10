@@ -44,7 +44,9 @@ namespace vat_gym
     // The zero-setup default: a Bone-mode Mannequin collection baked in memory at PIE start
     // (transient bake — nothing saved to disk). Returns nullptr if the mannequin content or the
     // baker subsystem is unavailable; callers fall back to the missing-collection display.
-    UCk_VatCollection_Data CreateDefaultTransientCollection()
+    // InWeightStorage: the Turntable station bakes WeightTexture so both per-vertex carriers
+    // render side by side in the gym (ClipCycle/CrowdField stay MeshChannels).
+    UCk_VatCollection_Data CreateDefaultTransientCollection(ECk_Vat_BoneWeightStorage InWeightStorage)
     {
         auto Skeleton = assets::load::SK_Mannequin();
         auto Mesh = assets::load::SKM_Manny_Simple();
@@ -66,19 +68,20 @@ namespace vat_gym
         { return nullptr; }
 
         // (Vertex-mode bisection attempted 2026-07-10: SKM_Manny_Simple has 48705 source verts —
-        // over the 4096 Vertex cap, so the mesh can't discriminate via mode. Bone stays default.)
+        // over the 4096 Vertex cap at LOD0. Bone stays default; Vertex verification wants a higher
+        // _SourceLOD or a low-poly mesh via Ck_GymVat_SetCollection.)
         return Baker.CreateAndBake_TransientCollection(Skeleton, Mesh, Clips,
-            30, ECk_Vat_BakeMode::Bone, ECk_Vat_Precision::High);
+            30, ECk_Vat_BakeMode::Bone, ECk_Vat_Precision::High, InWeightStorage);
     }
 #endif
 
     // Path -> baked collection. "AUTO" = the self-baked transient default (editor only).
-    UCk_VatCollection_Data ResolveCollection(FString InPath)
+    UCk_VatCollection_Data ResolveCollection(FString InPath, ECk_Vat_BoneWeightStorage InAutoWeightStorage = ECk_Vat_BoneWeightStorage::MeshChannels)
     {
         if (InPath == DefaultCollectionPath)
         {
 #if EDITOR
-            return CreateDefaultTransientCollection();
+            return CreateDefaultTransientCollection(InAutoWeightStorage);
 #else
             return nullptr;
 #endif

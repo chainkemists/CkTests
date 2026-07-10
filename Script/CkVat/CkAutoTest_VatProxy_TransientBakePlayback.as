@@ -62,9 +62,9 @@ class UCk_AutoTest_VatProxy_TransientBakePlayback : UCk_AutoTest_Base
         if (ck::Is_NOT_Valid(Collection))
         { FinishFailure("transient bake returned null"); return; }
 
-        Assert_True(Collection.Get_IsBaked(),
+        Assert_True(Collection.Get_BakedData().Get_IsBaked(),
             "the transient collection should be marked baked");
-        Assert_True(Collection.Get_BakedClips().Num() == 1,
+        Assert_True(Collection.Get_BakedData().Get_BakedClips().Num() == 1,
             "the transient collection should have exactly one baked clip");
 
         // ----- Compose + play -----
