@@ -86,10 +86,10 @@ class UCk_EntityScript_VatGym_ClipCycle : UCk_GenericEntityScript_UE
 
         _ClipNames.Empty();
         _Collection = vat_gym::ResolveCollection(_CollectionPath);
-        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_IsBaked() == false)
+        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_BakedData().Get_IsBaked() == false)
         { return; }
 
-        for (auto Clip : _Collection.Get_BakedClips())
+        for (auto Clip : _Collection.Get_BakedData().Get_BakedClips())
         { _ClipNames.Add(Clip.Get_Name()); }
 
         // Auto sequence: one step per clip, then the rate/freeze quartet.
@@ -143,7 +143,7 @@ class UCk_EntityScript_VatGym_ClipCycle : UCk_GenericEntityScript_UE
     {
         auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 
-        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_IsBaked() == false)
+        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_BakedData().Get_IsBaked() == false)
         {
             auto FoundButUnbaked = ck::IsValid(_Collection);
             DisplayText = DisplayText + vat_gym::MissingCollectionText(_CollectionPath, FoundButUnbaked);
@@ -302,11 +302,13 @@ class UCk_EntityScript_VatGym_Turntable : UCk_GenericEntityScript_UE
             _Proxy = FCk_Handle_VatProxy();
         }
 
-        _Collection = vat_gym::ResolveCollection(_CollectionPath);
-        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_IsBaked() == false)
+        // WeightTexture storage on this station: both per-vertex carriers render side by side
+        // in the gym (the other stations bake MeshChannels).
+        _Collection = vat_gym::ResolveCollection(_CollectionPath, ECk_Vat_BoneWeightStorage::WeightTexture);
+        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_BakedData().Get_IsBaked() == false)
         { return; }
 
-        auto Clips = _Collection.Get_BakedClips();
+        auto Clips = _Collection.Get_BakedData().Get_BakedClips();
         if (Clips.Num() == 0)
         { return; }
 
@@ -340,7 +342,7 @@ class UCk_EntityScript_VatGym_Turntable : UCk_GenericEntityScript_UE
     {
         auto DisplayText = FString();
 
-        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_IsBaked() == false)
+        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_BakedData().Get_IsBaked() == false)
         {
             auto FoundButUnbaked = ck::IsValid(_Collection);
             DisplayText = vat_gym::MissingCollectionText(_CollectionPath, FoundButUnbaked);
@@ -354,7 +356,9 @@ class UCk_EntityScript_VatGym_Turntable : UCk_GenericEntityScript_UE
             DisplayText = f"{DisplayText}Watch mirrored UV islands for inverted\n";
             DisplayText = f"{DisplayText}shading (bake handedness suspect).\n";
             DisplayText = f"{DisplayText}Bone mode lights with bind-pose normals\n";
-            DisplayText = f"{DisplayText}(deferred — expect flat-ish shading).\n\n";
+            DisplayText = f"{DisplayText}(deferred — expect flat-ish shading).\n";
+            DisplayText = f"{DisplayText}This station bakes WEIGHT-TEXTURE storage\n";
+            DisplayText = f"{DisplayText}(others: mesh channels) — must look identical.\n\n";
             DisplayText = f"{DisplayText}Yaw: {int32(_Yaw)} deg @ {_DegreesPerSecond} deg/s\n\n";
             DisplayText = f"{DisplayText}===== Commands =====\n";
             DisplayText = f"{DisplayText}Ck_GymVat_TurnRate [deg/s]\n";
@@ -449,10 +453,10 @@ class UCk_EntityScript_VatGym_CrowdField : UCk_GenericEntityScript_UE
         _ActiveClipIndex = 0;
 
         _Collection = vat_gym::ResolveCollection(_CollectionPath);
-        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_IsBaked() == false)
+        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_BakedData().Get_IsBaked() == false)
         { return; }
 
-        for (auto Clip : _Collection.Get_BakedClips())
+        for (auto Clip : _Collection.Get_BakedData().Get_BakedClips())
         { _ClipNames.Add(Clip.Get_Name()); }
         if (_ClipNames.Num() == 0)
         { return; }
@@ -507,7 +511,7 @@ class UCk_EntityScript_VatGym_CrowdField : UCk_GenericEntityScript_UE
     {
         auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
 
-        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_IsBaked() == false)
+        if (ck::Is_NOT_Valid(_Collection) || _Collection.Get_BakedData().Get_IsBaked() == false)
         {
             auto FoundButUnbaked = ck::IsValid(_Collection);
             DisplayText = DisplayText + vat_gym::MissingCollectionText(_CollectionPath, FoundButUnbaked);
