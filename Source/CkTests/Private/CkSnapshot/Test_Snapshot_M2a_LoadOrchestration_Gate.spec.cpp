@@ -101,7 +101,7 @@ bool FCkSnapshot_M2a_LoadOrchestration_Gate::RunTest(const FString& Parameters)
     constexpr auto ExpectedTotalWorlds = 1;
     constexpr auto ReadyTimeoutSeconds = 30.0f;
     constexpr auto FramesPerSettle = 30;
-    constexpr auto FramesForLoad   = 150; // generous: teardown (multi-frame) + restore + post-restore recompute
+    constexpr auto FramesForLoad   = 240; // teardown + OpenLevel + restore + respawn + quiescence all span frames (matches M2b/M2b2a)
     const auto MapPath = FString{TEXT("/Engine/Maps/Entry")};
 
     auto FlagDuringLoad = MakeShared<bool>(false);

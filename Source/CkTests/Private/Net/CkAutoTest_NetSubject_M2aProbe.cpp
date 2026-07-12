@@ -13,6 +13,14 @@ auto
     Super::EndPlay();
 }
 
+auto
+    UCk_AutoTest_NetSubject_M2aProbe_EntityScript_UE::
+    Get_IsSnapshotRespawnable() const
+    -> bool
+{
+    return true;
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 
 ACk_AutoTest_NetSubject_M2aProbe::
