@@ -22,6 +22,32 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
         Stations.Add(Make_Station(n"Gym.Rendering.OutlineMasked", "OUTLINE: MASKED SEE-THROUGH",
             "Amber outline + stippled fill.", "Objective-marker style, readable through cover."));
 
+        Stations.Add(Make_Station(n"Gym.Rendering.OutlineIsm", "OUTLINE: ISM ENTITIES",
+            "5 cubes share ONE ISM component; entities #2 (blue) and #4 (green) outlined.",
+            "Per-instance outlines via the custom-depth-only shadow ISM."));
+        Stations.Add(Make_Station(n"Gym.Rendering.OutlineIskm", "OUTLINE: ISKM PLAN-1",
+            "3 skeletal proxies (pooled SKMCs); the middle one outlined (amber).",
+            "Custom depth set on the entity's SKMC + outfit submeshes."));
+        Stations.Add(Make_Station(n"Gym.Rendering.OutlineBatched", "OUTLINE: BATCHED CROWD",
+            "16 GPU-skinned crowd members; members 0-2 outlined by index (blue/blue/green).",
+            "Highlight cluster mirrors the skinned pose into custom depth."));
+        Stations.Add(Make_Station(n"Gym.Rendering.OutlineCascade", "OUTLINE: CASCADE",
+            "A parent entity whose visuals are 3 child cube proxies.",
+            "One Request_ApplyOutline(EntityAndDependents) outlines them all."));
+
+        // Explicit single-row layout, wider than the 800uu default grid — the entity stations
+        // spawn free-standing content (cube rows, crowds) that needs the extra clearance to
+        // read as belonging to their station.
+        const float StationSpacing = 1600.0f;
+        auto RowStartOffset = -(Stations.Num() - 1) * StationSpacing * 0.5f;
+        for (int32 i = 0; i < Stations.Num(); i++)
+        {
+            auto Xf = FTransform::Identity;
+            Xf.SetLocation(FVector(500.0f, RowStartOffset + i * StationSpacing, 0.0f));
+            Xf.SetRotation(FRotator(0.0f, 180.0f, 0.0f).Quaternion());
+            Stations[i].Transform = Xf;
+        }
+
         return Stations;
     }
 
@@ -56,6 +82,22 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_SpawnOutline(n"Gym.Rendering.OutlineInteractable", CkUsf::DA_Outline_Interactable);
         Request_SpawnOutline(n"Gym.Rendering.OutlineSeeThrough",   CkUsf::DA_Outline_SeeThrough);
         Request_SpawnOutline(n"Gym.Rendering.OutlineMasked",       CkUsf::DA_Outline_MaskedObjective);
+
+        // Entity-outline stations (ISM / ISKM / Batched / Cascade) — entity-script stations.
+        Request_SpawnEntityStation("Gym.Rendering.OutlineIsm",     UCk_EntityScript_UsfOutlineGym_Ism);
+        Request_SpawnEntityStation("Gym.Rendering.OutlineIskm",    UCk_EntityScript_UsfOutlineGym_Iskm);
+        Request_SpawnEntityStation("Gym.Rendering.OutlineBatched", UCk_EntityScript_UsfOutlineGym_Batched);
+        Request_SpawnEntityStation("Gym.Rendering.OutlineCascade", UCk_EntityScript_UsfOutlineGym_Cascade);
+    }
+
+    private void Request_SpawnEntityStation(FString InTag, TSubclassOf<UCk_EntityScript_UE> InScriptClass)
+    {
+        auto Params = FCk_Gym_TransformSpawnParams(Get_StationAnchorTransform(InTag, ECk_GymStation_Anchor::PanelCenter));
+
+        utils_entity_script::Request_SpawnEntity(
+            Get_StationHandle(InTag),
+            InScriptClass,
+            FInstancedStruct::Make(Params));
     }
 
     private void Request_SpawnOutline(FName InStationTag, UCkUsf_OutlinePreset InPreset)
