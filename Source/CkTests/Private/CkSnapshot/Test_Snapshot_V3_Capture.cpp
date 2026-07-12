@@ -27,8 +27,11 @@
 #include "NativeGameplayTags.h"
 #include "Serialization/BufferArchive.h"
 #include "Serialization/MemoryReader.h"
+#include "Serialization/MemoryWriter.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "UObject/Package.h"
+
+#include "CkCore/Validation/CkIsValid.h" // ck::IsValid (v3 map-backed disk smoke)
 
 #include "Misc/AutomationTest.h"
 
@@ -194,6 +197,106 @@ bool
     const auto RemappedSavedId = static_cast<uint32>(OutParams.TargetHandle.Get_Entity().Get_ID());
     return TestEqual(TEXT("Params handle references the sibling's saved-id"),
         static_cast<int64>(RemappedSavedId), static_cast<int64>(SiblingSavedId));
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Ck.Snapshot.V3.InstancedStructDiskSmoke — validates Fork A (Phase 3B): a v3 blob written save-mode (raw saved id)
+// is deserialized through the map-backed FSnapshotContext and the handle field REMAPS to the live target the map
+// points at (not the saved id); a raw id absent from the map rewrites to an INVALID handle (dangling-ref semantics).
+// Registry-level (bare FEcsWorld) — cheap, no travel.
+
+namespace ck_test_snapshot_v3
+{
+    // Save-mode serialize (mirrors ck::snapshot::SerializeInstancedStruct): raw handle ids written.
+    auto SerializeBlob_Save(const FInstancedStruct& InStruct) -> TArray<uint8>
+    {
+        auto Blob = TArray<uint8>{};
+        if (InStruct.GetScriptStruct() == nullptr) { return Blob; }
+        auto Writer = FMemoryWriter{Blob, /*bIsPersistent=*/true};
+        constexpr auto LoadIfFindFails = true;
+        auto Proxy = FObjectAndNameAsStringProxyArchive{Writer, LoadIfFindFails};
+        Proxy.ArIsSaveGame = false;
+        Proxy.SetIsPersistent(true);
+        auto Ctx = ck::FSnapshotContext{};
+        auto Copy = FInstancedStruct{InStruct};
+        Copy.Serialize(Proxy);
+        ck::snapshot::RemapHandles(Copy.GetScriptStruct(), Copy.GetMutableMemory(), Proxy, Ctx);
+        return Blob;
+    }
+
+    // Load-mode deserialize through the v3 saved-id -> live-handle map (the Phase-3B FSnapshotContext mode).
+    auto DeserializeBlob_Mapped(const TArray<uint8>& InBytes, const TMap<uint32, FCk_Handle>& InMap,
+                                FCk_RegistryHandle InReg) -> FInstancedStruct
+    {
+        auto Reader = FMemoryReader{InBytes, /*bIsPersistent=*/true};
+        constexpr auto LoadIfFindFails = true;
+        auto Proxy = FObjectAndNameAsStringProxyArchive{Reader, LoadIfFindFails};
+        Proxy.ArIsSaveGame = false;
+        Proxy.SetIsPersistent(true);
+        auto Ctx = ck::FSnapshotContext{&InMap, InReg};
+        auto Out = FInstancedStruct{};
+        Out.Serialize(Proxy);
+        ck::snapshot::RemapHandles(Out.GetScriptStruct(), Out.GetMutableMemory(), Proxy, Ctx);
+        return Out;
+    }
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_V3_InstancedStructDiskSmoke_Test,
+    "Ck.Snapshot.V3.InstancedStructDiskSmoke",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_V3_InstancedStructDiskSmoke_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& CkRegistry = EcsWorld.Get_Registry();
+    const auto RegistryHandle = CkRegistry.Get_RegistryHandle();
+
+    auto* RawRegistry = ck::registry_table::TryResolve(RegistryHandle);
+    if (NOT TestNotNull(TEXT("Resolved raw entt registry"), RawRegistry))
+    { return false; }
+
+    // The id written into the blob (the "saved" target) and a DISTINCT live target the map redirects to.
+    auto SavedTarget = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    auto LiveTarget  = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    const auto SavedTargetId = static_cast<uint32>(SavedTarget.Get_Entity().Get_ID());
+
+    auto Params = FCk_Test_DynFrag_WithHandle{};
+    Params.Marker = 99;
+    Params.TargetHandle = SavedTarget;
+
+    const auto Blob = ck_test_snapshot_v3::SerializeBlob_Save(FInstancedStruct::Make(Params));
+    if (NOT TestTrue(TEXT("blob non-empty"), Blob.Num() > 0))
+    { return false; }
+
+    auto Map = TMap<uint32, FCk_Handle>{};
+    Map.Add(SavedTargetId, LiveTarget);
+
+    const auto Out = ck_test_snapshot_v3::DeserializeBlob_Mapped(Blob, Map, RegistryHandle);
+    if (NOT TestTrue(TEXT("deserialized to the test struct"),
+        Out.GetScriptStruct() == FCk_Test_DynFrag_WithHandle::StaticStruct()))
+    { return false; }
+
+    const auto& OutParams = Out.Get<FCk_Test_DynFrag_WithHandle>();
+    TestEqual(TEXT("scalar param round-tripped over disk"), OutParams.Marker, 99);
+
+    // The whole point: the handle written as SavedTarget's id was REMAPPED to LiveTarget by the map-backed context.
+    TestEqual(TEXT("handle remapped to the live target (not the saved id)"),
+        static_cast<int64>(OutParams.TargetHandle.Get_Entity().Get_ID()),
+        static_cast<int64>(LiveTarget.Get_Entity().Get_ID()));
+    TestTrue(TEXT("remapped handle is valid"), ck::IsValid(OutParams.TargetHandle));
+
+    // And a raw id NOT in the map rewrites to an INVALID handle (dangling-ref semantics).
+    auto EmptyMap = TMap<uint32, FCk_Handle>{};
+    const auto OutUnmapped = ck_test_snapshot_v3::DeserializeBlob_Mapped(Blob, EmptyMap, RegistryHandle);
+    const auto& UnmappedParams = OutUnmapped.Get<FCk_Test_DynFrag_WithHandle>();
+    TestFalse(TEXT("unmapped handle rewrites to invalid"), ck::IsValid(UnmappedParams.TargetHandle));
+
+    return true;
 }
 
 #endif // WITH_DEV_AUTOMATION_TESTS
