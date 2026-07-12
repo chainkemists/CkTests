@@ -101,8 +101,9 @@ class UCk_EntityScript_ProjectileGym_LagCompCompensatedShot_Station : UCk_Generi
         utils_transform::Add(
             Projectile, FTransform(FRotator::ZeroRotator, ShooterPost), ECk_Replication::DoesNotReplicate);
 
-        // Zero gravity so the "laggy" aim at the past pose is exact
-        auto TrajectoryParams = FCk_Ballistic_TrajectoryParams(FVector(0.0, 0.0, 0.0));
+        // Very high terminal velocity = near-dragless, near-straight flight over this short
+        // range, so the "laggy" aim at the past pose stays effectively exact (sag < 5cm)
+        auto TrajectoryParams = FCk_Ballistic_TrajectoryParams(FVector(0.0, 0.0, -100000.0));
         auto Motion = UCk_Utils_BallisticMotion_UE::Add(Projectile, FCk_Fragment_BallisticMotion_ParamsData(TrajectoryParams));
 
         Motion.BindTo_OnRewindHit(FCk_Delegate_LagCompProjectile_OnRewindHit(this, n"OnRewindHit"));
