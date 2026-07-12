@@ -48,3 +48,39 @@ class UCk_ObjectPoolingTest_ForceNewScript : UCk_GenericEntityScript_UE
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _InstancingPolicy = ECk_EntityScript_InstancingPolicy::InstancedPerEntity;
 }
+
+// Pooled-component subject for the external-destroy (steal) tests — a component because
+// DestroyComponent is the one AS-reachable way to externally destroy a pooled plain object
+class UCk_ObjectPoolingTest_PooledComponent : UActorComponent
+{
+    UPROPERTY()
+    int32 Value = 0;
+}
+
+// Poolable EntityScript that OBSERVES its own recycled state: Construct records the pre-Construct
+// Scratch value into an entity variable (a recycled instance must observe the archetype default,
+// never the previous incarnation's stomp); BeginPlay marks the entity and stomps Scratch
+class UCk_ObjectPoolingTest_TransparencyScript : UCk_GenericEntityScript_UE
+{
+    default _Replication = ECk_Replication::DoesNotReplicate;
+    default _InstancingPolicy = ECk_EntityScript_InstancingPolicy::InstancedPerEntity_Poolable;
+
+    UPROPERTY()
+    int32 Scratch = 0;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+    {
+        auto ObservedTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.ObjectPooling.ObservedScratch");
+        utils_variables_int32::Set(InHandle, ObservedTag, Scratch);
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void DoBeginPlay(FCk_Handle InHandle)
+    {
+        auto BeginPlayTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.ObjectPooling.SawBeginPlay");
+        utils_variables_int32::Set(InHandle, BeginPlayTag, 1);
+        Scratch = 99;
+    }
+}
