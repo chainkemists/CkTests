@@ -41,6 +41,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Messaging",          ACk_MessagingGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Net Two-Player",     ACk_NetGym_TwoPlayer_GameMode);
         CkGym_Cycler::RegisterProjectGym("Object Pooling Stress", ACk_ObjectPoolingGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Particles",          ACk_ParticlesGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("PMG Shapes",         ACk_PmgShapesGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Probe",              ACk_ProbeGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Projectiles & Lag Comp", ACk_ProjectileGym_GameMode);
