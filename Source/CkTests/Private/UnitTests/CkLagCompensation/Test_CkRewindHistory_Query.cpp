@@ -230,3 +230,42 @@ bool FCkTest_RewindQuery_SweepShapes::RunTest(const FString& Parameters)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_RewindQuery_AncientTimesRejected,
+    "CkTests.UnitTests.CkLagCompensation.RewindQuery.AncientTimesRejected",
+    kCkUnitTestFlags)
+
+bool FCkTest_RewindQuery_AncientTimesRejected::RunTest(const FString& Parameters)
+{
+    auto Buffer = FCk_LagComp_FrameBuffer{};
+    Buffer.Init(8);
+    Buffer.Push(ck_tests_rewind::Make_SphereFrame(10.0, FVector{0.0, 0.0, 0.0}, 50.0));
+    Buffer.Push(ck_tests_rewind::Make_SphereFrame(10.1, FVector{0.0, 0.0, 0.0}, 50.0));
+    Buffer.Push(ck_tests_rewind::Make_SphereFrame(10.2, FVector{0.0, 0.0, 0.0}, 50.0));
+
+    TestEqual(TEXT("A time more than one frame interval before the oldest frame interpolates to nothing"),
+        ck::lag_comp::Get_InterpolatedSnapshots(Buffer, FCk_Time{9.5}).Num(), 0);
+
+    TestEqual(TEXT("A time within one frame interval of the oldest frame still clamps to the oldest pose"),
+        ck::lag_comp::Get_InterpolatedSnapshots(Buffer, FCk_Time{9.95}).Num(), 1);
+
+    TestEqual(TEXT("A time after the newest frame clamps to the newest pose"),
+        ck::lag_comp::Get_InterpolatedSnapshots(Buffer, FCk_Time{25.0}).Num(), 1);
+
+    // The sweep must refuse to manufacture hits in the pre-history era: this segment passes dead
+    // through where the sphere has ALWAYS been, but the requested window predates the buffer
+    const auto AncientHit = ck::lag_comp::Sweep_SegmentVsHistory(
+        Buffer, FVector{-200.0, 0.0, 0.0}, FVector{200.0, 0.0, 0.0},
+        FCk_Time{5.0}, FCk_Time{5.1}, 5.0);
+    TestFalse(TEXT("Sweep in the pre-history era does not hit"), AncientHit.IsSet());
+
+    const auto RecordedHit = ck::lag_comp::Sweep_SegmentVsHistory(
+        Buffer, FVector{-200.0, 0.0, 0.0}, FVector{200.0, 0.0, 0.0},
+        FCk_Time{10.05}, FCk_Time{10.15}, 5.0);
+    TestTrue(TEXT("The same sweep inside the recorded window hits"), RecordedHit.IsSet());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
