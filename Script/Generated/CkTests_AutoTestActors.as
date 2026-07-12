@@ -6132,6 +6132,30 @@ class ACk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor : ACk_A
     }
 }
 
+class ACk_AutoTest_UsfOutline_BatchedMembers_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_UsfOutline_BatchedMembers");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_UsfOutline_IskmApplyRemove_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_UsfOutline_IskmApplyRemove");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Variables_Bool_SetGetRoundTrip_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;
