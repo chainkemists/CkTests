@@ -4,8 +4,8 @@
 // 2026-06-10-CkSnapshot-StateMachine-restore-design.md §2): FFragment_Sm_Params (Tier-A, all five
 // fields via SaveGame metas) and FFragment_Sm_Current's persisted subset ({_RunStatus byte,
 // _CurrentStateClass by soft class path}; _CurrentStateHandle is deliberately NOT persisted — the
-// post-load re-drive recreates the live state graph). The re-drive half
-// (FProcessor_Sm_RestoreRedrive) is covered by the Ck.Snapshot.Parity.StateMachine*_MPReload gates.
+// post-load redrive recreates the live state graph). The redrive half
+// (FProcessor_Sm_HydrationResume) is covered by the Ck.Snapshot.Parity.StateMachine*_MPReload gates.
 //
 // Surface in Session Frontend: Ck.Snapshot.StateMachine.StateRoundTrip
 
