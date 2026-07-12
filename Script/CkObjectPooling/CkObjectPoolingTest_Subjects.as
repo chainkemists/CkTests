@@ -84,3 +84,29 @@ class UCk_ObjectPoolingTest_TransparencyScript : UCk_GenericEntityScript_UE
         Scratch = 99;
     }
 }
+
+// Replicated + poolable — the decision-3 safety net (replicated EntityScripts ARE allowed to
+// recycle). Construct marks its entity with a local variable on EVERY world, so the client can
+// prove its own construction ran for the recycled respawn
+class UCk_ObjectPoolingTest_ReplicatedPoolableScript : UCk_GenericEntityScript_UE
+{
+    default _Replication = ECk_Replication::Replicates;
+    default _InstancingPolicy = ECk_EntityScript_InstancingPolicy::InstancedPerEntity_Poolable;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
+    {
+        auto ConstructedTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.ObjectPooling.NetConstructed");
+        utils_variables_int32::Set(InHandle, ConstructedTag, 1);
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+}
+
+// Replicated carrier for the net test: rides the subject as a replicated dynamic fragment so the
+// CLIENT can discover the server's respawned (recycled) entity by handle
+USTRUCT()
+struct FCk_Fragment_PoolingTest_RespawnedRef
+{
+    UPROPERTY()
+    FCk_Handle TheEntity;
+}
