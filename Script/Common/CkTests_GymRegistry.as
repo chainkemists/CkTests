@@ -43,6 +43,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Object Pooling Stress", ACk_ObjectPoolingGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("PMG Shapes",         ACk_PmgShapesGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Probe",              ACk_ProbeGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Projectiles & Lag Comp", ACk_ProjectileGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Render Target",      ACk_RenderTargetGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Replication",        ACk_ReplicationGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Scene Node",         ACk_SceneNodeGym_GameMode);
