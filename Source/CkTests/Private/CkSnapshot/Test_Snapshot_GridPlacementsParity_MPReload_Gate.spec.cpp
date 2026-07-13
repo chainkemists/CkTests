@@ -15,8 +15,9 @@
 // boot (no crash dump / no WER). Bisected: dies with the grid alone (no occupant, no placement) and dies
 // identically on builds WITHOUT the grid snapshot wiring; the InventorySpatial gate survives because its grids
 // ride UNREPLICATED CHILD entities. This gate is the repro that surfaces the death's exit code; once fixed it
-// validates parity. Until then 2dGridPlacements stays kDeferred in the ratchet (covered at registry level by
-// Ck.Snapshot.GridPlacements.RoundTrip).
+// validates parity. Until then 2dGridPlacements stays kDeferred in the ratchet. Its registry-level round-trip
+// twin was removed with Model A, so this parity spec is now the only grid save/load coverage — and it is
+// itself the engine-death red.
 //
 // Surface in Session Frontend: Ck.Snapshot.Parity.GridPlacements_MPReload
 
