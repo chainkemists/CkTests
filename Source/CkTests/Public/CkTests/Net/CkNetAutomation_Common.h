@@ -62,15 +62,16 @@ namespace ck::auto_test::net
 
     // Server-side PlayerController representing the Nth remote PIE client (the one whose world is
     // Get_ClientWorld(ClientIdx)). On a listen server the local player's PC has no UNetConnection;
-    // remote clients' PCs do — this collects net-connection-backed PCs and returns the ClientIdx-th.
-    // Used to possess a subject Pawn with a client's PC so OwningClientAuthoritative replication
-    // contracts can be exercised (the SM's owning-client authority resolves through the bridged
-    // actor's IsLocallyControlled-by-player check). Returns nullptr if PIE isn't up or there's no
-    // such remote client.
+    // remote clients' PCs do. Used to possess a subject Pawn with a client's PC so
+    // OwningClientAuthoritative replication contracts can be exercised (the SM's owning-client authority
+    // resolves through the bridged actor's IsLocallyControlled-by-player check). Returns nullptr if PIE
+    // isn't up or there's no such remote client.
     //
-    // ORDERING CAVEAT: for >1 remote client the mapping from net-connection iteration order to
-    // PIEInstance/Get_ClientWorld index is NOT guaranteed. Reliable only for ClientIdx 0 (the
-    // single-remote-client case the 2-world net tests use). Revisit if a 3+ world test needs it.
+    // For a single remote client (every 2-world net test) this returns the sole net-connection PC. For
+    // >1 remote client the server's PlayerControllerIterator order does NOT match Get_ClientWorld's
+    // PIEInstance order, so the result is CORRELATED by player identity (PlayerState UniqueId, PlayerId
+    // fallback) to the SAME client as Get_ClientWorld(ClientIdx); returns nullptr (loud) if that identity
+    // has not replicated yet, rather than silently binding the wrong client.
     CKTESTS_API auto Get_RemoteClientPlayerController(UWorld* InServerWorld, int32 ClientIdx) -> class APlayerController*;
 }
 
