@@ -14,7 +14,6 @@
 
 namespace ck::auto_test::netsubject_inventory
 {
-    constexpr auto InventoryTagName = TEXT("Inventory.AutoTest_Net");
     constexpr auto InventoryCapacity = int32{5};
 }
 
@@ -39,7 +38,10 @@ auto
 
     using namespace ck::auto_test::netsubject_inventory;
 
-    const auto InventoryTag = FGameplayTag::RequestGameplayTag(FName{InventoryTagName});
+    // Use the registered native tag — an unregistered name resolves to empty/None → the inventory gets an
+    // unnamed label → the v3 snapshot capture won't persist it → its items can't round-trip (mirrors the
+    // Spatial tag below). See TAG_Inventory_AutoTest_Net in CkTests_Fragment_Data.
+    const auto InventoryTag = TAG_Inventory_AutoTest_Net.GetTag();
 
     auto Params = UCk_Utils_Inventory_DataOnly_UE::Make_Params_Bounded(
         InventoryTag,
