@@ -3,21 +3,21 @@
 // subject's Construct adds a Ck2dGridSystem directly on the bridged InHandle plus a 1x1 GridObject occupant;
 // the server stamps a placement at a NON-DEFAULT cell pre-save; post-reload both worlds must report that cell
 // Occupied — proving:
-//   - the restored server re-composed the grid's PRIVATE nested cell registry (the snapshot can never capture
-//     the live FFragment_2dGridSystem_Current's TUniquePtr<FEcsWorld>; RestoreRecompose rebuilds it),
-//   - the grid's placement record (FFragment_2dGridPlacement_Params — occupant/grid handles remapped through
-//     FSnapshotContext) round-tripped and was re-stamped onto the rebuilt grid,
-//   - the occupancy container entry was re-created + FTag re-armed so the fresh post-travel client converges
-//     through the ordinary placement-record SyncReplication path.
+//   - the restored server re-composed the grid's PRIVATE nested cell registry: the snapshot can never capture
+//     the live FFragment_2dGridSystem_Current's TUniquePtr<FEcsWorld>, so the bridged actor's Construct RE-RUNS
+//     on load and re-composes it (the grid carries its compose-only debug name post-travel),
+//   - the grid's placement RECORD — NOT re-created by Construct (it was a runtime Request_AddPlacement) — is
+//     rebuilt on the AUTHORITY host by the 2dGridOccupancy Apply handler's load-hydration branch, which
+//     re-drives Request_AddPlacement per restored payload entry (occupant handle remapped through
+//     FSnapshotContext; a save-transient occupant restores invalid, tolerated by design),
+//   - Request_AddPlacement re-arms MayRequireReplication so the AuthorityOnly Replicate pass pushes the rebuilt
+//     set and the fresh post-travel client converges through the ordinary placement-record SyncReplication path.
 //
-// CURRENTLY BLOCKED by a latent engine death: when a 2dGridSystem rides the top-level actor-bridged
-// REPLICATED entity through save + seamless travel the editor self-terminates ~4s into the post-travel ECS
-// boot (no crash dump / no WER). Bisected: dies with the grid alone (no occupant, no placement) and dies
-// identically on builds WITHOUT the grid snapshot wiring; the InventorySpatial gate survives because its grids
-// ride UNREPLICATED CHILD entities. This gate is the repro that surfaces the death's exit code; once fixed it
-// validates parity. Until then 2dGridPlacements stays kDeferred in the ratchet. Its registry-level round-trip
-// twin was removed with Model A, so this parity spec is now the only grid save/load coverage — and it is
-// itself the engine-death red.
+// History: this gate was long documented as a "latent engine death" (the editor self-terminating ~4s into the
+// post-travel ECS boot). That no longer reproduces — the controlled teardown-drain before travel mitigated it.
+// The remaining failure was a restore-logic gap (no authority-side occupancy re-drive), fixed by the Apply
+// hydration branch above. Its registry-level round-trip twin was removed with Model A, so this parity spec is
+// now the only grid save/load coverage.
 //
 // Surface in Session Frontend: Ck.Snapshot.Parity.GridPlacements_MPReload
 
@@ -73,8 +73,8 @@ namespace
     }
 
     // Resolve the grid through the actor's ENTITY (the grid is added directly on the bridged InHandle, not as a
-    // child), NOT through the actor's _TestGrid stash — Construct is ABSTAINED on the restored server world, so
-    // the stash is stale post-reload.
+    // child), NOT through the actor's _TestGrid stash — Construct RE-RUNS on the restored server world (a fresh
+    // grid instance), so the stash is stale post-reload.
     auto GridParity_ResolveGrid(AActor* InProbe) -> FCk_Handle_2dGridSystem
     {
         if (InProbe == nullptr) { return {}; }
