@@ -45,6 +45,10 @@ CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_EntityCollection_AutoTest_Net, "EntityCol
 
 // --------------------------------------------------------------------------------------------------------------------
 
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Inventory_AutoTest_Net, "Inventory.AutoTest_Net");
+
+// --------------------------------------------------------------------------------------------------------------------
+
 CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Inventory_AutoTest_Net_Spatial, "Inventory.AutoTest_Net_Spatial");
 
 // --------------------------------------------------------------------------------------------------------------------

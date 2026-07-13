@@ -93,6 +93,13 @@ CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_EntityCollection_AutoTest_Net);
 // inventory, so the Spatial one needs a distinct, valid name or the client can't disambiguate it
 // (an unregistered name resolves to empty/None and collides). Same lesson as
 // TAG_EntityCollection_AutoTest_Net above.
+// The DataOnly inventory needs a registered name for the SAME reason as the Spatial one below: an
+// unregistered name resolves to empty/None → the inventory gets an unnamed GameplayLabel → the v3
+// snapshot capture refuses to persist it (Rule 3 requires a named label) → its items can't round-trip.
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Inventory_AutoTest_Net);
+
+// --------------------------------------------------------------------------------------------------------------------
+
 CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Inventory_AutoTest_Net_Spatial);
 
 // --------------------------------------------------------------------------------------------------------------------
