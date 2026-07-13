@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "FileHelpers.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h" // PlayerState identity (UniqueId/PlayerId) — remote-client<->world correlation
 #include "PlayInEditorDataTypes.h"
 #include "Settings/LevelEditorPlaySettings.h"
 #include "UnrealEdGlobals.h"
@@ -154,7 +155,7 @@ namespace ck::auto_test::net
         { return nullptr; }
 
         // On a listen server, the local player's PlayerController has no UNetConnection; each
-        // remote client's PC carries one. Collect the net-connection-backed PCs in iterator order.
+        // remote client's PC carries one. Collect the net-connection-backed PCs.
         auto RemotePCs = TArray<APlayerController*>{};
         for (auto It = InServerWorld->GetPlayerControllerIterator(); It; ++It)
         {
@@ -166,14 +167,60 @@ namespace ck::auto_test::net
             { RemotePCs.Add(PC); }
         }
 
-        if (RemotePCs.IsValidIndex(ClientIdx) == false)
+        // Single-remote-client fast path (every 2-world net test): iterator order is unambiguous — this
+        // preserves the exact historical behavior (index into iterator order).
+        if (RemotePCs.Num() <= 1)
         {
-            Log_Error(TEXT("Get_RemoteClientPlayerController: no remote client PC at index [{}] (found [{}] net-connection PCs on server)"),
-                ClientIdx, RemotePCs.Num());
+            if (RemotePCs.IsValidIndex(ClientIdx) == false)
+            {
+                Log_Error(TEXT("Get_RemoteClientPlayerController: no remote client PC at index [{}] (found [{}] net-connection PCs on server)"),
+                    ClientIdx, RemotePCs.Num());
+                return nullptr;
+            }
+            return RemotePCs[ClientIdx];
+        }
+
+        // >1 remote client: the server's PlayerControllerIterator order is NOT correlated to Get_ClientWorld's
+        // PIEInstance order. Correlate by player identity so index N refers to the SAME client on both sides.
+        // The server-side remote PC's PlayerState and the client world's local PC's PlayerState are the same
+        // replicated actor, so their identity matches once replicated.
+        auto* ClientWorld = Get_ClientWorld(ClientIdx);
+        if (ck::Is_NOT_Valid(ClientWorld, ck::IsValid_Policy_NullptrOnly{}))
+        {
+            Log_Error(TEXT("Get_RemoteClientPlayerController: no client world at index [{}] to correlate against"), ClientIdx);
             return nullptr;
         }
 
-        return RemotePCs[ClientIdx];
+        auto* ClientLocalPC = ClientWorld->GetFirstPlayerController();
+        APlayerState* ClientPS = ClientLocalPC != nullptr ? ClientLocalPC->PlayerState.Get() : nullptr;
+        if (ClientPS == nullptr)
+        {
+            Log_Error(TEXT("Get_RemoteClientPlayerController: client world [{}] has no local PlayerState yet"), ClientIdx);
+            return nullptr;
+        }
+
+        const auto ClientUniqueId = ClientPS->GetUniqueId();
+        const auto ClientPlayerId = ClientPS->GetPlayerId();
+
+        for (auto* PC : RemotePCs)
+        {
+            APlayerState* ServerPS = PC->PlayerState;
+            if (ServerPS == nullptr)
+            { continue; }
+
+            // Prefer the replicated unique net id; fall back to the GameMode-assigned PlayerId (int32, always
+            // replicated) — a NULL online subsystem in PIE may not populate a valid UniqueId.
+            const auto MatchesUniqueId = ClientUniqueId.IsValid() && ServerPS->GetUniqueId().IsValid()
+                && ServerPS->GetUniqueId() == ClientUniqueId;
+            const auto MatchesPlayerId = ServerPS->GetPlayerId() == ClientPlayerId;
+
+            if (MatchesUniqueId || MatchesPlayerId)
+            { return PC; }
+        }
+
+        Log_Error(TEXT("Get_RemoteClientPlayerController: no server-side remote PC matched client world [{}] identity (UniqueId valid=[{}], PlayerId=[{}]; [{}] remote PCs) — identity not replicated yet?"),
+            ClientIdx, ClientUniqueId.IsValid(), ClientPlayerId, RemotePCs.Num());
+        return nullptr;
     }
 }
 
