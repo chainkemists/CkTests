@@ -2,9 +2,42 @@
 //============================================================================
 // CK CROWD — AUTOMATION TEST: SEPARATION CONVERGENCE
 //
-// 5 agents around a 600cm circle, all targeting the centre. After 6s asserts
-// all 5 are within 200cm of target and no pair of final positions is within
-// _Radius * 2 (= 84cm). Per Gate_03_Separation_Addendum.md §8.
+// 5 agents around a 600cm circle, all targeting the SAME point — an
+// unsatisfiable goal (five 42cm agents in contact form a ring of radius
+// ~71cm, so NOBODY can stand within the 30cm arrival radius). They therefore
+// press inward forever. Two phases, two DISTINCT invariants:
+//
+// Phase 1 (t=6s) — LIVENESS under crowding (the freeze-bug regression guard):
+// all agents within 200cm of the target, still pressing, and no pair piled
+// up: PairSep >= 61cm. That floor is DERIVED, not tuned. PushApart resolves
+// >= 0.7 x penetration per pair per frame (each agent displaces 0.5*0.7*P
+// along the pair axis in iteration 1 alone — CkCrowdAgent_PushApart_Processor
+// .cpp), while the integrator can re-close a pair by at most 2*MaxSpeed*dt.
+// Worst case at 30fps: 2*240*(1/30) / 0.7 ~= 23cm of equilibrium overlap
+// -> floor = 84 - 23 = 61cm.
+//
+// ZERO INTERPENETRATION WHILE AGENTS ACTIVELY DRIVE INWARD IS NOT AN
+// INVARIANT of this resolver family (0.7 factor, 4 iterations, deliberately
+// under-relaxed; stock UE ships dtCrowd's equivalent DISABLED and leans on
+// physics capsules). The residual is an EQUILIBRIUM, not a transient: it
+// scales with press-speed x frame-time, so no fixed floor mid-press is
+// derivable and no resolver tuning makes one robust. Asserting 84cm here
+// demands a guarantee the algorithm never made — and it only ever held
+// because Steering used to DAMP path-follow as neighbours pressed, i.e.
+// agents gave up when crowded. That "giving up" WAS the freeze bug.
+//
+// Phase 2 (t=7s, after Request_Stop at t=6s) — NON-PENETRATION AT REST: the
+// safety invariant players actually see (idle NPCs must not clip through
+// each other). With the inward drive gone, PushApart converges geometrically
+// (>= 70% of remaining pair overlap per frame, and it runs on idle agents
+// too — no Walking requirement), so a ~1.5cm residual is gone within a
+// handful of frames; 1s of settling is orders of magnitude more than needed.
+// All 10 pairs must then satisfy PairSep >= _Radius * 2 (= 84cm) — the
+// Gate_03_Separation_Addendum.md §8 "final positions" criterion, asserted
+// where the resolver actually guarantees it.
+//
+// If a SETTLED pair ever reads below 84cm, that is a real resolver defect.
+// Do not add slack to make it pass.
 //============================================================================
 
 class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
@@ -13,8 +46,10 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
 
     private TArray<FCk_Handle_CrowdAgent> _Agents;
     private const float TimeoutSec = 6.0;
+    private const float SettleSec = 7.0;                // TimeoutSec + 1s of drive-free settling
     private const float ArrivalWindow = 200.0;
-    private const float MinPairwiseSep = 84.0;
+    private const float MinPairwiseSep = 84.0;          // _Radius * 2 — zero overlap, asserted AT REST
+    private const float MinPairwiseSepPressing = 61.0;  // 84 - 23cm derived press equilibrium (see banner)
     private const FVector Centre = FVector(0.0, 0.0, 100.0);
 
     UFUNCTION(BlueprintOverride)
@@ -42,43 +77,91 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
             _Agents.Add(SpawnAgent(LocalHandle, Spawn, Centre));
         }
 
-        // One-shot timer fires after TimeoutSec — then we evaluate.
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(TimeoutSec));
-        TimerParams.Set_StartingState(ECk_Timer_State::Running)
-                   .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
-        auto Timer = utils_timer::Add(LocalHandle, TimerParams);
-        Timer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnTimeout"));
+        // Phase 1 fires at TimeoutSec (liveness + pile-up asserts, then Stop all agents);
+        // Phase 2 fires at SettleSec (at-rest non-penetration assert + FinishSuccess).
+        auto ConvergeParams = FCk_Fragment_Timer_ParamsData(FCk_Time(TimeoutSec));
+        ConvergeParams.Set_StartingState(ECk_Timer_State::Running)
+                      .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+        auto ConvergeTimer = utils_timer::Add(LocalHandle, ConvergeParams);
+        ConvergeTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnConvergeTimeout"));
+
+        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SettleSec));
+        SettleParams.Set_StartingState(ECk_Timer_State::Running)
+                    .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+        auto SettleTimer = utils_timer::Add(LocalHandle, SettleParams);
+        SettleTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnSettleTimeout"));
     }
 
     UFUNCTION()
-    private void OnTimeout(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void OnConvergeTimeout(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
-        TArray<FVector> Finals;
+        auto Finals = DoGatherAgentPositions();
+        if (IsFinished()) { return; }
+
+        for (auto Loc : Finals)
+        {
+            const auto DistToCentre = float((Loc - Centre).Size());
+            Assert_True(DistToCentre <= ArrivalWindow,
+                f"agent failed to reach within {ArrivalWindow}cm of centre — final {DistToCentre}cm");
+        }
+        DoAssertPairwiseSeparation(Finals, MinPairwiseSepPressing, "while pressing");
+
+        // Cut the inward drive: Walking -> Idle, desired velocity zeroed. The VelocityBridge has no
+        // Walking requirement, so it ships that zero and the agents actually halt. PushApart — which
+        // also runs on idle agents — now owns the cluster and de-penetrates it geometrically.
+        for (auto Agent : _Agents)
+        {
+            utils_crowd_agent::Request_Stop(Agent);
+        }
+    }
+
+    UFUNCTION()
+    private void OnSettleTimeout(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        auto Finals = DoGatherAgentPositions();
+        if (IsFinished()) { return; }
+
+        for (auto Loc : Finals)
+        {
+            const auto DistToCentre = float((Loc - Centre).Size());
+            Assert_True(DistToCentre <= ArrivalWindow,
+                f"agent drifted outside {ArrivalWindow}cm of centre after Stop — final {DistToCentre}cm");
+        }
+        DoAssertPairwiseSeparation(Finals, MinPairwiseSep, "at rest");
+
+        FinishSuccess();
+    }
+
+    private TArray<FVector> DoGatherAgentPositions()
+    {
+        TArray<FVector> Positions;
         for (auto Agent : _Agents)
         {
             if (ck::Is_NOT_Valid(Agent))
             {
                 FinishFailure("an agent went invalid before timeout — possible early destroy / replication issue");
-                return;
+                return Positions;
             }
-            const auto Loc = utils_transform::Get_EntityCurrentLocation(utils_transform::DoCastChecked(FCk_Handle(Agent)));
-            const auto DistToCentre = float((Loc - Centre).Size());
-            Assert_True(DistToCentre <= ArrivalWindow,
-                f"agent failed to reach within {ArrivalWindow}cm of centre — final {DistToCentre}cm");
-            Finals.Add(Loc);
+            Positions.Add(utils_transform::Get_EntityCurrentLocation(utils_transform::DoCastChecked(FCk_Handle(Agent))));
         }
-        for (int32 i = 0; i < Finals.Num(); ++i)
+        return Positions;
+    }
+
+    private void DoAssertPairwiseSeparation(const TArray<FVector>&in InFinals, float InFloor, const FString&in InPhase)
+    {
+        for (int32 i = 0; i < InFinals.Num(); ++i)
         {
-            for (int32 j = i + 1; j < Finals.Num(); ++j)
+            for (int32 j = i + 1; j < InFinals.Num(); ++j)
             {
-                const auto PairSep = float((Finals[i] - Finals[j]).Size());
-                Assert_True(PairSep >= MinPairwiseSep,
-                    f"agents {i} and {j} ended within {MinPairwiseSep}cm — pile-up at goal ({PairSep}cm)");
+                const auto PairSep = float((InFinals[i] - InFinals[j]).Size());
+                Assert_True(PairSep >= InFloor,
+                    f"agents {i} and {j} ended within {InFloor}cm ({InPhase}) — pile-up at goal ({PairSep}cm)");
             }
         }
-        FinishSuccess();
     }
 
     private FCk_Handle_CrowdAgent SpawnAgent(FCk_Handle& InOwner, FVector InSpawn, FVector InTarget)
