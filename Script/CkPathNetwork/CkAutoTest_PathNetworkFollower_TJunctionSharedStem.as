@@ -79,6 +79,11 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
     private float _MinInterAgentDist = 999999.0;
     private float _MaxSepMag = 0.0;
 
+    // Longest UNBROKEN stretch of agent-agent contact — the standoff's signature. See
+    // MaxAllowedContactSec.
+    private float _ContactRunSec = 0.0;
+    private float _MaxContactRunSec = 0.0;
+
     private const FVector Spawn = FVector(480.0, 0.0, 0.0);
     private const FVector GoalS = FVector(-250.0, -250.0, 0.0);
     private const FVector GoalN = FVector(-250.0, 250.0, 0.0);
@@ -87,12 +92,24 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
     private const float OffPathMultiplier = 3.0;
 
     private const float SampleIntervalSec = 0.25;
-    // Both routes are ~950cm; at MaxSpeed 240cm/s a clean walk finishes in ~5s, and the measured
-    // unobstructed walk (once the pair breaks apart) takes ~4.3s. 8s is a generous ceiling for a
-    // HEALTHY run and a hard failure for the standoff, which was measured at ~10.5s of deadlock
-    // before it self-resolved. A 15s budget let the bug slip through as a pass — do not raise this
-    // to make the test green; the standoff IS the defect.
-    private const float WatchdogSec       = 8.0;
+
+    // ARRIVAL IS A LIVENESS CHECK, NOT THE DEFECT DETECTOR. An earlier version of this test asserted
+    // "both agents arrive within 8s" and was FLAKY: a healthy avoidance manoeuvre swerves around the
+    // neighbour, which legitimately lengthens the walk, so a slow-but-correct run failed. Worse, the
+    // obvious repair (raise the deadline) destroys the test: the original standoff self-resolved at
+    // ~10.5s and both agents then limped home, so ANY deadline past that passes while the bug is
+    // present. Time-to-arrival simply cannot separate "deadlocked" from "took the long way round".
+    private const float WatchdogSec       = 20.0;
+
+    // THE DEFECT DETECTOR. The standoff's signature is not slowness — it is two agents PINNED
+    // TOGETHER, leaning on each other, unable to resolve. Combined radius is 42+42 = 84cm, so a gap
+    // at or under ContactThresholdCm means they are touching. Measured:
+    //   deadlocked (avoidance sampler blind while overlapping): ~9.5s of UNBROKEN contact
+    //   healthy    (sampler steers out of the overlap):         ~1.0s, then they separate for good
+    // 4s sits 4x above healthy and 2.4x below the defect. This assertion is insensitive to how long
+    // the walk takes, which is exactly why it does not flake.
+    private const float ContactThresholdCm    = 90.0;
+    private const float MaxAllowedContactSec  = 4.0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -182,6 +199,18 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
 
         Trace();
 
+        // THE REGRESSION ASSERTION. Fires the moment the pair has been pinned together longer than
+        // any healthy avoidance manoeuvre could explain — i.e. mid-standoff, not after it eventually
+        // unsticks itself. Checked every sample so the failure lands while the agents are still in it.
+        if (_MaxContactRunSec > MaxAllowedContactSec)
+        {
+            Describe("SOUTH", _AgentSouth, _FollowerSouth, GoalS, _ReachedSouth);
+            Describe("NORTH", _AgentNorth, _FollowerNorth, GoalN, _ReachedNorth);
+
+            FinishFailure(f"T-JUNCTION STANDOFF: the two agents stayed in unbroken contact (gap <= {ContactThresholdCm}cm) for {_MaxContactRunSec}s, which exceeds the {MaxAllowedContactSec}s a healthy avoidance manoeuvre can explain (~1s measured). They are leaning on each other instead of steering around each other. This is the avoidance sampler going blind while agents overlap: TimeToCollision returns a candidate-INDEPENDENT value once C < 0, so the ToI penalty is constant across the sample pattern, the collision term stops discriminating, and the sampler falls back to the path-follow anchor -- driving each agent straight into the neighbour it is supposed to avoid. Per-agent corridor + waypoint-cursor dump logged above under LogCkPathNetwork.");
+            return;
+        }
+
         if (_ReachedSouth && _ReachedNorth)
         {
             // GUARD: a lockstep walk-through is not a passing scenario, it is a scenario that never
@@ -200,13 +229,13 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
 
         if (_ElapsedSec < WatchdogSec) { return; }
 
-        // Neither arrival nor a goal-failure fired: the agents are stuck. Dump the state that
-        // separates H1 (un-retired waypoint behind the agent) from H2 (corridor genuinely
-        // routes backward).
+        // LIVENESS backstop: they never deadlocked (the contact assertion above would have caught
+        // that) but they still never arrived. Something else is wrong -- a route that never
+        // installed, an agent stuck on geometry, a corridor that cannot be walked.
         Describe("SOUTH", _AgentSouth, _FollowerSouth, GoalS, _ReachedSouth);
         Describe("NORTH", _AgentNorth, _FollowerNorth, GoalN, _ReachedNorth);
 
-        FinishFailure(f"T-JUNCTION STANDOFF REPRODUCED after {_ElapsedSec}s — reachedSouth={_ReachedSouth} reachedNorth={_ReachedNorth}. Per-agent corridor + waypoint-cursor dump logged above under LogCkPathNetwork.");
+        FinishFailure(f"agents never arrived within {WatchdogSec}s (reachedSouth={_ReachedSouth} reachedNorth={_ReachedNorth}), yet the pair's longest unbroken contact was only {_MaxContactRunSec}s -- so this is NOT the standoff. Something else is blocking arrival. Per-agent corridor + waypoint-cursor dump logged above under LogCkPathNetwork.");
     }
 
     // Per-sample trace: the timeline of the encounter. Records closest approach and peak separation
@@ -223,6 +252,18 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
 
         const auto Dist = float((LocS - LocN).Size());
         if (Dist < _MinInterAgentDist) { _MinInterAgentDist = Dist; }
+
+        // Unbroken-contact run. Resets the moment they genuinely separate, so a healthy brush-past
+        // scores ~1s while a standoff accumulates without interruption.
+        if (Dist <= ContactThresholdCm)
+        {
+            _ContactRunSec += SampleIntervalSec;
+            if (_ContactRunSec > _MaxContactRunSec) { _MaxContactRunSec = _ContactRunSec; }
+        }
+        else
+        {
+            _ContactRunSec = 0.0;
+        }
 
         const auto SepS = float(utils_crowd_agent::Get_SeparationForce(_AgentSouth).Size());
         const auto SepN = float(utils_crowd_agent::Get_SeparationForce(_AgentNorth).Size());
