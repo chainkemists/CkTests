@@ -106,9 +106,9 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
     {
         const auto Center = GetActorLocation();
 
-        // Floor: 4000cm x 4000cm slab, top face at the pawn's spawn height (cube is 100cm, Z scale 0.5 = 50cm,
-        // so placing it 25cm below puts the top at Center.Z).
-        auto Floor = SpawnActor(ACk_Gym_Floor, Center - FVector(0.0f, 0.0f, 25.0f), FRotator::ZeroRotator, NAME_None, true);
+        // Floor: 4000cm x 4000cm slab. ACk_Gym_Floor puts its walkable surface ON its origin, so
+        // spawning at Center lands the top face at the pawn's spawn height.
+        auto Floor = SpawnActor(ACk_Gym_Floor, Center, FRotator::ZeroRotator, NAME_None, true);
         if (Floor != nullptr)
         {
             Floor.SetActorScale3D(FVector(40.0f, 40.0f, 0.5f));
