@@ -45,6 +45,7 @@ public class CkTests : CkModuleRules
             "CkLabel",
             "CkLagCompensation",
             "CkLog",
+            "CkPathNetwork",
             "CkPerception",
             "CkPmg",
             "CkPhysics",
