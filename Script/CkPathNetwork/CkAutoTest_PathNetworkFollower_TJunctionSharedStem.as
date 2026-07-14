@@ -214,14 +214,25 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
         if (_ReachedSouth && _ReachedNorth)
         {
             // GUARD: a lockstep walk-through is not a passing scenario, it is a scenario that never
-            // ran. If the agents never came within probe reach or never exerted any separation on
-            // each other, this test did NOT exercise the two-agent interaction it exists to cover,
-            // and its green means nothing.
+            // ran. Two agents spawned at EXACTLY the same point have RelativeOffset == 0, which makes
+            // the separation push degenerate to the zero vector — so a co-located pair could in
+            // principle walk in perfect LOCKSTEP, never influence each other, and "pass" without ever
+            // exercising the interaction under test.
+            //
+            // That case is caught by the CONTACT assertion above, not here: a lockstep pair sits at a
+            // gap of ~0 for the entire run, which is unbroken contact, which trips MaxAllowedContactSec
+            // within four seconds. This guard only has to establish that the two agents were ever
+            // NEIGHBOURS at all (probe reach = 2 x ProbeRadius).
+            //
+            // Deliberately NOT asserting that the separation force ever fired. That assertion was here,
+            // and it was WRONG: it assumed agent-agent interaction must manifest as repulsion. With the
+            // avoidance sampler working, the pair resolves its conflict AT A DISTANCE — they de-overlap
+            // from the co-located spawn and walk the shared stem in single file ~145-190cm apart, which
+            // never enters _SeparationRadius (100cm), so the separation force correctly stays at zero
+            // for the whole run. Requiring a non-zero repulsion would be requiring the agents to crowd
+            // each other, i.e. asserting the very behaviour the avoidance layer exists to prevent.
             Assert_True(_MinInterAgentDist <= 284.0,
                 f"VACUOUS PASS: the two agents never came within probe reach of each other (closest approach {_MinInterAgentDist}cm > 284cm = 2x ProbeRadius). They walked the shared stem without ever being neighbours, so the standoff scenario was never exercised.");
-
-            Assert_True(_MaxSepMag > 0.0,
-                f"VACUOUS PASS: the separation force was ZERO for the entire run (peak {_MaxSepMag}). The agents spawned exactly co-located, so RelativeOffset==0 made the push direction degenerate to the zero vector and they walked in perfect LOCKSTEP. This scenario never exercised agent-agent interaction at all.");
 
             FinishSuccess();
             return;
