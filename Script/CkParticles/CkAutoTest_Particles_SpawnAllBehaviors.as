@@ -19,6 +19,18 @@ class UCk_AutoTest_Particles_SpawnAllBehaviors : UCk_AutoTest_Base
     {
         auto _CkPerfScope = ck::ScopedStat();
 
+        // Niagara refuses to create a component when the process cannot render:
+        // UNiagaraFunctionLibrary::SpawnSystemAtLocation gates on FApp::CanEverRender(),
+        // which is false under -nullrhi (the toolbox's default --test lane), so every
+        // spawn returns null. Skip rather than assert something unachievable here.
+        // Run this lane with --no-nullrhi to actually exercise the spawns.
+        if (!utils_render_target::Get_CanRenderOnThisProcess())
+        {
+            ck::Trace("[Particles] this process cannot render (e.g. -nullrhi) — Niagara drops every spawn; skipping");
+            FinishSuccess();
+            return;
+        }
+
         for (int BehaviorId = 0; BehaviorId <= 16; ++BehaviorId)
         {
             auto Component = UCk_Utils_Particles_UE::Spawn_BehaviorAtLocation(
