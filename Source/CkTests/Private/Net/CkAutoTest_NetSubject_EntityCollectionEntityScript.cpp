@@ -13,6 +13,14 @@
 
 auto
     UCk_AutoTest_NetSubject_EntityCollectionEntityScript_UE::
+    Get_IsSnapshotRespawnable() const
+    -> bool
+{
+    return true;
+}
+
+auto
+    UCk_AutoTest_NetSubject_EntityCollectionEntityScript_UE::
     Construct(
         FCk_Handle& InHandle,
         const FInstancedStruct& InSpawnParams)
