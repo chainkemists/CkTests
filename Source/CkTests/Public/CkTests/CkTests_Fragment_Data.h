@@ -120,3 +120,12 @@ CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_RotatorAttribute_AutoTest_Net);
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Timer name tags for the net subject. The CkSnapshot Timer-parity gate composes two Construct-timers on the subject
+// (so each gets a spawn recipe and is rebuilt on load) and retrieves them by name via TryGet_Timer, so both must be
+// registered. _Countdown is a mid-run countdown timer (elapsed round-trip); _Done is a completed count-up timer
+// (terminal-state round-trip + no OnTimerDone re-fire).
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Timer_AutoTest_Net_Countdown);
+CKTESTS_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Timer_AutoTest_Net_Done);
+
+// --------------------------------------------------------------------------------------------------------------------
+
