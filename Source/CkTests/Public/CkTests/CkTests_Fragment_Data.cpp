@@ -64,3 +64,8 @@ CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_RotatorAttribute_AutoTest_Net, "RotatorAt
 
 // --------------------------------------------------------------------------------------------------------------------
 
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Timer_AutoTest_Net_Countdown, "Timer.AutoTest_Net.Countdown");
+CKTESTS_API UE_DEFINE_GAMEPLAY_TAG(TAG_Timer_AutoTest_Net_Done, "Timer.AutoTest_Net.Done");
+
+// --------------------------------------------------------------------------------------------------------------------
+

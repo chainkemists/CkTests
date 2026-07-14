@@ -16,6 +16,7 @@
 #include "CkAnimation/AnimPlan/CkAnimPlan_Utils.h"
 #include "CkRelationship/Team/CkTeam_Utils.h"
 #include "CkRelationship/Player/CkPlayer_Utils.h"
+#include "CkTimer/CkTimer_Utils.h"
 
 #include "CkTests/CkTests_Fragment_Data.h"
 
@@ -127,6 +128,25 @@ auto
     // Has/Cast on the entity (single-per-entity), so no actor stash is needed.
     UCk_Utils_Team_UE::Add(InHandle, ECk_Team_ID::Unassigned, ECk_Replication::Replicates);
     UCk_Utils_Player_UE::Add(InHandle, ECk_Player_ID::Unassigned, ECk_Replication::Replicates);
+
+    // Two unreplicated Construct-timers for the CkSnapshot Timer-parity gate. Composing them in Construct (not from
+    // the test spec) is deliberate: only Construct-composed timers get a spawn recipe and are rebuilt on load, so this
+    // is what the persistence handler actually covers. Both start PAUSED (StartingState default) so their elapsed is
+    // deterministic across the reload — a running timer keeps advancing post-load and would defeat the
+    // "elapsed within one tick" assertion. The gate advances each via a server-side Request_Jump before saving.
+    //   - Countdown : 10s countdown, mid-run elapsed round-trip (+ CountDown direction + Paused run-state).
+    //   - Done      : 4s count-up, jumped to completion — terminal-state round-trip + no OnTimerDone re-fire on load.
+    {
+        auto CountdownTimerParams = FCk_Fragment_Timer_ParamsData{FCk_Time{10.0}};
+        CountdownTimerParams.Set_TimerName(TAG_Timer_AutoTest_Net_Countdown.GetTag());
+        CountdownTimerParams.Set_CountDirection(ECk_Timer_CountDirection::CountDown);
+        UCk_Utils_Timer_UE::Add(InHandle, CountdownTimerParams);
+
+        auto DoneTimerParams = FCk_Fragment_Timer_ParamsData{FCk_Time{4.0}};
+        DoneTimerParams.Set_TimerName(TAG_Timer_AutoTest_Net_Done.GetTag());
+        DoneTimerParams.Set_CountDirection(ECk_Timer_CountDirection::CountUp);
+        UCk_Utils_Timer_UE::Add(InHandle, DoneTimerParams);
+    }
 
     auto* OwningActor = UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle);
     if (auto* Subject = Cast<ACk_AutoTest_NetSubject>(OwningActor))
