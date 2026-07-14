@@ -422,6 +422,48 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //   TimeLimit fires and the test is reported as failed. There is no
 //   AS-side timer — the engine handles this directly.
 
+// Cleanup — MANDATORY if you spawn anything outside the runner's subtree:
+//
+//   protected void Track_ForCleanup(FCk_Handle InOwner);
+//
+// ALL AUTOTESTS SHARE ONE PIE WORLD. The harness's per-test teardown
+// (ACk_AutoTestRunner::Destroy_RunnerEntity) cascades ONLY the runner's own
+// lifetime subtree. Anything you parent elsewhere survives your test and lives
+// on into every test that runs after it:
+//
+//   - anything spawned UNDER an ActorRelay channel entity (the mandated anchor
+//     for any entity script that replicates), and the subordinates a driver
+//     spawns and exposes (e.g. Get_EmployeeManager()) — a driver may anchor its
+//     OWN subordinates to the channel, in which case destroying the driver does
+//     NOT cascade them;
+//   - anything created under ck::TransientEntity();
+//   - actors you spawned (destroy the actor, or the entity that owns it).
+//
+// This is not a local problem. Features discover their subjects by WORLD-scoped
+// tag-scan (a world item-cap driver scans every source; an NPC's store link sets
+// CanShop=true on ANY ready store driver), so ONE leaked entity silently breaks
+// UNRELATED tests, far away from the test that leaked it, in ways that look like
+// flakes. Register every out-of-subtree ROOT:
+//
+//   Track_ForCleanup(FCk_Handle(SpawnedDriver));   // typed handles: wrap
+//   Track_ForCleanup(TransientOwnedEntity);
+//
+// Register it as soon as the handle is valid, and BEFORE any early-return
+// (a failed cast that FinishFailure()s must still clean up). The base
+// deferred-destroys them at finish, sequenced destroy -> settle -> result-write
+// so cleanup can never race the result the C++ runner polls. Invalid handles are
+// ignored, so tracking something you also destroy yourself is a harmless no-op.
+//
+// *** NEVER Track_ForCleanup the ActorRelay CHANNEL entity itself. ***
+// Channels are POOLED and SHARED with live production subsystems; the API is
+// acquire-only by design (acquisition is stateless pool selection — there is no
+// checkout to return), and for Generic groups the pool NEVER regrows. Destroying
+// one kills ActorRelay for the rest of the PIE session — every test after yours.
+// Track what you spawned UNDER the channel, never the channel.
+//
+// Caveat: an engine TimeLimit timeout bypasses this AS-side cleanup, so a
+// timed-out test still leaks. Fix the timeout.
+
 //============================================================================
 // 7. COMMON PATTERNS
 //============================================================================
@@ -581,6 +623,47 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //     // Step 2: Request_Override(Attr, -50), wait for OnMinClamped, finish.
 //   The wait between steps gives the processor a tick to drain the first
 //   request before the second one mutates the same modifier.
+
+// GOTCHA 11 — Leaking entities into the shared PIE world breaks OTHER tests.
+//   Every autotest runs in the SAME PIE world, and the harness cascades only
+//   the runner's own lifetime subtree. Anything you parent to an ActorRelay
+//   channel or to ck::TransientEntity() survives your test — and because
+//   features discover their subjects by WORLD-scoped tag-scan, it silently
+//   corrupts UNRELATED tests later in the run. The symptom is never local: a
+//   test you never touched starts failing an assertion that has nothing to do
+//   with your feature. Register every out-of-subtree root with
+//   Track_ForCleanup (see §6) — and NEVER register the channel entity itself.
+
+// GOTCHA 12 — There is NO working logging channel inside a headless autotest.
+//   Do not waste a run trying to print your way to a diagnosis:
+//     - Print(...)        — on-screen debug overlay ONLY. A -nullrhi run has no
+//                           screen. Produces nothing in the log.
+//     - ck::Warning(...)  — is NOT a log call: it is System::PrintString, which
+//                           writes to LogBlueprintUserMessages at `Log` verbosity
+//                           (filtered out of the run log) AND warning-level output
+//                           during a functional test is escalated to a test
+//                           FAILURE. It corrupts the very run you are observing.
+//   The ONLY diagnostic channel that reaches the log is the ASSERTION MESSAGE —
+//   the C++ runner emits it as `FinishTest TestResult=Failed. Failed: <message>`.
+//   So build the diagnostic INTO the assert:
+//
+//     const bool  SameClock = ...;
+//     const int32 Hour      = ...;
+//     const FString Diag = f" [DIAG sameClock={SameClock} hour={Hour}]";
+//     Assert_True(Condition, "what this asserts" + Diag);
+//
+//   Precompute every value into a local first — a nested string literal inside
+//   an f-string {} block terminates the outer f-string and fails to parse.
+
+// GOTCHA 13 — An Error-level log from ANY subsystem fails whatever test is
+//             running, even if that test is innocent.
+//   The automation framework escalates Error-level output to a failure on the
+//   currently-running test. So an unrelated subsystem erroring mid-run (a source
+//   -control fetch failing, a stale external-actor package failing to load, a
+//   teardown-order defect) fails a DIFFERENT, random test each run — and looks
+//   exactly like flake. Before believing any failure set, grep the run log for
+//   `: Error` and check whether the "failing" test even owns the error. Note the
+//   category prints WITHOUT the `Log` prefix (e.g. `SourceControl: Error:`).
 //
 //   This applies to all attribute mutations, not just Override. Reference:
 //   CkAutoTest_Attribute_IntegerClamping.as.
