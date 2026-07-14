@@ -29,4 +29,12 @@ public:
     Construct(
         FCk_Handle& InHandle,
         const FInstancedStruct& InSpawnParams) -> ECk_EntityScript_ConstructionFlow override;
+
+protected:
+    // Snapshot respawn opt-in (mirrors the M2bProbe/Inventory scripts): after save -> reload -> load, the restored
+    // bridged entity re-spawns an actor of the subject class and re-bridges it, and this Construct re-composes the
+    // collection EMPTY. Inert for the pre-existing EntityCollection net tests (they never save/load — it only stamps
+    // FFragment_ActorSpawnIntent, consulted on save); required by the Ck.Snapshot.Parity.EntityCollection_MPReload gate.
+    virtual auto
+    Get_IsSnapshotRespawnable() const -> bool override;
 };

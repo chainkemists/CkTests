@@ -47,6 +47,7 @@ namespace ck_repdata_coverage_test
             TEXT("Inventory_Spatial_Items"),
             TEXT("2dGridPlacements"),
             TEXT("RenderTarget"),
+            TEXT("EntityCollections"),
         };
         return Covered;
     }
@@ -60,7 +61,6 @@ namespace ck_repdata_coverage_test
             { TEXT("Location"),                 TEXT("audit complete 2026-06-10: transform fragment IS snapshotted; actor-backed entities re-derive client position from the respawned replicated actor (asserted by Ck.Snapshot.M2b2b gate); only pure-ECS SceneNode replication (no actor) lacks a restore re-push — defer until that configuration has a real use") },
             { TEXT("Rotation"),                 TEXT("audit complete 2026-06-10: same as Location — actor-backed re-derives (M2b2b gate); pure-ECS SceneNode rep deferred until a real use") },
             { TEXT("Scale"),                    TEXT("audit complete 2026-06-10: same as Location — actor-backed re-derives (M2b2b gate); pure-ECS SceneNode rep deferred until a real use") },
-            { TEXT("EntityCollections"),        TEXT("audit complete 2026-06-10: identity hazard RESOLVED in principle — CkLabel (collection name) is already snapshotted, member records remap via record snapshotting; remaining work is the standard recipe (snapshot Params wrapper + both member records + RecordOfEntityCollections, ReplicateOnRestore re-creates the owner-hosted container + re-arms MayRequireReplication) — not yet implemented") },
             { TEXT("GeometryCollectionOwner"),  TEXT("Lead decision 2026-06-10: ephemeral destruction state, does NOT persist — permanently deferred") },
             { TEXT("Container"),                TEXT("generic template base (TFragment_ContainerEntryRef<>), not a concrete replicated feature — N/A if it reflects at all") },
         };
