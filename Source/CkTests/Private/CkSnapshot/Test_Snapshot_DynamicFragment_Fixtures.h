@@ -3,6 +3,8 @@
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/Handle/CkHandle_TypeSafe.h"
 
+#include <StructUtils/InstancedStruct.h>
+
 #include "Test_Snapshot_DynamicFragment_Fixtures.generated.h"
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -120,4 +122,19 @@ struct FCk_Test_DynFrag_TypedAndContainers
 
     UPROPERTY(SaveGame)
     TMap<int32, FCk_Test_TypedHandle> TypedValueMap;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A wrapper holding a TArray<FInstancedStruct> -- the exact shape of the G2 save payload
+// (FCk_SaveData_DynamicFragments). Used by the HandleWalk unit test to prove the remap walk recurses INTO each
+// FInstancedStruct element and reaches a handle nested in the stored struct. Before the FInstancedStruct-recursion
+// fix, the walk treated an instanced struct as opaque -- handles inside a dynamic-fragment payload were never visited.
+USTRUCT()
+struct FCk_Test_InstancedStructArrayWrapper
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    TArray<FInstancedStruct> Payloads;
 };
