@@ -192,3 +192,71 @@ class UCk_EntityScript_UsfOutlineGym_Cascade : UCk_GenericEntityScript_UE
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
 }
+
+// ====================================================================================================================
+// Station — VAT: 3 vertex-animated proxies sharing ONE ISM; the outer two outlined, middle one the control.
+// ====================================================================================================================
+//
+// The ANIMATED-silhouette check. A VatProxy renders through an IsmProxy composed on the same entity, and VAT
+// deforms the mesh entirely inside the material's World Position Offset — it samples a baked pose texture using
+// the 12 per-instance custom-data floats. So the silhouette is only correct if the custom-depth shadow ISM carries
+// the SAME material AND the same custom data as the visible instance. If it doesn't, the outlined figures
+// silhouette their bind pose while the mesh walks. The un-outlined middle figure is the comparison control:
+// all three must be in identical poses at all times, outline or not.
+//
+// Uses the VAT gym's collection contract (CkVatGym_Shared.as): "AUTO" self-bakes a Bone-mode Mannequin
+// collection in memory at PIE start. Editor-only — a cooked run resolves nothing and the station early-outs.
+
+class UCk_EntityScript_UsfOutlineGym_Vat : UCk_GenericEntityScript_UE
+{
+    default _Replication = ECk_Replication::DoesNotReplicate;
+
+    UPROPERTY(ExposeOnSpawn)
+    FTransform InitialTransform = FTransform::Identity;
+
+    UFUNCTION(BlueprintOverride)
+    ECk_EntityScript_ConstructionFlow
+    DoConstruct(FCk_Handle& InHandle)
+    {
+        InHandle.Set_DebugName(n"UsfOutlineVat");
+
+        auto Collection = vat_gym::ResolveCollection(vat_gym::DefaultCollectionPath);
+        if (ck::Is_NOT_Valid(Collection) || Collection.Get_BakedData().Get_IsBaked() == false)
+        {
+            Print("[UsfOutline Gym/Vat] no baked VAT collection (self-bake failed?)", 10.0f);
+            return ECk_EntityScript_ConstructionFlow::Finished;
+        }
+
+        auto BakedClips = Collection.Get_BakedData().Get_BakedClips();
+        if (BakedClips.Num() == 0)
+        {
+            Print("[UsfOutline Gym/Vat] VAT collection has no baked clips", 10.0f);
+            return ECk_EntityScript_ConstructionFlow::Finished;
+        }
+
+        // The last baked clip is the most locomotive one (Idle, Walk, Jog): a silhouette stuck on the bind
+        // pose only reads as wrong when the limbs actually travel.
+        auto ClipName = BakedClips[BakedClips.Num() - 1].Get_Name();
+
+        for (int32 i = 0; i < 3; ++i)
+        {
+            auto Xf = FTransform(FRotator(0.0f, 180.0f, 0.0f),
+                InitialTransform.GetLocation() + FVector(-300.0f, (i - 1) * 200.0f, 0.0f),
+                FVector::OneVector);
+
+            auto Entity = InHandle.Request_CreateEntity();
+            auto Transform = utils_transform::Add(Entity, Xf, ECk_Replication::DoesNotReplicate);
+
+            auto Params = FCk_Fragment_VatProxy_ParamsData(Collection);
+            Params.Set_InitialClipName(ClipName);
+            utils_vat_proxy::Add(Transform, Params);
+
+            if (i == 0)
+            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_Interactable); }
+            else if (i == 2)
+            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_SeeThrough); }
+        }
+
+        return ECk_EntityScript_ConstructionFlow::Finished;
+    }
+}
