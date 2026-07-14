@@ -50,6 +50,17 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
     private const float ArrivalWindow = 200.0;
     private const float MinPairwiseSep = 84.0;          // _Radius * 2 — zero overlap, asserted AT REST
     private const float MinPairwiseSepPressing = 61.0;  // 84 - 23cm derived press equilibrium (see banner)
+
+    // PushApart's fixed point IS the contact distance, approached from BELOW and never overshot: it
+    // only pushes while Dist < CombinedRadius, and its resolve factor is 0.7 (< 1), so a settled pair
+    // converges to exactly 84.0 asymptotically. A strict `>= 84.0` on a float is therefore an
+    // unsatisfiable comparison against that asymptote — a settled pair reads 83.999827, i.e. 1.7
+    // MICRONS short. This tolerance admits the asymptote and nothing else: it is a thousandth of the
+    // 23cm press-equilibrium bound and one part in 84,000 of a body. Any real interpenetration — a
+    // disabled or regressed PushApart, agents genuinely clipping — is orders of magnitude larger and
+    // still fails hard. This is NOT slack to make a red test green; it is the difference between
+    // "touching" and "overlapping".
+    private const float ContactToleranceCm = 0.1;
     private const FVector Centre = FVector(0.0, 0.0, 100.0);
 
     UFUNCTION(BlueprintOverride)
@@ -158,7 +169,7 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
             for (int32 j = i + 1; j < InFinals.Num(); ++j)
             {
                 const auto PairSep = float((InFinals[i] - InFinals[j]).Size());
-                Assert_True(PairSep >= InFloor,
+                Assert_True(PairSep >= InFloor - ContactToleranceCm,
                     f"agents {i} and {j} ended within {InFloor}cm ({InPhase}) — pile-up at goal ({PairSep}cm)");
             }
         }
