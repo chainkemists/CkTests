@@ -91,14 +91,24 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         return _Finished;
     }
 
-    // Register an out-of-subtree entity to destroy when the test finishes — an
-    // ActorRelay channel entity, a ck::TransientEntity() owner, a replicated
-    // subordinate: anything NOT parented to this runner entity. The harness's own
-    // per-test teardown (ACk_AutoTestRunner::Destroy_RunnerEntity) cascades ONLY the
-    // runner's lifetime subtree, so these escape it and would leak into the next
-    // test in the shared PIE world. Registering them here makes the base destroy
-    // them at finish, correctly sequenced (destroy -> settle -> result-write across
-    // frames) so a tracked destroy can never race the result the C++ runner polls.
+    // Register an out-of-subtree entity ROOT to destroy when the test finishes: anything
+    // you spawned UNDER an ActorRelay channel, anything owned by ck::TransientEntity(),
+    // and the subordinates a driver spawns and exposes (e.g. Get_EmployeeManager()) —
+    // in short, anything NOT parented to this runner entity. The harness's own per-test
+    // teardown (ACk_AutoTestRunner::Destroy_RunnerEntity) cascades ONLY the runner's
+    // lifetime subtree, so these escape it and leak into every later test in the shared
+    // PIE world. That is not a local problem: drivers discover their subjects by
+    // WORLD-scoped tag-scan, so one leaked entity silently breaks unrelated tests far
+    // away from the one that leaked it. Registering here makes the base destroy them at
+    // finish, correctly sequenced (destroy -> settle -> result-write across frames) so a
+    // tracked destroy can never race the result the C++ runner polls.
+    //
+    // NEVER register the ActorRelay CHANNEL entity itself (InResult.Get_ChannelEntity()).
+    // Channels are POOLED and SHARED with live production subsystems, the API is
+    // acquire-only by design (acquisition is stateless pool selection — there is no
+    // checkout to return), and for Generic groups the pool NEVER regrows. Destroying one
+    // kills ActorRelay for the remainder of the PIE session — i.e. for every test after
+    // yours. Register what you spawned UNDER the channel, never the channel.
     protected void Track_ForCleanup(FCk_Handle InOwner)
     {
         if (ck::Is_NOT_Valid(InOwner)) { return; }
