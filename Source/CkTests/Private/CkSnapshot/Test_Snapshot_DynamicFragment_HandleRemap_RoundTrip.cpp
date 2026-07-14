@@ -117,7 +117,7 @@ bool
     }
 
     // Resolve the G2 handler (its registrar ran at static init; Find() forces lazy pending-resolution).
-    const auto* Handler = FCk_ReplicatedFragmentHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
     if (NOT TestNotNull(TEXT("G2 dynamic-fragments handler is registered"), Handler))
     { return false; }
     if (NOT TestTrue(TEXT("G2 handler pairs Produce with HydrationApply"),
@@ -150,7 +150,7 @@ bool
     auto NewOwnerRef = NewOwner;
     const auto ApplyResult = Handler->HydrationApply(NewOwnerRef, Restored, {});
     TestEqual(TEXT("HydrationApply returned Applied"),
-        static_cast<int32>(ApplyResult), static_cast<int32>(ECk_RepFragment_ApplyResult::Applied));
+        static_cast<int32>(ApplyResult), static_cast<int32>(ECk_Persistence_ApplyResult::Applied));
 
     // ---- Assert: both fragments restored, data equal, handle re-resolves to the rebuilt target ----
     TestTrue(TEXT("WithHandle fragment restored on the new owner"),
@@ -197,7 +197,7 @@ bool
     auto EcsWorld = ck::FEcsWorld{};
     auto& CkRegistry = EcsWorld.Get_Registry();
 
-    const auto* Handler = FCk_ReplicatedFragmentHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
     if (NOT TestNotNull(TEXT("G2 dynamic-fragments handler is registered"), Handler))
     { return false; }
 
@@ -225,7 +225,7 @@ bool
     const auto ApplyResult = Handler->HydrationApply(OwnerRef, FInstancedStruct::Make(SaveData), {});
 
     TestEqual(TEXT("HydrationApply completed with Applied despite the drift entry"),
-        static_cast<int32>(ApplyResult), static_cast<int32>(ECk_RepFragment_ApplyResult::Applied));
+        static_cast<int32>(ApplyResult), static_cast<int32>(ECk_Persistence_ApplyResult::Applied));
     TestTrue(TEXT("the valid fragment was still applied (drift entry skipped, not fatal)"),
         UCk_Utils_DynamicFragment_UE::Has_Fragment(Owner, FCk_Test_DynFrag_PureData::StaticStruct()));
 
