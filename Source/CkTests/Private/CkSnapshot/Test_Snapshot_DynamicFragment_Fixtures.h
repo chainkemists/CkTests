@@ -4,6 +4,7 @@
 #include "CkEcs/Handle/CkHandle_TypeSafe.h"
 
 #include <StructUtils/InstancedStruct.h>
+#include "UObject/Object.h"
 
 #include "Test_Snapshot_DynamicFragment_Fixtures.generated.h"
 
@@ -137,4 +138,14 @@ struct FCk_Test_InstancedStructArrayWrapper
 
     UPROPERTY()
     TArray<FInstancedStruct> Payloads;
+};
+
+// Fixture used to verify that the reflected holder enumerates an object nested in an FInstancedStruct payload.
+USTRUCT()
+struct FCk_Test_HydrationPayloadWithObject
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    TObjectPtr<UObject> Object;
 };
