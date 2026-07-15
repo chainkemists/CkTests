@@ -1,7 +1,8 @@
 // CkSnapshot Attribute-Parity GATE — strict value round-trip of Float/Byte/Integer/Rotator/Vector attributes through
 // a listen-server SEAMLESS ServerTravel reload, asserted on the CLIENT. Each attribute is OVERRIDDEN away from its
-// entity-script Construct default before save; the client must show the override (not the default) post-reload —
-// proving the value survived save -> restore -> replication, not just Construct re-derivation.
+// entity-script Construct default before save; Float uses a revocable modifier while the other four use direct
+// overrides. The client must show the saved values (not defaults) post-reload, proving value and modifier-derived
+// state survived save -> restore -> replication rather than Construct re-derivation.
 // Surface in Session Frontend: Ck.Snapshot.Parity.Attributes_MPReload
 
 #include "Misc/AutomationTest.h"
@@ -47,7 +48,9 @@ namespace
     constexpr auto VectorTagName  = TEXT("VectorAttribute.AutoTest_PerComponent"); // default {1,2,3}
     // Rotator uses the native TAG_RotatorAttribute_AutoTest_Net                   // default {P10,Y20,R30}
 
-    constexpr auto FloatOverride   = 17.0f;       // != 42.5, inside [0,100] so no clamp
+    constexpr auto FloatBaseDefault = 42.5f;
+    constexpr auto FloatModifierDelta = -25.5f;
+    constexpr auto FloatOverride   = FloatBaseDefault + FloatModifierDelta; // 17.0, inside [0,100]
     constexpr auto ByteOverride    = uint8{200};  // != 7
     constexpr auto IntegerOverride = int32{999};  // != 13
     const auto     VectorOverride  = FVector{50.0, 60.0, 70.0};   // != {1,2,3}
@@ -91,6 +94,17 @@ namespace
         if (ck::Is_NOT_Valid(Attr)) { return -1.0f; }
         OutResolved = true;
         return static_cast<float>(UCk_Utils_FloatAttribute_UE::Get_FinalValue(Attr));
+    }
+
+    auto Parity_FloatBase(AActor* InProbe, bool& OutResolved) -> float
+    {
+        OutResolved = false;
+        const auto Entity = Parity_ResolveEntity(InProbe);
+        if (ck::Is_NOT_Valid(Entity)) { return -1.0f; }
+        auto Attr = UCk_Utils_FloatAttribute_UE::TryGet(Entity, FGameplayTag::RequestGameplayTag(FName{FloatTagName}));
+        if (ck::Is_NOT_Valid(Attr)) { return -1.0f; }
+        OutResolved = true;
+        return static_cast<float>(UCk_Utils_FloatAttribute_UE::Get_BaseValue(Attr));
     }
 
     auto Parity_ByteFinal(AActor* InProbe, bool& OutResolved) -> int32
@@ -206,7 +220,11 @@ bool FCkSnapshot_AttributeParity_MPReload_Gate::RunTest(const FString& Parameter
                 ck::Is_NOT_Valid(VectorAttr) || ck::Is_NOT_Valid(RotatorAttr))
             { AddError(TEXT("Stage 3: one or more server attributes unresolved")); return; }
 
-            UCk_Utils_FloatAttribute_UE::Request_Override(FloatAttr, FloatOverride);
+            UCk_Utils_FloatAttributeModifier_UE::Add_Revocable(
+                FloatAttr,
+                FGameplayTag::RequestGameplayTag(FName{FloatTagName}),
+                ECk_AttributeModifier_Operation::Add,
+                FCk_Fragment_FloatAttributeModifier_ParamsData{FloatModifierDelta, ECk_MinMaxCurrent::Current});
             UCk_Utils_ByteAttribute_UE::Request_Override(ByteAttr, ByteOverride);
             UCk_Utils_IntegerAttribute_UE::Request_Override(IntAttr, IntegerOverride);
             UCk_Utils_VectorAttribute_UE::Request_Override(VectorAttr, VectorOverride);
@@ -220,14 +238,16 @@ bool FCkSnapshot_AttributeParity_MPReload_Gate::RunTest(const FString& Parameter
         FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
         {
             auto* Probe = Parity_FindProbe(InServer);
+            auto FloatBaseResolved = false; const auto FloatBase = Parity_FloatBase(Probe, FloatBaseResolved);
             auto FloatResolved = false; const auto FloatFinal = Parity_FloatFinal(Probe, FloatResolved);
             auto ByteResolved  = false; const auto ByteFinal  = Parity_ByteFinal(Probe, ByteResolved);
             auto IntResolved   = false; const auto IntFinal   = Parity_IntegerFinal(Probe, IntResolved);
             auto VecResolved   = false; const auto VecFinal   = Parity_VectorFinal(Probe, VecResolved);
             auto RotResolved   = false; const auto RotFinal   = Parity_RotatorFinal(Probe, RotResolved);
             TestTrue (TEXT("pre-save server: attributes resolved"),
-                FloatResolved && ByteResolved && IntResolved && VecResolved && RotResolved);
-            TestEqual(TEXT("pre-save server Float == override"),   FloatFinal, FloatOverride);
+                FloatBaseResolved && FloatResolved && ByteResolved && IntResolved && VecResolved && RotResolved);
+            TestEqual(TEXT("pre-save server Float base remains Construct default"), FloatBase, FloatBaseDefault);
+            TestEqual(TEXT("pre-save server Float final includes revocable modifier"), FloatFinal, FloatOverride);
             TestEqual(TEXT("pre-save server Byte == override"),    ByteFinal,  static_cast<int32>(ByteOverride));
             TestEqual(TEXT("pre-save server Integer == override"), IntFinal,   IntegerOverride);
             TestTrue (TEXT("pre-save server Vector == override"),  VecFinal.Equals(VectorOverride, 0.01));
@@ -311,9 +331,12 @@ bool FCkSnapshot_AttributeParity_MPReload_Gate::RunTest(const FString& Parameter
 
             TestTrue(TEXT("client: bridge resolves post-reload"), ck::IsValid(Parity_ResolveEntity(Probe)));
 
+            auto FloatBaseResolved = false; const auto FloatBase = Parity_FloatBase(Probe, FloatBaseResolved);
             auto FloatResolved = false; const auto FloatFinal = Parity_FloatFinal(Probe, FloatResolved);
+            TestTrue (TEXT("client: Float base resolved"), FloatBaseResolved);
             TestTrue (TEXT("client: Float attribute resolved"), FloatResolved);
-            TestEqual(TEXT("client: Float override round-tripped (17.0, not default 42.5)"), FloatFinal, FloatOverride);
+            TestEqual(TEXT("client: Float base round-tripped without baking the modifier"), FloatBase, FloatBaseDefault);
+            TestEqual(TEXT("client: Float modifier-derived final round-tripped (17.0, not base 42.5)"), FloatFinal, FloatOverride);
 
             auto ByteResolved = false; const auto ByteFinal = Parity_ByteFinal(Probe, ByteResolved);
             TestTrue (TEXT("client: Byte attribute resolved"), ByteResolved);
@@ -334,7 +357,7 @@ bool FCkSnapshot_AttributeParity_MPReload_Gate::RunTest(const FString& Parameter
                 RotFinal.Equals(RotatorOverride, 0.01));
             return true;
         }),
-        TEXT("Attribute parity: Float/Byte/Integer/Rotator/Vector overrides survive save -> seamless reload -> client re-derivation")));
+        TEXT("Attribute parity: Float modifier-derived final + Byte/Integer/Rotator/Vector overrides survive save -> seamless reload -> client re-derivation")));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
     return true;
