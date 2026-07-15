@@ -56,7 +56,7 @@ namespace ck_repdata_coverage_test
     static auto Get_Deferred() -> const TMap<FString, FString>&
     {
         static const TMap<FString, FString> Deferred = {
-            { TEXT("MontagePlayer"),            TEXT("snapshot + ReplicateOnRestore wiring present (Params/Current Tier-C + seeded container + re-arm; unit round-trip twin removed with Model A) but no MP parity gate yet — needs a skeletal-mesh probe + montage asset (HandleRequests ensures on a missing mesh); server-side playback resume + mesh re-bind is a pending Lead design call") },
+            { TEXT("MontagePlayer"),            TEXT("registry Produce/HydrationApply round-trip is covered by Ck.Snapshot.V3.MontagePlayer.HandlerRoundTrip, but no MP playback parity gate exists yet — it needs a skeletal-mesh probe + montage asset; live mesh re-bind remains an explicit post-restore integration responsibility") },
             { TEXT("Velocity"),                 TEXT("snapshot + ReplicateOnRestore wiring present (mirrors Acceleration) but no parity gate yet — a strict-value gate needs a movement-driven probe (PredictedVelocity re-derives the value on stationary actors)") },
             { TEXT("Location"),                 TEXT("audit complete 2026-06-10: transform fragment IS snapshotted; actor-backed entities re-derive client position from the respawned replicated actor (asserted by Ck.Snapshot.M2b2b gate); only pure-ECS SceneNode replication (no actor) lacks a restore re-push — defer until that configuration has a real use") },
             { TEXT("Rotation"),                 TEXT("audit complete 2026-06-10: same as Location — actor-backed re-derives (M2b2b gate); pure-ECS SceneNode rep deferred until a real use") },
