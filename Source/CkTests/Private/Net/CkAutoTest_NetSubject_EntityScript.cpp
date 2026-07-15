@@ -71,6 +71,11 @@ auto
     // resolve the replicated outer Actor for its container fragment.
     const auto Flow = Super::Construct(InHandle, InSpawnParams);
 
+    auto* OwningActor = UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle);
+    const auto FeatureReplication = OwningActor != nullptr && OwningActor->GetIsReplicated()
+        ? ECk_Replication::Replicates
+        : ECk_Replication::DoesNotReplicate;
+
     using namespace ck::auto_test::netsubject;
 
     const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{AttributeTagName});
@@ -80,30 +85,30 @@ auto
     Params.Set_MinValue(MinValue);
     Params.Set_MaxValue(MaxValue);
 
-    UCk_Utils_FloatAttribute_UE::Add(InHandle, Params, ECk_Replication::Replicates);
+    UCk_Utils_FloatAttribute_UE::Add(InHandle, Params, FeatureReplication);
 
     // Byte / Integer / Vector — same Replicates path, distinct initial values so an unreplicated
     // override shows as a clear cross-world mismatch.
     UCk_Utils_ByteAttribute_UE::Add(InHandle,
         FCk_Fragment_ByteAttribute_ParamsData{FGameplayTag::RequestGameplayTag(FName{ByteAttributeTagName}), ByteInitialValue},
-        ECk_Replication::Replicates);
+        FeatureReplication);
 
     UCk_Utils_IntegerAttribute_UE::Add(InHandle,
         FCk_Fragment_IntegerAttribute_ParamsData{FGameplayTag::RequestGameplayTag(FName{IntegerAttributeTagName}), IntegerInitialValue},
-        ECk_Replication::Replicates);
+        FeatureReplication);
 
     UCk_Utils_VectorAttribute_UE::Add(InHandle,
         FCk_Fragment_VectorAttribute_ParamsData{FGameplayTag::RequestGameplayTag(FName{VectorAttributeTagName}), FVector{1.0, 2.0, 3.0}},
-        ECk_Replication::Replicates);
+        FeatureReplication);
 
     UCk_Utils_RotatorAttribute_UE::Add(InHandle,
         FCk_Fragment_RotatorAttribute_ParamsData{TAG_RotatorAttribute_AutoTest_Net.GetTag(), FRotator{10.0, 20.0, 30.0}},
-        ECk_Replication::Replicates);
+        FeatureReplication);
 
     // Replicated TagSet (empty initial container). The CkTagSet net test drives Request_AddTag on
     // the server and polls HasTag on the client. Stash the handle on the actor so the test can
     // reach it without a by-name lookup (a TagSet is single-per-entity).
-    auto TagSet = UCk_Utils_TagSet_UE::Add(InHandle, FGameplayTagContainer{}, ECk_Replication::Replicates);
+    auto TagSet = UCk_Utils_TagSet_UE::Add(InHandle, FGameplayTagContainer{}, FeatureReplication);
 
     // Replicated Acceleration (World coords, zero starting). The CkPhysics net test drives
     // Request_OverrideAcceleration on the server and polls Get_CurrentAcceleration on the client.
@@ -111,7 +116,7 @@ auto
     // (Acceleration is single-per-entity, no by-tag TryGet) mirroring _TestTagSet.
     auto Acceleration = UCk_Utils_Acceleration_UE::Add(InHandle,
         FCk_Fragment_Acceleration_ParamsData{ECk_LocalWorld::World, FVector::ZeroVector},
-        ECk_Replication::Replicates);
+        FeatureReplication);
 
     // Replicated AnimPlan (pure tag-state — no skeletal mesh). Starts at cluster + state A; the
     // CkAnimation net test moves it to state B on the server and polls the replicated state on the
@@ -120,14 +125,14 @@ auto
     auto AnimPlanParams = FCk_Fragment_AnimPlan_ParamsData{TAG_AnimPlan_AutoTest_Net_Goal.GetTag()};
     AnimPlanParams.Set_StartingAnimCluster(TAG_AnimPlan_AutoTest_Net_Cluster.GetTag());
     AnimPlanParams.Set_StartingAnimState(TAG_AnimPlan_AutoTest_Net_State_A.GetTag());
-    UCk_Utils_AnimPlan_UE::Add(InHandle, AnimPlanParams, ECk_Replication::Replicates);
+    UCk_Utils_AnimPlan_UE::Add(InHandle, AnimPlanParams, FeatureReplication);
 
     // Replicated Team + Player (Unassigned starting on both worlds). The Snapshot Team/Player parity
     // gate Assigns non-default IDs on the server; the client-side rep handlers return NotReady until
     // the feature is composed, so the subject must compose both on every world. Retrieved via
     // Has/Cast on the entity (single-per-entity), so no actor stash is needed.
-    UCk_Utils_Team_UE::Add(InHandle, ECk_Team_ID::Unassigned, ECk_Replication::Replicates);
-    UCk_Utils_Player_UE::Add(InHandle, ECk_Player_ID::Unassigned, ECk_Replication::Replicates);
+    UCk_Utils_Team_UE::Add(InHandle, ECk_Team_ID::Unassigned, FeatureReplication);
+    UCk_Utils_Player_UE::Add(InHandle, ECk_Player_ID::Unassigned, FeatureReplication);
 
     // Two unreplicated Construct-timers for the CkSnapshot Timer-parity gate. Composing them in Construct (not from
     // the test spec) is deliberate: only Construct-composed timers get a spawn recipe and are rebuilt on load, so this
@@ -148,7 +153,6 @@ auto
         UCk_Utils_Timer_UE::Add(InHandle, DoneTimerParams);
     }
 
-    auto* OwningActor = UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle);
     if (auto* Subject = Cast<ACk_AutoTest_NetSubject>(OwningActor))
     {
         Subject->_TestTagSet = TagSet;
