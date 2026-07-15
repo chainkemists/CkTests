@@ -15,6 +15,8 @@
 #include "CkAttribute/FloatAttribute/CkFloatAttribute_Fragment.h"
 
 #include "CkEcs/Handle/CkHandle.h"
+#include "CkEcs/Net/CkNet_Utils.h"
+#include "CkEcs/Net/EntityReplicationDriver/CkEntityReplicationDriver_Utils.h"
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
 #include "CkEcs/Registry/CkRegistry_SlotTable.h"
 #include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
@@ -189,6 +191,13 @@ bool FCkSnapshot_M2b_LevelReload_Gate::RunTest(const FString& Parameters)
 
             const auto Entity = UCk_Utils_OwningActor_UE::TryGet_ActorEntityHandle(Probe);
             TestTrue(TEXT("actor<->entity bridge resolves (re-bridge worked)"), ck::IsValid(Entity));
+            if (ck::IsValid(Entity))
+            {
+                TestEqual(TEXT("non-replicated actor restores a non-replicated entity"),
+                    UCk_Utils_Net_UE::Get_Replication(Entity), ECk_Replication::DoesNotReplicate);
+                TestFalse(TEXT("non-replicated actor entity has no replication driver"),
+                    UCk_Utils_EntityReplicationDriver_UE::Has(Entity));
+            }
 
             // Position-restore: the respawned actor is back at its SAVED world location (not identity).
             const auto RespawnedLoc = Probe->GetActorLocation();
