@@ -43,6 +43,8 @@ public class CkTests : CkModuleRules
             "CkInteraction",
             "CkInventory",
             "CkIsmRenderer",
+            "CkJolt",
+            "CkThirdParty",
             "CkLabel",
             "CkLagCompensation",
             "CkLog",
