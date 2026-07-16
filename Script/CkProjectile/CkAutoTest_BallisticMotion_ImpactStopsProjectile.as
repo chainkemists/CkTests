@@ -36,7 +36,7 @@ class UCk_AutoTest_BallisticMotion_ImpactStopsProjectile : UCk_AutoTest_Base
 
     private FVector _ProjectileStart = FVector(0.0, 0.0, 300.0);
     private FVector _TargetCenter = FVector(600.0, 0.0, 300.0);
-    private float _TargetRadius = 150.0;
+    private float32 _TargetRadius = 150.0f;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)

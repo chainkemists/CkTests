@@ -40,7 +40,7 @@ class UCk_AutoTest_Probe_LinearCast_BeginEndOverlap : UCk_AutoTest_Base
     private int32 _StepsTaken = 0;
 
     private FVector _WallCenter = FVector(600.0, 0.0, 300.0);
-    private float _WallRadius = 150.0;
+    private float32 _WallRadius = 150.0f;
     private float _StepDistance = 150.0;
     private int32 _MaxSteps = 40;   // 40 * 150 = 6000uu, far past the wall at X=600
 
