@@ -1,6 +1,6 @@
 ---
 name: ck-tests-authoring-and-running
-description: Use when authoring or running any Ck test layer - AS autotests (UCk_AutoTest_Base), multi-PIE net autotests (UCk_AutoTest_NetBase), C++ IMPLEMENT_SIMPLE_AUTOMATION_TEST, gyms, Gauntlet (-asgauntlet, exit codes 0-4). Triggers - test row missing from Session Frontend, net test absent after AS recompile, "Automation RunTests" filters, Ck.SyncAutoTestMaps, gym Tab menu / Ck_Gym_* exec commands. Not for build/AS-compile failures (ck-build-and-env, ck-debugging-playbook) or AS binding breakage (ck-angelscript-interop).
+description: "Use when authoring or running Ck tests: AS PIE or net autotests, C++ automation, gyms, or Gauntlet; also when test rows or filters misbehave. Not for build/binding failures."
 ---
 
 # ck-tests-authoring-and-running
