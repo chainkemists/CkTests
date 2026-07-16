@@ -133,9 +133,9 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
     private void OnGymTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         DoChurnScriptWaves();
-        DoChurnSmHerd(InDeltaT.Get_Seconds());
+        DoChurnSmHerd(float32(InDeltaT.Get_Seconds()));
 
-        _DisplayAccum += InDeltaT.Get_Seconds();
+        _DisplayAccum += float32(InDeltaT.Get_Seconds());
         if (_DisplayAccum >= kDisplayRefreshPeriod)
         {
             _DisplayAccum = 0.0f;
