@@ -98,13 +98,18 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor> Ck_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor_UAID_C87F5401E5359CDB02_1590168218() { return TSoftObjectPtr<ACk_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces_Actor_UAID_C87F5401E5359CDB02_1590168218")); }
     TSoftObjectPtr<ACk_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor> Ck_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor_UAID_C87F5401E5359CDB02_1590168219() { return TSoftObjectPtr<ACk_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel_Actor_UAID_C87F5401E5359CDB02_1590168219")); }
     TSoftObjectPtr<ACk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor> Ck_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor_UAID_C87F5401E5359CDB02_1590169220() { return TSoftObjectPtr<ACk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor_UAID_C87F5401E5359CDB02_1590169220")); }
+    TSoftObjectPtr<ACk_AutoTest_Crowd_FollowTarget_MovingPoint_Actor> Ck_AutoTest_Crowd_FollowTarget_MovingPoint_Actor_UAID_60CF84A99C2C88EE02_1437755759() { return TSoftObjectPtr<ACk_AutoTest_Crowd_FollowTarget_MovingPoint_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_FollowTarget_MovingPoint_Actor_UAID_60CF84A99C2C88EE02_1437755759")); }
     TSoftObjectPtr<ACk_AutoTest_Crowd_Goal_OccupiedGoal_Actor> Ck_AutoTest_Crowd_Goal_OccupiedGoal_Actor_UAID_C87F5401E53520EE02_1923861455() { return TSoftObjectPtr<ACk_AutoTest_Crowd_Goal_OccupiedGoal_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_Goal_OccupiedGoal_Actor_UAID_C87F5401E53520EE02_1923861455")); }
     TSoftObjectPtr<ACk_AutoTest_Crowd_Pathfinding_Failure_Actor> Ck_AutoTest_Crowd_Pathfinding_Failure_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Crowd_Pathfinding_Failure_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_Pathfinding_Failure_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Crowd_Pathfinding_Success_Actor> Ck_AutoTest_Crowd_Pathfinding_Success_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Crowd_Pathfinding_Success_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_Pathfinding_Success_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut_Actor> Ck_AutoTest_Crowd_PathRefresh_InsideBandPlansOut_Actor_UAID_C87F5401E53576EE02_1746552591() { return TSoftObjectPtr<ACk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_PathRefresh_InsideBandPlansOut_Actor_UAID_C87F5401E53576EE02_1746552591")); }
+    TSoftObjectPtr<ACk_AutoTest_Crowd_PathRefresh_MidWalkDetours_Actor> Ck_AutoTest_Crowd_PathRefresh_MidWalkDetours_Actor_UAID_C87F5401E5353CEE02_2089465383() { return TSoftObjectPtr<ACk_AutoTest_Crowd_PathRefresh_MidWalkDetours_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_PathRefresh_MidWalkDetours_Actor_UAID_C87F5401E5353CEE02_2089465383")); }
+    TSoftObjectPtr<ACk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh_Actor> Ck_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh_Actor_UAID_C87F5401E5352DEE02_1457209743() { return TSoftObjectPtr<ACk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh_Actor_UAID_C87F5401E5352DEE02_1457209743")); }
     TSoftObjectPtr<ACk_AutoTest_Crowd_Separation_Convergence_Actor> Ck_AutoTest_Crowd_Separation_Convergence_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Crowd_Separation_Convergence_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_Separation_Convergence_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Crowd_Separation_HeadOnPass_Actor> Ck_AutoTest_Crowd_Separation_HeadOnPass_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Crowd_Separation_HeadOnPass_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_Separation_HeadOnPass_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Crowd_Separation_ProbeIsotropy_Actor> Ck_AutoTest_Crowd_Separation_ProbeIsotropy_Actor_UAID_C87F5401E535E1ED02_2111491367() { return TSoftObjectPtr<ACk_AutoTest_Crowd_Separation_ProbeIsotropy_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_Separation_ProbeIsotropy_Actor_UAID_C87F5401E535E1ED02_2111491367")); }
     TSoftObjectPtr<ACk_AutoTest_Crowd_Separation_Vibration_Actor> Ck_AutoTest_Crowd_Separation_Vibration_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Crowd_Separation_Vibration_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_Separation_Vibration_Actor_0")); }
+    TSoftObjectPtr<ACk_AutoTest_Crowd_StationaryLine_PathsRouteAround_Actor> Ck_AutoTest_Crowd_StationaryLine_PathsRouteAround_Actor_UAID_C87F5401E53530EE02_2057077271() { return TSoftObjectPtr<ACk_AutoTest_Crowd_StationaryLine_PathsRouteAround_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_StationaryLine_PathsRouteAround_Actor_UAID_C87F5401E53530EE02_2057077271")); }
     TSoftObjectPtr<ACk_AutoTest_Crowd_SteeringPerf_Actor> Ck_AutoTest_Crowd_SteeringPerf_Actor_UAID_60CF84A99C2CF0EC02_1411059951() { return TSoftObjectPtr<ACk_AutoTest_Crowd_SteeringPerf_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Crowd_SteeringPerf_Actor_UAID_60CF84A99C2CF0EC02_1411059951")); }
     TSoftObjectPtr<ACk_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor> Ck_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor_UAID_C87F5401E53525DC02_1985795327() { return TSoftObjectPtr<ACk_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor_UAID_C87F5401E53525DC02_1985795327")); }
     TSoftObjectPtr<ACk_AutoTest_Cue_Persistent_StaysAlive_Actor> Ck_AutoTest_Cue_Persistent_StaysAlive_Actor_UAID_C87F5401E53525DC02_1985797328() { return TSoftObjectPtr<ACk_AutoTest_Cue_Persistent_StaysAlive_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Cue_Persistent_StaysAlive_Actor_UAID_C87F5401E53525DC02_1985797328")); }
@@ -352,6 +357,7 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_RendererAdd_Actor> Ck_AutoTest_IskmRenderer_RendererAdd_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_RendererAdd_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_RendererAdd_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_SkmcPerf_Actor> Ck_AutoTest_IskmRenderer_SkmcPerf_Actor_UAID_C87F5401E53535EA02_1826709929() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_SkmcPerf_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_SkmcPerf_Actor_UAID_C87F5401E53535EA02_1826709929")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_SocketFollowerDrivesChild_Actor> Ck_AutoTest_IskmRenderer_SocketFollowerDrivesChild_Actor_UAID_D843AEBAD5E2E9ED02_1217521775() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_SocketFollowerDrivesChild_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_SocketFollowerDrivesChild_Actor_UAID_D843AEBAD5E2E9ED02_1217521775")); }
+    TSoftObjectPtr<ACk_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll_Actor> Ck_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll_Actor_UAID_D843AEBAD5E2F2ED02_1979065359() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll_Actor_UAID_D843AEBAD5E2F2ED02_1979065359")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_Sockets_Actor> Ck_AutoTest_IskmRenderer_Sockets_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_Sockets_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_Sockets_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_SubsystemSmoke_Actor> Ck_AutoTest_IskmRenderer_SubsystemSmoke_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_SubsystemSmoke_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_SubsystemSmoke_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_IskmRenderer_TransitionReplaced_Actor> Ck_AutoTest_IskmRenderer_TransitionReplaced_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_IskmRenderer_TransitionReplaced_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_IskmRenderer_TransitionReplaced_Actor_0")); }
@@ -1519,6 +1525,15 @@ namespace assets::load
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor_UAID_C87F5401E5359CDB02_1590169220());
     }
+    ACk_AutoTest_Crowd_FollowTarget_MovingPoint_Actor Ck_AutoTest_Crowd_FollowTarget_MovingPoint_Actor_UAID_60CF84A99C2C88EE02_1437755759()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Crowd_FollowTarget_MovingPoint_Actor_UAID_60CF84A99C2C88EE02_1437755759() called before engine init. Use assets::Ck_AutoTest_Crowd_FollowTarget_MovingPoint_Actor_UAID_60CF84A99C2C88EE02_1437755759() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_FollowTarget_MovingPoint_Actor_UAID_60CF84A99C2C88EE02_1437755759());
+    }
     ACk_AutoTest_Crowd_Goal_OccupiedGoal_Actor Ck_AutoTest_Crowd_Goal_OccupiedGoal_Actor_UAID_C87F5401E53520EE02_1923861455()
     {
         if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
@@ -1545,6 +1560,33 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_Pathfinding_Success_Actor_0());
+    }
+    ACk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut_Actor Ck_AutoTest_Crowd_PathRefresh_InsideBandPlansOut_Actor_UAID_C87F5401E53576EE02_1746552591()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Crowd_PathRefresh_InsideBandPlansOut_Actor_UAID_C87F5401E53576EE02_1746552591() called before engine init. Use assets::Ck_AutoTest_Crowd_PathRefresh_InsideBandPlansOut_Actor_UAID_C87F5401E53576EE02_1746552591() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_PathRefresh_InsideBandPlansOut_Actor_UAID_C87F5401E53576EE02_1746552591());
+    }
+    ACk_AutoTest_Crowd_PathRefresh_MidWalkDetours_Actor Ck_AutoTest_Crowd_PathRefresh_MidWalkDetours_Actor_UAID_C87F5401E5353CEE02_2089465383()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Crowd_PathRefresh_MidWalkDetours_Actor_UAID_C87F5401E5353CEE02_2089465383() called before engine init. Use assets::Ck_AutoTest_Crowd_PathRefresh_MidWalkDetours_Actor_UAID_C87F5401E5353CEE02_2089465383() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_PathRefresh_MidWalkDetours_Actor_UAID_C87F5401E5353CEE02_2089465383());
+    }
+    ACk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh_Actor Ck_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh_Actor_UAID_C87F5401E5352DEE02_1457209743()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh_Actor_UAID_C87F5401E5352DEE02_1457209743() called before engine init. Use assets::Ck_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh_Actor_UAID_C87F5401E5352DEE02_1457209743() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh_Actor_UAID_C87F5401E5352DEE02_1457209743());
     }
     ACk_AutoTest_Crowd_Separation_Convergence_Actor Ck_AutoTest_Crowd_Separation_Convergence_Actor_0()
     {
@@ -1581,6 +1623,15 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_Separation_Vibration_Actor_0());
+    }
+    ACk_AutoTest_Crowd_StationaryLine_PathsRouteAround_Actor Ck_AutoTest_Crowd_StationaryLine_PathsRouteAround_Actor_UAID_C87F5401E53530EE02_2057077271()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Crowd_StationaryLine_PathsRouteAround_Actor_UAID_C87F5401E53530EE02_2057077271() called before engine init. Use assets::Ck_AutoTest_Crowd_StationaryLine_PathsRouteAround_Actor_UAID_C87F5401E53530EE02_2057077271() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Crowd_StationaryLine_PathsRouteAround_Actor_UAID_C87F5401E53530EE02_2057077271());
     }
     ACk_AutoTest_Crowd_SteeringPerf_Actor Ck_AutoTest_Crowd_SteeringPerf_Actor_UAID_60CF84A99C2CF0EC02_1411059951()
     {
@@ -3804,6 +3855,15 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_SocketFollowerDrivesChild_Actor_UAID_D843AEBAD5E2E9ED02_1217521775());
+    }
+    ACk_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll_Actor Ck_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll_Actor_UAID_D843AEBAD5E2F2ED02_1979065359()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll_Actor_UAID_D843AEBAD5E2F2ED02_1979065359() called before engine init. Use assets::Ck_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll_Actor_UAID_D843AEBAD5E2F2ED02_1979065359() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll_Actor_UAID_D843AEBAD5E2F2ED02_1979065359());
     }
     ACk_AutoTest_IskmRenderer_Sockets_Actor Ck_AutoTest_IskmRenderer_Sockets_Actor_0()
     {
