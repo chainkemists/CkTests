@@ -21,6 +21,7 @@ UCLASS(Blueprintable)
 class ACk_SmTest_GraphWalkRegression_GymActor : AActor
 {
     default bReplicates = true;
+    default bReplicateUsingRegisteredSubObjectList = true;
     default bAlwaysRelevant = true;
 
     // ========================================================================
