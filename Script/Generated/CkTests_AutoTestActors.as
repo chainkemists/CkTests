@@ -1081,6 +1081,19 @@ class ACk_AutoTest_CkJolt_BoxStackOfFiveSettlesAndStays_Actor : ACk_AutoTestRunn
     }
 }
 
+class ACk_AutoTest_CkJolt_ContactSignalsFireOnImpact_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_ContactSignalsFireOnImpact");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_CkJolt_DynamicBoxRestsOnStaticFloor_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 20.0f;
@@ -1094,6 +1107,71 @@ class ACk_AutoTest_CkJolt_DynamicBoxRestsOnStaticFloor_Actor : ACk_AutoTestRunne
     }
 }
 
+class ACk_AutoTest_CkJolt_FastProjectileWithCcdStopsAtThinWall_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 12.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_FastProjectileWithCcdStopsAtThinWall");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_ImpulseChangesVelocity_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 25.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_ImpulseChangesVelocity");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_JoltCharacter_MoveRequestDrivesCapsule_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_JoltCharacter_MoveRequestDrivesCapsule");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_JoltCharacter_PushPolicyGovernsBoxDisplacement_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 25.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_JoltCharacter_PushPolicyGovernsBoxDisplacement");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_JoltCharacter_ReportsGroundStateTransitions_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_JoltCharacter_ReportsGroundStateTransitions");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 25.0f;
@@ -1101,6 +1179,19 @@ class ACk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox_Actor : ACk_AutoTes
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_OverlapEntitiesExcludesBakedStaticWorld_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 12.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_OverlapEntitiesExcludesBakedStaticWorld");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
@@ -1159,6 +1250,19 @@ class ACk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates_Actor : ACk
     }
 }
 
+class ACk_AutoTest_CkJolt_SphereRollsDownRampToBottom_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 25.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_SphereRollsDownRampToBottom");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_CkJolt_StaticBake_Hism_CompoundCluster_SingleBody_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 8.0f;
@@ -1205,6 +1309,19 @@ class ACk_AutoTest_CkJolt_StaticBake_SimpleBox_RaycastMatchesChaos_Actor : ACk_A
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_StaticBake_SimpleBox_RaycastMatchesChaos");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_TeleportMovesBodyAndResetsVelocity_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 25.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_TeleportMovesBodyAndResetsVelocity");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;

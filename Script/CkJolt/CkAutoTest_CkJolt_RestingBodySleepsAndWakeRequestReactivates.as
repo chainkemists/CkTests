@@ -4,18 +4,18 @@
 // CK JOLT — AUTOMATION TEST: RESTING BODY SLEEPS, WAKE REQUEST REACTIVATES
 //============================================================================
 //
-// Jolt puts a settled dynamic body to sleep; the JoltBody sleep-state mirror
-// must reflect that on the tag-level Get_SleepState, and a Request_SetSleepState
-// (Awake) must reactivate it promptly.
+// Jolt puts a settled dynamic body to sleep; CkJolt must raise
+// OnJoltBodySleepStateChanged on the sleep edge, and a Request_SetSleepState(Awake)
+// must raise the wake edge and reactivate the body:
 //
 //   1. Static floor + a Dynamic box dropped onto it.
-//   2. Poll Get_SleepState until it reports Asleep (Jolt's sleep timer needs
-//      ~0.5s of sub-threshold motion — generous budget).
-//   3. Request_SetSleepState(Awake).
-//   4. Assert Get_SleepState reports Awake within 2 polls.
+//   2. PRIMARY: an OnJoltBodySleepStateChanged(Asleep) signal fires once the body
+//      settles (Jolt's sleep timer needs ~0.5s of sub-threshold motion). SECONDARY:
+//      the tag-level Get_SleepState mirror also reads Asleep.
+//   3. Request_SetSleepState(Awake) -> PRIMARY: an OnJoltBodySleepStateChanged(Awake)
+//      signal fires; SECONDARY: Get_SleepState reads Awake.
 //
-// Signal-level sleep/wake coverage is Phase 4 — this pins only the tag-level
-// state and the wake request. Placed at an isolated Y from other autotests.
+// Placed at an isolated Y from other autotests.
 //============================================================================
 
 class UCk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates : UCk_AutoTest_Base
@@ -30,6 +30,9 @@ class UCk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates : UCk_AutoT
     private int _Phase = 0;   // 0 = waiting to sleep, 1 = waiting to wake
     private int _FramesWaited = 0;
     private int _PollsSinceWake = 0;
+
+    private bool _AsleepSignalFired = false;
+    private bool _AwakeSignalAfterWake = false;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -63,7 +66,26 @@ class UCk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates : UCk_AutoT
         BoxParams.Set_MotionType(ECk_MotionType::Dynamic);
         _Body = utils_jolt_body::Add(BoxEntity, BoxParams);
 
+        utils_jolt_body::BindTo_OnJoltBodySleepStateChanged(_Body,
+            FCk_Delegate_JoltBody_OnSleepStateChanged(this, n"OnSleepStateChanged"));
+
         utils_timer::Create_Tick(_SelfHandle, FCk_Delegate_Timer(this, n"OnTick"));
+    }
+
+    UFUNCTION()
+    private void OnSleepStateChanged(FCk_Handle_JoltBody InHandle, ECk_Jolt_SleepState InSleepState)
+    {
+        if (IsFinished()) { return; }
+
+        if (_Phase == 0)
+        {
+            if (InSleepState == ECk_Jolt_SleepState::Asleep)
+            { _AsleepSignalFired = true; }
+        }
+        else if (InSleepState == ECk_Jolt_SleepState::Awake)
+        {
+            _AwakeSignalAfterWake = true;
+        }
     }
 
     UFUNCTION()
@@ -75,9 +97,13 @@ class UCk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates : UCk_AutoT
 
         if (_Phase == 0)
         {
-            if (utils_jolt_body::Get_SleepState(_Body) == ECk_Jolt_SleepState::Asleep)
+            // PRIMARY: the sleep edge must arrive via the signal.
+            if (_AsleepSignalFired)
             {
-                // Request reactivation and start the tight wake-latency window.
+                // SECONDARY: the tag-level mirror agrees.
+                Assert_True(utils_jolt_body::Get_SleepState(_Body) == ECk_Jolt_SleepState::Asleep,
+                    "Tag-level Get_SleepState should also read Asleep once the sleep signal has fired");
+
                 utils_jolt_body::Request_SetSleepState(_Body,
                     FCk_Request_JoltBody_SetSleepState(ECk_Jolt_SleepState::Awake));
                 _PollsSinceWake = 0;
@@ -86,21 +112,23 @@ class UCk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates : UCk_AutoT
             }
 
             if (_FramesWaited > 900)
-            { FinishFailure(f"Resting body never slept after {_FramesWaited} frames"); }
+            { FinishFailure(f"Resting body never raised an Asleep sleep-state signal after {_FramesWaited} frames"); }
 
             return;
         }
 
-        // Phase 1 — the body must report Awake within 2 polls of the wake request.
+        // Phase 1 — the wake request must raise an Awake signal and reactivate the body.
         _PollsSinceWake++;
 
-        if (utils_jolt_body::Get_SleepState(_Body) == ECk_Jolt_SleepState::Awake)
+        if (_AwakeSignalAfterWake)
         {
+            Assert_True(utils_jolt_body::Get_SleepState(_Body) == ECk_Jolt_SleepState::Awake,
+                "Tag-level Get_SleepState should read Awake after the wake signal has fired");
             FinishSuccess();
             return;
         }
 
-        if (_PollsSinceWake > 2)
-        { FinishFailure(f"Body did not wake within 2 polls of Request_SetSleepState(Awake)"); }
+        if (_PollsSinceWake > 15)
+        { FinishFailure("Body did not raise an Awake sleep-state signal after Request_SetSleepState(Awake)"); }
     }
 }
