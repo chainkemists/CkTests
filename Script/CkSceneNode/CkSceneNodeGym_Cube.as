@@ -14,6 +14,7 @@ UCLASS(Blueprintable)
 class ACk_SceneNodeGym_Cube : AActor
 {
 	default bReplicates = true;
+	default bReplicateUsingRegisteredSubObjectList = true;
 	default bAlwaysRelevant = true;
 	default bReplicateMovement = true;
 

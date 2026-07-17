@@ -49,6 +49,7 @@
 class ACk_GymStation : AActor
 {
 	default bReplicates = true;
+	default bReplicateUsingRegisteredSubObjectList = true;
 	default bAlwaysRelevant = true;
 
 	//------------------------------------------------------------------------

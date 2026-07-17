@@ -11,6 +11,7 @@ class ACk_ReplicationGym_ReplicatedActor : AActor
 {
     default bReplicateMovement = false;
     default bReplicates = true;
+    default bReplicateUsingRegisteredSubObjectList = true;
 
     UPROPERTY(DefaultComponent, RootComponent)
     USceneComponent RootComponent;

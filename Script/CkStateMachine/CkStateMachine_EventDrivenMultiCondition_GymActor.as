@@ -17,6 +17,9 @@ class ACk_SmTest_EventDrivenMultiCondition_GymActor : AActor
 {
     default bReplicates = true;
     default bAlwaysRelevant = true;
+    // UE 5.7: CkEcs registers replicated subobjects via the registered-subobject list; without
+    // this flag the engine raises an error ensure that poisons the autotest verdict.
+    default bReplicateUsingRegisteredSubObjectList = true;
 
     // ========================================================================
     // COMPONENTS

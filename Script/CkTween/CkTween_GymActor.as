@@ -2,6 +2,7 @@ UCLASS(Blueprintable)
 class ACk_TweenTest_GymActor : AActor
 {
     default bReplicates = true;
+    default bReplicateUsingRegisteredSubObjectList = true;
     default bAlwaysRelevant = true;
     default bReplicateMovement = true;
 

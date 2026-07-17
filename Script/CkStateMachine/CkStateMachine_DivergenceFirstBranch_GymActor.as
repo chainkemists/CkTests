@@ -24,6 +24,9 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
 {
     default bReplicates = true;
     default bAlwaysRelevant = true;
+    // UE 5.7: subobjects (SM replication) register via the registered-subobject list; the
+    // legacy path raises an ensure headlessly, which poisons the AutoTest verdict.
+    default bReplicateUsingRegisteredSubObjectList = true;
 
     // ========================================================================
     // COMPONENTS
