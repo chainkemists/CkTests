@@ -9,18 +9,19 @@
 // site therefore plans from just outside the band when the agent is inside it
 // and its goal is not.
 //
-// Shape: a picket line paints its discs; we wait until a PROBE path from the
-// test entity detours (proving the discs are confirmed on the rebuilt mesh —
-// no timing guess), then spawn a walker AT THE SEAM between two pickets
-// (inside both discs) and MoveTo across. With the tier enabled, the walker's
-// installed path must exit the band and clear every picket; with it disabled
-// (red), the fresh plan goes straight through. Deterministic: fresh MoveTo
-// against pre-confirmed discs — no refresh timing involved.
+// Shape: a picket line paints its discs; we wait until every picket reports
+// Get_IsStationaryMarkupConfirmed (ground truth — painted AND the rebuilt mesh
+// prices the cost area) and a PROBE path from the test entity detours (belt on
+// top), then spawn a walker AT THE SEAM between two pickets (inside both
+// discs) and MoveTo across. With the tier enabled, the walker's installed path
+// must exit the band and clear every picket; with it disabled (red), the fresh
+// plan goes straight through. Deterministic: fresh MoveTo against
+// pre-confirmed discs — no refresh timing involved.
 //============================================================================
 
 class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 15.0f;
+    default _TimeoutSeconds = 20.0f;   // headroom for the ground-truth confirm wait under suite load
 
     private const float ProbeStartX = -500.0;
     private const float GoalX = 500.0;
@@ -39,6 +40,7 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
     private const int32 MaxAttempts = 20;
 
     private TArray<FVector> _PicketLocations;
+    private TArray<FCk_Handle_CrowdAgent> _Pickets;
     private FCk_Handle _WalkerEntity;
     private float _FloorZ = 0.0;
     private bool _MeshFound = false;
@@ -84,6 +86,22 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
             return;
         }
 
+        // GROUND TRUTH gate, before the attempts budget: every picket's markup must be painted
+        // AND confirmed on the rebuilt mesh. The probe detour alone is an unsound proxy in the
+        // shared suite world — leftover cost from an earlier test can detour the probe before
+        // this test's own pickets have even painted, and the walker then plans against a bare
+        // band. Confirm latency (paint delay + settle + async tile rebake) is unbounded under
+        // suite load, so this wait deliberately does not consume attempts; the harness timeout
+        // still bounds the test overall.
+        if (_ProbeDetoured == false)
+        {
+            for (auto Picket : _Pickets)
+            {
+                if (utils_crowd_agent::Get_IsStationaryMarkupConfirmed(Picket) == false)
+                { return; }   // discs not all priced into the mesh yet — keep waiting
+            }
+        }
+
         _Attempts += 1;
         if (_Attempts > MaxAttempts)
         {
@@ -92,9 +110,9 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
             return;
         }
 
-        // Stage 1: prove the discs are live on the rebuilt mesh — a probe path from the test
-        // entity (well outside the band) must detour. Only then does the walker scenario start,
-        // so the walker's fresh plan is guaranteed to run against confirmed discs.
+        // Stage 1: prove the discs are live on the rebuilt mesh — with the pickets confirmed
+        // above, a probe path from the test entity (well outside the band) must detour. Only
+        // then does the walker scenario start.
         if (_ProbeDetoured == false)
         {
             if (utils_nav::Get_PathStatus(SelfHandle) == ECk_Nav_PathStatus::Ready)
@@ -185,6 +203,7 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
             FCk_Handle Generic = Agent;
             utils_transform::Add(Generic, FTransform(FRotator::ZeroRotator, Loc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
             _PicketLocations.Add(Loc);
+            _Pickets.Add(Agent);
         }
     }
 
@@ -202,5 +221,5 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
 class ACk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut_Actor : ACk_AutoTestRunner
 {
     default _TestEntityScriptClass = UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut;
-    default _TimeoutSeconds = 15.0f;
+    default _TimeoutSeconds = 20.0f;   // headroom for the ground-truth confirm wait under suite load
 }
