@@ -4,7 +4,7 @@
 #include "CkPmg/CkPmg_Utils_TextShapes.h"
 #include "CkPmg/CkPmg_Fragment_TextShapes.h"
 #include "CkPmg/CkPmg_Fragment.h"
-#include "CkPmg/CkPmg_Utils.h"
+#include "CkPmg/CkPmg_Utils_DebugShapes.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkPmg_TextShape_AddComposesFragments,
