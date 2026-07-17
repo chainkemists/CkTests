@@ -19,7 +19,9 @@ class UCk_AutoTest_CkJolt_StaticBake_SimpleBox_RaycastMatchesChaos : UCk_AutoTes
     default _TimeoutSeconds = 8.0f;
 
     private AStaticMeshActor _CubeActor;
-    private FVector _CubeCenter = FVector(0.0, 0.0, 300.0);
+    // Unique parking spot (Y=9000) — shared-session discipline: content at the world origin outlives
+    // its test if cleanup is missed and corrupts unrelated tests' traces (bit RaySense once).
+    private FVector _CubeCenter = FVector(0.0, 9000.0, 300.0);
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -95,6 +97,11 @@ class UCk_AutoTest_CkJolt_StaticBake_SimpleBox_RaycastMatchesChaos : UCk_AutoTes
             Assert_True(JoltSideHit.Get_Position().Distance(ChaosSideHit.Location) <= 1.0,
                 f"Side-ray parity: Jolt {JoltSideHit.Get_Position()} vs Chaos {ChaosSideHit.Location}");
         }
+
+        // Shared-session cleanup: un-bake the Jolt body and destroy the Chaos-collidable cube, or it
+        // persists into every later test in the session (leaked here once and broke a RaySense trace).
+        utils_jolt_static_world::Request_RemoveActor(_CubeActor);
+        _CubeActor.DestroyActor();
 
         FinishSuccess();
     }
