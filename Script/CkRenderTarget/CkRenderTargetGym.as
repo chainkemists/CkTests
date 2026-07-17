@@ -58,6 +58,7 @@ class ACk_RenderTargetGym_WhiteboardActor : AActor
 {
     default bReplicateMovement = false;
     default bReplicates = true;
+    default bReplicateUsingRegisteredSubObjectList = true;
 
     UPROPERTY(DefaultComponent, RootComponent)
     USceneComponent SceneRoot;

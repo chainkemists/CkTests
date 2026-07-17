@@ -33,6 +33,7 @@ UCLASS(Blueprintable)
 class ACk_UnrealComponentGym_Driver : AActor
 {
 	default bReplicates = true;
+	default bReplicateUsingRegisteredSubObjectList = true;
 	default bAlwaysRelevant = true;
 
 	// The driver itself has no visible representation — the attached component
