@@ -29,7 +29,6 @@ class UCk_AutoTest_CkJolt_JoltCharacter_MoveRequestDrivesCapsule : UCk_AutoTest_
     private float _MoveSpeed = 200.0;
 
     private int _Phase = 0;   // 0 = setup/settle, 1 = let speed stabilise, 2 = measure window
-    private int _FramesWaited = 0;
     private float _StartX = 0.0;
     private float _Elapsed = 0.0;
 
@@ -69,17 +68,16 @@ class UCk_AutoTest_CkJolt_JoltCharacter_MoveRequestDrivesCapsule : UCk_AutoTest_
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
-
         // ---- Phase 0: let the character finish setup and settle, then request Move ------------
         if (_Phase == 0)
         {
-            if (_FramesWaited >= 30)
+            _Elapsed += float(InDeltaT.Get_Seconds());
+            if (_Elapsed >= 0.5)
             {
                 utils_jolt_character::Request_Move(_Char,
                     FCk_Request_JoltCharacter_Move(FVector(_MoveSpeed, 0.0, 0.0)));
                 _Phase = 1;
-                _FramesWaited = 0;
+                _Elapsed = 0.0;
             }
             return;
         }
@@ -87,7 +85,8 @@ class UCk_AutoTest_CkJolt_JoltCharacter_MoveRequestDrivesCapsule : UCk_AutoTest_
         // ---- Phase 1: let the horizontal velocity reach steady state --------------------------
         if (_Phase == 1)
         {
-            if (_FramesWaited >= 10)
+            _Elapsed += float(InDeltaT.Get_Seconds());
+            if (_Elapsed >= 0.167)
             {
                 _StartX = utils_transform::Get_EntityCurrentLocation(_CharTransform).X;
                 _Elapsed = 0.0;

@@ -31,7 +31,7 @@ class UCk_AutoTest_CkJolt_OverlapEntitiesExcludesBakedStaticWorld : UCk_AutoTest
     private FVector _CubeCenter = FVector(0.0, 60000.0, 300.0);   // baked cube, half-extent 100 (scale 2)
     private FVector _BoxCenter = FVector(100.0, 60000.0, 300.0);  // JoltBody box, half-extent 100 (overlaps cube)
 
-    private int _FramesWaited = 0;
+    private float _Elapsed = 0.0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -91,8 +91,8 @@ class UCk_AutoTest_CkJolt_OverlapEntitiesExcludesBakedStaticWorld : UCk_AutoTest
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
-        if (_FramesWaited < 12)
+        _Elapsed += float(InDeltaT.Get_Seconds());
+        if (_Elapsed < 0.2)
         { return; }
 
         // ---- Overlap over the shared region: only the LIVE JoltBody entity comes back ---------

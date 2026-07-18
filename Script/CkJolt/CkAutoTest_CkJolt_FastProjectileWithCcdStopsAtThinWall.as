@@ -34,8 +34,8 @@ class UCk_AutoTest_CkJolt_FastProjectileWithCcdStopsAtThinWall : UCk_AutoTest_Ba
     private float _LaunchSpeed = 12000.0;
 
     private int _Phase = 0;   // 0 = wait for setup then launch, 1 = watch for stop
-    private int _FramesWaited = 0;
-    private int _FramesSinceLaunch = 0;
+    private float _Elapsed = 0.0;
+    private float _ElapsedSinceLaunch = 0.0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -87,20 +87,20 @@ class UCk_AutoTest_CkJolt_FastProjectileWithCcdStopsAtThinWall : UCk_AutoTest_Ba
         if (_Phase == 0)
         {
             // Let the body finish setup (velocity requests are dropped until the body is added), then launch.
-            _FramesWaited++;
-            if (_FramesWaited >= 10)
+            _Elapsed += float(InDeltaT.Get_Seconds());
+            if (_Elapsed >= 0.167)
             {
                 utils_jolt_body::Request_SetLinearVelocity(_Projectile,
                     FCk_Request_JoltBody_SetLinearVelocity(FVector(_LaunchSpeed, 0.0, 0.0)));
                 _Phase = 1;
-                _FramesSinceLaunch = 0;
+                _ElapsedSinceLaunch = 0.0;
             }
             return;
         }
 
         // Phase 1 — give it time to reach and stop at the wall, then assert it did not tunnel.
-        _FramesSinceLaunch++;
-        if (_FramesSinceLaunch >= 40)
+        _ElapsedSinceLaunch += float(InDeltaT.Get_Seconds());
+        if (_ElapsedSinceLaunch >= 0.667)
         {
             auto FinalX = utils_transform::Get_EntityCurrentLocation(_ProjectileTransform).X;
 

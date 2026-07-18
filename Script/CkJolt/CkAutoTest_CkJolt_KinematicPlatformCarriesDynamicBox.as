@@ -31,14 +31,14 @@ class UCk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox : UCk_AutoTest_Base
     private float _PlatformTopZ = 25.0;   // platform center Z 0 + half-height 25
 
     private int _Phase = 0;   // 0 = settling, 1 = driving + holding
-    private int _FramesWaited = 0;
-    private int _StableFrames = 0;
+    private float _Elapsed = 0.0;
+    private float _StableTime = 0.0;
     private float _LastBoxZ = 0.0;
-    private int _DriveFrame = 0;
+    private float _DriveTime = 0.0;
 
     private float _MaxDriveX = 200.0;
-    private int _DriveFrames = 150;   // ~2.5s at 60fps — gentle so friction can hold the box
-    private int _HoldFrames = 60;
+    private float _DriveDuration = 2.5;   // gentle ramp so friction can hold the box
+    private float _HoldDuration = 1.0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -87,33 +87,33 @@ class UCk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
-
         if (_Phase == 0)
         {
+            _Elapsed += float(InDeltaT.Get_Seconds());
+
             // Wait for the box to settle onto the stationary platform.
             auto BoxZ = utils_transform::Get_EntityCurrentLocation(_BoxTransform).Z;
             if (Math::Abs(BoxZ - _LastBoxZ) < 0.1)
-            { _StableFrames++; }
+            { _StableTime += float(InDeltaT.Get_Seconds()); }
             else
-            { _StableFrames = 0; }
+            { _StableTime = 0.0; }
             _LastBoxZ = BoxZ;
 
-            if (_StableFrames >= 15)
+            if (_StableTime >= 0.25)
             { _Phase = 1; }
 
-            if (_FramesWaited > 600)
+            if (_Elapsed > 10.0)
             { FinishFailure(f"Box never settled on the platform (last Z={BoxZ})"); }
 
             return;
         }
 
         // Phase 1 — drive the platform in +X, then hold.
-        _DriveFrame++;
+        _DriveTime += float(InDeltaT.Get_Seconds());
 
         float TargetX = _MaxDriveX;
-        if (_DriveFrame < _DriveFrames)
-        { TargetX = float(_DriveFrame) / float(_DriveFrames) * _MaxDriveX; }
+        if (_DriveTime < _DriveDuration)
+        { TargetX = (_DriveTime / _DriveDuration) * _MaxDriveX; }
 
         auto PlatformLoc = FVector(TargetX, _PlatformY, 0.0);
         utils_transform::Request_SetLocation(_PlatformTransform, PlatformLoc);
@@ -122,7 +122,7 @@ class UCk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox : UCk_AutoTest_Base
         Assert_True(BoxLoc.Z > _PlatformTopZ,
             f"Box must stay on the platform, never below its top (Z={BoxLoc.Z}, top={_PlatformTopZ})");
 
-        if (_DriveFrame >= _DriveFrames + _HoldFrames)
+        if (_DriveTime >= _DriveDuration + _HoldDuration)
         {
             auto PlatformX = utils_transform::Get_EntityCurrentLocation(_PlatformTransform).X;
             Assert_True(Math::Abs(BoxLoc.X - PlatformX) <= 30.0,

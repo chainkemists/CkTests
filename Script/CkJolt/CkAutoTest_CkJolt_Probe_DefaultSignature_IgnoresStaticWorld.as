@@ -21,7 +21,7 @@ class UCk_AutoTest_CkJolt_Probe_DefaultSignature_IgnoresStaticWorld : UCk_AutoTe
     private AStaticMeshActor _FloorActor;
     private FVector _FloorCenter = FVector(0.0, 18000.0, 300.0);
     private int32 _BeginOverlapCount = 0;
-    private int32 _FramesWaited = 0;
+    private float _Elapsed = 0.0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -74,8 +74,8 @@ class UCk_AutoTest_CkJolt_Probe_DefaultSignature_IgnoresStaticWorld : UCk_AutoTe
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
-        if (_FramesWaited < 20)
+        _Elapsed += float(InDeltaT.Get_Seconds());
+        if (_Elapsed < 0.333)
         { return; }
 
         Assert_Equals_Int(_BeginOverlapCount, 0,

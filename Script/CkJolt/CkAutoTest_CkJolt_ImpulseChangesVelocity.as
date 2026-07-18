@@ -37,8 +37,8 @@ class UCk_AutoTest_CkJolt_ImpulseChangesVelocity : UCk_AutoTest_Base
     private float _RiseThreshold = 20.0;   // must clear this above rest to count as "left the floor"
 
     private int _Phase = 0;   // 0 = settling, 1 = launched (watch rise + return)
-    private int _FramesWaited = 0;
-    private int _StableFrames = 0;
+    private float _Elapsed = 0.0;
+    private float _StableTime = 0.0;
     private float _LastZ = 0.0;
     private float _RestZ = 0.0;
     private float _PeakZ = 0.0;
@@ -85,28 +85,28 @@ class UCk_AutoTest_CkJolt_ImpulseChangesVelocity : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
+        _Elapsed += float(InDeltaT.Get_Seconds());
         auto CurrentZ = utils_transform::Get_EntityCurrentLocation(_BoxTransform).Z;
 
         if (_Phase == 0)
         {
             if (Math::Abs(CurrentZ - _LastZ) < 0.1)
-            { _StableFrames++; }
+            { _StableTime += float(InDeltaT.Get_Seconds()); }
             else
-            { _StableFrames = 0; }
+            { _StableTime = 0.0; }
             _LastZ = CurrentZ;
 
-            if (_StableFrames >= 15)
+            if (_StableTime >= 0.25)
             {
                 _RestZ = CurrentZ;
                 _PeakZ = CurrentZ;
                 utils_jolt_body::Request_AddImpulse(_Body,
                     FCk_Request_JoltBody_AddImpulse(FVector(0.0, 0.0, _UpImpulseZ)));
                 _Phase = 1;
-                _FramesWaited = 0;
+                _Elapsed = 0.0;
             }
 
-            if (_FramesWaited > 900)
+            if (_Elapsed > 15.0)
             { FinishFailure(f"Box never settled before impulse (last Z={CurrentZ})"); }
 
             return;
@@ -129,7 +129,7 @@ class UCk_AutoTest_CkJolt_ImpulseChangesVelocity : UCk_AutoTest_Base
             return;
         }
 
-        if (_FramesWaited > 1200)
+        if (_Elapsed > 20.0)
         {
             FinishFailure(f"Box did not complete the impulse hop+return (peak Z={_PeakZ}, rest Z={_RestZ}, current Z={CurrentZ})");
         }

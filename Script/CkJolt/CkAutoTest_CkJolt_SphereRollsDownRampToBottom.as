@@ -29,8 +29,8 @@ class UCk_AutoTest_CkJolt_SphereRollsDownRampToBottom : UCk_AutoTest_Base
     // Ramp half-extent X = 300 pitched 20 deg -> horizontal reach 300*cos(20) ~= 282; lower edge at -282.
     private float _RampLowerEdgeX = -280.0;
 
-    private int _FramesWaited = 0;
-    private int _StableFrames = 0;
+    private float _Elapsed = 0.0;
+    private float _StableTime = 0.0;
     private FVector _LastPos = FVector::ZeroVector;
 
     UFUNCTION(BlueprintOverride)
@@ -87,17 +87,17 @@ class UCk_AutoTest_CkJolt_SphereRollsDownRampToBottom : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
+        _Elapsed += float(InDeltaT.Get_Seconds());
         auto CurrentPos = utils_transform::Get_EntityCurrentLocation(_SphereTransform);
 
         if (CurrentPos.Distance(_LastPos) < 0.5)
-        { _StableFrames++; }
+        { _StableTime += float(InDeltaT.Get_Seconds()); }
         else
-        { _StableFrames = 0; }
+        { _StableTime = 0.0; }
         _LastPos = CurrentPos;
 
-        // Settled: stable for 15 consecutive frames (resting against the back wall).
-        if (_StableFrames >= 15)
+        // Settled: stable for ~0.25s of continuous rest (15 frames at the original 60fps), resting against the back wall.
+        if (_StableTime >= 0.25)
         {
             Assert_True(CurrentPos.X < _SphereStartX - 300.0,
                 f"Sphere should progress well down-slope from its start (start X={_SphereStartX}, final X={CurrentPos.X})");
@@ -107,7 +107,7 @@ class UCk_AutoTest_CkJolt_SphereRollsDownRampToBottom : UCk_AutoTest_Base
             return;
         }
 
-        if (_FramesWaited > 1200)
-        { FinishFailure(f"Sphere never settled after {_FramesWaited} frames (X={CurrentPos.X}, Z={CurrentPos.Z})"); }
+        if (_Elapsed > 20.0)
+        { FinishFailure(f"Sphere never settled after {_Elapsed} seconds (X={CurrentPos.X}, Z={CurrentPos.Z})"); }
     }
 }

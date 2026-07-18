@@ -32,11 +32,16 @@ class UCk_AutoTest_CkJolt_TeleportMovesBodyAndResetsVelocity : UCk_AutoTest_Base
 
     // 0 = free fall (gain speed); 1 = reset-teleport landed, verify it stays;
     // 2 = lifted, falling again to gain speed; 3 = keep-teleport, verify it keeps moving.
+    //
+    // Fall detection reads the body's REAL simulation velocity (Get_LinearVelocity), never a
+    // per-tick position delta: tick deltas alias against the fixed-step writeback cadence, and
+    // InDeltaT can be 0.0 on real ticks (dividing by it throws script Divide-by-zero).
     private int _Phase = 0;
-    private int _FramesInPhase = 0;
-    private int _StableAtRest = 0;
-    private float _LastZ = 0.0;
+    private float _ElapsedInPhase = 0.0;
+    private float _StableTime = 0.0;
+    private bool _PhaseJustEntered = false;
     private float _KeepTeleportZ = 0.0;
+    private bool _KeepVelWitnessed = false;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -70,7 +75,6 @@ class UCk_AutoTest_CkJolt_TeleportMovesBodyAndResetsVelocity : UCk_AutoTest_Base
         BoxParams.Set_MotionType(ECk_MotionType::Dynamic);
         _Body = utils_jolt_body::Add(BoxEntity, BoxParams);
 
-        _LastZ = BoxStart.Z;
         utils_timer::Create_Tick(_SelfHandle, FCk_Delegate_Timer(this, n"OnTick"));
     }
 
@@ -86,22 +90,25 @@ class UCk_AutoTest_CkJolt_TeleportMovesBodyAndResetsVelocity : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        _FramesInPhase++;
+        _ElapsedInPhase += float(InDeltaT.Get_Seconds());
         auto CurrentZ = utils_transform::Get_EntityCurrentLocation(_BoxTransform).Z;
-        auto FrameDeltaZ = CurrentZ - _LastZ;
-        _LastZ = CurrentZ;
+        auto VelZ = utils_jolt_body::Get_LinearVelocity(_Body).Z;
 
         // ---- Phase 0: free fall, then reset-teleport onto the floor ---------------------------
         if (_Phase == 0)
         {
-            // Give it a moment of fall so it clearly carries downward velocity, then teleport.
-            if (_FramesInPhase >= 20)
+            // Wait until the SIMULATION says it is clearly falling, then teleport.
+            if (VelZ < -180.0)
             {
                 DoTeleport(_FloorCenter + FVector(0.0, 0.0, _RestZ), ECk_Jolt_TeleportVelocityPolicy::ResetVelocity);
                 _Phase = 1;
-                _FramesInPhase = 0;
-                _StableAtRest = 0;
+                _ElapsedInPhase = 0.0;
+                _StableTime = 0.0;
+                _PhaseJustEntered = true;
             }
+            else if (_ElapsedInPhase > 2.0)
+            { FinishFailure(f"Box never entered free fall (velZ={VelZ}, Z={CurrentZ})"); }
+
             return;
         }
 
@@ -109,27 +116,28 @@ class UCk_AutoTest_CkJolt_TeleportMovesBodyAndResetsVelocity : UCk_AutoTest_Base
         if (_Phase == 1)
         {
             // First poll after the teleport: must be at the target within tolerance.
-            if (_FramesInPhase == 1)
+            if (_PhaseJustEntered)
             {
                 Assert_True(Math::Abs(CurrentZ - _RestZ) <= 5.0,
                     f"ResetVelocity teleport should land the box exactly at the target (Z={CurrentZ}, target={_RestZ})");
+                _PhaseJustEntered = false;
             }
 
-            // Over the next polls it must not drift (no residual velocity carrying it).
+            // Over the next ~0.333s it must not drift (no residual velocity carrying it).
             if (Math::Abs(CurrentZ - _RestZ) <= 5.0)
-            { _StableAtRest++; }
+            { _StableTime += float(InDeltaT.Get_Seconds()); }
             else
-            { _StableAtRest = 0; }
+            { _StableTime = 0.0; }
 
-            if (_StableAtRest >= 20)
+            if (_StableTime >= 0.333)
             {
                 // Lift the box high with a clean reset so it re-enters free fall.
                 DoTeleport(_FloorCenter + FVector(0.0, 0.0, 800.0), ECk_Jolt_TeleportVelocityPolicy::ResetVelocity);
                 _Phase = 2;
-                _FramesInPhase = 0;
+                _ElapsedInPhase = 0.0;
             }
 
-            if (_FramesInPhase > 120)
+            if (_ElapsedInPhase > 2.0)
             { FinishFailure(f"Box did not hold the reset-teleport rest pose (Z={CurrentZ}, target={_RestZ})"); }
 
             return;
@@ -138,40 +146,49 @@ class UCk_AutoTest_CkJolt_TeleportMovesBodyAndResetsVelocity : UCk_AutoTest_Base
         // ---- Phase 2: fall again to build downward momentum -----------------------------------
         if (_Phase == 2)
         {
-            // Wait until it is clearly falling fast, then keep-teleport to a high mid-air pose.
-            if (_FramesInPhase >= 18 && FrameDeltaZ < -3.0)
+            // Wait until the SIMULATION says it is clearly falling fast, then keep-teleport mid-air.
+            if (VelZ < -180.0)
             {
                 _KeepTeleportZ = _FloorCenter.Z + 400.0;
                 DoTeleport(FVector(_FloorCenter.X, _FloorCenter.Y, _KeepTeleportZ),
                     ECk_Jolt_TeleportVelocityPolicy::KeepVelocity);
                 _Phase = 3;
-                _FramesInPhase = 0;
+                _ElapsedInPhase = 0.0;
+                _PhaseJustEntered = true;
                 return;
             }
 
-            if (_FramesInPhase > 120)
-            { FinishFailure(f"Box never regained fall speed before the keep-velocity teleport (dZ={FrameDeltaZ})"); }
+            if (_ElapsedInPhase > 2.0)
+            { FinishFailure(f"Box never regained fall speed before the keep-velocity teleport (velZ={VelZ}, Z={CurrentZ})"); }
 
             return;
         }
 
         // ---- Phase 3: keep-velocity teleport must arrive AND keep moving downward --------------
-        if (_FramesInPhase == 1)
+        if (_PhaseJustEntered)
         {
             Assert_True(Math::Abs(CurrentZ - _KeepTeleportZ) <= 30.0,
                 f"KeepVelocity teleport should place the box near the target (Z={CurrentZ}, target={_KeepTeleportZ})");
+            _PhaseJustEntered = false;
         }
 
-        // The preserved downward momentum must carry it clearly below the teleport target.
+        // Direct one-shot witness ~0.1s after the teleport: a KEPT body carries about -300uu/s here
+        // (-180 trigger + gravity accrual); a wrongly-reset one has only rebuilt about -120uu/s.
+        if (!_KeepVelWitnessed && _ElapsedInPhase >= 0.1)
+        {
+            _KeepVelWitnessed = true;
+            Assert_True(VelZ < -200.0,
+                f"KeepVelocity teleport must preserve downward velocity (velZ={VelZ} at 0.1s after arrival; a reset body would be ~-120)");
+        }
+
+        // Behavioral witness: the momentum carries it clearly below the teleport target.
         if (CurrentZ < _KeepTeleportZ - 30.0)
         {
-            Assert_True(CurrentZ < _KeepTeleportZ - 30.0,
-                f"KeepVelocity teleport must preserve momentum (fell to Z={CurrentZ} below target {_KeepTeleportZ})");
             FinishSuccess();
             return;
         }
 
-        if (_FramesInPhase > 120)
-        { FinishFailure(f"Box did not keep moving after KeepVelocity teleport (Z={CurrentZ}, target={_KeepTeleportZ})"); }
+        if (_ElapsedInPhase > 2.0)
+        { FinishFailure(f"Box did not keep moving after KeepVelocity teleport (Z={CurrentZ}, velZ={VelZ}, target={_KeepTeleportZ})"); }
     }
 }

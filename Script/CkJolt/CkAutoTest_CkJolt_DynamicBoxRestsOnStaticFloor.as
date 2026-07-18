@@ -29,8 +29,8 @@ class UCk_AutoTest_CkJolt_DynamicBoxRestsOnStaticFloor : UCk_AutoTest_Base
     private float _BoxHalfExtent = 50.0;
     private float _ExpectedRestZ = 75.0;  // FloorTopZ + BoxHalfExtent
 
-    private int _FramesWaited = 0;
-    private int _StableFrames = 0;
+    private float _Elapsed = 0.0;
+    private float _StableTime = 0.0;
     private float _LastZ = 0.0;
 
     UFUNCTION(BlueprintOverride)
@@ -74,19 +74,19 @@ class UCk_AutoTest_CkJolt_DynamicBoxRestsOnStaticFloor : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
+        _Elapsed += float(InDeltaT.Get_Seconds());
 
         auto CurrentZ = utils_transform::Get_EntityCurrentLocation(_BoxTransform).Z;
 
         if (Math::Abs(CurrentZ - _LastZ) < 0.1)
-        { _StableFrames++; }
+        { _StableTime += float(InDeltaT.Get_Seconds()); }
         else
-        { _StableFrames = 0; }
+        { _StableTime = 0.0; }
 
         _LastZ = CurrentZ;
 
-        // Settled: stable for 15 consecutive frames.
-        if (_StableFrames >= 15)
+        // Settled: stable for ~0.25s of continuous rest (15 frames at the original 60fps).
+        if (_StableTime >= 0.25)
         {
             Assert_True(CurrentZ > _FloorTopZ,
                 f"Box must rest ON the floor, not below it (Z={CurrentZ}, floorTop={_FloorTopZ})");
@@ -96,9 +96,9 @@ class UCk_AutoTest_CkJolt_DynamicBoxRestsOnStaticFloor : UCk_AutoTest_Base
             return;
         }
 
-        if (_FramesWaited > 900)
+        if (_Elapsed > 15.0)
         {
-            FinishFailure(f"Box never settled after {_FramesWaited} frames (last Z={CurrentZ})");
+            FinishFailure(f"Box never settled after {_Elapsed} seconds (last Z={CurrentZ})");
         }
     }
 }
