@@ -28,8 +28,8 @@ class UCk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates : UCk_AutoT
     private FVector _FloorCenter = FVector(0.0, 42000.0, 0.0);
 
     private int _Phase = 0;   // 0 = waiting to sleep, 1 = waiting to wake
-    private int _FramesWaited = 0;
-    private int _PollsSinceWake = 0;
+    private float _Elapsed = 0.0;
+    private float _ElapsedSinceWake = 0.0;
 
     private bool _AsleepSignalFired = false;
     private bool _AwakeSignalAfterWake = false;
@@ -93,7 +93,7 @@ class UCk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates : UCk_AutoT
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
+        _Elapsed += float(InDeltaT.Get_Seconds());
 
         if (_Phase == 0)
         {
@@ -106,19 +106,19 @@ class UCk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates : UCk_AutoT
 
                 utils_jolt_body::Request_SetSleepState(_Body,
                     FCk_Request_JoltBody_SetSleepState(ECk_Jolt_SleepState::Awake));
-                _PollsSinceWake = 0;
+                _ElapsedSinceWake = 0.0;
                 _Phase = 1;
                 return;
             }
 
-            if (_FramesWaited > 900)
-            { FinishFailure(f"Resting body never raised an Asleep sleep-state signal after {_FramesWaited} frames"); }
+            if (_Elapsed > 15.0)
+            { FinishFailure(f"Resting body never raised an Asleep sleep-state signal after {_Elapsed} seconds"); }
 
             return;
         }
 
         // Phase 1 — the wake request must raise an Awake signal and reactivate the body.
-        _PollsSinceWake++;
+        _ElapsedSinceWake += float(InDeltaT.Get_Seconds());
 
         if (_AwakeSignalAfterWake)
         {
@@ -128,7 +128,7 @@ class UCk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates : UCk_AutoT
             return;
         }
 
-        if (_PollsSinceWake > 15)
+        if (_ElapsedSinceWake > 0.25)
         { FinishFailure("Body did not raise an Awake sleep-state signal after Request_SetSleepState(Awake)"); }
     }
 }

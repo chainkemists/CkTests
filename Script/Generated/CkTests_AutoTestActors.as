@@ -1068,13 +1068,65 @@ class ACk_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration_Actor : ACk_AutoTe
     }
 }
 
-class ACk_AutoTest_CkJolt_BoxStackOfFiveSettlesAndStays_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_CkJolt_BoxStackOfThreeSettlesAndStays_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 25.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_BoxStackOfFiveSettlesAndStays");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_BoxStackOfThreeSettlesAndStays");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_ChaosParity_BoxStackSettles_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 25.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_ChaosParity_BoxStackSettles");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_ChaosParity_CcdProjectileStopsAtThinWall_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 12.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_ChaosParity_CcdProjectileStopsAtThinWall");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_ChaosParity_KinematicPlatformCarry_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 25.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_ChaosParity_KinematicPlatformCarry");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_ChaosParity_SphereRampRoll_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 25.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_ChaosParity_SphereRampRoll");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
