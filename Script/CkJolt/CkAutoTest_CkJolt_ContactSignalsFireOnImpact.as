@@ -29,8 +29,8 @@ class UCk_AutoTest_CkJolt_ContactSignalsFireOnImpact : UCk_AutoTest_Base
     private FVector _FloorCenter = FVector(0.0, 51000.0, 0.0);
 
     private int _Phase = 0;   // 0 = waiting for contact, 1 = settling then teleport away, 2 = waiting for removal
-    private int _FramesWaited = 0;
-    private int _FramesSinceContact = 0;
+    private float _Elapsed = 0.0;
+    private float _ElapsedSinceContact = 0.0;
     private bool _ContactAdded = false;
     private bool _ContactRemoved = false;
 
@@ -102,18 +102,18 @@ class UCk_AutoTest_CkJolt_ContactSignalsFireOnImpact : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
+        _Elapsed += float(InDeltaT.Get_Seconds());
 
         if (_Phase == 0)
         {
             if (_ContactAdded)
             {
                 _Phase = 1;
-                _FramesSinceContact = 0;
+                _ElapsedSinceContact = 0.0;
                 return;
             }
 
-            if (_FramesWaited > 600)
+            if (_Elapsed > 10.0)
             { FinishFailure("OnJoltBodyContactAdded never fired within the drop budget"); }
 
             return;
@@ -122,28 +122,28 @@ class UCk_AutoTest_CkJolt_ContactSignalsFireOnImpact : UCk_AutoTest_Base
         if (_Phase == 1)
         {
             // Let the box settle firmly on the floor, then teleport it far away to break contact.
-            _FramesSinceContact++;
-            if (_FramesSinceContact >= 40)
+            _ElapsedSinceContact += float(InDeltaT.Get_Seconds());
+            if (_ElapsedSinceContact >= 0.667)
             {
                 auto FarTarget = _FloorCenter + FVector(0.0, 0.0, 5000.0);
                 auto Request = FCk_Request_JoltBody_Teleport(FarTarget, FRotator::ZeroRotator);
                 Request.Set_VelocityPolicy(ECk_Jolt_TeleportVelocityPolicy::ResetVelocity);
                 utils_jolt_body::Request_Teleport(_Body, Request);
                 _Phase = 2;
-                _FramesSinceContact = 0;
+                _ElapsedSinceContact = 0.0;
             }
             return;
         }
 
         // Phase 2 — the broken contact must raise OnJoltBodyContactRemoved.
-        _FramesSinceContact++;
+        _ElapsedSinceContact += float(InDeltaT.Get_Seconds());
         if (_ContactRemoved)
         {
             FinishSuccess();
             return;
         }
 
-        if (_FramesSinceContact > 300)
+        if (_ElapsedSinceContact > 5.0)
         { FinishFailure("OnJoltBodyContactRemoved never fired after the box was teleported away"); }
     }
 }

@@ -32,7 +32,7 @@ class UCk_AutoTest_CkJolt_JoltCharacter_ReportsGroundStateTransitions : UCk_Auto
     // 2 = airborne after jump, waiting to land again.
     private int _Phase = 0;
     private bool _ConfirmedAirborne = false;
-    private int _FramesWaited = 0;
+    private float _Elapsed = 0.0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -102,7 +102,7 @@ class UCk_AutoTest_CkJolt_JoltCharacter_ReportsGroundStateTransitions : UCk_Auto
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
+        _Elapsed += float(InDeltaT.Get_Seconds());
 
         if (_Phase == 0)
         {
@@ -111,13 +111,13 @@ class UCk_AutoTest_CkJolt_JoltCharacter_ReportsGroundStateTransitions : UCk_Auto
                 GroundState == ECk_JoltCharacter_GroundState::NotSupported)
             { _ConfirmedAirborne = true; }
 
-            if (_FramesWaited > 600)
+            if (_Elapsed > 10.0)
             { FinishFailure(f"Character never landed from its airborne spawn (airborneConfirmed={_ConfirmedAirborne})"); }
 
             return;
         }
 
-        if (_FramesWaited > 1200)
+        if (_Elapsed > 20.0)
         { FinishFailure(f"Jump ground-state cycle did not complete (phase={_Phase})"); }
     }
 }
