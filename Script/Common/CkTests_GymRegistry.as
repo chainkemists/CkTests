@@ -40,9 +40,13 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("IskmRenderer Batched Stress (Moving 600)", ACk_IskmRendererBatchedGym_Stress_GameMode);
         CkGym_Cycler::RegisterProjectGym("Jolt Character",     ACk_JoltGym_Character_GameMode);
         CkGym_Cycler::RegisterProjectGym("Jolt Debug Draw Overlay", ACk_JoltGym_DebugDrawOverlay_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Jolt Doors",         ACk_JoltGym_Doors_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Jolt Hair",          ACk_JoltGym_Hair_GameMode);
         CkGym_Cycler::RegisterProjectGym("Jolt Projectile CCD", ACk_JoltGym_ProjectileCcd_GameMode);
         CkGym_Cycler::RegisterProjectGym("Jolt Ramp Roll",     ACk_JoltGym_RampRoll_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Jolt Ropes",         ACk_JoltGym_Ropes_GameMode);
         CkGym_Cycler::RegisterProjectGym("Jolt Sleep/Wake",    ACk_JoltGym_SleepWake_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Jolt Springs",       ACk_JoltGym_Springs_GameMode);
         CkGym_Cycler::RegisterProjectGym("Jolt Static Bake",   ACk_JoltGym_StaticBake_GameMode);
         CkGym_Cycler::RegisterProjectGym("Jolt Stress",        ACk_JoltGym_Stress_GameMode);
         CkGym_Cycler::RegisterProjectGym("Messaging",          ACk_MessagingGym_GameMode);
