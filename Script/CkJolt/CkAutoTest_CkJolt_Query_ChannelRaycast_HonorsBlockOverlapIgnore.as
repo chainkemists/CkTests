@@ -77,10 +77,13 @@ class UCk_AutoTest_CkJolt_Query_ChannelRaycast_HonorsBlockOverlapIgnore : UCk_Au
         Assert_True(OverlapOverlapHit.Get_HasHit(),
             "Overlap-semantics ray should HIT the overlap-only cube");
 
-        // Hit attribution names the source actor.
+        // Hit attribution names the source actor, resolved through the hit's entity.
         if (BlockingHit.Get_HasHit())
         {
-            Assert_True(BlockingHit.Get_SourceActorName() == _BlockingCube.GetName(),
+            auto HitEntity = BlockingHit.Get_Entity();
+            Assert_True(ck::IsValid(HitEntity), "Blocking hit should resolve to a live JoltStaticActor entity");
+            auto HitStaticActor = utils_jolt_static_actor::DoCastChecked(HitEntity);
+            Assert_True(utils_jolt_static_actor::Get_SourceActorName(HitStaticActor) == _BlockingCube.GetName(),
                 "Hit attribution should name the blocking cube's actor");
         }
 

@@ -150,6 +150,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
         }
 
         auto TargetEntity = utils_entity_lifetime::Request_CreateEntity(_PawnEntity);
+        TargetEntity.Set_DebugName(n"Camera.LockOnTarget");
         _LockOnTarget = utils_transform::Add(
             TargetEntity, FTransform(BeaconLocation), ECk_Replication::DoesNotReplicate);
     }

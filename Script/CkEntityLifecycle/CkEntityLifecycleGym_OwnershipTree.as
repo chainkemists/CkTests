@@ -55,6 +55,7 @@ class UCk_EntityScript_EntityLifecycleGym_OwnershipTree : UCk_GenericEntityScrip
 		auto TransientEntity = utils_entity_lifetime::Request_CreateEntity_TransientOwner();
 		Pass_CreateTransient = utils_handle::Get_IsValid(TransientEntity);
 		TransientString = utils_handle::Conv_HandleToString(TransientEntity);
+		utils_handle::Set_DebugName(TransientEntity, n"OwnershipTree.Transient");
 
 		// --- Query ownership ---
 

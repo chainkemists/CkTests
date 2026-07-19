@@ -95,6 +95,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(n"Character.Floor");
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, _Origin + InLocalOffset), ECk_Replication::DoesNotReplicate);
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
@@ -105,10 +106,11 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         utils_jolt_body::Add(Entity, Params);
     }
 
-    private FCk_Handle_JoltCharacter DoAddCharacter(FVector InLocalOffset, ECk_JoltCharacter_PushPolicy InPolicy)
+    private FCk_Handle_JoltCharacter DoAddCharacter(FVector InLocalOffset, ECk_JoltCharacter_PushPolicy InPolicy, FName InDebugName)
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(InDebugName);
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, _Origin + InLocalOffset), ECk_Replication::DoesNotReplicate);
 
         auto Params = FCk_Fragment_JoltCharacter_ParamsData(40.0, 60.0);
@@ -122,7 +124,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
     private void DoStartLane1()
     {
         DoAddFloor(FVector(-300.0, _Lane1Y, -25.0), FVector(500.0, 140.0, 25.0));
-        _Lane1Char = DoAddCharacter(FVector(-100.0, _Lane1Y, 125.0), ECk_JoltCharacter_PushPolicy::PushAndBePushed);
+        _Lane1Char = DoAddCharacter(FVector(-100.0, _Lane1Y, 125.0), ECk_JoltCharacter_PushPolicy::PushAndBePushed, n"Character.Lane1Char");
         utils_jolt_character::Request_Move(_Lane1Char, FCk_Request_JoltCharacter_Move(FVector(-_WalkSpeed, 0.0, 0.0)));
     }
 
@@ -160,6 +162,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         // so approach should be blocked/slide instead of climbed.
         auto RampEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         RampEntity.Request_OverrideToSelf();
+        RampEntity.Set_DebugName(n"Character.Ramp");
         utils_transform::Add(RampEntity, FTransform(FRotator(60.0, 0.0, 0.0), _Origin + FVector(-430.0, _Lane2Y, 150.0)),
             ECk_Replication::DoesNotReplicate);
         auto RampShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
@@ -169,7 +172,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         RampParams.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(RampEntity, RampParams);
 
-        _Lane2Char = DoAddCharacter(FVector(-150.0, _Lane2Y, 125.0), ECk_JoltCharacter_PushPolicy::Neither);
+        _Lane2Char = DoAddCharacter(FVector(-150.0, _Lane2Y, 125.0), ECk_JoltCharacter_PushPolicy::Neither, n"Character.Lane2Char");
         utils_jolt_character::Request_Move(_Lane2Char, FCk_Request_JoltCharacter_Move(FVector(-_WalkSpeed * 0.8, 0.0, 0.0)));
     }
 
@@ -199,7 +202,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         _Lane3Box = DoAddLane3Box(_Lane3BoxStart);
 
         _Lane3CharStart = _Origin + FVector(-150.0, _Lane3Y, 125.0);
-        _Lane3Char = DoAddCharacter(FVector(-150.0, _Lane3Y, 125.0), DoPolicyFromIndex(_Lane3PolicyIndex));
+        _Lane3Char = DoAddCharacter(FVector(-150.0, _Lane3Y, 125.0), DoPolicyFromIndex(_Lane3PolicyIndex), n"Character.Lane3Char");
         utils_jolt_character::Request_Move(_Lane3Char, FCk_Request_JoltCharacter_Move(FVector(-_WalkSpeed, 0.0, 0.0)));
     }
 
@@ -207,6 +210,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(n"Character.Lane3Box");
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, InWorldLocation), ECk_Replication::DoesNotReplicate);
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
@@ -293,7 +297,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         utils_entity_lifetime::Request_DestroyEntity(_Lane3Box);
 
         _Lane3Box = DoAddLane3Box(_Lane3BoxStart);
-        _Lane3Char = DoAddCharacter(_Lane3CharStart - _Origin, NewPolicy);
+        _Lane3Char = DoAddCharacter(_Lane3CharStart - _Origin, NewPolicy, n"Character.Lane3Char");
         utils_jolt_character::Request_Move(_Lane3Char, FCk_Request_JoltCharacter_Move(FVector(-_WalkSpeed, 0.0, 0.0)));
         _Lane3PhaseElapsed = 0.0;
 
