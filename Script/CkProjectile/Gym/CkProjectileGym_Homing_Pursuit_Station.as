@@ -41,6 +41,7 @@ class UCk_EntityScript_ProjectileGym_HomingPursuit_Station : UCk_GenericEntitySc
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
         auto Target = utils_entity_lifetime::Request_CreateEntity(InHandle);
+        Target.Set_DebugName(n"Homing_Pursuit.Target");
         _TargetTransform = utils_transform::Add(
             Target, FTransform(FRotator::ZeroRotator, Get_OrbitLocation()), ECk_Replication::DoesNotReplicate);
 
@@ -60,6 +61,7 @@ class UCk_EntityScript_ProjectileGym_HomingPursuit_Station : UCk_GenericEntitySc
     private void Spawn_Interceptor()
     {
         auto Projectile = utils_entity_lifetime::Request_CreateEntity(_StationHandle);
+        Projectile.Set_DebugName(n"Homing_Pursuit.Interceptor");
         _ProjectileEntity = Projectile;
 
         auto PadLocation = InitialTransform.Location + FVector(0.0, 0.0, 120.0);

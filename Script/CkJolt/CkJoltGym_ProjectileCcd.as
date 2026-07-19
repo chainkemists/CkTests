@@ -71,8 +71,8 @@ class ACk_JoltGym_ProjectileCcd_PlayerController : ACk_Gym_Base_PlayerController
         DoAddWall(_LaneOnY);
         DoAddWall(_LaneOffY);
 
-        _CcdOnBody = DoAddProjectile(_LaneOnY, ECk_MotionQuality::LinearCast);
-        _CcdOffBody = DoAddProjectile(_LaneOffY, ECk_MotionQuality::Discrete);
+        _CcdOnBody = DoAddProjectile(_LaneOnY, ECk_MotionQuality::LinearCast, n"ProjectileCcd.CcdOn");
+        _CcdOffBody = DoAddProjectile(_LaneOffY, ECk_MotionQuality::Discrete, n"ProjectileCcd.CcdOff");
 
         utils_timer::Create_Tick(ck::ToEntity(this), FCk_Delegate_Timer(this, n"OnTick"));
 
@@ -83,6 +83,7 @@ class ACk_JoltGym_ProjectileCcd_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(n"ProjectileCcd.Wall");
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, _Origin + FVector(_WallLocalX, InLaneY, 300.0)),
             ECk_Replication::DoesNotReplicate);
 
@@ -94,10 +95,11 @@ class ACk_JoltGym_ProjectileCcd_PlayerController : ACk_Gym_Base_PlayerController
         utils_jolt_body::Add(Entity, Params);
     }
 
-    private FCk_Handle_JoltBody DoAddProjectile(float InLaneY, ECk_MotionQuality InMotionQuality)
+    private FCk_Handle_JoltBody DoAddProjectile(float InLaneY, ECk_MotionQuality InMotionQuality, FName InDebugName)
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(InDebugName);
         utils_transform::Add(Entity,
             FTransform(FRotator::ZeroRotator, _Origin + FVector(_StartLocalX, InLaneY, 300.0)),
             ECk_Replication::DoesNotReplicate);

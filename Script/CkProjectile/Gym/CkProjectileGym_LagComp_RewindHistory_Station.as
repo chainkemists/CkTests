@@ -36,6 +36,7 @@ class UCk_EntityScript_ProjectileGym_LagCompRewindHistory_Station : UCk_GenericE
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
         auto Target = utils_entity_lifetime::Request_CreateEntity(InHandle);
+        Target.Set_DebugName(n"LagComp_RewindHistory.Target");
         _TargetTransform = utils_transform::Add(
             Target, FTransform(FRotator::ZeroRotator, Get_StrafeLocation()), ECk_Replication::DoesNotReplicate);
 

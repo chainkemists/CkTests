@@ -1,25 +1,28 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: OVERLAP ENTITIES EXCLUDES BAKED STATIC WORLD
+// CK JOLT — AUTOMATION TEST: OVERLAP ENTITIES INCLUDES BAKED STATIC ACTOR
 //============================================================================
 //
-// Get_OverlapEntities returns LIVE entities only — baked static-world bodies carry
-// UserData 0 (no entity) and must be dropped, NOT resolved to the registry's
-// transient root (the raw-id-0 regression this pins). Get_RayCastMulti, by contrast,
-// still hits both as query targets.
+// Get_OverlapEntities resolves EVERY hit body's user-data to a live entity —
+// baked static-world bodies carry their source actor's JoltStaticActor
+// attribution entity id, so a baked cube overlapping the query region comes
+// back as a real entity alongside dynamic JoltBodies (ECS-first: all Jolt
+// bodies have an entity). Only user-data 0 is dropped (never resolved to the
+// registry's transient root — the raw-id-0 regression this still pins).
 //
 //   1. Bake a static cube (Request_BakeActor) AND add a Kinematic JoltBody box
 //      overlapping the same region (both BlockAll so the Visibility query sees them).
-//   2. Get_OverlapEntities over the overlap region -> EXACTLY the JoltBody entity
-//      (baked body excluded).
+//   2. Get_OverlapEntities over the overlap region -> EXACTLY TWO entities:
+//      the JoltBody entity AND the cube's JoltStaticActor entity (which names
+//      its source actor).
 //   3. Get_RayCastMulti through both -> >= 2 hits, sorted near-to-far.
 //   4. Clean up: un-bake + destroy the actor (the ECS box entity auto-cleans).
 //
 // Placed at an isolated Y so it never touches other autotests' physics bodies.
 //============================================================================
 
-class UCk_AutoTest_CkJolt_OverlapEntitiesExcludesBakedStaticWorld : UCk_AutoTest_Base
+class UCk_AutoTest_CkJolt_OverlapEntitiesIncludesBakedStaticActor : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 12.0f;
 
@@ -95,7 +98,7 @@ class UCk_AutoTest_CkJolt_OverlapEntitiesExcludesBakedStaticWorld : UCk_AutoTest
         if (_Elapsed < 0.2)
         { return; }
 
-        // ---- Overlap over the shared region: only the LIVE JoltBody entity comes back ---------
+        // ---- Overlap over the shared region: BOTH entities come back --------------------------
         auto OverlapFilter = FCk_Jolt_QueryFilter();
         OverlapFilter.Set_Channel(ECollisionChannel::ECC_Visibility);
         OverlapFilter.Set_MinResponse(ECk_Jolt_PairInteraction::Overlap);
@@ -106,12 +109,28 @@ class UCk_AutoTest_CkJolt_OverlapEntitiesExcludesBakedStaticWorld : UCk_AutoTest
         auto Overlapped = utils_jolt_query::Get_OverlapEntities(
             FVector(50.0, _ParkY, 300.0), FRotator::ZeroRotator, QueryShape, OverlapFilter);
 
-        Assert_Equals_Int(Overlapped.Num(), 1,
-            f"Overlap should return exactly the JoltBody entity — the baked body has no entity and must be dropped (got {Overlapped.Num()})");
-        if (Overlapped.Num() >= 1)
+        Assert_Equals_Int(Overlapped.Num(), 2,
+            f"Overlap should return the JoltBody entity AND the baked cube's JoltStaticActor entity (got {Overlapped.Num()})");
+
+        auto FoundBoxEntity = false;
+        auto StaticSide = FCk_Handle();
+        for (int32 i = 0; i < Overlapped.Num(); i++)
         {
-            Assert_True(Overlapped[0] == _BoxEntity,
-                "The single overlap result must be the JoltBody entity, not the transient root");
+            if (Overlapped[i] == _BoxEntity)
+            { FoundBoxEntity = true; }
+            else
+            { StaticSide = Overlapped[i]; }
+        }
+
+        Assert_True(FoundBoxEntity, "Overlap results must include the live JoltBody entity");
+        Assert_True(ck::IsValid(StaticSide),
+            "Overlap results must include a second, valid entity for the baked cube (never the transient root)");
+
+        if (ck::IsValid(StaticSide))
+        {
+            auto StaticActor = utils_jolt_static_actor::DoCastChecked(StaticSide);
+            Assert_True(utils_jolt_static_actor::Get_SourceActorName(StaticActor) == _CubeActor.GetName(),
+                "The second overlap entity must be the baked cube's JoltStaticActor attribution entity");
         }
 
         // ---- Multi-raycast through both: both are query targets, sorted near-to-far -----------
