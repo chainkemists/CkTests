@@ -43,6 +43,8 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Jolt Projectile CCD", ACk_JoltGym_ProjectileCcd_GameMode);
         CkGym_Cycler::RegisterProjectGym("Jolt Ramp Roll",     ACk_JoltGym_RampRoll_GameMode);
         CkGym_Cycler::RegisterProjectGym("Jolt Sleep/Wake",    ACk_JoltGym_SleepWake_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Jolt Static Bake",   ACk_JoltGym_StaticBake_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Jolt Stress",        ACk_JoltGym_Stress_GameMode);
         CkGym_Cycler::RegisterProjectGym("Messaging",          ACk_MessagingGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Net Two-Player",     ACk_NetGym_TwoPlayer_GameMode);
         CkGym_Cycler::RegisterProjectGym("Object Pooling Stress", ACk_ObjectPoolingGym_GameMode);

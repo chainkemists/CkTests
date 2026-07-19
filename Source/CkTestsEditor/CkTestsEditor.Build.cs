@@ -21,6 +21,7 @@ public class CkTestsEditor : CkModuleRules
             "FunctionalTesting",
             "MessageLog",
             "SourceControl",
+            "Landscape",
 
             "CkCore",
             "CkEcs",

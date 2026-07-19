@@ -60,6 +60,7 @@ class ACk_JoltGym_SleepWake_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(n"SleepWake.Floor");
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, _Origin + FVector(-150.0, 0.0, -25.0)),
             ECk_Replication::DoesNotReplicate);
 
@@ -90,6 +91,7 @@ class ACk_JoltGym_SleepWake_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(n"SleepWake.Box");
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, _Origin + InLocalOffset),
             ECk_Replication::DoesNotReplicate);
 

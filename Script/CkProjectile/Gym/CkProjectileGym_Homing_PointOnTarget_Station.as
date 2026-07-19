@@ -42,6 +42,7 @@ class UCk_EntityScript_ProjectileGym_HomingPointOnTarget_Station : UCk_GenericEn
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
         _TargetEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
+        _TargetEntity.Set_DebugName(n"Homing_PointOnTarget.Target");
         _TargetTransform = utils_transform::Add(
             _TargetEntity,
             FTransform(FRotator::ZeroRotator, InitialTransform.Location + FVector(0.0, 0.0, 350.0)),
@@ -62,6 +63,7 @@ class UCk_EntityScript_ProjectileGym_HomingPointOnTarget_Station : UCk_GenericEn
     private void Spawn_Interceptor()
     {
         auto Projectile = utils_entity_lifetime::Request_CreateEntity(_StationHandle);
+        Projectile.Set_DebugName(n"Homing_PointOnTarget.Interceptor");
         _ProjectileEntity = Projectile;
 
         auto PadLocation = InitialTransform.Location + FVector(0.0, -400.0, 120.0);

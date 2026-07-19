@@ -54,7 +54,12 @@ class UCk_AutoTest_CkJolt_StaticBake_RemoveActor_RaysMiss : UCk_AutoTest_Base
 
         auto HitWhileBaked = utils_jolt_static_world::Get_RayCastStaticWorld(DownStart, DownEnd);
         Assert_True(HitWhileBaked.Get_HasHit(), "Down-ray should hit while the cube is baked");
-        Assert_True(HitWhileBaked.Get_SourceActorName() == _CubeActor.GetName(),
+
+        // Attribution now flows through the hit's entity: resolve it to the JoltStaticActor surface.
+        auto HitEntity = HitWhileBaked.Get_Entity();
+        Assert_True(ck::IsValid(HitEntity), "Static hit should resolve to a live JoltStaticActor entity");
+        auto HitStaticActor = utils_jolt_static_actor::DoCastChecked(HitEntity);
+        Assert_True(utils_jolt_static_actor::Get_SourceActorName(HitStaticActor) == _CubeActor.GetName(),
             "Hit attribution should name the source actor");
 
         utils_jolt_static_world::Request_RemoveActor(_CubeActor);

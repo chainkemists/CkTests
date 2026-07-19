@@ -58,6 +58,7 @@ class UCk_EntityScript_ProjectileGym_HomingProximityMiss_Station : UCk_GenericEn
     private void Launch_StraightProjectile()
     {
         auto Projectile = utils_entity_lifetime::Request_CreateEntity(_StationHandle);
+        Projectile.Set_DebugName(n"Homing_ProximityMiss.Projectile");
         _ProjectileEntity = Projectile;
 
         auto PadLocation = InitialTransform.Location + FVector(-500.0, 0.0, 200.0);

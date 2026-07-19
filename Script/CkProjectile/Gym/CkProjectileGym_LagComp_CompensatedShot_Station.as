@@ -45,6 +45,7 @@ class UCk_EntityScript_ProjectileGym_LagCompCompensatedShot_Station : UCk_Generi
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
         auto Target = utils_entity_lifetime::Request_CreateEntity(InHandle);
+        Target.Set_DebugName(n"LagComp_CompensatedShot.Target");
         _TargetTransform = utils_transform::Add(
             Target, FTransform(FRotator::ZeroRotator, Get_StrafeLocation()), ECk_Replication::DoesNotReplicate);
 
@@ -97,6 +98,7 @@ class UCk_EntityScript_ProjectileGym_LagCompCompensatedShot_Station : UCk_Generi
         auto AimDirection = (_LastAimPoint - ShooterPost).GetSafeNormal();
 
         auto Projectile = utils_entity_lifetime::Request_CreateEntity(_StationHandle);
+        Projectile.Set_DebugName(n"LagComp_CompensatedShot.Projectile");
         _ProjectileEntity = Projectile;
         utils_transform::Add(
             Projectile, FTransform(FRotator::ZeroRotator, ShooterPost), ECk_Replication::DoesNotReplicate);

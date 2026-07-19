@@ -79,6 +79,7 @@ class ACk_JoltGym_DebugDrawOverlay_PlayerController : ACk_Gym_Base_PlayerControl
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(n"DebugDrawOverlay.Floor");
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, _Origin + FVector(-250.0, 0.0, -25.0)),
             ECk_Replication::DoesNotReplicate);
 
@@ -94,6 +95,7 @@ class ACk_JoltGym_DebugDrawOverlay_PlayerController : ACk_Gym_Base_PlayerControl
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(n"DebugDrawOverlay.KinematicSlider");
         _KinematicTransform = utils_transform::Add(Entity,
             FTransform(FRotator::ZeroRotator, _Origin + FVector(_KinematicBaseLocalX, -200.0, 40.0)),
             ECk_Replication::DoesNotReplicate);
@@ -112,6 +114,7 @@ class ACk_JoltGym_DebugDrawOverlay_PlayerController : ACk_Gym_Base_PlayerControl
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(n"DebugDrawOverlay.Sleeper");
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, _Origin + FVector(-250.0, 0.0, 150.0)),
             ECk_Replication::DoesNotReplicate);
 
@@ -135,6 +138,7 @@ class ACk_JoltGym_DebugDrawOverlay_PlayerController : ACk_Gym_Base_PlayerControl
 
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(n"DebugDrawOverlay.Bouncer");
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, _BouncerStart), ECk_Replication::DoesNotReplicate);
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);

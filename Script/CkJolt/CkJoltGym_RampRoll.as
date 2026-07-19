@@ -73,19 +73,20 @@ class ACk_JoltGym_RampRoll_PlayerController : ACk_Gym_Base_PlayerController
     private void DoAddRampLane(float InLaneY, float InPitchDegrees)
     {
         // ---- Floor strip under the ramp + catch --------------------------------------------
-        DoAddStaticBox(FVector(-170.0, InLaneY, -25.0), FRotator::ZeroRotator, FVector(700.0, 140.0, 25.0));
+        DoAddStaticBox(FVector(-170.0, InLaneY, -25.0), FRotator::ZeroRotator, FVector(700.0, 140.0, 25.0), n"RampRoll.Floor");
 
         // ---- Ramp pitched InPitchDegrees (high end toward the anchor, low end further -X) ----
-        DoAddStaticBox(FVector(0.0, InLaneY, 150.0), FRotator(InPitchDegrees, 0.0, 0.0), FVector(300.0, 130.0, 15.0));
+        DoAddStaticBox(FVector(0.0, InLaneY, 150.0), FRotator(InPitchDegrees, 0.0, 0.0), FVector(300.0, 130.0, 15.0), n"RampRoll.Ramp");
 
         // ---- Catch wall at the low end ------------------------------------------------------
-        DoAddStaticBox(FVector(-640.0, InLaneY, 100.0), FRotator::ZeroRotator, FVector(10.0, 140.0, 100.0));
+        DoAddStaticBox(FVector(-640.0, InLaneY, 100.0), FRotator::ZeroRotator, FVector(10.0, 140.0, 100.0), n"RampRoll.CatchWall");
     }
 
-    private void DoAddStaticBox(FVector InLocalOffset, FRotator InRotation, FVector InHalfExtents)
+    private void DoAddStaticBox(FVector InLocalOffset, FRotator InRotation, FVector InHalfExtents, FName InDebugName)
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        Entity.Set_DebugName(InDebugName);
         utils_transform::Add(Entity, FTransform(InRotation, _Origin + InLocalOffset), ECk_Replication::DoesNotReplicate);
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
@@ -96,10 +97,11 @@ class ACk_JoltGym_RampRoll_PlayerController : ACk_Gym_Base_PlayerController
         utils_jolt_body::Add(Entity, Params);
     }
 
-    private void DoReleaseSphereAtLane(float InLaneY)
+    private void DoReleaseSphereAtLane(float InLaneY, int32 InLaneIndex)
     {
         auto Entity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         Entity.Request_OverrideToSelf();
+        utils_handle::Set_DebugName(Entity, f"RampRoll.Sphere{InLaneIndex}");
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, _Origin + FVector(250.0, InLaneY, 330.0)),
             ECk_Replication::DoesNotReplicate);
 
@@ -123,14 +125,14 @@ class ACk_JoltGym_RampRoll_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (InLaneIndex >= 0 && InLaneIndex < _LaneCount)
         {
-            DoReleaseSphereAtLane(DoLaneY(InLaneIndex));
+            DoReleaseSphereAtLane(DoLaneY(InLaneIndex), InLaneIndex);
             ck::Trace(f"JoltRampRollGym: released sphere on lane {InLaneIndex}");
             return;
         }
 
         for (int32 i = 0; i < _LaneCount; i++)
         {
-            DoReleaseSphereAtLane(DoLaneY(i));
+            DoReleaseSphereAtLane(DoLaneY(i), i);
         }
         ck::Trace("JoltRampRollGym: released a sphere on every lane");
     }
