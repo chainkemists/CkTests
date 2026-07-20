@@ -1,0 +1,87 @@
+// Language=angelscript
+
+//============================================================================
+// CK COMPASS — AUTOMATION TEST: Hide policy excludes out-of-arc POIs
+//============================================================================
+//
+// Arc 90 (half-arc 45). A Hide-policy POI at bearing +60 must be ABSENT
+// from the entries; a Hide-policy control POI at +10 (inside the arc) must
+// be present.
+//
+// Isolated Y band: 57600.
+//============================================================================
+
+class UCk_AutoTest_Compass_HidePolicy_Excludes : UCk_AutoTest_Base
+{
+    default _TimeoutSeconds = 6.0f;
+
+    private FCk_Handle _SelfHandle;
+    private FCk_Handle_Compass _Compass;
+    private FCk_Handle_Poi _Outside;
+    private FCk_Handle_Poi _Inside;
+    private FVector _Base = FVector(0.0, 57600.0, 0.0);
+
+    UFUNCTION(BlueprintOverride)
+    void DoBeginPlay(FCk_Handle InHandle)
+    {
+        auto _CkPerfScope = ck::ScopedStat();
+        _SelfHandle = InHandle;
+
+        auto Observer = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
+        Observer.Request_OverrideToSelf();
+        utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
+            ECk_Replication::DoesNotReplicate);
+
+        auto Params = FCk_Fragment_Compass_ParamsData(90.0);
+        Params.Set_HeadingSource(ECk_Compass_HeadingSource::Manual);
+        _Compass = utils_compass::Add(Observer, Params);
+        _Compass.Request_SetManualHeading(0.0);
+
+        // +60 degrees, Hide -> must not appear.
+        _Outside = DoSpawnPoi(FVector(500.0, 866.0, 0.0), n"Poi.Category.TestHidden");
+        // +10 degrees, Hide but inside the arc -> must appear.
+        _Inside = DoSpawnPoi(FVector(984.8, 173.6, 0.0), n"Poi.Category.TestVisible");
+
+        WaitOneFrame(n"OnSettled_Requests");
+    }
+
+    private FCk_Handle_Poi DoSpawnPoi(FVector InOffset, FName InCategoryName)
+    {
+        auto Owner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
+        Owner.Request_OverrideToSelf();
+        utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, _Base + InOffset),
+            ECk_Replication::DoesNotReplicate);
+
+        auto Params = FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName));
+        Params.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::Hide);
+        return utils_poi::Add(Owner, Params);
+    }
+
+    UFUNCTION()
+    private void OnSettled_Requests(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+        WaitOneFrame(n"OnSettled_Projection");
+    }
+
+    UFUNCTION()
+    private void OnSettled_Projection(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        auto Entries = utils_compass::Get_Entries(_Compass);
+        auto FoundOutside = false;
+        auto FoundInside = false;
+        for (auto Entry : Entries)
+        {
+            if (Entry.Get_Poi() == _Outside) { FoundOutside = true; }
+            if (Entry.Get_Poi() == _Inside) { FoundInside = true; }
+        }
+
+        Assert_True(!FoundOutside, "Hide-policy POI outside the arc must be excluded from entries");
+        Assert_True(FoundInside, "Hide-policy POI inside the arc must be present");
+        Assert_Equals_Int(Entries.Num(), 1, "Exactly one POI should survive the Hide policy");
+
+        FinishSuccess();
+    }
+}
