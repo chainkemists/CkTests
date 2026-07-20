@@ -4,10 +4,10 @@
 // CK MINIMAP — AUTOMATION TEST: Add creates child; multi-instance per owner
 //============================================================================
 //
-// Minimap uses child-entity composition so one owner can host a HUD minimap
-// AND a fullscreen world map simultaneously. Two Adds with different
-// projection modes return distinct valid handles and ForEach_Minimap reports
-// both (returned array + per-minimap delegate).
+// Create composes minimaps as record-connected CHILD entities, so one owner
+// can host a HUD minimap AND a fullscreen world map simultaneously. Two Creates
+// with different projection modes return distinct valid handles and
+// ForEach_Minimap reports both (returned array + per-minimap delegate).
 //
 // Isolated Y band: 53000.
 //============================================================================
@@ -19,7 +19,7 @@ class UCk_AutoTest_Minimap_Add_CreatesChild : UCk_AutoTest_Base
     private int32 _ForEachCount = 0;
 
     UFUNCTION()
-    private void OnEachMinimap(FCk_Handle InHandle)
+    private void OnEachMinimap(FCk_Handle InHandle, FInstancedStruct InOptionalPayload)
     {
         _ForEachCount++;
     }
@@ -35,21 +35,24 @@ class UCk_AutoTest_Minimap_Add_CreatesChild : UCk_AutoTest_Base
         utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, FVector(0.0, 53000.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
 
-        auto HudMinimap = utils_minimap::Add(Owner, FCk_Fragment_Minimap_ParamsData(5000.0));
+        auto HudMinimap = utils_minimap::Create(Owner, FCk_Fragment_Minimap_ParamsData(5000.0));
 
         auto WorldMapParams = FCk_Fragment_Minimap_ParamsData(2000.0);
         WorldMapParams.Set_ProjectionMode(ECk_Minimap_ProjectionMode::FixedBounds);
         WorldMapParams.Set_FixedBounds(FCk_Minimap_WorldBounds(
             FVector2D(0.0, 53000.0), FVector2D(2000.0, 2000.0)));
-        auto WorldMap = utils_minimap::Add(Owner, WorldMapParams);
+        auto WorldMap = utils_minimap::Create(Owner, WorldMapParams);
 
-        Assert_True(ck::IsValid(HudMinimap), "First Add should return a valid FCk_Handle_Minimap");
-        Assert_True(ck::IsValid(WorldMap), "Second Add on the SAME owner should return a valid handle");
+        Assert_True(ck::IsValid(HudMinimap), "First Create should return a valid FCk_Handle_Minimap");
+        Assert_True(ck::IsValid(WorldMap), "Second Create on the SAME owner should return a valid handle");
         Assert_True(!(HudMinimap == WorldMap), "The two minimaps must be distinct entities");
 
-        auto Minimaps = utils_minimap::ForEach_Minimap(Owner, FInstancedStruct(),
-            FCk_Lambda_InHandle(this, n"OnEachMinimap"));
+        // Array path: an UNBOUND delegate makes ForEach_Minimap return the minimaps
+        auto Minimaps = utils_minimap::ForEach_Minimap(Owner, FInstancedStruct(), FCk_Lambda_InHandle());
         Assert_Equals_Int(Minimaps.Num(), 2, "ForEach_Minimap's returned array should report both minimaps");
+
+        // Delegate path: a BOUND delegate fires once per minimap (and returns an empty array)
+        utils_minimap::ForEach_Minimap(Owner, FInstancedStruct(), FCk_Lambda_InHandle(this, n"OnEachMinimap"));
         Assert_Equals_Int(_ForEachCount, 2, "ForEach_Minimap should invoke the delegate once per minimap");
 
         FinishSuccess();

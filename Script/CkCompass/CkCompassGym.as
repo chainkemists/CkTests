@@ -114,8 +114,8 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint"));
         WaypointParams.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::ClampToEdge);
         WaypointParams.Set_Priority(10);
-        utils_poi::Create(FTransform(FRotator::ZeroRotator, RingCenter + FVector(-2500.0, 0.0, 0.0)),
-            WaypointParams);
+        utils_poi::Create(ck::TransientEntity(), FTransform(FRotator::ZeroRotator, RingCenter + FVector(-2500.0, 0.0, 0.0)),
+            WaypointParams, FCk_Time());
 
         utils_pmg_basic_shapes::DrawFilledSphere(RingCenter + FVector(-2500.0, 0.0, 60.0), 55.0, 12, 12,
             FLinearColor(0.7, 0.35, 0.95), true, 2.0, ECk_Plane_Axis::XY, -1.0);
@@ -128,7 +128,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Params = FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName));
         Params.Set_Priority(InPriority);
-        utils_poi::Create(FTransform(FRotator::ZeroRotator, InLocation), Params);
+        utils_poi::Create(ck::TransientEntity(), FTransform(FRotator::ZeroRotator, InLocation), Params, FCk_Time());
 
         // Persistent in-world marker so the POI is visible where it stands (color = category)
         utils_pmg_basic_shapes::DrawFilledSphere(InLocation + FVector(0.0, 0.0, 60.0), 40.0, 12, 12,
@@ -213,7 +213,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Ping"));
         Params.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::ClampToEdge);
         Params.Set_Priority(20);
-        utils_poi::Create(FTransform(FRotator::ZeroRotator, Ahead), Params, 5.0);
+        utils_poi::Create(ck::TransientEntity(), FTransform(FRotator::ZeroRotator, Ahead), Params, FCk_Time(5.0));
 
         // Marker matches the ping's 5s TTL
         utils_pmg_basic_shapes::DrawFilledSphere(Ahead + FVector(0.0, 0.0, 60.0), 45.0, 12, 12,
@@ -266,9 +266,9 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
                     float(Row - 12) * 200.0,
                     float(Col - 10) * 200.0,
                     0.0);
-                auto Poi = utils_poi::Create(
+                auto Poi = utils_poi::Create(ck::TransientEntity(),
                     FTransform(FRotator::ZeroRotator, FieldCenter + Offset),
-                    FCk_Fragment_Poi_ParamsData(Category));
+                    FCk_Fragment_Poi_ParamsData(Category), FCk_Time());
                 _StressPois.Add(FCk_Handle(Poi));
             }
         }

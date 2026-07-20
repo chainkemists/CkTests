@@ -45,8 +45,8 @@ class UCk_AutoTest_Poi_Create_StandaloneAtLocation : UCk_AutoTest_Base
         // Standalone POI 1000uu along +X from the observer.
         auto Category = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark");
         auto Params = FCk_Fragment_Poi_ParamsData(Category);
-        _Created = utils_poi::Create(
-            FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, 0.0, 0.0)), Params);
+        _Created = utils_poi::Create(ck::TransientEntity(),
+            FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, 0.0, 0.0)), Params, FCk_Time());
 
         Assert_True(ck::IsValid(_Created),
             "utils_poi::Create should return a valid FCk_Handle_Poi");

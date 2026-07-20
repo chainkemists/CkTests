@@ -32,8 +32,8 @@ class UCk_AutoTest_Poi_Create_TtlExpires : UCk_AutoTest_Base
         auto Category = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Ping");
         auto Params = FCk_Fragment_Poi_ParamsData(Category);
 
-        _Ping = utils_poi::Create(
-            FTransform(FRotator::ZeroRotator, FVector(0.0, 52600.0, 0.0)), Params, 0.4);
+        _Ping = utils_poi::Create(ck::TransientEntity(),
+            FTransform(FRotator::ZeroRotator, FVector(0.0, 52600.0, 0.0)), Params, FCk_Time(0.4));
 
         _WasValidInitially = ck::IsValid(_Ping);
         Assert_True(_WasValidInitially,
