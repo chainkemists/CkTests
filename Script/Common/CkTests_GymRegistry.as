@@ -21,6 +21,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Attribute Integer",  ACk_IntegerAttributeGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Audio Simple",       ACk_AudioGym_Simple_GameMode);
         CkGym_Cycler::RegisterProjectGym("Camera",             ACk_CameraGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Compass",            ACk_CompassGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Foundation",   ACk_CrowdGym_Foundation_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Pathfinding",  ACk_CrowdGym_Pathfinding_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Pathing",      ACk_CrowdGym_Pathing_GameMode);
@@ -50,6 +51,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Jolt Static Bake",   ACk_JoltGym_StaticBake_GameMode);
         CkGym_Cycler::RegisterProjectGym("Jolt Stress",        ACk_JoltGym_Stress_GameMode);
         CkGym_Cycler::RegisterProjectGym("Messaging",          ACk_MessagingGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Minimap",            ACk_MinimapGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Net Two-Player",     ACk_NetGym_TwoPlayer_GameMode);
         CkGym_Cycler::RegisterProjectGym("Object Pooling Stress", ACk_ObjectPoolingGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Particles",          ACk_ParticlesGym_GameMode);
