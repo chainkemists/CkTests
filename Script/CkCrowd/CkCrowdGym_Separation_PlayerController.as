@@ -179,18 +179,18 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         // not sub-entities of the station — Clear destroys each agent explicitly.
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        auto Agent = utils_crowd_agent::Add(TransientOwner, Params);
 
-        FCk_Handle GenericAgent = Agent;
+        FCk_Handle GenericAgent = TransientOwner;
         GenericAgent.Set_DebugName(FName(f"SeparationAgent_{_Agents.Num()}"));
-        _Agents.Add(Agent);
 
         // Yaw the spawn rotation toward the target so the forward cone starts already pointing
         // the right way (vs the default zero rotator which has the cone facing world +X).
         const auto ToTarget = (TargetLoc - SpawnLoc).GetSafeNormal();
         const auto SpawnRot = ToTarget.Rotation();
         const auto SpawnXform = FTransform(SpawnRot, SpawnLoc, FVector::OneVector);
-        utils_transform::Add(GenericAgent, SpawnXform, ECk_Replication::DoesNotReplicate);
+        auto AgentTransform = utils_transform::Add(GenericAgent, SpawnXform, ECk_Replication::DoesNotReplicate);
+        auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
+        _Agents.Add(Agent);
 
         auto VelocityParams = FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector);
         utils_velocity::Add(GenericAgent, VelocityParams, ECk_Replication::DoesNotReplicate);

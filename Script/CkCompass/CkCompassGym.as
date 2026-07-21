@@ -114,7 +114,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint"));
         WaypointParams.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::ClampToEdge);
         WaypointParams.Set_Priority(10);
-        utils_poi::Create(FTransform(FRotator::ZeroRotator, RingCenter + FVector(-2500.0, 0.0, 0.0)),
+        DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, RingCenter + FVector(-2500.0, 0.0, 0.0)),
             WaypointParams);
 
         utils_pmg_basic_shapes::DrawFilledSphere(RingCenter + FVector(-2500.0, 0.0, 60.0), 55.0, 12, 12,
@@ -128,11 +128,30 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Params = FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName));
         Params.Set_Priority(InPriority);
-        utils_poi::Create(FTransform(FRotator::ZeroRotator, InLocation), Params);
+        DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, InLocation), Params);
 
         // Persistent in-world marker so the POI is visible where it stands (color = category)
         utils_pmg_basic_shapes::DrawFilledSphere(InLocation + FVector(0.0, 0.0, 60.0), 40.0, 12, 12,
             DoGet_CategoryColor(InCategoryName), true, 2.0, ECk_Plane_Axis::XY, -1.0);
+    }
+
+    // The standalone-POI pattern (utils_poi::Create was removed): own entity under the world's
+    // TransientEntity + Transform at the target location + Poi composed directly on it. Destroying
+    // the returned handle's entity removes the whole POI.
+    private FCk_Handle_Poi DoCreateStandalonePoi(FTransform InTransform, FCk_Fragment_Poi_ParamsData InParams)
+    {
+        FCk_Handle TransientOwner = ck::TransientEntity();
+        auto Host = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
+        utils_transform::Add(Host, InTransform, ECk_Replication::DoesNotReplicate);
+        return utils_poi::Add(Host, InParams);
+    }
+
+    UFUNCTION()
+    private void OnPingTtlDone(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        auto Host = utils_entity_lifetime::Get_LifetimeOwner(InTimer);
+        if (ck::IsValid(Host))
+        { utils_entity_lifetime::Request_DestroyEntity(Host); }
     }
 
     private FLinearColor DoGet_CategoryColor(FName InCategoryName)
@@ -213,7 +232,14 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Ping"));
         Params.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::ClampToEdge);
         Params.Set_Priority(20);
-        utils_poi::Create(FTransform(FRotator::ZeroRotator, Ahead), Params, 5.0);
+        auto Ping = DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, Ahead), Params);
+
+        // 5s TTL: a StopOnDone timer on the ping's host entity destroys it when done
+        FCk_Handle PingHost = Ping;
+        auto TtlParams = FCk_Fragment_Timer_ParamsData(FCk_Time(5.0f));
+        TtlParams.Set_Behavior(ECk_Timer_Behavior::StopOnDone).Set_StartingState(ECk_Timer_State::Running);
+        auto TtlTimer = utils_timer::Add(PingHost, TtlParams);
+        TtlTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnPingTtlDone"));
 
         // Marker matches the ping's 5s TTL
         utils_pmg_basic_shapes::DrawFilledSphere(Ahead + FVector(0.0, 0.0, 60.0), 45.0, 12, 12,
@@ -266,7 +292,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
                     float(Row - 12) * 200.0,
                     float(Col - 10) * 200.0,
                     0.0);
-                auto Poi = utils_poi::Create(
+                auto Poi = DoCreateStandalonePoi(
                     FTransform(FRotator::ZeroRotator, FieldCenter + Offset),
                     FCk_Fragment_Poi_ParamsData(Category));
                 _StressPois.Add(FCk_Handle(Poi));

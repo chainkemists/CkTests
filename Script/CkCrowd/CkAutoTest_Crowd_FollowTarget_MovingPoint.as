@@ -55,8 +55,10 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        utils_transform::Add(LocalHandle,
-            FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
+        // This entity IS the chasing agent — spawned facing its target.
+        LocalHandle.Set_DebugName(n"FollowTarget_Chaser");
+        auto AgentTransform = utils_transform::Add(LocalHandle,
+            FTransform((TargetStart - AgentSpawn).Rotation(), AgentSpawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
@@ -67,21 +69,15 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, TargetStart, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        // The chasing agent.
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        _Agent = utils_crowd_agent::Add(LocalHandle, Params);
-        FCk_Handle AgentGeneric = _Agent;
-        AgentGeneric.Set_DebugName(n"FollowTarget_Chaser");
-        utils_transform::Add(AgentGeneric,
-            FTransform((TargetStart - AgentSpawn).Rotation(), AgentSpawn, FVector::OneVector),
-            ECk_Replication::DoesNotReplicate);
-        utils_velocity::Add(AgentGeneric,
+        _Agent = utils_crowd_agent::Add(AgentTransform, Params);
+        utils_velocity::Add(LocalHandle,
             FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(AgentGeneric,
+        utils_acceleration::Add(LocalHandle,
             FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
-        utils_euler_integrator::Request_Start(AgentGeneric);
+        utils_euler_integrator::Request_Start(LocalHandle);
 
         // ONE follow request for the whole test — everything after this is the
         // follow keeping itself alive.

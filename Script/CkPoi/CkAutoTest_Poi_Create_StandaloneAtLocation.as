@@ -1,17 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: Create standalone POI at a world location
+// CK POI — AUTOMATION TEST: standalone POI at a world location
 //============================================================================
 //
-// utils_poi::Create spawns a standalone transform-only host + POI at the
-// given world transform. Position is verified observationally: a compass on
-// an observer at the band origin (Manual heading 0) must project the created
-// POI at bearing ~0 / distance ~1000 (it was placed 1000uu along +X).
+// The standalone-POI pattern (utils_poi::Create was removed): create an
+// entity, add a Transform at the target world location, then Add the POI
+// directly onto it. Position is verified observationally: a compass on an
+// observer at the band origin (Manual heading 0) must project the POI at
+// bearing ~0 / distance ~1000 (it was placed 1000uu along +X).
 //
-// The created host is owned by the world's TransientEntity (not this runner),
-// so the POI is registered via Track_ForCleanup. NOTE: cleanup destroys the
-// tracked handle's entity; the transform-only host it hangs under is inert.
+// NOTE: the class keeps its historical Create name (the AutoTests level has a
+// placed runner actor referencing it by class path — renaming requires an
+// editor level edit).
 //
 // Isolated Y band: 52400.
 //============================================================================
@@ -42,15 +43,19 @@ class UCk_AutoTest_Poi_Create_StandaloneAtLocation : UCk_AutoTest_Base
         _Compass = utils_compass::Add(Observer, CompassParams);
         _Compass.Request_SetManualHeading(0.0);
 
-        // Standalone POI 1000uu along +X from the observer.
+        // Standalone POI 1000uu along +X from the observer: own entity + Transform + Poi.
         auto Category = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark");
         auto Params = FCk_Fragment_Poi_ParamsData(Category);
-        _Created = utils_poi::Create(
-            FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, 0.0, 0.0)), Params);
+
+        auto PoiHost = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
+        PoiHost.Request_OverrideToSelf();
+        utils_transform::Add(PoiHost,
+            FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, 0.0, 0.0)),
+            ECk_Replication::DoesNotReplicate);
+        _Created = utils_poi::Add(PoiHost, Params);
 
         Assert_True(ck::IsValid(_Created),
-            "utils_poi::Create should return a valid FCk_Handle_Poi");
-        Track_ForCleanup(FCk_Handle(_Created));
+            "utils_poi::Add should return a valid FCk_Handle_Poi");
 
         WaitOneFrame(n"OnSettled_Requests");
     }

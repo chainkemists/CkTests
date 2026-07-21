@@ -296,14 +296,14 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         // ClearAll destroys them explicitly, so no owner-cascade is needed.
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        auto Agent = utils_crowd_agent::Add(TransientOwner, Params);
-        _Agents.Add(Agent);
 
-        FCk_Handle GenericAgent = Agent;
+        FCk_Handle GenericAgent = TransientOwner;
         GenericAgent.Set_DebugName(InDebugName);
 
         const auto SpawnXform = FTransform(FRotator::ZeroRotator, InSpawn, FVector::OneVector);
-        utils_transform::Add(GenericAgent, SpawnXform, ECk_Replication::DoesNotReplicate);
+        auto AgentTransform = utils_transform::Add(GenericAgent, SpawnXform, ECk_Replication::DoesNotReplicate);
+        auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
+        _Agents.Add(Agent);
 
         auto VelocityParams = FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector);
         utils_velocity::Add(GenericAgent, VelocityParams, ECk_Replication::DoesNotReplicate);

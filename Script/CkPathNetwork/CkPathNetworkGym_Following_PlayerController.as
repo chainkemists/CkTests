@@ -221,15 +221,15 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
     {
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        auto Agent = utils_crowd_agent::Add(TransientOwner, Params);
-        _Agents.Add(Agent);
 
-        FCk_Handle GenericAgent = Agent;
+        FCk_Handle GenericAgent = TransientOwner;
         GenericAgent.Set_DebugName(InDebugName);
 
-        utils_transform::Add(GenericAgent,
+        auto AgentTransform = utils_transform::Add(GenericAgent,
             FTransform(FRotator::ZeroRotator, InSpawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
+        auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
+        _Agents.Add(Agent);
         utils_velocity::Add(GenericAgent,
             FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
