@@ -340,14 +340,14 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
     private FCk_Handle_CrowdAgent SpawnAgent(FName InDebugName)
     {
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        auto Agent = utils_crowd_agent::Add(_Self, Params);
 
-        FCk_Handle GenericAgent = Agent;
+        FCk_Handle GenericAgent = _Self;
         GenericAgent.Set_DebugName(InDebugName);
 
-        utils_transform::Add(GenericAgent,
+        auto AgentTransform = utils_transform::Add(GenericAgent,
             FTransform(FRotator::ZeroRotator, Spawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
+        auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
         utils_velocity::Add(GenericAgent,
             FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);

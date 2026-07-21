@@ -243,14 +243,14 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
     private FCk_Handle_CrowdAgent SpawnAgent(FCk_Handle& InOwner, FVector InSpawn, FName InDebugName)
     {
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        auto Agent = utils_crowd_agent::Add(InOwner, Params);
 
-        FCk_Handle Generic = Agent;
+        FCk_Handle Generic = InOwner;
         Generic.Set_DebugName(InDebugName);
 
         const auto Rot = (Goal - InSpawn).Rotation();
-        utils_transform::Add(Generic, FTransform(Rot, InSpawn, FVector::OneVector),
+        auto AgentTransform = utils_transform::Add(Generic, FTransform(Rot, InSpawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
+        auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
         utils_velocity::Add(Generic,
             FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);

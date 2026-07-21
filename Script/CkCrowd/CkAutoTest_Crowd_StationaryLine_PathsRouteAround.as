@@ -148,9 +148,9 @@ class UCk_AutoTest_Crowd_StationaryLine_PathsRouteAround : UCk_AutoTest_Base
         {
             const auto Loc = FVector(0.0, float(i) * PicketSpacingUu - HalfSpan, _FloorZ + 100.0);
             auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-            auto Agent = utils_crowd_agent::Add(InOwner, Params);
-            FCk_Handle Generic = Agent;
-            utils_transform::Add(Generic, FTransform(FRotator::ZeroRotator, Loc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+            FCk_Handle Generic = InOwner;
+            auto AgentTransform = utils_transform::Add(Generic, FTransform(FRotator::ZeroRotator, Loc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+            auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
             _PicketLocations.Add(Loc);
         }
     }

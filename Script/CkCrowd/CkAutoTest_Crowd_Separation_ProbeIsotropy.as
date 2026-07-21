@@ -186,12 +186,11 @@ class UCk_AutoTest_Crowd_Separation_ProbeIsotropy : UCk_AutoTest_Base
         Params.Set_SeparationRadius(SeparationRadius);
         Params.Set_SeparationLookahead(SeparationLookahead);
 
-        auto Agent = utils_crowd_agent::Add(InOwner, Params);
-
-        FCk_Handle Generic = Agent;
-        utils_transform::Add(Generic,
+        FCk_Handle Generic = InOwner;
+        auto AgentTransform = utils_transform::Add(Generic,
             FTransform(FRotator::ZeroRotator, InSpawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
+        auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
         utils_velocity::Add(Generic,
             FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);

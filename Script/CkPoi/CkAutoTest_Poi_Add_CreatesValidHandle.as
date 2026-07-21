@@ -33,9 +33,8 @@ class UCk_AutoTest_Poi_Add_CreatesValidHandle : UCk_AutoTest_Base
 
         Assert_True(ck::IsValid(Poi),
             "utils_poi::Add should return a valid FCk_Handle_Poi");
-        auto FoundByCategory = utils_poi::TryGet_Poi_ByCategory(Owner, Category);
-        Assert_True(ck::IsValid(FoundByCategory),
-            "After Add, TryGet_Poi_ByCategory on the owning entity should find the Poi");
+        Assert_True(utils_poi::Has(Owner),
+            "After Add, Has on the entity should report true");
         Assert_True(utils_poi::Get_Category(Poi) == Category,
             "Get_Category should round-trip the category tag passed at Add");
         Assert_True(utils_poi::Get_EnableDisable(Poi) == ECk_EnableDisable::Enable,

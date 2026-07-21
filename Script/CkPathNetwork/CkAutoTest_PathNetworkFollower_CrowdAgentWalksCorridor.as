@@ -40,7 +40,7 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        utils_transform::Add(LocalHandle,
+        auto AgentTransform = utils_transform::Add(LocalHandle,
             FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
@@ -56,28 +56,23 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
 
         _Network = utils_path_network::Add(LocalHandle, FCk_Fragment_PathNetwork_ParamsData(Ribbons));
 
-        // Full crowd-agent composition (mirrors the CkCrowd separation tests).
+        // Full crowd-agent composition — this entity IS the agent (mirrors the CkCrowd tests).
         auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        _Agent = utils_crowd_agent::Add(LocalHandle, AgentParams);
-
-        FCk_Handle AgentEntity = _Agent;
-        utils_transform::Add(AgentEntity,
-            FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
-            ECk_Replication::DoesNotReplicate);
-        utils_velocity::Add(AgentEntity,
+        _Agent = utils_crowd_agent::Add(AgentTransform, AgentParams);
+        utils_velocity::Add(LocalHandle,
             FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(AgentEntity,
+        utils_acceleration::Add(LocalHandle,
             FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
-        utils_euler_integrator::Request_Start(AgentEntity);
+        utils_euler_integrator::Request_Start(LocalHandle);
 
         // Opt the AGENT into network following — this is the activation switch the
         // MoveTo branch keys on.
         auto FollowerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
         FollowerParams.Set_Network(_Network);
         FollowerParams.Set_CorridorWaypointSpacing(100.0);
-        _Follower = utils_path_network_follower::Add(AgentEntity, FollowerParams);
+        _Follower = utils_path_network_follower::Add(LocalHandle, FollowerParams);
 
         utils_path_network_follower::BindTo_OnRouteReady(_Follower,
             FCk_Delegate_PathNetworkFollower_OnRouteReady(this, n"OnRouteReady"),

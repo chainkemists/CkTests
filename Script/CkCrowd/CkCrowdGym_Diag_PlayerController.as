@@ -299,13 +299,8 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         // not sub-entities of the station — DestroyAgents destroys each explicitly at cycle end.
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        auto Agent = utils_crowd_agent::Add(TransientOwner, Params);
 
-        // Stamp the agent's identity colour so every visualisation (DrawBody capsule + cone,
-        // breadcrumb path, planned-path overlay, debugger swatch) coordinates on the same color.
-        utils_crowd_agent::Set_DebugColor(Agent, InColor);
-
-        FCk_Handle Generic = Agent;
+        FCk_Handle Generic = TransientOwner;
         Generic.Set_DebugName(InDebugName);
         // Project the look direction to planar — crowd agents are yaw-only (capsule walks on the
         // navmesh). Without this, overlap-wave agents whose spawn Z ≠ target Z spawn pitched
@@ -313,7 +308,12 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         const auto LookDir   = TargetLoc - SpawnLoc;
         const auto PlanarDir = FVector(LookDir.X, LookDir.Y, 0.0);
         const auto Rot       = PlanarDir.GetSafeNormal().Rotation();
-        utils_transform::Add(Generic, FTransform(Rot, SpawnLoc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+        auto AgentTransform = utils_transform::Add(Generic, FTransform(Rot, SpawnLoc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+        auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
+
+        // Stamp the agent's identity colour so every visualisation (DrawBody capsule + cone,
+        // breadcrumb path, planned-path overlay, debugger swatch) coordinates on the same color.
+        utils_crowd_agent::Set_DebugColor(Agent, InColor);
         utils_velocity::Add(Generic, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(Generic, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(Generic);

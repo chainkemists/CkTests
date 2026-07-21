@@ -33,7 +33,7 @@ class UCk_AutoTest_Fog_Revealer_AutoReveals : UCk_AutoTest_Base
         auto Params = FCk_Fragment_FogOfWar_ParamsData(FCk_Minimap_WorldBounds(
             FVector2D(0.0, 54000.0), FVector2D(2000.0, 2000.0)));
         Params.Set_RevealRadius(400.0);
-        Params.Set_UpdateInterval(0.0);
+        Params.Set_UpdateInterval(FCk_Time(0.0));
         _Fog = utils_fog_of_war::Add(MapEntity, Params);
 
         _Revealer = utils_entity_lifetime::Request_CreateEntity(LocalHandle);

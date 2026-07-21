@@ -163,7 +163,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint"));
         WaypointParams.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::ClampToEdge);
         WaypointParams.Set_Priority(10);
-        utils_poi::Create(FTransform(FRotator::ZeroRotator, Center + FVector(-6000.0, 0.0, 0.0)),
+        DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, Center + FVector(-6000.0, 0.0, 0.0)),
             WaypointParams);
 
         utils_pmg_basic_shapes::DrawFilledSphere(Center + FVector(-6000.0, 0.0, 60.0), 55.0, 12, 12,
@@ -260,11 +260,22 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Params = FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName));
         Params.Set_Priority(InPriority);
-        utils_poi::Create(FTransform(FRotator::ZeroRotator, InLocation), Params);
+        DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, InLocation), Params);
 
         // Persistent in-world marker so the POI is visible where it stands (color = category)
         utils_pmg_basic_shapes::DrawFilledSphere(InLocation + FVector(0.0, 0.0, 60.0), 40.0, 12, 12,
             DoGet_CategoryColor(InCategoryName), true, 2.0, ECk_Plane_Axis::XY, -1.0);
+    }
+
+    // The standalone-POI pattern (utils_poi::Create was removed): own entity under the world's
+    // TransientEntity + Transform at the target location + Poi composed directly on it. Destroying
+    // the returned handle's entity removes the whole POI.
+    private FCk_Handle_Poi DoCreateStandalonePoi(FTransform InTransform, FCk_Fragment_Poi_ParamsData InParams)
+    {
+        FCk_Handle TransientOwner = ck::TransientEntity();
+        auto Host = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
+        utils_transform::Add(Host, InTransform, ECk_Replication::DoesNotReplicate);
+        return utils_poi::Add(Host, InParams);
     }
 
     private FLinearColor DoGet_CategoryColor(FName InCategoryName)
@@ -418,7 +429,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
                     float(Row - 12) * 200.0,
                     float(Col - 10) * 200.0,
                     0.0);
-                auto Poi = utils_poi::Create(
+                auto Poi = DoCreateStandalonePoi(
                     FTransform(FRotator::ZeroRotator, FieldCenter + Offset),
                     FCk_Fragment_Poi_ParamsData(Category));
                 _StressPois.Add(FCk_Handle(Poi));

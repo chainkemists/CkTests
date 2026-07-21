@@ -43,26 +43,23 @@ class UCk_AutoTest_Crowd_MoveTo_RetargetTakesFreshPath : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        utils_transform::Add(LocalHandle,
-            FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
+        // This entity IS the agent.
+        LocalHandle.Set_DebugName(n"RetargetFreshPath_Agent");
+        auto AgentTransform = utils_transform::Add(LocalHandle,
+            FTransform(FRotator::ZeroRotator, Spawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
 
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        _Agent = utils_crowd_agent::Add(LocalHandle, Params);
-
-        FCk_Handle Generic = _Agent;
-        Generic.Set_DebugName(n"RetargetFreshPath_Agent");
-        utils_transform::Add(Generic, FTransform(FRotator::ZeroRotator, Spawn, FVector::OneVector),
-            ECk_Replication::DoesNotReplicate);
-        utils_velocity::Add(Generic,
+        _Agent = utils_crowd_agent::Add(AgentTransform, Params);
+        utils_velocity::Add(LocalHandle,
             FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(Generic,
+        utils_acceleration::Add(LocalHandle,
             FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
-        utils_euler_integrator::Request_Start(Generic);
+        utils_euler_integrator::Request_Start(LocalHandle);
 
         utils_crowd_agent::BindTo_OnGoalReached(_Agent,
             FCk_Delegate_CrowdAgent_OnGoalReached(this, n"OnGoalReached"),
