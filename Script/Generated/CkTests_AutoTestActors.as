@@ -4722,6 +4722,54 @@ class ACk_AutoTest_Poi_StateTags_AddRemove_FiresSignals_Actor : ACk_AutoTestRunn
     }
 }
 
+class ACk_AutoTest_PoiDisplayDefinition_AddDirectAttach_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PoiDisplayDefinition_AddDirectAttach");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_PoiDisplayDefinition_CreateMultipleOnOneOwner_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PoiDisplayDefinition_CreateMultipleOnOneOwner");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_PoiDisplayDefinition_CreateUnderHiddenParentSeedsVote_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PoiDisplayDefinition_CreateUnderHiddenParentSeedsVote");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_PoiDisplayDefinition_ParentHiddenCascades_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PoiDisplayDefinition_ParentHiddenCascades");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;
