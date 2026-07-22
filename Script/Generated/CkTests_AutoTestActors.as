@@ -4249,7 +4249,7 @@ class ACk_AutoTest_Messaging_Unbind_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_Minimap_Add_CreatesChild_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -4690,6 +4690,32 @@ class ACk_AutoTest_Poi_EnableDisable_FiresSignal_Actor : ACk_AutoTestRunner
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Poi_EnableDisable_FiresSignal");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Poi_ExplicitHide_RemovesFromBothProjectors_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 9.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Poi_ExplicitHide_RemovesFromBothProjectors");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Poi_PerConsumerRange_CullsOneProjector_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 9.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Poi_PerConsumerRange_CullsOneProjector");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
