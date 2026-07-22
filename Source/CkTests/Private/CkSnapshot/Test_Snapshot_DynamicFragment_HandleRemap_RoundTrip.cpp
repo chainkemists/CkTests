@@ -236,6 +236,45 @@ bool
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_V3_DynamicFragment_HydrateInvalidInputFailsClosed_Test,
+    "Ck.Snapshot.V3.DynamicFragment.HydrateInvalidInputFailsClosed",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_V3_DynamicFragment_HydrateInvalidInputFailsClosed_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
+    if (NOT TestNotNull(TEXT("G2 dynamic-fragments handler is registered"), Handler))
+    { return false; }
+
+    AddExpectedError(
+        TEXT("Dynamic Fragment hydration received the wrong wrapper type"),
+        EAutomationExpectedErrorFlags::Contains, 0);
+    auto InvalidEntity = FCk_Handle{};
+    const auto WrongWrapperResult = Handler->HydrationApply(
+        InvalidEntity, FInstancedStruct::Make(FCk_Test_DynFrag_PureData{}), {});
+    TestEqual(TEXT("wrong wrapper is rejected before entity access"),
+        static_cast<int32>(WrongWrapperResult), static_cast<int32>(ECk_Persistence_ApplyResult::Rejected));
+
+    auto SaveData = FCk_SaveData_DynamicFragments{};
+    SaveData.Set_Fragments({FInstancedStruct::Make(FCk_Test_DynFrag_PureData{})});
+
+    AddExpectedError(
+        TEXT("Dynamic Fragment hydration received an invalid entity"),
+        EAutomationExpectedErrorFlags::Contains, 0);
+    const auto InvalidEntityResult = Handler->HydrationApply(
+        InvalidEntity, FInstancedStruct::Make(SaveData), {});
+    TestEqual(TEXT("invalid entity is rejected before fragment storage mutation"),
+        static_cast<int32>(InvalidEntityResult), static_cast<int32>(ECk_Persistence_ApplyResult::Rejected));
+
+    return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
 // --------------------------------------------------------------------------------------------------------------------

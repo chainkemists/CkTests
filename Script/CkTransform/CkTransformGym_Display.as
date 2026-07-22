@@ -5,7 +5,7 @@ struct FTransformGym_DisplaySpawnParams
 	FTransform InitialTransform = FTransform::Identity;
 
 	UPROPERTY()
-	ACk_TransformGym_Cube LinkedCube;
+	TWeakObjectPtr<ACk_TransformGym_Cube> LinkedCube;
 }
 
 //============================================================================
@@ -21,7 +21,7 @@ class UCk_EntityScript_TransformGym_Display : UCk_GenericEntityScript_UE
 	FTransform InitialTransform = FTransform::Identity;
 
 	UPROPERTY(ExposeOnSpawn)
-	ACk_TransformGym_Cube LinkedCube;
+	TWeakObjectPtr<ACk_TransformGym_Cube> LinkedCube;
 
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -38,12 +38,13 @@ class UCk_EntityScript_TransformGym_Display : UCk_GenericEntityScript_UE
 	UFUNCTION()
 	private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
-		if (ck::IsValid(LinkedCube) == false)
+		auto Cube = LinkedCube.Get();
+		if (ck::IsValid(Cube) == false)
 		{ return; }
 
 		auto SelfEntity = ck::ToEntity(this);
-		auto CubeEntity = LinkedCube.EcsEntity;
-		auto Behavior = LinkedCube.Behavior;
+		auto CubeEntity = Cube.EcsEntity;
+		auto Behavior = Cube.Behavior;
 
 		auto TitleText = f"{Behavior}" + " (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
 		auto DisplayText = "";
@@ -52,7 +53,7 @@ class UCk_EntityScript_TransformGym_Display : UCk_GenericEntityScript_UE
 		if (Behavior == ECk_TransformGym_Behavior::SetLocation)
 		{
 			auto CurrentLocation = utils_transform::Get_EntityCurrentLocation(CubeEntity);
-			DisplayText = f"Corner: {LinkedCube.CurrentCorner + 1} / 4\n\n";
+			DisplayText = f"Corner: {Cube.CurrentCorner + 1} / 4\n\n";
 			DisplayText = f"{DisplayText}Location X: {CurrentLocation.X}\n";
 			DisplayText = f"{DisplayText}Location Y: {CurrentLocation.Y}\n";
 			DisplayText = f"{DisplayText}Location Z: {CurrentLocation.Z}";
@@ -64,10 +65,10 @@ class UCk_EntityScript_TransformGym_Display : UCk_GenericEntityScript_UE
 		else if (Behavior == ECk_TransformGym_Behavior::SetRotation)
 		{
 			auto CurrentRotation = utils_transform::Get_EntityCurrentRotation(CubeEntity);
-			auto Rotations = LinkedCube.Get_TargetRotations();
-			auto TargetYaw = Rotations[LinkedCube.CurrentRotationStep].Yaw;
+			auto Rotations = Cube.Get_TargetRotations();
+			auto TargetYaw = Rotations[Cube.CurrentRotationStep].Yaw;
 
-			DisplayText = f"Step: {LinkedCube.CurrentRotationStep + 1} / 4 (Target Yaw: {TargetYaw})\n\n";
+			DisplayText = f"Step: {Cube.CurrentRotationStep + 1} / 4 (Target Yaw: {TargetYaw})\n\n";
 			DisplayText = f"{DisplayText}Pitch: {CurrentRotation.Pitch}\n";
 			DisplayText = f"{DisplayText}Yaw:   {CurrentRotation.Yaw}\n";
 			DisplayText = f"{DisplayText}Roll:  {CurrentRotation.Roll}";
@@ -83,8 +84,8 @@ class UCk_EntityScript_TransformGym_Display : UCk_GenericEntityScript_UE
 			DisplayText = f"Scale X: {ActualScale.X}\n";
 			DisplayText = f"{DisplayText}Scale Y: {ActualScale.Y}\n";
 			DisplayText = f"{DisplayText}Scale Z: {ActualScale.Z}\n\n";
-			DisplayText = f"{DisplayText}Min: {LinkedCube.MinScale}  Max: {LinkedCube.MaxScale}\n";
-			DisplayText = f"{DisplayText}Speed: {LinkedCube.ScaleSpeed}";
+			DisplayText = f"{DisplayText}Min: {Cube.MinScale}  Max: {Cube.MaxScale}\n";
+			DisplayText = f"{DisplayText}Speed: {Cube.ScaleSpeed}";
 
 			Instructions = "Entity pulses uniformly between 0.5x and 2.0x scale.\n"
 				+ "Uses Request_SetScale() with a sine-wave oscillation.\n"
@@ -94,11 +95,11 @@ class UCk_EntityScript_TransformGym_Display : UCk_GenericEntityScript_UE
 		{
 			auto CurrentLocation = utils_transform::Get_EntityCurrentLocation(CubeEntity);
 
-			DisplayText = f"Elapsed: {LinkedCube.ElapsedTime}\n\n";
+			DisplayText = f"Elapsed: {Cube.ElapsedTime}\n\n";
 			DisplayText = f"{DisplayText}Location X: {CurrentLocation.X}\n";
 			DisplayText = f"{DisplayText}Location Y: {CurrentLocation.Y}\n";
 			DisplayText = f"{DisplayText}Location Z: {CurrentLocation.Z}\n\n";
-			DisplayText = f"{DisplayText}Radius: {LinkedCube.CircleRadius}  Speed: {LinkedCube.CircleSpeed}";
+			DisplayText = f"{DisplayText}Radius: {Cube.CircleRadius}  Speed: {Cube.CircleSpeed}";
 
 			Instructions = "Entity traces a circular path using relative offsets.\n"
 				+ "Uses Request_AddLocationOffset() each frame.\n"
@@ -108,7 +109,7 @@ class UCk_EntityScript_TransformGym_Display : UCk_GenericEntityScript_UE
 		{
 			auto CurrentRotation = utils_transform::Get_EntityCurrentRotation(CubeEntity);
 
-			DisplayText = f"Speed: {LinkedCube.RotationSpeed} deg/s\n\n";
+			DisplayText = f"Speed: {Cube.RotationSpeed} deg/s\n\n";
 			DisplayText = f"{DisplayText}Pitch: {CurrentRotation.Pitch}\n";
 			DisplayText = f"{DisplayText}Yaw:   {CurrentRotation.Yaw}\n";
 			DisplayText = f"{DisplayText}Roll:  {CurrentRotation.Roll}";
@@ -124,7 +125,7 @@ class UCk_EntityScript_TransformGym_Display : UCk_GenericEntityScript_UE
 			auto RightVec = utils_transform::Get_EntityRightVector(CubeEntity);
 			auto UpVec = utils_transform::Get_EntityUpVector(CubeEntity);
 
-			DisplayText = f"Rotation Speed: {LinkedCube.RotationSpeed} deg/s\n\n";
+			DisplayText = f"Rotation Speed: {Cube.RotationSpeed} deg/s\n\n";
 			DisplayText = f"{DisplayText}Current Yaw: {CurrentRotation.Yaw}\n\n";
 			DisplayText = f"{DisplayText}Forward: ({ForwardVec.X}, {ForwardVec.Y}, {ForwardVec.Z})\n";
 			DisplayText = f"{DisplayText}Right:   ({RightVec.X}, {RightVec.Y}, {RightVec.Z})\n";

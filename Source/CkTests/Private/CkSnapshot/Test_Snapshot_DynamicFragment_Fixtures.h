@@ -149,3 +149,30 @@ struct FCk_Test_HydrationPayloadWithObject
     UPROPERTY()
     TObjectPtr<UObject> Object;
 };
+
+USTRUCT()
+struct FCk_Test_UntracedSafeObjectRefs
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    TWeakObjectPtr<UObject> WeakObject;
+
+    UPROPERTY()
+    TSoftObjectPtr<UObject> SoftObject;
+};
+
+USTRUCT()
+struct FCk_Test_UntracedNestedStrongObject
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    TArray<FCk_Test_HydrationPayloadWithObject> Values;
+};
+
+USTRUCT()
+struct FCk_Test_UntracedOpaqueEmpty
+{
+    GENERATED_BODY()
+};

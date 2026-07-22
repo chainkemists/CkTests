@@ -5,7 +5,7 @@ struct FSceneNodeGym_DisplaySpawnParams
 	FTransform InitialTransform = FTransform::Identity;
 
 	UPROPERTY()
-	ACk_SceneNodeGym_Cube LinkedCube;
+	TWeakObjectPtr<ACk_SceneNodeGym_Cube> LinkedCube;
 }
 
 //============================================================================
@@ -21,7 +21,7 @@ class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 	FTransform InitialTransform = FTransform::Identity;
 
 	UPROPERTY(ExposeOnSpawn)
-	ACk_SceneNodeGym_Cube LinkedCube;
+	TWeakObjectPtr<ACk_SceneNodeGym_Cube> LinkedCube;
 
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -38,11 +38,12 @@ class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 	UFUNCTION()
 	private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
-		if (ck::IsValid(LinkedCube) == false)
+		auto Cube = LinkedCube.Get();
+		if (ck::IsValid(Cube) == false)
 		{ return; }
 
 		auto SelfEntity = ck::ToEntity(this);
-		auto Behavior = LinkedCube.Behavior;
+		auto Behavior = Cube.Behavior;
 
 		auto TitleText = f"{Behavior}" + " (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
 		auto DisplayText = "";
@@ -50,36 +51,36 @@ class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 
 		if (Behavior == ECk_SceneNodeGym_Behavior::ParentChild)
 		{
-			Display_ParentChild(DisplayText, Instructions);
+			Display_ParentChild(Cube, DisplayText, Instructions);
 		}
 		else if (Behavior == ECk_SceneNodeGym_Behavior::OffsetUpdates)
 		{
-			Display_OffsetUpdates(DisplayText, Instructions);
+			Display_OffsetUpdates(Cube, DisplayText, Instructions);
 		}
 		else if (Behavior == ECk_SceneNodeGym_Behavior::MultipleChildren)
 		{
-			Display_MultipleChildren(DisplayText, Instructions);
+			Display_MultipleChildren(Cube, DisplayText, Instructions);
 		}
 		else if (Behavior == ECk_SceneNodeGym_Behavior::Hierarchy)
 		{
-			Display_Hierarchy(DisplayText, Instructions);
+			Display_Hierarchy(Cube, DisplayText, Instructions);
 		}
 
 		CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);
 	}
 
-	private void Display_ParentChild(FString& OutDisplay, FString& OutInstructions)
+	private void Display_ParentChild(ACk_SceneNodeGym_Cube Cube, FString& OutDisplay, FString& OutInstructions)
 	{
-		auto ParentLoc = utils_transform::Get_EntityCurrentLocation(LinkedCube.EcsEntity);
-		auto ChildOffset = utils_scene_node::Get_Offset(LinkedCube.ChildNode);
+		auto ParentLoc = utils_transform::Get_EntityCurrentLocation(Cube.EcsEntity);
+		auto ChildOffset = utils_scene_node::Get_Offset(Cube.ChildNode);
 		auto ChildOffsetLoc = ChildOffset.GetLocation();
 
 		OutDisplay = f"Parent Location:\n";
 		OutDisplay = f"{OutDisplay}  X: {ParentLoc.X}  Y: {ParentLoc.Y}  Z: {ParentLoc.Z}\n\n";
 		OutDisplay = f"{OutDisplay}Child Offset:\n";
 		OutDisplay = f"{OutDisplay}  X: {ChildOffsetLoc.X}  Y: {ChildOffsetLoc.Y}  Z: {ChildOffsetLoc.Z}\n\n";
-		OutDisplay = f"{OutDisplay}Orbit Radius: {LinkedCube.OrbitRadius}\n";
-		OutDisplay = f"{OutDisplay}Orbit Speed: {LinkedCube.OrbitSpeed}";
+		OutDisplay = f"{OutDisplay}Orbit Radius: {Cube.OrbitRadius}\n";
+		OutDisplay = f"{OutDisplay}Orbit Speed: {Cube.OrbitSpeed}";
 
 		OutInstructions = "Child scene node orbits around\n"
 			+ "parent entity.\n"
@@ -89,9 +90,9 @@ class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 			+ "sin/cos circular path.";
 	}
 
-	private void Display_OffsetUpdates(FString& OutDisplay, FString& OutInstructions)
+	private void Display_OffsetUpdates(ACk_SceneNodeGym_Cube Cube, FString& OutDisplay, FString& OutInstructions)
 	{
-		auto Offset = utils_scene_node::Get_Offset(LinkedCube.OffsetNode);
+		auto Offset = utils_scene_node::Get_Offset(Cube.OffsetNode);
 		auto OffsetLoc = Offset.GetLocation();
 		auto OffsetRot = Offset.GetRotation().Rotator();
 		auto OffsetScale = Offset.GetScale3D();
@@ -111,17 +112,17 @@ class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 			+ "via sine wave.";
 	}
 
-	private void Display_MultipleChildren(FString& OutDisplay, FString& OutInstructions)
+	private void Display_MultipleChildren(ACk_SceneNodeGym_Cube Cube, FString& OutDisplay, FString& OutInstructions)
 	{
-		auto ParentRot = utils_transform::Get_EntityCurrentRotation(LinkedCube.EcsEntity);
+		auto ParentRot = utils_transform::Get_EntityCurrentRotation(Cube.EcsEntity);
 
 		OutDisplay = f"Parent Rotation:\n";
 		OutDisplay = f"{OutDisplay}  Yaw: {ParentRot.Yaw}\n\n";
-		OutDisplay = f"{OutDisplay}Children: {LinkedCube.ChildNodes.Num()}\n\n";
+		OutDisplay = f"{OutDisplay}Children: {Cube.ChildNodes.Num()}\n\n";
 
-		for (int32 Index = 0; Index < LinkedCube.ChildNodes.Num(); ++Index)
+		for (int32 Index = 0; Index < Cube.ChildNodes.Num(); ++Index)
 		{
-			auto ChildOffset = utils_scene_node::Get_Offset(LinkedCube.ChildNodes[Index]);
+			auto ChildOffset = utils_scene_node::Get_Offset(Cube.ChildNodes[Index]);
 			auto ChildLoc = ChildOffset.GetLocation();
 			OutDisplay = f"{OutDisplay}Child {Index + 1}: ({ChildLoc.X}, {ChildLoc.Y}, {ChildLoc.Z})\n";
 		}
@@ -130,15 +131,15 @@ class UCk_EntityScript_SceneNodeGym_Display : UCk_GenericEntityScript_UE
 			+ "at cardinal offsets.\n"
 			+ "Children follow parent\n"
 			+ "automatically via hierarchy.\n"
-			+ "Rotation speed: " + f"{LinkedCube.ParentRotationSpeed}" + " deg/s.";
+			+ "Rotation speed: " + f"{Cube.ParentRotationSpeed}" + " deg/s.";
 	}
 
-	private void Display_Hierarchy(FString& OutDisplay, FString& OutInstructions)
+	private void Display_Hierarchy(ACk_SceneNodeGym_Cube Cube, FString& OutDisplay, FString& OutInstructions)
 	{
-		auto RootRot = utils_transform::Get_EntityCurrentRotation(LinkedCube.EcsEntity);
-		auto ChildOffset = utils_scene_node::Get_Offset(LinkedCube.HierarchyChild);
+		auto RootRot = utils_transform::Get_EntityCurrentRotation(Cube.EcsEntity);
+		auto ChildOffset = utils_scene_node::Get_Offset(Cube.HierarchyChild);
 		auto ChildRot = ChildOffset.GetRotation().Rotator();
-		auto GrandchildOffset = utils_scene_node::Get_Offset(LinkedCube.HierarchyGrandchild);
+		auto GrandchildOffset = utils_scene_node::Get_Offset(Cube.HierarchyGrandchild);
 		auto GrandchildRot = GrandchildOffset.GetRotation().Rotator();
 
 		OutDisplay = f"Root Yaw: {RootRot.Yaw}\n\n";
