@@ -5,7 +5,7 @@ struct FUnrealComponentGym_DisplaySpawnParams
 	FTransform InitialTransform = FTransform::Identity;
 
 	UPROPERTY()
-	ACk_UnrealComponentGym_Driver LinkedDriver;
+	TWeakObjectPtr<ACk_UnrealComponentGym_Driver> LinkedDriver;
 }
 
 //============================================================================
@@ -23,7 +23,7 @@ class UCk_EntityScript_UnrealComponentGym_Display : UCk_GenericEntityScript_UE
 	FTransform InitialTransform = FTransform::Identity;
 
 	UPROPERTY(ExposeOnSpawn)
-	ACk_UnrealComponentGym_Driver LinkedDriver;
+	TWeakObjectPtr<ACk_UnrealComponentGym_Driver> LinkedDriver;
 
 	UFUNCTION(BlueprintOverride)
 	ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -40,35 +40,36 @@ class UCk_EntityScript_UnrealComponentGym_Display : UCk_GenericEntityScript_UE
 	UFUNCTION()
 	private void DisplayTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
-		if (ck::IsValid(LinkedDriver) == false)
+		auto Driver = LinkedDriver.Get();
+		if (ck::IsValid(Driver) == false)
 		{ return; }
 
 		auto SelfEntity = ck::ToEntity(this);
-		auto Type = LinkedDriver.ComponentType;
+		auto Type = Driver.ComponentType;
 
 		auto TitleText = f"{Type}" + " (" + CkGym_Common::Get_NetworkRoleTitle(SelfEntity) + ")";
 		auto DisplayText = "";
 		auto Instructions = "";
 
-		auto IsReady = LinkedDriver.ComponentReady;
+		auto IsReady = Driver.ComponentReady;
 		UActorComponent Component = nullptr;
-		if (ck::IsValid(LinkedDriver.ComponentHandle))
+		if (ck::IsValid(Driver.ComponentHandle))
 		{
-			Component = utils_unreal_component::Get_Component(LinkedDriver.ComponentHandle);
+			Component = utils_unreal_component::Get_Component(Driver.ComponentHandle);
 		}
 		auto ComponentValid = ck::IsValid(Component);
 
-		auto OwningEntity = ck::IsValid(LinkedDriver.ComponentHandle)
-			? utils_unreal_component::Get_OwningEntity(LinkedDriver.ComponentHandle)
+		auto OwningEntity = ck::IsValid(Driver.ComponentHandle)
+			? utils_unreal_component::Get_OwningEntity(Driver.ComponentHandle)
 			: FCk_Handle();
 		auto OwnerValid = ck::IsValid(OwningEntity);
 
-		auto LiveLocation = ck::IsValid(LinkedDriver.EcsEntity)
-			? utils_transform::Get_EntityCurrentLocation(LinkedDriver.EcsEntity)
+		auto LiveLocation = ck::IsValid(Driver.EcsEntity)
+			? utils_transform::Get_EntityCurrentLocation(Driver.EcsEntity)
 			: FVector::ZeroVector;
 
 		DisplayText = f"Component class: {Get_TypeLabel(Type)}\n";
-		DisplayText = f"{DisplayText}OnAdded fired: {LinkedDriver.OnAddedFireCount}x\n";
+		DisplayText = f"{DisplayText}OnAdded fired: {Driver.OnAddedFireCount}x\n";
 		DisplayText = f"{DisplayText}Component ready: {IsReady}\n";
 		DisplayText = f"{DisplayText}Component ptr valid: {ComponentValid}\n";
 		DisplayText = f"{DisplayText}OwningEntity valid: {OwnerValid}\n\n";

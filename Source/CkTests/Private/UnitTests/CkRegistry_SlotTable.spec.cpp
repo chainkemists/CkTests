@@ -4,9 +4,24 @@
 
 #include "Misc/AutomationTest.h"
 
+#include "CkEcs/Handle/CkHandle.h"
+#include "CkEcs/Registry/CkRegistry.h"
 #include "CkEcs/Registry/CkRegistry_SlotTable.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
+
+namespace ck_tests_registry_view
+{
+    struct FTestFragment
+    {
+        int32 Value = 0;
+    };
+
+    struct FExcludedFragment
+    {
+        int32 Value = 0;
+    };
+}
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -75,6 +90,136 @@ bool FCkRegistrySlotTable_UnsetHandleContract::RunTest(const FString& Parameters
              Resolve(Unset) == nullptr);
     TestTrue(TEXT("Unset handle: silent TryResolve returns nullptr without firing"),
              TryResolve(Unset) == nullptr);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkRegistryView_InvalidFailsClosed,
+    "Ck.Registry.View.InvalidFailsClosed",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkRegistryView_InvalidFailsClosed::RunTest(const FString& Parameters)
+{
+    using namespace ck_tests_registry_view;
+    using namespace ck::registry_table;
+
+    // The pointer-backed view itself must remain safe independently of ensure
+    // configuration. This directly pins the unconditional ForEach bailout.
+    auto NullViewCallbackCount = int32{0};
+    FCk_Registry::RegistryViewType<FTestFragment>{nullptr}.ForEach(
+        [&NullViewCallbackCount](FCk_Entity, FTestFragment&)
+        {
+            ++NullViewCallbackCount;
+        });
+    TestEqual(TEXT("Explicit null view invokes no callbacks"), NullViewCallbackCount, int32{0});
+
+    AddExpectedError(
+        TEXT("registry_table::Resolve called with an unset handle"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
+
+    auto MutableUnsetCallbackCount = int32{0};
+    auto MutableUnsetRegistry = FCk_Registry{};
+    MutableUnsetRegistry.View<FTestFragment>().ForEach(
+        [&MutableUnsetCallbackCount](FCk_Entity, FTestFragment&)
+        {
+            ++MutableUnsetCallbackCount;
+        });
+
+    auto ConstUnsetCallbackCount = int32{0};
+    const auto ConstUnsetRegistry = FCk_Registry{};
+    ConstUnsetRegistry.View<FTestFragment>().ForEach(
+        [&ConstUnsetCallbackCount](FCk_Entity, const FTestFragment&)
+        {
+            ++ConstUnsetCallbackCount;
+        });
+
+    TestEqual(TEXT("Mutable unset registry view invokes no callbacks"), MutableUnsetCallbackCount, int32{0});
+    TestEqual(TEXT("Const unset registry view invokes no callbacks"), ConstUnsetCallbackCount, int32{0});
+
+    auto StaleBackingRegistry = EnttRegistryType{};
+    const auto StaleHandle = Allocate(&StaleBackingRegistry);
+    auto StaleRegistry = FCk_Registry{StaleHandle};
+    Free(StaleHandle);
+
+    AddExpectedError(
+        TEXT("Stale FCk_RegistryHandle"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
+
+    auto StaleCallbackCount = int32{0};
+    StaleRegistry.View<FTestFragment>().ForEach(
+        [&StaleCallbackCount](FCk_Entity, FTestFragment&)
+        {
+            ++StaleCallbackCount;
+        });
+    TestEqual(TEXT("Stale registry view invokes no callbacks"), StaleCallbackCount, int32{0});
+
+    AddExpectedError(
+        TEXT("Unable to prepare a View"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
+
+    auto InvalidHandleCallbackCount = int32{0};
+    auto InvalidHandle = FCk_Handle{};
+    InvalidHandle.View<FTestFragment>().ForEach(
+        [&InvalidHandleCallbackCount](FCk_Entity, FTestFragment&)
+        {
+            ++InvalidHandleCallbackCount;
+        });
+    TestEqual(TEXT("Invalid entity handle view invokes no callbacks"), InvalidHandleCallbackCount, int32{0});
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkRegistryView_ValidParity,
+    "Ck.Registry.View.ValidParity",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkRegistryView_ValidParity::RunTest(const FString& Parameters)
+{
+    using namespace ck_tests_registry_view;
+    using namespace ck::registry_table;
+
+    auto BackingRegistry = EnttRegistryType{};
+    const auto RegistryHandle = Allocate(&BackingRegistry);
+    auto Registry = FCk_Registry{RegistryHandle};
+
+    const auto IncludedEntity = BackingRegistry.create();
+    BackingRegistry.emplace<FTestFragment>(IncludedEntity, FTestFragment{41});
+
+    const auto ExcludedEntity = BackingRegistry.create();
+    BackingRegistry.emplace<FTestFragment>(ExcludedEntity, FTestFragment{99});
+    BackingRegistry.emplace<FExcludedFragment>(ExcludedEntity, FExcludedFragment{});
+
+    auto MutableCallbackCount = int32{0};
+    Registry.View<FTestFragment, ck::TExclude<FExcludedFragment>>().ForEach(
+        [&MutableCallbackCount](FCk_Entity, FTestFragment& InFragment)
+        {
+            ++MutableCallbackCount;
+            ++InFragment.Value;
+        });
+
+    TestEqual(TEXT("Mutable view preserves exclude filtering"), MutableCallbackCount, int32{1});
+    TestEqual(TEXT("Mutable view preserves fragment access"), BackingRegistry.get<FTestFragment>(IncludedEntity).Value, int32{42});
+    TestEqual(TEXT("Excluded entity is not visited"), BackingRegistry.get<FTestFragment>(ExcludedEntity).Value, int32{99});
+
+    const auto& ConstRegistry = Registry;
+    auto ConstCallbackCount = int32{0};
+    auto ConstValueSum = int32{0};
+    ConstRegistry.View<FTestFragment, ck::TExclude<FExcludedFragment>>().ForEach(
+        [&ConstCallbackCount, &ConstValueSum](FCk_Entity, const FTestFragment& InFragment)
+        {
+            ++ConstCallbackCount;
+            ConstValueSum += InFragment.Value;
+        });
+
+    TestEqual(TEXT("Const view preserves exclude filtering"), ConstCallbackCount, int32{1});
+    TestEqual(TEXT("Const view preserves fragment access"), ConstValueSum, int32{42});
+
+    Free(RegistryHandle);
     return true;
 }
 

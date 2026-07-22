@@ -183,7 +183,7 @@ class ACk_JoltGym_Ropes_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
-        FCk_Handle MiddleLink = Links[Links.Num() / 2];
+        FCk_Handle MiddleLink = Links[Math::IntegerDivisionTrunc(Links.Num(), 2)];
         if (ck::Is_NOT_Valid(MiddleLink))
         {
             ck::Trace("JoltRopesGym: that rope is already cut");
