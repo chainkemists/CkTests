@@ -464,7 +464,6 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Poi_Create_StandaloneAtLocation_Actor> Ck_AutoTest_Poi_Create_StandaloneAtLocation_Actor_UAID_C87F5401E535C2EF02_1147284050() { return TSoftObjectPtr<ACk_AutoTest_Poi_Create_StandaloneAtLocation_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Poi_Create_StandaloneAtLocation_Actor_UAID_C87F5401E535C2EF02_1147284050")); }
     TSoftObjectPtr<ACk_AutoTest_Poi_Create_TtlExpires_Actor> Ck_AutoTest_Poi_Create_TtlExpires_Actor_UAID_C87F5401E535C2EF02_1147285051() { return TSoftObjectPtr<ACk_AutoTest_Poi_Create_TtlExpires_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Poi_Create_TtlExpires_Actor_UAID_C87F5401E535C2EF02_1147285051")); }
     TSoftObjectPtr<ACk_AutoTest_Poi_EnableDisable_FiresSignal_Actor> Ck_AutoTest_Poi_EnableDisable_FiresSignal_Actor_UAID_C87F5401E535C2EF02_1147285052() { return TSoftObjectPtr<ACk_AutoTest_Poi_EnableDisable_FiresSignal_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Poi_EnableDisable_FiresSignal_Actor_UAID_C87F5401E535C2EF02_1147285052")); }
-    TSoftObjectPtr<ACk_AutoTest_Poi_SetStateTags_ReplacesAll_Actor> Ck_AutoTest_Poi_SetStateTags_ReplacesAll_Actor_UAID_C87F5401E535C2EF02_1147286053() { return TSoftObjectPtr<ACk_AutoTest_Poi_SetStateTags_ReplacesAll_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Poi_SetStateTags_ReplacesAll_Actor_UAID_C87F5401E535C2EF02_1147286053")); }
     TSoftObjectPtr<ACk_AutoTest_Poi_StateTags_AddRemove_FiresSignals_Actor> Ck_AutoTest_Poi_StateTags_AddRemove_FiresSignals_Actor_UAID_C87F5401E535C2EF02_1147286054() { return TSoftObjectPtr<ACk_AutoTest_Poi_StateTags_AddRemove_FiresSignals_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Poi_StateTags_AddRemove_FiresSignals_Actor_UAID_C87F5401E535C2EF02_1147286054")); }
     TSoftObjectPtr<ACk_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor> Ck_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446931327() { return TSoftObjectPtr<ACk_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Probe_Add_Box_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446931327")); }
     TSoftObjectPtr<ACk_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor> Ck_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446933328() { return TSoftObjectPtr<ACk_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Probe_Add_Sphere_CreatesProbeEntity_Actor_UAID_C87F5401E53525DC02_1446933328")); }
@@ -4880,15 +4879,6 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Poi_EnableDisable_FiresSignal_Actor_UAID_C87F5401E535C2EF02_1147285052());
-    }
-    ACk_AutoTest_Poi_SetStateTags_ReplacesAll_Actor Ck_AutoTest_Poi_SetStateTags_ReplacesAll_Actor_UAID_C87F5401E535C2EF02_1147286053()
-    {
-        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
-        {
-            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Poi_SetStateTags_ReplacesAll_Actor_UAID_C87F5401E535C2EF02_1147286053() called before engine init. Use assets::Ck_AutoTest_Poi_SetStateTags_ReplacesAll_Actor_UAID_C87F5401E535C2EF02_1147286053() (soft ref) with UCk_DeferredConfig_UE instead.");
-            return nullptr;
-        }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Poi_SetStateTags_ReplacesAll_Actor_UAID_C87F5401E535C2EF02_1147286053());
     }
     ACk_AutoTest_Poi_StateTags_AddRemove_FiresSignals_Actor Ck_AutoTest_Poi_StateTags_AddRemove_FiresSignals_Actor_UAID_C87F5401E535C2EF02_1147286054()
     {

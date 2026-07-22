@@ -59,9 +59,16 @@ class UCk_AutoTest_Compass_ClampPolicy_PinsToEdge : UCk_AutoTest_Base
         utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, _Base + InOffset),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName));
-        Params.Set_OffscreenPolicy(InPolicy);
-        return utils_poi::Add(Owner, Params);
+        auto Poi = utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
+
+        // Offscreen policy now lives in CkPoiDisplayDefinition, keyed by the compass consumer.
+        auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Compass"));
+        DisplayParams.Set_OffscreenPolicy(InPolicy);
+        utils_poi_display_definition::Add(Owner, DisplayParams);
+
+        return Poi;
     }
 
     UFUNCTION()

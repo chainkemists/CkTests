@@ -1,12 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: state-tag add/remove fires signals; no-ops don't
+// CK POI — AUTOMATION TEST: state-tag add/remove fires signals on flips only
 //============================================================================
 //
-// Request_AddStateTag / Request_RemoveStateTag must mutate Get_StateTags and
-// fire OnPoiStateChanged only on ACTUAL change: adding an already-present
-// tag or removing an absent tag is a no-op and must NOT fire.
+// CkPoi v2: state tags are plain CkEntityTag gameplay tags on the POI entity.
+// Add_UsingGameplayTag / Request_TryRemove_UsingGameplayTag mutate the set;
+// OnGameplayTagUpdated fires ONLY on the 0<->1 presence flip (adds are
+// COUNTED), never on intermediate count changes. The bind is filtered to the
+// state tag so the Poi.Category.* tag never counts. Every mutation is deferred
+// one pump, so each is followed by a settle frame.
 //
 // Isolated Y band: 53000.
 //============================================================================
@@ -15,10 +18,10 @@ class UCk_AutoTest_Poi_StateTags_AddRemove_FiresSignals : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 8.0f;
 
-    private FCk_Handle_Poi _Poi;
+    private FCk_Handle _Owner;
     private FGameplayTag _LockedTag;
-    private int32 _SignalCount = 0;
-    private FGameplayTagContainer _LastTags;
+    private int32 _AddedCount = 0;
+    private int32 _RemovedCount = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -26,27 +29,35 @@ class UCk_AutoTest_Poi_StateTags_AddRemove_FiresSignals : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto Owner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        Owner.Request_OverrideToSelf();
-        utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, FVector(0.0, 53000.0, 0.0)),
+        _Owner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
+        _Owner.Request_OverrideToSelf();
+        utils_transform::Add(_Owner, FTransform(FRotator::ZeroRotator, FVector(0.0, 53000.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
 
         auto Category = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Door");
+        utils_poi::Add(_Owner, FCk_Fragment_Poi_ParamsData(Category));
+
         _LockedTag = utils_gameplay_tag::ResolveGameplayTag(n"Poi.State.Locked");
 
-        _Poi = utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(Category));
-        _Poi.BindTo_OnStateChanged(
-            FCk_Delegate_Poi_StateChanged(this, n"OnStateChanged"));
+        auto RelevantTags = FGameplayTagContainer();
+        RelevantTags.AddTag(_LockedTag);
+        utils_entity_tag::BindTo_OnGameplayTagUpdated(_Owner,
+            RelevantTags,
+            ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
+            ECk_Signal_PostFireBehavior::DoNothing,
+            FCk_Delegate_EntityTag_OnGameplayTagUpdated(this, n"OnStateTagUpdated"));
 
-        _Poi.Request_AddStateTag(FCk_Request_Poi_AddStateTag(_LockedTag));
+        // Add a new state tag (0 -> 1): fires Added once.
+        utils_entity_tag::Add_UsingGameplayTag(_Owner, _LockedTag);
         WaitOneFrame(n"OnSettled_AfterAdd");
     }
 
     UFUNCTION()
-    private void OnStateChanged(FCk_Handle_Poi InPoi, FGameplayTagContainer InStateTags)
+    private void OnStateTagUpdated(FCk_Handle InOwner, FGameplayTag InTag, ECk_EntityTagUpdate InUpdateType)
     {
-        _SignalCount++;
-        _LastTags = InStateTags;
+        if ((InTag == _LockedTag) == false) { return; }
+        if (InUpdateType == ECk_EntityTagUpdate::Added) { _AddedCount++; }
+        else                                            { _RemovedCount++; }
     }
 
     UFUNCTION()
@@ -54,38 +65,52 @@ class UCk_AutoTest_Poi_StateTags_AddRemove_FiresSignals : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        Assert_Equals_Int(_SignalCount, 1, "Adding a new state tag should fire OnPoiStateChanged once");
-        Assert_True(_LastTags.HasTag(_LockedTag), "Signal payload should contain the added tag");
-        Assert_True(utils_poi::Get_StateTags(_Poi).HasTag(_LockedTag),
-            "Get_StateTags should contain the added tag");
+        Assert_Equals_Int(_AddedCount, 1, "Adding a new state tag should fire Added once");
+        Assert_True(utils_entity_tag::Get_AllTagsAsContainer(_Owner).HasTagExact(_LockedTag),
+            "The state tag set should contain the added tag");
 
-        // No-op: same tag again.
-        _Poi.Request_AddStateTag(FCk_Request_Poi_AddStateTag(_LockedTag));
-        WaitOneFrame(n"OnSettled_AfterNoOpAdd");
+        // Counted re-add (1 -> 2): no presence flip, must NOT fire.
+        utils_entity_tag::Add_UsingGameplayTag(_Owner, _LockedTag);
+        WaitOneFrame(n"OnSettled_AfterCountedAdd");
     }
 
     UFUNCTION()
-    private void OnSettled_AfterNoOpAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void OnSettled_AfterCountedAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
-        Assert_Equals_Int(_SignalCount, 1, "Re-adding an existing tag is a no-op and must NOT fire");
+        Assert_Equals_Int(_AddedCount, 1, "A counted re-add (1->2) is not a flip and must NOT fire");
 
-        _Poi.Request_RemoveStateTag(FCk_Request_Poi_RemoveStateTag(_LockedTag));
-        WaitOneFrame(n"OnSettled_AfterRemove");
+        // First remove (2 -> 1): still present, must NOT fire.
+        utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Owner, _LockedTag);
+        WaitOneFrame(n"OnSettled_AfterFirstRemove");
     }
 
     UFUNCTION()
-    private void OnSettled_AfterRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void OnSettled_AfterFirstRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
-        Assert_Equals_Int(_SignalCount, 2, "Removing a present tag should fire OnPoiStateChanged");
-        Assert_True(!utils_poi::Get_StateTags(_Poi).HasTag(_LockedTag),
-            "Get_StateTags should no longer contain the removed tag");
+        Assert_Equals_Int(_RemovedCount, 0, "A remove that leaves the tag present (2->1) must NOT fire");
+        Assert_True(utils_entity_tag::Get_AllTagsAsContainer(_Owner).HasTagExact(_LockedTag),
+            "The tag should still be present after a single counted remove");
 
-        // No-op: remove an absent tag.
-        _Poi.Request_RemoveStateTag(FCk_Request_Poi_RemoveStateTag(_LockedTag));
+        // Second remove (1 -> 0): presence flip, fires Removed once.
+        utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Owner, _LockedTag);
+        WaitOneFrame(n"OnSettled_AfterFinalRemove");
+    }
+
+    UFUNCTION()
+    private void OnSettled_AfterFinalRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        Assert_Equals_Int(_RemovedCount, 1, "Removing the last count (1->0) should fire Removed once");
+        Assert_True(!utils_entity_tag::Get_AllTagsAsContainer(_Owner).HasTagExact(_LockedTag),
+            "The state tag set should no longer contain the removed tag");
+
+        // Remove an absent tag (0 -> 0): no-op, must NOT fire.
+        utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Owner, _LockedTag);
         WaitOneFrame(n"OnSettled_AfterNoOpRemove");
     }
 
@@ -94,7 +119,8 @@ class UCk_AutoTest_Poi_StateTags_AddRemove_FiresSignals : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        Assert_Equals_Int(_SignalCount, 2, "Removing an absent tag is a no-op and must NOT fire");
+        Assert_Equals_Int(_RemovedCount, 1, "Removing an absent tag is a no-op and must NOT fire");
+        Assert_Equals_Int(_AddedCount, 1, "Added count must remain 1 — no extra fires");
         FinishSuccess();
     }
 }

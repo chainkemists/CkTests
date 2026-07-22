@@ -4696,19 +4696,6 @@ class ACk_AutoTest_Poi_EnableDisable_FiresSignal_Actor : ACk_AutoTestRunner
     }
 }
 
-class ACk_AutoTest_Poi_SetStateTags_ReplacesAll_Actor : ACk_AutoTestRunner
-{
-    default _TimeoutSeconds = 6.0f;
-    UFUNCTION(BlueprintOverride)
-    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
-    {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Poi_SetStateTags_ReplacesAll");
-        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
-        ResolvedClass = Path.TryLoadClass();
-        return ResolvedClass;
-    }
-}
-
 class ACk_AutoTest_Poi_StateTags_AddRemove_FiresSignals_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 8.0f;
@@ -4716,6 +4703,19 @@ class ACk_AutoTest_Poi_StateTags_AddRemove_FiresSignals_Actor : ACk_AutoTestRunn
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Poi_StateTags_AddRemove_FiresSignals");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Poi_StateTags_ViaEntityTag_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Poi_StateTags_ViaEntityTag");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;

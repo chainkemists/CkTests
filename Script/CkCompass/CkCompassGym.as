@@ -110,12 +110,10 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         DoAddRingPoi(RingCenter + FVector(424.3, -424.3, 0.0),   n"Poi.Category.Info",   2);
 
         // One ClampToEdge waypoint far out — pins to the arc edge when behind the pawn.
-        auto WaypointParams = FCk_Fragment_Poi_ParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint"));
-        WaypointParams.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::ClampToEdge);
-        WaypointParams.Set_Priority(10);
-        DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, RingCenter + FVector(-2500.0, 0.0, 0.0)),
-            WaypointParams);
+        auto Waypoint = DoCreateStandalonePoi(
+            FTransform(FRotator::ZeroRotator, RingCenter + FVector(-2500.0, 0.0, 0.0)),
+            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint")));
+        DoAddCompassDisplay(Waypoint, 10, ECk_Poi_OffscreenPolicy::ClampToEdge);
 
         utils_pmg_basic_shapes::DrawFilledSphere(RingCenter + FVector(-2500.0, 0.0, 60.0), 55.0, 12, 12,
             FLinearColor(0.7, 0.35, 0.95), true, 2.0, ECk_Plane_Axis::XY, -1.0);
@@ -126,9 +124,9 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void DoAddRingPoi(FVector InLocation, FName InCategoryName, int32 InPriority)
     {
-        auto Params = FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName));
-        Params.Set_Priority(InPriority);
-        DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, InLocation), Params);
+        auto Poi = DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, InLocation),
+            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
+        DoAddCompassDisplay(Poi, InPriority, ECk_Poi_OffscreenPolicy::Hide);
 
         // Persistent in-world marker so the POI is visible where it stands (color = category)
         utils_pmg_basic_shapes::DrawFilledSphere(InLocation + FVector(0.0, 0.0, 60.0), 40.0, 12, 12,
@@ -144,6 +142,18 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Host = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         utils_transform::Add(Host, InTransform, ECk_Replication::DoesNotReplicate);
         return utils_poi::Add(Host, InParams);
+    }
+
+    // Presentation (priority/offscreen) now lives in CkPoiDisplayDefinition, keyed by the compass
+    // consumer (CkPoi v2). Compose one direct-attach definition on the POI's own entity.
+    private void DoAddCompassDisplay(FCk_Handle_Poi InPoi, int32 InPriority, ECk_Poi_OffscreenPolicy InOffscreenPolicy)
+    {
+        FCk_Handle Host = InPoi;
+        auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Compass"));
+        DisplayParams.Set_Priority(InPriority);
+        DisplayParams.Set_OffscreenPolicy(InOffscreenPolicy);
+        utils_poi_display_definition::Add(Host, DisplayParams);
     }
 
     UFUNCTION()
@@ -228,11 +238,9 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Ahead = ControlledPawn.GetActorLocation() +
             ControlledPawn.GetActorForwardVector() * 1500.0;
 
-        auto Params = FCk_Fragment_Poi_ParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Ping"));
-        Params.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::ClampToEdge);
-        Params.Set_Priority(20);
-        auto Ping = DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, Ahead), Params);
+        auto Ping = DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, Ahead),
+            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Ping")));
+        DoAddCompassDisplay(Ping, 20, ECk_Poi_OffscreenPolicy::ClampToEdge);
 
         // 5s TTL: a StopOnDone timer on the ping's host entity destroys it when done
         FCk_Handle PingHost = Ping;

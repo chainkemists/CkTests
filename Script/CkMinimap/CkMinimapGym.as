@@ -159,12 +159,10 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         DoAddPoi(Center + FVector(424.3, -424.3, 0.0),   n"Poi.Category.Info",   2);
 
         // One far ClampToEdge waypoint — pins to the frame rim from anywhere in the gym.
-        auto WaypointParams = FCk_Fragment_Poi_ParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint"));
-        WaypointParams.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::ClampToEdge);
-        WaypointParams.Set_Priority(10);
-        DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, Center + FVector(-6000.0, 0.0, 0.0)),
-            WaypointParams);
+        auto Waypoint = DoCreateStandalonePoi(
+            FTransform(FRotator::ZeroRotator, Center + FVector(-6000.0, 0.0, 0.0)),
+            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint")));
+        DoAddMinimapDisplay(Waypoint, 10, ECk_Poi_OffscreenPolicy::ClampToEdge);
 
         utils_pmg_basic_shapes::DrawFilledSphere(Center + FVector(-6000.0, 0.0, 60.0), 55.0, 12, 12,
             FLinearColor(0.7, 0.35, 0.95), true, 2.0, ECk_Plane_Axis::XY, -1.0);
@@ -258,9 +256,9 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void DoAddPoi(FVector InLocation, FName InCategoryName, int32 InPriority)
     {
-        auto Params = FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName));
-        Params.Set_Priority(InPriority);
-        DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, InLocation), Params);
+        auto Poi = DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, InLocation),
+            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
+        DoAddMinimapDisplay(Poi, InPriority, ECk_Poi_OffscreenPolicy::Hide);
 
         // Persistent in-world marker so the POI is visible where it stands (color = category)
         utils_pmg_basic_shapes::DrawFilledSphere(InLocation + FVector(0.0, 0.0, 60.0), 40.0, 12, 12,
@@ -276,6 +274,18 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Host = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         utils_transform::Add(Host, InTransform, ECk_Replication::DoesNotReplicate);
         return utils_poi::Add(Host, InParams);
+    }
+
+    // Presentation (priority/offscreen) now lives in CkPoiDisplayDefinition, keyed by the minimap
+    // consumer (CkPoi v2). Compose one direct-attach definition on the POI's own entity.
+    private void DoAddMinimapDisplay(FCk_Handle_Poi InPoi, int32 InPriority, ECk_Poi_OffscreenPolicy InOffscreenPolicy)
+    {
+        FCk_Handle Host = InPoi;
+        auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Minimap"));
+        DisplayParams.Set_Priority(InPriority);
+        DisplayParams.Set_OffscreenPolicy(InOffscreenPolicy);
+        utils_poi_display_definition::Add(Host, DisplayParams);
     }
 
     private FLinearColor DoGet_CategoryColor(FName InCategoryName)
