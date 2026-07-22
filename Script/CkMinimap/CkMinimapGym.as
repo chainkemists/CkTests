@@ -52,7 +52,33 @@ class ACk_MinimapGym_Pawn : ACk_Gym_Base_Pawn
         Params.Set_MaxEntries(32);
         _Minimap = utils_minimap::Add(_PawnEntity, Params);
 
+        DoComposePlayerAsPoi();
+
         ck::Trace("MinimapGym: observer-centric minimap composed on pawn entity");
+    }
+
+    // CkPoi v2 DIRECT-ATTACH acceptance demo (PROMPT criterion 5): the PLAYER itself IS a Poi,
+    // composed onto the pawn's OWN entity (_PawnEntity — the very entity that hosts the minimap
+    // observer), NOT a freshly spawned standalone child. Because the observer and the Poi are the
+    // same entity, the player blip renders at the frame center (distance 0, observer-centric);
+    // MaxRange 0 on VisibleRange = unlimited ("always shown to self", the design doc's example).
+    private void DoComposePlayerAsPoi()
+    {
+        // OnEntityConstructed fires once per pawn entity, but guard anyway — utils_poi::Add ensures
+        // on a double-add, so gate the whole compose on the identity tag if the path ever re-enters.
+        if (utils_poi::Has(_PawnEntity))
+        { return; }
+
+        utils_poi::Add(_PawnEntity,
+            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Player")));
+
+        // Direct-attach display definition (Add, not Create — single consumer: the minimap).
+        auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Minimap"));
+        DisplayParams.Set_Priority(100);
+        utils_poi_display_definition::Add(_PawnEntity, DisplayParams);
+
+        utils_visible_range::Add(_PawnEntity, FCk_Fragment_VisibleRange_ParamsData(0.0));
     }
 
     FCk_Handle Get_PawnEntity()
