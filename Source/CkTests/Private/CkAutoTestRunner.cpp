@@ -422,6 +422,7 @@ namespace ck::auto_test::expected_errors
         // a test that passes its own assertions must not be failed by them.
         TEXT("High pump count this frame"),
         TEXT("Pump limit ["),
+        TEXT("implicit write-ordering edge"),
     };
 }
 
