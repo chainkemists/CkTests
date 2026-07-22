@@ -4,9 +4,11 @@
 // CK COMPASS — AUTOMATION TEST: disabled POI is excluded, re-enable restores
 //============================================================================
 //
-// An in-range POI disappears from entries after Request_EnableDisable(
-// Disable) settles and returns after re-enable — the projector must honor
-// Get_EnableDisable every update.
+// CkPoi v2: disable is the Poi.Disabled CkEntityTag. An in-range POI
+// disappears from entries after the tag is added (Add_UsingGameplayTag) and
+// returns after it is removed (Request_TryRemove_UsingGameplayTag) — the
+// projector skips entities carrying Poi.Disabled every update. Both mutations
+// are deferred one pump, so each is followed by a settle frame.
 //
 // Isolated Y band: 59600.
 //============================================================================
@@ -17,7 +19,9 @@ class UCk_AutoTest_Compass_DisabledPoi_Excluded : UCk_AutoTest_Base
 
     private FCk_Handle _SelfHandle;
     private FCk_Handle_Compass _Compass;
+    private FCk_Handle _PoiOwner;
     private FCk_Handle_Poi _Poi;
+    private FGameplayTag _DisabledTag;
     private FVector _Base = FVector(0.0, 59600.0, 0.0);
 
     UFUNCTION(BlueprintOverride)
@@ -36,13 +40,15 @@ class UCk_AutoTest_Compass_DisabledPoi_Excluded : UCk_AutoTest_Base
         _Compass = utils_compass::Add(Observer, Params);
         _Compass.Request_SetManualHeading(0.0);
 
-        auto Owner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
-        Owner.Request_OverrideToSelf();
-        utils_transform::Add(Owner,
+        _PoiOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
+        _PoiOwner.Request_OverrideToSelf();
+        utils_transform::Add(_PoiOwner,
             FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, 0.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _Poi = utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
+        _Poi = utils_poi::Add(_PoiOwner, FCk_Fragment_Poi_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.TestToggle")));
+
+        _DisabledTag = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Disabled");
 
         WaitOneFrame(n"OnSettled_Initial");
     }
@@ -71,7 +77,7 @@ class UCk_AutoTest_Compass_DisabledPoi_Excluded : UCk_AutoTest_Base
 
         Assert_True(DoIsOnCompass(), "Enabled in-range POI should be on the compass");
 
-        _Poi.Request_EnableDisable(FCk_Request_Poi_EnableDisable(ECk_EnableDisable::Disable));
+        utils_entity_tag::Add_UsingGameplayTag(_PoiOwner, _DisabledTag);
         WaitOneFrame(n"OnSettled_AfterDisable");
     }
 
@@ -89,7 +95,7 @@ class UCk_AutoTest_Compass_DisabledPoi_Excluded : UCk_AutoTest_Base
 
         Assert_True(!DoIsOnCompass(), "Disabled POI must be excluded from compass entries");
 
-        _Poi.Request_EnableDisable(FCk_Request_Poi_EnableDisable(ECk_EnableDisable::Enable));
+        utils_entity_tag::Request_TryRemove_UsingGameplayTag(_PoiOwner, _DisabledTag);
         WaitOneFrame(n"OnSettled_AfterEnable");
     }
 

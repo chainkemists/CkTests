@@ -52,9 +52,17 @@ class UCk_AutoTest_Compass_HidePolicy_Excludes : UCk_AutoTest_Base
         utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, _Base + InOffset),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName));
-        Params.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::Hide);
-        return utils_poi::Add(Owner, Params);
+        auto Poi = utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
+
+        // Offscreen policy now lives in CkPoiDisplayDefinition, keyed by the compass consumer.
+        // Hide is also the default when no definition exists, but composed explicitly here.
+        auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Compass"));
+        DisplayParams.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::Hide);
+        utils_poi_display_definition::Add(Owner, DisplayParams);
+
+        return Poi;
     }
 
     UFUNCTION()
