@@ -29,6 +29,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Crowd Separation",   ACk_CrowdGym_Separation_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd Diagnostic",   ACk_CrowdGym_Diag_GameMode);
         CkGym_Cycler::RegisterProjectGym("Cue",                ACk_CueGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Dialog",             ACk_DialogGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Entity Lifecycle",   ACk_EntityLifecycleGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Entity Script",      ACk_EntityScriptGym_Spawn_GameMode);
         CkGym_Cycler::RegisterProjectGym("EQS",                ACk_EqsGym_GameMode);
