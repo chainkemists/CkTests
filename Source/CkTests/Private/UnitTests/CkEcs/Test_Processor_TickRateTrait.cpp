@@ -20,7 +20,7 @@
 // bucketed-cadence primitive (CkProcessor_CadenceBuckets.h) — the behaviors the pure spec
 // (CkEcs/Processor/CkProcessor_CadenceBuckets.spec.cpp) cannot reach:
 //
-//   1. A processor declaring `static constexpr auto TickRate = ck::Hz{4}` fires once per 0.25s of
+//   1. A processor declaring `static constexpr FCk_Time TickRate = ck::time::Hz(4)` fires once per 0.25s of
 //      accumulated scheduler time while a trait-LESS processor over the same view fires every tick.
 //   2. TickCatchUpPolicy: after a multi-interval hitch, ReplayMissedTicks (default) replays DoTick per
 //      whole interval with DeltaT = the interval; SampleLatestOnly fires ONCE with the summed elapsed.
@@ -84,7 +84,7 @@ namespace ck_test_tickrate_trait
         using Super::Super;
 
         // THE one-line author declaration under test. Default catch-up = ReplayMissedTicks.
-        static constexpr auto TickRate = ck::Hz{4};
+        static constexpr auto TickRate = ck::time::Hz(4);
 
         static inline int32 FireCount = 0;
         static inline double LastDeltaSeconds = 0.0;
@@ -107,7 +107,7 @@ namespace ck_test_tickrate_trait
         using Super = ck::TProcessor<FProcessor_TickRateTest_RatedSample, ck::FTag_TickRateTest_Subject>;
         using Super::Super;
 
-        static constexpr auto TickRate = ck::Seconds{0.25};
+        static constexpr auto TickRate = ck::time::Seconds(0.25);
         static constexpr auto TickCatchUpPolicy = ECk_ProcessorTickCatchUp::SampleLatestOnly;
 
         static inline int32 FireCount = 0;
