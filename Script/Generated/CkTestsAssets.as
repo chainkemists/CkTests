@@ -25,15 +25,6 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor> Ck_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor_UAID_C87F5401E5353ADC02_2129272023() { return TSoftObjectPtr<ACk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic_Actor_UAID_C87F5401E5353ADC02_2129272023")); }
     TSoftObjectPtr<ACk_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor> Ck_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor_UAID_C87F5401E5353FDC02_1137498903() { return TSoftObjectPtr<ACk_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_ActorRelay_ChannelEntityCount_OnInvalidResult_IsZero_Actor_UAID_C87F5401E5353FDC02_1137498903")); }
     TSoftObjectPtr<ACk_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor> Ck_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor_UAID_C87F5401E5353FDC02_1137500904() { return TSoftObjectPtr<ACk_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor_UAID_C87F5401E5353FDC02_1137500904")); }
-    TSoftObjectPtr<ACk_AutoTest_Aggro_AddHappyPath_Actor> Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535() { return TSoftObjectPtr<ACk_AutoTest_Aggro_AddHappyPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535")); }
-    TSoftObjectPtr<ACk_AutoTest_Aggro_ForEachExclusionPolicy_Actor> Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536() { return TSoftObjectPtr<ACk_AutoTest_Aggro_ForEachExclusionPolicy_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536")); }
-    TSoftObjectPtr<ACk_AutoTest_Aggro_GetBestAggroSingle_Actor> Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537() { return TSoftObjectPtr<ACk_AutoTest_Aggro_GetBestAggroSingle_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537")); }
-    TSoftObjectPtr<ACk_AutoTest_Aggro_GetTarget_Actor> Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538() { return TSoftObjectPtr<ACk_AutoTest_Aggro_GetTarget_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538")); }
-    TSoftObjectPtr<ACk_AutoTest_Aggro_OwnerAddHappyPath_Actor> Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539() { return TSoftObjectPtr<ACk_AutoTest_Aggro_OwnerAddHappyPath_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539")); }
-    TSoftObjectPtr<ACk_AutoTest_Aggro_RequestIncludeRestores_Actor> Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540() { return TSoftObjectPtr<ACk_AutoTest_Aggro_RequestIncludeRestores_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540")); }
-    TSoftObjectPtr<ACk_AutoTest_Aggro_TryGetAggroByTargetFound_Actor> Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541() { return TSoftObjectPtr<ACk_AutoTest_Aggro_TryGetAggroByTargetFound_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541")); }
-    TSoftObjectPtr<ACk_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor> Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542() { return TSoftObjectPtr<ACk_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542")); }
-    TSoftObjectPtr<ACk_AutoTest_AggroOwner_Create_MakesDistinctChild_Actor> Ck_AutoTest_AggroOwner_Create_MakesDistinctChild_Actor_UAID_60CF84A99C2CB3EC02_2008881219() { return TSoftObjectPtr<ACk_AutoTest_AggroOwner_Create_MakesDistinctChild_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_AggroOwner_Create_MakesDistinctChild_Actor_UAID_60CF84A99C2CB3EC02_2008881219")); }
     TSoftObjectPtr<ACk_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor> Ck_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor_UAID_C87F5401E53545DC02_1500773959() { return TSoftObjectPtr<ACk_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor_UAID_C87F5401E53545DC02_1500773959")); }
     TSoftObjectPtr<ACk_AutoTest_AStar_BasicSearch_Actor> Ck_AutoTest_AStar_BasicSearch_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_AStar_BasicSearch_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_AStar_BasicSearch_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_AStar_CostThreshold_Actor> Ck_AutoTest_AStar_CostThreshold_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_AStar_CostThreshold_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_AStar_CostThreshold_Actor_0")); }
@@ -928,87 +919,6 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor_UAID_C87F5401E5353FDC02_1137500904());
-    }
-    ACk_AutoTest_Aggro_AddHappyPath_Actor Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535()
-    {
-        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
-        {
-            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535() called before engine init. Use assets::Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535() (soft ref) with UCk_DeferredConfig_UE instead.");
-            return nullptr;
-        }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_AddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243699535());
-    }
-    ACk_AutoTest_Aggro_ForEachExclusionPolicy_Actor Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536()
-    {
-        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
-        {
-            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536() called before engine init. Use assets::Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536() (soft ref) with UCk_DeferredConfig_UE instead.");
-            return nullptr;
-        }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_ForEachExclusionPolicy_Actor_UAID_C87F5401E535E2DB02_1243700536());
-    }
-    ACk_AutoTest_Aggro_GetBestAggroSingle_Actor Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537()
-    {
-        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
-        {
-            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537() called before engine init. Use assets::Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537() (soft ref) with UCk_DeferredConfig_UE instead.");
-            return nullptr;
-        }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_GetBestAggroSingle_Actor_UAID_C87F5401E535E2DB02_1243701537());
-    }
-    ACk_AutoTest_Aggro_GetTarget_Actor Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538()
-    {
-        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
-        {
-            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538() called before engine init. Use assets::Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538() (soft ref) with UCk_DeferredConfig_UE instead.");
-            return nullptr;
-        }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_GetTarget_Actor_UAID_C87F5401E535E2DB02_1243701538());
-    }
-    ACk_AutoTest_Aggro_OwnerAddHappyPath_Actor Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539()
-    {
-        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
-        {
-            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539() called before engine init. Use assets::Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539() (soft ref) with UCk_DeferredConfig_UE instead.");
-            return nullptr;
-        }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_OwnerAddHappyPath_Actor_UAID_C87F5401E535E2DB02_1243702539());
-    }
-    ACk_AutoTest_Aggro_RequestIncludeRestores_Actor Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540()
-    {
-        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
-        {
-            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540() called before engine init. Use assets::Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540() (soft ref) with UCk_DeferredConfig_UE instead.");
-            return nullptr;
-        }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_RequestIncludeRestores_Actor_UAID_C87F5401E535E2DB02_1243703540());
-    }
-    ACk_AutoTest_Aggro_TryGetAggroByTargetFound_Actor Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541()
-    {
-        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
-        {
-            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541() called before engine init. Use assets::Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541() (soft ref) with UCk_DeferredConfig_UE instead.");
-            return nullptr;
-        }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_TryGetAggroByTargetFound_Actor_UAID_C87F5401E535E2DB02_1243703541());
-    }
-    ACk_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542()
-    {
-        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
-        {
-            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542() called before engine init. Use assets::Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542() (soft ref) with UCk_DeferredConfig_UE instead.");
-            return nullptr;
-        }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor_UAID_C87F5401E535E2DB02_1243704542());
-    }
-    ACk_AutoTest_AggroOwner_Create_MakesDistinctChild_Actor Ck_AutoTest_AggroOwner_Create_MakesDistinctChild_Actor_UAID_60CF84A99C2CB3EC02_2008881219()
-    {
-        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
-        {
-            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_AggroOwner_Create_MakesDistinctChild_Actor_UAID_60CF84A99C2CB3EC02_2008881219() called before engine init. Use assets::Ck_AutoTest_AggroOwner_Create_MakesDistinctChild_Actor_UAID_60CF84A99C2CB3EC02_2008881219() (soft ref) with UCk_DeferredConfig_UE instead.");
-            return nullptr;
-        }
-        return System::LoadAsset_Blocking(assets::Ck_AutoTest_AggroOwner_Create_MakesDistinctChild_Actor_UAID_60CF84A99C2CB3EC02_2008881219());
     }
     ACk_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor Ck_AutoTest_AnimAsset_Add_CreatesValidHandle_Actor_UAID_C87F5401E53545DC02_1500773959()
     {
