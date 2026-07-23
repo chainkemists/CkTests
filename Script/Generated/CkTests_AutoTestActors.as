@@ -242,116 +242,102 @@ class ACk_AutoTest_ActorRelay_DefaultChannelResult_IsInvalid_Actor : ACk_AutoTes
     }
 }
 
-class ACk_AutoTest_Aggro_AddHappyPath_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Aggro_Add_ComposesFeature_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_AddHappyPath");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_Add_ComposesFeature");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
     }
 }
 
-class ACk_AutoTest_Aggro_ForEachExclusionPolicy_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Aggro_AddThreat_Accumulates_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 4.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_ForEachExclusionPolicy");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_AddThreat_Accumulates");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
     }
 }
 
-class ACk_AutoTest_Aggro_GetBestAggroSingle_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Aggro_CreateTarget_ReturnsTypedChild_Actor : ACk_AutoTestRunner
 {
+    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_GetBestAggroSingle");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_CreateTarget_ReturnsTypedChild");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
     }
 }
 
-class ACk_AutoTest_Aggro_GetTarget_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Aggro_Decay_ReducesThreatOverTime_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_GetTarget");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_Decay_ReducesThreatOverTime");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
     }
 }
 
-class ACk_AutoTest_Aggro_OwnerAddHappyPath_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Aggro_Forget_AfterForgetDuration_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_OwnerAddHappyPath");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_Forget_AfterForgetDuration");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
     }
 }
 
-class ACk_AutoTest_Aggro_RequestIncludeRestores_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Aggro_OwnerAddThreat_CreatesTarget_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_RequestIncludeRestores");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_OwnerAddThreat_CreatesTarget");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
     }
 }
 
-class ACk_AutoTest_Aggro_TryGetAggroByTargetFound_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Aggro_Perception_CountedTagBalance_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_TryGetAggroByTargetFound");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_Perception_CountedTagBalance");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
     }
 }
 
-class ACk_AutoTest_Aggro_TryGetAggroByTargetNotFound_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Aggro_Selection_HighestScoreBecomesActive_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_TryGetAggroByTargetNotFound");
-        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
-        ResolvedClass = Path.TryLoadClass();
-        return ResolvedClass;
-    }
-}
-
-class ACk_AutoTest_AggroOwner_Create_MakesDistinctChild_Actor : ACk_AutoTestRunner
-{
-    default _TimeoutSeconds = 3.0f;
-    UFUNCTION(BlueprintOverride)
-    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
-    {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_AggroOwner_Create_MakesDistinctChild");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_Selection_HighestScoreBecomesActive");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
