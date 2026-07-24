@@ -21,6 +21,7 @@
 #include "CkInventory/Inventory/CkInventory_Utils.h"
 #include "CkInventory/Inventory/DataOnly/CkInventory_DataOnly_Utils.h"
 #include "CkInventory/Item/CkItem_Definition.h"
+#include "CkInventory/Item/CkItem_Utils.h"
 
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
@@ -82,6 +83,19 @@ namespace
         if (ck::Is_NOT_Valid(Inventory)) { return 0; }
         OutResolved = true;
         return UCk_Utils_Inventory_UE::Get_NumItems(Inventory);
+    }
+
+    auto InvDOParity_AllItemsHaveRestoredParentInventory(AActor* InProbe) -> bool
+    {
+        const auto Inventory = InvDOParity_ResolveDataOnlyInventory(InProbe);
+        if (ck::Is_NOT_Valid(Inventory)) { return false; }
+
+        for (const auto Item : UCk_Utils_Inventory_UE::Get_Items(Inventory))
+        {
+            if (ck::Is_NOT_Valid(Item) || UCk_Utils_Item_UE::Get_ParentInventory(Item) != Inventory)
+            { return false; }
+        }
+        return true;
     }
 
     auto InvDOParity_FindShieldDef() -> const UCk_InventoryItem_Definition*
@@ -226,6 +240,8 @@ bool FCkSnapshot_InventoryDataOnlyParity_MPReload_Gate::RunTest(const FString& P
             TestTrue(TEXT("server: DataOnly inventory resolved post-reload (shape tag re-derived)"), ServerResolved);
             TestTrue(TEXT("server: item survived the snapshot round-trip (NumItems == 1)"),
                 ServerNumItems == InvDOParity_TargetItems);
+            TestTrue(TEXT("server: every restored DataOnly item points to its restored inventory"),
+                InvDOParity_AllItemsHaveRestoredParentInventory(InvDOParity_FindProbe(Server)));
 
             auto* Client = ck::auto_test::net::Get_ClientWorld(0);
             if (Client == nullptr) { AddError(TEXT("Stage 7: no post-travel client world")); return false; }
@@ -235,6 +251,8 @@ bool FCkSnapshot_InventoryDataOnlyParity_MPReload_Gate::RunTest(const FString& P
             TestTrue(TEXT("client: DataOnly inventory resolved post-reload"), ClientResolved);
             TestTrue(TEXT("client: item round-tripped (NumItems == 1, not the empty Construct default)"),
                 ClientNumItems == InvDOParity_TargetItems);
+            TestTrue(TEXT("client: every restored DataOnly item points to its restored inventory"),
+                InvDOParity_AllItemsHaveRestoredParentInventory(InvDOParity_FindProbe(Client)));
             return true;
         }),
         TEXT("Inventory(DataOnly) parity: server item survives save -> seamless reload -> client re-derivation")));

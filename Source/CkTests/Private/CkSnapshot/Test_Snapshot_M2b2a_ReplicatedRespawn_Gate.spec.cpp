@@ -20,6 +20,7 @@
 #include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
 
 #include "CkSnapshot/Subsystem/CkSnapshot_Subsystem.h"
+#include "CkSnapshot/SaveKey/CkSnapshot_SaveKey_Fragment.h"
 
 #include "CkTests/Net/CkAutoTest_NetSubject_M2bProbe_Replicated.h"
 #include "CkTests/Net/CkNetAutomation_Common.h"
@@ -30,6 +31,7 @@ namespace
     constexpr auto M2b2a_ExpectedFinal    = 42.5f; // the default subject script's base Health
     const auto     M2b2a_SlotName         = FName{TEXT("CkSnapshot_M2b2a_GateSlot")};
     const auto     M2b2a_SavedLocation    = FVector{100.0, 200.0, 300.0};
+    const auto     M2b2a_SaveKey          = FGuid{0xC0DEC0DE, 0x13572468, 0x24681357, 0xABCDEF01};
 
     static TWeakObjectPtr<UWorld> GM2b2a_PreTravelWorld;
 
@@ -141,6 +143,10 @@ bool FCkSnapshot_M2b2a_ReplicatedRespawn_Gate::RunTest(const FString& Parameters
             TestEqual(TEXT("pre-save Final == 42.5"),
                 static_cast<float>(UCk_Utils_FloatAttribute_UE::Get_FinalValue(Attr)), M2b2a_ExpectedFinal);
 
+            auto Entity = UCk_Utils_OwningActor_UE::TryGet_ActorEntityHandle(Probe);
+            if (ck::Is_NOT_Valid(Entity)) { AddError(TEXT("Stage 2: could not resolve probe entity pre-save")); return; }
+            Entity.AddOrReplace<FFragment_SaveKey>(M2b2a_SaveKey);
+
             GM2b2a_PreTravelWorld = InServer;
 
             auto* Sub = M2b2a_Subsystem(InServer);
@@ -182,6 +188,11 @@ bool FCkSnapshot_M2b2a_ReplicatedRespawn_Gate::RunTest(const FString& Parameters
 
             const auto Entity = UCk_Utils_OwningActor_UE::TryGet_ActorEntityHandle(Probe);
             TestTrue(TEXT("actor<->entity bridge resolves (re-bridge worked)"), ck::IsValid(Entity));
+
+            auto KeyedEntity = FCk_Handle{};
+            TestTrue(TEXT("runtime-restored SaveKey resolves before completion assertions"),
+                Sub->TryResolve_SaveKey(M2b2a_SaveKey, KeyedEntity));
+            TestTrue(TEXT("resolved SaveKey maps to the respawned bridge entity"), KeyedEntity == Entity);
 
             // THE M2b-2a differentiator: the replication driver was re-established without crashing.
             TestTrue(TEXT("replication driver re-established on the restored entity"),

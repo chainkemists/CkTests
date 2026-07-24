@@ -28,6 +28,7 @@
 #include "CkInventory/Inventory/CkInventory_Utils.h"
 #include "CkInventory/Inventory/Spatial/CkInventory_Spatial_Utils.h"
 #include "CkInventory/Item/CkItem_Definition.h"
+#include "CkInventory/Item/CkItem_Utils.h"
 
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
@@ -89,6 +90,20 @@ namespace
         if (ck::Is_NOT_Valid(InInventory)) { return {}; }
         const auto& Items = UCk_Utils_Inventory_UE::RecordOfInventoryItems_Utils::Get_ValidEntries(InInventory);
         return Items.Num() == 1 ? Items[0] : FCk_Handle_Item{};
+    }
+
+    auto InvSpParity_AllItemsHaveRestoredParentInventory(AActor* InProbe) -> bool
+    {
+        const auto Inventory = InvSpParity_ResolveSpatialInventory(InProbe);
+        if (ck::Is_NOT_Valid(Inventory)) { return false; }
+
+        const auto BaseInventory = FCk_Handle_Inventory{Inventory};
+        for (const auto Item : UCk_Utils_Inventory_UE::Get_Items(BaseInventory))
+        {
+            if (ck::Is_NOT_Valid(Item) || UCk_Utils_Item_UE::Get_ParentInventory(Item) != BaseInventory)
+            { return false; }
+        }
+        return true;
     }
 
     // True when the world's Spatial inventory holds exactly one item at the expected {coordinate, rotation}.
@@ -271,11 +286,15 @@ bool FCkSnapshot_InventorySpatialParity_MPReload_Gate::RunTest(const FString& Pa
             auto* Server = ck::auto_test::net::Get_ServerWorld();
             TestTrue(TEXT("server: Spatial item at {(1,2), Quarter} post-reload (grid re-composed + placement re-stamped)"),
                 InvSpParity_PlacementMatches(Server));
+            TestTrue(TEXT("server: every restored Spatial item points to its restored inventory"),
+                InvSpParity_AllItemsHaveRestoredParentInventory(InvSpParity_FindProbe(Server)));
 
             auto* Client = ck::auto_test::net::Get_ClientWorld(0);
             if (Client == nullptr) { AddError(TEXT("Stage 7: no post-travel client world")); return false; }
             TestTrue(TEXT("client: Spatial item at {(1,2), Quarter} post-reload (placement round-tripped + replicated)"),
                 InvSpParity_PlacementMatches(Client));
+            TestTrue(TEXT("client: every restored Spatial item points to its restored inventory"),
+                InvSpParity_AllItemsHaveRestoredParentInventory(InvSpParity_FindProbe(Client)));
             return true;
         }),
         TEXT("Inventory(Spatial) parity: item + placement survive save -> seamless reload -> client convergence")));
