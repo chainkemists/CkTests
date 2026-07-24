@@ -19,18 +19,19 @@ class UCk_AutoTest_Aggro_Forget_AfterForgetDuration : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto OwnerForget = FCk_Aggro_ForgetParams();
-        OwnerForget.Set_ForgetDuration(FCk_Time(0.5));
+        auto DefaultTargetThreat = FCk_AggroTarget_ThreatParams();
+        DefaultTargetThreat.Set_InitialThreat(10.0);
+        auto DefaultTargetForget = FCk_AggroTarget_ForgetParams();
+        DefaultTargetForget.Set_ForgetDuration(FCk_Time(0.5));
+        auto DefaultTargetParams = FCk_Fragment_AggroTarget_ParamsData();
+        DefaultTargetParams.Set_ThreatParams(DefaultTargetThreat);
+        DefaultTargetParams.Set_ForgetParams(DefaultTargetForget);
         auto OwnerParams = FCk_Fragment_Aggro_ParamsData();
-        OwnerParams.Set_ForgetParams(OwnerForget);
+        OwnerParams.Set_DefaultTargetParams(DefaultTargetParams);
         _Aggro = utils_aggro::Add(Owner, OwnerParams);
 
         auto Tracked = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        auto ThreatParams = FCk_AggroTarget_ThreatParams();
-        ThreatParams.Set_InitialThreatMode(ECk_Aggro_OverridePolicy::Override).Set_InitialThreat(10.0);
-        auto Params = FCk_Fragment_AggroTarget_ParamsData(Tracked);
-        Params.Set_ThreatParams(ThreatParams);
-        _Aggro.CreateTarget(Params);
+        _Aggro.CreateTarget(Tracked);
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
     }

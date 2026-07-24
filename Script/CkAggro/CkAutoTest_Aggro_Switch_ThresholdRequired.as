@@ -40,10 +40,11 @@ class UCk_AutoTest_Aggro_Switch_ThresholdRequired : UCk_AutoTest_Base
     private FCk_Handle_AggroTarget MakeTarget(FCk_Handle InTracked, float InThreat)
     {
         auto ThreatParams = FCk_AggroTarget_ThreatParams();
-        ThreatParams.Set_InitialThreatMode(ECk_Aggro_OverridePolicy::Override).Set_InitialThreat(InThreat);
-        auto Params = FCk_Fragment_AggroTarget_ParamsData(InTracked);
-        Params.Set_ThreatParams(ThreatParams);
-        return _Aggro.CreateTarget(Params);
+        ThreatParams.Set_InitialThreat(InThreat);
+        auto Overrides = FCk_AggroTarget_ParamOverrides();
+        Overrides.Set_OverrideThreat(true);
+        Overrides.Set_ThreatParams(ThreatParams);
+        return _Aggro.CreateTarget_WithParams(InTracked, Overrides);
     }
 
     UFUNCTION()

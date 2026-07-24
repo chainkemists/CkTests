@@ -20,7 +20,7 @@ class UCk_AutoTest_Aggro_Perception_CountedTagBalance : UCk_AutoTest_Base
         auto Aggro = utils_aggro::Add(Owner, FCk_Fragment_Aggro_ParamsData());
 
         auto Tracked = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Target = Aggro.CreateTarget(FCk_Fragment_AggroTarget_ParamsData(Tracked));
+        _Target = Aggro.CreateTarget(Tracked);
 
         _Target.Request_MarkPerceived(FCk_Request_AggroTarget_MarkPerceived());
         _Target.Request_MarkPerceived(FCk_Request_AggroTarget_MarkPerceived());
