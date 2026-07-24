@@ -8,8 +8,11 @@
 
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
 #include "CkEcs/Persistence/CkPersistenceHandlerRegistry.h"
+#include "CkEcs/Snapshot/CkSnapshot_RestoreMarker.h"
 #include "CkEcs/World/CkEcsWorld.h"
 #include "CkPhysics/Velocity/CkVelocity_Fragment.h"
+#include "CkStateMachine/Net/CkStateMachine_RepData.h"
+#include "CkStateMachine/StateMachine/CkStateMachine_Fragment.h"
 
 namespace
 {
@@ -22,6 +25,47 @@ namespace
         auto Copy = FInstancedStruct{InPayload};
         Copy.Serialize(Proxy);
         return Bytes;
+    }
+
+    auto AddStateMachineForProduce(
+        ck::FEcsWorld& InWorld,
+        const ECk_Sm_ReplicationModel InReplicationModel,
+        const bool bSaveTransient) -> FCk_Handle
+    {
+        auto Entity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(InWorld.Get_Registry());
+        auto Params = FCk_Fragment_StateMachine_ParamsData{};
+        Params.Set_ReplicationModel(InReplicationModel);
+        Entity.Add<ck::FFragment_Sm_Params>(Params);
+        Entity.Add<ck::FFragment_Sm_Current>();
+        if (bSaveTransient)
+        { Entity.Add<ck::FTag_Snapshot_SaveTransient>(); }
+        return Entity;
+    }
+
+    auto AssertStateMachineProducePolicy(
+        FAutomationTestBase& InTest,
+        const UScriptStruct* InPayloadType,
+        const ECk_Sm_ReplicationModel InReplicationModel,
+        const TCHAR* InModelName) -> bool
+    {
+        const auto* Handler = FCk_PersistenceHandlerRegistry::Find(InPayloadType);
+        if (NOT InTest.TestNotNull(FString::Printf(TEXT("%s save handler registered"), InModelName), Handler)
+            || NOT InTest.TestTrue(FString::Printf(TEXT("%s handler exposes Produce"), InModelName),
+                Handler != nullptr && static_cast<bool>(Handler->Produce)))
+        { return false; }
+
+        auto RootWorld = ck::FEcsWorld{};
+        auto Root = AddStateMachineForProduce(RootWorld, InReplicationModel, /*bSaveTransient=*/false);
+        const auto RootPayload = Handler->Produce(Root);
+        InTest.TestTrue(FString::Printf(TEXT("ordinary root %s state machine produces a save payload"), InModelName),
+            RootPayload.IsSet());
+
+        auto DerivedWorld = ck::FEcsWorld{};
+        auto Derived = AddStateMachineForProduce(DerivedWorld, InReplicationModel, /*bSaveTransient=*/true);
+        const auto DerivedPayload = Handler->Produce(Derived);
+        InTest.TestFalse(FString::Printf(TEXT("save-transient %s state machine produces no save payload"), InModelName),
+            DerivedPayload.IsSet());
+        return true;
     }
 }
 
@@ -64,6 +108,32 @@ bool FCkSnapshot_V3_ProduceSensitivity::RunTest(const FString& Parameters)
     TestTrue(TEXT("mutated payload contains the new velocity"),
         Changed.GetValue().Get<FCk_RepData_Velocity>().Value.Equals(Mutated));
     return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkSnapshot_V3_SaveTransientStateMachine_WithHistory_Produce,
+    "Ck.Snapshot.V3.SaveTransientStateMachine.WithHistory.Produce",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkSnapshot_V3_SaveTransientStateMachine_WithHistory_Produce::RunTest(const FString& Parameters)
+{
+    return AssertStateMachineProducePolicy(*this,
+        FCk_RepData_StateMachine_WithHistory::StaticStruct(),
+        ECk_Sm_ReplicationModel::WithHistory,
+        TEXT("WithHistory"));
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkSnapshot_V3_SaveTransientStateMachine_NoHistory_Produce,
+    "Ck.Snapshot.V3.SaveTransientStateMachine.NoHistory.Produce",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkSnapshot_V3_SaveTransientStateMachine_NoHistory_Produce::RunTest(const FString& Parameters)
+{
+    return AssertStateMachineProducePolicy(*this,
+        FCk_RepData_StateMachine_NoHistory::StaticStruct(),
+        ECk_Sm_ReplicationModel::WithoutHistory,
+        TEXT("NoHistory"));
 }
 
 #endif // WITH_DEV_AUTOMATION_TESTS

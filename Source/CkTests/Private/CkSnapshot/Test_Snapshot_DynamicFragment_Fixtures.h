@@ -150,6 +150,17 @@ struct FCk_Test_HydrationPayloadWithObject
     TObjectPtr<UObject> Object;
 };
 
+// Explicit runtime-only dynamic state. The dynamic persistence wrapper must omit it at capture and ignore it when
+// hydrating an older payload that still contains the type.
+USTRUCT(meta=(CkSnapshotTransient))
+struct FCk_Test_DynFrag_SnapshotTransient
+{
+    GENERATED_BODY()
+
+    UPROPERTY(SaveGame)
+    int32 RequestCount = 0;
+};
+
 USTRUCT()
 struct FCk_Test_UntracedSafeObjectRefs
 {

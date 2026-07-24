@@ -96,7 +96,7 @@ bool
     auto TargetRebuilt = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
     const auto TargetSavedId = static_cast<uint32>(Target.Get_Entity().Get_ID());
 
-    // Two dynamic fragments on the owner: one carrying a cross-entity handle (+ a handle array), one pure data.
+    // Two durable dynamic fragments plus one explicitly runtime-only request fragment.
     {
         auto WithHandle = FCk_Test_DynFrag_WithHandle{};
         WithHandle.Marker      = 7;
@@ -108,6 +108,11 @@ bool
         PureData.Count = 3;
         PureData.Label = TEXT("hello");
         UCk_Utils_DynamicFragment_UE::Add_Fragment(Owner, FInstancedStruct::Make(PureData), ECk_Replication::DoesNotReplicate);
+
+        auto RuntimeOnly = FCk_Test_DynFrag_SnapshotTransient{};
+        RuntimeOnly.RequestCount = 11;
+        UCk_Utils_DynamicFragment_UE::Add_Fragment(
+            Owner, FInstancedStruct::Make(RuntimeOnly), ECk_Replication::DoesNotReplicate);
     }
 
     // Mutate at runtime: bump Marker in place, proving the CURRENT value is captured (not the add-time value).
@@ -131,6 +136,11 @@ bool
     {
         const auto& SaveData = Produced.GetValue().Get<FCk_SaveData_DynamicFragments>();
         TestEqual(TEXT("Produce captured BOTH dynamic fragments"), SaveData.Get_Fragments().Num(), 2);
+        TestFalse(TEXT("Produce excluded CkSnapshotTransient runtime state"), SaveData.Get_Fragments().ContainsByPredicate(
+            [](const FInstancedStruct& InEntry)
+            {
+                return InEntry.GetScriptStruct() == FCk_Test_DynFrag_SnapshotTransient::StaticStruct();
+            }));
     }
 
     const auto Blob = ck_test_dynfrag_roundtrip::SerializeBlob_Save(Produced.GetValue());
@@ -157,6 +167,8 @@ bool
         UCk_Utils_DynamicFragment_UE::Has_Fragment(NewOwner, FCk_Test_DynFrag_WithHandle::StaticStruct()));
     TestTrue(TEXT("PureData fragment restored on the new owner"),
         UCk_Utils_DynamicFragment_UE::Has_Fragment(NewOwner, FCk_Test_DynFrag_PureData::StaticStruct()));
+    TestFalse(TEXT("snapshot-transient request fragment was not restored"),
+        UCk_Utils_DynamicFragment_UE::Has_Fragment(NewOwner, FCk_Test_DynFrag_SnapshotTransient::StaticStruct()));
 
     const auto& RestoredWithHandle = UCk_Utils_DynamicFragment_UE::Get_Fragment_TypeUnsafe(
         NewOwner, FCk_Test_DynFrag_WithHandle::StaticStruct()).Get<FCk_Test_DynFrag_WithHandle>();
@@ -232,6 +244,48 @@ bool
     const auto& RestoredPure = UCk_Utils_DynamicFragment_UE::Get_Fragment_TypeUnsafe(
         Owner, FCk_Test_DynFrag_PureData::StaticStruct()).Get<FCk_Test_DynFrag_PureData>();
     TestEqual(TEXT("surviving fragment data intact"), RestoredPure.Count, 9);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_V3_DynamicFragment_HydrateSnapshotTransientSkip_Test,
+    "Ck.Snapshot.V3.DynamicFragment.HydrateSnapshotTransientSkip",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_V3_DynamicFragment_HydrateSnapshotTransientSkip_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& CkRegistry = EcsWorld.Get_Registry();
+
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
+    if (NOT TestNotNull(TEXT("G2 dynamic-fragments handler is registered"), Handler))
+    { return false; }
+
+    auto Durable = FCk_Test_DynFrag_PureData{};
+    Durable.Count = 12;
+    Durable.Label = TEXT("durable");
+    auto RuntimeOnly = FCk_Test_DynFrag_SnapshotTransient{};
+    RuntimeOnly.RequestCount = 99;
+
+    auto SaveData = FCk_SaveData_DynamicFragments{};
+    SaveData.Set_Fragments({FInstancedStruct::Make(RuntimeOnly), FInstancedStruct::Make(Durable)});
+
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    auto OwnerRef = Owner;
+    const auto ApplyResult = Handler->HydrationApply(OwnerRef, FInstancedStruct::Make(SaveData), {});
+
+    TestEqual(TEXT("legacy wrapper applies its durable entries"),
+        static_cast<int32>(ApplyResult), static_cast<int32>(ECk_Persistence_ApplyResult::Applied));
+    TestFalse(TEXT("legacy snapshot-transient entry is ignored"),
+        UCk_Utils_DynamicFragment_UE::Has_Fragment(Owner, FCk_Test_DynFrag_SnapshotTransient::StaticStruct()));
+    TestTrue(TEXT("durable sibling still applies"),
+        UCk_Utils_DynamicFragment_UE::Has_Fragment(Owner, FCk_Test_DynFrag_PureData::StaticStruct()));
 
     return true;
 }

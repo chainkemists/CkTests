@@ -16,6 +16,8 @@
 #include "CkEcs/EntityScript/CkEntityScript_SpawnRecipe.h"
 #include "CkEcs/Snapshot/CkSnapshot_Context.h"
 #include "CkEcs/Snapshot/CkSnapshot_HandleWalk.h"
+#include "CkEcs/Snapshot/CkSnapshot_RestoreMarker.h"
+#include "CkEcsExt/OwningActor/CkActorSpawnIntent_Fragment.h"
 
 #include "CkLabel/CkLabel_Utils.h"
 #include "CkPhysics/Velocity/CkVelocity_Utils.h"
@@ -42,6 +44,8 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Test_V3_ConstructLabel, "Test.V3.ConstructLabel");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Test_V3_PayloadLabel, "Test.V3.PayloadLabel");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Test_V3_ReconstructOnlyLabel, "Test.V3.ReconstructOnlyLabel");
 
 namespace ck_test_snapshot_v3
 {
@@ -101,12 +105,41 @@ bool
         FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{1.0, 0.0, 0.0}},
         ECk_Replication::DoesNotReplicate);
 
+    // A normal labeled child still persists its payload.
+    auto PayloadEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    PayloadEntity.Add<ck::FTag_ConstructSpawned>();
+    UCk_Utils_GameplayLabel_UE::Add(PayloadEntity, TAG_Test_V3_PayloadLabel);
+    UCk_Utils_Velocity_UE::Add(PayloadEntity,
+        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{2.0, 0.0, 0.0}},
+        ECk_Replication::DoesNotReplicate);
+
+    // A labeled payload-bearing child whose feature explicitly declares reconstruct/reset-only state. It must not
+    // become a ConstructSpawned row or affect the ordinary unlabeled-payload audit.
+    auto ReconstructOnlyEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    ReconstructOnlyEntity.Add<ck::FTag_ConstructSpawned>();
+    ReconstructOnlyEntity.Add<ck::FTag_Snapshot_ReconstructOnly>();
+    UCk_Utils_GameplayLabel_UE::Add(ReconstructOnlyEntity, TAG_Test_V3_ReconstructOnlyLabel);
+    UCk_Utils_Velocity_UE::Add(ReconstructOnlyEntity,
+        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{3.0, 0.0, 0.0}},
+        ECk_Replication::DoesNotReplicate);
+
     // RuntimeSpawned — a retained recipe.
     auto RuntimeEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
     {
         auto* Holder = NewObject<UCk_EntityScript_SpawnRecipe_UE>(GetTransientPackage());
         Holder->Populate(UCk_EntityScript_UE::StaticClass(), FInstancedStruct{});
         RuntimeEntity.Add<ck::FFragment_SpawnRecipe>(TStrongObjectPtr<UCk_EntityScript_SpawnRecipe_UE>{Holder});
+    }
+
+    // RuntimeSpawned with stable identity — explicit actor respawn intent wins over SaveKey provenance.
+    const auto RespawnKey = FGuid::NewGuid();
+    auto KeyedRuntimeEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    KeyedRuntimeEntity.Add<FFragment_SaveKey>(RespawnKey);
+    KeyedRuntimeEntity.Add<FFragment_ActorSpawnIntent>(AActor::StaticClass()->GetPathName());
+    {
+        auto* Holder = NewObject<UCk_EntityScript_SpawnRecipe_UE>(GetTransientPackage());
+        Holder->Populate(UCk_EntityScript_UE::StaticClass(), FInstancedStruct{});
+        KeyedRuntimeEntity.Add<ck::FFragment_SpawnRecipe>(TStrongObjectPtr<UCk_EntityScript_SpawnRecipe_UE>{Holder});
     }
 
     auto ByteWriter = FBufferArchive{};
@@ -116,14 +149,42 @@ bool
     TestEqual(TEXT("v3 capture succeeded"), static_cast<int32>(Result), static_cast<int32>(ECk_SnapshotResult::Success));
 
     TestEqual(TEXT("One EngineOwned entity"),      Header.Get_EngineOwnedCount(),      1);
-    TestEqual(TEXT("One ConstructSpawned entity"), Header.Get_ConstructSpawnedCount(), 1);
-    TestEqual(TEXT("One RuntimeSpawned entity"),   Header.Get_RuntimeSpawnedCount(),   1);
-    TestEqual(TEXT("Three persisted entities"),    Header.Get_EntityCount(),           3);
+    TestEqual(TEXT("Two ConstructSpawned entities"), Header.Get_ConstructSpawnedCount(), 2);
+    TestEqual(TEXT("Two RuntimeSpawned entities"),  Header.Get_RuntimeSpawnedCount(),   2);
+    TestEqual(TEXT("Five persisted entities"),      Header.Get_EntityCount(),           5);
+    TestEqual(TEXT("Only normal payload-bearing child persisted a payload"), Header.Get_PayloadCount(), 1);
     TestEqual(TEXT("One unlabeled ConstructSpawned skipped"),
         Header.Get_UnlabeledConstructSkippedCount(), 1);
     TestEqual(TEXT("Unlabeled child with a payload raised one audit"),
         Header.Get_UnlabeledWithPayloadAuditCount(), 1);
     TestTrue(TEXT("v3 stream is non-empty"), ByteWriter.Num() > 0);
+
+    auto Reader = FMemoryReader{ByteWriter, /*bIsPersistent=*/true};
+    auto Tables = FCk_Snapshot_V3_Tables{};
+    FCk_Snapshot_V3_Tables::StaticStruct()->SerializeItem(Reader, &Tables, /*Defaults=*/nullptr);
+
+    const FCk_Snapshot_V3_EntityEntry* KeyedRuntimeEntry = nullptr;
+    for (const auto& Entry : Tables.Get_Entities())
+    {
+        if (Entry.Get_SaveKey() == RespawnKey)
+        { KeyedRuntimeEntry = &Entry; break; }
+    }
+    if (NOT TestNotNull(TEXT("Found the keyed runtime entry"), KeyedRuntimeEntry))
+    { return false; }
+
+    TestEqual(TEXT("Keyed actor is RuntimeSpawned"), KeyedRuntimeEntry->Get_Provenance(),
+        ECk_Snapshot_V3_Provenance::RuntimeSpawned);
+    TestEqual(TEXT("Runtime entry retained stable SaveKey"), KeyedRuntimeEntry->Get_SaveKey(), RespawnKey);
+    TestEqual(TEXT("Runtime entry retained actor class"), KeyedRuntimeEntry->Get_ActorClassPath(),
+        AActor::StaticClass()->GetPathName());
+    TestEqual(TEXT("Runtime entry retained script class"), KeyedRuntimeEntry->Get_ScriptClassPath(),
+        UCk_EntityScript_UE::StaticClass()->GetPathName());
+
+    const auto ReconstructOnlyLabel = TAG_Test_V3_ReconstructOnlyLabel.GetTag().ToString();
+    const auto bReconstructOnlyPersisted = Tables.Get_Entities().ContainsByPredicate(
+        [&ReconstructOnlyLabel](const FCk_Snapshot_V3_EntityEntry& Entry)
+        { return Entry.Get_Label() == ReconstructOnlyLabel; });
+    TestFalse(TEXT("Reconstruct-only child omitted without a row or payload"), bReconstructOnlyPersisted);
 
     return true;
 }
