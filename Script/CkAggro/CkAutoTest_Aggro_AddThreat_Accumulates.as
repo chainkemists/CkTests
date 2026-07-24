@@ -21,10 +21,11 @@ class UCk_AutoTest_Aggro_AddThreat_Accumulates : UCk_AutoTest_Base
         auto Tracked = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto ThreatParams = FCk_AggroTarget_ThreatParams();
-        ThreatParams.Set_InitialThreatMode(ECk_Aggro_OverridePolicy::Override).Set_InitialThreat(0.0);
-        auto Params = FCk_Fragment_AggroTarget_ParamsData(Tracked);
-        Params.Set_ThreatParams(ThreatParams);
-        _Target = Aggro.CreateTarget(Params);
+        ThreatParams.Set_InitialThreat(0.0);
+        auto Overrides = FCk_AggroTarget_ParamOverrides();
+        Overrides.Set_OverrideThreat(true);
+        Overrides.Set_ThreatParams(ThreatParams);
+        _Target = Aggro.CreateTarget_WithParams(Tracked, Overrides);
 
         _Target.Request_AddThreat(5.0);
         _Target.Request_AddThreat(3.0);

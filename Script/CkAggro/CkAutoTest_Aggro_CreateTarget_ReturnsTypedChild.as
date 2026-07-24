@@ -22,8 +22,7 @@ class UCk_AutoTest_Aggro_CreateTarget_ReturnsTypedChild : UCk_AutoTest_Base
 
         auto TrackedEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto TargetParams = FCk_Fragment_AggroTarget_ParamsData(TrackedEntity);
-        auto Target       = Aggro.CreateTarget(TargetParams);
+        auto Target = Aggro.CreateTarget(TrackedEntity);
 
         Assert_True(ck::IsValid(Target),
             "CreateTarget should return a valid FCk_Handle_AggroTarget child");

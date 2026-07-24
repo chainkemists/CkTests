@@ -35,10 +35,11 @@ class UCk_AutoTest_Aggro_ScaleSmoke : UCk_AutoTest_Base
                     ECk_Replication::DoesNotReplicate);
 
                 auto ThreatParams = FCk_AggroTarget_ThreatParams();
-                ThreatParams.Set_InitialThreatMode(ECk_Aggro_OverridePolicy::Override).Set_InitialThreat(10.0 - t);
-                auto Params = FCk_Fragment_AggroTarget_ParamsData(Tracked);
-                Params.Set_ThreatParams(ThreatParams);
-                _Sample.CreateTarget(Params);
+                ThreatParams.Set_InitialThreat(10.0 - t);
+                auto Overrides = FCk_AggroTarget_ParamOverrides();
+                Overrides.Set_OverrideThreat(true);
+                Overrides.Set_ThreatParams(ThreatParams);
+                _Sample.CreateTarget_WithParams(Tracked, Overrides);
             }
         }
 
