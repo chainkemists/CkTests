@@ -94,8 +94,12 @@ private:
     bool _IsServeModeProcess = false;
 
     // Edge-detect the processor's busy flag so the editor-presence effects (background-throttle suppression, the
-    // stronger title suffix) fire once per run rather than every 0.5s tick.
+    // stronger title suffix) fire once per run rather than on every tick.
     bool _WasBusy = false;
+
+    // The ticker fires every frame (an active run must pump the automation controller at frame rate); this throttles
+    // the IDLE work — claim attempts, request scans, server.json heartbeat — back to the ~0.5s cadence.
+    float _IdleAccumulatorSeconds = 0.0f;
 
     double _StartSeconds        = 0.0;
     double _LastActivitySeconds = 0.0;
