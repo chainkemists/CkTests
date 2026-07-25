@@ -12,8 +12,10 @@
 #include <Dom/JsonValue.h>
 #include <HAL/FileManager.h>
 #include <HAL/PlatformProcess.h>
+#include <Misc/CommandLine.h>
 #include <Misc/DateTime.h>
 #include <Misc/FileHelper.h>
+#include <Misc/Parse.h>
 #include <Misc/Paths.h>
 #include <Policies/CondensedJsonPrintPolicy.h>
 #include <Serialization/JsonReader.h>
@@ -203,6 +205,13 @@ auto
     Status->SetStringField(TEXT("requestsDir"), _RequestsDir);
     Status->SetStringField(TEXT("resultsDir"), _ResultsDir);
     Status->SetStringField(TEXT("progressDir"), _ProgressDir);
+    // serverKind lets the driver tell a headless WARM SERVER (launched with -CkTestBridgeServe, no window, no
+    // frame-rate throttle) apart from a LIVE EDITOR (the user's own interactive session serving under
+    // AutoTestsMapOnly). They behave very differently: an unfocused interactive editor throttles below the
+    // automation controller's interactive-frame-rate gate and aborts the run, so a driver should only auto-route to
+    // a warm server and require an explicit opt-in for an editor. Derived from the command line — a process-wide fact.
+    Status->SetStringField(TEXT("serverKind"),
+        FParse::Param(FCommandLine::Get(), TEXT("CkTestBridgeServe")) ? TEXT("warmServer") : TEXT("liveEditor"));
     Status->SetBoolField(TEXT("busy"), InBusy);
     if (NOT InCurrentRequestId.IsEmpty())
     { Status->SetStringField(TEXT("currentRequestId"), InCurrentRequestId); }
