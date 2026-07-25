@@ -15,11 +15,15 @@
 //
 // Direct-attach Add is synchronous (immediate fragment add), so no settle
 // frames are needed — everything is asserted inline in DoBeginPlay.
+//
+// The owner is a POI: Add/Create/TryGet take FCk_Handle_Poi, so the owner needs
+// the Transform + Poi composition even though nothing here projects.
 //============================================================================
 
 class UCk_AutoTest_PoiDisplayDefinition_AddDirectAttach : UCk_AutoTest_Base
 {
-    private FCk_Handle _Owner;
+    private FCk_Handle _SelfHandle;
+    private FCk_Handle_Poi _Owner;
     private FCk_Handle_PoiDisplayDefinition _Def;
     private FGameplayTag _Consumer;
 
@@ -27,8 +31,13 @@ class UCk_AutoTest_PoiDisplayDefinition_AddDirectAttach : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto LocalHandle = InHandle;
-        _Owner = LocalHandle;
+        _SelfHandle = InHandle;
+
+        auto OwnerEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
+        OwnerEntity.Request_OverrideToSelf();
+        utils_transform::Add(OwnerEntity, FTransform(), ECk_Replication::DoesNotReplicate);
+        _Owner = utils_poi::Add(OwnerEntity, FCk_Fragment_Poi_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark")));
 
         _Consumer = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.TestCompass");
 

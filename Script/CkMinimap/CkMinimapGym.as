@@ -69,14 +69,14 @@ class ACk_MinimapGym_Pawn : ACk_Gym_Base_Pawn
         if (utils_poi::Has(_PawnEntity))
         { return; }
 
-        utils_poi::Add(_PawnEntity,
+        auto PawnPoi = utils_poi::Add(_PawnEntity,
             FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Player")));
 
         // Direct-attach display definition (Add, not Create — single consumer: the minimap).
         auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Minimap"));
         DisplayParams.Set_Priority(100);
-        utils_poi_display_definition::Add(_PawnEntity, DisplayParams);
+        utils_poi_display_definition::Add(PawnPoi, DisplayParams);
 
         utils_visible_range::Add(_PawnEntity, FCk_Fragment_VisibleRange_ParamsData(0.0));
     }
@@ -306,12 +306,11 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
     // consumer (CkPoi v2). Compose one direct-attach definition on the POI's own entity.
     private void DoAddMinimapDisplay(FCk_Handle_Poi InPoi, int32 InPriority, ECk_Poi_OffscreenPolicy InOffscreenPolicy)
     {
-        FCk_Handle Host = InPoi;
         auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Minimap"));
         DisplayParams.Set_Priority(InPriority);
         DisplayParams.Set_OffscreenPolicy(InOffscreenPolicy);
-        utils_poi_display_definition::Add(Host, DisplayParams);
+        utils_poi_display_definition::Add(InPoi, DisplayParams);
     }
 
     private FLinearColor DoGet_CategoryColor(FName InCategoryName)

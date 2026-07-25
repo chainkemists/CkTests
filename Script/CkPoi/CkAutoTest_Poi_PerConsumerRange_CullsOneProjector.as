@@ -63,11 +63,11 @@ class UCk_AutoTest_Poi_PerConsumerRange_CullsOneProjector : UCk_AutoTest_Base
         // Two consumer-keyed display-definition children (native consumer tags).
         auto CompassDd = FCk_Fragment_PoiDisplayDefinition_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Compass"));
-        auto CompassChild = utils_poi_display_definition::Create(PoiOwner, CompassDd);
+        auto CompassChild = utils_poi_display_definition::Create(_Poi, CompassDd);
 
         auto MinimapDd = FCk_Fragment_PoiDisplayDefinition_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Minimap"));
-        utils_poi_display_definition::Create(PoiOwner, MinimapDd);
+        utils_poi_display_definition::Create(_Poi, MinimapDd);
 
         // VisibleRange on the COMPASS child only: MaxRange 1000 < 2000 distance, evaluate every tick.
         auto VrParams = FCk_Fragment_VisibleRange_ParamsData(1000.0);
