@@ -60,7 +60,7 @@ private:
     // NOTE: a UHT metadata value must be ONE string literal — adjacent-literal concatenation is a parse error here.
     UPROPERTY(Config, EditAnywhere, Category = "Test Bridge",
               meta = (AllowPrivateAccess = true,
-                      ToolTip = "Whether THIS editor may be borrowed for test runs triggered by an external driver (the UnrealToolbox). Off (default): never serve - runs go to a headless warm server or a fresh boot and leave this session alone. Allow: donate this editor - your open level WILL be replaced (automation loads each test's map, and nothing restores yours) and PIE will run in your window; only worth it if you cannot spare the RAM for a second editor process."))
+                      ToolTip = "Whether THIS editor may be borrowed for test runs triggered by an external driver (the UnrealToolbox). Off (default): never serve - runs go to a headless warm server or a fresh boot and leave this session alone. Allow: donate this editor - automation loads a map per test and nothing restores yours, so when the run ends you are LEFT SITTING ON THE LAST TEST MAP and must reopen your own level yourself; PIE also runs in your window while the suite executes. Your unsaved work is never at risk (a dirty world makes the run refuse outright) - what you lose is your place. Only worth it if you cannot spare the RAM for a second editor process."))
     ECk_TestBridge_ServeMode _ServeMode = ECk_TestBridge_ServeMode::Off;
 
 public:
