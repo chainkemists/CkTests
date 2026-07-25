@@ -84,8 +84,12 @@ auto
     _StartSeconds        = FPlatformTime::Seconds();
     _LastActivitySeconds = _StartSeconds;
 
+    // Register at EVERY FRAME (0.0f), not PollSeconds: an in-flight run must pump the automation controller at frame
+    // rate or its readiness gate — which measures how often IT is polled — reads our poll cadence as the frame rate
+    // and never opens. OnTick rate-limits the idle work back to PollSeconds itself.
+    constexpr auto EveryFrame = 0.0f;
     _TickerHandle = FTSTicker::GetCoreTicker().AddTicker(
-        FTickerDelegate::CreateUObject(this, &UCkTestBridge_Subsystem::OnTick), PollSeconds);
+        FTickerDelegate::CreateUObject(this, &UCkTestBridge_Subsystem::OnTick), EveryFrame);
 
     ck::tests_bridge::Display(
         TEXT("[Bridge] armed ({}) — polling for test requests every 500ms"),
@@ -126,6 +130,26 @@ auto
         float InDeltaTime)
     -> bool
 {
+    using namespace ck_test_bridge_subsystem;
+
+    // The ticker now fires EVERY FRAME, but the idle work (claim attempts, request-dir scans, server.json heartbeat)
+    // only needs the historical ~0.5s cadence — so rate-limit it here and let an ACTIVE RUN pump every frame.
+    //
+    // Why per-frame matters, and it is not an optimisation: the automation controller's readiness gate
+    // (FWaitForInteractiveFrameRate, reached via IAutomationControllerManager::IsReadyForTests) measures the rate at
+    // which IT IS CALLED — `AddTickRateSample(TimeNow - LastTickTime)` in AutomationCommon.cpp. Polling it at 2 Hz
+    // therefore reports "2 FPS" against its 10 FPS bar no matter how fast the editor is actually running, so the gate
+    // could NEVER open on merit; runs died at our ready-wait, and the only reason one ever succeeded was the engine's
+    // own 600s MaxWaitTime expiring and returning true anyway ("Game did not reach 10.00 FPS ... Giving up.").
+    // The engine's equivalent path, FAutomationExecCmd, ticks every frame — which is why it never had this problem.
+    _IdleAccumulatorSeconds += InDeltaTime;
+    const auto IsRunActive  = _IsServing && _Processor.Get_IsBusy();
+    const auto DoIdleWork   = _IdleAccumulatorSeconds >= PollSeconds;
+    if (NOT IsRunActive && NOT DoIdleWork)
+    { return true; }
+    if (DoIdleWork)
+    { _IdleAccumulatorSeconds = 0.0f; }
+
     if (NOT _IsServing)
     { DoTryClaimServing(); }
 
@@ -134,8 +158,10 @@ auto
         const auto PollResult = _Processor.ProcessPending(InDeltaTime);
 
         // Track busy transitions so the user's editor reflects reality: suppress the background throttle only WHILE a
-        // run is in flight (an unfocused editor otherwise never reaches the automation frame-rate gate), and show the
-        // stronger title suffix for the same window. Both are no-ops in a headless warm server.
+        // run is in flight, and show the stronger title suffix for the same window. Both are no-ops in a headless warm
+        // server. (The throttle only matters for hosts that leave `bThrottleCPUWhenNotForeground` enabled — this
+        // project already disables it in Config/DefaultEditorSettings.ini — and note it cannot help a MINIMIZED
+        // editor, which the engine throttles via AreAllWindowsHidden() regardless of the setting.)
         if (const auto IsBusyNow = _Processor.Get_IsBusy();
             IsBusyNow != _WasBusy)
         {
