@@ -46,6 +46,8 @@
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Test_V3_ConstructLabel, "Test.V3.ConstructLabel");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Test_V3_PayloadLabel, "Test.V3.PayloadLabel");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Test_V3_ReconstructOnlyLabel, "Test.V3.ReconstructOnlyLabel");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Test_V3_ReconstructOnlyDescendantLabel, "Test.V3.ReconstructOnlyDescendantLabel");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Test_V3_SaveTransientDescendantLabel, "Test.V3.SaveTransientDescendantLabel");
 
 namespace ck_test_snapshot_v3
 {
@@ -185,6 +187,61 @@ bool
         [&ReconstructOnlyLabel](const FCk_Snapshot_V3_EntityEntry& Entry)
         { return Entry.Get_Label() == ReconstructOnlyLabel; });
     TestFalse(TEXT("Reconstruct-only child omitted without a row or payload"), bReconstructOnlyPersisted);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_V3_CaptureAncestorExclusion_Test,
+    "Ck.Snapshot.V3.CaptureAncestorExclusion",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_V3_CaptureAncestorExclusion_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& CkRegistry = EcsWorld.Get_Registry();
+    const auto RegistryHandle = CkRegistry.Get_RegistryHandle();
+
+    auto* RawRegistry = ck::registry_table::TryResolve(RegistryHandle);
+    if (NOT TestNotNull(TEXT("Resolved raw entt registry"), RawRegistry))
+    { return false; }
+
+    // A reconstruct-only owner intentionally omits its whole construction subtree, including a named child that
+    // would otherwise be ConstructSpawned and carries a hydration payload. The child also carries SaveTransient to
+    // pin the precedence rule: the enclosing reconstruct-only contract suppresses the false data-loss audit.
+    auto ReconstructOnlyOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    ReconstructOnlyOwner.Add<ck::FTag_Snapshot_ReconstructOnly>();
+    auto ReconstructOnlyChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(ReconstructOnlyOwner, {});
+    ReconstructOnlyChild.Add<ck::FTag_ConstructSpawned>();
+    ReconstructOnlyChild.Add<ck::FTag_Snapshot_SaveTransient>();
+    UCk_Utils_GameplayLabel_UE::Add(ReconstructOnlyChild, TAG_Test_V3_ReconstructOnlyDescendantLabel);
+    UCk_Utils_Velocity_UE::Add(ReconstructOnlyChild,
+        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{4.0, 0.0, 0.0}},
+        ECk_Replication::DoesNotReplicate);
+
+    // SaveTransient also owns its descendants: the named, payload-bearing child must be omitted rather than become
+    // an orphaned ConstructSpawned row. The warning is intentional and inspected in the focused test log.
+    auto SaveTransientOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    SaveTransientOwner.Add<ck::FTag_Snapshot_SaveTransient>();
+    auto SaveTransientChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(SaveTransientOwner, {});
+    SaveTransientChild.Add<ck::FTag_ConstructSpawned>();
+    UCk_Utils_GameplayLabel_UE::Add(SaveTransientChild, TAG_Test_V3_SaveTransientDescendantLabel);
+    UCk_Utils_Velocity_UE::Add(SaveTransientChild,
+        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{5.0, 0.0, 0.0}},
+        ECk_Replication::DoesNotReplicate);
+
+    auto ByteWriter = FBufferArchive{};
+    auto Header = FCk_Snapshot_HeaderV3{};
+    const auto Result = ck::snapshot::Run_CaptureV3_Registry(*RawRegistry, RegistryHandle, /*World=*/nullptr, ByteWriter, Header);
+
+    TestEqual(TEXT("v3 capture succeeded"), static_cast<int32>(Result), static_cast<int32>(ECk_SnapshotResult::Success));
+    TestEqual(TEXT("Ancestor-excluded subtrees produced no rows"), Header.Get_EntityCount(), 0);
+    TestEqual(TEXT("Ancestor-excluded subtrees produced no payloads"), Header.Get_PayloadCount(), 0);
 
     return true;
 }
