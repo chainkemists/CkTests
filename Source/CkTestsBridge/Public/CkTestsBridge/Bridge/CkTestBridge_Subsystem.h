@@ -93,6 +93,10 @@ private:
     // and self-quit on idle / wall cap).
     bool _IsServeModeProcess = false;
 
+    // Edge-detect the processor's busy flag so the editor-presence effects (background-throttle suppression, the
+    // stronger title suffix) fire once per run rather than every 0.5s tick.
+    bool _WasBusy = false;
+
     double _StartSeconds        = 0.0;
     double _LastActivitySeconds = 0.0;
 };
