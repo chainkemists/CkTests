@@ -15,11 +15,13 @@ bridge. Amortizes the editor-boot cost across many test batches.
 > plain `--test` declines to route into it at all. The `// [VERIFY]` tags below are now runtime-semantic notes
 > rather than compile risks.
 >
-> **Pending human verification (added 2026-07-25, compiles + links, not yet observed in a live session):** the
-> `ServeMode` default flip to `Off` (an interactive editor should no longer claim the bridge unless opted in), and
-> both `CkTestBridge_EditorPresence` effects — background-throttle suppression (an UNFOCUSED editor should now
-> actually run a routed suite instead of aborting) and the window-title indicator. Also unconfirmed: that the
-> throttle suppression leaves the user's `EditorPerProjectUserSettings.ini` unmodified in the normal path.
+> **Verified in a live interactive session (2026-07-25):** the `ServeMode` default flip to `Off` (the editor no
+> longer claims the bridge until opted in), the window-title indicator (`[CkTestBridge: SERVING]` when armed,
+> `[CkTestBridge: RUNNING TESTS]` during a run, cleared afterwards — read back off the live window title), and the
+> per-frame pump fix (a real-RHI serve-mode editor, minimized, passed the gate at 38.68 FPS in 5s and ran 37/37).
+> The throttle suppression is correct-but-inert on this project (`bThrottleCPUWhenNotForeground` is already `False`
+> in `Config/DefaultEditorSettings.ini`), so its restore path and ini-safety remain unexercised here — they matter
+> only for a host that leaves the setting enabled.
 
 ---
 
@@ -87,14 +89,24 @@ The interactive live bridge has **no** watchdog (the editor's lifetime is the us
 
 ### Why serving from an interactive editor is opt-in and discouraged (measured 2026-07-25)
 
-- **It only works while the editor is FOCUSED — unless we suppress the throttle.**
-  `bShouldDisableRendering = !FApp::HasFocus() && bThrottleCPUWhenNotForeground` (EditorEngine.cpp:1799), so an
-  unfocused editor drops to a few FPS, `FWaitForInteractiveFrameRate` inside `IsReadyForTests()` never opens, and the
-  run aborts at the RunController's 90s ready-wait. Verified both ways: unfocused ⇒ abort; focused ⇒ gate opened in
-  ~20s and all 37 tests ran. `CkTestBridge_EditorPresence` now suppresses that throttle for the duration of a run
-  (mirroring `AutomationEditorCommon.cpp:1273`) and restores it after, with a crash marker.
-  **This is the crux of the design:** the only time a user *wants* their editor borrowed is while they are doing
-  something else — i.e. exactly when it is unfocused.
+- **The readiness gate measures OUR poll rate — poll it every frame.** `FWaitForInteractiveFrameRate` (reached via
+  `IsReadyForTests()`) samples `TimeNow - LastTickTime` **between successive calls to itself**
+  (`AutomationCommon.cpp`), so a 0.5s ticker reports a flat "2 FPS" against its 10 FPS bar however fast the editor is
+  really running, and the gate can never open on merit. The subsystem therefore ticks **every frame** while a run is
+  active (idle work stays rate-limited to ~0.5s), matching the engine's own `FAutomationExecCmd`.
+  Verified in a real-RHI serve-mode editor, **minimized**: `Hit 38.68 FPS for 5 seconds after 5 seconds of waiting`,
+  37/37, where the identical setup previously logged `Current FPS=2` for 600s.
+  - **Correction to an earlier claim in this file:** "it only works while the editor is FOCUSED" was WRONG. Focus was
+    never the variable. The one apparently-focused success was the gate's own 600s `MaxWaitTime` expiring — it logs
+    `Game did not reach 10.00 FPS ... Giving up.` and **returns true**, so tests proceed regardless. The wait object
+    also accumulates elapsed time across separate requests (it is only cleared on success), which is why logs read
+    "Waited 412 seconds" despite each of our runs aborting at 90s. Don't read that as one run's duration.
+  - `CkTestBridge_EditorPresence` still suppresses `bThrottleCPUWhenNotForeground` for the duration of a run
+    (mirroring `AutomationEditorCommon.cpp:1273`, but restoring afterwards with a crash marker). That is a real lever
+    for hosts which leave the setting enabled — **this project already disables it** in
+    `Config/DefaultEditorSettings.ini`, so it no-ops here. It cannot rescue a MINIMIZED editor either, since the
+    engine throttles via `AreAllWindowsHidden()` regardless of the setting — though the per-frame fix above made
+    minimized work anyway.
 - **It replaces the user's open level, and nothing restores it.** Automation calls `AutomationLoadMap` per test.
   There is no "provably free" map-scoped mode any more: a project can have several maps named `*AutoTests*` (here
   CkTests' and BusterBlock's), and one `--test-pattern Timer` run spanned **both** — so "already on the AutoTests
