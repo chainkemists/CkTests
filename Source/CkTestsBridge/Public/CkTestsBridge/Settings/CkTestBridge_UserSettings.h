@@ -18,18 +18,28 @@
 UENUM(BlueprintType)
 enum class ECk_TestBridge_ServeMode : uint8
 {
-    // This editor NEVER claims the test bridge — the safest default for an interactive session that is not
-    // expecting to donate itself to a test run.
+    // DEFAULT. This editor NEVER claims the test bridge. Test runs go to a headless warm server (which the driver
+    // launches on demand) or to a fresh boot — neither of which touches this session.
     Off,
 
-    // Serve, but only when the current editor world is the AutoTests map (or nothing that would be lost). The
-    // default: an editor sitting on the AutoTests level is already a safe place to run a headless suite.
-    AutoTestsMapOnly,
-
-    // Serve from any editor state, borrowing the running editor for a run (still gated by the non-PIE /
-    // non-dirty / AS-clean preconditions). For power users who explicitly opt in.
-    CleanEditorBorrow
+    // Opt in to donating THIS editor to test runs. Still gated by the non-PIE / non-dirty / AS-clean preconditions,
+    // but understand what it costs: automation LOADS the map each test needs, so your open level is replaced (and
+    // NOT restored), and PIE runs in your window while the suite executes.
+    //
+    // Only advantage over the warm server is that it costs no extra multi-GB editor process. If you are not
+    // RAM-constrained, leave this Off.
+    Allow
 };
+
+// NOTE on upgrading: the previous enum had `AutoTestsMapOnly` (the old default) and `CleanEditorBorrow`. Config
+// enums persist BY NAME, so an ini carrying either of those names no longer resolves and falls back to the CDO
+// default — which is now `Off`. That is the intended, conservative outcome: nobody keeps serving by accident.
+//
+// Why the map-scoped mode was removed: it promised the "provably free" case (already on the AutoTests map ⇒ no map
+// operation at all), but a project can have SEVERAL maps whose names contain "AutoTests" (here: CkTests' and
+// BusterBlock's). Sitting on one of them says nothing about which map an incoming run needs — measured 2026-07-25,
+// a single `--test-pattern Timer` spanned both — so the guarantee silently did not hold, and the mode's real
+// behaviour was indistinguishable from an unrestricted borrow.
 
 CK_DEFINE_CUSTOM_FORMATTER_ENUM(ECk_TestBridge_ServeMode);
 
@@ -47,10 +57,11 @@ public:
     auto GetCategoryName() const -> FName override { return TEXT("Ck"); }
 
 private:
+    // NOTE: a UHT metadata value must be ONE string literal — adjacent-literal concatenation is a parse error here.
     UPROPERTY(Config, EditAnywhere, Category = "Test Bridge",
               meta = (AllowPrivateAccess = true,
-                      ToolTip = "Controls whether this editor may donate itself to a headless test run triggered by an external driver (the UnrealToolbox). Off = never serve."))
-    ECk_TestBridge_ServeMode _ServeMode = ECk_TestBridge_ServeMode::AutoTestsMapOnly;
+                      ToolTip = "Whether THIS editor may be borrowed for test runs triggered by an external driver (the UnrealToolbox). Off (default): never serve - runs go to a headless warm server or a fresh boot and leave this session alone. Allow: donate this editor - your open level WILL be replaced (automation loads each test's map, and nothing restores yours) and PIE will run in your window; only worth it if you cannot spare the RAM for a second editor process."))
+    ECk_TestBridge_ServeMode _ServeMode = ECk_TestBridge_ServeMode::Off;
 
 public:
     CK_PROPERTY_GET(_ServeMode);
