@@ -20,6 +20,12 @@ public class CkTestsBridge : CkModuleRules
             "EditorSubsystem",
             "Projects",
             "DeveloperSettings",
+
+            // Editor-presence effects while serving an interactive session (CkTestBridge_EditorPresence):
+            // MainFrame for the window-title override, Slate for pushing that title to the LIVE window.
+            "MainFrame",
+            "Slate",
+            "SlateCore",
             "FunctionalTesting",
             "AutomationController",
             "AutomationWorker",

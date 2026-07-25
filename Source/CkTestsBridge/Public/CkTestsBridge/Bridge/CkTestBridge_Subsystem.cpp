@@ -1,5 +1,6 @@
 #include "CkTestBridge_Subsystem.h"
 
+#include "CkTestBridge_EditorPresence.h"
 #include "CkTestsBridge_Log.h"
 #include "CkTestsBridge/Settings/CkTestBridge_UserSettings.h"
 
@@ -53,20 +54,6 @@ namespace ck_test_bridge_subsystem
         return Pid;
     }
 
-    static auto
-    Get_CurrentEditorMapName()
-        -> FString
-    {
-        if (GEditor == nullptr)
-        { return {}; }
-
-        const auto& WorldContext = GEditor->GetEditorWorldContext();
-        auto* World = WorldContext.World();
-        if (World == nullptr)
-        { return {}; }
-
-        return World->GetOutermost()->GetName();
-    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -82,6 +69,10 @@ auto
     Super::Initialize(InCollection);
 
     _IsServeModeProcess = FParse::Param(FCommandLine::Get(), TEXT("CkTestBridgeServe"));
+
+    // Before anything else: if a previous session died mid-run with the background throttle suppressed, put it back.
+    // Runs unconditionally (even when we won't arm) — the stale setting hurts the user whether or not we serve today.
+    FCk_TestBridge_EditorPresence::Recover_BackgroundThrottleAfterCrash();
 
     if (NOT Do_ShouldArm())
     {
@@ -120,6 +111,10 @@ auto
         _IsServing = false;
     }
 
+    // Never leave the user's editor throttle-suppressed or mis-titled because we shut down.
+    FCk_TestBridge_EditorPresence::Restore_BackgroundThrottle();
+    FCk_TestBridge_EditorPresence::Set_ServingIndicator(false, false);
+
     Super::Deinitialize();
 }
 
@@ -137,6 +132,20 @@ auto
     if (_IsServing)
     {
         const auto PollResult = _Processor.ProcessPending(InDeltaTime);
+
+        // Track busy transitions so the user's editor reflects reality: suppress the background throttle only WHILE a
+        // run is in flight (an unfocused editor otherwise never reaches the automation frame-rate gate), and show the
+        // stronger title suffix for the same window. Both are no-ops in a headless warm server.
+        if (const auto IsBusyNow = _Processor.Get_IsBusy();
+            IsBusyNow != _WasBusy)
+        {
+            if (IsBusyNow) { FCk_TestBridge_EditorPresence::Suppress_BackgroundThrottle(); }
+            else           { FCk_TestBridge_EditorPresence::Restore_BackgroundThrottle(); }
+
+            FCk_TestBridge_EditorPresence::Set_ServingIndicator(true, IsBusyNow);
+            _WasBusy = IsBusyNow;
+        }
+
         if (PollResult.QuitRequested)
         { DoReleaseServing(); }
         else if (_IsServeModeProcess)
@@ -176,29 +185,22 @@ auto
 {
     using namespace ck_test_bridge_subsystem;
 
+    // The warm server exists to serve — its whole reason for booting. Never gated on the user setting, which
+    // governs only whether an INTERACTIVE editor donates itself.
+    if (_IsServeModeProcess)
+    { return true; }
+
     const auto* Settings = GetDefault<UCk_TestBridge_UserSettings>();
     const auto ServeMode = Settings != nullptr ? Settings->Get_ServeMode() : ECk_TestBridge_ServeMode::Off;
 
-    switch (ServeMode)
-    {
-        case ECk_TestBridge_ServeMode::Off:
-            return false;
-
-        case ECk_TestBridge_ServeMode::CleanEditorBorrow:
-            return true;
-
-        case ECk_TestBridge_ServeMode::AutoTestsMapOnly:
-        default:
-        {
-            // The warm server boots headless directly onto the AutoTests map — always eligible.
-            if (_IsServeModeProcess)
-            { return true; }
-
-            // [VERIFY] host-agnostic proxy for "the editor is on the AutoTests map": package name contains
-            // "AutoTests" (BB's map is AutoTests_BB_MAP).
-            return Get_CurrentEditorMapName().Contains(TEXT("AutoTests"));
-        }
-    }
+    // Off (the default) means this session is never borrowed. Allow is a deliberate opt-in whose cost is documented
+    // on the setting; the per-request preconditions (non-PIE / non-dirty / AS-clean) still apply on top.
+    //
+    // There is deliberately NO map-scoped middle ground any more: the old AutoTestsMapOnly promised "already on the
+    // AutoTests map ⇒ no map operation", which does not hold in a project with several *AutoTests* maps (measured:
+    // one --test-pattern Timer run spanned both CkTests' and BusterBlock's), so it silently swapped the user's level
+    // while claiming not to.
+    return ServeMode == ECk_TestBridge_ServeMode::Allow;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -265,6 +267,11 @@ auto
     _IsServing = true;
     _AwaitingRequestToReclaim = false;
     _LastActivitySeconds = FPlatformTime::Seconds();
+
+    // Tell the human whose editor this is that it can now be borrowed — otherwise being taken over is invisible.
+    constexpr auto NotRunningYet = false;
+    FCk_TestBridge_EditorPresence::Set_ServingIndicator(true, NotRunningYet);
+
     ck::tests_bridge::Display(TEXT("[Bridge] serving test requests (pid {})"), FPlatformProcess::GetCurrentProcessId());
 }
 
@@ -278,6 +285,11 @@ auto
     _Processor.Shutdown();
     _IsServing = false;
     _AwaitingRequestToReclaim = true;
+    _WasBusy = false;
+
+    // No longer borrowable — drop both marks on the user's session.
+    FCk_TestBridge_EditorPresence::Restore_BackgroundThrottle();
+    FCk_TestBridge_EditorPresence::Set_ServingIndicator(false, false);
 
     ck::tests_bridge::Display(
         TEXT("[Bridge] quit handled — released serving (will re-claim when new requests arrive)"));

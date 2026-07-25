@@ -8,9 +8,18 @@ bridge. Amortizes the editor-boot cost across many test batches.
 **Depends on:** `CkCore`, `CkEcs`, `CkLog`, `CkTests` (+ engine `AutomationController`,
 `AutomationWorker`, `AutomationTest`, `FunctionalTesting`, `UnrealEd`, `EditorSubsystem`, `Json`).
 
-> **Status: authored, NOT yet compiled or run.** Written against the 5.7 AngelScript fork's
-> automation + AngelScript headers by reading source; a human must build and functionally verify.
-> Every unresolved API assumption is tagged `// [VERIFY]` in code and listed below.
+> **Status: built, run, and verified end-to-end (2026-07-25).** Serves real automation runs both from a headless
+> warm server and from an interactive editor. Verified: warm server armed in ~50s and ran 37/37 with zero boot,
+> reused across runs, and picked up a `.as` edit (broke an assertion ⇒ it returned the new failure); an interactive
+> editor served 37/37 when focused, aborted cleanly at the ready-wait when unfocused (driver falls back), and a
+> plain `--test` declines to route into it at all. The `// [VERIFY]` tags below are now runtime-semantic notes
+> rather than compile risks.
+>
+> **Pending human verification (added 2026-07-25, compiles + links, not yet observed in a live session):** the
+> `ServeMode` default flip to `Off` (an interactive editor should no longer claim the bridge unless opted in), and
+> both `CkTestBridge_EditorPresence` effects — background-throttle suppression (an UNFOCUSED editor should now
+> actually run a routed suite instead of aborting) and the window-title indicator. Also unconfirmed: that the
+> throttle suppression leaves the user's `EditorPerProjectUserSettings.ini` unmodified in the normal path.
 
 ---
 
@@ -48,7 +57,8 @@ asCompileError|dirtyWorld|busy|staleRequest|submitterGone|protocolVersion",
 | `Server/CkTestBridge_RunController.{h,cpp}` | the `FAutomationExecCmd` mirror around `IAutomationControllerManager`; ticked by the subsystem (NOT its own ticker/thread); exact `SetEnabledTests`, per-test stall + wall-clock watchdogs, report harvest |
 | `Server/CkTestBridge_Preconditions.{h,cpp}` | refusal gate: `pieActive` / `asPendingFullReload` / `asCompileError` / `dirtyWorld` / `busy`; fills the result `env` |
 | `Bridge/CkTestBridge_Subsystem.{h,cpp}` | `UEditorSubsystem` ticker that claims `server.json`, defers to a live owner, and drives the processor. IS the warm server under `-CkTestBridgeServe`. |
-| `Settings/CkTestBridge_UserSettings.{h,cpp}` | `UDeveloperSettings` (EditorPerProjectUserSettings) `ECk_TestBridge_ServeMode { Off, AutoTestsMapOnly, CleanEditorBorrow }` (default `AutoTestsMapOnly`) |
+| `Settings/CkTestBridge_UserSettings.{h,cpp}` | `UDeveloperSettings` (EditorPerProjectUserSettings) `ECk_TestBridge_ServeMode { Off, Allow }` — **default `Off`** |
+| `Bridge/CkTestBridge_EditorPresence.{h,cpp}` | the two ways serving REACHES INTO an interactive session: background-throttle suppression (only while a run is in flight, with a crash-recovery marker) and the window-title indicator. No-ops in a headless warm server. |
 
 There is **no** blocking `-ExportServer`-style commandlet. Test runs are asynchronous and the
 automation controller must be pumped on the editor game thread, so a `Sleep`-loop would starve it.
@@ -72,9 +82,26 @@ blocking loop correct there; it is not here — noted as the deliberate deviatio
   ownership so a concurrently-spawned test editor stays PRIMARY for codegen. (This module does not
   implement the flag; the launcher must pass it.)
 
-The interactive live bridge has **no** watchdog (the editor's lifetime is the user's) and only serves
-when `Get_ServeMode()` permits AND the editor state matches the mode (AutoTestsMapOnly requires the
-current map to be the AutoTests map).
+The interactive live bridge has **no** watchdog (the editor's lifetime is the user's) and serves only when
+`Get_ServeMode() == Allow` — an explicit opt-in, **off by default**.
+
+### Why serving from an interactive editor is opt-in and discouraged (measured 2026-07-25)
+
+- **It only works while the editor is FOCUSED — unless we suppress the throttle.**
+  `bShouldDisableRendering = !FApp::HasFocus() && bThrottleCPUWhenNotForeground` (EditorEngine.cpp:1799), so an
+  unfocused editor drops to a few FPS, `FWaitForInteractiveFrameRate` inside `IsReadyForTests()` never opens, and the
+  run aborts at the RunController's 90s ready-wait. Verified both ways: unfocused ⇒ abort; focused ⇒ gate opened in
+  ~20s and all 37 tests ran. `CkTestBridge_EditorPresence` now suppresses that throttle for the duration of a run
+  (mirroring `AutomationEditorCommon.cpp:1273`) and restores it after, with a crash marker.
+  **This is the crux of the design:** the only time a user *wants* their editor borrowed is while they are doing
+  something else — i.e. exactly when it is unfocused.
+- **It replaces the user's open level, and nothing restores it.** Automation calls `AutomationLoadMap` per test.
+  There is no "provably free" map-scoped mode any more: a project can have several maps named `*AutoTests*` (here
+  CkTests' and BusterBlock's), and one `--test-pattern Timer` run spanned **both** — so "already on the AutoTests
+  map" never implied "no map operation".
+- **The warm server dominates it** on every axis except RAM: no focus dependency (`-nullrhi` ⇒
+  `CanEverRender()==false` ⇒ the gate short-circuits), no map hijack, no PIE in the user's window, and it picks up
+  `.as` hot-reloads just the same (verified: break an assertion ⇒ the warm server returns the new failure).
 
 ---
 
@@ -94,9 +121,11 @@ current map to be the AutoTests map).
 3. **`SetEnabledTests` matching** (`CkTestBridge_RunController.cpp`). Assumes exact full-dotted-path
    matching against the post-refresh report tree without a prior `SetFilter`. `notFound` is computed
    from `GetEnabledTestNames` after enabling. Group-node (prefix) semantics untested.
-4. **Dirty-world / AutoTests-map heuristic** (`Preconditions.cpp`, `Subsystem.cpp`). The host-agnostic
-   proxy for "the AutoTests map automation would load" is a package-name `Contains("AutoTests")`. A host
-   with a differently-named automation map must widen this.
+4. **Dirty-world heuristic** (`Preconditions.cpp`). The host-agnostic proxy for "the only unsaved work IS the
+   AutoTests map automation would open" is a package-name `Contains("AutoTests")`. A host with a differently-named
+   automation map must widen this. **RESOLVED for `Subsystem.cpp`:** the serve gate no longer uses this heuristic at
+   all — the map-scoped ServeMode was removed (2026-07-25) once it was measured that a project can hold several
+   `*AutoTests*` maps and a single run spans them, so being "on the AutoTests map" guaranteed nothing.
 5. **Controller tick cadence.** The subsystem ticks at 0.5 s, so the RunController state machine + result
    collection poll at 0.5 s. Test *execution* runs every frame via the local automation worker, so only
    between-test transitions incur up to 0.5 s latency — believed correct but unverified at scale.
