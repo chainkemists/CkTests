@@ -44,14 +44,14 @@ class UCk_AutoTest_Compass_MaxEntries_PriorityTruncation : UCk_AutoTest_Base
                 FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, float(i - 3) * 100.0, 0.0)),
                 ECk_Replication::DoesNotReplicate);
 
-            utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
+            auto Poi = utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
                 utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.TestPriority")));
 
             // Priority now lives in CkPoiDisplayDefinition, keyed by the compass consumer.
             auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
                 utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Compass"));
             DisplayParams.Set_Priority(i);
-            utils_poi_display_definition::Add(Owner, DisplayParams);
+            utils_poi_display_definition::Add(Poi, DisplayParams);
         }
 
         WaitOneFrame(n"OnSettled_Requests");

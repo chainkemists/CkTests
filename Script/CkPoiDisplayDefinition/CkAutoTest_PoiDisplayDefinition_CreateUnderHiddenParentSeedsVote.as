@@ -19,7 +19,8 @@
 
 class UCk_AutoTest_PoiDisplayDefinition_CreateUnderHiddenParentSeedsVote : UCk_AutoTest_Base
 {
-    private FCk_Handle _Owner;
+    private FCk_Handle _SelfHandle;
+    private FCk_Handle_Poi _Owner;
     private FCk_Handle_VisibleRange _OwnerVR;
     private FCk_Handle_PoiDisplayDefinition _Child;
 
@@ -27,8 +28,14 @@ class UCk_AutoTest_PoiDisplayDefinition_CreateUnderHiddenParentSeedsVote : UCk_A
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto LocalHandle = InHandle;
-        _Owner = LocalHandle;
+        _SelfHandle = InHandle;
+
+        // Create takes FCk_Handle_Poi, so the owner is a POI even though nothing projects here.
+        auto OwnerEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
+        OwnerEntity.Request_OverrideToSelf();
+        utils_transform::Add(OwnerEntity, FTransform(), ECk_Replication::DoesNotReplicate);
+        _Owner = utils_poi::Add(OwnerEntity, FCk_Fragment_Poi_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark")));
 
         // Owner composes VisibleRange (evaluated every tick), then goes out of range.
         auto OwnerVRParams = FCk_Fragment_VisibleRange_ParamsData(500.0f);

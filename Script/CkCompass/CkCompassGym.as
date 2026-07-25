@@ -148,12 +148,11 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
     // consumer (CkPoi v2). Compose one direct-attach definition on the POI's own entity.
     private void DoAddCompassDisplay(FCk_Handle_Poi InPoi, int32 InPriority, ECk_Poi_OffscreenPolicy InOffscreenPolicy)
     {
-        FCk_Handle Host = InPoi;
         auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Compass"));
         DisplayParams.Set_Priority(InPriority);
         DisplayParams.Set_OffscreenPolicy(InOffscreenPolicy);
-        utils_poi_display_definition::Add(Host, DisplayParams);
+        utils_poi_display_definition::Add(InPoi, DisplayParams);
     }
 
     UFUNCTION()

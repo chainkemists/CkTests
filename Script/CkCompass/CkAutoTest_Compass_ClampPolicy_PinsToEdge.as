@@ -66,7 +66,7 @@ class UCk_AutoTest_Compass_ClampPolicy_PinsToEdge : UCk_AutoTest_Base
         auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Compass"));
         DisplayParams.Set_OffscreenPolicy(InPolicy);
-        utils_poi_display_definition::Add(Owner, DisplayParams);
+        utils_poi_display_definition::Add(Poi, DisplayParams);
 
         return Poi;
     }

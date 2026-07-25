@@ -60,7 +60,7 @@ class UCk_AutoTest_Compass_HidePolicy_Excludes : UCk_AutoTest_Base
         auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Compass"));
         DisplayParams.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::Hide);
-        utils_poi_display_definition::Add(Owner, DisplayParams);
+        utils_poi_display_definition::Add(Poi, DisplayParams);
 
         return Poi;
     }
