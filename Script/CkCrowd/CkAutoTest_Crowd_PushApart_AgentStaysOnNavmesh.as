@@ -160,12 +160,14 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
     private FCk_Handle_CrowdAgent SpawnIdleAgent(FCk_Handle& InOwner, FVector InSpawn)
     {
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        FCk_Handle Generic = InOwner;
-        auto AgentTransform = utils_transform::Add(Generic, FTransform(FRotator::ZeroRotator, InSpawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+        // ONE ENTITY PER AGENT — utils_crowd_agent::Add composes onto the handle it is given and
+        // allows one agent per entity, so sharing the owner collapsed every agent into the first.
+        auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
+        auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(FRotator::ZeroRotator, InSpawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
-        utils_velocity::Add(Generic, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(Generic, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
-        utils_euler_integrator::Request_Start(Generic);
+        utils_velocity::Add(AgentEntity, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_acceleration::Add(AgentEntity, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_euler_integrator::Request_Start(AgentEntity);
         return Agent;
     }
 }

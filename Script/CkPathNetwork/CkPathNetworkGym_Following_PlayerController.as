@@ -222,7 +222,11 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
 
-        FCk_Handle GenericAgent = TransientOwner;
+        // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
+        // onto the handle it is given and permits one agent per entity, so passing the transient
+        // directly put every follower on the same entity — the first won and the rest were no-ops,
+        // leaving one follower no matter how many this spawns.
+        auto GenericAgent = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         GenericAgent.Set_DebugName(InDebugName);
 
         auto AgentTransform = utils_transform::Add(GenericAgent,

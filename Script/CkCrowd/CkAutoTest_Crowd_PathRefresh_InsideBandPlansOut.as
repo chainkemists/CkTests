@@ -199,8 +199,11 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
         {
             const auto Loc = FVector(0.0, float(i) * PicketSpacingUu - HalfSpan, _FloorZ + 100.0);
             auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-            FCk_Handle Generic = InOwner;
-            auto AgentTransform = utils_transform::Add(Generic, FTransform(FRotator::ZeroRotator, Loc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+            // ONE ENTITY PER PICKET — utils_crowd_agent::Add composes onto the handle it is given
+            // and allows one agent per entity, so sharing the owner collapsed the whole band into
+            // a single agent and there were no discs to plan out of.
+            auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
+            auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(FRotator::ZeroRotator, Loc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
             auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
             _PicketLocations.Add(Loc);
             _Pickets.Add(Agent);
@@ -211,7 +214,9 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
     {
         const auto Loc = FVector(0.0, WalkerSpawnY, _FloorZ + 100.0);
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        _WalkerEntity = InOwner;
+        // The walker needs its OWN entity too — otherwise it lands on the same entity as the
+        // pickets and becomes one of them rather than a separate agent walking through the band.
+        _WalkerEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
         auto AgentTransform = utils_transform::Add(_WalkerEntity, FTransform(FRotator::ZeroRotator, Loc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
         utils_crowd_agent::Request_MoveTo(Agent, FCk_Request_CrowdAgent_MoveTo(FVector(GoalX, 0.0, _FloorZ)));

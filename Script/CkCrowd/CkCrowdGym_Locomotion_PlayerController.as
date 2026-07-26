@@ -101,7 +101,11 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         _SpawnLocation = StationXform.GetLocation() + FVector(0.0, 0.0, 100.0);
         const auto InitialXform = FTransform(FRotator::ZeroRotator, _SpawnLocation, FVector::OneVector);
 
-        FCk_Handle GenericAgent = TransientOwner;
+        // Lifetime-OWNED BY the transient, not composed ONTO it. Only one agent here, so the
+        // one-agent-per-entity collapse the other crowd gyms hit is not visible — but composing
+        // onto the world transient still puts a Transform + CrowdAgent + Velocity + Acceleration
+        // on it, and Ck_GymCrowd_Loco_Stop's explicit destroy would target the transient itself.
+        auto GenericAgent = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         GenericAgent.Set_DebugName(n"LocomotionAgent");
         auto AgentTransform = utils_transform::Add(GenericAgent, InitialXform, ECk_Replication::DoesNotReplicate);
         _Agent = utils_crowd_agent::Add(AgentTransform, AgentParams);
