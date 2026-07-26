@@ -244,20 +244,24 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
     {
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
 
-        FCk_Handle Generic = InOwner;
-        Generic.Set_DebugName(InDebugName);
+        // ONE ENTITY PER AGENT — utils_crowd_agent::Add composes onto the handle it is given and
+        // allows one agent per entity, so sharing the owner collapsed occupant and latecomer into
+        // a single agent that could never block itself. The debug name now lands on the agent's own
+        // entity rather than being overwritten on the shared owner by each successive spawn.
+        auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
+        AgentEntity.Set_DebugName(InDebugName);
 
         const auto Rot = (Goal - InSpawn).Rotation();
-        auto AgentTransform = utils_transform::Add(Generic, FTransform(Rot, InSpawn, FVector::OneVector),
+        auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(Rot, InSpawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
-        utils_velocity::Add(Generic,
+        utils_velocity::Add(AgentEntity,
             FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(Generic,
+        utils_acceleration::Add(AgentEntity,
             FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
-        utils_euler_integrator::Request_Start(Generic);
+        utils_euler_integrator::Request_Start(AgentEntity);
 
         return Agent;
     }

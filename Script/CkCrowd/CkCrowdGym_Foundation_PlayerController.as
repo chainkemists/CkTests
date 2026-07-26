@@ -70,7 +70,11 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         // Foundation gym doesn't pathfind or move, but a Transform at the station origin (jittered
         // so successive spawns don't pile on one point) lets the probe + neighbor cache exercise
         // without needing a navmesh.
-        FCk_Handle GenericAgent = TransientOwner;
+        // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
+        // onto the handle it is given and permits one agent per entity, so passing the transient
+        // directly put every agent on the same entity — the jitter below could not separate them
+        // because there was only ever one agent, and the probe/neighbor cache had nothing to see.
+        auto GenericAgent = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         GenericAgent.Set_DebugName(FName(f"FoundationAgent_{_Agents.Num()}"));
         const auto StationXform = Get_StationAnchorTransform("Gym.Crowd.Foundation", ECk_GymStation_Anchor::FootprintCenter);
         const auto Jitter = FVector(

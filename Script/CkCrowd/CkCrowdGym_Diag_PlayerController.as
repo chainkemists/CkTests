@@ -300,7 +300,11 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
 
-        FCk_Handle Generic = TransientOwner;
+        // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
+        // onto the handle it is given and permits one agent per entity, so passing the transient
+        // directly put every agent on the same entity — the first won and the rest were no-ops.
+        // It would also make DestroyAgents target the world transient.
+        auto Generic = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         Generic.Set_DebugName(InDebugName);
         // Project the look direction to planar — crowd agents are yaw-only (capsule walks on the
         // navmesh). Without this, overlap-wave agents whose spawn Z ≠ target Z spawn pitched
