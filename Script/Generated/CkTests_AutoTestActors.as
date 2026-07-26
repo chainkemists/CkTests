@@ -3440,6 +3440,19 @@ class ACk_AutoTest_Interaction_ConcurrentInteractionsSameTarget_Actor : ACk_Auto
     }
 }
 
+class ACk_AutoTest_Interaction_DestroyTargetMidInteraction_SourceHearsFailed_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 4.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Interaction_DestroyTargetMidInteraction_SourceHearsFailed");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
