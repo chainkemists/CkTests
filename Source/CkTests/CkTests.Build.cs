@@ -39,6 +39,7 @@ public class CkTests : CkModuleRules
             "CkEntityExtension",
             "CkEntityTag",
             "CkEqs",
+            "CkFx",
             "CkGraphics",
             "CkGrid",
             "CkInteraction",
