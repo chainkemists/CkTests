@@ -10,6 +10,11 @@
 // Continuous-update fires on each pass whose result set changed (add or remove).
 // Accumulate the delta counts across all fires rather than latching the latest
 // value, so the assertions hold regardless of how the deltas split across fires.
+//
+// Every phase waits on the cumulative delta counter reaching the value that
+// phase's mutation must produce, which is exactly the settling event. The
+// accumulate-don't-latch design means those waits are monotonic and cannot be
+// missed by a fire landing a pass earlier or later than expected.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous : UCk_AutoTest_Base
@@ -39,62 +44,82 @@ class UCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous : UCk_AutoTest_Base
         utils_entity_tag_query::Request_AddRequirement(_Query,
             FCk_Request_EntityTagQuery_AddRequirement(Req));
 
-        WaitOneFrame(n"AfterReq");
+        Add_Step_WaitUntil("the requirement registers on a live query", n"Check_RequirementRegistered");
+        Add_Step(          "reset the accumulators, then tag one entity", n"Step_ResetAndTagFirst");
+        Add_Step_WaitUntil("the add surfaces as an _Added delta",       n"Check_SawFirstAdd");
+        Add_Step(          "assert no removals yet, then tag a second", n"Step_AssertNoRemovalsAndTagSecond");
+        Add_Step_WaitUntil("the second add surfaces as another delta",  n"Check_SawSecondAdd");
+        Add_Step(          "destroy the first entity",                  n"Step_DestroyFirst");
+        Add_Step_WaitUntil("the destroy surfaces as a _Removed delta",  n"Check_SawRemoval");
+
+        Run_Steps(InHandle);
     }
 
-    UFUNCTION()
-    private void AfterReq(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
 
-        // Reset accumulators AFTER initial fires settled.
+    UFUNCTION()
+    private void Step_ResetAndTagFirst(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        // Reset AFTER the requirement-registration passes, so any fire from
+        // building the query does not count toward the deltas under test.
         _TotalAddedSeen = 0;
         _TotalRemovedSeen = 0;
 
         _E1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E1, n"AutoTestEtq_Delta");
-        WaitOneFrame(n"AfterFirstAdd");
     }
 
     UFUNCTION()
-    private void AfterFirstAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertNoRemovalsAndTagSecond(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(_TotalAddedSeen >= 1,
-            "First tag-add must surface as _Added>=1 in at least one continuous fire");
         Assert_True(_TotalRemovedSeen == 0,
             "No removals expected yet — _TotalRemovedSeen must be 0");
 
-        const auto AddedAfterFirst = _TotalAddedSeen;
-
         _E2 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E2, n"AutoTestEtq_Delta");
-        WaitOneFrame(n"AfterSecondAdd");
     }
 
     UFUNCTION()
-    private void AfterSecondAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_DestroyFirst(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(_TotalAddedSeen >= 2,
-            "Second tag-add must increment _TotalAddedSeen — expected cumulative >= 2");
-
         utils_entity_lifetime::Request_DestroyEntity(_E1);
-        WaitOneFrame(n"AfterDestroy");
+    }
+
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_RequirementRegistered(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag_query::Get_AllRequirements(_Query).Num() >= 1);
     }
 
     UFUNCTION()
-    private void AfterDestroy(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_SawFirstAdd(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(_TotalRemovedSeen >= 1,
-            "Entity destruction must surface as _Removed>=1 in at least one continuous fire");
-
-        FinishSuccess();
+        auto Res = OutResult;
+        Res.Set(_TotalAddedSeen >= 1);
     }
+
+    UFUNCTION()
+    private void Check_SawSecondAdd(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_TotalAddedSeen >= 2);
+    }
+
+    UFUNCTION()
+    private void Check_SawRemoval(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_TotalRemovedSeen >= 1);
+    }
+
+    //------------------------------------------------------------------------
 
     UFUNCTION()
     private void OnContinuous(FCk_Handle_EntityTagQuery InQuery,
