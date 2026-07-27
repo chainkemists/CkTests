@@ -91,7 +91,14 @@ class UCk_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor : UCk_A
             FInstancedStruct(),
             FCk_Delegate_ActorModifier_OnActorSpawned(this, n"OnSpawned"));
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_DelegateFired", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_DelegateFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_DelegateFired);
     }
 
     UFUNCTION()
@@ -111,8 +118,6 @@ class UCk_AutoTest_Actor_SpawnActor_SpawnTransform_AppliedToSpawnedActor : UCk_A
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(_DelegateFired, "OnActorSpawned should have fired");
         Assert_True(_SpawnedValid, "InActorSpawned should be valid");
         Assert_True(_ObservedLocation.Equals(ExpectedLocation, PositionToleranceCm),

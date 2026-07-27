@@ -64,7 +64,14 @@ class UCk_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent : UCk_AutoT
             FInstancedStruct(),
             FCk_Delegate_ActorModifier_OnActorComponentAdded(this, n"OnComponentAdded"));
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_DelegateFired", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_DelegateFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_DelegateFired);
     }
 
     UFUNCTION()
@@ -83,8 +90,6 @@ class UCk_AutoTest_Actor_AddActorComponent_Tags_PropagateToComponent : UCk_AutoT
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(_DelegateFired, "OnComponentAdded should have fired");
         Assert_Equals_Int(_ObservedTags.Num(), 2,
             "Added component should carry both ComponentTags");
