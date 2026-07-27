@@ -130,17 +130,49 @@ The interactive live bridge has **no** watchdog (the editor's lifetime is the us
    is set to `Smoke|Engine|Product|Perf` — the commandline "Standard" mask
    (`AutomationCommandline.cpp:99`). BB functional tests carry `ProductFilter` (covered), but this is
    hardcoded rather than read from the engine's `FilterMaps`.
-3. **`SetEnabledTests` matching** (`CkTestBridge_RunController.cpp`). Assumes exact full-dotted-path
-   matching against the post-refresh report tree without a prior `SetFilter`. `notFound` is computed
-   from `GetEnabledTestNames` after enabling. Group-node (prefix) semantics untested.
+3. **`SetEnabledTests` matching** — **exact-path behaviour CONFIRMED AT SCALE 2026-07-25.** A 1271-test request
+   accounted for perfectly: 1262 `perTest` verdicts (1246 Success / 16 Failed) + 9 `notFound` = 1271, with **zero
+   duplicate and zero unrequested completions**. So there is no group-node over-expansion and no double-enabling on a
+   real full suite. The 9 `notFound` were all `Ck_AutoTest_Aggro*` — stale entries in the DRIVER's discovery cache
+   that no longer exist in this build's report tree — i.e. exactly what `notFound` is for.
+   - Still untested: genuine group-node (prefix) semantics, because the driver only ever submits leaf paths. If a
+     caller ever sends a group node, re-verify before trusting it.
+   - ✅ **RESOLVED driver-side in toolbox v1.32.** Previously any non-empty `notFound` set `ok:false` and made the
+     driver fall back, so a stale driver cache meant **every** full-suite live run ended by booting an editor to
+     re-look-for tests that cannot exist in any build (same binaries ⇒ same report tree) — and it cost **two** boots,
+     not one, because of `kMaxNoProgressSpawns == 2`. The guard was *not* loosened (it is what killed the ready-wait
+     false green — v1.26): the decision was **split**. New pure `Decide_FallbackOnNotFound` falls back **iff zero
+     verdicts were produced**, which is the exact discriminator — all three RunController give-up paths stuff every
+     requested test into `NotFound` and harvest nothing, so an abort always yields an empty `perTest`, whereas a run
+     with real verdicts got past the ready-wait and its `notFound` is therefore a cache artifact. Those entries are
+     now pruned from the driver's cache so the staleness self-heals. Verified end-to-end: 72 submitted → 63 verdicts
+     + 9 `notFound`, no fresh boot, all 9 pruned, cache 6471→6462, exit 0; the re-run submitted 63 with zero
+     `notFound`. `--discover-fresh` remains the manual reset.
+   - Caveat carried from that work: the safety argument contains one inferred link — that an *accepted* request
+     implies the editor's AngelScript matches disk — which rests on the `FAngelscriptManager` members this module
+     itself tags `[VERIFY]` (item 1 above). If that is wrong the symptom is a **real** test being pruned; recovery is
+     `--discover-fresh`.
 4. **Dirty-world heuristic** (`Preconditions.cpp`). The host-agnostic proxy for "the only unsaved work IS the
    AutoTests map automation would open" is a package-name `Contains("AutoTests")`. A host with a differently-named
    automation map must widen this. **RESOLVED for `Subsystem.cpp`:** the serve gate no longer uses this heuristic at
    all — the map-scoped ServeMode was removed (2026-07-25) once it was measured that a project can hold several
    `*AutoTests*` maps and a single run spans them, so being "on the AutoTests map" guaranteed nothing.
-5. **Controller tick cadence.** The subsystem ticks at 0.5 s, so the RunController state machine + result
-   collection poll at 0.5 s. Test *execution* runs every frame via the local automation worker, so only
-   between-test transitions incur up to 0.5 s latency — believed correct but unverified at scale.
+5. **Controller tick cadence — RESOLVED 2026-07-25, and the answer matters more than the latency question.**
+   Measured by sampling `server.json` once a second (the subsystem refreshes `lastActivityAt` from its tick) across
+   `Ck_AutoTest_Crowd_SteeringPerf`, a single 55.23 s test: the timestamp **froze for 43 consecutive seconds**
+   (`21:53:23.245Z` held 17:53:23→17:54:06) and then resumed its ~1 s cadence. It was also seen frozen 8+ s while
+   merely **idle**. So the subsystem tick — and therefore the RunController state machine — **does not run while PIE
+   is executing a test**; it only advances *between* tests.
+   - ⚠ **Consequence for the watchdogs: `perTestStallSeconds` and `wallClockCapSeconds` cannot fire DURING a test.**
+     They are evaluated by the RunController, which is ticked by the starved subsystem, so they can only catch a run
+     that is stalled between tests. **A single test that hangs forever is caught by nothing on this side** — the only
+     backstop is the DRIVER's own no-progress window (`utb::Decide_LiveFallback`). Do not "simplify" that driver-side
+     watchdog away on the reasoning that the server owns stall detection; it does not own this case.
+   - Corollary for anyone reading `lastActivityAt` as liveness: **it is not.** It tracks request-processing activity.
+     The toolbox client learned this the expensive way — a 25 s inter-test window mistook that 55 s test for a dead
+     editor, fresh-booted, and re-ran 603 tests the warm server went on to finish anyway.
+   - The original latency claim (≤0.5 s between-test transitions) is moot since the per-frame pump fix; execution
+     itself was never the bottleneck.
 6. **`uplugin` platform key.** The new module entry uses `WhitelistPlatforms` to match the two existing
    sibling entries verbatim (the prompt's literal spelling was `PlatformAllowList`, the modern alias);
    both are honored by UBT.
