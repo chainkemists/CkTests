@@ -137,11 +137,21 @@ The interactive live bridge has **no** watchdog (the editor's lifetime is the us
    that no longer exist in this build's report tree — i.e. exactly what `notFound` is for.
    - Still untested: genuine group-node (prefix) semantics, because the driver only ever submits leaf paths. If a
      caller ever sends a group node, re-verify before trusting it.
-   - ⚠ **Known consequence, not yet addressed:** a non-empty `notFound` sets `ok:false` and makes the driver fall
-     back, so a stale driver cache means **every** full-suite live run ends by paying a fresh boot to re-look-for
-     tests that cannot exist in any editor (same binaries ⇒ same report tree). Bounded at one boot, and the guard
-     itself is load-bearing (it is what killed the ready-wait false green — see the v1.26 toolbox changelog), so it
-     should not be loosened casually. `--discover-fresh` prunes the cache and avoids it.
+   - ✅ **RESOLVED driver-side in toolbox v1.32.** Previously any non-empty `notFound` set `ok:false` and made the
+     driver fall back, so a stale driver cache meant **every** full-suite live run ended by booting an editor to
+     re-look-for tests that cannot exist in any build (same binaries ⇒ same report tree) — and it cost **two** boots,
+     not one, because of `kMaxNoProgressSpawns == 2`. The guard was *not* loosened (it is what killed the ready-wait
+     false green — v1.26): the decision was **split**. New pure `Decide_FallbackOnNotFound` falls back **iff zero
+     verdicts were produced**, which is the exact discriminator — all three RunController give-up paths stuff every
+     requested test into `NotFound` and harvest nothing, so an abort always yields an empty `perTest`, whereas a run
+     with real verdicts got past the ready-wait and its `notFound` is therefore a cache artifact. Those entries are
+     now pruned from the driver's cache so the staleness self-heals. Verified end-to-end: 72 submitted → 63 verdicts
+     + 9 `notFound`, no fresh boot, all 9 pruned, cache 6471→6462, exit 0; the re-run submitted 63 with zero
+     `notFound`. `--discover-fresh` remains the manual reset.
+   - Caveat carried from that work: the safety argument contains one inferred link — that an *accepted* request
+     implies the editor's AngelScript matches disk — which rests on the `FAngelscriptManager` members this module
+     itself tags `[VERIFY]` (item 1 above). If that is wrong the symptom is a **real** test being pruned; recovery is
+     `--discover-fresh`.
 4. **Dirty-world heuristic** (`Preconditions.cpp`). The host-agnostic proxy for "the only unsaved work IS the
    AutoTests map automation would open" is a package-name `Contains("AutoTests")`. A host with a differently-named
    automation map must widen this. **RESOLVED for `Subsystem.cpp`:** the serve gate no longer uses this heuristic at
