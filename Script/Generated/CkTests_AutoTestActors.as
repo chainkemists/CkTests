@@ -332,6 +332,19 @@ class ACk_AutoTest_Aggro_IdleCost_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Aggro_LastTargetForgotten_BroadcastsInvalidActive_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Aggro_LastTargetForgotten_BroadcastsInvalidActive");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Aggro_OwnerAddThreat_CreatesTarget_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
