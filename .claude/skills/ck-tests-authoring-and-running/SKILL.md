@@ -378,6 +378,42 @@ class UCk_MyGame_GauntletAsTest_Foo : UCk_GauntletAsTest_Base
 | 3 | **Headless / CI — generic (host-invoked)** | `<Editor>-Cmd.exe <Project>.uproject -ExecCmds="Automation RunTests <filter>; Quit" -unattended -nosplash -nullrhi -ReportExportPath=<dir>` — process exit code reflects pass/fail; report dir gets index.html + JSON (spec §10/§10b) |
 | 4 | **Gauntlet (host-invoked)** | the §2e command line; gate on `%ERRORLEVEL%`. Every run boots a fresh editor — budget minutes, not seconds |
 | 5 | **BusterBlock (labeled host example)** | BB drives builds AND automation runs through its UnrealToolbox (`<BB-root>/CkAuto/UnrealToolbox.exe --build / --test`) — superproject-specific tooling; other hosts wire their own runner around #3/#4 |
+| 6 | **Resident editor — the CkTestsBridge live path** (added 2026-07-25) | Run *inside* an already-booted editor instead of paying a fresh boot per run. BB: `--warm-server start` once, then `--test --live`. See below — it changes when you'd pick #3 vs #5. |
+
+### 6 in detail — when to use the live path instead of a fresh boot
+
+The `CkTestsBridge` module (3rd module in this plugin) lets a driver drop a request into
+`<ProjectSaved>/CkTestBridge/` and have a **resident** editor run it. Pick by what you're doing:
+
+| Situation | Path | Why |
+|---|---|---|
+| Claiming "done" / "no regressions"; CI | **fresh boot** (`--test --no-live`) | gate of record — process freshness, as a matter of process |
+| Iterating: same tests, repeatedly, while editing `.as` | **warm server** (`--warm-server start` → `--test --live`) | pay the ~50s boot once, then zero per run |
+| Iterating but RAM-constrained | the user's open editor — **opt-in only** | costs no second editor, but replaces their open level and does not restore it |
+
+Load-bearing facts, all measured rather than assumed:
+
+- **A test-only run coexists with an open editor.** The hazard is not the run, it is *editing* `.as`
+  or source mid-run: the live editor regenerates `Script/Generated/*`, the headless one logs
+  `Full Reload is required`, and that error is attributed to whichever test was running. Freeze edits
+  for the duration; grep that phrase before believing a red run.
+- **The warm server hot-reloads `.as` edits and the very next run uses the NEW bytecode** — verified
+  both directions (break an assertion → the run returns the new failure in ~1.8s of recompile; revert
+  → green again). No stale-bytecode risk in the iteration loop.
+- **Borrowing the user's editor is off by default** and a plain `--test` DECLINES an interactive
+  editor even when it is serving; `--live` is required. Verified with `ServeMode = Off`: the bridge
+  arms but never claims, and `--live` launches its own warm server instead of borrowing.
+- **The win scales INVERSELY with suite size** — ~3.5x on a 37-test pattern (34s vs 2m00s) but only
+  ~5% on a full 1262-test suite (19m34s vs 20m30s), because the fixed boot amortises away. Do not run
+  a full suite live expecting it to be faster; it is an iteration feature.
+- **Fidelity:** a full suite run live and fresh-booted produced **identical failure names**, and no
+  measurable state accumulation across runs. That is why #3 stays the gate of record on process
+  grounds, not because a divergence is known.
+- **Focus is irrelevant** (49s focused vs 52s unfocused). Any older note claiming the editor must be
+  foregrounded is a misdiagnosis of the driver's own poll cadence.
+
+Protocol, refusal reasons, and the gotchas: **`Source/CkTestsBridge/CLAUDE.md`**.
+BB-side invocation and flags: the `build-test` skill in `CkAuto/.claude/skills/build-test/`.
 
 Filter cheat-sheet: PIE AS autotests are **map-based** (`Project.Functional Tests.<dotted map
 path>.<Label>`); net AS autotests and C++ tests are **name-based** (`Ck.<Feature>.Net.AS_*`,
