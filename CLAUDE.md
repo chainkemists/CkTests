@@ -8,8 +8,10 @@ Facts marked with a date were verified against code/disk on that date.
 
 ## Identity (verified 2026-07-02)
 
-- `CkTests.uplugin` — 2 modules: **CkTests** (Runtime, Default) + **CkTestsEditor** (UncookedOnly,
-  Default). Win64/Mac/Linux, `CanContainContent: true` (ships the autotest + gym levels).
+- `CkTests.uplugin` — **3 modules** (updated 2026-07-26): **CkTests** (Runtime, Default) +
+  **CkTestsEditor** (UncookedOnly, Default) + **CkTestsBridge** (UncookedOnly — the live-editor test
+  bridge; see its own [CLAUDE.md](Source/CkTestsBridge/CLAUDE.md)). Win64/Mac/Linux,
+  `CanContainContent: true` (ships the autotest + gym levels).
 - Plugin deps: CkFoundation, CommonUI, GameplayAbilities, **Gauntlet**. Module deps add
   **FunctionalTesting**, EnhancedInput, and ~44 Ck modules (`Source/CkTests/CkTests.Build.cs`).
 - **Host-agnostic.** Consumed by multiple superprojects (BusterBlock and CkPlugins are both known
@@ -130,6 +132,36 @@ This plugin defines tests; hosts run them. Generic shapes (AutoTest spec §10):
 BusterBlock (one known host) drives builds and runs through its UnrealToolbox; other hosts wire
 their own. Full runbooks, test anatomy, and evidence rules: the **`ck-tests-authoring-and-running`
 skill** (this plugin's `.claude/skills/` — authored in campaign Phase 2).
+
+### Running tests INSIDE an already-open editor (the CkTestsBridge live path)
+
+Since 2026-07-25 a host driver can run automation **in a resident editor instead of booting a fresh
+one per run** — the `CkTestsBridge` module serves a file-drop protocol under
+`<ProjectSaved>/CkTestBridge/`. Two server kinds, and the choice matters:
+
+| You want | Use | Cost |
+|---|---|---|
+| Gate evidence / a "done" or "no regressions" claim | **fresh boot** (BusterBlock: `--test --no-live`) | ~45-50s boot per run |
+| Fast repeated runs while iterating | **warm server** — a headless `-CkTestBridgeServe` editor (`--warm-server start`, then `--test --live`) | one ~50s boot, then zero |
+| Same, but you cannot spare RAM for a second editor | **your own open editor**, opt-in only | it replaces your open level and does NOT restore it |
+
+- **A test-only run coexists with an open editor** — that is verified, not assumed. The hazard is
+  editing `.as`/source mid-run (the live editor regenerates `Script/Generated/*`, the headless one
+  logs `Full Reload is required`, and the error lands on whatever test was running). Freeze edits for
+  the run's duration.
+- **Borrowing the user's editor is off by default** (`ECk_TestBridge_ServeMode::Off`) and a plain
+  `--test` deliberately DECLINES an interactive editor even when it is serving — routing into one
+  requires an explicit opt-in on both sides. Verified 2026-07-27: with `ServeMode = Off` the bridge
+  arms but never claims, and `--test --live` launches its own warm server rather than borrowing.
+- **Measured, so nobody oversells it:** the live path's win scales *inversely* with suite size —
+  ~3.5x on a 37-test pattern (34s vs 2m00s), but only ~5% on a full 1262-test suite (19m34s vs
+  20m30s), because the fixed boot amortises away. It is an **iteration** feature.
+- Verdict fidelity was measured, not assumed: a full suite run live and fresh-booted produced
+  **identical failure names**. State does not measurably accumulate across runs — but a fresh boot
+  remains the gate of record as a matter of process, not because a divergence is known.
+
+Full protocol, refusal reasons, and the load-bearing gotchas: **[CkTestsBridge/CLAUDE.md](Source/CkTestsBridge/CLAUDE.md)**.
+Host-side invocation (BusterBlock): the `build-test` skill in `CkAuto/.claude/skills/build-test/`.
 
 ## Warnings
 
