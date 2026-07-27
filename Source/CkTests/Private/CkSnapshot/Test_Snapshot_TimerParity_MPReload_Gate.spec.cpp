@@ -146,8 +146,8 @@ bool FCkSnapshot_TimerParity_MPReload_Gate::RunTest(const FString& Parameters)
         if (ck::Is_NOT_Valid(Countdown) || ck::Is_NOT_Valid(Done))
         { AddError(TEXT("Mutate: server timers unresolved")); return; }
 
-        UCk_Utils_Timer_UE::Request_Jump(Countdown, FCk_Request_Timer_Jump{FCk_Time{Countdown_JumpSec}});
-        UCk_Utils_Timer_UE::Request_Jump(Done,      FCk_Request_Timer_Jump{FCk_Time{Done_JumpSec}});
+        UCk_Utils_Timer_UE::Request_Jump(Countdown, FCk_Request_Timer_Jump{FCk_Time{Countdown_JumpSec}}, {});
+        UCk_Utils_Timer_UE::Request_Jump(Done,      FCk_Request_Timer_Jump{FCk_Time{Done_JumpSec}}, {});
     });
 
     // ReloadSettled — extra reload predicate ANDed onto the harness default: the Countdown elapsed CONVERGED on the
