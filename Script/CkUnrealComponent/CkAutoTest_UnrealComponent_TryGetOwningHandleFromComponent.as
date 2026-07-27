@@ -21,14 +21,19 @@ class UCk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent : UCk_AutoTes
             UStaticMeshComponent, ECk_UnrealComponent_TickPolicy::DoNotTick, n"AutoTest");
         _Original = utils_unreal_component::Add(Owner, Params);
 
-        WaitOneFrame(n"OnSetupComplete");
+        WaitUntil(n"Check_ComponentInstantiated", n"OnSetupComplete");
+    }
+
+    UFUNCTION()
+    private void Check_ComponentInstantiated(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(utils_unreal_component::Get_Component(_Original)));
     }
 
     UFUNCTION()
     private void OnSetupComplete(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Comp = utils_unreal_component::Get_Component(_Original);
         Assert_True(ck::IsValid(Comp), "Pre-condition: Get_Component should return a non-null component");
 

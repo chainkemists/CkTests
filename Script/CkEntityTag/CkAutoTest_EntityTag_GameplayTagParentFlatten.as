@@ -26,14 +26,19 @@ class UCk_AutoTest_EntityTag_GameplayTagParentFlatten : UCk_AutoTest_Base
 
         utils_entity_tag::Add_UsingGameplayTag(_Entity, LeafTag);
 
-        WaitOneFrame(n"AfterAdd");
+        WaitUntil(n"Check_LeafTagAdded", n"AfterAdd");
+    }
+
+    UFUNCTION()
+    private void Check_LeafTagAdded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B.C"));
     }
 
     UFUNCTION()
     private void AfterAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B.C"),
             "Has(leaf FName) must be true after Add_UsingGameplayTag(leaf)");
         Assert_True(utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B"),

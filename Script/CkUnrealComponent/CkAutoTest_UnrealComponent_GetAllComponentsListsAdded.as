@@ -25,14 +25,19 @@ class UCk_AutoTest_UnrealComponent_GetAllComponentsListsAdded : UCk_AutoTest_Bas
             UPointLightComponent, ECk_UnrealComponent_TickPolicy::DoNotTick, n"AutoTest_Light");
         utils_unreal_component::Add(_Owner, LightParams);
 
-        WaitOneFrame(n"OnSetupComplete");
+        WaitUntil(n"Check_BothComponentsInstantiated", n"OnSetupComplete");
+    }
+
+    UFUNCTION()
+    private void Check_BothComponentsInstantiated(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_unreal_component::Get_AllComponents(_Owner).Num() >= 2);
     }
 
     UFUNCTION()
     private void OnSetupComplete(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Comps = utils_unreal_component::Get_AllComponents(_Owner);
         Assert_Equals_Int(Comps.Num(), 2,
             "Get_AllComponents should report one UActorComponent per Add call");

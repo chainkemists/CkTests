@@ -22,14 +22,19 @@ class UCk_AutoTest_UnrealComponent_TryGetHandleByTypeFound : UCk_AutoTest_Base
             UStaticMeshComponent, ECk_UnrealComponent_TickPolicy::DoNotTick, n"AutoTest");
         _AddedHandle = utils_unreal_component::Add(_Owner, Params);
 
-        WaitOneFrame(n"OnSetupComplete");
+        WaitUntil(n"Check_ComponentInstantiated", n"OnSetupComplete");
+    }
+
+    UFUNCTION()
+    private void Check_ComponentInstantiated(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(utils_unreal_component::Get_Component(_AddedHandle)));
     }
 
     UFUNCTION()
     private void OnSetupComplete(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Found = utils_unreal_component::TryGet_HandleByType(_Owner, UStaticMeshComponent);
         Assert_True(utils_handle::Get_IsValid(Found),
             "TryGet_HandleByType should return a valid handle for an added component type");

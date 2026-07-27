@@ -39,14 +39,19 @@ class UCk_AutoTest_EntityTag_ForEachEntityFindsByParent : UCk_AutoTest_Base
         utils_entity_tag::Add_UsingGameplayTag(_ChildX,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTestEt.X.Y"));
 
-        WaitOneFrame(n"AfterAdds");
+        WaitUntil(n"Check_BothChildrenTagged", n"AfterAdds");
+    }
+
+    UFUNCTION()
+    private void Check_BothChildrenTagged(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::ForEach_Entity(_Owner, n"AutoTestEt.A.B").Num() >= 2);
     }
 
     UFUNCTION()
     private void AfterAdds(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Found = utils_entity_tag::ForEach_Entity(_Owner, n"AutoTestEt.A.B");
         Assert_Equals_Int(Found.Num(), 2,
             f"ForEach_Entity(A.B) must return exactly the two A.B.* children (got {Found.Num()})");
