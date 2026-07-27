@@ -11,13 +11,20 @@
 //
 // Count(2) of tag A:
 //   1. Create + tag 2 entities → fires once, IsSatisfied=true, result Handles=2.
-//   2. Destroy one of the matches → after one frame the result array's Handles
-//      array drops to 1 and IsSatisfied flips back to false.
+//   2. Destroy one of the matches → the result array's Handles array drops to 1
+//      and IsSatisfied flips back to false.
 //
 // The "Handles count went from 2 to 1" assertion is the proof that the
 // destructor processor scrubbed the cached results — if cleanup had been
 // purely lazy, reading the array before the next Evaluate pass would still
 // show 2 entries (one stale invalid).
+//
+// This replaces a HAND-ROLLED RETRY: the previous version read the handle
+// count one frame after the destroy, branched on whether it had reached 1, and
+// gave the pump exactly one more frame through a second callback before
+// judging. That is the ad-hoc timing workaround the sequencer exists to
+// remove — the prune is now a single wait on the count reaching 1, bounded by
+// the test timeout instead of by a hardcoded second chance.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_DestructionPrunesProactively : UCk_AutoTest_Base
@@ -47,30 +54,33 @@ class UCk_AutoTest_EntityTagQuery_DestructionPrunesProactively : UCk_AutoTest_Ba
         utils_entity_tag_query::Request_AddRequirement(_Query,
             FCk_Request_EntityTagQuery_AddRequirement(Req));
 
-        WaitOneFrame(n"AfterAddRequirement");
+        Add_Step_WaitUntil("the requirement registers on a live query",  n"Check_RequirementRegistered");
+        Add_Step(          "tag two entities",                           n"Step_TagBoth");
+        Add_Step_WaitUntil("crossing Count(2) fires OnSatisfied",        n"Check_FiredOnce");
+        Add_Step(          "assert the cached results, destroy one match", n"Step_AssertCachedAndDestroy");
+        Add_Step_WaitUntil("the destroyed handle is pruned from results", n"Check_Pruned");
+        Add_Step(          "assert the post-prune state",                n"Step_AssertPrunedState");
+
+        Run_Steps(InHandle);
     }
 
-    UFUNCTION()
-    private void AfterAddRequirement(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
 
+    UFUNCTION()
+    private void Step_TagBoth(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
         _E1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E1, n"AutoTestEtq_DPP");
 
         _E2 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E2, n"AutoTestEtq_DPP");
-
-        WaitOneFrame(n"AfterTagBoth");
     }
 
     UFUNCTION()
-    private void AfterTagBoth(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertCachedAndDestroy(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_Equals_Int(_FireCount, 1,
-            "Count(2) crossed — query must fire exactly once");
         Assert_True(utils_entity_tag_query::Get_IsSatisfied(_Query),
             "After 2 matches, Get_IsSatisfied must report true");
 
@@ -80,58 +90,49 @@ class UCk_AutoTest_EntityTagQuery_DestructionPrunesProactively : UCk_AutoTest_Ba
         Assert_Equals_Int(Results[0].Get_Handles().Num(), 2,
             "Result entry must hold both tagged handles before destruction");
 
-        // Destroy one of the matches. The new destructor processor should
+        // Destroy one of the matches. The destructor processor should
         // proactively prune the cached results — not just rely on Evaluate's
         // lazy filter.
         utils_entity_lifetime::Request_DestroyEntity(_E1);
-
-        WaitOneFrame(n"AfterDestroyOne");
     }
 
     UFUNCTION()
-    private void AfterDestroyOne(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertPrunedState(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        auto Results = utils_entity_tag_query::Get_CurrentResults(_Query);
-        Assert_True(Results.Num() > 0,
-            "Result entry for the requirement must still exist after destroying one match");
-
-        const auto HandleCount = Results[0].Get_Handles().Num();
-
-        // If the destructor processor + Evaluate scheduling left us mid-flight,
-        // give it one more frame to settle.
-        if (HandleCount == 1)
-        {
-            DoCheckFinalState();
-            return;
-        }
-
-        WaitOneFrame(n"AfterDestroySecondFrame");
-    }
-
-    UFUNCTION()
-    private void AfterDestroySecondFrame(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        DoCheckFinalState();
-    }
-
-    private void DoCheckFinalState()
-    {
-        auto Results = utils_entity_tag_query::Get_CurrentResults(_Query);
-        Assert_True(Results.Num() > 0,
-            "Result entry for the requirement must still exist after destruction");
-        Assert_Equals_Int(Results[0].Get_Handles().Num(), 1,
-            "Destruction cleanup must proactively prune the destroyed handle from the cached results");
         Assert_True(utils_entity_tag_query::Get_IsSatisfied(_Query) == false,
             "After dropping below the cap, IsSatisfied must report false");
         Assert_Equals_Int(_FireCount, 1,
             "A silent drop must not trigger an OnSatisfied re-fire");
-
-        FinishSuccess();
     }
+
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_RequirementRegistered(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag_query::Get_AllRequirements(_Query).Num() >= 1);
+    }
+
+    UFUNCTION()
+    private void Check_FiredOnce(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_FireCount >= 1);
+    }
+
+    UFUNCTION()
+    private void Check_Pruned(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Results = utils_entity_tag_query::Get_CurrentResults(_Query);
+
+        auto Res = OutResult;
+        Res.Set(Results.Num() > 0 && Results[0].Get_Handles().Num() == 1);
+    }
+
+    //------------------------------------------------------------------------
 
     UFUNCTION()
     private void OnSatisfied(FCk_Handle_EntityTagQuery InQuery, const TArray<FCk_EntityTagQuery_Result>&in InResults)

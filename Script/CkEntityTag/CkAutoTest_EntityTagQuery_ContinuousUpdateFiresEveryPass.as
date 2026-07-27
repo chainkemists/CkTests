@@ -17,6 +17,12 @@
 // Strategy: bind OnContinuousUpdate to a query whose requirement nothing satisfies
 // yet, prove it stays silent across idle passes, then add a matching entity and
 // prove exactly that change fires it — and that it goes silent again afterwards.
+//
+// Most of this test asserts SILENCE, so most phases settle for a fixed number
+// of frames — a non-event has nothing to wait on. The one phase that expects a
+// fire waits on the counter rising above the idle baseline. The requirement
+// registering IS waited on, because a query that never started would be silent
+// for uninteresting reasons and the whole test would pass vacuously.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass : UCk_AutoTest_Base
@@ -47,63 +53,74 @@ class UCk_AutoTest_EntityTagQuery_ContinuousUpdateFiresEveryPass : UCk_AutoTest_
         utils_entity_tag_query::Request_AddRequirement(_Query,
             FCk_Request_EntityTagQuery_AddRequirement(Req));
 
-        // One frame for HandleRequests to install the requirement so the query is
-        // actively evaluating before we assert on its (non-)firing.
-        WaitOneFrame(n"AfterAddRequirement");
+        Add_Step_WaitUntil( "the requirement registers, so the query is live", n"Check_RequirementRegistered");
+        Add_Step(           "assert silence on an empty result set",           n"Step_AssertSilentAndLatch");
+        Add_Step_WaitFrames("let a further idle pass run",                     3);
+        Add_Step(           "assert the idle pass stayed silent, then tag",    n"Step_AssertIdleSilentAndTag");
+        Add_Step_WaitUntil( "the result-set change fires",                     n"Check_FiredOnChange");
+        Add_Step(           "latch the post-change count",                     n"Step_LatchAfterAdd");
+        Add_Step_WaitFrames("let a post-change idle pass run",                 3);
+        Add_Step(           "assert it went silent again",                     n"Step_AssertSilentAgain");
+
+        Run_Steps(InHandle);
     }
 
-    UFUNCTION()
-    private void AfterAddRequirement(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
 
+    UFUNCTION()
+    private void Step_AssertSilentAndLatch(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
         // No matching entity exists, so the evaluate produced no delta and must not fire.
         Assert_Equals_Int(_FireCount, 0,
             "OnContinuousUpdate must NOT fire while the result set is empty/unchanged");
 
         _FireCountIdle = _FireCount;
-        WaitOneFrame(n"AfterIdle");
     }
 
     UFUNCTION()
-    private void AfterIdle(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertIdleSilentAndTag(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        // A further idle pass (query active, still no change) must remain silent.
         Assert_Equals_Int(_FireCount, _FireCountIdle,
             "An idle pass with no result-set change must NOT fire OnContinuousUpdate");
 
-        // Now introduce a real change: tag a matching entity.
         _E1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E1, n"AutoTestEtq_Cont");
-        WaitOneFrame(n"AfterAdd");
     }
 
     UFUNCTION()
-    private void AfterAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_LatchAfterAdd(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        // The entity entering the result set is a change — it must fire.
-        Assert_True(_FireCount > _FireCountIdle,
-            "A result-set change (entity added) must fire OnContinuousUpdate");
-
         _FireCountAfterAdd = _FireCount;
-        WaitOneFrame(n"AfterSettle");
     }
 
     UFUNCTION()
-    private void AfterSettle(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertSilentAgain(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        // Once the change has settled, subsequent no-change passes must be silent again.
         Assert_Equals_Int(_FireCount, _FireCountAfterAdd,
             "After the change settles, an idle pass must NOT re-fire OnContinuousUpdate");
-
-        FinishSuccess();
     }
+
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_RequirementRegistered(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag_query::Get_AllRequirements(_Query).Num() >= 1);
+    }
+
+    UFUNCTION()
+    private void Check_FiredOnChange(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_FireCount > _FireCountIdle);
+    }
+
+    //------------------------------------------------------------------------
 
     UFUNCTION()
     private void OnContinuous(

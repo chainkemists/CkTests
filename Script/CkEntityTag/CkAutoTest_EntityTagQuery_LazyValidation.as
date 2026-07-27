@@ -14,6 +14,11 @@
 //   2. Destroying one match → next pump prunes; Get_IsSatisfied → false
 //      WITHOUT a re-fire (drop is silent on the signal).
 //   3. Adding a 3rd match → re-satisfies → fires again (drop-and-recover).
+//
+// Every phase crosses a real observable transition, including the drop:
+// Get_IsSatisfied is TRUE on entry to that phase and must go false, so the
+// wait is decisive rather than satisfied-on-arrival. The "no re-fire on drop"
+// half stays an assertion, checked at the moment the prune is observed.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_LazyValidation : UCk_AutoTest_Base
@@ -44,14 +49,25 @@ class UCk_AutoTest_EntityTagQuery_LazyValidation : UCk_AutoTest_Base
         utils_entity_tag_query::Request_AddRequirement(_Query,
             FCk_Request_EntityTagQuery_AddRequirement(Req));
 
-        WaitOneFrame(n"AfterAddRequirement");
+        Add_Step_WaitUntil("the requirement registers on a live query", n"Check_RequirementRegistered");
+        Add_Step(          "assert idle, then tag two entities",        n"Step_AssertIdleAndTagBoth");
+        Add_Step_WaitUntil("crossing Count(2) fires OnSatisfied",       n"Check_FiredOnce");
+        Add_Step(          "assert satisfied, then destroy one match",  n"Step_AssertSatisfiedAndDestroy");
+        Add_Step_WaitUntil("lazy-prune drops satisfaction back to false", n"Check_NoLongerSatisfied");
+        Add_Step(          "assert the drop was silent, then recover",  n"Step_AssertSilentDropAndRecover");
+        Add_Step_WaitUntil("re-satisfaction fires a second time",       n"Check_FiredTwice");
+        Add_Step(          "assert the recovered state",                n"Step_AssertRecovered");
+
+        Run_Steps(InHandle);
     }
 
-    UFUNCTION()
-    private void AfterAddRequirement(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
 
+    UFUNCTION()
+    private void Step_AssertIdleAndTagBoth(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
         Assert_Equals_Int(_FireCount, 0,
             "No matches yet — query must not have fired");
 
@@ -60,15 +76,11 @@ class UCk_AutoTest_EntityTagQuery_LazyValidation : UCk_AutoTest_Base
 
         _E2 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E2, n"AutoTestEtq_Lazy");
-
-        WaitOneFrame(n"AfterTagBoth");
     }
 
     UFUNCTION()
-    private void AfterTagBoth(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertSatisfiedAndDestroy(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_FireCount, 1,
             "Count(2) crossed — must fire exactly once");
         Assert_True(utils_entity_tag_query::Get_IsSatisfied(_Query),
@@ -77,39 +89,60 @@ class UCk_AutoTest_EntityTagQuery_LazyValidation : UCk_AutoTest_Base
         // Drop one tagged entity. The query's lazy-prune on the next pass
         // should observe the invalidation and flip IsSatisfied back to false.
         utils_entity_lifetime::Request_DestroyEntity(_E1);
-
-        WaitOneFrame(n"AfterDestroyOne");
     }
 
     UFUNCTION()
-    private void AfterDestroyOne(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertSilentDropAndRecover(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(utils_entity_tag_query::Get_IsSatisfied(_Query) == false,
-            "After destroying one of two matches, lazy-prune must drop IsSatisfied back to false");
         Assert_Equals_Int(_FireCount, 1,
             "Drop on its own must NOT trigger an OnSatisfied re-fire (signal fires on the rising edge only)");
 
-        // Recovery — tag a 3rd entity so the query crosses the threshold again.
         _E3 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E3, n"AutoTestEtq_Lazy");
-
-        WaitOneFrame(n"AfterRecover");
     }
 
     UFUNCTION()
-    private void AfterRecover(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertRecovered(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_FireCount, 2,
             "Drop-and-recover: re-satisfaction must fire OnSatisfied a second time");
         Assert_True(utils_entity_tag_query::Get_IsSatisfied(_Query),
             "Get_IsSatisfied must report true after recovery");
-
-        FinishSuccess();
     }
+
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_RequirementRegistered(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag_query::Get_AllRequirements(_Query).Num() >= 1);
+    }
+
+    UFUNCTION()
+    private void Check_FiredOnce(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_FireCount >= 1);
+    }
+
+    UFUNCTION()
+    private void Check_NoLongerSatisfied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag_query::Get_IsSatisfied(_Query) == false);
+    }
+
+    UFUNCTION()
+    private void Check_FiredTwice(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_FireCount >= 2);
+    }
+
+    //------------------------------------------------------------------------
 
     UFUNCTION()
     private void OnSatisfied(FCk_Handle_EntityTagQuery InQuery, const TArray<FCk_EntityTagQuery_Result>&in InResults)
