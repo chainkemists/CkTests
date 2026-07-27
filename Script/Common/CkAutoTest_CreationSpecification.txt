@@ -547,6 +547,56 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 // all, would my predicate still be true?" If yes, keep a frame-counted settle
 // (WaitFrames / Add_Step_WaitFrames) — it is honest about being a settle.
 //
+// NOTE: Fog_StartsUnexplored is listed above as an example but has since been
+// converted (wave 19) — not by weakening the rule but by finding the POSITIVE
+// observable hiding in its own assertion list: Get_CellCounts going non-zero
+// proves the grid composed, so the unexplored-everywhere negatives then run
+// against a provably live grid. Look for that before settling for frames.
+//
+// ---------------------------------------------------------------------------
+
+// !!! A PREDICATE ON A SHARED SURFACE MUST NAME *ITS OWN* ENTITIES !!!
+//
+// Every autotest runs in ONE PIE world. Projection surfaces — compass entries,
+// minimap entries, any global registry — therefore contain other tests' data.
+// A neighbouring test's entities can still be alive when yours are pending;
+// that is exactly why every projection test carries an "Isolated Y band"
+// comment in its header.
+//
+// So this is WRONG, however natural it looks:
+//
+//     Res.Set(utils_compass::Get_Entries(_Compass).Num() >= 4);   // NO
+//
+// A count cannot distinguish "my four entries" from "any four entries". It
+// releases on a foreign band's POIs and the test asserts against a projection
+// that was never its own.
+//
+// This is not hypothetical — it is how Compass_BearingAtCardinalOffsets failed
+// during the wave-21 migration: the compass held exactly 4 entries, none of
+// them the test's, and 7 of 9 assertions failed. Six CkMinimap tests shipped
+// with the same predicate and PASSED for several gates before the sweep in
+// 267bd7e corrected them. Passing is NOT evidence of soundness here.
+//
+// Name the entities instead:
+//
+//     auto Entries = utils_compass::Get_Entries(_Compass);
+//     auto Found = false;
+//     for (auto Entry : Entries)
+//     {
+//         if (Entry.Get_Poi() == _MyPoi) { Found = true; }
+//     }
+//     auto Res = OutResult;
+//     Res.Set(Found);                                              // YES
+//
+// If the test has no per-entity handle, key off a category tag private to that
+// test (Compass_MaxEntries_PriorityTruncation counts only entries carrying its
+// own Poi.Category.TestPriority).
+//
+// When the test asserts an EXCLUSION, wait on the entity that must SURVIVE.
+// That stays a sound structural witness: a broken filter or cull produces EXTRA
+// entries, which satisfies the wait and is then reported by the existing
+// assertion — there is no state in which the wait hides the defect.
+//
 // ---------------------------------------------------------------------------
 
 // PATTERN C — Signal-driven (PREFER THIS when the feature emits a signal)
