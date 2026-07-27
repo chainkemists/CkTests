@@ -45,21 +45,30 @@ class UCk_AutoTest_Compass_WrapAround : UCk_AutoTest_Base
         _Poi = utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.TestWrap")));
 
-        WaitOneFrame(n"OnSettled_Requests");
+        WaitUntil(n"Check_Projected", n"OnSettled_Projection");
     }
 
+    // Waits on THIS test's own POIs reaching the compass, never on a bare entry
+    // count: autotests share one PIE world and a neighbouring band's POIs can
+    // occupy the projection while this test's are still pending.
     UFUNCTION()
-    private void OnSettled_Requests(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_Projected(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Projection");
+        auto Entries = utils_compass::Get_Entries(_Compass);
+        auto Found0 = false;
+
+        for (auto Entry : Entries)
+        {
+            if (Entry.Get_Poi() == _Poi) { Found0 = true; }
+        }
+
+        auto Res = OutResult;
+        Res.Set(Found0);
     }
 
     UFUNCTION()
     private void OnSettled_Projection(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Entries = utils_compass::Get_Entries(_Compass);
         auto Found = false;
         for (auto Entry : Entries)

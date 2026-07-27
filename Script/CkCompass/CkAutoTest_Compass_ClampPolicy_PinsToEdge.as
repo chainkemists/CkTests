@@ -49,7 +49,7 @@ class UCk_AutoTest_Compass_ClampPolicy_PinsToEdge : UCk_AutoTest_Base
         _Inside = DoSpawnPoi(FVector(984.8, 173.6, 0.0), n"Poi.Category.TestInside",
             ECk_Poi_OffscreenPolicy::ClampToEdge);
 
-        WaitOneFrame(n"OnSettled_Requests");
+        WaitUntil(n"Check_Projected", n"OnSettled_Projection");
     }
 
     private FCk_Handle_Poi DoSpawnPoi(FVector InOffset, FName InCategoryName, ECk_Poi_OffscreenPolicy InPolicy)
@@ -71,18 +71,33 @@ class UCk_AutoTest_Compass_ClampPolicy_PinsToEdge : UCk_AutoTest_Base
         return Poi;
     }
 
+    // Waits on THIS test's own POIs reaching the compass, never on a bare entry
+    // count: autotests share one PIE world and a neighbouring band's POIs can
+    // occupy the projection while this test's are still pending.
     UFUNCTION()
-    private void OnSettled_Requests(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_Projected(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Projection");
+        auto Entries = utils_compass::Get_Entries(_Compass);
+        auto Found0 = false;
+        auto Found1 = false;
+        auto Found2 = false;
+
+        for (auto Entry : Entries)
+        {
+            if (Entry.Get_Poi() == _RightClamped) { Found0 = true; }
+            if (Entry.Get_Poi() == _LeftClamped) { Found1 = true; }
+            if (Entry.Get_Poi() == _Inside) { Found2 = true; }
+        }
+
+        auto Res = OutResult;
+        Res.Set(Found0
+             && Found1
+             && Found2);
     }
 
     UFUNCTION()
     private void OnSettled_Projection(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Entries = utils_compass::Get_Entries(_Compass);
         Assert_Equals_Int(Entries.Num(), 3, "All three POIs should be present (clamped, not hidden)");
 

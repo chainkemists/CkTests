@@ -53,14 +53,20 @@ class UCk_AutoTest_Compass_Add_CreatesValidHandle : UCk_AutoTest_Base
         TransformParams.Set_HeadingSource(ECk_Compass_HeadingSource::EntityTransform);
         _TransformCompass = utils_compass::Add(RotatedHost, TransformParams);
 
-        WaitOneFrame(n"OnSettled_Requests");
+        WaitUntil(n"Check_ManualHeadingApplied", n"OnSettled_Projection");
     }
 
+    // Request_SetManualHeading is deferred; its value landing is the settling
+    // event and the only thing this test can wait on. This compass reads no
+    // POIs, so there is no shared-world membership to confuse it. The
+    // EntityTransform heading resolves on the same pass, so its correctness
+    // stays an assertion — a broken transform-heading source is REPORTED with
+    // the observed value rather than timing out anonymously.
     UFUNCTION()
-    private void OnSettled_Requests(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_ManualHeadingApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Projection");
+        auto Res = OutResult;
+        Res.Set(Math::Abs(utils_compass::Get_Heading(_ManualCompass) - 37.0) < 0.1);
     }
 
     UFUNCTION()
