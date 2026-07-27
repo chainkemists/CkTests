@@ -47,11 +47,11 @@
 class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Action _RootAction;
+    private FCk_Handle_Goap_Action _CheaperAction;
     private FCk_Handle_Goap_Planner _Planner;
     private int32 _PlansReceived = 0;
     private bool _CheaperAdded = false;
     private bool _CheaperRemoved = false;
-    private int32 _SettleFrameCount = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -114,18 +114,19 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
             // Runtime mutation: add a cheaper sibling Action under the same planner.
             auto CheaperParams = FCk_Fragment_Goap_ActionParamsData(
                 UCk_AutoTestAction_Goap_AddRemove_Cheaper);
-            auto CheaperAction = utils_goap_planner::AddAction(_Planner, CheaperParams);
-            Assert_True(ck::IsValid(CheaperAction),
+            _CheaperAction = utils_goap_planner::AddAction(_Planner, CheaperParams);
+            Assert_True(ck::IsValid(_CheaperAction),
                 "Runtime AddAction (Cheaper) should return a valid handle");
             _CheaperAdded = true;
 
-            // Cheaper needs Setup to populate its _CachedActionDef (cost,
-            // effects) before the planner's next A* graph build can consume
-            // it. Setup runs in FGroup_Gameplay_AI on the next tick, so wait
-            // a few frames before triggering the replan to make sure Cheaper
-            // is fully registered as a candidate operator.
-            _SettleFrameCount = 0;
-            WaitOneFrame(n"OnSettleBeforeReplan");
+            // Cheaper's Setup must populate its cached operator def (cost,
+            // effects) before the planner's next A* graph build can consume it
+            // (CkGoap/CLAUDE.md anti-pattern: Request_Plan right after a runtime
+            // AddAction sees a default-constructed candidate). Wait on the real
+            // readiness observable rather than guessing a frame count — the
+            // previous fixed 3-frame settle turned a slow Setup under load into
+            // a misleading "Plan[0] should be Cheaper" failure.
+            WaitUntil(n"Check_CheaperSetupComplete", n"OnCheaperReady");
             return;
         }
 
@@ -159,21 +160,21 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnSettleBeforeReplan(
+    private void Check_CheaperSetupComplete(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_goap_action::Get_IsSetupComplete(_CheaperAction));
+    }
+
+    UFUNCTION()
+    private void OnCheaperReady(
         FCk_Handle_Timer InTimer,
         FCk_Chrono InChrono,
         FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
-        _SettleFrameCount = _SettleFrameCount + 1;
-        if (_SettleFrameCount < 3)
-        {
-            WaitOneFrame(n"OnSettleBeforeReplan");
-            return;
-        }
-
-        // Now that Cheaper has been through Setup, force a replan.
+        // Cheaper is now a fully-registered candidate operator — force a replan.
         utils_goap_planner::Request_Plan(_Planner);
     }
 }
