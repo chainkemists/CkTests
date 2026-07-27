@@ -525,9 +525,17 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 // condition. Both forms are self-bounding — they fail ahead of the engine
 // timeout — so no hand-rolled _PollCount/budget is needed.
 
-// PATTERN C — Single-shot assertion
-// Use when: the feature has a one-line behavior to verify (clamp, bounds,
-//           conversion, etc.).
+// PATTERN C — Signal-driven (PREFER THIS when the feature emits a signal)
+// Use when: the framework already broadcasts the transition you are waiting
+//           for. Binding it fires exactly on the change with no tick race, so
+//           it beats polling — reach for WaitUntil only when no such signal
+//           exists, or when the condition is a composite of several
+//           observables that no single signal covers.
+//
+// This is not theoretical. CkAutoTest_Net_Float_Local_AddWorksOnBothWorlds.as
+// carries the incident in a comment: "A WaitOneFrame timer (0.05s) can race the
+// override-application processor under PIE's faster-than-20fps tick rate and
+// read the stale value." Its author replaced the settle with a BindTo_OnValueChanged.
 //
 //   void DoBeginPlay(FCk_Handle InHandle) {
 //       auto Local = InHandle;

@@ -31,14 +31,15 @@ class UCk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed : UCk_AutoTest_Base
         Assert_True(Result == ECk_SucceededFailed::Succeeded,
             "Request_TryRemove on an absent tag should return Succeeded — the boundary only validates the handle; the deferred apply silently no-ops on a missing tag");
 
-        WaitOneFrame(n"AfterAbsentRemove");
+        // No positive condition exists here — the contract is that NOTHING
+        // happens — so this settles a fixed number of frames rather than
+        // pretending to wait on something.
+        WaitFrames(2, n"AfterAbsentRemove");
     }
 
     UFUNCTION()
     private void AfterAbsentRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(!utils_entity_tag::Has(_Entity, n"NeverAdded"),
             "After the no-op remove pumps, Has(NeverAdded) must still be false — the no-op must not poison the entity");
 

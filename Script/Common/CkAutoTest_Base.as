@@ -245,6 +245,11 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
 
         if (_WaitRunning)
         {
+            if (_WaitPredicateName == NAME_None)
+            {
+                auto Frames = _WaitBudget;
+                return f"WaitFrames({Frames})";
+            }
             auto Pred = _WaitPredicateName;
             return f"WaitUntil('{Pred}')";
         }
@@ -399,6 +404,33 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         { utils_timer::Request_Resume(_WaitTickTimer); }
     }
 
+    // Yields a fixed number of frames, then calls InContinuationName. Reach for
+    // this ONLY when there is no observable condition to wait on — the canonical
+    // case is asserting that something does NOT happen, where the whole point is
+    // that no state changes. Everywhere else use WaitUntil: a frame count cannot
+    // state what it is waiting for, and cannot report anything useful when the
+    // thing never arrives.
+    protected void WaitFrames(int32 InFrames, FName InContinuationName)
+    {
+        if (_WaitRunning)
+        {
+            FinishFailure(f"WaitFrames called while already waiting on '{_WaitPredicateName}' — one standalone wait at a time");
+            return;
+        }
+
+        _WaitPredicateName = NAME_None;
+        _WaitContinuationName = InContinuationName;
+        _WaitPolls = 0;
+        _WaitBudget = InFrames > 1 ? InFrames : 1;
+        _WaitElapsedSeconds = 0.0f;
+        _WaitRunning = true;
+
+        if (ck::Is_NOT_Valid(_WaitTickTimer))
+        { _WaitTickTimer = Do_MakePerFrameTimer(n"INTERNAL__AutoTest_WaitTick"); }
+        else
+        { utils_timer::Request_Resume(_WaitTickTimer); }
+    }
+
     UFUNCTION()
     private void INTERNAL__AutoTest_WaitTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
@@ -416,23 +448,21 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             return;
         }
 
+        // A nameless wait is a fixed-frame settle: the budget IS the wait.
+        if (_WaitPredicateName == NAME_None)
+        {
+            _WaitPolls++;
+            if (_WaitPolls < _WaitBudget) { return; }
+            Do_DispatchWaitContinuation(InTimer, InChrono, InDeltaT);
+            return;
+        }
+
         if (Do_EvaluatePredicate(_WaitPredicateName))
         {
             // Resolve the continuation while _WaitRunning is still true, so an
             // unbound name is reported against this wait rather than against
             // nothing.
-            auto Continuation = FCk_Delegate_Timer(this, _WaitContinuationName);
-            if (Continuation.IsBound() == false)
-            {
-                auto Fn = _WaitContinuationName;
-                FinishFailure(f"no UFUNCTION named '{Fn}' to continue to — needs `UFUNCTION() private void {Fn}(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)`");
-                return;
-            }
-
-            // Stop before dispatching: the continuation commonly starts the
-            // next wait, and a still-live timer would double-drive it.
-            Do_StopWaitTick();
-            Continuation.ExecuteIfBound(InTimer, InChrono, InDeltaT);
+            Do_DispatchWaitContinuation(InTimer, InChrono, InDeltaT);
             return;
         }
 
@@ -443,6 +473,24 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             auto Budget = _WaitBudget;
             FinishFailure(f"condition '{Cond}' never became true within {Budget} polls");
         }
+    }
+
+    private void Do_DispatchWaitContinuation(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        // Resolve the continuation while _WaitRunning is still true, so an
+        // unbound name is reported against this wait rather than against nothing.
+        auto Continuation = FCk_Delegate_Timer(this, _WaitContinuationName);
+        if (Continuation.IsBound() == false)
+        {
+            auto Fn = _WaitContinuationName;
+            FinishFailure(f"no UFUNCTION named '{Fn}' to continue to — needs `UFUNCTION() private void {Fn}(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)`");
+            return;
+        }
+
+        // Stop before dispatching: the continuation commonly starts the next
+        // wait, and a still-live timer would double-drive it.
+        Do_StopWaitTick();
+        Continuation.ExecuteIfBound(InTimer, InChrono, InDeltaT);
     }
 
     private void Do_StopWaitTick()

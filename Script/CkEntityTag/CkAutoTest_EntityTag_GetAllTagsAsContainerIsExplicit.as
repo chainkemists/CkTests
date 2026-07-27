@@ -34,14 +34,19 @@ class UCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit : UCk_AutoTest_Base
         utils_entity_tag::Add_UsingGameplayTag(_Entity, _TagABC);
         utils_entity_tag::Add_UsingGameplayTag(_Entity, _TagXY);
 
-        WaitOneFrame(n"AfterAdds");
+        WaitUntil(n"Check_ExplicitTagAdded", n"AfterAdds");
+    }
+
+    UFUNCTION()
+    private void Check_ExplicitTagAdded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Get_AllTagsAsContainer(_Entity).HasTagExact(_TagABC));
     }
 
     UFUNCTION()
     private void AfterAdds(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Container = utils_entity_tag::Get_AllTagsAsContainer(_Entity);
 
         Assert_True(Container.HasTagExact(_TagABC),

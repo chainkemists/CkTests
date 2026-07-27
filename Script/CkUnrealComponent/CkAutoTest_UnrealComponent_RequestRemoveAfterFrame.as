@@ -26,14 +26,19 @@ class UCk_AutoTest_UnrealComponent_RequestRemoveAfterFrame : UCk_AutoTest_Base
             "Pre-Remove: component handle should be valid");
 
         utils_unreal_component::Request_Remove(_CompHandle);
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_HandleReleased", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_HandleReleased(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_handle::Get_IsValid(_CompHandle) == false);
     }
 
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(!utils_handle::Get_IsValid(_CompHandle),
             "Post-Remove: handle should be invalid after one frame");
 

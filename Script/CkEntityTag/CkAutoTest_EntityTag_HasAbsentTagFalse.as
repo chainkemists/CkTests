@@ -16,14 +16,19 @@ class UCk_AutoTest_EntityTag_HasAbsentTagFalse : UCk_AutoTest_Base
         _Entity = InHandle;
         utils_entity_tag::Add(_Entity, n"Foo");
 
-        WaitOneFrame(n"AfterAdd");
+        WaitUntil(n"Check_TagAdded", n"AfterAdd");
+    }
+
+    UFUNCTION()
+    private void Check_TagAdded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Entity, n"Foo"));
     }
 
     UFUNCTION()
     private void AfterAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(utils_entity_tag::Has(_Entity, n"Foo"),
             "Has should return true for the added tag");
         Assert_True(!utils_entity_tag::Has(_Entity, n"Bar"),

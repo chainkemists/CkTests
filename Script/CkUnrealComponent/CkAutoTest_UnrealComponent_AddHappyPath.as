@@ -26,15 +26,20 @@ class UCk_AutoTest_UnrealComponent_AddHappyPath : UCk_AutoTest_Base
             "Add should return a valid FCk_Handle_UnrealComponent (synchronously)");
 
         // Component instantiation is deferred — FProcessor_UnrealComponent_Setup
-        // runs on the next tick and calls NewObject(Host, Class). Wait for it.
-        WaitOneFrame(n"OnSetupComplete");
+        // runs on a later tick and calls NewObject(Host, Class).
+        WaitUntil(n"Check_ComponentInstantiated", n"OnSetupComplete");
+    }
+
+    UFUNCTION()
+    private void Check_ComponentInstantiated(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(utils_unreal_component::Get_Component(_CompHandle)));
     }
 
     UFUNCTION()
     private void OnSetupComplete(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Comp = utils_unreal_component::Get_Component(_CompHandle);
         Assert_True(ck::IsValid(Comp),
             "Get_Component should return a non-null UActorComponent after Setup ticks");
