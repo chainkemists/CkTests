@@ -8,15 +8,14 @@
 // disappears from entries after the tag is added (Add_UsingGameplayTag) and
 // returns after it is removed (Request_TryRemove_UsingGameplayTag) — the
 // projector skips entities carrying Poi.Disabled every update. Both mutations
-// are deferred one pump, so each is followed by a settle frame.
+// are deferred, so each is followed by a wait on the membership actually
+// changing rather than on a fixed number of hops.
 //
 // Isolated Y band: 59600.
 //============================================================================
 
 class UCk_AutoTest_Compass_DisabledPoi_Excluded : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 8.0f;
-
     private FCk_Handle _SelfHandle;
     private FCk_Handle_Compass _Compass;
     private FCk_Handle _PoiOwner;
@@ -50,7 +49,47 @@ class UCk_AutoTest_Compass_DisabledPoi_Excluded : UCk_AutoTest_Base
 
         _DisabledTag = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Disabled");
 
-        WaitOneFrame(n"OnSettled_Initial");
+        Add_Step_WaitUntil("enabled in-range POI appears on the compass", n"Check_OnCompass");
+        Add_Step(          "disable the POI",                            n"Step_Disable");
+        Add_Step_WaitUntil("disabled POI leaves the compass",            n"Check_OffCompass");
+        Add_Step(          "re-enable the POI",                          n"Step_Enable");
+        Add_Step_WaitUntil("re-enabled POI returns to the compass",      n"Check_OnCompass");
+
+        Run_Steps(InHandle);
+    }
+
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Step_Disable(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        utils_entity_tag::Add_UsingGameplayTag(_PoiOwner, _DisabledTag);
+    }
+
+    UFUNCTION()
+    private void Step_Enable(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        utils_entity_tag::Request_TryRemove_UsingGameplayTag(_PoiOwner, _DisabledTag);
+    }
+
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_OnCompass(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(DoIsOnCompass());
+    }
+
+    UFUNCTION()
+    private void Check_OffCompass(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(DoIsOnCompass() == false);
     }
 
     private bool DoIsOnCompass()
@@ -63,55 +102,4 @@ class UCk_AutoTest_Compass_DisabledPoi_Excluded : UCk_AutoTest_Base
         return false;
     }
 
-    UFUNCTION()
-    private void OnSettled_Initial(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Initial2");
-    }
-
-    UFUNCTION()
-    private void OnSettled_Initial2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        Assert_True(DoIsOnCompass(), "Enabled in-range POI should be on the compass");
-
-        utils_entity_tag::Add_UsingGameplayTag(_PoiOwner, _DisabledTag);
-        WaitOneFrame(n"OnSettled_AfterDisable");
-    }
-
-    UFUNCTION()
-    private void OnSettled_AfterDisable(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_AfterDisable2");
-    }
-
-    UFUNCTION()
-    private void OnSettled_AfterDisable2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        Assert_True(!DoIsOnCompass(), "Disabled POI must be excluded from compass entries");
-
-        utils_entity_tag::Request_TryRemove_UsingGameplayTag(_PoiOwner, _DisabledTag);
-        WaitOneFrame(n"OnSettled_AfterEnable");
-    }
-
-    UFUNCTION()
-    private void OnSettled_AfterEnable(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_AfterEnable2");
-    }
-
-    UFUNCTION()
-    private void OnSettled_AfterEnable2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        Assert_True(DoIsOnCompass(), "Re-enabled POI should return to compass entries");
-        FinishSuccess();
-    }
 }
