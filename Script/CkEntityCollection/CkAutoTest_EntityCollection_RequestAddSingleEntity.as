@@ -29,14 +29,19 @@ class UCk_AutoTest_EntityCollection_RequestAddSingleEntity : UCk_AutoTest_Base
 
         utils_entity_collection::Request_AddSingleEntity(_Collection, _Member);
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_EntityAdded", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_EntityAdded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_collection::Get_NumEntitiesInCollection(_Collection) >= 1);
     }
 
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(utils_entity_collection::Get_NumEntitiesInCollection(_Collection), 1,
             "Post-add: collection should contain 1 entity");
         Assert_True(utils_entity_collection::Get_ContainsEntityInCollection(_Collection, _Member),

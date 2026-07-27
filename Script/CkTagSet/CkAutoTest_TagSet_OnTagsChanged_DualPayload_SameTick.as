@@ -62,7 +62,14 @@ class UCk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick : UCk_AutoTest_Base
         RemoveContainer.AddTag(_TagA);
         utils_tag_set::Request_RemoveTags(_TagSet, RemoveContainer);
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_SignalFired", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_SignalFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_FireCount >= 1);
     }
 
     UFUNCTION()
@@ -79,8 +86,6 @@ class UCk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick : UCk_AutoTest_Base
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_FireCount, 1,
             "OnTagsChanged should fire exactly once for same-frame Add+Remove (processor coalesces)");
         Assert_True(_SawAddedB,

@@ -25,14 +25,19 @@ class UCk_AutoTest_EntityCollection_RequestRemoveSingleEntity : UCk_AutoTest_Bas
 
         utils_entity_collection::Request_AddSingleEntity(_Collection, _Member);
 
-        WaitOneFrame(n"OnAdded");
+        WaitUntil(n"Check_EntityAdded", n"OnAdded");
+    }
+
+    UFUNCTION()
+    private void Check_EntityAdded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_collection::Get_NumEntitiesInCollection(_Collection) >= 1);
     }
 
     UFUNCTION()
     private void OnAdded(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(utils_entity_collection::Get_NumEntitiesInCollection(_Collection), 1,
             "Pre-remove: collection should contain 1 entity");
 

@@ -44,14 +44,19 @@ class UCk_AutoTest_PathNetwork_BuildsFromRibbons : UCk_AutoTest_Base
         Assert_True(utils_path_network::Has(FCk_Handle(_Network)), "network entity must carry the feature");
 
         // Build happens on the setup processor's next tick.
-        WaitOneFrame(n"OnNetworkBuilt");
+        WaitUntil(n"Check_NetworkBuilt", n"OnNetworkBuilt");
+    }
+
+    UFUNCTION()
+    private void Check_NetworkBuilt(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_path_network::Get_IsBuilt(_Network));
     }
 
     UFUNCTION()
     private void OnNetworkBuilt(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(utils_path_network::Get_IsBuilt(_Network),
             "network must be built one frame after Add()");
 
