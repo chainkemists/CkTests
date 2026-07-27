@@ -43,7 +43,14 @@ class UCk_AutoTest_Minimap_CategoryFilter : UCk_AutoTest_Base
         _QuestPoi = DoSpawnPoi(FVector(0.0, 500.0, 0.0), n"Poi.Category.MinimapFilterQuest");
         _ShopPoi = DoSpawnPoi(FVector(0.0, -500.0, 0.0), n"Poi.Category.MinimapFilterShop");
 
-        WaitOneFrame(n"OnSettled_Requests");
+        WaitUntil(n"Check_MinimapProjected", n"OnSettled_Requests");
+    }
+
+    UFUNCTION()
+    private void Check_MinimapProjected(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_minimap::Get_Entries(_Minimap).Num() >= 1);
     }
 
     private FCk_Handle_Poi DoSpawnPoi(FVector InOffset, FName InCategoryName)

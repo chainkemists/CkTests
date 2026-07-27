@@ -54,7 +54,14 @@ class UCk_AutoTest_Minimap_MaxVisibleRange_Culls : UCk_AutoTest_Base
         // MaxRange and computes distance itself — no Update_Distance needed.
         utils_visible_range::Add(RangedOwner, FCk_Fragment_VisibleRange_ParamsData(1000.0));
 
-        WaitOneFrame(n"OnSettled_Requests");
+        WaitUntil(n"Check_MinimapProjected", n"OnSettled_Requests");
+    }
+
+    UFUNCTION()
+    private void Check_MinimapProjected(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_minimap::Get_Entries(_Minimap).Num() >= 1);
     }
 
     UFUNCTION()
