@@ -8,7 +8,7 @@
 // timer:
 //   1. Add a long-goal Running timer (60s — never naturally completes
 //      within the harness window).
-//   2. Wait for elapsed > 0.
+//   2. Wait for elapsed > 200ms (well past one frame).
 //   3. Snapshot elapsed.
 //   4. Issue Request_Reset.
 //   5. Poll until elapsed drops back to zero (or strictly less than the
@@ -49,10 +49,11 @@ class UCk_AutoTest_Timer_ResetMidFlight : UCk_AutoTest_Base
 
         if (!_ResetRequested)
         {
-            // Wait for the timer to have accumulated some elapsed time, then
-            // snapshot and reset.
+            // Accumulate well past one frame of elapsed time before resetting —
+            // the post-reset dip below the snapshot then stays observable for
+            // many frames regardless of timer update iteration order.
             auto Elapsed = _Timer.Get_CurrentTimerValue().Get_TimeElapsed();
-            if (Elapsed.Get_Milliseconds() > 0.0)
+            if (Elapsed.Get_Milliseconds() > 200.0)
             {
                 _ElapsedAtResetMs = Elapsed.Get_Milliseconds();
                 _Timer.Request_Reset();
