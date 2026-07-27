@@ -12,7 +12,6 @@ class UCk_AutoTest_ObjectPooling_PrewarmAndGrowBatchProvision : UCk_AutoTest_Bas
 
     private UCk_ObjectPoolingTest_PlainObject _PrewarmArchetype;
     private UCk_ObjectPoolingTest_PlainObject _GrowArchetype;
-    private int32 _FramesWaited = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -51,7 +50,21 @@ class UCk_AutoTest_ObjectPooling_PrewarmAndGrowBatchProvision : UCk_AutoTest_Bas
             "grow-batch tops up (GrowBatchCount - 1) extras through the amortized tick");
         if (IsFinished()) { return; }
 
-        WaitOneFrame(n"OnFrameSettled");
+        WaitUntil(n"Check_BothPoolsDrained", n"OnFrameSettled");
+    }
+
+    // Both amortized schedules having drained is the settling event. The parked /
+    // live counts below stay assertions, so a pool that drains to the WRONG shape
+    // is reported by them rather than timing out here.
+    UFUNCTION()
+    private void Check_BothPoolsDrained(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto PrewarmStats = utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_PlainObject, _PrewarmArchetype);
+        auto GrowStats = utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_PlainObject, _GrowArchetype);
+
+        auto Res = OutResult;
+        Res.Set(PrewarmStats.Get_NumPrewarmRemaining() == 0
+             && GrowStats.Get_NumPrewarmRemaining() == 0);
     }
 
     UFUNCTION()
@@ -59,19 +72,11 @@ class UCk_AutoTest_ObjectPooling_PrewarmAndGrowBatchProvision : UCk_AutoTest_Bas
     {
         if (IsFinished()) { return; }
 
-        _FramesWaited++;
-
         auto PrewarmStats = utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_PlainObject, _PrewarmArchetype);
         auto GrowStats = utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_PlainObject, _GrowArchetype);
 
         const bool PrewarmDone = PrewarmStats.Get_NumPrewarmRemaining() == 0;
         const bool GrowDone = GrowStats.Get_NumPrewarmRemaining() == 0;
-
-        if ((!PrewarmDone || !GrowDone) && _FramesWaited < 20)
-        {
-            WaitOneFrame(n"OnFrameSettled");
-            return;
-        }
 
         Assert_True(PrewarmDone, "prewarm must complete within a few subsystem ticks");
         Assert_Equals_Int(PrewarmStats.Get_NumFree(), 3, "prewarm parked exactly PrewarmCount instances");
