@@ -167,7 +167,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
 
             // Wait for ChainUpdate to extend chain to [Root, Mid_A], then
             // trigger the cost-bump replan.
-            WaitOneFrame(n"OnWaitForFirstChainExtension");
+            WaitUntil(n"Check_ChainExtendedToMidA", n"OnWaitForFirstChainExtension");
             return;
         }
 
@@ -185,14 +185,25 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
             Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_MidB_ChainTruncation,
                 "Root Plan[0] should be Mid_B on second plan");
 
-            // ChainUpdate runs after HandleResult in the same frame.
-            // Wait one frame to let it truncate Mid_A and append Mid_B.
-            WaitOneFrame(n"OnWaitForChainTruncation");
+            // ChainUpdate runs after HandleResult in the same frame. Wait on the
+            // SETTLED state — Mid_B at chain slot 0 — not on "no longer Mid_A":
+            // the old poll sampled the chain the moment it stopped being Mid_A,
+            // which could catch a transient empty chain mid-truncation and fail
+            // spuriously with "should include Mid_B (got 0)".
+            WaitUntil(n"Check_ChainTruncatedToMidB", n"OnWaitForChainTruncation");
             return;
         }
     }
 
-    // Poll until the first chain extension [Root, Mid_A] is visible.
+    UFUNCTION()
+    private void Check_ChainExtendedToMidA(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
+
+        auto Res = OutResult;
+        Res.Set(Chain.Num() >= 1 && Chain[0] == _MidAAction);
+    }
+
     UFUNCTION()
     private void OnWaitForFirstChainExtension(
         FCk_Handle_Timer InTimer,
@@ -201,30 +212,21 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        // PR-B.1b Stage 5: chain starts at Plan[0] (Mid_A).
-        if (Chain.Num() < 1)
-        {
-            WaitOneFrame(n"OnWaitForFirstChainExtension");
-            return;
-        }
-
-        Assert_True(Chain.Num() >= 1,
-            f"Chain should include Mid_A after first plan (got {Chain.Num()})");
-
-        if (Chain.Num() >= 1)
-        {
-            Assert_True(Chain[0] == _MidAAction,
-                "Chain[0] should be Mid_A after first plan");
-        }
-
         // Chain is [Root, Mid_A]. Now trigger the replan by bumping Mid_A's cost.
         // OnEitherDirty policy (set at Root construction) will auto-trigger replan.
         utils_goap_planner::Request_SetChildActionCost(_Planner,
             UCk_AutoTestAction_Goap_ActionSet_MidA_ChainTruncation, 100.0);
     }
 
-    // Wait for ChainUpdate to truncate Mid_A and extend to Mid_B.
+    UFUNCTION()
+    private void Check_ChainTruncatedToMidB(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
+
+        auto Res = OutResult;
+        Res.Set(Chain.Num() >= 1 && Chain[0] == _MidBAction);
+    }
+
     UFUNCTION()
     private void OnWaitForChainTruncation(
         FCk_Handle_Timer InTimer,
@@ -232,26 +234,6 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
         FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
-
-        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-
-        // If chain still shows Mid_A, ChainUpdate hasn't processed yet.
-        // Poll until chain changes to Mid_B at slot 0.
-        if (Chain.Num() >= 1 && Chain[0] == _MidAAction)
-        {
-            WaitOneFrame(n"OnWaitForChainTruncation");
-            return;
-        }
-
-        // Chain should now begin with Mid_B.
-        Assert_True(Chain.Num() >= 1,
-            f"ActiveChain should include Mid_B after truncation (got {Chain.Num()})");
-
-        if (Chain.Num() >= 1)
-        {
-            Assert_True(Chain[0] == _MidBAction,
-                "Chain[0] should be Mid_B after truncation");
-        }
 
         Assert_True(_MidADeactivatedCount == 1,
             f"OnPlannerDeactivated should have fired exactly once for Mid_A (fired {_MidADeactivatedCount} times)");

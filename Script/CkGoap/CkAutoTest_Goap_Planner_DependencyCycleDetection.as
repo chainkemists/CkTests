@@ -41,7 +41,6 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Planner _Planner;
     private FCk_Handle_Goap_Action _RootAction;
-    private int _SettleFramesRemaining = 5;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -93,12 +92,19 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
         auto CycleBAction = utils_goap_planner::AddAction(_Planner, CycleBParams);
         Assert_True(ck::IsValid(CycleBAction), "CycleB AddAction should succeed");
 
-        // Settle: per-Action Setup runs first, then per-Planner Setup detects
-        // cycles. A few frames is plenty — there's no terminal signal we can
-        // bind to since the planner may not complete a successful plan with
-        // unreachable preconditions (the cycle Actions both need each other's
-        // effects, which start false).
-        WaitOneFrame(n"OnSettleTick");
+        // Per-Action Setup runs first, then per-Planner Setup detects cycles.
+        // There is no terminal signal to bind to (the cycle Actions can never
+        // plan — they need each other's effects, which start false), but the
+        // diagnostic surfacing IS the observable: wait for Get_DependencyCycles
+        // to become non-empty instead of guessing a frame count.
+        WaitUntil(n"Check_CyclesDetected", n"OnSettleTick");
+    }
+
+    UFUNCTION()
+    private void Check_CyclesDetected(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_goap_planner::Get_DependencyCycles(_Planner).Num() >= 1);
     }
 
     UFUNCTION()
@@ -109,23 +115,7 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        _SettleFramesRemaining -= 1;
-        if (_SettleFramesRemaining > 0)
-        {
-            WaitOneFrame(n"OnSettleTick");
-            return;
-        }
-
-        // ---- Positive case: real cycle must be detected.
         auto Cycles = utils_goap_planner::Get_DependencyCycles(_Planner);
-        Assert_True(Cycles.Num() >= 1,
-            f"Get_DependencyCycles must return at least one cycle for the CycleA<->CycleB sibling pair (got {Cycles.Num()} cycles)");
-
-        if (Cycles.Num() == 0)
-        {
-            FinishFailure("No cycles reported");
-            return;
-        }
 
         // ---- Verify the cycle's class list contains BOTH CycleA and CycleB.
         bool FoundCycleWithBoth = false;

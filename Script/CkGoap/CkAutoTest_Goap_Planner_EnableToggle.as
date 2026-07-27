@@ -126,8 +126,18 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
             utils_goap_planner::Get_EnableToggle(_Planner) == ECk_EnableDisable::Enable,
             "Planner should be enabled after Request_SetEnableToggle(Enable)");
 
-        // Wait for ChainUpdate to run and extend the chain.
-        WaitOneFrame(n"OnCheckChainExtended");
+        // Wait for the re-enabled planner to plan AND ChainUpdate to extend —
+        // the previous unbounded two-condition poll surfaced a broken re-enable
+        // as an anonymous engine TimesUp naming neither condition.
+        WaitUntil(n"Check_PlannedAndChainExtended", n"OnCheckChainExtended");
+    }
+
+    UFUNCTION()
+    private void Check_PlannedAndChainExtended(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound
+             && utils_goap_planner::Get_ActiveChain(_Planner).Num() >= 1);
     }
 
     // After re-enable: chain should extend to [Root, Mid].
@@ -140,24 +150,6 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-
-        // If Root hasn't planned yet (PlanStatus != PlanFound), wait one more frame.
-        auto RootStatus = utils_goap_planner::Get_PlanStatus(_Planner);
-        if (RootStatus != ECk_GoapPlanStatus::PlanFound)
-        {
-            WaitOneFrame(n"OnCheckChainExtended");
-            return;
-        }
-
-        // Root has planned. ChainUpdate may need one more frame to extend.
-        if (Chain.Num() < 1)
-        {
-            WaitOneFrame(n"OnCheckChainExtended");
-            return;
-        }
-
-        Assert_True(Chain.Num() >= 1,
-            f"ActiveChain should include Mid after re-enable (got {Chain.Num()})");
 
         auto MidHandle = utils_goap_planner::Find_ActionByClass(
             _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
