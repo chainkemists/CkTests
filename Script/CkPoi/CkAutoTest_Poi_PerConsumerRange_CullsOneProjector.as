@@ -18,6 +18,12 @@
 // POI at 2000uu due +X; compass child VR MaxRange 1000 -> out of range -> hidden.
 //
 // Isolated Y band: 51800.
+//
+// The headline assertion is a NEGATIVE (the compass must not list the POI),
+// which is already true before any projector has run — an unconditional settle
+// could pass it vacuously. The sequence therefore waits on a POSITIVE witness
+// first (the minimap picking the POI up, proving the projectors are live), then
+// on the causal event (the compass child's VR going hidden), before asserting.
 //============================================================================
 
 class UCk_AutoTest_Poi_PerConsumerRange_CullsOneProjector : UCk_AutoTest_Base
@@ -30,7 +36,6 @@ class UCk_AutoTest_Poi_PerConsumerRange_CullsOneProjector : UCk_AutoTest_Base
     private FCk_Handle_Poi _Poi;
     private FCk_Handle_VisibleRange _CompassChildVr;
     private FVector _Base = FVector(0.0, 51800.0, 0.0);
-    private int32 _SettleFrames = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -74,7 +79,12 @@ class UCk_AutoTest_Poi_PerConsumerRange_CullsOneProjector : UCk_AutoTest_Base
         VrParams.Set_UpdateInterval(FCk_Time(0.0f));
         _CompassChildVr = utils_visible_range::Add(CompassChild, VrParams);
 
-        WaitOneFrame(n"OnSettle");
+        Add_Step_WaitUntil( "the minimap projector picks the POI up",        n"Check_MinimapHasPoi");
+        Add_Step_WaitUntil( "the compass child's VisibleRange goes hidden",  n"Check_CompassChildHidden");
+        Add_Step_WaitFrames("let the next compass update apply the cull",    3);
+        Add_Step(           "assert only the compass consumer was culled",   n"Step_AssertPerConsumerCull");
+
+        Run_Steps(InHandle);
     }
 
     private bool DoCompassContainsPoi()
@@ -95,27 +105,43 @@ class UCk_AutoTest_Poi_PerConsumerRange_CullsOneProjector : UCk_AutoTest_Base
         return false;
     }
 
-    // EntityTag category defers one pump; the per-consumer VR path needs two projector updates
-    // (feed distance, then exclude). Settle generously before asserting.
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    // A POSITIVE witness, and it is load-bearing. The headline assertion is a
+    // negative — the compass must NOT list the POI — which is already true
+    // before any projector has run. Proving the minimap picked the POI up first
+    // establishes that the projectors are live, so the negative means the
+    // compass consumer was CULLED rather than never gathered.
     UFUNCTION()
-    private void OnSettle(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_MinimapHasPoi(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
+        auto Res = OutResult;
+        Res.Set(DoMinimapContainsPoi());
+    }
 
-        _SettleFrames += 1;
-        if (_SettleFrames < 8)
-        {
-            WaitOneFrame(n"OnSettle");
-            return;
-        }
+    // The causal event: the compass child's VR evaluating out-of-range is what
+    // the next projector update acts on. False on entry, so this wait is decisive.
+    UFUNCTION()
+    private void Check_CompassChildHidden(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_visible_range::Get_IsHidden(_CompassChildVr));
+    }
 
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Step_AssertPerConsumerCull(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
         Assert_True(!DoCompassContainsPoi(),
             "A VisibleRange (MaxRange 1000) on the compass consumer child must cull the compass entry at distance ~2000");
         Assert_True(DoMinimapContainsPoi(),
             "The minimap consumer child has no VisibleRange, so the minimap must still show the POI");
         Assert_True(utils_visible_range::Get_IsHidden(_CompassChildVr),
             "The compass child's VisibleRange should report hidden (out of range)");
-
-        FinishSuccess();
     }
 }
