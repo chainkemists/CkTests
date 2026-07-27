@@ -90,7 +90,14 @@ class UCk_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved : UCk_Auto
             FInstancedStruct(),
             FCk_Delegate_ActorModifier_OnActorComponentRemoved(this, n"OnComponentRemoved"));
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_DelegateFired", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_DelegateFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_RemoveDelegateFired);
     }
 
     UFUNCTION()
@@ -107,8 +114,6 @@ class UCk_AutoTest_Actor_RemoveActorComponent_FiresOnComponentRemoved : UCk_Auto
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(_AddDelegateFired,
             "Prerequisite: AddActorComponent delegate should have fired");
         Assert_True(_RemoveDelegateFired,

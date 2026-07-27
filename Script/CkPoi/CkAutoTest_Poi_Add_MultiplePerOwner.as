@@ -56,14 +56,19 @@ class UCk_AutoTest_Poi_Add_MultiplePerOwner : UCk_AutoTest_Base
         Assert_True(utils_poi::Has(_ShopOwner) && utils_poi::Has(_QuestOwner),
             "Has should report true on both POI-hosting entities");
 
-        WaitOneFrame(n"OnSettled_Categories");
+        WaitUntil(n"Check_CategoriesApplied", n"OnSettled_Categories");
+    }
+
+    UFUNCTION()
+    private void Check_CategoriesApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_poi::Get_CategoryTags(_ShopPoi).Num() > 0 && utils_poi::Get_CategoryTags(_QuestPoi).Num() > 0);
     }
 
     UFUNCTION()
     private void OnSettled_Categories(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(utils_poi::Get_CategoryTags(_ShopPoi).HasTagExact(_ShopCategory),
             "First POI's category should round-trip independently");
         Assert_True(utils_poi::Get_CategoryTags(_QuestPoi).HasTagExact(_QuestCategory),

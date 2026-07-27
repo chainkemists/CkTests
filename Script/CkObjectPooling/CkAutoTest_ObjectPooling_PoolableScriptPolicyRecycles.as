@@ -38,14 +38,19 @@ class UCk_AutoTest_ObjectPooling_PoolableScriptPolicyRecycles : UCk_AutoTest_Bas
         if (IsFinished()) { return; }
 
         utils_entity_lifetime::Request_DestroyEntity(_FirstEntity);
-        WaitOneFrame(n"OnDestroySettled");
+        WaitUntil(n"Check_InstanceParked", n"OnDestroySettled");
+    }
+
+    UFUNCTION()
+    private void Check_InstanceParked(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_PoolableScript, nullptr).Get_NumFree() >= 1);
     }
 
     UFUNCTION()
     private void OnDestroySettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Stats = utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_PoolableScript, nullptr);
         Assert_Equals_Int(Stats.Get_NumFree(), 1, "after destroy: EndPlay must park the instance (1 free)");
         Assert_Equals_Int(Stats.Get_NumInUse(), 0, "after destroy: 0 in use");

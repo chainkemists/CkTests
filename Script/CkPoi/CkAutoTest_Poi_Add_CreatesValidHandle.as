@@ -48,14 +48,19 @@ class UCk_AutoTest_Poi_Add_CreatesValidHandle : UCk_AutoTest_Base
         Assert_True(!utils_entity_tag::Has_UsingGameplayTag(_Owner, DisabledTag),
             "A freshly added Poi should be enabled by default (no Poi.Disabled tag)");
 
-        WaitOneFrame(n"OnSettled_Category");
+        WaitUntil(n"Check_CategoryApplied", n"OnSettled_Category");
+    }
+
+    UFUNCTION()
+    private void Check_CategoryApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_poi::Get_CategoryTags(_Poi).Num() > 0);
     }
 
     UFUNCTION()
     private void OnSettled_Category(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Categories = utils_poi::Get_CategoryTags(_Poi);
         Assert_True(Categories.HasTagExact(_Category),
             "Get_CategoryTags should round-trip the category tag passed at Add");

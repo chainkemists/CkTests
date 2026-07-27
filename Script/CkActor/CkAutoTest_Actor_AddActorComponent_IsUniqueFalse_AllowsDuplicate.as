@@ -62,7 +62,14 @@ class UCk_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate : UCk_A
         DispatchAdd(n"OnAddA");
         DispatchAdd(n"OnAddB");
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_DelegateFired", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_DelegateFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_DelegateFireCount >= 2);
     }
 
     private void DispatchAdd(FName InCallbackName)
@@ -104,8 +111,6 @@ class UCk_AutoTest_Actor_AddActorComponent_IsUniqueFalse_AllowsDuplicate : UCk_A
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_DelegateFireCount, 2,
             "Both OnComponentAdded delegates should have fired");
         Assert_True(ck::IsValid(_ComponentA),
