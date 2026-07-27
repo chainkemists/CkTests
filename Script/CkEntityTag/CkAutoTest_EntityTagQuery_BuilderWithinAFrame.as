@@ -9,6 +9,16 @@
 // → BindTo. The first evaluation pass after that frame must fire OnSatisfied
 // exactly once (atomic-build evaluation, no duplicate fires across the
 // in-frame request flushes).
+//
+// The atomicity the test exists to check is preserved: an Add_Step action runs
+// to completion inside ONE tick, so the whole build still happens in a single
+// frame exactly as before.
+//
+// This conversion also makes the test STRICTER than the version it replaces.
+// The old one asserted "exactly one fire" a single frame after the build, so a
+// duplicate arriving on any later pass went unseen. It now waits for the first
+// fire, then deliberately settles further frames before asserting == 1, giving
+// a late double-fire room to show up and be caught.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_BuilderWithinAFrame : UCk_AutoTest_Base
@@ -38,17 +48,24 @@ class UCk_AutoTest_EntityTagQuery_BuilderWithinAFrame : UCk_AutoTest_Base
         _B1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_B1, n"AutoTestEtq_BuildB");
 
-        WaitOneFrame(n"AfterTagsApply");
+        Add_Step_WaitUntil( "all pre-staged tags land",                  n"Check_TagsApplied");
+        Add_Step(           "build the whole query inside one tick",     n"Step_BuildAtomically");
+        Add_Step_WaitUntil( "the first evaluation pass fires",           n"Check_Fired");
+        Add_Step_WaitFrames("give a late duplicate room to appear",      3);
+        Add_Step(           "assert it fired exactly once",              n"Step_AssertExactlyOnce");
+
+        Run_Steps(InHandle);
     }
 
-    UFUNCTION()
-    private void AfterTagsApply(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
 
-        // Atomically build the query in this single tick — no WaitOneFrame
-        // between Add/AddRequirement/BindTo. Verifies the processor's batch
-        // evaluation doesn't double-fire across the in-frame deferred steps.
+    UFUNCTION()
+    private void Step_BuildAtomically(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        // No wait between Add/AddRequirement/BindTo — verifies the processor's
+        // batch evaluation doesn't double-fire across the in-frame deferred steps.
         _Query = utils_entity_tag_query::Add(_Owner);
 
         auto ReqA = utils_entity_tag_query::Make_Requirement_Of(n"AutoTestEtq_BuildA", 2);
@@ -63,20 +80,36 @@ class UCk_AutoTest_EntityTagQuery_BuilderWithinAFrame : UCk_AutoTest_Base
             ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
             ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_EntityTagQuery_OnSatisfied(this, n"OnSatisfied"));
-
-        WaitOneFrame(n"AfterBuild");
     }
 
     UFUNCTION()
-    private void AfterBuild(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertExactlyOnce(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_FireCount, 1,
             "Atomic in-frame build with pre-staged matches must fire exactly once on the first evaluation pass");
-
-        FinishSuccess();
     }
+
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_TagsApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_A1, n"AutoTestEtq_BuildA")
+             && utils_entity_tag::Has(_A2, n"AutoTestEtq_BuildA")
+             && utils_entity_tag::Has(_B1, n"AutoTestEtq_BuildB"));
+    }
+
+    UFUNCTION()
+    private void Check_Fired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_FireCount >= 1);
+    }
+
+    //------------------------------------------------------------------------
 
     UFUNCTION()
     private void OnSatisfied(FCk_Handle_EntityTagQuery InQuery, const TArray<FCk_EntityTagQuery_Result>&in InResults)
