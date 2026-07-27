@@ -12,12 +12,17 @@
 //      (only 2 units of room remain); still 1 entry, 6 units.
 //   4. Add Potion x1 → Failed_NoSpaceAvailable; RemainingCapacity is 0.
 //
+// The two unit-count settles were hand-rolled retry loops bounded by a
+// _SettleTries counter. On exhausting the budget they FELL THROUGH into the
+// assertions anyway, so a genuine hang reported as "Inventory should hold 4
+// units" — a data-integrity failure pointing at the inventory system when the
+// real cause was that the wait gave up. WaitUntil names the condition it was
+// waiting on and is bounded by the test timeout instead.
 //============================================================================
 
 class UCk_AutoTest_Inventory_DataOnly_TotalUnitsBound : UCk_AutoTest_Base
 {
     private FCk_Handle_Inventory_DataOnly _Inventory;
-    private int _SettleTries = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -56,7 +61,14 @@ class UCk_AutoTest_Inventory_DataOnly_TotalUnitsBound : UCk_AutoTest_Base
 
         // Stack writes settle via deferred attribute modifiers — wait before the next
         // capacity-sensitive operation reads TotalUnits.
-        WaitOneFrame(n"OnFirstAddSettled");
+        WaitUntil(n"Check_FourUnits", n"OnFirstAddSettled");
+    }
+
+    UFUNCTION()
+    private void Check_FourUnits(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Inventory.Get_TotalUnits() == 4);
     }
 
     UFUNCTION()
@@ -64,17 +76,8 @@ class UCk_AutoTest_Inventory_DataOnly_TotalUnitsBound : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // Deferred stack writes can fold a frame later than a single wait — poll until settled.
-        if (_Inventory.Get_TotalUnits() != 4 && _SettleTries < 40)
-        {
-            _SettleTries++;
-            WaitOneFrame(n"OnFirstAddSettled");
-            return;
-        }
-
         Assert_Equals_Int(_Inventory.Get_TotalUnits(), 4, "Inventory should hold 4 units after the first add");
         Assert_Equals_Int(_Inventory.Get_RemainingCapacity(), 2, "2 units of room should remain");
-        _SettleTries = 0;
 
         auto Request = FCk_Request_Inventory_AddItemByDefinition(inv_gym_items::Potion(), 4);
         _Inventory.Request_AddItemByDefinition(Request,
@@ -96,20 +99,20 @@ class UCk_AutoTest_Inventory_DataOnly_TotalUnitsBound : UCk_AutoTest_Base
         Assert_Equals_Int(_Inventory.Get_NumItems(), 1,
             "Units should have merged into the existing stack (entry count is unconstrained but stacking wins)");
 
-        WaitOneFrame(n"OnSecondAddSettled");
+        WaitUntil(n"Check_SixUnits", n"OnSecondAddSettled");
+    }
+
+    UFUNCTION()
+    private void Check_SixUnits(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Inventory.Get_TotalUnits() == 6);
     }
 
     UFUNCTION()
     private void OnSecondAddSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
-
-        if (_Inventory.Get_TotalUnits() != 6 && _SettleTries < 40)
-        {
-            _SettleTries++;
-            WaitOneFrame(n"OnSecondAddSettled");
-            return;
-        }
 
         Assert_Equals_Int(_Inventory.Get_TotalUnits(), 6, "Inventory should now sit at its 6-unit bound");
         Assert_Equals_Int(_Inventory.Get_RemainingCapacity(), 0, "No unit room should remain");

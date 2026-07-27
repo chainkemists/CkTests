@@ -55,7 +55,16 @@ class UCk_AutoTest_Inventory_StackingPolicy_NoStacking : UCk_AutoTest_Base
         Assert_Equals_Int(_Inventory.Get_NumItems(), 3,
             "NoStacking must spread 3 units across 3 entries despite PreferStacking");
 
-        WaitOneFrame(n"OnAddSettled");
+        WaitUntil(n"Check_UnitsFolded", n"OnAddSettled");
+    }
+
+    // Three entries holding one unit each is the deferred stack write landing.
+    // Whether the policy actually capped them at 1 stays an assertion below.
+    UFUNCTION()
+    private void Check_UnitsFolded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Inventory.Get_TotalUnits() == 3);
     }
 
     UFUNCTION()
