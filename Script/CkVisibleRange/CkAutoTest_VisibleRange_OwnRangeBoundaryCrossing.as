@@ -27,14 +27,19 @@ class UCk_AutoTest_VisibleRange_OwnRangeBoundaryCrossing : UCk_AutoTest_Base
             "Should start visible: default distance (0) is inside MaxRange (500)");
 
         utils_visible_range::Update_Distance(_VR, 1000.0f);
-        WaitOneFrame(n"OnOutOfRangeSettled");
+        WaitUntil(n"Check_BecameHidden", n"OnOutOfRangeSettled");
+    }
+
+    UFUNCTION()
+    private void Check_BecameHidden(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_visible_range::Get_IsHidden(_VR));
     }
 
     UFUNCTION()
     private void OnOutOfRangeSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(utils_visible_range::Get_IsHidden(_VR),
             "Should be hidden after moving to distance 1000 (beyond MaxRange 500)");
 

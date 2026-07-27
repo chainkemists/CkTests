@@ -21,14 +21,19 @@ class UCk_AutoTest_Targeting_LifetimeAfterOneFrameDestroysEntity : UCk_AutoTest_
         Assert_True(utils_handle::Get_IsValid(_Ephemeral),
             "Pre-tick: ephemeral TargetPoint should still be valid in the same frame as Create");
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_EphemeralDestroyed", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_EphemeralDestroyed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_handle::Get_IsValid(_Ephemeral) == false);
     }
 
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(!utils_handle::Get_IsValid(_Ephemeral),
             "Post-tick: ephemeral TargetPoint should be invalid after AfterOneFrame destroy");
 
