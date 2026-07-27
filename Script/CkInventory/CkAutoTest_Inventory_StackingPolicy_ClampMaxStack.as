@@ -9,12 +9,17 @@
 //   1. Add Potion x7 (PreferStacking) → 3 entries (3 + 3 + 1), all 7 units in.
 //   2. Each entry's count never exceeds the clamp.
 //
+// The settle was a hand-rolled retry loop bounded by a _SettleTries counter.
+// On exhausting the budget it FELL THROUGH into the assertions anyway, so a
+// genuine hang reported as "Units must be conserved across the clamped stacks"
+// — a data-integrity failure pointing at the inventory system when the real
+// cause was that the wait gave up. WaitUntil names the condition it was
+// waiting on and is bounded by the test timeout instead.
 //============================================================================
 
 class UCk_AutoTest_Inventory_StackingPolicy_ClampMaxStack : UCk_AutoTest_Base
 {
     private FCk_Handle_Inventory_DataOnly _Inventory;
-    private int _SettleTries = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -51,21 +56,20 @@ class UCk_AutoTest_Inventory_StackingPolicy_ClampMaxStack : UCk_AutoTest_Base
         Assert_Equals_Int(_Inventory.Get_NumItems(), 3,
             "7 units under clamp(3) should land as 3 entries (3 + 3 + 1)");
 
-        WaitOneFrame(n"OnAddSettled");
+        WaitUntil(n"Check_SevenUnitsFolded", n"OnAddSettled");
+    }
+
+    UFUNCTION()
+    private void Check_SevenUnitsFolded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Inventory.Get_TotalUnits() == 7);
     }
 
     UFUNCTION()
     private void OnAddSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
-
-        // Deferred stack writes can fold a frame later than a single wait — poll until settled.
-        if (_Inventory.Get_TotalUnits() != 7 && _SettleTries < 40)
-        {
-            _SettleTries++;
-            WaitOneFrame(n"OnAddSettled");
-            return;
-        }
 
         auto Items = _Inventory.Get_Items();
         auto TotalUnits = 0;
