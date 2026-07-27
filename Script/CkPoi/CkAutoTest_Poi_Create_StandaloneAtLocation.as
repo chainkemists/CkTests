@@ -57,14 +57,25 @@ class UCk_AutoTest_Poi_Create_StandaloneAtLocation : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_Created),
             "utils_poi::Add should return a valid FCk_Handle_Poi");
 
-        WaitOneFrame(n"OnSettled_Requests");
+        WaitUntil(n"Check_Projected", n"OnSettled_Projection");
     }
 
+    // Names THIS test's own POI rather than counting entries: autotests share one
+    // PIE world, so a neighbouring band's POIs can occupy the projection while
+    // this test's is still pending (see CkCompass wave 21).
     UFUNCTION()
-    private void OnSettled_Requests(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_Projected(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Projection");
+        auto Entries = utils_compass::Get_Entries(_Compass);
+        auto Found = false;
+
+        for (auto Entry : Entries)
+        {
+            if (Entry.Get_Poi() == _Created) { Found = true; }
+        }
+
+        auto Res = OutResult;
+        Res.Set(Found);
     }
 
     UFUNCTION()

@@ -49,7 +49,26 @@ class UCk_AutoTest_Poi_StateTags_AddRemove_FiresSignals : UCk_AutoTest_Base
 
         // Add a new state tag (0 -> 1): fires Added once.
         utils_entity_tag::Add_UsingGameplayTag(_Owner, _LockedTag);
-        WaitOneFrame(n"OnSettled_AfterAdd");
+        WaitUntil(n"Check_AddedFired", n"OnSettled_AfterAdd");
+    }
+
+    // Only the two PRESENCE FLIPS (0->1, 1->0) have an event to wait on. The
+    // counted middle hops (1->2, 2->1) exist precisely to prove nothing fires,
+    // and no count accessor is exposed to script, so Has is true on both sides
+    // of each — a condition there would be true on entry or never satisfy.
+    // Those settle for frames, which is the unit the request pump advances in.
+    UFUNCTION()
+    private void Check_AddedFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_AddedCount >= 1);
+    }
+
+    UFUNCTION()
+    private void Check_RemovedFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_RemovedCount >= 1);
     }
 
     UFUNCTION()
@@ -71,7 +90,7 @@ class UCk_AutoTest_Poi_StateTags_AddRemove_FiresSignals : UCk_AutoTest_Base
 
         // Counted re-add (1 -> 2): no presence flip, must NOT fire.
         utils_entity_tag::Add_UsingGameplayTag(_Owner, _LockedTag);
-        WaitOneFrame(n"OnSettled_AfterCountedAdd");
+        WaitFrames(2, n"OnSettled_AfterCountedAdd");
     }
 
     UFUNCTION()
@@ -83,7 +102,7 @@ class UCk_AutoTest_Poi_StateTags_AddRemove_FiresSignals : UCk_AutoTest_Base
 
         // First remove (2 -> 1): still present, must NOT fire.
         utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Owner, _LockedTag);
-        WaitOneFrame(n"OnSettled_AfterFirstRemove");
+        WaitFrames(2, n"OnSettled_AfterFirstRemove");
     }
 
     UFUNCTION()
@@ -97,7 +116,7 @@ class UCk_AutoTest_Poi_StateTags_AddRemove_FiresSignals : UCk_AutoTest_Base
 
         // Second remove (1 -> 0): presence flip, fires Removed once.
         utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Owner, _LockedTag);
-        WaitOneFrame(n"OnSettled_AfterFinalRemove");
+        WaitUntil(n"Check_RemovedFired", n"OnSettled_AfterFinalRemove");
     }
 
     UFUNCTION()

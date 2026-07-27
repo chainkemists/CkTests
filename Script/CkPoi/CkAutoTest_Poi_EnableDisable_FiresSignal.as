@@ -49,7 +49,24 @@ class UCk_AutoTest_Poi_EnableDisable_FiresSignal : UCk_AutoTest_Base
 
         // Disable: add the Poi.Disabled tag (0 -> 1 flip fires Added).
         utils_entity_tag::Add_UsingGameplayTag(_Owner, _DisabledTag);
-        WaitOneFrame(n"OnSettled_AfterDisable");
+        WaitUntil(n"Check_FirstSignal", n"OnSettled_AfterDisable");
+    }
+
+    // Both phases cross a real presence flip, so both waits are decisive. The
+    // counters wait on >= N and the exactly-N contracts stay assertions, so an
+    // over-fire is reported rather than hanging until the deadline.
+    UFUNCTION()
+    private void Check_FirstSignal(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_SignalCount >= 1);
+    }
+
+    UFUNCTION()
+    private void Check_SecondSignal(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_SignalCount >= 2);
     }
 
     UFUNCTION()
@@ -73,7 +90,7 @@ class UCk_AutoTest_Poi_EnableDisable_FiresSignal : UCk_AutoTest_Base
 
         // Enable: remove the tag (1 -> 0 flip fires Removed).
         utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Owner, _DisabledTag);
-        WaitOneFrame(n"OnSettled_AfterEnable");
+        WaitUntil(n"Check_SecondSignal", n"OnSettled_AfterEnable");
     }
 
     UFUNCTION()

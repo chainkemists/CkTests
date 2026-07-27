@@ -47,7 +47,28 @@ class UCk_AutoTest_Poi_StateTags_ViaEntityTag : UCk_AutoTest_Base
         utils_entity_tag::Add_UsingGameplayTag(_Owner, _TagB);
         utils_entity_tag::Add_UsingGameplayTag(_Owner, _TagC);
 
-        WaitOneFrame(n"OnSettled_AfterAdds");
+        WaitUntil(n"Check_AllThreePresent", n"OnSettled_AfterAdds");
+    }
+
+    // Both waits cross a real transition. The removal one is decisive rather
+    // than satisfied-on-arrival because the first wait guarantees TagB IS
+    // present when the remove is issued.
+    UFUNCTION()
+    private void Check_AllThreePresent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Tags = utils_entity_tag::Get_AllTagsAsContainer(_Owner);
+
+        auto Res = OutResult;
+        Res.Set(Tags.HasTagExact(_TagA) && Tags.HasTagExact(_TagB) && Tags.HasTagExact(_TagC));
+    }
+
+    UFUNCTION()
+    private void Check_TagBRemoved(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Tags = utils_entity_tag::Get_AllTagsAsContainer(_Owner);
+
+        auto Res = OutResult;
+        Res.Set(Tags.HasTagExact(_TagB) == false);
     }
 
     UFUNCTION()
@@ -63,7 +84,7 @@ class UCk_AutoTest_Poi_StateTags_ViaEntityTag : UCk_AutoTest_Base
 
         // Remove exactly one state tag; the others (and the category) must survive.
         utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Owner, _TagB);
-        WaitOneFrame(n"OnSettled_AfterRemove");
+        WaitUntil(n"Check_TagBRemoved", n"OnSettled_AfterRemove");
     }
 
     UFUNCTION()
