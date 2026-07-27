@@ -42,10 +42,13 @@ class UCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal : UCk_AutoTest
         auto LocalHandle = InHandle;
         _Attribute = utils_integer_attribute::Add(LocalHandle, Params);
 
-        // Wait one frame so any initial-setup signals from Add can settle
-        // BEFORE we bind. After WaitOneFrame we bind and fire the two
-        // back-to-back Request_Override calls in the same tick.
-        WaitOneFrame(n"OnSettled_BeforeBind");
+        // Let any initial-setup signals from Add drain BEFORE we bind, so they
+        // cannot inflate the count this test exists to pin at 1. Deliberately a
+        // frame settle, not a condition: the attribute's base value is written
+        // at Add, so a value predicate would return on its first poll and defeat
+        // the isolation this wait provides. Frames are the unit the processor
+        // pass advances in; the 0.05s timer this replaces was wall-clock.
+        WaitFrames(2, n"OnSettled_BeforeBind");
     }
 
     UFUNCTION()
@@ -66,9 +69,17 @@ class UCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal : UCk_AutoTest
         utils_integer_attribute::Request_Override(_Attribute, 30, ECk_MinMaxCurrent::Current);
         _MutationsFired = true;
 
-        // Wait a frame for the processor pass to drain the coalesced state
-        // and fire the (single) OnValueChanged.
-        WaitOneFrame(n"OnSettled_AfterFire");
+        // The coalesced signal arriving is the settling event; that it arrives
+        // exactly ONCE is the contract and stays an assertion, so a
+        // one-signal-per-Override regression is reported rather than hanging.
+        WaitUntil(n"Check_SignalFired", n"OnSettled_AfterFire");
+    }
+
+    UFUNCTION()
+    private void Check_SignalFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_SignalCount >= 1);
     }
 
     UFUNCTION()
