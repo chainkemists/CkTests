@@ -105,14 +105,28 @@ class UCk_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
         _TweenComplete = true;
-        WaitOneFrame(n"OnFinalSettle");
+        WaitUntil(n"Check_LeafPropagated", n"OnFinalSettle");
+    }
+
+    // Propagation consistency, not the tween's target: this only asks whether the
+    // SceneNode pass has pushed the root's new world transform down to the leaf.
+    // The assertions below still judge whether it landed where it should.
+    UFUNCTION()
+    private void Check_LeafPropagated(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Root = utils_transform::Get_EntityCurrentLocation(_RootTH);
+        auto Leaf = utils_transform::Get_EntityCurrentLocation(_Child.As_Transform());
+        auto Expected = Root + ChildLocalLocation;
+
+        auto Res = OutResult;
+        Res.Set(Math::Abs(Leaf.X - Expected.X) < 1.0f
+             && Math::Abs(Leaf.Y - Expected.Y) < 1.0f
+             && Math::Abs(Leaf.Z - Expected.Z) < 1.0f);
     }
 
     UFUNCTION()
     private void OnFinalSettle(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(_TweenComplete, "Tween OnComplete must fire before final assert");
         Assert_True(_SampleCount >= 3,
             f"Tick poller must sample multiple frames during the tween (got {_SampleCount})");

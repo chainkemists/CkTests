@@ -46,14 +46,26 @@ class UCk_AutoTest_Attribute_VectorPerComponentClamp : UCk_AutoTest_Base
         // Min (Z). Final value must clamp each independently.
         utils_vector_attribute::Request_Override(_Attr, FVector(200.0f, 50.0f, -50.0f), ECk_MinMaxCurrent::Current);
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_OverrideApplied", n"OnSettled");
+    }
+
+    // Waits only for the override to LAND — not for it to land correctly. X and Z
+    // both move off the (50,50,50) base whether or not the clamp behaves, so a
+    // broken clamp still reaches the assertions below and fails with a message
+    // naming the offending component instead of an opaque timeout.
+    UFUNCTION()
+    private void Check_OverrideApplied(
+        FCk_Handle InHandle,
+        FCk_SharedBool OutResult,
+        FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_vector_attribute::Get_FinalValue(_Attr) != FVector(50.0f, 50.0f, 50.0f));
     }
 
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Final = utils_vector_attribute::Get_FinalValue(_Attr);
 
         Assert_True(Final.X == 100.0f,

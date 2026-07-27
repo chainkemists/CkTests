@@ -129,7 +129,14 @@ class UCk_AutoTest_Attribute_Request_ClearAllModifiers : UCk_AutoTest_Base
         _ClearSignalCount = 0;
         _CountingForClear = true;
         utils_integer_attribute_modifier::Request_ClearAllModifiers(_Attribute, ECk_MinMaxCurrent::Current);
-        WaitOneFrame(n"OnSettled_AfterClear");
+        WaitUntil(n"Check_ClearSignalFired", n"OnSettled_AfterClear");
+    }
+
+    UFUNCTION()
+    private void Check_ClearSignalFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_ClearSignalCount >= 1);
     }
 
     UFUNCTION()
@@ -138,8 +145,6 @@ class UCk_AutoTest_Attribute_Request_ClearAllModifiers : UCk_AutoTest_Base
         FCk_Chrono InChrono,
         FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(utils_integer_attribute::Get_FinalValue(_Attribute), 28,
             "After ClearAllModifiers, revocables are dropped but NotRev Add(+4)/Mul(*2) persist: (10+4)*2 = 28");
         Assert_Equals_Int(utils_integer_attribute::Get_BonusValue(_Attribute), 0,
