@@ -46,11 +46,22 @@ class UCk_AutoTest_Minimap_OffscreenPolicy : UCk_AutoTest_Base
         WaitUntil(n"Check_MinimapProjected", n"OnSettled_Requests");
     }
 
+    // Names THIS test's own POI rather than counting entries: autotests share one
+    // PIE world, so a neighbouring band's POIs can occupy the projection while
+    // this test's are still pending (see CkCompass wave 21).
     UFUNCTION()
     private void Check_MinimapProjected(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
+        auto Entries = utils_minimap::Get_Entries(_Minimap);
+        auto Found = false;
+
+        for (auto Entry : Entries)
+        {
+            if (Entry.Get_Poi() == _ClampedPoi) { Found = true; }
+        }
+
         auto Res = OutResult;
-        Res.Set(utils_minimap::Get_Entries(_Minimap).Num() >= 1);
+        Res.Set(Found);
     }
 
     private FCk_Handle_Poi DoSpawnPoi(FVector InOffset, FName InCategoryName, ECk_Poi_OffscreenPolicy InPolicy)

@@ -105,10 +105,21 @@ class UCk_AutoTest_Minimap_FogCulling : UCk_AutoTest_Base
         Res.Set(CellCounts.X > 0 && CellCounts.Y > 0);
     }
 
+    // Names THIS test's own POI rather than counting entries: autotests share one
+    // PIE world, so a neighbouring band's POIs can occupy the projection while
+    // this test's are still pending (see CkCompass wave 21).
     UFUNCTION()
     private void Check_PoiAppeared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
+        auto Entries = utils_minimap::Get_Entries(_Minimap);
+        auto Found = false;
+
+        for (auto Entry : Entries)
+        {
+            if (Entry.Get_Poi() == _Poi) { Found = true; }
+        }
+
         auto Res = OutResult;
-        Res.Set(utils_minimap::Get_Entries(_Minimap).Num() >= 1);
+        Res.Set(Found);
     }
 }
