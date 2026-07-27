@@ -13,8 +13,6 @@
 
 class UCk_AutoTest_Compass_AppearDisappear_Signals : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 8.0f;
-
     private FCk_Handle _SelfHandle;
     private FCk_Handle_Compass _Compass;
     private FCk_Handle _PoiOwner;
@@ -46,7 +44,70 @@ class UCk_AutoTest_Compass_AppearDisappear_Signals : UCk_AutoTest_Base
             FCk_Delegate_Compass_EntryDisappeared(this, n"OnEntryDisappeared"));
 
         // Let the empty compass settle a couple of frames first.
-        WaitOneFrame(n"OnSettled_Empty");
+        // Frame-settle, not a condition: this phase asserts that NOTHING has
+        // fired yet, so there is no observable to converge on — a predicate
+        // would be true immediately and prove nothing.
+        Add_Step_WaitFrames("let any spurious pre-POI signal land",      2);
+        Add_Step(          "assert no signals yet, then create the POI", n"Step_AssertEmpty_CreatePoi");
+        Add_Step_WaitUntil("the POI's entry appears on the compass",     n"Check_Appeared");
+        Add_Step(          "assert appeared once, then destroy the owner", n"Step_AssertAppeared_Destroy");
+        Add_Step_WaitUntil("the entry disappears from the compass",      n"Check_Disappeared");
+        Add_Step(          "assert exactly one appear and one disappear", n"Step_AssertFinal");
+
+        Run_Steps(InHandle);
+    }
+
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Step_AssertEmpty_CreatePoi(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        Assert_Equals_Int(_AppearedCount, 0, "No signals before any POI exists");
+
+        _PoiOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
+        _PoiOwner.Request_OverrideToSelf();
+        utils_transform::Add(_PoiOwner,
+            FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, 0.0, 0.0)),
+            ECk_Replication::DoesNotReplicate);
+        _Poi = utils_poi::Add(_PoiOwner, FCk_Fragment_Poi_ParamsData(
+            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.TestMembership")));
+    }
+
+    UFUNCTION()
+    private void Step_AssertAppeared_Destroy(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        Assert_Equals_Int(_AppearedCount, 1, "Creating one in-range POI should fire Appeared exactly once");
+        Assert_Equals_Int(_DisappearedCount, 0, "Nothing has disappeared yet");
+
+        utils_entity_lifetime::Request_DestroyEntity(_PoiOwner);
+    }
+
+    UFUNCTION()
+    private void Step_AssertFinal(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        Assert_Equals_Int(_AppearedCount, 1, "Appeared must not re-fire for a stable entry");
+        Assert_Equals_Int(_DisappearedCount, 1, "Destroying the POI owner should fire Disappeared exactly once");
+    }
+
+    //------------------------------------------------------------------------
+    // Conditions — >= so an over-fire is caught by the "exactly once"
+    // assertions above rather than never converging.
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_Appeared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_AppearedCount >= 1);
+    }
+
+    UFUNCTION()
+    private void Check_Disappeared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_DisappearedCount >= 1);
     }
 
     UFUNCTION()
@@ -61,58 +122,4 @@ class UCk_AutoTest_Compass_AppearDisappear_Signals : UCk_AutoTest_Base
         _DisappearedCount++;
     }
 
-    UFUNCTION()
-    private void OnSettled_Empty(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        Assert_Equals_Int(_AppearedCount, 0, "No signals before any POI exists");
-
-        _PoiOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
-        _PoiOwner.Request_OverrideToSelf();
-        utils_transform::Add(_PoiOwner,
-            FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, 0.0, 0.0)),
-            ECk_Replication::DoesNotReplicate);
-        _Poi = utils_poi::Add(_PoiOwner, FCk_Fragment_Poi_ParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.TestMembership")));
-
-        WaitOneFrame(n"OnSettled_AfterCreate");
-    }
-
-    UFUNCTION()
-    private void OnSettled_AfterCreate(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_AfterCreate2");
-    }
-
-    UFUNCTION()
-    private void OnSettled_AfterCreate2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        Assert_Equals_Int(_AppearedCount, 1, "Creating one in-range POI should fire Appeared exactly once");
-        Assert_Equals_Int(_DisappearedCount, 0, "Nothing has disappeared yet");
-
-        utils_entity_lifetime::Request_DestroyEntity(_PoiOwner);
-        WaitOneFrame(n"OnSettled_AfterDestroy");
-    }
-
-    UFUNCTION()
-    private void OnSettled_AfterDestroy(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_AfterDestroy2");
-    }
-
-    UFUNCTION()
-    private void OnSettled_AfterDestroy2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        Assert_Equals_Int(_AppearedCount, 1, "Appeared must not re-fire for a stable entry");
-        Assert_Equals_Int(_DisappearedCount, 1, "Destroying the POI owner should fire Disappeared exactly once");
-
-        FinishSuccess();
-    }
 }
