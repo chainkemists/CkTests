@@ -84,6 +84,8 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
 
         _PlanCompleteCount = _PlanCompleteCount + 1;
 
+        // Phase 2 is judged by the wait continuation below, not here, so there is
+        // exactly one path to a verdict.
         if (_PlanCompleteCount == 1)
         {
             // First plan: WS has AKey=false, so Root should have picked LeafA.
@@ -103,39 +105,40 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
                 utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
                 true);
 
-            // Poll until the second OnPlanComplete fires (up to several frames).
-            WaitOneFrame(n"OnPollForSecondPlan");
-            return;
-        }
-
-        if (_PlanCompleteCount == 2)
-        {
-            // Second plan: AKey=true, goal satisfied → empty plan (PlanFound + empty).
-            Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
-                "Root PlanStatus should be PlanFound on dirty-triggered replan");
-
-            auto RootPlan = utils_goap_planner::Get_PlanClasses(_Planner);
-            Assert_True(RootPlan.Num() == 0,
-                f"Root plan should be empty after WS mutation satisfies goal (got {RootPlan.Num()})");
-
-            FinishSuccess();
+            WaitUntil(n"Check_DirtyReplanFired", n"OnSecondPlanArrived");
         }
     }
 
-    // Poll if the WS dirty replan hasn't fired in the OnPlanComplete callback yet.
+    // The dirty-triggered replan arriving IS the settling event. Waiting on it
+    // names the condition if it never fires; the previous unbounded re-arming
+    // poll simply ran out the engine TimeLimit and surfaced as an anonymous
+    // TimesUp that said nothing about what the test was waiting for.
     UFUNCTION()
-    private void OnPollForSecondPlan(
+    private void Check_DirtyReplanFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_PlanCompleteCount >= 2);
+    }
+
+    UFUNCTION()
+    private void OnSecondPlanArrived(
         FCk_Handle_Timer InTimer,
         FCk_Chrono InChrono,
         FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
-        // OnPlanComplete will call FinishSuccess once _PlanCompleteCount reaches 2.
-        // If it hasn't fired yet wait another frame (bounded by _TimeoutSeconds).
-        if (_PlanCompleteCount < 2)
-        {
-            WaitOneFrame(n"OnPollForSecondPlan");
-        }
+
+        // Second plan: AKey=true, goal satisfied → empty plan (PlanFound + empty).
+        Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
+            "Root PlanStatus should be PlanFound on dirty-triggered replan");
+
+        auto RootPlan = utils_goap_planner::Get_PlanClasses(_Planner);
+        Assert_True(RootPlan.Num() == 0,
+            f"Root plan should be empty after WS mutation satisfies goal (got {RootPlan.Num()})");
+        Assert_Equals_Int(_PlanCompleteCount, 2,
+            "The WS dirty subscription should trigger exactly one replan");
+
+        FinishSuccess();
     }
 }
 
