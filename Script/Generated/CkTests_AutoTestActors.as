@@ -1536,7 +1536,6 @@ class ACk_AutoTest_Compass_Add_CreatesValidHandle_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_Compass_AppearDisappear_Signals_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 8.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1588,7 +1587,6 @@ class ACk_AutoTest_Compass_ClampPolicy_PinsToEdge_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_Compass_DisabledPoi_Excluded_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 8.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
