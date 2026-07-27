@@ -27,7 +27,18 @@ class UCk_AutoTest_Attribute_MayRequireReplicationToggle : UCk_AutoTest_Base
 {
     private FCk_Handle_FloatAttribute _Replicated;
     private FCk_Handle_FloatAttribute _NotReplicated;
-    private int _SettleTries = 0;
+
+    // These settles were hand-rolled retry loops bounded by a try counter that
+    // FELL THROUGH into the assertions on exhaustion, so a hang reported as a
+    // value mismatch rather than as a timeout. WaitUntil names the condition it
+    // was waiting on and is bounded by the test timeout.
+
+    UFUNCTION()
+    private void Check_ReplicationFlagCleared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_float_attribute::Get_MayRequireReplicationThisFrame(_Replicated) == false);
+    }
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -64,7 +75,7 @@ class UCk_AutoTest_Attribute_MayRequireReplicationToggle : UCk_AutoTest_Base
         Assert_True(!FlagNotReplicatedNow,
             "Non-replicated attribute must NOT have MayRequireReplication set — Request_TryReplicateAttribute gates on FTag_ReplicatedAttribute and early-returns when absent");
 
-        WaitOneFrame(n"OnAfterReplicateProcessor");
+        WaitUntil(n"Check_ReplicationFlagCleared", n"OnAfterReplicateProcessor");
     }
 
     UFUNCTION()
@@ -77,12 +88,6 @@ class UCk_AutoTest_Attribute_MayRequireReplicationToggle : UCk_AutoTest_Base
         // between the value settling (same-frame via pumps) and the next Replicate pass
         // consuming it. Poll until the Replicate pass has run; the assert below then pins
         // that the tag DID clear (a sticky tag fails via the bounded retry).
-        if (utils_float_attribute::Get_MayRequireReplicationThisFrame(_Replicated) && _SettleTries < 40)
-        {
-            _SettleTries++;
-            WaitOneFrame(n"OnAfterReplicateProcessor");
-            return;
-        }
 
         auto FlagReplicatedAfter = utils_float_attribute::Get_MayRequireReplicationThisFrame(_Replicated);
         Assert_True(!FlagReplicatedAfter,

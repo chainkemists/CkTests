@@ -18,7 +18,25 @@ class UCk_AutoTest_Inventory_Transfer_PartialIntoTotalUnitsBound : UCk_AutoTest_
     private FCk_Handle_Inventory_DataOnly _Source;
     private FCk_Handle_Inventory_DataOnly _Target;
     private FCk_Handle_Item _SourceItem;
-    private int _SettleTries = 0;
+
+    // These settles were hand-rolled retry loops bounded by a try counter that
+    // FELL THROUGH into the assertions on exhaustion, so a hang reported as a
+    // value mismatch rather than as a timeout. WaitUntil names the condition it
+    // was waiting on and is bounded by the test timeout.
+
+    UFUNCTION()
+    private void Check_SourceStackIsEight(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_item_trait_stackable::Get_StackCount(_SourceItem) == 8);
+    }
+
+    UFUNCTION()
+    private void Check_SourceStackIsThree(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_item_trait_stackable::Get_StackCount(_SourceItem) == 3);
+    }
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -64,7 +82,7 @@ class UCk_AutoTest_Inventory_Transfer_PartialIntoTotalUnitsBound : UCk_AutoTest_
         _SourceItem = InItemsCreated[0];
 
         // Let the stack-count Override settle before the transfer reads it.
-        WaitOneFrame(n"OnSourceSettled");
+        WaitUntil(n"Check_SourceStackIsEight", n"OnSourceSettled");
     }
 
     UFUNCTION()
@@ -72,14 +90,6 @@ class UCk_AutoTest_Inventory_Transfer_PartialIntoTotalUnitsBound : UCk_AutoTest_
     {
         if (IsFinished()) { return; }
 
-        // Deferred stack writes can fold a frame later than a single wait — poll until settled.
-        if (utils_item_trait_stackable::Get_StackCount(_SourceItem) != 8 && _SettleTries < 40)
-        {
-            _SettleTries++;
-            WaitOneFrame(n"OnSourceSettled");
-            return;
-        }
-        _SettleTries = 0;
 
         Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(_SourceItem), 8,
             "Source stack should hold 8 units before the transfer");
@@ -108,7 +118,7 @@ class UCk_AutoTest_Inventory_Transfer_PartialIntoTotalUnitsBound : UCk_AutoTest_
         Assert_Equals_Int(_Source.Get_NumItems(), 1, "Source keeps its (reduced) stack");
 
         // Both inventories' stack adjustments are deferred — settle before count asserts.
-        WaitOneFrame(n"OnTransferSettled");
+        WaitUntil(n"Check_SourceStackIsThree", n"OnTransferSettled");
     }
 
     UFUNCTION()
@@ -116,12 +126,6 @@ class UCk_AutoTest_Inventory_Transfer_PartialIntoTotalUnitsBound : UCk_AutoTest_
     {
         if (IsFinished()) { return; }
 
-        if (utils_item_trait_stackable::Get_StackCount(_SourceItem) != 3 && _SettleTries < 40)
-        {
-            _SettleTries++;
-            WaitOneFrame(n"OnTransferSettled");
-            return;
-        }
 
         Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(_SourceItem), 3,
             "Source stack should retain 8 - 5 = 3 units");

@@ -13,7 +13,7 @@
 //   4. Add Potion x1 → Failed_NoSpaceAvailable; RemainingCapacity is 0.
 //
 // The two unit-count settles were hand-rolled retry loops bounded by a
-// _SettleTries counter. On exhausting the budget they FELL THROUGH into the
+// try counter. On exhausting the budget they FELL THROUGH into the
 // assertions anyway, so a genuine hang reported as "Inventory should hold 4
 // units" — a data-integrity failure pointing at the inventory system when the
 // real cause was that the wait gave up. WaitUntil names the condition it was

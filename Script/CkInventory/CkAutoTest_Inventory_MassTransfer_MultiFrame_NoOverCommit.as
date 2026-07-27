@@ -26,7 +26,18 @@ class UCk_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit : UCk_AutoTest
     private FCk_Handle_Inventory_DataOnly _Candidate;
     private int32 _SeedsRemaining = 6;
     private bool  _Kicked = false;
-    private int32 _SettleTries = 0;
+
+    // These settles were hand-rolled retry loops bounded by a try counter that
+    // FELL THROUGH into the assertions on exhaustion, so a hang reported as a
+    // value mismatch rather than as a timeout. WaitUntil names the condition it
+    // was waiting on and is bounded by the test timeout.
+
+    UFUNCTION()
+    private void Check_CandidateHasFourUnits(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Candidate.Get_TotalUnits() == 4);
+    }
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -111,7 +122,7 @@ class UCk_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit : UCk_AutoTest
         Assert_Equals_Int(InItemsFailed, 2, "The 2 over-bound items should be reported failed");
 
         // The merged stack-count write is deferred — settle before reading TotalUnits.
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_CandidateHasFourUnits", n"OnSettled");
     }
 
     UFUNCTION()
@@ -119,12 +130,6 @@ class UCk_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit : UCk_AutoTest
     {
         if (IsFinished()) { return; }
 
-        if (_Candidate.Get_TotalUnits() != 4 && _SettleTries < 40)
-        {
-            _SettleTries += 1;
-            WaitOneFrame(n"OnSettled");
-            return;
-        }
 
         Assert_Equals_Int(_Candidate.Get_TotalUnits(), 4,
             "Candidate must sit at its 4-unit bound — never over-commit past it");

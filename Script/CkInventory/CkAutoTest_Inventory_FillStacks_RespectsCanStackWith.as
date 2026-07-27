@@ -45,7 +45,18 @@ class UCk_AutoTest_Inventory_FillStacks_RespectsCanStackWith : UCk_AutoTest_Base
     private FCk_Handle_Inventory_DataOnly _Target;
     private FCk_Handle_Item _TaggedItem;
     private FGameplayTag _RuntimeTag;
-    private int _SettleTries = 0;
+
+    // These settles were hand-rolled retry loops bounded by a try counter that
+    // FELL THROUGH into the assertions on exhaustion, so a hang reported as a
+    // value mismatch rather than as a timeout. WaitUntil names the condition it
+    // was waiting on and is bounded by the test timeout.
+
+    UFUNCTION()
+    private void Check_TaggedItemHasTag(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_item_trait_tags::HasTag(_TaggedItem, _RuntimeTag));
+    }
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -104,7 +115,7 @@ class UCk_AutoTest_Inventory_FillStacks_RespectsCanStackWith : UCk_AutoTest_Base
         _TaggedItem = InItemsCreated[0];
 
         utils_item_trait_tags::Request_AddTag(_TaggedItem, _RuntimeTag);
-        WaitOneFrame(n"OnSourceTagSettled");
+        WaitUntil(n"Check_TaggedItemHasTag", n"OnSourceTagSettled");
     }
 
     UFUNCTION()
@@ -112,9 +123,6 @@ class UCk_AutoTest_Inventory_FillStacks_RespectsCanStackWith : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        if (utils_item_trait_tags::HasTag(_TaggedItem, _RuntimeTag) == false && _SettleTries < 40)
-        { _SettleTries++; WaitOneFrame(n"OnSourceTagSettled"); return; }
-        _SettleTries = 0;
 
         Assert_True(utils_item_trait_tags::HasTag(_TaggedItem, _RuntimeTag),
             "Source Potion carries the runtime tag before the transfer");

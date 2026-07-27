@@ -48,7 +48,25 @@ class UCk_AutoTest_Inventory_SplitInheritsRuntimeTag : UCk_AutoTest_Base
     private FCk_Handle_Item _SourceItem;
     private FCk_Handle_Item _TargetItem;
     private FGameplayTag _RuntimeTag;
-    private int _SettleTries = 0;
+
+    // These settles were hand-rolled retry loops bounded by a try counter that
+    // FELL THROUGH into the assertions on exhaustion, so a hang reported as a
+    // value mismatch rather than as a timeout. WaitUntil names the condition it
+    // was waiting on and is bounded by the test timeout.
+
+    UFUNCTION()
+    private void Check_SourceHasTag(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_item_trait_tags::HasTag(_SourceItem, _RuntimeTag));
+    }
+
+    UFUNCTION()
+    private void Check_TargetHasTag(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_item_trait_tags::HasTag(_TargetItem, _RuntimeTag));
+    }
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -98,7 +116,7 @@ class UCk_AutoTest_Inventory_SplitInheritsRuntimeTag : UCk_AutoTest_Base
 
         // Add the runtime tag (deferred) and let it commit before we read / transfer.
         utils_item_trait_tags::Request_AddTag(_SourceItem, _RuntimeTag);
-        WaitOneFrame(n"OnSourceTagSettled");
+        WaitUntil(n"Check_SourceHasTag", n"OnSourceTagSettled");
     }
 
     UFUNCTION()
@@ -106,9 +124,6 @@ class UCk_AutoTest_Inventory_SplitInheritsRuntimeTag : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        if (utils_item_trait_tags::HasTag(_SourceItem, _RuntimeTag) == false && _SettleTries < 40)
-        { _SettleTries++; WaitOneFrame(n"OnSourceTagSettled"); return; }
-        _SettleTries = 0;
 
         Assert_True(utils_item_trait_tags::HasTag(_SourceItem, _RuntimeTag),
             "Source stack should carry the runtime tag before the transfer");
@@ -140,7 +155,7 @@ class UCk_AutoTest_Inventory_SplitInheritsRuntimeTag : UCk_AutoTest_Base
         Assert_Equals_Int(_Target.Get_NumItems(), 1, "Target should hold the split-off unit");
 
         _TargetItem = InNewItemInTarget;
-        WaitOneFrame(n"OnCopyTagSettled");
+        WaitUntil(n"Check_TargetHasTag", n"OnCopyTagSettled");
     }
 
     UFUNCTION()
@@ -151,8 +166,6 @@ class UCk_AutoTest_Inventory_SplitInheritsRuntimeTag : UCk_AutoTest_Base
         if (ck::Is_NOT_Valid(_TargetItem))
         { FinishFailure("Transfer reported no new target item to verify"); return; }
 
-        if (utils_item_trait_tags::HasTag(_TargetItem, _RuntimeTag) == false && _SettleTries < 40)
-        { _SettleTries++; WaitOneFrame(n"OnCopyTagSettled"); return; }
 
         Assert_True(utils_item_trait_tags::HasTag(_TargetItem, _RuntimeTag),
             "Split-off unit should inherit the source's runtime tag (OnSplit copy)");
