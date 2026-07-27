@@ -148,8 +148,8 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
                 "Mid PlanStatus must be Idle before ChainUpdate runs (parent-plan gate defers Mid until Root settles)");
         }
 
-        // Wait one frame so ChainUpdate appends Mid and sets RequiresInitialPlan.
-        WaitOneFrame(n"OnCheckAfterChainUpdate");
+        // ChainUpdate appends Mid and sets RequiresInitialPlan.
+        WaitUntil(n"Check_ChainExtendedToMid", n"OnCheckAfterChainUpdate");
     }
 
     UFUNCTION()
@@ -162,30 +162,54 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
 
         auto MidHandle = utils_goap_planner::Find_ActionByClass(
             _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        Assert_True(ck::IsValid(MidHandle), "Should still find Mid by class after one frame");
 
         if (ck::IsValid(MidHandle) == false)
         {
-            FinishSuccess();
+            FinishFailure("Mid could not be found by class after ChainUpdate");
             return;
         }
 
-        // ChainUpdate should have placed Mid at chain[0] by now.
-        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        if (Chain.Num() < 1)
-        {
-            WaitOneFrame(n"OnCheckAfterChainUpdate");
-            return;
-        }
-
-        Assert_True(Chain.Num() >= 1,
-            f"ActiveChain should include Mid after one frame (got {Chain.Num()})");
-        Assert_True(Chain.Num() >= 1 && Chain[0] == MidHandle,
+        Assert_True(Chain_Contains_Mid(MidHandle),
             "Chain[0] should be Mid after ChainUpdate appended it");
 
-        // Mid has been appended. Now poll until Mid has PlanFound to verify
+        // Mid has been appended. Now wait until Mid has PlanFound to verify
         // that the deferred plan fires on frame+1 (not the same frame as appending).
-        WaitOneFrame(n"OnWaitForMidPlan");
+        WaitUntil(n"Check_MidPlanResolved", n"OnWaitForMidPlan");
+    }
+
+    private bool Chain_Contains_Mid(FCk_Handle_Goap_Action InMidHandle) const
+    {
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
+        return Chain.Num() >= 1 && Chain[0] == InMidHandle;
+    }
+
+    UFUNCTION()
+    private void Check_ChainExtendedToMid(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto MidHandle = utils_goap_planner::Find_ActionByClass(
+            _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
+
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(MidHandle) && Chain_Contains_Mid(MidHandle));
+    }
+
+    // Planning is deferred, so Planning/Idle means "not resolved yet". Waiting for
+    // it to LEAVE those states, rather than for PlanFound specifically, keeps a
+    // genuine PlanNotFound reportable by the assertion below instead of timing out.
+    UFUNCTION()
+    private void Check_MidPlanResolved(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto MidHandle = utils_goap_planner::Find_ActionByClass(
+            _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
+
+        auto Res = OutResult;
+
+        if (ck::Is_NOT_Valid(MidHandle))
+        { Res.Set(false); return; }
+
+        auto MidStatus = utils_goap_action::Get_PlanStatus(MidHandle);
+        Res.Set(MidStatus != ECk_GoapPlanStatus::Planning
+             && MidStatus != ECk_GoapPlanStatus::Idle);
     }
 
     UFUNCTION()
@@ -200,17 +224,11 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
             _Planner, UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         if (ck::IsValid(MidHandle) == false)
         {
-            Assert_True(false, "Mid handle lost while waiting for its plan");
+            FinishFailure("Mid handle lost while waiting for its plan");
             return;
         }
 
         auto MidStatus = utils_goap_action::Get_PlanStatus(MidHandle);
-        if (MidStatus == ECk_GoapPlanStatus::Planning || MidStatus == ECk_GoapPlanStatus::Idle)
-        {
-            // Still in progress — give it another frame.
-            WaitOneFrame(n"OnWaitForMidPlan");
-            return;
-        }
 
         Assert_True(MidStatus == ECk_GoapPlanStatus::PlanFound,
             "Mid PlanStatus should eventually be PlanFound after deferred plan");
