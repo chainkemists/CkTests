@@ -20,8 +20,11 @@ DEFINE_LOG_CATEGORY_STATIC(LogCkAutoTest_Ensure, Log, All);
 // Process-wide ensure-policy override state.
 //
 // Goal: while ANY ACk_AutoTestRunner is active, force ECk_EnsureDisplay_Policy
-// to LogOnly so dialogs don't block automated runs. Restore the user's
-// original policy as soon as the LAST runner finishes — robust against:
+// to LogOnly so dialogs don't block automated runs, and ECk_EnsureDetails_Policy
+// to MessageOnly so the first ensure doesn't pay a fully-symbolicated
+// StackWalkAndDump (PDB load under a global lock — I/O-bound enough to stall a
+// headless run). Restore the user's original policies as soon as the LAST
+// runner finishes — robust against:
 //   - Overlapping actor lifecycles (Test A's BeginDestroy delayed past Test
 //     B's PrepareTest): without ref-counting, B would capture A's leftover
 //     LogOnly as "previous" and we'd never restore the real value.
@@ -57,6 +60,7 @@ namespace ck::auto_test::ensure_override
 {
     static int32 GActiveCount = 0;
     static ECk_EnsureDisplay_Policy GOriginalPolicy = ECk_EnsureDisplay_Policy::ModalDialog;
+    static ECk_EnsureDetails_Policy GOriginalDetailsPolicy = ECk_EnsureDetails_Policy::MessageAndStackTrace;
     static FDelegateHandle GPreExitHandle;
 
     static auto Force_Restore_OnEnginePreExit() -> void
@@ -68,6 +72,7 @@ namespace ck::auto_test::ensure_override
                      "forcing ensure display policy restore."),
                 GActiveCount);
             UCk_Utils_Core_UserSettings_UE::Set_EnsureDisplayPolicy(GOriginalPolicy);
+            UCk_Utils_Core_UserSettings_UE::Set_EnsureDetailsPolicy(GOriginalDetailsPolicy);
             GActiveCount = 0;
         }
     }
@@ -338,6 +343,16 @@ auto
                 ECk_EnsureDisplay_Policy::LogOnly);
         }
 
+        GOriginalDetailsPolicy = UCk_Utils_Core_UserSettings_UE::Get_EnsureDetailsPolicy();
+
+        if (GOriginalDetailsPolicy == ECk_EnsureDetails_Policy::MessageAndStackTrace)
+        {
+            UE_LOG(LogCkAutoTest_Ensure, Display,
+                TEXT("Overriding ensure details policy: MessageAndStackTrace -> MessageOnly for AutoTest run"));
+            UCk_Utils_Core_UserSettings_UE::Set_EnsureDetailsPolicy(
+                ECk_EnsureDetails_Policy::MessageOnly);
+        }
+
         // Belt-and-suspenders: if engine shuts down with an override still
         // active (e.g. our BeginDestroy never fires), force a restore.
         if (NOT GPreExitHandle.IsValid())
@@ -376,6 +391,14 @@ auto
             UE_LOG(LogCkAutoTest_Ensure, Display,
                 TEXT("Restoring ensure display policy after last AutoTest runner finished"));
             UCk_Utils_Core_UserSettings_UE::Set_EnsureDisplayPolicy(GOriginalPolicy);
+        }
+
+        const auto CurrentDetailsPolicy = UCk_Utils_Core_UserSettings_UE::Get_EnsureDetailsPolicy();
+        if (CurrentDetailsPolicy != GOriginalDetailsPolicy)
+        {
+            UE_LOG(LogCkAutoTest_Ensure, Display,
+                TEXT("Restoring ensure details policy after last AutoTest runner finished"));
+            UCk_Utils_Core_UserSettings_UE::Set_EnsureDetailsPolicy(GOriginalDetailsPolicy);
         }
 
         if (GPreExitHandle.IsValid())
