@@ -93,7 +93,12 @@ Facts marked with a date were verified against code/disk on that date.
 ### Gyms (interactive stations — manual/visual, not automation)
 
 Framework in `Script/Common/` (`ACk_Gym_Base_GameMode`/`_PlayerController`/`_Pawn`, Tab-menu
-cycler + HUD, `gym_auto` auto-mode, station display via BP_DemoDisplay). Canonical gym list =
+cycler + HUD, station display via BP_DemoDisplay). Station step sequences are CkStateMachine
+graphs — one `UCk_Gym_StepState` subclass per step, dwell gated by `UCk_Gym_Dwell`
+(`Script/Common/CkGym_StationSm.as`); the HUD highlights the SM's live current state, so the
+displayed sequence cannot drift from what is running. `gym_auto`'s `AutoStep % TotalSteps`
+if-else dispatch is the superseded shape, retained while stations migrate one at a time — its
+`FCk_Message_Gym_AutoSet` is still the shared transport for the `Ck_Gym*_Auto` console toggle. Canonical gym list =
 `Script/Common/CkTests_GymRegistry.as` — **43** `RegisterProjectGym` calls (verified 2026-07-02).
 Gym scripts are co-located per feature in `Script/<FeatureModule>/` — there is **no**
 `Script/CkGyms/` directory (stale spec claim). Level: `Content/TestGyms/TestGyms_CkTests_Level.umap`.
@@ -108,8 +113,15 @@ In-PIE exec commands (`Script/Common/CkGym_Base_PlayerController.as:255-287`): `
 - **Timeout lives on the entity script**: `default _TimeoutSeconds = X.Xf;` (base default 5.0,
   `CkAutoTest_Base.as:42`); the generator propagates it to the wrapper CDO. Any doc saying
   "configure timeout on the actor wrapper" is stale — that includes the AutoTest spec §6 wording.
-- **Settling**: use the base's `WaitOneFrame(n"Callback")` (`CkAutoTest_Base.as:165`), chainable
-  for multi-stage deferred flows — don't hand-roll settle timers (spec §7 predates this helper).
+- **Settling**: declare the test as steps — `Add_Step` / `Add_Step_WaitUntil` / `Run_Steps`, or
+  the standalone `WaitUntil(n"Predicate", n"Continue")` for branching flows. Wait on a NAMED
+  CONDITION, never a fixed number of hops: how many processor passes an effect needs is a property
+  of processor ordering, not elapsed time, so a hop count bakes a guess into the test and depends
+  silently on frame rate. A wait that never resolves names the step and condition that were
+  pending instead of dying as an anonymous engine `TimesUp`. Predicates answer through a local
+  copy (`auto Res = OutResult; Res.Set(...)`) — AngelScript rejects a non-const call on a by-value
+  struct param. `WaitOneFrame` is legacy (a 0.05s timer, not a frame wait), retained so unmigrated
+  tests compile.
 - **Don't rename test classes casually** — a rename orphans the placed wrapper actor in the .umap
   (git history: revert `604a2d4`). Let the populator sync, and prefer stable names.
 

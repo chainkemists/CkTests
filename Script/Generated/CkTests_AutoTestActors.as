@@ -1820,7 +1820,6 @@ class ACk_AutoTest_Dialog_Condition_ReceivesCallerContext_Actor : ACk_AutoTestRu
 
 class ACk_AutoTest_Dialog_Cooldown_BlocksThenExpires_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -5069,7 +5068,6 @@ class ACk_AutoTest_Poi_EnableDisable_FiresSignal_Actor : ACk_AutoTestRunner
 
 class ACk_AutoTest_Poi_ExplicitHide_RemovesFromBothProjectors_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 9.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {

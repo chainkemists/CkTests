@@ -16,13 +16,14 @@
 // direct-attach onto distinct fragment sets (CkCompass_Utils.cpp:33,
 // CkMinimap_Utils.cpp:37), so they coexist on one entity.
 //
+// Each projector is awaited separately rather than as one combined predicate,
+// so a failure names WHICH projector never converged.
+//
 // Isolated Y band: 51600.
 //============================================================================
 
 class UCk_AutoTest_Poi_ExplicitHide_RemovesFromBothProjectors : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 9.0f;
-
     private FCk_Handle _SelfHandle;
     private FCk_Handle_Compass _Compass;
     private FCk_Handle_Minimap _Minimap;
@@ -36,6 +37,28 @@ class UCk_AutoTest_Poi_ExplicitHide_RemovesFromBothProjectors : UCk_AutoTest_Bas
         auto _CkPerfScope = ck::ScopedStat();
         _SelfHandle = InHandle;
 
+        Add_Step(          "arrange observer with both projectors and a visible POI", n"Step_Arrange");
+        Add_Step_WaitUntil("POI is projected by the compass",                         n"Check_CompassHasPoi");
+        Add_Step_WaitUntil("POI is projected by the minimap",                         n"Check_MinimapHasPoi");
+
+        Add_Step(          "explicitly hide the POI",                                 n"Step_Hide");
+        Add_Step_WaitUntil("hidden POI leaves the compass",                           n"Check_CompassLacksPoi");
+        Add_Step_WaitUntil("hidden POI leaves the minimap",                           n"Check_MinimapLacksPoi");
+
+        Add_Step(          "show the POI again",                                      n"Step_Show");
+        Add_Step_WaitUntil("shown POI is re-admitted to the compass",                 n"Check_CompassHasPoi");
+        Add_Step_WaitUntil("shown POI is re-admitted to the minimap",                 n"Check_MinimapHasPoi");
+
+        Run_Steps(InHandle);
+    }
+
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Step_Arrange(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
         // Observer entity hosting BOTH projectors at the band origin.
         auto Observer = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         Observer.Request_OverrideToSelf();
@@ -62,9 +85,53 @@ class UCk_AutoTest_Poi_ExplicitHide_RemovesFromBothProjectors : UCk_AutoTest_Bas
         auto VrParams = FCk_Fragment_VisibleRange_ParamsData(0.0);
         VrParams.Set_UpdateInterval(FCk_Time(0.0f));
         _Vr = utils_visible_range::Add(PoiOwner, VrParams);
-
-        WaitOneFrame(n"OnSettled_Requests");
     }
+
+    UFUNCTION()
+    private void Step_Hide(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        utils_visible_range::Request_SetVisibility(_Vr, ECk_VisibleRange_ShowHide::Hide);
+    }
+
+    UFUNCTION()
+    private void Step_Show(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        utils_visible_range::Request_SetVisibility(_Vr, ECk_VisibleRange_ShowHide::Show);
+    }
+
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_CompassHasPoi(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(DoCompassContainsPoi());
+    }
+
+    UFUNCTION()
+    private void Check_CompassLacksPoi(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(DoCompassContainsPoi() == false);
+    }
+
+    UFUNCTION()
+    private void Check_MinimapHasPoi(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(DoMinimapContainsPoi());
+    }
+
+    UFUNCTION()
+    private void Check_MinimapLacksPoi(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(DoMinimapContainsPoi() == false);
+    }
+
+    //------------------------------------------------------------------------
 
     private bool DoCompassContainsPoi()
     {
@@ -82,80 +149,5 @@ class UCk_AutoTest_Poi_ExplicitHide_RemovesFromBothProjectors : UCk_AutoTest_Bas
             if (Entry.Get_Poi() == _Poi) { return true; }
         }
         return false;
-    }
-
-    // ---- Phase 1: both projectors show the POI (EntityTag category + first projection settle) ----
-    UFUNCTION()
-    private void OnSettled_Requests(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Visible");
-    }
-
-    UFUNCTION()
-    private void OnSettled_Visible(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        Assert_True(DoCompassContainsPoi(), "Phase 1: the visible POI should be on the compass");
-        Assert_True(DoMinimapContainsPoi(), "Phase 1: the visible POI should be on the minimap");
-
-        // Phase 2: explicit hide.
-        utils_visible_range::Request_SetVisibility(_Vr, ECk_VisibleRange_ShowHide::Hide);
-        WaitOneFrame(n"OnHide_1");
-    }
-
-    // ---- Phase 2: hide drains (request + VR tag + projector update) then both projectors drop it ----
-    UFUNCTION()
-    private void OnHide_1(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnHide_2");
-    }
-
-    UFUNCTION()
-    private void OnHide_2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnHide_3");
-    }
-
-    UFUNCTION()
-    private void OnHide_3(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        Assert_True(!DoCompassContainsPoi(), "Phase 2: an explicitly hidden POI must leave the compass");
-        Assert_True(!DoMinimapContainsPoi(), "Phase 2: an explicitly hidden POI must leave the minimap");
-
-        // Phase 3: show again — recovery must work (projectors keep feeding hidden POIs).
-        utils_visible_range::Request_SetVisibility(_Vr, ECk_VisibleRange_ShowHide::Show);
-        WaitOneFrame(n"OnShow_1");
-    }
-
-    // ---- Phase 3: show drains then both projectors re-admit it ----
-    UFUNCTION()
-    private void OnShow_1(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnShow_2");
-    }
-
-    UFUNCTION()
-    private void OnShow_2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnShow_3");
-    }
-
-    UFUNCTION()
-    private void OnShow_3(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        Assert_True(DoCompassContainsPoi(), "Phase 3: showing the POI again must re-admit it to the compass");
-        Assert_True(DoMinimapContainsPoi(), "Phase 3: showing the POI again must re-admit it to the minimap");
-
-        FinishSuccess();
     }
 }

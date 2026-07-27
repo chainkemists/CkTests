@@ -673,55 +673,81 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
 //
 // IMPLEMENTATION:
 //
-// Use the shared gym_auto module (CkGym_AutoStation.as) for auto-mode
-// infrastructure. It provides timer setup, message handling, display
-// formatting, and stop-on-manual-command helpers.
+// A station's step sequence is a CkStateMachine graph: ONE STATE CLASS PER
+// STEP, transitions gated by a dwell condition. Helpers live in
+// gym_sm:: (CkGym_StationSm.as).
 //
-// SETUP (in DoConstruct, one line):
-//     AutoTimer = gym_auto::Setup(InHandle, this);
+// WHY NOT AN AutoStep COUNTER. The superseded shape held the real control flow
+// in `AutoStep % TotalSteps` + an if-else chain, while FCkGym_AutoStep carried
+// Description/FirstIndex/LastIndex purely for the HUD. The two were free to
+// drift, and it is the exact anti-pattern CkStateMachine exists to remove
+// ("Don't encode state transition logic in raw if-else chains" —
+// CkStateMachine/Claude.md). Under an SM the HUD highlights the LIVE current
+// state, so what is displayed is what is running, and the SM debugger's graph
+// walk can inspect a station like any other state machine.
 //
-//     This creates a 500ms ResetOnDone timer (starts Running), binds it to
-//     the "AutoTick" UFUNCTION on the entity script, and binds the
-//     FCk_Message_Gym_AutoSet message to the "OnAutoSet" UFUNCTION.
+// STEP STATES (one UCLASS per step, usually a sibling _Steps.as file):
+//     UCLASS()
+//     class UCk_MyGym_Step_AddPotions : UCk_Gym_StepState
+//     {
+//         UFUNCTION(BlueprintOverride)
+//         void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
+//         {
+//             auto Trans = AddTransition(InHandle, UCk_MyGym_Step_Sort);
+//             AddCondition(Trans, UCk_Gym_Dwell);      // _Short / _Long also available
+//         }
+//         UFUNCTION(BlueprintOverride)
+//         void DoEnterState(FCk_Handle_SmState InHandle, ECk_Sm_NetContext InNetContext)
+//         {
+//             auto Station = Get_StationEntity();      // the SM's context owner
+//             // ... act on the station ENTITY through utils_* ...
+//         }
+//     }
 //
-// CONFIGURATION (declarative, in DoConstruct after Setup):
-//     AutoConfig.TotalSteps = 7;
-//     AutoConfig.Description = "What this station tests.";  // Use \n for line breaks (~55 chars/line — see section 16).
-//     AutoConfig.GlobalAutoCommand = "Ck_GymMyFeature_Auto [0/1]";
-//     AutoConfig.PerStationAutoCommand = "Ck_GymMyFeature_AutoUnbounded";
-//     AutoConfig.Steps.Add(FCkGym_AutoStep("Add 3 potions", 0, 0));
-//     AutoConfig.Steps.Add(FCkGym_AutoStep("Sort inventory", 3, 3));
-//     AutoConfig.Steps.Add(FCkGym_AutoStep("Remove first (x3)", 4, 6));
-//     AutoConfig.ManualCommands.Add("Ck_GymMyFeature_AddPotion [n]");
-//     AutoConfig.ManualCommands.Add("Ck_GymMyFeature_SortAll");
+//     The last step transitions back to the first, closing the cycle.
+//
+//     A step state is its own entity script: it must NOT reach into the
+//     station script's members. Read and write the station ENTITY via utils_*.
+//     That is what lets each step be inspected independently, and it usually
+//     deletes the station's parallel bookkeeping arrays outright.
+//
+// SETUP (in DoConstruct):
+//     StepMachine = gym_sm::Setup(InHandle, UCk_MyGym_Step_AddPotions);
+//
+// CONFIGURATION (display only — the graph is the control flow):
+//     StepConfig.Description = "What this station tests.";
+//     StepConfig.GlobalAutoCommand = "Ck_GymMyFeature_Auto [0/1]";
+//     StepConfig.PerStationAutoCommand = "Ck_GymMyFeature_AutoUnbounded";
+//     StepConfig.Steps.Add(FCkGym_SmStep(UCk_MyGym_Step_AddPotions, "Add 3 potions"));
+//     StepConfig.Steps.Add(FCkGym_SmStep(UCk_MyGym_Step_Sort,       "Sort inventory"));
+//     StepConfig.ManualCommands.Add("Ck_GymMyFeature_AddPotion [n]");
 //
 // DISPLAY (in DisplayStats):
-//     auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
+//     auto DisplayText = gym_sm::FormatHeader(StepConfig, StepMachine);
 //     // ... station-specific live data ...
-//     DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
+//     auto Trailer = gym_sm::FormatAutoAndCommands(StepConfig, StepMachine);
+//     DisplayText = f"{DisplayText}{Trailer}";
 //
-//     FormatHeader outputs: [AUTO] Running + description.
-//     FormatAutoAndCommands outputs: auto sequence with >> arrows + commands list.
+// MANUAL HANDLERS (user took over — pause the sequence):
+//     gym_sm::Request_SetAutoRunning(StepMachine, false);
 //
-// MANUAL HANDLERS (one-liner stop):
-//     gym_auto::StopAuto(AutoTimer, AutoRunning);
-//
-// AUTO SET HANDLER (one-liner):
+// AUTO SET HANDLER — the Ck_Gym*_Auto console command still arrives as an
+// FCk_Message_Gym_AutoSet broadcast (shared with stations not yet migrated):
 //     UFUNCTION()
 //     private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 //     {
-//         gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
+//         auto Typed = InPayload.Get(FCk_Message_Gym_AutoSet);
+//         gym_sm::Request_SetAutoRunning(StepMachine, Typed.Enabled);
 //     }
 //
-// AUTO TICK (station-specific logic):
-//     UFUNCTION()
-//     private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
-//     {
-//         auto Step = AutoStep % AutoConfig.TotalSteps;
-//         if (Step == 0) { /* operation */ }
-//         // ... ensure adds == removes so state doesn't grow unbounded
-//         AutoStep++;
-//     }
+// JUMP TO A STEP (reset commands, per-step manual commands):
+//     gym_sm::Request_GoToStep(StepMachine, UCk_MyGym_Step_AddPotions);
+//
+// DWELL AND PAUSE. UCk_Gym_Dwell is an EventDriven condition that re-arms
+// while the SM is paused. Do NOT reach for the framework's
+// UCk_SmCondition_Timer here: it adds a plain CkTimer that ticks regardless of
+// run status, so a paused station's dwell still elapses and the SM jumps the
+// instant it is resumed — pause looks broken.
 //
 // PLAYER CONTROLLER COMMANDS:
 //     Ck_Gym[Name]_Auto [0/1]         — forces ALL stations on or off

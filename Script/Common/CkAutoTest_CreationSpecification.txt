@@ -390,7 +390,9 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //   - DoConstruct: adds a TAG_CkAutoTest_Runner tag, initializes the
 //     Result fragment to Status=Running.
 //
-// Timeout: configured on the actor wrapper, not on the entity script:
+// Timeout: set `default _TimeoutSeconds` on the ENTITY SCRIPT; the wrapper
+// generator propagates it to the generated wrapper CDO. (The older wording
+// below, describing the wrapper as the place to configure it, is stale.)
 //   class A..._Actor : ACk_AutoTestRunner
 //   {
 //       default _TimeoutSeconds = 3.0f;   // optional; default is 5s
@@ -468,46 +470,60 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 // 7. COMMON PATTERNS
 //============================================================================
 
-// PATTERN A — Signal-driven step machine
-// Use when: the feature emits a signal per state transition and you want
-//           to advance exactly one step per signal.
+// PATTERN A — Step sequence (the default shape)
+// Use when: the test is a linear sequence of do-this, wait-for-that.
 //
 //   void DoBeginPlay(FCk_Handle InHandle) {
-//       ...bind signal, start step 1...
+//       Add_Step(          "apply the modifier", n"Step_Apply");
+//       Add_Step_WaitUntil("bonus reaches +25",  n"Check_BonusApplied");
+//       Add_Step(          "revoke it",          n"Step_Revoke");
+//       Add_Step_WaitUntil("bonus returns to 0", n"Check_BonusCleared");
+//       Run_Steps(InHandle);
 //   }
-//   void Step1() { _Step = 1; FeatureHandle.Request_X(); }
-//   void Step2() { _Step = 2; FeatureHandle.Request_Y(); }
-//   UFUNCTION() void OnSignal(...) {
-//       if (IsFinished()) return;
-//       if (_Step == 1) { Assert_*(...); Step2(); }
-//       else if (_Step == 2) { Assert_*(...); FinishSuccess(); }
+//   UFUNCTION() private void Step_Apply(FCk_Handle InHandle, FInstancedStruct InPayload)
+//   { FeatureHandle.Request_X(...); }
+//
+//   UFUNCTION() private void Check_BonusApplied(
+//       FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+//   {
+//       auto Res = OutResult;          // NOT OutResult.Set(...) — see below
+//       Res.Set(FeatureHandle.Get_Bonus() == 25);
 //   }
 //
-// See: BB_AutoTest_Economy_BasicFlow.as
+// The last step finishing passes the test — no trailing FinishSuccess(), and
+// no `if (IsFinished())` guard in step bodies. Assertions inside a step are
+// tagged with that step's name automatically.
+//
+// A predicate MUST answer through a local copy. AngelScript treats a by-value
+// struct parameter as read-only and rejects `OutResult.Set(...)` with
+// "Non-const method call on read-only object reference". FCk_SharedBool holds
+// a shared cell, so the copy writes the same bool.
 
-// PATTERN B — Settle-timer poll
-// Use when: a single request triggers complex async behavior (cascading
-//           level-ups, multi-frame replication, etc.) and you want to
-//           assert on the final state regardless of signal timing.
+// PATTERN B — Standalone WaitUntil (branching flows)
+// Use when: the test branches — net authority splits, or a signal decides
+//           which way to go — so a flat step list does not fit.
 //
 //   void DoBeginPlay(FCk_Handle InHandle) {
-//       auto Local = InHandle;
-//       FeatureHandle = utils_*::Add(Local, ...);
-//       // Issue the request immediately.
 //       FeatureHandle.Request_X(...);
-//       // Schedule a 0.25s settle, then poll.
-//       auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.25f));
-//       Params.Set_StartingState(ECk_Timer_State::Running)
-//             .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
-//       auto T = utils_timer::Add(Local, Params);
-//       T.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnSettled"));
+//       WaitUntil(n"Check_Settled", n"OnSettled");
 //   }
-//   UFUNCTION() void OnSettled(FCk_Handle_Timer, FCk_Chrono, FCk_Time) {
+//   UFUNCTION() private void OnSettled(FCk_Handle_Timer, FCk_Chrono, FCk_Time) {
 //       Assert_Equals_Int(FeatureHandle.Get_<X>(), Expected, "...");
 //       FinishSuccess();
 //   }
 //
-// See: BB_AutoTest_Economy_XPOverflow.as
+// The continuation may start the next WaitUntil, chaining as far as needed.
+//
+// DO NOT WAIT A FIXED AMOUNT OF TIME OR A FIXED NUMBER OF FRAMES.
+// The superseded form of this pattern armed a 0.25s timer and asserted when it
+// fired. How many processor passes a deferred effect needs is a property of
+// processor ORDERING, not of elapsed time: the constant is a guess that breaks
+// when ordering changes, and it silently varies with frame rate in the
+// meantime. Worse, when it is wrong the test dies on the engine's TimeLimit
+// with an anonymous TimesUp that names nothing. A predicate converges the
+// moment it is true and, when it never is, the failure names the pending
+// condition. Both forms are self-bounding — they fail ahead of the engine
+// timeout — so no hand-rolled _PollCount/budget is needed.
 
 // PATTERN C — Single-shot assertion
 // Use when: the feature has a one-line behavior to verify (clamp, bounds,
