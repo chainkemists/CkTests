@@ -122,9 +122,14 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
         Assert_True(Plan.Num() > 0 && Plan[0] == UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects,
             "Plan[0] should be Mid_GoalIsEffects");
 
-        WaitOneFrame(n"OnPollForChainExtension");
+        WaitUntil(n"Check_ChainExtended", n"OnChainExtended");
     }
 
+    // Counts only. This previously ALSO asserted and called FinishSuccess, as did
+    // the chain poll — two completion paths racing, so whichever fired first
+    // decided the verdict and the other's assertions never ran. The wait below is
+    // now the single path to a verdict; the exactly-once contract on this signal
+    // is asserted there.
     UFUNCTION()
     private void OnMidActivated(
         FCk_Handle_Goap_Planner InPlanner,
@@ -133,44 +138,26 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         _ActivatedCount = _ActivatedCount + 1;
-
-        // Verify the chain extends through Mid. PR-B.1b Stage 5: the chain
-        // starts at Plan[0] (Mid), then walks Mid's Plan[0] (LeafB) — so the
-        // chain is [Mid, LeafB].
-        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        Assert_True(Chain.Num() >= 1,
-            f"ActiveChain should include Mid when OnPlannerActivated fires (got {Chain.Num()})");
-
-        if (Chain.Num() >= 1)
-        {
-            Assert_True(Chain[0] == _MidAction,
-                "Chain[0] should be the Mid action handle");
-        }
-
-        Assert_True(_ActivatedCount == 1,
-            f"OnPlannerActivated should have fired exactly once (fired {_ActivatedCount} times)");
-
-        FinishSuccess();
     }
 
     UFUNCTION()
-    private void OnPollForChainExtension(
+    private void Check_ChainExtended(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_goap_planner::Get_ActiveChain(_Planner).Num() >= 1);
+    }
+
+    UFUNCTION()
+    private void OnChainExtended(
         FCk_Handle_Timer InTimer,
         FCk_Chrono InChrono,
         FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
+        // PR-B.1b Stage 5: the chain starts at Plan[0] (Mid), then walks Mid's
+        // Plan[0] (LeafB) — so the chain is [Mid, LeafB].
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        if (Chain.Num() < 1)
-        {
-            WaitOneFrame(n"OnPollForChainExtension");
-            return;
-        }
-
-        Assert_True(_ActivatedCount == 1,
-            f"OnPlannerActivated should have fired once when chain extended (fired {_ActivatedCount} times)");
-
         Assert_True(Chain.Num() >= 1,
             f"ActiveChain should include Mid (got {Chain.Num()})");
 
@@ -179,6 +166,9 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
             Assert_True(Chain[0] == _MidAction,
                 "Chain[0] should be the Mid action handle");
         }
+
+        Assert_True(_ActivatedCount == 1,
+            f"OnPlannerActivated should have fired exactly once when the chain extended (fired {_ActivatedCount} times)");
 
         FinishSuccess();
     }
