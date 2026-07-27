@@ -43,7 +43,14 @@ class UCk_AutoTest_Fog_Revealer_AutoReveals : UCk_AutoTest_Base
 
         _Fog.Request_AddRevealer(_Revealer);
 
-        WaitOneFrame(n"OnSettled_Requests");
+        WaitUntil(n"Check_SomethingRevealed", n"OnSettled_Requests");
+    }
+
+    UFUNCTION()
+    private void Check_SomethingRevealed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_fog_of_war::Get_ExploredFraction(_Fog) > 0.001);
     }
 
     UFUNCTION()

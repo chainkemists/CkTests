@@ -35,7 +35,14 @@ class UCk_AutoTest_Fog_Reset : UCk_AutoTest_Base
 
         _Fog.Request_RevealAll();
 
-        WaitOneFrame(n"OnSettled_Revealed");
+        WaitUntil(n"Check_SomethingRevealed", n"OnSettled_Revealed");
+    }
+
+    UFUNCTION()
+    private void Check_SomethingRevealed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_fog_of_war::Get_ExploredFraction(_Fog) > 0.001);
     }
 
     UFUNCTION()
@@ -47,8 +54,6 @@ class UCk_AutoTest_Fog_Reset : UCk_AutoTest_Base
     UFUNCTION()
     private void OnSettled_Revealed(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Fraction = utils_fog_of_war::Get_ExploredFraction(_Fog);
         Assert_True(Math::Abs(Fraction - 1.0) < 0.001,
             f"RevealAll should drive the fraction to 1 (got {Fraction})");

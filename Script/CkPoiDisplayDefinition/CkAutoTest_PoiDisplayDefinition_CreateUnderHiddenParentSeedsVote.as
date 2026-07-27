@@ -43,14 +43,19 @@ class UCk_AutoTest_PoiDisplayDefinition_CreateUnderHiddenParentSeedsVote : UCk_A
         _OwnerVR = utils_visible_range::Add(_Owner, OwnerVRParams);
 
         utils_visible_range::Update_Distance(_OwnerVR, 1000.0f);
-        WaitOneFrame(n"OnOwnerHiddenSettled");
+        WaitUntil(n"Check_OwnerHidden", n"OnOwnerHiddenSettled");
+    }
+
+    UFUNCTION()
+    private void Check_OwnerHidden(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_visible_range::Get_IsHidden(_OwnerVR));
     }
 
     UFUNCTION()
     private void OnOwnerHiddenSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         // Precondition: the owner is genuinely hidden BEFORE the child is created.
         Assert_True(utils_visible_range::Get_IsHidden(_OwnerVR),
             "Owner should be hidden before the child is created (precondition for the seed path)");

@@ -42,7 +42,14 @@ class UCk_AutoTest_Fog_RevealLocation_Explores : UCk_AutoTest_Base
 
         // Two settles: Setup allocates the grid on the first pump; the queued reveal is handled
         // no later than the second (request handling excludes NeedsSetup entities).
-        WaitOneFrame(n"OnSettled_Setup");
+        WaitUntil(n"Check_SomethingRevealed", n"OnSettled_Setup");
+    }
+
+    UFUNCTION()
+    private void Check_SomethingRevealed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_fog_of_war::Get_ExploredFraction(_Fog) > 0.001);
     }
 
     UFUNCTION()

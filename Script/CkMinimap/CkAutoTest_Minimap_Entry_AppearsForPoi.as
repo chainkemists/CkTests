@@ -47,7 +47,14 @@ class UCk_AutoTest_Minimap_Entry_AppearsForPoi : UCk_AutoTest_Base
         _Poi = utils_poi::Add(PoiOwner, FCk_Fragment_Poi_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.MinimapAppear")));
 
-        WaitOneFrame(n"OnSettled_Requests");
+        WaitUntil(n"Check_EntryAppeared", n"OnSettled_Requests");
+    }
+
+    UFUNCTION()
+    private void Check_EntryAppeared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_AppearedCount >= 1);
     }
 
     UFUNCTION()
