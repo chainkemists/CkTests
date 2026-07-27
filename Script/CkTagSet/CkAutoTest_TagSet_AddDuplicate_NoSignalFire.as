@@ -36,9 +36,21 @@ class UCk_AutoTest_TagSet_AddDuplicate_NoSignalFire : UCk_AutoTest_Base
         Initial.AddTag(_TagA);
         _TagSet = utils_tag_set::Add(LocalHandle, Initial, ECk_Replication::DoesNotReplicate);
 
-        // Settle a frame so the initial-add bookkeeping doesn't fire a signal
-        // after our bind.
-        WaitOneFrame(n"OnSettled_BeforeBind");
+        // Wait for the initial-add bookkeeping to be observable before binding,
+        // so the bind cannot catch the initial-add signal. Waiting on the tag
+        // actually being present states the precondition; a hop count would
+        // only guess at how many passes the add takes.
+        WaitUntil(n"Check_InitialTagPresent", n"OnSettled_BeforeBind");
+    }
+
+    UFUNCTION()
+    private void Check_InitialTagPresent(
+        FCk_Handle InHandle,
+        FCk_SharedBool OutResult,
+        FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(_TagSet) && utils_tag_set::HasTag(_TagSet, _TagA));
     }
 
     UFUNCTION()
