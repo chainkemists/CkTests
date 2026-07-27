@@ -111,8 +111,18 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         Assert_True(RootPlan.Num() > 0 && RootPlan[0] == UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects,
             "Root Plan[0] should be Mid");
 
-        // Wait one frame for ChainUpdate to extend chain to [Root, Mid].
-        WaitOneFrame(n"OnWaitForChainExtension");
+        // PR-B.1b Stage 5: chain starts at Plan[0] (Mid) and walks through Mid's
+        // own Plan[0] (one of its leaves). Wait until at least Mid is active —
+        // the previous self-re-arming poll ran out the engine TimeLimit as an
+        // anonymous TimesUp if ChainUpdate never extended.
+        WaitUntil(n"Check_ChainExtended", n"OnWaitForChainExtension");
+    }
+
+    UFUNCTION()
+    private void Check_ChainExtended(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_goap_planner::Get_ActiveChain(_Planner).Num() >= 1);
     }
 
     UFUNCTION()
@@ -122,19 +132,6 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
-
-        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-
-        // PR-B.1b Stage 5: chain starts at Plan[0] (Mid) and walks through Mid's
-        // own Plan[0] (one of its leaves). Wait until at least Mid is active.
-        if (Chain.Num() < 1)
-        {
-            WaitOneFrame(n"OnWaitForChainExtension");
-            return;
-        }
-
-        Assert_True(Chain.Num() >= 1,
-            f"ActiveChain should include Mid before reset (got {Chain.Num()})");
 
         // Bind OnPlannerDeactivated on Mid BEFORE calling ResetActiveChain.
         // Request_ResetActiveChain fires the signal synchronously (inline teardown),
@@ -155,7 +152,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
 
         // Verify chain collapsed immediately (synchronous operation).
         // PR-B.1b Stage 5: no more implicit-root prefix — chain is fully empty.
-        Chain = utils_goap_planner::Get_ActiveChain(_Planner);
+        auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 0,
             f"ActiveChain should collapse to [] immediately after Request_ResetActiveChain (got {Chain.Num()})");
 
