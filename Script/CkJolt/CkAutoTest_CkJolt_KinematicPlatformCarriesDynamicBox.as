@@ -17,6 +17,15 @@
 //      fell below the platform top.
 //
 // Placed at an isolated Y so it never touches other autotests' physics bodies.
+//
+// The drive clock accumulates the tick delta CLAMPED to 1/30. The Jolt pump is
+// fixed-timestep (60Hz, max 4 sub-steps/frame, excess DROPPED — ComputeStepPlan,
+// CkJoltWorld.cpp), so under frame hitches sim time lags game time; a game-clock
+// ramp then moves the kinematic target faster in SIM time than authored and
+// friction drops the box (see the Chaos twin's header for the full mechanism).
+// With the clamp the drive never outruns what the sim integrates (max sim
+// advance 4/60 = 0.0667 >= the 0.0333 clamp), so the ramp holds at any frame
+// rate. The +/-30 assertion is unchanged.
 //============================================================================
 
 class UCk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox : UCk_AutoTest_Base
@@ -87,14 +96,16 @@ class UCk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
+        auto SimDt = Math::Min(float(InDeltaT.Get_Seconds()), 0.0333f);
+
         if (_Phase == 0)
         {
-            _Elapsed += float(InDeltaT.Get_Seconds());
+            _Elapsed += SimDt;
 
             // Wait for the box to settle onto the stationary platform.
             auto BoxZ = utils_transform::Get_EntityCurrentLocation(_BoxTransform).Z;
             if (Math::Abs(BoxZ - _LastBoxZ) < 0.1)
-            { _StableTime += float(InDeltaT.Get_Seconds()); }
+            { _StableTime += SimDt; }
             else
             { _StableTime = 0.0; }
             _LastBoxZ = BoxZ;
@@ -109,7 +120,7 @@ class UCk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox : UCk_AutoTest_Base
         }
 
         // Phase 1 — drive the platform in +X, then hold.
-        _DriveTime += float(InDeltaT.Get_Seconds());
+        _DriveTime += SimDt;
 
         float TargetX = _MaxDriveX;
         if (_DriveTime < _DriveDuration)
