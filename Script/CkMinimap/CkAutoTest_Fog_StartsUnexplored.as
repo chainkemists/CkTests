@@ -8,6 +8,13 @@
 // INSIDE its bounds. Outside the bounds is explored-by-contract (fog gates
 // only what it covers; mis-sized bounds fail visible, not silently hidden).
 //
+// Every headline assertion here is a NEGATIVE that is also true of a grid
+// that never composed (fraction 0, nothing explored) — a blind settle could
+// pass vacuously. The wait therefore targets the one POSITIVE observable in
+// the contract: the cell grid materializing (Get_CellCounts non-zero). The
+// unexplored-everywhere assertions then run against a provably live grid,
+// and the exact 8x8 sizing stays an assertion.
+//
 // Isolated Y band: 53800.
 //============================================================================
 
@@ -33,11 +40,20 @@ class UCk_AutoTest_Fog_StartsUnexplored : UCk_AutoTest_Base
 
         Assert_True(ck::IsValid(_Fog), "utils_fog_of_war::Add should return a valid FCk_Handle_FogOfWar");
 
-        WaitOneFrame(n"OnSettled_Setup");
+        WaitUntil(n"Check_GridComposed", n"OnGridComposed");
     }
 
     UFUNCTION()
-    private void OnSettled_Setup(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_GridComposed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto CellCounts = utils_fog_of_war::Get_CellCounts(_Fog);
+
+        auto Res = OutResult;
+        Res.Set(CellCounts.X > 0 && CellCounts.Y > 0);
+    }
+
+    UFUNCTION()
+    private void OnGridComposed(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 

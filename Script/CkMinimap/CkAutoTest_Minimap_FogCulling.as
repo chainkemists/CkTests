@@ -9,6 +9,14 @@
 // appear on the next settle. The fog link is a projection input, so the
 // requests bypass the update throttle.
 //
+// The culled phase asserts a NEGATIVE (0 entries) that is also true before the
+// projector ever gathers. Its witness is structural: the reveal phase's
+// POSITIVE wait (the entry appearing) can only succeed if the projector
+// gathers and the fog link works end-to-end, so a dead projector fails the
+// reveal wait rather than passing the culled assertion vacuously. The culled
+// phase itself waits on the fog grid composing — proving the pipeline's inputs
+// are live — then settles for a gather pass before asserting.
+//
 // Isolated Y band: 54300.
 //============================================================================
 
@@ -51,47 +59,56 @@ class UCk_AutoTest_Minimap_FogCulling : UCk_AutoTest_Base
         _Poi = utils_poi::Add(PoiOwner, FCk_Fragment_Poi_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.MinimapFogCull")));
 
-        WaitOneFrame(n"OnSettled_Requests");
+        Add_Step_WaitUntil( "the fog grid composes",                       n"Check_FogComposed");
+        Add_Step_WaitFrames("let the projector run a gather pass",          2);
+        Add_Step(           "assert the fogged POI is culled, then reveal", n"Step_AssertCulledAndReveal");
+        Add_Step_WaitUntil( "the revealed POI reaches the minimap",         n"Check_PoiAppeared");
+        Add_Step(           "assert exactly the fogged POI appeared",       n"Step_AssertRevealed");
+
+        Run_Steps(InHandle);
     }
 
-    UFUNCTION()
-    private void OnSettled_Requests(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Fogged");
-    }
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
 
     UFUNCTION()
-    private void OnSettled_Fogged(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertCulledAndReveal(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
         auto Entries = utils_minimap::Get_Entries(_Minimap);
         Assert_Equals_Int(Entries.Num(), 0, "A POI standing in unexplored fog should be culled");
 
         _Fog.Request_RevealLocation(FCk_Request_FogOfWar_RevealLocation(_PoiPos));
-        WaitOneFrame(n"OnSettled_Revealed");
     }
 
     UFUNCTION()
-    private void OnSettled_Revealed(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertRevealed(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Revealed2");
-    }
-
-    UFUNCTION()
-    private void OnSettled_Revealed2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
         auto Entries = utils_minimap::Get_Entries(_Minimap);
         Assert_Equals_Int(Entries.Num(), 1, "Revealing the ground under the POI should un-cull it");
         if (Entries.Num() == 1)
         {
             Assert_True(Entries[0].Get_Poi() == _Poi, "The revealed entry should be the fogged POI");
         }
+    }
 
-        FinishSuccess();
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_FogComposed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto CellCounts = utils_fog_of_war::Get_CellCounts(_Fog);
+
+        auto Res = OutResult;
+        Res.Set(CellCounts.X > 0 && CellCounts.Y > 0);
+    }
+
+    UFUNCTION()
+    private void Check_PoiAppeared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_minimap::Get_Entries(_Minimap).Num() >= 1);
     }
 }
