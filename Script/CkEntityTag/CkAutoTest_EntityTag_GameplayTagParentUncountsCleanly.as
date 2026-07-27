@@ -11,6 +11,10 @@
 //
 // This pins the counted parent-chain semantics: parents are reference-
 // counted across all gameplay tags that contain them.
+//
+// Each wait targets the LEAF or PARENT presence flip that phase actually
+// crosses; "the parent survives the first remove" stays an assertion,
+// because a wait on it would be true on entry and prove nothing.
 //============================================================================
 
 class UCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly : UCk_AutoTest_Base
@@ -32,53 +36,68 @@ class UCk_AutoTest_EntityTag_GameplayTagParentUncountsCleanly : UCk_AutoTest_Bas
         utils_entity_tag::Add_UsingGameplayTag(_Entity, _TagC);
         utils_entity_tag::Add_UsingGameplayTag(_Entity, _TagD);
 
-        WaitOneFrame(n"AfterAdds");
+        Add_Step_WaitUntil("parent A.B becomes present via its children", n"Check_ParentPresent");
+        Add_Step(          "remove child A.B.C",                          n"Step_RemoveC");
+        Add_Step_WaitUntil("leaf A.B.C becomes absent",                   n"Check_LeafCAbsent");
+        Add_Step(          "assert A.B survives, then remove A.B.D",      n"Step_AssertParentHeldAndRemoveD");
+        Add_Step_WaitUntil("parent A.B becomes absent",                   n"Check_ParentAbsent");
+        Add_Step(          "assert the grandparent uncounted too",        n"Step_AssertGrandparent");
+
+        Run_Steps(InHandle);
     }
 
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
+
     UFUNCTION()
-    private void AfterAdds(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_RemoveC(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B"),
-            "Parent A.B must be present after adding two children");
-
-        // Remove A.B.C — parent A.B must still be present (held by A.B.D).
         auto R1 = utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Entity, _TagC);
         Assert_True(R1 == ECk_SucceededFailed::Succeeded,
             "Remove of present gameplay tag must Succeed");
-
-        WaitOneFrame(n"AfterRemoveC");
     }
 
     UFUNCTION()
-    private void AfterRemoveC(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertParentHeldAndRemoveD(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(!utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B.C"),
-            "Leaf A.B.C must be absent after its single Remove");
         Assert_True(utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B"),
             "Parent A.B must STILL be present after removing only A.B.C (A.B.D still holds it)");
 
-        // Remove A.B.D — now parents finally drop.
         auto R2 = utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Entity, _TagD);
         Assert_True(R2 == ECk_SucceededFailed::Succeeded,
             "Second Remove must Succeed");
-
-        WaitOneFrame(n"AfterRemoveD");
     }
 
     UFUNCTION()
-    private void AfterRemoveD(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertGrandparent(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(!utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B"),
-            "Parent A.B must now be absent (no children left holding it)");
         Assert_True(!utils_entity_tag::Has(_Entity, n"AutoTestEt.A"),
             "Grandparent A must now be absent");
+    }
 
-        FinishSuccess();
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_ParentPresent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B"));
+    }
+
+    UFUNCTION()
+    private void Check_LeafCAbsent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B.C") == false);
+    }
+
+    UFUNCTION()
+    private void Check_ParentAbsent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Entity, n"AutoTestEt.A.B") == false);
     }
 }
