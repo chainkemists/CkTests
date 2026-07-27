@@ -18,7 +18,16 @@
 //   4. Assert the box tracked the platform (within +/-30uu) and it never fell
 //      below the platform top.
 //
-// Windows are TIME-based (accumulated tick delta), never frame-counted.
+// Windows are TIME-based, never frame-counted — and accumulated with the tick
+// delta CLAMPED to Chaos's MaxPhysicsDeltaTime (1/30, PhysicsSettings.cpp:22;
+// no project override, no substepping). Unclamped, a frame hitch of Dt > 33ms
+// advances the platform's kinematic target by game-time while Chaos integrates
+// only 33ms, so the platform's SIM-TIME velocity spikes to 80 * Dt/(1/30) uu/s
+// — friction that holds the intended 80 uu/s ramp breaks, and the box slips
+// permanently (friction matches velocities, it never recovers position). That
+// was this test's load-correlated flake: box ~140-152 vs platform 200. With
+// the clamp the platform moves at exactly the intended speed in sim-time under
+// any frame rate; the +/-30 assertion is unchanged.
 // Placed at an isolated Y (81000); all spawned actors destroyed before finish.
 //============================================================================
 
@@ -97,14 +106,19 @@ class UCk_AutoTest_CkJolt_ChaosParity_KinematicPlatformCarry : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
+        // Sim-time delta: Chaos integrates at most MaxPhysicsDeltaTime (1/30)
+        // per frame, so accumulating more than that per tick drives the
+        // kinematic target faster in sim-time than the authored ramp.
+        auto SimDt = Math::Min(float(InDeltaT.Get_Seconds()), 0.0333f);
+
         if (_Phase == 0)
         {
-            _Elapsed += float(InDeltaT.Get_Seconds());
+            _Elapsed += SimDt;
 
             // Wait for the box to settle onto the stationary platform.
             auto BoxZ = _Box.GetActorLocation().Z;
             if (Math::Abs(BoxZ - _LastBoxZ) < 0.1)
-            { _StableTime += float(InDeltaT.Get_Seconds()); }
+            { _StableTime += SimDt; }
             else
             { _StableTime = 0.0; }
             _LastBoxZ = BoxZ;
@@ -122,7 +136,7 @@ class UCk_AutoTest_CkJolt_ChaosParity_KinematicPlatformCarry : UCk_AutoTest_Base
         }
 
         // Phase 1 — drive the platform in +X, then hold.
-        _DriveTime += float(InDeltaT.Get_Seconds());
+        _DriveTime += SimDt;
 
         float TargetX = _MaxDriveX;
         if (_DriveTime < _DriveDuration)
