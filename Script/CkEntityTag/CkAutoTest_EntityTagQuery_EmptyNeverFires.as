@@ -7,6 +7,12 @@
 // Add a query, bind OnSatisfied, but never add any requirements. After
 // several settle frames, OnSatisfied must NOT have fired. An empty
 // requirement list is not vacuously satisfied — the query stays idle.
+//
+// This is a pure NON-event test: nothing is ever enqueued, so there is no
+// observable to wait on and no witness to reach for. The three chained
+// single-frame callbacks it used to run collapse into one declared settle of
+// the same length, which says what it is doing instead of spelling it out
+// across three hops.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_EmptyNeverFires : UCk_AutoTest_Base
@@ -31,35 +37,26 @@ class UCk_AutoTest_EntityTagQuery_EmptyNeverFires : UCk_AutoTest_Base
             FCk_Delegate_EntityTagQuery_OnSatisfied(this, n"OnSatisfied"));
 
         // No requirements added — query sits idle.
-        WaitOneFrame(n"Settle1");
+        Add_Step_WaitFrames("let several evaluation passes run",       3);
+        Add_Step(           "assert the empty query stayed silent",    n"Step_AssertSilent");
+
+        Run_Steps(InHandle);
     }
 
-    UFUNCTION()
-    private void Settle1(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"Settle2");
-    }
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
 
     UFUNCTION()
-    private void Settle2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertSilent(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"Settle3");
-    }
-
-    UFUNCTION()
-    private void Settle3(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_FireCount, 0,
             "Query with no requirements must never fire OnSatisfied");
         Assert_True(utils_entity_tag_query::Get_IsSatisfied(_Query) == false,
             "Empty query must report Get_IsSatisfied == false (not vacuously satisfied)");
-
-        FinishSuccess();
     }
+
+    //------------------------------------------------------------------------
 
     UFUNCTION()
     private void OnSatisfied(FCk_Handle_EntityTagQuery InQuery, const TArray<FCk_EntityTagQuery_Result>&in InResults)

@@ -12,6 +12,11 @@
 //
 // The OnContinuous callback is declared so the signature is reachable, but
 // it is never registered via BindTo_OnContinuousUpdate.
+//
+// The requirement registering is a real observable and is waited on: it proves
+// the query is LIVE, which is what makes the silence meaningful — a query that
+// never started would be silent for uninteresting reasons. The extra passes
+// after that are a fixed settle, since a non-event has nothing to wait for.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound : UCk_AutoTest_Base
@@ -37,33 +42,36 @@ class UCk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound : UCk_AutoTe
         utils_entity_tag_query::Request_AddRequirement(_Query,
             FCk_Request_EntityTagQuery_AddRequirement(Req));
 
-        WaitOneFrame(n"AfterFrame1");
+        Add_Step_WaitUntil( "the requirement registers, so the query is live", n"Check_RequirementRegistered");
+        Add_Step_WaitFrames("let several evaluation passes run",               3);
+        Add_Step(           "assert the unbound signal never fired",           n"Step_AssertSilent");
+
+        Run_Steps(InHandle);
     }
 
-    UFUNCTION()
-    private void AfterFrame1(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"AfterFrame2");
-    }
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
 
     UFUNCTION()
-    private void AfterFrame2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertSilent(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"AfterFrame3");
-    }
-
-    UFUNCTION()
-    private void AfterFrame3(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_FireCount, 0,
             "OnContinuousUpdate must not fire when no delegate is bound — refcount gate must hold");
-
-        FinishSuccess();
     }
+
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_RequirementRegistered(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag_query::Get_AllRequirements(_Query).Num() >= 1);
+    }
+
+    //------------------------------------------------------------------------
 
     UFUNCTION()
     private void OnContinuous(
@@ -72,7 +80,7 @@ class UCk_AutoTest_EntityTagQuery_ContinuousUpdateSilentWhenUnbound : UCk_AutoTe
         const TArray<FCk_EntityTagQuery_Result>& InResults)
     {
         // Declared but never bound — if this is ever invoked, the refcount
-        // gate failed and the test will fail in the AfterFrame3 assertion.
+        // gate failed and the test will fail in the Step_AssertSilent step.
         _FireCount += 1;
     }
 }

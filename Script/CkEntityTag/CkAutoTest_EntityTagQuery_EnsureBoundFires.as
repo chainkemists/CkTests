@@ -12,6 +12,11 @@
 // We assert the test reaches the end normally, while the wrapper actor
 // registers the expected "exceeded MaxAllowed" log text so the automation
 // framework doesn't auto-fail the test on its own deliberate diagnostic.
+//
+// The wait is on ALL FIVE tags being present, deliberately NOT on
+// Get_IsSatisfied. Satisfaction is reached at the SECOND entity (Count is 2),
+// so a wait on it could release while entities 3-5 were still pending — and
+// the ensure this test exists to provoke only trips on the fifth.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_EnsureBoundFires : UCk_AutoTest_Base
@@ -25,6 +30,7 @@ class UCk_AutoTest_EntityTagQuery_EnsureBoundFires : UCk_AutoTest_Base
     private FCk_Handle                _E3;
     private FCk_Handle                _E4;
     private FCk_Handle                _E5;
+    private FName                     _Tag = n"AutoTestEtq_Ensure";
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -41,36 +47,53 @@ class UCk_AutoTest_EntityTagQuery_EnsureBoundFires : UCk_AutoTest_Base
 
         // Tag 5 entities — strictly more than the MaxAllowed of 4.
         _E1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
-        utils_entity_tag::Add(_E1, n"AutoTestEtq_Ensure");
+        utils_entity_tag::Add(_E1, _Tag);
 
         _E2 = utils_entity_lifetime::Request_CreateEntity(_Owner);
-        utils_entity_tag::Add(_E2, n"AutoTestEtq_Ensure");
+        utils_entity_tag::Add(_E2, _Tag);
 
         _E3 = utils_entity_lifetime::Request_CreateEntity(_Owner);
-        utils_entity_tag::Add(_E3, n"AutoTestEtq_Ensure");
+        utils_entity_tag::Add(_E3, _Tag);
 
         _E4 = utils_entity_lifetime::Request_CreateEntity(_Owner);
-        utils_entity_tag::Add(_E4, n"AutoTestEtq_Ensure");
+        utils_entity_tag::Add(_E4, _Tag);
 
         _E5 = utils_entity_lifetime::Request_CreateEntity(_Owner);
-        utils_entity_tag::Add(_E5, n"AutoTestEtq_Ensure");
+        utils_entity_tag::Add(_E5, _Tag);
 
-        WaitOneFrame(n"AfterTagAll");
+        Add_Step_WaitUntil("all five tags land, exceeding MaxAllowed",  n"Check_AllFiveTagged");
+        Add_Step(          "assert evaluation continued past the ensure", n"Step_AssertStillSatisfied");
+
+        Run_Steps(InHandle);
     }
 
-    UFUNCTION()
-    private void AfterTagAll(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
 
-        // Diagnostic-only ensure — query evaluation continues, so the test
-        // reaches this callback normally. The wrapper actor declares the
-        // expected log message so the framework doesn't escalate the ensure
-        // to a test failure.
+    UFUNCTION()
+    private void Step_AssertStillSatisfied(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        // Diagnostic-only ensure — query evaluation continues, so this step is
+        // reached normally. The wrapper actor declares the expected log message
+        // so the framework doesn't escalate the ensure to a test failure.
         Assert_True(utils_entity_tag_query::Get_IsSatisfied(_Query),
             "Query with Count(2) must still report satisfied (5 >= 2); the ensure is purely diagnostic");
+    }
 
-        FinishSuccess();
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_AllFiveTagged(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_E1, _Tag)
+             && utils_entity_tag::Has(_E2, _Tag)
+             && utils_entity_tag::Has(_E3, _Tag)
+             && utils_entity_tag::Has(_E4, _Tag)
+             && utils_entity_tag::Has(_E5, _Tag));
     }
 }
 
