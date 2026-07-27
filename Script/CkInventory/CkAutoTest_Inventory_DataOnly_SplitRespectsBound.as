@@ -18,7 +18,18 @@ class UCk_AutoTest_Inventory_DataOnly_SplitRespectsBound : UCk_AutoTest_Base
 {
     private FCk_Handle_Inventory_DataOnly _Inventory;
     private FCk_Handle_Item _StackedItem;
-    private int _SettleTries = 0;
+
+    // These settles were hand-rolled retry loops bounded by a try counter that
+    // FELL THROUGH into the assertions on exhaustion, so a hang reported as a
+    // value mismatch rather than as a timeout. WaitUntil names the condition it
+    // was waiting on and is bounded by the test timeout.
+
+    UFUNCTION()
+    private void Check_StackIsThree(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_item_trait_stackable::Get_StackCount(_StackedItem) == 3);
+    }
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -81,7 +92,7 @@ class UCk_AutoTest_Inventory_DataOnly_SplitRespectsBound : UCk_AutoTest_Base
         // Let the deferred stack-count Override settle before splitting. A write made in the late
         // pump passes of frame N can fold mid-frame N+1 (after the inventory drain), so a fixed
         // one-frame wait is not enough — poll until the count actually reads back.
-        WaitOneFrame(n"OnSettledBeforeSplit");
+        WaitUntil(n"Check_StackIsThree", n"OnSettledBeforeSplit");
     }
 
     UFUNCTION()
@@ -89,12 +100,6 @@ class UCk_AutoTest_Inventory_DataOnly_SplitRespectsBound : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        if (utils_item_trait_stackable::Get_StackCount(_StackedItem) != 3 && _SettleTries < 40)
-        {
-            _SettleTries++;
-            WaitOneFrame(n"OnSettledBeforeSplit");
-            return;
-        }
 
         Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(_StackedItem), 3,
             "Stacked item should read count 3 once the deferred Override settles");

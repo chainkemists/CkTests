@@ -17,7 +17,25 @@
 class UCk_AutoTest_Inventory_CustomAbsorbableUnits : UCk_AutoTest_Base
 {
     private FCk_Handle_Inventory_DataOnly _Inventory;
-    private int _SettleTries = 0;
+
+    // These settles were hand-rolled retry loops bounded by a try counter that
+    // FELL THROUGH into the assertions on exhaustion, so a hang reported as a
+    // value mismatch rather than as a timeout. WaitUntil names the condition it
+    // was waiting on and is bounded by the test timeout.
+
+    UFUNCTION()
+    private void Check_FourUnits(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Inventory.Get_TotalUnits() == 4);
+    }
+
+    UFUNCTION()
+    private void Check_FiveUnits(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Inventory.Get_TotalUnits() == 5);
+    }
 
     UFUNCTION()
     private void GetQuota(
@@ -61,7 +79,7 @@ class UCk_AutoTest_Inventory_CustomAbsorbableUnits : UCk_AutoTest_Base
             f"Add(Potion x4) under quota 5 should fully succeed (got {InResult})");
         Assert_Equals_Int(InAmountAdded, 4, "First add should report 4 units added");
 
-        WaitOneFrame(n"OnFirstAddSettled");
+        WaitUntil(n"Check_FourUnits", n"OnFirstAddSettled");
     }
 
     UFUNCTION()
@@ -69,14 +87,6 @@ class UCk_AutoTest_Inventory_CustomAbsorbableUnits : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // Deferred stack writes can fold a frame later than a single wait — poll until settled.
-        if (_Inventory.Get_TotalUnits() != 4 && _SettleTries < 40)
-        {
-            _SettleTries++;
-            WaitOneFrame(n"OnFirstAddSettled");
-            return;
-        }
-        _SettleTries = 0;
 
         Assert_Equals_Int(_Inventory.Get_AbsorbableUnits(inv_gym_items::Potion()), 1,
             "Absorbable units should report the quota's remaining 1");
@@ -99,7 +109,7 @@ class UCk_AutoTest_Inventory_CustomAbsorbableUnits : UCk_AutoTest_Base
             f"Add(Potion x4) with quota room 1 should partially succeed (got {InResult})");
         Assert_Equals_Int(InAmountAdded, 1, "Second add should absorb exactly the quota's remaining 1 unit");
 
-        WaitOneFrame(n"OnSecondAddSettled");
+        WaitUntil(n"Check_FiveUnits", n"OnSecondAddSettled");
     }
 
     UFUNCTION()
@@ -107,12 +117,6 @@ class UCk_AutoTest_Inventory_CustomAbsorbableUnits : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        if (_Inventory.Get_TotalUnits() != 5 && _SettleTries < 40)
-        {
-            _SettleTries++;
-            WaitOneFrame(n"OnSecondAddSettled");
-            return;
-        }
 
         Assert_Equals_Int(_Inventory.Get_TotalUnits(), 5, "Inventory should hold exactly the quota's 5 units");
 

@@ -9,7 +9,7 @@
 //   1. Add Potion x7 (PreferStacking) → 3 entries (3 + 3 + 1), all 7 units in.
 //   2. Each entry's count never exceeds the clamp.
 //
-// The settle was a hand-rolled retry loop bounded by a _SettleTries counter.
+// The settle was a hand-rolled retry loop bounded by a try counter.
 // On exhausting the budget it FELL THROUGH into the assertions anyway, so a
 // genuine hang reported as "Units must be conserved across the clamped stacks"
 // — a data-integrity failure pointing at the inventory system when the real
