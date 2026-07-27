@@ -9,6 +9,10 @@
 //      entity, regardless of name.
 //   2) After UnbindFrom_OnTagUpdated_AnyEntity, the listener is silent — the
 //      fan-out cost is paid only by entities with a live subscription marker.
+//
+// The post-unbind phase asserts a NON-event, so it waits on a WITNESS: the
+// third tag becoming present proves the pump drained that add. A listener
+// that failed to unbind would have fired during that same drain.
 //============================================================================
 
 class UCk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse : UCk_AutoTest_Base
@@ -17,6 +21,7 @@ class UCk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse : UCk_AutoTest_Base
 
     private FCk_Handle              _Listener;
     private FCk_Handle              _Subject;
+    private FName                   _TagC = n"AutoTestEt_Any_WildC";
     private int32                   _AddedFireCount   = 0;
     private int32                   _RemovedFireCount = 0;
 
@@ -37,37 +42,57 @@ class UCk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse : UCk_AutoTest_Base
         utils_entity_tag::Add(_Subject, n"AutoTestEt_Any_WildA");
         utils_entity_tag::Add(_Subject, n"AutoTestEt_Any_WildB");
 
-        WaitOneFrame(n"AfterAdds");
+        Add_Step_WaitUntil("wildcard listener catches both adds",       n"Check_BothCaught");
+        Add_Step(          "assert two fires, unbind, add a third tag", n"Step_AssertUnbindAndAdd");
+        Add_Step_WaitUntil("the third tag lands (drain witness)",       n"Check_ThirdLanded");
+        Add_Step(          "assert the unbound listener stayed silent", n"Step_AssertSilent");
+
+        Run_Steps(InHandle);
     }
 
-    UFUNCTION()
-    private void AfterAdds(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
 
+    UFUNCTION()
+    private void Step_AssertUnbindAndAdd(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
         Assert_Equals_Int(_AddedFireCount, 2,
             "Wildcard listener must catch every tag add — expected 2 fires for 2 distinct tags");
 
-        // Unbind the wildcard listener and add another tag. The listener
-        // must not fire again — pay-for-what-you-use.
         utils_entity_tag::UnbindFrom_OnTagUpdated_AnyEntity(_Listener,
             NAME_None,
             FCk_Delegate_EntityTag_OnTagUpdated_AnyEntity(this, n"OnAnyTag"));
 
-        utils_entity_tag::Add(_Subject, n"AutoTestEt_Any_WildC");
-        WaitOneFrame(n"AfterUnbindAdd");
+        utils_entity_tag::Add(_Subject, _TagC);
     }
 
     UFUNCTION()
-    private void AfterUnbindAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_AssertSilent(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_AddedFireCount, 2,
             "After UnbindFrom_OnTagUpdated_AnyEntity, no further fires must be observed");
-
-        FinishSuccess();
     }
+
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_BothCaught(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_AddedFireCount >= 2);
+    }
+
+    UFUNCTION()
+    private void Check_ThirdLanded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Subject, _TagC));
+    }
+
+    //------------------------------------------------------------------------
 
     UFUNCTION()
     private void OnAnyTag(FName InTag, FCk_Handle InEntity, ECk_EntityTagUpdate InUpdate)
