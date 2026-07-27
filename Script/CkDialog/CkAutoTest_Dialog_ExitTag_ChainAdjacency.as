@@ -43,7 +43,20 @@ class UCk_AutoTest_Dialog_ExitTag_ChainAdjacency : UCk_AutoTest_Base
 
         _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
 
-        WaitOneFrame(n"OnSettled");
+        // Both chain links must be registered before the query: the follow-up
+        // resolving to B is the contract, so B's registration is load-bearing.
+        WaitUntil(n"Check_BothChainLinesRegistered", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_BothChainLinesRegistered(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Registry = UCk_DialogRegistry_Subsystem_UE::Get_DialogRegistry();
+
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(Registry)
+             && Registry.Get_Lines_ByEventTag(_EnterA).Num() >= 1
+             && Registry.Get_Lines_ByEventTag(_EnterB).Num() >= 1);
     }
 
     UFUNCTION()

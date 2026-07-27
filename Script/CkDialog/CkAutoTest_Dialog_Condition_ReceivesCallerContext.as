@@ -53,7 +53,16 @@ class UCk_AutoTest_Dialog_Condition_ReceivesCallerContext : UCk_AutoTest_Base
         auto ChildB = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         _EmitterNoTag = UCk_Utils_DialogEmitter_UE::Add(ChildB, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_LineRegistered", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_LineRegistered(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Registry = UCk_DialogRegistry_Subsystem_UE::Get_DialogRegistry();
+
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(Registry) && Registry.Get_Lines_ByEventTag(_EventTag).Num() >= 1);
     }
 
     UFUNCTION()

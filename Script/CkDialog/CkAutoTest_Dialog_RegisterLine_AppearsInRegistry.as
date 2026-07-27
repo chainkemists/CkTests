@@ -32,7 +32,19 @@ class UCk_AutoTest_Dialog_RegisterLine_AppearsInRegistry : UCk_AutoTest_Base
         _Line = Registry.Request_RegisterLine(LineData, FGameplayTagContainer());
         Track_ForCleanup(FCk_Handle(_Line));
 
-        WaitOneFrame(n"OnSettled");
+        // Registration is deferred (line entity creation + EntityTag adds) —
+        // wait until the line is findable by its enter tag rather than
+        // guessing one frame suffices.
+        WaitUntil(n"Check_LineRegistered", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_LineRegistered(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Registry = UCk_DialogRegistry_Subsystem_UE::Get_DialogRegistry();
+
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(Registry) && Registry.Get_Lines_ByEventTag(_EventTag).Num() >= 1);
     }
 
     UFUNCTION()

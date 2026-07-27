@@ -47,7 +47,19 @@ class UCk_AutoTest_Dialog_TagFilter_EmitterSeesOnlyMatching : UCk_AutoTest_Base
         EmitterTags.AddTag(TownieTag);
         _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(EmitterTags));
 
-        WaitOneFrame(n"OnSettled");
+        // Wait until BOTH lines are registered, which is load-bearing for the
+        // contract: with only the Townie line landed, "emitter sees exactly the
+        // Townie line" would pass without the filter doing anything.
+        WaitUntil(n"Check_BothLinesRegistered", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_BothLinesRegistered(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Registry = UCk_DialogRegistry_Subsystem_UE::Get_DialogRegistry();
+
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(Registry) && Registry.Get_Lines_ByEventTag(_EventTag).Num() >= 2);
     }
 
     UFUNCTION()

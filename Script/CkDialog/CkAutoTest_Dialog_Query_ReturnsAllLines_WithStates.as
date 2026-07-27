@@ -47,7 +47,19 @@ class UCk_AutoTest_Dialog_Query_ReturnsAllLines_WithStates : UCk_AutoTest_Base
 
         _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
 
-        WaitOneFrame(n"OnSettled");
+        // Querying before all three deferred registrations land would
+        // legitimately return fewer lines and fail misleadingly — wait until
+        // the registry can see all of them.
+        WaitUntil(n"Check_AllLinesRegistered", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_AllLinesRegistered(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Registry = UCk_DialogRegistry_Subsystem_UE::Get_DialogRegistry();
+
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(Registry) && Registry.Get_Lines_ByEventTag(_EventTag).Num() >= 3);
     }
 
     UFUNCTION()
