@@ -58,7 +58,14 @@ class UCk_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent : UCk_AutoTest_B
         AddContainer.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.TagSet.MultipleConcurrent.OnA"));
         utils_tag_set::Request_AddTags(_TagSetA, AddContainer);
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_SignalAFired", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_SignalAFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_FireCountA >= 1);
     }
 
     UFUNCTION()
@@ -82,8 +89,6 @@ class UCk_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent : UCk_AutoTest_B
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_FireCountA, 1,
             "TagSet A's OnTagsChanged should fire exactly once (we added one tag)");
         Assert_Equals_Int(_FireCountB, 0,

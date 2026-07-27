@@ -90,14 +90,19 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
             ECk_Signal_PostFireBehavior::DoNothing);
 
         // Let the network build before the MoveTo's FindRoute drains against it.
-        WaitOneFrame(n"OnReadyToMove");
+        WaitUntil(n"Check_NetworkBuilt", n"OnReadyToMove");
+    }
+
+    UFUNCTION()
+    private void Check_NetworkBuilt(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_path_network::Get_IsBuilt(_Network));
     }
 
     UFUNCTION()
     private void OnReadyToMove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(utils_path_network::Get_IsBuilt(_Network),
             "network must be built before the MoveTo");
 

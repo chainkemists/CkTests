@@ -68,14 +68,19 @@ class UCk_AutoTest_PathNetworkFollower_RebuildReplansRoute : UCk_AutoTest_Base
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
-        WaitOneFrame(n"OnNetworkReadyToRoute");
+        WaitUntil(n"Check_NetworkBuilt", n"OnNetworkReadyToRoute");
+    }
+
+    UFUNCTION()
+    private void Check_NetworkBuilt(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_path_network::Get_IsBuilt(_Network));
     }
 
     UFUNCTION()
     private void OnNetworkReadyToRoute(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         utils_path_network_follower::Request_FindRoute(_Follower,
             FCk_Request_PathNetworkFollower_FindRoute(Goal));
     }

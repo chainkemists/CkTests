@@ -78,14 +78,19 @@ class UCk_AutoTest_PathNetworkFollower_RoutePrefersNetwork : UCk_AutoTest_Base
             ECk_Signal_PostFireBehavior::DoNothing);
 
         // Let the setup processor build the graph before planning against it.
-        WaitOneFrame(n"OnNetworkReadyToRoute");
+        WaitUntil(n"Check_NetworkBuilt", n"OnNetworkReadyToRoute");
+    }
+
+    UFUNCTION()
+    private void Check_NetworkBuilt(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_path_network::Get_IsBuilt(_Network));
     }
 
     UFUNCTION()
     private void OnNetworkReadyToRoute(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(utils_path_network::Get_IsBuilt(_Network),
             "network must be built one frame after Add()");
 

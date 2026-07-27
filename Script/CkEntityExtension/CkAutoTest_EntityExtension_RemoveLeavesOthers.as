@@ -24,14 +24,19 @@ class UCk_AutoTest_EntityExtension_RemoveLeavesOthers : UCk_AutoTest_Base
 
         utils_entity_extension::Remove(_Owner, _ExtA);
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_ExtensionRemoved", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_ExtensionRemoved(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_extension::ForEach_EntityExtension(_Owner, FInstancedStruct(), FCk_Lambda_InHandle()).Num() < 2);
     }
 
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         auto Remaining = utils_entity_extension::ForEach_EntityExtension(
             _Owner, FInstancedStruct(), FCk_Lambda_InHandle());
 

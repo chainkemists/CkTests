@@ -63,7 +63,14 @@ class UCk_AutoTest_TagSet_ClearAll_FiresSignalOnce : UCk_AutoTest_Base
         AllTags.AddTag(_TagC);
         utils_tag_set::Request_RemoveTags(_TagSet, AllTags);
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_SignalFired", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_SignalFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_FireCount >= 1);
     }
 
     UFUNCTION()
@@ -82,8 +89,6 @@ class UCk_AutoTest_TagSet_ClearAll_FiresSignalOnce : UCk_AutoTest_Base
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_FireCount, 1,
             "OnTagsChanged should fire exactly once for a bulk Request_RemoveTags clearing all 3 tags");
         Assert_Equals_Int(_RemovedCount, 3,

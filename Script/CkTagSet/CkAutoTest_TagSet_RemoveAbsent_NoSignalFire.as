@@ -39,7 +39,14 @@ class UCk_AutoTest_TagSet_RemoveAbsent_NoSignalFire : UCk_AutoTest_Base
         Initial.AddTag(_TagA);
         _TagSet = utils_tag_set::Add(LocalHandle, Initial, ECk_Replication::DoesNotReplicate);
 
-        WaitOneFrame(n"OnSettled_BeforeBind");
+        WaitUntil(n"Check_InitialTagPresent", n"OnSettled_BeforeBind");
+    }
+
+    UFUNCTION()
+    private void Check_InitialTagPresent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(_TagSet) && utils_tag_set::HasTag(_TagSet, _TagA));
     }
 
     UFUNCTION()

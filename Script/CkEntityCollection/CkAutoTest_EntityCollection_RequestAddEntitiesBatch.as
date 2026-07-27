@@ -38,14 +38,19 @@ class UCk_AutoTest_EntityCollection_RequestAddEntitiesBatch : UCk_AutoTest_Base
             _Collection,
             FCk_Request_EntityCollection_AddEntities(Members));
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_BatchAdded", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_BatchAdded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_collection::Get_NumEntitiesInCollection(_Collection) >= 3);
     }
 
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(utils_entity_collection::Get_NumEntitiesInCollection(_Collection), 3,
             "Batch Request_AddEntities should populate all 3 entities");
         Assert_True(utils_entity_collection::Get_ContainsEntityInCollection(_Collection, _M1),
