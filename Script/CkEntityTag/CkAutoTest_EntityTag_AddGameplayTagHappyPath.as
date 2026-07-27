@@ -2,6 +2,10 @@
 //
 // CK ENTITY TAG — AUTOMATION TEST: Add_UsingGameplayTag round-trip
 // Mirror of the FName test but using FGameplayTag and the typed overloads.
+//
+// Both the Add and the Remove are deferred through the request pump
+// (CkEntityTag/Claude.md § Timing), so each is followed by a wait on the
+// presence actually flipping rather than on a fixed slice of wall-clock.
 
 class UCk_AutoTest_EntityTag_AddGameplayTagHappyPath : UCk_AutoTest_Base
 {
@@ -17,33 +21,47 @@ class UCk_AutoTest_EntityTag_AddGameplayTagHappyPath : UCk_AutoTest_Base
         _Entity = InHandle;
         _Tag = utils_gameplay_tag::ResolveGameplayTag(n"EntityTag.AutoTest.Bar");
 
+        Add_Step(          "add the gameplay tag",       n"Step_Add");
+        Add_Step_WaitUntil("the tag becomes present",    n"Check_Present");
+        Add_Step(          "remove the gameplay tag",    n"Step_Remove");
+        Add_Step_WaitUntil("the tag becomes absent",     n"Check_Absent");
+
+        Run_Steps(InHandle);
+    }
+
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Step_Add(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
         utils_entity_tag::Add_UsingGameplayTag(_Entity, _Tag);
-        WaitOneFrame(n"AfterAdd");
     }
 
     UFUNCTION()
-    private void AfterAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_Remove(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(utils_entity_tag::Has_UsingGameplayTag(_Entity, _Tag),
-            "Has_UsingGameplayTag should return true after Add_UsingGameplayTag");
-
         auto Removed = utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Entity, _Tag);
         Assert_True(Removed == ECk_SucceededFailed::Succeeded,
             "Request_TryRemove_UsingGameplayTag on a present tag should succeed");
+    }
 
-        WaitOneFrame(n"AfterRemove");
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_Present(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has_UsingGameplayTag(_Entity, _Tag));
     }
 
     UFUNCTION()
-    private void AfterRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_Absent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(!utils_entity_tag::Has_UsingGameplayTag(_Entity, _Tag),
-            "After remove, Has_UsingGameplayTag should be false");
-
-        FinishSuccess();
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has_UsingGameplayTag(_Entity, _Tag) == false);
     }
 }

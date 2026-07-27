@@ -2,6 +2,10 @@
 //
 // CK ENTITY TAG — AUTOMATION TEST: Request_TryRemove happy path
 // Add a tag, then TryRemove returns Succeeded; Has reports false.
+//
+// Add and Request_TryRemove are both deferred through the request pump
+// (CkEntityTag/Claude.md § Timing), so each phase waits on the presence
+// actually flipping.
 
 class UCk_AutoTest_EntityTag_RequestTryRemoveHappyPath : UCk_AutoTest_Base
 {
@@ -14,34 +18,48 @@ class UCk_AutoTest_EntityTag_RequestTryRemoveHappyPath : UCk_AutoTest_Base
     {
         auto _CkPerfScope = ck::ScopedStat();
         _Entity = InHandle;
-        utils_entity_tag::Add(_Entity, n"RemoveMe");
 
-        WaitOneFrame(n"AfterAdd");
+        Add_Step(          "add the tag",              n"Step_Add");
+        Add_Step_WaitUntil("the tag becomes present",  n"Check_Present");
+        Add_Step(          "remove the tag",           n"Step_Remove");
+        Add_Step_WaitUntil("the tag becomes absent",   n"Check_Absent");
+
+        Run_Steps(InHandle);
+    }
+
+    //------------------------------------------------------------------------
+    // Steps
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Step_Add(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        utils_entity_tag::Add(_Entity, n"RemoveMe");
     }
 
     UFUNCTION()
-    private void AfterAdd(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Step_Remove(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(utils_entity_tag::Has(_Entity, n"RemoveMe"),
-            "Pre-remove: Has should be true");
-
         auto Result = utils_entity_tag::Request_TryRemove(_Entity, n"RemoveMe");
         Assert_True(Result == ECk_SucceededFailed::Succeeded,
             "Request_TryRemove on a present tag should return Succeeded");
+    }
 
-        WaitOneFrame(n"AfterRemove");
+    //------------------------------------------------------------------------
+    // Conditions
+    //------------------------------------------------------------------------
+
+    UFUNCTION()
+    private void Check_Present(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Entity, n"RemoveMe"));
     }
 
     UFUNCTION()
-    private void AfterRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_Absent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-
-        Assert_True(!utils_entity_tag::Has(_Entity, n"RemoveMe"),
-            "Post-remove: Has should be false");
-
-        FinishSuccess();
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Entity, n"RemoveMe") == false);
     }
 }
