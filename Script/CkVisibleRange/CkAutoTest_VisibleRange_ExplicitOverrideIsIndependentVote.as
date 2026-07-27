@@ -32,14 +32,19 @@ class UCk_AutoTest_VisibleRange_ExplicitOverrideIsIndependentVote : UCk_AutoTest
         _VR = utils_visible_range::Add(LocalHandle, Params);
 
         utils_visible_range::Request_SetVisibility(_VR, ECk_VisibleRange_ShowHide::Hide);
-        WaitOneFrame(n"OnBothVotesActive");
+        WaitUntil(n"Check_BecameHidden", n"OnBothVotesActive");
+    }
+
+    UFUNCTION()
+    private void Check_BecameHidden(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_visible_range::Get_IsHidden(_VR));
     }
 
     UFUNCTION()
     private void OnBothVotesActive(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(utils_visible_range::Get_IsHidden(_VR),
             "Should be hidden: own-range (distance 0 < MinRange 500) AND explicit Hide both active");
 

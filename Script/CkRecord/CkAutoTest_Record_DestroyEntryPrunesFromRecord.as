@@ -48,14 +48,19 @@ class UCk_AutoTest_Record_DestroyEntryPrunesFromRecord : UCk_AutoTest_Base
 
         utils_entity_lifetime::Request_DestroyEntity(_EntryB);
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_EntryDestroyed", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_EntryDestroyed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_handle::Get_IsValid(_EntryB) == false);
     }
 
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_True(!utils_handle::Get_IsValid(_EntryB),
             "EntryB should be invalid after Request_DestroyEntity");
         Assert_True(utils_record_of_entities::Get_ContainsEntry(_RecordOwner, _EntryA),

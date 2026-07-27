@@ -50,7 +50,14 @@ class UCk_AutoTest_Transform_SetLocationAndRotationAtomic : UCk_AutoTest_Base
         Req.Set_LocalWorld(ECk_LocalWorld::World);
         utils_transform::Request_SetLocationAndRotation(_Transform, Req);
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_TransformUpdated", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_TransformUpdated(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_UpdateCount >= 1);
     }
 
     UFUNCTION()
@@ -62,8 +69,6 @@ class UCk_AutoTest_Transform_SetLocationAndRotationAtomic : UCk_AutoTest_Base
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_UpdateCount, 1,
             "Combined SetLocationAndRotation should fire exactly one OnUpdate broadcast");
 

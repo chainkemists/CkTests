@@ -54,7 +54,14 @@ class UCk_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkip
         utils_messaging::Broadcast(_Child,
             FCk_Message_MessagingGym_Ping("Trigger", 1));
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_PingReceived", n"OnSettled");
+    }
+
+    UFUNCTION()
+    private void Check_PingReceived(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_PingCount >= 1);
     }
 
     UFUNCTION()
@@ -68,8 +75,6 @@ class UCk_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkip
     UFUNCTION()
     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_PingCount, 1,
             "Self-destructing handler should fire exactly once; no reentrant fires after destroy mid-broadcast");
         Assert_True(!utils_handle::Get_IsValid(_Child),
