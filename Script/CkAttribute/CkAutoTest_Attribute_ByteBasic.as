@@ -50,13 +50,13 @@ class UCk_AutoTest_Attribute_ByteBasic : UCk_AutoTest_Base
     private void Step1_OverrideTo42()
     {
         _Step = 1;
-        utils_byte_attribute::Request_Override(_Armor, 42);
+        utils_byte_attribute::Request_Override(_Armor, 42, ECk_MinMaxCurrent::Current);
     }
 
     private void Step2_OverrideTo200()
     {
         _Step = 2;
-        utils_byte_attribute::Request_Override(_Armor, 200);
+        utils_byte_attribute::Request_Override(_Armor, 200, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()

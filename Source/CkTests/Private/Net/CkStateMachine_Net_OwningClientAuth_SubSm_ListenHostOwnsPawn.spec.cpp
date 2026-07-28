@@ -1,4 +1,4 @@
-// Regression guard: a LISTEN-SERVER HOST that owns its OWN pawn must be able to drive its
+﻿// Regression guard: a LISTEN-SERVER HOST that owns its OWN pawn must be able to drive its
 // OwningClientAuthoritative sub-SM (the "listen server can't move" bug).
 //
 // Identical topology to Ck.StateMachine.Net.OwningClientAuth_SubSm_AuthorityGatedTask, but the pawn is
@@ -203,7 +203,7 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_ListenHostOwnsPawn::RunTest(const
             if (ck::Is_NOT_Valid(ServerPawn->_TestStateMachine))
             { AddError(TEXT("server-side _TestStateMachine not populated by entity-script Construct")); return; }
 
-            UCk_Utils_StateMachine_UE::Request_Start(ServerPawn->_TestStateMachine);
+            UCk_Utils_StateMachine_UE::Request_Start(ServerPawn->_TestStateMachine, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterStart));
@@ -226,7 +226,7 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_ListenHostOwnsPawn::RunTest(const
             if (ck::Is_NOT_Valid(InputAttr))
             { AddError(TEXT("server-side byte 'input' attribute not found — entity-script did not compose it")); return; }
 
-            UCk_Utils_ByteAttribute_UE::Request_Override(InputAttr, static_cast<uint8>(1));
+            UCk_Utils_ByteAttribute_UE::Request_Override(InputAttr, static_cast<uint8>(1), ECk_MinMaxCurrent::Current, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterInput));

@@ -62,8 +62,8 @@ class UCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal : UCk_AutoTest
         // Two Request_Override calls in the SAME tick — the second should
         // overwrite the first in the persistent non-revocable Override
         // modifier before any processor sees the first.
-        utils_integer_attribute::Request_Override(_Attribute, 50);
-        utils_integer_attribute::Request_Override(_Attribute, 30);
+        utils_integer_attribute::Request_Override(_Attribute, 50, ECk_MinMaxCurrent::Current);
+        utils_integer_attribute::Request_Override(_Attribute, 30, ECk_MinMaxCurrent::Current);
         _MutationsFired = true;
 
         // Wait a frame for the processor pass to drain the coalesced state

@@ -128,7 +128,7 @@ class UCk_AutoTest_Attribute_Request_ClearAllModifiers : UCk_AutoTest_Base
         _Step = 6;
         _ClearSignalCount = 0;
         _CountingForClear = true;
-        utils_integer_attribute_modifier::Request_ClearAllModifiers(_Attribute);
+        utils_integer_attribute_modifier::Request_ClearAllModifiers(_Attribute, ECk_MinMaxCurrent::Current);
         WaitOneFrame(n"OnSettled_AfterClear");
     }
 

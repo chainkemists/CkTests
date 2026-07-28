@@ -1,4 +1,4 @@
-// Lifecycle-request edge states — pins the request handlers' behavior on the paths that fall
+﻿// Lifecycle-request edge states — pins the request handlers' behavior on the paths that fall
 // outside the happy Start→Transition→Stop flow. Each scenario reproduces a corruption found by
 // the 2026-07 CkStateMachine audit:
 //
@@ -78,7 +78,7 @@ namespace ck_sm_lifecycle_test
         if (ck::Is_NOT_Valid(GSm))
         { return false; }
 
-        UCk_Utils_StateMachine_UE::Request_Start(GSm);
+        UCk_Utils_StateMachine_UE::Request_Start(GSm, {});
         return true;
     }
 
@@ -133,7 +133,7 @@ bool FCkStateMachineLifecycle_PauseDroppedTransitionDoesNotWedgeEvaluator::RunTe
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld*) -> void
         {
-            UCk_Utils_StateMachine_UE::Request_Pause(ck_sm_lifecycle_test::GSm);
+            UCk_Utils_StateMachine_UE::Request_Pause(ck_sm_lifecycle_test::GSm, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(5));
@@ -145,7 +145,7 @@ bool FCkStateMachineLifecycle_PauseDroppedTransitionDoesNotWedgeEvaluator::RunTe
         FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld*) -> void
         {
             UCk_Utils_StateMachine_UE::Request_Transition(ck_sm_lifecycle_test::GSm,
-                UCk_AutoTest_Sm_RecordingState_C::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_C::StaticClass(), {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(5));
@@ -154,7 +154,7 @@ bool FCkStateMachineLifecycle_PauseDroppedTransitionDoesNotWedgeEvaluator::RunTe
         FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld*) -> void
         {
             UCk_AutoTest_Sm_GateCondition_UE::Gate = true;
-            UCk_Utils_StateMachine_UE::Request_Resume(ck_sm_lifecycle_test::GSm);
+            UCk_Utils_StateMachine_UE::Request_Resume(ck_sm_lifecycle_test::GSm, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
@@ -227,7 +227,7 @@ bool FCkStateMachineLifecycle_StartWhilePausedIsRejected::RunTest(const FString&
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld*) -> void
         {
-            UCk_Utils_StateMachine_UE::Request_Pause(ck_sm_lifecycle_test::GSm);
+            UCk_Utils_StateMachine_UE::Request_Pause(ck_sm_lifecycle_test::GSm, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(5));
@@ -237,7 +237,7 @@ bool FCkStateMachineLifecycle_StartWhilePausedIsRejected::RunTest(const FString&
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld*) -> void
         {
-            UCk_Utils_StateMachine_UE::Request_Start(ck_sm_lifecycle_test::GSm);
+            UCk_Utils_StateMachine_UE::Request_Start(ck_sm_lifecycle_test::GSm, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(10));
@@ -261,7 +261,7 @@ bool FCkStateMachineLifecycle_StartWhilePausedIsRejected::RunTest(const FString&
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld*) -> void
         {
-            UCk_Utils_StateMachine_UE::Request_Resume(ck_sm_lifecycle_test::GSm);
+            UCk_Utils_StateMachine_UE::Request_Resume(ck_sm_lifecycle_test::GSm, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(5));
@@ -336,8 +336,8 @@ bool FCkStateMachineLifecycle_StopMidTransitionDestroysDeferredPreviousState::Ru
             { AddError(TEXT("could not capture the current state handle before the transition")); return; }
 
             UCk_Utils_StateMachine_UE::Request_Transition(GSm,
-                UCk_AutoTest_Sm_RecordingState_B::StaticClass());
-            UCk_Utils_StateMachine_UE::Request_Stop(GSm);
+                UCk_AutoTest_Sm_RecordingState_B::StaticClass(), {});
+            UCk_Utils_StateMachine_UE::Request_Stop(GSm, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(20));
@@ -412,9 +412,9 @@ bool FCkStateMachineLifecycle_RapidDoubleTransitionCoalescesAndDestroysPreviousS
             { AddError(TEXT("could not capture the current state handle before the transitions")); return; }
 
             UCk_Utils_StateMachine_UE::Request_Transition(GSm,
-                UCk_AutoTest_Sm_RecordingState_B::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_B::StaticClass(), {});
             UCk_Utils_StateMachine_UE::Request_Transition(GSm,
-                UCk_AutoTest_Sm_RecordingState_C::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_C::StaticClass(), {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(20));
@@ -501,7 +501,7 @@ bool FCkStateMachineLifecycle_NullTargetTransitionIsRejectedAndSmSurvives::RunTe
         FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld*) -> void
         {
             UCk_Utils_StateMachine_UE::Request_Transition(ck_sm_lifecycle_test::GSm,
-                TSubclassOf<UCk_SmState_EntityScript>{});
+                TSubclassOf<UCk_SmState_EntityScript>{}, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(10));
@@ -607,7 +607,7 @@ bool FCkStateMachineLifecycle_PausedSmDoesNotEvaluatePolledConditions::RunTest(c
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld*) -> void
         {
-            UCk_Utils_StateMachine_UE::Request_Pause(ck_sm_lifecycle_test::GSm);
+            UCk_Utils_StateMachine_UE::Request_Pause(ck_sm_lifecycle_test::GSm, {});
         })));
 
     // Snapshot the call count only once the pause has actually landed (the request drains
@@ -639,7 +639,7 @@ bool FCkStateMachineLifecycle_PausedSmDoesNotEvaluatePolledConditions::RunTest(c
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld*) -> void
         {
-            UCk_Utils_StateMachine_UE::Request_Resume(ck_sm_lifecycle_test::GSm);
+            UCk_Utils_StateMachine_UE::Request_Resume(ck_sm_lifecycle_test::GSm, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,

@@ -55,8 +55,8 @@ class UCk_AutoTest_Attribute_DeferredWritesSettleSameFrame : UCk_AutoTest_Base
 
         // Both writes exceed Max — settling requires the full pipeline to pump:
         // recompute -> modifier fold -> clamp (-> signals), per family.
-        utils_integer_attribute::Request_Override(_IntAttribute, 50);
-        utils_float_attribute::Request_Override(_FloatAttribute, 100.0f);
+        utils_integer_attribute::Request_Override(_IntAttribute, 50, ECk_MinMaxCurrent::Current);
+        utils_float_attribute::Request_Override(_FloatAttribute, 100.0f, ECk_MinMaxCurrent::Current);
 
         // ONE frame, no polling — the contract under test.
         WaitOneFrame(n"OnSettled");

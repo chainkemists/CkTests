@@ -40,7 +40,7 @@ class UCk_AutoTest_Attribute_VectorBasic : UCk_AutoTest_Base
             ECk_MinMaxCurrent::Current,
             FCk_Delegate_VectorAttribute_OnValueChanged(this, n"OnValueChanged"));
 
-        utils_vector_attribute::Request_Override(_Velocity, FVector(40.0f, 50.0f, 60.0f));
+        utils_vector_attribute::Request_Override(_Velocity, FVector(40.0f, 50.0f, 60.0f), ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()

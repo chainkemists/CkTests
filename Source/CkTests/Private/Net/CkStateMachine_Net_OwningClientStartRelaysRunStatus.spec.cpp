@@ -1,4 +1,4 @@
-// Isolation test: when the OWNING CLIENT starts an owning-client-authoritative SM, does the run-status
+﻿// Isolation test: when the OWNING CLIENT starts an owning-client-authoritative SM, does the run-status
 // (Stopped -> Running) relay to the server so the server SM also reports Running — WITHOUT driving any
 // transition?
 //
@@ -140,7 +140,7 @@ bool FCkStateMachineNet_OwningClientStartRelaysRunStatus::RunTest(const FString&
             if (ck::Is_NOT_Valid(ClientPawn->_TestStateMachine))
             { AddError(TEXT("client-side _TestStateMachine not populated by entity-script Construct")); return; }
 
-            UCk_Utils_StateMachine_UE::Request_Start(ClientPawn->_TestStateMachine);
+            UCk_Utils_StateMachine_UE::Request_Start(ClientPawn->_TestStateMachine, {});
             UCk_Utils_StateMachine_UE::Acquire_RelayChannel(ClientPawn->_TestStateMachine);
         })));
 

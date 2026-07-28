@@ -170,7 +170,7 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_GenericEntityScript_UE
 	UFUNCTION() private void ModifyStrength(FCk_Handle InHandle, FInstancedStruct InOptionalPayload)
 	{
 		auto StrengthAttr = InHandle.As_FloatAttribute();
-		utils_float_attribute::Request_Override(StrengthAttr, 100.5f);
+		utils_float_attribute::Request_Override(StrengthAttr, 100.5f, ECk_MinMaxCurrent::Current);
 	}
 
 	void Request_BatchValueUpdate()
@@ -179,7 +179,7 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_GenericEntityScript_UE
 		{
 			auto CurrentValue = utils_float_attribute::Get_FinalValue(Attribute);
 			auto NewValue = Math::Clamp(CurrentValue + 15.5f, 0.0f, 255.0f);
-			utils_float_attribute::Request_Override(Attribute, NewValue);
+			utils_float_attribute::Request_Override(Attribute, NewValue, ECk_MinMaxCurrent::Current);
 		}
 	}
 

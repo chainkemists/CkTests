@@ -158,7 +158,7 @@ bool FCkSnapshot_InventoryDataOnlyParity_MPReload_Gate::RunTest(const FString& P
             auto Request = FCk_Request_Inventory_AddItemByDefinition{ShieldDef, InvDOParity_TargetItems};
             Request.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
             UCk_Utils_Inventory_UE::Request_AddItemByDefinition(
-                Inventory, Request, FCk_Delegate_Inventory_OnOperationResult_AddByDefinition{});
+                Inventory, Request, FCk_Delegate_Inventory_OnOperationResult_AddByDefinition{}, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

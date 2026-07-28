@@ -163,12 +163,12 @@ bool FCkSnapshot_EntityTagParity_MPReload_Gate::RunTest(const FString& Parameter
             UCk_Utils_EntityTag_UE::Add(SeedEntity, EntityTagParity_Beta);
             UCk_Utils_EntityTag_UE::Add(SeedEntity, EntityTagParity_Beta);  // Beta -> count 3
             UCk_Utils_EntityTag_UE::Add(SeedEntity, EntityTagParity_Gamma);
-            UCk_Utils_EntityTag_UE::Request_TryRemove(SeedEntity, EntityTagParity_Gamma); // Gamma back to absent
+            UCk_Utils_EntityTag_UE::Request_TryRemove(SeedEntity, EntityTagParity_Gamma, {}); // Gamma back to absent
 
             auto ResurrectEntity = EntityTagParity_ResolveEntity(EntityTagParity_FindProbe<ACk_AutoTest_EntityTagResurrectProbe>(InServer));
             if (ck::Is_NOT_Valid(ResurrectEntity)) { AddError(TEXT("Stage 2: resurrect probe entity unresolved")); return; }
 
-            UCk_Utils_EntityTag_UE::Request_TryRemove(ResurrectEntity, ConstructSeed); // its only tag -> Current auto-removed
+            UCk_Utils_EntityTag_UE::Request_TryRemove(ResurrectEntity, ConstructSeed, {}); // its only tag -> Current auto-removed
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 
@@ -333,8 +333,8 @@ bool FCkSnapshot_EntityTagParity_MPReload_Gate::RunTest(const FString& Parameter
             auto* Seed = EntityTagParity_FindProbe<ACk_AutoTest_EntityTagSeedProbe>(Server);
             auto SeedEntity = EntityTagParity_ResolveEntity(Seed);
             if (ck::Is_NOT_Valid(SeedEntity)) { AddError(TEXT("Stage 8: seed entity unresolved for flip check")); return false; }
-            UCk_Utils_EntityTag_UE::Request_TryRemove(SeedEntity, EntityTagParity_Beta);
-            UCk_Utils_EntityTag_UE::Request_TryRemove(SeedEntity, EntityTagParity_Beta); // 3 -> 1 (still present)
+            UCk_Utils_EntityTag_UE::Request_TryRemove(SeedEntity, EntityTagParity_Beta, {});
+            UCk_Utils_EntityTag_UE::Request_TryRemove(SeedEntity, EntityTagParity_Beta, {}); // 3 -> 1 (still present)
             return true;
         }),
         TEXT("EntityTag flip: remove Beta x2 (restored count was 3)")));
@@ -349,7 +349,7 @@ bool FCkSnapshot_EntityTagParity_MPReload_Gate::RunTest(const FString& Parameter
             if (ck::Is_NOT_Valid(SeedEntity)) { AddError(TEXT("Stage 8b: seed entity unresolved for flip check")); return false; }
             TestTrue(TEXT("flip: Beta still present after 2 of 3 removes (count 3 -> 1)"),
                 UCk_Utils_EntityTag_UE::Has(SeedEntity, EntityTagParity_Beta));
-            UCk_Utils_EntityTag_UE::Request_TryRemove(SeedEntity, EntityTagParity_Beta); // 1 -> 0 (flips off)
+            UCk_Utils_EntityTag_UE::Request_TryRemove(SeedEntity, EntityTagParity_Beta, {}); // 1 -> 0 (flips off)
             return true;
         }),
         TEXT("EntityTag flip: Beta survives 2 removes, 3rd remove pending")));

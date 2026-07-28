@@ -191,7 +191,7 @@ class UCk_EntityScript_IntegerGym_Modifiers : UCk_GenericEntityScript_UE
 	void Request_ClearAllModifiers()
 	{
 		if (ck::Is_NOT_Valid(DamageAttribute)) return;
-		utils_integer_attribute_modifier::Request_ClearAllModifiers(DamageAttribute);
+		utils_integer_attribute_modifier::Request_ClearAllModifiers(DamageAttribute, ECk_MinMaxCurrent::Current);
 		ActiveModifiers.Empty();
 	}
 

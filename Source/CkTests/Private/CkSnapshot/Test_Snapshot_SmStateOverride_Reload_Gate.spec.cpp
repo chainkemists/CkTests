@@ -1,4 +1,4 @@
-// CkSnapshot StateMachine RUNTIME-OVERRIDE persistence GATE (Phase 3.4). Pins that a runtime
+﻿// CkSnapshot StateMachine RUNTIME-OVERRIDE persistence GATE (Phase 3.4). Pins that a runtime
 // UCk_Utils_StateMachine_UE::Request_AddOverrideState survives a snapshot Save -> real OpenLevel reload:
 // the override list rides inside the SM RepData as a save-only field (Produce fills it, HydrationApply
 // re-installs it), and after the reload transitioning into the overridden state instantiates the OVERRIDE
@@ -169,8 +169,8 @@ bool FCkSnapshot_SmStateOverride_Reload_Gate::RunTest(const FString& Parameters)
         {
             auto Sm = SmOvr_ResolveSm(SmOvr_FindSubject(InServer));
             if (ck::Is_NOT_Valid(Sm)) { AddError(TEXT("Stage 2: server SM unresolved")); return; }
-            UCk_Utils_StateMachine_UE::Request_AddOverrideState(Sm, ReplacementClass);
-            UCk_Utils_StateMachine_UE::Request_Transition(Sm, NonOverriddenState);
+            UCk_Utils_StateMachine_UE::Request_AddOverrideState(Sm, ReplacementClass, {});
+            UCk_Utils_StateMachine_UE::Request_Transition(Sm, NonOverriddenState, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 
@@ -230,7 +230,7 @@ bool FCkSnapshot_SmStateOverride_Reload_Gate::RunTest(const FString& Parameters)
 
             auto Sm = SmOvr_ResolveSm(SmOvr_FindSubject(Server));
             if (ck::Is_NOT_Valid(Sm)) { AddError(TEXT("Stage 6: post-reload SM unresolved")); return false; }
-            UCk_Utils_StateMachine_UE::Request_Transition(Sm, TargetClass);
+            UCk_Utils_StateMachine_UE::Request_Transition(Sm, TargetClass, {});
             return true;
         }),
         TEXT("post-reload: drive a transition into the overridden Target state")));

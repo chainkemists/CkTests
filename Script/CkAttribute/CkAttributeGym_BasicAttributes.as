@@ -205,7 +205,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_AttributeGym_SetHealth);
-        utils_float_attribute::Request_Override(HealthAttribute, Typed.Value);
+        utils_float_attribute::Request_Override(HealthAttribute, Typed.Value, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()
@@ -213,7 +213,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_AttributeGym_SetArmor);
-        utils_byte_attribute::Request_Override(ArmorAttribute, Typed.Value);
+        utils_byte_attribute::Request_Override(ArmorAttribute, Typed.Value, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()
@@ -221,7 +221,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
     {
         gym_auto::StopAuto(AutoTimer, AutoRunning);
         auto Typed = InPayload.Get(FCk_Message_AttributeGym_SetVelocity);
-        utils_vector_attribute::Request_Override(VelocityAttribute, Typed.Value);
+        utils_vector_attribute::Request_Override(VelocityAttribute, Typed.Value, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()
@@ -294,31 +294,31 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
     // Shared operations used by both auto steps and manual message handlers
     void Request_SetAllValues(float32 InHealth, uint8 InArmor, FVector InVelocity)
     {
-        utils_float_attribute::Request_Override(HealthAttribute, InHealth);
-        utils_byte_attribute::Request_Override(ArmorAttribute, InArmor);
-        utils_vector_attribute::Request_Override(VelocityAttribute, InVelocity);
+        utils_float_attribute::Request_Override(HealthAttribute, InHealth, ECk_MinMaxCurrent::Current);
+        utils_byte_attribute::Request_Override(ArmorAttribute, InArmor, ECk_MinMaxCurrent::Current);
+        utils_vector_attribute::Request_Override(VelocityAttribute, InVelocity, ECk_MinMaxCurrent::Current);
     }
 
     void Request_TestBoundariesMax()
     {
-        utils_float_attribute::Request_Override(HealthAttribute, 120.0f);
-        utils_byte_attribute::Request_Override(ArmorAttribute, 255);
-        utils_vector_attribute::Request_Override(VelocityAttribute, FVector(500.0f, 250.0f, 100.0f));
+        utils_float_attribute::Request_Override(HealthAttribute, 120.0f, ECk_MinMaxCurrent::Current);
+        utils_byte_attribute::Request_Override(ArmorAttribute, 255, ECk_MinMaxCurrent::Current);
+        utils_vector_attribute::Request_Override(VelocityAttribute, FVector(500.0f, 250.0f, 100.0f), ECk_MinMaxCurrent::Current);
     }
 
     void Request_ResetToDefaults()
     {
         if (ck::IsValid(HealthAttribute))
         {
-            utils_float_attribute::Request_Override(HealthAttribute, 100.0f);
+            utils_float_attribute::Request_Override(HealthAttribute, 100.0f, ECk_MinMaxCurrent::Current);
         }
         if (ck::IsValid(ArmorAttribute))
         {
-            utils_byte_attribute::Request_Override(ArmorAttribute, 150);
+            utils_byte_attribute::Request_Override(ArmorAttribute, 150, ECk_MinMaxCurrent::Current);
         }
         if (ck::IsValid(VelocityAttribute))
         {
-            utils_vector_attribute::Request_Override(VelocityAttribute, FVector(100.0f, 50.0f, 0.0f));
+            utils_vector_attribute::Request_Override(VelocityAttribute, FVector(100.0f, 50.0f, 0.0f), ECk_MinMaxCurrent::Current);
         }
     }
 

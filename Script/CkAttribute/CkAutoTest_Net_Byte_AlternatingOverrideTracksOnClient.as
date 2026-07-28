@@ -51,7 +51,7 @@ class UCk_AutoTest_Net_Byte_AlternatingOverrideTracksOnClient : UCk_AutoTest_Net
 
         if (utils_net::Get_HasAuthority(Subject))
         {
-            utils_byte_attribute::Request_Override(Attribute, _FirstValue);
+            utils_byte_attribute::Request_Override(Attribute, _FirstValue, ECk_MinMaxCurrent::Current);
             WaitOneFrame(n"OnServerSettle");
             return;
         }
@@ -75,7 +75,7 @@ class UCk_AutoTest_Net_Byte_AlternatingOverrideTracksOnClient : UCk_AutoTest_Net
         if (ck::Is_NOT_Valid(Attribute))
         { FinishFailure("server: byte attribute vanished mid-test"); return; }
 
-        utils_byte_attribute::Request_Override(Attribute, _SecondValue);
+        utils_byte_attribute::Request_Override(Attribute, _SecondValue, ECk_MinMaxCurrent::Current);
         FinishSuccess();
     }
 

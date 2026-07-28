@@ -172,8 +172,8 @@ bool FCkSnapshot_AttributeRefillParity_MPReload_Gate::RunTest(const FString& Par
             auto FloatResolved = false;   auto FloatRefill   = Refill_FloatRefill(Probe, FloatResolved);
             auto IntegerResolved = false; auto IntegerRefill = Refill_IntegerRefill(Probe, IntegerResolved);
             if (NOT FloatResolved || NOT IntegerResolved) { AddError(TEXT("Stage 3: refill children unresolved pre-pause")); return; }
-            UCk_Utils_FloatAttributeRefill_UE::Request_Pause(FloatRefill);
-            UCk_Utils_IntegerAttributeRefill_UE::Request_Pause(IntegerRefill);
+            UCk_Utils_FloatAttributeRefill_UE::Request_Pause(FloatRefill, {});
+            UCk_Utils_IntegerAttributeRefill_UE::Request_Pause(IntegerRefill, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

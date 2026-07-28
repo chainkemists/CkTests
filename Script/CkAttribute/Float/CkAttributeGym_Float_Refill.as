@@ -109,15 +109,15 @@ class UCk_EntityScript_AttributeGym_FloatRefill : UCk_GenericEntityScript_UE
 	{
 		auto Step = AutoStep % AutoConfig.TotalSteps;
 
-		if (Step == 0) { utils_float_attribute::Request_Override(EnergyAttribute, 20.0f); utils_float_attribute::Request_Override(ManaAttribute, 15.0f); }
+		if (Step == 0) { utils_float_attribute::Request_Override(EnergyAttribute, 20.0f, ECk_MinMaxCurrent::Current); utils_float_attribute::Request_Override(ManaAttribute, 15.0f, ECk_MinMaxCurrent::Current); }
 		else if (Step == 1) { /* watch refill */ }
 		else if (Step == 2) { auto R = utils_float_attribute::TryGet_RefillAttribute(EnergyAttribute); if (ck::IsValid(R)) { utils_float_attribute_refill::Request_Pause(R); } }
-		else if (Step == 3) { utils_float_attribute::Request_Override(EnergyAttribute, 10.0f); utils_float_attribute::Request_Override(ManaAttribute, 5.0f); }
+		else if (Step == 3) { utils_float_attribute::Request_Override(EnergyAttribute, 10.0f, ECk_MinMaxCurrent::Current); utils_float_attribute::Request_Override(ManaAttribute, 5.0f, ECk_MinMaxCurrent::Current); }
 		else if (Step == 4) { auto R = utils_float_attribute::TryGet_RefillAttribute(EnergyAttribute); if (ck::IsValid(R)) { utils_float_attribute_refill::Request_Resume(R); } }
 		else if (Step == 5)
 		{
-			utils_float_attribute::Request_Override(EnergyAttribute, 100.0f);
-			utils_float_attribute::Request_Override(ManaAttribute, 80.0f);
+			utils_float_attribute::Request_Override(EnergyAttribute, 100.0f, ECk_MinMaxCurrent::Current);
+			utils_float_attribute::Request_Override(ManaAttribute, 80.0f, ECk_MinMaxCurrent::Current);
 			auto R = utils_float_attribute::TryGet_RefillAttribute(EnergyAttribute); if (ck::IsValid(R)) { utils_float_attribute_refill::Request_Resume(R); }
 			auto MR = utils_float_attribute::TryGet_RefillAttribute(ManaAttribute); if (ck::IsValid(MR)) { utils_float_attribute_refill::Request_Resume(MR); }
 		}
@@ -179,14 +179,14 @@ class UCk_EntityScript_AttributeGym_FloatRefill : UCk_GenericEntityScript_UE
 	private void OnDrainEnergy(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
 		gym_auto::StopAuto(AutoTimer, AutoRunning);
-		utils_float_attribute::Request_Override(EnergyAttribute, 10.0f);
+		utils_float_attribute::Request_Override(EnergyAttribute, 10.0f, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION()
 	private void OnDrainMana(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
 	{
 		gym_auto::StopAuto(AutoTimer, AutoRunning);
-		utils_float_attribute::Request_Override(ManaAttribute, 5.0f);
+		utils_float_attribute::Request_Override(ManaAttribute, 5.0f, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION()
@@ -207,8 +207,8 @@ class UCk_EntityScript_AttributeGym_FloatRefill : UCk_GenericEntityScript_UE
 	{
 		AutoStep = 0;
 		ValueChangeCount = 0;
-		utils_float_attribute::Request_Override(EnergyAttribute, 100.0f);
-		utils_float_attribute::Request_Override(ManaAttribute, 80.0f);
+		utils_float_attribute::Request_Override(EnergyAttribute, 100.0f, ECk_MinMaxCurrent::Current);
+		utils_float_attribute::Request_Override(ManaAttribute, 80.0f, ECk_MinMaxCurrent::Current);
 		auto R = utils_float_attribute::TryGet_RefillAttribute(EnergyAttribute); if (ck::IsValid(R)) { utils_float_attribute_refill::Request_Resume(R); }
 		auto MR = utils_float_attribute::TryGet_RefillAttribute(ManaAttribute); if (ck::IsValid(MR)) { utils_float_attribute_refill::Request_Resume(MR); }
 	}

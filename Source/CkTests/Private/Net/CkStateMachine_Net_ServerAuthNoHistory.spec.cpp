@@ -1,4 +1,4 @@
-// Server-authoritative WithoutHistory snap-to-final-state.
+﻿// Server-authoritative WithoutHistory snap-to-final-state.
 //
 // Spawns ACk_AutoTest_NetSubject_StateMachineNoHistory_UE — its entity-script builds a
 // Replicates / ServerAuthoritative / WithoutHistory SM with initial state A on both worlds. The
@@ -78,9 +78,9 @@ bool FCkStateMachineNet_ServerAuth_NoHistory_SnapsToFinalState::RunTest(const FS
             { AddError(TEXT("server-side _TestStateMachine not populated by entity-script Construct")); return; }
 
             UCk_Utils_StateMachine_UE::Request_Transition(SmSubject->_TestStateMachine,
-                UCk_AutoTest_Sm_RecordingState_B::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_B::StaticClass(), {});
             UCk_Utils_StateMachine_UE::Request_Transition(SmSubject->_TestStateMachine,
-                UCk_AutoTest_Sm_RecordingState_C::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_C::StaticClass(), {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterTransitions));

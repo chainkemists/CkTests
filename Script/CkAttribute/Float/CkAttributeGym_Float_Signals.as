@@ -99,7 +99,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_GenericEntityScript_UE
 			utils_float_attribute::BindTo_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
 				FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnValueChanged1"));
 			Delegate1Bound = true;
-			utils_float_attribute::Request_Override(TestAttribute, 120.5f);
+			utils_float_attribute::Request_Override(TestAttribute, 120.5f, ECk_MinMaxCurrent::Current);
 		}
 		else if (Step == 1)
 		{
@@ -109,26 +109,26 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_GenericEntityScript_UE
 				FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnValueChanged3"));
 			Delegate2Bound = true;
 			Delegate3Bound = true;
-			utils_float_attribute::Request_Override(TestAttribute, 80.25f);
+			utils_float_attribute::Request_Override(TestAttribute, 80.25f, ECk_MinMaxCurrent::Current);
 		}
 		else if (Step == 2)
 		{
-			utils_float_attribute::Request_Override(TestAttribute, 150.75f);
-			utils_float_attribute::Request_Override(TestAttribute, 60.1f);
-			utils_float_attribute::Request_Override(TestAttribute, 200.5f);
+			utils_float_attribute::Request_Override(TestAttribute, 150.75f, ECk_MinMaxCurrent::Current);
+			utils_float_attribute::Request_Override(TestAttribute, 60.1f, ECk_MinMaxCurrent::Current);
+			utils_float_attribute::Request_Override(TestAttribute, 200.5f, ECk_MinMaxCurrent::Current);
 		}
 		else if (Step == 3)
 		{
 			utils_float_attribute::UnbindFrom_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
 				FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnValueChanged2"));
 			Delegate2Bound = false;
-			utils_float_attribute::Request_Override(TestAttribute, 90.0f);
+			utils_float_attribute::Request_Override(TestAttribute, 90.0f, ECk_MinMaxCurrent::Current);
 		}
 		else if (Step == 4)
 		{
-			utils_float_attribute::Request_Override(TestAttribute, -50.0f);
-			utils_float_attribute::Request_Override(TestAttribute, 300.0f);
-			utils_float_attribute::Request_Override(TestAttribute, 110.0f);
+			utils_float_attribute::Request_Override(TestAttribute, -50.0f, ECk_MinMaxCurrent::Current);
+			utils_float_attribute::Request_Override(TestAttribute, 300.0f, ECk_MinMaxCurrent::Current);
+			utils_float_attribute::Request_Override(TestAttribute, 110.0f, ECk_MinMaxCurrent::Current);
 		}
 		else if (Step == 5)
 		{
@@ -141,7 +141,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_GenericEntityScript_UE
 			Delegate1Bound = false;
 			Delegate2Bound = false;
 			Delegate3Bound = false;
-			utils_float_attribute::Request_Override(TestAttribute, 130.0f);
+			utils_float_attribute::Request_Override(TestAttribute, 130.0f, ECk_MinMaxCurrent::Current);
 		}
 
 		AutoStep++;
@@ -205,7 +205,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_GenericEntityScript_UE
 	{
 		gym_auto::StopAuto(AutoTimer, AutoRunning);
 		auto Typed = InPayload.Get(FCk_Message_FloatGym_SetValue);
-		utils_float_attribute::Request_Override(TestAttribute, Typed.Value);
+		utils_float_attribute::Request_Override(TestAttribute, Typed.Value, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION() void OnValueChanged1(FCk_Handle InAttributeOwnerEntity, FCk_Payload_FloatAttribute_OnValueChanged InPayload) { Delegate1Count++; LastPreviousFinal = InPayload.Get_FinalValue_Previous(); LastNewFinal = InPayload.Get_FinalValue(); }
@@ -237,6 +237,6 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_GenericEntityScript_UE
 		MinClampCount = 0; MaxClampCount = 0;
 		LastPreviousFinal = 0.0f; LastNewFinal = 0.0f; LastPreClampValue = 0.0f; LastClampedValue = 0.0f; LastOverflow = 0.0f;
 		Delegate1Bound = false; Delegate2Bound = false; Delegate3Bound = false;
-		utils_float_attribute::Request_Override(TestAttribute, 100.0f);
+		utils_float_attribute::Request_Override(TestAttribute, 100.0f, ECk_MinMaxCurrent::Current);
 	}
 }

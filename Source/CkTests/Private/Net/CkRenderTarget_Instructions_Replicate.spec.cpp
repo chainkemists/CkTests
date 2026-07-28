@@ -40,9 +40,9 @@ namespace ck_render_target_net_spec
         }
 
         UCk_Utils_RenderTarget_UE::Request_DrawLine(Subject->_TestRenderTarget,
-            FCk_Request_RenderTarget_DrawLine{FVector2D{0.0, 0.0}, FVector2D{32.0, 32.0}});
+            FCk_Request_RenderTarget_DrawLine{FVector2D{0.0, 0.0}, FVector2D{32.0, 32.0}}, {});
         UCk_Utils_RenderTarget_UE::Request_DrawBox(Subject->_TestRenderTarget,
-            FCk_Request_RenderTarget_DrawBox{FVector2D{8.0, 8.0}, FVector2D{16.0, 16.0}});
+            FCk_Request_RenderTarget_DrawBox{FVector2D{8.0, 8.0}, FVector2D{16.0, 16.0}}, {});
     }
 
     auto AssertBothWorldsAtSeq(FAutomationTestBase* InTest, int32 InExpectedSeq) -> bool

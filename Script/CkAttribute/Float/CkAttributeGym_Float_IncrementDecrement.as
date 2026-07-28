@@ -130,7 +130,7 @@ class UCk_EntityScript_AttributeGym_FloatIncrementDecrement : UCk_GenericEntityS
 	{
 		utils_float_attribute_modifier::Request_ClearAllModifiers(CounterAttribute, ECk_MinMaxCurrent::Current);
 		RevocableModifiers.Empty();
-		utils_float_attribute::Request_Override(CounterAttribute, 25.0f);
+		utils_float_attribute::Request_Override(CounterAttribute, 25.0f, ECk_MinMaxCurrent::Current);
 	}
 
 	void Request_UpdateDisplay()
@@ -199,6 +199,6 @@ class UCk_EntityScript_AttributeGym_FloatIncrementDecrement : UCk_GenericEntityS
 		ValueChangeCount = 0;
 		utils_float_attribute_modifier::Request_ClearAllModifiers(CounterAttribute, ECk_MinMaxCurrent::Current);
 		RevocableModifiers.Empty();
-		utils_float_attribute::Request_Override(CounterAttribute, 25.0f);
+		utils_float_attribute::Request_Override(CounterAttribute, 25.0f, ECk_MinMaxCurrent::Current);
 	}
 }

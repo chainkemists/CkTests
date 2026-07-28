@@ -45,7 +45,8 @@ auto
         UCk_Utils_EntityScript_UE::Request_SpawnEntity(
             InHandle,
             UCk_AutoTest_NetSubject_DependentChild_EntityScript_UE::StaticClass(),
-            FInstancedStruct{});
+            FInstancedStruct{},
+            {});
     }
 
     return Flow;

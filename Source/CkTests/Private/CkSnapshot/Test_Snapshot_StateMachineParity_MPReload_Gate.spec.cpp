@@ -1,4 +1,4 @@
-// CkSnapshot StateMachine-Parity GATES — strict round-trip of a replicated StateMachine's decision record
+﻿// CkSnapshot StateMachine-Parity GATES — strict round-trip of a replicated StateMachine's decision record
 // ({RunStatus, CurrentStateClass}) through a listen-server SEAMLESS ServerTravel reload, asserted on BOTH worlds.
 //
 // The server transitions the SM away from its initial state (A -> B) before save; post-reload both worlds must
@@ -147,7 +147,7 @@ namespace
             {
                 auto Sm = SmParity_ResolveSm(SmParity_FindSubject(InServer));
                 if (ck::Is_NOT_Valid(Sm)) { InTest->AddError(TEXT("Stage 3: server SM unresolved")); return; }
-                UCk_Utils_StateMachine_UE::Request_Transition(Sm, TargetStateClass);
+                UCk_Utils_StateMachine_UE::Request_Transition(Sm, TargetStateClass, {});
             })));
         ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

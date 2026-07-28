@@ -174,7 +174,7 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_GenericEntityScript_UE
 	private void ModifyStrength(FCk_Handle InHandle, FInstancedStruct InOptionalPayload)
 	{
 		auto StrengthAttr = InHandle.As_ByteAttribute();
-		utils_byte_attribute::Request_Override(StrengthAttr, 100);
+		utils_byte_attribute::Request_Override(StrengthAttr, 100, ECk_MinMaxCurrent::Current);
 	}
 
 	void Request_BatchValueUpdate()
@@ -183,7 +183,7 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_GenericEntityScript_UE
 		{
 			auto CurrentValue = utils_byte_attribute::Get_FinalValue(Attribute);
 			auto NewValue = uint8(Math::Clamp(CurrentValue + 15, 0, 255));
-			utils_byte_attribute::Request_Override(Attribute, NewValue);
+			utils_byte_attribute::Request_Override(Attribute, NewValue, ECk_MinMaxCurrent::Current);
 		}
 	}
 

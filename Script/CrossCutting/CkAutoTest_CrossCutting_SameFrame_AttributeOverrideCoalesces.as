@@ -53,8 +53,8 @@ class UCk_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces : UCk_AutoT
 
         // Two writes in one frame — the processor's coalesce contract says
         // exactly one OnValueChanged fires, carrying 25 (latest-write-wins).
-        utils_integer_attribute::Request_Override(_Attribute, 75);
-        utils_integer_attribute::Request_Override(_Attribute, 25);
+        utils_integer_attribute::Request_Override(_Attribute, 75, ECk_MinMaxCurrent::Current);
+        utils_integer_attribute::Request_Override(_Attribute, 25, ECk_MinMaxCurrent::Current);
 
         WaitOneFrame(n"OnSettled");
     }

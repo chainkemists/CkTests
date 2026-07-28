@@ -53,8 +53,8 @@ class UCk_AutoTest_Attribute_MayRequireReplicationToggle : UCk_AutoTest_Base
         _NotReplicated = utils_float_attribute::Add(LocalHandle, NotRepParams,
             ECk_Replication::DoesNotReplicate);
 
-        utils_float_attribute::Request_Override(_Replicated, 42.0f);
-        utils_float_attribute::Request_Override(_NotReplicated, 42.0f);
+        utils_float_attribute::Request_Override(_Replicated, 42.0f, ECk_MinMaxCurrent::Current);
+        utils_float_attribute::Request_Override(_NotReplicated, 42.0f, ECk_MinMaxCurrent::Current);
 
         auto FlagReplicatedNow = utils_float_attribute::Get_MayRequireReplicationThisFrame(_Replicated);
         Assert_True(FlagReplicatedNow,

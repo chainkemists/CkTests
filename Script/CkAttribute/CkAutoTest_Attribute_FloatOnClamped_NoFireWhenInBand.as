@@ -52,7 +52,7 @@ class UCk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand : UCk_AutoTest_Base
         _Attr.BindTo_OnMaxClamped(FCk_Delegate_FloatAttribute_OnClamped(this, n"OnClamped"));
 
         // Step 1: in-band override — no clamp expected.
-        utils_float_attribute::Request_Override(_Attr, 30.0f);
+        utils_float_attribute::Request_Override(_Attr, 30.0f, ECk_MinMaxCurrent::Current);
 
         WaitOneFrame(n"AfterInBand");
     }
@@ -72,7 +72,7 @@ class UCk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand : UCk_AutoTest_Base
             "OnClamped should NOT fire when override lands in-band (30 within [0,100])");
 
         // Step 2: above-Max override — clamp expected.
-        utils_float_attribute::Request_Override(_Attr, 200.0f);
+        utils_float_attribute::Request_Override(_Attr, 200.0f, ECk_MinMaxCurrent::Current);
 
         WaitOneFrame(n"AfterAboveMax");
     }

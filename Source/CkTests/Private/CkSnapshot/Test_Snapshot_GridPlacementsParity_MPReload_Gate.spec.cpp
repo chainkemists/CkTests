@@ -160,7 +160,7 @@ bool FCkSnapshot_GridPlacementsParity_MPReload_Gate::RunTest(const FString& Para
 
             UCk_Utils_2dGridOccupancy_UE::Request_AddPlacement(
                 Grid, Occupant, GridParity_Coordinate, GridParity_Rotation,
-                TArray<FIntPoint>{GridParity_Coordinate});
+                TArray<FIntPoint>{GridParity_Coordinate}, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

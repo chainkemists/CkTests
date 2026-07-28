@@ -1,4 +1,4 @@
-// Spec §13 / Phase 12.1 — Server-authoritative A→B→C transition chain.
+﻿// Spec §13 / Phase 12.1 — Server-authoritative A→B→C transition chain.
 //
 // Server spawns ACk_AutoTest_NetSubject_StateMachine_UE — its bridged entity-script
 // (UCk_AutoTest_NetSubject_StateMachineEntityScript_UE) creates a Replicates /
@@ -95,7 +95,7 @@ bool FCkStateMachineNet_ServerAuth_ABC_Replay::RunTest(const FString& Parameters
             { AddError(TEXT("server-side _TestStateMachine handle wasn't populated by entity-script Construct")); return; }
 
             UCk_Utils_StateMachine_UE::Request_Transition(SmSubject->_TestStateMachine,
-                UCk_AutoTest_Sm_RecordingState_B::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_B::StaticClass(), {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterTransition));
@@ -111,7 +111,7 @@ bool FCkStateMachineNet_ServerAuth_ABC_Replay::RunTest(const FString& Parameters
             { AddError(TEXT("server-side SM subject not found at B→C transition")); return; }
 
             UCk_Utils_StateMachine_UE::Request_Transition(SmSubject->_TestStateMachine,
-                UCk_AutoTest_Sm_RecordingState_C::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_C::StaticClass(), {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterFinalTransition));
