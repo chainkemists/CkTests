@@ -115,6 +115,23 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
 
         Assert_True(InResult.Get_CompiledWaypoints().Num() >= 3,
             f"corridor along the ribbon with 100cm spacing should compile >= 3 waypoints, got {InResult.Get_CompiledWaypoints().Num()}");
+
+        // A route is only safe to install into the ordinary crowd navigator if every compiled
+        // waypoint is already on the baked navmesh. This catches a corridor compiler emitting
+        // a visually plausible point in empty space, before steering can walk it.
+        const auto Waypoints = InResult.Get_CompiledWaypoints();
+        for (int32 i = 0; i < Waypoints.Num(); ++i)
+        {
+            FVector ProjectedWaypoint;
+            const auto ProjectsToNavmesh = utils_nav::Try_ProjectOntoNavmesh(
+                FCk_Handle(InFollower), Waypoints[i], 25.0f, ProjectedWaypoint, 300.0f);
+            Assert_True(ProjectsToNavmesh,
+                f"compiled waypoint {i} must project onto the AutoTests navmesh: {Waypoints[i]}");
+            if (!ProjectsToNavmesh) { return; }
+
+            Assert_True((ProjectedWaypoint - Waypoints[i]).Size() <= 2.0f,
+                f"compiled waypoint {i} must already lie on navmesh (projection delta {(ProjectedWaypoint - Waypoints[i]).Size()}cm): {Waypoints[i]}");
+        }
     }
 
     UFUNCTION()

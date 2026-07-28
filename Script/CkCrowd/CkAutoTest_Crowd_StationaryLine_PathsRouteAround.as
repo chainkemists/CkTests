@@ -148,11 +148,8 @@ class UCk_AutoTest_Crowd_StationaryLine_PathsRouteAround : UCk_AutoTest_Base
         {
             const auto Loc = FVector(0.0, float(i) * PicketSpacingUu - HalfSpan, _FloorZ + 100.0);
             auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-            // ONE ENTITY PER PICKET — utils_crowd_agent::Add composes onto the handle it is given
-            // and allows one agent per entity, so sharing the owner collapsed the whole line into
-            // a single agent and there was no stationary markup to route around.
-            auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
-            auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(FRotator::ZeroRotator, Loc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+            auto PicketEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
+            auto AgentTransform = utils_transform::Add(PicketEntity, FTransform(FRotator::ZeroRotator, Loc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
             auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
             _PicketLocations.Add(Loc);
         }

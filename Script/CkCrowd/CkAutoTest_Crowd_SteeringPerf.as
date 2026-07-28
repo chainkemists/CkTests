@@ -27,6 +27,9 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
     private float _SampleSum = 0.0f;
     private float _SampleMax = 0.0f;
     private int32 _SampleCount = 0;
+    private bool _NavProbeReady = false;
+    private bool _MoveRequestsIssued = false;
+    private bool _BenchmarkStarted = false;
 
     const int32 Rings = 6;
     const int32 AgentsPerRing = 40;
@@ -45,31 +48,27 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
         System::ExecuteConsoleCommand("t.MaxFPS 0");
         System::ExecuteConsoleCommand("r.VSync 0");
 
+        const auto ProbeStart = Centre + FVector(InnerRadius, 0.0, 0.0);
+        const auto ProbeTarget = FVector(-ProbeStart.X, -ProbeStart.Y, ProbeStart.Z);
         utils_transform::Add(LocalHandle,
-            FTransform(FRotator::ZeroRotator, FVector::ZeroVector, FVector::OneVector),
+            FTransform(FRotator::ZeroRotator, ProbeStart, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        // Kick the navmesh bake; MoveTos queue until it completes (same as the convergence test).
+        utils_nav::BindTo_OnPathReady(LocalHandle,
+            FCk_Delegate_Nav_OnPathReady(this, n"OnNavProbeReady"),
+            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
+            ECk_Signal_PostFireBehavior::DoNothing);
+
+        utils_nav::BindTo_OnPathFailed(LocalHandle,
+            FCk_Delegate_Nav_OnPathFailed(this, n"OnNavProbeFailed"),
+            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
+            ECk_Signal_PostFireBehavior::DoNothing);
+
+        // Kick the bake, then send one real path request through the same
+        // explicit-default-nav-data path used by every benchmark agent. A
+        // projection-only probe can select different nav data and false-positive.
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
-
-        const auto RingStep = (OuterRadius - InnerRadius) / float(Rings - 1);
-        const auto AngleStep = (2.0 * Math::PI) / float(AgentsPerRing);
-
-        for (int32 Ring = 0; Ring < Rings; ++Ring)
-        {
-            const auto Radius = InnerRadius + RingStep * float(Ring);
-            // Stagger alternating rings by half a step so spokes don't line up.
-            const auto AngleOffset = (Ring % 2 == 0) ? 0.0 : 0.5 * AngleStep;
-
-            for (int32 i = 0; i < AgentsPerRing; ++i)
-            {
-                const auto Angle = AngleOffset + AngleStep * float(i);
-                const auto Spawn = Centre + FVector(Radius * Math::Cos(Angle), Radius * Math::Sin(Angle), 0.0);
-                // Antipode through the centre — every agent's path crosses (0,0).
-                const auto Target = FVector(-Spawn.X, -Spawn.Y, Spawn.Z);
-                _Agents.Add(SpawnAgent(LocalHandle, Spawn, Target));
-            }
-        }
+        utils_nav::Request_FindPath(LocalHandle, FCk_Request_Nav_FindPath(ProbeTarget));
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
     }
@@ -78,6 +77,25 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
     private void OnTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
+
+        if (_MoveRequestsIssued == false)
+        {
+            if (_NavProbeReady == false)
+            { return; }
+
+            auto SelfHandle = DoGet_ScriptEntity();
+            SpawnWorkload(SelfHandle);
+            _MoveRequestsIssued = true;
+            return;
+        }
+
+        if (_BenchmarkStarted == false)
+        {
+            if (TryStartBenchmark() == false)
+            { return; }
+
+            return;
+        }
 
         const float Dt = float(InDeltaT.Get_Seconds());
         _Elapsed += Dt;
@@ -103,15 +121,135 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
         const float MaxMs = _SampleMax * 1000.0f;
         const float Fps = float(_SampleCount) / _SampleSum;
         const int32 AgentCount = Rings * AgentsPerRing;
+        if (ValidateAllAgentsOnNavmesh("after the benchmark") == false)
+        {
+            StopAllAgents();
+            return;
+        }
         Log(f"[CkCrowd PERF][Convergence agents={AgentCount}] frames={_SampleCount} avg={AvgMs} ms  max={MaxMs} ms  fps={Fps}");
+        StopAllAgents();
         FinishSuccess();
+    }
+
+    UFUNCTION()
+    private void OnNavProbeReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
+    {
+        if (IsFinished()) { return; }
+
+        if (InResult.Get_Status() != ECk_Nav_PathStatus::Ready)
+        {
+            FinishFailure(f"navigation readiness probe returned status {InResult.Get_Status()} instead of Ready");
+            return;
+        }
+
+        if (InResult.Get_Waypoints().Num() < 1)
+        {
+            FinishFailure("navigation readiness probe returned no waypoints");
+            return;
+        }
+
+        _NavProbeReady = true;
+    }
+
+    UFUNCTION()
+    private void OnNavProbeFailed(FCk_Handle InHandle)
+    {
+        if (IsFinished()) { return; }
+
+        const auto Result = utils_nav::Get_PathResult(InHandle);
+        FinishFailure(f"navigation readiness probe failed: reason={Result.Get_Diagnostics().Get_LastFailReason()}");
+    }
+
+    private void SpawnWorkload(FCk_Handle& InOwner)
+    {
+        const auto RingStep = (OuterRadius - InnerRadius) / float(Rings - 1);
+        const auto AngleStep = (2.0 * Math::PI) / float(AgentsPerRing);
+
+        for (int32 Ring = 0; Ring < Rings; ++Ring)
+        {
+            const auto Radius = InnerRadius + RingStep * float(Ring);
+            // Stagger alternating rings by half a step so spokes don't line up.
+            const auto AngleOffset = (Ring % 2 == 0) ? 0.0 : 0.5 * AngleStep;
+
+            for (int32 i = 0; i < AgentsPerRing; ++i)
+            {
+                const auto Angle = AngleOffset + AngleStep * float(i);
+                const auto Spawn = Centre + FVector(Radius * Math::Cos(Angle), Radius * Math::Sin(Angle), 0.0);
+                // Antipode through the centre — every agent's path crosses (0,0).
+                const auto Target = FVector(-Spawn.X, -Spawn.Y, Spawn.Z);
+                _Agents.Add(SpawnAgent(InOwner, Spawn, Target));
+            }
+        }
+    }
+
+    private bool TryStartBenchmark()
+    {
+        for (auto Agent : _Agents)
+        {
+            FCk_Handle AgentEntity = Agent;
+            const auto Status = utils_nav::Get_PathStatus(AgentEntity);
+            if (Status == ECk_Nav_PathStatus::Failed || Status == ECk_Nav_PathStatus::Partial)
+            {
+                const auto Result = utils_nav::Get_PathResult(AgentEntity);
+                StopAllAgents();
+                FinishFailure(f"benchmark agent path failed before steering started: status={Status}, reason={Result.Get_Diagnostics().Get_LastFailReason()}");
+                return false;
+            }
+
+            if (Status != ECk_Nav_PathStatus::Ready)
+            { return false; }
+        }
+
+        // Begin the benchmark clock only after all 240 paths are ready. The
+        // three-second warmup still absorbs their one-frame resolution skew.
+        _Elapsed = 0.0f;
+        _SampleSum = 0.0f;
+        _SampleMax = 0.0f;
+        _SampleCount = 0;
+        _BenchmarkStarted = true;
+        return true;
+    }
+
+    private bool ValidateAllAgentsOnNavmesh(FString InPhase)
+    {
+        auto SelfHandle = DoGet_ScriptEntity();
+        for (int32 AgentIndex = 0; AgentIndex < _Agents.Num(); ++AgentIndex)
+        {
+            FCk_Handle AgentEntity = _Agents[AgentIndex];
+            const auto AgentLoc = utils_transform::Get_EntityCurrentLocation(
+                utils_transform::DoCastChecked(AgentEntity));
+
+            FVector OnMesh;
+            const auto Projects = utils_nav::Try_ProjectOntoNavmesh(
+                SelfHandle, AgentLoc, 42.0f, OnMesh, 192.0f);
+            if (Projects == false)
+            {
+                FinishFailure(f"benchmark agent {AgentIndex} left the navmesh {InPhase}: location={AgentLoc}");
+                return false;
+            }
+
+            const auto VerticalDrift = Math::Abs(float(AgentLoc.Z - OnMesh.Z));
+            if (VerticalDrift > 2.0f)
+            {
+                FinishFailure(f"benchmark agent {AgentIndex}'s feet drifted {VerticalDrift}uu from the navmesh surface {InPhase}: location={AgentLoc}, surface={OnMesh}");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void StopAllAgents()
+    {
+        for (auto Agent : _Agents)
+        {
+            utils_crowd_agent::Request_Stop(Agent);
+        }
     }
 
     private FCk_Handle_CrowdAgent SpawnAgent(FCk_Handle& InOwner, FVector InSpawn, FVector InTarget)
     {
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        // ONE ENTITY PER AGENT — utils_crowd_agent::Add composes onto the handle it is given and
-        // allows one agent per entity, so sharing the owner collapsed every agent into the first.
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
         const auto Rot = (InTarget - InSpawn).Rotation();
         auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(Rot, InSpawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);

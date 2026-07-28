@@ -341,23 +341,20 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
     {
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
 
-        // ONE ENTITY PER AGENT — utils_crowd_agent::Add composes onto the handle it is given and
-        // allows one agent per entity, so sharing _Self collapsed both stem-walkers into a single
-        // agent: the two never met at the junction because there was only ever one of them.
-        auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(_Self);
-        AgentEntity.Set_DebugName(InDebugName);
+        FCk_Handle GenericAgent = utils_entity_lifetime::Request_CreateEntity(_Self);
+        GenericAgent.Set_DebugName(InDebugName);
 
-        auto AgentTransform = utils_transform::Add(AgentEntity,
+        auto AgentTransform = utils_transform::Add(GenericAgent,
             FTransform(FRotator::ZeroRotator, Spawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
-        utils_velocity::Add(AgentEntity,
+        utils_velocity::Add(GenericAgent,
             FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(AgentEntity,
+        utils_acceleration::Add(GenericAgent,
             FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
-        utils_euler_integrator::Request_Start(AgentEntity);
+        utils_euler_integrator::Request_Start(GenericAgent);
 
         return Agent;
     }

@@ -244,10 +244,6 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
     {
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
 
-        // ONE ENTITY PER AGENT — utils_crowd_agent::Add composes onto the handle it is given and
-        // allows one agent per entity, so sharing the owner collapsed occupant and latecomer into
-        // a single agent that could never block itself. The debug name now lands on the agent's own
-        // entity rather than being overwritten on the shared owner by each successive spawn.
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
         AgentEntity.Set_DebugName(InDebugName);
 

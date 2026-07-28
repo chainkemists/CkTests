@@ -295,32 +295,28 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
     private FCk_Handle_CrowdAgent SpawnAgent(FVector SpawnLoc, FVector TargetLoc, FLinearColor InColor, FName InDebugName)
     {
-        // Agents are standalone top-level entities (lifetime-owned by the registry transient),
-        // not sub-entities of the station — DestroyAgents destroys each explicitly at cycle end.
+        // Each agent is a child of the registry transient, not a station entity;
+        // DestroyAgents still destroys each explicitly at cycle end.
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
 
-        // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
-        // onto the handle it is given and permits one agent per entity, so passing the transient
-        // directly put every agent on the same entity — the first won and the rest were no-ops.
-        // It would also make DestroyAgents target the world transient.
-        auto Generic = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
-        Generic.Set_DebugName(InDebugName);
+        auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
+        AgentEntity.Set_DebugName(InDebugName);
         // Project the look direction to planar — crowd agents are yaw-only (capsule walks on the
         // navmesh). Without this, overlap-wave agents whose spawn Z ≠ target Z spawn pitched
         // (~30-45° tilt) since FaceAngle's per-tick yaw lerp can't correct pitch.
         const auto LookDir   = TargetLoc - SpawnLoc;
         const auto PlanarDir = FVector(LookDir.X, LookDir.Y, 0.0);
         const auto Rot       = PlanarDir.GetSafeNormal().Rotation();
-        auto AgentTransform = utils_transform::Add(Generic, FTransform(Rot, SpawnLoc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+        auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(Rot, SpawnLoc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
         // Stamp the agent's identity colour so every visualisation (DrawBody capsule + cone,
         // breadcrumb path, planned-path overlay, debugger swatch) coordinates on the same color.
         utils_crowd_agent::Set_DebugColor(Agent, InColor);
-        utils_velocity::Add(Generic, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(Generic, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
-        utils_euler_integrator::Request_Start(Generic);
+        utils_velocity::Add(AgentEntity, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_acceleration::Add(AgentEntity, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_euler_integrator::Request_Start(AgentEntity);
 
         // Body capsule + forward cone come from FProcessor_CrowdAgent_DrawBody (CkCrowd
         // framework). Color comes from the Set_DebugColor fragment above. Enable in PIE via
