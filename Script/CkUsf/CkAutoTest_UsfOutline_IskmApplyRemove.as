@@ -42,7 +42,7 @@ class UCk_AutoTest_UsfOutline_IskmApplyRemove : UCk_AutoTest_Base
 
         if (_Phase == 0 && _TicksInPhase >= 2)
         {
-            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_SelfEntity, CkUsf::DA_Outline_Interactable);
+            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_SelfEntity, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly);
             _Phase = 1; _TicksInPhase = 0;
         }
         else if (_Phase == 1 && _TicksInPhase >= 2)

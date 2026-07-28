@@ -54,8 +54,8 @@ class UCk_AutoTest_UsfOutline_IsmShadowInstances : UCk_AutoTest_Base
         if (_Phase == 0 && _TicksInPhase >= 2)
         {
             // Proxies set up + instances added — outline A and B.
-            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_EntityA, CkUsf::DA_Outline_Interactable);
-            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_EntityB, CkUsf::DA_Outline_Interactable);
+            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_EntityA, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly);
+            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_EntityB, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly);
             _Phase = 1; _TicksInPhase = 0;
         }
         else if (_Phase == 1 && _TicksInPhase >= 2)
@@ -77,7 +77,7 @@ class UCk_AutoTest_UsfOutline_IsmShadowInstances : UCk_AutoTest_Base
 
             // Destroying an outlined entity must pull its shadow instance too.
             utils_entity_lifetime::Request_DestroyEntity(_EntityB);
-            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_EntityC, CkUsf::DA_Outline_Interactable);
+            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_EntityC, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly);
             _Phase = 3; _TicksInPhase = 0;
         }
         else if (_Phase == 3 && _TicksInPhase >= 3)
