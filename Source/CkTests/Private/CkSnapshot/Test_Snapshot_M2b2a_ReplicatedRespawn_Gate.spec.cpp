@@ -20,7 +20,7 @@
 #include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
 
 #include "CkSnapshot/Subsystem/CkSnapshot_Subsystem.h"
-#include "CkSnapshot/SaveKey/CkSnapshot_SaveKey_Fragment.h"
+#include "CkEcs/Snapshot/CkSaveKey_Fragment.h"
 
 #include "CkTests/Net/CkAutoTest_NetSubject_M2bProbe_Replicated.h"
 #include "CkTests/Net/CkNetAutomation_Common.h"
