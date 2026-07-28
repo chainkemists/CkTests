@@ -1728,6 +1728,32 @@ class ACk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor : 
     }
 }
 
+class ACk_AutoTest_Crowd_Separation_CoincidentPairOrbitSearch_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 28.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_Separation_CoincidentPairOrbitSearch");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Crowd_Separation_SpatialOrbitSearch_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 18.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_Separation_SpatialOrbitSearch");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
@@ -4782,6 +4808,19 @@ class ACk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor_Actor : ACk_AutoT
     }
 }
 
+class ACk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_PathNetworkFollower_RebuildReplansRoute_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 10.0f;
@@ -4795,12 +4834,38 @@ class ACk_AutoTest_PathNetworkFollower_RebuildReplansRoute_Actor : ACk_AutoTestR
     }
 }
 
+class ACk_AutoTest_PathNetworkFollower_RejectsOffNavmeshCompiledDetour_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PathNetworkFollower_RejectsOffNavmeshCompiledDetour");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_PathNetworkFollower_RoutePrefersNetwork_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PathNetworkFollower_RoutePrefersNetwork");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_PathNetworkFollower_TuningReplansSameGoal_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PathNetworkFollower_TuningReplansSameGoal");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;

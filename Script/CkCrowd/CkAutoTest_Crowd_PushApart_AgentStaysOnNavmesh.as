@@ -125,6 +125,10 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
         const auto DriftOffMesh = float(PlanarDelta.Size());
         Assert_True(DriftOffMesh <= 12.0f,
             f"{InWho} ended {DriftOffMesh}uu off the navmesh at X={AgentX} (mesh edge X={_EdgeX})");
+
+        const auto VerticalDrift = Math::Abs(float(InAgentLoc.Z - OnMesh.Z));
+        Assert_True(VerticalDrift <= 2.0f,
+            f"{InWho}'s feet ended {VerticalDrift}uu above/below the navmesh surface — constrained movement passed free-space Z through");
     }
 
     private bool FindMeshEdge(FCk_Handle& InSelfHandle)
@@ -160,8 +164,6 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
     private FCk_Handle_CrowdAgent SpawnIdleAgent(FCk_Handle& InOwner, FVector InSpawn)
     {
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        // ONE ENTITY PER AGENT — utils_crowd_agent::Add composes onto the handle it is given and
-        // allows one agent per entity, so sharing the owner collapsed every agent into the first.
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
         auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(FRotator::ZeroRotator, InSpawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);

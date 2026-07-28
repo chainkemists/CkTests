@@ -186,12 +186,7 @@ class UCk_AutoTest_Crowd_Separation_ProbeIsotropy : UCk_AutoTest_Base
         Params.Set_SeparationRadius(SeparationRadius);
         Params.Set_SeparationLookahead(SeparationLookahead);
 
-        // ONE ENTITY PER AGENT. utils_crowd_agent::Add composes onto the handle it is given and
-        // enforces one agent per entity; utils_transform::Add is idempotent. Passing the shared
-        // owner (as this did before) therefore collapsed every agent in the ring into a SINGLE
-        // agent at the owner's transform: the first call won, the rest were no-ops, and a lone
-        // agent has no neighbours — every bearing read exactly 0.0 force.
-        auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
+        FCk_Handle AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
         auto AgentTransform = utils_transform::Add(AgentEntity,
             FTransform(FRotator::ZeroRotator, InSpawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
