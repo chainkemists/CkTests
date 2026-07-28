@@ -92,9 +92,10 @@ bool FCk_PathNetwork_Build_TJunctionSplit::RunTest(const FString& Parameters)
 {
     using namespace ck_test_pathnetwork_build;
 
-    // Vertical ribbon's endpoint lands on the horizontal ribbon's interior -> T split.
+    // The vertical endpoint snaps to an authored horizontal midpoint, matching the sidewalk
+    // fixture where the split point must not be duplicated as an interior control point.
     auto Ribbons = TArray<FCk_PathNetwork_Ribbon>{};
-    Ribbons.Add(MakeRibbon({FVector{0, 0, 0}, FVector{4000, 0, 0}}));
+    Ribbons.Add(MakeRibbon({FVector{0, 0, 0}, FVector{2000, 0, 0}, FVector{4000, 0, 0}}));
     Ribbons.Add(MakeRibbon({FVector{2000, 60, 0}, FVector{2000, 3000, 0}}));
 
     const auto Network = ck::pathnetwork::Build_NetworkFromRibbons(Ribbons, DefaultParams());
@@ -118,6 +119,14 @@ bool FCk_PathNetwork_Build_TJunctionSplit::RunTest(const FString& Parameters)
     TestEqual(TEXT("one 3-way junction"), JunctionCount, 1);
     TestTrue(FString::Printf(TEXT("junction near (2000, 0) (got %.0f, %.0f)"), JunctionLocation.X, JunctionLocation.Y),
         FVector::Dist2D(JunctionLocation, FVector{2000, 0, 0}) < 100.0);
+
+    for (const auto& Edge : Network._Edges)
+    {
+        TestEqual(
+            TEXT("split fixture edge has no duplicate cut control"),
+            Edge._Points.Num(),
+            2);
+    }
 
     return true;
 }
