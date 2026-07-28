@@ -83,7 +83,7 @@ class UCk_AutoTest_StateMachine_TaskExitOnStop : UCk_AutoTest_Base
         Delegate.BindUFunction(this, n"OnStopped");
         _SmHandle.BindTo_OnStopped(Delegate);
 
-        WaitOneFrame(n"OnReadyToStop");
+        WaitUntil(n"Check_EnterLogged", n"OnReadyToStop");
     }
 
     private bool LogContains(const TArray<FString>&in InEvents, const FString&in InWhat) const
@@ -94,6 +94,31 @@ class UCk_AutoTest_StateMachine_TaskExitOnStop : UCk_AutoTest_Base
             { return true; }
         }
         return false;
+    }
+
+    private bool LoggedEvent(const FString&in InWhat)
+    {
+        auto AsRaw = _SmHandle.H();
+        auto& Log = AsRaw.AddOrGet_Fragment(FCk_Fragment_SmTaskExitTest_Log);
+        return LogContains(Log.Events, InWhat);
+    }
+
+    // Both waits read exactly what the hop they gate asserts, so a regression that
+    // never fires the hook reports as this predicate timing out rather than as an
+    // assertion on a state we merely hoped had settled. The log starts empty, so
+    // Enter is decisively false on entry.
+    UFUNCTION()
+    private void Check_EnterLogged(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(LoggedEvent("Enter"));
+    }
+
+    UFUNCTION()
+    private void Check_ExitLogged(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(LoggedEvent("Exit"));
     }
 
     UFUNCTION()
@@ -113,7 +138,7 @@ class UCk_AutoTest_StateMachine_TaskExitOnStop : UCk_AutoTest_Base
     private void OnStopped(FCk_Handle_StateMachine InHandle, FCk_Sm_Payload_OnStopped InPayload)
     {
         if (IsFinished()) { return; }
-        WaitOneFrame(n"OnAfterStop");
+        WaitUntil(n"Check_ExitLogged", n"OnAfterStop");
     }
 
     UFUNCTION()
