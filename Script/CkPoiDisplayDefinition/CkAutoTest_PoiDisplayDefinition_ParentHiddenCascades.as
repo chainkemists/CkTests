@@ -18,10 +18,12 @@
 //     Get_IsParentHidden (folds the parent cascade).
 //   - Owner back in range → BOTH children Get_IsParentHidden == false.
 //
-// Settle window is TWO chained WaitOneFrames per transition: the VisibleRange
-// processor flips FTag_VisibleRange_Hidden and broadcasts OnHiddenChanged on the
-// first frame; the bound cascade handler's delivery + ParentHidden application
-// may land the same frame or the next — two frames is the deterministic window.
+// Each transition waits on the cascaded state ITSELF rather than on a frame
+// budget: the VisibleRange processor flips FTag_VisibleRange_Hidden and
+// broadcasts OnHiddenChanged, and the bound cascade handler applies ParentHidden
+// either that frame or the next. Get_IsParentHidden is a plain tag read
+// (CkPoiDisplayDefinition_Utils.cpp:172), so waiting on it spans the whole
+// delivery chain without having to know which frame it lands on.
 //============================================================================
 
 class UCk_AutoTest_PoiDisplayDefinition_ParentHiddenCascades : UCk_AutoTest_Base
@@ -70,18 +72,31 @@ class UCk_AutoTest_PoiDisplayDefinition_ParentHiddenCascades : UCk_AutoTest_Base
 
         // Drive the OWNER out of range → the cascade should hide BOTH children.
         utils_visible_range::Update_Distance(_OwnerVR, 1000.0f);
-        WaitOneFrame(n"OnOwnerHidden_Frame1");
+        WaitUntil(n"Check_BothChildrenParentHidden", n"OnOwnerHidden");
     }
 
+    // Both predicates read exactly what the hop they gate goes on to assert, so
+    // neither can release before the state under test exists. The SHOWN predicate
+    // is decisively false on entry: the HIDDEN hop asserted both children hidden
+    // before it requested the re-show.
     UFUNCTION()
-    private void OnOwnerHidden_Frame1(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_BothChildrenParentHidden(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnOwnerHidden_Frame2");
+        auto Res = OutResult;
+        Res.Set(utils_poi_display_definition::Get_IsParentHidden(_ChildPlain) &&
+                utils_poi_display_definition::Get_IsParentHidden(_ChildWithOwnRange));
     }
 
     UFUNCTION()
-    private void OnOwnerHidden_Frame2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_BothChildrenParentShown(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(!utils_poi_display_definition::Get_IsParentHidden(_ChildPlain) &&
+                !utils_poi_display_definition::Get_IsParentHidden(_ChildWithOwnRange));
+    }
+
+    UFUNCTION()
+    private void OnOwnerHidden(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
@@ -91,24 +106,18 @@ class UCk_AutoTest_PoiDisplayDefinition_ParentHiddenCascades : UCk_AutoTest_Base
             "Parent-wins: child WITH its own in-range VisibleRange must STILL be ParentHidden");
 
         // For the child without its own VisibleRange, IsEffectivelyHidden folds to the
-        // parent cascade alone.
+        // parent cascade alone — and it checks ParentHidden FIRST (Utils.cpp:181), so
+        // the wait above already covers it; it needs no settle of its own.
         Assert_True(utils_poi_display_definition::Get_IsEffectivelyHidden(_ChildPlain),
             "Get_IsEffectivelyHidden should mirror Get_IsParentHidden for the child with no own VisibleRange");
 
         // Drive the owner back in range → the cascade should clear both children.
         utils_visible_range::Update_Distance(_OwnerVR, 100.0f);
-        WaitOneFrame(n"OnOwnerShown_Frame1");
+        WaitUntil(n"Check_BothChildrenParentShown", n"OnOwnerShown");
     }
 
     UFUNCTION()
-    private void OnOwnerShown_Frame1(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnOwnerShown_Frame2");
-    }
-
-    UFUNCTION()
-    private void OnOwnerShown_Frame2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void OnOwnerShown(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
