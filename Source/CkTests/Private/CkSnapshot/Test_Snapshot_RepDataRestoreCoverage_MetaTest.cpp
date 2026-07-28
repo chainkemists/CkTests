@@ -7,15 +7,22 @@
 //
 // This test enumerates every FCk_RepData_* reflected struct at runtime and asserts each is EITHER:
 //   - in the COVERED set (has a ReplicateOnRestore handler), or
-//   - in the DEFERRED allowlist (documented reason why it is intentionally not yet covered).
+//   - in the DEFERRED allowlist (documented reason why it is intentionally not yet covered), or
+//   - registered SAVE-ONLY in FCk_PersistenceHandlerRegistry (probed live, not hand-listed): such a type
+//     "never rides a replicated container" (the Register_SaveOnly contract), so there are no client-visible
+//     replicated values to restore — restore-replication is N/A by construction, and the registration itself
+//     IS the documented decision. The exemption self-revokes: if the registration ever gains net participation
+//     (e.g. FogOfWar's staged co-op upgrade), the probe stops matching and this ratchet re-arms for that type.
 //
-// A NEW FCk_RepData_* type that is in neither set fails this test — forcing an explicit decision
+// A NEW FCk_RepData_* type that matches none of these fails this test — forcing an explicit decision
 // (cover it, or document why it is exempt) instead of silently shipping a feature whose replicated
 // values vanish on the client after an MP reload. See HARDENING_RepDataRestoreCoverage.md.
 //
 // When you add restore coverage for a feature, MOVE its suffix from kDeferred to kCovered here.
 
 #include "CkCore/Macros/CkMacros.h"
+
+#include "CkEcs/Persistence/CkPersistenceHandlerRegistry.h"
 
 #include "Misc/AutomationTest.h"
 
@@ -96,6 +103,7 @@ bool
     auto Discovered = TSet<FString>{}; // suffixes
     auto CoveredCount  = 0;
     auto DeferredCount = 0;
+    auto SaveOnlyCount = 0;
 
     for (TObjectIterator<UScriptStruct> It; It; ++It)
     {
@@ -119,12 +127,34 @@ bool
             continue;
         }
 
+        // Registry-verified save-only participation. Only a WELL-FORMED save-only handler qualifies
+        // (Produce + HydrationApply present, NetApply absent) — a degenerate registration (e.g. the
+        // Produce-without-HydrationApply misconfig, which registers anyway behind a loud ensure) falls
+        // through to the ratchet error below. Find() is per-type only: the runtime-typed fallback
+        // handler never masks an unregistered type here.
+        const auto* Handler = FCk_PersistenceHandlerRegistry::Find(*It);
+        const auto IsRegisteredSaveOnly = Handler != nullptr &&
+            NOT static_cast<bool>(Handler->NetApply) &&
+            static_cast<bool>(Handler->Produce) &&
+            static_cast<bool>(Handler->HydrationApply);
+
+        if (IsRegisteredSaveOnly)
+        {
+            ++SaveOnlyCount;
+            AddInfo(FString::Printf(
+                TEXT("SAVE-ONLY RepData [%s]: never rides a replicated container (registry-verified) — ")
+                TEXT("restore-replication N/A; ratchet re-arms if it gains net participation"),
+                *Suffix));
+            continue;
+        }
+
         // The ratchet: a new replicated container with NO coverage decision.
         AddError(FString::Printf(
             TEXT("Replicated container [%s] (reflected [%s]) has NO restore-replication coverage decision. ")
             TEXT("After a server snapshot load + seamless travel its replicated VALUES will silently fail to reach ")
             TEXT("clients. Either add a ReplicateOnRestore handler (then add its suffix to kCovered in this test), ")
-            TEXT("or document why it is exempt (add it to kDeferred with a reason). See ")
+            TEXT("or document why it is exempt (add it to kDeferred with a reason). If the type genuinely never ")
+            TEXT("replicates, register it via Register_SaveOnly — this test detects that from the registry. See ")
             TEXT("HARDENING_RepDataRestoreCoverage.md."),
             *Suffix, *Name));
     }
@@ -139,8 +169,8 @@ bool
     }
 
     AddInfo(FString::Printf(
-        TEXT("RepData restore-coverage: discovered=[%d] covered=[%d] deferred=[%d]"),
-        Discovered.Num(), CoveredCount, DeferredCount));
+        TEXT("RepData restore-coverage: discovered=[%d] covered=[%d] deferred=[%d] saveonly=[%d]"),
+        Discovered.Num(), CoveredCount, DeferredCount, SaveOnlyCount));
 
     // Sanity: we expect a non-trivial number of replicated containers to exist; 0 means the match/enumeration broke.
     TestTrue(TEXT("Discovered at least the 3 covered attribute containers"), Discovered.Num() >= 3);
