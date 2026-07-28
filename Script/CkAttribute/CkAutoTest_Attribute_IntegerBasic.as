@@ -47,13 +47,13 @@ class UCk_AutoTest_Attribute_IntegerBasic : UCk_AutoTest_Base
     private void Step1_OverrideTo42()
     {
         _Step = 1;
-        utils_integer_attribute::Request_Override(HealthAttribute, 42);
+        utils_integer_attribute::Request_Override(HealthAttribute, 42, ECk_MinMaxCurrent::Current);
     }
 
     private void Step2_OverrideToNegative_ExpectClamp()
     {
         _Step = 2;
-        utils_integer_attribute::Request_Override(HealthAttribute, -50);
+        utils_integer_attribute::Request_Override(HealthAttribute, -50, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()

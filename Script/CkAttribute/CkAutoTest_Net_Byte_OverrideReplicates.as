@@ -31,7 +31,7 @@ class UCk_AutoTest_Net_Byte_OverrideReplicates : UCk_AutoTest_NetBase
 
         if (utils_net::Get_HasAuthority(Subject))
         {
-            utils_byte_attribute::Request_Override(Attribute, _ExpectedValue);
+            utils_byte_attribute::Request_Override(Attribute, _ExpectedValue, ECk_MinMaxCurrent::Current);
             FinishSuccess();
             return;
         }

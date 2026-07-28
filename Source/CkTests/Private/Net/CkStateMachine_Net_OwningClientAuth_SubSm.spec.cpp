@@ -1,4 +1,4 @@
-// Owning-client-authoritative sub-SM net-identity resolution.
+﻿// Owning-client-authoritative sub-SM net-identity resolution.
 //
 // Spawns ACk_AutoTest_NetSubject_StateMachineOwningClientSubSm_Pawn on the server and possesses it
 // with the remote client's PlayerController, so on the client world the pawn is locally-controlled-
@@ -176,7 +176,7 @@ bool FCkStateMachineNet_OwningClientAuth_SubSmTickGated::RunTest(const FString& 
             if (ck::Is_NOT_Valid(ClientPawn->_TestStateMachine))
             { AddError(TEXT("client-side _TestStateMachine not populated by entity-script Construct")); return; }
 
-            UCk_Utils_StateMachine_UE::Request_Start(ClientPawn->_TestStateMachine);
+            UCk_Utils_StateMachine_UE::Request_Start(ClientPawn->_TestStateMachine, {});
 
             // Pre-warm the owning client's SM relay channel so the run-status push resolves promptly
             // (mirrors the OwningClientAuth local-commit spec).

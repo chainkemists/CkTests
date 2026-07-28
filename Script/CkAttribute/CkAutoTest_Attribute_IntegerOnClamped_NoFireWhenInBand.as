@@ -36,7 +36,7 @@ class UCk_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand : UCk_AutoTest_Ba
 
         _Attr.BindTo_OnMaxClamped(FCk_Delegate_IntegerAttribute_OnClamped(this, n"OnClamped"));
 
-        utils_integer_attribute::Request_Override(_Attr, 30);
+        utils_integer_attribute::Request_Override(_Attr, 30, ECk_MinMaxCurrent::Current);
         WaitOneFrame(n"AfterInBand");
     }
 
@@ -54,7 +54,7 @@ class UCk_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand : UCk_AutoTest_Ba
         Assert_Equals_Int(_ClampedCount, 0,
             "OnMaxClamped should NOT fire when override lands in-band (30 within [0,100])");
 
-        utils_integer_attribute::Request_Override(_Attr, 200);
+        utils_integer_attribute::Request_Override(_Attr, 200, ECk_MinMaxCurrent::Current);
         WaitOneFrame(n"AfterAboveMax");
     }
 

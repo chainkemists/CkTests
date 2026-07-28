@@ -145,7 +145,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_GenericEntityScript_UE
 		}
 
 		LastInputValue = CurrentTestValue;
-		utils_integer_attribute::Request_Override(ResourceAttribute, CurrentTestValue);
+		utils_integer_attribute::Request_Override(ResourceAttribute, CurrentTestValue, ECk_MinMaxCurrent::Current);
 	}
 
 	void
@@ -215,7 +215,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_GenericEntityScript_UE
 		auto Typed = InPayload.Get(FCk_Message_IntegerGym_SetResource);
 		CurrentTestValue = Typed.Value;
 		LastInputValue = Typed.Value;
-		utils_integer_attribute::Request_Override(ResourceAttribute, Typed.Value);
+		utils_integer_attribute::Request_Override(ResourceAttribute, Typed.Value, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION()
@@ -225,8 +225,8 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_GenericEntityScript_UE
 		utils_timer::Request_Pause(UpdateTimer);
 
 		CkGym_Common::Draw_DebugSphere(ck::ToEntity(this), FVector(0.0f, 0.0f, 250.0f), FLinearColor(1.0f, 1.0f, 0.0f, 1.0f), 25.0f, 3.0f, 2.0f);
-		utils_integer_attribute::Request_Override(ResourceAttribute, -50);
-		utils_integer_attribute::Request_Override(ResourceAttribute, 150);
+		utils_integer_attribute::Request_Override(ResourceAttribute, -50, ECk_MinMaxCurrent::Current);
+		utils_integer_attribute::Request_Override(ResourceAttribute, 150, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION()
@@ -242,7 +242,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_GenericEntityScript_UE
 		LastOverflow = 0;
 		IsIncreasing = true;
 
-		utils_integer_attribute::Request_Override(ResourceAttribute, 50);
+		utils_integer_attribute::Request_Override(ResourceAttribute, 50, ECk_MinMaxCurrent::Current);
 
 		AutoRunning = true;
 		utils_timer::Request_Resume(AutoTimer);

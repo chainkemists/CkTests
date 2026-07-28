@@ -161,7 +161,7 @@ auto
     }
 
     auto Pending = UCk_Utils_EntityScript_UE::Request_SpawnEntity(
-        TransientEntity, ResolvedClass, FInstancedStruct{});
+        TransientEntity, ResolvedClass, FInstancedStruct{}, {});
 
     auto OnConstructedDelegate = FCk_Delegate_EntityScript_Constructed{};
     OnConstructedDelegate.BindDynamic(this, &ACk_AutoTestRunner::OnRunnerConstructed);

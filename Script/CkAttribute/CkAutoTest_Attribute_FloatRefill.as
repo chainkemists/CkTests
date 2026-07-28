@@ -56,7 +56,7 @@ class UCk_AutoTest_Attribute_FloatRefill : UCk_AutoTest_Base
         {
             // Wait one tick after construction before draining so the refill
             // processor has had a chance to settle, then drop value to 50.
-            utils_float_attribute::Request_Override(_Energy, 50.0f);
+            utils_float_attribute::Request_Override(_Energy, 50.0f, ECk_MinMaxCurrent::Current);
             _DrainIssued = true;
             return;
         }

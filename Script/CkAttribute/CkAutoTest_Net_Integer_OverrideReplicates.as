@@ -30,7 +30,7 @@ class UCk_AutoTest_Net_Integer_OverrideReplicates : UCk_AutoTest_NetBase
 
         if (utils_net::Get_HasAuthority(Subject))
         {
-            utils_integer_attribute::Request_Override(Attribute, _ExpectedValue);
+            utils_integer_attribute::Request_Override(Attribute, _ExpectedValue, ECk_MinMaxCurrent::Current);
             FinishSuccess();
             return;
         }

@@ -129,7 +129,7 @@ bool FCkAttributeNet_Float_InitialValue_Replicates::RunTest(const FString& Param
                 return;
             }
 
-            UCk_Utils_FloatAttribute_UE::Request_Override(AttributeHandle, Replicates_SubjectOverrideValue);
+            UCk_Utils_FloatAttribute_UE::Request_Override(AttributeHandle, Replicates_SubjectOverrideValue, ECk_MinMaxCurrent::Current, {});
 
             *OwnerSlot = OwnerEntity;
         })));

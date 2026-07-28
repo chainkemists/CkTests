@@ -43,7 +43,7 @@ class UCk_AutoTest_Net_Float_InitialValueReplicates : UCk_AutoTest_NetBase
         {
             // Server-side: drive the mutation. The post-Override value (100.0) propagates to
             // the client via the FCk_RepData_FloatAttributes container fragment.
-            Attribute.Request_Override(_ExpectedValue);
+            Attribute.Request_Override(_ExpectedValue, ECk_MinMaxCurrent::Current);
             FinishSuccess();
             return;
         }

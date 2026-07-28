@@ -50,13 +50,13 @@ class UCk_AutoTest_Attribute_ByteClamping : UCk_AutoTest_Base
     private void Step1_OverrideAboveMax()
     {
         _Step = 1;
-        utils_byte_attribute::Request_Override(_Durability, 250);
+        utils_byte_attribute::Request_Override(_Durability, 250, ECk_MinMaxCurrent::Current);
     }
 
     private void Step2_OverrideBelowMin()
     {
         _Step = 2;
-        utils_byte_attribute::Request_Override(_Durability, 5);
+        utils_byte_attribute::Request_Override(_Durability, 5, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()

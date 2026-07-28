@@ -71,7 +71,7 @@ class UCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds : UCk_AutoTest_NetBase
             ECk_MinMaxCurrent::Current,
             FCk_Delegate_FloatAttribute_OnValueChanged(this, n"OnLocalValueChanged"));
 
-        _Attribute.Request_Override(_OverrideValue);
+        _Attribute.Request_Override(_OverrideValue, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()

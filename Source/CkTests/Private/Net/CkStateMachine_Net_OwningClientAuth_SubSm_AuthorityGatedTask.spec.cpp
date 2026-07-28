@@ -1,4 +1,4 @@
-// Red baseline for the BusterBlock "remote clients can't sprint" bug, distilled to framework
+﻿// Red baseline for the BusterBlock "remote clients can't sprint" bug, distilled to framework
 // primitives. Reproduces: an OwningClientAuthoritative + Replicates + WithHistory parent SM hosting a
 // (non-replicated) sub-SM whose Sub_Idle -> Sub_Active transition is gated on a byte attribute set
 // client-locally, where Sub_Active runs an AUTHORITY-GATED task that applies a Multiply modifier to a
@@ -214,7 +214,7 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_AuthorityGatedTask::RunTest(const
             if (ck::Is_NOT_Valid(ClientPawn->_TestStateMachine))
             { AddError(TEXT("client-side _TestStateMachine not populated by entity-script Construct")); return; }
 
-            UCk_Utils_StateMachine_UE::Request_Start(ClientPawn->_TestStateMachine);
+            UCk_Utils_StateMachine_UE::Request_Start(ClientPawn->_TestStateMachine, {});
             UCk_Utils_StateMachine_UE::Acquire_RelayChannel(ClientPawn->_TestStateMachine);
         })));
 
@@ -238,7 +238,7 @@ bool FCkStateMachineNet_OwningClientAuth_SubSm_AuthorityGatedTask::RunTest(const
             if (ck::Is_NOT_Valid(InputAttr))
             { AddError(TEXT("client-side byte 'input' attribute not found — entity-script did not compose it")); return; }
 
-            UCk_Utils_ByteAttribute_UE::Request_Override(InputAttr, static_cast<uint8>(1));
+            UCk_Utils_ByteAttribute_UE::Request_Override(InputAttr, static_cast<uint8>(1), ECk_MinMaxCurrent::Current, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterInput));

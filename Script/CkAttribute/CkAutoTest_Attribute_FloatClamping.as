@@ -47,13 +47,13 @@ class UCk_AutoTest_Attribute_FloatClamping : UCk_AutoTest_Base
     private void Step1_OverrideAboveMax()
     {
         _Step = 1;
-        utils_float_attribute::Request_Override(_ResourceAttribute, 200.0f);
+        utils_float_attribute::Request_Override(_ResourceAttribute, 200.0f, ECk_MinMaxCurrent::Current);
     }
 
     private void Step2_OverrideBelowMin()
     {
         _Step = 2;
-        utils_float_attribute::Request_Override(_ResourceAttribute, -50.0f);
+        utils_float_attribute::Request_Override(_ResourceAttribute, -50.0f, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()

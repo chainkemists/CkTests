@@ -63,7 +63,7 @@ class UCk_AutoTest_Attribute_FloatRefill_StopsAtMax : UCk_AutoTest_Base
 
         if (!_DrainIssued)
         {
-            utils_float_attribute::Request_Override(_Energy, 50.0f);
+            utils_float_attribute::Request_Override(_Energy, 50.0f, ECk_MinMaxCurrent::Current);
             _DrainIssued = true;
             return;
         }

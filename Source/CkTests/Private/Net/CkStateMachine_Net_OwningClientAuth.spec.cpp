@@ -1,4 +1,4 @@
-// Owning-client-authoritative local-commit replication.
+﻿// Owning-client-authoritative local-commit replication.
 //
 // Spawns ACk_AutoTest_NetSubject_StateMachineOwningClient_Pawn on the server and possesses it with
 // the remote client's PlayerController (Get_RemoteClientPlayerController), so on the client world
@@ -138,7 +138,7 @@ bool FCkStateMachineNet_OwningClientAuth_LocalCommitReplicates::RunTest(const FS
             if (ck::Is_NOT_Valid(ClientPawn->_TestStateMachine))
             { AddError(TEXT("client-side _TestStateMachine not populated by entity-script Construct")); return; }
 
-            UCk_Utils_StateMachine_UE::Request_Start(ClientPawn->_TestStateMachine);
+            UCk_Utils_StateMachine_UE::Request_Start(ClientPawn->_TestStateMachine, {});
 
             // Pre-warm the owning client's SM relay channel. The push processor that flushes the
             // owning-client batch (FProcessor_Sm_PushOwningClientBatch) acquires the channel on the
@@ -161,7 +161,7 @@ bool FCkStateMachineNet_OwningClientAuth_LocalCommitReplicates::RunTest(const FS
             { AddError(TEXT("client-side pawn not found at transition time")); return; }
 
             UCk_Utils_StateMachine_UE::Request_Transition(ClientPawn->_TestStateMachine,
-                UCk_AutoTest_Sm_RecordingState_B::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_B::StaticClass(), {});
         })));
 
     // Wait for actual convergence rather than a fixed frame budget: the owning client commits locally

@@ -514,7 +514,7 @@ bool
             }
 
             auto Pending = UCk_Utils_EntityScript_UE::Request_SpawnEntity(
-                TransientEntity, AsClass, FInstancedStruct{});
+                TransientEntity, AsClass, FInstancedStruct{}, {});
 
             auto OnConstructed = FCk_Delegate_EntityScript_Constructed{};
             OnConstructed.BindDynamic(_BodyCapturer.Get(), &UCk_AutoTest_BodyCapturer_UE::OnBodyConstructed);

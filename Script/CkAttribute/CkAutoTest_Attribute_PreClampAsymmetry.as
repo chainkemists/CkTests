@@ -63,13 +63,13 @@ class UCk_AutoTest_Attribute_PreClampAsymmetry : UCk_AutoTest_Base
     private void Step1_OverrideAboveMax()
     {
         _Step = 1;
-        utils_integer_attribute::Request_Override(_Attribute, 200);
+        utils_integer_attribute::Request_Override(_Attribute, 200, ECk_MinMaxCurrent::Current);
     }
 
     private void Step2_OverrideBelowMin()
     {
         _Step = 2;
-        utils_integer_attribute::Request_Override(_Attribute, -50);
+        utils_integer_attribute::Request_Override(_Attribute, -50, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()

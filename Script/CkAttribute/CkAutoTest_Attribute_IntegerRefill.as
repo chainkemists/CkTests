@@ -48,7 +48,7 @@ class UCk_AutoTest_Attribute_IntegerRefill : UCk_AutoTest_Base
 
         if (!_DrainIssued)
         {
-            utils_integer_attribute::Request_Override(_Energy, 50);
+            utils_integer_attribute::Request_Override(_Energy, 50, ECk_MinMaxCurrent::Current);
             _DrainIssued = true;
             return;
         }

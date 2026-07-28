@@ -225,10 +225,10 @@ bool FCkSnapshot_AttributeParity_MPReload_Gate::RunTest(const FString& Parameter
                 FGameplayTag::RequestGameplayTag(FName{FloatTagName}),
                 ECk_AttributeModifier_Operation::Add,
                 FCk_Fragment_FloatAttributeModifier_ParamsData{FloatModifierDelta, ECk_MinMaxCurrent::Current});
-            UCk_Utils_ByteAttribute_UE::Request_Override(ByteAttr, ByteOverride);
-            UCk_Utils_IntegerAttribute_UE::Request_Override(IntAttr, IntegerOverride);
-            UCk_Utils_VectorAttribute_UE::Request_Override(VectorAttr, VectorOverride);
-            UCk_Utils_RotatorAttribute_UE::Request_Override(RotatorAttr, RotatorOverride);
+            UCk_Utils_ByteAttribute_UE::Request_Override(ByteAttr, ByteOverride, ECk_MinMaxCurrent::Current, {});
+            UCk_Utils_IntegerAttribute_UE::Request_Override(IntAttr, IntegerOverride, ECk_MinMaxCurrent::Current, {});
+            UCk_Utils_VectorAttribute_UE::Request_Override(VectorAttr, VectorOverride, ECk_MinMaxCurrent::Current, {});
+            UCk_Utils_RotatorAttribute_UE::Request_Override(RotatorAttr, RotatorOverride, ECk_MinMaxCurrent::Current, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

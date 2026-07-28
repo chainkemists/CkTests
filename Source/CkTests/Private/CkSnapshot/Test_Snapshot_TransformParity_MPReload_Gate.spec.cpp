@@ -185,7 +185,8 @@ bool FCkSnapshot_TransformParity_MPReload_Gate::RunTest(const FString& Parameter
             UCk_Utils_EntityScript_UE::Request_SpawnEntity(
                 ProbeEntity,
                 UCk_AutoTest_Snapshot_TransformProbe_EntityScript_UE::StaticClass(),
-                FInstancedStruct{});
+                FInstancedStruct{},
+                {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 
@@ -203,7 +204,7 @@ bool FCkSnapshot_TransformParity_MPReload_Gate::RunTest(const FString& Parameter
             if (ck::Is_NOT_Valid(Child)) { AddError(TEXT("Stage 3b: child unresolved before move")); return; }
 
             UCk_Utils_Transform_TypeUnsafe_UE::Request_SetTransform(
-                Child, FCk_Request_Transform_SetTransform{Transform_MovedXf});
+                Child, FCk_Request_Transform_SetTransform{Transform_MovedXf}, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

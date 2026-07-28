@@ -155,7 +155,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 	{
 		gym_auto::StopAuto(AutoTimer, AutoRunning);
 		auto Typed = InPayload.Get(FCk_Message_IntegerGym_SetHealth);
-		utils_integer_attribute::Request_Override(HealthAttribute, Typed.Value);
+		utils_integer_attribute::Request_Override(HealthAttribute, Typed.Value, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION()
@@ -163,7 +163,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 	{
 		gym_auto::StopAuto(AutoTimer, AutoRunning);
 		auto Typed = InPayload.Get(FCk_Message_IntegerGym_SetArmor);
-		utils_integer_attribute::Request_Override(ArmorAttribute, Typed.Value);
+		utils_integer_attribute::Request_Override(ArmorAttribute, Typed.Value, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION()
@@ -171,7 +171,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 	{
 		gym_auto::StopAuto(AutoTimer, AutoRunning);
 		auto Typed = InPayload.Get(FCk_Message_IntegerGym_SetExperience);
-		utils_integer_attribute::Request_Override(ExperienceAttribute, Typed.Value);
+		utils_integer_attribute::Request_Override(ExperienceAttribute, Typed.Value, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION()
@@ -236,31 +236,31 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 	// Shared operations used by both auto steps and manual message handlers
 	void Request_SetAllValues(int32 InHealth, int32 InArmor, int32 InExperience)
 	{
-		utils_integer_attribute::Request_Override(HealthAttribute, InHealth);
-		utils_integer_attribute::Request_Override(ArmorAttribute, InArmor);
-		utils_integer_attribute::Request_Override(ExperienceAttribute, InExperience);
+		utils_integer_attribute::Request_Override(HealthAttribute, InHealth, ECk_MinMaxCurrent::Current);
+		utils_integer_attribute::Request_Override(ArmorAttribute, InArmor, ECk_MinMaxCurrent::Current);
+		utils_integer_attribute::Request_Override(ExperienceAttribute, InExperience, ECk_MinMaxCurrent::Current);
 	}
 
 	void Request_TestBoundariesMax()
 	{
-		utils_integer_attribute::Request_Override(HealthAttribute, 120);
-		utils_integer_attribute::Request_Override(ArmorAttribute, 60);
-		utils_integer_attribute::Request_Override(ExperienceAttribute, 99999);
+		utils_integer_attribute::Request_Override(HealthAttribute, 120, ECk_MinMaxCurrent::Current);
+		utils_integer_attribute::Request_Override(ArmorAttribute, 60, ECk_MinMaxCurrent::Current);
+		utils_integer_attribute::Request_Override(ExperienceAttribute, 99999, ECk_MinMaxCurrent::Current);
 	}
 
 	void Request_ResetToDefaults()
 	{
 		if (ck::IsValid(HealthAttribute))
 		{
-			utils_integer_attribute::Request_Override(HealthAttribute, 100);
+			utils_integer_attribute::Request_Override(HealthAttribute, 100, ECk_MinMaxCurrent::Current);
 		}
 		if (ck::IsValid(ArmorAttribute))
 		{
-			utils_integer_attribute::Request_Override(ArmorAttribute, 25);
+			utils_integer_attribute::Request_Override(ArmorAttribute, 25, ECk_MinMaxCurrent::Current);
 		}
 		if (ck::IsValid(ExperienceAttribute))
 		{
-			utils_integer_attribute::Request_Override(ExperienceAttribute, 0);
+			utils_integer_attribute::Request_Override(ExperienceAttribute, 0, ECk_MinMaxCurrent::Current);
 		}
 	}
 

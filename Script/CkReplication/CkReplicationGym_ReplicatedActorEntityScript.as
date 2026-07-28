@@ -60,7 +60,7 @@ class UCk_ReplicationGym_ReplicatedActor_EntityScript : UCk_EntityScript_WithAct
         auto Typed = InPayload.Get(FCk_Message_ReplicationGym_SetAttribute);
         if (ck::IsValid(ValueAttribute))
         {
-            utils_integer_attribute::Request_Override(ValueAttribute, Typed.Value);
+            utils_integer_attribute::Request_Override(ValueAttribute, Typed.Value, ECk_MinMaxCurrent::Current);
         }
     }
 

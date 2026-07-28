@@ -71,15 +71,18 @@ bool FCkSnapshot_OwnershipParity_MPReload_Gate::RunTest(const FString& Parameter
         UCk_Utils_EntityScript_UE::Request_SpawnEntity(
             Transient,
             UCk_AutoTest_Snapshot_OwnershipProbe_Target_EntityScript_UE::StaticClass(),
-            FInstancedStruct{});
+            FInstancedStruct{},
+            {});
         UCk_Utils_EntityScript_UE::Request_SpawnEntity(
             Transient,
             UCk_AutoTest_Snapshot_OwnershipProbe_LifetimeOwner_EntityScript_UE::StaticClass(),
-            FInstancedStruct{});
+            FInstancedStruct{},
+            {});
         UCk_Utils_EntityScript_UE::Request_SpawnEntity(
             Transient,
             UCk_AutoTest_Snapshot_OwnershipProbe_ContextOwner_EntityScript_UE::StaticClass(),
-            FInstancedStruct{});
+            FInstancedStruct{},
+            {});
     });
 
     Spec.SubjectReady = FCk_NetAutoTest_Assertion::CreateLambda([]() -> bool
@@ -99,7 +102,7 @@ bool FCkSnapshot_OwnershipParity_MPReload_Gate::RunTest(const FString& Parameter
         }
 
         UCk_Utils_EntityLifetime_UE::Request_TransferLifetimeOwner(Target, LifetimeOwner);
-        UCk_Utils_ContextOwner_UE::Request_Override(Target, ContextOwner);
+        UCk_Utils_ContextOwner_UE::Request_Override(Target, ContextOwner, {});
     });
 
     Spec.ReloadSettled = FCk_NetAutoTest_Assertion::CreateLambda([]() -> bool

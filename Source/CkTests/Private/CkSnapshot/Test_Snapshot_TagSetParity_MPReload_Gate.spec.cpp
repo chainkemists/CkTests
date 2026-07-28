@@ -130,7 +130,7 @@ bool FCkSnapshot_TagSetParity_MPReload_Gate::RunTest(const FString& Parameters)
             if (ck::Is_NOT_Valid(TagSet)) { AddError(TEXT("Stage 3: server TagSet unresolved")); return; }
 
             UCk_Utils_TagSet_UE::Request_AddTag(TagSet,
-                FGameplayTag::RequestGameplayTag(FName{TagSetParity_TagName}));
+                FGameplayTag::RequestGameplayTag(FName{TagSetParity_TagName}), {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

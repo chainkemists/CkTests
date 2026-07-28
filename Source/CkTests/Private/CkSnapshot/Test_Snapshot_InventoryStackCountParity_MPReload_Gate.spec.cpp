@@ -174,7 +174,7 @@ bool FCkSnapshot_InventoryStackCountParity_MPReload_Gate::RunTest(const FString&
             auto Request = FCk_Request_Inventory_AddItemByDefinition{PotionDef, InvSCParity_DefaultCount};
             Request.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
             UCk_Utils_Inventory_UE::Request_AddItemByDefinition(
-                Inventory, Request, FCk_Delegate_Inventory_OnOperationResult_AddByDefinition{});
+                Inventory, Request, FCk_Delegate_Inventory_OnOperationResult_AddByDefinition{}, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

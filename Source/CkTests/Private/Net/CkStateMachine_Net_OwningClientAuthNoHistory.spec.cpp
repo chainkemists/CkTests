@@ -1,4 +1,4 @@
-// Owning-client-authoritative + WithoutHistory snap replication.
+﻿// Owning-client-authoritative + WithoutHistory snap replication.
 //
 // Closes the one auth x history pairing the other SM net specs don't cover (ServerAuth+History,
 // ServerAuth+NoHistory, OwningClient+History already exist). Spawns
@@ -135,7 +135,7 @@ bool FCkStateMachineNet_OwningClientAuth_NoHistory_SnapReplicates::RunTest(const
             if (ck::Is_NOT_Valid(ClientPawn->_TestStateMachine))
             { AddError(TEXT("client-side _TestStateMachine not populated by entity-script Construct")); return; }
 
-            UCk_Utils_StateMachine_UE::Request_Start(ClientPawn->_TestStateMachine);
+            UCk_Utils_StateMachine_UE::Request_Start(ClientPawn->_TestStateMachine, {});
             UCk_Utils_StateMachine_UE::Acquire_RelayChannel(ClientPawn->_TestStateMachine);
         })));
 
@@ -151,7 +151,7 @@ bool FCkStateMachineNet_OwningClientAuth_NoHistory_SnapReplicates::RunTest(const
             { AddError(TEXT("client-side pawn not found at A->B")); return; }
 
             UCk_Utils_StateMachine_UE::Request_Transition(ClientPawn->_TestStateMachine,
-                UCk_AutoTest_Sm_RecordingState_B::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_B::StaticClass(), {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterTransition));
@@ -166,7 +166,7 @@ bool FCkStateMachineNet_OwningClientAuth_NoHistory_SnapReplicates::RunTest(const
             { AddError(TEXT("client-side pawn not found at B->C")); return; }
 
             UCk_Utils_StateMachine_UE::Request_Transition(ClientPawn->_TestStateMachine,
-                UCk_AutoTest_Sm_RecordingState_C::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_C::StaticClass(), {});
         })));
 
     // Wait for actual convergence on C rather than a fixed frame budget (see OwningClientAuth.spec for

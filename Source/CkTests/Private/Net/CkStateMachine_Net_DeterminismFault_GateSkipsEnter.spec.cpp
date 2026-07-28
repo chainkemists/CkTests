@@ -1,4 +1,4 @@
-// Determinism-fault quarantine gate (spec §9): a state that enters while its owning SM is faulted
+﻿// Determinism-fault quarantine gate (spec §9): a state that enters while its owning SM is faulted
 // must NOT run its EnterState side effects — the whole point of the fence is that a structurally
 // divergent state's gameplay logic never fires. This pins the 2026-07 fix to
 // UCk_SmState_EntityScript::BeginPlay, which now skips EnterState when the owner carries
@@ -124,7 +124,7 @@ bool FCkStateMachineNet_DeterminismFault_GateSkipsEnter::RunTest(const FString& 
             { AddError(TEXT("SM invalid at fault-injection time")); return; }
 
             UCk_Utils_StateMachine_Test_UE::Test_ForceDeterminismFault(GSm);
-            UCk_Utils_StateMachine_UE::Request_Transition(GSm, UCk_AutoTest_Sm_RecordingState_B::StaticClass());
+            UCk_Utils_StateMachine_UE::Request_Transition(GSm, UCk_AutoTest_Sm_RecordingState_B::StaticClass(), {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(20));

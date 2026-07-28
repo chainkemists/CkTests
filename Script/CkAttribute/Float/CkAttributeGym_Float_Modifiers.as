@@ -273,7 +273,7 @@ class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_GenericEntityScript_UE
         utils_float_attribute_modifier::Request_ClearAllModifiers(DefenseAttribute, ECk_MinMaxCurrent::Current);
         ActiveModifiers.Empty();
 
-        if (ck::IsValid(DamageAttribute)) { utils_float_attribute::Request_Override(DamageAttribute, 50.0f); }
-        if (ck::IsValid(DefenseAttribute)) { utils_float_attribute::Request_Override(DefenseAttribute, 30.0f); }
+        if (ck::IsValid(DamageAttribute)) { utils_float_attribute::Request_Override(DamageAttribute, 50.0f, ECk_MinMaxCurrent::Current); }
+        if (ck::IsValid(DefenseAttribute)) { utils_float_attribute::Request_Override(DefenseAttribute, 30.0f, ECk_MinMaxCurrent::Current); }
     }
 }

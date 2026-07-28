@@ -126,7 +126,7 @@ bool FCkSnapshot_AccelerationParity_MPReload_Gate::RunTest(const FString& Parame
             auto Accel = AccelParity_ResolveAccel(AccelParity_FindProbe(InServer));
             if (ck::Is_NOT_Valid(Accel)) { AddError(TEXT("Stage 3: server Acceleration unresolved")); return; }
 
-            UCk_Utils_Acceleration_UE::Request_OverrideAcceleration(Accel, AccelParity_Override);
+            UCk_Utils_Acceleration_UE::Request_OverrideAcceleration(Accel, AccelParity_Override, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

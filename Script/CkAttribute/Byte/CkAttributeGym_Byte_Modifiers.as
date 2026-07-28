@@ -261,8 +261,8 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_GenericEntityScript_UE
         AutoStep = 0;
         ValueChangeCount = 0;
         Request_ClearAllModifiers();
-        if (ck::IsValid(DamageAttribute)) { utils_byte_attribute::Request_Override(DamageAttribute, 50); }
-        if (ck::IsValid(DefenseAttribute)) { utils_byte_attribute::Request_Override(DefenseAttribute, 30); }
+        if (ck::IsValid(DamageAttribute)) { utils_byte_attribute::Request_Override(DamageAttribute, 50, ECk_MinMaxCurrent::Current); }
+        if (ck::IsValid(DefenseAttribute)) { utils_byte_attribute::Request_Override(DefenseAttribute, 30, ECk_MinMaxCurrent::Current); }
         Request_StartAutomationCycle();
 
         AutoRunning = true;

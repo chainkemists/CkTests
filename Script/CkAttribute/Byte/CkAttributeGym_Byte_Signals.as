@@ -105,7 +105,7 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_GenericEntityScript_UE
 		utils_byte_attribute::BindTo_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
 			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged1"));
 		Delegate1Bound = true;
-		utils_byte_attribute::Request_Override(TestAttribute, 120);
+		utils_byte_attribute::Request_Override(TestAttribute, 120, ECk_MinMaxCurrent::Current);
 	}
 
 	void Request_BindMultipleDelegates()
@@ -116,14 +116,14 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_GenericEntityScript_UE
 			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged3"));
 		Delegate2Bound = true;
 		Delegate3Bound = true;
-		utils_byte_attribute::Request_Override(TestAttribute, 80);
+		utils_byte_attribute::Request_Override(TestAttribute, 80, ECk_MinMaxCurrent::Current);
 	}
 
 	void Request_TriggerValueChanges()
 	{
-		utils_byte_attribute::Request_Override(TestAttribute, 150);
-		utils_byte_attribute::Request_Override(TestAttribute, 60);
-		utils_byte_attribute::Request_Override(TestAttribute, 200);
+		utils_byte_attribute::Request_Override(TestAttribute, 150, ECk_MinMaxCurrent::Current);
+		utils_byte_attribute::Request_Override(TestAttribute, 60, ECk_MinMaxCurrent::Current);
+		utils_byte_attribute::Request_Override(TestAttribute, 200, ECk_MinMaxCurrent::Current);
 	}
 
 	void Request_UnbindSelectiveDelegates()
@@ -131,7 +131,7 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_GenericEntityScript_UE
 		utils_byte_attribute::UnbindFrom_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
 			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged2"));
 		Delegate2Bound = false;
-		utils_byte_attribute::Request_Override(TestAttribute, 90);
+		utils_byte_attribute::Request_Override(TestAttribute, 90, ECk_MinMaxCurrent::Current);
 	}
 
 	void Request_TestRebinding()
@@ -139,7 +139,7 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_GenericEntityScript_UE
 		utils_byte_attribute::BindTo_OnValueChanged(TestAttribute, ECk_MinMaxCurrent::Current,
 			FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged2"));
 		Delegate2Bound = true;
-		utils_byte_attribute::Request_Override(TestAttribute, 110);
+		utils_byte_attribute::Request_Override(TestAttribute, 110, ECk_MinMaxCurrent::Current);
 	}
 
 	void Request_UnbindAllDelegates()
@@ -150,7 +150,7 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_GenericEntityScript_UE
 		Delegate1Bound = false;
 		Delegate2Bound = false;
 		Delegate3Bound = false;
-		utils_byte_attribute::Request_Override(TestAttribute, 130);
+		utils_byte_attribute::Request_Override(TestAttribute, 130, ECk_MinMaxCurrent::Current);
 	}
 
 	void
@@ -189,7 +189,7 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_GenericEntityScript_UE
 	{
 		gym_auto::StopAuto(AutoTimer, AutoRunning);
 		auto Typed = InPayload.Get(FCk_Message_ByteGym_SetValue);
-		utils_byte_attribute::Request_Override(TestAttribute, Typed.Value);
+		utils_byte_attribute::Request_Override(TestAttribute, Typed.Value, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION() void OnValueChanged1(FCk_Handle InAttributeOwnerEntity, FCk_Payload_ByteAttribute_OnValueChanged InPayload) { Delegate1Count++; }
@@ -206,7 +206,7 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_GenericEntityScript_UE
 		Delegate1Bound = false;
 		Delegate2Bound = false;
 		Delegate3Bound = false;
-		utils_byte_attribute::Request_Override(TestAttribute, 100);
+		utils_byte_attribute::Request_Override(TestAttribute, 100, ECk_MinMaxCurrent::Current);
 
 		AutoRunning = true;
 		utils_timer::Request_Resume(AutoTimer);

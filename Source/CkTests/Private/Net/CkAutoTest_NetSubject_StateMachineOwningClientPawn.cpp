@@ -83,7 +83,7 @@ auto
     auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(GetWorld());
     auto SpawnParams = FInstancedStruct::Make<FCk_EntityScript_WithActor_SpawnParams>(this);
     UCk_Utils_EntityScript_UE::Request_SpawnEntity(
-        TransientEntity, _EntityScriptClass, SpawnParams);
+        TransientEntity, _EntityScriptClass, SpawnParams, {});
 }
 
 // --------------------------------------------------------------------------------------------------------------------

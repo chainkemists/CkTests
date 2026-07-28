@@ -126,7 +126,7 @@ bool FCkSnapshot_AnimPlanParity_MPReload_Gate::RunTest(const FString& Parameters
 
             UCk_Utils_AnimPlan_UE::Request_UpdateAnimState(Plan,
                 FCk_Request_AnimPlan_UpdateAnimState{
-                    TAG_AnimPlan_AutoTest_Net_Cluster.GetTag(), TAG_AnimPlan_AutoTest_Net_State_B.GetTag()});
+                    TAG_AnimPlan_AutoTest_Net_Cluster.GetTag(), TAG_AnimPlan_AutoTest_Net_State_B.GetTag()}, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

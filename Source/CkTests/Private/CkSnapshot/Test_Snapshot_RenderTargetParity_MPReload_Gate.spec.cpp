@@ -150,9 +150,9 @@ bool FCkSnapshot_RenderTargetParity_MPReload_Gate::RunTest(const FString& Parame
             if (ck::Is_NOT_Valid(RenderTarget)) { AddError(TEXT("Stage 3: server RenderTarget unresolved")); return; }
 
             UCk_Utils_RenderTarget_UE::Request_DrawLine(RenderTarget,
-                FCk_Request_RenderTarget_DrawLine{FVector2D{0.0, 0.0}, FVector2D{32.0, 32.0}});
+                FCk_Request_RenderTarget_DrawLine{FVector2D{0.0, 0.0}, FVector2D{32.0, 32.0}}, {});
             UCk_Utils_RenderTarget_UE::Request_DrawBox(RenderTarget,
-                FCk_Request_RenderTarget_DrawBox{FVector2D{8.0, 8.0}, FVector2D{16.0, 16.0}});
+                FCk_Request_RenderTarget_DrawBox{FVector2D{8.0, 8.0}, FVector2D{16.0, 16.0}}, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

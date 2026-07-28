@@ -44,7 +44,7 @@ class UCk_AutoTest_Attribute_VectorPerComponentClamp : UCk_AutoTest_Base
 
         // Override one component above Max (X), one in-band (Y), one below
         // Min (Z). Final value must clamp each independently.
-        utils_vector_attribute::Request_Override(_Attr, FVector(200.0f, 50.0f, -50.0f));
+        utils_vector_attribute::Request_Override(_Attr, FVector(200.0f, 50.0f, -50.0f), ECk_MinMaxCurrent::Current);
 
         WaitOneFrame(n"OnSettled");
     }

@@ -54,7 +54,7 @@ class UCk_AutoTest_Attribute_OnClampedPayloadDirection : UCk_AutoTest_Base
             FCk_Delegate_IntegerAttribute_OnClamped(this, n"OnMinClamped"));
 
         _Step = 1;
-        utils_integer_attribute::Request_Override(_Attribute, 200);
+        utils_integer_attribute::Request_Override(_Attribute, 200, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()
@@ -75,7 +75,7 @@ class UCk_AutoTest_Attribute_OnClampedPayloadDirection : UCk_AutoTest_Base
                 "OnMaxClamped payload ClampOverflow should be +100 (positive = over max)");
 
             _Step = 2;
-            utils_integer_attribute::Request_Override(_Attribute, -50);
+            utils_integer_attribute::Request_Override(_Attribute, -50, ECk_MinMaxCurrent::Current);
         }
     }
 

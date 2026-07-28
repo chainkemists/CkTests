@@ -118,7 +118,7 @@ bool FCkRenderTargetNet_ClientAuth_DrawReachesServerAndOtherClient::RunTest(cons
             if (Subject == nullptr) { return; }
 
             UCk_Utils_RenderTarget_UE::Request_DrawLine(Subject->_TestRenderTarget,
-                FCk_Request_RenderTarget_DrawLine{FVector2D{0.0, 0.0}, FVector2D{16.0, 16.0}});
+                FCk_Request_RenderTarget_DrawLine{FVector2D{0.0, 0.0}, FVector2D{16.0, 16.0}}, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(90));

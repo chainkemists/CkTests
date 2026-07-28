@@ -186,7 +186,7 @@ bool FCkSnapshot_InventorySpatialParity_MPReload_Gate::RunTest(const FString& Pa
             Request.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
             auto BaseInventory = FCk_Handle_Inventory{Inventory};
             UCk_Utils_Inventory_UE::Request_AddItemByDefinition(
-                BaseInventory, Request, FCk_Delegate_Inventory_OnOperationResult_AddByDefinition{});
+                BaseInventory, Request, FCk_Delegate_Inventory_OnOperationResult_AddByDefinition{}, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 
@@ -205,7 +205,8 @@ bool FCkSnapshot_InventorySpatialParity_MPReload_Gate::RunTest(const FString& Pa
             UCk_Utils_Inventory_Spatial_UE::Request_RelocateItem(
                 Inventory,
                 FCk_Request_Inventory_Spatial_RelocateItem{Item, Placement},
-                FCk_Delegate_Inventory_OnOperationResult_Relocate{});
+                FCk_Delegate_Inventory_OnOperationResult_Relocate{},
+                {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

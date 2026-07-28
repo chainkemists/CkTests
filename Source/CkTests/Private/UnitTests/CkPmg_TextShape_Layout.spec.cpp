@@ -54,7 +54,7 @@ bool FCkPmg_TextShape_SetTextReArmsSetup::RunTest(const FString& Parameters)
     // Simulate the Setup processor having consumed the gate.
     Entity.Remove<ck::FTag_Pmg_DebugShape_NeedsSetup>();
 
-    UCk_Utils_Pmg_DebugShape_UE::Request_SetText(TextHandle, TEXT("two"));
+    UCk_Utils_Pmg_DebugShape_UE::Request_SetText(TextHandle, TEXT("two"), {});
 
     TestEqual(TEXT("text updated"),
         Entity.Get<ck::FFragment_Pmg_Text_Params>().Get_Text(), FString(TEXT("two")));

@@ -289,7 +289,7 @@ bool FCkRenderTargetNet_Pixel_InstructionsBelowWatermark_Dropped::RunTest(const 
             if (Subject == nullptr) { return; }
 
             UCk_Utils_RenderTarget_UE::Request_DrawLine(Subject->_TestRenderTarget,
-                FCk_Request_RenderTarget_DrawLine{FVector2D{0.0, 0.0}, FVector2D{8.0, 8.0}});
+                FCk_Request_RenderTarget_DrawLine{FVector2D{0.0, 0.0}, FVector2D{8.0, 8.0}}, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(5));
@@ -301,7 +301,7 @@ bool FCkRenderTargetNet_Pixel_InstructionsBelowWatermark_Dropped::RunTest(const 
             if (Subject == nullptr) { return; }
 
             UCk_Utils_RenderTarget_UE::Request_DrawBox(Subject->_TestRenderTarget,
-                FCk_Request_RenderTarget_DrawBox{FVector2D{4.0, 4.0}, FVector2D{8.0, 8.0}});
+                FCk_Request_RenderTarget_DrawBox{FVector2D{4.0, 4.0}, FVector2D{8.0, 8.0}}, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(5));
@@ -330,7 +330,7 @@ bool FCkRenderTargetNet_Pixel_InstructionsBelowWatermark_Dropped::RunTest(const 
             if (Subject == nullptr) { return; }
 
             UCk_Utils_RenderTarget_UE::Request_DrawLine(Subject->_TestRenderTarget,
-                FCk_Request_RenderTarget_DrawLine{FVector2D{8.0, 8.0}, FVector2D{16.0, 16.0}});
+                FCk_Request_RenderTarget_DrawLine{FVector2D{8.0, 8.0}, FVector2D{16.0, 16.0}}, {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(30));

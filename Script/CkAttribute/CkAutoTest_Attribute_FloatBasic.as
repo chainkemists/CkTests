@@ -49,13 +49,13 @@ class UCk_AutoTest_Attribute_FloatBasic : UCk_AutoTest_Base
     private void Step1_OverrideTo42p5()
     {
         _Step = 1;
-        utils_float_attribute::Request_Override(_HealthAttribute, 42.5f);
+        utils_float_attribute::Request_Override(_HealthAttribute, 42.5f, ECk_MinMaxCurrent::Current);
     }
 
     private void Step2_OverrideToNegative_ExpectClamp()
     {
         _Step = 2;
-        utils_float_attribute::Request_Override(_HealthAttribute, -50.0f);
+        utils_float_attribute::Request_Override(_HealthAttribute, -50.0f, ECk_MinMaxCurrent::Current);
     }
 
     UFUNCTION()

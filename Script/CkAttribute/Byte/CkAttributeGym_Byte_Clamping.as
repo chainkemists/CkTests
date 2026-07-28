@@ -152,9 +152,9 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_GenericEntityScript_UE
 		if (HealthIncreasing) { CurrentHealthTest = uint8(CurrentHealthTest + 20); if (CurrentHealthTest >= 120) HealthIncreasing = false; }
 		else { CurrentHealthTest = uint8(CurrentHealthTest - 25); if (CurrentHealthTest <= 0) HealthIncreasing = true; }
 
-		utils_byte_attribute::Request_Override(ArmorAttribute, CurrentArmorTest);
-		utils_byte_attribute::Request_Override(StaminaAttribute, CurrentStaminaTest);
-		utils_byte_attribute::Request_Override(HealthAttribute, CurrentHealthTest);
+		utils_byte_attribute::Request_Override(ArmorAttribute, CurrentArmorTest, ECk_MinMaxCurrent::Current);
+		utils_byte_attribute::Request_Override(StaminaAttribute, CurrentStaminaTest, ECk_MinMaxCurrent::Current);
+		utils_byte_attribute::Request_Override(HealthAttribute, CurrentHealthTest, ECk_MinMaxCurrent::Current);
 	}
 
 	void
@@ -250,10 +250,10 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_GenericEntityScript_UE
 		utils_timer::Request_Pause(UpdateTimer);
 
 		CkGym_Common::Draw_DebugSphere(ck::ToEntity(this), FVector(0.0f, 0.0f, 300.0f), FLinearColor(1.0f, 1.0f, 0.0f, 1.0f), 25.0f, 3.0f, 2.0f);
-		utils_byte_attribute::Request_Override(ArmorAttribute, 255);
-		utils_byte_attribute::Request_Override(StaminaAttribute, 30);
-		utils_byte_attribute::Request_Override(HealthAttribute, 150);
-		utils_byte_attribute::Request_Override(ShieldAttribute, 255);
+		utils_byte_attribute::Request_Override(ArmorAttribute, 255, ECk_MinMaxCurrent::Current);
+		utils_byte_attribute::Request_Override(StaminaAttribute, 30, ECk_MinMaxCurrent::Current);
+		utils_byte_attribute::Request_Override(HealthAttribute, 150, ECk_MinMaxCurrent::Current);
+		utils_byte_attribute::Request_Override(ShieldAttribute, 255, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION()
@@ -272,10 +272,10 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_GenericEntityScript_UE
 		StaminaIncreasing = true;
 		HealthIncreasing = false;
 
-		utils_byte_attribute::Request_Override(ArmorAttribute, 100);
-		utils_byte_attribute::Request_Override(StaminaAttribute, 150);
-		utils_byte_attribute::Request_Override(HealthAttribute, 75);
-		utils_byte_attribute::Request_Override(ShieldAttribute, 200);
+		utils_byte_attribute::Request_Override(ArmorAttribute, 100, ECk_MinMaxCurrent::Current);
+		utils_byte_attribute::Request_Override(StaminaAttribute, 150, ECk_MinMaxCurrent::Current);
+		utils_byte_attribute::Request_Override(HealthAttribute, 75, ECk_MinMaxCurrent::Current);
+		utils_byte_attribute::Request_Override(ShieldAttribute, 200, ECk_MinMaxCurrent::Current);
 
 		AutoRunning = true;
 		utils_timer::Request_Resume(AutoTimer);

@@ -182,7 +182,7 @@ bool FCkSnapshot_EntityCollectionParity_MPReload_Gate::RunTest(const FString& Pa
 
             // Runtime-add both members (deferred request; the following settle drains it + replication).
             UCk_Utils_EntityCollection_UE::Request_AddEntities(
-                Collection, FCk_Request_EntityCollection_AddEntities{TArray<FCk_Handle>{OwnerEntity, MemberEntity}});
+                Collection, FCk_Request_EntityCollection_AddEntities{TArray<FCk_Handle>{OwnerEntity, MemberEntity}}, {});
         })));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesPerSettle));
 

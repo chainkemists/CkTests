@@ -161,9 +161,9 @@ class UCk_EntityScript_AttributeGym_FloatClamping : UCk_GenericEntityScript_UE
 		if (HealthIncreasing) { CurrentHealthTest += 20.1f; if (CurrentHealthTest >= 120.0f) HealthIncreasing = false; }
 		else { CurrentHealthTest -= 25.75f; if (CurrentHealthTest <= -10.0f) HealthIncreasing = true; }
 
-		utils_float_attribute::Request_Override(ArmorAttribute, CurrentArmorTest);
-		utils_float_attribute::Request_Override(StaminaAttribute, CurrentStaminaTest);
-		utils_float_attribute::Request_Override(HealthAttribute, CurrentHealthTest);
+		utils_float_attribute::Request_Override(ArmorAttribute, CurrentArmorTest, ECk_MinMaxCurrent::Current);
+		utils_float_attribute::Request_Override(StaminaAttribute, CurrentStaminaTest, ECk_MinMaxCurrent::Current);
+		utils_float_attribute::Request_Override(HealthAttribute, CurrentHealthTest, ECk_MinMaxCurrent::Current);
 	}
 
 	void
@@ -259,10 +259,10 @@ class UCk_EntityScript_AttributeGym_FloatClamping : UCk_GenericEntityScript_UE
 		utils_timer::Request_Pause(UpdateTimer);
 
 		CkGym_Common::Draw_DebugSphere(ck::ToEntity(this), FVector(0.0f, 0.0f, 300.0f), FLinearColor(1.0f, 1.0f, 0.0f, 1.0f), 25.0f, 3.0f, 2.0f);
-		utils_float_attribute::Request_Override(ArmorAttribute, 999.9f);
-		utils_float_attribute::Request_Override(StaminaAttribute, -50.5f);
-		utils_float_attribute::Request_Override(HealthAttribute, 150.75f);
-		utils_float_attribute::Request_Override(ShieldAttribute, 999.0f);
+		utils_float_attribute::Request_Override(ArmorAttribute, 999.9f, ECk_MinMaxCurrent::Current);
+		utils_float_attribute::Request_Override(StaminaAttribute, -50.5f, ECk_MinMaxCurrent::Current);
+		utils_float_attribute::Request_Override(HealthAttribute, 150.75f, ECk_MinMaxCurrent::Current);
+		utils_float_attribute::Request_Override(ShieldAttribute, 999.0f, ECk_MinMaxCurrent::Current);
 	}
 
 	UFUNCTION()
@@ -281,9 +281,9 @@ class UCk_EntityScript_AttributeGym_FloatClamping : UCk_GenericEntityScript_UE
 		StaminaIncreasing = true;
 		HealthIncreasing = false;
 
-		utils_float_attribute::Request_Override(ArmorAttribute, 100.5f);
-		utils_float_attribute::Request_Override(StaminaAttribute, 150.75f);
-		utils_float_attribute::Request_Override(HealthAttribute, 75.25f);
-		utils_float_attribute::Request_Override(ShieldAttribute, 200.0f);
+		utils_float_attribute::Request_Override(ArmorAttribute, 100.5f, ECk_MinMaxCurrent::Current);
+		utils_float_attribute::Request_Override(StaminaAttribute, 150.75f, ECk_MinMaxCurrent::Current);
+		utils_float_attribute::Request_Override(HealthAttribute, 75.25f, ECk_MinMaxCurrent::Current);
+		utils_float_attribute::Request_Override(ShieldAttribute, 200.0f, ECk_MinMaxCurrent::Current);
 	}
 }

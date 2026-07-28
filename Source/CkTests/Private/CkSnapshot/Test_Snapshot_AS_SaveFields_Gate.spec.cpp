@@ -229,7 +229,7 @@ namespace ck_snapshot_as_savefields_gate
                 if (ck::Is_NOT_Valid(Owner))
                 { InTest->AddError(TEXT("Stage 2: could not resolve probe entity")); return; }
 
-                const auto Pending = UCk_Utils_EntityScript_UE::Request_SpawnEntity(Owner, FixtureClass, FInstancedStruct{});
+                const auto Pending = UCk_Utils_EntityScript_UE::Request_SpawnEntity(Owner, FixtureClass, FInstancedStruct{}, {});
                 if (NOT UCk_Utils_PendingEntityScript_UE::Get_IsValid(Pending))
                 { InTest->AddError(TEXT("Stage 2: Request_SpawnEntity returned an invalid pending handle")); }
             })));

@@ -1,4 +1,4 @@
-// Regression guard for the state-sub-graph replication fix.
+﻿// Regression guard for the state-sub-graph replication fix.
 //
 // A Replicates / ServerAuthoritative / WithHistory SM is spawned via the shared NetSubject
 // (ACk_AutoTest_NetSubject_StateMachine_UE) so it Constructs symmetrically on the server and the
@@ -119,7 +119,7 @@ bool FCkStateMachineNet_StateSubGraph_NotIndependentlyReplicated::RunTest(const 
             { AddError(TEXT("server-side _TestStateMachine wasn't populated by entity-script Construct")); return; }
 
             UCk_Utils_StateMachine_UE::Request_Transition(SmSubject->_TestStateMachine,
-                UCk_AutoTest_Sm_RecordingState_B::StaticClass());
+                UCk_AutoTest_Sm_RecordingState_B::StaticClass(), {});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(FramesAfterTransition));
