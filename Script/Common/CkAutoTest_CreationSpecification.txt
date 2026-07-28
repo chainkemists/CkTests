@@ -652,6 +652,39 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //
 // ---------------------------------------------------------------------------
 
+// !!! WaitOneFrame IS 0.05s OF WALL-CLOCK, NOT ONE FRAME !!!
+//
+// Deciding a hop must stay a settle is only HALF the decision. The other half is
+// DURATION, and it is an orthogonal axis — a hop can be correctly classified as
+// a settle and still be broken by changing how long it settles for.
+//
+//   WaitOneFrame  = a 0.05s timer  -> ~3 passes at 60fps, ~6 at 120fps, 1 at 20fps
+//   WaitFrames(N) = exactly N passes, at any frame rate
+//
+// WaitFrames is the better instrument when the hop is waiting for a fixed number
+// of PROCESSOR PASSES — that is what most deferred-request settles need, and the
+// frame count is stable where the timer is not.
+//
+// But when a window was TUNED against the 0.05s duration, swapping in a small
+// frame count SHORTENS it. Transform_ForceRefreshRebroadcasts hit this: its
+// pre-bind flush became WaitFrames(2), so the bind + Request_ForceRefresh landed
+// while setup was still running, the refresh was absorbed into that pass, and no
+// distinct OnUpdate ever broadcast. The test timed out waiting for a rebroadcast
+// that legitimately never happened — a working system failed by a shortened
+// stimulus.
+//
+// The same arithmetic is why the CkIskmRenderer socket-follower tests keep their
+// hand-rolled `_SettleTicks < 3` loops: three WaitOneFrame fires span ~9 passes
+// at 60fps, and WaitFrames(3) would give three.
+//
+// Rule: converting WaitOneFrame -> WaitFrames(N) is only safe when you can say
+// what N is counting. If the hop needs "the pump to drain" (a known small number
+// of passes), pick that number. If it is an untuned "let things settle" window
+// inherited from wall-clock, LEAVE IT — WaitOneFrame is the correct API there,
+// not an unmigrated leftover, and the file should say so in a comment.
+//
+// ---------------------------------------------------------------------------
+
 // PATTERN C — Signal-driven (PREFER THIS when the feature emits a signal)
 // Use when: the framework already broadcasts the transition you are waiting
 //           for. Binding it fires exactly on the change with no tick race, so
