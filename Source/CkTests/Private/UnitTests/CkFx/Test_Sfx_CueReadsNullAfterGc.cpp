@@ -1,7 +1,8 @@
-// Sfx params only OBSERVE their cue — whoever supplied the asset owns keeping it alive. UE's GC does
-// not trace EnTT fragment members, so a fragment cannot root anything even if it wanted to; the
-// property the params CAN guarantee is that a collected cue reads back as null instead of as a
-// dangling pointer, which is what the play paths' CK_ENSURE_IF_NOT then rejects.
+// Sfx params hold a SOFT reference — a serialized path, never a strong pointer. UE's GC does not
+// trace EnTT fragment members, so a fragment cannot root anything even if it wanted to; the
+// properties the params CAN guarantee are that a collected cue resolves back as null instead of as
+// a dangling pointer, and that the authored PATH survives the collect (the Setup processor re-loads
+// and roots it through CkResourceLoader — that rooted lifetime lives on Current, not here).
 
 #include "Misc/AutomationTest.h"
 
@@ -48,8 +49,13 @@ bool FCkTest_Sfx_CueReadsNullAfterGc::RunTest(const FString& Parameters)
     TestFalse(TEXT("a cue reachable only through an Sfx fragment is NOT kept alive by that fragment"),
         WeakCue.IsValid());
 
-    TestNull(TEXT("the collected cue reads back from the params as null, never as a dangling pointer"),
-        Entity.Get<ck::FFragment_Sfx_Params>().Get_Params().Get_SoundCue().Get());
+    const auto& Params = Entity.Get<ck::FFragment_Sfx_Params>().Get_Params();
+
+    TestNull(TEXT("the collected cue resolves from the params as null, never as a dangling pointer"),
+        Params.Get_SoundCue().Get());
+
+    TestFalse(TEXT("the authored soft PATH survives the collect - the params stay re-loadable"),
+        Params.Get_SoundCue().IsNull());
 
     return true;
 }

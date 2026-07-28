@@ -1,10 +1,10 @@
-// AudioTrack params only OBSERVE their sound — whoever supplied the asset owns keeping it alive. UE's
-// GC does not trace EnTT fragment members, so a fragment cannot root anything even if it wanted to;
-// the property the params CAN guarantee is that a collected sound reads back as null instead of as a
-// dangling pointer. Get_TrackName is the one place that dereferences the sound outside a use site, so
-// it is asserted too. Composed through the public Create rather than by adding the fragment directly:
-// FFragment_AudioTrack_Params is a bare alias of the reflected, BlueprintReadWrite struct, so a
-// Blueprint caller reaches exactly this shape.
+// AudioTrack params hold a SOFT reference — a serialized path, never a strong pointer. UE's GC does
+// not trace EnTT fragment members, so a fragment cannot root anything even if it wanted to; the
+// properties the params CAN guarantee are that a collected sound resolves back as null instead of
+// as a dangling pointer, and that the authored PATH survives — which is why Get_TrackName (derived
+// from the path, never a dereference) keeps working after the collect. Composed through the public
+// Create rather than by adding the fragment directly: FFragment_AudioTrack_Params is a bare alias
+// of the reflected, BlueprintReadWrite struct, so a Blueprint caller reaches exactly this shape.
 
 #include "Misc/AutomationTest.h"
 
@@ -36,8 +36,9 @@ bool FCkTest_AudioTrack_SoundReadsNullAfterGc::RunTest(const FString& Parameters
     auto& Registry = EcsWorld.Get_Registry();
 
     // Transient, not a shipped asset — see the sibling CkFx test for why an asset would mask this.
-    auto*      Sound     = NewObject<USoundCue>(GetTransientPackage());
-    const auto WeakSound = TWeakObjectPtr<USoundBase>{Sound};
+    auto*      Sound             = NewObject<USoundCue>(GetTransientPackage());
+    const auto WeakSound         = TWeakObjectPtr<USoundBase>{Sound};
+    const auto ExpectedTrackName = Sound->GetFName();
 
     auto Director = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
     auto Track    = UCk_Utils_AudioTrack_UE::Create(Director, FCk_Fragment_AudioTrack_ParamsData{Sound});
@@ -50,11 +51,14 @@ bool FCkTest_AudioTrack_SoundReadsNullAfterGc::RunTest(const FString& Parameters
 
     const auto& Params = Track.Get<ck::FFragment_AudioTrack_Params>();
 
-    TestNull(TEXT("the collected sound reads back from the params as null, never as a dangling pointer"),
+    TestNull(TEXT("the collected sound resolves from the params as null, never as a dangling pointer"),
         Params.Get_Sound().Get());
 
-    TestTrue(TEXT("the sound-derived track name resolves to None instead of dereferencing the collected sound"),
-        Params.Get_TrackName() == NAME_None);
+    TestFalse(TEXT("the authored soft PATH survives the collect - the params stay re-loadable"),
+        Params.Get_Sound().IsNull());
+
+    TestTrue(TEXT("the sound-derived track name comes from the PATH, so it survives the collect without a dereference"),
+        Params.Get_TrackName() == ExpectedTrackName);
 
     return true;
 }
