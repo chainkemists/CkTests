@@ -43,25 +43,46 @@ class UCk_AutoTest_Minimap_CategoryFilter : UCk_AutoTest_Base
         _QuestPoi = DoSpawnPoi(FVector(0.0, 500.0, 0.0), n"Poi.Category.MinimapFilterQuest");
         _ShopPoi = DoSpawnPoi(FVector(0.0, -500.0, 0.0), n"Poi.Category.MinimapFilterShop");
 
-        WaitUntil(n"Check_MinimapProjected", n"OnSettled_Requests");
+        WaitUntil(n"Check_FilterApplied", n"OnSettled_Filtered");
     }
 
-    // Names THIS test's own POI rather than counting entries: autotests share one
-    // PIE world, so a neighbouring band's POIs can occupy the projection while
-    // this test's are still pending (see CkCompass wave 21).
+    // Quest present ALONE does not prove the filter ran — Shop can still be in
+    // the projection. The filtered state is Quest present AND Shop excluded.
+    // Decisive: while the filter is unapplied Shop is present, so this is false.
     UFUNCTION()
-    private void Check_MinimapProjected(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    private void Check_FilterApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         auto Entries = utils_minimap::Get_Entries(_Minimap);
-        auto Found = false;
+        auto FoundQuest = false;
+        auto FoundShop  = false;
 
         for (auto Entry : Entries)
         {
-            if (Entry.Get_Poi() == _QuestPoi) { Found = true; }
+            if (Entry.Get_Poi() == _QuestPoi) { FoundQuest = true; }
+            if (Entry.Get_Poi() == _ShopPoi)  { FoundShop  = true; }
         }
 
         auto Res = OutResult;
-        Res.Set(Found);
+        Res.Set(FoundQuest && FoundShop == false);
+    }
+
+    // Clearing the filter must re-admit Shop. Decisive: Shop is absent on entry,
+    // guaranteed by the wait above.
+    UFUNCTION()
+    private void Check_BothProjected(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Entries = utils_minimap::Get_Entries(_Minimap);
+        auto FoundQuest = false;
+        auto FoundShop  = false;
+
+        for (auto Entry : Entries)
+        {
+            if (Entry.Get_Poi() == _QuestPoi) { FoundQuest = true; }
+            if (Entry.Get_Poi() == _ShopPoi)  { FoundShop  = true; }
+        }
+
+        auto Res = OutResult;
+        Res.Set(FoundQuest && FoundShop);
     }
 
     private FCk_Handle_Poi DoSpawnPoi(FVector InOffset, FName InCategoryName)
@@ -72,13 +93,6 @@ class UCk_AutoTest_Minimap_CategoryFilter : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
         return utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
-    }
-
-    UFUNCTION()
-    private void OnSettled_Requests(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Filtered");
     }
 
     UFUNCTION()
@@ -95,7 +109,7 @@ class UCk_AutoTest_Minimap_CategoryFilter : UCk_AutoTest_Base
         }
 
         _Minimap.Request_SetCategoryFilter(FCk_Request_Minimap_SetCategoryFilter(FGameplayTagQuery()));
-        WaitOneFrame(n"OnSettled_Unfiltered");
+        WaitUntil(n"Check_BothProjected", n"OnSettled_Unfiltered");
     }
 
     UFUNCTION()
