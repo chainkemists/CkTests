@@ -72,7 +72,24 @@ class UCk_AutoTest_Interaction_TryGet_Interaction_ReturnsActive : UCk_AutoTest_B
         // TryGet_Interaction reads from a source->interaction record that is
         // populated by a deferred processor pass — at OnNewInteraction-fire
         // time, the record isn't yet visible. Wait one frame before querying.
-        WaitOneFrame(n"OnSettled_MidFlight");
+        WaitUntil(n"Check_InteractionActive", n"OnSettled_MidFlight");
+    }
+
+    // Both waits cross a real transition. The cleared one is decisive rather
+    // than satisfied-on-arrival because the first wait guarantees the
+    // interaction handle IS valid when the finish is requested.
+    UFUNCTION()
+    private void Check_InteractionActive(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(utils_interact_target::TryGet_Interaction(_Target, _MyEntity)));
+    }
+
+    UFUNCTION()
+    private void Check_InteractionCleared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(ck::Is_NOT_Valid(utils_interact_target::TryGet_Interaction(_Target, _MyEntity)));
     }
 
     UFUNCTION()
@@ -105,7 +122,7 @@ class UCk_AutoTest_Interaction_TryGet_Interaction_ReturnsActive : UCk_AutoTest_B
 
         Assert_True(_EndRequested,
             "OnInteractionFinished should fire only after the explicit Request_EndInteraction");
-        WaitOneFrame(n"OnSettled_AfterFinish");
+        WaitUntil(n"Check_InteractionCleared", n"OnSettled_AfterFinish");
     }
 
     UFUNCTION()
