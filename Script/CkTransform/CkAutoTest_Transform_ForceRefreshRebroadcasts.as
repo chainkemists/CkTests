@@ -44,7 +44,17 @@ class UCk_AutoTest_Transform_ForceRefreshRebroadcasts : UCk_AutoTest_Base
         InitialXf.SetLocation(ExpectedLocation);
         _Transform = utils_transform::Add(LocalHandle, InitialXf, ECk_Replication::DoesNotReplicate);
 
-        // Let setup-side broadcasts flush before we start counting.
+        // Let setup-side broadcasts flush before we start counting. Stays on the
+        // legacy WaitOneFrame DELIBERATELY. Two reasons it resists both migrations:
+        //   - a CONDITION is wrong: the counter is 0 and nothing becomes true, so
+        //     any predicate returns on its first poll and lets a setup-side
+        //     OnUpdate land inside the counted window;
+        //   - WaitFrames is wrong at any count I can justify: this window is
+        //     calibrated to 0.05s of WALL-CLOCK (~3 frames at 60fps). Shortening
+        //     it to WaitFrames(2) made the bind + Request_ForceRefresh land while
+        //     setup was still running, the refresh got absorbed into that pass,
+        //     and no distinct OnUpdate ever broadcast — the test timed out waiting
+        //     for a rebroadcast that legitimately never happened.
         WaitOneFrame(n"OnSetupSettled");
     }
 
@@ -61,7 +71,17 @@ class UCk_AutoTest_Transform_ForceRefreshRebroadcasts : UCk_AutoTest_Base
 
         utils_transform::Request_ForceRefresh(_Transform);
 
-        WaitOneFrame(n"OnForceRefreshSettled");
+        WaitUntil(n"Check_RefreshBroadcast", n"OnForceRefreshSettled");
+    }
+
+    // The rebroadcast arriving IS the settling event. That it arrives EXACTLY
+    // once — the contract, since the value is unchanged — stays an assertion, so
+    // a double-broadcast regression is reported rather than hanging.
+    UFUNCTION()
+    private void Check_RefreshBroadcast(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_UpdateCount >= 1);
     }
 
     UFUNCTION()
