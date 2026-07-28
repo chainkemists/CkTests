@@ -38,11 +38,16 @@ class UCk_AutoTest_Fog_SetExplored_Roundtrip : UCk_AutoTest_Base
 
         _Fog.Request_RevealLocation(FCk_Request_FogOfWar_RevealLocation(_Base));
 
-        // Two settles: Setup allocates the grid on the first pump; the queued reveal is handled
-        // no later than the second (request handling excludes NeedsSetup entities).
-        WaitUntil(n"Check_SomethingRevealed", n"OnSettled_Setup");
+        // Setup allocates the grid on the first pump and the queued reveal is
+        // handled no later than the second, but neither needs its own hop: the
+        // reveal becoming VISIBLE is downstream of both, so one wait spans them.
+        WaitUntil(n"Check_SomethingRevealed", n"OnSettled_Revealed");
     }
 
+    // reveal -> capture -> Reset -> Request_SetExplored(captured). Every hop
+    // crosses a real fraction transition, so none of these waits is satisfied on
+    // arrival: cleared is false while the reveal stands, and restored is false
+    // while the grid is empty.
     UFUNCTION()
     private void Check_SomethingRevealed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
@@ -51,10 +56,17 @@ class UCk_AutoTest_Fog_SetExplored_Roundtrip : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnSettled_Setup(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_GridCleared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Revealed");
+        auto Res = OutResult;
+        Res.Set(Math::Abs(utils_fog_of_war::Get_ExploredFraction(_Fog)) < 0.001);
+    }
+
+    UFUNCTION()
+    private void Check_FractionRestored(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(Math::Abs(utils_fog_of_war::Get_ExploredFraction(_Fog) - _CapturedFraction) < 0.001);
     }
 
     UFUNCTION()
@@ -70,7 +82,7 @@ class UCk_AutoTest_Fog_SetExplored_Roundtrip : UCk_AutoTest_Base
             "Get_ExploredData should carry the packed cell payload");
 
         _Fog.Request_Reset();
-        WaitOneFrame(n"OnSettled_Reset");
+        WaitUntil(n"Check_GridCleared", n"OnSettled_Reset");
     }
 
     UFUNCTION()
@@ -83,7 +95,7 @@ class UCk_AutoTest_Fog_SetExplored_Roundtrip : UCk_AutoTest_Base
             f"Reset should clear the grid before the restore (got {Fraction})");
 
         _Fog.Request_SetExplored(FCk_Request_FogOfWar_SetExplored(_CapturedData));
-        WaitOneFrame(n"OnSettled_Restored");
+        WaitUntil(n"Check_FractionRestored", n"OnSettled_Restored");
     }
 
     UFUNCTION()
