@@ -24,22 +24,28 @@ class UCk_AutoTest_Aggro_OwnerAddThreat_CreatesTarget : UCk_AutoTest_Base
 
         _Aggro.Request_AddThreat(FCk_Request_Aggro_AddThreat(_Tracked, 7.0));
 
-        WaitOneFrame(n"OnStage1");
+        WaitUntil(n"Check_ThreatRouted", n"OnStage2");
     }
 
+    // Waits for the ROUTED threat to land, not merely for the target to exist.
+    // Target creation is the FIRST stage of a create -> Setup -> threat-drain
+    // cascade: the target is born carrying _InitialThreat (1.0) and the routed
+    // 7.0 arrives on a later pass. Gating on existence alone reads 1.0 and fails
+    // the > 5.0 contract. Safe to wait on the value because _ThreatDecayRate
+    // defaults to 0 and this test uses default params, so threat is monotonic
+    // here — it cannot rise past the threshold and fall back.
     UFUNCTION()
-    private void OnStage1(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_ThreatRouted(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        // A second settle frame: create -> Setup -> threat-drain is a multi-pass cascade.
-        WaitOneFrame(n"OnStage2");
+        auto Target = _Aggro.TryGet_Target_ByTrackedEntity(_Tracked);
+
+        auto Res = OutResult;
+        Res.Set(ck::IsValid(Target) && Target.Get_Threat() > 5.0);
     }
 
     UFUNCTION()
     private void OnStage2(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (IsFinished()) { return; }
-
         Assert_Equals_Int(_Aggro.Get_NumTrackedTargets(), 1,
             "Owner AddThreat with CreateIfMissing should have created exactly one tracked target");
 
