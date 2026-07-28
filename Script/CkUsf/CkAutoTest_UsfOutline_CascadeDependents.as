@@ -61,7 +61,7 @@ class UCk_AutoTest_UsfOutline_CascadeDependents : UCk_AutoTest_Base
             Assert_True(_Proxy2.Get_IsOutlineApplied(), "child 2 proxy outlined");
 
             // Child 1 opts into an EXPLICIT outline — it must survive the parent's removal below.
-            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_Child1, CkUsf::DA_Outline_SeeThrough);
+            UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_Child1, CkUsf::DA_Outline_SeeThrough, ECk_Usf_OutlineScope::EntityOnly);
             UCk_Utils_Usf_Outline_UE::Request_RemoveOutline(_Parent);
             _Phase = 2; _TicksInPhase = 0;
         }

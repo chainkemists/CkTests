@@ -52,9 +52,9 @@ class UCk_EntityScript_UsfOutlineGym_Ism : UCk_GenericEntityScript_UE
             utils_ism_proxy::Add(Transform, FCk_Fragment_IsmProxy_ParamsData(RendererData));
 
             if (i == 1)
-            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_Interactable); }
+            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly); }
             else if (i == 3)
-            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_SeeThrough); }
+            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_SeeThrough, ECk_Usf_OutlineScope::EntityOnly); }
         }
 
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -98,7 +98,7 @@ class UCk_EntityScript_UsfOutlineGym_Iskm : UCk_GenericEntityScript_UE
             utils_iskm_proxy::Add(Transform, FCk_Fragment_IskmProxy_ParamsData(Renderer, Xf));
 
             if (i == 1)
-            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_MaskedObjective); }
+            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_MaskedObjective, ECk_Usf_OutlineScope::EntityOnly); }
         }
 
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -252,9 +252,9 @@ class UCk_EntityScript_UsfOutlineGym_Vat : UCk_GenericEntityScript_UE
             utils_vat_proxy::Add(Transform, Params);
 
             if (i == 0)
-            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_Interactable); }
+            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly); }
             else if (i == 2)
-            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_SeeThrough); }
+            { UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(Entity, CkUsf::DA_Outline_SeeThrough, ECk_Usf_OutlineScope::EntityOnly); }
         }
 
         return ECk_EntityScript_ConstructionFlow::Finished;
