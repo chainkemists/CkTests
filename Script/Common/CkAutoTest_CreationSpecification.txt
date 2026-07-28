@@ -599,6 +599,33 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //
 // ---------------------------------------------------------------------------
 
+// !!! WAIT ON THE STAGE THE *ASSERTION* DEPENDS ON !!!
+//
+// A multi-hop settle often spans a CASCADE — several processor passes, each
+// producing its own observable. It is easy to collapse those hops into a
+// predicate for the FIRST observable stage and leave the assertion checking a
+// LATER one. The wait then releases early and the test fails on correct code.
+//
+// Aggro_OwnerAddThreat_CreatesTarget failed exactly this way during migration.
+// Its cascade is create -> Setup -> threat-drain. The predicate gated on the
+// tracked target EXISTING; the assertion checks the routed threat value. A
+// target is born carrying _InitialThreat (1.0), and the routed 7.0 lands on a
+// later pass — so the wait released, the assertion read 1.0, and a > 5.0
+// contract failed against a working system. The original code had said so: its
+// second hop was commented "create -> Setup -> threat-drain is a multi-pass
+// cascade" and existed to span the drain.
+//
+// Ask: "which stage does my ASSERTION read?" — then wait on that one, not on
+// the first thing that becomes observable.
+//
+// Before waiting on a VALUE rather than an event, confirm it is MONOTONIC in
+// the direction you need. Aggro is safe because _ThreatDecayRate defaults to 0,
+// so threat cannot rise past the threshold and fall back. Where a value can
+// decay, oscillate or be re-clamped, a value predicate can miss its window
+// entirely — use the event, or a bounded frame settle, instead.
+//
+// ---------------------------------------------------------------------------
+
 // PATTERN C — Signal-driven (PREFER THIS when the feature emits a signal)
 // Use when: the framework already broadcasts the transition you are waiting
 //           for. Binding it fires exactly on the change with no tick race, so
