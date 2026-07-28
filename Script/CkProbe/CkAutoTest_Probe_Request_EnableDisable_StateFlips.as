@@ -10,7 +10,7 @@
 // Get_IsEnabledDisabled. Re-enabling restores the Enable state.
 //
 // The state observation goes through the request processor, so we use
-// WaitOneFrame after each Request_EnableDisable to let the deferred
+// A named wait after each Request_EnableDisable lets the deferred
 // state mutation land before reading.
 //============================================================================
 
@@ -34,7 +34,32 @@ class UCk_AutoTest_Probe_Request_EnableDisable_StateFlips : UCk_AutoTest_Base
 
         // The default StartingState is Enable; verify after one settle so
         // the request processor has applied StartingState into Current.
-        WaitOneFrame(n"OnAfterInitialSettle");
+        WaitUntil(n"Check_Enabled", n"OnAfterInitialSettle");
+    }
+
+    // Each Request_EnableDisable is deferred; the state actually flipping is the
+    // settling event. The two flips after the first are decisive rather than
+    // satisfied-on-arrival because the preceding wait guarantees the OPPOSITE
+    // state is in place when the request is issued.
+    UFUNCTION()
+    private void Check_Enabled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_probe::Get_IsEnabledDisabled(_Probe) == ECk_EnableDisable::Enable);
+    }
+
+    UFUNCTION()
+    private void Check_Disabled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_probe::Get_IsEnabledDisabled(_Probe) == ECk_EnableDisable::Disable);
+    }
+
+    UFUNCTION()
+    private void Check_ReEnabled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_probe::Get_IsEnabledDisabled(_Probe) == ECk_EnableDisable::Enable);
     }
 
     UFUNCTION()
@@ -48,7 +73,7 @@ class UCk_AutoTest_Probe_Request_EnableDisable_StateFlips : UCk_AutoTest_Base
         utils_probe::Request_EnableDisable(_Probe,
             FCk_Request_Probe_EnableDisable(ECk_EnableDisable::Disable));
 
-        WaitOneFrame(n"OnAfterDisable");
+        WaitUntil(n"Check_Disabled", n"OnAfterDisable");
     }
 
     UFUNCTION()
@@ -62,7 +87,7 @@ class UCk_AutoTest_Probe_Request_EnableDisable_StateFlips : UCk_AutoTest_Base
         utils_probe::Request_EnableDisable(_Probe,
             FCk_Request_Probe_EnableDisable(ECk_EnableDisable::Enable));
 
-        WaitOneFrame(n"OnAfterReEnable");
+        WaitUntil(n"Check_ReEnabled", n"OnAfterReEnable");
     }
 
     UFUNCTION()
