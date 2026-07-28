@@ -77,7 +77,25 @@ class UCk_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries : UCk_AutoTest_Bas
         _ItemToRemove = InItemsCreated[0];
         _ItemsAddedSnapshot = _Inventory.Get_NumItems();
 
-        WaitOneFrame(n"OnSettleAfterAdd");
+        WaitUntil(n"Check_BothItemsPresent", n"OnSettleAfterAdd");
+    }
+
+    // _Inventory is this test's own component, so its item count cannot be
+    // occupied by another test — no shared-surface ambiguity here.
+    UFUNCTION()
+    private void Check_BothItemsPresent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Inventory.Get_NumItems() >= 2);
+    }
+
+    // Decisive: the count is 2 on entry, so this is false until the Record prune
+    // actually runs on a later processor pass.
+    UFUNCTION()
+    private void Check_RecordPruned(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Inventory.Get_NumItems() == 1);
     }
 
     UFUNCTION()
@@ -106,7 +124,7 @@ class UCk_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries : UCk_AutoTest_Bas
         Assert_True(InResult == ECk_Inventory_OperationResult_Remove::Success,
             f"Request_RemoveItem should succeed; got {InResult}");
 
-        WaitOneFrame(n"OnSettleAfterRemove");
+        WaitUntil(n"Check_RecordPruned", n"OnSettleAfterRemove");
     }
 
     UFUNCTION()
