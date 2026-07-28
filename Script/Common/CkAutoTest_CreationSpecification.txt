@@ -626,6 +626,32 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //
 // ---------------------------------------------------------------------------
 
+// !!! CHECK WHETHER THE FILE WAS ALREADY CONVERTED !!!
+//
+// A test may already carry a WaitUntil from an earlier pass. Adding a second
+// wait on the SAME predicate is not a no-op — the predicate is already true, so
+// the new wait returns on its first poll and SILENTLY DELETES that settle.
+//
+// Fog_SetExplored_Roundtrip hit this. Its entry hop already waited for the
+// explored fraction to exceed 0.001; a later pass pointed the NEXT hop at the
+// same predicate. That happened to also be a duplicate function name, so
+// AngelScript refused to compile and the toolbox's AS_COMPILE_FAILED guard
+// stopped the run. Without the name collision it would have compiled, gone
+// green, and left the test one settle short with no signal anywhere.
+//
+// Before converting a settle:
+//   - `git log --oneline -- <file>` — has a previous pass already touched it?
+//   - grep the file for an existing WaitUntil / Check_ predicate.
+//   - if a predicate already covers the condition, the extra hop is usually
+//     REDUNDANT and should be collapsed, not re-pointed. (In Fog, grid
+//     allocation and reveal handling are both upstream of the reveal becoming
+//     visible, so one wait spans them and the middle hop simply goes away.)
+//
+// Any script doing a bulk conversion must assert that the predicate name it
+// injects is NEW to that class, alongside its anchor-uniqueness assertions.
+//
+// ---------------------------------------------------------------------------
+
 // PATTERN C — Signal-driven (PREFER THIS when the feature emits a signal)
 // Use when: the framework already broadcasts the transition you are waiting
 //           for. Binding it fires exactly on the change with no tick race, so
