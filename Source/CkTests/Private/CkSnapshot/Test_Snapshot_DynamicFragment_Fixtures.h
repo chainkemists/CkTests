@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CkDynamic/CkDynamic_Fragment_Data.h"
+
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/Handle/CkHandle_TypeSafe.h"
 
@@ -150,10 +152,10 @@ struct FCk_Test_HydrationPayloadWithObject
     TObjectPtr<UObject> Object;
 };
 
-// Explicit runtime-only dynamic state. The dynamic persistence wrapper must omit it at capture and ignore it when
-// hydrating an older payload that still contains the type.
-USTRUCT(meta=(CkSnapshotTransient))
-struct FCk_Test_DynFrag_SnapshotTransient
+// Explicit runtime-only dynamic state. The runtime marker must omit it at capture and ignore legacy payloads in
+// targets where USTRUCT metadata is stripped.
+USTRUCT()
+struct FCk_Test_DynFrag_SnapshotTransient : public FCk_DynamicFragment_SnapshotTransient
 {
     GENERATED_BODY()
 
