@@ -50,7 +50,7 @@ class UCk_AutoTest_VisibleRange_ExplicitOverrideIsIndependentVote : UCk_AutoTest
 
         // Clear ONLY the explicit vote. The own-range vote (distance still 0) is untouched.
         utils_visible_range::Request_SetVisibility(_VR, ECk_VisibleRange_ShowHide::Show);
-        WaitOneFrame(n"OnExplicitVoteCleared");
+        WaitFrames(2, n"OnExplicitVoteCleared");
     }
 
     UFUNCTION()
@@ -64,7 +64,16 @@ class UCk_AutoTest_VisibleRange_ExplicitOverrideIsIndependentVote : UCk_AutoTest
 
         // Now clear the own-range vote too (bring distance back inside MinRange).
         utils_visible_range::Update_Distance(_VR, 1000.0f);
-        WaitOneFrame(n"OnBothVotesCleared");
+        WaitUntil(n"Check_BecameVisible", n"OnBothVotesCleared");
+    }
+
+    // Decisive: the entity is hidden on entry (both votes active, then only the
+    // explicit one cleared), so this is false until the own-range vote lifts.
+    UFUNCTION()
+    private void Check_BecameVisible(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_visible_range::Get_IsHidden(_VR) == false);
     }
 
     UFUNCTION()

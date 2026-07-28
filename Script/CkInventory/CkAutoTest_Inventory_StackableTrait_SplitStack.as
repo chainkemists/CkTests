@@ -64,7 +64,26 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
         // AddByDefinition has set the stack-count via a deferred IntegerAttribute
         // Override modifier; wait one tick so the compute processor applies it
         // before we read the count or issue the dependent SplitStack request.
-        WaitOneFrame(n"OnPostAddSettled");
+        WaitUntil(n"Check_InitialCountApplied", n"OnPostAddSettled");
+    }
+
+    // Both counts arrive via deferred IntegerAttribute Override modifiers, so
+    // the value reaching its target IS the settling event. The exact-count
+    // assertions stay, so a split that lands the WRONG distribution is reported
+    // by them rather than timing out here.
+    UFUNCTION()
+    private void Check_InitialCountApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_item_trait_stackable::Get_StackCount(_OriginalStack) == 3);
+    }
+
+    UFUNCTION()
+    private void Check_SplitCountsApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_item_trait_stackable::Get_StackCount(_SplitSource) == 2
+             && utils_item_trait_stackable::Get_StackCount(_SplitNewItem) == 1);
     }
 
     UFUNCTION()
@@ -97,7 +116,7 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
         _SplitNewItem = InNewItem;
 
         // SplitStack's count adjustments are also deferred — wait one tick.
-        WaitOneFrame(n"OnPostSplitSettled");
+        WaitUntil(n"Check_SplitCountsApplied", n"OnPostSplitSettled");
     }
 
     UFUNCTION()
