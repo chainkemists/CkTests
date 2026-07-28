@@ -64,6 +64,11 @@ class UCk_AutoTest_RaySense_LineTrace_CollideSnapsToImpact : UCk_AutoTest_Base
         utils_ray_sense::BindTo_OnTraceHit(_RaySense,
             FCk_Delegate_RaySense_LineTrace(this, n"OnTraceHit"));
 
+        // Deliberately a settle, not a condition: RaySense exposes no "setup complete"
+        // query to wait on, and this window is what keeps the wall's collision
+        // registration ahead of the first step. WaitOneFrame is 0.05s (~3 frames at
+        // 60fps) — a WaitFrames(1) here would SHORTEN it and eat into the six steps
+        // the entity takes to reach the wall.
         WaitOneFrame(n"OnSetupSettled");
     }
 
@@ -104,8 +109,23 @@ class UCk_AutoTest_RaySense_LineTrace_CollideSnapsToImpact : UCk_AutoTest_Base
         utils_ray_sense::Request_EnableDisable(_RaySense,
             FCk_Request_RaySense_EnableDisable(ECk_EnableDisable::Disable));
 
-        // Snap request is handled by Transform_HandleRequests on a later tick — settle, then read.
-        WaitOneFrame(n"OnSnapSettled");
+        // Snap request is handled by Transform_HandleRequests on a later tick. Wait on
+        // the snapped position itself rather than on a frame, so a slow pass extends the
+        // wait instead of failing the test.
+        //
+        // Residual exposure, unchanged from the frame settle this replaces: if a step
+        // happened to land the entity within tolerance of the impact BEFORE the snap,
+        // this releases immediately. Asserting that it did not is not safe either — the
+        // step stride and the wall's face position could legitimately coincide.
+        WaitUntil(n"Check_SnappedToImpact", n"OnSnapSettled");
+    }
+
+    UFUNCTION()
+    private void Check_SnappedToImpact(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Location = utils_transform::Get_EntityCurrentLocation(_SenseTransform);
+        auto Res = OutResult;
+        Res.Set(Math::Abs(Location.X - _ImpactPoint.X) < 5.0);
     }
 
     UFUNCTION()

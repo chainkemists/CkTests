@@ -70,8 +70,30 @@ class UCk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight : UCk_Auto
 
         // Get_CurrentInteractions reads from a record that is populated by a
         // deferred processor pass — at OnNewInteraction-fire time the entry
-        // isn't yet visible. Wait one frame before querying.
-        WaitOneFrame(n"OnSettled_MidFlight");
+        // isn't yet visible (DoBeginPlay asserted the record empty before the
+        // start, so this is decisively false here). Wait for the entry to appear
+        // rather than for a frame; the exact COUNT stays an assertion so a
+        // duplicate-entry regression is reported instead of released on.
+        WaitUntil(n"Check_InteractionVisible", n"OnSettled_MidFlight");
+    }
+
+    // The record is this test's own target, not a shared surface, so a count is
+    // an honest reading of "mine".
+    UFUNCTION()
+    private void Check_InteractionVisible(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_interact_target::Get_CurrentInteractions(_Target).Num() >= 1);
+    }
+
+    // Waiting for empty is only meaningful because the mid-flight hop already
+    // asserted the record held exactly 1 — that positive is what stops "empty"
+    // from passing on a record that was never populated.
+    UFUNCTION()
+    private void Check_InteractionsCleared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_interact_target::Get_CurrentInteractions(_Target).Num() == 0);
     }
 
     UFUNCTION()
@@ -106,7 +128,7 @@ class UCk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight : UCk_Auto
         if (IsFinished()) { return; }
         Assert_True(_EndRequested,
             "OnInteractionFinished should fire only after the explicit Request_EndInteraction");
-        WaitOneFrame(n"OnSettled_AfterFinish");
+        WaitUntil(n"Check_InteractionsCleared", n"OnSettled_AfterFinish");
     }
 
     UFUNCTION()
