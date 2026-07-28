@@ -42,7 +42,7 @@ class UCk_AutoTest_Minimap_SetViewExtent_Rescales : UCk_AutoTest_Base
         _Poi = utils_poi::Add(PoiOwner, FCk_Fragment_Poi_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.MinimapZoom")));
 
-        WaitUntil(n"Check_MinimapProjected", n"OnSettled_Requests");
+        WaitUntil(n"Check_MinimapProjected", n"OnSettled_BeforeZoom");
     }
 
     // Names THIS test's own POI rather than counting entries: autotests share one
@@ -63,11 +63,24 @@ class UCk_AutoTest_Minimap_SetViewExtent_Rescales : UCk_AutoTest_Base
         Res.Set(Found);
     }
 
+    // Gates on the RESCALED POSITION, not merely on Get_ViewExtent reporting
+    // 10000: the projector recomputes map positions on a later pass, so the
+    // extent landing does not imply the entry has been reprojected. Waiting on
+    // the extent alone would read the stale 0.2 and fail a working rescale.
     UFUNCTION()
-    private void OnSettled_Requests(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    private void Check_ExtentRescaled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_BeforeZoom");
+        auto Entries = utils_minimap::Get_Entries(_Minimap);
+        auto Rescaled = false;
+
+        for (auto Entry : Entries)
+        {
+            if (Entry.Get_Poi() == _Poi && Math::Abs(Entry.Get_MapPosition().X - 0.1) < 0.01)
+            { Rescaled = true; }
+        }
+
+        auto Res = OutResult;
+        Res.Set(Rescaled);
     }
 
     UFUNCTION()
@@ -85,7 +98,7 @@ class UCk_AutoTest_Minimap_SetViewExtent_Rescales : UCk_AutoTest_Base
         }
 
         _Minimap.Request_SetViewExtent(10000.0);
-        WaitOneFrame(n"OnSettled_AfterZoom");
+        WaitUntil(n"Check_ExtentRescaled", n"OnSettled_AfterZoom");
     }
 
     UFUNCTION()
