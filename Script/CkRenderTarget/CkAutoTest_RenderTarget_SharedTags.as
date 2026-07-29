@@ -18,5 +18,7 @@ namespace Ck
         GameplayTags.Add(n"RenderTarget.AutoTest.WrongFormat");
         GameplayTags.Add(n"RenderTarget.AutoTest.PixelInject");
         GameplayTags.Add(n"RenderTarget.AutoTest.GpuRoundTrip");
+        GameplayTags.Add(n"RenderTarget.AutoTest.SoftTextureDraw");
+        GameplayTags.Add(n"RenderTarget.AutoTest.SoftBorderDraw");
     }
 }
