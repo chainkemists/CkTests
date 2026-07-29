@@ -60,6 +60,10 @@ class UCk_AutoTest_Eqs_Trace_BlocksLosAndStaysSilent : UCk_AutoTest_Base
             FCk_Delegate_Probe_OnBeginOverlap(this, n"OnBlockerBeginOverlap"));
 
         // Let probe setup (Jolt body creation) settle before the query casts against it.
+        // Stays a settle: probe setup completion is not exposed (FTag_Probe_NeedsSetup is
+        // internal, and the utils surface offers only enabled/overlapping queries). A
+        // too-short window here fails LOUDLY — 8 surviving candidates instead of 5 — so
+        // there is no silent-pass exposure to close.
         WaitOneFrame(n"OnWorldSettled");
     }
 
@@ -124,6 +128,10 @@ class UCk_AutoTest_Eqs_Trace_BlocksLosAndStaysSilent : UCk_AutoTest_Base
 
         // Overlap requests (if any were erroneously enqueued by the query's casts) are drained
         // by Probe_HandleRequests on a later tick — settle one frame before asserting silence.
+        // MUST stay a settle: the assertion is a NEGATIVE (zero events), which is already
+        // true on arrival, so there is nothing to wait for. What makes the silence
+        // meaningful is the positive above — the trace demonstrably hit the blocker, since
+        // it dropped exactly the 3 LOS-blocked candidates.
         WaitOneFrame(n"OnPostQuerySettled");
     }
 

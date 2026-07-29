@@ -60,6 +60,12 @@ class UCk_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation : UCk_Auto
             f"First Add(Potion x1) should succeed (got {InResult})");
         Assert_Equals_Int(_Inventory.Get_NumItems(), 1, "First add should create the first entry");
 
+        // Both settles in this file stay as settles: the entry is already visible here
+        // (asserted above), so what the window actually guards is unclear, and every
+        // candidate predicate is either already true on arrival — which would delete the
+        // settle outright — or a guess about the Potion's stacking semantics that could
+        // turn a green test red for the wrong reason. Convert only with a condition you
+        // can name.
         WaitOneFrame(n"OnFirstAddSettled");
     }
 
