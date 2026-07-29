@@ -25,7 +25,24 @@ class UCk_AutoTest_Aggro_Perception_CountedTagBalance : UCk_AutoTest_Base
         _Target.Request_MarkPerceived(FCk_Request_AggroTarget_MarkPerceived());
         _Target.Request_MarkPerceived(FCk_Request_AggroTarget_MarkPerceived());
 
-        WaitOneFrame(n"OnStage1");
+        WaitUntil(n"Check_Perceived", n"OnStage1");
+    }
+
+    // Both MarkPerceived are queued in the same tick and drained in one processor pass,
+    // so when this first goes true the counted tag stands at 2 — which is exactly what
+    // stages 2 and 3 depend on.
+    UFUNCTION()
+    private void Check_Perceived(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Target.Get_IsPerceived());
+    }
+
+    UFUNCTION()
+    private void Check_NotPerceived(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Target.Get_IsPerceived() == false);
     }
 
     UFUNCTION()
@@ -35,6 +52,13 @@ class UCk_AutoTest_Aggro_Perception_CountedTagBalance : UCk_AutoTest_Base
         Assert_True(_Target.Get_IsPerceived(), "After 2x MarkPerceived the target should be perceived");
 
         _Target.Request_MarkUnperceived();
+
+        // MUST stay a settle. This is the one hop with nothing to wait on: the counted
+        // tag drops 2 -> 1 and Get_IsPerceived stays TRUE across it, and the depth is
+        // private to CK_DEFINE_ECS_TAG_COUNTED with no accessor. Waiting on
+        // Check_Perceived here would release on its first poll before the unperceive was
+        // even handled, and stage 2 would then assert "still perceived" about a request
+        // that had not happened yet — passing for the wrong reason.
         WaitOneFrame(n"OnStage2");
     }
 
@@ -45,7 +69,7 @@ class UCk_AutoTest_Aggro_Perception_CountedTagBalance : UCk_AutoTest_Base
         Assert_True(_Target.Get_IsPerceived(), "After 2x perceive + 1x unperceive the target should STILL be perceived");
 
         _Target.Request_MarkUnperceived();
-        WaitOneFrame(n"OnStage3");
+        WaitUntil(n"Check_NotPerceived", n"OnStage3");
     }
 
     UFUNCTION()
