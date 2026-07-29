@@ -5440,6 +5440,31 @@ class ACk_AutoTest_IskmRenderer_Create_MakesDistinctChild_Actor : ACk_AutoTestRu
     }
 }
 
+class ACk_AutoTest_IskmRenderer_SetSkeletalMeshSwap_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_IskmRenderer_SetSkeletalMeshSwap");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_IskmRenderer_SoftSequenceQueuedPlaySurvivesGC_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_IskmRenderer_SoftSequenceQueuedPlaySurvivesGC");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Label_AddAndQuery_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
