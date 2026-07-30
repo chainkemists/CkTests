@@ -163,6 +163,24 @@ struct FCk_Test_DynFrag_SnapshotTransient : public FCk_DynamicFragment_SnapshotT
     int32 RequestCount = 0;
 };
 
+// A fragment mixing durable and CPF_Transient fields — the FBb_Fragment_Shelf_State shape. Transient fields hold
+// LIVE-SESSION values (freshly constructed child handles, in-flight bookkeeping) that the persistent archive never
+// writes; hydration must PRESERVE the destination's live values instead of stomping them with deserialized defaults.
+USTRUCT()
+struct FCk_Test_DynFrag_MixedTransient
+{
+    GENERATED_BODY()
+
+    UPROPERTY(SaveGame)
+    int32 DurableMarker = 0;
+
+    UPROPERTY(Transient)
+    int32 RuntimeMarker = 0;
+
+    UPROPERTY(Transient)
+    FCk_Handle RuntimeChild;
+};
+
 USTRUCT()
 struct FCk_Test_UntracedSafeObjectRefs
 {
