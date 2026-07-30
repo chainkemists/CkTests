@@ -94,7 +94,8 @@ namespace ck_test_staged_adoption
         return UCk_Utils_IntegerAttribute_UE::TryGet_RefillAttribute(Meter);
     }
 
-    // All three children constructed (their completion-stamped labels exist) and carry their attribute.
+    // All three children constructed (their completion-stamped labels exist) and carry their attribute, and
+    // the population keeper has topped up to exactly one — so every capture holds a deterministic keeper row.
     auto StagedAdoption_HierarchyReady(UWorld* InWorld) -> bool
     {
         const auto Parent = StagedAdoption_ResolveParent(InWorld);
@@ -107,7 +108,8 @@ namespace ck_test_staged_adoption
             if (ck::Is_NOT_Valid(Child) || ck::Is_NOT_Valid(StagedAdoption_TryGet_ChildAttribute(Child)))
             { return false; }
         }
-        return true;
+
+        return ck_autotest_staged_construction::Get_KeeperChildCount(Parent) == 1;
     }
 }
 
@@ -167,7 +169,12 @@ bool FCk_Snapshot_StagedConstructionAdoption_Gate::RunTest(const FString& /*Para
         }
     });
 
-    Spec.Assert = FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
+    // Cross-cycle row-count stability: cycle 2's capture reads the post-load-1 world, so any entity the world
+    // spawned ON TOP of the loader's respawns (a policy processor acting on the mid-load census) shows up here
+    // as save inflation. -1 == not yet recorded.
+    const auto FirstCycleEntitiesTotal = MakeShared<int32>(-1);
+
+    Spec.Assert = FCk_NetAutoTest_Assertion::CreateLambda([this, FirstCycleEntitiesTotal]() -> bool
     {
         auto* Server = ck::auto_test::snapshot::Get_PostTravelServerWorld();
         const auto Parent = StagedAdoption_ResolveParent(Server);
@@ -221,8 +228,69 @@ bool FCk_Snapshot_StagedConstructionAdoption_Gate::RunTest(const FString& /*Para
         if (NOT TestTrue(TEXT("snapshot subsystem present post-reload"), Subsystem != nullptr))
         { return false; }
 
+        // The population-keeper leg: the every-tick keeper processor ran against the mid-load census (a lie)
+        // and its top-up spawn must have been SUPPRESSED by the load gate — exactly one keeper may survive.
+        // Two keepers means a policy spawn was admitted during the load; zero means the keeper row failed to
+        // respawn (or post-load top-up broke).
+        AllGood &= TestEqual(TEXT("exactly ONE population keeper survives the load (policy spawn suppressed, saved row respawned)"),
+            ck_autotest_staged_construction::Get_KeeperChildCount(Parent), 1);
+
         const auto Report = Subsystem->Get_LastLoadReport();
         AllGood &= TestTrue(TEXT("load Result == Success"), Report.Get_Result() == ECk_SnapshotResult::Success);
+
+        if (*FirstCycleEntitiesTotal < 0)
+        { *FirstCycleEntitiesTotal = Report.Get_EntitiesTotal(); }
+        else
+        {
+            AllGood &= TestEqual(
+                TEXT("save row count is CYCLE-STABLE (a later cycle's capture holds exactly the rows the first did — no world-side inflation)"),
+                Report.Get_EntitiesTotal(), *FirstCycleEntitiesTotal);
+
+            // Deterministic probes of the load-gate spawn admission, on the FINAL cycle only (nothing is
+            // captured after this, so the admitted probe entity cannot pollute the stability assert above).
+            // The construction-window admission needs no probe — the staged children ARE mid-load spawns that
+            // only that rule admits, so the whole fence fails if it breaks.
+            if (auto* EcsWorld = Server->GetSubsystem<UCk_EcsWorld_Subsystem_UE>();
+                TestTrue(TEXT("EcsWorld subsystem present for admission probes"), ck::IsValid(EcsWorld)))
+            {
+                EcsWorld->Set_IsLoadGateActive(true);
+
+                auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(Server);
+                const auto Suppressed = UCk_Utils_EntityScript_UE::Request_SpawnEntity(
+                    Transient, UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE::StaticClass(), FInstancedStruct{}, {});
+                AllGood &= TestTrue(
+                    TEXT("a plain spawn under an ACTIVE load gate is suppressed (invalid pending)"),
+                    ck::Is_NOT_Valid(Suppressed));
+
+                {
+                    const auto LoaderWindow = FCk_ScopedLoaderSpawnWindow{EcsWorld};
+                    const auto Admitted = UCk_Utils_EntityScript_UE::Request_SpawnEntity(
+                        Transient, UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE::StaticClass(), FInstancedStruct{}, {});
+                    AllGood &= TestTrue(
+                        TEXT("the same spawn inside the LOADER window is admitted"),
+                        ck::IsValid(Admitted));
+                }
+
+                {
+                    const auto RendezvousWindow = FCk_ScopedRendezvousSpawnWindow{EcsWorld};
+                    const auto Admitted = UCk_Utils_EntityScript_UE::Request_SpawnEntity(
+                        Transient, UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE::StaticClass(), FInstancedStruct{}, {});
+                    AllGood &= TestTrue(
+                        TEXT("a spawn inside a DECLARED rendezvous window is admitted (the world-bootstrap adopt-target class)"),
+                        ck::IsValid(Admitted));
+                }
+
+                {
+                    const auto ViaUFunction = UCk_Utils_EntityScript_UE::Request_SpawnEntity_LoadRendezvous(
+                        Transient, UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE::StaticClass(), FInstancedStruct{}, {});
+                    AllGood &= TestTrue(
+                        TEXT("Request_SpawnEntity_LoadRendezvous is admitted under an active gate (the AS/BP-facing declared admission)"),
+                        ck::IsValid(ViaUFunction));
+                }
+
+                EcsWorld->Set_IsLoadGateActive(false);
+            }
+        }
         AllGood &= TestTrue(
             TEXT("the load ESCALATED (kernel alone cannot finish staged constructions — a pass here without "
                  "escalation means the fixture went vacuous, e.g. its setup processor became RunsDuringLoad)"),

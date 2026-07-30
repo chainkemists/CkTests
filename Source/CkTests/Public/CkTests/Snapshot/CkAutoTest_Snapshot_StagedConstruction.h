@@ -36,6 +36,8 @@ class UCk_AutoTest_Snapshot_StagedChild_EntityScript_UE;
 namespace ck
 {
     CK_DEFINE_ECS_TAG(FTag_AutoTest_StagedConstruction_NeedsSetup);
+    CK_DEFINE_ECS_TAG(FTag_AutoTest_StagedConstruction_KeeperOwner);
+    CK_DEFINE_ECS_TAG(FTag_AutoTest_StagedConstruction_KeeperSpawnLatched);
 }
 
 namespace ck_autotest_staged_construction
@@ -45,6 +47,11 @@ namespace ck_autotest_staged_construction
     auto Get_SlotLabel(int32 InSlotIndex) -> FGameplayTag;
     auto Get_ValueAttributeName() -> FGameplayTag;
     auto Get_MeterAttributeName() -> FGameplayTag; // shared by the meter AND its refill child — the collision key
+
+    // Children of InParent whose script is the population keeper. bRequireBegunPlay = the LYING census — the
+    // shape real population drivers use (they scan READY entities): mid-load, the loader's respawned keeper
+    // exists but has not begun play, so this reads zero while the truth is one.
+    auto Get_KeeperChildCount(const FCk_Handle& InParent, bool bRequireBegunPlay = false) -> int32;
 }
 
 namespace ck
@@ -60,6 +67,29 @@ namespace ck
     public:
         using Group = FGroup_Gameplay_Script;
         using MarkedDirtyBy = FTag_AutoTest_StagedConstruction_NeedsSetup;
+
+    public:
+        using TProcessor::TProcessor;
+
+    public:
+        static auto
+        ForEachEntity(
+            TimeType InDeltaT,
+            HandleType InHandle) -> void;
+    };
+
+    // The smallest honest mimic of a population driver (NpcPopulation, restock): an every-tick, default-
+    // LoadPolicy policy processor that tops the world up when its census reads low. Under an ESCALATED load
+    // it RUNS and its census reads a lie (the loader has not respawned the saved keeper yet) — the load-gate
+    // spawn suppression is the only thing standing between it and a doubled population. The fixture's gate
+    // asserts exactly one keeper survives every cycle and the save's row count never inflates.
+    class CKTESTS_API FProcessor_AutoTest_PopulationKeeper : public TProcessor<
+        FProcessor_AutoTest_PopulationKeeper,
+        FTag_AutoTest_StagedConstruction_KeeperOwner,
+        CK_IGNORE_PENDING_KILL>
+    {
+    public:
+        using Group = FGroup_Gameplay_Script;
 
     public:
         using TProcessor::TProcessor;
@@ -95,6 +125,27 @@ public:
 // --------------------------------------------------------------------------------------------------------------------
 
 UCLASS(BlueprintType)
+class CKTESTS_API UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE final : public UCk_EntityScript_UE
+{
+    GENERATED_BODY()
+
+public:
+    UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE();
+
+public:
+    auto
+    Construct(
+        FCk_Handle& InHandle,
+        const FInstancedStruct& InSpawnParams) -> ECk_EntityScript_ConstructionFlow override;
+
+protected:
+    auto
+    Get_IsSnapshotRespawnable() const -> bool override;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+UCLASS(BlueprintType)
 class CKTESTS_API UCk_AutoTest_Snapshot_StagedParent_EntityScript_UE final : public UCk_EntityScript_UE
 {
     GENERATED_BODY()
@@ -107,6 +158,9 @@ public:
     Construct(
         FCk_Handle& InHandle,
         const FInstancedStruct& InSpawnParams) -> ECk_EntityScript_ConstructionFlow override;
+
+    auto
+    BeginPlay() -> void override;
 
 protected:
     auto
