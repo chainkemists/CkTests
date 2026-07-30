@@ -329,6 +329,81 @@ bool
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_V3_DynamicFragment_HydratePreservesTransientFields_Test,
+    "Ck.Snapshot.V3.DynamicFragment.HydratePreservesTransientFields",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_V3_DynamicFragment_HydratePreservesTransientFields_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& CkRegistry = EcsWorld.Get_Registry();
+    const auto RegistryHandle = CkRegistry.Get_RegistryHandle();
+
+    // Save-side owner: durable value set, transient values ALSO set (they must not leak into the payload).
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    auto OldChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    {
+        auto Mixed = FCk_Test_DynFrag_MixedTransient{};
+        Mixed.DurableMarker = 42;
+        Mixed.RuntimeMarker = 111;
+        Mixed.RuntimeChild  = OldChild;
+        UCk_Utils_DynamicFragment_UE::Add_Fragment(Owner, FInstancedStruct::Make(Mixed), ECk_Replication::DoesNotReplicate);
+    }
+
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
+    if (NOT TestNotNull(TEXT("G2 dynamic-fragments handler is registered"), Handler))
+    { return false; }
+
+    const auto Produced = Handler->Produce(Owner);
+    if (NOT TestTrue(TEXT("Produce emitted a payload for the owner"), Produced.IsSet()))
+    { return false; }
+
+    const auto Blob = ck_test_dynfrag_roundtrip::SerializeBlob_Save(Produced.GetValue());
+    if (NOT TestTrue(TEXT("payload blob non-empty"), Blob.Num() > 0))
+    { return false; }
+
+    const auto Restored = ck_test_dynfrag_roundtrip::DeserializeBlob_Mapped(Blob, TMap<uint32, FCk_Handle>{}, RegistryHandle);
+    if (NOT TestTrue(TEXT("payload deserialized to the G2 wrapper"),
+        Restored.GetScriptStruct() == FCk_SaveData_DynamicFragments::StaticStruct()))
+    { return false; }
+
+    // Load-side owner: construction replay already composed the fragment with FRESH live-session
+    // values — a freshly created child handle and runtime bookkeeping. Hydration must overwrite the
+    // durable field and PRESERVE these.
+    auto NewOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    auto FreshChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    {
+        auto Fresh = FCk_Test_DynFrag_MixedTransient{};
+        Fresh.DurableMarker = 0;
+        Fresh.RuntimeMarker = 999;
+        Fresh.RuntimeChild  = FreshChild;
+        UCk_Utils_DynamicFragment_UE::Add_Fragment(NewOwner, FInstancedStruct::Make(Fresh), ECk_Replication::DoesNotReplicate);
+    }
+
+    auto NewOwnerRef = NewOwner;
+    const auto ApplyResult = Handler->HydrationApply(NewOwnerRef, Restored, {});
+    TestEqual(TEXT("HydrationApply returned Applied"),
+        static_cast<int32>(ApplyResult), static_cast<int32>(ECk_Persistence_ApplyResult::Applied));
+
+    const auto& Hydrated = UCk_Utils_DynamicFragment_UE::Get_Fragment_TypeUnsafe(
+        NewOwner, FCk_Test_DynFrag_MixedTransient::StaticStruct()).Get<FCk_Test_DynFrag_MixedTransient>();
+
+    TestEqual(TEXT("durable field hydrated from the save"), Hydrated.DurableMarker, 42);
+    TestEqual(TEXT("transient scalar preserved (not stomped to the deserialized default)"), Hydrated.RuntimeMarker, 999);
+    TestTrue(TEXT("transient handle preserved and still valid"), ck::IsValid(Hydrated.RuntimeChild));
+    TestEqual(TEXT("transient handle still points at the FRESH construction-written child"),
+        static_cast<int64>(Hydrated.RuntimeChild.Get_Entity().Get_ID()),
+        static_cast<int64>(FreshChild.Get_Entity().Get_ID()));
+
+    return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
 // --------------------------------------------------------------------------------------------------------------------
