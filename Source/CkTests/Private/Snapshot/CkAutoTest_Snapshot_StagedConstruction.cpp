@@ -6,6 +6,7 @@
 #include "CkCore/Ensure/CkEnsure.h"
 #include "CkCore/Enums/CkEnums.h"
 
+#include "CkEcs/EntityLifetime/CkEntityLifetime_Fragment.h" // FFragment_LifetimeDependents (keeper census)
 #include "CkEcs/EntityScript/CkEntityScript_Fragment.h"
 #include "CkEcs/EntityScript/CkEntityScript_Utils.h"
 #include "CkEcs/Scheduler/CkProcessorRegistration.h"
@@ -17,6 +18,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 CK_REGISTER_PROCESSOR(ck::FProcessor_AutoTest_StagedConstruction_Setup);
+CK_REGISTER_PROCESSOR(ck::FProcessor_AutoTest_PopulationKeeper);
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -55,6 +57,31 @@ namespace ck_autotest_staged_construction
     {
         return TAG_StagedConstruction_Meter;
     }
+
+    auto
+        Get_KeeperChildCount(
+            const FCk_Handle& InParent,
+            bool bRequireBegunPlay)
+        -> int32
+    {
+        if (ck::Is_NOT_Valid(InParent) || NOT InParent.Has<ck::FFragment_LifetimeDependents>())
+        { return 0; }
+
+        auto Count = 0;
+        for (auto Child : InParent.Get<ck::FFragment_LifetimeDependents>().Get_Entities())
+        {
+            if (ck::Is_NOT_Valid(Child) || NOT Child.Has<ck::FFragment_EntityScript_Current>())
+            { continue; }
+            if (bRequireBegunPlay && NOT Child.Has<ck::FTag_EntityScript_HasBegunPlay>())
+            { continue; }
+
+            const auto* Script = Child.Get<ck::FFragment_EntityScript_Current>().Get_Script().Get();
+            if (ck::IsValid(Script, ck::IsValid_Policy_NullptrOnly{}) &&
+                Script->IsA<UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE>())
+            { ++Count; }
+        }
+        return Count;
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -82,6 +109,62 @@ namespace ck
 
         Script->FinishStagedConstruction();
     }
+
+    auto
+        FProcessor_AutoTest_PopulationKeeper::
+        ForEachEntity(
+            TimeType InDeltaT,
+            HandleType InHandle)
+        -> void
+    {
+        // Faithful to the real drivers this mimics: the census scans READY (begun-play) keepers, and the
+        // once-latch is a TRANSIENT tag — a load-replayed parent arrives unlatched while the restored keeper
+        // has not begun play yet, so mid-load this processor decides to spawn a duplicate. The load-gate
+        // spawn suppression (invalid pending → no latch → retry → suppressed again) is the only thing
+        // standing between that decision and a doubled population.
+        if (InHandle.Has<FTag_AutoTest_StagedConstruction_KeeperSpawnLatched>())
+        { return; }
+
+        constexpr auto RequireBegunPlay = true;
+        if (ck_autotest_staged_construction::Get_KeeperChildCount(InHandle, RequireBegunPlay) > 0)
+        {
+            InHandle.Add<FTag_AutoTest_StagedConstruction_KeeperSpawnLatched>();
+            return;
+        }
+
+        const auto Pending = UCk_Utils_EntityScript_UE::Request_SpawnEntity(
+            InHandle, UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE::StaticClass(), FInstancedStruct{}, {});
+
+        if (ck::IsValid(Pending))
+        { InHandle.Add<FTag_AutoTest_StagedConstruction_KeeperSpawnLatched>(); }
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE::
+    UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE()
+{
+    _Replication = ECk_Replication::DoesNotReplicate;
+    _InstancingPolicy = ECk_EntityScript_InstancingPolicy::InstancedPerEntity;
+}
+
+auto
+    UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE::
+    Construct(
+        FCk_Handle& InHandle,
+        const FInstancedStruct& InSpawnParams)
+    -> ECk_EntityScript_ConstructionFlow
+{
+    return ECk_EntityScript_ConstructionFlow::Finished;
+}
+
+auto
+    UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE::
+    Get_IsSnapshotRespawnable() const
+    -> bool
+{
+    return true;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -166,6 +249,20 @@ auto
     }
 
     return ECk_EntityScript_ConstructionFlow::Continue;
+}
+
+auto
+    UCk_AutoTest_Snapshot_StagedParent_EntityScript_UE::
+    BeginPlay()
+    -> void
+{
+    Super::BeginPlay();
+
+    // Armed POST-construction on purpose: the keeper a policy processor spawns off this tag is born outside
+    // any construction window, i.e. a RuntimeSpawned row — the population-driver shape the load-gate spawn
+    // suppression exists for.
+    auto Handle = Get_AssociatedEntity();
+    Handle.Add<ck::FTag_AutoTest_StagedConstruction_KeeperOwner>();
 }
 
 auto
