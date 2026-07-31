@@ -4795,6 +4795,19 @@ class ACk_AutoTest_PathNetwork_BuildsFromRibbons_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_PathNetworkFollower_ComponentTransferUsesDisconnectedIslands_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PathNetworkFollower_ComponentTransferUsesDisconnectedIslands");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 15.0f;
@@ -4815,6 +4828,19 @@ class ACk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward_Actor 
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_PathNetworkFollower_LocalShortcutUsesSameComponentGap_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_PathNetworkFollower_LocalShortcutUsesSameComponentGap");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
