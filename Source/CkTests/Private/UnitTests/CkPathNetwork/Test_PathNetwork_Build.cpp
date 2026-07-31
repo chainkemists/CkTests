@@ -231,3 +231,90 @@ bool FCk_PathNetwork_Build_DegenerateInputs::RunTest(const FString& Parameters)
 
     return true;
 }
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Build_TopologyAnalysisDisconnected,
+    "Ck.PathNetwork.Build.TopologyAnalysis.Disconnected",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Build_TopologyAnalysisDisconnected::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_build;
+    using namespace ck::pathnetwork;
+
+    auto Ribbons = TArray<FCk_PathNetwork_Ribbon>{};
+    Ribbons.Add(MakeRibbon(
+        {FVector{0, 0, 0}, FVector{2000, 0, 0}}));
+    Ribbons.Add(MakeRibbon(
+        {FVector{5000, 0, 0}, FVector{7000, 0, 0}}));
+
+    const auto Network =
+        Build_NetworkFromRibbons(Ribbons, DefaultParams());
+    const auto Topology = Analyze_NetworkTopology(Network);
+
+    TestEqual(TEXT("analysis reports all nodes"), Topology._NodeCount, 4);
+    TestEqual(TEXT("analysis reports all edges"), Topology._EdgeCount, 2);
+    TestEqual(TEXT("all fixture nodes are routable"),
+        Topology._RoutableNodeCount, 4);
+    TestEqual(TEXT("separate ribbons form two components"),
+        Topology._ComponentCount, 2);
+    TestEqual(TEXT("largest island has two nodes"),
+        Topology._LargestComponentNodeCount, 2);
+    TestEqual(TEXT("largest island has one edge"),
+        Topology._LargestComponentEdgeCount, 1);
+    TestEqual(TEXT("both straight ribbons expose four dead ends"),
+        Topology._DeadEndNodeCount, 4);
+    TestEqual(TEXT("built fixture has no isolated nodes"),
+        Topology._IsolatedNodeCount, 0);
+
+    if (Topology._ComponentByNode.Num() == 4
+        && Network._Edges.Num() == 2)
+    {
+        const auto& FirstEdge = Network._Edges[0];
+        const auto& SecondEdge = Network._Edges[1];
+        TestTrue(TEXT("first edge endpoints share a component"),
+            Topology._ComponentByNode[FirstEdge._NodeA]
+                == Topology._ComponentByNode[FirstEdge._NodeB]);
+        TestTrue(TEXT("second edge endpoints share a component"),
+            Topology._ComponentByNode[SecondEdge._NodeA]
+                == Topology._ComponentByNode[SecondEdge._NodeB]);
+        TestTrue(TEXT("separate edge belongs to another component"),
+            Topology._ComponentByNode[FirstEdge._NodeA]
+                != Topology._ComponentByNode[SecondEdge._NodeA]);
+    }
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Build_TopologyAnalysisSelfLoopDegree,
+    "Ck.PathNetwork.Build.TopologyAnalysis.SelfLoopDegree",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Build_TopologyAnalysisSelfLoopDegree::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck::pathnetwork;
+
+    auto Network = FBuiltNetwork{};
+    Network._Nodes.SetNum(1);
+    auto Loop = FBuiltEdge{};
+    Loop._NodeA = 0;
+    Loop._NodeB = 0;
+    Network._Edges.Add(Loop);
+
+    const auto Topology = Analyze_NetworkTopology(Network);
+    TestEqual(TEXT("self-loop forms one component"),
+        Topology._ComponentCount, 1);
+    TestEqual(TEXT("self-loop contributes logical degree two"),
+        Topology._LogicalDegreeByNode[0], 2);
+    TestEqual(TEXT("self-loop node is not a dead end"),
+        Topology._DeadEndNodeCount, 0);
+    TestEqual(TEXT("self-loop component owns one edge"),
+        Topology._LargestComponentEdgeCount, 1);
+    return true;
+}
