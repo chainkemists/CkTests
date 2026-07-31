@@ -50,6 +50,24 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
             LocalHandle,
             FCk_Fragment_PathNetwork_ParamsData(Ribbons));
 
+        // Ownership acquisition requires a namespaced logical-owner token even
+        // when there is no follower to conflict with. The invalid request must
+        // not compose a partial Params/Corridor feature pair.
+        auto EmptyOwnerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        EmptyOwnerParams.Set_Network(_Network);
+        ECk_PathNetworkFollower_OwnershipResult OwnershipResult
+            = ECk_PathNetworkFollower_OwnershipResult::RejectedInvalidInput;
+        const auto EmptyOwnerFollower =
+            utils_path_network_follower::Try_AddOrAdoptByOwnerToken(
+                LocalHandle, EmptyOwnerParams, OwnershipResult);
+        Assert_True(ck::Is_NOT_Valid(EmptyOwnerFollower),
+            "empty ownership token rejects without returning a follower");
+        Assert_True(OwnershipResult
+                == ECk_PathNetworkFollower_OwnershipResult::RejectedInvalidInput,
+            "empty ownership token reports explicit invalid input");
+        Assert_True(utils_path_network_follower::Has(LocalHandle) == false,
+            "empty ownership token composes no follower fragments");
+
         auto InvalidInitialParams = FCk_Fragment_PathNetworkFollower_ParamsData();
         InvalidInitialParams.Set_CornerSmoothingDistance(-1.0f);
         const auto InvalidInitialFollower =
@@ -65,7 +83,13 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
         Params.Set_Network(_Network);
         Params.Set_OwnerToken(n"CkTests.PathNetwork.InvalidTuning");
         Params.Set_CorridorWaypointSpacing(100.0f);
-        _Follower = utils_path_network_follower::Add(LocalHandle, Params);
+        _Follower = utils_path_network_follower::Try_AddOrAdoptByOwnerToken(
+            LocalHandle, Params, OwnershipResult);
+        Assert_True(ck::IsValid(_Follower),
+            "valid ownership params add a follower");
+        Assert_True(OwnershipResult
+                == ECk_PathNetworkFollower_OwnershipResult::Added,
+            "new follower reports Added ownership result");
 
         utils_path_network_follower::BindTo_OnRouteReady(
             _Follower,
@@ -111,6 +135,126 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
         _WaypointCountBeforeInvalid = InResult.Get_CompiledWaypoints().Num();
         _CostBeforeInvalid = InResult.Get_TotalCost();
 
+        // A fresh state/script instance with the same logical owner must adopt
+        // the exact feature without restamping its route, tuning, or corridor.
+        FCk_Handle GenericFollowerOwner = _Follower;
+        auto SameOwnerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        SameOwnerParams.Set_Network(_Network);
+        SameOwnerParams.Set_OwnerToken(n"CkTests.PathNetwork.InvalidTuning");
+        SameOwnerParams.Set_OffPathCostMultiplier(12.0f);
+        SameOwnerParams.Set_CorridorWaypointSpacing(50.0f);
+        ECk_PathNetworkFollower_OwnershipResult OwnershipResult
+            = ECk_PathNetworkFollower_OwnershipResult::RejectedInvalidInput;
+        const auto AdoptedFollower =
+            utils_path_network_follower::Try_AddOrAdoptByOwnerToken(
+                GenericFollowerOwner, SameOwnerParams, OwnershipResult);
+        Assert_True(AdoptedFollower == _Follower,
+            "same owner token adopts the exact existing follower handle");
+        Assert_True(OwnershipResult
+                == ECk_PathNetworkFollower_OwnershipResult::Adopted,
+            "same owner token reports Adopted");
+
+        auto ForeignOwnerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        ForeignOwnerParams.Set_Network(_Network);
+        ForeignOwnerParams.Set_OwnerToken(n"CkTests.PathNetwork.ForeignOwner");
+        ForeignOwnerParams.Set_OffPathCostMultiplier(12.0f);
+        const auto ForeignOwnerFollower =
+            utils_path_network_follower::Try_AddOrAdoptByOwnerToken(
+                GenericFollowerOwner, ForeignOwnerParams, OwnershipResult);
+        Assert_True(ck::Is_NOT_Valid(ForeignOwnerFollower),
+            "different owner token cannot replace the existing follower");
+        Assert_True(OwnershipResult
+                == ECk_PathNetworkFollower_OwnershipResult::RejectedExistingOwner,
+            "different owner token reports explicit existing-owner rejection");
+
+        // An invalid endpoint policy input must reject before an existing
+        // same-token follower is adopted or mutated. This pins the fail-closed
+        // boundary separately from the invalid-tuning checks below.
+        auto MalformedEndpointParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        MalformedEndpointParams.Set_OwnerToken(n"CkTests.PathNetwork.InvalidTuning");
+        MalformedEndpointParams.Set_NearEndpointCostMultiplier(0.5f);
+        const auto MalformedEndpointFollower =
+            utils_path_network_follower::Try_AddOrAdoptByOwnerToken(
+                GenericFollowerOwner, MalformedEndpointParams, OwnershipResult);
+        Assert_True(ck::Is_NOT_Valid(MalformedEndpointFollower),
+            "invalid endpoint policy cannot adopt or replace an existing follower");
+        Assert_True(OwnershipResult
+                == ECk_PathNetworkFollower_OwnershipResult::RejectedInvalidInput,
+            "invalid endpoint policy reports explicit invalid input");
+
+        auto MalformedNetworkGapParams =
+            FCk_Fragment_PathNetworkFollower_ParamsData();
+        MalformedNetworkGapParams.Set_OwnerToken(
+            n"CkTests.PathNetwork.InvalidTuning");
+        MalformedNetworkGapParams.Set_NetworkGapCostMultiplier(0.5f);
+        const auto MalformedNetworkGapFollower =
+            utils_path_network_follower::Try_AddOrAdoptByOwnerToken(
+                GenericFollowerOwner,
+                MalformedNetworkGapParams,
+                OwnershipResult);
+        Assert_True(
+            ck::Is_NOT_Valid(MalformedNetworkGapFollower),
+            "invalid network-gap multiplier cannot adopt or replace an existing follower");
+        Assert_True(
+            OwnershipResult
+                == ECk_PathNetworkFollower_OwnershipResult::RejectedInvalidInput,
+            "invalid network-gap multiplier reports explicit invalid input");
+
+        auto MalformedTransferParams =
+            FCk_Fragment_PathNetworkFollower_ParamsData();
+        MalformedTransferParams.Set_OwnerToken(
+            n"CkTests.PathNetwork.InvalidTuning");
+        MalformedTransferParams.Set_ComponentTransferMaxDistance(-1.0f);
+        const auto MalformedTransferFollower =
+            utils_path_network_follower::Try_AddOrAdoptByOwnerToken(
+                GenericFollowerOwner,
+                MalformedTransferParams,
+                OwnershipResult);
+        Assert_True(
+            ck::Is_NOT_Valid(MalformedTransferFollower),
+            "negative component-transfer distance cannot adopt or replace an existing follower");
+        Assert_True(
+            OwnershipResult
+                == ECk_PathNetworkFollower_OwnershipResult::RejectedInvalidInput,
+            "negative component-transfer distance reports explicit invalid input");
+
+        auto MalformedLocalShortcutParams =
+            FCk_Fragment_PathNetworkFollower_ParamsData();
+        MalformedLocalShortcutParams.Set_OwnerToken(
+            n"CkTests.PathNetwork.InvalidTuning");
+        MalformedLocalShortcutParams.Set_LocalNetworkShortcutMaxDistance(
+            -1.0f);
+        const auto MalformedLocalShortcutFollower =
+            utils_path_network_follower::Try_AddOrAdoptByOwnerToken(
+                GenericFollowerOwner,
+                MalformedLocalShortcutParams,
+                OwnershipResult);
+        Assert_True(
+            ck::Is_NOT_Valid(MalformedLocalShortcutFollower),
+            "negative local-shortcut distance cannot adopt or replace an existing follower");
+        Assert_True(
+            OwnershipResult
+                == ECk_PathNetworkFollower_OwnershipResult::RejectedInvalidInput,
+            "negative local-shortcut distance reports explicit invalid input");
+
+        const auto OwnershipResultAfterRejections =
+            utils_path_network_follower::Get_RouteResult(_Follower);
+        Assert_True(utils_path_network_follower::Get_OwnerToken(_Follower)
+                == n"CkTests.PathNetwork.InvalidTuning",
+            "ownership boundary calls preserve the original logical-owner token");
+        Assert_True(OwnershipResultAfterRejections.Get_Status()
+                == ECk_PathNetwork_RouteStatus::Ready,
+            "ownership boundary calls preserve the ready route state");
+        Assert_Equals_Int(OwnershipResultAfterRejections.Get_TuningRevision(),
+            _RevisionBeforeInvalid,
+            "ownership boundary calls preserve the tuning revision");
+        Assert_Equals_Int(OwnershipResultAfterRejections.Get_CompiledWaypoints().Num(),
+            _WaypointCountBeforeInvalid,
+            "ownership boundary calls preserve corridor identity");
+        Assert_True(Math::IsNearlyEqual(
+                OwnershipResultAfterRejections.Get_TotalCost(), _CostBeforeInvalid, 0.01),
+            "ownership boundary calls preserve route cost");
+
         auto InvalidTuning = FCk_PathNetworkFollower_Tuning();
         InvalidTuning.Set_OffPathCostMultiplier(0.5f);
         InvalidTuning.Set_SideKeepingFraction(1.5f);
@@ -148,6 +292,58 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
             "negative clearance must report zero updated followers");
         utils_path_network_follower::Request_UpdateTuningAndReplan(
             _Follower, InvalidClearance);
+
+        auto InvalidNetworkGap = FCk_PathNetworkFollower_Tuning();
+        InvalidNetworkGap.Set_NetworkGapCostMultiplier(0.5f);
+        Assert_Equals_Int(
+            utils_path_network_follower::Request_UpdateTuningAndReplanByOwnerToken(
+                _Context,
+                n"CkTests.PathNetwork.InvalidTuning",
+                InvalidNetworkGap),
+            0,
+            "invalid network-gap multiplier must report zero updated followers");
+        utils_path_network_follower::Request_UpdateTuningAndReplan(
+            _Follower,
+            InvalidNetworkGap);
+
+        auto InvalidTransfer = FCk_PathNetworkFollower_Tuning();
+        InvalidTransfer.Set_ComponentTransferMaxDistance(-1.0f);
+        Assert_Equals_Int(
+            utils_path_network_follower::Request_UpdateTuningAndReplanByOwnerToken(
+                _Context,
+                n"CkTests.PathNetwork.InvalidTuning",
+                InvalidTransfer),
+            0,
+            "negative component-transfer distance must report zero updated followers");
+        utils_path_network_follower::Request_UpdateTuningAndReplan(
+            _Follower,
+            InvalidTransfer);
+
+        auto InvalidLocalShortcut = FCk_PathNetworkFollower_Tuning();
+        InvalidLocalShortcut.Set_LocalNetworkShortcutMaxDistance(-1.0f);
+        Assert_Equals_Int(
+            utils_path_network_follower::Request_UpdateTuningAndReplanByOwnerToken(
+                _Context,
+                n"CkTests.PathNetwork.InvalidTuning",
+                InvalidLocalShortcut),
+            0,
+            "negative local-shortcut distance must report zero updated followers");
+        utils_path_network_follower::Request_UpdateTuningAndReplan(
+            _Follower,
+            InvalidLocalShortcut);
+
+        auto InvalidDirectSavings = FCk_PathNetworkFollower_Tuning();
+        InvalidDirectSavings.Set_DirectRouteMinimumSavingsFraction(1.01f);
+        Assert_Equals_Int(
+            utils_path_network_follower::Request_UpdateTuningAndReplanByOwnerToken(
+                _Context,
+                n"CkTests.PathNetwork.InvalidTuning",
+                InvalidDirectSavings),
+            0,
+            "direct-route savings above one must report zero updated followers");
+        utils_path_network_follower::Request_UpdateTuningAndReplan(
+            _Follower,
+            InvalidDirectSavings);
 
         WaitOneFrame(n"OnInvalidRequestSettled");
     }
@@ -201,6 +397,8 @@ class ACk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan_Actor
     {
         TArray<FString> Out;
         Out.Add("PathNetworkFollower parameters contain invalid tuning");
+        Out.Add("Try_AddOrAdoptByOwnerToken requires a non-empty owner token");
+        Out.Add("Try_AddOrAdoptByOwnerToken received invalid follower tuning");
         Out.Add("Request_UpdateTuningAndReplanByOwnerToken received invalid tuning");
         Out.Add("Request_UpdateTuningAndReplan received invalid tuning");
         return Out;

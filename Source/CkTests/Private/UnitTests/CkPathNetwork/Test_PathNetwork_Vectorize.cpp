@@ -32,6 +32,40 @@ namespace ck_test_pathnetwork_vectorize
         return Mask;
     }
 
+    auto MakeCircularCorridorMask() -> FCk_PathNetwork_DetectionMask
+    {
+        constexpr auto Size = 49;
+        constexpr auto Center = 24.0f;
+        constexpr auto Radius = 16.0f;
+        constexpr auto CorridorHalfWidth = 2.5f;
+
+        auto Mask = FCk_PathNetwork_DetectionMask{
+            FVector::ZeroVector,
+            CellSize,
+            Size,
+            Size};
+
+        auto Occupancy = TArray<uint8>{};
+        Occupancy.SetNumZeroed(Size * Size);
+
+        for (auto Y = 0; Y < Size; ++Y)
+        {
+            for (auto X = 0; X < Size; ++X)
+            {
+                const auto DX = static_cast<float>(X) - Center;
+                const auto DY = static_cast<float>(Y) - Center;
+                const auto DistanceFromCenter = FMath::Sqrt(DX * DX + DY * DY);
+                Occupancy[Y * Size + X] =
+                    FMath::Abs(DistanceFromCenter - Radius) <= CorridorHalfWidth
+                    ? 1
+                    : 0;
+            }
+        }
+
+        Mask.Set_Occupancy(Occupancy);
+        return Mask;
+    }
+
     auto DefaultParams() -> FCk_PathNetwork_VectorizeParams
     {
         auto Params = FCk_PathNetwork_VectorizeParams{};
@@ -49,6 +83,234 @@ namespace ck_test_pathnetwork_vectorize
         { Length += static_cast<float>(FVector::Dist(Points[Index].Get_Location(), Points[Index + 1].Get_Location())); }
         return Length;
     }
+
+    auto Count_GridScaleTurns(const FCk_PathNetwork_Ribbon& InRibbon) -> int32
+    {
+        const auto& Points = InRibbon.Get_Points();
+        const auto IsClosed =
+            Points.Num() >= 2
+            && Points[0].Get_Location().Equals(
+                Points.Last().Get_Location(),
+                UE_KINDA_SMALL_NUMBER);
+        const auto UniquePointCount = IsClosed ? Points.Num() - 1 : Points.Num();
+        if (UniquePointCount < 3)
+        { return 0; }
+
+        auto Count = 0;
+        for (auto Index = 0; Index < UniquePointCount; ++Index)
+        {
+            const auto PreviousIndex =
+                (Index - 1 + UniquePointCount) % UniquePointCount;
+            const auto NextIndex = (Index + 1) % UniquePointCount;
+            const auto& Previous = Points[PreviousIndex].Get_Location();
+            const auto& Current = Points[Index].Get_Location();
+            const auto& Next = Points[NextIndex].Get_Location();
+            const auto IncomingLength = FVector::Dist2D(Previous, Current);
+            const auto OutgoingLength = FVector::Dist2D(Current, Next);
+            if (IncomingLength > 1.5f * CellSize
+                || OutgoingLength > 1.5f * CellSize)
+            { continue; }
+
+            const auto Incoming = FVector2D{Current - Previous}.GetSafeNormal();
+            const auto Outgoing = FVector2D{Next - Current}.GetSafeNormal();
+            const auto TurnDegrees = FMath::RadiansToDegrees(FMath::Acos(
+                FMath::Clamp(
+                    FVector2D::DotProduct(Incoming, Outgoing),
+                    -1.0,
+                    1.0)));
+            if (TurnDegrees >= 35.0)
+            { ++Count; }
+        }
+        return Count;
+    }
+
+    auto Get_DoesSegmentStayWithinMask(
+        const FCk_PathNetwork_DetectionMask& InMask,
+        const FVector& InStart,
+        const FVector& InEnd) -> bool
+    {
+        const auto MaskCellSize = InMask.Get_CellSize();
+        const auto& Origin = InMask.Get_Origin();
+        const auto StartX = FMath::FloorToInt32(
+            (InStart.X - Origin.X) / MaskCellSize);
+        const auto StartY = FMath::FloorToInt32(
+            (InStart.Y - Origin.Y) / MaskCellSize);
+        const auto EndX = FMath::FloorToInt32(
+            (InEnd.X - Origin.X) / MaskCellSize);
+        const auto EndY = FMath::FloorToInt32(
+            (InEnd.Y - Origin.Y) / MaskCellSize);
+        const auto Delta = FVector2D{InEnd - InStart};
+
+        for (auto Y = FMath::Min(StartY, EndY);
+             Y <= FMath::Max(StartY, EndY);
+             ++Y)
+        {
+            for (auto X = FMath::Min(StartX, EndX);
+                 X <= FMath::Max(StartX, EndX);
+                 ++X)
+            {
+                auto EnterT = 0.0;
+                auto ExitT = 1.0;
+                const auto IntersectsAxis =
+                    [&](const double InStartCoordinate,
+                        const double InDelta,
+                        const double InMinimum,
+                        const double InMaximum)
+                    {
+                        if (FMath::IsNearlyZero(InDelta))
+                        {
+                            return InStartCoordinate >= InMinimum &&
+                                InStartCoordinate <= InMaximum;
+                        }
+
+                        auto FirstT =
+                            (InMinimum - InStartCoordinate) / InDelta;
+                        auto LastT =
+                            (InMaximum - InStartCoordinate) / InDelta;
+                        if (FirstT > LastT)
+                        { Swap(FirstT, LastT); }
+                        EnterT = FMath::Max(EnterT, FirstT);
+                        ExitT = FMath::Min(ExitT, LastT);
+                        return EnterT <= ExitT + UE_KINDA_SMALL_NUMBER;
+                    };
+                const auto CellMinimumX =
+                    Origin.X + static_cast<double>(X) * MaskCellSize;
+                const auto CellMinimumY =
+                    Origin.Y + static_cast<double>(Y) * MaskCellSize;
+                const auto DoesIntersect =
+                    IntersectsAxis(
+                        InStart.X,
+                        Delta.X,
+                        CellMinimumX,
+                        CellMinimumX + MaskCellSize) &&
+                    IntersectsAxis(
+                        InStart.Y,
+                        Delta.Y,
+                        CellMinimumY,
+                        CellMinimumY + MaskCellSize);
+                if (DoesIntersect &&
+                    NOT InMask.Get_IsOccupied(X, Y))
+                { return false; }
+            }
+        }
+
+        return true;
+    }
+
+    auto
+    Get_DoesRibbonStayWithinMask(
+        const FCk_PathNetwork_DetectionMask& InMask,
+        const FCk_PathNetwork_Ribbon& InRibbon)
+        -> bool
+    {
+        const auto& Points = InRibbon.Get_Points();
+        for (auto PointIndex = 0;
+             PointIndex < Points.Num() - 1;
+             ++PointIndex)
+        {
+            if (NOT Get_DoesSegmentStayWithinMask(
+                InMask,
+                Points[PointIndex].Get_Location(),
+                Points[PointIndex + 1].Get_Location()))
+            { return false; }
+        }
+
+        return true;
+    }
+
+    class FMaximumLengthSegmentEvaluator final
+        : public ICk_PathNetwork_VectorizationSegmentEvaluator
+    {
+    public:
+        explicit
+        FMaximumLengthSegmentEvaluator(
+            const double InMaximumLength)
+            : _MaximumLength{InMaximumLength}
+        {
+        }
+
+        auto
+        Evaluate_Segment(
+            const FVector& InStart,
+            const FVector& InEnd)
+            -> FCk_PathNetwork_VectorizationSegmentResult override
+        {
+            ++_CallCount;
+            auto Result =
+                FCk_PathNetwork_VectorizationSegmentResult{};
+            if (FVector::Distance(InStart, InEnd) >
+                _MaximumLength)
+            {
+                Result._Decision =
+                    ECk_PathNetwork_VectorizationSegmentDecision::
+                        Unsupported;
+            }
+            return Result;
+        }
+
+        auto Get_CallCount() const -> int32
+        { return _CallCount; }
+
+    private:
+        double _MaximumLength = 0.0;
+        int32 _CallCount = 0;
+    };
+
+    class FMiddleGapSegmentEvaluator final
+        : public ICk_PathNetwork_VectorizationSegmentEvaluator
+    {
+    public:
+        explicit
+        FMiddleGapSegmentEvaluator(
+            const double InGapX)
+            : _GapX{InGapX}
+        {
+        }
+
+        auto
+        Evaluate_Segment(
+            const FVector& InStart,
+            const FVector& InEnd)
+            -> FCk_PathNetwork_VectorizationSegmentResult override
+        {
+            auto Result =
+                FCk_PathNetwork_VectorizationSegmentResult{};
+            const auto CrossesGap =
+                FMath::Min(InStart.X, InEnd.X) < _GapX &&
+                FMath::Max(InStart.X, InEnd.X) > _GapX;
+            if (CrossesGap)
+            {
+                Result._Decision =
+                    ECk_PathNetwork_VectorizationSegmentDecision::
+                        Unsupported;
+            }
+            return Result;
+        }
+
+    private:
+        double _GapX = 0.0;
+    };
+
+    class FFailingSegmentEvaluator final
+        : public ICk_PathNetwork_VectorizationSegmentEvaluator
+    {
+    public:
+        auto
+        Evaluate_Segment(
+            const FVector& InStart,
+            const FVector& InEnd)
+            -> FCk_PathNetwork_VectorizationSegmentResult override
+        {
+            auto Result =
+                FCk_PathNetwork_VectorizationSegmentResult{};
+            Result._Decision =
+                ECk_PathNetwork_VectorizationSegmentDecision::
+                    EvaluationFailed;
+            Result._FailureReason =
+                TEXT("Intentional segment evaluation failure");
+            return Result;
+        }
+    };
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -108,6 +370,157 @@ bool FCk_PathNetwork_Vectorize_StraightCorridor::RunTest(const FString& Paramete
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Vectorize_DetectorVetoSubdividesSimplifiedChord,
+    "Ck.PathNetwork.Vectorize.DetectorVetoSubdividesSimplifiedChord",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_PathNetwork_Vectorize_DetectorVetoSubdividesSimplifiedChord::
+    RunTest(
+        const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_vectorize;
+
+    const auto Mask = MakeMask({
+        TEXT("................................"),
+        TEXT("................................"),
+        TEXT(".##############################."),
+        TEXT(".##############################."),
+        TEXT(".##############################."),
+        TEXT("................................"),
+        TEXT("................................")});
+    auto Params = DefaultParams();
+    Params.Set_SimplifyTolerance(10000.0f);
+    auto Evaluator =
+        FMaximumLengthSegmentEvaluator{4.0 * CellSize};
+
+    const auto Result =
+        ck::pathnetwork::Try_VectorizeMaskToRibbons(
+            Mask,
+            Params,
+            &Evaluator);
+    TestTrue(TEXT("detector-constrained vectorization succeeds"),
+        Result._Succeeded);
+    TestEqual(TEXT("detector veto preserves one connected ribbon"),
+        Result._Ribbons.Num(), 1);
+    TestTrue(TEXT("detector evaluator is consulted"),
+        Evaluator.Get_CallCount() > 0);
+    if (Result._Ribbons.Num() == 1)
+    {
+        const auto& Points = Result._Ribbons[0].Get_Points();
+        TestTrue(TEXT("unsupported long chord retains subdivision points"),
+            Points.Num() > 4);
+        for (auto PointIndex = 0;
+             PointIndex < Points.Num() - 1;
+             ++PointIndex)
+        {
+            TestTrue(
+                TEXT("every emitted chord satisfies detector length policy"),
+                FVector::Distance(
+                    Points[PointIndex].Get_Location(),
+                    Points[PointIndex + 1].Get_Location()) <=
+                    4.0 * CellSize + UE_KINDA_SMALL_NUMBER);
+        }
+    }
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Vectorize_DetectorVetoSplitsRawEdge,
+    "Ck.PathNetwork.Vectorize.DetectorVetoSplitsRawEdge",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_PathNetwork_Vectorize_DetectorVetoSplitsRawEdge::
+    RunTest(
+        const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_vectorize;
+
+    const auto Mask = MakeMask({
+        TEXT("................................"),
+        TEXT("................................"),
+        TEXT(".##############################."),
+        TEXT(".##############################."),
+        TEXT(".##############################."),
+        TEXT("................................"),
+        TEXT("................................")});
+    auto Params = DefaultParams();
+    Params.Set_SimplifyTolerance(0.0f);
+    auto Evaluator = FMiddleGapSegmentEvaluator{16.0 * CellSize};
+
+    const auto Result =
+        ck::pathnetwork::Try_VectorizeMaskToRibbons(
+            Mask,
+            Params,
+            &Evaluator);
+    TestTrue(TEXT("raw-edge detector veto is a supported topology result"),
+        Result._Succeeded);
+    TestEqual(TEXT("unsupported raw edge partitions the generated chain"),
+        Result._Ribbons.Num(), 2);
+    for (const auto& Ribbon : Result._Ribbons)
+    {
+        TestTrue(TEXT("each partition remains usable"),
+            Ribbon.Get_Points().Num() >= 2);
+        for (auto PointIndex = 0;
+             PointIndex < Ribbon.Get_Points().Num() - 1;
+             ++PointIndex)
+        {
+            const auto& Start =
+                Ribbon.Get_Points()[PointIndex].Get_Location();
+            const auto& End =
+                Ribbon.Get_Points()[PointIndex + 1].Get_Location();
+            TestFalse(
+                TEXT("no emitted segment crosses the unsupported raw edge"),
+                FMath::Min(Start.X, End.X) < 16.0 * CellSize &&
+                    FMath::Max(Start.X, End.X) > 16.0 * CellSize);
+        }
+    }
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Vectorize_DetectorEvaluationFailureIsAtomic,
+    "Ck.PathNetwork.Vectorize.DetectorEvaluationFailureIsAtomic",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_PathNetwork_Vectorize_DetectorEvaluationFailureIsAtomic::
+    RunTest(
+        const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_vectorize;
+
+    const auto Mask = MakeMask({
+        TEXT(".........."),
+        TEXT(".########."),
+        TEXT(".########."),
+        TEXT(".########."),
+        TEXT("..........")});
+    auto Evaluator = FFailingSegmentEvaluator{};
+    const auto Result =
+        ck::pathnetwork::Try_VectorizeMaskToRibbons(
+            Mask,
+            DefaultParams(),
+            &Evaluator);
+
+    TestFalse(TEXT("detector evaluation failure rejects vectorization"),
+        Result._Succeeded);
+    TestTrue(TEXT("failure reason is preserved"),
+        Result._FailureReason.Contains(
+            TEXT("Intentional segment evaluation failure")));
+    TestTrue(TEXT("failed vectorization publishes no partial ribbons"),
+        Result._Ribbons.IsEmpty());
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCk_PathNetwork_Vectorize_LCorridor,
     "Ck.PathNetwork.Vectorize.LCorridor",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -149,6 +562,258 @@ bool FCk_PathNetwork_Vectorize_LCorridor::RunTest(const FString& Parameters)
         { HasCornerPoint = true; }
     }
     TestTrue(TEXT("a point sits near the elbow"), HasCornerPoint);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Vectorize_SimplificationDoesNotLeaveMask,
+    "Ck.PathNetwork.Vectorize.SimplificationDoesNotLeaveMask",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Vectorize_SimplificationDoesNotLeaveMask::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_vectorize;
+
+    const auto Mask = MakeMask({
+        TEXT(".............."),
+        TEXT(".###.........."),
+        TEXT(".###.........."),
+        TEXT(".###.........."),
+        TEXT(".###.........."),
+        TEXT(".###.........."),
+        TEXT(".###.........."),
+        TEXT(".###.........."),
+        TEXT(".############."),
+        TEXT(".############."),
+        TEXT(".############."),
+        TEXT("..............")});
+    auto Params = DefaultParams();
+    Params.Set_MinRibbonLength(0.0f);
+    Params.Set_SimplifyTolerance(10000.0f);
+
+    const auto Ribbons =
+        ck::pathnetwork::Vectorize_MaskToRibbons(Mask, Params);
+    TestEqual(TEXT("L corridor remains one ribbon"), Ribbons.Num(), 1);
+    if (Ribbons.Num() != 1)
+    { return false; }
+
+    TestTrue(
+        TEXT("unsupported diagonal shortcut retains an interior point"),
+        Ribbons[0].Get_Points().Num() >= 3);
+    TestTrue(
+        TEXT("every simplified segment stays within occupied mask support"),
+        Get_DoesRibbonStayWithinMask(Mask, Ribbons[0]));
+
+    auto NearCornerMask = FCk_PathNetwork_DetectionMask{
+        FVector::ZeroVector,
+        CellSize,
+        103,
+        102};
+    auto NearCornerOccupancy = TArray<uint8>{};
+    NearCornerOccupancy.Init(
+        1,
+        NearCornerMask.Get_SizeX() * NearCornerMask.Get_SizeY());
+    NearCornerOccupancy[1] = 0;
+    NearCornerMask.Set_Occupancy(NearCornerOccupancy);
+    TestFalse(
+        TEXT("exact mask oracle catches a sub-tenth-cell near-corner crossing"),
+        Get_DoesSegmentStayWithinMask(
+            NearCornerMask,
+            NearCornerMask.Get_CellWorldLocation(0, 0),
+            NearCornerMask.Get_CellWorldLocation(101, 100)));
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Vectorize_CornerTouchingCellsDoNotConnect,
+    "Ck.PathNetwork.Vectorize.CornerTouchingCellsDoNotConnect",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Vectorize_CornerTouchingCellsDoNotConnect::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_vectorize;
+
+    auto Params = DefaultParams();
+    Params.Set_MinRibbonLength(0.0f);
+    Params.Set_SimplifyTolerance(0.0f);
+
+    const auto Ribbons = ck::pathnetwork::Vectorize_MaskToRibbons(
+        MakeMask({
+            TEXT("#..."),
+            TEXT(".#.."),
+            TEXT("..#."),
+            TEXT("...#")}),
+        Params);
+
+    TestEqual(
+        TEXT("corner-only occupied cells do not form a traversable ribbon"),
+        Ribbons.Num(),
+        0);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Vectorize_SupportedDiagonalCorridorStaysConnected,
+    "Ck.PathNetwork.Vectorize.SupportedDiagonalCorridorStaysConnected",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Vectorize_SupportedDiagonalCorridorStaysConnected::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_vectorize;
+
+    auto Params = DefaultParams();
+    Params.Set_MinRibbonLength(0.0f);
+    Params.Set_SimplifyTolerance(0.0f);
+
+    const auto Ribbons = ck::pathnetwork::Vectorize_MaskToRibbons(
+        MakeMask({
+            TEXT("........."),
+            TEXT(".##......"),
+            TEXT(".###....."),
+            TEXT("..###...."),
+            TEXT("...###..."),
+            TEXT("....###.."),
+            TEXT(".....###."),
+            TEXT("......##."),
+            TEXT(".........")}),
+        Params);
+
+    TestEqual(
+        TEXT("area-supported diagonal corridor remains connected"),
+        Ribbons.Num(),
+        1);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Vectorize_SimplificationPreservesTerrainHeight,
+    "Ck.PathNetwork.Vectorize.SimplificationPreservesTerrainHeight",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Vectorize_SimplificationPreservesTerrainHeight::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_vectorize;
+
+    auto Mask = MakeMask({
+        TEXT("........."),
+        TEXT(".#######."),
+        TEXT(".#######."),
+        TEXT(".#######."),
+        TEXT(".........")});
+    auto Heights = TArray<float>{};
+    Heights.SetNumZeroed(Mask.Get_SizeX() * Mask.Get_SizeY());
+    for (auto Y = 0; Y < Mask.Get_SizeY(); ++Y)
+    {
+        Heights[Y * Mask.Get_SizeX() + 4] = 200.0f;
+    }
+    Mask.Set_Heights(Heights);
+
+    constexpr float SimplifyTolerances[] = {0.0f, 10.0f};
+    for (const auto SimplifyTolerance : SimplifyTolerances)
+    {
+        auto Params = DefaultParams();
+        Params.Set_MinRibbonLength(0.0f);
+        Params.Set_SimplifyTolerance(SimplifyTolerance);
+
+        const auto Ribbons =
+            ck::pathnetwork::Vectorize_MaskToRibbons(Mask, Params);
+        TestEqual(
+            FString::Printf(
+                TEXT("height-varying corridor remains one ribbon at tolerance %.1f"),
+                SimplifyTolerance),
+            Ribbons.Num(),
+            1);
+        if (Ribbons.Num() != 1)
+        { continue; }
+
+        auto HighestPoint = TNumericLimits<double>::Lowest();
+        for (const auto& Point : Ribbons[0].Get_Points())
+        {
+            HighestPoint = FMath::Max(
+                HighestPoint,
+                Point.Get_Location().Z);
+        }
+        TestTrue(
+            FString::Printf(
+                TEXT("tolerance %.1f retains the terrain-height sample (got %.1f cm)"),
+                SimplifyTolerance,
+                HighestPoint),
+            HighestPoint >= 199.0);
+    }
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Vectorize_CircularCorridorSuppressesRasterStairSteps,
+    "Ck.PathNetwork.Vectorize.CircularCorridorSuppressesRasterStairSteps",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Vectorize_CircularCorridorSuppressesRasterStairSteps::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_vectorize;
+
+    auto Params = DefaultParams();
+    Params.Set_SimplifyTolerance(CellSize * 0.25f);
+    const auto Ribbons =
+        ck::pathnetwork::Vectorize_MaskToRibbons(
+            MakeCircularCorridorMask(),
+            Params);
+
+    TestEqual(TEXT("circular corridor remains one ring ribbon"), Ribbons.Num(), 1);
+    if (Ribbons.Num() != 1)
+    { return false; }
+
+    const auto& Points = Ribbons[0].Get_Points();
+    TestTrue(TEXT("circular corridor remains closed"),
+        Points.Num() >= 2
+        && Points[0].Get_Location().Equals(
+            Points.Last().Get_Location(),
+            UE_KINDA_SMALL_NUMBER));
+
+    const auto GridScaleTurns = Count_GridScaleTurns(Ribbons[0]);
+    AddInfo(FString::Printf(
+        TEXT("Simplified circular corridor: %d points, %d cell-scale turns"),
+        Points.Num(),
+        GridScaleTurns));
+    TestEqual(
+        TEXT("circular corridor has no cell-scale staircase turns"),
+        GridScaleTurns,
+        0);
+
+    auto RawParams = Params;
+    RawParams.Set_SimplifyTolerance(0.0f);
+    const auto RawRibbons =
+        ck::pathnetwork::Vectorize_MaskToRibbons(
+            MakeCircularCorridorMask(),
+            RawParams);
+    TestEqual(TEXT("zero tolerance still preserves one raw ring"), RawRibbons.Num(), 1);
+    if (RawRibbons.Num() == 1)
+    {
+        const auto RawGridScaleTurns = Count_GridScaleTurns(RawRibbons[0]);
+        AddInfo(FString::Printf(
+            TEXT("Raw circular corridor: %d points, %d cell-scale turns"),
+            RawRibbons[0].Get_Points().Num(),
+            RawGridScaleTurns));
+        TestTrue(
+            TEXT("zero tolerance preserves raw grid detail"),
+            RawGridScaleTurns > 0);
+    }
 
     return true;
 }
