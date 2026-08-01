@@ -7688,3 +7688,15 @@ class ACk_AutoTest_VisibleRange_OwnRangeBoundaryCrossing_Actor : ACk_AutoTestRun
     }
 }
 
+class ACk_AutoTest_WebUmg_AssetConsumption_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_WebUmg_AssetConsumption");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
