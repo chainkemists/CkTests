@@ -2,6 +2,7 @@
 
 #if WITH_EDITOR && WITH_DEV_AUTOMATION_TESTS
 
+#include "Editor.h"
 #include "Editor/UnrealEdEngine.h"
 #include "Engine/Engine.h"
 #include "Engine/NetConnection.h"
@@ -41,6 +42,98 @@ namespace
     void Log_Display(const TString& Fmt, TArgs&&... Args)
     {
         UE_LOG(LogCkNetAutomation, Display, TEXT("%s"), *ck::Format_UE(Fmt, Forward<TArgs>(Args)...));
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_net_automation_common
+{
+    // ULevelEditorPlaySettings is a config-backed CDO that UEditorEngine::EndPlayMap writes straight to
+    // EditorPerProjectUserSettings.ini on EVERY PIE teardown (PlayLevel.cpp, PlaySettingsConfig->SaveConfig).
+    // Overriding it in place for a multi-client test therefore leaks into the developer's next manual Play:
+    // their client count, net mode and one-process flag come back as whatever the last net test asked for.
+    // We snapshot the user's values before overriding and put them back on FEditorDelegates::EndPIE, which
+    // the engine broadcasts BEFORE that save — so the file written at teardown holds the user's values and
+    // no extra SaveConfig of our own is needed.
+    struct FPlaySettings_Snapshot
+    {
+        int32        _NumClients           = 1;
+        EPlayNetMode _NetMode              = EPlayNetMode::PIE_Standalone;
+        bool         _RunUnderOneProcess   = true;
+        bool         _LaunchSeparateServer = false;
+    };
+
+    TOptional<FPlaySettings_Snapshot> GPlaySettings_Snapshot;
+    FDelegateHandle                   GPlaySettings_RestoreHandle;
+
+    auto
+        Restore_PlaySettings()
+        -> void
+    {
+        if (GPlaySettings_RestoreHandle.IsValid())
+        {
+            FEditorDelegates::EndPIE.Remove(GPlaySettings_RestoreHandle);
+            GPlaySettings_RestoreHandle.Reset();
+        }
+
+        if (NOT GPlaySettings_Snapshot.IsSet())
+        { return; }
+
+        const auto Snapshot = *GPlaySettings_Snapshot;
+        GPlaySettings_Snapshot.Reset();
+
+        auto* Settings = GetMutableDefault<ULevelEditorPlaySettings>();
+        if (Settings == nullptr)
+        { return; }
+
+        Settings->SetPlayNumberOfClients(Snapshot._NumClients);
+        Settings->SetPlayNetMode(Snapshot._NetMode);
+        Settings->SetRunUnderOneProcess(Snapshot._RunUnderOneProcess);
+        Settings->bLaunchSeparateServer = Snapshot._LaunchSeparateServer;
+
+        Log_Display(TEXT("Restored the editor's Play settings after PIE — number of clients back to [{}]"),
+            Snapshot._NumClients);
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    auto
+        OnEndPIE(
+            const bool /*InIsSimulating*/)
+        -> void
+    {
+        Restore_PlaySettings();
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    auto
+        Override_PlaySettings(
+            ULevelEditorPlaySettings* InSettings,
+            int32 InNumClients)
+        -> void
+    {
+        // A second start before the matching restore must snapshot the USER's values, not the previous
+        // override's — hence the guard rather than an unconditional capture.
+        if (NOT GPlaySettings_Snapshot.IsSet())
+        {
+            auto Snapshot = FPlaySettings_Snapshot{};
+            InSettings->GetPlayNumberOfClients(Snapshot._NumClients);
+            InSettings->GetPlayNetMode(Snapshot._NetMode);
+            InSettings->GetRunUnderOneProcess(Snapshot._RunUnderOneProcess);
+            Snapshot._LaunchSeparateServer = InSettings->bLaunchSeparateServer;
+
+            GPlaySettings_Snapshot = Snapshot;
+        }
+
+        if (NOT GPlaySettings_RestoreHandle.IsValid())
+        { GPlaySettings_RestoreHandle = FEditorDelegates::EndPIE.AddStatic(&OnEndPIE); }
+
+        InSettings->SetPlayNumberOfClients(InNumClients);
+        InSettings->SetPlayNetMode(EPlayNetMode::PIE_ListenServer);
+        InSettings->SetRunUnderOneProcess(true);
+        InSettings->bLaunchSeparateServer = false;
     }
 }
 
@@ -258,10 +351,7 @@ bool
     }
 
     const auto NumClientsClamped = FMath::Max(1, _NumClients);
-    Settings->SetPlayNumberOfClients(NumClientsClamped);
-    Settings->SetPlayNetMode(EPlayNetMode::PIE_ListenServer);
-    Settings->SetRunUnderOneProcess(true);
-    Settings->bLaunchSeparateServer = false;
+    ck_net_automation_common::Override_PlaySettings(Settings, NumClientsClamped);
 
     auto Params = FRequestPlaySessionParams{};
     Params.WorldType = EPlaySessionWorldType::PlayInEditor;
@@ -451,7 +541,10 @@ bool
     Update()
 {
     if (GUnrealEd == nullptr)
-    { return true; }
+    {
+        ck_net_automation_common::Restore_PlaySettings();
+        return true;
+    }
 
     if (_Requested == false)
     {
@@ -463,7 +556,13 @@ bool
 
     // Wait until all PIE worlds are gone before returning — otherwise the next test inherits
     // half-torn-down state.
-    return ck::auto_test::net::Get_AllPIEWorlds().IsEmpty();
+    if (NOT ck::auto_test::net::Get_AllPIEWorlds().IsEmpty())
+    { return false; }
+
+    // FEditorDelegates::EndPIE has normally restored the Play settings already. This covers the paths
+    // where the requested session never started, so that broadcast never happened.
+    ck_net_automation_common::Restore_PlaySettings();
+    return true;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
