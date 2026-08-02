@@ -140,6 +140,13 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
             TestNotNull(*FString::Printf(TEXT("row [%s] renderer VisTag %d names a CkUsf look"),
                 Spec.AssetName, Renderer.VisTag), Renderer.LookName);
 
+            // A ribbon renderer carries no RendererVisibility, so it cannot be tag-gated: one listed among the
+            // shared emitter's overrides would link EVERY particle on that template into ribbons. Ribbons live
+            // on the row's second emitter, and nowhere else.
+            TestTrue(*FString::Printf(TEXT("row [%s] renderer VisTag %d is not a Ribbon — those belong to the "
+                "row's ribbon emitter"), Spec.AssetName, Renderer.VisTag),
+                Renderer.Kind != ck::particles::ECk_ParticlesRenderer_Kind::Ribbon);
+
             // Only the Mesh kind indexes a generated mesh; the three sprite kinds must NOT name one, or the
             // row reads as if it declared a carrier the builder will never load.
             const auto IsMeshKind  = Renderer.Kind == ck::particles::ECk_ParticlesRenderer_Kind::Mesh;
@@ -155,7 +162,49 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
             TestTrue(*FString::Printf(TEXT("row [%s] renderer VisTag %d declares a whole SubImageSize grid or none [%d x %d]"),
                 Spec.AssetName, Renderer.VisTag, Sheet.X, Sheet.Y), SheetIsDeclared || SheetIsAbsent);
         }
+
+        // ---- The row's ribbon emitter ----
+        // A declared one must be able to spawn: its emitter is built from an EMPTY stack, so with neither a burst
+        // nor a rate it holds a renderer over a population that never exists. The converse is the same claim from
+        // the other side — a cadence stated with no ribbon renderer spawns particles nothing draws.
+        const auto& RibbonSpec = Spec.RibbonEmitter;
+        const auto  RibbonDeclaresSpawn = RibbonSpec.BurstCount > 0 || RibbonSpec.SpawnRate > 0.0f;
+
+        TestTrue(*FString::Printf(TEXT("row [%s] declares a ribbon spawn stack exactly when it declares a ribbon "
+            "renderer"), Spec.AssetName), RibbonDeclaresSpawn == RibbonSpec.Get_IsDeclared());
+
+        for (const auto& Renderer : RibbonSpec.Renderers)
+        {
+            TestTrue(*FString::Printf(TEXT("row [%s] ribbon-emitter renderer VisTag %d is the Ribbon kind"),
+                Spec.AssetName, Renderer.VisTag),
+                Renderer.Kind == ck::particles::ECk_ParticlesRenderer_Kind::Ribbon);
+
+            TestNotNull(*FString::Printf(TEXT("row [%s] ribbon-emitter renderer VisTag %d names a CkUsf look"),
+                Spec.AssetName, Renderer.VisTag), Renderer.LookName);
+
+            // Ribbons have no carrier mesh — MeshIndex is the ribbon-id carrier there, not a mesh selector.
+            TestNull(*FString::Printf(TEXT("row [%s] ribbon-emitter renderer VisTag %d names no mesh"),
+                Spec.AssetName, Renderer.VisTag), Renderer.MeshName);
+
+            // A ribbon renderer has no SubImageSize at all, so a declared grid would be silently inert.
+            TestTrue(*FString::Printf(TEXT("row [%s] ribbon-emitter renderer VisTag %d declares no SubImageSize "
+                "grid [%d x %d]"), Spec.AssetName, Renderer.VisTag, Renderer.SubImageSize.X, Renderer.SubImageSize.Y),
+                Renderer.SubImageSize.X == 0 && Renderer.SubImageSize.Y == 0);
+
+            // Ribbon renderers allocate from the same VisTag ledger as every other row renderer: Niagara does not
+            // gate on the tag, but the particles drawn by one still write it.
+            TestTrue(*FString::Printf(TEXT("row [%s] ribbon-emitter renderer VisTag %d is above the shared set"),
+                Spec.AssetName, Renderer.VisTag),
+                Renderer.VisTag > ck::particles::SharedRendererVisTag_Max);
+        }
     }
+
+    // ---- The seed bank that tells the two emitters' populations apart ----
+    // A ribbon particle's Seed is its UniqueID plus this base, so the bank must sit above any id the emitter can
+    // reach AND leave base + id a positive int32 — a negative seed would read as the main emitter's bank.
+    TestTrue(TEXT("the ribbon seed bank is positive"), ck::particles::RibbonSeedBase > 0);
+    TestTrue(TEXT("every id below the ribbon seed bank has a distinct, still-positive twin above it"),
+        TNumericLimits<int32>::Max() - ck::particles::RibbonSeedBase >= ck::particles::RibbonSeedBase - 1);
 
     // ---- Every id resolves to a NON-EMPTY path the cadence table actually declares ----
     // Catches the failure mode where a behavior silently spawns through a template that was never emitted.
