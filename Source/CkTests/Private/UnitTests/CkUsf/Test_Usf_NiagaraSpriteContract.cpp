@@ -53,6 +53,20 @@ namespace ck_test_usf_niagara_sprite_contract
     // fail here.
     constexpr auto kOpaqueParticleLookName = TEXT("BombToon");
 
+    // The three Niagara usages are separate engine bits, so the roster is checked as a whole: every look that
+    // declares one must NOT gain the other two. Ribbon is the newest and has no consumer yet, so its positive
+    // arm RATCHETS — it asserts against whichever look opts in first and reports the empty state until then,
+    // rather than pinning a look name that does not exist.
+    auto Find_RibbonOptedLook(const TArray<UCkUsf_LookDefinition*>& InDefinitions) -> UCkUsf_LookDefinition*
+    {
+        for (auto* Definition : InDefinitions)
+        {
+            if (Definition->_UsedWithNiagaraRibbons)
+            { return Definition; }
+        }
+        return nullptr;
+    }
+
     // The SOURCE material (M_VFX_DisAdd_Ring04) declares these channel names; the look takes them verbatim
     // so the emitter and the shader agree by construction. Built on call rather than at namespace scope —
     // an FString array there would run a dynamic initializer during static init.
@@ -177,6 +191,7 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
     TestTrue(TEXT("RingDissolveAdd opts into _UsedWithNiagaraSprites"),  ParticleLook->_UsedWithNiagaraSprites);
     TestTrue(TEXT("RingDissolveAdd opts into _ParticleColor"),           ParticleLook->_ParticleColor);
     TestTrue(TEXT("RingDissolveAdd opts into _ParticleDynamicParameter"),ParticleLook->_ParticleDynamicParameter);
+    TestFalse(TEXT("RingDissolveAdd does NOT opt into _UsedWithNiagaraRibbons"), ParticleLook->_UsedWithNiagaraRibbons);
 
     // ---- 1. The look generates ----
     auto* Master = ck::usf_editor::Generate_LookMaterial(ParticleLook);
@@ -278,6 +293,8 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
             {
                 TestTrue(TEXT("generated master declares bUsedWithNiagaraSprites"),
                     FlatMaster->bUsedWithNiagaraSprites != 0);
+                TestFalse(TEXT("FlatAdd02 does not gain ribbon usage"),
+                    FlatMaster->bUsedWithNiagaraRibbons != 0);
 
                 const auto* FlatCustom = Find_CustomNode(FlatMaster);
                 TestEqual(TEXT("FlatAdd02 has ParticleColor connected"),
@@ -320,10 +337,43 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
         }
     }
 
+    // ---- 3e. RIBBON usage is a third, independent opt-in ----
+    // No look draws on a ribbon renderer yet, so the positive arm ratchets onto the first one that does rather
+    // than naming an asset that does not exist. The NEGATIVE arm is live today and is what actually guards the
+    // plumbing: adding the flag to the generator must not have switched the bit on for any existing look.
+    {
+        auto* RibbonLook = Find_RibbonOptedLook(Definitions);
+        if (RibbonLook == nullptr)
+        {
+            AddInfo(TEXT("No look declares _UsedWithNiagaraRibbons yet — the positive ribbon assertions activate "
+                         "with the first look that does. The roster-wide negative below is live regardless."));
+        }
+        else
+        {
+            const auto RibbonName = RibbonLook->Get_EffectiveLookName().ToString();
+
+            if (auto* RibbonMaster = ck::usf_editor::Generate_LookMaterial(RibbonLook);
+                TestNotNull(*FString::Printf(TEXT("%s generates a master material"), *RibbonName), RibbonMaster))
+            {
+                TestTrue(*FString::Printf(TEXT("[%s] generated master declares bUsedWithNiagaraRibbons"), *RibbonName),
+                    RibbonMaster->bUsedWithNiagaraRibbons != 0);
+
+                // Independence: opting into ribbons must not drag the other two usages along with it.
+                TestEqual(*FString::Printf(TEXT("[%s] sprite usage tracks its own flag"), *RibbonName),
+                    static_cast<int32>(RibbonMaster->bUsedWithNiagaraSprites != 0),
+                    static_cast<int32>(RibbonLook->_UsedWithNiagaraSprites));
+                TestEqual(*FString::Printf(TEXT("[%s] mesh-particle usage tracks its own flag"), *RibbonName),
+                    static_cast<int32>(RibbonMaster->bUsedWithNiagaraMeshParticles != 0),
+                    static_cast<int32>(RibbonLook->_UsedWithNiagaraMeshParticles));
+            }
+        }
+    }
+
     // ---- 4. Prove the negative: no look that did NOT opt in gained the flags or the pins ----
     for (auto* Definition : Definitions)
     {
         if (Definition->_UsedWithNiagaraSprites || Definition->_UsedWithNiagaraMeshParticles ||
+            Definition->_UsedWithNiagaraRibbons ||
             Definition->_ParticleColor || Definition->_ParticleDynamicParameter)
         { continue; }
 
@@ -337,6 +387,8 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
             OtherMaster->bUsedWithNiagaraSprites != 0);
         TestFalse(*FString::Printf(TEXT("non-particle look [%s] did not gain mesh-particle usage"), *Name),
             OtherMaster->bUsedWithNiagaraMeshParticles != 0);
+        TestFalse(*FString::Printf(TEXT("non-particle look [%s] did not gain ribbon usage"), *Name),
+            OtherMaster->bUsedWithNiagaraRibbons != 0);
         TestFalse(*FString::Printf(TEXT("non-particle look [%s] did not gain a ParticleColor node"), *Name),
             Has_ExpressionOfType<UMaterialExpressionParticleColor>(OtherMaster));
         TestFalse(*FString::Printf(TEXT("non-particle look [%s] did not gain a DynamicParameter node"), *Name),
