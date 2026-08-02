@@ -21,6 +21,10 @@ public class CkTests : CkModuleRules
             "Gauntlet",
             "EnhancedInput",
             "RenderCore",
+            // Direct, not inherited through CkParticles: the CkParticles authoring gate loads a UNiagaraSystem
+            // itself, and the transitive public dependency did not put Niagara's import lib on this link
+            // (LNK2019 on Z_Construct_UClass_UNiagaraSystem_NoRegister).
+            "Niagara",
 
             "CkActorRelay",
             "CkAggro",
@@ -50,6 +54,10 @@ public class CkTests : CkModuleRules
             "CkLabel",
             "CkLagCompensation",
             "CkLog",
+            // Public dependency on purpose: it carries the CK_WITH_PARTICLES definition that the CkParticles
+            // authoring gate keys on. A private dependency would leave that define undetectable here and the
+            // gate would silently skip forever.
+            "CkParticles",
             "CkPathNetwork",
             "CkPerception",
             "CkPmg",
