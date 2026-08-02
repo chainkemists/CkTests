@@ -471,6 +471,43 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "BUFF CAST";
+            Pair.CkStationTag = n"Gym.VfxExamples.BuffCast.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.BuffCast.Original";
+            Pair.BehaviorId = 38;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_BuffCast");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_BuffCast");
+            Pair.OriginalAssetName = "NS_BuffCast";
+            Pair.Credit = "Original: Vefects NS_BuffCast";
+            // A support cast that RISES: its two chevrons start a metre below the cast point and climb for
+            // 1.5 s, and its seven sparkles throw trails omnidirectionally, so the station wants headroom
+            // rather than floor.
+            Pair.SpawnOffset = FVector(0, 0, 140);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "LIGHTNING MUZZLE";
+            Pair.CkStationTag = n"Gym.VfxExamples.LightningMuzzle.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.LightningMuzzle.Original";
+            Pair.BehaviorId = 39;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Lightning_Muzzle");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Lightning_Muzzle");
+            Pair.OriginalAssetName = "NS_Lightning_Muzzle";
+            Pair.Credit = "Original: Vefects NS_Lightning_Muzzle";
+            // A muzzle flash fired along +X: sparkles, spikes and both arcs travel down the barrel for up
+            // to 3000 units/s over 0.3 s, so the station needs clear air in FRONT of it.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -551,5 +588,9 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.FireBallProjectile.Original");
         GameplayTags.Add(n"Gym.VfxExamples.BombProjectile.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.BombProjectile.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.BuffCast.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.BuffCast.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.LightningMuzzle.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.LightningMuzzle.Original");
     }
 }
