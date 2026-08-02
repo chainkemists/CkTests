@@ -102,7 +102,7 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
     using namespace ck_test_particles_roster_sanity;
 
     // ---- Roster size has ONE definition, and it is the one behavior 25 was added to ----
-    TestEqual(TEXT("NumBehaviors is 30 (ids 0..29, DebuffLoop last)"), ck::particles::NumBehaviors, 30);
+    TestEqual(TEXT("NumBehaviors is 33 (ids 0..32, DebuffCast last)"), ck::particles::NumBehaviors, 33);
     TestEqual(TEXT("LastBehaviorId is derived from NumBehaviors"),
         ck::particles::LastBehaviorId, ck::particles::NumBehaviors - 1);
     TestEqual(TEXT("the BP/AS-facing roster size agrees with the C++ constant"),
@@ -181,6 +181,25 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
     // green run and drown a red one in noise.
     auto NumViolations = 0;
     auto NumEmitterAgeDependencies = 0;
+
+    // A behavior may read the emitter clock ONLY when its cadence row declares a burst AND a rate: that is the
+    // one shape where two populations share a template and must be told apart by spawn phase. The exemption is
+    // DERIVED from the table rather than listed, so adding such a row cannot silently widen it — and the
+    // exempted behaviors are then required to be dependent, or their split is inert.
+    const auto Get_RowUsesSpawnPhase = [](int32 InBehaviorId) -> bool
+    {
+        const auto Path = ck::particles::Get_BehaviorTemplateSystemObjectPath(InBehaviorId);
+        for (const auto& Spec : ck::particles::Get_TemplateSpecs())
+        {
+            if (ck::particles::Get_TemplateSystemObjectPath(Spec.AssetName) != Path)
+            { continue; }
+
+            return Spec.BurstCount > 0 && Spec.SpawnRate > 0.0f;
+        }
+        return false;
+    };
+
+    auto SpawnPhaseBehaviorsObserved = TSet<int32>{};
     // HDR is the whole point of an additive VFX pipeline: the emissive keys the behaviors carry run far above
     // 1 and nothing between the CPU mirror and Particles.Color may clamp them. Observing the brightest channel
     // across the sweep proves the float path is intact — a clamp anywhere would pin this at exactly 1.
@@ -221,6 +240,12 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
                         if (Is_Identical(Out, Shifted))
                         { continue; }
 
+                        if (Get_RowUsesSpawnPhase(BehaviorId))
+                        {
+                            SpawnPhaseBehaviorsObserved.Add(BehaviorId);
+                            continue;
+                        }
+
                         ++NumEmitterAgeDependencies;
 
                         if (ReportedEmitterAgeDependency)
@@ -229,7 +254,7 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
                         ReportedEmitterAgeDependency = true;
                         AddError(FString::Printf(
                             TEXT("behavior %d (lifetime %.2f, seed %d, t %.1f): output moved when the emitter ")
-                            TEXT("clock moved to %.2f — no roster behavior reads EmitterAge"),
+                            TEXT("clock moved to %.2f — only a burst+rate row may read EmitterAge"),
                             BehaviorId, Lifetime, Seed, NormalizedAge, EmitterAge));
                     }
 
@@ -291,8 +316,20 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
     TestEqual(TEXT("no behavior produced unrenderable output across the age/lifetime/seed sweep"),
         NumViolations, 0);
 
-    TestEqual(TEXT("every behavior's output is bit-identical across emitter clocks (EmitterAge is threaded, not read)"),
+    TestEqual(TEXT("no behavior outside a burst+rate row reads EmitterAge — for them it is threaded, not read"),
         NumEmitterAgeDependencies, 0);
+
+    // The other half of the same claim: a row that declares BOTH stacks exists to split two populations by
+    // spawn phase, so a behavior on one that is INDEPENDENT of the emitter clock has an inert split.
+    for (auto BehaviorId = 0; BehaviorId < ck::particles::NumBehaviors; ++BehaviorId)
+    {
+        if (NOT Get_RowUsesSpawnPhase(BehaviorId))
+        { continue; }
+
+        TestTrue(*FString::Printf(
+            TEXT("behavior %d rides a burst+rate row, so its output MUST move with the emitter clock"), BehaviorId),
+            SpawnPhaseBehaviorsObserved.Contains(BehaviorId));
+    }
 
     // Well above any plausible clamp point, and far below the brightest key the roster actually carries
     // (behavior 15 emits 135) — so this fails on a clamp, not on a behavior being retuned.

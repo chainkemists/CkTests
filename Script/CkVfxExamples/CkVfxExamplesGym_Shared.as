@@ -316,6 +316,64 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        // The three "Cast" ports. These are Loop-Once systems again, so the harness's OnSystemFinished re-arm
+        // brings both sides back in phase and the A/B is a SYNCED replay from t = 0, not a steady-state read.
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "PICKUP CAST";
+            Pair.CkStationTag = n"Gym.VfxExamples.PickupCast.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.PickupCast.Original";
+            Pair.BehaviorId = 30;
+            // All eight of 30's looks ride the PickupCast cadence row's own renderers, which bind them
+            // explicitly. An explicit texture here would only reach the SHARED sprite renderers, which this
+            // behavior never tags.
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_PickupCast");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_PickupCast");
+            Pair.OriginalAssetName = "NS_PickupCast";
+            Pair.Credit = "Original: Vefects NS_PickupCast";
+            // A pickup appearing in mid-air: an 800-unit flash and two concentric rings centred on the spawn.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "HEAL CAST";
+            Pair.CkStationTag = n"Gym.VfxExamples.HealCast.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.HealCast.Original";
+            Pair.BehaviorId = 31;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_HealCast");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_HealCast");
+            Pair.OriginalAssetName = "NS_HealCast";
+            Pair.Credit = "Original: Vefects NS_HealCast";
+            // Its lens flares spawn 70 units BELOW the origin and rise, so the station wants head height rather
+            // than the pedestal top.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "DEBUFF CAST";
+            Pair.CkStationTag = n"Gym.VfxExamples.DebuffCast.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.DebuffCast.Original";
+            Pair.BehaviorId = 32;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_DebuffCast");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_DebuffCast");
+            Pair.OriginalAssetName = "NS_DebuffCast";
+            Pair.Credit = "Original: Vefects NS_DebuffCast";
+            // Its dark sparkles implode from a 200-unit SHELL centred on the spawn point, so the station needs
+            // clearance all round rather than sitting on the floor.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -380,5 +438,11 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.BuffLoop.Original");
         GameplayTags.Add(n"Gym.VfxExamples.DebuffLoop.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.DebuffLoop.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.PickupCast.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.PickupCast.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.HealCast.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.HealCast.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.DebuffCast.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.DebuffCast.Original");
     }
 }
