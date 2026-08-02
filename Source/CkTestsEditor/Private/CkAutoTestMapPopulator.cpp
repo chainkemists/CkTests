@@ -17,6 +17,8 @@
 #include <ExternalPackageHelper.h>
 #include <FileHelpers.h>
 #include <HAL/FileManager.h>
+#include <HAL/PlatformFileManager.h>
+#include <Misc/App.h>
 #include <HAL/IConsoleManager.h>
 #include <Interfaces/IPluginManager.h>
 #include <ISourceControlModule.h>
@@ -394,6 +396,23 @@ auto
             if (ISourceControlModule::Get().IsEnabled())
             {
                 bMadeWritable = USourceControlHelpers::CheckOutOrAddFile(MapFilePath);
+            }
+
+            // Unattended (automation) sessions have no SCC provider and no user to act on the
+            // toast below — and the read-only bit here is typically the residue of THIS
+            // populator's own previous headless save (the editor's not-checked-out convention).
+            // Clear it directly so headless runs never require a manual `attrib -r` ritual.
+            // Interactive sessions keep the toast + skip behavior.
+            if (NOT bMadeWritable && FApp::IsUnattended())
+            {
+                bMadeWritable = FPlatformFileManager::Get().GetPlatformFile().SetReadOnly(*MapFilePath, false);
+                if (bMadeWritable)
+                {
+                    ck::tests_editor::Notify_Info(
+                        TEXT("[CkAutoTest Populator] [{}] AutoTests map was read-only on disk; cleared the ")
+                        TEXT("attribute directly (unattended session, no source-control provider): '{}'"),
+                        InConfig->Get_DisplayName(), MapFilePath);
+                }
             }
 
             if (NOT bMadeWritable)
