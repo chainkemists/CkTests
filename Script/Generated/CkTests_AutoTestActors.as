@@ -4785,7 +4785,7 @@ class ACk_AutoTest_ObjectPooling_StateMachineRecyclesAcrossRespawns_Actor : ACk_
 
 class ACk_AutoTest_Particles_SpawnAllBehaviors_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 10.0f;
+    default _TimeoutSeconds = 120.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {

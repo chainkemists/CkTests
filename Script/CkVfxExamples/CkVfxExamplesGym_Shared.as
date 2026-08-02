@@ -508,6 +508,101 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "EXPLOSION GROUND";
+            Pair.CkStationTag = n"Gym.VfxExamples.ExplosionGround.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.ExplosionGround.Original";
+            Pair.BehaviorId = 40;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_ExplosionGround");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_ExplosionGround");
+            Pair.OriginalAssetName = "NS_ExplosionGround";
+            Pair.Credit = "Original: Vefects NS_ExplosionGround";
+            // A ground blast: every spawn is HEMISPHERICAL and its longest layer is a 1.5 s scorch
+            // decal lying flat under the burst, so this station is judged from the FLOOR up. The
+            // source's dynamic point light is dropped ([P4-D2]); judge the sprite layers, not the
+            // floor illumination.
+            Pair.SpawnOffset = FVector(0, 0, 20);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "EXPLOSION GROUND (ICE)";
+            Pair.CkStationTag = n"Gym.VfxExamples.ExplosionGroundIce.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.ExplosionGroundIce.Original";
+            Pair.BehaviorId = 41;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_ExplosionIceGround");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_ExplosionIceGround");
+            Pair.OriginalAssetName = "NS_ExplosionIceGround";
+            Pair.Credit = "Original: Vefects NS_ExplosionIceGround";
+            // The same blast recoloured. Its only structural differences from behavior 40 are colour
+            // tables, so the two Ck pedestals should read as ONE effect in two palettes — if they do
+            // not, the palette twins are not sharing their layer math.
+            Pair.SpawnOffset = FVector(0, 0, 20);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "EXPLOSION OMNI";
+            Pair.CkStationTag = n"Gym.VfxExamples.ExplosionOmni.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.ExplosionOmni.Original";
+            Pair.BehaviorId = 42;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_ExplosionOmni");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_ExplosionOmni");
+            Pair.OriginalAssetName = "NS_ExplosionOmni";
+            Pair.Credit = "Original: Vefects NS_ExplosionOmni";
+            // The airburst twin of the ground blast: every hemispherical spawn opens to a full sphere
+            // and the scorch decal is gone, so this station wants clear air all round it rather than
+            // floor. Its smoke lives 1.3 s, the longest layer here.
+            Pair.SpawnOffset = FVector(0, 0, 140);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "EXPLOSION OMNI (ICE)";
+            Pair.CkStationTag = n"Gym.VfxExamples.ExplosionOmniIce.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.ExplosionOmniIce.Original";
+            Pair.BehaviorId = 43;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_ExplosionIceOmni");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_ExplosionIceOmni");
+            Pair.OriginalAssetName = "NS_ExplosionIceOmni";
+            Pair.Credit = "Original: Vefects NS_ExplosionIceOmni";
+            // The airburst recoloured. Two layers also live 50 % longer here (the bubble and the
+            // spikes, 0.1 s -> 0.15 s), which is the one non-colour difference worth looking for.
+            Pair.SpawnOffset = FVector(0, 0, 140);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "BOMB EXPLOSION";
+            Pair.CkStationTag = n"Gym.VfxExamples.BombExplosion.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.BombExplosion.Original";
+            Pair.BehaviorId = 44;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Bomb_Explosion");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Bomb_Explosion");
+            Pair.OriginalAssetName = "NS_Bomb_Explosion";
+            Pair.Credit = "Original: Vefects NS_Bomb_Explosion";
+            // The batch's giant: 162 particles over 23 emitters, all of it over inside half a second.
+            // Its five shells are CAMERA-FACING meshes, so the read changes as you orbit the station —
+            // walk around it rather than judging from one angle.
+            Pair.SpawnOffset = FVector(0, 0, 60);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -592,5 +687,15 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.BuffCast.Original");
         GameplayTags.Add(n"Gym.VfxExamples.LightningMuzzle.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.LightningMuzzle.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.ExplosionGround.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.ExplosionGround.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.ExplosionGroundIce.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.ExplosionGroundIce.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.ExplosionOmni.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.ExplosionOmni.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.ExplosionOmniIce.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.ExplosionOmniIce.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.BombExplosion.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.BombExplosion.Original");
     }
 }
