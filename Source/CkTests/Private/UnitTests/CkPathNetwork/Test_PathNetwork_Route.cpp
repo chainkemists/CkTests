@@ -7,6 +7,8 @@
 #include "CkPathNetwork/Network/CkPathNetwork_RouteGraph.h"
 #include "CkPathNetwork/Network/CkPathNetwork_Types.h"
 
+#include <HAL/PlatformTime.h>
+
 #include <limits>
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -444,6 +446,60 @@ bool FCk_PathNetwork_Route_RepriceDemotesBlockedExit::RunTest(const FString& Par
             Result.Path.Contains(FRouteNodeId{ERouteNodeKind::OverlayPoint, FarExit}));
     }
 
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Route_RepriceDemotesBlockedDirect,
+    "Ck.PathNetwork.Route.RepriceDemotesBlockedDirect",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Route_RepriceDemotesBlockedDirect::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_route;
+    using namespace ck::pathnetwork;
+
+    const auto Network = MakeStraightNetwork();
+    const auto StartLocation = FVector{0, 100, 0};
+    const auto GoalLocation = FVector{4000, 100, 0};
+    const auto Policy = MakeEndpointAwarePolicy(
+        1.5f,
+        1.0f,
+        1200.0f,
+        500.0f);
+    auto Shared = Build_RouteGraphSharedData(
+        Network,
+        StartLocation,
+        GoalLocation,
+        Policy);
+
+    const auto DirectPlan = Search_RouteGraph(
+        Network,
+        StartLocation,
+        GoalLocation,
+        Policy,
+        Shared);
+    TestTrue(TEXT("direct plan succeeds before reprice"), DirectPlan._Succeeded);
+    TestEqual(TEXT("direct plan has only start and goal"), DirectPlan._Path.Num(), 2);
+
+    Shared->_RepricedOffPathCosts.Add(
+        FRouteGraph::PackOffPathKey(
+            FRouteNodeId{ERouteNodeKind::Start, 0},
+            FRouteNodeId{ERouteNodeKind::Goal, 0}),
+        TNumericLimits<float>::Max() / 8.0f);
+
+    const auto NetworkPlan = Search_RouteGraph(
+        Network,
+        StartLocation,
+        GoalLocation,
+        Policy,
+        Shared);
+    TestTrue(TEXT("network plan succeeds after direct reprice"), NetworkPlan._Succeeded);
+    TestTrue(TEXT("network plan uses sidewalk after direct reprice"), Uses_Network(NetworkPlan));
+    TestTrue(TEXT("network plan contains more than start and goal"), NetworkPlan._Path.Num() > 2);
     return true;
 }
 
@@ -1936,5 +1992,277 @@ bool FCk_PathNetwork_Route_LocalNetworkShortcutDensityBudget::RunTest(
     TestTrue(
         TEXT("budget diagnostic preserves the observed candidate count"),
         Shared->_LocalNetworkShortcutCandidateCount > 8192);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Route_StaticAugmentationSeedIsolation,
+    "Ck.PathNetwork.Route.StaticAugmentation.SeedIsolation",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Route_StaticAugmentationSeedIsolation::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_route;
+    using namespace ck::pathnetwork;
+
+    const auto Network = MakeRepeatedDisconnectedGapNetwork(
+        12,
+        1000.0,
+        200.0);
+    auto Policy = MakeEndpointAwarePolicy(
+        1.5f,
+        8.0f,
+        1500.0f,
+        0.0f,
+        250.0f,
+        0.0f,
+        2500.0f);
+    Policy._NetworkGapCostMultiplier = 3.0f;
+    const auto Start = FVector{0.0, 0.0, 0.0};
+    const auto Goal = FVector{11000.0, 200.0, 0.0};
+
+    const auto Uncached = Build_RouteGraphSharedData(
+        Network,
+        Start,
+        Goal,
+        Policy);
+    const auto StaticData = Build_RouteGraphStaticData(
+        Network,
+        Policy);
+    const auto Cached = Build_RouteGraphSharedData(
+        Network,
+        Start,
+        Goal,
+        Policy,
+        StaticData);
+    const auto StaticOverlayCount =
+        StaticData->_OverlayPoints.Num();
+
+    Uncached->_AllowDirectStartToGoal = false;
+    Cached->_AllowDirectStartToGoal = false;
+    const auto UncachedPlan = Search_RouteGraph(
+        Network,
+        Start,
+        Goal,
+        Policy,
+        Uncached);
+    const auto CachedPlan = Search_RouteGraph(
+        Network,
+        Start,
+        Goal,
+        Policy,
+        Cached);
+
+    TestTrue(
+        TEXT("uncached and cached plans both succeed"),
+        UncachedPlan._Succeeded
+            && CachedPlan._Succeeded);
+    TestTrue(
+        TEXT("cached seed preserves route node sequence"),
+        CachedPlan._Path == UncachedPlan._Path);
+    TestTrue(
+        TEXT("cached seed preserves route cost"),
+        FMath::IsNearlyEqual(
+            CachedPlan._EstimatedCost,
+            UncachedPlan._EstimatedCost));
+    TestEqual(
+        TEXT("cached seed preserves route span count"),
+        CachedPlan._Spans.Num(),
+        UncachedPlan._Spans.Num());
+
+    Cached->_RepricedOffPathCosts.Add(1234, 5678.0f);
+    Cached->_AllowDirectStartToGoal = false;
+    const auto SecondQuery = Build_RouteGraphSharedData(
+        Network,
+        FVector{1000.0, 0.0, 0.0},
+        FVector{10000.0, 200.0, 0.0},
+        Policy,
+        StaticData);
+    TestTrue(
+        TEXT("query-local repricing does not leak into static seed"),
+        SecondQuery->_RepricedOffPathCosts.IsEmpty());
+    TestTrue(
+        TEXT("query-local direct fallback state does not leak into static seed"),
+        SecondQuery->_AllowDirectStartToGoal);
+    TestEqual(
+        TEXT("endpoint overlays do not mutate static seed"),
+        StaticData->_OverlayPoints.Num(),
+        StaticOverlayCount);
+
+    auto InvalidPolicy = Policy;
+    InvalidPolicy._NetworkGapCostMultiplier =
+        std::numeric_limits<float>::quiet_NaN();
+    TestFalse(
+        TEXT("invalid construction policy is not cache-keyable"),
+        FRouteGraphStaticDataKey::TryFromPolicy(
+            InvalidPolicy)
+            .IsSet());
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Route_StaticAugmentationPerf,
+    "Ck.PathNetwork.Perf.StaticAugmentation",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Route_StaticAugmentationPerf::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_route;
+    using namespace ck::pathnetwork;
+
+    // Two long, disconnected sidewalk components produce both component-transfer
+    // candidates and same-component local-shortcut candidates. The 480-node scale
+    // is representative of a substantial baked map while remaining deterministic.
+    constexpr auto NodeCountPerComponent = 240;
+    constexpr auto Spacing = 1000.0;
+    constexpr auto GapDistance = 200.0;
+    constexpr auto WarmupQueryCount = 2;
+    constexpr auto MeasuredQueryCount = 12;
+    const auto Network = MakeRepeatedDisconnectedGapNetwork(
+        NodeCountPerComponent,
+        Spacing,
+        GapDistance);
+    auto Policy = MakeEndpointAwarePolicy(
+        1.5f,
+        8.0f,
+        1500.0f,
+        0.0f,
+        250.0f,
+        0.0f,
+        4500.0f);
+    Policy._NetworkGapCostMultiplier = 3.0f;
+
+    const auto BuildQuery =
+        [&](const int32 InQueryIndex)
+        {
+            const auto StartX =
+                static_cast<double>(
+                    InQueryIndex % (NodeCountPerComponent - 1))
+                * Spacing;
+            const auto GoalX =
+                static_cast<double>(
+                    (NodeCountPerComponent - 1)
+                    - (InQueryIndex % (NodeCountPerComponent - 1)))
+                * Spacing;
+            return Build_RouteGraphSharedData(
+                Network,
+                FVector{StartX, 0.0, 0.0},
+                FVector{GoalX, GapDistance, 0.0},
+                Policy);
+        };
+
+    for (auto QueryIndex = 0;
+         QueryIndex < WarmupQueryCount;
+         ++QueryIndex)
+    { BuildQuery(QueryIndex); }
+
+    auto DiagnosticChecksum = 0;
+    const auto StartSeconds = FPlatformTime::Seconds();
+    for (auto QueryIndex = 0;
+         QueryIndex < MeasuredQueryCount;
+         ++QueryIndex)
+    {
+        const auto Shared = BuildQuery(
+            QueryIndex + WarmupQueryCount);
+        DiagnosticChecksum +=
+            Shared->_ComponentTransferCandidateCount
+            + Shared->_LocalNetworkShortcutCandidateCount
+            + Shared->_OverlayPoints.Num();
+    }
+    const auto ElapsedMilliseconds =
+        (FPlatformTime::Seconds() - StartSeconds) * 1000.0;
+
+    const auto PerfSummary = FString::Printf(
+        TEXT("[CkPathNetwork PERF][StaticAugmentation] queries=%d nodes=%d edges=%d total=%.3f ms avg=%.3f ms checksum=%d"),
+        MeasuredQueryCount,
+        Network._Nodes.Num(),
+        Network._Edges.Num(),
+        ElapsedMilliseconds,
+        ElapsedMilliseconds
+            / static_cast<double>(MeasuredQueryCount),
+        DiagnosticChecksum);
+    AddInfo(PerfSummary);
+    UE_LOG(LogTemp, Display, TEXT("%s"), *PerfSummary);
+
+    const auto StaticData = Build_RouteGraphStaticData(
+        Network,
+        Policy);
+    const auto BuildCachedQuery =
+        [&](const int32 InQueryIndex)
+        {
+            const auto StartX =
+                static_cast<double>(
+                    InQueryIndex % (NodeCountPerComponent - 1))
+                * Spacing;
+            const auto GoalX =
+                static_cast<double>(
+                    (NodeCountPerComponent - 1)
+                    - (InQueryIndex % (NodeCountPerComponent - 1)))
+                * Spacing;
+            return Build_RouteGraphSharedData(
+                Network,
+                FVector{StartX, 0.0, 0.0},
+                FVector{GoalX, GapDistance, 0.0},
+                Policy,
+                StaticData);
+        };
+    for (auto QueryIndex = 0;
+         QueryIndex < WarmupQueryCount;
+         ++QueryIndex)
+    { BuildCachedQuery(QueryIndex); }
+
+    auto CachedDiagnosticChecksum = 0;
+    const auto CachedStartSeconds =
+        FPlatformTime::Seconds();
+    for (auto QueryIndex = 0;
+         QueryIndex < MeasuredQueryCount;
+         ++QueryIndex)
+    {
+        const auto Shared = BuildCachedQuery(
+            QueryIndex + WarmupQueryCount);
+        CachedDiagnosticChecksum +=
+            Shared->_ComponentTransferCandidateCount
+            + Shared->_LocalNetworkShortcutCandidateCount
+            + Shared->_OverlayPoints.Num();
+    }
+    const auto CachedElapsedMilliseconds =
+        (FPlatformTime::Seconds()
+            - CachedStartSeconds)
+        * 1000.0;
+    const auto CachedPerfSummary =
+        FString::Printf(
+            TEXT("[CkPathNetwork PERF][CachedStaticAugmentation] queries=%d nodes=%d edges=%d total=%.3f ms avg=%.3f ms checksum=%d"),
+            MeasuredQueryCount,
+            Network._Nodes.Num(),
+            Network._Edges.Num(),
+            CachedElapsedMilliseconds,
+            CachedElapsedMilliseconds
+                / static_cast<double>(
+                    MeasuredQueryCount),
+            CachedDiagnosticChecksum);
+    AddInfo(CachedPerfSummary);
+    UE_LOG(
+        LogTemp,
+        Display,
+        TEXT("%s"),
+        *CachedPerfSummary);
+
+    TestEqual(
+        TEXT("fixture has the intended node count"),
+        Network._Nodes.Num(),
+        NodeCountPerComponent * 2);
+    TestTrue(
+        TEXT("static augmentation produced route diagnostics"),
+        DiagnosticChecksum > 0);
+    TestEqual(
+        TEXT("cached static augmentation preserves route diagnostics"),
+        CachedDiagnosticChecksum,
+        DiagnosticChecksum);
     return true;
 }

@@ -4,6 +4,7 @@
 #include "CkPathNetwork/Network/CkPathNetwork_CorridorCompile.h"
 #include "CkPathNetwork/Network/CkPathNetwork_RouteGraph.h"
 #include "CkPathNetwork/Network/CkPathNetwork_Types.h"
+#include "CkPathNetwork/Network/CkPathNetwork_Utils.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 // Pure corridor-compiler tests. These deliberately use only hand-authored ribbons and route spans:
@@ -96,6 +97,294 @@ namespace ck_test_pathnetwork_corridor
             return InPoint.Equals(InExpected, InTolerance);
         });
     }
+
+    auto CountStrictSelfIntersections2D(const TArray<FVector>& InPath) -> int32
+    {
+        const auto Orientation =
+            [](const FVector& InA, const FVector& InB, const FVector& InC)
+            {
+                const auto AB = FVector2D{InB - InA};
+                const auto AC = FVector2D{InC - InA};
+                return AB.X * AC.Y - AB.Y * AC.X;
+            };
+        const auto HasOppositeOrientation =
+            [](const double InA, const double InB)
+            { return (InA > 0.01 && InB < -0.01) || (InA < -0.01 && InB > 0.01); };
+
+        auto Count = 0;
+        for (auto SegmentA = 0; SegmentA + 1 < InPath.Num(); ++SegmentA)
+        {
+            for (auto SegmentB = SegmentA + 2; SegmentB + 1 < InPath.Num(); ++SegmentB)
+            {
+                if (HasOppositeOrientation(
+                        Orientation(InPath[SegmentA], InPath[SegmentA + 1], InPath[SegmentB]),
+                        Orientation(InPath[SegmentA], InPath[SegmentA + 1], InPath[SegmentB + 1])) &&
+                    HasOppositeOrientation(
+                        Orientation(InPath[SegmentB], InPath[SegmentB + 1], InPath[SegmentA]),
+                        Orientation(InPath[SegmentB], InPath[SegmentB + 1], InPath[SegmentA + 1])))
+                { ++Count; }
+            }
+        }
+        return Count;
+    }
+
+    auto Get_MaximumPlanarDistanceFromChord(const TArray<FVector>& InPath) -> float
+    {
+        if (InPath.Num() < 2)
+        { return TNumericLimits<float>::Max(); }
+
+        auto MaximumDistance = 0.0f;
+        for (const auto& Point : InPath)
+        {
+            const auto Closest = FMath::ClosestPointOnSegment(
+                Point,
+                InPath[0],
+                InPath.Last());
+            MaximumDistance = FMath::Max(
+                MaximumDistance,
+                static_cast<float>(FVector::Dist2D(Point, Closest)));
+        }
+        return MaximumDistance;
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Corridor_ValidatesPostNavRibbonTolerance,
+    "Ck.PathNetwork.Corridor.ValidatesPostNavRibbonTolerance",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Corridor_ValidatesPostNavRibbonTolerance::RunTest(
+    const FString& Parameters)
+{
+    auto Tuning = FCk_PathNetworkFollower_Tuning{};
+    TestTrue(
+        TEXT("packaged default post-nav ribbon tolerance is valid"),
+        UCk_Utils_PathNetworkFollower_UE::Get_IsTuningValid(Tuning));
+    TestEqual(
+        TEXT("packaged default post-nav ribbon tolerance is ten centimeters"),
+        Tuning.Get_NavmeshResolvedRibbonTolerance(),
+        10.0f);
+
+    Tuning.Set_NavmeshResolvedRibbonTolerance(100.01f);
+    TestFalse(
+        TEXT("out-of-range post-nav ribbon tolerance is rejected"),
+        UCk_Utils_PathNetworkFollower_UE::Get_IsTuningValid(Tuning));
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Corridor_AvoidsSideOffsetLoopsOnRasterCurve,
+    "Ck.PathNetwork.Corridor.AvoidsSideOffsetLoopsOnRasterCurve",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Corridor_AvoidsSideOffsetLoopsOnRasterCurve::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_corridor;
+
+    const auto Network = MakeNetwork(
+        {
+            FVector{0, 0, 0},
+            FVector{0, 100, 0},
+            FVector{100, 100, 0},
+            FVector{100, 200, 0},
+            FVector{200, 200, 0},
+            FVector{200, 300, 0},
+            FVector{300, 300, 0},
+            FVector{300, 400, 0},
+            FVector{400, 400, 0},
+            FVector{400, 500, 0}
+        },
+        {
+            250.0f, 250.0f, 250.0f, 250.0f, 250.0f,
+            250.0f, 250.0f, 250.0f, 250.0f, 250.0f
+        });
+    const auto Run = MakeFullEdgeRun(Network);
+    const auto CenteredPath = Compile_OnRibbonRun(
+        Network,
+        Run,
+        MakeParams(250.0f, 150.0f, 0.0f));
+    const auto Path = Compile_OnRibbonRun(
+        Network,
+        Run,
+        MakeParams(250.0f, 150.0f, 0.5f));
+
+    TestTrue(TEXT("raster-scale curve still compiles"), Path.Num() >= 2);
+    TestTrue(
+        TEXT("alternating raster controls collapse to their contained chord"),
+        Get_MaximumPlanarDistanceFromChord(CenteredPath) <= 1.0f);
+    auto RetainedSideKeeping = false;
+    if (Path.Num() == CenteredPath.Num())
+    {
+        for (auto Index = 0; Index < Path.Num(); ++Index)
+        {
+            if (NOT Path[Index].Equals(CenteredPath[Index], KINDA_SMALL_NUMBER))
+            {
+                RetainedSideKeeping = true;
+                break;
+            }
+        }
+    }
+    TestTrue(
+        TEXT("safe simplified curve retains requested side keeping"),
+        RetainedSideKeeping);
+    TestEqual(
+        TEXT("side keeping cannot fold a raster-scale curve across itself"),
+        CountStrictSelfIntersections2D(Path),
+        0);
+    TestContainedSegments(*this, Network, Run, Path);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Corridor_PreservesVerticalProfileOnRasterTurn,
+    "Ck.PathNetwork.Corridor.PreservesVerticalProfileOnRasterTurn",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Corridor_PreservesVerticalProfileOnRasterTurn::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_corridor;
+
+    const auto Network = MakeNetwork(
+        {
+            FVector{0, 0, 0},
+            FVector{0, 100, 0},
+            FVector{100, 100, 100},
+            FVector{100, 200, 100},
+            FVector{200, 200, 0}
+        },
+        {250.0f, 250.0f, 250.0f, 250.0f, 250.0f});
+    const auto Run = MakeFullEdgeRun(Network);
+    const auto Path = Compile_OnRibbonRun(
+        Network,
+        Run,
+        MakeParams(100.0f, 150.0f, 0.0f));
+
+    auto MaximumHeight = -TNumericLimits<float>::Max();
+    for (const auto& Waypoint : Path)
+    { MaximumHeight = FMath::Max(MaximumHeight, static_cast<float>(Waypoint.Z)); }
+
+    TestTrue(TEXT("graded raster route still compiles"), Path.Num() >= 2);
+    TestTrue(
+        TEXT("raster simplification preserves the authored vertical profile"),
+        MaximumHeight >= 75.0f);
+    TestContainedSegments(*this, Network, Run, Path);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Corridor_PreservesSideKeepingAcrossOverpass,
+    "Ck.PathNetwork.Corridor.PreservesSideKeepingAcrossOverpass",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Corridor_PreservesSideKeepingAcrossOverpass::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_corridor;
+
+    const auto Network = MakeNetwork(
+        {
+            FVector{-300, -300, 0},
+            FVector{300, 300, 0},
+            FVector{300, -300, 300},
+            FVector{-300, 300, 300}
+        },
+        {250.0f, 250.0f, 250.0f, 250.0f});
+    const auto Run = MakeFullEdgeRun(Network);
+    const auto CenteredPath = Compile_OnRibbonRun(
+        Network,
+        Run,
+        MakeParams(100.0f, 0.0f, 0.0f));
+    const auto SideKeptPath = Compile_OnRibbonRun(
+        Network,
+        Run,
+        MakeParams(100.0f, 0.0f, 0.5f));
+
+    TestTrue(TEXT("overpass route still compiles"), SideKeptPath.Num() >= 2);
+    TestEqual(
+        TEXT("overpass side-kept and centered paths have comparable sampling"),
+        SideKeptPath.Num(),
+        CenteredPath.Num());
+    auto RetainedSideKeeping = false;
+    if (SideKeptPath.Num() == CenteredPath.Num())
+    {
+        for (auto Index = 0; Index < SideKeptPath.Num(); ++Index)
+        {
+            if (NOT SideKeptPath[Index].Equals(CenteredPath[Index], KINDA_SMALL_NUMBER))
+            {
+                RetainedSideKeeping = true;
+                break;
+            }
+        }
+    }
+    TestTrue(
+        TEXT("vertical separation preserves requested side keeping"),
+        RetainedSideKeeping);
+    TestContainedSegments(*this, Network, Run, SideKeptPath);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Corridor_AcceptsProjectionSlackButRejectsEscape,
+    "Ck.PathNetwork.Corridor.AcceptsProjectionSlackButRejectsEscape",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Corridor_AcceptsProjectionSlackButRejectsEscape::RunTest(
+    const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_corridor;
+
+    const auto Network = MakeNetwork(
+        {FVector{0, 0, 0}, FVector{500, 0, 0}},
+        {100.0f, 100.0f});
+    const auto Run = MakeFullEdgeRun(Network);
+
+    TestTrue(
+        TEXT("nav-projection noise within the shared tolerance remains in the ribbon"),
+        Is_SegmentInsideRibbonRun(
+            Network,
+            Run,
+            FVector{0, 101.36, 0},
+            FVector{500, 101.36, 0}));
+    TestFalse(
+        TEXT("a segment beyond the shared tolerance still leaves the ribbon"),
+        Is_SegmentInsideRibbonRun(
+            Network,
+            Run,
+            FVector{0, 102.25, 0},
+            FVector{500, 102.25, 0}));
+    TestFalse(
+        TEXT("the live resolved-nav miss remains outside strict compiled containment"),
+        Is_SegmentInsideRibbonRun(
+            Network,
+            Run,
+            FVector{0, 105.66, 0},
+            FVector{500, 105.66, 0},
+            RibbonContainmentSampleSpacingCm,
+            RibbonContainmentToleranceCm));
+    TestTrue(
+        TEXT("the packaged post-nav allowance accepts the live resolved-nav miss"),
+        Is_SegmentInsideRibbonRun(
+            Network,
+            Run,
+            FVector{0, 105.66, 0},
+            FVector{500, 105.66, 0},
+            RibbonContainmentSampleSpacingCm,
+            RibbonContainmentToleranceCm +
+                FCk_PathNetworkFollower_Tuning{}
+                    .Get_NavmeshResolvedRibbonTolerance()));
+    return true;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
