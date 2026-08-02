@@ -53,6 +53,15 @@ namespace ck_test_usf_niagara_sprite_contract
     // fail here.
     constexpr auto kOpaqueParticleLookName = TEXT("BombToon");
 
+    // The FresnelBomb family — the explosion batch's shell looks. Three parameterizations of ONE new shader, all
+    // three on a mesh-particle renderer and all three TRANSLUCENT, which is the pair BombToon cannot prove: it is
+    // the only opaque mesh-particle look, so a generator that pinned blend mode to the renderer class rather than
+    // to the look would pass every assertion above.
+    constexpr const TCHAR* kFresnelFamilyLookNames[] =
+    {
+        TEXT("ExpFresnelBomb01"), TEXT("ExpFresnelBomb02"), TEXT("ExpFresnelBomb03"),
+    };
+
     // The three Niagara usages are separate engine bits, so the roster is checked as a whole: every look that
     // declares one must NOT gain the other two. Ribbon is the newest and has no consumer yet, so its positive
     // arm RATCHETS — it asserts against whichever look opts in first and reports the empty state until then,
@@ -367,6 +376,53 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
                     static_cast<int32>(RibbonLook->_UsedWithNiagaraMeshParticles));
             }
         }
+    }
+
+    // ---- 3f. The FresnelBomb family: a whole family of TRANSLUCENT mesh-particle looks ----
+    // Every look is checked, not one representative, because the family exists to be three parameterizations of
+    // one shader — a generator that dropped a flag on the second and third would be invisible to a spot check.
+    for (const auto* FresnelName : kFresnelFamilyLookNames)
+    {
+        auto* FresnelLook = Find_LookNamed(Definitions, FresnelName);
+        if (TestNotNull(*FString::Printf(TEXT("the %s look definition exists"), FresnelName), FresnelLook) == false)
+        { continue; }
+
+        TestTrue(*FString::Printf(TEXT("%s opts into _UsedWithNiagaraMeshParticles"), FresnelName),
+            FresnelLook->_UsedWithNiagaraMeshParticles);
+        TestFalse(*FString::Printf(TEXT("%s does NOT opt into _UsedWithNiagaraSprites"), FresnelName),
+            FresnelLook->_UsedWithNiagaraSprites);
+        TestTrue(*FString::Printf(TEXT("%s opts into _ParticleColor"), FresnelName), FresnelLook->_ParticleColor);
+        TestTrue(*FString::Printf(TEXT("%s opts into _ParticleDynamicParameter"), FresnelName),
+            FresnelLook->_ParticleDynamicParameter);
+
+        auto* FresnelMaster = ck::usf_editor::Generate_LookMaterial(FresnelLook);
+        if (TestNotNull(*FString::Printf(TEXT("%s generates a master material"), FresnelName), FresnelMaster) == false)
+        { continue; }
+
+        TestTrue(*FString::Printf(TEXT("%s's master declares bUsedWithNiagaraMeshParticles"), FresnelName),
+            FresnelMaster->bUsedWithNiagaraMeshParticles != 0);
+        TestFalse(*FString::Printf(TEXT("%s's master does not gain sprite usage"), FresnelName),
+            FresnelMaster->bUsedWithNiagaraSprites != 0);
+        TestFalse(*FString::Printf(TEXT("%s's master does not gain ribbon usage"), FresnelName),
+            FresnelMaster->bUsedWithNiagaraRibbons != 0);
+
+        // A shell that renders opaque is not a shell — the layer under it disappears.
+        TestEqual(*FString::Printf(TEXT("%s's master is translucent"), FresnelName),
+            static_cast<int32>(FresnelMaster->BlendMode.GetValue()), static_cast<int32>(BLEND_Translucent));
+
+        const auto* FresnelCustom = Find_CustomNode(FresnelMaster);
+        TestEqual(*FString::Printf(TEXT("%s has ParticleColor connected"), FresnelName),
+            static_cast<int32>(Get_CustomInputState(FresnelCustom, TEXT("ParticleColor"))),
+            static_cast<int32>(ECk_InputState::Connected));
+        TestEqual(*FString::Printf(TEXT("%s has ParticleAlpha connected"), FresnelName),
+            static_cast<int32>(Get_CustomInputState(FresnelCustom, TEXT("ParticleAlpha"))),
+            static_cast<int32>(ECk_InputState::Connected));
+
+        // The dissolve rides channel 0 and the whole family animates through it, so a dead DynParam0 would
+        // freeze every bubble fully intact for its entire life.
+        TestEqual(*FString::Printf(TEXT("%s has DynParam0 connected"), FresnelName),
+            static_cast<int32>(Get_CustomInputState(FresnelCustom, TEXT("DynParam0"))),
+            static_cast<int32>(ECk_InputState::Connected));
     }
 
     // ---- 4. Prove the negative: no look that did NOT opt in gained the flags or the pins ----
