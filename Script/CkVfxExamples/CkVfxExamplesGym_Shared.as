@@ -603,6 +603,25 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "LIGHTNING HIT";
+            Pair.CkStationTag = n"Gym.VfxExamples.LightningHit.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.LightningHit.Original";
+            Pair.BehaviorId = 45;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Lightning_Hit");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Lightning_Hit");
+            Pair.OriginalAssetName = "NS_Lightning_Hit";
+            Pair.Credit = "Original: Vefects NS_Lightning_Hit";
+            // The everything-effect: 22 emitters through every renderer class the pipeline has. It is a
+            // GROUND impact, so judge it from the two flat decals up — and note that seven of its layers
+            // are WORLD-space in the source and LOCAL here, which is invisible at a stationary pedestal.
+            Pair.SpawnOffset = FVector(0, 0, 20);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -697,5 +716,7 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.ExplosionOmniIce.Original");
         GameplayTags.Add(n"Gym.VfxExamples.BombExplosion.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.BombExplosion.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.LightningHit.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.LightningHit.Original");
     }
 }
