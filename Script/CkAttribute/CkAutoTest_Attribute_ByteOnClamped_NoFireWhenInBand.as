@@ -73,13 +73,8 @@ class UCk_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand : UCk_AutoTest_Base
         Assert_Equals_Int(_ClampedCount, 0,
             "OnMaxClamped should NOT fire when override lands in-band (30 within [0,100])");
 
-<<<<<<< HEAD
         utils_byte_attribute::Request_Override(_Attr, 200, ECk_MinMaxCurrent::Current);
-        WaitOneFrame(n"AfterAboveMax");
-=======
-        utils_byte_attribute::Request_Override(_Attr, 200);
         WaitUntil(n"Check_ClampFired", n"AfterAboveMax");
->>>>>>> 65c7fe7 (test(CkAttribute): convert the clamp-band negatives via an exact witness)
     }
 
     UFUNCTION()
