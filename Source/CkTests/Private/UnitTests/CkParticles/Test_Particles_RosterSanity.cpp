@@ -111,6 +111,21 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
                 Renderer.VisTag > ck::particles::SharedRendererVisTag_Max);
             TestNotNull(*FString::Printf(TEXT("row [%s] renderer VisTag %d names a CkUsf look"),
                 Spec.AssetName, Renderer.VisTag), Renderer.LookName);
+
+            // Only the Mesh kind indexes a generated mesh; the three sprite kinds must NOT name one, or the
+            // row reads as if it declared a carrier the builder will never load.
+            const auto IsMeshKind  = Renderer.Kind == ck::particles::ECk_ParticlesRenderer_Kind::Mesh;
+            const auto NamesAMesh  = Renderer.MeshName != nullptr;
+            TestTrue(*FString::Printf(TEXT("row [%s] renderer VisTag %d names a mesh only when it is a mesh kind"),
+                Spec.AssetName, Renderer.VisTag), NamesAMesh == IsMeshKind);
+
+            // A partially declared grid divides one axis and not the other — the renderer would draw a sliver
+            // of every frame instead of one frame. Either both axes are declared or neither is.
+            const auto& Sheet = Renderer.SubImageSize;
+            const auto  SheetIsDeclared = Sheet.X > 0 && Sheet.Y > 0;
+            const auto  SheetIsAbsent   = Sheet.X == 0 && Sheet.Y == 0;
+            TestTrue(*FString::Printf(TEXT("row [%s] renderer VisTag %d declares a whole SubImageSize grid or none [%d x %d]"),
+                Spec.AssetName, Renderer.VisTag, Sheet.X, Sheet.Y), SheetIsDeclared || SheetIsAbsent);
         }
     }
 
@@ -137,6 +152,10 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
     // by calling an assertion per sample — a per-sample TestTrue would format thousands of strings for a
     // green run and drown a red one in noise.
     auto NumViolations = 0;
+    // HDR is the whole point of an additive VFX pipeline: the emissive keys the behaviors carry run far above
+    // 1 and nothing between the CPU mirror and Particles.Color may clamp them. Observing the brightest channel
+    // across the sweep proves the float path is intact — a clamp anywhere would pin this at exactly 1.
+    auto BrightestChannel = 0.0f;
     const auto Report = [&](bool InOk, const FString& InWhat) -> void
     {
         if (InOk)
@@ -164,7 +183,14 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
                     const auto Finite =
                         Is_Finite(Out.Position) && Is_Finite(Out.Velocity) && Is_Finite(Out.Color) &&
                         Is_Finite(Out.Size) && Is_Finite(Out.Scale) && Is_Finite(Out.Dynamic) &&
-                        FMath::IsFinite(Out.Rotation);
+                        FMath::IsFinite(Out.Rotation) && FMath::IsFinite(Out.SubImageIndex);
+
+                    BrightestChannel = FMath::Max(BrightestChannel,
+                        FMath::Max3(Out.Color.R, Out.Color.G, Out.Color.B));
+
+                    // A negative frame index samples off the front of the sheet; every renderer that reads it
+                    // divides a grid whose frames start at 0.
+                    const auto SubImageIsSane = Out.SubImageIndex >= 0.0f;
 
                     // A negative quad extent flips winding rather than shrinking — never intended.
                     const auto SizeIsSane = Out.Size.X >= 0.0f && Out.Size.Y >= 0.0f;
@@ -186,7 +212,8 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
                         (Out.SpriteAlignment.SizeSquared() > kTolerance && Out.SpriteFacing.SizeSquared() > kTolerance);
 
                     const auto AllSane = Finite && SizeIsSane && AlphaIsSane && VisTagIsSane &&
-                        MeshIndexIsSane && SpriteVectorsAreSane && Out.Orientation.IsNormalized();
+                        MeshIndexIsSane && SpriteVectorsAreSane && SubImageIsSane &&
+                        Out.Orientation.IsNormalized();
 
                     if (AllSane)
                     { continue; }
@@ -201,6 +228,7 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
                     Report(VisTagIsSane,           FString::Printf(TEXT("%s: VisTag %d is outside the renderer set"), *Context, Out.VisTag));
                     Report(MeshIndexIsSane,        FString::Printf(TEXT("%s: MeshIndex %d is outside the carrier mesh set"), *Context, Out.MeshIndex));
                     Report(SpriteVectorsAreSane,   FString::Printf(TEXT("%s: degenerate sprite alignment/facing pair on VisTag 4"), *Context));
+                    Report(SubImageIsSane,         FString::Printf(TEXT("%s: SubImageIndex %f is negative"), *Context, Out.SubImageIndex));
                     Report(Out.Orientation.IsNormalized(), FString::Printf(TEXT("%s: orientation quaternion is not normalized"), *Context));
                 }
             }
@@ -209,6 +237,12 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
 
     TestEqual(TEXT("no behavior produced unrenderable output across the age/lifetime/seed sweep"),
         NumViolations, 0);
+
+    // Well above any plausible clamp point, and far below the brightest key the roster actually carries
+    // (behavior 15 emits 135) — so this fails on a clamp, not on a behavior being retuned.
+    constexpr auto HdrKeyFloor = 5.0f;
+    TestTrue(*FString::Printf(TEXT("HDR colour keys survive the stage pipeline unclamped (brightest observed %f)"),
+        BrightestChannel), BrightestChannel > HdrKeyFloor);
 
     return true;
 }

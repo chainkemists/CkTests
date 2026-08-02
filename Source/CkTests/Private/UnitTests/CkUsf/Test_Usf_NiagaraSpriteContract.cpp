@@ -43,6 +43,16 @@ namespace ck_test_usf_niagara_sprite_contract
     // which is exactly the pair that proves the flags are independent rather than one flag under two names.
     constexpr auto kMeshParticleLookName = TEXT("SlashDisAdd01");
 
+    // The FlatAdd family's one parameterization: a sprite look that reads Particle Color but declares NO
+    // dynamic parameter. It is the only shape in the roster that proves the two particle inputs are separately
+    // opt-in — every look that predates it takes both, so a generator wiring them together would still pass.
+    constexpr auto kNoDynamicParamLookName = TEXT("FlatAdd02");
+
+    // The toon-banded prop family: OPAQUE, and on a mesh-particle renderer. Its blend mode is the thing to
+    // watch — the particle families are all translucent, so a generator that assumed translucency would only
+    // fail here.
+    constexpr auto kOpaqueParticleLookName = TEXT("BombToon");
+
     // The SOURCE material (M_VFX_DisAdd_Ring04) declares these channel names; the look takes them verbatim
     // so the emitter and the shader agree by construction. Built on call rather than at namespace scope —
     // an FString array there would run a dynamic initializer during static init.
@@ -249,6 +259,62 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
                     static_cast<int32>(ECk_InputState::Connected));
                 TestEqual(TEXT("mesh-particle look has DynParam0 connected"),
                     static_cast<int32>(Get_CustomInputState(MeshCustom, TEXT("DynParam0"))),
+                    static_cast<int32>(ECk_InputState::Connected));
+            }
+        }
+    }
+
+    // ---- 3c. ParticleColor without a dynamic parameter: the two inputs are independently opt-in ----
+    {
+        auto* FlatLook = Find_LookNamed(Definitions, kNoDynamicParamLookName);
+        if (TestNotNull(*FString::Printf(TEXT("the %s look definition exists"), kNoDynamicParamLookName), FlatLook))
+        {
+            TestTrue(TEXT("FlatAdd02 opts into _UsedWithNiagaraSprites"), FlatLook->_UsedWithNiagaraSprites);
+            TestTrue(TEXT("FlatAdd02 opts into _ParticleColor"),          FlatLook->_ParticleColor);
+            TestFalse(TEXT("FlatAdd02 declares NO dynamic parameter"),    FlatLook->_ParticleDynamicParameter);
+
+            if (auto* FlatMaster = ck::usf_editor::Generate_LookMaterial(FlatLook);
+                TestNotNull(TEXT("FlatAdd02 generates a master material"), FlatMaster))
+            {
+                TestTrue(TEXT("generated master declares bUsedWithNiagaraSprites"),
+                    FlatMaster->bUsedWithNiagaraSprites != 0);
+
+                const auto* FlatCustom = Find_CustomNode(FlatMaster);
+                TestEqual(TEXT("FlatAdd02 has ParticleColor connected"),
+                    static_cast<int32>(Get_CustomInputState(FlatCustom, TEXT("ParticleColor"))),
+                    static_cast<int32>(ECk_InputState::Connected));
+
+                // The pin must be ABSENT, not merely unconnected: an unopted input still costs a Custom-node
+                // slot the look's parameter list never accounts for.
+                TestEqual(TEXT("FlatAdd02 has no DynParam0 input at all"),
+                    static_cast<int32>(Get_CustomInputState(FlatCustom, TEXT("DynParam0"))),
+                    static_cast<int32>(ECk_InputState::Absent));
+                TestFalse(TEXT("FlatAdd02 gained no DynamicParameter node"),
+                    Has_ExpressionOfType<UMaterialExpressionDynamicParameter>(FlatMaster));
+            }
+        }
+    }
+
+    // ---- 3d. An OPAQUE mesh-particle look: blend mode does not follow from the particle opt-ins ----
+    {
+        auto* ToonLook = Find_LookNamed(Definitions, kOpaqueParticleLookName);
+        if (TestNotNull(*FString::Printf(TEXT("the %s look definition exists"), kOpaqueParticleLookName), ToonLook))
+        {
+            TestTrue(TEXT("BombToon opts into _UsedWithNiagaraMeshParticles"),
+                ToonLook->_UsedWithNiagaraMeshParticles);
+            TestFalse(TEXT("BombToon does NOT opt into _UsedWithNiagaraSprites"),
+                ToonLook->_UsedWithNiagaraSprites);
+
+            if (auto* ToonMaster = ck::usf_editor::Generate_LookMaterial(ToonLook);
+                TestNotNull(TEXT("BombToon generates a master material"), ToonMaster))
+            {
+                TestTrue(TEXT("generated master declares bUsedWithNiagaraMeshParticles"),
+                    ToonMaster->bUsedWithNiagaraMeshParticles != 0);
+                TestEqual(TEXT("BombToon's generated master is opaque"),
+                    static_cast<int32>(ToonMaster->BlendMode.GetValue()), static_cast<int32>(BLEND_Opaque));
+
+                TestEqual(TEXT("BombToon has ParticleColor connected"),
+                    static_cast<int32>(Get_CustomInputState(Find_CustomNode(ToonMaster), TEXT("ParticleColor"))),
                     static_cast<int32>(ECk_InputState::Connected));
             }
         }
