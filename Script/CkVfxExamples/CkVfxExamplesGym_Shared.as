@@ -243,6 +243,79 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        // The four rate-only Loop ports. Unlike every pair above them these sources are INFINITE systems: the
+        // original pedestal re-fires nothing because it never finishes, so the A/B here is a STEADY-STATE
+        // comparison of two continuously spawning streams, not two arcs synced at t = 0. Judge density, palette
+        // and motion character; do not expect the two sides to be in phase.
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "PICKUP LOOP";
+            Pair.CkStationTag = n"Gym.VfxExamples.PickupLoop.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.PickupLoop.Original";
+            Pair.BehaviorId = 26;
+            // All six of 26's looks ride the PickupLoop cadence row's own renderers, which bind them explicitly.
+            // An explicit texture here would only reach the SHARED sprite renderers, which this behavior never tags.
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_PickupLoop");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_PickupLoop");
+            Pair.OriginalAssetName = "NS_PickupLoop";
+            Pair.Credit = "Original: Vefects NS_PickupLoop";
+            // A pickup hovering in mid-air: its glows are centred on the spawn point rather than rising from it.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "HEAL LOOP";
+            Pair.CkStationTag = n"Gym.VfxExamples.HealLoop.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.HealLoop.Original";
+            Pair.BehaviorId = 27;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_HealLoop");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_HealLoop");
+            Pair.OriginalAssetName = "NS_HealLoop";
+            Pair.Credit = "Original: Vefects NS_HealLoop";
+            // A body aura: its sparkles are fired UP out of a cylinder at the feet, so it sits on the pedestal.
+            Pair.SpawnOffset = FVector(0, 0, 10);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "BUFF LOOP";
+            Pair.CkStationTag = n"Gym.VfxExamples.BuffLoop.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.BuffLoop.Original";
+            Pair.BehaviorId = 28;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_BuffLoop");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_BuffLoop");
+            Pair.OriginalAssetName = "NS_BuffLoop";
+            Pair.Credit = "Original: Vefects NS_BuffLoop";
+            Pair.SpawnOffset = FVector(0, 0, 10);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "DEBUFF LOOP";
+            Pair.CkStationTag = n"Gym.VfxExamples.DebuffLoop.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.DebuffLoop.Original";
+            Pair.BehaviorId = 29;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_DebuffLoop");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_DebuffLoop");
+            Pair.OriginalAssetName = "NS_DebuffLoop";
+            Pair.Credit = "Original: Vefects NS_DebuffLoop";
+            // Its arrows spawn 150 units UP and fall, so the station wants the ground rather than head height.
+            Pair.SpawnOffset = FVector(0, 0, 10);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -299,5 +372,13 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.ArrowHit.Original");
         GameplayTags.Add(n"Gym.VfxExamples.BombSpawn.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.BombSpawn.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.PickupLoop.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.PickupLoop.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.HealLoop.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.HealLoop.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.BuffLoop.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.BuffLoop.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.DebuffLoop.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.DebuffLoop.Original");
     }
 }
