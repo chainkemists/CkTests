@@ -24,8 +24,11 @@ class UCk_AutoTest_WebUmg_AssetConsumption : UCk_AutoTest_Base
         Assert_True(HealthBar._CkBind == "Health",
             "data-ck-bind must survive to the asset (HealthBar binds Health)");
 
-        Assert_True(UCk_Utils_WebUmg_UE::Get_ConversionReport(Asset).Num() == 0,
-            "the smoke page is fully in-surface; its report must be empty");
+        // smoke.html:25 authors backdrop-filter (out of the v1 surface) — the report must carry
+        // exactly that drop with its provenance. The no-silent-drops contract, read from script.
+        auto Report = UCk_Utils_WebUmg_UE::Get_ConversionReport(Asset);
+        Assert_True(Report.Num() == 1 && Report[0]._Property == "backdrop-filter",
+            "smoke's report must carry exactly the backdrop-filter drop");
 
         FinishSuccess();
     }
