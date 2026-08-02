@@ -433,6 +433,44 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "FIREBALL PROJECTILE";
+            Pair.CkStationTag = n"Gym.VfxExamples.FireBallProjectile.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.FireBallProjectile.Original";
+            Pair.BehaviorId = 36;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_FireBall_Projectile");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_FireBall_Projectile");
+            Pair.OriginalAssetName = "NS_FireBall_Projectile";
+            Pair.Credit = "Original: Vefects NS_FireBall_Projectile";
+            // A continuous 10-second fireball: its core sits ~20 units back along -X and its flames, smoke
+            // and two ribbons stream a further 250 units behind that, so the station wants clear air behind
+            // it rather than distance in front.
+            Pair.SpawnOffset = FVector(120, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "BOMB PROJECTILE";
+            Pair.CkStationTag = n"Gym.VfxExamples.BombProjectile.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.BombProjectile.Original";
+            Pair.BehaviorId = 37;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Bomb_Projectile");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Bomb_Projectile");
+            Pair.OriginalAssetName = "NS_Bomb_Projectile";
+            Pair.Credit = "Original: Vefects NS_Bomb_Projectile";
+            // A bomb hanging inside three coincident 300-unit glow shells for 2.5 s, flashing at the end.
+            // NEITHER side draws its trail here: the source spawns trail points per unit of TRAVEL and the
+            // pedestal does not move (recipe NS_Bomb_Projectile.md §13).
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -509,5 +547,9 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.FireBallCast.Original");
         GameplayTags.Add(n"Gym.VfxExamples.LightningCast.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.LightningCast.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.FireBallProjectile.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.FireBallProjectile.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.BombProjectile.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.BombProjectile.Original");
     }
 }
