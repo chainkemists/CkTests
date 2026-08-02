@@ -4,8 +4,8 @@
 // CK PARTICLES — AUTOMATION TEST: SPAWN ALL BEHAVIORS
 //============================================================================
 //
-// Every registered BehaviorId (0-16, incl. the 8 marketplace recreations)
-// spawns a live component from the seed template via the runtime utils.
+// Every registered BehaviorId (the whole roster, incl. the marketplace
+// recreations) spawns a live component from its template via the runtime utils.
 // This exercises: template asset load, DI wiring, User.BehaviorId patch,
 // and the per-texture material-instance swap path.
 //============================================================================
@@ -31,7 +31,7 @@ class UCk_AutoTest_Particles_SpawnAllBehaviors : UCk_AutoTest_Base
             return;
         }
 
-        for (int BehaviorId = 0; BehaviorId <= 16; ++BehaviorId)
+        for (int BehaviorId = 0; BehaviorId < UCk_Utils_Particles_UE::Get_NumBehaviors(); ++BehaviorId)
         {
             auto Component = UCk_Utils_Particles_UE::Spawn_BehaviorAtLocation(
                 BehaviorId, FVector(0, 0, 300));
