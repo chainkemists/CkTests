@@ -66,7 +66,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FCkTest_UI_ScreenFadeParams_DefaultFadeTime::RunTest(const FString& Parameters)
 {
     const auto Params = FCk_ScreenFade_Params{};
-    TestEqual(TEXT("Default _FadeTime is 1.0f"), Params.Get_FadeTime(), 1.0f);
+    TestEqual(TEXT("Default _FadeTime is 1.0s"), Params.Get_FadeTime().Get_Seconds(), 1.0);
     return true;
 }
 
