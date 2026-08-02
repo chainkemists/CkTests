@@ -13,7 +13,7 @@
 //
 // Spawn_BehaviorAtLocation spawns with bAutoDestroy=false and every template
 // loops, so a component left alone keeps simulating for the rest of the PIE
-// session. The roster is 45 of them. The moment the walk spans more than one
+// session. The roster size is Get_NumBehaviors() — never restate it. The moment the walk spans more than one
 // frame, every later frame ticks the whole accumulated set — and a headless
 // real-RHI frame carrying a few dozen of these costs minutes, not milliseconds.
 // That cost, not the spawn path this test claims to cover, becomes what the
