@@ -1,8 +1,12 @@
 // --------------------------------------------------------------------------------------------------------------------
-// CkParticles gym PlayerController ("Particles"): one station per CkParticles behavior (BehaviorId 0-16),
-// each spawning the seed template with that behavior + a fitting procedural texture. Ids 9-16 are the
+// CkParticles gym PlayerController ("Particles"): one station per CkParticles behavior,
+// each spawning the seed template with that behavior + a fitting procedural texture. Ids 9+ are the
 // marketplace recreations (VFX corpus translation sheets); station notes credit their exemplar systems.
 // Everything here is text-authored HLSL + C++ — no Niagara graph was edited for any of these effects.
+//
+// The faithful Vefects ports (Slash 7, LightningRange 17) have no station here — the VfxExamples gym owns
+// them, showing each beside its original for an objective A/B. Roster-driven AUTOTEST coverage is unaffected:
+// CkAutoTest_Particles_SpawnAllBehaviors still iterates Get_NumBehaviors(), so 7 and 17 remain covered.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_ParticlesGym_PlayerController : ACk_Gym_Base_PlayerController
@@ -27,8 +31,6 @@ class ACk_ParticlesGym_PlayerController : ACk_Gym_Base_PlayerController
             "3-arm rotating spiral disk.", "Blue core -> warm rim."));
         Stations.Add(Make_Station(n"Gym.Particles.Beam", "BEAM (6)",
             "Converging stream along +X.", "Aim via spawn rotation."));
-        Stations.Add(Make_Station(n"Gym.Particles.Slash", "SLASH (7)",
-            "Swept arc crescent.", "White -> cyan."));
         Stations.Add(Make_Station(n"Gym.Particles.Nova", "NOVA (8)",
             "Expanding flat shockwave ring.", "White-hot -> orange."));
         Stations.Add(Make_Station(n"Gym.Particles.MuzzleFlash", "MUZZLE FLASH (9)",
@@ -86,7 +88,6 @@ class ACk_ParticlesGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_SpawnBehavior(n"Gym.Particles.Fireworks",       4,  n"Flare",    FVector(-200, 0, 150), 1.0);
         Request_SpawnBehavior(n"Gym.Particles.Galaxy",          5,  n"Glow",     FVector(-200, 0, 150), 1.0);
         Request_SpawnBehavior(n"Gym.Particles.Beam",            6,  n"Streak",   FVector(-200, 0, 120), 1.0);
-        Request_SpawnBehavior(n"Gym.Particles.Slash",           7,  n"Streak",   FVector(-200, 0, 120), 1.0);
         Request_SpawnBehavior(n"Gym.Particles.Nova",            8,  n"Ring",     FVector(-200, 0, 30),  1.0);
         Request_SpawnBehavior(n"Gym.Particles.MuzzleFlash",     9,  n"Flare",    FVector(-200, 0, 120), 1.0);
         Request_SpawnBehavior(n"Gym.Particles.ImpactBurst",     10, n"Glow",     FVector(-200, 0, 15),  1.0);
