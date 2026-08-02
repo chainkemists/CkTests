@@ -60,11 +60,12 @@ namespace ck_test_particles_arrow_hit
 
     auto Evaluate(float InAge, int32 InSeed) -> FCk_Particles_StageResult
     {
-        constexpr auto DeltaTime = 1.0f / 60.0f;
+        constexpr auto DeltaTime  = 1.0f / 60.0f;
+        constexpr auto EmitterAge = 0.0f;
 
         return UCkParticles_DataInterface::Execute_Stage_CPU(
             kBehaviorId, DeltaTime, InAge, kLifetime,
-            FVector3f::ZeroVector, FVector3f::ZeroVector, InSeed);
+            FVector3f::ZeroVector, FVector3f::ZeroVector, InSeed, EmitterAge);
     }
 
     auto Is_Hidden(const FCk_Particles_StageResult& InOut) -> bool

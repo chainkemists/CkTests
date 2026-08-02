@@ -44,7 +44,8 @@ namespace ck_test_particles_lightning_range
 
     auto Evaluate(float InNormalizedAge, int32 InSeed) -> FCk_Particles_StageResult
     {
-        constexpr auto DeltaTime = 1.0f / 60.0f;
+        constexpr auto DeltaTime  = 1.0f / 60.0f;
+        constexpr auto EmitterAge = 0.0f;
 
         return UCkParticles_DataInterface::Execute_Stage_CPU(
             kBehaviorId,
@@ -53,7 +54,8 @@ namespace ck_test_particles_lightning_range
             kLifetime,
             FVector3f::ZeroVector,
             FVector3f::ZeroVector,
-            InSeed);
+            InSeed,
+            EmitterAge);
     }
 }
 
