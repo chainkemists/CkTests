@@ -622,6 +622,25 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "DASH";
+            Pair.CkStationTag = n"Gym.VfxExamples.Dash.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.Dash.Original";
+            Pair.BehaviorId = 46;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Dash");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Dash");
+            Pair.OriginalAssetName = "NS_Dash";
+            Pair.Credit = "Original: Vefects NS_Dash";
+            // A directional effect: everything travels -X, so judge it from the side rather than head-on.
+            // Its speed lines are WORLD-space in the source and LOCAL here, which is invisible at a
+            // stationary pedestal and is the whole of the C12 gap for this pair.
+            Pair.SpawnOffset = FVector(0, 0, 60);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -718,5 +737,7 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.BombExplosion.Original");
         GameplayTags.Add(n"Gym.VfxExamples.LightningHit.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.LightningHit.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.Dash.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.Dash.Original");
     }
 }
