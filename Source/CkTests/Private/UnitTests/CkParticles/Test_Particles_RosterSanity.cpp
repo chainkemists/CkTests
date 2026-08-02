@@ -102,7 +102,7 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
     using namespace ck_test_particles_roster_sanity;
 
     // ---- Roster size has ONE definition, and it is the one behavior 25 was added to ----
-    TestEqual(TEXT("NumBehaviors is 26 (ids 0..25, BombSpawn last)"), ck::particles::NumBehaviors, 26);
+    TestEqual(TEXT("NumBehaviors is 30 (ids 0..29, DebuffLoop last)"), ck::particles::NumBehaviors, 30);
     TestEqual(TEXT("LastBehaviorId is derived from NumBehaviors"),
         ck::particles::LastBehaviorId, ck::particles::NumBehaviors - 1);
     TestEqual(TEXT("the BP/AS-facing roster size agrees with the C++ constant"),
