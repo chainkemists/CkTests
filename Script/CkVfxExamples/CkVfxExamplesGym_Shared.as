@@ -374,6 +374,65 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        // The three attack Casts. Loop-Once systems again, so the harness's OnSystemFinished re-arm keeps both
+        // sides synced from t = 0. All three aim down local +X, so judge them from the side rather than head-on.
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "GUNSHOT CAST";
+            Pair.CkStationTag = n"Gym.VfxExamples.GunshotCast.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.GunshotCast.Original";
+            Pair.BehaviorId = 33;
+            // All twelve of 33's looks ride the GunshotCast cadence row's own renderers, which bind them
+            // explicitly. An explicit texture here would only reach the SHARED sprite renderers, which this
+            // behavior never tags.
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Gunshot_Cast");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Gunshot_Cast");
+            Pair.OriginalAssetName = "NS_Gunshot_Cast";
+            Pair.Credit = "Original: Vefects NS_Gunshot_Cast";
+            // A muzzle flash at hand height, with an 800-unit shell around it and a lightning card 354 units
+            // out along +X, so the station wants head height and clearance ahead of it.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "FIREBALL CAST";
+            Pair.CkStationTag = n"Gym.VfxExamples.FireBallCast.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.FireBallCast.Original";
+            Pair.BehaviorId = 34;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_FireBall_Cast");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_FireBall_Cast");
+            Pair.OriginalAssetName = "NS_FireBall_Cast";
+            Pair.Credit = "Original: Vefects NS_FireBall_Cast";
+            // Half a second of gathering glow up to 1300 units wide, then a discharge — it wants the most room
+            // of any pair in the gym, and its wind tube travels 230 units down local -X afterwards.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "LIGHTNING CAST";
+            Pair.CkStationTag = n"Gym.VfxExamples.LightningCast.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.LightningCast.Original";
+            Pair.BehaviorId = 35;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Lightning_Cast");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Lightning_Cast");
+            Pair.OriginalAssetName = "NS_Lightning_Cast";
+            Pair.Credit = "Original: Vefects NS_Lightning_Cast";
+            // Its sparkles fly omnidirectionally off the cast point for up to 1.5 s, so the station needs
+            // clearance all round rather than sitting on the floor.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -444,5 +503,11 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.HealCast.Original");
         GameplayTags.Add(n"Gym.VfxExamples.DebuffCast.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.DebuffCast.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.GunshotCast.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.GunshotCast.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.FireBallCast.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.FireBallCast.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.LightningCast.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.LightningCast.Original");
     }
 }
