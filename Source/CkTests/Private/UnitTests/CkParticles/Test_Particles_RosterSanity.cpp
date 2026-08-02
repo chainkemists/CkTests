@@ -154,6 +154,16 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
             TestTrue(*FString::Printf(TEXT("row [%s] renderer VisTag %d names a mesh only when it is a mesh kind"),
                 Spec.AssetName, Renderer.VisTag), NamesAMesh == IsMeshKind);
 
+            // Facing mode and the constant carrier scale reach a MESH renderer and nothing else — the builder
+            // never writes them anywhere on a sprite path, so a sprite row that sets either is stating an intent
+            // the template will not carry. Same silent-inertness class as a SubImageSize on a ribbon.
+            TestTrue(*FString::Printf(TEXT("row [%s] renderer VisTag %d declares a mesh facing mode only when it "
+                "is a mesh kind"), Spec.AssetName, Renderer.VisTag),
+                IsMeshKind || Renderer.MeshFacingMode == ck::particles::ECk_ParticlesRenderer_MeshFacing::Default);
+            TestTrue(*FString::Printf(TEXT("row [%s] renderer VisTag %d declares a mesh scale only when it is a "
+                "mesh kind"), Spec.AssetName, Renderer.VisTag),
+                IsMeshKind || Renderer.MeshScale == FVector::OneVector);
+
             // A partially declared grid divides one axis and not the other — the renderer would draw a sliver
             // of every frame instead of one frame. Either both axes are declared or neither is.
             const auto& Sheet = Renderer.SubImageSize;
@@ -190,6 +200,13 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
             TestTrue(*FString::Printf(TEXT("row [%s] ribbon-emitter renderer VisTag %d declares no SubImageSize "
                 "grid [%d x %d]"), Spec.AssetName, Renderer.VisTag, Renderer.SubImageSize.X, Renderer.SubImageSize.Y),
                 Renderer.SubImageSize.X == 0 && Renderer.SubImageSize.Y == 0);
+
+            // Nor a carrier, so neither of the mesh-renderer properties can reach it either.
+            TestTrue(*FString::Printf(TEXT("row [%s] ribbon-emitter renderer VisTag %d declares no mesh facing "
+                "mode"), Spec.AssetName, Renderer.VisTag),
+                Renderer.MeshFacingMode == ck::particles::ECk_ParticlesRenderer_MeshFacing::Default);
+            TestTrue(*FString::Printf(TEXT("row [%s] ribbon-emitter renderer VisTag %d declares no mesh scale"),
+                Spec.AssetName, Renderer.VisTag), Renderer.MeshScale == FVector::OneVector);
 
             // Ribbon renderers allocate from the same VisTag ledger as every other row renderer: Niagara does not
             // gate on the tag, but the particles drawn by one still write it.
