@@ -5,7 +5,8 @@
 //============================================================================
 //
 // One station per CkParticles behavior, EXCEPT the faithful Vefects ports
-// (7, 17) — those live in the VfxExamples gym, paired against their originals.
+// (7, 17, 18, 19) — those live in the VfxExamples gym, paired against their
+// originals.
 // Ids 9+ are the marketplace recreations (VFX corpus translation sheets,
 // 2026-07-12); their station descriptions credit the exemplar systems they
 // were derived from.
