@@ -99,6 +99,45 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "GUNSHOT PROJECTILE";
+            Pair.CkStationTag = n"Gym.VfxExamples.GunshotProjectile.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.GunshotProjectile.Original";
+            Pair.BehaviorId = 18;
+            // Both of 18's looks ride the ProjectileTrio cadence row's own renderers, which bind
+            // them explicitly. An explicit texture here would only reach the SHARED sprite
+            // renderers, which this behavior never tags.
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Gunshot_Projectile");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Gunshot_Projectile");
+            Pair.OriginalAssetName = "NS_Gunshot_Projectile";
+            Pair.Credit = "Original: Vefects NS_Gunshot_Projectile";
+            // The streaks run along local -X and the longest reaches ~445 units back, so the
+            // trail is laid out from the station centre rather than pushed further away.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "ARROW PROJECTILE";
+            Pair.CkStationTag = n"Gym.VfxExamples.ArrowProjectile.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.ArrowProjectile.Original";
+            Pair.BehaviorId = 19;
+            // 19's camera-facing head binds PartDisAdd01 through User.SpriteMaterial; naming a
+            // texture here would WIN over that binding and render the glow head untextured.
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Arrow_Projectile");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Arrow_Projectile");
+            Pair.OriginalAssetName = "NS_Arrow_Projectile";
+            Pair.Credit = "Original: Vefects NS_Arrow_Projectile";
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -139,5 +178,9 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.Slash.Original");
         GameplayTags.Add(n"Gym.VfxExamples.LightningRange.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.LightningRange.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.GunshotProjectile.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.GunshotProjectile.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.ArrowProjectile.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.ArrowProjectile.Original");
     }
 }

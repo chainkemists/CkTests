@@ -73,8 +73,8 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
 {
     using namespace ck_test_particles_roster_sanity;
 
-    // ---- Roster size has ONE definition, and it is the one behavior 17 was added to ----
-    TestEqual(TEXT("NumBehaviors is 18 (ids 0..17, LightningRange last)"), ck::particles::NumBehaviors, 18);
+    // ---- Roster size has ONE definition, and it is the one behavior 19 was added to ----
+    TestEqual(TEXT("NumBehaviors is 20 (ids 0..19, ArrowProjectile last)"), ck::particles::NumBehaviors, 20);
     TestEqual(TEXT("LastBehaviorId is derived from NumBehaviors"),
         ck::particles::LastBehaviorId, ck::particles::NumBehaviors - 1);
     TestEqual(TEXT("the BP/AS-facing roster size agrees with the C++ constant"),

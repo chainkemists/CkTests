@@ -4,9 +4,10 @@
 // marketplace recreations (VFX corpus translation sheets); station notes credit their exemplar systems.
 // Everything here is text-authored HLSL + C++ — no Niagara graph was edited for any of these effects.
 //
-// The faithful Vefects ports (Slash 7, LightningRange 17) have no station here — the VfxExamples gym owns
-// them, showing each beside its original for an objective A/B. Roster-driven AUTOTEST coverage is unaffected:
-// CkAutoTest_Particles_SpawnAllBehaviors still iterates Get_NumBehaviors(), so 7 and 17 remain covered.
+// The faithful Vefects ports (Slash 7, LightningRange 17, GunshotProjectile 18, ArrowProjectile 19) have no
+// station here — the VfxExamples gym owns them, showing each beside its original for an objective A/B.
+// Roster-driven AUTOTEST coverage is unaffected: CkAutoTest_Particles_SpawnAllBehaviors still iterates
+// Get_NumBehaviors(), so the ports remain covered.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_ParticlesGym_PlayerController : ACk_Gym_Base_PlayerController
