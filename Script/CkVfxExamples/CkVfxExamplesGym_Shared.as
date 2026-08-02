@@ -138,6 +138,60 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "FIRE";
+            Pair.CkStationTag = n"Gym.VfxExamples.Fire.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.Fire.Original";
+            Pair.BehaviorId = 20;
+            // All three of 20's looks ride the FireBurst cadence row's own renderers, which bind them
+            // explicitly. An explicit texture here would only reach the SHARED sprite renderers, which
+            // this behavior never tags.
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Fire");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Fire");
+            Pair.OriginalAssetName = "NS_Fire";
+            Pair.Credit = "Original: Vefects NS_Fire";
+            // A ground fire: the glows are 500 units across and the sparkles rise off a hemisphere, so it
+            // sits on the pedestal rather than above it.
+            Pair.SpawnOffset = FVector(0, 0, 10);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "FIREBALL HIT";
+            Pair.CkStationTag = n"Gym.VfxExamples.FireBallHit.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.FireBallHit.Original";
+            Pair.BehaviorId = 21;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_FireBall_Hit");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_FireBall_Hit");
+            Pair.OriginalAssetName = "NS_FireBall_Hit";
+            Pair.Credit = "Original: Vefects NS_FireBall_Hit";
+            // An impact burst at a fixed point, so it wants head height rather than the floor.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "GUNSHOT HIT";
+            Pair.CkStationTag = n"Gym.VfxExamples.GunshotHit.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.GunshotHit.Original";
+            Pair.BehaviorId = 22;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Gunshot_Hit");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Gunshot_Hit");
+            Pair.OriginalAssetName = "NS_Gunshot_Hit";
+            Pair.Credit = "Original: Vefects NS_Gunshot_Hit";
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -182,5 +236,11 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.GunshotProjectile.Original");
         GameplayTags.Add(n"Gym.VfxExamples.ArrowProjectile.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.ArrowProjectile.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.Fire.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.Fire.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.FireBallHit.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.FireBallHit.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.GunshotHit.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.GunshotHit.Original");
     }
 }
