@@ -59,11 +59,12 @@ namespace ck_test_particles_slash
 
     auto Evaluate(float InAge, int32 InSeed) -> FCk_Particles_StageResult
     {
-        constexpr auto DeltaTime = 1.0f / 60.0f;
+        constexpr auto DeltaTime  = 1.0f / 60.0f;
+        constexpr auto EmitterAge = 0.0f;
 
         return UCkParticles_DataInterface::Execute_Stage_CPU(
             kBehaviorId, DeltaTime, InAge, kTemplateLifetime,
-            FVector3f::ZeroVector, FVector3f::ZeroVector, InSeed);
+            FVector3f::ZeroVector, FVector3f::ZeroVector, InSeed, EmitterAge);
     }
 
     // Layer age fraction -> absolute age, which is what the behavior actually reads.

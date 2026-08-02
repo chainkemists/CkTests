@@ -1,11 +1,13 @@
 // Roster-wide sanity gate for CkParticles.
 //
-// Two claims, both roster-driven so adding a behavior does not need this file edited:
+// Three claims, all roster-driven so adding a behavior does not need this file edited:
 //   1. The roster METADATA is coherent — one size definition, every id routes to a template the cadence
 //      table actually declares, and the behaviors that bind a CkUsf look bind the expected one.
 //   2. Every behavior, across ages / lifetimes / seeds, produces RENDERABLE output — finite numbers, a
 //      non-negative size, a VisTag the template has a renderer for, a mesh index the carrier set contains,
 //      and (on the custom-facing tag) a non-degenerate alignment/facing pair.
+//   3. Every behavior's output is INDEPENDENT of the emitter clock. The stage signature carries EmitterAge,
+//      but no behavior on the roster today reads it, so shifting it must change nothing at all.
 //
 // Claim 2 is deliberately shallow: it is a "nothing here is nonsense" net, not a correctness check. Only
 // the per-behavior math tests (LightningRangeBehavior) can tell a correct behavior from an inert one.
@@ -38,6 +40,32 @@ namespace ck_test_particles_roster_sanity
     constexpr auto kMeshVisTag         = 3;
 
     constexpr auto kTolerance = 1.0e-4f;
+
+    // The emitter clock every sample is taken against, and the clocks the same sample is re-taken at. The
+    // comparison is EXACT, not toleranced: a behavior that ignores an input cannot perturb its output by a
+    // little. 41.0 sits far past every cadence row's loop duration, so a behavior that had started reading the
+    // clock through a fmod would show up here rather than only near t=0.
+    constexpr auto kReferenceEmitterAge = 0.0f;
+
+    auto Is_Identical(const FCk_Particles_StageResult& InA, const FCk_Particles_StageResult& InB) -> bool
+    {
+        return InA.Position == InB.Position
+            && InA.Velocity == InB.Velocity
+            && InA.Color    == InB.Color
+            && InA.Size     == InB.Size
+            && InA.Scale    == InB.Scale
+            && InA.Orientation.X == InB.Orientation.X
+            && InA.Orientation.Y == InB.Orientation.Y
+            && InA.Orientation.Z == InB.Orientation.Z
+            && InA.Orientation.W == InB.Orientation.W
+            && InA.Dynamic       == InB.Dynamic
+            && InA.Rotation      == InB.Rotation
+            && InA.MeshIndex     == InB.MeshIndex
+            && InA.VisTag        == InB.VisTag
+            && InA.SpriteAlignment == InB.SpriteAlignment
+            && InA.SpriteFacing    == InB.SpriteFacing
+            && InA.SubImageIndex   == InB.SubImageIndex;
+    }
 
     auto Is_Finite(const FVector3f& InV) -> bool
     {
@@ -152,6 +180,7 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
     // by calling an assertion per sample — a per-sample TestTrue would format thousands of strings for a
     // green run and drown a red one in noise.
     auto NumViolations = 0;
+    auto NumEmitterAgeDependencies = 0;
     // HDR is the whole point of an additive VFX pipeline: the emissive keys the behaviors carry run far above
     // 1 and nothing between the CPU mirror and Particles.Color may clamp them. Observing the brightest channel
     // across the sweep proves the float path is intact — a clamp anywhere would pin this at exactly 1.
@@ -167,6 +196,9 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
 
     for (auto BehaviorId = 0; BehaviorId < ck::particles::NumBehaviors; ++BehaviorId)
     {
+        // One error per behavior is enough to name the offender; the count carries the scale.
+        auto ReportedEmitterAgeDependency = false;
+
         for (const auto Lifetime : { 0.4f, 1.1f, 1.2f, 3.0f })
         {
             for (const auto Seed : { 0, 1, 17, 991, 65535 })
@@ -178,7 +210,28 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
                     constexpr auto DeltaTime = 1.0f / 60.0f;
                     const auto Out = UCkParticles_DataInterface::Execute_Stage_CPU(
                         BehaviorId, DeltaTime, NormalizedAge * Lifetime, Lifetime,
-                        FVector3f::ZeroVector, FVector3f::ZeroVector, Seed);
+                        FVector3f::ZeroVector, FVector3f::ZeroVector, Seed, kReferenceEmitterAge);
+
+                    for (const auto EmitterAge : { 0.37f, 2.5f, 41.0f })
+                    {
+                        const auto Shifted = UCkParticles_DataInterface::Execute_Stage_CPU(
+                            BehaviorId, DeltaTime, NormalizedAge * Lifetime, Lifetime,
+                            FVector3f::ZeroVector, FVector3f::ZeroVector, Seed, EmitterAge);
+
+                        if (Is_Identical(Out, Shifted))
+                        { continue; }
+
+                        ++NumEmitterAgeDependencies;
+
+                        if (ReportedEmitterAgeDependency)
+                        { continue; }
+
+                        ReportedEmitterAgeDependency = true;
+                        AddError(FString::Printf(
+                            TEXT("behavior %d (lifetime %.2f, seed %d, t %.1f): output moved when the emitter ")
+                            TEXT("clock moved to %.2f — no roster behavior reads EmitterAge"),
+                            BehaviorId, Lifetime, Seed, NormalizedAge, EmitterAge));
+                    }
 
                     const auto Finite =
                         Is_Finite(Out.Position) && Is_Finite(Out.Velocity) && Is_Finite(Out.Color) &&
@@ -237,6 +290,9 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
 
     TestEqual(TEXT("no behavior produced unrenderable output across the age/lifetime/seed sweep"),
         NumViolations, 0);
+
+    TestEqual(TEXT("every behavior's output is bit-identical across emitter clocks (EmitterAge is threaded, not read)"),
+        NumEmitterAgeDependencies, 0);
 
     // Well above any plausible clamp point, and far below the brightest key the roster actually carries
     // (behavior 15 emits 135) — so this fails on a clamp, not on a behavior being retuned.
