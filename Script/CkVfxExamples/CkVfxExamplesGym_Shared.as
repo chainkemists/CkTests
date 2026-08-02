@@ -192,6 +192,57 @@ namespace CkVfxExamples
             Pairs.Add(Pair);
         }
 
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "ARROW CAST";
+            Pair.CkStationTag = n"Gym.VfxExamples.ArrowCast.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.ArrowCast.Original";
+            Pair.BehaviorId = 23;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Arrow_Cast");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Arrow_Cast");
+            Pair.OriginalAssetName = "NS_Arrow_Cast";
+            Pair.Credit = "Original: Vefects NS_Arrow_Cast";
+            // The bow flash sits at hand height, and its wind tube travels ~230 units down local -X over 1.5 s,
+            // so the station is left clear ahead of it rather than pushed back.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "ARROW HIT";
+            Pair.CkStationTag = n"Gym.VfxExamples.ArrowHit.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.ArrowHit.Original";
+            Pair.BehaviorId = 24;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Arrow_Hit");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Arrow_Hit");
+            Pair.OriginalAssetName = "NS_Arrow_Hit";
+            Pair.Credit = "Original: Vefects NS_Arrow_Hit";
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
+        {
+            auto Pair = FCk_VfxExamples_Pair();
+            Pair.DisplayName = "BOMB SPAWN";
+            Pair.CkStationTag = n"Gym.VfxExamples.BombSpawn.Ck";
+            Pair.OriginalStationTag = n"Gym.VfxExamples.BombSpawn.Original";
+            Pair.BehaviorId = 25;
+            Pair.TextureName = NAME_None;
+            Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_Bomb_Spawn");
+            Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_Bomb_Spawn");
+            Pair.OriginalAssetName = "NS_Bomb_Spawn";
+            Pair.Credit = "Original: Vefects NS_Bomb_Spawn";
+            // A prop appearing in mid-air with its flares laid out around it, so it wants head height.
+            Pair.SpawnOffset = FVector(0, 0, 120);
+            Pair.Scale = 1.0;
+            Pairs.Add(Pair);
+        }
+
         return Pairs;
     }
 
@@ -242,5 +293,11 @@ namespace Ck
         GameplayTags.Add(n"Gym.VfxExamples.FireBallHit.Original");
         GameplayTags.Add(n"Gym.VfxExamples.GunshotHit.Ck");
         GameplayTags.Add(n"Gym.VfxExamples.GunshotHit.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.ArrowCast.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.ArrowCast.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.ArrowHit.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.ArrowHit.Original");
+        GameplayTags.Add(n"Gym.VfxExamples.BombSpawn.Ck");
+        GameplayTags.Add(n"Gym.VfxExamples.BombSpawn.Original");
     }
 }
