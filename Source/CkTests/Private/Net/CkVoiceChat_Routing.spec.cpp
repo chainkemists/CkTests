@@ -45,7 +45,7 @@ namespace ck_voice_routing_spec
 
     struct FRoutingSpecState
     {
-        int32 ClientInboxAfterTransmit = 0;
+        int32 ClientDecodedBytesAfterTransmit = 0;
 
         bool HadOriginalVoiceKey = false;
         bool OriginalVoiceEnabled = false;
@@ -190,7 +190,9 @@ bool FCkVoiceChatNet_RoutingForwardsAndNeverStashes::RunTest(const FString& Para
             UCk_Utils_VoiceTalker_UE::Request_StopTransmit(SubjectA->_TestTalker, {});
         })));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(20));
+    // Long settle: the client's jitter tail must FULLY drain before the decoded-bytes snapshot -
+    // the never-stash assertion below is an equality against it.
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(60));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
@@ -211,13 +213,13 @@ bool FCkVoiceChatNet_RoutingForwardsAndNeverStashes::RunTest(const FString& Para
                 return false;
             }
 
-            State->ClientInboxAfterTransmit =
-                UCk_Utils_VoiceTalker_UE::Debug_Get_ReceiveInboxNum(ClientSubjectA->_TestTalker);
+            State->ClientDecodedBytesAfterTransmit =
+                UCk_Utils_VoiceTalker_UE::Debug_Get_LoopbackDecodedPcm(ClientSubjectA->_TestTalker).Num();
 
-            TestTrue(TEXT("the client received talker A's bundles (routing forwarded to the CanHear member's connection)"),
-                State->ClientInboxAfterTransmit > 0);
+            TestTrue(TEXT("the client received AND decoded talker A's voice (routing forwarded to the CanHear member's connection)"),
+                State->ClientDecodedBytesAfterTransmit > 0);
             TestEqual(TEXT("nothing was forwarded FOR talker B (it never spoke)"),
-                UCk_Utils_VoiceTalker_UE::Debug_Get_ReceiveInboxNum(ClientSubjectB->_TestTalker), 0);
+                UCk_Utils_VoiceTalker_UE::Debug_Get_LoopbackDecodedPcm(ClientSubjectB->_TestTalker).Num(), 0);
 
             return true;
         }),
@@ -281,8 +283,8 @@ bool FCkVoiceChatNet_RoutingForwardsAndNeverStashes::RunTest(const FString& Para
             }
 
             TestEqual(TEXT("the dropped bundle did NOT resurrect when its ChannelIdx became real (N1: never stash)"),
-                UCk_Utils_VoiceTalker_UE::Debug_Get_ReceiveInboxNum(ClientSubjectA->_TestTalker),
-                State->ClientInboxAfterTransmit);
+                UCk_Utils_VoiceTalker_UE::Debug_Get_LoopbackDecodedPcm(ClientSubjectA->_TestTalker).Num(),
+                State->ClientDecodedBytesAfterTransmit);
 
             return true;
         }),
