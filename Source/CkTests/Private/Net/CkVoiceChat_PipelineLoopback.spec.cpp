@@ -98,9 +98,9 @@ bool FCkVoiceChatPipeline_FakeCapture_LoopbackDecodes::RunTest(const FString& Pa
             // leading silence (VAD must gate it out), one sine spurt, trailing silence (VAD
             // must close and the loopback must fully drain during it)
             const auto FakeSource = MakeShared<FCk_VoiceChat_CaptureSource_Fake>(SampleRate);
-            FakeSource->Enqueue_Silence(0.3f);
-            FakeSource->Enqueue_Sine(1.0f, 0.4f, 300.0f);
-            FakeSource->Enqueue_Silence(0.6f);
+            FakeSource->Enqueue_Silence(FCk_Time{0.3f});
+            FakeSource->Enqueue_Sine(FCk_Time{1.0f}, 0.4f, 300.0f);
+            FakeSource->Enqueue_Silence(FCk_Time{0.6f});
 
             UCk_Utils_VoiceTalker_UE::Debug_InjectCaptureSource(State->Talker, FakeSource);
             UCk_Utils_VoiceTalker_UE::Request_StartTransmit(State->Talker, {}, {});
@@ -196,7 +196,7 @@ bool FCkVoiceChatPipeline_StartTransmitDisabledRejected::RunTest(const FString& 
             State->Talker = UCk_Utils_VoiceTalker_UE::Add(TalkerEntity, Params);
 
             const auto FakeSource = MakeShared<FCk_VoiceChat_CaptureSource_Fake>(SampleRate);
-            FakeSource->Enqueue_Sine(1.0f, 0.4f, 300.0f);
+            FakeSource->Enqueue_Sine(FCk_Time{1.0f}, 0.4f, 300.0f);
 
             UCk_Utils_VoiceTalker_UE::Debug_InjectCaptureSource(State->Talker, FakeSource);
             UCk_Utils_VoiceTalker_UE::Request_StartTransmit(State->Talker, {}, {});

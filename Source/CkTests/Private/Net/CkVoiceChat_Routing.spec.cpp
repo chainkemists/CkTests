@@ -170,9 +170,9 @@ bool FCkVoiceChatNet_RoutingForwardsAndNeverStashes::RunTest(const FString& Para
 
             // 0.2 s silence (VAD closed), 0.8 s sine (frames flow), trailing silence (VAD closes).
             const auto FakeSource = MakeShared<FCk_VoiceChat_CaptureSource_Fake>(SampleRate);
-            FakeSource->Enqueue_Silence(0.2f);
-            FakeSource->Enqueue_Sine(0.8f, 0.4f, 300.0f);
-            FakeSource->Enqueue_Silence(0.5f);
+            FakeSource->Enqueue_Silence(FCk_Time{0.2f});
+            FakeSource->Enqueue_Sine(FCk_Time{0.8f}, 0.4f, 300.0f);
+            FakeSource->Enqueue_Silence(FCk_Time{0.5f});
 
             UCk_Utils_VoiceTalker_UE::Debug_InjectCaptureSource(SubjectA->_TestTalker, FakeSource);
             UCk_Utils_VoiceTalker_UE::Request_StartTransmit(SubjectA->_TestTalker, {}, {});
