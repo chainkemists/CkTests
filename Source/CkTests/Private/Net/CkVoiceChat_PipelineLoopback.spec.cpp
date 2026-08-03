@@ -159,4 +159,72 @@ bool FCkVoiceChatPipeline_FakeCapture_LoopbackDecodes::RunTest(const FString& Pa
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkVoiceChatPipeline_StartTransmitDisabledRejected,
+    "Ck.VoiceChat.Pipeline.StartTransmit_DisabledMode_Rejected",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkVoiceChatPipeline_StartTransmitDisabledRejected::RunTest(const FString& Parameters)
+{
+    using namespace ck_voice_pipeline_spec;
+
+    bSuppressLogErrors = true;
+    bSuppressLogWarnings = true;
+
+    // Whitelist every matching line: one CK ensure can surface through multiple log paths.
+    AddExpectedError(TEXT("whose transmit mode is Disabled"), EAutomationExpectedErrorFlags::Contains, -1);
+
+    const auto MapPath = FString{TEXT("/Engine/Maps/Entry")};
+    const auto State = MakeShared<FPipelineState, ESPMode::ThreadSafe>();
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(1, MapPath));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(1, 30.0f));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([State](UWorld* InServer) -> void
+        {
+            EnableEngineVoice(*State);
+
+            auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
+            auto TalkerEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
+
+            auto Params = FCk_Fragment_VoiceTalker_ParamsData{};
+            Params.Set_TransmitMode(ECk_VoiceChat_TransmitMode::Disabled);
+
+            State->Talker = UCk_Utils_VoiceTalker_UE::Add(TalkerEntity, Params);
+
+            const auto FakeSource = MakeShared<FCk_VoiceChat_CaptureSource_Fake>(SampleRate);
+            FakeSource->Enqueue_Sine(1.0f, 0.4f, 300.0f);
+
+            UCk_Utils_VoiceTalker_UE::Debug_InjectCaptureSource(State->Talker, FakeSource);
+            UCk_Utils_VoiceTalker_UE::Request_StartTransmit(State->Talker, {}, {});
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(30));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
+        {
+            RestoreEngineVoice(*State);
+
+            if (NOT TestTrue(TEXT("talker handle still valid"), ck::IsValid(State->Talker)))
+            { return true; }
+
+            TestFalse(TEXT("StartTransmit on a Disabled-mode talker rejects: not transmitting"),
+                UCk_Utils_VoiceTalker_UE::Get_IsTransmitting(State->Talker));
+            TestFalse(TEXT("no speaking state leaked from the rejected request"),
+                UCk_Utils_VoiceTalker_UE::Get_IsSpeaking(State->Talker));
+            TestTrue(TEXT("no PCM was decoded (the pipeline never started)"),
+                UCk_Utils_VoiceTalker_UE::Debug_Get_LoopbackDecodedPcm(State->Talker).IsEmpty());
+
+            return true;
+        }), TEXT("[VoicePipeline] disabled-mode rejection assertions")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
+
+    return true;
+}
+
 #endif // WITH_EDITOR && WITH_DEV_AUTOMATION_TESTS
