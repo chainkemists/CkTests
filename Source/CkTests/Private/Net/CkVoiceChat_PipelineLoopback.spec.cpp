@@ -13,6 +13,7 @@
 #include "CkCore/Macros/CkMacros.h"
 
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
+#include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
 
 #include "CkTests/Net/CkNetAutomation_Common.h"
 
@@ -84,7 +85,7 @@ bool FCkVoiceChatPipeline_FakeCapture_LoopbackDecodes::RunTest(const FString& Pa
         {
             EnableEngineVoice(*State);
 
-            auto TransientEntity = UCk_Utils_EntityLifetime_UE::Get_TransientEntity(InServer);
+            auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
             auto TalkerEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
 
             auto Params = FCk_Fragment_VoiceTalker_ParamsData{};
