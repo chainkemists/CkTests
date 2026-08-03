@@ -300,8 +300,12 @@ bool FCkTest_VoiceChat_Jitter_AdaptiveDepth::RunTest(const FString& Parameters)
         SteadyBuffer.Push(static_cast<uint16>(Seq), MakeFrame(60, Seq + 1), FCk_Time{Now}, Params);
         Now += 0.02;
     }
-    TestEqual(TEXT("Perfectly steady arrivals keep the initial target depth"),
-        SteadyBuffer.Get_TargetDepthFrames(Params), 3);
+    // Near-zero measured jitter converges to the MinDepth floor (20 ms / 20 ms = 1 frame with
+    // defaults) — MinDepth is the knob that owns the clean-network depth, not InitialTargetDepth.
+    TestEqual(TEXT("Steady arrivals shrink the target depth to the MinDepth floor"),
+        SteadyBuffer.Get_TargetDepthFrames(Params), 1);
+    TestTrue(TEXT("Bursty arrivals hold a deeper target than steady ones"),
+        AdaptedDepth > SteadyBuffer.Get_TargetDepthFrames(Params));
 
     return true;
 }

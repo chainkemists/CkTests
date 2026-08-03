@@ -5,6 +5,9 @@
 
 #include "Misc/AutomationTest.h"
 
+#include "Misc/ConfigCacheIni.h"
+#include "Modules/ModuleManager.h"
+
 #include "VoiceModule.h"
 #include "Interfaces/VoiceCodec.h"
 #include "Net/VoiceConfig.h"
@@ -52,8 +55,33 @@ bool FCkTest_VoiceChat_OpusMicroBenchmark::RunTest(const FString& Parameters)
 {
     using namespace ck_test_voice_chat_opus_benchmark;
 
+    // Voice-module init warnings (no capture device on a headless lane) are expected noise here.
+    bSuppressLogWarnings = true;
+
+    // FVoiceModule reads [Voice] bEnabled from GEngineIni ONCE at StartupModule and its factories
+    // return null when disabled — and the host project ships no [Voice] section. Enable it in the
+    // config cache before the module loads; if something loaded it disabled earlier in this
+    // session, reload it so StartupModule re-reads the flag. The key is removed again below so a
+    // reused (warm) editor keeps its original config state.
+    const auto VoiceWasLoaded = FModuleManager::Get().IsModuleLoaded(TEXT("Voice"));
+    GConfig->SetBool(TEXT("Voice"), TEXT("bEnabled"), true, GEngineIni);
+
+    if (VoiceWasLoaded && NOT FVoiceModule::Get().IsVoiceEnabled())
+    {
+        FModuleManager::Get().UnloadModule(TEXT("Voice"));
+    }
+
+    if (NOT TestTrue(TEXT("the Voice module reports enabled after the config-cache override"),
+        FVoiceModule::Get().IsVoiceEnabled()))
+    {
+        GConfig->RemoveKey(TEXT("Voice"), TEXT("bEnabled"), GEngineIni);
+        return true;
+    }
+
     const auto Encoder = FVoiceModule::Get().CreateVoiceEncoder(SampleRate, NumChannels, EAudioEncodeHint::VoiceEncode_Voice);
     const auto Decoder = FVoiceModule::Get().CreateVoiceDecoder(SampleRate, NumChannels);
+
+    GConfig->RemoveKey(TEXT("Voice"), TEXT("bEnabled"), GEngineIni);
 
     if (NOT TestTrue(TEXT("engine Voice factory produced an encoder"), Encoder.IsValid()) ||
         NOT TestTrue(TEXT("engine Voice factory produced a decoder"), Decoder.IsValid()))
