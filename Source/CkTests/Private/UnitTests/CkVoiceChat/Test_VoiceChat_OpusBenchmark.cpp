@@ -65,10 +65,21 @@ bool FCkTest_VoiceChat_OpusMicroBenchmark::RunTest(const FString& Parameters)
     bSuppressLogWarnings = true;
 
     // FVoiceModule reads [Voice] bEnabled from GEngineIni ONCE at StartupModule and its factories
-    // return null when disabled — and the host project ships no [Voice] section. Enable it in the
-    // config cache before the module loads; if something loaded it disabled earlier in this
-    // session, reload it so StartupModule re-reads the flag. The key is removed again below so a
-    // reused (warm) editor keeps its original config state.
+    // return null when disabled. Enable it in the config cache before the module loads; if
+    // something loaded it disabled earlier in this session, reload it so StartupModule re-reads
+    // the flag. The original config state is captured and RESTORED below (not blindly removed) so
+    // this keeps working once the host project ships its own [Voice] bEnabled key.
+    auto OriginalEnabled = false;
+    const auto HadOriginalKey = GConfig->GetBool(TEXT("Voice"), TEXT("bEnabled"), OriginalEnabled, GEngineIni);
+
+    const auto RestoreVoiceConfig = [HadOriginalKey, OriginalEnabled]() -> void
+    {
+        if (HadOriginalKey)
+        { GConfig->SetBool(TEXT("Voice"), TEXT("bEnabled"), OriginalEnabled, GEngineIni); }
+        else
+        { GConfig->RemoveKey(TEXT("Voice"), TEXT("bEnabled"), GEngineIni); }
+    };
+
     const auto VoiceWasLoaded = FModuleManager::Get().IsModuleLoaded(TEXT("Voice"));
     GConfig->SetBool(TEXT("Voice"), TEXT("bEnabled"), true, GEngineIni);
 
@@ -80,14 +91,14 @@ bool FCkTest_VoiceChat_OpusMicroBenchmark::RunTest(const FString& Parameters)
     if (NOT TestTrue(TEXT("the Voice module reports enabled after the config-cache override"),
         FVoiceModule::Get().IsVoiceEnabled()))
     {
-        GConfig->RemoveKey(TEXT("Voice"), TEXT("bEnabled"), GEngineIni);
+        RestoreVoiceConfig();
         return true;
     }
 
     const auto Encoder = FVoiceModule::Get().CreateVoiceEncoder(SampleRate, NumChannels, EAudioEncodeHint::VoiceEncode_Voice);
     const auto Decoder = FVoiceModule::Get().CreateVoiceDecoder(SampleRate, NumChannels);
 
-    GConfig->RemoveKey(TEXT("Voice"), TEXT("bEnabled"), GEngineIni);
+    RestoreVoiceConfig();
 
     if (NOT TestTrue(TEXT("engine Voice factory produced an encoder"), Encoder.IsValid()) ||
         NOT TestTrue(TEXT("engine Voice factory produced a decoder"), Decoder.IsValid()))

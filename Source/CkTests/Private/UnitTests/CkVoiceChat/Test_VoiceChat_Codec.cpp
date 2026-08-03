@@ -313,6 +313,173 @@ bool FCkTest_VoiceChat_Jitter_AdaptiveDepth::RunTest(const FString& Parameters)
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_VoiceChat_Jitter_SeqWrap,
+    "CkTests.UnitTests.CkVoiceChat.Jitter.SeqWrap",
+    ck_test_voice_chat_codec::kVoiceChatUnitTestFlags)
+
+bool FCkTest_VoiceChat_Jitter_SeqWrap::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_voice_chat_codec;
+
+    const auto Params = FCk_VoiceChat_JitterParams{};
+    auto Buffer = FCk_VoiceChat_JitterBuffer{};
+
+    auto Now = 0.0;
+    const auto PushAt = [&](uint16 InSeq)
+    {
+        Buffer.Push(InSeq, MakeFrame(60, InSeq), FCk_Time{Now}, Params);
+        Now += 0.02;
+    };
+
+    PushAt(65534);
+    PushAt(65535);
+    PushAt(0);   // wraps
+
+    TestTrue(TEXT("Playout crosses the wrap: 65534 first"), Buffer.Pop(Params).Get_Frame() == MakeFrame(60, 65534));
+    TestTrue(TEXT("65535 second"), Buffer.Pop(Params).Get_Frame() == MakeFrame(60, 65535));
+    TestTrue(TEXT("0 third"), Buffer.Pop(Params).Get_Frame() == MakeFrame(60, 0));
+
+    PushAt(1);
+    PushAt(2);
+    PushAt(3);
+
+    TestTrue(TEXT("Post-wrap seqs continue in order"), Buffer.Pop(Params).Get_Frame() == MakeFrame(60, 1));
+
+    Buffer.Push(65535, MakeFrame(60, 99), FCk_Time{Now}, Params);
+    TestEqual(TEXT("A pre-wrap seq arriving after the wrap is late-dropped (wrap-safe distance)"),
+        Buffer.Get_LateDropCount(), 1);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_VoiceChat_Jitter_SpurtBoundaryDiscontinuity,
+    "CkTests.UnitTests.CkVoiceChat.Jitter.SpurtBoundaryDiscontinuity",
+    ck_test_voice_chat_codec::kVoiceChatUnitTestFlags)
+
+bool FCkTest_VoiceChat_Jitter_SpurtBoundaryDiscontinuity::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_voice_chat_codec;
+
+    const auto Params = FCk_VoiceChat_JitterParams{};
+    auto Buffer = FCk_VoiceChat_JitterBuffer{};
+
+    auto Now = 0.0;
+    const auto PushAt = [&](uint16 InSeq)
+    {
+        Buffer.Push(InSeq, MakeFrame(60, InSeq), FCk_Time{Now}, Params);
+        Now += 0.02;
+    };
+
+    PushAt(0);
+    PushAt(1);
+    PushAt(2);
+    Buffer.Pop(Params);
+    Buffer.Pop(Params);
+    Buffer.Pop(Params);
+
+    const auto DepthBeforeGap = Buffer.Get_TargetDepthFrames(Params);
+
+    // VAD-gated silence between talk spurts: 1 s of nothing, then the next spurt
+    Now += 1.0;
+    PushAt(30);
+
+    TestEqual(TEXT("The spurt boundary is a discontinuity, not jitter"), Buffer.Get_DiscontinuityCount(), 1);
+    TestEqual(TEXT("The 1 s silence did not inflate the depth estimate"),
+        Buffer.Get_TargetDepthFrames(Params), DepthBeforeGap);
+
+    PushAt(31);
+    PushAt(32);
+
+    const auto First = Buffer.Pop(Params);
+    TestEqual(TEXT("The new spurt re-warms and plays from its own first seq"),
+        First.Get_Type(), ECk_VoiceChat_JitterPop::Frame);
+    TestTrue(TEXT("No conceal-walk across the spurt boundary"), Buffer.Get_ConcealCount() == 0);
+    TestTrue(TEXT("Playout resumed at seq 30"), First.Get_Frame() == MakeFrame(60, 30));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_VoiceChat_Jitter_FarAheadJumpReseeds,
+    "CkTests.UnitTests.CkVoiceChat.Jitter.FarAheadJumpReseeds",
+    ck_test_voice_chat_codec::kVoiceChatUnitTestFlags)
+
+bool FCkTest_VoiceChat_Jitter_FarAheadJumpReseeds::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_voice_chat_codec;
+
+    // MinDepth raised to 3 frames so the post-reseed re-warm is observable (at the default
+    // 1-frame floor a single arrival completes warmup immediately)
+    const auto Params = FCk_VoiceChat_JitterParams{}.Set_MinDepth(FCk_Time{0.06});
+    auto Buffer = FCk_VoiceChat_JitterBuffer{};
+
+    auto Now = 0.0;
+    const auto PushAt = [&](uint16 InSeq)
+    {
+        Buffer.Push(InSeq, MakeFrame(60, InSeq), FCk_Time{Now}, Params);
+        Now += 0.02;
+    };
+
+    PushAt(0);
+    PushAt(1);
+    PushAt(2);
+    Buffer.Pop(Params);   // cursor at 1, frames {1, 2} still buffered
+
+    PushAt(100);   // distance 99 > 50, arrival time steady
+
+    TestEqual(TEXT("A far-ahead seq jump reseeds instead of conceal-walking"),
+        Buffer.Get_DiscontinuityCount(), 1);
+    TestEqual(TEXT("Stale pre-jump frames were discarded"), Buffer.Get_BufferedFrameCount(), 1);
+    TestEqual(TEXT("Playout re-warms after the reseed"),
+        Buffer.Pop(Params).Get_Type(), ECk_VoiceChat_JitterPop::Wait);
+    TestEqual(TEXT("No concealment was spent crossing the jump"), Buffer.Get_ConcealCount(), 0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_VoiceChat_Jitter_WarmupBackwardExtend,
+    "CkTests.UnitTests.CkVoiceChat.Jitter.WarmupBackwardExtend",
+    ck_test_voice_chat_codec::kVoiceChatUnitTestFlags)
+
+bool FCkTest_VoiceChat_Jitter_WarmupBackwardExtend::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_voice_chat_codec;
+
+    const auto Params = FCk_VoiceChat_JitterParams{};
+    auto Buffer = FCk_VoiceChat_JitterBuffer{};
+
+    auto Now = 0.0;
+    const auto PushAt = [&](uint16 InSeq)
+    {
+        Buffer.Push(InSeq, MakeFrame(60, InSeq), FCk_Time{Now}, Params);
+        Now += 0.02;
+    };
+
+    // reordered-high first packet: seq 2 lands before 0 and 1
+    PushAt(2);
+    PushAt(0);
+    PushAt(1);
+
+    TestEqual(TEXT("Arrivals behind the cursor during warmup are kept, not late-dropped"),
+        Buffer.Get_LateDropCount(), 0);
+    TestTrue(TEXT("The utterance onset plays from seq 0"), Buffer.Pop(Params).Get_Frame() == MakeFrame(60, 0));
+    TestTrue(TEXT("Then seq 1"), Buffer.Pop(Params).Get_Frame() == MakeFrame(60, 1));
+    TestTrue(TEXT("Then seq 2"), Buffer.Pop(Params).Get_Frame() == MakeFrame(60, 2));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_VoiceChat_Pacing_BudgetAndStaleness,
     "CkTests.UnitTests.CkVoiceChat.Pacing.BudgetAndStaleness",
     ck_test_voice_chat_codec::kVoiceChatUnitTestFlags)
