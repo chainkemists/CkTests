@@ -288,22 +288,23 @@ bool FCkVoiceChatSpike_UnreliableUnicast_DeliveryUnderLoad::RunTest(const FStrin
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this, Results]() -> bool
         {
-            const auto* PhaseName[3] = {TEXT("A_1PerTick"), TEXT("B_8PerTick"), TEXT("C_8PerTick_Saturated")};
+            const TCHAR* const PhaseName[3] = {TEXT("A_1PerTick"), TEXT("B_8PerTick"), TEXT("C_8PerTick_Saturated")};
 
             AddInfo(FString::Printf(TEXT("[VoiceSpike] Idle window: %d ticks, %lld wire bytes"),
                 IdleTicks, Results->IdleWireBytes));
 
             for (auto PhaseIdx = 0; PhaseIdx < 3; ++PhaseIdx)
             {
-                AddInfo(FString::Printf(
-                    TEXT("[VoiceSpike] Phase %s: sent=%d recv=%d (%.1f%%) outOfOrder=%d ctrlSent=%d ctrlRecv=%d wireBytes=%lld lagTicks(min/avg/max)=%d/%.1f/%d"),
-                    PhaseName[PhaseIdx],
+                const auto PhaseStats = FString::Printf(
+                    TEXT("sent=%d recv=%d (%.1f%%) outOfOrder=%d ctrlSent=%d ctrlRecv=%d wireBytes=%lld lagTicks(min/avg/max)=%d/%.1f/%d"),
                     Results->PhaseSent[PhaseIdx], Results->PhaseRecv[PhaseIdx],
                     Results->PhaseSent[PhaseIdx] > 0 ? 100.0f * Results->PhaseRecv[PhaseIdx] / Results->PhaseSent[PhaseIdx] : 0.0f,
                     Results->PhaseOutOfOrder[PhaseIdx],
                     Results->PhaseCtrlSent[PhaseIdx], Results->PhaseCtrlRecv[PhaseIdx],
                     Results->PhaseWireBytes[PhaseIdx],
-                    Results->PhaseLagMin[PhaseIdx], Results->PhaseLagAvg[PhaseIdx], Results->PhaseLagMax[PhaseIdx]));
+                    Results->PhaseLagMin[PhaseIdx], Results->PhaseLagAvg[PhaseIdx], Results->PhaseLagMax[PhaseIdx]);
+
+                AddInfo(FString::Printf(TEXT("[VoiceSpike] Phase %s: %s"), PhaseName[PhaseIdx], *PhaseStats));
             }
 
             TestEqual(TEXT("Phase A sent the full budget"), Results->PhaseSent[0], PhaseTicks);
