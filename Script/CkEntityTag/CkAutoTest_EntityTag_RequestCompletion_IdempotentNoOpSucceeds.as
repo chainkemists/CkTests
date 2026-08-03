@@ -31,7 +31,17 @@ class UCk_AutoTest_EntityTag_RequestCompletion_IdempotentNoOpSucceeds : UCk_Auto
 
         utils_entity_tag::Add(_Entity, n"CompletionKeepMe");
 
-        WaitOneFrame(n"OnTagAdded");
+        // Add ENQUEUES a request (CkEntityTag_Utils.cpp:145) rather than composing the tag
+        // inline, so Has is decisively false here and goes true only once
+        // FProcessor_EntityTag_HandleRequests drains it. Wait on that, not on a frame.
+        WaitUntil(n"Check_KeepMePresent", n"OnTagAdded");
+    }
+
+    UFUNCTION()
+    private void Check_KeepMePresent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Entity, n"CompletionKeepMe"));
     }
 
     UFUNCTION()
@@ -68,6 +78,9 @@ class UCk_AutoTest_EntityTag_RequestCompletion_IdempotentNoOpSucceeds : UCk_Auto
         Assert_True(utils_entity_tag::Has(_Entity, n"CompletionKeepMe"),
             "The no-op removal must not disturb the entity's other tags");
 
+        // MUST stay a settle: the next hop asserts the delegate fired EXACTLY once, and
+        // _FireCount is already 1 here. There is no condition to wait for — the window
+        // exists to give a second, erroneous fire a chance to arrive.
         WaitOneFrame(n"OnSettled");
     }
 

@@ -152,7 +152,17 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsRibbonWaypointWithinNavQueryExten
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
-        WaitOneFrame(n"OnNetworkReadyToRoute");
+        // The next hop FAILS the test when Get_IsBuilt is false ("did not build before
+        // routing") — that is a timing race with a failure message attached. Waiting on
+        // the build itself removes the failure mode rather than reporting it.
+        WaitUntil(n"Check_NetworkBuilt", n"OnNetworkReadyToRoute");
+    }
+
+    UFUNCTION()
+    private void Check_NetworkBuilt(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_path_network::Get_IsBuilt(_Network));
     }
 
     UFUNCTION()

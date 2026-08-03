@@ -87,7 +87,38 @@ class UCk_AutoTest_PathNetworkFollower_TuningReplansSameGoal : UCk_AutoTest_Base
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
-        WaitOneFrame(n"OnNetworkReady");
+        // The next hop asserts Get_IsBuilt — wait on exactly that rather than on a frame.
+        WaitUntil(n"Check_NetworkBuilt", n"OnNetworkReady");
+    }
+
+    UFUNCTION()
+    private void Check_NetworkBuilt(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_path_network::Get_IsBuilt(_Network));
+    }
+
+    // The Crowd bridge installs the follower's route as a nav path a pass after
+    // OnRouteReady fires. Both installs are waited on by their own observable: the first
+    // by the path reaching Ready, the second by the waypoint count switching from the
+    // 200cm corridor to the denser 50cm one (the assertions require those to differ, so
+    // neither predicate can be satisfied by the state it starts in).
+    UFUNCTION()
+    private void Check_FirstRouteInstalled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Handle AgentEntity = _Agent;
+        auto Res = OutResult;
+        Res.Set(utils_nav::Get_PathResult(AgentEntity).Get_Status() == ECk_Nav_PathStatus::Ready);
+    }
+
+    UFUNCTION()
+    private void Check_SecondRouteInstalled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Handle AgentEntity = _Agent;
+        const auto Installed = utils_nav::Get_PathResult(AgentEntity);
+        auto Res = OutResult;
+        Res.Set(Installed.Get_Status() == ECk_Nav_PathStatus::Ready &&
+                Installed.Get_Waypoints().Num() == _SecondExpectedWaypoints.Num());
     }
 
     UFUNCTION()
@@ -119,7 +150,7 @@ class UCk_AutoTest_PathNetworkFollower_TuningReplansSameGoal : UCk_AutoTest_Base
             _NetworkEpoch = utils_path_network::Get_BuildEpoch(_Network);
             _FirstRevision = InResult.Get_TuningRevision();
             _FirstWaypointCount = InResult.Get_CompiledWaypoints().Num();
-            WaitOneFrame(n"OnFirstRouteInstalled");
+            WaitUntil(n"Check_FirstRouteInstalled", n"OnFirstRouteInstalled");
             return;
         }
 
@@ -151,7 +182,7 @@ class UCk_AutoTest_PathNetworkFollower_TuningReplansSameGoal : UCk_AutoTest_Base
             "same-goal replan must retain the exact final goal");
 
         _SecondExpectedWaypoints = Waypoints;
-        WaitOneFrame(n"OnSecondRouteInstalled");
+        WaitUntil(n"Check_SecondRouteInstalled", n"OnSecondRouteInstalled");
     }
 
     UFUNCTION()
