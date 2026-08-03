@@ -102,7 +102,16 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
-        WaitOneFrame(n"OnNetworkReady");
+        // Request_FindRoute below needs a built network to route through — wait on that
+        // rather than on a frame.
+        WaitUntil(n"Check_NetworkBuilt", n"OnNetworkReady");
+    }
+
+    UFUNCTION()
+    private void Check_NetworkBuilt(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_path_network::Get_IsBuilt(_Network));
     }
 
     UFUNCTION()

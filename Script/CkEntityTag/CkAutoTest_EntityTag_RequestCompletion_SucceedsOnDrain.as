@@ -29,7 +29,17 @@ class UCk_AutoTest_EntityTag_RequestCompletion_SucceedsOnDrain : UCk_AutoTest_Ba
 
         utils_entity_tag::Add(_Entity, n"CompletionDrainMe");
 
-        WaitOneFrame(n"OnTagAdded");
+        // Add ENQUEUES a request (CkEntityTag_Utils.cpp:145) rather than composing the tag
+        // inline, so Has is decisively false here and goes true only once
+        // FProcessor_EntityTag_HandleRequests drains it. Wait on that, not on a frame.
+        WaitUntil(n"Check_TagPresent", n"OnTagAdded");
+    }
+
+    UFUNCTION()
+    private void Check_TagPresent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Entity, n"CompletionDrainMe"));
     }
 
     UFUNCTION()
@@ -60,6 +70,9 @@ class UCk_AutoTest_EntityTag_RequestCompletion_SucceedsOnDrain : UCk_AutoTest_Ba
         Assert_True(!utils_entity_tag::Has(_Entity, n"CompletionDrainMe"),
             "Completion must fire after the request was processed (tag observably removed)");
 
+        // MUST stay a settle: the next hop asserts the delegate fired EXACTLY once, and
+        // _FireCount is already 1 here. There is no condition to wait for — the window
+        // exists to give a second, erroneous fire a chance to arrive.
         WaitOneFrame(n"OnSettled");
     }
 
