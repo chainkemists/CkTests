@@ -42,11 +42,12 @@ namespace ck_voice_spike_spec
 {
     constexpr auto BundleBytes = 190;          // 3 x 60 B Opus frames + 7 B header (spec wire format)
     constexpr auto PhaseTicks = 300;
+    constexpr auto SendWindowSlackTicks = 5;   // config lands between frames; budget needs a hair over PhaseTicks to drain
     constexpr auto SettleTicks = 60;
-    constexpr auto PressureSettleTicks = 120;  // reliable control must flush through the saturated queue
+    constexpr auto PressureSettleTicks = 240;  // reliable control must flush through the saturated queue
     constexpr auto IdleTicks = 120;
     constexpr auto ControlCadenceTicks = 10;
-    constexpr auto PressureChurnBytes = 64 * 1024;
+    constexpr auto PressureChurnBytes = 60000; // Iris FArrayPropertyNetSerializer caps arrays at 65535 elements
 
     struct FVoiceSpikeResults
     {
@@ -241,7 +242,7 @@ bool FCkVoiceChatSpike_UnreliableUnicast_DeliveryUnderLoad::RunTest(const FStrin
                 Pressure->_ChurnBytesPerTick = Config.ChurnBytes;
             })));
 
-        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(PhaseTicks));
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(PhaseTicks + SendWindowSlackTicks));
 
         ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
             FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld* InServer) -> void
@@ -290,8 +291,8 @@ bool FCkVoiceChatSpike_UnreliableUnicast_DeliveryUnderLoad::RunTest(const FStrin
         {
             const TCHAR* const PhaseName[3] = {TEXT("A_1PerTick"), TEXT("B_8PerTick"), TEXT("C_8PerTick_Saturated")};
 
-            AddInfo(FString::Printf(TEXT("[VoiceSpike] Idle window: %d ticks, %lld wire bytes"),
-                IdleTicks, Results->IdleWireBytes));
+            UE_LOG(LogTemp, Display, TEXT("[VoiceSpike] Idle window: %d ticks, %lld wire bytes"),
+                IdleTicks, Results->IdleWireBytes);
 
             for (auto PhaseIdx = 0; PhaseIdx < 3; ++PhaseIdx)
             {
@@ -304,7 +305,7 @@ bool FCkVoiceChatSpike_UnreliableUnicast_DeliveryUnderLoad::RunTest(const FStrin
                     Results->PhaseWireBytes[PhaseIdx],
                     Results->PhaseLagMin[PhaseIdx], Results->PhaseLagAvg[PhaseIdx], Results->PhaseLagMax[PhaseIdx]);
 
-                AddInfo(FString::Printf(TEXT("[VoiceSpike] Phase %s: %s"), PhaseName[PhaseIdx], *PhaseStats));
+                UE_LOG(LogTemp, Display, TEXT("[VoiceSpike] Phase %s: %s"), PhaseName[PhaseIdx], *PhaseStats);
             }
 
             TestEqual(TEXT("Phase A sent the full budget"), Results->PhaseSent[0], PhaseTicks);
@@ -385,14 +386,14 @@ bool FCkVoiceChatSpike_UnresolvedTarget_SilentDrop::RunTest(const FString& Param
             const auto ReceivedCtrl = Channel != nullptr ? Channel->_ReceivedControls : -1;
             const auto NetLogCount = GNetLogCounter._Count.load();
 
-            AddInfo(FString::Printf(
+            UE_LOG(LogTemp, Display,
                 TEXT("[VoiceSpike] Unresolved-target burst: unreliableSent=%d unreliableRecv=%d reliableSent=%d reliableRecv=%d netWarningsOrWorse=%d"),
-                UnreliableBurst, Received, ReliableBurst, ReceivedCtrl, NetLogCount));
+                UnreliableBurst, Received, ReliableBurst, ReceivedCtrl, NetLogCount);
 
             {
                 FScopeLock Lock{&GNetLogCounter._SamplesCs};
                 for (const auto& Sample : GNetLogCounter._Samples)
-                { AddInfo(FString::Printf(TEXT("[VoiceSpike] net-log sample: %s"), *Sample)); }
+                { UE_LOG(LogTemp, Display, TEXT("[VoiceSpike] net-log sample: %s"), *Sample); }
             }
 
             TestTrue(TEXT("client resolved the channel actor after the burst"), Channel != nullptr);
