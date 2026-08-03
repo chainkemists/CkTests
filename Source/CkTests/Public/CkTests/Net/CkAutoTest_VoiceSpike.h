@@ -57,7 +57,9 @@ public:
     int32 _RemainingBundleBudget = 0;
     int32 _ControlEveryNTicks = 0;
 
-    // server-side tallies
+    // server-side tallies (_TicksSeen counts on EVERY role — server and client instances tick in
+    // lockstep under the harness, so payload-embedded send ticks compared against the receiving
+    // instance's _TicksSeen give a per-bundle queueing-lag proxy)
     int32 _NextSeq = 0;
     int32 _SentBundles = 0;
     int32 _SentControls = 0;
@@ -69,6 +71,11 @@ public:
     int32 _HighestSeq = -1;
     int32 _OutOfOrderArrivals = 0;
     int64 _ReceivedPayloadBytes = 0;
+    // raw lag carries a constant offset (the client instance starts ticking at its own spawn,
+    // later than the server's) — compare phases against each other, not against zero
+    int64 _LagTicksSum = 0;
+    int32 _LagTicksMax = MIN_int32;
+    int32 _LagTicksMin = MAX_int32;
 };
 
 // --------------------------------------------------------------------------------------------------------------------

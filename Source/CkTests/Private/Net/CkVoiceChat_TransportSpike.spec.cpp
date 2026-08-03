@@ -58,6 +58,9 @@ namespace ck_voice_spike_spec
         int32 PhaseOutOfOrder[3] = {};
         int32 PhaseCtrlSent[3] = {};
         int32 PhaseCtrlRecv[3] = {};
+        int32 PhaseLagMin[3] = {};
+        int32 PhaseLagMax[3] = {};
+        float PhaseLagAvg[3] = {};
 
         // scratch marks taken at each phase boundary
         int64 WireBytesMark = -1;
@@ -66,6 +69,7 @@ namespace ck_voice_spike_spec
         int32 RecvMark = 0;
         int32 CtrlRecvMark = 0;
         int32 OutOfOrderMark = 0;
+        int64 LagSumMark = 0;
     };
 
     auto Get_RemoteConnectionOutTotalBytes(UWorld* InServer) -> int64
@@ -214,6 +218,9 @@ bool FCkVoiceChatSpike_UnreliableUnicast_DeliveryUnderLoad::RunTest(const FStrin
                 Results->RecvMark = Channel->_ReceivedBundles;
                 Results->CtrlRecvMark = Channel->_ReceivedControls;
                 Results->OutOfOrderMark = Channel->_OutOfOrderArrivals;
+                Results->LagSumMark = Channel->_LagTicksSum;
+                Channel->_LagTicksMax = MIN_int32;
+                Channel->_LagTicksMin = MAX_int32;
             })));
 
         ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
@@ -268,6 +275,11 @@ bool FCkVoiceChatSpike_UnreliableUnicast_DeliveryUnderLoad::RunTest(const FStrin
                 Results->PhaseRecv[PhaseIdx] = Channel->_ReceivedBundles - Results->RecvMark;
                 Results->PhaseCtrlRecv[PhaseIdx] = Channel->_ReceivedControls - Results->CtrlRecvMark;
                 Results->PhaseOutOfOrder[PhaseIdx] = Channel->_OutOfOrderArrivals - Results->OutOfOrderMark;
+                Results->PhaseLagMin[PhaseIdx] = Channel->_LagTicksMin;
+                Results->PhaseLagMax[PhaseIdx] = Channel->_LagTicksMax;
+                Results->PhaseLagAvg[PhaseIdx] = Results->PhaseRecv[PhaseIdx] > 0
+                    ? static_cast<float>(Channel->_LagTicksSum - Results->LagSumMark) / Results->PhaseRecv[PhaseIdx]
+                    : 0.0f;
             })));
     }
 
@@ -284,13 +296,14 @@ bool FCkVoiceChatSpike_UnreliableUnicast_DeliveryUnderLoad::RunTest(const FStrin
             for (auto PhaseIdx = 0; PhaseIdx < 3; ++PhaseIdx)
             {
                 AddInfo(FString::Printf(
-                    TEXT("[VoiceSpike] Phase %s: sent=%d recv=%d (%.1f%%) outOfOrder=%d ctrlSent=%d ctrlRecv=%d wireBytes=%lld"),
+                    TEXT("[VoiceSpike] Phase %s: sent=%d recv=%d (%.1f%%) outOfOrder=%d ctrlSent=%d ctrlRecv=%d wireBytes=%lld lagTicks(min/avg/max)=%d/%.1f/%d"),
                     PhaseName[PhaseIdx],
                     Results->PhaseSent[PhaseIdx], Results->PhaseRecv[PhaseIdx],
                     Results->PhaseSent[PhaseIdx] > 0 ? 100.0f * Results->PhaseRecv[PhaseIdx] / Results->PhaseSent[PhaseIdx] : 0.0f,
                     Results->PhaseOutOfOrder[PhaseIdx],
                     Results->PhaseCtrlSent[PhaseIdx], Results->PhaseCtrlRecv[PhaseIdx],
-                    Results->PhaseWireBytes[PhaseIdx]));
+                    Results->PhaseWireBytes[PhaseIdx],
+                    Results->PhaseLagMin[PhaseIdx], Results->PhaseLagAvg[PhaseIdx], Results->PhaseLagMax[PhaseIdx]));
             }
 
             TestEqual(TEXT("Phase A sent the full budget"), Results->PhaseSent[0], PhaseTicks);
