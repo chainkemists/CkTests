@@ -13,16 +13,76 @@ Reference exemplar: `Script/CkAttribute/CkAutoTest_Attribute_IntegerBasic.as`.
    `DoBeginPlay(FCk_Handle InHandle)` only — the base owns `DoConstruct` (it writes
    `Running` to the result fragment the C++ runner polls). Base defaults:
    `_TimeoutSeconds = 5.0`, `_NetMode = Standalone`, `_Replication = DoesNotReplicate`.
-3. **Drive and assert** with the base API (verified `CkAutoTest_Base.as:83-177`):
-   - `Assert_True(Cond, Msg)` / `Assert_Equals_Int(Actual, Expected, Msg)` /
-     `Assert_Equals_String(Actual, Expected, Msg)` — these count and stash the first failure but
-     do **not** finish the test.
-   - Exactly one terminal call: `FinishSuccess()` (reports Failed if any assertion failed) or
-     `FinishFailure(Msg)`. Guard every signal/timer callback with `if (IsFinished()) { return; }`.
-   - `WaitOneFrame(n"OnSettled")` (`:165`) — first-class settle helper for deferred side-effects
-     (attribute `Request_Override`, stack-count writes, …). Callback signature is
-     `FCk_Delegate_Timer`: `void OnSettled(FCk_Handle_Timer, FCk_Chrono, FCk_Time)`. Chain calls
-     for multi-stage settles. Don't hand-roll settle timers (spec §7 Pattern B predates this).
+3. **Declare the test as steps** — the default shape for a linear test:
+   - `Add_Step("does something", n"Step_Fn")` — an action. Signature is `FCk_Lambda_InHandle`:
+     `UFUNCTION() private void Step_Fn(FCk_Handle InHandle, FInstancedStruct InPayload)`.
+   - `Add_Step_WaitUntil("what must become true", n"Check_Fn")` — polls a predicate every frame
+     until it holds. Signature is `FCk_Predicate_InHandle_OutResult`:
+     `UFUNCTION() private void Check_Fn(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)`.
+     **Answer through a local copy** — `auto Res = OutResult; Res.Set(...);` — AngelScript rejects
+     `OutResult.Set(...)` on a by-value struct param (Script/CLAUDE.md 9.1); `FCk_SharedBool` is a
+     shared cell so the copy writes the same bool.
+   - `Run_Steps(InHandle)` at the end of `DoBeginPlay`. The last step finishing passes the test —
+     no trailing `FinishSuccess()`, and no `if (IsFinished())` guard in step bodies.
+   - **Never wait a fixed number of hops.** How many processor passes an effect needs is a
+     property of processor ORDERING, not elapsed time; a hop count bakes that guess into the test
+     and silently depends on frame rate. A predicate converges as soon as it is true and, when it
+     never is, the failure names the step and the condition.
+4. **Branching tests** (net authority splits, signal-driven flows) use the standalone
+   `WaitUntil(n"Check_Fn", n"ContinueFn", InFrameBudget = 0)` instead of a step list.
+   `ContinueFn` takes the `FCk_Delegate_Timer` signature and may start the next `WaitUntil`.
+   `WaitFrames(N, n"ContinueFn")` is the frame-counted twin — use it ONLY when there is no
+   observable condition, i.e. when asserting that something does **not** happen.
+   **Never convert a settle that guards a NEGATIVE into a condition.** If the test asserts that
+   something does *not* happen, or that a value *survives* some event, the naive predicate is
+   already true when first evaluated — the wait returns before the event under test occurs and the
+   test passes vacuously, which is worse than the flake it replaced. Ask: *if the system did nothing
+   at all, would my predicate still be true?* If yes, use `WaitFrames`. In-tree cases deliberately
+   left on frame settles: `ObjectPooling_PinnedSurvivesGCThenUnpins` (asserts survival of a GC),
+   `EntityTag_RequestTryRemoveAbsentFailed`. Before settling for frames, look for a positive
+   observable hiding in the test's own assertions — `Fog_StartsUnexplored` was on this list until
+   `Get_CellCounts` going non-zero was recognised as proof the grid composed.
+   **A predicate on a SHARED surface must name its own entities.** Every autotest runs in one PIE
+   world, so compass/minimap entries and global registries contain *other tests'* data — that is why
+   projection tests carry an "Isolated Y band" header. `Get_Entries(_Compass).Num() >= 4` cannot
+   distinguish "my four" from "any four" and will release on a neighbouring band's POIs. Scan for
+   the test's own handle (or a category tag private to it) instead. This is not hypothetical:
+   `Compass_BearingAtCardinalOffsets` failed exactly this way during migration (4 entries projected,
+   none its own, 7/9 assertions failed), and six CkMinimap tests carried the same predicate and
+   *passed* for several gates before `267bd7e` corrected them — passing is not evidence of soundness
+   here. When asserting an EXCLUSION, wait on the entity that must SURVIVE: a broken filter yields
+   *extra* entries, satisfying the wait and then failing the existing assertion.
+   **Wait on the stage the *assertion* depends on.** A multi-hop settle often spans a cascade of
+   processor passes; collapsing it into a predicate for the *first* observable stage releases early
+   and fails correct code. `Aggro_OwnerAddThreat_CreatesTarget` gated on the tracked target
+   *existing* while asserting the routed threat — the target is born carrying `_InitialThreat` (1.0)
+   and the routed 7.0 lands a pass later, so it read 1.0 against a `> 5.0` contract. Ask *which stage
+   does my assertion read?* Also: before waiting on a **value** rather than an event, confirm it is
+   monotonic in the direction you need — Aggro is safe only because `_ThreatDecayRate` defaults to 0.
+   A value that can decay or be re-clamped can miss its window entirely; use the event or a bounded
+   frame settle.
+   **`WaitOneFrame` is 0.05s of wall-clock, not one frame** (~3 passes at 60fps, 1 at 20fps).
+   Deciding a hop stays a settle is only half the decision; **duration is an orthogonal axis**.
+   `WaitFrames(N)` is the better instrument when the hop waits for a known number of processor
+   passes — but swapping a small N into a window that was tuned against the 0.05s duration
+   *shortens* it. `Transform_ForceRefreshRebroadcasts` failed this way: `WaitFrames(2)` let the bind
+   and `Request_ForceRefresh` land mid-setup, the refresh was absorbed, and no distinct `OnUpdate`
+   broadcast — a working system failed by a shortened stimulus. Same arithmetic keeps the
+   CkIskmRenderer `_SettleTicks < 3` loops (three timer fires ≈ 9 passes at 60fps, not 3). Convert
+   only when you can say what N counts; otherwise leave `WaitOneFrame` and say why in a comment.
+   **Where the feature already broadcasts the transition, bind the signal instead of polling** —
+   it fires exactly on the change with no tick race. Reach for `WaitUntil` when no signal exists
+   or the condition spans several observables. Precedent:
+   `CkAutoTest_Net_Float_Local_AddWorksOnBothWorlds.as` replaced a settle with
+   `BindTo_OnValueChanged` after a 0.05s timer raced the override-application processor.
+5. **Assert and finish** (verified `CkAutoTest_Base.as`):
+   - `Assert_True` / `Assert_False` / `Assert_Equals_Int` / `Assert_Equals_Float(A, E, Tol, Msg)` /
+     `Assert_Equals_String` / `Assert_Valid` / `Assert_Invalid` — these count and stash the first
+     failure but do **not** finish the test. Failures are auto-tagged with the active step.
+   - `FinishSuccess()` / `FinishFailure(Msg)` remain available for early exit.
+   - `WaitOneFrame(n"OnSettled")` is **legacy**. It is a 0.05s timer, not a frame wait: it yields
+     at least one frame but the frame count scales with frame rate. Retained so unmigrated tests
+     compile; do not write new ones.
 
 ```angelscript
 // Condensed from Script/CkAttribute/CkAutoTest_Attribute_IntegerBasic.as
