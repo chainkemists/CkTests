@@ -42,7 +42,15 @@ class UCk_AutoTest_EntityCollection_RequestRemoveSingleEntity : UCk_AutoTest_Bas
             "Pre-remove: collection should contain 1 entity");
 
         utils_entity_collection::Request_RemoveSingleEntity(_Collection, _Member);
-        WaitOneFrame(n"OnRemoved");
+        WaitUntil(n"Check_CollectionEmpty", n"OnRemoved");
+    }
+
+    // The collection is non-empty on entry, so empty is decisively false until the remove drains.
+    UFUNCTION()
+    private void Check_CollectionEmpty(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_collection::Get_NumEntitiesInCollection(_Collection) == 0);
     }
 
     UFUNCTION()

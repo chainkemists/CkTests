@@ -61,7 +61,15 @@ class UCk_AutoTest_Fog_Reset : UCk_AutoTest_Base
             "The center should be explored after RevealAll");
 
         _Fog.Request_Reset();
-        WaitOneFrame(n"OnSettled_Reset");
+        WaitUntil(n"Check_GridCleared", n"OnSettled_Reset");
+    }
+
+    // The hop before asserted the fraction was 1.0, so cleared is decisively false here.
+    UFUNCTION()
+    private void Check_GridCleared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(Math::Abs(utils_fog_of_war::Get_ExploredFraction(_Fog)) < 0.001);
     }
 
     UFUNCTION()

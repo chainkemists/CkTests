@@ -57,7 +57,15 @@ class UCk_AutoTest_Fog_Revealer_AutoReveals : UCk_AutoTest_Base
     private void OnSettled_Requests(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Sampled");
+        WaitUntil(n"Check_RevealerExplored", n"OnSettled_Sampled");
+    }
+
+    // The grid starts unexplored, so this goes true only once the revealer samples.
+    UFUNCTION()
+    private void Check_RevealerExplored(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_fog_of_war::Get_IsLocationExplored(_Fog, _RevealerPos));
     }
 
     UFUNCTION()

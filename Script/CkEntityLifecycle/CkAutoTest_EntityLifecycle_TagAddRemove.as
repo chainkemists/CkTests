@@ -35,7 +35,15 @@ class UCk_AutoTest_EntityLifecycle_TagAddRemove : UCk_AutoTest_Base
         utils_handle::Set_DebugName(_Child, n"AutoTest_TagChild");
 
         utils_entity_tag::Add(_Child, _TestTag);
-        WaitOneFrame(n"AfterAdd");
+        WaitUntil(n"Check_TagAdded", n"AfterAdd");
+    }
+
+    // Add ENQUEUES a request (CkEntityTag_Utils.cpp:145), so Has is false until it drains.
+    UFUNCTION()
+    private void Check_TagAdded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_entity_tag::Has(_Child, _TestTag));
     }
 
     UFUNCTION()

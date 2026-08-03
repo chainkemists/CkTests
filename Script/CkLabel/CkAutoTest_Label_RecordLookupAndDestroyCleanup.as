@@ -78,7 +78,15 @@ class UCk_AutoTest_Label_RecordLookupAndDestroyCleanup : UCk_AutoTest_Base
         // while Beta still resolves.
         utils_entity_lifetime::Request_DestroyEntity(FoundAlpha);
 
-        WaitOneFrame(n"OnAfterDestroyAlpha");
+        WaitUntil(n"Check_AlphaGone", n"OnAfterDestroyAlpha");
+    }
+
+    // Alpha resolves before the destroy, so this goes true only once the record is pruned.
+    UFUNCTION()
+    private void Check_AlphaGone(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(ck::Is_NOT_Valid(utils_float_attribute::TryGet(_Owner, _TagAlpha)));
     }
 
     UFUNCTION()

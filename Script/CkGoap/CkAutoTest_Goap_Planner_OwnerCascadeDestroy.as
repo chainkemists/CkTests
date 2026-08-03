@@ -91,7 +91,15 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
         utils_entity_lifetime::Request_DestroyEntity(_SubOwner);
 
         // Wait one frame for the destruction to settle.
-        WaitOneFrame(n"OnCheckDestroyed");
+        WaitUntil(n"Check_SubOwnerDestroyed", n"OnCheckDestroyed");
+    }
+
+    // The sub-owner is valid on entry, so the cascade teardown is what flips this.
+    UFUNCTION()
+    private void Check_SubOwnerDestroyed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(!utils_handle::Get_IsValid(_SubOwner));
     }
 
     UFUNCTION()
