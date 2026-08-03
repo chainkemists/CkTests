@@ -43,8 +43,7 @@ namespace ck_voice_spike_spec
     constexpr auto BundleBytes = 190;          // 3 x 60 B Opus frames + 7 B header (spec wire format)
     constexpr auto PhaseTicks = 300;
     constexpr auto SendWindowSlackTicks = 5;   // config lands between frames; budget needs a hair over PhaseTicks to drain
-    constexpr auto SettleTicks = 60;
-    constexpr auto PressureSettleTicks = 240;  // reliable control must flush through the saturated queue
+    constexpr auto DrainTimeoutSeconds = 90.0;
     constexpr auto IdleTicks = 120;
     constexpr auto ControlCadenceTicks = 10;
     constexpr auto PressureChurnBytes = 60000; // Iris FArrayPropertyNetSerializer caps arrays at 65535 elements
@@ -199,12 +198,11 @@ bool FCkVoiceChatSpike_UnreliableUnicast_DeliveryUnderLoad::RunTest(const FStrin
     {
         int32 BundlesPerTick = 0;
         int32 ChurnBytes = 0;
-        int32 Settle = SettleTicks;
     };
     const FPhaseConfig Phases[3] = {
-        {1, 0, SettleTicks},
-        {8, 0, SettleTicks},
-        {8, PressureChurnBytes, PressureSettleTicks},
+        {1, 0},
+        {8, 0},
+        {8, PressureChurnBytes},
     };
 
     for (auto PhaseIdx = 0; PhaseIdx < 3; ++PhaseIdx)
@@ -256,7 +254,19 @@ bool FCkVoiceChatSpike_UnreliableUnicast_DeliveryUnderLoad::RunTest(const FStrin
                 Pressure->_ChurnBytesPerTick = 0;
             })));
 
-        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(Config.Settle));
+        // In-process delivery is lossless on the ordered path, so "recv == sent" is the drain
+        // criterion; the interesting pressure metric is how LONG the drain takes (lag max).
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+            FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+            {
+                auto* ServerChannel = ACk_AutoTest_VoiceSpikeChannel_UE::Find(ck::auto_test::net::Get_ServerWorld());
+                auto* ClientChannel = ACk_AutoTest_VoiceSpikeChannel_UE::Find(ck::auto_test::net::Get_ClientWorld(0));
+                if (ServerChannel == nullptr || ClientChannel == nullptr) { return false; }
+                return ClientChannel->_ReceivedBundles >= ServerChannel->_SentBundles &&
+                       ClientChannel->_ReceivedControls >= ServerChannel->_SentControls;
+            }), DrainTimeoutSeconds, TEXT("phase queue fully drained to the client")));
+
+        ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(10));
 
         ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
             FCk_NetAutoTest_ServerAction::CreateLambda([Results, PhaseIdx](UWorld* InServer) -> void
@@ -309,15 +319,16 @@ bool FCkVoiceChatSpike_UnreliableUnicast_DeliveryUnderLoad::RunTest(const FStrin
             }
 
             TestEqual(TEXT("Phase A sent the full budget"), Results->PhaseSent[0], PhaseTicks);
-            TestTrue(TEXT("Phase A (single stream, no pressure): >= 95% unreliable delivery"),
-                Results->PhaseRecv[0] >= (Results->PhaseSent[0] * 95) / 100);
-            TestEqual(TEXT("Phase A: reliable control fully delivered"),
-                Results->PhaseCtrlRecv[0], Results->PhaseCtrlSent[0]);
-            TestTrue(TEXT("Phase B: unreliable delivery nonzero"), Results->PhaseRecv[1] > 0);
-            TestEqual(TEXT("Phase C: reliable control fully delivered through saturation"),
-                Results->PhaseCtrlRecv[2], Results->PhaseCtrlSent[2]);
-            TestTrue(TEXT("Phase C: unreliable voice NOT fully starved under state saturation (ADR-4 STOP condition if this fails)"),
-                Results->PhaseRecv[2] > 0);
+
+            for (auto PhaseIdx = 0; PhaseIdx < 3; ++PhaseIdx)
+            {
+                // A drain timeout (recv < sent here) is the ADR-4 STOP condition: it would mean
+                // the ordered-unreliable path genuinely lost or indefinitely starved traffic.
+                TestEqual(FString::Printf(TEXT("Phase %s: every unreliable bundle drained to the client"), PhaseName[PhaseIdx]),
+                    Results->PhaseRecv[PhaseIdx], Results->PhaseSent[PhaseIdx]);
+                TestEqual(FString::Printf(TEXT("Phase %s: reliable control fully delivered"), PhaseName[PhaseIdx]),
+                    Results->PhaseCtrlRecv[PhaseIdx], Results->PhaseCtrlSent[PhaseIdx]);
+            }
 
             return true;
         }), TEXT("[VoiceSpike] delivery/overhead report")));
