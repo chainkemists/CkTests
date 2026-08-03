@@ -26,6 +26,12 @@ namespace ck_test_voice_chat_opus_benchmark
     constexpr auto WarmupFrames = 10;
     constexpr auto TimedFrames = 500;
 
+    // FVoiceDecoderOpus refuses to decode a frame unless the OUTPUT buffer has capacity for
+    // MAX_OPUS_FRAMES (= 6) whole frames (VoiceCodecOpus.cpp:20 + the UncompressedBufferAvail
+    // gate in Decode) — a 1-frame buffer silently yields size 0. P2's synth decode target must
+    // honor the same capacity floor.
+    constexpr auto DecodeCapacityBytes = 6 * BytesPerFrame;
+
     // 300 Hz sine at 0.3 full scale — a stable, voiced-band signal every frame.
     auto MakeSineFrame(int32 InFrameIdx) -> TArray<uint8>
     {
@@ -134,7 +140,7 @@ bool FCkTest_VoiceChat_OpusMicroBenchmark::RunTest(const FString& Parameters)
     for (auto FrameIdx = 0; FrameIdx < TotalFrames; ++FrameIdx)
     {
         auto Decoded = TArray<uint8>{};
-        Decoded.SetNumUninitialized(BytesPerFrame);
+        Decoded.SetNumUninitialized(DecodeCapacityBytes);
         auto DecodedSize = static_cast<uint32>(Decoded.Num());
 
         const auto StartSeconds = FPlatformTime::Seconds();
