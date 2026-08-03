@@ -112,7 +112,7 @@ class UCk_IntegerGym_Step_ClearAll : UCk_Gym_StepState
         auto _CkPerfScope = ck::ScopedStat();
         auto Damage = integer_gym_modifiers::Get_DamageAttribute(Get_StationEntity());
         if (ck::Is_NOT_Valid(Damage)) { return; }
-        utils_integer_attribute_modifier::Request_ClearAllModifiers(Damage);
+        utils_integer_attribute_modifier::Request_ClearAllModifiers(Damage, ECk_MinMaxCurrent::Current);
     }
 }
 
