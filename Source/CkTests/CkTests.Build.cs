@@ -25,6 +25,7 @@ public class CkTests : CkModuleRules
             // itself, and the transitive public dependency did not put Niagara's import lib on this link
             // (LNK2019 on Z_Construct_UClass_UNiagaraSystem_NoRegister).
             "Niagara",
+            "Voice",
 
             "CkActorRelay",
             "CkAggro",
@@ -82,6 +83,7 @@ public class CkTests : CkModuleRules
             "CkUnrealComponent",
             "CkUsf",
             "CkVariables",
+            "CkVoiceChat",
             "CkWatermark",
         });
 
