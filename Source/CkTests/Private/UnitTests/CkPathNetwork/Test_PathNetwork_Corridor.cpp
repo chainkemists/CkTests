@@ -1,4 +1,5 @@
 #include "Misc/AutomationTest.h"
+#include "HAL/PlatformTime.h"
 
 #include "CkPathNetwork/Network/CkPathNetwork_Build.h"
 #include "CkPathNetwork/Network/CkPathNetwork_CorridorCompile.h"
@@ -145,6 +146,54 @@ namespace ck_test_pathnetwork_corridor
                 static_cast<float>(FVector::Dist2D(Point, Closest)));
         }
         return MaximumDistance;
+    }
+
+    auto MakeDenseRasterNetwork(int32 InRows, int32 InColumns, float InCellSize) -> FBuiltNetwork
+    {
+        auto Network = FBuiltNetwork{};
+        auto Edge = FBuiltEdge{};
+        Edge._Points.Reserve(InRows * (InColumns + 1));
+        Edge._HalfWidths.Reserve(Edge._Points.Max());
+        Edge._CumulativeLengths.Reserve(Edge._Points.Max());
+
+        const auto AddControl =
+            [&](const FVector& InLocation)
+            {
+                if (NOT Edge._Points.IsEmpty())
+                { Edge._Length += FVector::Distance(Edge._Points.Last(), InLocation); }
+                Edge._Points.Add(InLocation);
+                Edge._HalfWidths.Add(180.0f);
+                Edge._CumulativeLengths.Add(Edge._Length);
+            };
+
+        for (auto Row = 0; Row < InRows; ++Row)
+        {
+            const auto Y = static_cast<float>(Row) * InCellSize;
+            const auto StartsAtLeft = Row % 2 == 0;
+            for (auto Column = 0; Column <= InColumns; ++Column)
+            {
+                const auto RasterColumn = StartsAtLeft ? Column : InColumns - Column;
+                AddControl(FVector{static_cast<float>(RasterColumn) * InCellSize, Y, 0.0f});
+            }
+        }
+
+        Network._Edges.Add(MoveTemp(Edge));
+        return Network;
+    }
+
+    auto GetPathChecksum(const TArray<FVector>& InPath) -> uint32
+    {
+        auto Checksum = uint32{0};
+        for (const auto& Point : InPath)
+        {
+            Checksum = HashCombineFast(
+                Checksum,
+                GetTypeHash(FIntVector{
+                    FMath::RoundToInt32(Point.X),
+                    FMath::RoundToInt32(Point.Y),
+                    FMath::RoundToInt32(Point.Z)}));
+        }
+        return Checksum;
     }
 }
 
@@ -670,5 +719,103 @@ bool FCk_PathNetwork_Corridor_RejectsDisconnectedRun::RunTest(const FString& Par
 
     const auto Path = Compile_OnRibbonRun(Network, Spans, MakeParams(1000.0f, 100.0f));
     TestTrue(TEXT("disconnected spans fail closed"), Path.IsEmpty());
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Corridor_ValidatesCollapsedPathPoint,
+    "Ck.PathNetwork.Corridor.ValidatesCollapsedPathPoint",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Corridor_ValidatesCollapsedPathPoint::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_corridor;
+
+    const auto Network = MakeNetwork(
+        {FVector{0, 0, 0}, FVector{200, 0, 0}},
+        {50.0f, 50.0f});
+    const auto Run = MakeFullEdgeRun(Network);
+    const auto InsidePath = TArray<FVector>{FVector{100, 25, 0}};
+    const auto OutsidePath = TArray<FVector>{FVector{100, 75, 0}};
+
+    TestTrue(
+        TEXT("a path collapsed below waypoint merge distance retains its contained point"),
+        Is_PathInsideRibbonRun(Network, Run, InsidePath));
+    TestFalse(
+        TEXT("a collapsed path still rejects a retained point outside the ribbon"),
+        Is_PathInsideRibbonRun(Network, Run, OutsidePath));
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Corridor_PerfDenseRasterRun,
+    "Ck.PathNetwork.Corridor.PerfDenseRasterRun",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Corridor_PerfDenseRasterRun::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_pathnetwork_corridor;
+
+    // 32 32m-long aisles joined by 31 1m cross-aisle turns yield 1,056 authored controls over 1.055km.
+    // This stresses dense MainMap-style sidewalk raster compilation without involving route search.
+    constexpr auto RowCount = 32;
+    constexpr auto ColumnCount = 32;
+    constexpr auto RasterCellSizeCm = 100.0f;
+    constexpr auto WarmupIterations = 8;
+    constexpr auto MaximumIterations = 4096;
+    constexpr auto MinimumMeasuredSeconds = 0.1;
+
+    const auto Network = MakeDenseRasterNetwork(RowCount, ColumnCount, RasterCellSizeCm);
+    const auto Run = MakeFullEdgeRun(Network);
+    const auto Params = MakeParams(100.0f, 75.0f);
+    const auto ExpectedStart = Network._Edges[0]._Points[0];
+    const auto ExpectedEnd = Network._Edges[0]._Points.Last();
+    const auto ExpectedPath = Compile_OnRibbonRun(Network, Run, Params);
+    const auto ExpectedChecksum = GetPathChecksum(ExpectedPath);
+
+    if (NOT TestTrue(TEXT("dense raster corridor compiles"), ExpectedPath.Num() >= 2) ||
+        NOT TestExactEndpoints(*this, ExpectedPath, ExpectedStart, ExpectedEnd) ||
+        NOT TestContainedSegments(*this, Network, Run, ExpectedPath))
+    { return false; }
+
+    for (auto Iteration = 0; Iteration < WarmupIterations; ++Iteration)
+    { Compile_OnRibbonRun(Network, Run, Params); }
+
+    auto Iterations = 0;
+    auto IsDeterministic = true;
+    const auto StartSeconds = FPlatformTime::Seconds();
+    while (Iterations < MaximumIterations)
+    {
+        const auto Path = Compile_OnRibbonRun(Network, Run, Params);
+        const auto Checksum = GetPathChecksum(Path);
+        IsDeterministic =
+            IsDeterministic &&
+            Path.Num() == ExpectedPath.Num() &&
+            Checksum == ExpectedChecksum;
+        ++Iterations;
+
+        if (FPlatformTime::Seconds() - StartSeconds >= MinimumMeasuredSeconds)
+        { break; }
+    }
+    const auto TotalMilliseconds =
+        (FPlatformTime::Seconds() - StartSeconds) * 1000.0;
+
+    TestTrue(
+        TEXT("repeated dense corridor compiles preserve waypoint count and checksum"),
+        IsDeterministic);
+
+    const auto PerfSummary = FString::Printf(
+        TEXT("[CkPathNetwork PERF][Dense corridor] iterations=%d controls=%d waypoints=%d checksum=%u total=%.3f ms avg=%.3f ms"),
+        Iterations,
+        Network._Edges[0]._Points.Num(),
+        ExpectedPath.Num(),
+        ExpectedChecksum,
+        TotalMilliseconds,
+        TotalMilliseconds / static_cast<double>(Iterations));
+    UE_LOG(LogTemp, Display, TEXT("%s"), *PerfSummary);
     return true;
 }
