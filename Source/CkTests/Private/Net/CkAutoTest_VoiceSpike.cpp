@@ -2,7 +2,6 @@
 
 #include <EngineUtils.h>
 #include <Net/UnrealNetwork.h>
-#include <Net/Core/PushModel/PushModel.h>
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -126,8 +125,6 @@ auto
     {
         _Payload[Idx] = static_cast<uint8>((_ChurnCounter + Idx) & 0xFF);
     }
-
-    MARK_PROPERTY_DIRTY_FROM_NAME(ACk_AutoTest_VoiceSpikePressure_UE, _Payload, this);
 }
 
 auto
@@ -138,10 +135,7 @@ auto
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    auto Params = FDoRepLifetimeParams{};
-    Params.bIsPushBased = true;
-
-    DOREPLIFETIME_WITH_PARAMS_FAST(ACk_AutoTest_VoiceSpikePressure_UE, _Payload, Params);
+    DOREPLIFETIME(ACk_AutoTest_VoiceSpikePressure_UE, _Payload);
 }
 
 auto
