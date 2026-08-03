@@ -1048,5 +1048,41 @@ bool FCk_PathNetwork_Vectorize_RibbonSimplificationPreservesHeightAndWidth::RunT
     TestEqual(TEXT("combined centerline and width error bounds corridor-edge drift"),
         EdgeResult.Num(),
         3);
+
+    // Asymmetric endpoints with an off-center interior sample (chord T = 0.25) pin the
+    // interpolated reference itself: a reference read at the wrong T or from swapped
+    // endpoints turns each on-profile deviation from ~3 cm into an above-tolerance one.
+    const auto HeightRampProfile = TArray<FCk_PathNetwork_RibbonPoint>{
+        FCk_PathNetwork_RibbonPoint{FVector{0.0, 0.0, 0.0}, 50.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{25.0, 0.0, 28.0}, 50.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{100.0, 0.0, 100.0}, 50.0f}};
+    const auto HeightRampResult = ck::pathnetwork::Simplify_RibbonPoints(
+        HeightRampProfile,
+        10.0f);
+    TestEqual(TEXT("a sample near the interpolated height ramp collapses onto the chord"),
+        HeightRampResult.Num(),
+        2);
+
+    const auto WidthRampProfile = TArray<FCk_PathNetwork_RibbonPoint>{
+        FCk_PathNetwork_RibbonPoint{FVector{0.0, 0.0, 0.0}, 50.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{25.0, 0.0, 0.0}, 65.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{100.0, 0.0, 0.0}, 100.0f}};
+    const auto WidthRampResult = ck::pathnetwork::Simplify_RibbonPoints(
+        WidthRampProfile,
+        10.0f);
+    TestEqual(TEXT("a sample near the interpolated width ramp collapses onto the chord"),
+        WidthRampResult.Num(),
+        2);
+
+    const auto HeightRampSpikeProfile = TArray<FCk_PathNetwork_RibbonPoint>{
+        FCk_PathNetwork_RibbonPoint{FVector{0.0, 0.0, 0.0}, 50.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{25.0, 0.0, 60.0}, 50.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{100.0, 0.0, 100.0}, 50.0f}};
+    const auto HeightRampSpikeResult = ck::pathnetwork::Simplify_RibbonPoints(
+        HeightRampSpikeProfile,
+        10.0f);
+    TestEqual(TEXT("a spike above the interpolated height ramp is retained"),
+        HeightRampSpikeResult.Num(),
+        3);
     return true;
 }
