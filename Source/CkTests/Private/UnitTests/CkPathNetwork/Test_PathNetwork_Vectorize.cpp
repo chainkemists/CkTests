@@ -947,3 +947,106 @@ bool FCk_PathNetwork_Vectorize_NoiseFiltered::RunTest(const FString& Parameters)
 
     return true;
 }
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Vectorize_RibbonSimplificationHonorsTolerance,
+    "Ck.PathNetwork.Vectorize.RibbonSimplificationHonorsTolerance",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Vectorize_RibbonSimplificationHonorsTolerance::RunTest(
+    const FString& Parameters)
+{
+    const auto Source = TArray<FCk_PathNetwork_RibbonPoint>{
+        FCk_PathNetwork_RibbonPoint{FVector{0.0, 0.0, 0.0}, 100.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{25.0, 5.0, 0.0}, 100.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{50.0, 10.0, 0.0}, 100.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{75.0, 5.0, 0.0}, 100.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{100.0, 0.0, 0.0}, 100.0f}};
+
+    const auto Unsimplified = ck::pathnetwork::Simplify_RibbonPoints(
+        Source,
+        0.0f);
+    TestEqual(TEXT("zero tolerance preserves every source point"),
+        Unsimplified.Num(),
+        Source.Num());
+
+    const auto Simplified = ck::pathnetwork::Simplify_RibbonPoints(
+        Source,
+        6.0f);
+    TestTrue(TEXT("positive tolerance removes redundant curve samples"),
+        Simplified.Num() < Source.Num());
+    TestTrue(TEXT("simplification preserves the exact first point"),
+        Simplified[0].Get_Location().Equals(Source[0].Get_Location()) &&
+        FMath::IsNearlyEqual(
+            Simplified[0].Get_HalfWidth(),
+            Source[0].Get_HalfWidth()));
+    TestTrue(TEXT("simplification preserves the exact last point"),
+        Simplified.Last().Get_Location().Equals(Source.Last().Get_Location()) &&
+        FMath::IsNearlyEqual(
+            Simplified.Last().Get_HalfWidth(),
+            Source.Last().Get_HalfWidth()));
+    TestTrue(TEXT("curve deviation above tolerance retains its apex"),
+        Simplified.ContainsByPredicate(
+            [&Source](const FCk_PathNetwork_RibbonPoint& InPoint)
+            {
+                return InPoint.Get_Location().Equals(
+                    Source[2].Get_Location());
+            }));
+
+    const auto SourceConstrained = ck::pathnetwork::Simplify_RibbonPoints(
+        Source,
+        10000.0f,
+        [](const int32 InFirstIndex, const int32 InLastIndex)
+        { return InLastIndex - InFirstIndex <= 1; });
+    TestEqual(TEXT("unsupported shortcut chords retain the original supported route"),
+        SourceConstrained.Num(),
+        Source.Num());
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_PathNetwork_Vectorize_RibbonSimplificationPreservesHeightAndWidth,
+    "Ck.PathNetwork.Vectorize.RibbonSimplificationPreservesHeightAndWidth",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCk_PathNetwork_Vectorize_RibbonSimplificationPreservesHeightAndWidth::RunTest(
+    const FString& Parameters)
+{
+    const auto HeightProfile = TArray<FCk_PathNetwork_RibbonPoint>{
+        FCk_PathNetwork_RibbonPoint{FVector{0.0, 0.0, 0.0}, 50.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{50.0, 0.0, 30.0}, 50.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{100.0, 0.0, 0.0}, 50.0f}};
+    const auto HeightResult = ck::pathnetwork::Simplify_RibbonPoints(
+        HeightProfile,
+        25.0f);
+    TestEqual(TEXT("height deviation above tolerance retains the source point"),
+        HeightResult.Num(),
+        3);
+
+    const auto WidthProfile = TArray<FCk_PathNetwork_RibbonPoint>{
+        FCk_PathNetwork_RibbonPoint{FVector{0.0, 0.0, 0.0}, 50.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{50.0, 0.0, 0.0}, 100.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{100.0, 0.0, 0.0}, 50.0f}};
+    const auto WidthResult = ck::pathnetwork::Simplify_RibbonPoints(
+        WidthProfile,
+        25.0f);
+    TestEqual(TEXT("half-width deviation above tolerance retains the source point"),
+        WidthResult.Num(),
+        3);
+
+    const auto EdgeProfile = TArray<FCk_PathNetwork_RibbonPoint>{
+        FCk_PathNetwork_RibbonPoint{FVector{0.0, 0.0, 0.0}, 50.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{50.0, 15.0, 0.0}, 65.0f},
+        FCk_PathNetwork_RibbonPoint{FVector{100.0, 0.0, 0.0}, 50.0f}};
+    const auto EdgeResult = ck::pathnetwork::Simplify_RibbonPoints(
+        EdgeProfile,
+        25.0f);
+    TestEqual(TEXT("combined centerline and width error bounds corridor-edge drift"),
+        EdgeResult.Num(),
+        3);
+    return true;
+}
