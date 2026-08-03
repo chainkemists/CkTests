@@ -56,7 +56,7 @@ class UCk_AutoTest_Fog_RevealLocation_Explores : UCk_AutoTest_Base
     private void OnSettled_Setup(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
-        WaitOneFrame(n"OnSettled_Reveal");
+        WaitUntil(n"Check_BaseExplored", n"OnSettled_Reveal");
     }
 
     UFUNCTION()
@@ -64,6 +64,14 @@ class UCk_AutoTest_Fog_RevealLocation_Explores : UCk_AutoTest_Base
     {
         _RevealedBatches++;
         _RevealedCellTotal += InCells.Get_CellIndices().Num();
+    }
+
+    // The grid starts unexplored, so this goes true only once the reveal is applied.
+    UFUNCTION()
+    private void Check_BaseExplored(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_fog_of_war::Get_IsLocationExplored(_Fog, _Base));
     }
 
     UFUNCTION()

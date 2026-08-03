@@ -30,7 +30,15 @@ class UCk_AutoTest_Aggro_AddThreat_Accumulates : UCk_AutoTest_Base
         _Target.Request_AddThreat(5.0);
         _Target.Request_AddThreat(3.0);
 
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_ThreatAccumulated", n"OnSettled");
+    }
+
+    // Threat is below 8 until both adds are routed, and decay defaults to 0 so it cannot overshoot back.
+    UFUNCTION()
+    private void Check_ThreatAccumulated(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(Math::Abs(_Target.Get_Threat() - 8.0) < 0.01);
     }
 
     UFUNCTION()

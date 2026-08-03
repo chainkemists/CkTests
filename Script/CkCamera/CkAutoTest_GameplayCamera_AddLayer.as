@@ -40,7 +40,15 @@ class UCk_AutoTest_GameplayCamera_AddLayer : UCk_AutoTest_Base
         _Camera.Request_AddLayer(Request);
 
         // One frame for HandleRequests to spawn + connect the modifier entity.
-        WaitOneFrame(n"OnSettled");
+        WaitUntil(n"Check_LayerAdded", n"OnSettled");
+    }
+
+    // AddLayer is deferred; the count is 0 on entry, so this cannot release early.
+    UFUNCTION()
+    private void Check_LayerAdded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Camera.Get_LayerCount() == 1);
     }
 
     UFUNCTION()
