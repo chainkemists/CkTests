@@ -46,6 +46,7 @@ namespace ck_voice_routing_spec
     struct FRoutingSpecState
     {
         int32 ClientDecodedBytesAfterTransmit = 0;
+        uint64 ClientArrivedBundlesAfterTransmit = 0;
 
         bool HadOriginalVoiceKey = false;
         bool OriginalVoiceEnabled = false;
@@ -215,6 +216,8 @@ bool FCkVoiceChatNet_RoutingForwardsAndNeverStashes::RunTest(const FString& Para
 
             State->ClientDecodedBytesAfterTransmit =
                 UCk_Utils_VoiceTalker_UE::Debug_Get_LoopbackDecodedPcm(ClientSubjectA->_TestTalker).Num();
+            State->ClientArrivedBundlesAfterTransmit =
+                UCk_Utils_VoiceTalker_UE::Debug_Get_ReceiveArrivedBundles(ClientSubjectA->_TestTalker);
 
             TestTrue(TEXT("the client received AND decoded talker A's voice (routing forwarded to the CanHear member's connection)"),
                 State->ClientDecodedBytesAfterTransmit > 0);
@@ -236,6 +239,10 @@ bool FCkVoiceChatNet_RoutingForwardsAndNeverStashes::RunTest(const FString& Para
             // will hand out). N1: the route must drop it now - and must not resurrect it when
             // that idx becomes real below.
             const auto FutureIdx = static_cast<uint8>(2);
+
+            TestTrue(TEXT("FutureIdx is genuinely unresolvable at inject time (else this proves nothing)"),
+                ck::Is_NOT_Valid(UCk_Utils_VoiceChannel_UE::TryGet_ChannelByIdx(SubjectA->_TestTalker, FutureIdx)));
+
             auto Frame = TArray<uint8>{};
             Frame.Init(0x5A, 32);
 
@@ -285,6 +292,14 @@ bool FCkVoiceChatNet_RoutingForwardsAndNeverStashes::RunTest(const FString& Para
             TestEqual(TEXT("the dropped bundle did NOT resurrect when its ChannelIdx became real (N1: never stash)"),
                 UCk_Utils_VoiceTalker_UE::Debug_Get_LoopbackDecodedPcm(ClientSubjectA->_TestTalker).Num(),
                 State->ClientDecodedBytesAfterTransmit);
+
+            // The decode-level equality alone could false-pass a stash (a resurrected seq-1
+            // bundle would be jitter-late-dropped before decode) - the RPC-boundary counter
+            // cannot: NOTHING may even ARRIVE after the idx becomes real (Gate-3 audit
+            // condition 2).
+            TestEqual(TEXT("nothing even ARRIVED at the client after the idx became real (never stashed, never resent)"),
+                UCk_Utils_VoiceTalker_UE::Debug_Get_ReceiveArrivedBundles(ClientSubjectA->_TestTalker),
+                State->ClientArrivedBundlesAfterTransmit);
 
             return true;
         }),

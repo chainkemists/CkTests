@@ -43,6 +43,9 @@ namespace ck_voice_mute_spec
         int32 DecodedBytesAfterBaseline = 0;
         int32 DecodedBytesAfterMutedSpurt = 0;
 
+        uint64 ArrivalsAfterBaseline = 0;
+        uint64 ArrivalsAfterMutedSpurt = 0;
+
         bool HadOriginalVoiceKey = false;
         bool OriginalVoiceEnabled = false;
     };
@@ -128,6 +131,23 @@ namespace ck_voice_mute_spec
 
         return UCk_Utils_VoiceTalker_UE::Debug_Get_LoopbackDecodedPcm(ClientSubjectA->_TestTalker).Num();
     }
+
+    // The RPC-boundary arrival counter - counted BEFORE the local defense-in-depth mute gate, so
+    // it distinguishes the server-side exclusion (bundles stop ARRIVING) from the local drop
+    // (bundles arrive, playback stays silent). The decoded-bytes asserts alone cannot tell the
+    // two apart - this counter is what proves the privacy property (Gate-3 audit condition 1).
+    auto Get_ClientArrivedBundles(FAutomationTestBase* InTest) -> uint64
+    {
+        auto* Client = ck::auto_test::net::Get_ClientWorld(0);
+        auto* ClientSubjectA = Client != nullptr ? Find_Subject(Client, true) : nullptr;
+        if (ClientSubjectA == nullptr || ck::Is_NOT_Valid(ClientSubjectA->_TestTalker))
+        {
+            InTest->AddError(TEXT("client-side subject A missing at arrival-read time"));
+            return 0;
+        }
+
+        return UCk_Utils_VoiceTalker_UE::Debug_Get_ReceiveArrivedBundles(ClientSubjectA->_TestTalker);
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -211,9 +231,12 @@ bool FCkVoiceChatNet_ListenerMuteStopsForwarding::RunTest(const FString& Paramet
         FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
         {
             State->DecodedBytesAfterBaseline = Get_ClientDecodedBytes(this);
+            State->ArrivalsAfterBaseline = Get_ClientArrivedBundles(this);
 
             TestTrue(TEXT("baseline: the client decoded talker A's voice before any mute"),
                 State->DecodedBytesAfterBaseline > 0);
+            TestTrue(TEXT("baseline: bundles ARRIVED at the RPC boundary before any mute"),
+                State->ArrivalsAfterBaseline > 0);
 
             return true;
         }),
@@ -254,9 +277,12 @@ bool FCkVoiceChatNet_ListenerMuteStopsForwarding::RunTest(const FString& Paramet
         FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
         {
             State->DecodedBytesAfterMutedSpurt = Get_ClientDecodedBytes(this);
+            State->ArrivalsAfterMutedSpurt = Get_ClientArrivedBundles(this);
 
-            TestEqual(TEXT("muted: the second spurt never ARRIVED at the muting client (decoded bytes frozen)"),
+            TestEqual(TEXT("muted: playback stayed silent (decoded bytes frozen)"),
                 State->DecodedBytesAfterMutedSpurt, State->DecodedBytesAfterBaseline);
+            TestEqual(TEXT("muted: the second spurt never ARRIVED at the RPC boundary - the server stopped forwarding, not just the local gate"),
+                State->ArrivalsAfterMutedSpurt, State->ArrivalsAfterBaseline);
 
             return true;
         }),
@@ -296,6 +322,8 @@ bool FCkVoiceChatNet_ListenerMuteStopsForwarding::RunTest(const FString& Paramet
 
             TestTrue(TEXT("unmuted: the third spurt decodes again (the exclusion was the cause, not a broken pipe)"),
                 Get_ClientDecodedBytes(this) > State->DecodedBytesAfterMutedSpurt);
+            TestTrue(TEXT("unmuted: bundles ARRIVE again at the RPC boundary"),
+                Get_ClientArrivedBundles(this) > State->ArrivalsAfterMutedSpurt);
 
             return true;
         }),
