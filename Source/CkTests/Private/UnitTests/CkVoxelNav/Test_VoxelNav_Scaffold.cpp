@@ -51,8 +51,23 @@ bool FCkTest_VoxelNav_Scaffold_AddComposesVolumeOnChildEntity::RunTest(const FSt
     TestFalse(TEXT("the owner itself does NOT carry the feature (it lives on the child entity)"),
         UCk_Utils_VoxelNavVolume_UE::Has(Owner));
 
-    TestTrue(TEXT("the volume is stamped NeedsBuild for the Setup processor"),
+    TestTrue(TEXT("the volume is stamped NeedsSetup for the Setup processor"),
+        Volume.Has<ck::FTag_VoxelNavVolume_NeedsSetup>());
+
+    TestFalse(TEXT("Add does NOT arm a build directly - Setup validates the params first and arms it"),
         Volume.Has<ck::FTag_VoxelNavVolume_NeedsBuild>());
+
+    TestTrue(TEXT("the build state is composed up front, so a build never has to allocate it mid-frame"),
+        Volume.Has<ck::FFragment_VoxelNavVolume_BuildState>());
+
+    TestTrue(TEXT("the published-octree fragment exists from the start, holding nothing"),
+        Volume.Has<ck::FFragment_VoxelNavVolume_BuiltOctree>());
+
+    TestFalse(TEXT("a volume that has never baked reports itself unbuilt"),
+        UCk_Utils_VoxelNavVolume_UE::Get_IsBuilt(Volume));
+
+    TestTrue(TEXT("the volume id is minted from the entity, so it is stable and never zero"),
+        Volume.Get<ck::FFragment_VoxelNavVolume_BuiltOctree>().Get_VolumeId().Get_IsValid());
 
     const auto& Params = Volume.Get<ck::FFragment_VoxelNavVolume_Params>();
 
