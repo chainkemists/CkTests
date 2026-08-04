@@ -208,7 +208,20 @@ bool FCkVoiceChatNet_PlaybackConfig::RunTest(const FString& Parameters)
             Inject_FromTalkerA(this, InServer, State);
         })));
 
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(10));
+    // The mirror is transient BY DESIGN (it releases 0.15s after the last arrival), so a fixed
+    // settle races it on slow-tick hosts - poll for the >0 window instead (the exit sweep's
+    // first run caught exactly that race).
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            auto* ClientB = ck::auto_test::net::Get_ClientWorld(1);
+            auto* ClientTalkerA = ClientB != nullptr ? Find_SubjectNear(ClientB, TalkerALocation) : nullptr;
+
+            return ClientTalkerA != nullptr && ck::IsValid(ClientTalkerA->_TestTalker) &&
+                UCk_Utils_VoiceTalker_UE::Get_CurrentAmplitude(ClientTalkerA->_TestTalker) > 0.0f;
+        }),
+        10.0,
+        TEXT("amplitude mirrors the header while the stream flows")));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
@@ -233,19 +246,26 @@ bool FCkVoiceChatNet_PlaybackConfig::RunTest(const FString& Parameters)
                     UCk_Utils_VoiceChannel_UE::Get_ChannelIdx(ConfigChannel), State->ChannelIdx);
             }
 
-            TestTrue(TEXT("amplitude mirrors the header while the stream flows"),
-                UCk_Utils_VoiceTalker_UE::Get_CurrentAmplitude(ClientTalkerA->_TestTalker) > 0.0f);
-
             return true;
         }),
-        TEXT("selection + live amplitude")));
+        TEXT("selection")));
 
     // Act 2 - the stream idles past the sender's stale-drop age: amplitude releases to zero,
     // the selection persists (config is sticky; silence does not deselect).
-    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(60));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            auto* ClientB = ck::auto_test::net::Get_ClientWorld(1);
+            auto* ClientTalkerA = ClientB != nullptr ? Find_SubjectNear(ClientB, TalkerALocation) : nullptr;
+
+            return ClientTalkerA != nullptr && ck::IsValid(ClientTalkerA->_TestTalker) &&
+                UCk_Utils_VoiceTalker_UE::Get_CurrentAmplitude(ClientTalkerA->_TestTalker) == 0.0f;
+        }),
+        10.0,
+        TEXT("amplitude releases to zero after the spurt")));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
-        FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
+        FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
         {
             auto* ClientB = ck::auto_test::net::Get_ClientWorld(1);
             auto* ClientTalkerA = ClientB != nullptr ? Find_SubjectNear(ClientB, TalkerALocation) : nullptr;
@@ -256,16 +276,13 @@ bool FCkVoiceChatNet_PlaybackConfig::RunTest(const FString& Parameters)
                 return false;
             }
 
-            TestEqual(TEXT("amplitude releases to zero after the spurt"),
-                UCk_Utils_VoiceTalker_UE::Get_CurrentAmplitude(ClientTalkerA->_TestTalker), 0.0f);
-
             TestTrue(TEXT("the selection persists through silence"),
                 ck::IsValid(UCk_Utils_VoiceTalker_UE::Debug_Get_PlaybackConfigChannel(
                     ClientTalkerA->_TestTalker)));
 
             return true;
         }),
-        TEXT("amplitude release, sticky selection")));
+        TEXT("sticky selection")));
 
     // Act 3 - prune: B's listener-mute populates the mute matrix, the earlier forwards populated
     // the serve history; both proven non-empty for talker A, then the talker's destroy sweeps
