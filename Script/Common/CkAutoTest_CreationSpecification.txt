@@ -243,12 +243,15 @@ AutoTest does not need the gym, and vice versa.
 // <Plugin>_AutoTestActors.as on the next AS recompile. Don't write it
 // by hand unless you need an opt-out (section 5b).
 
+// DEFAULT SHAPE — a linear test, declared as named steps. Do NOT hand-roll a
+// `_Step` counter with `if (_Step == N)` dispatch in signal handlers: that was
+// the pre-sequencer shape, and it hides WHY a test is waiting when it hangs.
+
 class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 {
-    // ---- Per-test state (handles, step counters, observation fields) ----
+    // ---- Per-test state (handles + observation fields only; no step counter) ----
 
-    private FCk_Handle_<Feature> FeatureHandle;
-    private int32 _Step = 0;
+    private FCk_Handle_<Feature> _Feature;
 
     // ---- Lifecycle: subclasses override DoBeginPlay only ----
     //
@@ -264,38 +267,80 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
         //    receives FCk_Handle by value; copy to a local lvalue first.
         auto LocalHandle = InHandle;
         auto Params = FCk_Fragment_<Feature>_ParamsData(...);
-        FeatureHandle = utils_<feature>::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
+        _Feature = utils_<feature>::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
-        // 2. Bind signals. Use these to drive test progression.
-        FeatureHandle.BindTo_OnSomething(
-            FCk_Delegate_<Feature>_OnSomething(this, n"OnSomethingHandler"));
+        // 2. Declare the sequence. Descriptions are what a hang reports, so
+        //    write each as the thing that must become true.
+        Add_Step("request the mutation", n"Step_Request");
+        Add_Step_WaitUntil("the new value is visible", n"Check_ValueApplied");
+        Add_Step("assert the outcome", n"Step_Assert");
 
-        // 3. Kick off the first step.
-        Step1_DoSomething();
+        // 3. Run it. The last step finishing PASSES the test — no trailing
+        //    FinishSuccess(), and no IsFinished() guard inside step bodies.
+        Run_Steps(LocalHandle);
     }
 
-    // ---- Steps: usually one private void Step<N>_<What>() per phase ----
-
-    private void Step1_DoSomething()
-    {
-        _Step = 1;
-        FeatureHandle.Request_DoSomething(...);
-    }
-
-    // ---- Signal handlers: assert, then advance to next step or finish ----
+    // ---- Action step: FCk_Lambda_InHandle ----
 
     UFUNCTION()
-    private void OnSomethingHandler(... payload args ...)
+    private void Step_Request(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        if (IsFinished()) { return; }
+        utils_<feature>::Request_DoSomething(_Feature, ...);
+    }
 
-        if (_Step == 1)
-        {
-            Assert_Equals_Int(observed, expected, "What this assertion verifies");
-            FinishSuccess();   // or Step2_DoNext();
-        }
+    // ---- Predicate: FCk_Predicate_InHandle_OutResult ----
+    //
+    // Answer through a LOCAL COPY — AngelScript rejects a non-const call on a
+    // by-value struct param. FCk_SharedBool is a shared cell, so the copy
+    // writes the same bool.
+    //
+    // Before writing a predicate, run the five rules in CkTests/CLAUDE.md
+    // ("Choosing a wait"). The one that catches most mistakes: if the system
+    // did nothing at all, would this still be true? If yes it is a NEGATIVE
+    // and must NOT become a predicate — keep a settle, and make it meaningful
+    // with a positive assertion before it.
+
+    UFUNCTION()
+    private void Check_ValueApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(utils_<feature>::Get_Value(_Feature) == <expected>);
+    }
+
+    UFUNCTION()
+    private void Step_Assert(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        Assert_Equals_Int(utils_<feature>::Get_Value(_Feature), <expected>,
+            "What this assertion verifies");
     }
 }
+
+// BRANCHING SHAPE — for signal-driven or authority-split flows that are not a
+// straight line, use the standalone waits instead of a step list. The
+// continuation takes the FCk_Delegate_Timer signature and may start the next
+// wait, so each hop reads as "what must hold before the next thing happens".
+//
+//     UFUNCTION()
+//     private void OnSomeSignal(FCk_Handle_<Feature> InHandle, <Payload> InPayload)
+//     {
+//         if (IsFinished()) { return; }
+//         WaitUntil(n"Check_Settled", n"OnSettled");   // budget 0 = until test timeout
+//     }
+//
+//     UFUNCTION()
+//     private void OnSettled(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+//     {
+//         if (IsFinished()) { return; }
+//         Assert_True(..., "...");
+//         FinishSuccess();
+//     }
+//
+// WaitFrames(N, n"Continue") is the frame-counted twin — use it ONLY when there
+// is no observable condition (i.e. when asserting something does NOT happen),
+// and only when you can say what N counts. WaitOneFrame is LEGACY: it is a
+// 0.05s timer (~3 passes at 60fps), NOT a frame wait. It is retained so
+// unmigrated tests compile, and it remains the correct call where a window was
+// tuned against that duration — swapping in a small WaitFrames(N) SHORTENS it.
 
 // That's it. After saving the .as file, the generator emits this:
 //
