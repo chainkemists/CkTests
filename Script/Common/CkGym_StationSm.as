@@ -200,6 +200,27 @@ namespace gym_sm
         else { utils_state_machine::Request_Pause(InSm); }
     }
 
+    // Drop-in replacements for the gym_auto pair every station calls, so a
+    // migrating station swaps the namespace and the timer handle for the SM
+    // handle rather than hand-rolling payload parsing 36 times.
+    //
+    // StopAuto — call from a manual message handler: a viewer poking a manual
+    // command means they want the demo to hold still.
+    void StopAuto(FCk_Handle_StateMachine InSm)
+    {
+        Request_SetAutoRunning(InSm, false);
+    }
+
+    // HandleAutoSet — call from the station's OnAutoSet UFUNCTION. Mirrors
+    // gym_auto::HandleAutoSet (CkGym_AutoStation.as:131): same
+    // FCk_Message_Gym_AutoSet transport, so the Ck_Gym*_Auto console toggle
+    // drives migrated and unmigrated stations identically.
+    void HandleAutoSet(FInstancedStruct InPayload, FCk_Handle_StateMachine InSm)
+    {
+        auto Typed = InPayload.Get(FCk_Message_Gym_AutoSet);
+        Request_SetAutoRunning(InSm, Typed.Enabled);
+    }
+
     bool Get_IsAutoRunning(FCk_Handle_StateMachine InSm)
     {
         if (ck::Is_NOT_Valid(InSm)) { return false; }
