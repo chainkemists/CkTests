@@ -106,6 +106,54 @@ namespace ck_test_voxelnav_path
     const auto ZigzagGoal = FVector{180.0, 180.0, 130.0};
 
     // ----------------------------------------------------------------------------------------------------------------
+    // The crowd fixture's scene, hermetically: the same 1600uu cube 20000uu above the origin, the same three
+    // 100uu boxes at leaf centres, and the two routes the crowd tests fly across it. Only three of the eight
+    // layer-2 cells hold a box, so both routes' endpoints land in cells that were never subdivided - which is
+    // the case an endpoint resolver has to answer at a COARSE layer rather than at a leaf.
+    //
+    // The two routes differ only in the start's height: one runs level across the top of the cube, the other
+    // climbs from the low corner to the opposite high one. Both are here because a defect that moved an
+    // endpoint on one of them and not the other would otherwise read as unreproducible.
+    constexpr auto CrowdAgentRadiusUu = 42.0f;
+
+    const auto HighVolumeCenter = FVector{0.0, 0.0, 20000.0};
+    const auto HighVolumeHalfExtents = FVector{800.0};
+
+    const auto HighVolumeBounds = FBox{
+        HighVolumeCenter - HighVolumeHalfExtents,
+        HighVolumeCenter + HighVolumeHalfExtents};
+
+    const auto CrowdBoxHalfExtents = FVector{50.0};
+
+    static auto
+        Make_CrowdBox(
+            const FVector& InOffset)
+        -> FBox
+    {
+        return FBox{
+            HighVolumeCenter + InOffset - CrowdBoxHalfExtents,
+            HighVolumeCenter + InOffset + CrowdBoxHalfExtents};
+    }
+
+    static auto
+        Make_CrowdObstacles()
+        -> TArray<FBox>
+    {
+        return TArray<FBox>
+        {
+            Make_CrowdBox(FVector{-700.0, -700.0, -700.0}),
+            Make_CrowdBox(FVector{ 300.0,  300.0,  100.0}),
+            Make_CrowdBox(FVector{-100.0,  500.0, -300.0})
+        };
+    }
+
+    const auto LevelRouteFrom = HighVolumeCenter + FVector{ 700.0, -700.0, 700.0};
+    const auto LevelRouteTo = HighVolumeCenter + FVector{-700.0,  700.0, 700.0};
+
+    const auto ClimbingRouteFrom = HighVolumeCenter + FVector{ 700.0, -700.0, -700.0};
+    const auto ClimbingRouteTo = HighVolumeCenter + FVector{-700.0,  700.0,  700.0};
+
+    // ----------------------------------------------------------------------------------------------------------------
 
     static auto
         Bake_Octree(
@@ -300,6 +348,61 @@ bool FCkTest_VoxelNav_Path_FindsRouteAcrossBakedFreeSpace::RunTest(const FString
         LargestCellExtent > SmallestCellExtent);
 
     return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_VoxelNav_Path_RequestedEndpointsSurviveEveryRouteAcrossCoarseCells,
+    "Ck.VoxelNav.Path.Search.RequestedEndpointsSurviveEveryRouteAcrossCoarseCells",
+    ck::tests::kCkUnitTestFlags)
+
+bool FCkTest_VoxelNav_Path_RequestedEndpointsSurviveEveryRouteAcrossCoarseCells::RunTest(const FString& Parameters)
+{
+    using namespace ck::voxelnav;
+    using namespace ck_test_voxelnav_path;
+
+    const auto Octree = Bake_Octree(Make_CrowdObstacles(), HighVolumeBounds);
+
+    if (NOT TestTrue(TEXT("the crowd-fixture bake publishes a valid octree"),
+        Octree.IsValid() && Octree->Get_IsValid()))
+    { return false; }
+
+    const auto DoTestRoute = [&](const FVector& InFrom, const FVector& InTo, const TCHAR* InRouteName) -> bool
+    {
+        auto SearchParams = Make_SearchParams(InFrom, InTo);
+        SearchParams._AgentRadiusUu = CrowdAgentRadiusUu;
+
+        const auto Plan = Search_PathGraph(*Octree, TestVolumeId, SearchParams);
+
+        if (NOT TestTrue(*FString::Printf(TEXT("the %s route is found"), InRouteName),
+            Plan._Outcome == ECk_VoxelNav_PathSearchOutcome::Succeeded))
+        { return false; }
+
+        const auto RawKeepsEndpoints = TestTrue(
+            *FString::Printf(TEXT("the %s route's raw waypoints are bracketed by the two REQUESTED "
+                                  "positions, not by the cells they resolved to"), InRouteName),
+            Plan._Waypoints[0] == InFrom && Plan._Waypoints.Last() == InTo);
+
+        // Pruning is what a crowd agent actually receives, and the leading waypoint is the one a follower
+        // steers at first - a route that starts anywhere but under the agent sends it sideways.
+        auto RefineParams = FPathRefineParams{};
+        RefineParams._VisibilityPruning = ECk_EnableDisable::Enable;
+
+        const auto Refined = Refine_Waypoints(*Octree, Plan._Waypoints, RefineParams);
+
+        const auto RefinedKeepsEndpoints = TestTrue(
+            *FString::Printf(TEXT("and refinement hands the %s route back with those same two positions "
+                                  "at its ends"), InRouteName),
+            Refined._Waypoints[0] == InFrom && Refined._Waypoints.Last() == InTo);
+
+        return RawKeepsEndpoints && RefinedKeepsEndpoints;
+    };
+
+    const auto LevelRouteHolds = DoTestRoute(LevelRouteFrom, LevelRouteTo, TEXT("level"));
+    const auto ClimbingRouteHolds = DoTestRoute(ClimbingRouteFrom, ClimbingRouteTo, TEXT("climbing"));
+
+    return LevelRouteHolds && ClimbingRouteHolds;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
