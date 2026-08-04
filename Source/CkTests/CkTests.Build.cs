@@ -82,6 +82,7 @@ public class CkTests : CkModuleRules
             "CkUnrealComponent",
             "CkUsf",
             "CkVariables",
+            "CkVoxelNav",
             "CkWatermark",
         });
 
