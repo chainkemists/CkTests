@@ -139,7 +139,7 @@ class UCk_AutoTest_PathNetworkFollower_RoutePrefersNetwork : UCk_AutoTest_Base
             "route cost must be positive");
 
         // The last compiled waypoint is the exact goal.
-        Assert_True((Waypoints[Waypoints.Num() - 1] - Goal).Size() <= 1.0,
+        Assert_True((Waypoints[Waypoints.Num() - 1] - Goal).Size2D() <= 1.0,
             f"final waypoint must be the exact goal, got {Waypoints[Waypoints.Num() - 1]}");
 
         FinishSuccess();

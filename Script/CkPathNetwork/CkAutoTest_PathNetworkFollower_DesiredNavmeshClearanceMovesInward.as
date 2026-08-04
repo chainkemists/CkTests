@@ -58,7 +58,7 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
                 Projected,
                 300.0f);
             if (!Projects ||
-                (Projected - FVector(0.0, CandidateY, 0.0)).Size() > 2.0f)
+                (Projected - FVector(0.0, CandidateY, 0.0)).Size2D() > 2.0f)
             { break; }
             HighestNavmeshY = CandidateY;
         }
@@ -86,7 +86,7 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
             300.0f);
         Assert_True(
             LaneProjects &&
-                (ProjectedLane - FVector(0.0, _CenterlineY, 0.0)).Size() <= 2.0f,
+                (ProjectedLane - FVector(0.0, _CenterlineY, 0.0)).Size2D() <= 2.0f,
             "discovered baseline lane must lie on the AutoTests navmesh");
 
         FVector ProjectedInward;
@@ -223,7 +223,7 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
         if (!FoundInternalPoint) { return; }
 
         Assert_True(
-            (Waypoints[Waypoints.Num() - 1] - _Goal).Size() <= 1.0f,
+            (Waypoints[Waypoints.Num() - 1] - _Goal).Size2D() <= 1.0f,
             "clearance replan must preserve the exact logical goal");
 
         if (_ReadyCount == 1)

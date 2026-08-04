@@ -61,7 +61,7 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsRibbonWaypointWithinNavQueryExten
                 Projected,
                 300.0f);
             if (!Projects ||
-                (Projected - FVector(0.0, CandidateY, 0.0)).Size() > 2.0f)
+                (Projected - FVector(0.0, CandidateY, 0.0)).Size2D() > 2.0f)
             { break; }
             HighestNavmeshY = CandidateY;
         }

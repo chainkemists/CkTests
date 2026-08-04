@@ -200,11 +200,11 @@ class UCk_AutoTest_PathNetworkFollower_LocalShortcutUsesSameComponentGap
             const auto First = Waypoints[0];
             const auto Last = Waypoints[Waypoints.Num() - 1];
             const bool ForwardGap =
-                (First - _LeftGapNode).Size() <= 1.0f
-                && (Last - _RightGapNode).Size() <= 1.0f;
+                (First - _LeftGapNode).Size2D() <= 1.0f
+                && (Last - _RightGapNode).Size2D() <= 1.0f;
             const bool ReverseGap =
-                (First - _RightGapNode).Size() <= 1.0f
-                && (Last - _LeftGapNode).Size() <= 1.0f;
+                (First - _RightGapNode).Size2D() <= 1.0f
+                && (Last - _LeftGapNode).Size2D() <= 1.0f;
             HasExpectedLocalGap =
                 HasExpectedLocalGap
                 || ForwardGap

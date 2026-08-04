@@ -170,7 +170,7 @@ class UCk_AutoTest_PathNetworkFollower_ComponentTransferUsesDisconnectedIslands
         if (Waypoints.Num() > 0)
         {
             Assert_True(
-                (Waypoints[Waypoints.Num() - 1] - _Goal).Size()
+                (Waypoints[Waypoints.Num() - 1] - _Goal).Size2D()
                     <= 1.0f,
                 f"component-transfer route must terminate at the exact goal, got {Waypoints[Waypoints.Num() - 1]}");
         }

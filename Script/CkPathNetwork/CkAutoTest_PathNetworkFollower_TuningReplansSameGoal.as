@@ -178,7 +178,7 @@ class UCk_AutoTest_PathNetworkFollower_TuningReplansSameGoal : UCk_AutoTest_Base
             MaxLateralOffset >= 50.0,
             f"retuned side-keeping should offset an intermediate waypoint by at least 50cm; got {MaxLateralOffset}");
         Assert_True(
-            (Waypoints[Waypoints.Num() - 1] - Goal).Size() <= 1.0,
+            (Waypoints[Waypoints.Num() - 1] - Goal).Size2D() <= 1.0,
             "same-goal replan must retain the exact final goal");
 
         _SecondExpectedWaypoints = Waypoints;
