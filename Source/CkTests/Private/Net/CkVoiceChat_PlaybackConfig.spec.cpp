@@ -47,7 +47,9 @@ namespace ck_voice_playback_config_spec
         uint8 ChannelIdx = 255;
         uint16 NextSeq = 1;
 
-        FCk_Handle_VoiceTalker ServerTalkerA;
+        // Listener B's server-side talker anchors the post-destroy map reads: talker A's own
+        // handle is a tombstone after its destroy and cannot anchor (nor safely key) a lookup.
+        FCk_Handle_VoiceTalker ServerAnchorB;
         FCk_Handle_VoiceListener ClientBListener;
     };
 
@@ -181,7 +183,7 @@ bool FCkVoiceChatNet_PlaybackConfig::RunTest(const FString& Parameters)
                 return;
             }
 
-            State->ServerTalkerA = TalkerA->_TestTalker;
+            State->ServerAnchorB = ListenerB->_TestTalker;
 
             UCk_Utils_VoiceChannel_UE::Request_Join(TalkerA->_TestChannel,
                 FCk_Request_VoiceChannel_Join{TalkerA->_TestTalker}, {});
@@ -291,14 +293,14 @@ bool FCkVoiceChatNet_PlaybackConfig::RunTest(const FString& Parameters)
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
         {
-            if (ck::Is_NOT_Valid(State->ServerTalkerA))
+            if (ck::Is_NOT_Valid(State->ServerAnchorB))
             {
-                AddError(TEXT("server talker handle was never captured"));
+                AddError(TEXT("server anchor handle was never captured"));
                 return false;
             }
 
             TestTrue(TEXT("the authority maps track talker A before its destroy (prune precondition)"),
-                UCk_Utils_VoiceTalker_UE::Debug_Get_WorldMapEntriesForTalker(State->ServerTalkerA) > 0);
+                UCk_Utils_VoiceTalker_UE::Debug_Get_WorldMapTalkerEntryCount(State->ServerAnchorB) > 0);
             return true;
         }),
         TEXT("maps populated pre-destroy")));
@@ -322,7 +324,7 @@ bool FCkVoiceChatNet_PlaybackConfig::RunTest(const FString& Parameters)
         FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
         {
             TestEqual(TEXT("the EndPlay sweep pruned every entry naming the destroyed talker"),
-                UCk_Utils_VoiceTalker_UE::Debug_Get_WorldMapEntriesForTalker(State->ServerTalkerA), 0);
+                UCk_Utils_VoiceTalker_UE::Debug_Get_WorldMapTalkerEntryCount(State->ServerAnchorB), 0);
             return true;
         }),
         TEXT("maps pruned post-destroy")));
