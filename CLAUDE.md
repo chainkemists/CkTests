@@ -125,12 +125,40 @@ In-PIE exec commands (`Script/Common/CkGym_Base_PlayerController.as:255-287`): `
 - **Don't rename test classes casually** — a rename orphans the placed wrapper actor in the .umap
   (git history: revert `604a2d4`). Let the populator sync, and prefer stable names.
 
+### Choosing a wait — the five rules
+
+Each came from a test that PASSED or FAILED for the wrong reason during the 2026-08 sweep. Full
+rationale + the incident behind each: `Script/Common/CkAutoTest_CreationSpecification.txt` and the
+`ck-tests-authoring-and-running` skill (recipe 2a). Ask these in order before converting a settle:
+
+1. **Would my predicate still be true if the system did nothing?** If yes it is a NEGATIVE — an
+   "exactly once", a "does not fire", a "survives X" — and it CANNOT become a condition. It is
+   already true on arrival, so the wait returns before the event under test happens and the test
+   passes vacuously. Keep the settle; what makes the silence meaningful is a POSITIVE assertion
+   before it proving the machinery ran.
+2. **Does my predicate name MY entities?** Every autotest shares one PIE world, so compass/minimap
+   entries and global registries hold other tests' data. `Get_Entries(X).Num() >= 4` cannot tell
+   "my four" from "any four". Scan for the test's own handles or a tag private to it.
+3. **Which stage does my ASSERTION read?** Gate on that stage, not the first observable one. A
+   cascade's early stage can be live while the value the assertion reads is still the default.
+4. **Is the value monotonic in the direction I need?** A value that can decay, re-clamp, or be
+   overwritten can miss its window. If it isn't monotonic, wait on the EVENT instead.
+5. **Has this file already been converted, and how long is the window?** `git log` + grep for
+   existing `Check_` predicates first: re-pointing a hop at an already-true predicate silently
+   DELETES a settle. And `WaitOneFrame` is **0.05s of wall-clock, not one frame** (~3 passes at
+   60fps, 1 at 20fps) — swapping in `WaitFrames(N)` with a small N SHORTENS it. Convert only when
+   you can say what N counts; otherwise keep `WaitOneFrame` and say why in a comment.
+
+A settle you cannot justify is not a defect to be fixed — converting it is how you delete a real
+wait. When you keep one, record the reason in the file so the next pass does not "finish the
+migration" and reintroduce the flake.
+
 ### The spec documents and their trust levels (audited 2026-07-02)
 
 | Doc (`Script/Common/`) | Trust |
 |---|---|
 | `CkGauntlet_CreationSpecification.txt` | **Fully current** — read first for anything Gauntlet. |
-| `CkAutoTest_CreationSpecification.txt` | **Core current, known gaps**: the net layer (pipeline b) is entirely undocumented; §6 timeout wording superseded by the `_TimeoutSeconds` CDO mechanism; `WaitOneFrame` and `_ExpectedLogErrors` missing; §14 naming rule superseded by ADJUDICATIONS A2. |
+| `CkAutoTest_CreationSpecification.txt` | **Core current** — §5's template is the step-sequencer shape and the wait rules are documented in full (2026-08). **Known gaps**: the net layer (pipeline b) is entirely undocumented; §6 timeout wording superseded by the `_TimeoutSeconds` CDO mechanism; `_ExpectedLogErrors` missing; §14 naming rule superseded by ADJUDICATIONS A2. |
 | `CkGym_CreationSpecification.txt` | **Core verified, stale bits**: §3's `Script/CkGyms/` layout never matched reality (co-located per feature); §9's `Ck_Gym_ShowInfo`/`Ck_Gym_ValidateStations` don't exist in code — actual commands listed above. |
 
 ## Running tests (host-invoked)
