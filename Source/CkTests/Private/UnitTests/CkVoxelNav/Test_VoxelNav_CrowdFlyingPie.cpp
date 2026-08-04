@@ -51,12 +51,10 @@
 // leaf centres, far above the map's own geometry.
 //
 // Tracking is asserted as DIRECTION-of-travel against the route's goal rather than as distance to the
-// installed polyline, and that is not a softening. On this route the provider emits a leading waypoint whose
-// X is 0 where the agent stands at X=700 (the other two components are the agent's exactly), and the crowd
-// path-follow normalizer retires that corner immediately — so the agent's true flight line runs from where it
-// stands to the goal, and distance to the installed first SEGMENT measures the provider's endpoint
-// resolution, not the follower's 3D tracking. The leading-waypoint anomaly belongs to the path provider and
-// is recorded as a follow-up against it.
+// installed polyline: the direction measure answers the question this test exists for — whether the
+// displacement reaching the transform kept its vertical component — without depending on which corner the
+// follower has retired at the moment the assertion runs. The polyline's own fidelity is pinned separately
+// and exactly, by the endpoint assertions below.
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace ck_test_voxelnav_crowd_flying_pie
@@ -363,13 +361,30 @@ bool FCkTest_VoxelNav_CrowdFlyingPie_FlyingAgentFliesItsRouteInThreeDimensions::
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
         {
-            const auto& Waypoints = UCk_Utils_Nav_UE::Get_PathResult(GFlyingAgent).Get_Waypoints();
+            // Get_PathResult is a UFUNCTION, so it hands back a COPY. Holding that copy alive is what
+            // makes a reference into its waypoints legal — binding one straight to the temporary's array
+            // reads freed memory the moment the expression ends, and reads it plausibly.
+            const auto PathResult = UCk_Utils_Nav_UE::Get_PathResult(GFlyingAgent);
+            const auto& Waypoints = PathResult.Get_Waypoints();
 
             if (NOT TestTrue(TEXT("the flying agent's installed route holds at least the two endpoints"),
                 Waypoints.Num() >= 2))
             { return false; }
 
             const auto FlyingLocation = Get_AgentLocation(GFlyingAgent);
+
+            // Both ends are the positions the request carried, verbatim. The leading one is what the
+            // follower steers at first, so a route that starts anywhere but under the agent aims it
+            // sideways off the line it is supposed to fly — and on a climbing route that is exactly the
+            // failure a direction-of-travel measure alone would not name.
+            if (NOT TestTrue(TEXT("the installed route starts where the agent stood when it was told to move"),
+                FVector::Dist(Waypoints[0], Get_RouteFrom()) <= EndpointToleranceUu))
+            {
+                AddError(FString::Printf(TEXT("installed [%d] waypoints leading with %s; the agent was told "
+                                              "to move from %s"),
+                    Waypoints.Num(), *Waypoints[0].ToString(), *Get_RouteFrom().ToString()));
+                return false;
+            }
 
             if (NOT TestTrue(TEXT("the installed route ends at the goal the MoveTo asked for"),
                 FVector::Dist(Waypoints.Last(), Get_RouteTo()) <= EndpointToleranceUu))
