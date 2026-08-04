@@ -17,10 +17,12 @@
 
 #include "CkNavigation/Utils/CkNav_Utils.h"
 
+#include "CkVoxelNav/Occluder/CkVoxelNavOccluder_Utils.h"
 #include "CkVoxelNav/Path/CkVoxelNavPath_Utils.h"
 #include "CkVoxelNav/Volume/CkVoxelNavVolume_Utils.h"
 
 #include "CkVoxelNavBake_TestTypes.h"
+#include "CkVoxelNavPath_TestTypes.h"
 
 #include "CkTests/Net/CkNetAutomation_Common.h"
 
@@ -45,8 +47,15 @@ namespace ck_test_voxelnav_crowd_pie
     // Cross-latent-command state, reset at each test start.
     static FCk_Handle_VoxelNavVolume GVolume;
     static FCk_Handle_CrowdAgent GAgent;
+    static FCk_Handle_VoxelNavPath GAgentPath;
     static TArray<FCk_Handle_JoltBody> GBoxBodies;
     static TStrongObjectPtr<UCk_VoxelNavBakeTest_Listener_UE> GBakeListener;
+    static TStrongObjectPtr<UCk_VoxelNavPathTest_Listener_UE> GReplanListener;
+
+    static FCk_Handle_JoltBody GObstacleBody;
+    static FCk_Handle_Transform GObstacleTransform;
+    static FCk_Handle_VoxelNavOccluder GOccluder;
+    static int32 GEpochAfterBake = 0;
 
     const auto EntryMapPath = FString{TEXT("/Engine/Maps/Entry")};
 
@@ -69,6 +78,13 @@ namespace ck_test_voxelnav_crowd_pie
     const auto RouteFromOffset = FVector{ 700.0, -700.0, 700.0};
     const auto RouteToOffset = FVector{-700.0,  700.0, 700.0};
 
+    // The occluder of the stale-epoch test. Its destination sits ON the straight line between the two route
+    // endpoints (Y = -X at constant Z), so the repair genuinely invalidates the installed route rather than
+    // merely bumping a counter beside it. Geometry and step size are the Occluder PIE test's, verbatim.
+    const auto ObstacleHalfExtents = FVector{50.0};
+    const auto ObstacleOffsetBefore = FVector{-100.0, 100.0, 300.0};
+    const auto ObstacleOffsetAfter = FVector{-100.0, 100.0, 700.0};
+
     // The installed waypoints carry the planned endpoints verbatim, so anything above float noise is a
     // real drift.
     constexpr auto EndpointToleranceUu = 1.0;
@@ -80,6 +96,9 @@ namespace ck_test_voxelnav_crowd_pie
 
     static auto Get_RouteFrom() -> FVector { return VolumeCenter + RouteFromOffset; }
     static auto Get_RouteTo() -> FVector { return VolumeCenter + RouteToOffset; }
+
+    static auto Get_ObstacleBefore() -> FVector { return VolumeCenter + ObstacleOffsetBefore; }
+    static auto Get_ObstacleAfter() -> FVector { return VolumeCenter + ObstacleOffsetAfter; }
 
     static auto Make_StaticBoxParams() -> FCk_Fragment_JoltBody_ParamsData
     {
@@ -283,6 +302,258 @@ bool FCkTest_VoxelNav_CrowdPie_AgentReceivesItsRouteThroughTheNavPathSeam::RunTe
                    AgentIsWalking;
         }),
         TEXT("the volumetric route reached the crowd agent through the nav-path seam")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+// The stale-epoch auto-replan. A repair bumps the volume's epoch underneath an agent that is already walking,
+// and the resolver's install dedupe — correctly — refuses to re-install the pre-repair result the agent still
+// holds. Without a re-request that is a silent dead end: the agent walks a route planned through space that
+// may no longer be free, and nothing ever asks again.
+//
+// EXACTLY ONCE is the whole contract. A per-frame poll of "is my epoch stale" would re-request every frame
+// until an answer landed, so the test counts OnPathReady fires rather than merely observing that one replan
+// happened, and keeps ticking afterwards to catch a second.
+//
+// The agent deliberately owns no locomotion (no Velocity, no integrator), exactly as the sibling test above:
+// the resolver keys on the Walking TAG, and an agent that cannot arrive cannot leave that state while the
+// asynchronous repair lands. Real 3D locomotion is the flying test's subject.
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_VoxelNav_CrowdPie_StaleVolumeEpochReplansTheWalkingAgentExactlyOnce,
+    "Ck.VoxelNav.Crowd.Pie.StaleVolumeEpochReplansTheWalkingAgentExactlyOnce",
+    ck_test_voxelnav_crowd_pie::kTestFlags)
+
+bool FCkTest_VoxelNav_CrowdPie_StaleVolumeEpochReplansTheWalkingAgentExactlyOnce::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_voxelnav_crowd_pie;
+
+    bSuppressLogWarnings = true;
+    // /Engine/Maps/Entry ships a default BrushComponent with collision but no runtime BrushBodySetup; the
+    // Jolt static-world bake ensures on it at PIE start. Unrelated to pathfinding — whitelist it.
+    AddExpectedError(TEXT("BodySetup"), EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
+
+    GVolume = FCk_Handle_VoxelNavVolume{};
+    GAgent = FCk_Handle_CrowdAgent{};
+    GAgentPath = FCk_Handle_VoxelNavPath{};
+    GObstacleBody = FCk_Handle_JoltBody{};
+    GObstacleTransform = FCk_Handle_Transform{};
+    GOccluder = FCk_Handle_VoxelNavOccluder{};
+    GEpochAfterBake = 0;
+    GBoxBodies.Reset();
+    GBakeListener = TStrongObjectPtr<UCk_VoxelNavBakeTest_Listener_UE>{
+        NewObject<UCk_VoxelNavBakeTest_Listener_UE>(GetTransientPackage())};
+    GReplanListener = TStrongObjectPtr<UCk_VoxelNavPathTest_Listener_UE>{
+        NewObject<UCk_VoxelNavPathTest_Listener_UE>(GetTransientPackage())};
+
+    constexpr auto ReadyTimeoutSeconds = 30.0f;
+    constexpr auto BodyAddedTimeoutSeconds = 15.0;
+    constexpr auto BakeTimeoutSeconds = 60.0;
+    constexpr auto RouteTimeoutSeconds = 15.0;
+    constexpr auto RepairTimeoutSeconds = 30.0;
+    constexpr auto ReplanTimeoutSeconds = 15.0;
+    constexpr int32 NumClients = 1;
+    constexpr int32 ExpectedWorlds = 1;
+    constexpr int32 GeometrySettleFrames = 10;
+
+    // Long enough that a per-frame re-request would show up as a double-digit count, not a second fire.
+    constexpr int32 SecondReplanWatchFrames = 60;
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(NumClients, EntryMapPath));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(ExpectedWorlds, ReadyTimeoutSeconds));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(SettleFrames));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            auto* Ecs = InServer->GetSubsystem<UCk_EcsWorld_Subsystem_UE>();
+            if (ck::Is_NOT_Valid(Ecs))
+            { AddError(TEXT("ECS world subsystem not available on the server world")); return; }
+
+            for (const auto& BoxOffset : BoxOffsets)
+            {
+                auto Entity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Ecs->Get_Registry());
+                UCk_Utils_Transform_UE::Add(Entity, FTransform{VolumeCenter + BoxOffset},
+                    ECk_Replication::DoesNotReplicate);
+
+                GBoxBodies.Emplace(UCk_Utils_JoltBody_UE::Add(Entity, Make_StaticBoxParams()));
+            }
+
+            auto ObstacleEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Ecs->Get_Registry());
+            GObstacleTransform = UCk_Utils_Transform_UE::Add(ObstacleEntity,
+                FTransform{Get_ObstacleBefore()}, ECk_Replication::DoesNotReplicate);
+            GObstacleBody = UCk_Utils_JoltBody_UE::Add(ObstacleEntity, Make_StaticBoxParams());
+
+            TestTrue(TEXT("the movable obstacle composed a transform and a static Jolt body"),
+                ck::IsValid(GObstacleTransform) && ck::IsValid(GObstacleBody));
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            return Get_AllBodiesAdded() && ck::IsValid(GObstacleBody) &&
+                UCk_Utils_JoltBody_UE::Get_IsBodyAdded(GObstacleBody);
+        }),
+        BodyAddedTimeoutSeconds,
+        TEXT("every static body, the obstacle's included, was added to the Jolt world")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InServer, {});
+
+            GVolume = UCk_Utils_VoxelNavVolume_UE::Add(Owner, Make_VolumeParams());
+
+            if (NOT TestTrue(TEXT("the VoxelNav volume composed"), ck::IsValid(GVolume)))
+            { return; }
+
+            auto CompletionDelegate = FCk_Delegate_Request_OnCompleted{};
+            CompletionDelegate.BindDynamic(GBakeListener.Get(),
+                &UCk_VoxelNavBakeTest_Listener_UE::OnBuildRequestCompleted);
+
+            UCk_Utils_VoxelNavVolume_UE::Request_Build(GVolume,
+                FCk_Request_VoxelNavVolume_Build{}, CompletionDelegate);
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            return GBakeListener.IsValid() && GBakeListener->_TimesRequestCompleted > 0;
+        }),
+        BakeTimeoutSeconds,
+        TEXT("the bake ran to completion and fired its request-completion delegate")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            if (NOT TestTrue(TEXT("the volume published its bake before the agent was moved"),
+                ck::IsValid(GVolume) && UCk_Utils_VoxelNavVolume_UE::Get_IsBuilt(GVolume)))
+            { return; }
+
+            GEpochAfterBake = UCk_Utils_VoxelNavVolume_UE::Get_BuildEpoch(GVolume);
+
+            // Composed AFTER the bake: the tracker seeds itself from the pose the bake already saw, so
+            // nothing is dirtied until the obstacle actually moves.
+            auto ObstacleEntity = GObstacleTransform.ConvertToHandle();
+            GOccluder = UCk_Utils_VoxelNavOccluder_UE::Add(ObstacleEntity,
+                FCk_Fragment_VoxelNavOccluder_ParamsData{ObstacleHalfExtents});
+
+            if (NOT TestTrue(TEXT("the occluder feature composed onto the obstacle entity"),
+                ck::IsValid(GOccluder)))
+            { return; }
+
+            auto AgentEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity_TransientOwner(InServer, {});
+            auto AgentTransform = UCk_Utils_Transform_UE::Add(AgentEntity, FTransform{Get_RouteFrom()},
+                ECk_Replication::DoesNotReplicate);
+
+            constexpr auto AgentRadiusUu = 42.0f;
+            constexpr auto AgentHeightUu = 192.0f;
+            GAgent = UCk_Utils_CrowdAgent_UE::Add(AgentTransform,
+                FCk_Fragment_CrowdAgent_ParamsData{AgentRadiusUu, AgentHeightUu});
+
+            auto AgentHandle = GAgent.ConvertToHandle();
+            GAgentPath = UCk_Utils_VoxelNavPath_UE::Add(AgentHandle,
+                FCk_Fragment_VoxelNavPath_ParamsData{AgentRadiusUu});
+
+            if (NOT TestTrue(TEXT("the crowd agent and its volumetric path feature composed"),
+                ck::IsValid(GAgent) && ck::IsValid(GAgentPath)))
+            { return; }
+
+            UCk_Utils_VoxelNavPath_UE::Request_SetVolume(GAgentPath, GVolume, {});
+
+            UCk_Utils_CrowdAgent_UE::Request_MoveTo(GAgent,
+                FCk_Request_CrowdAgent_MoveTo{Get_RouteTo()}, {});
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            return ck::IsValid(GAgent) && GAgent.Has<ck::FTag_CrowdAgent_Walking>();
+        }),
+        RouteTimeoutSeconds,
+        TEXT("the agent walks the route the volumetric provider installed into its nav-path slot")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            TestEqual(TEXT("the walked route was planned against the bake's epoch"),
+                UCk_Utils_VoxelNavPath_UE::Get_PlannedAgainstEpoch(GAgentPath), GEpochAfterBake);
+
+            // IgnorePayloadInFlight: the MoveTo's own answer already fired, and replaying it would be
+            // counted as the replan this test is looking for.
+            auto ReadyDelegate = FCk_Delegate_VoxelNavPath_OnPathReady{};
+            ReadyDelegate.BindDynamic(GReplanListener.Get(),
+                &UCk_VoxelNavPathTest_Listener_UE::OnPathReady);
+
+            UCk_Utils_VoxelNavPath_UE::BindTo_OnPathReady(GAgentPath, ReadyDelegate,
+                ECk_Signal_BindingPolicy::IgnorePayloadInFlight,
+                ECk_Signal_PostFireBehavior::DoNothing);
+
+            // The body moves first and the world is ticked before the entity's transform follows, so the
+            // repair the transform move triggers cannot race the physics update it has to read.
+            UCk_Utils_JoltBody_UE::Request_Teleport(GObstacleBody,
+                FCk_Request_JoltBody_Teleport{Get_ObstacleAfter(), FRotator::ZeroRotator}, {});
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(GeometrySettleFrames));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            UCk_Utils_Transform_UE::Request_SetLocation(GObstacleTransform,
+                FCk_Request_Transform_SetLocation{Get_ObstacleAfter()}, {});
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            return ck::IsValid(GVolume) &&
+                   UCk_Utils_VoxelNavVolume_UE::Get_BuildEpoch(GVolume) > GEpochAfterBake;
+        }),
+        RepairTimeoutSeconds,
+        TEXT("the moved occluder dirtied the volume and its local repair published a new epoch")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([]() -> bool
+        {
+            return ck::IsValid(GAgentPath) && ck::IsValid(GVolume) &&
+                UCk_Utils_VoxelNavPath_UE::Get_PlannedAgainstEpoch(GAgentPath) ==
+                    UCk_Utils_VoxelNavVolume_UE::Get_BuildEpoch(GVolume);
+        }),
+        ReplanTimeoutSeconds,
+        TEXT("the resolver noticed the drift on its own and the replan it issued answered against the "
+             "repaired volume")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(SecondReplanWatchFrames));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
+        {
+            const auto ReplannedOnce = TestEqual(
+                TEXT("the epoch drift was answered by EXACTLY one replan, and the settled state does not "
+                     "keep re-requesting"),
+                GReplanListener->_TimesPathReadyFired, 1);
+
+            const auto StillWalking = TestTrue(
+                TEXT("the agent kept walking across the replan rather than being dropped to Idle"),
+                GAgent.Has<ck::FTag_CrowdAgent_Walking>());
+
+            const auto SeamIsReady = TestTrue(
+                TEXT("the replanned route was installed through the provider-agnostic seam"),
+                UCk_Utils_Nav_UE::Get_PathStatus(GAgent) == ECk_Nav_PathStatus::Ready);
+
+            const auto InstalledIsFresh = TestEqual(
+                TEXT("and the agent's installed-route identity now names the repaired epoch, which is what "
+                     "stops the next tick asking again"),
+                GAgent.Get<ck::FFragment_CrowdAgent_InstalledVoxelPath>().Get_VolumeEpoch(),
+                UCk_Utils_VoxelNavVolume_UE::Get_BuildEpoch(GVolume));
+
+            return ReplannedOnce && StillWalking && SeamIsReady && InstalledIsFresh;
+        }),
+        TEXT("a repair-driven epoch bump replans the walking agent exactly once")));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
     return true;
