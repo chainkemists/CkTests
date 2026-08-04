@@ -101,6 +101,12 @@ namespace ck_test_voxelnav_chunk
         Params._VolumeBounds = InBounds;
         Params._FinestCellSizeUu = FinestCellSizeUu;
 
+        // These fixtures assert on the octree ADDRESSES a route's cells carry - that a segment ends on the
+        // very cell the adjacency named as its portal - so they ask for the plain representation explicitly
+        // rather than inheriting the project's merging default. Merged cells carry no node address, by
+        // design. Cross-chunk routing over merged cells is covered end to end by Ck.VoxelNav.Chunk.Pie.*.
+        Params._CellMerging = ECk_EnableDisable::Disable;
+
         auto Budget = FBuildBudget{};
         Budget._MaxOccupancyProbes = UnlimitedProbeBudget;
         Budget._MaxSeconds = 0.0f;
