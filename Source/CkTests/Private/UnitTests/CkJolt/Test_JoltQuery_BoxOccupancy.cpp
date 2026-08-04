@@ -20,7 +20,8 @@
 // Pins CkJolt's occupancy surface — the JPH-free FCk_Jolt_QuerySession / FCk_Jolt_BoxProbe pair — against a
 // known static box inside a real PIE world. One Static-motion JoltBody is composed high above the map so a
 // tight query volume around it can only ever contain the body this test spawned; the assertions then read
-// occupied inside it, free well clear of it, and get exactly that body back from the broadphase AABox query.
+// occupied inside it, free well clear of it, get exactly that body back from the broadphase AABox query, and
+// see the segment query blocked straight through it and clear alongside it.
 //
 // The session resolves UCk_Jolt_Subsystem off a UWorld, so a live PIE world is the only fixture that provides
 // one — the same multi-client harness (NumClients=1, single ListenServer world on /Engine/Maps/Entry) the
@@ -42,6 +43,10 @@ namespace ck_test_jolt_occupancy
     // FCk_Jolt_ShapeDimensions' Box default is a 50uu half extent — the body spans BoxCenter +/- 50uu.
     const auto ProbeHalfExtents = FVector{10.0};
     const auto ClearlyOutsideOffset = FVector{1000.0, 0.0, 0.0};
+
+    // Reaches well past the box's own 50uu half extent on each side, so a segment built from it crosses the
+    // whole body rather than terminating inside it.
+    const auto SegmentReach = FVector{0.0, 0.0, 200.0};
 
     constexpr auto kTestFlags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter;
 
@@ -140,6 +145,26 @@ bool FCkTest_JoltQuery_BoxOccupancy_StaticBoxOccupancyAndBroadPhase::RunTest(con
             return ProbeInside && ProbeOutside && OneOffInside && OneOffOutside;
         }),
         TEXT("box occupancy reads occupied inside the static box and free outside it")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
+        {
+            const auto Session = Make_QuerySession();
+
+            const auto Through = TestTrue(TEXT("a segment driven straight through the static box is blocked"),
+                Session.Get_IsSegmentBlocked(BoxCenter - SegmentReach, BoxCenter + SegmentReach));
+
+            const auto Alongside = TestFalse(TEXT("the same segment offset well clear of the box is not blocked"),
+                Session.Get_IsSegmentBlocked(
+                    BoxCenter + ClearlyOutsideOffset - SegmentReach,
+                    BoxCenter + ClearlyOutsideOffset + SegmentReach));
+
+            const auto FromInside = TestTrue(TEXT("a segment starting inside the box is blocked"),
+                Session.Get_IsSegmentBlocked(BoxCenter, BoxCenter + SegmentReach));
+
+            return Through && Alongside && FromInside;
+        }),
+        TEXT("segment queries are blocked through the static box and clear alongside it")));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
         FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
