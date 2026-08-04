@@ -173,6 +173,12 @@ namespace ck_test_voxelnav_path
         Params._VolumeBounds = InBounds;
         Params._FinestCellSizeUu = FinestCellSizeUu;
 
+        // These fixtures pin the PLAIN cell representation - the staircase's cell-per-50uu-step count, the
+        // waypoints-are-cell-centres identity - so they ask for it explicitly rather than inheriting
+        // whatever the project's merging default happens to be. Merged routing is covered by
+        // Ck.VoxelNav.Merge.* and, end to end, by the PIE tests.
+        Params._CellMerging = ECk_EnableDisable::Disable;
+
         auto Budget = FBuildBudget{};
         Budget._MaxOccupancyProbes = UnlimitedProbeBudget;
         Budget._MaxSeconds = 0.0f;
