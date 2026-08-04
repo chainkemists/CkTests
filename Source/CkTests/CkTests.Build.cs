@@ -54,6 +54,7 @@ public class CkTests : CkModuleRules
             "CkLabel",
             "CkLagCompensation",
             "CkLog",
+            "CkNavigation",
             // Public dependency on purpose: it carries the CK_WITH_PARTICLES definition that the CkParticles
             // authoring gate keys on. A private dependency would leave that define undetectable here and the
             // gate would silently skip forever.
