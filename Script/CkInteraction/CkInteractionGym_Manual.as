@@ -14,17 +14,14 @@ class UCk_EntityScript_InteractionGym_Manual : UCk_GenericEntityScript_UE
     FCk_Handle_InteractSource SourceHandle;
     FCk_Handle_InteractTarget TargetHandle;
     FCk_Handle_Interaction ActiveInteraction;
-    FCk_Handle_Timer AutoTimer;
+    FCk_Handle_StateMachine StationSm;
 
     int32 SuccessCount = 0;
     int32 FailCount = 0;
     int32 CancelCount = 0;
     FString CurrentState = "Idle";
     FString LastResult = "N/A";
-    bool AutoRunning = true;
-    int32 AutoStep = 0;
-
-    FCkGym_AutoConfig AutoConfig;
+    FCkGym_SmConfig SmConfig;
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow DoConstruct(FCk_Handle& InHandle)
@@ -56,20 +53,19 @@ class UCk_EntityScript_InteractionGym_Manual : UCk_GenericEntityScript_UE
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
-        AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(1.0f));
+        StationSm = gym_sm::Setup(InHandle, UCk_InteractionManualGym_Step_StartForSuccess);
 
-        AutoConfig.TotalSteps = 4;
-        AutoConfig.Description = "ManuallyCompleted policy - explicit end/cancel required.";
-        AutoConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymInteraction_AutoManual";
-        AutoConfig.Steps.Add(FCkGym_AutoStep("Start manual interaction", 0, 0));
-        AutoConfig.Steps.Add(FCkGym_AutoStep("End with success", 1, 1));
-        AutoConfig.Steps.Add(FCkGym_AutoStep("Start manual interaction", 2, 2));
-        AutoConfig.Steps.Add(FCkGym_AutoStep("End with failure", 3, 3));
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_StartManual");
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_EndManualSuccess");
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_EndManualFail");
-        AutoConfig.ManualCommands.Add("Ck_GymInteraction_CancelManual");
+        SmConfig.Description = "ManuallyCompleted policy - explicit end/cancel required.";
+        SmConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
+        SmConfig.PerStationAutoCommand = "Ck_GymInteraction_AutoManual";
+        SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_StartForSuccess, "Start manual interaction"));
+        SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_EndSuccess,      "End with success"));
+        SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_StartForFail,    "Start manual interaction"));
+        SmConfig.Steps.Add(FCkGym_SmStep(UCk_InteractionManualGym_Step_EndFail,         "End with failure"));
+        SmConfig.ManualCommands.Add("Ck_GymInteraction_StartManual");
+        SmConfig.ManualCommands.Add("Ck_GymInteraction_EndManualSuccess");
+        SmConfig.ManualCommands.Add("Ck_GymInteraction_EndManualFail");
+        SmConfig.ManualCommands.Add("Ck_GymInteraction_CancelManual");
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -106,30 +102,18 @@ class UCk_EntityScript_InteractionGym_Manual : UCk_GenericEntityScript_UE
     }
 
     UFUNCTION()
-    private void AutoTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
-    {
-        if (!AutoRunning) { return; }
-        auto Step = AutoStep % AutoConfig.TotalSteps;
-        if (Step == 0) { Request_StartManual(); }
-        else if (Step == 1) { Request_EndSuccess(); }
-        else if (Step == 2) { Request_StartManual(); }
-        else if (Step == 3) { Request_EndFail(); }
-        AutoStep++;
-    }
-
+    private void OnStartManual(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_sm::StopAuto(StationSm); Request_StartManual(); }
     UFUNCTION()
-    private void OnStartManual(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); Request_StartManual(); }
+    private void OnEndManualSuccess(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_sm::StopAuto(StationSm); Request_EndSuccess(); }
     UFUNCTION()
-    private void OnEndManualSuccess(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); Request_EndSuccess(); }
+    private void OnEndManualFail(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_sm::StopAuto(StationSm); Request_EndFail(); }
     UFUNCTION()
-    private void OnEndManualFail(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); Request_EndFail(); }
-    UFUNCTION()
-    private void OnCancelManual(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_auto::StopAuto(AutoTimer, AutoRunning); Request_Cancel(); }
+    private void OnCancelManual(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload) { gym_sm::StopAuto(StationSm); Request_Cancel(); }
 
     UFUNCTION()
     private void OnAutoSet(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        gym_auto::HandleAutoSet(InPayload, AutoTimer, AutoRunning);
+        gym_sm::HandleAutoSet(InPayload, StationSm);
     }
 
     UFUNCTION()
@@ -154,16 +138,16 @@ class UCk_EntityScript_InteractionGym_Manual : UCk_GenericEntityScript_UE
         auto SelfEntity = ck::ToEntity(this);
         auto ActiveCount = utils_interact_target::Get_CurrentInteractions(TargetHandle).Num();
 
-        auto DisplayText = gym_auto::FormatHeader(AutoConfig, AutoRunning);
+        auto DisplayText = gym_sm::FormatHeader(SmConfig, StationSm);
         DisplayText = f"{DisplayText}===== Interaction Stats =====\n";
         DisplayText = f"{DisplayText}State: {CurrentState}  Active: {ActiveCount}\n";
         DisplayText = f"{DisplayText}Successes: {SuccessCount}  Failures: {FailCount}  Cancels: {CancelCount}\n";
         DisplayText = f"{DisplayText}Last Result: {LastResult}\n\n";
-        DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
+        DisplayText = DisplayText + gym_sm::FormatAutoAndCommands(SmConfig, StationSm);
 
         auto Owner = utils_entity_lifetime::Get_LifetimeOwner(SelfEntity);
         auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
-        auto ModeStr = AutoRunning ? "[AUTO]" : "[MANUAL]";
+        auto ModeStr = gym_sm::Get_IsAutoRunning(StationSm) ? "[AUTO]" : "[MANUAL]";
         Fragment.Title = FText::FromString(f"MANUAL INTERACTION {ModeStr}");
         Fragment.Description = FText::FromString(DisplayText);
     }
