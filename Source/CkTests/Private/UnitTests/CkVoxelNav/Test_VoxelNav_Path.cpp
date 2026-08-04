@@ -12,7 +12,9 @@
 #include "CkVoxelNav/Octree/CkVoxelNav_Octree_Build.h"
 #include "CkVoxelNav/Octree/CkVoxelNav_Octree_Query.h"
 #include "CkVoxelNav/Octree/CkVoxelNav_Octree_Types.h"
+#include "CkVoxelNav/Octree/CkVoxelNav_Octree_Raycast.h"
 #include "CkVoxelNav/Path/CkVoxelNav_Path_Graph.h"
+#include "CkVoxelNav/Path/CkVoxelNav_Path_Refine.h"
 #include "CkVoxelNav/Path/CkVoxelNavPath_Fragment.h"
 #include "CkVoxelNav/Path/CkVoxelNavPath_Processor.h"
 #include "CkVoxelNav/Path/CkVoxelNavPath_Utils.h"
@@ -41,6 +43,10 @@
 //
 // A volume containing NO geometry is deliberately not used as a path fixture: its bake short-circuits at
 // the broadphase sweep and creates zero nodes, so there are no cells to path through at all.
+//
+// The refinement tests use a SECOND, smaller fixture (see the zigzag block below) whose whole point is that
+// the search has no coarse cell available anywhere, so the staircase it must produce - and therefore what
+// pruning removes - is computable by hand.
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace ck_test_voxelnav_path
@@ -76,9 +82,35 @@ namespace ck_test_voxelnav_path
 
     const auto TestVolumeId = ck::voxelnav::FVolumeId{1};
 
+    // ----------------------------------------------------------------------------------------------------------------
+    // The zigzag fixture, in a 400uu cube at the same 50uu finest cell: a floor and a ceiling, each just
+    // thick enough to occlude the outermost 50uu sub-node row of the 8x8x8 lattice.
+    //
+    // The size is what makes the numbers below structural rather than a tie-break artefact. Every one of the
+    // eight leaves holds part of the floor or the ceiling, so every leaf is sub-rasterized and NO cell
+    // coarser than a 50uu sub-node exists anywhere in this volume. With one granularity the search has only
+    // axis-aligned 50uu steps available, so every optimal route has the same length AND the same cell count:
+    // the Manhattan distance between the two endpoints. A fixture that left coarse cells free would offer
+    // diagonal parent/child shortcuts, and which of the equally short routes came back would then depend on
+    // how the frontier breaks ties.
+    constexpr auto ZigzagHalfSizeUu = 200.0;
+
+    const auto ZigzagBounds = FBox{FVector{-ZigzagHalfSizeUu}, FVector{ZigzagHalfSizeUu}};
+
+    const auto ZigzagFloor = FBox{FVector{-210.0, -210.0, -210.0}, FVector{210.0, 210.0, -165.0}};
+    const auto ZigzagCeiling = FBox{FVector{-210.0, -210.0, 165.0}, FVector{210.0, 210.0, 210.0}};
+
+    // Opposite corners of the free lattice, offset off the sub-node centres so the requested endpoints are
+    // distinct points from the cell centres they resolve to.
+    const auto ZigzagStart = FVector{-180.0, -180.0, -130.0};
+    const auto ZigzagGoal = FVector{180.0, 180.0, 130.0};
+
+    // ----------------------------------------------------------------------------------------------------------------
+
     static auto
         Bake_Octree(
-            const TArray<FBox>& InObstacles)
+            const TArray<FBox>& InObstacles,
+            const FBox& InBounds = VolumeBounds)
         -> TSharedPtr<const ck::voxelnav::FOctree>
     {
         using namespace ck::voxelnav;
@@ -90,7 +122,7 @@ namespace ck_test_voxelnav_path
         const auto Backend = FCk_VoxelNav_GeometryBackend_Stub{InObstacles};
 
         auto Params = FBuildParams{};
-        Params._VolumeBounds = VolumeBounds;
+        Params._VolumeBounds = InBounds;
         Params._FinestCellSizeUu = FinestCellSizeUu;
 
         auto Budget = FBuildBudget{};
@@ -594,6 +626,226 @@ bool FCkTest_VoxelNav_Path_RequestAgainstUnbuiltVolumeFails::RunTest(const FStri
 
     TestTrue(TEXT("a failed path holds no waypoints"),
         UCk_Utils_VoxelNavPath_UE::Get_Waypoints(Path).IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_VoxelNav_Path_PruningShortensTheZigzagStaircase,
+    "Ck.VoxelNav.Path.Refine.PruningShortensTheZigzagStaircase",
+    ck::tests::kCkUnitTestFlags)
+
+bool FCkTest_VoxelNav_Path_PruningShortensTheZigzagStaircase::RunTest(const FString& Parameters)
+{
+    using namespace ck::voxelnav;
+    using namespace ck_test_voxelnav_path;
+
+    // Hand-computed from the fixture. The endpoints resolve to sub-nodes (0,0,1) and (7,7,6) of the 8x8x8
+    // lattice, so a face-stepping search takes 7 + 7 + 5 = 19 steps of 50uu and visits 20 cells; the
+    // waypoint list adds the two requested endpoints, each sqrt(75)uu off the centre of the cell it
+    // resolved to.
+    constexpr auto ExpectedRawWaypointCount = 22;
+    constexpr auto ExpectedRawLengthUu = 967.32f;
+
+    // Nothing stands between the two endpoints, so the whole staircase collapses to the single segment the
+    // agent should have flown in the first place.
+    constexpr auto ExpectedPrunedWaypointCount = 2;
+    constexpr auto ExpectedPrunedLengthUu = 571.66f;
+
+    constexpr auto LengthToleranceUu = 0.5f;
+
+    const auto Octree = Bake_Octree(TArray<FBox>{ZigzagFloor, ZigzagCeiling}, ZigzagBounds);
+
+    if (NOT TestTrue(TEXT("the zigzag bake publishes a valid octree"),
+        Octree.IsValid() && Octree->Get_IsValid()))
+    { return false; }
+
+    const auto Plan = Search_PathGraph(*Octree, TestVolumeId, Make_SearchParams(ZigzagStart, ZigzagGoal));
+
+    if (NOT TestTrue(TEXT("a route across the zigzag fixture is found"),
+        Plan._Outcome == ECk_VoxelNav_PathSearchOutcome::Succeeded))
+    { return false; }
+
+    TestEqual(TEXT("the raw search staircases through one cell per 50uu face step"),
+        Plan._Waypoints.Num(), ExpectedRawWaypointCount);
+
+    // The count above is a fact about the fixture only while this holds: one granularity everywhere means
+    // one cell per step, so every optimal route has the same length AND the same number of waypoints.
+    const auto FinestCellExtentUu = Octree->Get_LeafNodes().Get_LeafSubNodeExtent();
+
+    auto EveryCellIsTheFinestSize = true;
+    for (const auto& Cell : Plan._Cells)
+    { EveryCellIsTheFinestSize &= FMath::IsNearlyEqual(Get_CellExtent(*Octree, Cell), FinestCellExtentUu); }
+
+    TestTrue(TEXT("every cell on the raw route is a leaf sub-node, so no coarse shortcut was available"),
+        EveryCellIsTheFinestSize);
+
+    const auto RawLengthUu = Get_PathLength(Plan._Waypoints);
+
+    TestEqual(TEXT("the raw path is as long as the staircase it walks"),
+        RawLengthUu, ExpectedRawLengthUu, LengthToleranceUu);
+
+    const auto Pruned = Prune_VisibleWaypoints(*Octree, Plan._Waypoints);
+
+    TestEqual(TEXT("pruning drops every waypoint the octree proves redundant"),
+        Pruned.Num(), ExpectedPrunedWaypointCount);
+
+    const auto PrunedLengthUu = Get_PathLength(Pruned);
+
+    TestEqual(TEXT("the pruned path is the straight line between the two requested endpoints"),
+        PrunedLengthUu, ExpectedPrunedLengthUu, LengthToleranceUu);
+
+    TestTrue(TEXT("pruning strictly shortens the path"), PrunedLengthUu < RawLengthUu);
+
+    TestTrue(TEXT("pruning never moves the endpoints"),
+        Pruned[0] == Plan._Waypoints[0] && Pruned.Last() == Plan._Waypoints.Last());
+
+    auto EverySegmentIsClear = true;
+    for (auto WaypointIdx = 1; WaypointIdx < Pruned.Num(); ++WaypointIdx)
+    { EverySegmentIsClear &= NOT Get_IsSegmentBlocked(*Octree, Pruned[WaypointIdx - 1], Pruned[WaypointIdx]); }
+
+    TestTrue(TEXT("every segment of the pruned path is clear against the bake it was planned through"),
+        EverySegmentIsClear);
+
+    // The stats are what a caller reads to see whether refinement was worth running, so they have to survive
+    // the pass that produced them.
+    auto RefineParams = FPathRefineParams{};
+    RefineParams._VisibilityPruning = ECk_EnableDisable::Enable;
+
+    const auto Refined = Refine_Waypoints(*Octree, Plan._Waypoints, RefineParams);
+
+    TestEqual(TEXT("the refinement records the count it started from"),
+        Refined._RawWaypointCount, ExpectedRawWaypointCount);
+
+    TestEqual(TEXT("the refinement records the length it started from"),
+        Refined._RawLengthUu, ExpectedRawLengthUu, LengthToleranceUu);
+
+    TestEqual(TEXT("the refinement records the length it produced"),
+        Refined._RefinedLengthUu, ExpectedPrunedLengthUu, LengthToleranceUu);
+
+    TestEqual(TEXT("refinement with only pruning enabled produces exactly the pruned path"),
+        Refined._Waypoints.Num(), ExpectedPrunedWaypointCount);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_VoxelNav_Path_SmoothedPointsStayInFreeSpace,
+    "Ck.VoxelNav.Path.Refine.SmoothedPointsStayInFreeSpace",
+    ck::tests::kCkUnitTestFlags)
+
+bool FCkTest_VoxelNav_Path_SmoothedPointsStayInFreeSpace::RunTest(const FString& Parameters)
+{
+    using namespace ck::voxelnav;
+    using namespace ck_test_voxelnav_path;
+
+    constexpr auto Subdivisions = 4;
+    constexpr auto NoSubdivision = 1;
+
+    const auto Octree = Bake_Octree(TArray<FBox>{ZigzagFloor, ZigzagCeiling}, ZigzagBounds);
+
+    if (NOT TestTrue(TEXT("the zigzag bake publishes a valid octree"),
+        Octree.IsValid() && Octree->Get_IsValid()))
+    { return false; }
+
+    const auto Plan = Search_PathGraph(*Octree, TestVolumeId, Make_SearchParams(ZigzagStart, ZigzagGoal));
+
+    if (NOT TestTrue(TEXT("a route across the zigzag fixture is found"),
+        Plan._Outcome == ECk_VoxelNav_PathSearchOutcome::Succeeded))
+    { return false; }
+
+    // The RAW staircase is smoothed rather than the pruned line: it is all corners, which is what makes the
+    // curve leave the polyline at all and therefore what puts the span validation under load.
+    const auto Smoothed = Smooth_Waypoints(*Octree, Plan._Waypoints, Subdivisions);
+
+    TestTrue(TEXT("smoothing introduced points, so the spans under test were not all reverted"),
+        Smoothed.Num() > Plan._Waypoints.Num());
+
+    TestTrue(TEXT("smoothing never moves the endpoints"),
+        Smoothed[0] == Plan._Waypoints[0] && Smoothed.Last() == Plan._Waypoints.Last());
+
+    auto EveryPointIsFree = true;
+    for (const auto& Point : Smoothed)
+    { EveryPointIsFree &= Get_IsPositionFree(*Octree, Point); }
+
+    TestTrue(TEXT("every point the subdivision introduced stands in a free cell"), EveryPointIsFree);
+
+    auto EverySegmentIsClear = true;
+    for (auto PointIdx = 1; PointIdx < Smoothed.Num(); ++PointIdx)
+    { EverySegmentIsClear &= NOT Get_IsSegmentBlocked(*Octree, Smoothed[PointIdx - 1], Smoothed[PointIdx]); }
+
+    TestTrue(TEXT("every segment of the smoothed path is clear against the bake"), EverySegmentIsClear);
+
+    // A span whose curve would leave free space keeps its straight segment, so the worst case of smoothing
+    // is the polyline that went in - never a path the agent cannot fly.
+    const auto Unsubdivided = Smooth_Waypoints(*Octree, Plan._Waypoints, NoSubdivision);
+
+    TestEqual(TEXT("a subdivision count that introduces no point returns the input polyline"),
+        Unsubdivided.Num(), Plan._Waypoints.Num());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_VoxelNav_Path_PruningAStraightPathChangesNothing,
+    "Ck.VoxelNav.Path.Refine.PruningAStraightPathChangesNothing",
+    ck::tests::kCkUnitTestFlags)
+
+bool FCkTest_VoxelNav_Path_PruningAStraightPathChangesNothing::RunTest(const FString& Parameters)
+{
+    using namespace ck::voxelnav;
+    using namespace ck_test_voxelnav_path;
+
+    constexpr auto LengthToleranceUu = 0.01f;
+
+    const auto Octree = Bake_Octree(TArray<FBox>{ZigzagFloor, ZigzagCeiling}, ZigzagBounds);
+
+    if (NOT TestTrue(TEXT("the zigzag bake publishes a valid octree"),
+        Octree.IsValid() && Octree->Get_IsValid()))
+    { return false; }
+
+    const auto TwoPointPath = TArray<FVector>{ZigzagStart, ZigzagGoal};
+    const auto PrunedTwoPointPath = Prune_VisibleWaypoints(*Octree, TwoPointPath);
+
+    TestTrue(TEXT("a path that is already one segment comes back unchanged"),
+        PrunedTwoPointPath == TwoPointPath);
+
+    // Collinear intermediate points are redundant by construction, so removing them is not a shortcut: the
+    // geometry the agent flies has to be identical.
+    const auto CollinearPath = TArray<FVector>
+    {
+        ZigzagStart,
+        FMath::Lerp(ZigzagStart, ZigzagGoal, 0.25),
+        FMath::Lerp(ZigzagStart, ZigzagGoal, 0.5),
+        FMath::Lerp(ZigzagStart, ZigzagGoal, 0.75),
+        ZigzagGoal
+    };
+
+    const auto PrunedCollinearPath = Prune_VisibleWaypoints(*Octree, CollinearPath);
+
+    TestEqual(TEXT("pruning a straight run keeps its two endpoints and nothing else"),
+        PrunedCollinearPath.Num(), TwoPointPath.Num());
+
+    TestEqual(TEXT("pruning a straight run leaves its length untouched"),
+        Get_PathLength(PrunedCollinearPath), Get_PathLength(CollinearPath), LengthToleranceUu);
+
+    TestTrue(TEXT("pruning a straight run leaves its endpoints untouched"),
+        PrunedCollinearPath[0] == ZigzagStart && PrunedCollinearPath.Last() == ZigzagGoal);
+
+    auto DisabledParams = FPathRefineParams{};
+    DisabledParams._VisibilityPruning = ECk_EnableDisable::Disable;
+    DisabledParams._Smoothing = ECk_EnableDisable::Disable;
+
+    const auto Unrefined = Refine_Waypoints(*Octree, CollinearPath, DisabledParams);
+
+    TestTrue(TEXT("a refinement pass with every step disabled is the identity"),
+        Unrefined._Waypoints == CollinearPath);
 
     return true;
 }
