@@ -7697,3 +7697,16 @@ class ACk_AutoTest_VisibleRange_OwnRangeBoundaryCrossing_Actor : ACk_AutoTestRun
     }
 }
 
+class ACk_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 30.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+

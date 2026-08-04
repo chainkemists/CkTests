@@ -19,8 +19,8 @@
 // Two reference scenes, and they answer different questions:
 //   - the KNOWN LAYOUT (1600uu cube, 50uu finest cell, floor slab + pillar) - the same fixture the bake and
 //     path tests use, small enough that a failure is inspectable by hand;
-//   - a GENERATED scene at 6400uu / 50uu - the port map's worked example scale, where the free-cell count is
-//     large enough for a merge ratio to mean anything and the bake spans real budget slices.
+//   - a GENERATED scene at 6400uu / 50uu, where the free-cell count is large enough for a merge ratio to
+//     mean anything and the bake spans real budget slices.
 //
 // The invariants are asserted; the timings are RECORDED. A wall-clock number is a property of the machine
 // that ran it, and an assertion on one is a flake waiting for a busy build agent - so bake and search
