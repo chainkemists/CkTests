@@ -11,6 +11,19 @@
 // The pair selector lives in ACk_VfxExamplesGym_HUD (V), with PgUp/PgDn cycling and R restarting hands-free.
 //
 // Pairs live in CkVfxExamplesGym_Shared.as. Adding a port is a data edit there, not a change here.
+//
+// Ck_GymVfxExamples_Tune retunes the live recreation without a respawn — an OVERLAY on top of the
+// behavior's per-behavior tuning DataAsset, which the spawn path applies. Ck_GymVfxExamples_TuneReset
+// drops the overlay and restarts the pair, because only a respawn brings the asset's values back.
+// The chosen pair is remembered across PIE sessions (CkVfxExamplesGym_SaveGame.as).
+//
+// The FIRST activation of a pair in a session can block the game thread for minutes with nothing logged
+// and nothing drawn. Two things follow from that. (1) The spawn is split in two: Request_SpawnActivePair
+// decides and announces, Request_SpawnActivePair_Immediate blocks — with a frame in between, so the
+// warning is painted while the thread is still alive. The trigger is the pair's own measured duration
+// from a previous session, also carried in the SaveGame slot. (2) Every phase is wall-clock bracketed and
+// summarised into one greppable `[VfxSetup]` Print, because a block that logs nothing cannot be attributed
+// to a phase after the fact.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
@@ -19,9 +32,79 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     private int32 _ActivePairIndex = 0;
     private bool _bViewerPlaced = false;
 
+    // The recreation half, held apart from _Spawned so live tuning can reach it without also
+    // hitting the original standing beside it. _Spawned still owns the destroy sweep.
+    private UNiagaraComponent _CkSideComponent;
+
+    // Session-scoped look knobs, re-applied on every respawn of the recreation — but ONLY while the
+    // overlay is active. Off, the recreation keeps whatever its per-behavior tuning DataAsset gave it.
+    private float32 _TuningSize = 1.0f;
+    private float32 _TuningColor = 1.0f;
+    private float32 _TuningAlpha = 1.0f;
+    private float32 _TuningSpeed = 1.0f;
+
+    // Whether the exec overlay is in force. Identity values are NOT the same thing as "no overlay":
+    // writing identity is itself a write, and it would stomp the asset-resolved tuning.
+    private bool _bTuneOverlayActive = false;
+
     // A pair switch is a multi-frame flow (station destroy + spawn + a settle frame before
     // Request_StartGym fires); further switch requests during it are dropped, not queued.
     private bool _bSwitchInFlight = false;
+
+    // A pair whose CkParticles template is still compiling (the first run after a regen) is NOT spawned yet —
+    // a component spawned into an unfinished compile renders nothing and reads as a broken port. True while a
+    // readiness poll is outstanding; the HUD announces it so the empty pedestal is explained.
+    private bool _bWaitingForCompile = false;
+    private FString _CompileWaitText = "";
+
+    // The pair the outstanding poll was armed for. A switch moves _ActivePairIndex and re-enters the spawn flow
+    // on its own, so a poll that no longer matches must drop out instead of spawning a pair nobody selected.
+    private int32 _CompileWaitPairIndex = -1;
+
+    // Exactly one poll timer at a time. _bWaitingForCompile cannot carry this on its own: it is cleared the
+    // moment a spawn succeeds, and a poll armed before that is still in flight.
+    private bool _bCompilePollOutstanding = false;
+
+    // The first activation of a pair in a session can block the game thread for MINUTES inside the spawn
+    // calls, silently — nothing draws while it is blocked, so a banner raised at the blocking call is a
+    // banner nobody ever sees. Below this many recorded seconds the spawn is indistinguishable from a
+    // normal hitch and a banner would be noise.
+    private const float32 SetupFreezeThresholdSeconds = 1.0f;
+
+    // The pre-announced freeze banner. Pending means "the text is up, the spawn is one frame away";
+    // the TEXT deliberately outlives the pending flag, because it is the only thing on screen for the
+    // whole block and must stay until the block ends.
+    private bool _bSetupBannerPending = false;
+    private FString _SetupBannerText = "";
+    private int32 _SetupBannerPairIndex = -1;
+    private bool _bSetupBannerTimerOutstanding = false;
+
+    // Phase stamps in wall seconds (FDateTime::UtcNow, NOT UWorld::GetRealTimeSeconds — the world clock
+    // is refreshed once per tick, so every stamp taken inside one frame would read identical and the
+    // two spawn brackets would both report 0ms). Reset per activation.
+    private float64 _SetupEnterStamp = 0.0;
+    private float64 _SetupImmediateStamp = 0.0;
+    private float64 _SetupCkDoneStamp = 0.0;
+    private float64 _SetupOriginalDoneStamp = 0.0;
+
+    // Set on the FIRST entry into the spawn flow for an activation and held across the compile wait and
+    // the banner defer, so the gate phase measures the whole pre-spawn cost rather than the last re-entry.
+    private bool _bSetupEnterStamped = false;
+
+    // Same staleness + single-outstanding invariants as the compile poll, for the measurement timer.
+    private int32 _SetupMeasurePairIndex = -1;
+    private bool _bSetupMeasureOutstanding = false;
+
+    // Super starts the base flow, which reaches Get_RequiredStations() below and bakes the
+    // active index into the stations it lays out — so the remembered pair must be restored
+    // before Super runs, not in Request_StartGym.
+    UFUNCTION(BlueprintOverride)
+    void BeginPlay()
+    {
+        auto _CkPerfScope = ck::ScopedStat();
+        _ActivePairIndex = CkVfxExamplesGym_Save::TryLoad_ActivePairIndex(_ActivePairIndex);
+        Super::BeginPlay();
+    }
 
     // Only the ACTIVE pair's stations. The base flow lays a 2-station gym out at the same
     // two grid spots every time, which is what keeps switches in-place for the viewer.
@@ -84,6 +167,33 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         return _ActivePairIndex;
     }
 
+    bool Get_IsTuneOverlayActive()
+    {
+        return _bTuneOverlayActive;
+    }
+
+    bool Get_IsWaitingForCompile()
+    {
+        return _bWaitingForCompile;
+    }
+
+    FString Get_CompileWaitText()
+    {
+        return _CompileWaitText;
+    }
+
+    // Non-empty for the deferring frame AND for the whole freeze that follows it. The HUD draws it
+    // unconditionally on that basis — see Request_SpawnActivePair for why one frame has to pass first.
+    FString Get_SetupBannerText()
+    {
+        return _SetupBannerText;
+    }
+
+    FString Get_TuningReadout()
+    {
+        return f"TUNE size {_TuningSize :.1} | color {_TuningColor :.1} | alpha {_TuningAlpha :.1} | speed {_TuningSpeed :.1}";
+    }
+
     // Switches which pair exists. Out-of-range indices wrap so Next/Prev cycle endlessly.
     // Re-activating the CURRENT index is a restart-in-place: both sides respawn in sync
     // from t=0, stations untouched, camera unmoved.
@@ -106,8 +216,10 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         { return; }
         _bSwitchInFlight = true;
 
+        Request_ResetSetupTracking();
         Request_DestroyActivePair();
         _ActivePairIndex = WrappedIndex;
+        CkVfxExamplesGym_Save::Request_SaveActivePairIndex(_ActivePairIndex);
 
         // Base flow: lay out + spawn the (new) required stations, await construction,
         // settle one frame, then call Request_StartGym — which spawns the VFX.
@@ -121,6 +233,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
             if (ck::IsValid(Existing)) { Existing.DestroyComponent(); }
         }
         _Spawned.Empty();
+        _CkSideComponent = nullptr;
 
         auto Pairs = CkVfxExamples::Get_Pairs();
         if (_ActivePairIndex < 0 || _ActivePairIndex >= Pairs.Num())
@@ -140,26 +253,247 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
+    // The gate half of the spawn flow: readiness, then the freeze-banner decision. Everything that can
+    // block the game thread lives in Request_SpawnActivePair_Immediate below, so this half is always
+    // cheap enough to return and let a frame render.
     private void Request_SpawnActivePair()
     {
+        // Held across the compile wait and the banner defer — the gate phase is the whole pre-spawn cost
+        // of THIS activation, not of the last re-entry into it.
+        if (_bSetupEnterStamped == false)
+        {
+            _bSetupEnterStamped = true;
+            _SetupEnterStamp = Get_SetupWallSeconds();
+        }
+
         // Clear any prior spawns (supports restart of both sides in sync).
         for (auto Existing : _Spawned)
         {
             if (ck::IsValid(Existing)) { Existing.DestroyComponent(); }
         }
         _Spawned.Empty();
+        _CkSideComponent = nullptr;
 
         auto Pairs = CkVfxExamples::Get_Pairs();
         if (_ActivePairIndex < 0 || _ActivePairIndex >= Pairs.Num())
-        { return; }
+        {
+            _bSetupEnterStamped = false;
+            return;
+        }
 
         auto Pair = Pairs[_ActivePairIndex];
+
+        // Neither side spawns until the recreation's template has compiled: spawning the original alone would
+        // put the A/B out of phase, and the whole point of the harness is that both start at t=0 together.
+        if (utils_particles::Get_IsBehaviorTemplateReady(Pair.BehaviorId) == false)
+        {
+            Request_BeginCompileWait(Pair);
+            return;
+        }
+
+        _bWaitingForCompile = false;
+        _CompileWaitText = "";
+
+        // A pair that froze the game thread last session freezes it again. Nothing draws during the block,
+        // so the warning has to reach the screen BEFORE the blocking call — which costs a frame: this one
+        // only sets the text, and the timer below spawns on the next.
+        auto RecordedSeconds = CkVfxExamplesGym_Save::TryGet_PairSetupSeconds(_ActivePairIndex);
+        if (RecordedSeconds > SetupFreezeThresholdSeconds)
+        {
+            Request_BeginSetupBannerWait(Pair, RecordedSeconds);
+            return;
+        }
+
+        Request_SpawnActivePair_Immediate();
+    }
+
+    // The half that can disappear for minutes. Split out so the banner above can be PAINTED first;
+    // reached either directly (nothing recorded) or one frame later from OnSetupBannerElapsed.
+    private void Request_SpawnActivePair_Immediate()
+    {
+        auto Pairs = CkVfxExamples::Get_Pairs();
+        if (_ActivePairIndex < 0 || _ActivePairIndex >= Pairs.Num())
+        {
+            _bSetupEnterStamped = false;
+            return;
+        }
+
+        auto Pair = Pairs[_ActivePairIndex];
+
+        // Bracketed per side: the whole point of the instrumentation is to say WHICH of the two spawn
+        // paths owns the block, which a single total cannot.
+        _SetupImmediateStamp = Get_SetupWallSeconds();
         Request_SpawnCkSide(Pair);
+        _SetupCkDoneStamp = Get_SetupWallSeconds();
         Request_SpawnOriginalSide(Pair);
+        _SetupOriginalDoneStamp = Get_SetupWallSeconds();
 
         // Logged HERE rather than in Request_StartGym so a restart is observable too — the
         // start-only trace made an invoked restart indistinguishable from one that never ran.
         ck::Trace(f"🟣 VfxExamples Gym - [{_ActivePairIndex}/{Pairs.Num()}] {Pair.DisplayName} live from t=0");
+
+        Request_BeginSetupMeasure();
+    }
+
+    // Wall clock, not world clock. UWorld::GetRealTimeSeconds is refreshed once per tick, so it cannot
+    // separate two stamps taken inside the same frame — which is every stamp in the spawn body.
+    private float64 Get_SetupWallSeconds()
+    {
+        auto SinceEpoch = FDateTime::UtcNow() - FDateTime::MinValue();
+        return SinceEpoch.GetTotalSeconds();
+    }
+
+    // Arms the deferring frame. Same single-outstanding + staleness invariants as the compile poll, and
+    // like it, deliberately leaves _bSwitchInFlight alone so the selector stays live during the wait.
+    private void Request_BeginSetupBannerWait(FCk_VfxExamples_Pair InPair, float32 InRecordedSeconds)
+    {
+        _bSetupBannerPending = true;
+        _SetupBannerPairIndex = _ActivePairIndex;
+        _SetupBannerText = f"SETTING UP {InPair.DisplayName} — took ~{InRecordedSeconds :.0}s last time; editor will freeze, effect appears when done";
+
+        if (_bSetupBannerTimerOutstanding)
+        { return; }
+
+        _bSetupBannerTimerOutstanding = true;
+
+        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        Params.Set_StartingState(ECk_Timer_State::Running)
+              .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+        auto Timer = utils_timer::Add(ck::ToEntity(this), Params);
+        Timer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnSetupBannerElapsed"));
+    }
+
+    UFUNCTION()
+    private void OnSetupBannerElapsed(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        _bSetupBannerTimerOutstanding = false;
+
+        if (_bSetupBannerPending == false)
+        { return; }
+
+        _bSetupBannerPending = false;
+
+        // A switch superseded this activation — its own flow spawns whatever is selected now. Nothing is
+        // cleared on the way out: Request_ResetSetupTracking already did that for the OLD activation, and
+        // the NEW one has since re-armed the same members. Touching them here would clobber it.
+        if (_SetupBannerPairIndex != _ActivePairIndex)
+        { return; }
+
+        // _SetupBannerText is NOT cleared here: the block starts on the next line and nothing will draw
+        // again until it ends, so the text has to survive into the freeze. The measurement clears it.
+        Request_SpawnActivePair_Immediate();
+    }
+
+    // The frame after the spawn calls only ARRIVES once the game thread unblocks, so this timer's fire
+    // time is the honest end of the freeze — nothing measurable from inside the spawn call can say that.
+    // Costs a ~50ms floor on the firstFrameAfter figure when there is no block, which is the same idiom
+    // (and the same floor) the compile poll runs on.
+    private void Request_BeginSetupMeasure()
+    {
+        _SetupMeasurePairIndex = _ActivePairIndex;
+
+        if (_bSetupMeasureOutstanding)
+        { return; }
+
+        _bSetupMeasureOutstanding = true;
+
+        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        Params.Set_StartingState(ECk_Timer_State::Running)
+              .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+        auto Timer = utils_timer::Add(ck::ToEntity(this), Params);
+        Timer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnSetupMeasureElapsed"));
+    }
+
+    UFUNCTION()
+    private void OnSetupMeasureElapsed(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        _bSetupMeasureOutstanding = false;
+
+        // Superseded — these stamps describe a pair that is no longer live, and recording them under the
+        // CURRENT index would poison the next session's banner decision with another pair's number. Drops
+        // out WITHOUT clearing anything: the switch that superseded it already reset the tracking, and the
+        // activation now in flight has re-armed those same members.
+        if (_SetupMeasurePairIndex != _ActivePairIndex)
+        { return; }
+
+        auto Now = Get_SetupWallSeconds();
+
+        auto GateMs          = (_SetupImmediateStamp - _SetupEnterStamp) * 1000.0;
+        auto CkSpawnMs       = (_SetupCkDoneStamp - _SetupImmediateStamp) * 1000.0;
+        auto OriginalSpawnMs = (_SetupOriginalDoneStamp - _SetupCkDoneStamp) * 1000.0;
+        auto FirstFrameMs    = (Now - _SetupOriginalDoneStamp) * 1000.0;
+        auto TotalMs         = (Now - _SetupEnterStamp) * 1000.0;
+
+        auto Pairs = CkVfxExamples::Get_Pairs();
+        FString DisplayName = "?";
+        if (_ActivePairIndex >= 0 && _ActivePairIndex < Pairs.Num())
+        { DisplayName = Pairs[_ActivePairIndex].DisplayName; }
+
+        // Print rather than ck::Trace: this line's job is to be greppable in the full log
+        // (LogBlueprintUserMessages), not to be legible on screen during a session.
+        Print(f"[VfxSetup] pair={_ActivePairIndex} {DisplayName} gate={GateMs :.0}ms ckSpawn={CkSpawnMs :.0}ms originalSpawn={OriginalSpawnMs :.0}ms firstFrameAfter={FirstFrameMs :.0}ms total={TotalMs :.0}ms");
+
+        // What the banner predicts is the FREEZE, so the recorded figure excludes the gate: compile-wait
+        // time is long, already announced by its own banner, and would double-count as a freeze warning.
+        auto SetupSeconds = float32(Now - _SetupImmediateStamp);
+        CkVfxExamplesGym_Save::Request_SavePairSetupSeconds(_ActivePairIndex, SetupSeconds);
+
+        _SetupBannerText = "";
+        _bSetupEnterStamped = false;
+    }
+
+    // A switch abandons whatever the previous activation was measuring: the stamps describe a pair that is
+    // no longer live, and the banner would keep warning about a freeze that has already happened. The
+    // outstanding timers are left alone — their own staleness guards drop them.
+    private void Request_ResetSetupTracking()
+    {
+        _bSetupEnterStamped = false;
+        _bSetupBannerPending = false;
+        _SetupBannerText = "";
+    }
+
+    // Arms (or re-aims) the readiness poll. Deliberately leaves _bSwitchInFlight alone: Request_StartGym clears
+    // that flag BEFORE it reaches the spawn, so the selector stays live for the whole wait — switching pairs
+    // while one compiles is exactly the case that has to keep working.
+    private void Request_BeginCompileWait(FCk_VfxExamples_Pair InPair)
+    {
+        _bWaitingForCompile = true;
+        _CompileWaitPairIndex = _ActivePairIndex;
+        _CompileWaitText = f"{InPair.DisplayName} (behavior {InPair.BehaviorId})";
+
+        if (_bCompilePollOutstanding)
+        { return; }
+
+        _bCompilePollOutstanding = true;
+
+        // Mirrors the base PC's WaitOneFrame, which is private to it. Hosted on the PC's OWN entity rather than
+        // on a station, because a switch destroys the stations and a poll that died with one would strand the
+        // wait flag.
+        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        Params.Set_StartingState(ECk_Timer_State::Running)
+              .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+        auto Timer = utils_timer::Add(ck::ToEntity(this), Params);
+        Timer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnCompileWaitPoll"));
+    }
+
+    UFUNCTION()
+    private void OnCompileWaitPoll(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        _bCompilePollOutstanding = false;
+
+        if (_bWaitingForCompile == false)
+        { return; }
+
+        // A switch superseded this spawn — its own flow spawns whatever is selected now. Dropping out silently
+        // is the whole guard; re-entering would spawn the pair the viewer just moved off.
+        if (_CompileWaitPairIndex != _ActivePairIndex)
+        {
+            _bWaitingForCompile = false;
+            _CompileWaitText = "";
+            return;
+        }
+
+        Request_SpawnActivePair();
     }
 
     // Places the viewer between the pair's two agent-spawn front anchors, backed off far
@@ -207,11 +541,34 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         if (ck::IsValid(Component))
         {
             _Spawned.Add(Component);
+            _CkSideComponent = Component;
+
+            // The one place the recreation becomes live, so every path that respawns it —
+            // gym boot, pair switch, R / Ck_GymVfxExamples_RestartAll — re-applies the stored
+            // tuning here rather than each calling site remembering to.
+            Request_ApplyTuningToCkSide();
         }
         else
         {
             ck::Error(f"❌ VfxExamples gym: failed to spawn CkParticles BehaviorId {InPair.BehaviorId}");
         }
+    }
+
+    // Tuning shifts only the RECREATION half of the A/B: the Vefects original has no
+    // User.CkTuning parameter to write, so it deliberately stays at its authored values
+    // and remains the reference the recreation is judged against.
+    private void Request_ApplyTuningToCkSide()
+    {
+        // An inactive overlay writes NOTHING, leaving the per-behavior tuning DataAsset's values —
+        // applied by the spawn path — in force. Writing identity here would silently erase them.
+        if (_bTuneOverlayActive == false)
+        { return; }
+
+        if (ck::Is_NOT_Valid(_CkSideComponent))
+        { return; }
+
+        utils_particles::Request_ApplyTuningValues(
+            _CkSideComponent, _TuningSize, _TuningColor, _TuningAlpha, _TuningSpeed);
     }
 
     private void Request_SpawnOriginalSide(FCk_VfxExamples_Pair InPair)
@@ -291,6 +648,34 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymVfxExamples_GoTo(int32 InPairIndex)
     {
         Request_ActivatePair(InPairIndex);
+    }
+
+    UFUNCTION(Exec, DisplayName="VfxExamples Gym - Tune Active Pair")
+    void Ck_GymVfxExamples_Tune(float32 InSizeMultiplier = 1.0f, float32 InColorIntensity = 1.0f, float32 InAlphaMultiplier = 1.0f, float32 InPlaybackSpeed = 1.0f)
+    {
+        _bTuneOverlayActive = true;
+
+        _TuningSize = InSizeMultiplier;
+        _TuningColor = InColorIntensity;
+        _TuningAlpha = InAlphaMultiplier;
+        _TuningSpeed = InPlaybackSpeed;
+
+        Request_ApplyTuningToCkSide();
+    }
+
+    // Dropping the overlay RESPAWNS the pair rather than writing identity: the asset's values only
+    // reach the component through the spawn path, so a live identity write cannot restore them.
+    UFUNCTION(Exec, DisplayName="VfxExamples Gym - Reset Tuning")
+    void Ck_GymVfxExamples_TuneReset()
+    {
+        _bTuneOverlayActive = false;
+
+        _TuningSize = 1.0f;
+        _TuningColor = 1.0f;
+        _TuningAlpha = 1.0f;
+        _TuningSpeed = 1.0f;
+
+        Request_SpawnActivePair();
     }
 
     UFUNCTION(Exec, DisplayName="VfxExamples Gym - List Pairs")
