@@ -1,15 +1,19 @@
 // Roster-wide sanity gate for CkParticles.
 //
-// Three claims, all roster-driven so adding a behavior does not need this file edited:
+// Four claims, all roster-driven so adding a behavior does not need this file edited:
 //   1. The roster METADATA is coherent — one size definition, every id routes to a template the cadence
-//      table actually declares, and the behaviors that bind a CkUsf look bind the expected one.
-//   2. Every behavior, across ages / lifetimes / seeds, produces RENDERABLE output — finite numbers, a
+//      table actually declares, every id has a unique name that resolves a tuning-asset path on the
+//      convention, and the behaviors that bind a CkUsf look bind the expected one.
+//   2. Every behavior's TUNABLE PART list is coherent — the shared set first, then its own band ascending,
+//      within the block's budget, uniquely named, and every part addressing a block row. That list is what
+//      the tuning DataAsset's rows are generated from, so an incoherent one ships as a broken asset.
+//   3. Every behavior, across ages / lifetimes / seeds, produces RENDERABLE output — finite numbers, a
 //      non-negative size, a VisTag the template has a renderer for, a mesh index the carrier set contains,
 //      and (on the custom-facing tag) a non-degenerate alignment/facing pair.
-//   3. Every behavior's output is INDEPENDENT of the emitter clock. The stage signature carries EmitterAge,
+//   4. Every behavior's output is INDEPENDENT of the emitter clock. The stage signature carries EmitterAge,
 //      but no behavior on the roster today reads it, so shifting it must change nothing at all.
 //
-// Claim 2 is deliberately shallow: it is a "nothing here is nonsense" net, not a correctness check. Only
+// Claim 3 is deliberately shallow: it is a "nothing here is nonsense" net, not a correctness check. Only
 // the per-behavior math tests (LightningRangeBehavior) can tell a correct behavior from an inert one.
 //
 // No Niagara, no template asset, no RHI, no forked engine — this runs on the CPU mirror.
@@ -17,6 +21,7 @@
 #include "Misc/AutomationTest.h"
 
 #include "CkParticles/DataInterface/CkParticles_DataInterface.h"
+#include "CkParticles/DataInterface/CkParticles_PartTuning.h"
 #include "CkParticles/ScriptDefinition/CkParticles_ScriptDefinition_Naming.h"
 #include "CkParticles/Utils/CkParticles_Utils.h"
 
@@ -239,6 +244,100 @@ bool FCkTest_Particles_RosterSanity::RunTest(const FString& Parameters)
             Path.IsEmpty());
         TestTrue(*FString::Printf(TEXT("behavior %d routes to a template the cadence table declares [%s]"),
             BehaviorId, *Path), DeclaredTemplatePaths.Contains(Path));
+    }
+
+    // ---- Every id has a NAME, and that name resolves a tuning-asset path on the convention ----
+    // The spawn path resolves the per-behavior tuning DataAsset by this path, so a nameless id would spawn
+    // untunable and a colliding name would have two behaviors share one designer's tuning. The assets
+    // themselves are deliberately NOT asserted to exist — they are generated, and a fresh checkout has none.
+    const auto TuningPathPrefix = FString(TEXT("/CkFoundation/CkParticles/Tuning/DA_CkParticles_Tuning_"));
+    auto DeclaredBehaviorNames = TSet<FName>{};
+
+    for (auto BehaviorId = 0; BehaviorId < ck::particles::NumBehaviors; ++BehaviorId)
+    {
+        const auto BehaviorName = ck::particles::Get_BehaviorName(BehaviorId);
+
+        TestTrue(*FString::Printf(TEXT("behavior %d has a roster name"), BehaviorId),
+            BehaviorName != NAME_None);
+        TestFalse(*FString::Printf(TEXT("behavior %d's roster name [%s] is unique"),
+            BehaviorId, *BehaviorName.ToString()), DeclaredBehaviorNames.Contains(BehaviorName));
+
+        DeclaredBehaviorNames.Add(BehaviorName);
+
+        const auto TuningPath = ck::particles::Get_BehaviorTuningAssetObjectPath(BehaviorId);
+
+        TestFalse(*FString::Printf(TEXT("behavior %d resolves a non-empty tuning asset path"), BehaviorId),
+            TuningPath.IsEmpty());
+        TestTrue(*FString::Printf(TEXT("behavior %d's tuning asset path is on the convention [%s]"),
+            BehaviorId, *TuningPath), TuningPath.StartsWith(TuningPathPrefix));
+    }
+
+    // ---- Every behavior's TUNABLE PART list is coherent ----
+    // The part registry is what the tuning DataAsset's row roster is generated from, so an incoherent list ships as
+    // an asset a designer edits against — rows that address the wrong layer, or none. Every claim here is about the
+    // registry agreeing with the block's addressing, not about any particular behavior's renderers.
+    for (auto BehaviorId = 0; BehaviorId < ck::particles::NumBehaviors; ++BehaviorId)
+    {
+        const auto Parts     = ck::particles::Get_BehaviorTunableParts(BehaviorId);
+        const auto BandStart = ck::particles::Get_BehaviorBandStart(BehaviorId);
+
+        const auto NumShared = ck::particles::SharedRendererVisTag_Max + 1;
+
+        TestTrue(*FString::Printf(TEXT("behavior %d's part list opens with the whole shared renderer set"),
+            BehaviorId), Parts.Num() >= NumShared);
+
+        // The budget is a GPU uniform array, so overflowing it does not fail loudly — the surplus parts simply
+        // address no row and the asset grows rows that tune nothing.
+        TestTrue(*FString::Printf(TEXT("behavior %d declares %d parts, within the block's budget of %d"),
+            BehaviorId, Parts.Num(), ck::particles::MaxTunedParts),
+            Parts.Num() <= ck::particles::MaxTunedParts);
+
+        if (Parts.Num() < NumShared)
+        { continue; }
+
+        for (auto Index = 0; Index < NumShared; ++Index)
+        {
+            TestEqual(*FString::Printf(TEXT("behavior %d's part %d is shared VisTag %d"), BehaviorId, Index, Index),
+                Parts[Index].VisTag, Index);
+        }
+
+        // The band start is the block's addressing origin, so a disagreement here shifts every band row by the
+        // difference — silently, onto a neighbouring layer.
+        const auto HasBand = Parts.Num() > NumShared;
+        TestEqual(*FString::Printf(TEXT("behavior %d's band start agrees with its first band part"), BehaviorId),
+            BandStart, HasBand ? Parts[NumShared].VisTag : 0);
+
+        auto DeclaredPartNames = TSet<FName>{};
+        auto PreviousVisTag    = ck::particles::SharedRendererVisTag_Max;
+
+        for (auto Index = NumShared; Index < Parts.Num(); ++Index)
+        {
+            const auto& Part = Parts[Index];
+
+            TestTrue(*FString::Printf(TEXT("behavior %d's band part %d (VisTag %d) sits above the shared set"),
+                BehaviorId, Index, Part.VisTag), Part.VisTag > ck::particles::SharedRendererVisTag_Max);
+
+            TestTrue(*FString::Printf(TEXT("behavior %d's band parts ascend by VisTag (%d after %d)"),
+                BehaviorId, Part.VisTag, PreviousVisTag), Part.VisTag > PreviousVisTag);
+
+            PreviousVisTag = Part.VisTag;
+        }
+
+        for (const auto& Part : Parts)
+        {
+            TestTrue(*FString::Printf(TEXT("behavior %d's part on VisTag %d has a name"), BehaviorId, Part.VisTag),
+                Part.DisplayName != NAME_None);
+
+            // Names are the asset's row labels; two identical ones give a designer two rows they cannot tell apart.
+            TestFalse(*FString::Printf(TEXT("behavior %d's part name [%s] is unique within the behavior"),
+                BehaviorId, *Part.DisplayName.ToString()), DeclaredPartNames.Contains(Part.DisplayName));
+
+            DeclaredPartNames.Add(Part.DisplayName);
+
+            TestTrue(*FString::Printf(TEXT("behavior %d's part on VisTag %d addresses a block row"),
+                BehaviorId, Part.VisTag),
+                ck::particles::Get_PartTuningRowIndex(Part.VisTag, BandStart) != INDEX_NONE);
+        }
     }
 
     // ---- Every behavior produces renderable output across ages / lifetimes / seeds ----
