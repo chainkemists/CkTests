@@ -585,6 +585,33 @@ class ACk_VfxExamplesGym_HUD : ACkGym_MenuHUD
         DrawText(f"VFX PAIR [{ActiveIndex}/{VfxCachedPairs.Num() - 1}]  {Pair.DisplayName}", FLinearColor(0.4f, 1.0f, 0.4f, 0.9f), 24.0f, 20.0f, nullptr, 1.2f, false);
         DrawText(Pair.Credit, FLinearColor(0.6f, 0.6f, 0.4f, 0.8f), 24.0f, 44.0f, nullptr, 0.8f, false);
         DrawText("V: pair list  |  PgUp/PgDn: cycle  |  R: restart pair", FLinearColor(0.5f, 0.5f, 0.5f, 0.7f), 24.0f, 62.0f, nullptr, 0.8f, false);
+
+        // Only while the exec overlay is in force: an unannounced multiplier on the recreation half
+        // would read as a fidelity gap against the original beside it. Identity values with the
+        // overlay ON are still worth announcing — they are overriding the asset.
+        if (PC.Get_IsTuneOverlayActive())
+        {
+            DrawText(PC.Get_TuningReadout(), FLinearColor(0.9f, 0.7f, 0.3f, 0.85f), 24.0f, 80.0f, nullptr, 0.8f, false);
+        }
+
+        // Both pedestals stand empty while the recreation's template compiles. Unannounced that reads as a
+        // broken port; announced it reads as the one-time cost it is. Sits below the tune line so the two coexist.
+        if (PC.Get_IsWaitingForCompile())
+        {
+            DrawText(
+                f"COMPILING {PC.Get_CompileWaitText()} — first run after a regen; editor stays live, effect appears when ready",
+                FLinearColor(1.0f, 0.6f, 0.2f, 0.9f), 24.0f, 98.0f, nullptr, 0.8f, false);
+        }
+
+        // The freeze warning, and the ONLY thing on screen for the duration of the block it warns about:
+        // the PC sets the text a frame BEFORE it spawns, so this paints while the game thread is still
+        // alive and then stays frozen on screen — which is exactly the feedback the block otherwise eats.
+        // Drawn larger and hotter than the compile line because it announces a stall, not a wait.
+        auto SetupBanner = PC.Get_SetupBannerText();
+        if (SetupBanner.Len() > 0)
+        {
+            DrawText(SetupBanner, FLinearColor(1.0f, 0.35f, 0.15f, 0.95f), 24.0f, 116.0f, nullptr, 1.1f, false);
+        }
     }
 
     private void Draw_VfxHint(int32 SizeX)
