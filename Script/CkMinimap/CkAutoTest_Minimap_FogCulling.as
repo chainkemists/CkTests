@@ -50,7 +50,7 @@ class UCk_AutoTest_Minimap_FogCulling : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
 
         _Minimap = utils_minimap::Add(Observer, FCk_Fragment_Minimap_ParamsData(5000.0));
-        _Minimap.Request_SetFogOfWar(_Fog);
+        _Minimap.Request_SetFogOfWar(FCk_Request_Minimap_SetFogOfWar(_Fog));
 
         auto PoiOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         PoiOwner.Request_OverrideToSelf();

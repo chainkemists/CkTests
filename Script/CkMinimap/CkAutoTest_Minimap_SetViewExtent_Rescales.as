@@ -5,7 +5,7 @@
 //============================================================================
 //
 // Zoom is a projection input: a POI 1000uu East at ViewExtent 5000 sits at
-// frame X = 1000/5000 = 0.2; after Request_SetViewExtent(10000) the same POI
+// frame X = 1000/5000 = 0.2; after Request_SetViewExtent to 10000 the same POI
 // must sit at 0.1 on the NEXT settle — the request bypasses any update
 // throttle by design (projection-input requests force a reprojection).
 //
@@ -97,7 +97,7 @@ class UCk_AutoTest_Minimap_SetViewExtent_Rescales : UCk_AutoTest_Base
                 f"At extent 5000 the East-1000 POI should sit at X ~0.2 (got {Pos.X})");
         }
 
-        _Minimap.Request_SetViewExtent(10000.0);
+        _Minimap.Request_SetViewExtent(FCk_Request_Minimap_SetViewExtent(10000.0));
         WaitUntil(n"Check_ExtentRescaled", n"OnSettled_AfterZoom");
     }
 
