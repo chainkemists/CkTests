@@ -40,6 +40,7 @@ public class CkTests : CkModuleRules
             "CkDynamic",
             "CkEcs",
             "CkEcsExt",
+            "CkEntityVisualizer",
             "CkEntityCollection",
             "CkEntityExtension",
             "CkEntityTag",
@@ -49,6 +50,7 @@ public class CkTests : CkModuleRules
             "CkGrid",
             "CkInteraction",
             "CkInventory",
+            "CkIskmRenderer",
             "CkIsmRenderer",
             "CkJolt",
             "CkThirdParty",
@@ -75,6 +77,9 @@ public class CkTests : CkModuleRules
             "CkSettings",
             "CkShapes",
             "CkSnapshot",
+            // CkNetAutomation_Common exposes probe payload types in its public latent-test surface.
+            // Adaptive non-unity compilation requires the defining module's import library directly.
+            "CkSpatialQuery",
             "CkStateMachine",
             "CkSubstep",
             "CkTagSet",
