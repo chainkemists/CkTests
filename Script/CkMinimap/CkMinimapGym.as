@@ -369,7 +369,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         { return; }
 
         auto NewExtent = Math::Max(utils_minimap::Get_ViewExtent(Minimap) * 0.5, 500.0);
-        Minimap.Request_SetViewExtent(NewExtent);
+        Minimap.Request_SetViewExtent(FCk_Request_Minimap_SetViewExtent(NewExtent));
         ck::Trace(f"MinimapGym: view extent -> {NewExtent}");
     }
 
@@ -381,7 +381,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         { return; }
 
         auto NewExtent = Math::Min(utils_minimap::Get_ViewExtent(Minimap) * 2.0, 24000.0);
-        Minimap.Request_SetViewExtent(NewExtent);
+        Minimap.Request_SetViewExtent(FCk_Request_Minimap_SetViewExtent(NewExtent));
         ck::Trace(f"MinimapGym: view extent -> {NewExtent}");
     }
 
@@ -395,12 +395,14 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         _RotateWithObserver = !_RotateWithObserver;
         if (_RotateWithObserver)
         {
-            Minimap.Request_SetRotationMode(ECk_Minimap_RotationMode::RotateWithObserver);
+            Minimap.Request_SetRotationMode(
+                FCk_Request_Minimap_SetRotationMode(ECk_Minimap_RotationMode::RotateWithObserver));
             ck::Trace("MinimapGym: rotation mode = RotateWithObserver");
             return;
         }
 
-        Minimap.Request_SetRotationMode(ECk_Minimap_RotationMode::NorthLocked);
+        Minimap.Request_SetRotationMode(
+            FCk_Request_Minimap_SetRotationMode(ECk_Minimap_RotationMode::NorthLocked));
         ck::Trace("MinimapGym: rotation mode = NorthLocked");
     }
 
@@ -414,12 +416,12 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         _FogLinked = !_FogLinked;
         if (_FogLinked)
         {
-            Minimap.Request_SetFogOfWar(_Fog);
+            Minimap.Request_SetFogOfWar(FCk_Request_Minimap_SetFogOfWar(_Fog));
             ck::Trace("MinimapGym: HUD minimap now culls unexplored POIs (fog linked)");
             return;
         }
 
-        Minimap.Request_SetFogOfWar(FCk_Handle_FogOfWar());
+        Minimap.Request_SetFogOfWar(FCk_Request_Minimap_SetFogOfWar(FCk_Handle_FogOfWar()));
         ck::Trace("MinimapGym: fog link cleared (all POIs project)");
     }
 
