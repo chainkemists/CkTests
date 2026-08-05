@@ -213,4 +213,94 @@ bool FCkVoiceChatChannel_InvalidInputsRejected::RunTest(const FString& Parameter
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
+// The channel-Setup asset-resolution boundary (non-negotiable #3, focused invalid-input half):
+// an authored soft ref that cannot resolve ensures once, completes setup on module defaults
+// (resolved getters null), and leaves the channel fully functional - no partial state. The
+// positive path (a real asset audibly applied) is the Gate_4 [EDITOR-VERIFY] audition.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkVoiceChatChannel_AudioAssetResolveFails,
+    "Ck.VoiceChat.Channel.AudioAssetResolveFails",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkVoiceChatChannel_AudioAssetResolveFails::RunTest(const FString& Parameters)
+{
+    using namespace ck_voice_channel_spec;
+
+    bSuppressLogErrors = true;
+    bSuppressLogWarnings = true;
+
+    const auto MapPath = FString{TEXT("/Engine/Maps/Entry")};
+    const auto State = MakeShared<FChannelSpecState, ESPMode::ThreadSafe>();
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(1, MapPath));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(1, 30.0f));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([State](UWorld* InServer) -> void
+        {
+            auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
+            State->Host = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
+
+            auto Params = FCk_Fragment_VoiceChannel_ParamsData{
+                UCk_Utils_GameplayTag_UE::ResolveGameplayTag(TEXT("VoiceChat.Channel.TestBadAsset"))}
+                .Set_Attenuation(TSoftObjectPtr<USoundAttenuation>{
+                    FSoftObjectPath{TEXT("/Game/DoesNotExist/CkVoice_BogusAttenuation.CkVoice_BogusAttenuation")}});
+
+            State->ChannelAlpha = UCk_Utils_VoiceChannel_UE::Add(State->Host, Params);
+
+            auto TalkerHost = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
+            State->Talker = UCk_Utils_VoiceTalker_UE::Add(TalkerHost, FCk_Fragment_VoiceTalker_ParamsData{});
+        })));
+
+    // The failed async load must complete setup, not hang it - poll for the boundary to settle.
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
+        FCk_NetAutoTest_Condition::CreateLambda([State]() -> bool
+        {
+            return ck::IsValid(State->ChannelAlpha) &&
+                NOT State->ChannelAlpha.Has<ck::FTag_VoiceChannel_PendingAssetLoad>() &&
+                NOT State->ChannelAlpha.Has<ck::FTag_VoiceChannel_NeedsSetup>();
+        }),
+        15.0,
+        TEXT("channel setup completes despite the failed resolve")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([State](UWorld* InServer) -> void
+        {
+            UCk_Utils_VoiceChannel_UE::Request_Join(State->ChannelAlpha,
+                FCk_Request_VoiceChannel_Join{State->Talker}, {});
+        })));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(10));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([this, State]() -> bool
+        {
+            TestTrue(TEXT("resolved attenuation is null after the failed resolve"),
+                UCk_Utils_VoiceChannel_UE::Get_ResolvedAttenuation(State->ChannelAlpha) == nullptr);
+            TestTrue(TEXT("resolved effect chain is null after the failed resolve"),
+                UCk_Utils_VoiceChannel_UE::Get_ResolvedSourceEffectChain(State->ChannelAlpha) == nullptr);
+
+            TestTrue(TEXT("the channel stays fully functional - membership works (no partial state)"),
+                UCk_Utils_VoiceChannel_UE::Get_IsMember(State->ChannelAlpha, State->Talker));
+
+            return true;
+        }),
+        TEXT("failed resolve: defaults + zero partial state")));
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([]() -> bool
+        {
+            FAutomationTestBase::bSuppressLogErrors = false;
+            FAutomationTestBase::bSuppressLogWarnings = false;
+            return true;
+        }),
+        TEXT("restore log suppression statics")));
+
+    return true;
+}
+
 #endif // WITH_EDITOR && WITH_DEV_AUTOMATION_TESTS
