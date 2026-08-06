@@ -13,7 +13,7 @@ class ACk_GameSettingsGym_PlayerController : ACk_Gym_Base_PlayerController
         DoRegisterDemoCollection();
         DoOpenSettingsScreen();
 
-        ck::Trace("GameSettingsGym: CodeBuilt screen pushed — Ck_GymGameSettings_OpenKeyBindingPage opens the keybinding page");
+        ck::Trace("GameSettingsGym: screen pushed (native base = plumbing only, renders unstyled; the game's WBP supplies the look) — Ck_GymGameSettings_OpenKeyBindingPage toggles the keybinding page");
     }
 
     private void DoRegisterDemoCollection()
