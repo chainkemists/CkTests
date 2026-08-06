@@ -59,6 +59,28 @@ public:
     CK_DEFINE_CONSTRUCTORS(FCk_LiveTuneTest_RequestParams, _Value);
 };
 
+// Registered with a CUSTOM Apply that opts in to ScrubPolicy::DuringScrub — the combination the old
+// ViaReplace/ViaRequest split could not express.
+USTRUCT(BlueprintType)
+struct CKTESTS_API FCk_LiveTuneTest_ScrubbableParams
+{
+    GENERATED_BODY()
+
+public:
+    CK_GENERATED_BODY(FCk_LiveTuneTest_ScrubbableParams);
+
+private:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+              meta = (AllowPrivateAccess = true))
+    int32 _Value = 0;
+
+public:
+    CK_PROPERTY(_Value);
+
+public:
+    CK_DEFINE_CONSTRUCTORS(FCk_LiveTuneTest_ScrubbableParams, _Value);
+};
+
 USTRUCT(BlueprintType)
 struct CKTESTS_API FCk_LiveTuneTest_SpecParamsA
 {
@@ -177,6 +199,10 @@ private:
               meta = (AllowPrivateAccess = true))
     FCk_Fragment_Probe_ParamsData _ProbeParams;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+              meta = (AllowPrivateAccess = true))
+    FCk_LiveTuneTest_ScrubbableParams _ScrubbableParams;
+
     // Deliberately never registered with FCk_LiveTuneHandlerRegistry — the fixture for Link's
     // unregistered-type refusal.
     UPROPERTY(EditAnywhere, BlueprintReadWrite,
@@ -194,6 +220,7 @@ public:
     CK_PROPERTY(_TimerParams);
     CK_PROPERTY(_HealthParams);
     CK_PROPERTY(_ProbeParams);
+    CK_PROPERTY(_ScrubbableParams);
     CK_PROPERTY(_UnregisteredParams);
     CK_PROPERTY(_NotAStruct);
 };
@@ -347,6 +374,18 @@ public:
               DisplayName = "[Ck][Tests][LiveTune] Get Via Request Count")
     static int32
     Get_ViaRequestCount();
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
+              DisplayName = "[Ck][Tests][LiveTune] Set Scrubbable Value")
+    static void
+    Set_ScrubbableValue(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        int32 InValue);
+
+    UFUNCTION(BlueprintPure, Category = "Ck|Tests|LiveTune",
+              DisplayName = "[Ck][Tests][LiveTune] Get Scrubbable Apply Count")
+    static int32
+    Get_ScrubbableApplyCount();
 };
 
 // --------------------------------------------------------------------------------------------------------------------

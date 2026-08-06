@@ -20,6 +20,7 @@ namespace ck_livetune_autotest
     {
         int32 _PostReplaceCount = 0;
         int32 _ViaRequestCount = 0;
+        int32 _ScrubbableApplyCount = 0;
     };
 
     auto
@@ -34,19 +35,33 @@ namespace ck_livetune_autotest
     {
         FRegistrar()
         {
-            FCk_LiveTuneHandlerRegistry::Register_ViaReplace<FCk_LiveTuneTest_ReplaceParams>({
-                .PostReplace = [](FCk_Handle&) -> void
+            // Default re-apply (Replace) — resolves to ScrubPolicy::DuringScrub.
+            FCk_LiveTuneHandlerRegistry::Register<FCk_LiveTuneTest_ReplaceParams>({
+                .PostApply = [](FCk_Handle&) -> void
                 {
                     ++Get_Counters()._PostReplaceCount;
                 },
             });
 
-            FCk_LiveTuneHandlerRegistry::Register_ViaRequest<FCk_LiveTuneTest_RequestParams>({
+            // Custom re-apply, policy left at Auto — resolves to ScrubPolicy::OnCommit.
+            FCk_LiveTuneHandlerRegistry::Register<FCk_LiveTuneTest_RequestParams>({
                 .Apply = [](FCk_Handle& InEntity, const FCk_LiveTuneTest_RequestParams& InFreshParams) -> void
                 {
                     InEntity.AddOrReplace<FCk_LiveTuneTest_RequestParams>(InFreshParams);
                     ++Get_Counters()._ViaRequestCount;
                 },
+            });
+
+            // Custom re-apply that OPTS IN to scrub. The axis that the old ViaReplace/ViaRequest split
+            // could not express: cost, not handler shape, is what decides whether a re-apply belongs on a
+            // drag — and a cheap custom Apply previews just as well as a fragment swap.
+            FCk_LiveTuneHandlerRegistry::Register<FCk_LiveTuneTest_ScrubbableParams>({
+                .Apply = [](FCk_Handle& InEntity, const FCk_LiveTuneTest_ScrubbableParams& InFreshParams) -> void
+                {
+                    InEntity.AddOrReplace<FCk_LiveTuneTest_ScrubbableParams>(InFreshParams);
+                    ++Get_Counters()._ScrubbableApplyCount;
+                },
+                .ScrubPolicy = ECk_LiveTune_ScrubPolicy::DuringScrub,
             });
 
             // Exists only so the Scope::Entity provenance refusal is testable: ReAdd is unreachable for a
@@ -344,6 +359,30 @@ auto
     -> int32
 {
     return ck_livetune_autotest::Get_Counters()._ViaRequestCount;
+}
+
+auto
+    UCk_LiveTuneTest_Utils::
+    Set_ScrubbableValue(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        int32 InValue)
+    -> void
+{
+    const auto AssetIsValid = ck::IsValid(InAsset);
+    CK_ENSURE_IF_NOT(AssetIsValid, TEXT("LiveTune test shim: invalid Tuning Asset"))
+    {}
+    if (NOT AssetIsValid)
+    { return; }
+
+    InAsset->_ScrubbableParams.Set_Value(InValue);
+}
+
+auto
+    UCk_LiveTuneTest_Utils::
+    Get_ScrubbableApplyCount()
+    -> int32
+{
+    return ck_livetune_autotest::Get_Counters()._ScrubbableApplyCount;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

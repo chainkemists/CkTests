@@ -56,8 +56,8 @@ bool FCkLiveTune_Registry_DispatchByType::RunTest(const FString& Parameters)
 {
     using namespace ck_tests_livetune_registry;
 
-    FCk_LiveTuneHandlerRegistry::Register_ViaReplace<FCk_LiveTuneTest_SpecParamsA>({});
-    FCk_LiveTuneHandlerRegistry::Register_ViaRequest<FCk_LiveTuneTest_SpecParamsB>({
+    FCk_LiveTuneHandlerRegistry::Register<FCk_LiveTuneTest_SpecParamsA>({});
+    FCk_LiveTuneHandlerRegistry::Register<FCk_LiveTuneTest_SpecParamsB>({
         .Apply = [](FCk_Handle& InEntity, const FCk_LiveTuneTest_SpecParamsB& InFreshParams) -> void
         {
             ++Get_SpecState()._BInvocations;
@@ -75,26 +75,30 @@ bool FCkLiveTune_Registry_DispatchByType::RunTest(const FString& Parameters)
     auto EntityB = ck::MakeHandle(FCk_Entity{Reg.create()}, Registry);
 
     const auto* HandlerA = FCk_LiveTuneHandlerRegistry::Find(FCk_LiveTuneTest_SpecParamsA::StaticStruct());
-    TestNotNull(TEXT("ViaReplace handler is found by its params type"), HandlerA);
+    TestNotNull(TEXT("default-Apply handler is found by its params type"), HandlerA);
     if (HandlerA == nullptr)
     { return false; }
 
-    TestTrue(TEXT("ViaReplace tier recorded"), HandlerA->Tier == ECk_LiveTune_ApplyTier::ViaReplace);
-    TestTrue(TEXT("ViaReplace synthesizes HasFragment"), static_cast<bool>(HandlerA->HasFragment));
+    TestTrue(TEXT("Direct kind recorded"), HandlerA->Kind == ECk_LiveTune_ApplyKind::Direct);
+    TestTrue(TEXT("the default Replace path resolves Auto to DuringScrub"),
+        HandlerA->ScrubPolicy == ECk_LiveTune_ScrubPolicy::DuringScrub);
+    TestTrue(TEXT("the default Replace path synthesizes HasFragment"), static_cast<bool>(HandlerA->HasFragment));
     TestTrue(TEXT("HasFragment true on an entity carrying the params"), HandlerA->HasFragment(EntityA));
     TestFalse(TEXT("HasFragment false on an entity without the params"), HandlerA->HasFragment(EntityB));
 
     HandlerA->Apply(EntityA, FInstancedStruct::Make(FCk_LiveTuneTest_SpecParamsA{42}));
-    TestEqual(TEXT("ViaReplace Apply replaced the fragment value"),
+    TestEqual(TEXT("the default Apply replaced the fragment value"),
         EntityA.Get<FCk_LiveTuneTest_SpecParamsA>().Get_Value(), 42);
 
     const auto* HandlerB = FCk_LiveTuneHandlerRegistry::Find(FCk_LiveTuneTest_SpecParamsB::StaticStruct());
-    TestNotNull(TEXT("ViaRequest handler is found by its params type"), HandlerB);
+    TestNotNull(TEXT("custom-Apply handler is found by its params type"), HandlerB);
     if (HandlerB == nullptr)
     { return false; }
 
-    TestTrue(TEXT("ViaRequest tier recorded"), HandlerB->Tier == ECk_LiveTune_ApplyTier::ViaRequest);
-    TestFalse(TEXT("ViaRequest does NOT synthesize HasFragment"), static_cast<bool>(HandlerB->HasFragment));
+    TestTrue(TEXT("Direct kind recorded for a custom Apply too"), HandlerB->Kind == ECk_LiveTune_ApplyKind::Direct);
+    TestTrue(TEXT("a custom Apply resolves Auto to OnCommit"),
+        HandlerB->ScrubPolicy == ECk_LiveTune_ScrubPolicy::OnCommit);
+    TestFalse(TEXT("a custom Apply does NOT synthesize HasFragment"), static_cast<bool>(HandlerB->HasFragment));
 
     const auto BInvocationsBefore = Get_SpecState()._BInvocations;
     HandlerB->Apply(EntityB, FInstancedStruct::Make(FCk_LiveTuneTest_SpecParamsB{7}));
