@@ -141,7 +141,13 @@ class UCk_AutoTest_PathNetworkFollower_FallsBackToNavigation : UCk_AutoTest_Base
 
         const auto AgentLocation = utils_transform::Get_EntityCurrentLocation(
             utils_transform::DoCastChecked(FCk_Handle(_Agent)));
-        const auto GoalDistance = (AgentLocation - Goal).Size();
+
+        // Planar, not 3D. Arrival is decided against the navmesh-PROJECTED final waypoint
+        // (CkCrowdAgent_Steering_Processor's final-stop branch) and the AutoTests navmesh sits
+        // at Z=10, so measuring in 3D against this authored Z=0 goal adds a constant ~10cm the
+        // agent never travelled. Against a zero-margin bound that inflation alone decides the
+        // verdict: a stop at 179.96cm planar reads as 180.24cm and fails a 180cm assert.
+        const auto GoalDistance = (AgentLocation - Goal).Size2D();
         Assert_True(GoalDistance <= ArrivalRadius,
             f"fallback must preserve the MoveTo arrival override; distance {GoalDistance}cm");
         Assert_True(GoalDistance > 100.0f,

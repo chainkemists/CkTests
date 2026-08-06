@@ -76,7 +76,32 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsRibbonWaypointWithinNavQueryExten
         const auto BoundaryY = HighestNavmeshY;
         _Start = FVector(-300.0, BoundaryY, 0.0);
         _Goal = FVector(300.0, BoundaryY, 0.0);
-        _OutsideCenterlinePoint = FVector(0.0, BoundaryY + CenterlineOutsideNavmeshCm, 0.0);
+
+        // The 50cm sweep above only BRACKETS the navmesh edge — its last on-mesh sample can sit
+        // anywhere up to a full step short of the true Recast boundary, and where it lands is a
+        // property of the host project's navmesh generation settings, not of this fixture. The
+        // sidewalk below is placed a fixed offset BEYOND the edge and the whole test rests on
+        // that offset landing in the 25-50cm projection band, so it has to be measured from the
+        // real edge. Off a grid-quantized proxy the sidewalk can come out on-navmesh instead
+        // (observed here: delta=2cm, tight=true) and the fixture disqualifies itself.
+        auto NavmeshEdgeY = BoundaryY;
+        for (float64 Probe = BoundaryY; Probe <= BoundaryY + 50.0; Probe += 2.0)
+        {
+            FVector Projected;
+            auto ProbeHandle = _Context;
+            const auto Projects = utils_nav::Try_ProjectOntoNavmesh(
+                ProbeHandle,
+                FVector(0.0, Probe, 0.0),
+                5.0f,
+                Projected,
+                300.0f);
+            if (!Projects ||
+                (Projected - FVector(0.0, Probe, 0.0)).Size2D() > 2.0f)
+            { break; }
+            NavmeshEdgeY = Probe;
+        }
+
+        _OutsideCenterlinePoint = FVector(0.0, NavmeshEdgeY + CenterlineOutsideNavmeshCm, 0.0);
 
         FVector TightProjection;
         auto TightHandle = _Context;
@@ -112,8 +137,8 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsRibbonWaypointWithinNavQueryExten
 
         _RibbonControls.Empty();
         _RibbonControls.Add(_Start);
-        _RibbonControls.Add(FVector(-200.0, BoundaryY + CenterlineOutsideNavmeshCm, 0.0));
-        _RibbonControls.Add(FVector(200.0, BoundaryY + CenterlineOutsideNavmeshCm, 0.0));
+        _RibbonControls.Add(FVector(-200.0, NavmeshEdgeY + CenterlineOutsideNavmeshCm, 0.0));
+        _RibbonControls.Add(FVector(200.0, NavmeshEdgeY + CenterlineOutsideNavmeshCm, 0.0));
         _RibbonControls.Add(_Goal);
 
         auto LocalHandle = _Context;

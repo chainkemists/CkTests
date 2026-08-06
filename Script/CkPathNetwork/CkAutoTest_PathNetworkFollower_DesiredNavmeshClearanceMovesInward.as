@@ -99,7 +99,7 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
             300.0f);
         Assert_True(
             InwardProjects &&
-                (ProjectedInward - FVector(0.0, _CenterlineY - 150.0, 0.0)).Size() <= 2.0f,
+                (ProjectedInward - FVector(0.0, _CenterlineY - 150.0, 0.0)).Size2D() <= 2.0f,
             "the ribbon must have navmesh room inward from the discovered boundary");
 
         FVector ProjectedOutside;
