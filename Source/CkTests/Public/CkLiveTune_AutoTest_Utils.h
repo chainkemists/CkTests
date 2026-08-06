@@ -2,7 +2,9 @@
 
 #include "CkCore/Macros/CkMacros.h"
 
+#include "CkAttribute/FloatAttribute/CkFloatAttribute_Fragment_Data.h"
 #include "CkEcs/Handle/CkHandle.h"
+#include "CkTimer/CkTimer_Fragment_Data.h"
 
 #include <Engine/DataAsset.h>
 #include <Kismet/BlueprintFunctionLibrary.h>
@@ -116,6 +118,26 @@ public:
     CK_DEFINE_CONSTRUCTORS(FCk_LiveTuneTest_SpecParamsUnregistered, _Value);
 };
 
+USTRUCT(BlueprintType)
+struct CKTESTS_API FCk_LiveTuneTest_EntityScopeParams
+{
+    GENERATED_BODY()
+
+public:
+    CK_GENERATED_BODY(FCk_LiveTuneTest_EntityScopeParams);
+
+private:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+              meta = (AllowPrivateAccess = true))
+    int32 _Value = 0;
+
+public:
+    CK_PROPERTY(_Value);
+
+public:
+    CK_DEFINE_CONSTRUCTORS(FCk_LiveTuneTest_EntityScopeParams, _Value);
+};
+
 // --------------------------------------------------------------------------------------------------------------------
 
 UCLASS(BlueprintType)
@@ -140,11 +162,26 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite,
               meta = (AllowPrivateAccess = true))
+    FCk_LiveTuneTest_EntityScopeParams _EntityScopeParams;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+              meta = (AllowPrivateAccess = true))
+    FCk_Fragment_Timer_ParamsData _TimerParams;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+              meta = (AllowPrivateAccess = true))
+    FCk_Fragment_FloatAttribute_ParamsData _HealthParams;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+              meta = (AllowPrivateAccess = true))
     float _NotAStruct = 0.0f;
 
 public:
     CK_PROPERTY(_ReplaceParams);
     CK_PROPERTY(_RequestParams);
+    CK_PROPERTY(_EntityScopeParams);
+    CK_PROPERTY(_TimerParams);
+    CK_PROPERTY(_HealthParams);
     CK_PROPERTY(_NotAStruct);
 };
 
@@ -164,6 +201,9 @@ public:
     static auto Get_ReplaceParamsMemberName() -> FName { return GET_MEMBER_NAME_CHECKED(UCk_LiveTuneTest_TuningAsset, _ReplaceParams); }
     static auto Get_RequestParamsMemberName() -> FName { return GET_MEMBER_NAME_CHECKED(UCk_LiveTuneTest_TuningAsset, _RequestParams); }
     static auto Get_NotAStructMemberName() -> FName { return GET_MEMBER_NAME_CHECKED(UCk_LiveTuneTest_TuningAsset, _NotAStruct); }
+    static auto Get_EntityScopeParamsMemberName() -> FName { return GET_MEMBER_NAME_CHECKED(UCk_LiveTuneTest_TuningAsset, _EntityScopeParams); }
+    static auto Get_TimerParamsMemberName() -> FName { return GET_MEMBER_NAME_CHECKED(UCk_LiveTuneTest_TuningAsset, _TimerParams); }
+    static auto Get_HealthParamsMemberName() -> FName { return GET_MEMBER_NAME_CHECKED(UCk_LiveTuneTest_TuningAsset, _HealthParams); }
 
 public:
     UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
@@ -186,6 +226,33 @@ public:
     Set_RequestValue(
         UCk_LiveTuneTest_TuningAsset* InAsset,
         int32 InValue);
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
+              DisplayName = "[Ck][Tests][LiveTune] Set Entity Scope Value")
+    static void
+    Set_EntityScopeValue(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        int32 InValue);
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
+              DisplayName = "[Ck][Tests][LiveTune] Set Timer Params")
+    static void
+    Set_TimerParams(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        const FCk_Fragment_Timer_ParamsData& InParams);
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
+              DisplayName = "[Ck][Tests][LiveTune] Set Health Params")
+    static void
+    Set_HealthParams(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        const FCk_Fragment_FloatAttribute_ParamsData& InParams);
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
+              DisplayName = "[Ck][Tests][LiveTune] Get Pending Rebuild Count")
+    static int32
+    Get_PendingRebuildCount(
+        UPARAM(ref) FCk_Handle& InAnyWorldEntity);
 
     UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
               DisplayName = "[Ck][Tests][LiveTune] Add Replace Params")

@@ -47,6 +47,16 @@ namespace ck_livetune_autotest
                     ++Get_Counters()._ViaRequestCount;
                 },
             });
+
+            // Exists only so the Scope::Entity provenance refusal is testable: ReAdd is unreachable for a
+            // refused entity, and no test drives a successful Entity-scope respawn through this type.
+            FCk_LiveTuneHandlerRegistry::Register_ViaRebuild<FCk_LiveTuneTest_EntityScopeParams>({
+                .Scope = ECk_LiveTune_RebuildScope::Entity,
+                .ReAdd = [](FCk_Handle& InOwner, const FCk_LiveTuneTest_EntityScopeParams&) -> FCk_Handle
+                {
+                    return InOwner;
+                },
+            });
         }
     };
 
@@ -116,6 +126,69 @@ auto
     { return; }
 
     InAsset->_RequestParams.Set_Value(InValue);
+}
+
+auto
+    UCk_LiveTuneTest_Utils::
+    Set_EntityScopeValue(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        int32 InValue)
+    -> void
+{
+    const auto AssetIsValid = ck::IsValid(InAsset);
+    CK_ENSURE_IF_NOT(AssetIsValid, TEXT("LiveTune test shim: invalid Tuning Asset"))
+    {}
+    if (NOT AssetIsValid)
+    { return; }
+
+    InAsset->_EntityScopeParams.Set_Value(InValue);
+}
+
+auto
+    UCk_LiveTuneTest_Utils::
+    Set_TimerParams(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        const FCk_Fragment_Timer_ParamsData& InParams)
+    -> void
+{
+    const auto AssetIsValid = ck::IsValid(InAsset);
+    CK_ENSURE_IF_NOT(AssetIsValid, TEXT("LiveTune test shim: invalid Tuning Asset"))
+    {}
+    if (NOT AssetIsValid)
+    { return; }
+
+    InAsset->_TimerParams = InParams;
+}
+
+auto
+    UCk_LiveTuneTest_Utils::
+    Set_HealthParams(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        const FCk_Fragment_FloatAttribute_ParamsData& InParams)
+    -> void
+{
+    const auto AssetIsValid = ck::IsValid(InAsset);
+    CK_ENSURE_IF_NOT(AssetIsValid, TEXT("LiveTune test shim: invalid Tuning Asset"))
+    {}
+    if (NOT AssetIsValid)
+    { return; }
+
+    InAsset->_HealthParams = InParams;
+}
+
+auto
+    UCk_LiveTuneTest_Utils::
+    Get_PendingRebuildCount(
+        FCk_Handle& InAnyWorldEntity)
+    -> int32
+{
+#if WITH_EDITOR
+    if (auto* Subsystem = ck_livetune_autotest::Get_Subsystem(InAnyWorldEntity);
+        ck::IsValid(Subsystem))
+    { return Subsystem->Test_Get_PendingRebuildCount(); }
+#endif
+
+    return 0;
 }
 
 auto
