@@ -121,7 +121,7 @@ bool FCkAttributeNet_Float_ModifierAdd_Replicates::RunTest(const FString& Parame
             }
 
             const auto ModifierTag = FGameplayTag::RequestGameplayTag(FName{ModifierAdd_SubjectModifierTagName});
-            const auto ModifierParams = FCk_Fragment_FloatAttributeModifier_ParamsData{
+            const auto ModifierParams = FCk_FloatAttributeModifier_Spec{
                 ModifierAdd_SubjectModifierDelta, ECk_MinMaxCurrent::Current};
 
             UCk_Utils_FloatAttributeModifier_UE::Add_Revocable(

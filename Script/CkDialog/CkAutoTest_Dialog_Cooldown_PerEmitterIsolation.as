@@ -38,10 +38,10 @@ class UCk_AutoTest_Dialog_Cooldown_PerEmitterIsolation : UCk_AutoTest_Base
         _Line = Registry.Request_RegisterLine(LineData, FGameplayTagContainer());
         Track_ForCleanup(FCk_Handle(_Line));
 
-        _Emitter1 = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
+        _Emitter1 = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_DialogEmitter_Spec(FGameplayTagContainer()));
 
         auto Child2 = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        _Emitter2 = UCk_Utils_DialogEmitter_UE::Add(Child2, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
+        _Emitter2 = UCk_Utils_DialogEmitter_UE::Add(Child2, FCk_DialogEmitter_Spec(FGameplayTagContainer()));
 
         WaitUntil(n"Check_LineRegistered", n"OnSettled");
     }

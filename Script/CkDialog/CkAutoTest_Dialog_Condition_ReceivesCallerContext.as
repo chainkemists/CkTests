@@ -47,11 +47,11 @@ class UCk_AutoTest_Dialog_Condition_ReceivesCallerContext : UCk_AutoTest_Base
         // Emitter A: carries the required tag.
         auto TaggedEmitterTags = FGameplayTagContainer();
         TaggedEmitterTags.AddTag(RequiredTag);
-        _EmitterWithTag = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(TaggedEmitterTags));
+        _EmitterWithTag = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_DialogEmitter_Spec(TaggedEmitterTags));
 
         // Emitter B: a separate child entity, no tags.
         auto ChildB = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        _EmitterNoTag = UCk_Utils_DialogEmitter_UE::Add(ChildB, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
+        _EmitterNoTag = UCk_Utils_DialogEmitter_UE::Add(ChildB, FCk_DialogEmitter_Spec(FGameplayTagContainer()));
 
         WaitUntil(n"Check_LineRegistered", n"OnSettled");
     }

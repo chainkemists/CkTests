@@ -80,7 +80,7 @@ class ACk_VoxelNavGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         }
         VolumeEntity.Request_OverrideToSelf();
 
-        auto Params = FCk_Fragment_VoxelNavVolume_ParamsData(FBox(k_VolumeMin, k_VolumeMax), k_CellSizeUu);
+        auto Params = FCk_VoxelNavVolume_Spec(FBox(k_VolumeMin, k_VolumeMax), k_CellSizeUu);
         Params.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
         Params.Set_ClearanceUu(k_AgentRadius);
         _Volume = utils_voxel_nav_volume::Add(VolumeEntity, Params);
@@ -195,7 +195,7 @@ class ACk_VoxelNavGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
             utils_entity_lifetime::Request_DestroyEntity(AgentEntity);
             return utils_crowd_agent::Get_InvalidHandle();
         }
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(k_AgentRadius, k_AgentHeight);
+        auto Params = FCk_CrowdAgent_Spec(k_AgentRadius, k_AgentHeight);
         Params.Set_AgentMode(ECk_CrowdAgent_Mode::Flying);
         auto Agent = utils_crowd_agent::Add(Transform, Params);
         if (ck::Is_NOT_Valid(Agent))
@@ -205,9 +205,9 @@ class ACk_VoxelNavGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         }
 
         auto VelocityHandle = utils_velocity::Add(AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         auto AccelerationHandle = utils_acceleration::Add(AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         if (ck::Is_NOT_Valid(VelocityHandle) || ck::Is_NOT_Valid(AccelerationHandle))
         {
             utils_entity_lifetime::Request_DestroyEntity(AgentEntity);
@@ -215,7 +215,7 @@ class ACk_VoxelNavGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         }
         utils_euler_integrator::Request_Start(AgentEntity);
 
-        auto Path = utils_voxel_nav_path::Add(FCk_Handle(Agent), FCk_Fragment_VoxelNavPath_ParamsData(k_AgentRadius));
+        auto Path = utils_voxel_nav_path::Add(FCk_Handle(Agent), FCk_VoxelNavPath_Spec(k_AgentRadius));
         if (ck::Is_NOT_Valid(Path))
         {
             utils_entity_lifetime::Request_DestroyEntity(AgentEntity);

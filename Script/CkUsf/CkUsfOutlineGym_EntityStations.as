@@ -49,7 +49,7 @@ class UCk_EntityScript_UsfOutlineGym_Ism : UCk_GenericEntityScript_UE
 
             auto Entity = InHandle.Request_CreateEntity();
             auto Transform = utils_transform::Add(Entity, Xf, ECk_Replication::DoesNotReplicate);
-            utils_ism_proxy::Add(Transform, FCk_Fragment_IsmProxy_ParamsData(RendererData));
+            utils_ism_proxy::Add(Transform, FCk_IsmProxy_Spec(RendererData));
 
             if (i == 1)
             { UCk_Utils_Usf_Outline_UE::Set_OutlineClaim(Entity, Entity,
@@ -99,7 +99,7 @@ class UCk_EntityScript_UsfOutlineGym_Iskm : UCk_GenericEntityScript_UE
 
             auto Entity = InHandle.Request_CreateEntity();
             auto Transform = utils_transform::Add(Entity, Xf, ECk_Replication::DoesNotReplicate);
-            utils_iskm_proxy::Add(Transform, FCk_Fragment_IskmProxy_ParamsData(Renderer, Xf));
+            utils_iskm_proxy::Add(Transform, FCk_IskmProxy_Spec(Renderer, Xf));
 
             if (i == 1)
             { UCk_Utils_Usf_Outline_UE::Set_OutlineClaim(Entity, Entity,
@@ -188,7 +188,7 @@ class UCk_EntityScript_UsfOutlineGym_Cascade : UCk_GenericEntityScript_UE
 
             auto Entity = Parent.Request_CreateEntity();
             auto Transform = utils_transform::Add(Entity, Xf, ECk_Replication::DoesNotReplicate);
-            utils_ism_proxy::Add(Transform, FCk_Fragment_IsmProxy_ParamsData(RendererData));
+            utils_ism_proxy::Add(Transform, FCk_IsmProxy_Spec(RendererData));
         }
 
         // ONE request on the parent outlines every dependent's renderable.
@@ -254,7 +254,7 @@ class UCk_EntityScript_UsfOutlineGym_Vat : UCk_GenericEntityScript_UE
             auto Entity = InHandle.Request_CreateEntity();
             auto Transform = utils_transform::Add(Entity, Xf, ECk_Replication::DoesNotReplicate);
 
-            auto Params = FCk_Fragment_VatProxy_ParamsData(Collection);
+            auto Params = FCk_VatProxy_Spec(Collection);
             Params.Set_InitialClipName(ClipName);
             utils_vat_proxy::Add(Transform, Params);
 

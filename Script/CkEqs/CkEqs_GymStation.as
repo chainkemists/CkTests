@@ -155,7 +155,7 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
         Blocker.Request_OverrideToSelf();
         auto BlockerXform = utils_transform::Add(Blocker, BlockerTransform, ECk_Replication::DoesNotReplicate);
 
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(BlockerProbeName);
+        auto ProbeParams = FCk_Probe_Spec(BlockerProbeName);
         ProbeParams.Set_MotionType(ECk_MotionType::Static);
         ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Silent);
         auto DebugInfo = FCk_Probe_DebugInfo();
@@ -185,7 +185,7 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
             Marker.Request_OverrideToSelf();
             auto MarkerXform = utils_transform::Add(Marker, MarkerTransform, ECk_Replication::DoesNotReplicate);
 
-            auto ProbeParams = FCk_Fragment_Probe_ParamsData(MarkerProbeName);
+            auto ProbeParams = FCk_Probe_Spec(MarkerProbeName);
             ProbeParams.Set_MotionType(ECk_MotionType::Static);
             ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Silent);
             auto DebugInfo = FCk_Probe_DebugInfo();

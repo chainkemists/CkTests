@@ -23,13 +23,13 @@ class UCk_AutoTest_Homing_Add_AttachesFeature : UCk_AutoTest_Base
         Assert_True(!utils_homing::Has(Projectile),
             "Entity should not have the Homing feature before Add");
 
-        auto ProjectileParams = FCk_Fragment_Projectile_ParamsData(
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector(600.0, 0.0, 0.0)),
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
-            FCk_Fragment_AutoReorient_ParamsData(ECk_AutoReorient_Policy::NoAutoReorient));
+        auto ProjectileParams = FCk_Projectile_Spec(
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector(600.0, 0.0, 0.0)),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_AutoReorient_Spec(ECk_AutoReorient_Policy::NoAutoReorient));
         utils_projectile::Add(Projectile, ProjectileParams, ECk_Replication::DoesNotReplicate);
 
-        auto HomingParams = FCk_Fragment_Homing_ParamsData(FCk_Homing_GuidanceSettings(2000.0));
+        auto HomingParams = FCk_Homing_Spec(FCk_Homing_GuidanceSettings(2000.0));
         auto Homing = utils_homing::Add(Projectile, HomingParams);
 
         Assert_True(utils_homing::Has(Projectile),

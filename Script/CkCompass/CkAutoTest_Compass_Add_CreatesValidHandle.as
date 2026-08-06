@@ -31,7 +31,7 @@ class UCk_AutoTest_Compass_Add_CreatesValidHandle : UCk_AutoTest_Base
         utils_transform::Add(ManualHost, FTransform(FRotator::ZeroRotator, FVector(0.0, 56000.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
 
-        auto ManualParams = FCk_Fragment_Compass_ParamsData();
+        auto ManualParams = FCk_Compass_Spec();
         ManualParams.Set_HeadingSource(ECk_Compass_HeadingSource::Manual);
         _ManualCompass = utils_compass::Add(ManualHost, ManualParams);
 
@@ -49,7 +49,7 @@ class UCk_AutoTest_Compass_Add_CreatesValidHandle : UCk_AutoTest_Base
             FTransform(FRotator(0.0, 90.0, 0.0), FVector(0.0, 56100.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
 
-        auto TransformParams = FCk_Fragment_Compass_ParamsData();
+        auto TransformParams = FCk_Compass_Spec();
         TransformParams.Set_HeadingSource(ECk_Compass_HeadingSource::EntityTransform);
         _TransformCompass = utils_compass::Add(RotatedHost, TransformParams);
 

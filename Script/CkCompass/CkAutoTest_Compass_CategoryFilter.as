@@ -43,7 +43,7 @@ class UCk_AutoTest_Compass_CategoryFilter : UCk_AutoTest_Base
         auto QuestOnly = FGameplayTagContainer();
         QuestOnly.AddTag(QuestTag);
 
-        auto Params = FCk_Fragment_Compass_ParamsData();
+        auto Params = FCk_Compass_Spec();
         Params.Set_HeadingSource(ECk_Compass_HeadingSource::Manual);
         Params.Set_CategoryFilter(FGameplayTagQuery::MakeQuery_MatchAnyTags(QuestOnly));
         _Compass = utils_compass::Add(Observer, Params);
@@ -61,7 +61,7 @@ class UCk_AutoTest_Compass_CategoryFilter : UCk_AutoTest_Base
         Owner.Request_OverrideToSelf();
         utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, _Base + InOffset),
             ECk_Replication::DoesNotReplicate);
-        return utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(InCategory));
+        return utils_poi::Add(Owner, FCk_Poi_Spec(InCategory));
     }
 
     // Waits on THIS test's own POIs reaching the compass, never on a bare entry

@@ -28,12 +28,12 @@ class UCk_AutoTest_Attribute_FloatRefill : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto RefillParams = FCk_Fragment_FloatAttributeRefill_ParamsData(
+        auto RefillParams = FCk_FloatAttributeRefill_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.AutoTest_Energy.Refill"),
             200.0f);
         RefillParams.Set_StartingState(ECk_Attribute_RefillState::Running);
 
-        auto EnergyParams = FCk_Fragment_FloatAttribute_ParamsData(
+        auto EnergyParams = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.AutoTest_Energy"),
             100.0f);
         EnergyParams.Set_MinMax(ECk_MinMax::MinMax);

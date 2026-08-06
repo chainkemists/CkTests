@@ -45,7 +45,7 @@ class UCk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff : UCk_AutoTest_
         _TestEntity = InHandle;
         auto SyncName = utils_gameplay_tag::ResolveGameplayTag(n"RenderTarget.AutoTest.PixelInject");
 
-        auto Params = FCk_Fragment_RenderTarget_ParamsData(SyncName);
+        auto Params = FCk_RenderTarget_Spec(SyncName);
         Params.Set_Size(FIntPoint(Get_ImageSide(), Get_ImageSide()));
         Params.Set_Replication(ECk_Replication::DoesNotReplicate);
 

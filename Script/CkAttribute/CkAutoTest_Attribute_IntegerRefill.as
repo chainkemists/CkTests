@@ -22,12 +22,12 @@ class UCk_AutoTest_Attribute_IntegerRefill : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto RefillParams = FCk_Fragment_IntegerAttributeRefill_ParamsData(
+        auto RefillParams = FCk_IntegerAttributeRefill_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.AutoTest_Energy.Refill"),
             200.0f);
         RefillParams.Set_StartingState(ECk_Attribute_RefillState::Running);
 
-        auto EnergyParams = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto EnergyParams = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.AutoTest_Energy"),
             100);
         EnergyParams.Set_MinMax(ECk_MinMax::MinMax);

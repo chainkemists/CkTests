@@ -37,7 +37,7 @@ class UCk_AutoTest_Attribute_DeferredWritesSettleSameFrame : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto IntParams = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto IntParams = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.AutoTest_PumpSettle"),
             5);
         IntParams.Set_MinMax(ECk_MinMax::MinMax);
@@ -45,7 +45,7 @@ class UCk_AutoTest_Attribute_DeferredWritesSettleSameFrame : UCk_AutoTest_Base
         IntParams.Set_MaxValue(20);
         _IntAttribute = utils_integer_attribute::Add(LocalHandle, IntParams);
 
-        auto FloatParams = FCk_Fragment_FloatAttribute_ParamsData(
+        auto FloatParams = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.AutoTest_PumpSettle"),
             5.0f);
         FloatParams.Set_MinMax(ECk_MinMax::MinMax);

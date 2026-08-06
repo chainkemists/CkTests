@@ -49,7 +49,7 @@ class UCk_EntityScript_DialogGym_Chains : UCk_GenericEntityScript_UE
 			Registry.Request_RegisterLine(LineData, FGameplayTagContainer());
 		}
 
-		_Emitter = UCk_Utils_DialogEmitter_UE::Add(InHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
+		_Emitter = UCk_Utils_DialogEmitter_UE::Add(InHandle, FCk_DialogEmitter_Spec(FGameplayTagContainer()));
 		_Emitter.BindTo_OnQueryCompleted(FCk_Delegate_DialogEmitter_OnQueryCompleted(this, n"OnResult"));
 
 		// Restart the chain from A every 4s.

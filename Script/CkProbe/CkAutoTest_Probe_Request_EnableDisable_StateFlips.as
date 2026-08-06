@@ -28,7 +28,7 @@ class UCk_AutoTest_Probe_Request_EnableDisable_StateFlips : UCk_AutoTest_Base
         auto ParentEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto ParentTransform = utils_transform::Add(ParentEntity, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Probe.EnableDisable.Roundtrip"));
         _Probe = utils_probe::Add_Box(ParentTransform, FVector(30.0f, 30.0f, 30.0f), ProbeParams, FCk_Probe_DebugInfo());
 

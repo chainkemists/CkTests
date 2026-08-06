@@ -19,7 +19,7 @@ class UCk_AutoTest_EntityCollection_RequestRemoveSingleEntity : UCk_AutoTest_Bas
 
         _Collection = utils_entity_collection::Add(
             LocalHandle,
-            FCk_Fragment_EntityCollection_ParamsData(CollectionTag),
+            FCk_EntityCollection_Spec(CollectionTag),
             ECk_Replication::DoesNotReplicate);
         _Member = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 

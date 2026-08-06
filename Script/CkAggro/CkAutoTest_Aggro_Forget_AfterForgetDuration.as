@@ -23,10 +23,10 @@ class UCk_AutoTest_Aggro_Forget_AfterForgetDuration : UCk_AutoTest_Base
         DefaultTargetThreat.Set_InitialThreat(10.0);
         auto DefaultTargetForget = FCk_AggroTarget_ForgetParams();
         DefaultTargetForget.Set_ForgetDuration(FCk_Time(0.5));
-        auto DefaultTargetParams = FCk_Fragment_AggroTarget_ParamsData();
+        auto DefaultTargetParams = FCk_AggroTarget_Spec();
         DefaultTargetParams.Set_ThreatParams(DefaultTargetThreat);
         DefaultTargetParams.Set_ForgetParams(DefaultTargetForget);
-        auto OwnerParams = FCk_Fragment_Aggro_ParamsData();
+        auto OwnerParams = FCk_Aggro_Spec();
         OwnerParams.Set_DefaultTargetParams(DefaultTargetParams);
         _Aggro = utils_aggro::Add(Owner, OwnerParams);
 

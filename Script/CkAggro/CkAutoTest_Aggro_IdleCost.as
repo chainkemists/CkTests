@@ -19,7 +19,7 @@ class UCk_AutoTest_Aggro_IdleCost : UCk_AutoTest_Base
 
         auto EvalParams = FCk_Aggro_EvaluationParams();
         EvalParams.Set_EvaluationInterval(FCk_Time(0.1)).Set_EvaluationJitter(FCk_Time(0.0));
-        auto OwnerParams = FCk_Fragment_Aggro_ParamsData();
+        auto OwnerParams = FCk_Aggro_Spec();
         OwnerParams.Set_EvaluationParams(EvalParams);
 
         for (int i = 0; i < 40; i++)

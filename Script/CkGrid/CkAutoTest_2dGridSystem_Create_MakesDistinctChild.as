@@ -24,7 +24,7 @@ class UCk_AutoTest_2dGridSystem_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Fragment_2dGridSystem_ParamsData(
+        auto Params = FCk_2dGridSystem_Spec(
             FIntPoint(4, 3), FVector2D(100.0f, 100.0f));
         Params.Set_DefaultCellState(ECk_EnableDisable::Enable);
 

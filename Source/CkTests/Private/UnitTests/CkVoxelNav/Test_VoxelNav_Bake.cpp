@@ -77,17 +77,17 @@ namespace ck_test_voxelnav_bake
         return FBox{VolumeCenter - VolumeHalfExtents, VolumeCenter + VolumeHalfExtents};
     }
 
-    static auto Make_StaticBoxParams() -> FCk_Fragment_JoltBody_ParamsData
+    static auto Make_StaticBoxParams() -> FCk_JoltBody_Spec
     {
-        auto Params = FCk_Fragment_JoltBody_ParamsData{ECk_JoltBody_ShapeSource::ExplicitShape};
+        auto Params = FCk_JoltBody_Spec{ECk_JoltBody_ShapeSource::ExplicitShape};
         Params.Set_ShapeDimensions(FCk_Jolt_ShapeDimensions{ECk_Jolt_ShapeType::Box});
         Params.Set_MotionType(ECk_MotionType::Static);
         return Params;
     }
 
-    static auto Make_VolumeParams() -> FCk_Fragment_VoxelNavVolume_ParamsData
+    static auto Make_VolumeParams() -> FCk_VoxelNavVolume_Spec
     {
-        auto Params = FCk_Fragment_VoxelNavVolume_ParamsData{Get_VolumeBounds(), FinestCellSizeUu};
+        auto Params = FCk_VoxelNavVolume_Spec{Get_VolumeBounds(), FinestCellSizeUu};
 
         // The build must start from OUR request, so its completion delegate reports the bake this test is
         // waiting on rather than one the setup processor already armed.

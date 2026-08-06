@@ -31,7 +31,7 @@ class UCk_AutoTest_IskmRenderer_RagdollPoseSource : UCk_AutoTest_Base
         auto TransformHandle = utils_transform::Add(LocalHandle, FTransform::Identity);
 
         auto Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
-        auto Params = FCk_Fragment_IskmProxy_ParamsData(Renderer, FTransform::Identity);
+        auto Params = FCk_IskmProxy_Spec(Renderer, FTransform::Identity);
         _Proxy = utils_iskm_proxy::Add(TransformHandle, Params);
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));

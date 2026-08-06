@@ -23,7 +23,7 @@ class UCk_AutoTest_Attribute_ByteModifierAdd : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_ByteAttribute_ParamsData(
+        auto Params = FCk_ByteAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Armor"),
             100);
         Params.Set_MinMax(ECk_MinMax::MinMax);
@@ -38,7 +38,7 @@ class UCk_AutoTest_Attribute_ByteModifierAdd : UCk_AutoTest_Base
             ECk_MinMaxCurrent::Current,
             FCk_Delegate_ByteAttribute_OnValueChanged(this, n"OnValueChanged"));
 
-        auto ModParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto ModParams = FCk_ByteAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(25);
         utils_byte_attribute_modifier::Add_Revocable(
             _Armor,

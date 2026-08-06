@@ -37,17 +37,17 @@ class UCk_AutoTest_Grid_RequireConnectedFootprint : UCk_AutoTest_Base
         auto GridOwnerT = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto GP = FCk_Fragment_2dGridSystem_ParamsData(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
+        auto GP = FCk_2dGridSystem_Spec(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
         GP.Set_DefaultCellState(ECk_EnableDisable::Enable);
         _Grid = utils_2d_grid_system::Add(GridOwnerT, GP);
 
         // 3x1 object: anchored at (5,5) -> cells (5,5),(6,5),(7,5).
         _Object = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        utils_2d_grid_object::Add(_Object, FCk_Fragment_2dGridObject_ParamsData(FIntPoint(3, 1)));
+        utils_2d_grid_object::Add(_Object, FCk_2dGridObject_Spec(FIntPoint(3, 1)));
 
         // Blocker disables ONLY the middle cell (6,5) of the footprint.
         _BlockerEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto BP = FCk_Fragment_2dGridBlocker_ParamsData(_Grid, FIntPoint(6, 5), FIntPoint(6, 5));
+        auto BP = FCk_2dGridBlocker_Spec(_Grid, FIntPoint(6, 5), FIntPoint(6, 5));
         utils_2d_grid_blocker::Add(_BlockerEntity, BP);
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));

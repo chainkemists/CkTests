@@ -43,7 +43,7 @@ class UCk_AutoTest_Goap_Planner_OnPlanChangedSignal : UCk_AutoTest_Base
 
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
@@ -57,7 +57,7 @@ class UCk_AutoTest_Goap_Planner_OnPlanChangedSignal : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
@@ -66,20 +66,20 @@ class UCk_AutoTest_Goap_Planner_OnPlanChangedSignal : UCk_AutoTest_Base
 
         // PR-B.1b Stage 5: Mid is registered directly under the Planner. The
         // legacy "implicit root" Root_GoalIsEffects is no longer needed.
-        auto MidParams = FCk_Fragment_Goap_ActionParamsData(
+        auto MidParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         _MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(_MidAction), "Mid AddAction should succeed");
 
         // Promote Mid so LeafB becomes its tree child.
-        auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto MidPlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         auto MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAction, MidPlannerParams);
         Assert_True(ck::IsValid(MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
 
         // LeafB makes Mid composite so UpdateActivation extends the chain
         // through Mid.
-        auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
+        auto LeafBParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
         auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
         Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");

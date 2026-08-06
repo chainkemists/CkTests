@@ -75,7 +75,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_GenericEntityScript_UE
 
 	void Request_SetupAttributes(FCk_Handle InHandle)
 	{
-		auto TestParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto TestParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Signal"), 100.0f);
 		TestParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(255.0f);
 		TestAttribute = utils_float_attribute::Add(InHandle, TestParams);

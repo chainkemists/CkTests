@@ -54,7 +54,7 @@ class UCk_EntityScript_ProjectileGym_LagCompCompensatedShot_Station : UCk_Generi
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.LagComp.Body"),
             UCk_Utils_Shapes_UE::Make_Sphere(FCk_ShapeSphere_Dimensions(60.0))));
 
-        _History = UCk_Utils_RewindHistory_UE::Add(Target, FCk_Fragment_RewindHistory_ParamsData(HitShapes));
+        _History = UCk_Utils_RewindHistory_UE::Add(Target, FCk_RewindHistory_Spec(HitShapes));
 
         auto CycleParams = FCk_Timer_Spec(FCk_Time(3.0));
         CycleParams.Set_StartingState(ECk_Timer_State::Running)
@@ -106,7 +106,7 @@ class UCk_EntityScript_ProjectileGym_LagCompCompensatedShot_Station : UCk_Generi
         // Very high terminal velocity = near-dragless, near-straight flight over this short
         // range, so the "laggy" aim at the past pose stays effectively exact (sag < 5cm)
         auto TrajectoryParams = FCk_Ballistic_TrajectoryParams(FVector(0.0, 0.0, -100000.0));
-        auto Motion = UCk_Utils_BallisticMotion_UE::Add(Projectile, FCk_Fragment_BallisticMotion_ParamsData(TrajectoryParams));
+        auto Motion = UCk_Utils_BallisticMotion_UE::Add(Projectile, FCk_BallisticMotion_Spec(TrajectoryParams));
 
         Motion.BindTo_OnRewindHit(FCk_Delegate_LagCompProjectile_OnRewindHit(this, n"OnRewindHit"));
 

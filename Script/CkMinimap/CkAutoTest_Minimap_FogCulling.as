@@ -39,7 +39,7 @@ class UCk_AutoTest_Minimap_FogCulling : UCk_AutoTest_Base
 
         auto MapEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         MapEntity.Request_OverrideToSelf();
-        auto FogParams = FCk_Fragment_FogOfWar_ParamsData(FCk_Minimap_WorldBounds(
+        auto FogParams = FCk_FogOfWar_Spec(FCk_Minimap_WorldBounds(
             FVector2D(0.0, 54300.0), FVector2D(2000.0, 2000.0)));
         FogParams.Set_RevealRadius(300.0);
         _Fog = utils_fog_of_war::Add(MapEntity, FogParams);
@@ -49,14 +49,14 @@ class UCk_AutoTest_Minimap_FogCulling : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        _Minimap = utils_minimap::Add(Observer, FCk_Fragment_Minimap_ParamsData(5000.0));
+        _Minimap = utils_minimap::Add(Observer, FCk_Minimap_Spec(5000.0));
         _Minimap.Request_SetFogOfWar(FCk_Request_Minimap_SetFogOfWar(_Fog));
 
         auto PoiOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         PoiOwner.Request_OverrideToSelf();
         utils_transform::Add(PoiOwner, FTransform(FRotator::ZeroRotator, _PoiPos),
             ECk_Replication::DoesNotReplicate);
-        _Poi = utils_poi::Add(PoiOwner, FCk_Fragment_Poi_ParamsData(
+        _Poi = utils_poi::Add(PoiOwner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.MinimapFogCull")));
 
         Add_Step_WaitUntil( "the fog grid composes",                       n"Check_FogComposed");

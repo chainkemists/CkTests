@@ -19,7 +19,7 @@ class UCk_AutoTest_Aggro_Taunt_SetActiveTarget : UCk_AutoTest_Base
 
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        _Aggro = utils_aggro::Add(Owner, FCk_Fragment_Aggro_ParamsData());
+        _Aggro = utils_aggro::Add(Owner, FCk_Aggro_Spec());
 
         auto TrackedA = utils_entity_lifetime::Request_CreateEntity(InHandle);
         _TrackedB      = utils_entity_lifetime::Request_CreateEntity(InHandle);

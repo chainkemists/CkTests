@@ -31,7 +31,7 @@ class UCk_AutoTest_Compass_WrapAround : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Compass_ParamsData(360.0);
+        auto Params = FCk_Compass_Spec(360.0);
         Params.Set_HeadingSource(ECk_Compass_HeadingSource::Manual);
         _Compass = utils_compass::Add(Observer, Params);
         _Compass.Request_SetManualHeading(350.0);
@@ -42,7 +42,7 @@ class UCk_AutoTest_Compass_WrapAround : UCk_AutoTest_Base
         utils_transform::Add(Owner,
             FTransform(FRotator::ZeroRotator, _Base + FVector(984.8, 173.6, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _Poi = utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
+        _Poi = utils_poi::Add(Owner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.TestWrap")));
 
         WaitUntil(n"Check_Projected", n"OnSettled_Projection");

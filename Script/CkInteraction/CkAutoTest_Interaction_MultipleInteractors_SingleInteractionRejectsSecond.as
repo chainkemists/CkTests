@@ -37,17 +37,17 @@ class UCk_AutoTest_Interaction_MultipleInteractors_SingleInteractionRejectsSecon
         auto LocalHandle = InHandle;
         auto Channel = interaction_gym_helpers::DefaultChannel();
 
-        auto SourceAParams = FCk_Fragment_InteractSource_ParamsData();
+        auto SourceAParams = FCk_InteractSource_Spec();
         SourceAParams._InteractionChannel = Channel;
         _SourceA = utils_interact_source::Add(LocalHandle, SourceAParams);
 
         // Second source entity.
         _SourceBEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto SourceBParams = FCk_Fragment_InteractSource_ParamsData();
+        auto SourceBParams = FCk_InteractSource_Spec();
         SourceBParams._InteractionChannel = Channel;
         utils_interact_source::Add(_SourceBEntity, SourceBParams);
 
-        auto TargetParams = FCk_Fragment_InteractTarget_ParamsData(Channel);
+        auto TargetParams = FCk_InteractTarget_Spec(Channel);
         TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::ManuallyCompleted);
         TargetParams.Set_ConcurrentInteractionsPolicy(
             ECk_InteractionTarget_ConcurrentInteractionsPolicy::SingleInteraction);

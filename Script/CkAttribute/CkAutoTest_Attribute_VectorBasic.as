@@ -25,7 +25,7 @@ class UCk_AutoTest_Attribute_VectorBasic : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_VectorAttribute_ParamsData(
+        auto Params = FCk_VectorAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"VectorAttribute.AutoTest_PerComponent"),
             FVector(10.0f, 20.0f, 30.0f));
 

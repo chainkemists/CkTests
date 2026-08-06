@@ -20,7 +20,7 @@ class UCk_AutoTest_Substep_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Substep_ParamsData(FCk_Time(0.05f));
+        auto Params = FCk_Substep_Spec(FCk_Time(0.05f));
 
         auto Child = utils_substep::Create(Owner, Params);
         auto ChildEntity = FCk_Handle(Child);

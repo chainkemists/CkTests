@@ -35,7 +35,7 @@ class UCk_AutoTest_Poi_Add_CreatesValidHandle : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
 
         _Category = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Quest");
-        _Poi = utils_poi::Add(_Owner, FCk_Fragment_Poi_ParamsData(_Category));
+        _Poi = utils_poi::Add(_Owner, FCk_Poi_Spec(_Category));
 
         Assert_True(ck::IsValid(_Poi),
             "utils_poi::Add should return a valid FCk_Handle_Poi");

@@ -21,7 +21,7 @@ class UCk_AutoTest_ShapeCylinder_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto Dimensions = FCk_ShapeCylinder_Dimensions(120.0f, 30.0f);
-        auto Params = FCk_Fragment_ShapeCylinder_ParamsData(Dimensions);
+        auto Params = FCk_ShapeCylinder_Spec(Dimensions);
 
         auto Child = utils_shape_cylinder::Create(Owner, Params);
         auto ChildEntity = FCk_Handle(Child);

@@ -67,7 +67,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         // right station's WS.
         auto WsName = Get_WsNameTagForMode();
         _WS = utils_goap_world_state::Create(InHandle, WsName,
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.AutoReplan.Goal"),
             false);
@@ -81,7 +81,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.AutoReplan.Goal"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             Get_PlannerTagForMode());
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
@@ -89,13 +89,13 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_FlipOp));
+            FCk_Goap_Action_Spec(UCk_GoapGym_AutoReplan_FlipOp));
 
         // OnCostDirty station gets a second operator to demonstrate cost-swap.
         if (Mode == 2)
         {
             utils_goap_planner::AddAction(_Planner,
-                FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_AutoReplan_AltOp));
+                FCk_Goap_Action_Spec(UCk_GoapGym_AutoReplan_AltOp));
         }
 
         if (Mode == 1)

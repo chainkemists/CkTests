@@ -44,7 +44,7 @@ class UCk_AutoTest_Goap_Planner_FallbackLosesWhenChainViable : UCk_AutoTest_Base
 
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackVsChain.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackVsChain.WS.MidStep"),
             false);
@@ -57,7 +57,7 @@ class UCk_AutoTest_Goap_Planner_FallbackLosesWhenChainViable : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackVsChain.WS.Goal"),
             true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.FallbackVsChain"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
@@ -68,11 +68,11 @@ class UCk_AutoTest_Goap_Planner_FallbackLosesWhenChainViable : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_Planner), "Planner should be valid");
 
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackVsChain_Setup));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackVsChain_Setup));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackVsChain_Finalize));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackVsChain_Finalize));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_AutoTestAction_Goap_FallbackVsChain_Fallback));
+            FCk_Goap_Action_Spec(UCk_AutoTestAction_Goap_FallbackVsChain_Fallback));
 
         utils_goap_planner::BindTo_OnPlanComplete(_Planner,
             FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlan"));

@@ -31,7 +31,7 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
     void SetupPlayer(FCk_Handle InEntity)
     {
         // Add player probe feature so player can overlap with stations
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Player.Probe"));
+        auto ProbeParams = FCk_Probe_Spec(utils_gameplay_tag::ResolveGameplayTag(n"Player.Probe"));
         ProbeParams.Set_MotionType(ECk_MotionType::Kinematic);
         ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
 

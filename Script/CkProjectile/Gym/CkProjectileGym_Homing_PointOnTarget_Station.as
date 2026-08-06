@@ -70,14 +70,14 @@ class UCk_EntityScript_ProjectileGym_HomingPointOnTarget_Station : UCk_GenericEn
         _ProjectileTransform = utils_transform::Add(
             Projectile, FTransform(FRotator::ZeroRotator, PadLocation), ECk_Replication::DoesNotReplicate);
 
-        auto ProjectileParams = FCk_Fragment_Projectile_ParamsData(
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector(0.0, 0.0, 400.0)),
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
-            FCk_Fragment_AutoReorient_ParamsData(ECk_AutoReorient_Policy::NoAutoReorient));
+        auto ProjectileParams = FCk_Projectile_Spec(
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector(0.0, 0.0, 400.0)),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_AutoReorient_Spec(ECk_AutoReorient_Policy::NoAutoReorient));
         utils_projectile::Add(Projectile, ProjectileParams, ECk_Replication::DoesNotReplicate);
 
         _Homing = utils_homing::Add(Projectile,
-            FCk_Fragment_Homing_ParamsData(FCk_Homing_GuidanceSettings(3500.0)));
+            FCk_Homing_Spec(FCk_Homing_GuidanceSettings(3500.0)));
 
         auto Request = FCk_Request_Homing_SetTargetEntity(_TargetEntity);
         Request.Set_TargetPoint(ECk_Homing_TargetPoint::WorldSpacePointOnTarget);

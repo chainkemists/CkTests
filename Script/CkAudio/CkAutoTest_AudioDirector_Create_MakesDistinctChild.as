@@ -20,7 +20,7 @@ class UCk_AutoTest_AudioDirector_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Fragment_AudioDirector_ParamsData();
+        auto Params = FCk_AudioDirector_Spec();
 
         auto Child = utils_audio_director::Create(Owner, Params);
         auto ChildEntity = FCk_Handle(Child);

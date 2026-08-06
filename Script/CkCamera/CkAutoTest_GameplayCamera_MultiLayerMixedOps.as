@@ -50,7 +50,7 @@ class UCk_AutoTest_GameplayCamera_MultiLayerMixedOps : UCk_AutoTest_Base
 
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
         auto OwnedTransform = OwnedEntity.As_Transform();
-        _Camera = utils_camera::Add(OwnedTransform, FCk_Fragment_Camera_ParamsData(_Helper.CameraComponent));
+        _Camera = utils_camera::Add(OwnedTransform, FCk_Camera_Spec(_Helper.CameraComponent));
 
         // Build the initial three-layer stack (distinct priorities, all Additive-stacking so they coexist).
         AddLayer(UCk_AutoTest_CameraLayer_FovAdd30,      0);

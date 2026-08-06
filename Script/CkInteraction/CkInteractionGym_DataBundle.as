@@ -42,10 +42,10 @@ class UCk_EntityScript_InteractionGym_DataBundle : UCk_GenericEntityScript_UE
             ECk_ResolverDataBundle_AllowedOperationsInPhase::ModifierAndMetadata
         ));
 
-        auto SourceParams = FCk_Fragment_ResolverSource_ParamsData(Phases);
+        auto SourceParams = FCk_ResolverSource_Spec(Phases);
         ResolverSourceHandle = utils_resolver_source::Add(InHandle, SourceParams);
 
-        auto TargetParams = FCk_Fragment_ResolverTarget_ParamsData();
+        auto TargetParams = FCk_ResolverTarget_Spec();
         ResolverTargetHandle = utils_resolver_target::Add(InHandle, TargetParams);
 
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InteractionGym_InitiateResolution, FCk_Delegate_Messaging_OnBroadcast(this, n"OnInitiateResolution"));

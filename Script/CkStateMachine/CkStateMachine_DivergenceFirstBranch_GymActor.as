@@ -215,7 +215,7 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
         PassAEntity.Set_DebugName(n"PassA");
         PassASmHandle = UCk_Utils_StateMachine_UE::Add(
             PassAEntity,
-            FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_Divergence_ParentState));
+            FCk_StateMachine_Spec(UCk_SmTest_Divergence_ParentState));
 
         System::SetTimer(this, n"VerifyPassA", PerPassSettleSeconds, false);
     }
@@ -263,7 +263,7 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
         PassBEntity.Set_DebugName(n"PassB");
         PassBSmHandle = UCk_Utils_StateMachine_UE::Add(
             PassBEntity,
-            FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_Divergence_ParentState));
+            FCk_StateMachine_Spec(UCk_SmTest_Divergence_ParentState));
 
         System::SetTimer(this, n"VerifyPassB", PerPassSettleSeconds, false);
     }

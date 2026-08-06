@@ -17,7 +17,7 @@ class UCk_AutoTest_Aggro_CreateTarget_ReturnsTypedChild : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Aggro_ParamsData();
+        auto Params = FCk_Aggro_Spec();
         auto Aggro  = utils_aggro::Add(Owner, Params);
 
         auto TrackedEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);

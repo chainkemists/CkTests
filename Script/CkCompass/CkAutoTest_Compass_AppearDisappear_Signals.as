@@ -33,7 +33,7 @@ class UCk_AutoTest_Compass_AppearDisappear_Signals : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Compass_ParamsData();
+        auto Params = FCk_Compass_Spec();
         Params.Set_HeadingSource(ECk_Compass_HeadingSource::Manual);
         _Compass = utils_compass::Add(Observer, Params);
         _Compass.Request_SetManualHeading(0.0);
@@ -71,7 +71,7 @@ class UCk_AutoTest_Compass_AppearDisappear_Signals : UCk_AutoTest_Base
         utils_transform::Add(_PoiOwner,
             FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, 0.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _Poi = utils_poi::Add(_PoiOwner, FCk_Fragment_Poi_ParamsData(
+        _Poi = utils_poi::Add(_PoiOwner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.TestMembership")));
     }
 

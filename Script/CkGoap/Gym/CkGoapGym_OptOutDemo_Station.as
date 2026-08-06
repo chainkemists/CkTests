@@ -76,7 +76,7 @@ class UCk_EntityScript_GoapGym_OptOutDemo_Station : UCk_GenericEntityScript_UE
 
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.OptOutDemo"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.OptOutDemo.Unreachable"),
             false);
@@ -89,7 +89,7 @@ class UCk_EntityScript_GoapGym_OptOutDemo_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.OptOutDemo.Unreachable"),
             true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.OptOutDemo"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(_WS);
@@ -108,7 +108,7 @@ class UCk_EntityScript_GoapGym_OptOutDemo_Station : UCk_GenericEntityScript_UE
         _Planner = utils_goap_planner::Add(InHandle, PlannerParams);
 
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OptOutDemo_CannotReach));
+            FCk_Goap_Action_Spec(UCk_GoapGym_OptOutDemo_CannotReach));
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnDisplayTick"));
 

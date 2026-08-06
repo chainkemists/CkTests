@@ -88,7 +88,7 @@ bool FCkVoiceChatPipeline_FakeCapture_LoopbackDecodes::RunTest(const FString& Pa
             auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
             auto TalkerEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
 
-            auto Params = FCk_Fragment_VoiceTalker_ParamsData{};
+            auto Params = FCk_VoiceTalker_Spec{};
             Params.Set_TransmitMode(ECk_VoiceChat_TransmitMode::OpenMic);
             Params.Set_InputGain(1.0f);
             Params.Set_Loopback(ECk_EnableDisable::Enable);
@@ -190,7 +190,7 @@ bool FCkVoiceChatPipeline_StartTransmitDisabledRejected::RunTest(const FString& 
             auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
             auto TalkerEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
 
-            auto Params = FCk_Fragment_VoiceTalker_ParamsData{};
+            auto Params = FCk_VoiceTalker_Spec{};
             Params.Set_TransmitMode(ECk_VoiceChat_TransmitMode::Disabled);
 
             State->Talker = UCk_Utils_VoiceTalker_UE::Add(TalkerEntity, Params);

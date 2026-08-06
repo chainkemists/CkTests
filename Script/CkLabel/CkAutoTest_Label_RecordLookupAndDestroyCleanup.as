@@ -45,8 +45,8 @@ class UCk_AutoTest_Label_RecordLookupAndDestroyCleanup : UCk_AutoTest_Base
         _TagBeta  = utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.AutoTest_RecordLookup_Beta");
         _TagGamma_Unused = utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.AutoTest_RecordLookup_Gamma_Unused");
 
-        auto AlphaParams = FCk_Fragment_FloatAttribute_ParamsData(_TagAlpha, 50.0f);
-        auto BetaParams  = FCk_Fragment_FloatAttribute_ParamsData(_TagBeta,  75.0f);
+        auto AlphaParams = FCk_FloatAttribute_Spec(_TagAlpha, 50.0f);
+        auto BetaParams  = FCk_FloatAttribute_Spec(_TagBeta,  75.0f);
 
         auto AlphaAttr = utils_float_attribute::Add(_Owner, AlphaParams);
         auto BetaAttr  = utils_float_attribute::Add(_Owner, BetaParams);

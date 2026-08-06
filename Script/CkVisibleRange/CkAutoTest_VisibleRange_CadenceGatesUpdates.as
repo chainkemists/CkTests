@@ -44,7 +44,7 @@ class UCk_AutoTest_VisibleRange_CadenceGatesUpdates : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
         _Entity = LocalHandle;
 
-        auto Params = FCk_Fragment_VisibleRange_ParamsData(500.0f);
+        auto Params = FCk_VisibleRange_Spec(500.0f);
         Params.Set_UpdateInterval(FCk_Time(0.5));
         _VR = utils_visible_range::Add(LocalHandle, Params);
 

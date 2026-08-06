@@ -54,7 +54,7 @@ class UCk_AutoTest_Marker_Add_Box_CreatesValidHandle : UCk_AutoTest_Base
 
         auto ShapeInfo = FCk_Marker_ShapeInfo(BoxDims);
 
-        auto Params = FCk_Fragment_Marker_ParamsData();
+        auto Params = FCk_Marker_Spec();
         Params.Set_MarkerName(utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Marker.Add_Box_Seed"));
         Params.Set_ShapeParams(ShapeInfo);
 

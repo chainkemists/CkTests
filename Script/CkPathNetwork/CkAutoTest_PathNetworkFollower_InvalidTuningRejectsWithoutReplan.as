@@ -48,12 +48,12 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
         Ribbons.Add(FCk_PathNetwork_Ribbon(Points));
         _Network = utils_path_network::Add(
             LocalHandle,
-            FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+            FCk_PathNetwork_Spec(Ribbons));
 
         // Ownership acquisition requires a namespaced logical-owner token even
         // when there is no follower to conflict with. The invalid request must
         // not compose a partial Params/Corridor feature pair.
-        auto EmptyOwnerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto EmptyOwnerParams = FCk_PathNetworkFollower_Spec();
         EmptyOwnerParams.Set_Network(_Network);
         ECk_PathNetworkFollower_OwnershipResult OwnershipResult
             = ECk_PathNetworkFollower_OwnershipResult::RejectedInvalidInput;
@@ -68,7 +68,7 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
         Assert_True(utils_path_network_follower::Has(LocalHandle) == false,
             "empty ownership token composes no follower fragments");
 
-        auto InvalidInitialParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto InvalidInitialParams = FCk_PathNetworkFollower_Spec();
         InvalidInitialParams.Set_CornerSmoothingDistance(-1.0f);
         const auto InvalidInitialFollower =
             utils_path_network_follower::Add(LocalHandle, InvalidInitialParams);
@@ -79,7 +79,7 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
             utils_path_network_follower::Has(LocalHandle) == false,
             "invalid initial tuning must compose no follower fragments");
 
-        auto Params = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto Params = FCk_PathNetworkFollower_Spec();
         Params.Set_Network(_Network);
         Params.Set_OwnerToken(n"CkTests.PathNetwork.InvalidTuning");
         Params.Set_CorridorWaypointSpacing(100.0f);
@@ -147,7 +147,7 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
         // A fresh state/script instance with the same logical owner must adopt
         // the exact feature without restamping its route, tuning, or corridor.
         FCk_Handle GenericFollowerOwner = _Follower;
-        auto SameOwnerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto SameOwnerParams = FCk_PathNetworkFollower_Spec();
         SameOwnerParams.Set_Network(_Network);
         SameOwnerParams.Set_OwnerToken(n"CkTests.PathNetwork.InvalidTuning");
         SameOwnerParams.Set_OffPathCostMultiplier(12.0f);
@@ -163,7 +163,7 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
                 == ECk_PathNetworkFollower_OwnershipResult::Adopted,
             "same owner token reports Adopted");
 
-        auto ForeignOwnerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto ForeignOwnerParams = FCk_PathNetworkFollower_Spec();
         ForeignOwnerParams.Set_Network(_Network);
         ForeignOwnerParams.Set_OwnerToken(n"CkTests.PathNetwork.ForeignOwner");
         ForeignOwnerParams.Set_OffPathCostMultiplier(12.0f);
@@ -179,7 +179,7 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
         // An invalid endpoint policy input must reject before an existing
         // same-token follower is adopted or mutated. This pins the fail-closed
         // boundary separately from the invalid-tuning checks below.
-        auto MalformedEndpointParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto MalformedEndpointParams = FCk_PathNetworkFollower_Spec();
         MalformedEndpointParams.Set_OwnerToken(n"CkTests.PathNetwork.InvalidTuning");
         MalformedEndpointParams.Set_NearEndpointCostMultiplier(0.5f);
         const auto MalformedEndpointFollower =
@@ -192,7 +192,7 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
             "invalid endpoint policy reports explicit invalid input");
 
         auto MalformedNetworkGapParams =
-            FCk_Fragment_PathNetworkFollower_ParamsData();
+            FCk_PathNetworkFollower_Spec();
         MalformedNetworkGapParams.Set_OwnerToken(
             n"CkTests.PathNetwork.InvalidTuning");
         MalformedNetworkGapParams.Set_NetworkGapCostMultiplier(0.5f);
@@ -210,7 +210,7 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
             "invalid network-gap multiplier reports explicit invalid input");
 
         auto MalformedTransferParams =
-            FCk_Fragment_PathNetworkFollower_ParamsData();
+            FCk_PathNetworkFollower_Spec();
         MalformedTransferParams.Set_OwnerToken(
             n"CkTests.PathNetwork.InvalidTuning");
         MalformedTransferParams.Set_ComponentTransferMaxDistance(-1.0f);
@@ -228,7 +228,7 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
             "negative component-transfer distance reports explicit invalid input");
 
         auto MalformedLocalShortcutParams =
-            FCk_Fragment_PathNetworkFollower_ParamsData();
+            FCk_PathNetworkFollower_Spec();
         MalformedLocalShortcutParams.Set_OwnerToken(
             n"CkTests.PathNetwork.InvalidTuning");
         MalformedLocalShortcutParams.Set_LocalNetworkShortcutMaxDistance(

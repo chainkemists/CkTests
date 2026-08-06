@@ -46,7 +46,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip : UCk_Aut
 
         _WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
 
         // Pre-set base values. These are silent no-ops until Setup runs and
         // registers the keys via the Action references below; re-set in
@@ -60,7 +60,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip : UCk_Aut
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.Goal"),
             true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.Planner"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(_WS);
@@ -72,7 +72,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_DebugUIToggleRoundtrip : UCk_Aut
 
         // OpA registers KeyA (precondition) + Goal (effect) in the WS registry
         // at Setup. After Setup, Set_Value/Get_Value on KeyA take effect.
-        auto OpAParams = FCk_Fragment_Goap_ActionParamsData(
+        auto OpAParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_WSOverrideStack_OpA);
         auto OpA = utils_goap_planner::AddAction(_Planner, OpAParams);
         Assert_True(ck::IsValid(OpA), "AddAction (OpA) should return a valid handle");

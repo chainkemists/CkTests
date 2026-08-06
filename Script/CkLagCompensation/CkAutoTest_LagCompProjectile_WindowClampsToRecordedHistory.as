@@ -39,7 +39,7 @@ class UCk_AutoTest_LagCompProjectile_WindowClampsToRecordedHistory : UCk_AutoTes
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.LagComp.Body"),
             UCk_Utils_Shapes_UE::Make_Sphere(FCk_ShapeSphere_Dimensions(50.0))));
 
-        _TargetHistory = UCk_Utils_RewindHistory_UE::Add(_TargetEntity, FCk_Fragment_RewindHistory_ParamsData(HitShapes));
+        _TargetHistory = UCk_Utils_RewindHistory_UE::Add(_TargetEntity, FCk_RewindHistory_Spec(HitShapes));
 
         ScheduleMark(0.4, n"OnMark1");
     }
@@ -63,7 +63,7 @@ class UCk_AutoTest_LagCompProjectile_WindowClampsToRecordedHistory : UCk_AutoTes
             Projectile, FTransform(FRotator::ZeroRotator, FVector(-400.0, 0.0, 0.0)), ECk_Replication::DoesNotReplicate);
 
         auto TrajectoryParams = FCk_Ballistic_TrajectoryParams(FVector(0.0, 0.0, -100000.0));
-        _Projectile = UCk_Utils_BallisticMotion_UE::Add(Projectile, FCk_Fragment_BallisticMotion_ParamsData(TrajectoryParams));
+        _Projectile = UCk_Utils_BallisticMotion_UE::Add(Projectile, FCk_BallisticMotion_Spec(TrajectoryParams));
 
         _Projectile.BindTo_OnLaunchCompensated(FCk_Delegate_LagCompProjectile_OnLaunchCompensated(this, n"OnLaunchCompensated"));
 

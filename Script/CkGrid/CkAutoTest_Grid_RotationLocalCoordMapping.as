@@ -41,7 +41,7 @@ class UCk_AutoTest_Grid_RotationLocalCoordMapping : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto GridTransform = utils_transform::Add(
             Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        auto Params = FCk_Fragment_2dGridSystem_ParamsData(
+        auto Params = FCk_2dGridSystem_Spec(
             FIntPoint(3, 3), FVector2D(100.0f, 100.0f));
         Params.Set_DefaultCellState(ECk_EnableDisable::Enable);
         _Grid = utils_2d_grid_system::Add(GridTransform, Params);

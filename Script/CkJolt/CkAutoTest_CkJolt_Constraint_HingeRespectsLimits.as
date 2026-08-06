@@ -43,7 +43,7 @@ class UCk_AutoTest_CkJolt_Constraint_HingeRespectsLimits : UCk_AutoTest_Base
 
         auto DoorShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         DoorShape.Set_HalfExtents(FVector(4.0, 60.0, 90.0));
-        auto DoorParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto DoorParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         DoorParams.Set_ShapeDimensions(DoorShape);
         DoorParams.Set_MotionType(ECk_MotionType::Dynamic);
         // A door hinged about Z is gravity-neutral; heavy ANGULAR damping (exponential, unit-free)
@@ -52,7 +52,7 @@ class UCk_AutoTest_CkJolt_Constraint_HingeRespectsLimits : UCk_AutoTest_Base
         DoorParams.Set_AngularDamping(1.0);
         auto DoorBody = utils_jolt_body::Add(DoorEntity, DoorParams);
 
-        auto ConstraintParams = FCk_Fragment_JoltConstraint_ParamsData(ECk_JoltConstraint_Type::Hinge);
+        auto ConstraintParams = FCk_JoltConstraint_Spec(ECk_JoltConstraint_Type::Hinge);
         ConstraintParams.Set_WorldAnchorA(_Pivot);
         ConstraintParams.Set_HingeAxis(FVector(0.0, 0.0, 1.0));
         ConstraintParams.Set_LimitsMinDegrees(-_LimitDegrees);

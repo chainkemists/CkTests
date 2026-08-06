@@ -79,7 +79,7 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
 
         // Detector: Static Box probe, Filter matches the Marker ProbeName the
         // balls and pawn carry.
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.Gym.Detector"));
         ProbeParams.Set_MotionType(ECk_MotionType::Static);
         ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
@@ -111,7 +111,7 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
             auto BallTransformHandle = utils_transform::Add(
                 BallEntity, BallInitialTransform, ECk_Replication::DoesNotReplicate);
 
-            auto BallProbeParams = FCk_Fragment_Probe_ParamsData(
+            auto BallProbeParams = FCk_Probe_Spec(
                 utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.Gym.Marker"));
             BallProbeParams.Set_MotionType(ECk_MotionType::Kinematic);
             BallProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Silent);

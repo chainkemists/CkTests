@@ -32,14 +32,14 @@ class UCk_AutoTest_Grid_CanPlaceFailureReasons : UCk_AutoTest_Base
         auto GridOwnerT = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto GP = FCk_Fragment_2dGridSystem_ParamsData(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
+        auto GP = FCk_2dGridSystem_Spec(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
         GP.Set_DefaultCellState(ECk_EnableDisable::Enable);
         auto Grid = utils_2d_grid_system::Add(GridOwnerT, GP);
 
         // ---- 1. Out-of-bounds, single 1x1 at (10,10). ----
         auto SingleEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto SingleObj = utils_2d_grid_object::Add(
-            SingleEntity, FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1)));
+            SingleEntity, FCk_2dGridObject_Spec(FIntPoint(1, 1)));
 
         auto Oob = utils_2d_grid_placement::Get_CanPlace(
             Grid, SingleObj, FIntPoint(10, 10),
@@ -56,7 +56,7 @@ class UCk_AutoTest_Grid_CanPlaceFailureReasons : UCk_AutoTest_Base
         // ---- 2. 2x1 straddling the right edge: (9,5),(10,5). ----
         auto RectEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto RectObj = utils_2d_grid_object::Add(
-            RectEntity, FCk_Fragment_2dGridObject_ParamsData(FIntPoint(2, 1)));
+            RectEntity, FCk_2dGridObject_Spec(FIntPoint(2, 1)));
 
         auto Straddle = utils_2d_grid_placement::Get_CanPlace(
             Grid, RectObj, FIntPoint(9, 5),

@@ -114,7 +114,7 @@ class UCk_EntityScript_IskmRendererGym_StressArmy : UCk_GenericEntityScript_UE
                 auto SoldierName = FName(f"Soldier_{Spawned}");
                 Entity.Set_DebugName(SoldierName);
                 auto EntityTransform = utils_transform::Add(Entity, SpawnXf, ECk_Replication::DoesNotReplicate);
-                auto Proxy = utils_iskm_proxy::Add(EntityTransform, FCk_Fragment_IskmProxy_ParamsData(Renderer, SpawnXf));
+                auto Proxy = utils_iskm_proxy::Add(EntityTransform, FCk_IskmProxy_Spec(Renderer, SpawnXf));
 
                 // Random sequence pick. Moving variant drops idle (sliding-foot artifact).
                 UAnimSequenceBase ChosenSeq;

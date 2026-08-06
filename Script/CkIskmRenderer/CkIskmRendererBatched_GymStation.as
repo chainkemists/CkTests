@@ -291,7 +291,7 @@ class UCk_EntityScript_IskmRendererBatched_Flip : UCk_GenericEntityScript_UE
 
         auto Entity = _SelfHandle.Request_CreateEntity();
         auto Transform = utils_transform::Add(Entity, InMemberXf, ECk_Replication::DoesNotReplicate);
-        auto Proxy = utils_iskm_proxy::Add(Transform, FCk_Fragment_IskmProxy_ParamsData(_Renderer, InMemberXf));
+        auto Proxy = utils_iskm_proxy::Add(Transform, FCk_IskmProxy_Spec(_Renderer, InMemberXf));
 
         FCk_Request_IskmProxy_BeginRagdoll RagdollReq;
         utils_iskm_proxy::Request_BeginRagdoll(Proxy, RagdollReq);

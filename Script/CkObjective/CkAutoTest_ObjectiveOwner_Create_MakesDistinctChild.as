@@ -23,7 +23,7 @@ class UCk_AutoTest_ObjectiveOwner_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto Defaults = TArray<TSubclassOf<UCk_Objective_EntityScript>>();
-        auto Params = FCk_ObjectiveOwner_ParamsData(Defaults);
+        auto Params = FCk_ObjectiveOwner_Spec(Defaults);
 
         auto Child = utils_objective_owner::Create(Owner, Params);
         auto ChildEntity = FCk_Handle(Child);

@@ -51,7 +51,7 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
 
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
@@ -66,7 +66,7 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParams.Set_Goal(InitialGoal);
         PlannerParams.Set_WorldStateSource(WS);
@@ -74,7 +74,7 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         // First AddAction = implicit-root Action.
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
+        auto RootParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
         _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (implicit-root) should return a valid handle");
@@ -82,12 +82,12 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
         // Two sibling Actions forming a precondition/effect cycle. These
         // become direct children of the implicit root (== direct children of
         // the Planner per FProcessor_Goap_Planner_Setup).
-        auto CycleAParams = FCk_Fragment_Goap_ActionParamsData(
+        auto CycleAParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_CycleA);
         auto CycleAAction = utils_goap_planner::AddAction(_Planner, CycleAParams);
         Assert_True(ck::IsValid(CycleAAction), "CycleA AddAction should succeed");
 
-        auto CycleBParams = FCk_Fragment_Goap_ActionParamsData(
+        auto CycleBParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_CycleB);
         auto CycleBAction = utils_goap_planner::AddAction(_Planner, CycleBParams);
         Assert_True(ck::IsValid(CycleBAction), "CycleB AddAction should succeed");

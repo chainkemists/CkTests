@@ -25,7 +25,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_Substep_ParamsData_Defaults::RunTest(const FString& Parameters)
 {
-    const auto Params = FCk_Substep_ParamsData{};
+    const auto Params = FCk_Substep_Spec{};
     TestEqual(TEXT("Default _TickRate is 0.01s"),
         Params.Get_TickRate().Get_Seconds(), 0.01);
     TestEqual(TEXT("Default _StartingState is Paused"),
@@ -42,7 +42,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_Substep_ParamsData_CtorRoundtrip::RunTest(const FString& Parameters)
 {
-    auto Params = FCk_Substep_ParamsData{FCk_Time{0.05}};
+    auto Params = FCk_Substep_Spec{FCk_Time{0.05}};
     Params.Set_StartingState(ECk_Substep_State::Running);
     TestEqual(TEXT("Constructor preserves _TickRate"),
         Params.Get_TickRate().Get_Seconds(), 0.05);

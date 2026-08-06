@@ -30,7 +30,7 @@ class UCk_AutoTest_Fog_RevealLocation_Explores : UCk_AutoTest_Base
         auto MapEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         MapEntity.Request_OverrideToSelf();
 
-        auto Params = FCk_Fragment_FogOfWar_ParamsData(FCk_Minimap_WorldBounds(
+        auto Params = FCk_FogOfWar_Spec(FCk_Minimap_WorldBounds(
             FVector2D(0.0, 53900.0), FVector2D(2000.0, 2000.0)));
         Params.Set_RevealRadius(300.0);
         _Fog = utils_fog_of_war::Add(MapEntity, Params);

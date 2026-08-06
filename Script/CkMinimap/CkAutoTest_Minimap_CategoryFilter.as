@@ -36,7 +36,7 @@ class UCk_AutoTest_Minimap_CategoryFilter : UCk_AutoTest_Base
         auto QuestOnly = FGameplayTagContainer();
         QuestOnly.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.MinimapFilterQuest"));
 
-        auto Params = FCk_Fragment_Minimap_ParamsData(5000.0);
+        auto Params = FCk_Minimap_Spec(5000.0);
         Params.Set_CategoryFilter(FGameplayTagQuery::MakeQuery_MatchAnyTags(QuestOnly));
         _Minimap = utils_minimap::Add(Observer, Params);
 
@@ -91,7 +91,7 @@ class UCk_AutoTest_Minimap_CategoryFilter : UCk_AutoTest_Base
         Owner.Request_OverrideToSelf();
         utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, _Base + InOffset),
             ECk_Replication::DoesNotReplicate);
-        return utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
+        return utils_poi::Add(Owner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
     }
 

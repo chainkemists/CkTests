@@ -35,7 +35,7 @@ class UCk_AutoTest_Net_Vector_ModifierAddReplicates : UCk_AutoTest_NetBase
         {
             // Modifier index reuses the attribute tag (separate index from the attribute
             // name within CkAttribute), so no new tag registration is needed.
-            auto ModParams = FCk_Fragment_VectorAttributeModifier_ParamsData();
+            auto ModParams = FCk_VectorAttributeModifier_Spec();
             ModParams.Set_ModifierDelta(FVector(25.0, 10.0, 5.0));
             utils_vector_attribute_modifier::Add_Revocable(
                 Attribute,

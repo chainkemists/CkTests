@@ -20,7 +20,7 @@ class UCk_AutoTest_VisibleRange_OwnRangeBoundaryCrossing : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_VisibleRange_ParamsData(500.0f);
+        auto Params = FCk_VisibleRange_Spec(500.0f);
         _VR = utils_visible_range::Add(LocalHandle, Params);
 
         Assert_True(!utils_visible_range::Get_IsHidden(_VR),

@@ -622,7 +622,7 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
                 float(Index) * PicketSpacingUu - HalfSpan,
                 _FloorZ + 100.0);
             auto Params =
-                FCk_Fragment_CrowdAgent_ParamsData(AgentRadiusUu, 192.0f);
+                FCk_CrowdAgent_Spec(AgentRadiusUu, 192.0f);
             auto PicketEntity =
                 utils_entity_lifetime::Request_CreateEntity(InOwner);
             auto PicketTransform = utils_transform::Add(
@@ -656,7 +656,7 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
         Ribbons.Add(FCk_PathNetwork_Ribbon(Points));
         _Network = utils_path_network::Add(
             InOwner,
-            FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+            FCk_PathNetwork_Spec(Ribbons));
     }
 
     private void SpawnWalker(FCk_Handle& InOwner)
@@ -672,7 +672,7 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
 
         auto AgentParams =
-            FCk_Fragment_CrowdAgent_ParamsData(AgentRadiusUu, 192.0f);
+            FCk_CrowdAgent_Spec(AgentRadiusUu, 192.0f);
         AgentParams.Set_MaxSpeed(60.0f)
                    .Set_BlockedPolicy(
                        ECk_CrowdAgent_BlockedPolicy::FailMove);
@@ -682,20 +682,20 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
 
         utils_velocity::Add(
             _WalkerEntity,
-            FCk_Fragment_Velocity_ParamsData(
+            FCk_Velocity_Spec(
                 ECk_LocalWorld::World,
                 FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(
             _WalkerEntity,
-            FCk_Fragment_Acceleration_ParamsData(
+            FCk_Acceleration_Spec(
                 ECk_LocalWorld::World,
                 FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(_WalkerEntity);
 
         auto FollowerParams =
-            FCk_Fragment_PathNetworkFollower_ParamsData();
+            FCk_PathNetworkFollower_Spec();
         FollowerParams.Set_Network(_Network);
         FollowerParams.Set_SideKeepingFraction(0.0f);
         FollowerParams.Set_CorridorWaypointSpacing(100.0f);
@@ -746,7 +746,7 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
 
         auto AgentParams =
-            FCk_Fragment_CrowdAgent_ParamsData(AgentRadiusUu, 192.0f);
+            FCk_CrowdAgent_Spec(AgentRadiusUu, 192.0f);
         AgentParams.Set_MaxSpeed(120.0f)
                    .Set_BlockedPolicy(
                        ECk_CrowdAgent_BlockedPolicy::HoldAndRetry);
@@ -756,20 +756,20 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
 
         utils_velocity::Add(
             _InsideWalkerEntity,
-            FCk_Fragment_Velocity_ParamsData(
+            FCk_Velocity_Spec(
                 ECk_LocalWorld::World,
                 FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(
             _InsideWalkerEntity,
-            FCk_Fragment_Acceleration_ParamsData(
+            FCk_Acceleration_Spec(
                 ECk_LocalWorld::World,
                 FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(_InsideWalkerEntity);
 
         auto FollowerParams =
-            FCk_Fragment_PathNetworkFollower_ParamsData();
+            FCk_PathNetworkFollower_Spec();
         FollowerParams.Set_Network(_Network);
         FollowerParams.Set_SideKeepingFraction(0.0f);
         FollowerParams.Set_CorridorWaypointSpacing(100.0f);

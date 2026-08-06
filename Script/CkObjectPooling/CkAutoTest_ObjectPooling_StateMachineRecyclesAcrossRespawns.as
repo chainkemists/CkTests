@@ -85,7 +85,7 @@ class UCk_AutoTest_ObjectPooling_StateMachineRecyclesAcrossRespawns : UCk_AutoTe
         _SmOwnerEntity = utils_entity_lifetime::Request_CreateEntity(TestEntity);
 
         _SmHandle = UCk_Utils_StateMachine_UE::Add(_SmOwnerEntity,
-            FCk_Fragment_StateMachine_ParamsData(UCk_PoolSmTest_State_Ping));
+            FCk_StateMachine_Spec(UCk_PoolSmTest_State_Ping));
 
         FCk_Delegate_Sm_OnStateChanged Delegate;
         Delegate.BindUFunction(this, n"OnStateChanged");

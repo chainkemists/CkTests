@@ -55,7 +55,7 @@ class UCk_AutoTest_Goap_Planner_CostProviderFlip : UCk_AutoTest_Base
 
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapCostProvider.ActionSet"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapCostProvider.WS.Reached"), false);
 
@@ -63,7 +63,7 @@ class UCk_AutoTest_Goap_Planner_CostProviderFlip : UCk_AutoTest_Base
         Goal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapCostProvider.WS.Reached"), true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapCostProvider.ActionSet"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
@@ -71,9 +71,9 @@ class UCk_AutoTest_Goap_Planner_CostProviderFlip : UCk_AutoTest_Base
         _Planner = utils_goap_planner::Add(Local, PlannerParams);
 
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapCostProviderTest_Cheap));
+            FCk_Goap_Action_Spec(UCk_GoapCostProviderTest_Cheap));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapCostProviderTest_Pricey));
+            FCk_Goap_Action_Spec(UCk_GoapCostProviderTest_Pricey));
 
         // Register the Cheap action as externally cost-driven (first-class hook).
         utils_goap_planner::Request_RegisterActionCostProvider(

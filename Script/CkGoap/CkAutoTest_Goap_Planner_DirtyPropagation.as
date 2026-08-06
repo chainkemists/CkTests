@@ -42,7 +42,7 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
 
         _WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
@@ -56,7 +56,7 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(_WS);
@@ -65,7 +65,7 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
 
         // PR-B.1b Stage 5: LeafA is registered directly under the Planner. No
         // implicit-root Action. LeafA's effect AKey=true satisfies the goal.
-        auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
+        auto LeafAParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects);
         _RootAction = utils_goap_planner::AddAction(_Planner, LeafAParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (LeafA) should return a valid handle");

@@ -44,7 +44,7 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
 
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Tea"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         Reset_WS_To_AllIngredients();
 
         // U11.1: Planner goal on PlannerParams.
@@ -53,7 +53,7 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Tea.TeaServed"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Tea"));
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
@@ -73,13 +73,13 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_BoilWater));
+            FCk_Goap_Action_Spec(UCk_GoapGym_MakeTea_BoilWater));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_SteepLeaves));
+            FCk_Goap_Action_Spec(UCk_GoapGym_MakeTea_SteepLeaves));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_PourCup));
+            FCk_Goap_Action_Spec(UCk_GoapGym_MakeTea_PourCup));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_MakeTea_Serve));
+            FCk_Goap_Action_Spec(UCk_GoapGym_MakeTea_Serve));
 
         _KnownClasses.Add(UCk_GoapGym_MakeTea_BoilWater);   _KnownLabels.Add("BoilWater");
         _KnownClasses.Add(UCk_GoapGym_MakeTea_SteepLeaves); _KnownLabels.Add("SteepLeaves");

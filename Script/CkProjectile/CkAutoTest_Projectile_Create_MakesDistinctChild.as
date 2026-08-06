@@ -20,10 +20,10 @@ class UCk_AutoTest_Projectile_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto VelocityParams = FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector(50.0f, 0.0f, 0.0f));
-        auto AccelerationParams = FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector(0.0f, 0.0f, -980.0f));
-        auto AutoReorientParams = FCk_Fragment_AutoReorient_ParamsData(ECk_AutoReorient_Policy::NoAutoReorient);
-        auto ProjectileParams = FCk_Fragment_Projectile_ParamsData(VelocityParams, AccelerationParams, AutoReorientParams);
+        auto VelocityParams = FCk_Velocity_Spec(ECk_LocalWorld::World, FVector(50.0f, 0.0f, 0.0f));
+        auto AccelerationParams = FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector(0.0f, 0.0f, -980.0f));
+        auto AutoReorientParams = FCk_AutoReorient_Spec(ECk_AutoReorient_Policy::NoAutoReorient);
+        auto ProjectileParams = FCk_Projectile_Spec(VelocityParams, AccelerationParams, AutoReorientParams);
 
         auto Child = utils_projectile::Create(Owner, ProjectileParams, ECk_Replication::DoesNotReplicate);
         auto ChildEntity = FCk_Handle(Child);

@@ -55,7 +55,7 @@ class UCk_AutoTest_Probe_LinearCast_BeginEndOverlap : UCk_AutoTest_Base
         auto WallTransform = utils_transform::Add(
             _WallEntity, FTransform(FRotator::ZeroRotator, _WallCenter), ECk_Replication::DoesNotReplicate);
 
-        auto WallProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto WallProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.LinearCast.Wall"));
         WallProbeParams.Set_MotionType(ECk_MotionType::Static);
         WallProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
@@ -67,7 +67,7 @@ class UCk_AutoTest_Probe_LinearCast_BeginEndOverlap : UCk_AutoTest_Base
         _MoverTransform = utils_transform::Add(
             Mover, FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 300.0)), ECk_Replication::DoesNotReplicate);
 
-        auto MoverProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto MoverProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.LinearCast.Mover"));
         MoverProbeParams.Set_MotionType(ECk_MotionType::Kinematic);
         MoverProbeParams.Set_MotionQuality(ECk_MotionQuality::LinearCast);

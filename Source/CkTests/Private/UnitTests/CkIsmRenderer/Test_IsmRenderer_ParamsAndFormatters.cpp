@@ -26,7 +26,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_IsmRenderer_ProxyParamsData_Defaults::RunTest(const FString& Parameters)
 {
-    const auto Params = FCk_Fragment_IsmProxy_ParamsData{};
+    const auto Params = FCk_IsmProxy_Spec{};
     TestEqual(TEXT("Default _StartingState is Enable"),     Params.Get_StartingState(),     ECk_EnableDisable::Enable);
     TestEqual(TEXT("Default _LocalLocationOffset is Zero"), Params.Get_LocalLocationOffset(), FVector::ZeroVector);
     TestEqual(TEXT("Default _LocalRotationOffset is Zero"), Params.Get_LocalRotationOffset(), FRotator::ZeroRotator);
@@ -45,7 +45,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_IsmRenderer_ProxyParamsData_OffsetSettersRoundtrip::RunTest(const FString& Parameters)
 {
-    auto Params = FCk_Fragment_IsmProxy_ParamsData{};
+    auto Params = FCk_IsmProxy_Spec{};
     const auto Loc = FVector{10.0f, 20.0f, 30.0f};
     const auto Rot = FRotator{0.0f, 45.0f, 0.0f};
     const auto Scale = FVector{2.0f, 0.5f, 1.0f};

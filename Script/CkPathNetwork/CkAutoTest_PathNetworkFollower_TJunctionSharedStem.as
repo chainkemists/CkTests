@@ -142,7 +142,7 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
             Ribbons.Add(FCk_PathNetwork_Ribbon(Points));
         }
 
-        _Network = utils_path_network::Add(LocalHandle, FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+        _Network = utils_path_network::Add(LocalHandle, FCk_PathNetwork_Spec(Ribbons));
 
         WaitUntil(n"Check_NetworkBuilt", n"OnReadyToMove");
     }
@@ -344,7 +344,7 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
 
     private FCk_Handle_CrowdAgent SpawnAgent(FName InDebugName)
     {
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
 
         FCk_Handle GenericAgent = utils_entity_lifetime::Request_CreateEntity(_Self);
         GenericAgent.Set_DebugName(InDebugName);
@@ -354,10 +354,10 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
         utils_velocity::Add(GenericAgent,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(GenericAgent,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(GenericAgent);
 
@@ -368,7 +368,7 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
     {
         FCk_Handle GenericAgent = InAgent;
 
-        auto FollowerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto FollowerParams = FCk_PathNetworkFollower_Spec();
         FollowerParams.Set_Network(_Network);
         FollowerParams.Set_OffPathCostMultiplier(OffPathMultiplier);
 

@@ -23,11 +23,11 @@ class UCk_AutoTest_AudioTrack_SoftSoundResolvesPlaysAndSurvivesGC : UCk_AutoTest
         auto _CkPerfScope = ck::ScopedStat();
         auto OwnerHandle = InHandle;
 
-        auto Director = utils_audio_director::Add(OwnerHandle, FCk_Fragment_AudioDirector_ParamsData());
+        auto Director = utils_audio_director::Add(OwnerHandle, FCk_AudioDirector_Spec());
         Assert_True(ck::IsValid(Director), "utils_audio_director::Add should return a valid director handle");
         if (IsFinished()) { return; }
 
-        auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(
+        auto TrackParams = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/Engine/EngineSounds/1kSineTonePing.1kSineTonePing",
                 ECk_AssetSearchScope::Engine)._Asset));
         TrackParams._TrackName = n"AutoTest_SoftSound";

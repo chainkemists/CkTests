@@ -20,7 +20,7 @@ class UCk_AutoTest_RenderStatus_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Fragment_RenderStatus_ParamsData(ECk_RenderStatus_Group::Unspecified);
+        auto Params = FCk_RenderStatus_Spec(ECk_RenderStatus_Group::Unspecified);
 
         auto Child = utils_render_status::Create(Owner, Params);
         auto ChildEntity = FCk_Handle(Child);

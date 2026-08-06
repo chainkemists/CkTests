@@ -56,7 +56,7 @@ class UCk_AutoTest_CkJolt_TeleportMovesBodyAndResetsVelocity : UCk_AutoTest_Base
 
         auto FloorShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         FloorShape.Set_HalfExtents(FVector(500.0, 500.0, 25.0));
-        auto FloorParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto FloorParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         FloorParams.Set_ShapeDimensions(FloorShape);
         FloorParams.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(FloorEntity, FloorParams);
@@ -70,7 +70,7 @@ class UCk_AutoTest_CkJolt_TeleportMovesBodyAndResetsVelocity : UCk_AutoTest_Base
 
         auto BoxShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         BoxShape.Set_HalfExtents(FVector(_BoxHalfExtent, _BoxHalfExtent, _BoxHalfExtent));
-        auto BoxParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto BoxParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         BoxParams.Set_ShapeDimensions(BoxShape);
         BoxParams.Set_MotionType(ECk_MotionType::Dynamic);
         _Body = utils_jolt_body::Add(BoxEntity, BoxParams);

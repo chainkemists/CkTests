@@ -69,7 +69,7 @@ class UCk_AutoTest_PathNetworkFollower_ComponentTransferUsesDisconnectedIslands
         auto BuildParams = FCk_PathNetwork_BuildParams();
         BuildParams.Set_NodeSnapRadius(25.0f);
         auto NetworkParams =
-            FCk_Fragment_PathNetwork_ParamsData(Ribbons);
+            FCk_PathNetwork_Spec(Ribbons);
         NetworkParams.Set_BuildParams(BuildParams);
         _Network =
             utils_path_network::Add(
@@ -77,7 +77,7 @@ class UCk_AutoTest_PathNetworkFollower_ComponentTransferUsesDisconnectedIslands
                 NetworkParams);
 
         auto FollowerParams =
-            FCk_Fragment_PathNetworkFollower_ParamsData();
+            FCk_PathNetworkFollower_Spec();
         FollowerParams.Set_Network(_Network);
         FollowerParams.Set_OffPathCostMultiplier(8.0f);
         FollowerParams.Set_NearEndpointCostMultiplier(1.5f);

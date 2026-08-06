@@ -35,7 +35,7 @@ class UCk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto AttrParams = FCk_Fragment_FloatAttribute_ParamsData(
+        auto AttrParams = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.AutoTest_ClampBand"),
             50.0f);
         AttrParams.Set_MinMax(ECk_MinMax::MinMax);

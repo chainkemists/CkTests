@@ -53,14 +53,14 @@ class UCk_EntityScript_DialogGym_Filters : UCk_GenericEntityScript_UE
 		// Townie emitter (this entity).
 		auto TownieTags = FGameplayTagContainer();
 		TownieTags.AddTag(TownieTag);
-		_TownieEmitter = UCk_Utils_DialogEmitter_UE::Add(InHandle, FCk_Fragment_DialogEmitter_ParamsData(TownieTags));
+		_TownieEmitter = UCk_Utils_DialogEmitter_UE::Add(InHandle, FCk_DialogEmitter_Spec(TownieTags));
 		_TownieEmitter.BindTo_OnQueryCompleted(FCk_Delegate_DialogEmitter_OnQueryCompleted(this, n"OnTownieResult"));
 
 		// NamedNpc emitter (a child entity).
 		auto NamedChild = utils_entity_lifetime::Request_CreateEntity(InHandle);
 		auto NamedTags = FGameplayTagContainer();
 		NamedTags.AddTag(NamedTag);
-		_NamedEmitter = UCk_Utils_DialogEmitter_UE::Add(NamedChild, FCk_Fragment_DialogEmitter_ParamsData(NamedTags));
+		_NamedEmitter = UCk_Utils_DialogEmitter_UE::Add(NamedChild, FCk_DialogEmitter_Spec(NamedTags));
 		_NamedEmitter.BindTo_OnQueryCompleted(FCk_Delegate_DialogEmitter_OnQueryCompleted(this, n"OnNamedResult"));
 
 		auto CadenceParams = FCk_Timer_Spec(FCk_Time(2.0));

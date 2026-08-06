@@ -89,7 +89,7 @@ class ACk_JoltGym_ProjectileCcd_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(FVector(5.0, 150.0, 150.0));
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(Entity, Params);
@@ -106,7 +106,7 @@ class ACk_JoltGym_ProjectileCcd_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         Shape.Set_Radius(10.0);
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Dynamic);
         Params.Set_MotionQuality(InMotionQuality);

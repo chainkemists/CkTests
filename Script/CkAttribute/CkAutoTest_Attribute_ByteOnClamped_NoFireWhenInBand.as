@@ -25,7 +25,7 @@ class UCk_AutoTest_Attribute_ByteOnClamped_NoFireWhenInBand : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto AttrParams = FCk_Fragment_ByteAttribute_ParamsData(
+        auto AttrParams = FCk_ByteAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Armor"),
             50);
         AttrParams.Set_MinMax(ECk_MinMax::MinMax);

@@ -73,7 +73,7 @@ class UCk_EntityScript_AttributeGym_ByteSignals : UCk_GenericEntityScript_UE
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		auto TestParams = FCk_Fragment_ByteAttribute_ParamsData(
+		auto TestParams = FCk_ByteAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"Test.SignalBinding"), 100);
 		TestParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0).Set_MaxValue(255);
 		TestAttribute = utils_byte_attribute::Add(InHandle, TestParams);

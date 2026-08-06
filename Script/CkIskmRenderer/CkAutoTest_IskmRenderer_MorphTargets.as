@@ -60,7 +60,7 @@ class UCk_AutoTest_IskmRenderer_MorphTargets : UCk_AutoTest_Base
         _Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
 
         auto ChildA = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto Params = FCk_Fragment_IskmProxy_ParamsData(_Renderer, FTransform::Identity);
+        auto Params = FCk_IskmProxy_Spec(_Renderer, FTransform::Identity);
 
         auto ChildATransformHandle = utils_transform::Add(ChildA, FTransform::Identity);
         _ProxyA = utils_iskm_proxy::Add(ChildATransformHandle, Params);
@@ -129,7 +129,7 @@ class UCk_AutoTest_IskmRenderer_MorphTargets : UCk_AutoTest_Base
             auto LocalHandle = _TestEntity;
             auto ChildB = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
             auto ChildBTransformHandle = utils_transform::Add(ChildB, FTransform::Identity);
-            auto Params = FCk_Fragment_IskmProxy_ParamsData(_Renderer, FTransform::Identity);
+            auto Params = FCk_IskmProxy_Spec(_Renderer, FTransform::Identity);
             _ProxyB = utils_iskm_proxy::Add(ChildBTransformHandle, Params);
             _ChildB = ChildB;
             _Phase = 5;

@@ -30,7 +30,7 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_GenericEntityScript_U
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_InteractionGym_ResolverSource");
 
-        auto SourceParams = FCk_Fragment_InteractSource_ParamsData();
+        auto SourceParams = FCk_InteractSource_Spec();
         SourceParams._InteractionChannel = interaction_gym_helpers::DefaultChannel();
         SourceHandle = utils_interact_source::Add(InHandle, SourceParams);
 
@@ -48,7 +48,7 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_GenericEntityScript_U
         auto Mappings = TArray<FCk_InteractionResolver_IntentChannelMapping>();
         Mappings.Add(Mapping);
 
-        auto ResolverParams = FCk_InteractionResolver_ParamsData(Mappings);
+        auto ResolverParams = FCk_InteractionResolver_Spec(Mappings);
         ResolverHandle = utils_interaction_resolver::Add(InHandle, ResolverParams);
 
         utils_interaction_resolver::BindTo_OnBestTargetsChanged(ResolverHandle, FCk_Delegate_InteractionResolver_OnBestTargetsChanged(this, n"OnBestTargetsChanged"));
@@ -199,7 +199,7 @@ class UCk_EntityScript_InteractionGym_ResolverTarget : UCk_GenericEntityScript_U
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_InteractionGym_ResolverTarget");
 
-        auto TargetParams = FCk_Fragment_InteractTarget_ParamsData(
+        auto TargetParams = FCk_InteractTarget_Spec(
             interaction_gym_helpers::DefaultChannel()
         );
         TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::Instant);

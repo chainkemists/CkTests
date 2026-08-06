@@ -94,7 +94,7 @@ class UCk_AutoTest_IskmRenderer_SocketFollowerDrivesChild : UCk_AutoTest_Base
         _Leader = utils_target_point::Create(LocalHandle, FTransform::Identity);
 
         auto Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
-        auto Params   = FCk_Fragment_IskmProxy_ParamsData(Renderer, FTransform::Identity);
+        auto Params   = FCk_IskmProxy_Spec(Renderer, FTransform::Identity);
         _Proxy = utils_iskm_proxy::Add(_Leader, Params);
 
         // Add publishes a valid proxy before Gameplay_Rendering has created its BaseSKMC.

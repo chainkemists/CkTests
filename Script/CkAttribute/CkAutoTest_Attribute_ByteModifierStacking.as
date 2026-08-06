@@ -26,7 +26,7 @@ class UCk_AutoTest_Attribute_ByteModifierStacking : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_ByteAttribute_ParamsData(
+        auto Params = FCk_ByteAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Armor"),
             100);
         Params.Set_MinMax(ECk_MinMax::MinMax);
@@ -48,7 +48,7 @@ class UCk_AutoTest_Attribute_ByteModifierStacking : UCk_AutoTest_Base
     {
         _Step = 1;
 
-        auto WeaponParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto WeaponParams = FCk_ByteAttributeModifier_Spec();
         WeaponParams.Set_ModifierDelta(25);
         _WeaponMod = utils_byte_attribute_modifier::Add_Revocable(
             _Armor,
@@ -56,7 +56,7 @@ class UCk_AutoTest_Attribute_ByteModifierStacking : UCk_AutoTest_Base
             ECk_AttributeModifier_Operation::Add,
             WeaponParams);
 
-        auto PlateParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto PlateParams = FCk_ByteAttributeModifier_Spec();
         PlateParams.Set_ModifierDelta(10);
         utils_byte_attribute_modifier::Add_Revocable(
             _Armor,

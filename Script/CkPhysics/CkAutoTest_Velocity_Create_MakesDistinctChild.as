@@ -26,7 +26,7 @@ class UCk_AutoTest_Velocity_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, StartingVelocity);
+        auto Params = FCk_Velocity_Spec(ECk_LocalWorld::World, StartingVelocity);
 
         auto Child = utils_velocity::Create(Owner, Params, ECk_Replication::DoesNotReplicate);
         auto ChildEntity = FCk_Handle(Child);

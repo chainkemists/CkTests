@@ -171,7 +171,7 @@ class UCk_RenderTargetGym_Whiteboard_EntityScript : UCk_EntityScript_WithActor_U
         auto _CkPerfScope = ck::ScopedStat();
         utils_entity_tag::Add(InHandle, n"TAG_RenderTargetGym_Whiteboard");
 
-        auto Params = FCk_Fragment_RenderTarget_ParamsData(
+        auto Params = FCk_RenderTarget_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"RenderTarget.Gym.Whiteboard"));
         Params.Set_Size(FIntPoint(256, 256));
         Params.Set_SyncMode(ECk_RenderTarget_SyncMode::Hybrid);

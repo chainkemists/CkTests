@@ -41,7 +41,7 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
 
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.CrossRiver"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         Set(n"Gym.Goap.WS.CrossRiver.BridgeIsOpen", true);
         Set(n"Gym.Goap.WS.CrossRiver.HasCoin", true);
         Set(n"Gym.Goap.WS.CrossRiver.Crossed", false);
@@ -52,7 +52,7 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.CrossRiver.Crossed"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.CrossRiver"));
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
@@ -60,11 +60,11 @@ class UCk_EntityScript_GoapGym_CrossRiver_Station : UCk_GenericEntityScript_UE
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_UseBridge));
+            FCk_Goap_Action_Spec(UCk_GoapGym_CrossRiver_UseBridge));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_UseFerry));
+            FCk_Goap_Action_Spec(UCk_GoapGym_CrossRiver_UseFerry));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CrossRiver_SwimAcross));
+            FCk_Goap_Action_Spec(UCk_GoapGym_CrossRiver_SwimAcross));
 
         _KnownClasses.Add(UCk_GoapGym_CrossRiver_UseBridge);  _KnownLabels.Add("UseBridge");
         _KnownClasses.Add(UCk_GoapGym_CrossRiver_UseFerry);   _KnownLabels.Add("UseFerry");

@@ -41,7 +41,7 @@ class UCk_AutoTest_Dialog_ExitTag_ChainAdjacency : UCk_AutoTest_Base
             Track_ForCleanup(FCk_Handle(Registry.Request_RegisterLine(LineData, FGameplayTagContainer())));
         }
 
-        _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
+        _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_DialogEmitter_Spec(FGameplayTagContainer()));
 
         // Both chain links must be registered before the query: the follow-up
         // resolving to B is the contract, so B's registration is load-bearing.

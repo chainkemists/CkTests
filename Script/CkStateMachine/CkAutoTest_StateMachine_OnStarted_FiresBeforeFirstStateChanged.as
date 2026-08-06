@@ -36,7 +36,7 @@ class UCk_AutoTest_StateMachine_OnStarted_FiresBeforeFirstStateChanged : UCk_Aut
     {
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
-        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmStartedTest_State_Only));
+        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_StateMachine_Spec(UCk_SmStartedTest_State_Only));
 
         FCk_Delegate_Sm_OnStarted StartedDelegate;
         StartedDelegate.BindUFunction(this, n"OnStarted");

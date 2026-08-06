@@ -29,7 +29,7 @@ class UCk_AutoTest_UsfOutline_IskmApplyRemove : UCk_AutoTest_Base
 
         auto TransformHandle = utils_transform::Add(LocalHandle, FTransform::Identity);
         auto Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
-        _Proxy = utils_iskm_proxy::Add(TransformHandle, FCk_Fragment_IskmProxy_ParamsData(Renderer, FTransform::Identity));
+        _Proxy = utils_iskm_proxy::Add(TransformHandle, FCk_IskmProxy_Spec(Renderer, FTransform::Identity));
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
     }

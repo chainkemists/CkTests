@@ -20,7 +20,7 @@ class UCk_AutoTest_2dGridObject_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto P = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(2, 1));
+        auto P = FCk_2dGridObject_Spec(FIntPoint(2, 1));
 
         auto Child = utils_2d_grid_object::Create(Owner, P);
         auto ChildEntity = FCk_Handle(Child);

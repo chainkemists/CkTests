@@ -15,7 +15,7 @@
 //   NOT cleanly drivable from an AngelScript autotest:
 //     - Its `Spec` UPROPERTY is PRIVATE + EditAnywhere (a TObjectPtr to a
 //       UDataAsset), so AS cannot assign it on a spawned instance.
-//     - UCk_2dGridSystem_Spec::Resolve_GridParams() is a plain C++ method (not
+//     - UCk_2dGridSystem_AuthoringSpec::Resolve_GridParams() is a plain C++ method (not
 //       a UFUNCTION), so it is not callable from AS.
 //     - The EntityScript is spawner-driven (UCk_GenericEntityScript_UE injects
 //       SpawnTransform); there is no AS-reachable "spawn with this Spec" path.
@@ -81,7 +81,7 @@ class UCk_AutoTest_Grid_AuthoringSpecToRuntime : UCk_AutoTest_Base
         auto GridOwnerT = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto GP = FCk_Fragment_2dGridSystem_ParamsData(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
+        auto GP = FCk_2dGridSystem_Spec(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
         GP.Set_DefaultCellState(ECk_EnableDisable::Enable);
         auto DisabledCells = TArray<FIntPoint>();
         DisabledCells.Add(FIntPoint(2, 2));
@@ -95,7 +95,7 @@ class UCk_AutoTest_Grid_AuthoringSpecToRuntime : UCk_AutoTest_Base
 
         // ---- EntityScript post-Add: one named blocker over (7,7)..(8,7). ----
         auto BlockerEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto BP = FCk_Fragment_2dGridBlocker_ParamsData(_Grid, FIntPoint(7, 7), FIntPoint(8, 7));
+        auto BP = FCk_2dGridBlocker_Spec(_Grid, FIntPoint(7, 7), FIntPoint(8, 7));
         BP.Set_Name(WallTag);
         utils_2d_grid_blocker::Add(BlockerEntity, BP);
 
@@ -115,10 +115,10 @@ class UCk_AutoTest_Grid_AuthoringSpecToRuntime : UCk_AutoTest_Base
         // ---- Objects for the placement checks. ----
         auto PlainEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         _PlainObj = utils_2d_grid_object::Add(
-            PlainEntity, FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1)));
+            PlainEntity, FCk_2dGridObject_Spec(FIntPoint(1, 1)));
 
         auto ProduceEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto ProduceParams = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1));
+        auto ProduceParams = FCk_2dGridObject_Spec(FIntPoint(1, 1));
         auto ProduceReq = FGameplayTagContainer();
         ProduceReq.AddTag(ProduceTag);
         ProduceParams.Set_RequiredCellTags(ProduceReq);

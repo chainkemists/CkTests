@@ -44,7 +44,7 @@ class UCk_AutoTest_CameraShake_Add_CreatesEntry : UCk_AutoTest_Base
 
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
 
-        auto Params = FCk_Fragment_CameraShake_ParamsData(
+        auto Params = FCk_CameraShake_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.CameraShake.Seed"),
             UCameraShakeBase);
         auto Shake = utils_camera_shake::Add(OwnedEntity, Params);

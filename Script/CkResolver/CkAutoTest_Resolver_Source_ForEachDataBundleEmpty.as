@@ -13,7 +13,7 @@ class UCk_AutoTest_Resolver_Source_ForEachDataBundleEmpty : UCk_AutoTest_Base
     {
         auto _CkPerfScope = ck::ScopedStat();
         auto Entity = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        auto SourceHandle = utils_resolver_source::Add(Entity, FCk_Fragment_ResolverSource_ParamsData());
+        auto SourceHandle = utils_resolver_source::Add(Entity, FCk_ResolverSource_Spec());
 
         auto Bundles = utils_resolver_source::ForEach_ResolverDataBundle(
             SourceHandle, FInstancedStruct(), FCk_Lambda_InHandle());

@@ -33,7 +33,7 @@ class UCk_AutoTest_IskmProxy_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto Renderer = utils_iskm_renderer::Add(Owner, RendererData);
-        auto Params = FCk_Fragment_IskmProxy_ParamsData(Renderer, FTransform::Identity);
+        auto Params = FCk_IskmProxy_Spec(Renderer, FTransform::Identity);
 
         auto Child = utils_iskm_proxy::Create(Owner, FTransform::Identity, Params);
         auto ChildEntity = FCk_Handle(Child);
