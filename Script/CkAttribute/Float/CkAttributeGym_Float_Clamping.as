@@ -42,13 +42,13 @@ class UCk_EntityScript_AttributeGym_FloatClamping : UCk_GenericEntityScript_UE
 		utils_entity_tag::Add(InHandle, n"TAG_AttributeGym_FloatClamping");
 
 		// Display timer
-		auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+		auto DisplayTimerParams = FCk_Timer_Spec(FCk_Time(0.0f));
 		DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
 		DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Update timer for continuous value cycling
-		auto UpdateTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.8f));
+		auto UpdateTimerParams = FCk_Timer_Spec(FCk_Time(1.8f));
 		UpdateTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		UpdateTimer = utils_timer::Add(InHandle, UpdateTimerParams);
 		UpdateTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"UpdateTick"));

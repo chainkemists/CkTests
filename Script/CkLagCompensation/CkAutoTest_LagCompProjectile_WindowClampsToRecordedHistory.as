@@ -46,7 +46,7 @@ class UCk_AutoTest_LagCompProjectile_WindowClampsToRecordedHistory : UCk_AutoTes
 
     private void ScheduleMark(float InDelaySeconds, FName InCallbackName)
     {
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(InDelaySeconds));
+        auto Params = FCk_Timer_Spec(FCk_Time(InDelaySeconds));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(_SelfHandle, Params);

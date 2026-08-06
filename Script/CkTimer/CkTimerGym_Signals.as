@@ -38,7 +38,7 @@ class UCk_EntityScript_TimerGym_Signals : UCk_GenericEntityScript_UE
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Test timer: 4 seconds, ResetOnDone
-		auto TestParams = FCk_Fragment_Timer_ParamsData(FCk_Time(4.0f));
+		auto TestParams = FCk_Timer_Spec(FCk_Time(4.0f));
 		TestParams.Set_StartingState(ECk_Timer_State::Running);
 		TestParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		TestTimer = utils_timer::Add(InHandle, TestParams);
@@ -54,7 +54,7 @@ class UCk_EntityScript_TimerGym_Signals : UCk_GenericEntityScript_UE
 		TestTimer.BindTo_OnDepleted(FCk_Delegate_Timer(this, n"OnTimerDepleted"));
 
 		// Automation timer: step every 2 seconds
-		auto AutoParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.0f));
+		auto AutoParams = FCk_Timer_Spec(FCk_Time(2.0f));
 		AutoParams.Set_StartingState(ECk_Timer_State::Running);
 		AutoParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto AutoTimer = utils_timer::Add(InHandle, AutoParams);

@@ -37,17 +37,17 @@ class UCk_AutoTest_Timer_TryGet_Timer_ByName_AmongMultiple : UCk_AutoTest_Base
         _NameC = utils_gameplay_tag::ResolveGameplayTag(n"Timer.AutoTest_C");
         _NameUnknown = utils_gameplay_tag::ResolveGameplayTag(n"Timer.AutoTest_Unknown");
 
-        auto ParamsA = FCk_Fragment_Timer_ParamsData(FCk_Time(5.0f));
+        auto ParamsA = FCk_Timer_Spec(FCk_Time(5.0f));
         ParamsA.Set_TimerName(_NameA);
         ParamsA.Set_StartingState(ECk_Timer_State::Paused);
         _TimerA = utils_timer::Add(_Owner, ParamsA);
 
-        auto ParamsB = FCk_Fragment_Timer_ParamsData(FCk_Time(10.0f));
+        auto ParamsB = FCk_Timer_Spec(FCk_Time(10.0f));
         ParamsB.Set_TimerName(_NameB);
         ParamsB.Set_StartingState(ECk_Timer_State::Paused);
         _TimerB = utils_timer::Add(_Owner, ParamsB);
 
-        auto ParamsC = FCk_Fragment_Timer_ParamsData(FCk_Time(20.0f));
+        auto ParamsC = FCk_Timer_Spec(FCk_Time(20.0f));
         ParamsC.Set_TimerName(_NameC);
         ParamsC.Set_StartingState(ECk_Timer_State::Paused);
         _TimerC = utils_timer::Add(_Owner, ParamsC);

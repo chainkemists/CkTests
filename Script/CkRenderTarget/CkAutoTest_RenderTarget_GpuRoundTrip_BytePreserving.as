@@ -167,7 +167,7 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
 
     private void ScheduleTimer(float32 InSeconds, FName InCallbackName)
     {
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(InSeconds));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(InSeconds));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(_TestEntity, TimerParams);

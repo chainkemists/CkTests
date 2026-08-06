@@ -49,7 +49,7 @@ class UCk_NetGym_TwoPlayer_Director : UCk_GenericEntityScript_UE
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto BeatTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(CkNetGym::BeatSeconds));
+        auto BeatTimerParams = FCk_Timer_Spec(FCk_Time(CkNetGym::BeatSeconds));
         BeatTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto BeatTimer = utils_timer::Add(InHandle, BeatTimerParams);
         BeatTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnBeat"));

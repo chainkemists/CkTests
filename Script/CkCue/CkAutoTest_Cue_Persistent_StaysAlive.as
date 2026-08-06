@@ -32,7 +32,7 @@ class UCk_AutoTest_Cue_Persistent_StaysAlive : UCk_AutoTest_Base
             ECk_Cue_ReliabilityPolicy::Unreliable,
             ECk_Cue_MulticastPolicy::LocalOnly);
 
-        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
+        auto SettleParams = FCk_Timer_Spec(FCk_Time(0.5f));
         SettleParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto SettleTimer = utils_timer::Add(LocalHandle, SettleParams);

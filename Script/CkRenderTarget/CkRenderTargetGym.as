@@ -203,7 +203,7 @@ class UCk_RenderTargetGym_Whiteboard_EntityScript : UCk_EntityScript_WithActor_U
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_RenderTargetGym_SyncPixels,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnSyncPixels"));
 
-        auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.25f));
+        auto DisplayTimerParams = FCk_Timer_Spec(FCk_Time(0.25f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"DisplayTick"));

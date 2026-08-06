@@ -95,7 +95,7 @@ class ACk_VoxelNavGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         utils_voxel_nav_volume::Request_Build(_Volume, FCk_Request_VoxelNavVolume_Build(),
             FCk_Delegate_Request_OnCompleted(this, n"OnBuildCompleted"));
 
-        auto TickerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(k_DrawIntervalSec));
+        auto TickerParams = FCk_Timer_Spec(FCk_Time(k_DrawIntervalSec));
         TickerParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Ticker = utils_timer::Add(_PcEntity, TickerParams);
