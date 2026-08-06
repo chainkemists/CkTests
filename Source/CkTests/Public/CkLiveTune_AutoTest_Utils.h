@@ -255,6 +255,12 @@ public:
         UPARAM(ref) FCk_Handle& InAnyWorldEntity);
 
     UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
+              DisplayName = "[Ck][Tests][LiveTune] Broadcast Assets Reinitialized")
+    static void
+    Broadcast_AssetsReinitialized(
+        UCk_LiveTuneTest_TuningAsset* InAsset);
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
               DisplayName = "[Ck][Tests][LiveTune] Add Replace Params")
     static FCk_Handle
     Add_ReplaceParams(

@@ -4374,6 +4374,19 @@ class ACk_AutoTest_LagCompProjectile_WindowClampsToRecordedHistory_Actor : ACk_A
     }
 }
 
+class ACk_AutoTest_LiveTune_AsReloadHeal_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 3.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_LiveTune_AsReloadHeal");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_LiveTune_AttributeRebuild_RoundTrip_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 10.0f;

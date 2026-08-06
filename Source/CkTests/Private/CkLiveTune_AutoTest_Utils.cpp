@@ -1,6 +1,7 @@
 #include "CkLiveTune_AutoTest_Utils.h"
 
 #include "CkCore/Ensure/CkEnsure.h"
+#include "CkCore/IO/CkDeferredAssetInit_AngelScript.h"
 
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
 #include "CkEcs/LiveTune/CkLiveTune_Fragment.h"
@@ -189,6 +190,22 @@ auto
 #endif
 
     return 0;
+}
+
+auto
+    UCk_LiveTuneTest_Utils::
+    Broadcast_AssetsReinitialized(
+        UCk_LiveTuneTest_TuningAsset* InAsset)
+    -> void
+{
+    const auto AssetIsValid = ck::IsValid(InAsset);
+    CK_ENSURE_IF_NOT(AssetIsValid, TEXT("LiveTune test shim: invalid Tuning Asset"))
+    {}
+    if (NOT AssetIsValid)
+    { return; }
+
+    const auto HealedAssets = TArray<UObject*>{InAsset};
+    UCk_DeferredAssetInit_UE::Get_OnAssetsReinitialized().Broadcast(HealedAssets);
 }
 
 auto
