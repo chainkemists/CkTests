@@ -28,7 +28,7 @@ class UCk_AutoTest_Grid_ObjectFootprintRotationsFull : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
 
         // ---- 1. Rectangle 180-symmetry of a 2x1. ----
-        auto RectParams = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(2, 1));
+        auto RectParams = FCk_2dGridObject_Spec(FIntPoint(2, 1));
         auto Rect = utils_2d_grid_object::Add(
             utils_entity_lifetime::Request_CreateEntity(LocalHandle), RectParams);
 
@@ -51,7 +51,7 @@ class UCk_AutoTest_Grid_ObjectFootprintRotationsFull : UCk_AutoTest_Base
             "2x1 @ (5,5) ThreeQuarter -> (5,5),(5,6) (SAME cell set as Quarter; 180-symmetric)");
 
         // ---- 2. Anchor offset shifts the footprint (breaks the symmetry). ----
-        auto OffsetParams = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(2, 1));
+        auto OffsetParams = FCk_2dGridObject_Spec(FIntPoint(2, 1));
         OffsetParams.Set_AnchorOffset(FIntPoint(1, 0));
         auto OffsetObj = utils_2d_grid_object::Add(
             utils_entity_lifetime::Request_CreateEntity(LocalHandle), OffsetParams);
@@ -70,7 +70,7 @@ class UCk_AutoTest_Grid_ObjectFootprintRotationsFull : UCk_AutoTest_Base
 
         // ---- 3. Even-extent centering: 2x2 Center, None. ----
         // RotatedExtent (2,2) -> CenterOffset (1,1). cells = anchor + raw - (1,1).
-        auto SquareParams = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(2, 2));
+        auto SquareParams = FCk_2dGridObject_Spec(FIntPoint(2, 2));
         SquareParams.Set_Centering(ECk_GridObject_Centering::Center);
         auto Square = utils_2d_grid_object::Add(
             utils_entity_lifetime::Request_CreateEntity(LocalHandle), SquareParams);

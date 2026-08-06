@@ -118,17 +118,17 @@ namespace ck_test_voxelnav_crowd_flying_pie
     static auto Get_RouteFrom() -> FVector { return VolumeCenter + RouteFromOffset; }
     static auto Get_RouteTo() -> FVector { return VolumeCenter + RouteToOffset; }
 
-    static auto Make_StaticBoxParams() -> FCk_Fragment_JoltBody_ParamsData
+    static auto Make_StaticBoxParams() -> FCk_JoltBody_Spec
     {
-        auto Params = FCk_Fragment_JoltBody_ParamsData{ECk_JoltBody_ShapeSource::ExplicitShape};
+        auto Params = FCk_JoltBody_Spec{ECk_JoltBody_ShapeSource::ExplicitShape};
         Params.Set_ShapeDimensions(FCk_Jolt_ShapeDimensions{ECk_Jolt_ShapeType::Box});
         Params.Set_MotionType(ECk_MotionType::Static);
         return Params;
     }
 
-    static auto Make_VolumeParams() -> FCk_Fragment_VoxelNavVolume_ParamsData
+    static auto Make_VolumeParams() -> FCk_VoxelNavVolume_Spec
     {
-        auto Params = FCk_Fragment_VoxelNavVolume_ParamsData{Get_VolumeBounds(), FinestCellSizeUu};
+        auto Params = FCk_VoxelNavVolume_Spec{Get_VolumeBounds(), FinestCellSizeUu};
 
         // The build must start from OUR request, so its completion delegate reports the bake this test
         // waits on rather than one the setup processor already armed.
@@ -149,9 +149,9 @@ namespace ck_test_voxelnav_crowd_flying_pie
     }
 
     // The agents differ ONLY in _AgentMode, so anything the two do differently is the tag's doing.
-    static auto Make_AgentParams(ECk_CrowdAgent_Mode InMode) -> FCk_Fragment_CrowdAgent_ParamsData
+    static auto Make_AgentParams(ECk_CrowdAgent_Mode InMode) -> FCk_CrowdAgent_Spec
     {
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData{AgentRadiusUu, AgentHeightUu};
+        auto Params = FCk_CrowdAgent_Spec{AgentRadiusUu, AgentHeightUu};
         Params.Set_AgentMode(InMode);
         return Params;
     }
@@ -170,10 +170,10 @@ namespace ck_test_voxelnav_crowd_flying_pie
         auto Agent = UCk_Utils_CrowdAgent_UE::Add(AgentTransform, Make_AgentParams(InMode));
 
         UCk_Utils_Velocity_UE::Add(AgentEntity,
-            FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector::ZeroVector},
+            FCk_Velocity_Spec{ECk_LocalWorld::World, FVector::ZeroVector},
             ECk_Replication::DoesNotReplicate);
         UCk_Utils_Acceleration_UE::Add(AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData{ECk_LocalWorld::World, FVector::ZeroVector},
+            FCk_Acceleration_Spec{ECk_LocalWorld::World, FVector::ZeroVector},
             ECk_Replication::DoesNotReplicate);
         UCk_Utils_EulerIntegrator_UE::Request_Start(AgentEntity, {});
 
@@ -184,7 +184,7 @@ namespace ck_test_voxelnav_crowd_flying_pie
     {
         auto AgentHandle = InAgent.ConvertToHandle();
         auto Path = UCk_Utils_VoxelNavPath_UE::Add(AgentHandle,
-            FCk_Fragment_VoxelNavPath_ParamsData{AgentRadiusUu});
+            FCk_VoxelNavPath_Spec{AgentRadiusUu});
 
         if (ck::Is_NOT_Valid(Path))
         { return false; }

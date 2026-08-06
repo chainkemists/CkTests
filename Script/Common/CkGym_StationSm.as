@@ -182,7 +182,7 @@ namespace gym_sm
     {
         // _Replication already defaults to DoesNotReplicate, which is what a
         // local demo station wants.
-        auto Params = FCk_Fragment_StateMachine_ParamsData(InInitialStateClass);
+        auto Params = FCk_StateMachine_Spec(InInitialStateClass);
         return utils_state_machine::Add(InStationEntity, Params);
     }
 

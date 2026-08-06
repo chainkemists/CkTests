@@ -42,7 +42,7 @@ class UCk_AutoTest_BallisticMotion_FastForwardEquivalence : UCk_AutoTest_Base
             Entity, FTransform(FRotator::ZeroRotator, _StartLocation), ECk_Replication::DoesNotReplicate);
 
         auto TrajectoryParams = FCk_Ballistic_TrajectoryParams(FVector(0.0, 0.0, -6000.0));
-        auto Params = FCk_Fragment_BallisticMotion_ParamsData(TrajectoryParams);
+        auto Params = FCk_BallisticMotion_Spec(TrajectoryParams);
         return UCk_Utils_BallisticMotion_UE::Add(Entity, Params);
     }
 

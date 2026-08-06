@@ -622,7 +622,7 @@ bool FCkTest_VoxelNav_Occluder_TrackerEmitsOnlyOnMovementPastTheThreshold::RunTe
     auto TransformHandle = UCk_Utils_Transform_UE::Add(Entity, FTransform{StartLocation},
         ECk_Replication::DoesNotReplicate);
 
-    auto Params = FCk_Fragment_VoxelNavOccluder_ParamsData{ObstacleHalfExtents};
+    auto Params = FCk_VoxelNavOccluder_Spec{ObstacleHalfExtents};
     Params.Set_MovementThresholdOverride(ECk_EnableDisable::Enable);
     Params.Set_MovementThresholdUuOverride(MovementThresholdUu);
 
@@ -709,7 +709,7 @@ bool FCkTest_VoxelNav_Occluder_MarkingAVolumeDirtyBeforeItBakesIsRejected::RunTe
     auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(EcsWorld.Get_Registry());
 
     auto Volume = UCk_Utils_VoxelNavVolume_UE::Add(Owner,
-        FCk_Fragment_VoxelNavVolume_ParamsData{VolumeBounds, FinestCellSizeUu});
+        FCk_VoxelNavVolume_Spec{VolumeBounds, FinestCellSizeUu});
 
     if (NOT TestTrue(TEXT("the volume composes"), ck::IsValid(Volume)))
     { return false; }

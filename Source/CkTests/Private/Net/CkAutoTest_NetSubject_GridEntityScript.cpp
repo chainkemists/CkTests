@@ -61,7 +61,7 @@ auto
     // "No matching PendingEntity" failure. Mirrors how the inventory net-subject adds its inventory
     // to InHandle. The ClientOnly SyncReplication processor filters on FCk_Handle_2dGridSystem, so
     // it runs on this same (grid-bearing) InHandle on the client.
-    auto GridParams = FCk_Fragment_2dGridSystem_ParamsData{GridDimensions, GridCellSize};
+    auto GridParams = FCk_2dGridSystem_Spec{GridDimensions, GridCellSize};
     GridParams.Set_DefaultCellState(ECk_EnableDisable::Enable);
 
     // InHandle already carries the Transform added by Super::Construct; grid Add needs it as a
@@ -79,7 +79,7 @@ auto
         OccupantEntity, FTransform::Identity, ECk_Replication::Replicates);
 
     UCk_Utils_2dGridObject_UE::Add(
-        OccupantEntity, FCk_Fragment_2dGridObject_ParamsData{OccupantFootprint});
+        OccupantEntity, FCk_2dGridObject_Spec{OccupantFootprint});
 
     // ---- Stash on this world's actor --------------------------------------------------------
     auto* OwningActor = UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle);

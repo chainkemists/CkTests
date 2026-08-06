@@ -49,7 +49,7 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
 
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
@@ -64,14 +64,14 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(RootGoal);
         ActionSetParams.Set_WorldStateSource(WS);
         _Planner = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
+        auto RootParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Root_GoalIsEffects);
 
         _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
@@ -79,7 +79,7 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
 
         // Add Mid as a child of Root. Mid is composite (will have Leaf_B and
         // Leaf_A as its children below).
-        auto MidParams = FCk_Fragment_Goap_ActionParamsData(
+        auto MidParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         _MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(_MidAction), "Mid AddAction should succeed");
@@ -93,19 +93,19 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         MidGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true));
-        auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto MidPlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         MidPlannerParams.Set_Goal(MidGoal);
         _MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(_MidAction, MidPlannerParams);
         auto MidAsPlanner = _MidAsPlanner;
 
         // Add Leaf_B and Leaf_A as children of Mid.
-        auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
+        auto LeafBParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
         auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
         Assert_True(ck::IsValid(LeafBAction), "Leaf_B AddAction should succeed");
 
-        auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
+        auto LeafAParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects);
         auto LeafAAction = utils_goap_planner::AddAction(MidAsPlanner, LeafAParams);
         Assert_True(ck::IsValid(LeafAAction), "Leaf_A AddAction should succeed");

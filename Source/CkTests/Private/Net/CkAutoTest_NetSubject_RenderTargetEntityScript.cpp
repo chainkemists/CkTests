@@ -37,7 +37,7 @@ auto
     // chain to bind to a replicated outer Actor.
     const auto Flow = Super::Construct(InHandle, InSpawnParams);
 
-    auto Params = FCk_Fragment_RenderTarget_ParamsData{TAG_RenderTarget_AutoTest_Net};
+    auto Params = FCk_RenderTarget_Spec{TAG_RenderTarget_AutoTest_Net};
     Params.Set_Size(FIntPoint{64, 64});
     Params.Set_SyncMode(ECk_RenderTarget_SyncMode::InstructionsOnly);
     Params.Set_Replication(ECk_Replication::Replicates);

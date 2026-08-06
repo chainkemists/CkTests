@@ -22,7 +22,7 @@ class UCk_AutoTest_Aggro_Disable_FreezesEvaluation : UCk_AutoTest_Base
         auto EvalParams = FCk_Aggro_EvaluationParams();
         EvalParams.Set_EvaluationInterval(FCk_Time(0.1));
         EvalParams.Set_EvaluationJitter(FCk_Time(0.0));
-        auto OwnerParams = FCk_Fragment_Aggro_ParamsData();
+        auto OwnerParams = FCk_Aggro_Spec();
         OwnerParams.Set_EvaluationParams(EvalParams);
         _Aggro = utils_aggro::Add(Owner, OwnerParams);
 

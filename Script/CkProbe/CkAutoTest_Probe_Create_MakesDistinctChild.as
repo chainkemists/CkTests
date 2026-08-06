@@ -26,7 +26,7 @@ class UCk_AutoTest_Probe_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto BoxShape = utils_shapes::Make_Box(FCk_ShapeBox_Dimensions(FVector(50.0f, 50.0f, 50.0f)));
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Probe.Create_Seed"));
         auto DebugInfo = FCk_Probe_DebugInfo();
 

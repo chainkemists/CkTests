@@ -48,9 +48,9 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsEndpointWithNavQueryExtent
         Ribbons.Add(FCk_PathNetwork_Ribbon(Points));
         _Network = utils_path_network::Add(
             LocalHandle,
-            FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+            FCk_PathNetwork_Spec(Ribbons));
 
-        auto FollowerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto FollowerParams = FCk_PathNetworkFollower_Spec();
         FollowerParams.Set_Network(_Network);
         FollowerParams.Set_OffPathCostMultiplier(3.0f);
         FollowerParams.Set_CorridorWaypointSpacing(100.0f);

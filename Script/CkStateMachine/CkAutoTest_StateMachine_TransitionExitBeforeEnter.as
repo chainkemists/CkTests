@@ -34,7 +34,7 @@ class UCk_AutoTest_StateMachine_TransitionExitBeforeEnter : UCk_AutoTest_Base
         _TestEntity = InHandle;
         auto LocalHandle = InHandle;
 
-        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_Ordering_State_A));
+        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_StateMachine_Spec(UCk_SmTest_Ordering_State_A));
 
         FCk_Delegate_Sm_OnStateChanged Delegate;
         Delegate.BindUFunction(this, n"OnStateChanged");

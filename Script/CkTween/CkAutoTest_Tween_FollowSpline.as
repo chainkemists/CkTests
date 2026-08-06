@@ -5,7 +5,7 @@
 //============================================================================
 //
 // Verifies the CkSpline feature and the CkTween spline-follow tween together:
-//   1. Build an FCk_Fragment_Spline_ParamsData from 3 known points via
+//   1. Build an FCk_Spline_Spec from 3 known points via
 //      utils_spline::Make_Params_FromPoints, then Create a spline entity.
 //   2. Assert the pure (no-tick) query surface: length is positive, location
 //      at distance 0 is the first point, location at full distance is the last.

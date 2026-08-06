@@ -32,7 +32,7 @@ class UCk_AutoTest_CkJolt_Rope_BuildsAndHangs : UCk_AutoTest_Base
     {
         _SelfHandle = InHandle;
 
-        auto RopeParams = FCk_JoltRope_ParamsData(_Anchor);
+        auto RopeParams = FCk_JoltRope_Spec(_Anchor);
         RopeParams.Set_SegmentCount(_SegmentCount);
         RopeParams.Set_SegmentLength(_SegmentLength);
         RopeParams.Set_SegmentRadius(5.0);

@@ -20,7 +20,7 @@ class UCk_AutoTest_RenderStatus_Add_CreatesFeature : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
         auto Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 
-        auto Params = FCk_Fragment_RenderStatus_ParamsData(ECk_RenderStatus_Group::Unspecified);
+        auto Params = FCk_RenderStatus_Spec(ECk_RenderStatus_Group::Unspecified);
         utils_render_status::Add(Entity, Params);
 
         Assert_True(utils_render_status::Has(Entity),

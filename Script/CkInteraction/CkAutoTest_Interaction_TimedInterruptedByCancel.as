@@ -33,11 +33,11 @@ class UCk_AutoTest_Interaction_TimedInterruptedByCancel : UCk_AutoTest_Base
         _MyEntity = LocalHandle;
         auto Channel = interaction_gym_helpers::DefaultChannel();
 
-        auto SourceParams = FCk_Fragment_InteractSource_ParamsData();
+        auto SourceParams = FCk_InteractSource_Spec();
         SourceParams._InteractionChannel = Channel;
         _Source = utils_interact_source::Add(LocalHandle, SourceParams);
 
-        auto TargetParams = FCk_Fragment_InteractTarget_ParamsData(Channel);
+        auto TargetParams = FCk_InteractTarget_Spec(Channel);
         TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::Timed);
         TargetParams.Set_InteractionDuration(FCk_Time(0.5f));
         _Target = utils_interact_target::Add(LocalHandle, TargetParams);

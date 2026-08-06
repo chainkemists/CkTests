@@ -65,12 +65,12 @@ class UCk_AutoTest_Poi_ExplicitHide_RemovesFromBothProjectors : UCk_AutoTest_Bas
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        auto CompassParams = FCk_Fragment_Compass_ParamsData();
+        auto CompassParams = FCk_Compass_Spec();
         CompassParams.Set_HeadingSource(ECk_Compass_HeadingSource::Manual);
         _Compass = utils_compass::Add(Observer, CompassParams);
         _Compass.Request_SetManualHeading(0.0);
 
-        _Minimap = utils_minimap::Add(Observer, FCk_Fragment_Minimap_ParamsData(5000.0));
+        _Minimap = utils_minimap::Add(Observer, FCk_Minimap_Spec(5000.0));
 
         // POI 1000uu due +X (bearing 0, inside the compass arc; inside the minimap frame).
         auto PoiOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
@@ -78,11 +78,11 @@ class UCk_AutoTest_Poi_ExplicitHide_RemovesFromBothProjectors : UCk_AutoTest_Bas
         utils_transform::Add(PoiOwner,
             FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, 0.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _Poi = utils_poi::Add(PoiOwner, FCk_Fragment_Poi_ParamsData(
+        _Poi = utils_poi::Add(PoiOwner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark")));
 
         // Base-entity VisibleRange: unlimited range (MaxRange 0), evaluate every tick.
-        auto VrParams = FCk_Fragment_VisibleRange_ParamsData(0.0);
+        auto VrParams = FCk_VisibleRange_Spec(0.0);
         VrParams.Set_UpdateInterval(FCk_Time(0.0f));
         _Vr = utils_visible_range::Add(PoiOwner, VrParams);
     }

@@ -56,7 +56,7 @@ class UCk_AutoTest_CkJolt_SphereRollsDownRampToBottom : UCk_AutoTest_Base
 
         auto SphereShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         SphereShape.Set_Radius(30.0);
-        auto SphereParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto SphereParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         SphereParams.Set_ShapeDimensions(SphereShape);
         SphereParams.Set_MotionType(ECk_MotionType::Dynamic);
         SphereParams.Set_SurfaceSource(ECk_JoltBody_SurfaceSource::Explicit);
@@ -76,7 +76,7 @@ class UCk_AutoTest_CkJolt_SphereRollsDownRampToBottom : UCk_AutoTest_Base
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(InHalfExtents);
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(Entity, Params);

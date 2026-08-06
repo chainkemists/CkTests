@@ -7,7 +7,7 @@
 // First-coverage seed for CkShapes. Adding a ShapeBox feature with
 // configured half-extents round-trips through Get_Dimensions: the
 // dimensions stored on the shape entity match what was passed to the
-// FCk_Fragment_ShapeBox_ParamsData ctor.
+// FCk_ShapeBox_Spec ctor.
 //============================================================================
 
 class UCk_AutoTest_Shape_Box_Add_RoundTripsHalfExtents : UCk_AutoTest_Base
@@ -22,7 +22,7 @@ class UCk_AutoTest_Shape_Box_Add_RoundTripsHalfExtents : UCk_AutoTest_Base
         auto Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 
         auto Dimensions = FCk_ShapeBox_Dimensions(FVector(50.0f, 25.0f, 10.0f));
-        auto Params = FCk_Fragment_ShapeBox_ParamsData(Dimensions);
+        auto Params = FCk_ShapeBox_Spec(Dimensions);
         auto BoxHandle = utils_shape_box::Add(Entity, Params);
 
         Assert_True(ck::IsValid(BoxHandle),

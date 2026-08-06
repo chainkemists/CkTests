@@ -20,7 +20,7 @@ class UCk_AutoTest_StateMachine_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_State_Idle);
+        auto Params = FCk_StateMachine_Spec(UCk_SmTest_State_Idle);
 
         auto Child = utils_state_machine::Create(Owner, Params);
         auto ChildEntity = FCk_Handle(Child);

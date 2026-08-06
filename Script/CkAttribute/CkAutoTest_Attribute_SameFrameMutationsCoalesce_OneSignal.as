@@ -32,7 +32,7 @@ class UCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal : UCk_AutoTest
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto Params = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Damage"),
             10);
         Params.Set_MinMax(ECk_MinMax::MinMax);

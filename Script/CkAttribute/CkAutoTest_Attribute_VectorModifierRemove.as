@@ -27,7 +27,7 @@ class UCk_AutoTest_Attribute_VectorModifierRemove : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_VectorAttribute_ParamsData(
+        auto Params = FCk_VectorAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"VectorAttribute.AutoTest_PerComponent"),
             FVector(100.0f, 100.0f, 100.0f));
 
@@ -45,7 +45,7 @@ class UCk_AutoTest_Attribute_VectorModifierRemove : UCk_AutoTest_Base
     {
         _Step = 1;
 
-        auto ModParams = FCk_Fragment_VectorAttributeModifier_ParamsData();
+        auto ModParams = FCk_VectorAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(FVector(25.0f, 10.0f, 5.0f));
         _Modifier = utils_vector_attribute_modifier::Add_Revocable(
             _Attribute,

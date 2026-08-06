@@ -298,7 +298,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         // Each agent is a child of the registry transient, not a station entity;
         // DestroyAgents still destroys each explicitly at cycle end.
         FCk_Handle TransientOwner = ck::TransientEntity();
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
 
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         AgentEntity.Set_DebugName(InDebugName);
@@ -314,8 +314,8 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         // Stamp the agent's identity colour so every visualisation (DrawBody capsule + cone,
         // breadcrumb path, planned-path overlay, debugger swatch) coordinates on the same color.
         utils_crowd_agent::Set_DebugColor(Agent, InColor);
-        utils_velocity::Add(AgentEntity, FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
-        utils_acceleration::Add(AgentEntity, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_velocity::Add(AgentEntity, FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+        utils_acceleration::Add(AgentEntity, FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(AgentEntity);
 
         // Body capsule + forward cone come from FProcessor_CrowdAgent_DrawBody (CkCrowd

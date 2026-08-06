@@ -35,7 +35,7 @@ class UCk_SimpleBackgroundMusicCue : UCk_AudioCue_EntityScript
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Block;
 
     UPROPERTY()
-    FCk_Fragment_AudioTrack_ParamsData TrackParams(
+    FCk_AudioTrack_Spec TrackParams(
         Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
         ECk_AssetSearchScope::Plugins)._Asset));
     default TrackParams._TrackName = n"AudioGym.Simple.BackgroundMusic.Track";
@@ -75,7 +75,7 @@ class UCk_SimpleSpatialAudioCue : UCk_AudioCue_EntityScript
     default _SamePriorityBehavior = ECk_SamePriorityBehavior::Block;
 
     UPROPERTY()
-    FCk_Fragment_AudioTrack_ParamsData TrackParams(
+    FCk_AudioTrack_Spec TrackParams(
         Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
         ECk_AssetSearchScope::Plugins)._Asset));
     default TrackParams._TrackName = n"AudioGym.Simple.SpatialAudio.Track";

@@ -34,7 +34,7 @@ class UCk_AutoTest_AnimAsset_Add_CreatesValidHandle : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.AnimAsset.Seed"),
             TestSequence);
 
-        auto Params = FCk_Fragment_AnimAsset_ParamsData(Animation);
+        auto Params = FCk_AnimAsset_Spec(Animation);
 
         auto OwnerHandle = InHandle;
         auto AnimAssetHandle = utils_anim_asset::Add(OwnerHandle, Params);

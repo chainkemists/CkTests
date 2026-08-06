@@ -90,7 +90,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
     void CreateOrchestralDirector(FCk_Handle& InHandle)
     {
         // Create specialized AudioDirector for orchestral management
-        auto OrchestralParams = FCk_Fragment_AudioDirector_ParamsData();
+        auto OrchestralParams = FCk_AudioDirector_Spec();
         OrchestralParams.Set_DefaultCrossfadeDuration(FCk_Time(4.0f)); // Even longer for orchestral transitions
         OrchestralParams.Set_MaxConcurrentTracks(16); // Maximum orchestral complexity
         OrchestralParams.Set_SamePriorityBehavior(ECk_SamePriorityBehavior::Allow);
@@ -119,7 +119,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
         }
 
         // Setup foundational tracks in primary director
-        auto AmbientTrackParams = FCk_Fragment_AudioTrack_ParamsData(
+        auto AmbientTrackParams = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
         AmbientTrackParams._TrackName = n"AudioGym.Advanced.Features.Ambient.Foundation";
@@ -148,7 +148,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
             auto TrackTag = OrchestralTrackTags[i];
             auto SoundAsset = GetOrchestralSoundAsset(i);
 
-            auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(SoundAsset);
+            auto TrackParams = FCk_AudioTrack_Spec(SoundAsset);
             TrackParams._TrackName = TrackTag.GetTagName();
 
             // Configure orchestral track parameters based on type
@@ -191,7 +191,7 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
         }
     }
 
-    void ConfigureOrchestralTrackParams(FCk_Fragment_AudioTrack_ParamsData& InOutParams, int32 InTrackIndex)
+    void ConfigureOrchestralTrackParams(FCk_AudioTrack_Spec& InOutParams, int32 InTrackIndex)
     {
         if (InTrackIndex < 2) // Percussion - foundation rhythm
         {

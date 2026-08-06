@@ -27,7 +27,7 @@ class UCk_AutoTest_Probe_Add_Sphere_CreatesProbeEntity : UCk_AutoTest_Base
             return;
         }
 
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Probe.Add_Sphere_Seed"));
         auto DebugInfo = FCk_Probe_DebugInfo();
         auto ProbeHandle = utils_probe::Add_Sphere(ParentTransform, 75.0f, ProbeParams, DebugInfo);

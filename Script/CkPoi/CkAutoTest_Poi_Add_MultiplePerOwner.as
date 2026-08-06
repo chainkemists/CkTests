@@ -41,13 +41,13 @@ class UCk_AutoTest_Poi_Add_MultiplePerOwner : UCk_AutoTest_Base
         _ShopOwner.Request_OverrideToSelf();
         utils_transform::Add(_ShopOwner, FTransform(FRotator::ZeroRotator, FVector(0.0, 52200.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _ShopPoi = utils_poi::Add(_ShopOwner, FCk_Fragment_Poi_ParamsData(_ShopCategory));
+        _ShopPoi = utils_poi::Add(_ShopOwner, FCk_Poi_Spec(_ShopCategory));
 
         _QuestOwner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         _QuestOwner.Request_OverrideToSelf();
         utils_transform::Add(_QuestOwner, FTransform(FRotator::ZeroRotator, FVector(100.0, 52200.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _QuestPoi = utils_poi::Add(_QuestOwner, FCk_Fragment_Poi_ParamsData(_QuestCategory));
+        _QuestPoi = utils_poi::Add(_QuestOwner, FCk_Poi_Spec(_QuestCategory));
 
         Assert_True(ck::IsValid(_ShopPoi), "First entity's Add should return a valid handle");
         Assert_True(ck::IsValid(_QuestPoi), "Second entity's Add should return a valid handle");

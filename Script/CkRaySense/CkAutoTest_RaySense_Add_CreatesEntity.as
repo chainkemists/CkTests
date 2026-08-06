@@ -21,7 +21,7 @@ class UCk_AutoTest_RaySense_Add_CreatesEntity : UCk_AutoTest_Base
         auto Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         utils_transform::Add(Entity, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_RaySense_ParamsData(
+        auto Params = FCk_RaySense_Spec(
             ECk_RaySense_CollisionQuality::Sweep, ECollisionChannel::ECC_Visibility);
         auto RaySense = utils_ray_sense::Add(Entity, Params);
 

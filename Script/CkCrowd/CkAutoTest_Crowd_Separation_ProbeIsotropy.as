@@ -182,7 +182,7 @@ class UCk_AutoTest_Crowd_Separation_ProbeIsotropy : UCk_AutoTest_Base
     // overrides velocity through the Velocity feature's public API.
     private FCk_Handle_CrowdAgent SpawnIdleAgent(FCk_Handle& InOwner, FVector InSpawn)
     {
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         Params.Set_SeparationRadius(SeparationRadius);
         Params.Set_SeparationLookahead(SeparationLookahead);
 
@@ -192,10 +192,10 @@ class UCk_AutoTest_Crowd_Separation_ProbeIsotropy : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
         utils_velocity::Add(AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
 
         return Agent;

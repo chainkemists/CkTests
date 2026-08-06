@@ -47,7 +47,7 @@ class UCk_AutoTest_Attribute_Request_ClearAllModifiers : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto Params = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Damage"),
             10);
         Params.Set_MinMax(ECk_MinMax::MinMax);
@@ -68,7 +68,7 @@ class UCk_AutoTest_Attribute_Request_ClearAllModifiers : UCk_AutoTest_Base
     private void Step1_AddFiveRevocable()
     {
         _Step = 1;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(5);
         utils_integer_attribute_modifier::Add_Revocable(
             _Attribute,
@@ -80,7 +80,7 @@ class UCk_AutoTest_Attribute_Request_ClearAllModifiers : UCk_AutoTest_Base
     private void Step2_AddSevenRevocable()
     {
         _Step = 2;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(7);
         utils_integer_attribute_modifier::Add_Revocable(
             _Attribute,
@@ -92,7 +92,7 @@ class UCk_AutoTest_Attribute_Request_ClearAllModifiers : UCk_AutoTest_Base
     private void Step3_AddNineRevocable()
     {
         _Step = 3;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(9);
         utils_integer_attribute_modifier::Add_Revocable(
             _Attribute,
@@ -104,7 +104,7 @@ class UCk_AutoTest_Attribute_Request_ClearAllModifiers : UCk_AutoTest_Base
     private void Step4_AddFourNotRevocable()
     {
         _Step = 4;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(4);
         utils_integer_attribute_modifier::Add_NotRevocable(
             _Attribute,
@@ -115,7 +115,7 @@ class UCk_AutoTest_Attribute_Request_ClearAllModifiers : UCk_AutoTest_Base
     private void Step5_MultiplyByTwoNotRevocable()
     {
         _Step = 5;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(2);
         utils_integer_attribute_modifier::Add_NotRevocable(
             _Attribute,

@@ -26,11 +26,11 @@ class UCkAudioGym_Advanced_Base : UCk_GenericEntityScript_UE
 
     // Probe parameters - exposed as class defaults for derived classes to override
     UPROPERTY()
-    FCk_Fragment_Probe_ParamsData ProbeParams;
+    FCk_Probe_Spec ProbeParams;
 
     // AudioDirector parameters
     UPROPERTY()
-    FCk_Fragment_AudioDirector_ParamsData AudioDirectorParams;
+    FCk_AudioDirector_Spec AudioDirectorParams;
 
     // Default probe setup
     UPROPERTY()
@@ -70,7 +70,7 @@ class UCkAudioGym_Advanced_Base : UCk_GenericEntityScript_UE
     }
 
     // Set default probe parameters
-    default ProbeParams = FCk_Fragment_Probe_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Probe.Station"));
+    default ProbeParams = FCk_Probe_Spec(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Probe.Station"));
     default ProbeParams.Set_MotionType(ECk_MotionType::Kinematic);
     default ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
     default ProbeParams._Filter.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"Player.Probe"));
@@ -100,7 +100,7 @@ class UCkAudioGym_Advanced_Base : UCk_GenericEntityScript_UE
         ProbeHandle = utils_probe::Add(TransformHandle, ProbeParams, DebugInfo);
 
         // Add ISM Proxy renderer for visual representation (station floor)
-        auto IsmProxyParams = FCk_Fragment_IsmProxy_ParamsData(ck::Asset_BackgroundCube);
+        auto IsmProxyParams = FCk_IsmProxy_Spec(ck::Asset_BackgroundCube);
         // Use utility function to calculate scale for 1040x1040x1040 background cube
         IsmProxyParams.Set_ScaleMultiplier(CalculateBackgroundCubeScale(ProbeSize));
         utils_ism_proxy::Add(TransformHandle, IsmProxyParams);

@@ -40,7 +40,7 @@ class UCk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness : UCk_AutoTest_Ba
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto Params = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Damage"),
             10);
         Params.Set_MinMax(ECk_MinMax::MinMax);
@@ -61,7 +61,7 @@ class UCk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness : UCk_AutoTest_Ba
     private void Step1_AddFirst()
     {
         _Step = 1;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(5);
         _Mod1 = utils_integer_attribute_modifier::Add_Revocable(
             _Attribute,
@@ -73,7 +73,7 @@ class UCk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness : UCk_AutoTest_Ba
     private void Step2_AddSecond()
     {
         _Step = 2;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(7);
         _Mod2 = utils_integer_attribute_modifier::Add_Revocable(
             _Attribute,
@@ -85,7 +85,7 @@ class UCk_AutoTest_Attribute_Revocable_PerCallHandleUniqueness : UCk_AutoTest_Ba
     private void Step3_AddThird()
     {
         _Step = 3;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(9);
         _Mod3 = utils_integer_attribute_modifier::Add_Revocable(
             _Attribute,

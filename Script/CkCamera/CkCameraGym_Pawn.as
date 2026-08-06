@@ -34,7 +34,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
     default bAddDefaultMovementBindings = false;
 
     // The director does NOT create this. _OutputComponent is the single essential constructor parameter of
-    // FCk_Fragment_Camera_ParamsData and is get-only, so the component has to exist on the actor before Add
+    // FCk_Camera_Spec and is get-only, so the component has to exist on the actor before Add
     // is called - Add ensures on it and returns an invalid handle otherwise.
     UPROPERTY(DefaultComponent)
     UCk_CameraComponent CameraComponent;
@@ -92,7 +92,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
         // anchor, and the POV reads it each frame, so the boom follows the pawn with no extra transform to add.
 
         auto PawnTransform = _PawnEntity.As_Transform();
-        _Camera = utils_camera::Add(PawnTransform, FCk_Fragment_Camera_ParamsData(CameraComponent));
+        _Camera = utils_camera::Add(PawnTransform, FCk_Camera_Spec(CameraComponent));
 
         Request_SpawnReferenceGeometry();
 

@@ -41,7 +41,7 @@ bool FCkTest_Sfx_CueReadsNullAfterGc::RunTest(const FString& Parameters)
     const auto WeakCue = TWeakObjectPtr<USoundBase>{Cue};
 
     auto Entity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    Entity.Add<ck::FFragment_Sfx_Params>(FCk_Fragment_Sfx_ParamsData{FGameplayTag{}, Cue});
+    Entity.Add<ck::FFragment_Sfx_Params>(FCk_Sfx_Spec{FGameplayTag{}, Cue});
 
     Cue = nullptr;
     CollectGarbage(RF_NoFlags, true);

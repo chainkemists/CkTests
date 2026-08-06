@@ -597,7 +597,7 @@ bool FCkTest_VoxelNav_Path_AddComposesOnTheAgentEntity::RunTest(const FString& P
     auto Agent = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(EcsWorld.Get_Registry());
 
     const auto Path = UCk_Utils_VoxelNavPath_UE::Add(Agent,
-        FCk_Fragment_VoxelNavPath_ParamsData{AgentRadiusUu});
+        FCk_VoxelNavPath_Spec{AgentRadiusUu});
 
     if (NOT TestTrue(TEXT("Add returns a valid VoxelNavPath handle"), ck::IsValid(Path)))
     { return false; }
@@ -684,7 +684,7 @@ bool FCkTest_VoxelNav_Path_RequestAgainstUnbuiltVolumeFails::RunTest(const FStri
 
     auto Agent = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Fixture.World.Get_Registry());
     auto Volume = UCk_Utils_VoxelNavVolume_UE::Add(Agent,
-        FCk_Fragment_VoxelNavVolume_ParamsData{VolumeBounds, FinestCellSizeUu});
+        FCk_VoxelNavVolume_Spec{VolumeBounds, FinestCellSizeUu});
 
     if (NOT TestTrue(TEXT("the volume composes"), ck::IsValid(Volume)))
     { return false; }
@@ -693,7 +693,7 @@ bool FCkTest_VoxelNav_Path_RequestAgainstUnbuiltVolumeFails::RunTest(const FStri
         UCk_Utils_VoxelNavVolume_UE::Get_IsBuilt(Volume)))
     { return false; }
 
-    auto Path = UCk_Utils_VoxelNavPath_UE::Add(Agent, FCk_Fragment_VoxelNavPath_ParamsData{});
+    auto Path = UCk_Utils_VoxelNavPath_UE::Add(Agent, FCk_VoxelNavPath_Spec{});
 
     if (NOT TestTrue(TEXT("the path feature composes"), ck::IsValid(Path)))
     { return false; }

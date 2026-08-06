@@ -41,14 +41,14 @@ class UCk_AutoTest_Grid_ConnectivityEdges : UCk_AutoTest_Base
         auto GridOwnerT = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto GP = FCk_Fragment_2dGridSystem_ParamsData(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
+        auto GP = FCk_2dGridSystem_Spec(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
         GP.Set_DefaultCellState(ECk_EnableDisable::Enable);
         auto Grid = utils_2d_grid_system::Add(GridOwnerT, GP);
 
         // ---- (a) Trivial single-cell under RequireConnected. ----
         auto SingleEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto SingleObj = utils_2d_grid_object::Add(
-            SingleEntity, FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1)));
+            SingleEntity, FCk_2dGridObject_Spec(FIntPoint(1, 1)));
 
         auto SingleConnected = utils_2d_grid_placement::Get_CanPlace(
             Grid, SingleObj, FIntPoint(5, 5),
@@ -61,7 +61,7 @@ class UCk_AutoTest_Grid_ConnectivityEdges : UCk_AutoTest_Base
         // ---- (b) Positive multi-cell under RequireConnected on open cells. ----
         auto RectEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto RectObj = utils_2d_grid_object::Add(
-            RectEntity, FCk_Fragment_2dGridObject_ParamsData(FIntPoint(3, 1)));
+            RectEntity, FCk_2dGridObject_Spec(FIntPoint(3, 1)));
 
         auto RectConnected = utils_2d_grid_placement::Get_CanPlace(
             Grid, RectObj, FIntPoint(5, 5),

@@ -37,7 +37,7 @@ class UCk_AutoTest_Attribute_NotRevocable_OverrideReplaces : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto Params = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Damage"),
             10);
         Params.Set_MinMax(ECk_MinMax::MinMax);
@@ -58,7 +58,7 @@ class UCk_AutoTest_Attribute_NotRevocable_OverrideReplaces : UCk_AutoTest_Base
     private void Step1_OverrideFifty()
     {
         _Step = 1;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(50);
         utils_integer_attribute_modifier::Add_NotRevocable(
             _Attribute,
@@ -69,7 +69,7 @@ class UCk_AutoTest_Attribute_NotRevocable_OverrideReplaces : UCk_AutoTest_Base
     private void Step2_OverrideThirty()
     {
         _Step = 2;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(30);
         utils_integer_attribute_modifier::Add_NotRevocable(
             _Attribute,

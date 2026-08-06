@@ -17,7 +17,7 @@ class UCk_AutoTest_EntityCollection_TryGetAbsentInvalid : UCk_AutoTest_Base
 
         utils_entity_collection::Add(
             LocalHandle,
-            FCk_Fragment_EntityCollection_ParamsData(Present),
+            FCk_EntityCollection_Spec(Present),
             ECk_Replication::DoesNotReplicate);
 
         auto FoundMissing = utils_entity_collection::TryGet_EntityCollection(LocalHandle, Missing);

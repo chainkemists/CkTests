@@ -63,7 +63,7 @@ class UCk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox : UCk_AutoTest_Base
 
         auto PlatformShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         PlatformShape.Set_HalfExtents(FVector(300.0, 300.0, 25.0));
-        auto PlatformParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto PlatformParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         PlatformParams.Set_ShapeDimensions(PlatformShape);
         PlatformParams.Set_MotionType(ECk_MotionType::Kinematic);
         // A carry test needs grip: default friction (0.2) lets the box slide instead of tracking.
@@ -80,7 +80,7 @@ class UCk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox : UCk_AutoTest_Base
 
         auto BoxShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         BoxShape.Set_HalfExtents(FVector(50.0, 50.0, 50.0));
-        auto BoxParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto BoxParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         BoxParams.Set_ShapeDimensions(BoxShape);
         BoxParams.Set_MotionType(ECk_MotionType::Dynamic);
         BoxParams.Set_SurfaceSource(ECk_JoltBody_SurfaceSource::Explicit);

@@ -45,7 +45,7 @@ class UCk_AutoTest_Dialog_TagFilter_EmitterSeesOnlyMatching : UCk_AutoTest_Base
 
         auto EmitterTags = FGameplayTagContainer();
         EmitterTags.AddTag(TownieTag);
-        _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(EmitterTags));
+        _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_DialogEmitter_Spec(EmitterTags));
 
         // Wait until BOTH lines are registered, which is load-bearing for the
         // contract: with only the Townie line landed, "emitter sees exactly the

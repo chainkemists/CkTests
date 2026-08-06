@@ -28,7 +28,7 @@ class UCk_AutoTest_Attribute_IntegerMinMaxComponents : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto Params = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Health"),
             100);
         Params.Set_MinMax(ECk_MinMax::MinMax);

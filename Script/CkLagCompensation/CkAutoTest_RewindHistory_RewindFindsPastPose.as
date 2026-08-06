@@ -48,7 +48,7 @@ class UCk_AutoTest_RewindHistory_RewindFindsPastPose : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.LagComp.Body"),
             UCk_Utils_Shapes_UE::Make_Sphere(FCk_ShapeSphere_Dimensions(50.0))));
 
-        auto Params = FCk_Fragment_RewindHistory_ParamsData(HitShapes);
+        auto Params = FCk_RewindHistory_Spec(HitShapes);
         _History = UCk_Utils_RewindHistory_UE::Add(Target, Params);
 
         if (ck::Is_NOT_Valid(_History))

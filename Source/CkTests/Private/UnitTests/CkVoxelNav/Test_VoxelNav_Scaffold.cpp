@@ -22,9 +22,9 @@ namespace ck_test_voxelnav_scaffold
 
     constexpr auto FinestCellSizeUu = 50.0f;
 
-    static auto Make_VolumeParams() -> FCk_Fragment_VoxelNavVolume_ParamsData
+    static auto Make_VolumeParams() -> FCk_VoxelNavVolume_Spec
     {
-        return FCk_Fragment_VoxelNavVolume_ParamsData{VolumeBounds, FinestCellSizeUu};
+        return FCk_VoxelNavVolume_Spec{VolumeBounds, FinestCellSizeUu};
     }
 }
 

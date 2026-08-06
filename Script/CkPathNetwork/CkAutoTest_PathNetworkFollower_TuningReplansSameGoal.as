@@ -46,24 +46,24 @@ class UCk_AutoTest_PathNetworkFollower_TuningReplansSameGoal : UCk_AutoTest_Base
         Ribbons.Add(FCk_PathNetwork_Ribbon(Points));
         _Network = utils_path_network::Add(
             LocalHandle,
-            FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+            FCk_PathNetwork_Spec(Ribbons));
 
-        auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto AgentParams = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         AgentParams.Set_MaxSpeed(1.0f);
         _Agent = utils_crowd_agent::Add(AgentTransform, AgentParams);
         utils_velocity::Add(
             LocalHandle,
-            FCk_Fragment_Velocity_ParamsData(
+            FCk_Velocity_Spec(
                 ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(
             LocalHandle,
-            FCk_Fragment_Acceleration_ParamsData(
+            FCk_Acceleration_Spec(
                 ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(LocalHandle);
 
-        auto Params = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto Params = FCk_PathNetworkFollower_Spec();
         Params.Set_Network(_Network);
         Params.Set_SideKeepingFraction(0.0f);
         Params.Set_CorridorWaypointSpacing(200.0f);

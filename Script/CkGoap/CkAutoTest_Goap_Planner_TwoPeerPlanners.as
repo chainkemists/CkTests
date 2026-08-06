@@ -46,7 +46,7 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
         // both planners find PlanFound immediately (empty plan).
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true);
@@ -62,7 +62,7 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true));
 
-        auto ActionSetParamsA = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParamsA = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParamsA.Set_Goal(GoalA);
         ActionSetParamsA.Set_WorldStateSource(WS);
@@ -74,7 +74,7 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
             ActionSetParamsA);
         Assert_True(ck::IsValid(_PlannerA), "Create Planner A should return a valid handle");
 
-        auto RootParamsA = FCk_Fragment_Goap_ActionParamsData(
+        auto RootParamsA = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiA);
 
         _RootA = utils_goap_planner::AddAction(_PlannerA, RootParamsA);
@@ -86,7 +86,7 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             true));
 
-        auto ActionSetParamsB = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParamsB = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set2"));
         ActionSetParamsB.Set_Goal(GoalB);
         ActionSetParamsB.Set_WorldStateSource(WS);
@@ -95,7 +95,7 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
             ActionSetParamsB);
         Assert_True(ck::IsValid(_PlannerB), "Create Planner B should return a valid handle");
 
-        auto RootParamsB = FCk_Fragment_Goap_ActionParamsData(
+        auto RootParamsB = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiB);
 
         _RootB = utils_goap_planner::AddAction(_PlannerB, RootParamsB);

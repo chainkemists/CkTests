@@ -33,12 +33,12 @@ class UCk_AutoTest_Grid_ExternalOccupantDestructionCleanup : UCk_AutoTest_Base
         auto GridOwnerT = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto GP = FCk_Fragment_2dGridSystem_ParamsData(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
+        auto GP = FCk_2dGridSystem_Spec(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
         GP.Set_DefaultCellState(ECk_EnableDisable::Enable);
         _Grid = utils_2d_grid_system::Add(GridOwnerT, GP);
 
         _ObjectA = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        utils_2d_grid_object::Add(_ObjectA, FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1)));
+        utils_2d_grid_object::Add(_ObjectA, FCk_2dGridObject_Spec(FIntPoint(1, 1)));
 
         _PlacementA = utils_2d_grid_placement::Request_Place(
             _Grid, _ObjectA, FIntPoint(5, 5), ECk_CardinalRotation::None);

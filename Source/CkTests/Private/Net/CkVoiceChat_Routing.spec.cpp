@@ -266,7 +266,7 @@ bool FCkVoiceChatNet_RoutingForwardsAndNeverStashes::RunTest(const FString& Para
             // had been stashed anywhere.
             auto HostEntity = UCk_Utils_OwningActor_UE::Get_ActorEntityHandle(SubjectA);
             auto LateChannel = UCk_Utils_VoiceChannel_UE::Add(HostEntity,
-                FCk_Fragment_VoiceChannel_ParamsData{TAG_VoiceChat_Channel_AutoTest_NeverStash});
+                FCk_VoiceChannel_Spec{TAG_VoiceChat_Channel_AutoTest_NeverStash});
 
             UCk_Utils_VoiceChannel_UE::Request_Join(LateChannel,
                 FCk_Request_VoiceChannel_Join{SubjectA->_TestTalker}, {});

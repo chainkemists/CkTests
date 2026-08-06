@@ -80,7 +80,7 @@ auto
 
     const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{AttributeTagName});
 
-    auto Params = FCk_Fragment_FloatAttribute_ParamsData{AttributeTag, InitialValue};
+    auto Params = FCk_FloatAttribute_Spec{AttributeTag, InitialValue};
     Params.Set_MinMax(ECk_MinMax::MinMax);
     Params.Set_MinValue(MinValue);
     Params.Set_MaxValue(MaxValue);
@@ -90,19 +90,19 @@ auto
     // Byte / Integer / Vector — same Replicates path, distinct initial values so an unreplicated
     // override shows as a clear cross-world mismatch.
     UCk_Utils_ByteAttribute_UE::Add(InHandle,
-        FCk_Fragment_ByteAttribute_ParamsData{FGameplayTag::RequestGameplayTag(FName{ByteAttributeTagName}), ByteInitialValue},
+        FCk_ByteAttribute_Spec{FGameplayTag::RequestGameplayTag(FName{ByteAttributeTagName}), ByteInitialValue},
         FeatureReplication);
 
     UCk_Utils_IntegerAttribute_UE::Add(InHandle,
-        FCk_Fragment_IntegerAttribute_ParamsData{FGameplayTag::RequestGameplayTag(FName{IntegerAttributeTagName}), IntegerInitialValue},
+        FCk_IntegerAttribute_Spec{FGameplayTag::RequestGameplayTag(FName{IntegerAttributeTagName}), IntegerInitialValue},
         FeatureReplication);
 
     UCk_Utils_VectorAttribute_UE::Add(InHandle,
-        FCk_Fragment_VectorAttribute_ParamsData{FGameplayTag::RequestGameplayTag(FName{VectorAttributeTagName}), FVector{1.0, 2.0, 3.0}},
+        FCk_VectorAttribute_Spec{FGameplayTag::RequestGameplayTag(FName{VectorAttributeTagName}), FVector{1.0, 2.0, 3.0}},
         FeatureReplication);
 
     UCk_Utils_RotatorAttribute_UE::Add(InHandle,
-        FCk_Fragment_RotatorAttribute_ParamsData{TAG_RotatorAttribute_AutoTest_Net.GetTag(), FRotator{10.0, 20.0, 30.0}},
+        FCk_RotatorAttribute_Spec{TAG_RotatorAttribute_AutoTest_Net.GetTag(), FRotator{10.0, 20.0, 30.0}},
         FeatureReplication);
 
     // Replicated TagSet (empty initial container). The CkTagSet net test drives Request_AddTag on
@@ -115,14 +115,14 @@ auto
     // World coords avoid the Local-coords Transform/rotation path. Stash the handle on the actor
     // (Acceleration is single-per-entity, no by-tag TryGet) mirroring _TestTagSet.
     auto Acceleration = UCk_Utils_Acceleration_UE::Add(InHandle,
-        FCk_Fragment_Acceleration_ParamsData{ECk_LocalWorld::World, FVector::ZeroVector},
+        FCk_Acceleration_Spec{ECk_LocalWorld::World, FVector::ZeroVector},
         FeatureReplication);
 
     // Replicated AnimPlan (pure tag-state — no skeletal mesh). Starts at cluster + state A; the
     // CkAnimation net test moves it to state B on the server and polls the replicated state on the
     // client via the FCk_RepData_AnimPlans handler. Retrieved by goal tag (TryGet_AnimPlan), so no
     // actor stash is needed.
-    auto AnimPlanParams = FCk_Fragment_AnimPlan_ParamsData{TAG_AnimPlan_AutoTest_Net_Goal.GetTag()};
+    auto AnimPlanParams = FCk_AnimPlan_Spec{TAG_AnimPlan_AutoTest_Net_Goal.GetTag()};
     AnimPlanParams.Set_StartingAnimCluster(TAG_AnimPlan_AutoTest_Net_Cluster.GetTag());
     AnimPlanParams.Set_StartingAnimState(TAG_AnimPlan_AutoTest_Net_State_A.GetTag());
     UCk_Utils_AnimPlan_UE::Add(InHandle, AnimPlanParams, FeatureReplication);

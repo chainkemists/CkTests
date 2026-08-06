@@ -44,7 +44,7 @@ namespace
         const bool bShouldPersistCurrentState = true) -> FCk_Handle
     {
         auto Entity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(InWorld.Get_Registry());
-        auto Params = FCk_Fragment_StateMachine_ParamsData{};
+        auto Params = FCk_StateMachine_Spec{};
         Params.Set_ReplicationModel(InReplicationModel);
         Params.Set_ShouldPersistCurrentState(bShouldPersistCurrentState);
         Entity.Add<ck::FFragment_Sm_Params>(Params);
