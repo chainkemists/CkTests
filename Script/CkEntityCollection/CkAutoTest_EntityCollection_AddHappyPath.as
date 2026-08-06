@@ -17,7 +17,7 @@ class UCk_AutoTest_EntityCollection_AddHappyPath : UCk_AutoTest_Base
 
         auto Collection = utils_entity_collection::Add(
             LocalHandle,
-            FCk_Fragment_EntityCollection_ParamsData(CollectionTag),
+            FCk_EntityCollection_Spec(CollectionTag),
             ECk_Replication::DoesNotReplicate);
 
         Assert_True(utils_entity_collection::Has_Any(LocalHandle),

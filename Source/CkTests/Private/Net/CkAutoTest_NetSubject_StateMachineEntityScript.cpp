@@ -32,7 +32,7 @@ auto
     // to bind its rep payload to a replicated outer Actor.
     const auto Flow = Super::Construct(InHandle, InSpawnParams);
 
-    auto Params = FCk_Fragment_StateMachine_ParamsData{Get_InitialStateClass()};
+    auto Params = FCk_StateMachine_Spec{Get_InitialStateClass()};
     Params.Set_Replication(Get_Replication());
     Params.Set_AuthorityModel(Get_AuthorityModel());
     Params.Set_ReplicationModel(Get_ReplicationModel());
@@ -145,7 +145,7 @@ auto
     // propagates to the owning client for the assertion. Base 100 (x1.5 modifier -> 150 when applied).
     {
         const auto SpeedTag = FGameplayTag::RequestGameplayTag(FName{TEXT("FloatAttribute.Gyms.A")});
-        auto SpeedParams = FCk_Fragment_FloatAttribute_ParamsData{SpeedTag, 100.0f};
+        auto SpeedParams = FCk_FloatAttribute_Spec{SpeedTag, 100.0f};
         UCk_Utils_FloatAttribute_UE::Add(InHandle, SpeedParams, ECk_Replication::Replicates);
     }
 
@@ -154,7 +154,7 @@ auto
     // the client-local input, so it never enters Sub_Active and never runs the authority-gated task.
     {
         const auto InputTag = FGameplayTag::RequestGameplayTag(FName{TEXT("ByteAttribute.Gyms.Intent.R")});
-        auto InputParams = FCk_Fragment_ByteAttribute_ParamsData{InputTag, static_cast<uint8>(0)};
+        auto InputParams = FCk_ByteAttribute_Spec{InputTag, static_cast<uint8>(0)};
         UCk_Utils_ByteAttribute_UE::Add(InHandle, InputParams, ECk_Replication::DoesNotReplicate);
     }
 

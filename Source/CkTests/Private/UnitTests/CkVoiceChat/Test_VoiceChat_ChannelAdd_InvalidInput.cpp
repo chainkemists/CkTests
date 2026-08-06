@@ -30,7 +30,7 @@ bool FCkTest_VoiceChat_ChannelAdd_InvalidNameRejected::RunTest(const FString& Pa
     const auto HostEntity = BackingRegistry.create();
     auto Host = FCk_Handle{FCk_Entity{HostEntity}, RegistryHandle};
 
-    const auto InvalidNameParams = FCk_Fragment_VoiceChannel_ParamsData{};   // default FGameplayTag = invalid
+    const auto InvalidNameParams = FCk_VoiceChannel_Spec{};   // default FGameplayTag = invalid
 
     const auto Result = UCk_Utils_VoiceChannel_UE::Add(Host, InvalidNameParams);
 

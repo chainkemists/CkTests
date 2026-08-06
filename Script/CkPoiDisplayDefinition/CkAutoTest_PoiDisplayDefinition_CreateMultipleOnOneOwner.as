@@ -36,16 +36,16 @@ class UCk_AutoTest_PoiDisplayDefinition_CreateMultipleOnOneOwner : UCk_AutoTest_
         auto OwnerEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         OwnerEntity.Request_OverrideToSelf();
         utils_transform::Add(OwnerEntity, FTransform(), ECk_Replication::DoesNotReplicate);
-        _Owner = utils_poi::Add(OwnerEntity, FCk_Fragment_Poi_ParamsData(
+        _Owner = utils_poi::Add(OwnerEntity, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark")));
 
         _ConsumerCompass = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.TestCompass");
         _ConsumerMinimap = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.TestMinimap");
 
-        auto ParamsCompass = FCk_Fragment_PoiDisplayDefinition_ParamsData(_ConsumerCompass);
+        auto ParamsCompass = FCk_PoiDisplayDefinition_Spec(_ConsumerCompass);
         _ChildCompass = utils_poi_display_definition::Create(_Owner, ParamsCompass);
 
-        auto ParamsMinimap = FCk_Fragment_PoiDisplayDefinition_ParamsData(_ConsumerMinimap);
+        auto ParamsMinimap = FCk_PoiDisplayDefinition_Spec(_ConsumerMinimap);
         _ChildMinimap = utils_poi_display_definition::Create(_Owner, ParamsMinimap);
 
         WaitOneFrame(n"OnConnectsSettled");

@@ -35,7 +35,7 @@ class UCk_AutoTest_Poi_EnableDisable_FiresSignal : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
 
         auto Category = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Door");
-        utils_poi::Add(_Owner, FCk_Fragment_Poi_ParamsData(Category));
+        utils_poi::Add(_Owner, FCk_Poi_Spec(Category));
 
         _DisabledTag = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Disabled");
 

@@ -23,7 +23,7 @@ class UCk_AutoTest_EntityCollection_RequestAddEntitiesBatch : UCk_AutoTest_Base
 
         _Collection = utils_entity_collection::Add(
             LocalHandle,
-            FCk_Fragment_EntityCollection_ParamsData(CollectionTag),
+            FCk_EntityCollection_Spec(CollectionTag),
             ECk_Replication::DoesNotReplicate);
         _M1 = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         _M2 = utils_entity_lifetime::Request_CreateEntity(LocalHandle);

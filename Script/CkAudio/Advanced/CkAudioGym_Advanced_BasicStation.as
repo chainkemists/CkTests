@@ -57,7 +57,7 @@ class UCkAudioGym_Advanced_BasicStation : UCkAudioGym_Advanced_Base
         }
 
         // Add Interface sound track
-        auto InterfaceTrackParams = FCk_Fragment_AudioTrack_ParamsData(
+        auto InterfaceTrackParams = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
         InterfaceTrackParams._TrackName = InterfaceTrackTag.GetTagName();
@@ -72,7 +72,7 @@ class UCkAudioGym_Advanced_BasicStation : UCkAudioGym_Advanced_Base
         utils_audio_director::Request_AddTrack(AudioDirector, InterfaceTrackParams);
 
         // Add Achievement sound track
-        auto AchievementTrackParams = FCk_Fragment_AudioTrack_ParamsData(
+        auto AchievementTrackParams = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
         AchievementTrackParams._TrackName = AchievementTrackTag.GetTagName();

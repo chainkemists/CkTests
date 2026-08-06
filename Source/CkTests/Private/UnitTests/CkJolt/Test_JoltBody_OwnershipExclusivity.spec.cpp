@@ -27,9 +27,9 @@ namespace ck_test_jolt_ownership
     constexpr auto kTestFlags =
         EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::EngineFilter;
 
-    static auto Make_DynamicBoxParams() -> FCk_Fragment_JoltBody_ParamsData
+    static auto Make_DynamicBoxParams() -> FCk_JoltBody_Spec
     {
-        auto Params = FCk_Fragment_JoltBody_ParamsData{ECk_JoltBody_ShapeSource::ExplicitShape};
+        auto Params = FCk_JoltBody_Spec{ECk_JoltBody_ShapeSource::ExplicitShape};
         Params.Set_ShapeDimensions(FCk_Jolt_ShapeDimensions{ECk_Jolt_ShapeType::Box});
         Params.Set_MotionType(ECk_MotionType::Dynamic);
         return Params;

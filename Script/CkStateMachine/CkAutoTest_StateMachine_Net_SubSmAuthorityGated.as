@@ -128,7 +128,7 @@ class UCk_SmNetSubGatedTest_SpeedModifierTask : UCk_SmTask_EntityScript
         _Modifier = SpeedAttr.Add_Revocable(
             FGameplayTag(),
             ECk_AttributeModifier_Operation::Multiply,
-            FCk_Fragment_FloatAttributeModifier_ParamsData(1.5f, ECk_MinMaxCurrent::Current));
+            FCk_FloatAttributeModifier_Spec(1.5f, ECk_MinMaxCurrent::Current));
     }
 
     UFUNCTION(BlueprintOverride)

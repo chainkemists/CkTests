@@ -51,7 +51,7 @@ class UCk_AutoTest_RaySense_LineTrace_CollideSnapsToImpact : UCk_AutoTest_Base
         _SenseTransform = utils_transform::Add(
             SenseEntity, FTransform(FRotator::ZeroRotator, FVector(0.0, _LaneY, 300.0)), ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_RaySense_ParamsData(
+        auto Params = FCk_RaySense_Spec(
             ECk_RaySense_CollisionQuality::Sweep, ECollisionChannel::ECC_Visibility);
         Params.Set_CollisionResponse(ECk_RaySense_CollisionResponse_Policy::Collide);
         _RaySense = utils_ray_sense::Add(SenseEntity, Params);

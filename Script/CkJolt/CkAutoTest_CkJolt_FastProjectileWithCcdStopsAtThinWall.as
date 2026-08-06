@@ -50,7 +50,7 @@ class UCk_AutoTest_CkJolt_FastProjectileWithCcdStopsAtThinWall : UCk_AutoTest_Ba
 
         auto WallShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         WallShape.Set_HalfExtents(FVector(5.0, 500.0, 500.0));
-        auto WallParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto WallParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         WallParams.Set_ShapeDimensions(WallShape);
         WallParams.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(WallEntity, WallParams);
@@ -64,7 +64,7 @@ class UCk_AutoTest_CkJolt_FastProjectileWithCcdStopsAtThinWall : UCk_AutoTest_Ba
 
         auto SphereShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         SphereShape.Set_Radius(10.0);
-        auto SphereParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto SphereParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         SphereParams.Set_ShapeDimensions(SphereShape);
         SphereParams.Set_MotionType(ECk_MotionType::Dynamic);
         SphereParams.Set_MotionQuality(ECk_MotionQuality::LinearCast);

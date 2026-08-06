@@ -27,7 +27,7 @@ class UCk_AutoTest_Attribute_FloatOverflow : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_FloatAttribute_ParamsData(
+        auto Params = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Health"),
             50.0f);
         Params.Set_MinMax(ECk_MinMax::MinMax);

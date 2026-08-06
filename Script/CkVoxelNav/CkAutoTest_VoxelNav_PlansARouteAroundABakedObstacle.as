@@ -61,7 +61,7 @@ class UCk_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle : UCk_AutoTest_Base
 
         auto ObstacleShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         ObstacleShape.Set_HalfExtents(_ObstacleHalfExtents);
-        auto ObstacleParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto ObstacleParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         ObstacleParams.Set_ShapeDimensions(ObstacleShape);
         ObstacleParams.Set_MotionType(ECk_MotionType::Static);
         _ObstacleBody = utils_jolt_body::Add(ObstacleEntity, ObstacleParams);
@@ -69,7 +69,7 @@ class UCk_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle : UCk_AutoTest_Base
         auto VolumeEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         VolumeEntity.Request_OverrideToSelf();
 
-        auto VolumeParams = FCk_Fragment_VoxelNavVolume_ParamsData(
+        auto VolumeParams = FCk_VoxelNavVolume_Spec(
             FBox(_VolumeCenter - _VolumeHalfExtents, _VolumeCenter + _VolumeHalfExtents),
             _FinestCellSizeUu);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
@@ -121,7 +121,7 @@ class UCk_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle : UCk_AutoTest_Base
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         AgentEntity.Request_OverrideToSelf();
 
-        _Path = utils_voxel_nav_path::Add(AgentEntity, FCk_Fragment_VoxelNavPath_ParamsData());
+        _Path = utils_voxel_nav_path::Add(AgentEntity, FCk_VoxelNavPath_Spec());
 
         Assert_True(ck::IsValid(_Path), "Add() must return a valid path handle");
 

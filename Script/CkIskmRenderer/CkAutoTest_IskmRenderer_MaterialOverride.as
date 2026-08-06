@@ -51,7 +51,7 @@ class UCk_AutoTest_IskmRenderer_MaterialOverride : UCk_AutoTest_Base
         auto ChildA = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto ChildATransformHandle = utils_transform::Add(ChildA, FTransform::Identity);
 
-        auto Params = FCk_Fragment_IskmProxy_ParamsData(_Renderer, FTransform::Identity);
+        auto Params = FCk_IskmProxy_Spec(_Renderer, FTransform::Identity);
         _ProxyA = utils_iskm_proxy::Add(ChildATransformHandle, Params);
         _ChildA = ChildA;
 
@@ -100,7 +100,7 @@ class UCk_AutoTest_IskmRenderer_MaterialOverride : UCk_AutoTest_Base
             // so ProxyB borrows the SAME SKMC.
             auto LocalHandle = _TestEntity;
             auto ChildB = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-            auto Params = FCk_Fragment_IskmProxy_ParamsData(_Renderer, FTransform::Identity);
+            auto Params = FCk_IskmProxy_Spec(_Renderer, FTransform::Identity);
 
             auto ChildBTransformHandle = utils_transform::Add(ChildB, FTransform::Identity);
             _ProxyB = utils_iskm_proxy::Add(ChildBTransformHandle, Params);

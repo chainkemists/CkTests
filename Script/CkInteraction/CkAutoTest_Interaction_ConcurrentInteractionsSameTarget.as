@@ -39,18 +39,18 @@ class UCk_AutoTest_Interaction_ConcurrentInteractionsSameTarget : UCk_AutoTest_B
         auto LocalHandle = InHandle;
         auto Channel = interaction_gym_helpers::DefaultChannel();
 
-        auto SourceParams = FCk_Fragment_InteractSource_ParamsData();
+        auto SourceParams = FCk_InteractSource_Spec();
         SourceParams._InteractionChannel = Channel;
         _Source = utils_interact_source::Add(LocalHandle, SourceParams);
 
         // Spawn a second source entity for the concurrent attempt.
         _SecondSourceEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto SecondSourceParams = FCk_Fragment_InteractSource_ParamsData();
+        auto SecondSourceParams = FCk_InteractSource_Spec();
         SecondSourceParams._InteractionChannel = Channel;
         utils_interact_source::Add(_SecondSourceEntity, SecondSourceParams);
 
         // Target uses Manual policy so the first interaction stays in flight.
-        auto TargetParams = FCk_Fragment_InteractTarget_ParamsData(Channel);
+        auto TargetParams = FCk_InteractTarget_Spec(Channel);
         TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::ManuallyCompleted);
         TargetParams.Set_ConcurrentInteractionsPolicy(
             ECk_InteractionTarget_ConcurrentInteractionsPolicy::SingleInteraction);

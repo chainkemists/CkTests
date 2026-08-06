@@ -21,7 +21,7 @@ class UCk_AutoTest_ShapeSphere_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto Dimensions = FCk_ShapeSphere_Dimensions(75.0f);
-        auto Params = FCk_Fragment_ShapeSphere_ParamsData(Dimensions);
+        auto Params = FCk_ShapeSphere_Spec(Dimensions);
 
         auto Child = utils_shape_sphere::Create(Owner, Params);
         auto ChildEntity = FCk_Handle(Child);

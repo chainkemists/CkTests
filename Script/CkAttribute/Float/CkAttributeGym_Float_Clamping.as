@@ -84,22 +84,22 @@ class UCk_EntityScript_AttributeGym_FloatClamping : UCk_GenericEntityScript_UE
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		auto ArmorParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto ArmorParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Armor"), 100.5f);
 		ArmorParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(200.0f);
 		ArmorAttribute = utils_float_attribute::Add(InHandle, ArmorParams);
 
-		auto StaminaParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto StaminaParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Stamina"), 150.75f);
 		StaminaParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(50.0f).Set_MaxValue(255.0f);
 		StaminaAttribute = utils_float_attribute::Add(InHandle, StaminaParams);
 
-		auto HealthParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto HealthParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Health"), 75.25f);
 		HealthParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(100.0f);
 		HealthAttribute = utils_float_attribute::Add(InHandle, HealthParams);
 
-		auto ShieldParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto ShieldParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Defense"), 200.0f);
 		ShieldParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(150.0f);
 		ShieldAttribute = utils_float_attribute::Add(InHandle, ShieldParams);

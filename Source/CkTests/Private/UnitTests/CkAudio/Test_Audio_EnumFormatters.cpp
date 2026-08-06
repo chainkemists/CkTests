@@ -91,7 +91,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_Audio_TrackParamsData_Defaults::RunTest(const FString& Parameters)
 {
-    const auto Params = FCk_Fragment_AudioTrack_ParamsData{};
+    const auto Params = FCk_AudioTrack_Spec{};
     TestEqual(TEXT("Default _Priority is 50"),      Params.Get_Priority(),       50);
     TestEqual(TEXT("Default _Volume is 1.0f"),      Params.Get_Volume(),         1.0f);
     TestEqual(TEXT("Default _LoopBehavior is Loop"), Params.Get_LoopBehavior(),  ECk_LoopBehavior::Loop);

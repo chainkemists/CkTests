@@ -35,7 +35,7 @@ class UCk_AutoTest_Compass_BearingAtCardinalOffsets : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Compass_ParamsData(360.0);
+        auto Params = FCk_Compass_Spec(360.0);
         Params.Set_HeadingSource(ECk_Compass_HeadingSource::Manual);
         _Compass = utils_compass::Add(Observer, Params);
         _Compass.Request_SetManualHeading(0.0);
@@ -59,7 +59,7 @@ class UCk_AutoTest_Compass_BearingAtCardinalOffsets : UCk_AutoTest_Base
         Owner.Request_OverrideToSelf();
         utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, _Base + InOffset),
             ECk_Replication::DoesNotReplicate);
-        utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(InCategory));
+        utils_poi::Add(Owner, FCk_Poi_Spec(InCategory));
     }
 
     private float DoFindBearing(const TArray<FCk_Compass_Entry>& InEntries, FGameplayTag InCategory, bool& OutFound)

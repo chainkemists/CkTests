@@ -67,7 +67,7 @@ class UCk_AutoTest_CkJolt_OverlapEntitiesIncludesBakedStaticActor : UCk_AutoTest
 
         auto BoxShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         BoxShape.Set_HalfExtents(FVector(100.0, 100.0, 100.0));
-        auto BoxParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto BoxParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         BoxParams.Set_ShapeDimensions(BoxShape);
         BoxParams.Set_MotionType(ECk_MotionType::Kinematic);   // stays put, overlapping the baked cube
         BoxParams.Set_CollisionProfileName(n"BlockAll");

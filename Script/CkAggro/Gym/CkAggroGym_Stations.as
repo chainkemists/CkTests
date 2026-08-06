@@ -57,7 +57,7 @@ class UCk_EntityScript_AggroGym_Chase_Station : UCk_GenericEntityScript_UE
         auto GuardEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
         GuardEntity.Set_DebugName(n"AggroGym.Chase.Guard");
         _GuardTransform = utils_transform::Add(GuardEntity, FTransform(FRotator::ZeroRotator, Center), ECk_Replication::DoesNotReplicate);
-        _Guard = utils_aggro::Add(GuardEntity, FCk_Fragment_Aggro_ParamsData());
+        _Guard = utils_aggro::Add(GuardEntity, FCk_Aggro_Spec());
 
         for (int32 i = 0; i < 3; i++)
         {
@@ -173,8 +173,8 @@ class UCk_EntityScript_AggroGym_Perception_Station : UCk_GenericEntityScript_UE
         utils_transform::Add(GuardEntity, FTransform(FRotator::ZeroRotator, _GuardLoc), ECk_Replication::DoesNotReplicate);
 
         // Fast decay + heavy unperceived penalty so "out of sight" visibly bleeds threat.
-        auto OwnerParams = FCk_Fragment_Aggro_ParamsData();
-        auto DefaultTargetParams = FCk_Fragment_AggroTarget_ParamsData();
+        auto OwnerParams = FCk_Aggro_Spec();
+        auto DefaultTargetParams = FCk_AggroTarget_Spec();
         auto ThreatParams = FCk_AggroTarget_ThreatParams();
         ThreatParams.Set_InitialThreat(50.0);
         ThreatParams.Set_ThreatDecayRate(3.0);
@@ -280,7 +280,7 @@ class UCk_EntityScript_AggroGym_Stress_Station : UCk_GenericEntityScript_UE
             auto GuardEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
             GuardEntity.Set_DebugName(n"AggroGym.Stress.Guard");
             utils_transform::Add(GuardEntity, FTransform(FRotator::ZeroRotator, GuardLoc), ECk_Replication::DoesNotReplicate);
-            auto Guard = utils_aggro::Add(GuardEntity, FCk_Fragment_Aggro_ParamsData());
+            auto Guard = utils_aggro::Add(GuardEntity, FCk_Aggro_Spec());
 
             for (int32 d = 0; d < _DummiesPerGuard; d++)
             {

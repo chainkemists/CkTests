@@ -45,11 +45,11 @@ class UCk_AutoTest_Projectile_Add_AttachesVelocityAndAcceleration : UCk_AutoTest
 
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
 
-        auto VelocityParams = FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector(50.0f, 0.0f, 0.0f));
-        auto AccelerationParams = FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector(0.0f, 0.0f, -980.0f));
-        auto AutoReorientParams = FCk_Fragment_AutoReorient_ParamsData(ECk_AutoReorient_Policy::NoAutoReorient);
+        auto VelocityParams = FCk_Velocity_Spec(ECk_LocalWorld::World, FVector(50.0f, 0.0f, 0.0f));
+        auto AccelerationParams = FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector(0.0f, 0.0f, -980.0f));
+        auto AutoReorientParams = FCk_AutoReorient_Spec(ECk_AutoReorient_Policy::NoAutoReorient);
 
-        auto ProjectileParams = FCk_Fragment_Projectile_ParamsData(VelocityParams, AccelerationParams, AutoReorientParams);
+        auto ProjectileParams = FCk_Projectile_Spec(VelocityParams, AccelerationParams, AutoReorientParams);
         utils_projectile::Add(OwnedEntity, ProjectileParams, ECk_Replication::DoesNotReplicate);
 
         Assert_True(utils_velocity::Has(OwnedEntity),

@@ -33,7 +33,7 @@ class UCk_AutoTest_Minimap_FixedBounds_Position : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Minimap_ParamsData(2000.0);
+        auto Params = FCk_Minimap_Spec(2000.0);
         Params.Set_ProjectionMode(ECk_Minimap_ProjectionMode::FixedBounds);
         Params.Set_FixedBounds(FCk_Minimap_WorldBounds(
             FVector2D(0.0, 53400.0), FVector2D(2000.0, 2000.0)));
@@ -44,7 +44,7 @@ class UCk_AutoTest_Minimap_FixedBounds_Position : UCk_AutoTest_Base
         utils_transform::Add(PoiOwner,
             FTransform(FRotator::ZeroRotator, _Base + FVector(1000.0, 500.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _Poi = utils_poi::Add(PoiOwner, FCk_Fragment_Poi_ParamsData(
+        _Poi = utils_poi::Add(PoiOwner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.MinimapFixedBounds")));
 
         WaitUntil(n"Check_MinimapProjected", n"OnSettled_Requests");

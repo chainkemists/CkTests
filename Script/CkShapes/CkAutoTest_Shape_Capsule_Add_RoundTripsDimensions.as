@@ -20,7 +20,7 @@ class UCk_AutoTest_Shape_Capsule_Add_RoundTripsDimensions : UCk_AutoTest_Base
         auto Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 
         auto Dimensions = FCk_ShapeCapsule_Dimensions(120.0f, 30.0f);
-        auto Params = FCk_Fragment_ShapeCapsule_ParamsData(Dimensions);
+        auto Params = FCk_ShapeCapsule_Spec(Dimensions);
         auto CapsuleHandle = utils_shape_capsule::Add(Entity, Params);
 
         Assert_True(ck::IsValid(CapsuleHandle),

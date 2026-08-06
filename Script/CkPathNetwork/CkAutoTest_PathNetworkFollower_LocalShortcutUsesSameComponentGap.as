@@ -82,10 +82,10 @@ class UCk_AutoTest_PathNetworkFollower_LocalShortcutUsesSameComponentGap
         Ribbons.Add(FCk_PathNetwork_Ribbon(RightSide));
         _Network = utils_path_network::Add(
             LocalHandle,
-            FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+            FCk_PathNetwork_Spec(Ribbons));
 
         auto FollowerParams =
-            FCk_Fragment_PathNetworkFollower_ParamsData();
+            FCk_PathNetworkFollower_Spec();
         FollowerParams.Set_Network(_Network);
         FollowerParams.Set_OffPathCostMultiplier(1.5f);
         FollowerParams.Set_NearEndpointCostMultiplier(1.5f);

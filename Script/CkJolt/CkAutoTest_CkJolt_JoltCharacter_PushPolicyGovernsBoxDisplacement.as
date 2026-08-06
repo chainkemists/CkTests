@@ -81,7 +81,7 @@ class UCk_AutoTest_CkJolt_JoltCharacter_PushPolicyGovernsBoxDisplacement : UCk_A
 
         auto FloorShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         FloorShape.Set_HalfExtents(FVector(500.0, 500.0, 25.0));
-        auto FloorParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto FloorParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         FloorParams.Set_ShapeDimensions(FloorShape);
         FloorParams.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(FloorEntity, FloorParams);
@@ -96,7 +96,7 @@ class UCk_AutoTest_CkJolt_JoltCharacter_PushPolicyGovernsBoxDisplacement : UCk_A
 
         auto BoxShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         BoxShape.Set_HalfExtents(FVector(50.0, 50.0, 50.0));
-        auto BoxParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto BoxParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         BoxParams.Set_ShapeDimensions(BoxShape);
         BoxParams.Set_MotionType(ECk_MotionType::Dynamic);
         BoxParams.Set_MassSource(ECk_JoltBody_MassSource::Explicit);
@@ -116,7 +116,7 @@ class UCk_AutoTest_CkJolt_JoltCharacter_PushPolicyGovernsBoxDisplacement : UCk_A
         _LastCharTransform = utils_transform::Add(CharEntity, FTransform(FRotator::ZeroRotator, InCenter),
             ECk_Replication::DoesNotReplicate);
 
-        auto CharParams = FCk_Fragment_JoltCharacter_ParamsData(40.0, 60.0);
+        auto CharParams = FCk_JoltCharacter_Spec(40.0, 60.0);
         CharParams.Set_PushPolicy(InPolicy);
         CharParams.Set_MaxStrengthNewtons(200.0);
         return utils_jolt_character::Add(CharEntity, CharParams);

@@ -38,9 +38,9 @@ class UCk_AutoTest_UsfOutline_IsmShadowInstances : UCk_AutoTest_Base
         auto TransformB = utils_transform::Add(_EntityB, FTransform(FVector(200.0, 0.0, 0.0)), ECk_Replication::DoesNotReplicate);
         auto TransformC = utils_transform::Add(_EntityC, FTransform(FVector(400.0, 0.0, 0.0)), ECk_Replication::DoesNotReplicate);
 
-        _ProxyA = utils_ism_proxy::Add(TransformA, FCk_Fragment_IsmProxy_ParamsData(RendererData));
-        _ProxyB = utils_ism_proxy::Add(TransformB, FCk_Fragment_IsmProxy_ParamsData(RendererData));
-        _ProxyC = utils_ism_proxy::Add(TransformC, FCk_Fragment_IsmProxy_ParamsData(RendererData));
+        _ProxyA = utils_ism_proxy::Add(TransformA, FCk_IsmProxy_Spec(RendererData));
+        _ProxyB = utils_ism_proxy::Add(TransformB, FCk_IsmProxy_Spec(RendererData));
+        _ProxyC = utils_ism_proxy::Add(TransformC, FCk_IsmProxy_Spec(RendererData));
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
     }

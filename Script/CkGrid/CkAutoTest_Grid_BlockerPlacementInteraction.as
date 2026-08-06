@@ -50,7 +50,7 @@ class UCk_AutoTest_Grid_BlockerPlacementInteraction : UCk_AutoTest_Base
         auto GridOwnerT = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto GP = FCk_Fragment_2dGridSystem_ParamsData(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
+        auto GP = FCk_2dGridSystem_Spec(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
         GP.Set_DefaultCellState(ECk_EnableDisable::Enable);
         auto Exceptions = TArray<FIntPoint>();
         Exceptions.Add(FIntPoint(2, 2));
@@ -59,11 +59,11 @@ class UCk_AutoTest_Grid_BlockerPlacementInteraction : UCk_AutoTest_Base
 
         // 1x1 object used for placement probes.
         _Object = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        utils_2d_grid_object::Add(_Object, FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1)));
+        utils_2d_grid_object::Add(_Object, FCk_2dGridObject_Spec(FIntPoint(1, 1)));
 
         // Blocker over (5,5).
         _BlockerAt55Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto BP55 = FCk_Fragment_2dGridBlocker_ParamsData(_Grid, FIntPoint(5, 5), FIntPoint(5, 5));
+        auto BP55 = FCk_2dGridBlocker_Spec(_Grid, FIntPoint(5, 5), FIntPoint(5, 5));
         _BlockerAt55 = utils_2d_grid_blocker::Add(_BlockerAt55Entity, BP55);
 
         // Blocker covering the shape-disabled (2,2) AND an open neighbour (2,3).
@@ -72,7 +72,7 @@ class UCk_AutoTest_Grid_BlockerPlacementInteraction : UCk_AutoTest_Base
         // re-enables (our "deactivation processed" signal) while (2,2) must stay
         // disabled (the shape stamp still holds the refcount).
         _BlockerAt22Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto BP22 = FCk_Fragment_2dGridBlocker_ParamsData(_Grid, FIntPoint(2, 2), FIntPoint(2, 3));
+        auto BP22 = FCk_2dGridBlocker_Spec(_Grid, FIntPoint(2, 2), FIntPoint(2, 3));
         _BlockerAt22 = utils_2d_grid_blocker::Add(_BlockerAt22Entity, BP22);
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));

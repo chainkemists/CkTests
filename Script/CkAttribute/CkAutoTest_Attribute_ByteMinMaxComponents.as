@@ -28,7 +28,7 @@ class UCk_AutoTest_Attribute_ByteMinMaxComponents : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_ByteAttribute_ParamsData(
+        auto Params = FCk_ByteAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Armor"),
             100);
         Params.Set_MinMax(ECk_MinMax::MinMax);

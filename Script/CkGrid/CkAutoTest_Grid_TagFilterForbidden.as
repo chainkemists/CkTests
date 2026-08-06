@@ -50,7 +50,7 @@ class UCk_AutoTest_Grid_TagFilterForbidden : UCk_AutoTest_Base
         auto GridOwnerT = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto GP = FCk_Fragment_2dGridSystem_ParamsData(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
+        auto GP = FCk_2dGridSystem_Spec(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
         GP.Set_DefaultCellState(ECk_EnableDisable::Enable);
         auto DefaultTags = FGameplayTagContainer();
         DefaultTags.AddTag(ProduceTag);
@@ -66,7 +66,7 @@ class UCk_AutoTest_Grid_TagFilterForbidden : UCk_AutoTest_Base
 
         // ---- HazardObj: forbids Hazard. ----
         auto HazardObjEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto HazardParams = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1));
+        auto HazardParams = FCk_2dGridObject_Spec(FIntPoint(1, 1));
         auto HazardForbid = FGameplayTagContainer();
         HazardForbid.AddTag(HazardTag);
         HazardParams.Set_ForbiddenCellTags(HazardForbid);
@@ -92,7 +92,7 @@ class UCk_AutoTest_Grid_TagFilterForbidden : UCk_AutoTest_Base
 
         // ---- StrictObj: requires Produce AND forbids Hazard. ----
         auto StrictObjEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto StrictParams = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1));
+        auto StrictParams = FCk_2dGridObject_Spec(FIntPoint(1, 1));
         auto StrictReq = FGameplayTagContainer();
         StrictReq.AddTag(ProduceTag);
         StrictParams.Set_RequiredCellTags(StrictReq);

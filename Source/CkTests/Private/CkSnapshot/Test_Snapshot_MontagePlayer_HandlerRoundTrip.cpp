@@ -45,7 +45,7 @@ bool FCkSnapshot_MontagePlayer_HandlerRoundTrip::RunTest(const FString& Paramete
         Produced.GetValue().Get<FCk_RepData_MontagePlayer>().Value == SavedState);
 
     auto Target = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    Target.Add<ck::FFragment_MontagePlayer_Params>(FCk_Fragment_MontagePlayer_ParamsData{});
+    Target.Add<ck::FFragment_MontagePlayer_Params>(FCk_MontagePlayer_Spec{});
     Target.Add<ck::FFragment_MontagePlayer_Current>();
 
     auto TargetRef = Target;

@@ -91,7 +91,7 @@ class UCkAudioGym_Advanced_ConcurrencyStation : UCkAudioGym_Advanced_Base
             // Choose appropriate sound asset based on track type
             auto SoundAsset = GetSoundAssetForTrackType(i);
 
-            auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(SoundAsset);
+            auto TrackParams = FCk_AudioTrack_Spec(SoundAsset);
             TrackParams._TrackName = TrackTag.GetTagName();
 
             // Configure track parameters for concurrency testing
@@ -148,7 +148,7 @@ class UCkAudioGym_Advanced_ConcurrencyStation : UCkAudioGym_Advanced_Base
 
         for (int32 i = 0; i < ConcurrentTrackTags.Num(); i++)
         {
-            auto IndicatorParams = FCk_Fragment_IsmProxy_ParamsData(ck::Asset_StationMarker);
+            auto IndicatorParams = FCk_IsmProxy_Spec(ck::Asset_StationMarker);
             IndicatorParams.Set_ScaleMultiplier(FVector(0.2f, 0.2f, 0.2f));
 
             // Arrange indicators in a line above the station

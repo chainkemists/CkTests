@@ -38,7 +38,7 @@ class UCk_AutoTest_Attribute_OnClampedPayloadDirection : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto Params = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Health"),
             50);
         Params.Set_MinMax(ECk_MinMax::MinMax);

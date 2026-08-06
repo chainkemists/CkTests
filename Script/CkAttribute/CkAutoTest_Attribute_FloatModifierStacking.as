@@ -38,7 +38,7 @@ class UCk_AutoTest_Attribute_FloatModifierStacking : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_FloatAttribute_ParamsData(
+        auto Params = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Damage"),
             50.0f);
         Params.Set_MinMax(ECk_MinMax::MinMax);
@@ -59,7 +59,7 @@ class UCk_AutoTest_Attribute_FloatModifierStacking : UCk_AutoTest_Base
     private void Step1_AddFirstModifier()
     {
         _Step = 1;
-        auto ModParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        auto ModParams = FCk_FloatAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(25.5f);
         utils_float_attribute_modifier::Add_Revocable(
             _Attribute,
@@ -71,7 +71,7 @@ class UCk_AutoTest_Attribute_FloatModifierStacking : UCk_AutoTest_Base
     private void Step2_AddSecondModifier()
     {
         _Step = 2;
-        auto ModParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        auto ModParams = FCk_FloatAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(20.25f);
         utils_float_attribute_modifier::Add_Revocable(
             _Attribute,

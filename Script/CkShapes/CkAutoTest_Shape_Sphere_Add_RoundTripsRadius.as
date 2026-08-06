@@ -20,7 +20,7 @@ class UCk_AutoTest_Shape_Sphere_Add_RoundTripsRadius : UCk_AutoTest_Base
         auto Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 
         auto Dimensions = FCk_ShapeSphere_Dimensions(75.0f);
-        auto Params = FCk_Fragment_ShapeSphere_ParamsData(Dimensions);
+        auto Params = FCk_ShapeSphere_Spec(Dimensions);
         auto SphereHandle = utils_shape_sphere::Add(Entity, Params);
 
         Assert_True(ck::IsValid(SphereHandle),

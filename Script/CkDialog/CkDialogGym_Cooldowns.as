@@ -34,11 +34,11 @@ class UCk_EntityScript_DialogGym_Cooldowns : UCk_GenericEntityScript_UE
 		LineData.Set_Text(FText::FromString("Watch me go on cooldown."));
 		_Line = Registry.Request_RegisterLine(LineData, FGameplayTagContainer());
 
-		_Emitter = UCk_Utils_DialogEmitter_UE::Add(InHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
+		_Emitter = UCk_Utils_DialogEmitter_UE::Add(InHandle, FCk_DialogEmitter_Spec(FGameplayTagContainer()));
 		_Emitter.BindTo_OnQueryCompleted(FCk_Delegate_DialogEmitter_OnQueryCompleted(this, n"OnResult"));
 
 		auto OtherChild = utils_entity_lifetime::Request_CreateEntity(InHandle);
-		_OtherEmitter = UCk_Utils_DialogEmitter_UE::Add(OtherChild, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
+		_OtherEmitter = UCk_Utils_DialogEmitter_UE::Add(OtherChild, FCk_DialogEmitter_Spec(FGameplayTagContainer()));
 		_OtherEmitter.BindTo_OnQueryCompleted(FCk_Delegate_DialogEmitter_OnQueryCompleted(this, n"OnOtherResult"));
 
 		auto CadenceParams = FCk_Timer_Spec(FCk_Time(1.0));

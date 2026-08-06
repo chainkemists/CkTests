@@ -26,7 +26,7 @@ class UCk_AutoTest_Dialog_Query_EmptyResult_FiresSignal : UCk_AutoTest_Base
         // Deliberately register NOTHING under this tag.
         _EventTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Dialog.Empty.Enter");
 
-        _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
+        _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_DialogEmitter_Spec(FGameplayTagContainer()));
 
         WaitOneFrame(n"OnSettled");
     }

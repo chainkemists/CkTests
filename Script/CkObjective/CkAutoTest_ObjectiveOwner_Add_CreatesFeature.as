@@ -24,7 +24,7 @@ class UCk_AutoTest_ObjectiveOwner_Add_CreatesFeature : UCk_AutoTest_Base
         auto Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 
         auto Defaults = TArray<TSubclassOf<UCk_Objective_EntityScript>>();
-        auto Params = FCk_ObjectiveOwner_ParamsData(Defaults);
+        auto Params = FCk_ObjectiveOwner_Spec(Defaults);
         auto Owner = utils_objective_owner::Add(Entity, Params);
 
         Assert_True(ck::IsValid(Owner),

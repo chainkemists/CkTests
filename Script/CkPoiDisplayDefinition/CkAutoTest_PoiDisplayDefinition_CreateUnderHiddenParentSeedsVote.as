@@ -34,11 +34,11 @@ class UCk_AutoTest_PoiDisplayDefinition_CreateUnderHiddenParentSeedsVote : UCk_A
         auto OwnerEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         OwnerEntity.Request_OverrideToSelf();
         utils_transform::Add(OwnerEntity, FTransform(), ECk_Replication::DoesNotReplicate);
-        _Owner = utils_poi::Add(OwnerEntity, FCk_Fragment_Poi_ParamsData(
+        _Owner = utils_poi::Add(OwnerEntity, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark")));
 
         // Owner composes VisibleRange (evaluated every tick), then goes out of range.
-        auto OwnerVRParams = FCk_Fragment_VisibleRange_ParamsData(500.0f);
+        auto OwnerVRParams = FCk_VisibleRange_Spec(500.0f);
         OwnerVRParams.Set_UpdateInterval(FCk_Time(0.0));
         _OwnerVR = utils_visible_range::Add(_Owner, OwnerVRParams);
 
@@ -62,7 +62,7 @@ class UCk_AutoTest_PoiDisplayDefinition_CreateUnderHiddenParentSeedsVote : UCk_A
 
         // Create the child UNDER the already-hidden owner. The seed (Create step b) must
         // pre-apply ParentHidden synchronously, since no further hidden transition will come.
-        auto ChildParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+        auto ChildParams = FCk_PoiDisplayDefinition_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.TestCompass"));
         _Child = utils_poi_display_definition::Create(_Owner, ChildParams);
 

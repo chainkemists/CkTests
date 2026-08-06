@@ -31,14 +31,14 @@ class UCk_AutoTest_Homing_ClearTarget_StopsSteering : UCk_AutoTest_Base
         auto Projectile = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         _ProjectileTransform = utils_transform::Add(Projectile, FTransform(), ECk_Replication::DoesNotReplicate);
 
-        auto ProjectileParams = FCk_Fragment_Projectile_ParamsData(
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector(600.0, 0.0, 0.0)),
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
-            FCk_Fragment_AutoReorient_ParamsData(ECk_AutoReorient_Policy::NoAutoReorient));
+        auto ProjectileParams = FCk_Projectile_Spec(
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector(600.0, 0.0, 0.0)),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_AutoReorient_Spec(ECk_AutoReorient_Policy::NoAutoReorient));
         utils_projectile::Add(Projectile, ProjectileParams, ECk_Replication::DoesNotReplicate);
 
         _Homing = utils_homing::Add(Projectile,
-            FCk_Fragment_Homing_ParamsData(FCk_Homing_GuidanceSettings(3000.0)));
+            FCk_Homing_Spec(FCk_Homing_GuidanceSettings(3000.0)));
 
         utils_homing::Request_SetTargetLocation(_Homing,
             FCk_Request_Homing_SetTargetLocation(FVector(1000.0, 1000.0, 0.0)));

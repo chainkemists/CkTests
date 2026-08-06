@@ -60,7 +60,7 @@ class UCk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks : UCk_AutoTest
     {
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
-        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmMultiCondTest_State_A));
+        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_StateMachine_Spec(UCk_SmMultiCondTest_State_A));
 
         FCk_Delegate_Sm_OnStateChanged Delegate;
         Delegate.BindUFunction(this, n"OnStateChanged");

@@ -18,7 +18,7 @@ class UCk_AutoTest_Aggro_Selection_HighestScoreBecomesActive : UCk_AutoTest_Base
 
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        _Aggro = utils_aggro::Add(Owner, FCk_Fragment_Aggro_ParamsData());
+        _Aggro = utils_aggro::Add(Owner, FCk_Aggro_Spec());
 
         _TrackedHigh   = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto TrackedLow = utils_entity_lifetime::Request_CreateEntity(InHandle);

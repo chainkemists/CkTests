@@ -100,17 +100,17 @@ namespace ck_test_voxelnav_crowd_pie
     static auto Get_ObstacleBefore() -> FVector { return VolumeCenter + ObstacleOffsetBefore; }
     static auto Get_ObstacleAfter() -> FVector { return VolumeCenter + ObstacleOffsetAfter; }
 
-    static auto Make_StaticBoxParams() -> FCk_Fragment_JoltBody_ParamsData
+    static auto Make_StaticBoxParams() -> FCk_JoltBody_Spec
     {
-        auto Params = FCk_Fragment_JoltBody_ParamsData{ECk_JoltBody_ShapeSource::ExplicitShape};
+        auto Params = FCk_JoltBody_Spec{ECk_JoltBody_ShapeSource::ExplicitShape};
         Params.Set_ShapeDimensions(FCk_Jolt_ShapeDimensions{ECk_Jolt_ShapeType::Box});
         Params.Set_MotionType(ECk_MotionType::Static);
         return Params;
     }
 
-    static auto Make_VolumeParams() -> FCk_Fragment_VoxelNavVolume_ParamsData
+    static auto Make_VolumeParams() -> FCk_VoxelNavVolume_Spec
     {
-        auto Params = FCk_Fragment_VoxelNavVolume_ParamsData{Get_VolumeBounds(), FinestCellSizeUu};
+        auto Params = FCk_VoxelNavVolume_Spec{Get_VolumeBounds(), FinestCellSizeUu};
 
         // The build must start from OUR request, so its completion delegate reports the bake this test
         // waits on rather than one the setup processor already armed.
@@ -233,14 +233,14 @@ bool FCkTest_VoxelNav_CrowdPie_AgentReceivesItsRouteThroughTheNavPathSeam::RunTe
             constexpr auto AgentRadiusUu = 42.0f;
             constexpr auto AgentHeightUu = 192.0f;
             GAgent = UCk_Utils_CrowdAgent_UE::Add(AgentTransform,
-                FCk_Fragment_CrowdAgent_ParamsData{AgentRadiusUu, AgentHeightUu});
+                FCk_CrowdAgent_Spec{AgentRadiusUu, AgentHeightUu});
 
             if (NOT TestTrue(TEXT("the crowd agent composed"), ck::IsValid(GAgent)))
             { return; }
 
             auto AgentHandle = GAgent.ConvertToHandle();
             auto Path = UCk_Utils_VoxelNavPath_UE::Add(AgentHandle,
-                FCk_Fragment_VoxelNavPath_ParamsData{AgentRadiusUu});
+                FCk_VoxelNavPath_Spec{AgentRadiusUu});
 
             if (NOT TestTrue(TEXT("the volumetric path feature composed onto the same agent entity"),
                 ck::IsValid(Path)))
@@ -439,7 +439,7 @@ bool FCkTest_VoxelNav_CrowdPie_StaleVolumeEpochReplansTheWalkingAgentExactlyOnce
             // nothing is dirtied until the obstacle actually moves.
             auto ObstacleEntity = GObstacleTransform.ConvertToHandle();
             GOccluder = UCk_Utils_VoxelNavOccluder_UE::Add(ObstacleEntity,
-                FCk_Fragment_VoxelNavOccluder_ParamsData{ObstacleHalfExtents});
+                FCk_VoxelNavOccluder_Spec{ObstacleHalfExtents});
 
             if (NOT TestTrue(TEXT("the occluder feature composed onto the obstacle entity"),
                 ck::IsValid(GOccluder)))
@@ -452,11 +452,11 @@ bool FCkTest_VoxelNav_CrowdPie_StaleVolumeEpochReplansTheWalkingAgentExactlyOnce
             constexpr auto AgentRadiusUu = 42.0f;
             constexpr auto AgentHeightUu = 192.0f;
             GAgent = UCk_Utils_CrowdAgent_UE::Add(AgentTransform,
-                FCk_Fragment_CrowdAgent_ParamsData{AgentRadiusUu, AgentHeightUu});
+                FCk_CrowdAgent_Spec{AgentRadiusUu, AgentHeightUu});
 
             auto AgentHandle = GAgent.ConvertToHandle();
             GAgentPath = UCk_Utils_VoxelNavPath_UE::Add(AgentHandle,
-                FCk_Fragment_VoxelNavPath_ParamsData{AgentRadiusUu});
+                FCk_VoxelNavPath_Spec{AgentRadiusUu});
 
             if (NOT TestTrue(TEXT("the crowd agent and its volumetric path feature composed"),
                 ck::IsValid(GAgent) && ck::IsValid(GAgentPath)))

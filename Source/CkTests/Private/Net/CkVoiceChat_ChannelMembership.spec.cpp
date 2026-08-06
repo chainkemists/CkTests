@@ -64,14 +64,14 @@ bool FCkVoiceChatChannel_MembershipAndIdx::RunTest(const FString& Parameters)
             State->Host = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
 
             State->ChannelAlpha = UCk_Utils_VoiceChannel_UE::Add(State->Host,
-                FCk_Fragment_VoiceChannel_ParamsData{
+                FCk_VoiceChannel_Spec{
                     UCk_Utils_GameplayTag_UE::ResolveGameplayTag(TEXT("VoiceChat.Channel.TestAlpha"))});
             State->ChannelBeta = UCk_Utils_VoiceChannel_UE::Add(State->Host,
-                FCk_Fragment_VoiceChannel_ParamsData{
+                FCk_VoiceChannel_Spec{
                     UCk_Utils_GameplayTag_UE::ResolveGameplayTag(TEXT("VoiceChat.Channel.TestBeta"))});
 
             auto TalkerEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
-            State->Talker = UCk_Utils_VoiceTalker_UE::Add(TalkerEntity, FCk_Fragment_VoiceTalker_ParamsData{});
+            State->Talker = UCk_Utils_VoiceTalker_UE::Add(TalkerEntity, FCk_VoiceTalker_Spec{});
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(5));
@@ -181,11 +181,11 @@ bool FCkVoiceChatChannel_InvalidInputsRejected::RunTest(const FString& Parameter
             State->Host = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
 
             State->ChannelAlpha = UCk_Utils_VoiceChannel_UE::Add(State->Host,
-                FCk_Fragment_VoiceChannel_ParamsData{
+                FCk_VoiceChannel_Spec{
                     UCk_Utils_GameplayTag_UE::ResolveGameplayTag(TEXT("VoiceChat.Channel.TestRejection"))});
 
             auto TalkerEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
-            State->Talker = UCk_Utils_VoiceTalker_UE::Add(TalkerEntity, FCk_Fragment_VoiceTalker_ParamsData{});
+            State->Talker = UCk_Utils_VoiceTalker_UE::Add(TalkerEntity, FCk_VoiceTalker_Spec{});
 
             // Invalid talker on Join; valid-but-never-joined talker on SetMemberFlags. Both must
             // ensure, complete Failed, and leave ZERO membership state behind.
@@ -243,7 +243,7 @@ bool FCkVoiceChatChannel_AudioAssetResolveFails::RunTest(const FString& Paramete
             auto TransientEntity = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
             State->Host = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
 
-            auto Params = FCk_Fragment_VoiceChannel_ParamsData{
+            auto Params = FCk_VoiceChannel_Spec{
                 UCk_Utils_GameplayTag_UE::ResolveGameplayTag(TEXT("VoiceChat.Channel.TestBadAsset"))}
                 .Set_Attenuation(TSoftObjectPtr<USoundAttenuation>{
                     FSoftObjectPath{TEXT("/Game/DoesNotExist/CkVoice_BogusAttenuation.CkVoice_BogusAttenuation")}});
@@ -251,7 +251,7 @@ bool FCkVoiceChatChannel_AudioAssetResolveFails::RunTest(const FString& Paramete
             State->ChannelAlpha = UCk_Utils_VoiceChannel_UE::Add(State->Host, Params);
 
             auto TalkerHost = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(TransientEntity);
-            State->Talker = UCk_Utils_VoiceTalker_UE::Add(TalkerHost, FCk_Fragment_VoiceTalker_ParamsData{});
+            State->Talker = UCk_Utils_VoiceTalker_UE::Add(TalkerHost, FCk_VoiceTalker_Spec{});
         })));
 
     // The failed async load must complete setup, not hang it - poll for the boundary to settle.

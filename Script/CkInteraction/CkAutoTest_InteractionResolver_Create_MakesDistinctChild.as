@@ -34,7 +34,7 @@ class UCk_AutoTest_InteractionResolver_Create_MakesDistinctChild : UCk_AutoTest_
         auto Mappings = TArray<FCk_InteractionResolver_IntentChannelMapping>();
         Mappings.Add(Mapping);
 
-        auto ResolverParams = FCk_InteractionResolver_ParamsData(Mappings);
+        auto ResolverParams = FCk_InteractionResolver_Spec(Mappings);
 
         auto Child = utils_interaction_resolver::Create(Owner, ResolverParams);
         auto ChildEntity = FCk_Handle(Child);

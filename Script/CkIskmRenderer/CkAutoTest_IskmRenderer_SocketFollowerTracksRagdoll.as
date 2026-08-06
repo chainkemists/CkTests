@@ -64,7 +64,7 @@ class UCk_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll : UCk_AutoTest_Base
         _Leader = utils_target_point::Create(LocalHandle, FTransform::Identity);
 
         auto Renderer = utils_iskm_renderer::Add(LocalHandle, RendererData);
-        auto Params   = FCk_Fragment_IskmProxy_ParamsData(Renderer, FTransform::Identity);
+        auto Params   = FCk_IskmProxy_Spec(Renderer, FTransform::Identity);
         // Large & non-zero so a wrongly re-added LocalLocationOffset in the ragdoll branch
         // shifts the follower well clear of the tolerance and fails the assert. This is the
         // same field the player sets to the capsule half-height (BB_PlayerCharacter.as:276);

@@ -20,7 +20,7 @@ class UCk_AutoTest_Pmg_Donut_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Fragment_Pmg_Donut_ParamsData();
+        auto Params = FCk_Pmg_Donut_Spec();
 
         auto Child = utils_pmg_donut::Create(Owner, Params);
         auto ChildEntity = FCk_Handle(Child);

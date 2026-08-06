@@ -41,7 +41,7 @@ class UCk_AutoTest_Poi_StateTags_ViaEntityTag : UCk_AutoTest_Base
         _TagB = utils_gameplay_tag::ResolveGameplayTag(n"Poi.State.Cleared");
         _TagC = utils_gameplay_tag::ResolveGameplayTag(n"Poi.State.Locked");
 
-        utils_poi::Add(_Owner, FCk_Fragment_Poi_ParamsData(_Category));
+        utils_poi::Add(_Owner, FCk_Poi_Spec(_Category));
 
         utils_entity_tag::Add_UsingGameplayTag(_Owner, _TagA);
         utils_entity_tag::Add_UsingGameplayTag(_Owner, _TagB);

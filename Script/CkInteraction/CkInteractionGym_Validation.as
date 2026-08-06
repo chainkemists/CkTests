@@ -35,11 +35,11 @@ class UCk_EntityScript_InteractionGym_Validation : UCk_GenericEntityScript_UE
 
         auto Channel = interaction_gym_helpers::DefaultChannel();
 
-        auto SourceParams = FCk_Fragment_InteractSource_ParamsData();
+        auto SourceParams = FCk_InteractSource_Spec();
         SourceParams._InteractionChannel = Channel;
         SourceHandle = utils_interact_source::Add(InHandle, SourceParams);
 
-        auto TargetParams = FCk_Fragment_InteractTarget_ParamsData(Channel);
+        auto TargetParams = FCk_InteractTarget_Spec(Channel);
         TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::Instant);
         TargetParams.Set_CustomCanInteractWithDynamic(FCk_Delegate_InteractTarget_CanInteractWith(this, n"OnCanInteractWith"));
         TargetHandle = utils_interact_target::Add(InHandle, TargetParams);

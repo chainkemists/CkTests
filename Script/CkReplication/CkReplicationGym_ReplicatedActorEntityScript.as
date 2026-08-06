@@ -27,7 +27,7 @@ class UCk_ReplicationGym_ReplicatedActor_EntityScript : UCk_EntityScript_WithAct
         // *** THIS IS THE REPRO LINE ***
         // Adding a replicated Integer Attribute on an entity whose replication
         // driver has no container entry for FCk_RepData_IntegerAttributes yet.
-        auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto Params = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.ReplicationGym.ActorValue"),
             StartingValue);
         Params.Set_MinMax(ECk_MinMax::Min);

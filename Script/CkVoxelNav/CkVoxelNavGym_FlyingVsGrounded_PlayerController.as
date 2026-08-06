@@ -112,7 +112,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         auto VolumeEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         VolumeEntity.Request_OverrideToSelf();
 
-        auto VolumeParams = FCk_Fragment_VoxelNavVolume_ParamsData(
+        auto VolumeParams = FCk_VoxelNavVolume_Spec(
             FBox(k_VolumeMin, k_VolumeMax), k_FinestCellSizeUu);
         VolumeParams.Set_AutoBuildOnSetup(ECk_EnableDisable::Disable);
         VolumeParams.Set_ClearanceUu(k_AgentRadius);
@@ -242,7 +242,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         // The agent is a CHILD of the registry transient, never composed onto it: utils_crowd_agent
         // permits one agent per entity, so composing onto the transient would put both agents on the
         // same entity and make the destroy in Restart target the world transient.
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(k_AgentRadius, k_AgentHeight);
+        auto Params = FCk_CrowdAgent_Spec(k_AgentRadius, k_AgentHeight);
         Params.Set_AgentMode(InMode);
 
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
@@ -251,12 +251,12 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
         utils_velocity::Add(AgentEntity,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(AgentEntity,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(AgentEntity);
 
-        auto Path = utils_voxel_nav_path::Add(FCk_Handle(Agent), FCk_Fragment_VoxelNavPath_ParamsData(k_AgentRadius));
+        auto Path = utils_voxel_nav_path::Add(FCk_Handle(Agent), FCk_VoxelNavPath_Spec(k_AgentRadius));
         utils_voxel_nav_path::Request_SetVolume(Path, _Volume);
 
         utils_crowd_agent::Set_DebugColor(Agent, InColor);

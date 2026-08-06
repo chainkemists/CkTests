@@ -96,7 +96,7 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         }
 
         // Add continuous music track for attenuation testing
-        auto MusicTrackParams = FCk_Fragment_AudioTrack_ParamsData(
+        auto MusicTrackParams = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName(
                 "/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX", ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
         MusicTrackParams._TrackName = MusicTrackTag.GetTagName();
@@ -115,7 +115,7 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         utils_audio_director::Request_AddTrack(AudioDirector, MusicTrackParams);
 
         // Add ambient background for layered attenuation testing
-        auto AmbientTrackParams = FCk_Fragment_AudioTrack_ParamsData(
+        auto AmbientTrackParams = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
                 ECk_AssetSearchScope::Plugins).Get_Asset().Get()));
         AmbientTrackParams._TrackName = AmbientTrackTag.GetTagName();
@@ -139,7 +139,7 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
 
         for (int32 i = 0; i < AttenuationTestZones.Num(); i++)
         {
-            auto MarkerParams = FCk_Fragment_IsmProxy_ParamsData(ck::Asset_StationMarker);
+            auto MarkerParams = FCk_IsmProxy_Spec(ck::Asset_StationMarker);
             MarkerParams.Set_ScaleMultiplier(FVector(0.4f, 0.4f, 0.4f));
 
             // Color code markers by distance (green = close, red = far)

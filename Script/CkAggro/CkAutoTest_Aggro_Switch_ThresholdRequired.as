@@ -25,7 +25,7 @@ class UCk_AutoTest_Aggro_Switch_ThresholdRequired : UCk_AutoTest_Base
 
         auto Selection = FCk_Aggro_SelectionParams();
         Selection.Set_TargetSwitchCooldown(FCk_Time(0.0)).Set_MinimumAggroDuration(FCk_Time(0.0));
-        auto OwnerParams = FCk_Fragment_Aggro_ParamsData();
+        auto OwnerParams = FCk_Aggro_Spec();
         OwnerParams.Set_SelectionParams(Selection);
         _Aggro = utils_aggro::Add(Owner, OwnerParams);
 
