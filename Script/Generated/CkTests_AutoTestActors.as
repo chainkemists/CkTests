@@ -3128,6 +3128,18 @@ class ACk_AutoTest_GameSettings_ResolutionConfirmWindow_RevertsOnExpiry_Actor : 
     }
 }
 
+class ACk_AutoTest_GameSettings_ScreenGeneratesRowsFromRegistry_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_GameSettings_ScreenGeneratesRowsFromRegistry");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_GameSettings_VideoPack_ExternalNeverStored_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)

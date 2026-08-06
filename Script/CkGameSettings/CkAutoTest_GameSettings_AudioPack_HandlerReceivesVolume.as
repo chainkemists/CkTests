@@ -18,6 +18,12 @@ class UCk_AutoTest_GameSettings_AudioPack_HandlerReceivesVolume : UCk_AutoTest_B
 
         Assert_True(utils_game_settings::Request_RegisterSetting(Definition), "volume setting registers");
 
+        // Normalize to a known value BEFORE the handler exists: the real machine ini accumulates
+        // astest.* keys across runs, so registration may have absorbed a prior run's 0.42.
+        Assert_True(utils_game_settings::Request_SetSettingValue_Float(
+            FCk_Request_GameSettings_SetValue_Float(n"astest.audiopack.master", 1.0)),
+            "normalize holds");
+
         Assert_True(utils_game_settings::Request_RegisterApplyHandler_Float(n"astest.audiopack.master",
             FCk_Delegate_GameSettings_ApplyHandler_Float(this, n"OnVolumeApplied")),
             "handler registers");
