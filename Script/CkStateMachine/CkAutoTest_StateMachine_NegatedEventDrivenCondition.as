@@ -36,7 +36,7 @@ class UCk_SmTest_Negated_Condition_AfterDelay : UCk_SmCondition_EventDriven
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.1f));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(0.1f));
         TimerParams
             .Set_StartingState(ECk_Timer_State::Running)
             .Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
@@ -93,7 +93,7 @@ class UCk_AutoTest_StateMachine_NegatedEventDrivenCondition : UCk_AutoTest_Base
         // transition will never fire, OnStateChanged will never run, and
         // we'll FinishSuccess on settle. If negate semantic is broken,
         // OnStateChanged fires before settle and the test fails fast.
-        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
+        auto SettleParams = FCk_Timer_Spec(FCk_Time(0.5f));
         SettleParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto SettleTimer = utils_timer::Add(LocalHandle, SettleParams);

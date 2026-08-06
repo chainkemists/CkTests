@@ -92,7 +92,7 @@ class ACk_TransformGym_Cube : AActor
 		if (Behavior == ECk_TransformGym_Behavior::SetLocation || Behavior == ECk_TransformGym_Behavior::SetRotation)
 		{
 			// Step timer: cycle every 1.5 seconds
-			auto StepParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.5f));
+			auto StepParams = FCk_Timer_Spec(FCk_Time(1.5f));
 			StepParams.Set_StartingState(ECk_Timer_State::Running);
 			StepParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 			auto StepTimer = utils_timer::Add(InEntity, StepParams);

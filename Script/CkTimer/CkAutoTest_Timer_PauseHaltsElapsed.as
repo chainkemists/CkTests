@@ -30,7 +30,7 @@ class UCk_AutoTest_Timer_PauseHaltsElapsed : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
 
         // Long goal so the timer never completes during the test.
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(60.0f));
+        auto Params = FCk_Timer_Spec(FCk_Time(60.0f));
         Params.Set_StartingState(ECk_Timer_State::Running);
         Params.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 

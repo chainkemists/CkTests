@@ -220,7 +220,7 @@ class UCk_CueGym_Cue_Custom : UCk_GenericCue_EntityScript
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DrawTick"));
 
 		// Self-destruct timer: 3 seconds
-		auto DestroyParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.0f));
+		auto DestroyParams = FCk_Timer_Spec(FCk_Time(3.0f));
 		DestroyParams.Set_StartingState(ECk_Timer_State::Running);
 		DestroyParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 		auto DestroyTimer = utils_timer::Add(InHandle, DestroyParams);

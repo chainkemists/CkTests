@@ -73,7 +73,7 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranch : UCk_AutoTest_Base
         // after the async entity-spawn hop), so each pass takes ~2s. Two passes
         // need ~4s; 5s gives buffer for verify timer + assertion eval.
         auto LocalHandle = InHandle;
-        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(5.0f));
+        auto SettleParams = FCk_Timer_Spec(FCk_Time(5.0f));
         SettleParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(LocalHandle, SettleParams);

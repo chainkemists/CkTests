@@ -142,7 +142,7 @@ class UCk_AutoTest_Aggro_LastTargetForgotten_BroadcastsInvalidActive : UCk_AutoT
 
     private void ScheduleSettle(float InSeconds, FName InHandlerName)
     {
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(InSeconds));
+        auto Params = FCk_Timer_Spec(FCk_Time(InSeconds));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(_Context, Params);

@@ -356,7 +356,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
 
         _bSetupBannerTimerOutstanding = true;
 
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto Params = FCk_Timer_Spec(FCk_Time(0.05));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(ck::ToEntity(this), Params);
@@ -397,7 +397,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
 
         _bSetupMeasureOutstanding = true;
 
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto Params = FCk_Timer_Spec(FCk_Time(0.05));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(ck::ToEntity(this), Params);
@@ -469,7 +469,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         // Mirrors the base PC's WaitOneFrame, which is private to it. Hosted on the PC's OWN entity rather than
         // on a station, because a switch destroys the stations and a poll that died with one would strand the
         // wait flag.
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto Params = FCk_Timer_Spec(FCk_Time(0.05));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(ck::ToEntity(this), Params);

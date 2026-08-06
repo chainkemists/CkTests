@@ -93,7 +93,7 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         DoArmWaveTimer();
 
         // One-frame settle: retry the teleport in case the pawn wasn't possessed yet.
-        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto SettleParams = FCk_Timer_Spec(FCk_Time(0.05));
         SettleParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto SettleTimer = utils_timer::Add(_GymEntity, SettleParams);
@@ -123,7 +123,7 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
             utils_entity_lifetime::Request_DestroyEntity(Generic);
         }
 
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(_WaveIntervalSeconds));
+        auto Params = FCk_Timer_Spec(FCk_Time(_WaveIntervalSeconds));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         _WaveTimer = utils_timer::Add(_GymEntity, Params);
