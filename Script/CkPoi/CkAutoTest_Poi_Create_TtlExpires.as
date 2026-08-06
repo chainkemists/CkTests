@@ -40,7 +40,7 @@ class UCk_AutoTest_Poi_Create_TtlExpires : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
         _Ping = utils_poi::Add(_PingHost, Params);
 
-        auto TtlParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.4f));
+        auto TtlParams = FCk_Timer_Spec(FCk_Time(0.4f));
         TtlParams.Set_Behavior(ECk_Timer_Behavior::StopOnDone).Set_StartingState(ECk_Timer_State::Running);
         auto TtlTimer = utils_timer::Add(_PingHost, TtlParams);
         TtlTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnTtlDone"));

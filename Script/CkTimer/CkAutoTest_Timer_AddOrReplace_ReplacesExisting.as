@@ -31,7 +31,7 @@ class UCk_AutoTest_Timer_AddOrReplace_ReplacesExisting : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto FirstParams = FCk_Fragment_Timer_ParamsData(FCk_Time(10.0f));
+        auto FirstParams = FCk_Timer_Spec(FCk_Time(10.0f));
         FirstParams.Set_TimerName(utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Timer.AddOrReplace_Slot"));
         FirstParams.Set_StartingState(ECk_Timer_State::Paused);
         FirstParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
@@ -47,7 +47,7 @@ class UCk_AutoTest_Timer_AddOrReplace_ReplacesExisting : UCk_AutoTest_Base
             "Precondition: owner should have exactly 1 timer after the initial Add");
 
         // AddOrReplace with same name, different goal (5s instead of 10s).
-        auto ReplaceParams = FCk_Fragment_Timer_ParamsData(FCk_Time(5.0f));
+        auto ReplaceParams = FCk_Timer_Spec(FCk_Time(5.0f));
         ReplaceParams.Set_TimerName(utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Timer.AddOrReplace_Slot"));
         ReplaceParams.Set_StartingState(ECk_Timer_State::Paused);
         ReplaceParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);

@@ -37,7 +37,7 @@ class UCk_AutoTest_CrossCutting_DestroyOwner_DuringHandleRequests_NoCrash : UCk_
 
         _Owner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(1.0));
+        auto Params = FCk_Timer_Spec(FCk_Time(1.0));
         Params.Set_StartingState(ECk_Timer_State::Running);
         Params.Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(_Owner, Params);

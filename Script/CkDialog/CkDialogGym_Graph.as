@@ -123,7 +123,7 @@ class UCk_EntityScript_DialogGym_Graph : UCk_GenericEntityScript_UE
 
         _CurrentEnter = _TagStart;
 
-        auto WalkParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.5));
+        auto WalkParams = FCk_Timer_Spec(FCk_Time(2.5));
         WalkParams.Set_StartingState(ECk_Timer_State::Running);
         WalkParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Walk = utils_timer::Add(InHandle, WalkParams);

@@ -29,7 +29,7 @@ class UCk_AutoTest_Timer_ChangeCountDirection : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(60.0f));
+        auto Params = FCk_Timer_Spec(FCk_Time(60.0f));
         Params.Set_StartingState(ECk_Timer_State::Running);
         Params.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
         // CountUp is the default direction; assert below that it actually is.

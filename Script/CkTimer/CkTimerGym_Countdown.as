@@ -35,7 +35,7 @@ class UCk_EntityScript_TimerGym_Countdown : UCk_GenericEntityScript_UE
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Countdown A: 10s, CountDown, PauseOnDone
-		auto PauseParams = FCk_Fragment_Timer_ParamsData(FCk_Time(10.0f));
+		auto PauseParams = FCk_Timer_Spec(FCk_Time(10.0f));
 		PauseParams.Set_StartingState(ECk_Timer_State::Running);
 		PauseParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 		PauseParams.Set_CountDirection(ECk_Timer_CountDirection::CountDown);
@@ -43,7 +43,7 @@ class UCk_EntityScript_TimerGym_Countdown : UCk_GenericEntityScript_UE
 		CountdownPause.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnPauseDone"));
 
 		// Countdown B: 10s, CountDown, ResetOnDone
-		auto ResetParams = FCk_Fragment_Timer_ParamsData(FCk_Time(10.0f));
+		auto ResetParams = FCk_Timer_Spec(FCk_Time(10.0f));
 		ResetParams.Set_StartingState(ECk_Timer_State::Running);
 		ResetParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		ResetParams.Set_CountDirection(ECk_Timer_CountDirection::CountDown);
@@ -51,21 +51,21 @@ class UCk_EntityScript_TimerGym_Countdown : UCk_GenericEntityScript_UE
 		CountdownReset.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnResetDone"));
 
 		// Consume demo: 10s timer, consumed in chunks
-		auto ConsumeParams = FCk_Fragment_Timer_ParamsData(FCk_Time(10.0f));
+		auto ConsumeParams = FCk_Timer_Spec(FCk_Time(10.0f));
 		ConsumeParams.Set_StartingState(ECk_Timer_State::Running);
 		ConsumeParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 		ConsumeTimer = utils_timer::Add(InHandle, ConsumeParams);
 		ConsumeTimer.BindTo_OnDepleted(FCk_Delegate_Timer(this, n"OnDepleted"));
 
 		// Automation: consume 2s every 3s
-		auto AutoParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.0f));
+		auto AutoParams = FCk_Timer_Spec(FCk_Time(3.0f));
 		AutoParams.Set_StartingState(ECk_Timer_State::Running);
 		AutoParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto AutoTimer = utils_timer::Add(InHandle, AutoParams);
 		AutoTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnConsumeStep"));
 
 		// Full cycle reset after 25s
-		auto CycleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(25.0f));
+		auto CycleParams = FCk_Timer_Spec(FCk_Time(25.0f));
 		CycleParams.Set_StartingState(ECk_Timer_State::Running);
 		CycleParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto CycleTimer = utils_timer::Add(InHandle, CycleParams);

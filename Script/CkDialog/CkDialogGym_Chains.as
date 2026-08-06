@@ -53,7 +53,7 @@ class UCk_EntityScript_DialogGym_Chains : UCk_GenericEntityScript_UE
 		_Emitter.BindTo_OnQueryCompleted(FCk_Delegate_DialogEmitter_OnQueryCompleted(this, n"OnResult"));
 
 		// Restart the chain from A every 4s.
-		auto CadenceParams = FCk_Fragment_Timer_ParamsData(FCk_Time(4.0));
+		auto CadenceParams = FCk_Timer_Spec(FCk_Time(4.0));
 		CadenceParams.Set_StartingState(ECk_Timer_State::Running);
 		CadenceParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto Cadence = utils_timer::Add(InHandle, CadenceParams);

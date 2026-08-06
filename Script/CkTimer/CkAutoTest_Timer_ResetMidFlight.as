@@ -33,7 +33,7 @@ class UCk_AutoTest_Timer_ResetMidFlight : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
 
         // Long goal so natural completion can't happen during the test window.
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(60.0f));
+        auto Params = FCk_Timer_Spec(FCk_Time(60.0f));
         Params.Set_StartingState(ECk_Timer_State::Running);
         Params.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 

@@ -80,7 +80,7 @@ class UCk_SmTest_Racing_Condition_SlowTimer : UCk_SmCondition_EventDriven
     {
         auto _CkPerfScope = ck::ScopedStat();
         auto Delay = SmRacing_Registry::Get_SlowDelaySeconds();
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(Delay));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(Delay));
         TimerParams
             .Set_StartingState(ECk_Timer_State::Running)
             .Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
@@ -102,7 +102,7 @@ class UCk_SmTest_Racing_Condition_FastTimer : UCk_SmCondition_EventDriven
     {
         auto _CkPerfScope = ck::ScopedStat();
         auto Delay = SmRacing_Registry::Get_FastDelaySeconds();
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(Delay));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(Delay));
         TimerParams
             .Set_StartingState(ECk_Timer_State::Running)
             .Set_Behavior(ECk_Timer_Behavior::PauseOnDone);

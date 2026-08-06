@@ -26,14 +26,14 @@ class UCk_EntityScript_CueGym_OwnerDestruction : UCk_GenericEntityScript_UE
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Cycle timer: 7 seconds (5s alive + 2s pause before next cycle)
-		auto CycleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(7.0f));
+		auto CycleParams = FCk_Timer_Spec(FCk_Time(7.0f));
 		CycleParams.Set_StartingState(ECk_Timer_State::Running);
 		CycleParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto CycleTimer = utils_timer::Add(InHandle, CycleParams);
 		CycleTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnCycleTick"));
 
 		// Destroy timer: 5s after spawn, destroy the owner
-		auto DestroyParams = FCk_Fragment_Timer_ParamsData(FCk_Time(5.0f));
+		auto DestroyParams = FCk_Timer_Spec(FCk_Time(5.0f));
 		DestroyParams.Set_StartingState(ECk_Timer_State::Paused);
 		DestroyParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 		auto DestroyTimer = utils_timer::Add(InHandle, DestroyParams);
@@ -87,7 +87,7 @@ class UCk_EntityScript_CueGym_OwnerDestruction : UCk_GenericEntityScript_UE
 
 		// Wait a frame for the owner to be constructed, then fire cues
 		// Use a very short timer to defer cue execution
-		auto DeferParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.1f));
+		auto DeferParams = FCk_Timer_Spec(FCk_Time(0.1f));
 		DeferParams.Set_StartingState(ECk_Timer_State::Running);
 		DeferParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 		auto DeferTimer = utils_timer::Add(SelfEntity, DeferParams);
@@ -131,7 +131,7 @@ class UCk_EntityScript_CueGym_OwnerDestruction : UCk_GenericEntityScript_UE
 		// Start the destroy timer
 		// Find the destroy timer (second timer added, index-based isn't reliable, so use a separate approach)
 		// Re-create a destroy timer
-		auto DestroyParams = FCk_Fragment_Timer_ParamsData(FCk_Time(5.0f));
+		auto DestroyParams = FCk_Timer_Spec(FCk_Time(5.0f));
 		DestroyParams.Set_StartingState(ECk_Timer_State::Running);
 		DestroyParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 		auto DestroyTimer = utils_timer::Add(SelfEntity, DestroyParams);

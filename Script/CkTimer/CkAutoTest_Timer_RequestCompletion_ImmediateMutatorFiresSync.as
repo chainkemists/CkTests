@@ -23,7 +23,7 @@ class UCk_AutoTest_Timer_RequestCompletion_ImmediateMutatorFiresSync : UCk_AutoT
     {
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(60.0f));
+        auto Params = FCk_Timer_Spec(FCk_Time(60.0f));
         _Timer = utils_timer::Add(LocalHandle, Params);
 
         Assert_True(_Timer.Get_CountDirection() == ECk_Timer_CountDirection::CountUp,

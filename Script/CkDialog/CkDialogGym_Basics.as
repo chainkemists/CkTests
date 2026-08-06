@@ -47,7 +47,7 @@ class UCk_EntityScript_DialogGym_Basics : UCk_GenericEntityScript_UE
 		_Emitter = UCk_Utils_DialogEmitter_UE::Add(InHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
 		_Emitter.BindTo_OnQueryCompleted(FCk_Delegate_DialogEmitter_OnQueryCompleted(this, n"OnQueryCompleted"));
 
-		auto CadenceParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.0));
+		auto CadenceParams = FCk_Timer_Spec(FCk_Time(2.0));
 		CadenceParams.Set_StartingState(ECk_Timer_State::Running);
 		CadenceParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto Cadence = utils_timer::Add(InHandle, CadenceParams);

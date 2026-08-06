@@ -34,7 +34,7 @@ class UCk_EntityScript_TimerGym_Behaviors : UCk_GenericEntityScript_UE
 		Request_CreateDemoTimers(InHandle);
 
 		// Cycle reset timer: every 18 seconds, reset non-looping timers
-		auto CycleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(18.0f));
+		auto CycleParams = FCk_Timer_Spec(FCk_Time(18.0f));
 		CycleParams.Set_StartingState(ECk_Timer_State::Running);
 		CycleParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		CycleTimer = utils_timer::Add(InHandle, CycleParams);
@@ -46,21 +46,21 @@ class UCk_EntityScript_TimerGym_Behaviors : UCk_GenericEntityScript_UE
 	void Request_CreateDemoTimers(FCk_Handle InHandle)
 	{
 		// Timer 1: ResetOnDone (loops continuously)
-		auto ResetParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.0f));
+		auto ResetParams = FCk_Timer_Spec(FCk_Time(3.0f));
 		ResetParams.Set_StartingState(ECk_Timer_State::Running);
 		ResetParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		ResetTimer = utils_timer::Add(InHandle, ResetParams);
 		ResetTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnResetDone"));
 
 		// Timer 2: PauseOnDone (freezes at end)
-		auto PauseParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.0f));
+		auto PauseParams = FCk_Timer_Spec(FCk_Time(3.0f));
 		PauseParams.Set_StartingState(ECk_Timer_State::Running);
 		PauseParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 		PauseTimer = utils_timer::Add(InHandle, PauseParams);
 		PauseTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnPauseDone"));
 
 		// Timer 3: StopOnDone (resets and stops)
-		auto StopParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.0f));
+		auto StopParams = FCk_Timer_Spec(FCk_Time(3.0f));
 		StopParams.Set_StartingState(ECk_Timer_State::Running);
 		StopParams.Set_Behavior(ECk_Timer_Behavior::StopOnDone);
 		StopTimer = utils_timer::Add(InHandle, StopParams);

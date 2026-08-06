@@ -26,14 +26,14 @@ class UCk_EntityScript_TimerGym_Basics : UCk_GenericEntityScript_UE
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Main demo timer: 5 seconds, PauseOnDone so it stays at the end value
-		auto MainParams = FCk_Fragment_Timer_ParamsData(FCk_Time(5.0f));
+		auto MainParams = FCk_Timer_Spec(FCk_Time(5.0f));
 		MainParams.Set_StartingState(ECk_Timer_State::Running);
 		MainParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 		MainTimer = utils_timer::Add(InHandle, MainParams);
 		MainTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnMainTimerDone"));
 
 		// Restart delay timer: 2 seconds, starts paused
-		auto RestartParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.0f));
+		auto RestartParams = FCk_Timer_Spec(FCk_Time(2.0f));
 		RestartParams.Set_StartingState(ECk_Timer_State::Paused);
 		RestartParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
 		RestartDelayTimer = utils_timer::Add(InHandle, RestartParams);

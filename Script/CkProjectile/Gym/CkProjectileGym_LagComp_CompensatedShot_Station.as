@@ -56,7 +56,7 @@ class UCk_EntityScript_ProjectileGym_LagCompCompensatedShot_Station : UCk_Generi
 
         _History = UCk_Utils_RewindHistory_UE::Add(Target, FCk_Fragment_RewindHistory_ParamsData(HitShapes));
 
-        auto CycleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.0));
+        auto CycleParams = FCk_Timer_Spec(FCk_Time(3.0));
         CycleParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto CycleTimer = utils_timer::Add(InHandle, CycleParams);

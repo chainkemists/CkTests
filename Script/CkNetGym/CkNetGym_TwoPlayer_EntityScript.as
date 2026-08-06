@@ -60,7 +60,7 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_NetGym_AdvanceState,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnAdvanceState"));
 
-        auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+        auto DisplayTimerParams = FCk_Timer_Spec(FCk_Time(0.0f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));

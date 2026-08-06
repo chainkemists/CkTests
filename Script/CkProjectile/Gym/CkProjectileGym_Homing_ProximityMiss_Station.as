@@ -39,7 +39,7 @@ class UCk_EntityScript_ProjectileGym_HomingProximityMiss_Station : UCk_GenericEn
 
         Launch_StraightProjectile();
 
-        auto CycleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.0));
+        auto CycleParams = FCk_Timer_Spec(FCk_Time(3.0));
         CycleParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto CycleTimer = utils_timer::Add(InHandle, CycleParams);

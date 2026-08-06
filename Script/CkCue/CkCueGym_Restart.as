@@ -26,7 +26,7 @@ class UCk_EntityScript_CueGym_Restart : UCk_GenericEntityScript_UE
 		Request_FireCue();
 
 		// Re-fire timer: every 3 seconds (triggers restart via RestartExisting)
-		auto RefireParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.0f));
+		auto RefireParams = FCk_Timer_Spec(FCk_Time(3.0f));
 		RefireParams.Set_StartingState(ECk_Timer_State::Running);
 		RefireParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto RefireTimer = utils_timer::Add(InHandle, RefireParams);

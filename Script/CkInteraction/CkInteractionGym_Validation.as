@@ -50,7 +50,7 @@ class UCk_EntityScript_InteractionGym_Validation : UCk_GenericEntityScript_UE
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InteractionGym_ToggleEnabled, FCk_Delegate_Messaging_OnBroadcast(this, n"OnToggleEnabled"));
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_InteractionGym_ToggleCustomValidation, FCk_Delegate_Messaging_OnBroadcast(this, n"OnToggleCustomValidation"));
 
-        auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+        auto DisplayTimerParams = FCk_Timer_Spec(FCk_Time(0.0f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));

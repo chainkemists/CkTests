@@ -27,13 +27,13 @@ class UCk_AutoTest_Timer_MultipleConcurrent : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto ShortParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.10f));
+        auto ShortParams = FCk_Timer_Spec(FCk_Time(0.10f));
         ShortParams.Set_StartingState(ECk_Timer_State::Running);
         ShortParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
         auto ShortTimer = utils_timer::Add(LocalHandle, ShortParams);
         ShortTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnShortDone"));
 
-        auto LongParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.30f));
+        auto LongParams = FCk_Timer_Spec(FCk_Time(0.30f));
         LongParams.Set_StartingState(ECk_Timer_State::Running);
         LongParams.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
         auto LongTimer = utils_timer::Add(LocalHandle, LongParams);

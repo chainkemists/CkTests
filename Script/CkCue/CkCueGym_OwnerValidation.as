@@ -33,7 +33,7 @@ class UCk_EntityScript_CueGym_OwnerValidation : UCk_GenericEntityScript_UE
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Phase timer: 5 seconds per phase
-		auto PhaseParams = FCk_Fragment_Timer_ParamsData(FCk_Time(5.0f));
+		auto PhaseParams = FCk_Timer_Spec(FCk_Time(5.0f));
 		PhaseParams.Set_StartingState(ECk_Timer_State::Running);
 		PhaseParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto PhaseTimer = utils_timer::Add(InHandle, PhaseParams);

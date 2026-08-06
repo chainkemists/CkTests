@@ -188,7 +188,7 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
         utils_crowd_agent::Request_MoveTo(_AgentSouth, FCk_Request_CrowdAgent_MoveTo(GoalS));
         utils_crowd_agent::Request_MoveTo(_AgentNorth, FCk_Request_CrowdAgent_MoveTo(GoalN));
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(_Self, TimerParams);

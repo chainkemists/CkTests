@@ -108,7 +108,7 @@ class UCk_SmTest_DivergenceTimed_Condition_FastDelay : UCk_SmCondition_EventDriv
     void DoEnterCondition(FCk_Handle_SmCondition InHandle, ECk_Sm_NetContext InNetContext)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(DelaySeconds));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(DelaySeconds));
         TimerParams
             .Set_StartingState(ECk_Timer_State::Running)
             .Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
