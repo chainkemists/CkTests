@@ -86,7 +86,7 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
         Follow.Set_ArrivalRadiusOverrideValue(ArrivalRadiusCm);
         utils_crowd_agent::Request_FollowTarget(_Agent, Follow);
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);

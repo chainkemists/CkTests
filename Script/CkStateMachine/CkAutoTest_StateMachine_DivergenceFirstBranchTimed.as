@@ -52,7 +52,7 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranchTimed : UCk_AutoTest_Base
 
         // Settle: PerPassSettleSeconds=1.5 × 2 passes + buffer.
         auto LocalHandle = InHandle;
-        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.5f));
+        auto SettleParams = FCk_Timer_Spec(FCk_Time(3.5f));
         SettleParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(LocalHandle, SettleParams);

@@ -48,7 +48,7 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
 
         // Poll until the bake lands — the edge probe below is synchronous and needs a live mesh.
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.25));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(0.25));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);
@@ -79,7 +79,7 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
         _AgentAtEdge = SpawnIdleAgent(SelfHandle, FVector(_EdgeX - 10.0f, 0.0f, SpawnZ));
         _AgentInland = SpawnIdleAgent(SelfHandle, FVector(_EdgeX - 22.0f, 0.0f, SpawnZ));
 
-        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SettleSec));
+        auto SettleParams = FCk_Timer_Spec(FCk_Time(SettleSec));
         SettleParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto SettleTimer = utils_timer::Add(SelfHandle, SettleParams);

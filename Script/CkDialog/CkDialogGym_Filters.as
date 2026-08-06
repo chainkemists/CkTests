@@ -63,7 +63,7 @@ class UCk_EntityScript_DialogGym_Filters : UCk_GenericEntityScript_UE
 		_NamedEmitter = UCk_Utils_DialogEmitter_UE::Add(NamedChild, FCk_Fragment_DialogEmitter_ParamsData(NamedTags));
 		_NamedEmitter.BindTo_OnQueryCompleted(FCk_Delegate_DialogEmitter_OnQueryCompleted(this, n"OnNamedResult"));
 
-		auto CadenceParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.0));
+		auto CadenceParams = FCk_Timer_Spec(FCk_Time(2.0));
 		CadenceParams.Set_StartingState(ECk_Timer_State::Running);
 		CadenceParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto Cadence = utils_timer::Add(InHandle, CadenceParams);

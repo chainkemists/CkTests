@@ -21,7 +21,7 @@ class UCk_AutoTest_Timer_RequestCompletion_NoDelegateNoOp : UCk_AutoTest_Base
     {
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(60.0f));
+        auto Params = FCk_Timer_Spec(FCk_Time(60.0f));
         Params.Set_StartingState(ECk_Timer_State::Running);
 
         _Timer = utils_timer::Add(LocalHandle, Params);

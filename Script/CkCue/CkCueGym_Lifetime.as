@@ -25,7 +25,7 @@ class UCk_EntityScript_CueGym_Lifetime : UCk_GenericEntityScript_UE
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Auto-demo cycle timer: fire a cue every 4 seconds
-		auto CycleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(4.0f));
+		auto CycleParams = FCk_Timer_Spec(FCk_Time(4.0f));
 		CycleParams.Set_StartingState(ECk_Timer_State::Running);
 		CycleParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto CycleTimer = utils_timer::Add(InHandle, CycleParams);

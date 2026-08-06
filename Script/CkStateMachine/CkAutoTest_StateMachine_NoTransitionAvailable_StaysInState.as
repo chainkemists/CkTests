@@ -53,7 +53,7 @@ class UCk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState : UCk_AutoTes
         // Settle window — long enough for any spurious transition pass to
         // fire if the framework attempted one. 1.0s is well past the
         // single-frame initial-entry broadcast.
-        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.0f));
+        auto SettleParams = FCk_Timer_Spec(FCk_Time(1.0f));
         SettleParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto SettleTimer = utils_timer::Add(LocalHandle, SettleParams);

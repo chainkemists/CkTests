@@ -106,7 +106,7 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
         utils_crowd_agent::Request_MoveTo(_Squatter, FCk_Request_CrowdAgent_MoveTo(Goal));
         utils_crowd_agent::Request_MoveTo(_Latecomer, FCk_Request_CrowdAgent_MoveTo(Goal));
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);

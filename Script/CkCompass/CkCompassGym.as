@@ -243,7 +243,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
 
         // 5s TTL: a StopOnDone timer on the ping's host entity destroys it when done
         FCk_Handle PingHost = Ping;
-        auto TtlParams = FCk_Fragment_Timer_ParamsData(FCk_Time(5.0f));
+        auto TtlParams = FCk_Timer_Spec(FCk_Time(5.0f));
         TtlParams.Set_Behavior(ECk_Timer_Behavior::StopOnDone).Set_StartingState(ECk_Timer_State::Running);
         auto TtlTimer = utils_timer::Add(PingHost, TtlParams);
         TtlTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnPingTtlDone"));

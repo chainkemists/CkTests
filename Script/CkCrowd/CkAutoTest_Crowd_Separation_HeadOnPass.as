@@ -45,7 +45,7 @@ class UCk_AutoTest_Crowd_Separation_HeadOnPass : UCk_AutoTest_Base
         _AgentB = SpawnAgent(LocalHandle, SpawnB, SpawnA);
 
         // Recurring sample timer — fires every SampleIntervalSec until we hit timeout.
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);

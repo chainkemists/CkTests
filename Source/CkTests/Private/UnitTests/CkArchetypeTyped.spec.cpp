@@ -65,9 +65,9 @@ bool FCkArchetype_TypedTryCastAndAutoRegistration::RunTest(const FString& Parame
     TestTrue(TEXT("partial features fail TryCast"),
         NOT FCkTest_Archetype_Rig::TryCast(Handle).IsSet());
 
-    // + Timer (both fragments the typesafe Has checks) → set, members typed + valid.
+    // + Timer (FFragment_Timer is the typesafe Has anchor; Params is the retained residue) → set, members typed + valid.
     Reg.emplace<ck::FFragment_Timer_Params>(EntityId);
-    Reg.emplace<ck::FFragment_Timer_Current>(EntityId, FCk_Chrono{FCk_Time{1.0f}});
+    Reg.emplace<ck::FFragment_Timer>(EntityId, FCk_Chrono{FCk_Time{1.0f}});
 
     const auto Rig = FCkTest_Archetype_Rig::TryCast(Handle);
     TestTrue(TEXT("full features pass TryCast"), Rig.IsSet());

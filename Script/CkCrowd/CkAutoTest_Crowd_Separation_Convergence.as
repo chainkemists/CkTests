@@ -90,13 +90,13 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
 
         // Phase 1 fires at TimeoutSec (liveness + pile-up asserts, then Stop all agents);
         // Phase 2 fires at SettleSec (at-rest non-penetration assert + FinishSuccess).
-        auto ConvergeParams = FCk_Fragment_Timer_ParamsData(FCk_Time(TimeoutSec));
+        auto ConvergeParams = FCk_Timer_Spec(FCk_Time(TimeoutSec));
         ConvergeParams.Set_StartingState(ECk_Timer_State::Running)
                       .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto ConvergeTimer = utils_timer::Add(LocalHandle, ConvergeParams);
         ConvergeTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnConvergeTimeout"));
 
-        auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SettleSec));
+        auto SettleParams = FCk_Timer_Spec(FCk_Time(SettleSec));
         SettleParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto SettleTimer = utils_timer::Add(LocalHandle, SettleParams);

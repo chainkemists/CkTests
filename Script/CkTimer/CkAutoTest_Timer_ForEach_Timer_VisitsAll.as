@@ -30,7 +30,7 @@ class UCk_AutoTest_Timer_ForEach_Timer_VisitsAll : UCk_AutoTest_Base
         // (PauseOnDone with Paused starting state never advances).
         for (int32 i = 0; i < 3; ++i)
         {
-            auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(10.0f));
+            auto Params = FCk_Timer_Spec(FCk_Time(10.0f));
             Params.Set_StartingState(ECk_Timer_State::Paused);
             Params.Set_Behavior(ECk_Timer_Behavior::PauseOnDone);
             utils_timer::Add(LocalHandle, Params);

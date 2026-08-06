@@ -28,13 +28,13 @@ class UCk_EntityScript_TimerGym_Control : UCk_GenericEntityScript_UE
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Control target timer: 10 seconds, ResetOnDone
-		auto ControlParams = FCk_Fragment_Timer_ParamsData(FCk_Time(10.0f));
+		auto ControlParams = FCk_Timer_Spec(FCk_Time(10.0f));
 		ControlParams.Set_StartingState(ECk_Timer_State::Running);
 		ControlParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		ControlTimer = utils_timer::Add(InHandle, ControlParams);
 
 		// Automation timer: step every 2.5 seconds
-		auto AutoParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.5f));
+		auto AutoParams = FCk_Timer_Spec(FCk_Time(2.5f));
 		AutoParams.Set_StartingState(ECk_Timer_State::Running);
 		AutoParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		auto AutoTimer = utils_timer::Add(InHandle, AutoParams);

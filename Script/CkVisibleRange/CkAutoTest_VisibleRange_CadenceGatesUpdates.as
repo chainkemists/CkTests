@@ -75,7 +75,7 @@ class UCk_AutoTest_VisibleRange_CadenceGatesUpdates : UCk_AutoTest_Base
         utils_visible_range::Update_Distance(_VR, 100.0f);
 
         // Under the 0.5s interval — cadence should GATE this, no re-evaluation yet.
-        auto ShortWaitParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.1));
+        auto ShortWaitParams = FCk_Timer_Spec(FCk_Time(0.1));
         ShortWaitParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto ShortTimer = utils_timer::Add(_Entity, ShortWaitParams);
         ShortTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnShortWaitDone"));
@@ -91,7 +91,7 @@ class UCk_AutoTest_VisibleRange_CadenceGatesUpdates : UCk_AutoTest_Base
             "but distance was moved back in range (still stale/hidden)");
 
         // Over the 0.5s interval — cadence should now have re-evaluated.
-        auto LongWaitParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.6));
+        auto LongWaitParams = FCk_Timer_Spec(FCk_Time(0.6));
         LongWaitParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto LongTimer = utils_timer::Add(_Entity, LongWaitParams);
         LongTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnLongWaitDone"));

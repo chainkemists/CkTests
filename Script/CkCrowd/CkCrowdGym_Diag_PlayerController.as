@@ -109,7 +109,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
         // Recurring 100ms ticker drives the cycle state machine. Owned by the HeadOn station so
         // it cascade-destroys on gym change.
-        auto TickerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(TickIntervalSec));
+        auto TickerParams = FCk_Timer_Spec(FCk_Time(TickIntervalSec));
         TickerParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Ticker = utils_timer::Add(_HeadOnStation, TickerParams);

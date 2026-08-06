@@ -43,7 +43,7 @@ class UCk_AutoTest_Crowd_Separation_Vibration : UCk_AutoTest_Base
         _AgentA = SpawnAgent(LocalHandle, SpawnA, SpawnB);
         _AgentB = SpawnAgent(LocalHandle, SpawnB, SpawnA);
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);

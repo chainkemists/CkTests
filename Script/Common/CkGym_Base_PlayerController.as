@@ -62,7 +62,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     // (e.g. deferred CkEntityTag Adds) on a subsequent frame.
     private void WaitOneFrame(FName InCallbackName)
     {
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto Params = FCk_Timer_Spec(FCk_Time(0.05));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(_SelfEntity, Params);

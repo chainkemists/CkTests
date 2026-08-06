@@ -103,7 +103,7 @@ class UCk_EntityScript_SceneNodeTweenGym_SimpleStation : UCk_GenericEntityScript
         Child = utils_scene_node::Create(RootTH, FTransform(FRotator::ZeroRotator, ChildOffset, FVector(1,1,1)));
         utils_handle::Set_DebugName(Child.H(), n"SceneNodeTweenGym_Simple_Child");
 
-        auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+        auto DisplayTimerParams = FCk_Timer_Spec(FCk_Time(0.0f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto T = utils_timer::Add(InHandle, DisplayTimerParams);
         T.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"FrameTick"));
@@ -280,7 +280,7 @@ class UCk_EntityScript_SceneNodeTweenGym_ChainStation : UCk_GenericEntityScript_
         NodeA = utils_scene_node::Create(RootTH, FTransform(RotA, OffsetA, FVector(1,1,1)));
         NodeB = utils_scene_node::Create(NodeA.As_Transform(), FTransform(RotB, OffsetB, FVector(1,1,1)));
 
-        auto DisplayParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+        auto DisplayParams = FCk_Timer_Spec(FCk_Time(0.0f));
         DisplayParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"FrameTick"));
@@ -473,7 +473,7 @@ class UCk_EntityScript_SceneNodeTweenGym_DeepStation : UCk_GenericEntityScript_U
             ParentTH = Link.As_Transform();
         }
 
-        auto DisplayParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+        auto DisplayParams = FCk_Timer_Spec(FCk_Time(0.0f));
         DisplayParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"FrameTick"));

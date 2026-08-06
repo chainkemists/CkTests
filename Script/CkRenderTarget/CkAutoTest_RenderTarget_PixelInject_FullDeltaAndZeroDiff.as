@@ -100,7 +100,7 @@ class UCk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff : UCk_AutoTest_
     // declaring "nothing was produced" and moving to the delta stage.
     private void ScheduleSettle()
     {
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.5f));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(0.5f));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(_TestEntity, TimerParams);

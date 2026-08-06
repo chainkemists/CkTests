@@ -98,7 +98,7 @@ namespace gym_auto
         FName InAutoTickName = n"AutoTick",
         FName InAutoSetName = n"OnAutoSet")
     {
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(InInterval);
+        auto TimerParams = FCk_Timer_Spec(InInterval);
         TimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(InHandle, TimerParams);
         Timer.BindTo_OnDone(FCk_Delegate_Timer(InTarget, InAutoTickName));

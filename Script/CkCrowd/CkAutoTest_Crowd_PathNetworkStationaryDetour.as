@@ -62,7 +62,7 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
 
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.1));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(0.1));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);

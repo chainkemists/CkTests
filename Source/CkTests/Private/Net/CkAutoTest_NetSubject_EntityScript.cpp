@@ -142,12 +142,12 @@ auto
     //   - Countdown : 10s countdown, mid-run elapsed round-trip (+ CountDown direction + Paused run-state).
     //   - Done      : 4s count-up, jumped to completion — terminal-state round-trip + no OnTimerDone re-fire on load.
     {
-        auto CountdownTimerParams = FCk_Fragment_Timer_ParamsData{FCk_Time{10.0}};
+        auto CountdownTimerParams = FCk_Timer_Spec{FCk_Time{10.0}};
         CountdownTimerParams.Set_TimerName(TAG_Timer_AutoTest_Net_Countdown.GetTag());
         CountdownTimerParams.Set_CountDirection(ECk_Timer_CountDirection::CountDown);
         UCk_Utils_Timer_UE::Add(InHandle, CountdownTimerParams);
 
-        auto DoneTimerParams = FCk_Fragment_Timer_ParamsData{FCk_Time{4.0}};
+        auto DoneTimerParams = FCk_Timer_Spec{FCk_Time{4.0}};
         DoneTimerParams.Set_TimerName(TAG_Timer_AutoTest_Net_Done.GetTag());
         DoneTimerParams.Set_CountDirection(ECk_Timer_CountDirection::CountUp);
         UCk_Utils_Timer_UE::Add(InHandle, DoneTimerParams);

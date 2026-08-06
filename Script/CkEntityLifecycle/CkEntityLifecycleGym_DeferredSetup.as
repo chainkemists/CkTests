@@ -49,7 +49,7 @@ class UCk_EntityScript_EntityLifecycleGym_DeferredSetup : UCk_GenericEntityScrip
 		utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"DisplayTick"));
 
 		// Phase timer: 2 seconds per phase
-		auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(2.0f));
+		auto TimerParams = FCk_Timer_Spec(FCk_Time(2.0f));
 		TimerParams.Set_StartingState(ECk_Timer_State::Running);
 		TimerParams.Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
 		PhaseTimer = utils_timer::Add(InHandle, TimerParams);

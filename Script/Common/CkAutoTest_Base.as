@@ -360,7 +360,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // added it.
     private FCk_Handle_Timer Do_MakePerFrameTimer(FName InCallbackName)
     {
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+        auto Params = FCk_Timer_Spec(FCk_Time(0.0f));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(SelfEntity, Params);
@@ -686,7 +686,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         // 0.05s rather than 0.0: a zero-duration timer can fire OnDone within
         // the same processor pass that added it, racing the very side-effect
         // processors we're trying to wait for.
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto Params = FCk_Timer_Spec(FCk_Time(0.05));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(SelfEntity, Params);

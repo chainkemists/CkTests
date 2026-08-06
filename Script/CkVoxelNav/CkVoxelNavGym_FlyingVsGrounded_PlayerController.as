@@ -123,7 +123,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         utils_voxel_nav_volume::Request_Build(_Volume, FCk_Request_VoxelNavVolume_Build(),
             FCk_Delegate_Request_OnCompleted(this, n"OnBuildCompleted"));
 
-        auto TickerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(k_TickIntervalSec));
+        auto TickerParams = FCk_Timer_Spec(FCk_Time(k_TickIntervalSec));
         TickerParams.Set_StartingState(ECk_Timer_State::Running)
                     .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Ticker = utils_timer::Add(_PcEntity, TickerParams);
@@ -199,7 +199,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
     // Mirrors the gym base's private WaitOneFrame — a one-shot timer on the PC's own entity.
     private void DoWaitOneFrame(FName InCallbackName)
     {
-        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
+        auto Params = FCk_Timer_Spec(FCk_Time(0.05));
         Params.Set_StartingState(ECk_Timer_State::Running)
               .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto Timer = utils_timer::Add(_PcEntity, Params);
