@@ -4,6 +4,7 @@
 #include "CkCore/IO/CkDeferredAssetInit_AngelScript.h"
 
 #include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
+#include "CkPhysics/AutoReorient/CkAutoReorient_Fragment.h"
 #include "CkEcs/LiveTune/CkLiveTune_Fragment.h"
 #include "CkEcs/LiveTune/CkLiveTune_HandlerRegistry.h"
 #include "CkEcs/LiveTune/CkLiveTune_HandlerRegistry.inl.h"
@@ -383,6 +384,34 @@ auto
     -> int32
 {
     return ck_livetune_autotest::Get_Counters()._ScrubbableApplyCount;
+}
+
+auto
+    UCk_LiveTuneTest_Utils::
+    Set_AutoReorientParams(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        FCk_Fragment_AutoReorient_ParamsData InParams)
+    -> void
+{
+    const auto AssetIsValid = ck::IsValid(InAsset);
+    CK_ENSURE_IF_NOT(AssetIsValid, TEXT("LiveTune test shim: invalid Tuning Asset"))
+    {}
+    if (NOT AssetIsValid)
+    { return; }
+
+    InAsset->_AutoReorientParams = InParams;
+}
+
+auto
+    UCk_LiveTuneTest_Utils::
+    Get_AutoReorientPolicy(
+        const FCk_Handle& InHandle)
+    -> ECk_AutoReorient_Policy
+{
+    if (ck::Is_NOT_Valid(InHandle) || NOT InHandle.Has<ck::FFragment_AutoReorient_Params>())
+    { return ECk_AutoReorient_Policy::NoAutoReorient; }
+
+    return InHandle.Get<ck::FFragment_AutoReorient_Params>().Get_Params().Get_ReorientPolicy();
 }
 
 // --------------------------------------------------------------------------------------------------------------------

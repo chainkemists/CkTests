@@ -4,6 +4,7 @@
 
 #include "CkAttribute/FloatAttribute/CkFloatAttribute_Fragment_Data.h"
 #include "CkEcs/Handle/CkHandle.h"
+#include "CkPhysics/AutoReorient/CkAutoReorient_Fragment_Data.h"
 #include "CkSpatialQuery/Probe/CkProbe_Fragment_Data.h"
 #include "CkTimer/CkTimer_Fragment_Data.h"
 
@@ -203,6 +204,11 @@ private:
               meta = (AllowPrivateAccess = true))
     FCk_LiveTuneTest_ScrubbableParams _ScrubbableParams;
 
+    // Swept features get a member here so their AutoTest can drive a real edit.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+              meta = (AllowPrivateAccess = true))
+    FCk_Fragment_AutoReorient_ParamsData _AutoReorientParams;
+
     // Deliberately never registered with FCk_LiveTuneHandlerRegistry — the fixture for Link's
     // unregistered-type refusal.
     UPROPERTY(EditAnywhere, BlueprintReadWrite,
@@ -221,6 +227,7 @@ public:
     CK_PROPERTY(_HealthParams);
     CK_PROPERTY(_ProbeParams);
     CK_PROPERTY(_ScrubbableParams);
+    CK_PROPERTY(_AutoReorientParams);
     CK_PROPERTY(_UnregisteredParams);
     CK_PROPERTY(_NotAStruct);
 };
@@ -386,6 +393,21 @@ public:
               DisplayName = "[Ck][Tests][LiveTune] Get Scrubbable Apply Count")
     static int32
     Get_ScrubbableApplyCount();
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
+              DisplayName = "[Ck][Tests][LiveTune] Set Auto Reorient Params")
+    static void
+    Set_AutoReorientParams(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        FCk_Fragment_AutoReorient_ParamsData InParams);
+
+    // Reads the live params fragment back off the entity — AutoReorient exposes no getter util, and the
+    // fragment IS the contract a ViaReplace retune has to land on.
+    UFUNCTION(BlueprintPure, Category = "Ck|Tests|LiveTune",
+              DisplayName = "[Ck][Tests][LiveTune] Get Auto Reorient Policy")
+    static ECk_AutoReorient_Policy
+    Get_AutoReorientPolicy(
+        const FCk_Handle& InHandle);
 };
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -4413,6 +4413,18 @@ class ACk_AutoTest_LiveTune_AttributeRebuild_Severance_Actor : ACk_AutoTestRunne
     }
 }
 
+class ACk_AutoTest_LiveTune_AutoReorient_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_LiveTune_AutoReorient");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_LiveTune_DiffGate_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;
