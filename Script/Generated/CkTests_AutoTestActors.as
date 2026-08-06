@@ -4076,6 +4076,18 @@ class ACk_AutoTest_Inventory_SplitInheritsRuntimeTag_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Inventory_StackableTrait_ConsumeFromStack_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Inventory_StackableTrait_ConsumeFromStack");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Inventory_StackableTrait_SplitStack_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
