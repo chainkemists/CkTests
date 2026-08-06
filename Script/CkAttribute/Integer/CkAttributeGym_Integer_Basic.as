@@ -76,7 +76,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 	void Request_SetupAttributes(FCk_Handle InHandle)
 	{
 		// Health: 0-100, starts at 100
-		auto HealthParams = FCk_Fragment_IntegerAttribute_ParamsData(
+		auto HealthParams = FCk_IntegerAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Health"),
 			100);
 		HealthParams.Set_MinMax(ECk_MinMax::MinMax);
@@ -85,7 +85,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 		HealthAttribute = utils_integer_attribute::Add(InHandle, HealthParams);
 
 		// Armor: 0-50, starts at 25
-		auto ArmorParams = FCk_Fragment_IntegerAttribute_ParamsData(
+		auto ArmorParams = FCk_IntegerAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Armor"),
 			25);
 		ArmorParams.Set_MinMax(ECk_MinMax::MinMax);
@@ -94,7 +94,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 		ArmorAttribute = utils_integer_attribute::Add(InHandle, ArmorParams);
 
 		// Experience: 0-unlimited, starts at 0
-		auto ExperienceParams = FCk_Fragment_IntegerAttribute_ParamsData(
+		auto ExperienceParams = FCk_IntegerAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Experience"),
 			0);
 		ExperienceParams.Set_MinMax(ECk_MinMax::Min);

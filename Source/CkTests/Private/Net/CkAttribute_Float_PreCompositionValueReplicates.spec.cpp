@@ -115,7 +115,7 @@ bool FCkAttributeNet_Float_PreComposition_StashedValue_Applies::RunTest(const FS
             const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{PreComposition_AttributeTagName});
 
             UCk_Utils_FloatAttribute_UE::Add(OwnerEntity,
-                FCk_Fragment_FloatAttribute_ParamsData{AttributeTag, PreComposition_ServerValue},
+                FCk_FloatAttribute_Spec{AttributeTag, PreComposition_ServerValue},
                 ECk_Replication::Replicates);
 
             *OwnerSlot = OwnerEntity;
@@ -147,7 +147,7 @@ bool FCkAttributeNet_Float_PreComposition_StashedValue_Applies::RunTest(const FS
             const auto AttributeTag = FGameplayTag::RequestGameplayTag(FName{PreComposition_AttributeTagName});
 
             UCk_Utils_FloatAttribute_UE::Add(OwnerEntity,
-                FCk_Fragment_FloatAttribute_ParamsData{AttributeTag, PreComposition_ClientInitialValue},
+                FCk_FloatAttribute_Spec{AttributeTag, PreComposition_ClientInitialValue},
                 ECk_Replication::Replicates);
         })));
 

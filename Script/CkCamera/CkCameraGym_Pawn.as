@@ -86,7 +86,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
         // anchor, and the POV reads it each frame, so the boom follows the pawn with no extra transform to add.
 
         // Camera director — DriveCameraComponent (default) auto-creates a UCk_CameraComponent on this pawn.
-        _Camera = utils_camera::Add(_PawnEntity, FCk_Fragment_Camera_ParamsData());
+        _Camera = utils_camera::Add(_PawnEntity, FCk_Camera_Spec());
 
         Request_SpawnReferenceGeometry();
 

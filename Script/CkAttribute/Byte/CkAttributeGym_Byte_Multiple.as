@@ -75,20 +75,20 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_GenericEntityScript_UE
 	Request_CreateInitialBatch(
 		FCk_Handle InHandle)
 	{
-		auto RPGParams = FCk_Fragment_MultipleByteAttribute_ParamsData();
+		auto RPGParams = FCk_MultipleByteAttribute_Spec();
 		auto& RPGList = RPGParams._ByteAttributeParams;
 
-		auto StrengthParams = FCk_Fragment_ByteAttribute_ParamsData(
+		auto StrengthParams = FCk_ByteAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"RPG.Strength"), 85);
 		StrengthParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(10).Set_MaxValue(255);
 		RPGList.Add(StrengthParams);
 
-		auto AgilityParams = FCk_Fragment_ByteAttribute_ParamsData(
+		auto AgilityParams = FCk_ByteAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"RPG.Agility"), 120);
 		AgilityParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(20).Set_MaxValue(200);
 		RPGList.Add(AgilityParams);
 
-		auto IntelligenceParams = FCk_Fragment_ByteAttribute_ParamsData(
+		auto IntelligenceParams = FCk_ByteAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"RPG.Intelligence"), 95);
 		IntelligenceParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(15).Set_MaxValue(255);
 		RPGList.Add(IntelligenceParams);
@@ -132,14 +132,14 @@ class UCk_EntityScript_AttributeGym_ByteMultiple : UCk_GenericEntityScript_UE
 	void Request_AddCombatBatch()
 	{
 		auto SelfEntity = ck::ToEntity(this);
-		auto CombatParams = FCk_Fragment_MultipleByteAttribute_ParamsData();
+		auto CombatParams = FCk_MultipleByteAttribute_Spec();
 		auto& CombatList = CombatParams._ByteAttributeParams;
 
-		auto AttackParams = FCk_Fragment_ByteAttribute_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Combat.Attack"), 75);
+		auto AttackParams = FCk_ByteAttribute_Spec(utils_gameplay_tag::ResolveGameplayTag(n"Combat.Attack"), 75);
 		AttackParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(5).Set_MaxValue(150);
 		CombatList.Add(AttackParams);
 
-		auto DefenseParams = FCk_Fragment_ByteAttribute_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Combat.Defense"), 60);
+		auto DefenseParams = FCk_ByteAttribute_Spec(utils_gameplay_tag::ResolveGameplayTag(n"Combat.Defense"), 60);
 		DefenseParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0).Set_MaxValue(100);
 		CombatList.Add(DefenseParams);
 

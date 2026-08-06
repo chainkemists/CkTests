@@ -70,7 +70,7 @@ class UCk_AutoTest_UsfOutline_VatShadowCustomData : UCk_AutoTest_Base
         _Entity = LocalHandle.Request_CreateEntity();
         auto Transform = utils_transform::Add(_Entity, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_VatProxy_ParamsData(Collection);
+        auto Params = FCk_VatProxy_Spec(Collection);
         Params.Set_InitialClipName(n"Jump");
         _VatProxy = utils_vat_proxy::Add(Transform, Params);
 

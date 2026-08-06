@@ -73,7 +73,7 @@ class UCk_EntityScript_IntegerGym_MinMaxCurrent : UCk_GenericEntityScript_UE
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		auto PowerParams = FCk_Fragment_IntegerAttribute_ParamsData(
+		auto PowerParams = FCk_IntegerAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.PowerLevel"),
 			50);
 		PowerParams.Set_MinMax(ECk_MinMax::MinMax);

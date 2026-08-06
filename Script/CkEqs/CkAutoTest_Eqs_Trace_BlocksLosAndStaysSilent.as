@@ -46,7 +46,7 @@ class UCk_AutoTest_Eqs_Trace_BlocksLosAndStaysSilent : UCk_AutoTest_Base
         auto BlockerTransform = utils_transform::Add(
             BlockerEntity, FTransform(FRotator::ZeroRotator, FVector(300.0, 0.0, 0.0)), ECk_Replication::DoesNotReplicate);
 
-        auto BlockerProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto BlockerProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Eqs.TraceBlocker"));
         BlockerProbeParams.Set_MotionType(ECk_MotionType::Static);
         // Notify + empty filter: the blocker WOULD receive overlap events if anything fired

@@ -25,7 +25,7 @@ class UCk_AutoTest_Attribute_IntegerOnClamped_NoFireWhenInBand : UCk_AutoTest_Ba
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto AttrParams = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto AttrParams = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Health"),
             50);
         AttrParams.Set_MinMax(ECk_MinMax::MinMax);

@@ -75,7 +75,7 @@ bool FCkStateMachineTask_TerminalResultSurvivesSameFrameTick::RunTest(const FStr
             if (ck::Is_NOT_Valid(GSmOwner))
             { AddError(TEXT("failed to create the transient owner entity")); return; }
 
-            auto Params = FCk_Fragment_StateMachine_ParamsData{UCk_AutoTest_Sm_TaskLatchIdleState_UE::StaticClass()};
+            auto Params = FCk_StateMachine_Spec{UCk_AutoTest_Sm_TaskLatchIdleState_UE::StaticClass()};
             // Defaults: AutoStart OnSetup, DoesNotReplicate.
             GSm = UCk_Utils_StateMachine_UE::Add(GSmOwner, Params);
             if (ck::Is_NOT_Valid(GSm))

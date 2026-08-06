@@ -27,7 +27,7 @@ class UCk_AutoTest_Probe_Add_Box_CreatesProbeEntity : UCk_AutoTest_Base
             return;
         }
 
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Probe.Add_Box_Seed"));
         auto DebugInfo = FCk_Probe_DebugInfo();
         auto ProbeHandle = utils_probe::Add_Box(ParentTransform, FVector(50.0f, 50.0f, 50.0f), ProbeParams, DebugInfo);

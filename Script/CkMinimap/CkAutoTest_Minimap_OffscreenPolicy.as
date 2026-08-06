@@ -34,7 +34,7 @@ class UCk_AutoTest_Minimap_OffscreenPolicy : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        _Minimap = utils_minimap::Add(Observer, FCk_Fragment_Minimap_ParamsData(1000.0));
+        _Minimap = utils_minimap::Add(Observer, FCk_Minimap_Spec(1000.0));
 
         // Due East, Hide policy — must not appear at all.
         _HiddenPoi = DoSpawnPoi(FVector(0.0, 3000.0, 0.0), n"Poi.Category.MinimapHide",
@@ -71,11 +71,11 @@ class UCk_AutoTest_Minimap_OffscreenPolicy : UCk_AutoTest_Base
         utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, _Base + InOffset),
             ECk_Replication::DoesNotReplicate);
 
-        auto Poi = utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
+        auto Poi = utils_poi::Add(Owner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
 
         // Offscreen policy now lives in CkPoiDisplayDefinition, keyed by the minimap consumer.
-        auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+        auto DisplayParams = FCk_PoiDisplayDefinition_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Minimap"));
         DisplayParams.Set_OffscreenPolicy(InPolicy);
         utils_poi_display_definition::Add(Poi, DisplayParams);

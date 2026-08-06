@@ -44,7 +44,7 @@ class UCk_AutoTest_Aggro_LastTargetForgotten_BroadcastsInvalidActive : UCk_AutoT
         _TargetA = Make_Target(FVector(500.0f, 0.0f, 0.0f));
         _TargetB = Make_Target(FVector(-500.0f, 0.0f, 0.0f));
 
-        _Aggro = utils_aggro::Add(Owner, FCk_Fragment_Aggro_ParamsData());
+        _Aggro = utils_aggro::Add(Owner, FCk_Aggro_Spec());
         Assert_True(ck::IsValid(_Aggro), "Aggro composed on an entity with a Transform");
         if (IsFinished()) { return; }
 

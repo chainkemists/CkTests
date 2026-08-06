@@ -62,7 +62,7 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
 
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Survival"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         Reset_WS();
 
         // -------- Hunger Planner -------- (U11.1: goal on PlannerParams)
@@ -71,7 +71,7 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Survival.Hungry"),
             false));
 
-        auto HungerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto HungerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Hunger"));
         HungerParams.Set_Goal(HungerGoal);
         HungerParams.Set_WorldStateSource(_WS);
@@ -84,12 +84,12 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             HungerParams);
 
         utils_goap_planner::AddAction(_Planner_Hunger,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_EatFood));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Survival_EatFood));
         utils_goap_planner::AddAction(_Planner_Hunger,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_Forage));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Survival_Forage));
         // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
         utils_goap_planner::AddAction(_Planner_Hunger,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_HuddleInPlace));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Survival_HuddleInPlace));
 
         _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_EatFood);       _KnownLabels_Hunger.Add("EatFood");
         _KnownClasses_Hunger.Add(UCk_GoapGym_Survival_Forage);        _KnownLabels_Hunger.Add("Forage");
@@ -101,7 +101,7 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Survival.SafeFromThreat"),
             true));
 
-        auto DefenseParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto DefenseParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Defense"));
         DefenseParams.Set_Goal(DefenseGoal);
         DefenseParams.Set_WorldStateSource(_WS);
@@ -111,12 +111,12 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             DefenseParams);
 
         utils_goap_planner::AddAction(_Planner_Defense,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_FightEnemy));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Survival_FightEnemy));
         utils_goap_planner::AddAction(_Planner_Defense,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_RunAway));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Survival_RunAway));
         // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
         utils_goap_planner::AddAction(_Planner_Defense,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_RemainAlert));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Survival_RemainAlert));
 
         _KnownClasses_Defense.Add(UCk_GoapGym_Survival_FightEnemy);  _KnownLabels_Defense.Add("FightEnemy");
         _KnownClasses_Defense.Add(UCk_GoapGym_Survival_RunAway);     _KnownLabels_Defense.Add("RunAway");

@@ -60,7 +60,7 @@ class UCk_AutoTest_Goap_Planner_FEARGymShape : UCk_AutoTest_Base
         // deterministic plan without needing to mutate WS mid-run.
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.WS.Combatant"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.WS.Combatant.HasAmmo"),          true);
         utils_goap_world_state::Set_Value(WS,
@@ -84,7 +84,7 @@ class UCk_AutoTest_Goap_Planner_FEARGymShape : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.WS.Combatant.EnemyNeutralized"),
             true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.ActionSet.Combatant"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
@@ -98,26 +98,26 @@ class UCk_AutoTest_Goap_Planner_FEARGymShape : UCk_AutoTest_Base
 
         // ---- Tier-1 children of FEAR_Combatant ----
         _AttackEnemy = utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackEnemy));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_AttackEnemy));
         Assert_True(ck::IsValid(_AttackEnemy), "AttackEnemy AddAction should succeed");
 
         utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Flank));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_Flank));
         utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_TakeCover));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_TakeCover));
         utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Reload));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_Reload));
         utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Investigate));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_Investigate));
         utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Patrol));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_Patrol));
 
         // ---- Promote AttackEnemy to a sub-Planner with sub-goal EnemyNeutralized ----
         auto AttackGoal = TArray<FCk_GoapWS_Condition_Authored>();
         AttackGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.WS.Combatant.EnemyNeutralized"),
             true));
-        auto AttackPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto AttackPlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.ActionSet.Combatant.AttackEnemy"));
         AttackPlannerParams.Set_Goal(AttackGoal);
         // Sub-Planner has no unconditional fallback (AttackFromCover/Flank/Open
@@ -131,11 +131,11 @@ class UCk_AutoTest_Goap_Planner_FEARGymShape : UCk_AutoTest_Base
 
         // ---- Tier-2 leaves under AttackEnemy ----
         utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackFromCover));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_AttackFromCover));
         utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackFromFlank));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_AttackFromFlank));
         utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackOpen));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_AttackOpen));
 
         // ---- Bind plan-complete on both Planners ----
         utils_goap_planner::BindTo_OnPlanComplete(_Combatant,

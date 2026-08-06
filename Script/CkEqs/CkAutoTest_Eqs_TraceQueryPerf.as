@@ -59,7 +59,7 @@ class UCk_AutoTest_Eqs_TraceQueryPerf : UCk_AutoTest_Base
         auto BlockerTransform = utils_transform::Add(
             BlockerEntity, FTransform(FRotator::ZeroRotator, FVector(300.0, 0.0, 0.0)), ECk_Replication::DoesNotReplicate);
 
-        auto BlockerParams = FCk_Fragment_Probe_ParamsData(
+        auto BlockerParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Eqs.TracePerf.Blocker"));
         BlockerParams.Set_MotionType(ECk_MotionType::Static);
         BlockerParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Silent);

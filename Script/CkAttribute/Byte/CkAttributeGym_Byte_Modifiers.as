@@ -72,12 +72,12 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_GenericEntityScript_UE
 
     void Request_SetupAttributes(FCk_Handle InHandle)
     {
-        auto DamageParams = FCk_Fragment_ByteAttribute_ParamsData(
+        auto DamageParams = FCk_ByteAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Damage"), 50);
         DamageParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(10).Set_MaxValue(200);
         DamageAttribute = utils_byte_attribute::Add(InHandle, DamageParams);
 
-        auto DefenseParams = FCk_Fragment_ByteAttribute_ParamsData(
+        auto DefenseParams = FCk_ByteAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Defense"), 30);
         DefenseParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0).Set_MaxValue(100);
         DefenseAttribute = utils_byte_attribute::Add(InHandle, DefenseParams);
@@ -99,7 +99,7 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_GenericEntityScript_UE
 
     void Request_StartAutomationCycle()
     {
-        auto WeaponParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto WeaponParams = FCk_ByteAttributeModifier_Spec();
         WeaponParams.Set_ModifierDelta(25);
         auto WeaponMod = utils_byte_attribute_modifier::Add_Revocable(DamageAttribute, utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Weapon"), ECk_AttributeModifier_Operation::Add, WeaponParams);
         if (ck::IsValid(WeaponMod)) { ActiveModifiers.Add(WeaponMod); }
@@ -137,7 +137,7 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_GenericEntityScript_UE
     void Request_AddArmorModifier()
     {
         if (ck::Is_NOT_Valid(DefenseAttribute)) return;
-        auto ArmorParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto ArmorParams = FCk_ByteAttributeModifier_Spec();
         ArmorParams.Set_ModifierDelta(15);
         auto ArmorMod = utils_byte_attribute_modifier::Add_Revocable(DefenseAttribute, utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Armor"), ECk_AttributeModifier_Operation::Add, ArmorParams);
         if (ck::IsValid(ArmorMod)) { ActiveModifiers.Add(ArmorMod); }
@@ -146,7 +146,7 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_GenericEntityScript_UE
     void Request_AddBuffModifier()
     {
         if (ck::Is_NOT_Valid(DamageAttribute)) return;
-        auto BuffParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto BuffParams = FCk_ByteAttributeModifier_Spec();
         BuffParams.Set_ModifierDelta(20);
         auto BuffMod = utils_byte_attribute_modifier::Add_Revocable(DamageAttribute, utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Buff"), ECk_AttributeModifier_Operation::Add, BuffParams);
         if (ck::IsValid(BuffMod)) { ActiveModifiers.Add(BuffMod); }
@@ -155,12 +155,12 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_GenericEntityScript_UE
     void Request_AddMultipleModifiers()
     {
         if (ck::Is_NOT_Valid(DefenseAttribute)) return;
-        auto ShieldParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto ShieldParams = FCk_ByteAttributeModifier_Spec();
         ShieldParams.Set_ModifierDelta(10);
         auto ShieldMod = utils_byte_attribute_modifier::Add_Revocable(DefenseAttribute, utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Shield"), ECk_AttributeModifier_Operation::Add, ShieldParams);
         if (ck::IsValid(ShieldMod)) { ActiveModifiers.Add(ShieldMod); }
 
-        auto EnchantParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto EnchantParams = FCk_ByteAttributeModifier_Spec();
         EnchantParams.Set_ModifierDelta(8);
         auto EnchantMod = utils_byte_attribute_modifier::Add_Revocable(DefenseAttribute, utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Enchantment"), ECk_AttributeModifier_Operation::Add, EnchantParams);
         if (ck::IsValid(EnchantMod)) { ActiveModifiers.Add(EnchantMod); }
@@ -188,7 +188,7 @@ class UCk_EntityScript_AttributeGym_ByteModifiers : UCk_GenericEntityScript_UE
     void Request_TestNotRevocableModifiers()
     {
         if (ck::Is_NOT_Valid(DamageAttribute)) return;
-        auto PermanentParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto PermanentParams = FCk_ByteAttributeModifier_Spec();
         PermanentParams.Set_ModifierDelta(12);
         utils_byte_attribute_modifier::Add_NotRevocable(DamageAttribute, ECk_AttributeModifier_Operation::Add, PermanentParams);
     }

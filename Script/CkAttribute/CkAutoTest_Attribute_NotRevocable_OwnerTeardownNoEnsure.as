@@ -44,7 +44,7 @@ class UCk_AutoTest_Attribute_NotRevocable_OwnerTeardownNoEnsure : UCk_AutoTest_B
         auto LocalHandle = InHandle;
         _Owner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 
-        auto Params = FCk_Fragment_FloatAttribute_ParamsData(
+        auto Params = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Damage"),
             50.0f);
         Params.Set_MinMax(ECk_MinMax::MinMax);
@@ -63,7 +63,7 @@ class UCk_AutoTest_Attribute_NotRevocable_OwnerTeardownNoEnsure : UCk_AutoTest_B
 
     private void AddNotRevocable(float32 InDelta)
     {
-        auto ModParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        auto ModParams = FCk_FloatAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(InDelta);
         utils_float_attribute_modifier::Add_NotRevocable(
             _Attribute,

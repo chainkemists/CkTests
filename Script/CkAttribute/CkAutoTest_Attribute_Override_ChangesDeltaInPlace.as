@@ -36,7 +36,7 @@ class UCk_AutoTest_Attribute_Override_ChangesDeltaInPlace : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto Params = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Damage"),
             10);
         Params.Set_MinMax(ECk_MinMax::MinMax);
@@ -57,7 +57,7 @@ class UCk_AutoTest_Attribute_Override_ChangesDeltaInPlace : UCk_AutoTest_Base
     private void Step1_AddModifier()
     {
         _Step = 1;
-        auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto ModParams = FCk_IntegerAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(5);
         _Modifier = utils_integer_attribute_modifier::Add_Revocable(
             _Attribute,

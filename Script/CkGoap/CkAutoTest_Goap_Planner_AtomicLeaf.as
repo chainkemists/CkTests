@@ -35,7 +35,7 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
 
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             false);
@@ -46,7 +46,7 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
@@ -56,7 +56,7 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
         // PR-B.1b Stage 5: register AtomicChild directly under the Planner.
         // The legacy "implicit root" Root_AtomicLeaf is no longer needed —
         // AtomicChild's own effect (Ready=true) satisfies the Planner's goal.
-        auto ChildParams = FCk_Fragment_Goap_ActionParamsData(
+        auto ChildParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_AtomicChild);
         _RootAction = utils_goap_planner::AddAction(_Planner, ChildParams);
         Assert_True(ck::IsValid(_RootAction),

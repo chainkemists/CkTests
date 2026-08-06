@@ -40,7 +40,7 @@ class ACk_ProbeGym_Pawn : ACk_Gym_Base_Pawn
         // would double-add and trip the RootComponent ensure).
         auto TransformHandle = InEntity.As_Transform();
 
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.Gym.Marker"));
         ProbeParams.Set_MotionType(ECk_MotionType::Kinematic);
         ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Silent);

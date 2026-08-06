@@ -70,7 +70,7 @@ class UCk_AutoTest_VatProxy_TransientBakePlayback : UCk_AutoTest_Base
         // ----- Compose + play -----
 
         auto Transform = utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        _Proxy = utils_vat_proxy::Add(Transform, FCk_Fragment_VatProxy_ParamsData(Collection));
+        _Proxy = utils_vat_proxy::Add(Transform, FCk_VatProxy_Spec(Collection));
 
         Assert_True(ck::IsValid(_Proxy),
             "utils_vat_proxy::Add should succeed against a transient-baked collection");

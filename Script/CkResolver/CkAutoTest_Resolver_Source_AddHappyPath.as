@@ -14,7 +14,7 @@ class UCk_AutoTest_Resolver_Source_AddHappyPath : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Entity = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Fragment_ResolverSource_ParamsData();
+        auto Params = FCk_ResolverSource_Spec();
         auto SourceHandle = utils_resolver_source::Add(Entity, Params);
 
         Assert_True(utils_handle::Get_IsValid(SourceHandle),

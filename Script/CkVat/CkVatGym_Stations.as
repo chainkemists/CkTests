@@ -111,7 +111,7 @@ class UCk_EntityScript_VatGym_ClipCycle : UCk_GenericEntityScript_UE
         _ProxyEntity.Set_DebugName(n"VatClipCycle_Instance");
         auto ProxyTransform = utils_transform::Add(_ProxyEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_VatProxy_ParamsData(_Collection);
+        auto Params = FCk_VatProxy_Spec(_Collection);
         if (_ClipNames.Num() > 0)
         { Params.Set_InitialClipName(_ClipNames[0]); }
         _Proxy = utils_vat_proxy::Add(ProxyTransform, Params);
@@ -317,7 +317,7 @@ class UCk_EntityScript_VatGym_Turntable : UCk_GenericEntityScript_UE
         _ProxyEntity.Set_DebugName(n"VatTurntable_Instance");
         _ProxyTransform = utils_transform::Add(_ProxyEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_VatProxy_ParamsData(_Collection);
+        auto Params = FCk_VatProxy_Spec(_Collection);
         Params.Set_InitialClipName(Clips[0].Get_Name());
         _Proxy = utils_vat_proxy::Add(_ProxyTransform, Params);
     }
@@ -478,7 +478,7 @@ class UCk_EntityScript_VatGym_CrowdField : UCk_GenericEntityScript_UE
             auto Entity = SelfEntity.Request_CreateEntity();
             auto InstanceTransform = utils_transform::Add(Entity, SpawnXf, ECk_Replication::DoesNotReplicate);
 
-            auto Params = FCk_Fragment_VatProxy_ParamsData(_Collection);
+            auto Params = FCk_VatProxy_Spec(_Collection);
             Params.Set_InitialClipName(_ClipNames[0]);
             Params.Set_PhaseOffset(ECk_VatProxy_PhaseOffset::RandomPerInstance);
             auto Proxy = utils_vat_proxy::Add(InstanceTransform, Params);

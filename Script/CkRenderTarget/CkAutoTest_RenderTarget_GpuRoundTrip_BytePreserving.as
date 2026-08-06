@@ -52,7 +52,7 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
         _TestEntity = InHandle;
 
-        auto Params = FCk_Fragment_RenderTarget_ParamsData(
+        auto Params = FCk_RenderTarget_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"RenderTarget.AutoTest.GpuRoundTrip"));
         Params.Set_Size(FIntPoint(32, 32));
         Params.Set_Replication(ECk_Replication::DoesNotReplicate);

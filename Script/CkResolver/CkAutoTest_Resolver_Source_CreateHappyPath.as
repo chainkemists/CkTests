@@ -17,7 +17,7 @@ class UCk_AutoTest_Resolver_Source_CreateHappyPath : UCk_AutoTest_Base
         auto SourceHandle = utils_resolver_source::Create(
             Owner,
             FTransform::Identity,
-            FCk_Fragment_ResolverSource_ParamsData(),
+            FCk_ResolverSource_Spec(),
             ECk_Lifetime::UntilDestroyed);
 
         Assert_True(utils_handle::Get_IsValid(SourceHandle),

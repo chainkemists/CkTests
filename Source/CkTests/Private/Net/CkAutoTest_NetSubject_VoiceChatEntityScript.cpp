@@ -29,8 +29,8 @@ auto
     const auto Flow = Super::Construct(InHandle, InSpawnParams);
 
     auto Channel = UCk_Utils_VoiceChannel_UE::Add(InHandle,
-        FCk_Fragment_VoiceChannel_ParamsData{TAG_VoiceChat_Channel_AutoTest_Net});
-    auto Talker = UCk_Utils_VoiceTalker_UE::Add(InHandle, FCk_Fragment_VoiceTalker_ParamsData{});
+        FCk_VoiceChannel_Spec{TAG_VoiceChat_Channel_AutoTest_Net});
+    auto Talker = UCk_Utils_VoiceTalker_UE::Add(InHandle, FCk_VoiceTalker_Spec{});
 
     if (auto* Subject = Cast<ACk_AutoTest_NetSubject_VoiceChat_UE>(
             UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle)))

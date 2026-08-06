@@ -46,7 +46,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop : UCk_AutoTest_Base
 
         _WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.KeyA"),
             true);
@@ -62,7 +62,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.Goal"),
             true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.Planner"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(_WS);
@@ -73,19 +73,19 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         // Implicit root host.
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
+        auto RootParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_WSOverrideStack_Root);
         _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (root) should return a valid handle");
 
         // OpA — precondition KeyA=true.
-        auto OpAParams = FCk_Fragment_Goap_ActionParamsData(
+        auto OpAParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_WSOverrideStack_OpA);
         auto OpA = utils_goap_planner::AddAction(_Planner, OpAParams);
         Assert_True(ck::IsValid(OpA), "AddAction (OpA) should return a valid handle");
 
         // OpB — precondition KeyB=true.
-        auto OpBParams = FCk_Fragment_Goap_ActionParamsData(
+        auto OpBParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_WSOverrideStack_OpB);
         auto OpB = utils_goap_planner::AddAction(_Planner, OpBParams);
         Assert_True(ck::IsValid(OpB), "AddAction (OpB) should return a valid handle");

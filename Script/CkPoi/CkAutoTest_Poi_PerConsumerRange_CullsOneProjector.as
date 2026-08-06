@@ -49,12 +49,12 @@ class UCk_AutoTest_Poi_PerConsumerRange_CullsOneProjector : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        auto CompassParams = FCk_Fragment_Compass_ParamsData();
+        auto CompassParams = FCk_Compass_Spec();
         CompassParams.Set_HeadingSource(ECk_Compass_HeadingSource::Manual);
         _Compass = utils_compass::Add(Observer, CompassParams);
         _Compass.Request_SetManualHeading(0.0);
 
-        _Minimap = utils_minimap::Add(Observer, FCk_Fragment_Minimap_ParamsData(5000.0));
+        _Minimap = utils_minimap::Add(Observer, FCk_Minimap_Spec(5000.0));
 
         // POI 2000uu due +X — NO base VisibleRange.
         auto PoiOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
@@ -62,20 +62,20 @@ class UCk_AutoTest_Poi_PerConsumerRange_CullsOneProjector : UCk_AutoTest_Base
         utils_transform::Add(PoiOwner,
             FTransform(FRotator::ZeroRotator, _Base + FVector(2000.0, 0.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _Poi = utils_poi::Add(PoiOwner, FCk_Fragment_Poi_ParamsData(
+        _Poi = utils_poi::Add(PoiOwner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark")));
 
         // Two consumer-keyed display-definition children (native consumer tags).
-        auto CompassDd = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+        auto CompassDd = FCk_PoiDisplayDefinition_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Compass"));
         auto CompassChild = utils_poi_display_definition::Create(_Poi, CompassDd);
 
-        auto MinimapDd = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+        auto MinimapDd = FCk_PoiDisplayDefinition_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Minimap"));
         utils_poi_display_definition::Create(_Poi, MinimapDd);
 
         // VisibleRange on the COMPASS child only: MaxRange 1000 < 2000 distance, evaluate every tick.
-        auto VrParams = FCk_Fragment_VisibleRange_ParamsData(1000.0);
+        auto VrParams = FCk_VisibleRange_Spec(1000.0);
         VrParams.Set_UpdateInterval(FCk_Time(0.0f));
         _CompassChildVr = utils_visible_range::Add(CompassChild, VrParams);
 

@@ -32,7 +32,7 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
         utils_entity_tag::Add(InHandle, CkNetGym::PlayerPawnTag);
 
         // --- Server-authoritative Health attribute (both worlds Add it; server mutates) ---
-        auto HealthParams = FCk_Fragment_FloatAttribute_ParamsData(
+        auto HealthParams = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(CkNetGym::HealthTagName),
             CkNetGym::StartingHealth);
         HealthParams.Set_MinMax(ECk_MinMax::MinMax);
@@ -41,7 +41,7 @@ class UCk_NetGym_TwoPlayer_EntityScript : UCk_EntityScript_WithActor_UE
         _Health = utils_float_attribute::Add(InHandle, HealthParams, ECk_Replication::Replicates);
 
         // --- Owning-client-authoritative State Machine ---
-        auto SmParams = FCk_Fragment_StateMachine_ParamsData(UCk_NetGym_State_Idle);
+        auto SmParams = FCk_StateMachine_Spec(UCk_NetGym_State_Idle);
         SmParams.Set_Replication(ECk_Replication::Replicates);
         SmParams.Set_AuthorityModel(ECk_Sm_AuthorityModel::OwningClientAuthoritative);
         SmParams.Set_ReplicationModel(ECk_Sm_ReplicationModel::WithHistory);

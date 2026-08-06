@@ -25,7 +25,7 @@ class UCk_AutoTest_StateMachine_Stop_FiresOnStopped : UCk_AutoTest_Base
     {
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
-        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_State_Idle));
+        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_StateMachine_Spec(UCk_SmTest_State_Idle));
 
         FCk_Delegate_Sm_OnStopped StoppedDelegate;
         StoppedDelegate.BindUFunction(this, n"OnStopped");

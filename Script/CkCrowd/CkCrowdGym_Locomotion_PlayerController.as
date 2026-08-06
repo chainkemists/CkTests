@@ -93,7 +93,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         // The agent is a standalone top-level entity (lifetime-owned by the registry transient),
         // not a sub-entity of the station — Ck_GymCrowd_Loco_Stop destroys it explicitly.
         FCk_Handle TransientOwner = ck::TransientEntity();
-        auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto AgentParams = FCk_CrowdAgent_Spec(42.0f, 192.0f);
 
         // The CrowdAgent entity needs a Transform so Request_AddLocationOffset has somewhere to apply.
         // Initial transform: just above the station origin so we can see the entity in the world.
@@ -115,11 +115,11 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         // non-zero starting value would be wiped on the first tick anyway. The bridge is the source
         // of motion now; the agent stays put until a path request lands.
         const auto VelocityStart = FVector::ZeroVector;
-        auto VelocityParams = FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, VelocityStart);
+        auto VelocityParams = FCk_Velocity_Spec(ECk_LocalWorld::World, VelocityStart);
         utils_velocity::Add(GenericAgent, VelocityParams, ECk_Replication::DoesNotReplicate);
 
         // Acceleration feature with zero acceleration — required by the integrator's view.
-        auto AccelParams = FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector);
+        auto AccelParams = FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector);
         utils_acceleration::Add(GenericAgent, AccelParams, ECk_Replication::DoesNotReplicate);
 
         // Start the integrator so FFragment_EulerIntegrator_Current + FTag_EulerIntegrator_NeedsUpdate land

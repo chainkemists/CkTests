@@ -69,20 +69,20 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_GenericEntityScript_UE
 
 	void Request_CreateInitialBatch(FCk_Handle InHandle)
 	{
-		auto RPGParams = FCk_Fragment_MultipleFloatAttribute_ParamsData();
+		auto RPGParams = FCk_MultipleFloatAttribute_Spec();
 		auto& RPGList = RPGParams._FloatAttributeParams;
 
-		auto StrengthParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto StrengthParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"RPG.Strength"), 85.5f);
 		StrengthParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(10.0f).Set_MaxValue(255.0f);
 		RPGList.Add(StrengthParams);
 
-		auto AgilityParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto AgilityParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"RPG.Agility"), 120.25f);
 		AgilityParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(20.0f).Set_MaxValue(200.0f);
 		RPGList.Add(AgilityParams);
 
-		auto IntelligenceParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto IntelligenceParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"RPG.Intelligence"), 95.75f);
 		IntelligenceParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(15.0f).Set_MaxValue(255.0f);
 		RPGList.Add(IntelligenceParams);
@@ -126,15 +126,15 @@ class UCk_EntityScript_AttributeGym_FloatMultiple : UCk_GenericEntityScript_UE
 	void Request_AddCombatBatch()
 	{
 		auto SelfEntity = ck::ToEntity(this);
-		auto CombatParams = FCk_Fragment_MultipleFloatAttribute_ParamsData();
+		auto CombatParams = FCk_MultipleFloatAttribute_Spec();
 		auto& CombatList = CombatParams._FloatAttributeParams;
 
-		auto AttackParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto AttackParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"Combat.Attack"), 75.5f);
 		AttackParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(5.0f).Set_MaxValue(150.0f);
 		CombatList.Add(AttackParams);
 
-		auto DefenseParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto DefenseParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"Combat.Defense"), 60.25f);
 		DefenseParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(100.0f);
 		CombatList.Add(DefenseParams);

@@ -36,7 +36,7 @@ class UCk_AutoTest_CkJolt_Constraint_ReapsWhenOtherBodyDies : UCk_AutoTest_Base
 
         auto BallABody = utils_jolt_body::DoCastChecked(_BallAEntity);
 
-        auto ConstraintParams = FCk_Fragment_JoltConstraint_ParamsData(ECk_JoltConstraint_Type::Distance);
+        auto ConstraintParams = FCk_JoltConstraint_Spec(ECk_JoltConstraint_Type::Distance);
         ConstraintParams.Set_OtherBody(_BallBEntity);
         ConstraintParams.Set_WorldAnchorA(_Origin);
         ConstraintParams.Set_WorldAnchorB(_Origin + FVector(120.0, 0.0, 0.0));
@@ -57,7 +57,7 @@ class UCk_AutoTest_CkJolt_Constraint_ReapsWhenOtherBodyDies : UCk_AutoTest_Base
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         Shape.Set_Radius(20.0);
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Dynamic);
         Params.Set_GravityFactor(0.0);   // free-floating pair — the test is lifecycle, not dynamics

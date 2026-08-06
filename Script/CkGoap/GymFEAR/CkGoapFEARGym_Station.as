@@ -91,7 +91,7 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         // ------------------------------------------------------------------
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.WS.Combatant"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         Reset_WS();
 
         // ------------------------------------------------------------------
@@ -103,7 +103,7 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.WS.Combatant.EnemyNeutralized"),
             true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.ActionSet.Combatant"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(_WS);
@@ -114,26 +114,26 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         // Tier 1 children of FEAR_Combatant.
         // AttackEnemy comes first because it will be promoted next.
         // ------------------------------------------------------------------
-        auto AttackEnemyParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackEnemy);
+        auto AttackEnemyParams = FCk_Goap_Action_Spec(UCk_GoapFEARGym_AttackEnemy);
         _AttackEnemy_AsAction = utils_goap_planner::AddAction(_Combatant, AttackEnemyParams);
 
         _Flank = utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Flank));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_Flank));
         _TakeCover = utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_TakeCover));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_TakeCover));
         _Reload = utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Reload));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_Reload));
         _Investigate = utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Investigate));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_Investigate));
         _Patrol = utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_Patrol));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_Patrol));
 
         // WaitForEnemy: fallback satisfying EnemyNeutralized at very high cost
         // so the planner ALWAYS has a valid plan even when no combat operator
         // is viable. "No plan" is treated as a misconfiguration error in
         // gameplay, never a normal idle state.
         utils_goap_planner::AddAction(_Combatant,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_WaitForEnemy));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_WaitForEnemy));
 
         // ------------------------------------------------------------------
         // Promote AttackEnemy: sub-goal EnemyNeutralized=true.
@@ -144,7 +144,7 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         AttackGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.WS.Combatant.EnemyNeutralized"),
             true));
-        auto AttackPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto AttackPlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.ActionSet.Combatant.AttackEnemy"));
         AttackPlannerParams.Set_Goal(AttackGoal);
         AttackPlannerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
@@ -155,15 +155,15 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         // Tier 2 leaves under AttackEnemy's promoted Planner.
         // ------------------------------------------------------------------
         utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackFromCover));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_AttackFromCover));
         utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackFromFlank));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_AttackFromFlank));
         utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackOpen));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_AttackOpen));
         // Always-valid-plan tenet fallback for AttackEnemy sub-Planner — see
         // CkGoap/CLAUDE.md § "Design tenets".
         utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackEnemy_Standby));
+            FCk_Goap_Action_Spec(UCk_GoapFEARGym_AttackEnemy_Standby));
 
         // ---- Label maps ----
         _KnownClasses_Combatant.Add(UCk_GoapFEARGym_AttackEnemy);

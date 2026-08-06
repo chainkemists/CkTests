@@ -36,7 +36,7 @@ class UCk_AutoTest_Goap_Planner_WSInheritance : UCk_AutoTest_Base
         // can reason over it.
         auto WS_Parent = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS_Parent,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
@@ -52,7 +52,7 @@ class UCk_AutoTest_Goap_Planner_WSInheritance : UCk_AutoTest_Base
             true));
 
         // Planner.
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS_Parent);
@@ -60,14 +60,14 @@ class UCk_AutoTest_Goap_Planner_WSInheritance : UCk_AutoTest_Base
         Assert_True(ck::IsValid(Planner), "Add Planner should return a valid handle");
 
         // Root Action: WS source = WS_Parent (inherited from PlannerParams).
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
+        auto RootParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Root_WSInheritance);
 
         auto RootAction = utils_goap_planner::AddAction(Planner, RootParams);
         Assert_True(ck::IsValid(RootAction), "AddAction (implicit-root) should return a valid handle");
 
         // Mid Action: no WS override — should inherit Root's WS.
-        auto MidParams = FCk_Fragment_Goap_ActionParamsData(
+        auto MidParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Mid_WSInheritance);
         // NOTE: No Set_WorldStateSource_Override call — Mid must inherit.
         auto MidAction = utils_goap_planner::AddAction(Planner, MidParams);

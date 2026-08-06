@@ -71,7 +71,7 @@ class UCk_EntityScript_AttributeGym_FloatIncrementDecrement : UCk_GenericEntityS
 
 	void Request_SetupAttributes(FCk_Handle InHandle)
 	{
-		auto CounterParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto CounterParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Counter"), 25.0f);
 		CounterParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(50.0f);
 		CounterAttribute = utils_float_attribute::Add(InHandle, CounterParams);

@@ -35,7 +35,7 @@ class UCk_AutoTest_Minimap_Entry_AppearsForPoi : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        _Minimap = utils_minimap::Add(Observer, FCk_Fragment_Minimap_ParamsData(5000.0));
+        _Minimap = utils_minimap::Add(Observer, FCk_Minimap_Spec(5000.0));
         _Minimap.BindTo_OnEntryAppeared(
             FCk_Delegate_Minimap_EntryAppeared(this, n"OnEntryAppeared"));
 
@@ -44,7 +44,7 @@ class UCk_AutoTest_Minimap_Entry_AppearsForPoi : UCk_AutoTest_Base
         utils_transform::Add(PoiOwner,
             FTransform(FRotator::ZeroRotator, _Base + FVector(0.0, 1000.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _Poi = utils_poi::Add(PoiOwner, FCk_Fragment_Poi_ParamsData(
+        _Poi = utils_poi::Add(PoiOwner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.MinimapAppear")));
 
         WaitUntil(n"Check_EntryAppeared", n"OnSettled_Requests");

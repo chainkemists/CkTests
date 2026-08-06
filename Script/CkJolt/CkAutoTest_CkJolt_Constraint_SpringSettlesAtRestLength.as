@@ -41,14 +41,14 @@ class UCk_AutoTest_CkJolt_Constraint_SpringSettlesAtRestLength : UCk_AutoTest_Ba
 
         auto BallShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         BallShape.Set_Radius(20.0);
-        auto BallParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto BallParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         BallParams.Set_ShapeDimensions(BallShape);
         BallParams.Set_MotionType(ECk_MotionType::Dynamic);
         auto BallBody = utils_jolt_body::Add(BallEntity, BallParams);
 
         // World-anchored spring: OtherBody left INVALID = the world. Auto range (min/max -1) derives
         // the 200uu rest length from the creation separation.
-        auto ConstraintParams = FCk_Fragment_JoltConstraint_ParamsData(ECk_JoltConstraint_Type::Distance);
+        auto ConstraintParams = FCk_JoltConstraint_Spec(ECk_JoltConstraint_Type::Distance);
         ConstraintParams.Set_WorldAnchorA(BallStart);
         ConstraintParams.Set_WorldAnchorB(_Anchor);
         ConstraintParams.Set_UseSpring(ECk_EnableDisable::Enable);

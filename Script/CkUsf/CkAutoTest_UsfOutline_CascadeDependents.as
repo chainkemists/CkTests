@@ -35,8 +35,8 @@ class UCk_AutoTest_UsfOutline_CascadeDependents : UCk_AutoTest_Base
         auto Transform1 = utils_transform::Add(_Child1, FTransform(FVector(0.0, 0.0, 0.0)), ECk_Replication::DoesNotReplicate);
         auto Transform2 = utils_transform::Add(_Child2, FTransform(FVector(200.0, 0.0, 0.0)), ECk_Replication::DoesNotReplicate);
 
-        _Proxy1 = utils_ism_proxy::Add(Transform1, FCk_Fragment_IsmProxy_ParamsData(RendererData));
-        _Proxy2 = utils_ism_proxy::Add(Transform2, FCk_Fragment_IsmProxy_ParamsData(RendererData));
+        _Proxy1 = utils_ism_proxy::Add(Transform1, FCk_IsmProxy_Spec(RendererData));
+        _Proxy2 = utils_ism_proxy::Add(Transform2, FCk_IsmProxy_Spec(RendererData));
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
     }

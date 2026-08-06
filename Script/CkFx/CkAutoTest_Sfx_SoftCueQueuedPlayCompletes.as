@@ -17,7 +17,7 @@ class UCk_AutoTest_Sfx_SoftCueQueuedPlayCompletes : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto OwnerHandle = InHandle;
 
-        auto Params = FCk_Fragment_Sfx_ParamsData(
+        auto Params = FCk_Sfx_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Sfx.SoftCue_QueuedPlay"),
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/Engine/EngineSounds/1kSineTonePing.1kSineTonePing",
                 ECk_AssetSearchScope::Engine)._Asset));

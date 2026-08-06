@@ -34,7 +34,7 @@ class UCk_AutoTest_Compass_RangeCull : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Compass_ParamsData();
+        auto Params = FCk_Compass_Spec();
         Params.Set_HeadingSource(ECk_Compass_HeadingSource::Manual);
         _Compass = utils_compass::Add(Observer, Params);
         _Compass.Request_SetManualHeading(0.0);
@@ -53,12 +53,12 @@ class UCk_AutoTest_Compass_RangeCull : UCk_AutoTest_Base
         utils_transform::Add(Owner, FTransform(FRotator::ZeroRotator, _Base + InOffset),
             ECk_Replication::DoesNotReplicate);
 
-        auto Poi = utils_poi::Add(Owner, FCk_Fragment_Poi_ParamsData(
+        auto Poi = utils_poi::Add(Owner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
 
         // Range/fade config now lives in CkVisibleRange (composed onto the POI). MaxRange 0 =
         // unlimited. The compass reads this config and computes distance itself — no Update_Distance.
-        utils_visible_range::Add(Owner, FCk_Fragment_VisibleRange_ParamsData(InRange));
+        utils_visible_range::Add(Owner, FCk_VisibleRange_Spec(InRange));
 
         return Poi;
     }

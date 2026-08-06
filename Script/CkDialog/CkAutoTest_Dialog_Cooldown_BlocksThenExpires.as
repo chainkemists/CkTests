@@ -40,7 +40,7 @@ class UCk_AutoTest_Dialog_Cooldown_BlocksThenExpires : UCk_AutoTest_Base
         _Line = Registry.Request_RegisterLine(LineData, FGameplayTagContainer());
         Track_ForCleanup(FCk_Handle(_Line));
 
-        _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
+        _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_DialogEmitter_Spec(FGameplayTagContainer()));
 
         // The original settled a frame before binding. Preserve that ordering
         // rather than binding inline — stated as a condition on the emitter

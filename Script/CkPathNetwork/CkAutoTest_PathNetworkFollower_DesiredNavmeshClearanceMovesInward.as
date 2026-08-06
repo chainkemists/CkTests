@@ -134,9 +134,9 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
         Ribbons.Add(FCk_PathNetwork_Ribbon(Points));
         _Network = utils_path_network::Add(
             LocalHandle,
-            FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+            FCk_PathNetwork_Spec(Ribbons));
 
-        auto Params = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto Params = FCk_PathNetworkFollower_Spec();
         Params.Set_Network(_Network);
         Params.Set_OffPathCostMultiplier(3.0f);
         Params.Set_SideKeepingFraction(0.0f);

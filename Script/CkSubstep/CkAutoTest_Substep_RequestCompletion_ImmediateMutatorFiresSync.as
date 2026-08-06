@@ -25,7 +25,7 @@ class UCk_AutoTest_Substep_RequestCompletion_ImmediateMutatorFiresSync : UCk_Aut
 
         auto Owner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 
-        auto Params = FCk_Substep_ParamsData(FCk_Time(0.05f));
+        auto Params = FCk_Substep_Spec(FCk_Time(0.05f));
         Params.Set_StartingState(ECk_Substep_State::Paused);
 
         _Substep = utils_substep::Add(Owner, Params);

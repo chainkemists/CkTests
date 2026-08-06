@@ -171,7 +171,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         Ribbons.Add(MakeRibbon2(FVector(-200.0, 1050.0, 0.0), FVector(-200.0, 1450.0, 0.0)));
 
         FCk_Handle TransientOwner = ck::TransientEntity();
-        _MainNetwork = utils_path_network::Add(TransientOwner, FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+        _MainNetwork = utils_path_network::Add(TransientOwner, FCk_PathNetwork_Spec(Ribbons));
     }
 
     private void BuildRebuildNetwork(bool InDogLeg)
@@ -196,7 +196,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         if (ck::Is_NOT_Valid(_RebuildNetwork))
         {
             FCk_Handle TransientOwner = ck::TransientEntity();
-            _RebuildNetwork = utils_path_network::Add(TransientOwner, FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+            _RebuildNetwork = utils_path_network::Add(TransientOwner, FCk_PathNetwork_Spec(Ribbons));
         }
         else
         {
@@ -220,7 +220,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         float InOffPathMultiplier, FLinearColor InColor, FName InDebugName)
     {
         FCk_Handle TransientOwner = ck::TransientEntity();
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
 
         // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
         // onto the handle it is given and permits one agent per entity, so passing the transient
@@ -235,17 +235,17 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
         _Agents.Add(Agent);
         utils_velocity::Add(GenericAgent,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(GenericAgent,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(GenericAgent);
         utils_crowd_agent::Set_DebugColor(Agent, InColor);
 
         // THE activation switch: with the follower feature present, the agent's MoveTo routes
         // through the path network instead of straight CkNavigation.
-        auto FollowerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto FollowerParams = FCk_PathNetworkFollower_Spec();
         FollowerParams.Set_Network(InNetwork);
         FollowerParams.Set_OffPathCostMultiplier(InOffPathMultiplier);
         utils_path_network_follower::Add(GenericAgent, FollowerParams);

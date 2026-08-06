@@ -69,7 +69,7 @@ class UCk_AutoTest_Probe_LinearCastPerf : UCk_AutoTest_Base
             auto MoverTransform = utils_transform::Add(
                 Mover, FTransform(FRotator::ZeroRotator, FVector(0.0, LaneY, 300.0)), ECk_Replication::DoesNotReplicate);
 
-            auto MoverParams = FCk_Fragment_Probe_ParamsData(MoverTag);
+            auto MoverParams = FCk_Probe_Spec(MoverTag);
             MoverParams.Set_MotionType(ECk_MotionType::Kinematic);
             MoverParams.Set_MotionQuality(ECk_MotionQuality::LinearCast);
             MoverParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
@@ -87,7 +87,7 @@ class UCk_AutoTest_Probe_LinearCastPerf : UCk_AutoTest_Base
                 auto WallTransform = utils_transform::Add(
                     Wall, FTransform(FRotator::ZeroRotator, FVector(500.0, LaneY, 300.0)), ECk_Replication::DoesNotReplicate);
 
-                auto WallParams = FCk_Fragment_Probe_ParamsData(WallTag);
+                auto WallParams = FCk_Probe_Spec(WallTag);
                 WallParams.Set_MotionType(ECk_MotionType::Static);
                 WallParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Silent);
                 utils_probe::Add_Sphere(WallTransform, 200.0, WallParams, FCk_Probe_DebugInfo());

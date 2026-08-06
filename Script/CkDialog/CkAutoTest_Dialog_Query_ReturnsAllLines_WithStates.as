@@ -45,7 +45,7 @@ class UCk_AutoTest_Dialog_Query_ReturnsAllLines_WithStates : UCk_AutoTest_Base
             Track_ForCleanup(FCk_Handle(Registry.Request_RegisterLine(LineData, FGameplayTagContainer())));
         }
 
-        _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
+        _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_DialogEmitter_Spec(FGameplayTagContainer()));
 
         // Querying before all three deferred registrations land would
         // legitimately return fewer lines and fail misleadingly — wait until

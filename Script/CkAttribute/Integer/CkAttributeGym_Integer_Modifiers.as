@@ -83,7 +83,7 @@ class UCk_EntityScript_IntegerGym_Modifiers : UCk_GenericEntityScript_UE
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		auto DamageParams = FCk_Fragment_IntegerAttribute_ParamsData(
+		auto DamageParams = FCk_IntegerAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Damage"),
 			100);
 		DamageParams.Set_MinMax(ECk_MinMax::Min);
@@ -169,7 +169,7 @@ class UCk_EntityScript_IntegerGym_Modifiers : UCk_GenericEntityScript_UE
 		auto ExistingMod = utils_integer_attribute_modifier::TryGet(DamageAttribute, TypedPayload.ModifierName, TypedPayload.Component);
 		if (ck::IsValid(ExistingMod)) { utils_integer_attribute_modifier::Remove(ExistingMod); }
 
-		auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+		auto ModParams = FCk_IntegerAttributeModifier_Spec();
 		ModParams.Set_ModifierDelta(TypedPayload.Delta);
 		utils_integer_attribute_modifier::Add_Revocable(DamageAttribute, TypedPayload.ModifierName, ECk_AttributeModifier_Operation::Add, ModParams);
 	}

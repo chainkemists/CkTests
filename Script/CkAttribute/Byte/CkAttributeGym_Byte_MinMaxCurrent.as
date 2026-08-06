@@ -73,7 +73,7 @@ class UCk_EntityScript_AttributeGym_ByteMinMaxCurrent : UCk_GenericEntityScript_
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		auto PowerParams = FCk_Fragment_ByteAttribute_ParamsData(
+		auto PowerParams = FCk_ByteAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.PowerLevel"), 100);
 		PowerParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(10).Set_MaxValue(200);
 		PowerLevelAttribute = utils_byte_attribute::Add(InHandle, PowerParams);

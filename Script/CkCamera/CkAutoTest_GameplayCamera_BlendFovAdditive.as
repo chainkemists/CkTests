@@ -40,7 +40,7 @@ class UCk_AutoTest_GameplayCamera_BlendFovAdditive : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
-        _Camera = utils_camera::Add(OwnedEntity, FCk_Fragment_Camera_ParamsData(_Helper.CameraComponent));
+        _Camera = utils_camera::Add(OwnedEntity, FCk_Camera_Spec(_Helper.CameraComponent));
 
         auto Request = FCk_Request_Camera_AddLayer(UCk_AutoTest_CameraLayer_FovAdd30);
         Request.Set_BlendInTime(FCk_Time(0.02));

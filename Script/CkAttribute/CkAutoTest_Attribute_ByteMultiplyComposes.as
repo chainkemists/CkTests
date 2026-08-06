@@ -33,7 +33,7 @@ class UCk_AutoTest_Attribute_ByteMultiplyComposes : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        auto Params = FCk_Fragment_ByteAttribute_ParamsData(
+        auto Params = FCk_ByteAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Armor"),
             10);
         Params.Set_MinMax(ECk_MinMax::MinMax);
@@ -54,7 +54,7 @@ class UCk_AutoTest_Attribute_ByteMultiplyComposes : UCk_AutoTest_Base
     private void Step1_MultiplyByTwo()
     {
         _Step = 1;
-        auto ModParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto ModParams = FCk_ByteAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(2);
         utils_byte_attribute_modifier::Add_NotRevocable(
             _Attribute,
@@ -65,7 +65,7 @@ class UCk_AutoTest_Attribute_ByteMultiplyComposes : UCk_AutoTest_Base
     private void Step2_MultiplyByThree()
     {
         _Step = 2;
-        auto ModParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+        auto ModParams = FCk_ByteAttributeModifier_Spec();
         ModParams.Set_ModifierDelta(3);
         utils_byte_attribute_modifier::Add_NotRevocable(
             _Attribute,

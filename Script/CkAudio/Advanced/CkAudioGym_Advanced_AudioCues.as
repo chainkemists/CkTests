@@ -86,11 +86,11 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
         return GameplayTags::ResolveGameplayTag(n"AudioGym.Advanced.Music.Orchestral");
     }
 
-    TArray<FCk_Fragment_AudioTrack_ParamsData> BuildTrackLibrary()
+    TArray<FCk_AudioTrack_Spec> BuildTrackLibrary()
     {
-        auto TrackLibrary = TArray<FCk_Fragment_AudioTrack_ParamsData>();
+        auto TrackLibrary = TArray<FCk_AudioTrack_Spec>();
 
-        auto Track1 = FCk_Fragment_AudioTrack_ParamsData(
+        auto Track1 = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
         Track1._TrackName = n"AudioGym.Advanced.Music.Ambient.Base";
@@ -104,7 +104,7 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
         Track1.Set_LibraryAttenuationSettings(Asset_SoundAttenuation_Advanced);
         TrackLibrary.Add(Track1);
 
-        auto Track2 = FCk_Fragment_AudioTrack_ParamsData(
+        auto Track2 = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Ambient_Edm_SFX.Ambient_Edm_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
         Track2._TrackName = n"AudioGym.Advanced.Music.Melodic.Layer";
@@ -118,7 +118,7 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
         Track2.Set_LibraryAttenuationSettings(Asset_SoundAttenuation_Advanced);
         TrackLibrary.Add(Track2);
 
-        auto Track3 = FCk_Fragment_AudioTrack_ParamsData(
+        auto Track3 = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
         Track3._TrackName = n"AudioGym.Advanced.Music.Percussion.Layer";
@@ -132,7 +132,7 @@ class UCk_AdvancedMusicDirectorCue : UCk_AudioCue_EntityScript
         Track3.Set_LibraryAttenuationSettings(Asset_SoundAttenuation_Advanced);
         TrackLibrary.Add(Track3);
 
-        auto Track4 = FCk_Fragment_AudioTrack_ParamsData(
+        auto Track4 = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
         Track4._TrackName = n"AudioGym.Advanced.Music.Stinger.Dynamic";
@@ -186,9 +186,9 @@ class UCk_AdvancedConcurrencyTestCue : UCk_AudioCue_EntityScript
         return GameplayTags::ResolveGameplayTag(n"AudioGym.Advanced.Concurrency.Thunder");
     }
 
-    FCk_Fragment_AudioTrack_ParamsData BuildSingleTrack()
+    FCk_AudioTrack_Spec BuildSingleTrack()
     {
-        auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(
+        auto TrackParams = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Thunder_SFX.Stinger_Thunder_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
         TrackParams._TrackName = n"AudioGym.Advanced.Concurrency.Thunder.Track";
@@ -236,9 +236,9 @@ class UCk_AdvancedInterfacePickupCue : UCk_AudioCue_EntityScript
         return GameplayTags::ResolveGameplayTag(n"AudioGym.Advanced.Interface.Pickup");
     }
 
-    FCk_Fragment_AudioTrack_ParamsData BuildSingleTrack()
+    FCk_AudioTrack_Spec BuildSingleTrack()
     {
-        auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(
+        auto TrackParams = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
         TrackParams._TrackName = n"AudioGym.Advanced.Interface.Pickup.Track";
@@ -285,9 +285,9 @@ class UCk_AdvancedAchievementCue : UCk_AudioCue_EntityScript
         return GameplayTags::ResolveGameplayTag(n"AudioGym.Advanced.Achievement.Fanfare");
     }
 
-    FCk_Fragment_AudioTrack_ParamsData BuildSingleTrack()
+    FCk_AudioTrack_Spec BuildSingleTrack()
     {
-        auto TrackParams = FCk_Fragment_AudioTrack_ParamsData(
+        auto TrackParams = FCk_AudioTrack_Spec(
             Cast<USoundBase>(utils_i_o::LoadAssetByName("/CkTests/CkAudio/SFX/Stringers/Stinger_Interface_SFX.Stinger_Interface_SFX",
                 ECk_AssetSearchScope::Plugins)._Asset));
         TrackParams._TrackName = n"AudioGym.Advanced.Achievement.Fanfare.Track";

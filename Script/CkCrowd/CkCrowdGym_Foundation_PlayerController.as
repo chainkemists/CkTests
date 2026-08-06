@@ -64,7 +64,7 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         // Agents are standalone top-level entities (lifetime-owned by the registry transient),
         // not sub-entities of the station — Clear/RemoveLast destroy them explicitly.
         FCk_Handle TransientOwner = ck::TransientEntity();
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
 
         // Gate 3+: Setup processor requires FFragment_Transform to spawn the probe child entity.
         // Foundation gym doesn't pathfind or move, but a Transform at the station origin (jittered

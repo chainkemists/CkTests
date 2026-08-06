@@ -72,7 +72,7 @@ class UCk_EntityScript_AttributeGym_ByteValues : UCk_GenericEntityScript_UE
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		auto TestParams = FCk_Fragment_ByteAttribute_ParamsData(
+		auto TestParams = FCk_ByteAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"Test.ValueRetrieval"), 75);
 		TestParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(5).Set_MaxValue(180);
 		TestAttribute = utils_byte_attribute::Add(InHandle, TestParams);
@@ -119,12 +119,12 @@ class UCk_EntityScript_AttributeGym_ByteValues : UCk_GenericEntityScript_UE
 
 	void Request_AddModifiers()
 	{
-		auto WeaponParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+		auto WeaponParams = FCk_ByteAttributeModifier_Spec();
 		WeaponParams.Set_ModifierDelta(20);
 		auto WeaponMod = utils_byte_attribute_modifier::Add_Revocable(TestAttribute, utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Weapon"), ECk_AttributeModifier_Operation::Add, WeaponParams);
 		if (ck::IsValid(WeaponMod)) { ActiveModifiers.Add(WeaponMod); }
 
-		auto BuffParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+		auto BuffParams = FCk_ByteAttributeModifier_Spec();
 		BuffParams.Set_ModifierDelta(15);
 		auto BuffMod = utils_byte_attribute_modifier::Add_Revocable(TestAttribute, utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Buff"), ECk_AttributeModifier_Operation::Add, BuffParams);
 		if (ck::IsValid(BuffMod)) { ActiveModifiers.Add(BuffMod); }
@@ -139,7 +139,7 @@ class UCk_EntityScript_AttributeGym_ByteValues : UCk_GenericEntityScript_UE
 
 	void Request_AddMoreModifiers()
 	{
-		auto EnchantParams = FCk_Fragment_ByteAttributeModifier_ParamsData();
+		auto EnchantParams = FCk_ByteAttributeModifier_Spec();
 		EnchantParams.Set_ModifierDelta(12);
 		auto EnchantMod = utils_byte_attribute_modifier::Add_Revocable(TestAttribute, utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Enchant"), ECk_AttributeModifier_Operation::Add, EnchantParams);
 		if (ck::IsValid(EnchantMod)) { ActiveModifiers.Add(EnchantMod); }

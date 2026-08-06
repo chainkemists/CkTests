@@ -50,7 +50,7 @@ class UCk_AutoTest_Grid_TagFilter : UCk_AutoTest_Base
         auto GridOwnerT = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto GP = FCk_Fragment_2dGridSystem_ParamsData(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
+        auto GP = FCk_2dGridSystem_Spec(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
         GP.Set_DefaultCellState(ECk_EnableDisable::Enable);
         auto DefaultTags = FGameplayTagContainer();
         DefaultTags.AddTag(ProduceTag);
@@ -66,7 +66,7 @@ class UCk_AutoTest_Grid_TagFilter : UCk_AutoTest_Base
 
         // ---- ProduceObj: requires Produce. ----
         auto ProduceObjEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto ProduceParams = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1));
+        auto ProduceParams = FCk_2dGridObject_Spec(FIntPoint(1, 1));
         auto ProduceReq = FGameplayTagContainer();
         ProduceReq.AddTag(ProduceTag);
         ProduceParams.Set_RequiredCellTags(ProduceReq);
@@ -74,7 +74,7 @@ class UCk_AutoTest_Grid_TagFilter : UCk_AutoTest_Base
 
         // ---- ElecObj: requires Electronics. ----
         auto ElecObjEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto ElecParams = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1));
+        auto ElecParams = FCk_2dGridObject_Spec(FIntPoint(1, 1));
         auto ElecReq = FGameplayTagContainer();
         ElecReq.AddTag(ElecTag);
         ElecParams.Set_RequiredCellTags(ElecReq);

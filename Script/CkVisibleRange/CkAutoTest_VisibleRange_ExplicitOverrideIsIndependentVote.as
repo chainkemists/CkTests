@@ -27,7 +27,7 @@ class UCk_AutoTest_VisibleRange_ExplicitOverrideIsIndependentVote : UCk_AutoTest
         // MaxRange = 0 (unlimited far); MinRange = 500 means the default distance (0) already
         // violates MinRange — the own-range vote is active from the first evaluated tick, no
         // Update_Distance call needed to arm it.
-        auto Params = FCk_Fragment_VisibleRange_ParamsData(0.0f);
+        auto Params = FCk_VisibleRange_Spec(0.0f);
         Params.Set_MinRange(500.0f);
         _VR = utils_visible_range::Add(LocalHandle, Params);
 

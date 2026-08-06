@@ -44,7 +44,7 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
         // ---- WorldState (mirrors gym's Reset_WS — all false) ----
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol.AtWaypoint"),
             false);
@@ -61,7 +61,7 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol.AreaPatrolled"),
             true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
@@ -77,14 +77,14 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
 
         // ---- Tier-1 composite: GoToWaypoint (promoted to Planner) ----
         auto GoToWaypoint = utils_goap_planner::AddAction(_TopPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_GoToWaypoint));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Patrol_GoToWaypoint));
         Assert_True(ck::IsValid(GoToWaypoint), "GoToWaypoint AddAction should succeed");
 
         auto GoToGoal = TArray<FCk_GoapWS_Condition_Authored>();
         GoToGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol.AtWaypoint"),
             true));
-        auto GoToPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto GoToPlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol.GoToWaypoint"));
         GoToPlannerParams.Set_Goal(GoToGoal);
         GoToPlannerParams.Set_AllowPlanFailed(true);  // framework test — see top-Planner comment
@@ -92,20 +92,20 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
         Assert_True(ck::IsValid(GoToAsPlanner), "GoToWaypoint promotion should succeed");
 
         utils_goap_planner::AddAction(GoToAsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Run));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Patrol_Run));
         utils_goap_planner::AddAction(GoToAsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Walk));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Patrol_Walk));
 
         // ---- Tier-1 composite: Observe (promoted to Planner) ----
         auto Observe = utils_goap_planner::AddAction(_TopPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Observe));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Patrol_Observe));
         Assert_True(ck::IsValid(Observe), "Observe AddAction should succeed");
 
         auto ObserveGoal = TArray<FCk_GoapWS_Condition_Authored>();
         ObserveGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol.AreaScanned"),
             true));
-        auto ObservePlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ObservePlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol.Observe"));
         ObservePlannerParams.Set_Goal(ObserveGoal);
         ObservePlannerParams.Set_AllowPlanFailed(true);  // framework test — see top-Planner comment
@@ -113,13 +113,13 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
         Assert_True(ck::IsValid(ObserveAsPlanner), "Observe promotion should succeed");
 
         utils_goap_planner::AddAction(ObserveAsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_LookAround));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Patrol_LookAround));
         utils_goap_planner::AddAction(ObserveAsPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_WaitAtPost));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Patrol_WaitAtPost));
 
         // ---- Tier-1 atomic leaf: MarkDone ----
         auto MarkDone = utils_goap_planner::AddAction(_TopPlanner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_MarkDone));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Patrol_MarkDone));
         Assert_True(ck::IsValid(MarkDone), "MarkDone AddAction should succeed");
 
         // ---- Bind plan-complete on top-level Planner ----

@@ -47,21 +47,21 @@ class UCk_AutoTest_PathNetworkFollower_FallsBackToNavigation : UCk_AutoTest_Base
         Ribbons.Add(FCk_PathNetwork_Ribbon(DetourPoints));
         _Network = utils_path_network::Add(
             LocalHandle,
-            FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+            FCk_PathNetwork_Spec(Ribbons));
 
-        auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto AgentParams = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         _Agent = utils_crowd_agent::Add(AgentTransform, AgentParams);
         utils_velocity::Add(
             LocalHandle,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(
             LocalHandle,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(LocalHandle);
 
-        auto FollowerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto FollowerParams = FCk_PathNetworkFollower_Spec();
         FollowerParams.Set_Network(_Network);
         FollowerParams.Set_OffPathCostMultiplier(100.0f);
         FollowerParams.Set_CorridorWaypointSpacing(100.0f);

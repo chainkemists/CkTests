@@ -21,7 +21,7 @@ class UCk_ReplicationGym_PawnExtra_EntityScript : UCk_EntityScript_WithActor_UE
         utils_entity_tag::Add(InHandle, n"TAG_ReplicationGym_PawnExtra");
 
         // *** REPRO LINE — Scenario B ***
-        auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
+        auto Params = FCk_IntegerAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.ReplicationGym.PawnValue"),
             StartingValue);
         Params.Set_MinMax(ECk_MinMax::Min);

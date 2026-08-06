@@ -71,7 +71,7 @@ namespace ck_sm_lifecycle_test
         if (ck::Is_NOT_Valid(GSmOwner))
         { return false; }
 
-        auto Params = FCk_Fragment_StateMachine_ParamsData{InInitialState};
+        auto Params = FCk_StateMachine_Spec{InInitialState};
         Params.Set_AutoStart(ECk_SmAutoStart::Disabled);
 
         GSm = UCk_Utils_StateMachine_UE::Add(GSmOwner, Params);

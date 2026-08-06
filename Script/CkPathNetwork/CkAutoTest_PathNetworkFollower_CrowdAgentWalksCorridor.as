@@ -54,22 +54,22 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
         TArray<FCk_PathNetwork_Ribbon> Ribbons;
         Ribbons.Add(FCk_PathNetwork_Ribbon(Points));
 
-        _Network = utils_path_network::Add(LocalHandle, FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+        _Network = utils_path_network::Add(LocalHandle, FCk_PathNetwork_Spec(Ribbons));
 
         // Full crowd-agent composition — this entity IS the agent (mirrors the CkCrowd tests).
-        auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto AgentParams = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         _Agent = utils_crowd_agent::Add(AgentTransform, AgentParams);
         utils_velocity::Add(LocalHandle,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(LocalHandle,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(LocalHandle);
 
         // Opt the AGENT into network following — this is the activation switch the
         // MoveTo branch keys on.
-        auto FollowerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto FollowerParams = FCk_PathNetworkFollower_Spec();
         FollowerParams.Set_Network(_Network);
         FollowerParams.Set_CorridorWaypointSpacing(100.0);
         _Follower = utils_path_network_follower::Add(LocalHandle, FollowerParams);

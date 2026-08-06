@@ -15,7 +15,7 @@ class UCk_AutoTest_Resolver_Target_HasFalseBeforeAdd : UCk_AutoTest_Base
         Assert_True(!utils_resolver_target::Has(Entity),
             "Pre-Add: ResolverTarget Has should be false");
 
-        utils_resolver_target::Add(Entity, FCk_Fragment_ResolverTarget_ParamsData());
+        utils_resolver_target::Add(Entity, FCk_ResolverTarget_Spec());
 
         Assert_True(utils_resolver_target::Has(Entity),
             "Post-Add: ResolverTarget Has should be true");

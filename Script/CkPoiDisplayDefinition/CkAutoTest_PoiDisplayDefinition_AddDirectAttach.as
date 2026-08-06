@@ -36,12 +36,12 @@ class UCk_AutoTest_PoiDisplayDefinition_AddDirectAttach : UCk_AutoTest_Base
         auto OwnerEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         OwnerEntity.Request_OverrideToSelf();
         utils_transform::Add(OwnerEntity, FTransform(), ECk_Replication::DoesNotReplicate);
-        _Owner = utils_poi::Add(OwnerEntity, FCk_Fragment_Poi_ParamsData(
+        _Owner = utils_poi::Add(OwnerEntity, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark")));
 
         _Consumer = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.TestCompass");
 
-        auto Params = FCk_Fragment_PoiDisplayDefinition_ParamsData(_Consumer);
+        auto Params = FCk_PoiDisplayDefinition_Spec(_Consumer);
         Params.Set_Priority(7);
         Params.Set_OffscreenPolicy(ECk_Poi_OffscreenPolicy::ClampToEdge);
         _Def = utils_poi_display_definition::Add(_Owner, Params);

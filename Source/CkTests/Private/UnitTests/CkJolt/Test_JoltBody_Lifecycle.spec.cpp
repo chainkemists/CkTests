@@ -68,7 +68,7 @@ namespace ck_test_jolt_lifecycle
         auto Entity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Ecs->Get_Registry());
         UCk_Utils_Transform_UE::Add(Entity, FTransform{InLocation}, ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_JoltBody_ParamsData{ECk_JoltBody_ShapeSource::ExplicitShape};
+        auto Params = FCk_JoltBody_Spec{ECk_JoltBody_ShapeSource::ExplicitShape};
         Params.Set_ShapeDimensions(FCk_Jolt_ShapeDimensions{ECk_Jolt_ShapeType::Box});
         Params.Set_MotionType(InMotionType);
         Params.Set_InitialSleepState(InInitialSleepState);

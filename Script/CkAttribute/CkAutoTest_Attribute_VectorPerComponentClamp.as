@@ -33,7 +33,7 @@ class UCk_AutoTest_Attribute_VectorPerComponentClamp : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_VectorAttribute_ParamsData(
+        auto Params = FCk_VectorAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"VectorAttribute.AutoTest_PerComponent"),
             FVector(50.0f, 50.0f, 50.0f));
         Params.Set_MinMax(ECk_MinMax::MinMax);

@@ -37,7 +37,7 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
 
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Empire"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         Reset_WS();
 
         // U11.1: Planner goal on PlannerParams.
@@ -46,7 +46,7 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Empire.FeudalResearched"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Empire"));
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
@@ -54,18 +54,18 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_GatherFood));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Empire_GatherFood));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_GatherGold));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Empire_GatherGold));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_GatherWood));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Empire_GatherWood));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_BuildBarracks));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Empire_BuildBarracks));
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_ResearchFeudal));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Empire_ResearchFeudal));
         // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_WaitForOrders));
+            FCk_Goap_Action_Spec(UCk_GoapGym_Empire_WaitForOrders));
 
         _KnownClasses.Add(UCk_GoapGym_Empire_GatherFood);     _KnownLabels.Add("GatherFood");
         _KnownClasses.Add(UCk_GoapGym_Empire_GatherGold);     _KnownLabels.Add("GatherGold");

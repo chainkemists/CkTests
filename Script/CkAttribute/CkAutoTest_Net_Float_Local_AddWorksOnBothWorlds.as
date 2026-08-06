@@ -43,7 +43,7 @@ class UCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds : UCk_AutoTest_NetBase
         auto LocalHandle = InHandle;
 
         auto Tag = utils_gameplay_tag::ResolveGameplayTag(_AttributeTagName);
-        auto Params = FCk_Fragment_FloatAttribute_ParamsData(Tag, _InitialValue);
+        auto Params = FCk_FloatAttribute_Spec(Tag, _InitialValue);
         Params.Set_MinMax(ECk_MinMax::MinMax);
         Params.Set_MinValue(0.0f);
         Params.Set_MaxValue(100.0f);

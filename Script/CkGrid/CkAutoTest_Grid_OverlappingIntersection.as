@@ -26,7 +26,7 @@ class UCk_AutoTest_Grid_OverlappingIntersection : UCk_AutoTest_Base
         auto OwnerA = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto TransformA = utils_transform::Add(
             OwnerA, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        auto ParamsA = FCk_Fragment_2dGridSystem_ParamsData(
+        auto ParamsA = FCk_2dGridSystem_Spec(
             FIntPoint(3, 3), FVector2D(100.0f, 100.0f));
         ParamsA.Set_DefaultCellState(ECk_EnableDisable::Enable);
         auto GridA = utils_2d_grid_system::Add(TransformA, ParamsA);
@@ -34,7 +34,7 @@ class UCk_AutoTest_Grid_OverlappingIntersection : UCk_AutoTest_Base
         auto OwnerB = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto TransformB = utils_transform::Add(
             OwnerB, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        auto ParamsB = FCk_Fragment_2dGridSystem_ParamsData(
+        auto ParamsB = FCk_2dGridSystem_Spec(
             FIntPoint(3, 3), FVector2D(100.0f, 100.0f));
         ParamsB.Set_DefaultCellState(ECk_EnableDisable::Enable);
         auto GridB = utils_2d_grid_system::Add(TransformB, ParamsB);

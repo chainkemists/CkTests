@@ -20,7 +20,7 @@ class UCk_AutoTest_Grid_ObjectFootprintResolves : UCk_AutoTest_Base
     {
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        auto P = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(2, 1));
+        auto P = FCk_2dGridObject_Spec(FIntPoint(2, 1));
         auto Obj = utils_2d_grid_object::Add(Owner, P);
 
         auto C0 = utils_2d_grid_object::Get_ResolvedCells(Obj, FIntPoint(5, 5), ECk_CardinalRotation::None);
@@ -31,14 +31,14 @@ class UCk_AutoTest_Grid_ObjectFootprintResolves : UCk_AutoTest_Base
         Assert_Equals_Int(C90.Num(), 2, "rotated 2x1 still 2 cells");
         Assert_True(C90.Contains(FIntPoint(5,5)) && C90.Contains(FIntPoint(5,6)), "2x1 @ (5,5) Quarter -> (5,5),(5,6)");
 
-        auto P1 = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(1, 1));
+        auto P1 = FCk_2dGridObject_Spec(FIntPoint(1, 1));
         auto Obj1 = utils_2d_grid_object::Add(utils_entity_lifetime::Request_CreateEntity(InHandle), P1);
         auto C1 = utils_2d_grid_object::Get_ResolvedCells(Obj1, FIntPoint(3, 3), ECk_CardinalRotation::Quarter);
         Assert_Equals_Int(C1.Num(), 1, "1x1 covers 1 cell");
         Assert_True(C1.Contains(FIntPoint(3,3)), "1x1 @ (3,3) Quarter -> (3,3) (identity-safe)");
 
         // Center mode must survive rotation: the object spins in place around the anchor.
-        auto Pc = FCk_Fragment_2dGridObject_ParamsData(FIntPoint(3, 1));
+        auto Pc = FCk_2dGridObject_Spec(FIntPoint(3, 1));
         Pc.Set_Centering(ECk_GridObject_Centering::Center);
         auto ObjC = utils_2d_grid_object::Add(utils_entity_lifetime::Request_CreateEntity(InHandle), Pc);
 

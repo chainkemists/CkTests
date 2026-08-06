@@ -85,19 +85,19 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_GenericEntityScript_UE
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		auto ArmorParams = FCk_Fragment_ByteAttribute_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Armor"), 100);
+		auto ArmorParams = FCk_ByteAttribute_Spec(utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Armor"), 100);
 		ArmorParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0).Set_MaxValue(200);
 		ArmorAttribute = utils_byte_attribute::Add(InHandle, ArmorParams);
 
-		auto StaminaParams = FCk_Fragment_ByteAttribute_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Stamina"), 150);
+		auto StaminaParams = FCk_ByteAttribute_Spec(utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Stamina"), 150);
 		StaminaParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(50).Set_MaxValue(255);
 		StaminaAttribute = utils_byte_attribute::Add(InHandle, StaminaParams);
 
-		auto HealthParams = FCk_Fragment_ByteAttribute_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Health"), 75);
+		auto HealthParams = FCk_ByteAttribute_Spec(utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Health"), 75);
 		HealthParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0).Set_MaxValue(100);
 		HealthAttribute = utils_byte_attribute::Add(InHandle, HealthParams);
 
-		auto ShieldParams = FCk_Fragment_ByteAttribute_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Shield"), 200);
+		auto ShieldParams = FCk_ByteAttribute_Spec(utils_gameplay_tag::ResolveGameplayTag(n"ByteAttribute.Shield"), 200);
 		ShieldParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0).Set_MaxValue(150);
 		ShieldAttribute = utils_byte_attribute::Add(InHandle, ShieldParams);
 	}

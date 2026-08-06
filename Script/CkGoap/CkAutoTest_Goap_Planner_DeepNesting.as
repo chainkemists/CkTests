@@ -90,7 +90,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         // ---- World state: all goal keys start false. ----
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.WS.EnemyHit"),
             false);
@@ -107,7 +107,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.WS.EnemyDead"),
             true));
 
-        auto AliveParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto AliveParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.Planner"));
         AliveParams.Set_Goal(AliveGoal);
         AliveParams.Set_WorldStateSource(WS);
@@ -123,14 +123,14 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         // plan to a single-step Alive_Root instead of the [Engage, Win] chain.
 
         // ---- Tier 2: Engage Action (direct child of Alive Planner) ----
-        auto EngageParams = FCk_Fragment_Goap_ActionParamsData(
+        auto EngageParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_DeepNesting_Engage);
         _Engage = utils_goap_planner::AddAction(_Alive, EngageParams);
         Assert_True(ck::IsValid(_Engage), "Engage AddAction (under Alive) should succeed");
         _AliveRoot = _Engage;
 
         // Win — atomic finisher under Alive (precondition EnemyAttacked=true).
-        auto WinParams = FCk_Fragment_Goap_ActionParamsData(
+        auto WinParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_DeepNesting_Win);
         auto Win = utils_goap_planner::AddAction(_Alive, WinParams);
         Assert_True(ck::IsValid(Win), "Win AddAction (under Alive) should succeed");
@@ -140,7 +140,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         EngageGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.WS.EnemyAttacked"),
             true));
-        auto EngagePlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto EngagePlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.Planner"));
         EngagePlannerParams.Set_Goal(EngageGoal);
         EngagePlannerParams.Set_AllowPlanFailed(true);  // framework test — see top
@@ -149,7 +149,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
             "PromoteActionToPlanner(Engage) should return a valid Planner handle");
 
         // ---- Tier 3: LightAttacks Action (under Engage's promoted planner) ----
-        auto LightAttacksParams = FCk_Fragment_Goap_ActionParamsData(
+        auto LightAttacksParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_DeepNesting_LightAttacks);
         _LightAttacks = utils_goap_planner::AddAction(_Engage_AsPlanner, LightAttacksParams);
         Assert_True(ck::IsValid(_LightAttacks), "LightAttacks AddAction (under Engage) should succeed");
@@ -159,7 +159,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         LightAttacksGoal.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.WS.EnemyHit"),
             true));
-        auto LightAttacksPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto LightAttacksPlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.Planner"));
         LightAttacksPlannerParams.Set_Goal(LightAttacksGoal);
         LightAttacksPlannerParams.Set_AllowPlanFailed(true);  // framework test — see top
@@ -168,12 +168,12 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
             "PromoteActionToPlanner(LightAttacks) should return a valid Planner handle");
 
         // ---- Tier 4: Light1 / Light2 atomic leaves under LightAttacks ----
-        auto Light1Params = FCk_Fragment_Goap_ActionParamsData(
+        auto Light1Params = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_DeepNesting_Light1);
         auto Light1 = utils_goap_planner::AddAction(_LightAttacks_AsPlanner, Light1Params);
         Assert_True(ck::IsValid(Light1), "Light1 AddAction should succeed");
 
-        auto Light2Params = FCk_Fragment_Goap_ActionParamsData(
+        auto Light2Params = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_DeepNesting_Light2);
         auto Light2 = utils_goap_planner::AddAction(_LightAttacks_AsPlanner, Light2Params);
         Assert_True(ck::IsValid(Light2), "Light2 AddAction should succeed");

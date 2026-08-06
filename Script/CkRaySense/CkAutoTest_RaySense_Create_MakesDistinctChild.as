@@ -23,7 +23,7 @@ class UCk_AutoTest_RaySense_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Fragment_RaySense_ParamsData(
+        auto Params = FCk_RaySense_Spec(
             ECk_RaySense_CollisionQuality::Sweep, ECollisionChannel::ECC_Visibility);
 
         auto Child = utils_ray_sense::Create(Owner, Params);

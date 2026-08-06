@@ -50,7 +50,7 @@ class UCk_AutoTest_RaySense_LineTrace_HitFiresSignal : UCk_AutoTest_Base
         _SenseTransform = utils_transform::Add(
             SenseEntity, FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 300.0)), ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_RaySense_ParamsData(
+        auto Params = FCk_RaySense_Spec(
             ECk_RaySense_CollisionQuality::Sweep, ECollisionChannel::ECC_Visibility);
         auto RaySense = utils_ray_sense::Add(SenseEntity, Params);
         if (ck::Is_NOT_Valid(RaySense))

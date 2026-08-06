@@ -84,7 +84,7 @@ class UCk_AutoTest_StateMachine_SubSm_SucceedOnStop : UCk_AutoTest_Base
     {
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
-        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_Fragment_StateMachine_ParamsData(UCk_SmSubTest_Parent_Run));
+        _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, FCk_StateMachine_Spec(UCk_SmSubTest_Parent_Run));
 
         FCk_Delegate_Sm_OnStateChanged Delegate;
         Delegate.BindUFunction(this, n"OnStateChanged");

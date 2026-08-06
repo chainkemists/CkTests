@@ -12,7 +12,7 @@ class UCk_AutoTest_Resolver_Target_CreateTransientHappyPath : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto TargetHandle = utils_resolver_target::Create_Transient(
             FTransform::Identity,
-            FCk_Fragment_ResolverTarget_ParamsData(),
+            FCk_ResolverTarget_Spec(),
             ECk_Lifetime::UntilDestroyed);
 
         Assert_True(utils_handle::Get_IsValid(TargetHandle),

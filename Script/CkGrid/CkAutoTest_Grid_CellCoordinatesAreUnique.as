@@ -27,7 +27,7 @@ class UCk_AutoTest_Grid_CellCoordinatesAreUnique : UCk_AutoTest_Base
         auto OwnerTransform = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_2dGridSystem_ParamsData(
+        auto Params = FCk_2dGridSystem_Spec(
             FIntPoint(3, 4), FVector2D(100.0f, 100.0f));
         Params.Set_DefaultCellState(ECk_EnableDisable::Enable);
         auto Grid = utils_2d_grid_system::Add(OwnerTransform, Params);

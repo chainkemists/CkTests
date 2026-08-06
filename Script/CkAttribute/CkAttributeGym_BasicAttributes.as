@@ -98,7 +98,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
     void Request_SetupAttributes(FCk_Handle InHandle)
     {
         // Float Attribute (Health: 0-100)
-        auto HealthParams = FCk_Fragment_FloatAttribute_ParamsData(
+        auto HealthParams = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Attribute.Health"),
             100.0f
         );
@@ -108,7 +108,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
         HealthAttribute = utils_float_attribute::Add(InHandle, HealthParams);
 
         // Byte Attribute (Armor: 0-255)
-        auto ArmorParams = FCk_Fragment_ByteAttribute_ParamsData(
+        auto ArmorParams = FCk_ByteAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Attribute.Armor"),
             150
         );
@@ -118,7 +118,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
         ArmorAttribute = utils_byte_attribute::Add(InHandle, ArmorParams);
 
         // Vector Attribute (Velocity: unclamped)
-        auto VelocityParams = FCk_Fragment_VectorAttribute_ParamsData(
+        auto VelocityParams = FCk_VectorAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Attribute.Velocity"),
             FVector(100.0f, 50.0f, 0.0f)
         );

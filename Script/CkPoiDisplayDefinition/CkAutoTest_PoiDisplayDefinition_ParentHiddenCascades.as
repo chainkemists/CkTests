@@ -44,28 +44,28 @@ class UCk_AutoTest_PoiDisplayDefinition_ParentHiddenCascades : UCk_AutoTest_Base
         auto OwnerEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         OwnerEntity.Request_OverrideToSelf();
         utils_transform::Add(OwnerEntity, FTransform(), ECk_Replication::DoesNotReplicate);
-        _Owner = utils_poi::Add(OwnerEntity, FCk_Fragment_Poi_ParamsData(
+        _Owner = utils_poi::Add(OwnerEntity, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark")));
 
         // Owner composes VisibleRange, evaluated every tick.
-        auto OwnerVRParams = FCk_Fragment_VisibleRange_ParamsData(500.0f);
+        auto OwnerVRParams = FCk_VisibleRange_Spec(500.0f);
         OwnerVRParams.Set_UpdateInterval(FCk_Time(0.0));
         _OwnerVR = utils_visible_range::Add(_Owner, OwnerVRParams);
 
         // Two display-definition children under the owner. Create binds the owner's
         // VisibleRange->child ParentHidden cascade once, on the first Create.
-        auto ParamsPlain = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+        auto ParamsPlain = FCk_PoiDisplayDefinition_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.TestCompass"));
         _ChildPlain = utils_poi_display_definition::Create(_Owner, ParamsPlain);
 
-        auto ParamsOwnRange = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+        auto ParamsOwnRange = FCk_PoiDisplayDefinition_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.TestMinimap"));
         _ChildWithOwnRange = utils_poi_display_definition::Create(_Owner, ParamsOwnRange);
 
         // Second child ALSO composes its OWN VisibleRange, kept IN range (distance 100 <
         // MaxRange 500). Its own vote therefore says "visible" — the parent-wins discriminator.
         // (FCk_Handle_PoiDisplayDefinition implicitly converts to FCk_Handle for Add's owner param.)
-        auto ChildVRParams = FCk_Fragment_VisibleRange_ParamsData(500.0f);
+        auto ChildVRParams = FCk_VisibleRange_Spec(500.0f);
         ChildVRParams.Set_UpdateInterval(FCk_Time(0.0));
         auto ChildVR = utils_visible_range::Add(_ChildWithOwnRange, ChildVRParams);
         utils_visible_range::Update_Distance(ChildVR, 100.0f);

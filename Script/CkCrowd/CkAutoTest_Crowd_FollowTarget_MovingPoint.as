@@ -69,13 +69,13 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, TargetStart, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         _Agent = utils_crowd_agent::Add(AgentTransform, Params);
         utils_velocity::Add(LocalHandle,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(LocalHandle,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(LocalHandle);
 

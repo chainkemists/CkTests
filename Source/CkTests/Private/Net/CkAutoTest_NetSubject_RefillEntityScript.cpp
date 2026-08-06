@@ -60,10 +60,10 @@ auto
     const auto AttributeTag       = FGameplayTag::RequestGameplayTag(FName{AttributeTagName});
     const auto RefillAttributeTag = FGameplayTag::RequestGameplayTag(FName{RefillAttributeTagName});
 
-    auto RefillParams = FCk_Fragment_FloatAttributeRefill_ParamsData{RefillAttributeTag, FillRate};
+    auto RefillParams = FCk_FloatAttributeRefill_Spec{RefillAttributeTag, FillRate};
     RefillParams.Set_StartingState(ECk_Attribute_RefillState::Running);
 
-    auto Params = FCk_Fragment_FloatAttribute_ParamsData{AttributeTag, InitialValue};
+    auto Params = FCk_FloatAttribute_Spec{AttributeTag, InitialValue};
     Params.Set_MinMax(ECk_MinMax::MinMax);
     Params.Set_MinValue(MinValue);
     Params.Set_MaxValue(MaxValue);
@@ -77,10 +77,10 @@ auto
     const auto IntegerAttributeTag       = FGameplayTag::RequestGameplayTag(FName{IntegerAttributeTagName});
     const auto IntegerRefillAttributeTag = FGameplayTag::RequestGameplayTag(FName{IntegerRefillAttributeTagName});
 
-    auto IntegerRefillParams = FCk_Fragment_IntegerAttributeRefill_ParamsData{IntegerRefillAttributeTag, IntegerFillRate};
+    auto IntegerRefillParams = FCk_IntegerAttributeRefill_Spec{IntegerRefillAttributeTag, IntegerFillRate};
     IntegerRefillParams.Set_StartingState(ECk_Attribute_RefillState::Running);
 
-    auto IntegerParams = FCk_Fragment_IntegerAttribute_ParamsData{IntegerAttributeTag, IntegerInitialValue};
+    auto IntegerParams = FCk_IntegerAttribute_Spec{IntegerAttributeTag, IntegerInitialValue};
     IntegerParams.Set_MinMax(ECk_MinMax::MinMax);
     IntegerParams.Set_MinValue(IntegerMinValue);
     IntegerParams.Set_MaxValue(IntegerMaxValue);

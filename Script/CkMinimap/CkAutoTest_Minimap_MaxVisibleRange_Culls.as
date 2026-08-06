@@ -32,14 +32,14 @@ class UCk_AutoTest_Minimap_MaxVisibleRange_Culls : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        _Minimap = utils_minimap::Add(Observer, FCk_Fragment_Minimap_ParamsData(5000.0));
+        _Minimap = utils_minimap::Add(Observer, FCk_Minimap_Spec(5000.0));
 
         auto NearOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         NearOwner.Request_OverrideToSelf();
         utils_transform::Add(NearOwner,
             FTransform(FRotator::ZeroRotator, _Base + FVector(0.0, 800.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _NearPoi = utils_poi::Add(NearOwner, FCk_Fragment_Poi_ParamsData(
+        _NearPoi = utils_poi::Add(NearOwner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.MinimapRangeNear")));
 
         auto RangedOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
@@ -47,12 +47,12 @@ class UCk_AutoTest_Minimap_MaxVisibleRange_Culls : UCk_AutoTest_Base
         utils_transform::Add(RangedOwner,
             FTransform(FRotator::ZeroRotator, _Base + FVector(0.0, 2000.0, 0.0)),
             ECk_Replication::DoesNotReplicate);
-        _RangedPoi = utils_poi::Add(RangedOwner, FCk_Fragment_Poi_ParamsData(
+        _RangedPoi = utils_poi::Add(RangedOwner, FCk_Poi_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.MinimapRangeFar")));
 
         // Range config now lives in CkVisibleRange (composed onto the POI). The minimap reads
         // MaxRange and computes distance itself — no Update_Distance needed.
-        utils_visible_range::Add(RangedOwner, FCk_Fragment_VisibleRange_ParamsData(1000.0));
+        utils_visible_range::Add(RangedOwner, FCk_VisibleRange_Spec(1000.0));
 
         WaitUntil(n"Check_MinimapProjected", n"OnSettled_Requests");
     }

@@ -52,7 +52,7 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
         // produce PlanFound immediately (empty plan).
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true);
@@ -66,7 +66,7 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true));
 
-        auto PlannerParamsA = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParamsA = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParamsA.Set_Goal(GoalA);
         PlannerParamsA.Set_WorldStateSource(WS);
@@ -77,7 +77,7 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
             PlannerParamsA);
         Assert_True(ck::IsValid(_PlannerA), "Planner A Create should return a valid handle");
 
-        auto RootParamsA = FCk_Fragment_Goap_ActionParamsData(
+        auto RootParamsA = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiA);
         _RootA = utils_goap_planner::AddAction(_PlannerA, RootParamsA);
         Assert_True(ck::IsValid(_RootA), "AddAction A should return a valid handle");
@@ -88,7 +88,7 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             true));
 
-        auto PlannerParamsB = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParamsB = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set2"));
         PlannerParamsB.Set_Goal(GoalB);
         PlannerParamsB.Set_WorldStateSource(WS);
@@ -97,7 +97,7 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
             PlannerParamsB);
         Assert_True(ck::IsValid(_PlannerB), "Planner B Create should return a valid handle");
 
-        auto RootParamsB = FCk_Fragment_Goap_ActionParamsData(
+        auto RootParamsB = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Root_MultiB);
         _RootB = utils_goap_planner::AddAction(_PlannerB, RootParamsB);
         Assert_True(ck::IsValid(_RootB), "AddAction B should return a valid handle");

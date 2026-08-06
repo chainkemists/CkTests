@@ -224,7 +224,7 @@ bool FCkSnapshot_AttributeParity_MPReload_Gate::RunTest(const FString& Parameter
                 FloatAttr,
                 FGameplayTag::RequestGameplayTag(FName{FloatTagName}),
                 ECk_AttributeModifier_Operation::Add,
-                FCk_Fragment_FloatAttributeModifier_ParamsData{FloatModifierDelta, ECk_MinMaxCurrent::Current});
+                FCk_FloatAttributeModifier_Spec{FloatModifierDelta, ECk_MinMaxCurrent::Current});
             UCk_Utils_ByteAttribute_UE::Request_Override(ByteAttr, ByteOverride, ECk_MinMaxCurrent::Current, {});
             UCk_Utils_IntegerAttribute_UE::Request_Override(IntAttr, IntegerOverride, ECk_MinMaxCurrent::Current, {});
             UCk_Utils_VectorAttribute_UE::Request_Override(VectorAttr, VectorOverride, ECk_MinMaxCurrent::Current, {});

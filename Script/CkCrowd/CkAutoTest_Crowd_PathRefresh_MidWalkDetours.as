@@ -181,7 +181,7 @@ class UCk_AutoTest_Crowd_PathRefresh_MidWalkDetours : UCk_AutoTest_Base
         for (auto i = 0; i < PicketCount; ++i)
         {
             const auto Loc = FVector(0.0, float(i) * PicketSpacingUu - HalfSpan, _FloorZ + 100.0);
-            auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+            auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
             auto PicketEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
             auto AgentTransform = utils_transform::Add(PicketEntity, FTransform(FRotator::ZeroRotator, Loc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
             auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
@@ -192,7 +192,7 @@ class UCk_AutoTest_Crowd_PathRefresh_MidWalkDetours : UCk_AutoTest_Base
     private void SpawnWalker(FCk_Handle& InOwner)
     {
         const auto Loc = FVector(WalkStartX, 0.0, _FloorZ + 100.0);
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         Params.Set_MaxSpeed(WalkerMaxSpeed);
         // FailMove is what makes the Disabled run genuinely red: with the default HoldAndRetry,
         // a walker that reaches the line and stalls is eventually block-detected, and

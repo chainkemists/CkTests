@@ -29,7 +29,7 @@ class UCk_AutoTest_Attribute_FloatMinMaxComponents : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto Params = FCk_Fragment_FloatAttribute_ParamsData(
+        auto Params = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Power"),
             100.0f);
         Params.Set_MinMax(ECk_MinMax::MinMax);

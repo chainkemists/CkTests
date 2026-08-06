@@ -71,12 +71,12 @@ class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_GenericEntityScript_UE
 
     void Request_SetupAttributes(FCk_Handle InHandle)
     {
-        auto DamageParams = FCk_Fragment_FloatAttribute_ParamsData(
+        auto DamageParams = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Damage"), 50.0f);
         DamageParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(10.0f).Set_MaxValue(200.0f);
         DamageAttribute = utils_float_attribute::Add(InHandle, DamageParams);
 
-        auto DefenseParams = FCk_Fragment_FloatAttribute_ParamsData(
+        auto DefenseParams = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Defense"), 30.0f);
         DefenseParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(100.0f);
         DefenseAttribute = utils_float_attribute::Add(InHandle, DefenseParams);
@@ -123,7 +123,7 @@ class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_GenericEntityScript_UE
 
     void Request_AddWeaponModifier()
     {
-        auto WeaponParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        auto WeaponParams = FCk_FloatAttributeModifier_Spec();
         WeaponParams.Set_ModifierDelta(25.5f);
         auto WeaponMod = utils_float_attribute_modifier::Add_Revocable(DamageAttribute,
             utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Weapon"), ECk_AttributeModifier_Operation::Add, WeaponParams);
@@ -133,7 +133,7 @@ class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_GenericEntityScript_UE
     void Request_AddArmorModifier()
     {
         if (ck::Is_NOT_Valid(DefenseAttribute)) return;
-        auto ArmorParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        auto ArmorParams = FCk_FloatAttributeModifier_Spec();
         ArmorParams.Set_ModifierDelta(15.75f);
         auto ArmorMod = utils_float_attribute_modifier::Add_Revocable(DefenseAttribute,
             utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Armor"), ECk_AttributeModifier_Operation::Add, ArmorParams);
@@ -143,7 +143,7 @@ class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_GenericEntityScript_UE
     void Request_AddBuffModifier()
     {
         if (ck::Is_NOT_Valid(DamageAttribute)) return;
-        auto BuffParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        auto BuffParams = FCk_FloatAttributeModifier_Spec();
         BuffParams.Set_ModifierDelta(20.25f);
         auto BuffMod = utils_float_attribute_modifier::Add_Revocable(DamageAttribute,
             utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Buff"), ECk_AttributeModifier_Operation::Add, BuffParams);
@@ -153,13 +153,13 @@ class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_GenericEntityScript_UE
     void Request_AddMultipleModifiers()
     {
         if (ck::Is_NOT_Valid(DefenseAttribute)) return;
-        auto ShieldParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        auto ShieldParams = FCk_FloatAttributeModifier_Spec();
         ShieldParams.Set_ModifierDelta(10.5f);
         auto ShieldMod = utils_float_attribute_modifier::Add_Revocable(DefenseAttribute,
             utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Shield"), ECk_AttributeModifier_Operation::Add, ShieldParams);
         if (ck::IsValid(ShieldMod)) { ActiveModifiers.Add(ShieldMod); }
 
-        auto EnchantParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        auto EnchantParams = FCk_FloatAttributeModifier_Spec();
         EnchantParams.Set_ModifierDelta(8.3f);
         auto EnchantMod = utils_float_attribute_modifier::Add_Revocable(DefenseAttribute,
             utils_gameplay_tag::ResolveGameplayTag(n"Modifier.Enchantment"), ECk_AttributeModifier_Operation::Add, EnchantParams);
@@ -190,7 +190,7 @@ class UCk_EntityScript_AttributeGym_FloatModifiers : UCk_GenericEntityScript_UE
     void Request_TestNotRevocableModifiers()
     {
         if (ck::Is_NOT_Valid(DamageAttribute)) return;
-        auto PermanentParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+        auto PermanentParams = FCk_FloatAttributeModifier_Spec();
         PermanentParams.Set_ModifierDelta(12.5f);
         utils_float_attribute_modifier::Add_NotRevocable(DamageAttribute, ECk_AttributeModifier_Operation::Add, PermanentParams);
     }

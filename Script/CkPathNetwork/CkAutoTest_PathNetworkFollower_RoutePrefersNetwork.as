@@ -56,9 +56,9 @@ class UCk_AutoTest_PathNetworkFollower_RoutePrefersNetwork : UCk_AutoTest_Base
         Ribbons.Add(FCk_PathNetwork_Ribbon(PointsA));
         Ribbons.Add(FCk_PathNetwork_Ribbon(PointsB));
 
-        _Network = utils_path_network::Add(LocalHandle, FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+        _Network = utils_path_network::Add(LocalHandle, FCk_PathNetwork_Spec(Ribbons));
 
-        auto FollowerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+        auto FollowerParams = FCk_PathNetworkFollower_Spec();
         FollowerParams.Set_Network(_Network);
         FollowerParams.Set_CorridorWaypointSpacing(100.0);
         _Follower = utils_path_network_follower::Add(LocalHandle, FollowerParams);

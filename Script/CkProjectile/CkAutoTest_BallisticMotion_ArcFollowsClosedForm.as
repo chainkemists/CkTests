@@ -52,7 +52,7 @@ class UCk_AutoTest_BallisticMotion_ArcFollowsClosedForm : UCk_AutoTest_Base
 
         _TrajectoryParams = FCk_Ballistic_TrajectoryParams(FVector(0.0, 0.0, -4000.0));
 
-        auto Params = FCk_Fragment_BallisticMotion_ParamsData(_TrajectoryParams);
+        auto Params = FCk_BallisticMotion_Spec(_TrajectoryParams);
         _Motion = UCk_Utils_BallisticMotion_UE::Add(Projectile, Params);
 
         if (ck::Is_NOT_Valid(_Motion))

@@ -21,7 +21,7 @@ class UCk_AutoTest_Substep_Add_CreatesFeature : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
         auto Entity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
 
-        auto Params = FCk_Substep_ParamsData(FCk_Time(0.05f));
+        auto Params = FCk_Substep_Spec(FCk_Time(0.05f));
         auto SubstepHandle = utils_substep::Add(Entity, Params);
 
         Assert_True(ck::IsValid(SubstepHandle),

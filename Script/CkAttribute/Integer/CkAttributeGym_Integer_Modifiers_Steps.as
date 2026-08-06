@@ -44,7 +44,7 @@ namespace integer_gym_modifiers
         if (ck::IsValid(Existing))
         { utils_integer_attribute_modifier::Remove(Existing); }
 
-        auto Params = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+        auto Params = FCk_IntegerAttributeModifier_Spec();
         Params.Set_ModifierDelta(InDelta);
         utils_integer_attribute_modifier::Add_Revocable(
             Damage, Tag, ECk_AttributeModifier_Operation::Add, Params);

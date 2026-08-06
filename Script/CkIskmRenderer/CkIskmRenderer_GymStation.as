@@ -105,7 +105,7 @@ class UCk_EntityScript_IskmRendererGym_SpawnArmy : UCk_GenericEntityScript_UE
                 auto SoldierName = FName(f"Soldier_{Row}_{Col}");
                 Entity.Set_DebugName(SoldierName);
                 auto ProxyTransform = utils_transform::Add(Entity, SpawnXf, ECk_Replication::DoesNotReplicate);
-                auto Proxy = utils_iskm_proxy::Add(ProxyTransform, FCk_Fragment_IskmProxy_ParamsData(Renderer, SpawnXf));
+                auto Proxy = utils_iskm_proxy::Add(ProxyTransform, FCk_IskmProxy_Spec(Renderer, SpawnXf));
 
                 const int32 Pick = Math::RandRange(0, 2);
                 UAnimSequenceBase ChosenSeq;
@@ -162,7 +162,7 @@ class UCk_EntityScript_IskmRendererGym_OutfitSwap : UCk_GenericEntityScript_UE
         auto AgentEntity = InHandle.Request_CreateEntity();
         AgentEntity.Set_DebugName(n"Agent");
         auto AgentTransform = utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
-        _Proxy = utils_iskm_proxy::Add(AgentTransform, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
+        _Proxy = utils_iskm_proxy::Add(AgentTransform, FCk_IskmProxy_Spec(Renderer, InitialTransform));
         IskmGym_OptIn_AnimBP(_Proxy);
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
@@ -229,7 +229,7 @@ class UCk_EntityScript_IskmRendererGym_MontageBurst : UCk_GenericEntityScript_UE
         auto AgentEntity = InHandle.Request_CreateEntity();
         AgentEntity.Set_DebugName(n"Agent");
         auto AgentTransform = utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
-        _Proxy = utils_iskm_proxy::Add(AgentTransform, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
+        _Proxy = utils_iskm_proxy::Add(AgentTransform, FCk_IskmProxy_Spec(Renderer, InitialTransform));
         IskmGym_OptIn_AnimBP(_Proxy);
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
@@ -283,7 +283,7 @@ class UCk_EntityScript_IskmRendererGym_RagdollDemo : UCk_GenericEntityScript_UE
         auto AgentEntity = InHandle.Request_CreateEntity();
         AgentEntity.Set_DebugName(n"Agent");
         auto AgentTransform = utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
-        _Proxy = utils_iskm_proxy::Add(AgentTransform, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
+        _Proxy = utils_iskm_proxy::Add(AgentTransform, FCk_IskmProxy_Spec(Renderer, InitialTransform));
         IskmGym_OptIn_AnimBP(_Proxy);
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));
@@ -355,7 +355,7 @@ class UCk_EntityScript_IskmRendererGym_TransitionCycle : UCk_GenericEntityScript
         auto AgentEntity = InHandle.Request_CreateEntity();
         AgentEntity.Set_DebugName(n"Agent");
         auto AgentTransform = utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
-        _Proxy = utils_iskm_proxy::Add(AgentTransform, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
+        _Proxy = utils_iskm_proxy::Add(AgentTransform, FCk_IskmProxy_Spec(Renderer, InitialTransform));
 
         TSubclassOf<UAnimInstance> NullClass;
         utils_iskm_proxy::Request_SetAnimInstanceClass(_Proxy, NullClass);
@@ -449,7 +449,7 @@ class UCk_EntityScript_IskmRendererGym_AnimBPDemo : UCk_GenericEntityScript_UE
         auto LeftEntity = InHandle.Request_CreateEntity();
         LeftEntity.Set_DebugName(n"AgentAnimBP");
         auto LeftTransform = utils_transform::Add(LeftEntity, LeftXf, ECk_Replication::DoesNotReplicate);
-        _ProxyAnimBP = utils_iskm_proxy::Add(LeftTransform, FCk_Fragment_IskmProxy_ParamsData(Renderer, LeftXf));
+        _ProxyAnimBP = utils_iskm_proxy::Add(LeftTransform, FCk_IskmProxy_Spec(Renderer, LeftXf));
         IskmGym_OptIn_AnimBP(_ProxyAnimBP);
 
         // Right (Y +100): forced to Sequence mode + plays MM_Idle.
@@ -458,7 +458,7 @@ class UCk_EntityScript_IskmRendererGym_AnimBPDemo : UCk_GenericEntityScript_UE
         auto RightEntity = InHandle.Request_CreateEntity();
         RightEntity.Set_DebugName(n"AgentSequence");
         auto RightTransform = utils_transform::Add(RightEntity, RightXf, ECk_Replication::DoesNotReplicate);
-        _ProxySequence = utils_iskm_proxy::Add(RightTransform, FCk_Fragment_IskmProxy_ParamsData(Renderer, RightXf));
+        _ProxySequence = utils_iskm_proxy::Add(RightTransform, FCk_IskmProxy_Spec(Renderer, RightXf));
 
         TSubclassOf<UAnimInstance> NullClass;
         utils_iskm_proxy::Request_SetAnimInstanceClass(_ProxySequence, NullClass);
@@ -508,7 +508,7 @@ class UCk_EntityScript_IskmRendererGym_CustomData : UCk_GenericEntityScript_UE
         auto AgentEntity = InHandle.Request_CreateEntity();
         AgentEntity.Set_DebugName(n"Agent");
         auto AgentTransform = utils_transform::Add(AgentEntity, InitialTransform, ECk_Replication::DoesNotReplicate);
-        _Proxy = utils_iskm_proxy::Add(AgentTransform, FCk_Fragment_IskmProxy_ParamsData(Renderer, InitialTransform));
+        _Proxy = utils_iskm_proxy::Add(AgentTransform, FCk_IskmProxy_Spec(Renderer, InitialTransform));
         IskmGym_OptIn_AnimBP(_Proxy);
 
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnTick"));

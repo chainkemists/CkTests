@@ -42,13 +42,13 @@ class UCk_AutoTest_Goap_Planner_MinimalPlan : UCk_AutoTest_Base
         // is already satisfied at planning time.
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             true);
 
         // Top-level Planner.
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_WorldStateSource(WS);
         _Planner = utils_goap_planner::Add(Local, ActionSetParams);
@@ -58,7 +58,7 @@ class UCk_AutoTest_Goap_Planner_MinimalPlan : UCk_AutoTest_Base
         // root's effects ARE its goal when the Planner's _Goal is empty —
         // no separate Initial_Goal needed when the action's own effects
         // describe the world target.
-        auto RootParams = FCk_Fragment_Goap_ActionParamsData(
+        auto RootParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_Simple);
 
         _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);

@@ -49,7 +49,7 @@ class UCk_AutoTest_BallisticMotion_ImpactStopsProjectile : UCk_AutoTest_Base
         auto TargetTransform = utils_transform::Add(
             _TargetEntity, FTransform(FRotator::ZeroRotator, _TargetCenter), ECk_Replication::DoesNotReplicate);
 
-        auto TargetProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto TargetProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.BallisticMotion.Target"));
         TargetProbeParams.Set_MotionType(ECk_MotionType::Static);
         TargetProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Silent);
@@ -61,7 +61,7 @@ class UCk_AutoTest_BallisticMotion_ImpactStopsProjectile : UCk_AutoTest_Base
         _ProjectileTransform = utils_transform::Add(
             Projectile, FTransform(FRotator::ZeroRotator, _ProjectileStart), ECk_Replication::DoesNotReplicate);
 
-        auto ProjectileProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProjectileProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.BallisticMotion.Projectile"));
         ProjectileProbeParams.Set_MotionType(ECk_MotionType::Kinematic);
         ProjectileProbeParams.Set_MotionQuality(ECk_MotionQuality::LinearCast);
@@ -76,7 +76,7 @@ class UCk_AutoTest_BallisticMotion_ImpactStopsProjectile : UCk_AutoTest_Base
         // Heavy terminal velocity ≈ negligible drag over the short hop; drop over 0.3s is ~44cm,
         // well inside the 150cm target radius
         auto TrajectoryParams = FCk_Ballistic_TrajectoryParams(FVector(0.0, 0.0, -100000.0));
-        auto MotionParams = FCk_Fragment_BallisticMotion_ParamsData(TrajectoryParams);
+        auto MotionParams = FCk_BallisticMotion_Spec(TrajectoryParams);
         MotionParams.Set_ImpactResponse(ECk_BallisticMotion_ImpactResponse::Stop);
 
         _Motion = UCk_Utils_BallisticMotion_UE::Add(Projectile, MotionParams);

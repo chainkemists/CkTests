@@ -100,7 +100,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(InHalfExtents);
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(Entity, Params);
@@ -113,7 +113,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
         Entity.Set_DebugName(InDebugName);
         utils_transform::Add(Entity, FTransform(FRotator::ZeroRotator, _Origin + InLocalOffset), ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_JoltCharacter_ParamsData(40.0, 60.0);
+        auto Params = FCk_JoltCharacter_Spec(40.0, 60.0);
         Params.Set_PushPolicy(InPolicy);
         Params.Set_MaxStrengthNewtons(200.0);
         return utils_jolt_character::Add(Entity, Params);
@@ -167,7 +167,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
             ECk_Replication::DoesNotReplicate);
         auto RampShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         RampShape.Set_HalfExtents(FVector(300.0, 130.0, 15.0));
-        auto RampParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto RampParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         RampParams.Set_ShapeDimensions(RampShape);
         RampParams.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(RampEntity, RampParams);
@@ -215,7 +215,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(FVector(50.0, 50.0, 50.0));
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Dynamic);
         Params.Set_MassSource(ECk_JoltBody_MassSource::Explicit);

@@ -42,7 +42,7 @@ class UCk_AutoTest_CkJolt_Constraint_PointChainHangsBelowAnchor : UCk_AutoTest_B
 
         auto BallShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         BallShape.Set_Radius(15.0);
-        auto BallParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto BallParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         BallParams.Set_ShapeDimensions(BallShape);
         BallParams.Set_MotionType(ECk_MotionType::Dynamic);
         // Extra damping so the swing settles well inside the test window.
@@ -50,7 +50,7 @@ class UCk_AutoTest_CkJolt_Constraint_PointChainHangsBelowAnchor : UCk_AutoTest_B
         BallParams.Set_AngularDamping(0.8);
         auto BallBody = utils_jolt_body::Add(BallEntity, BallParams);
 
-        auto ConstraintParams = FCk_Fragment_JoltConstraint_ParamsData(ECk_JoltConstraint_Type::Point);
+        auto ConstraintParams = FCk_JoltConstraint_Spec(ECk_JoltConstraint_Type::Point);
         ConstraintParams.Set_WorldAnchorA(_Anchor);
         ConstraintParams.Set_WorldAnchorB(_Anchor);
         utils_jolt_constraint::Create(BallBody, ConstraintParams);

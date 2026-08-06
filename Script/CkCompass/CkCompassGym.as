@@ -42,7 +42,7 @@ class ACk_CompassGym_Pawn : ACk_Gym_Base_Pawn
     {
         _PawnEntity = FCk_Handle(InEntityScriptHandle);
 
-        auto Params = FCk_Fragment_Compass_ParamsData(180.0);
+        auto Params = FCk_Compass_Spec(180.0);
         Params.Set_HeadingSource(ECk_Compass_HeadingSource::Auto);
         Params.Set_MaxEntries(16);
         _Compass = utils_compass::Add(_PawnEntity, Params);
@@ -112,7 +112,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         // One ClampToEdge waypoint far out — pins to the arc edge when behind the pawn.
         auto Waypoint = DoCreateStandalonePoi(
             FTransform(FRotator::ZeroRotator, RingCenter + FVector(-2500.0, 0.0, 0.0)),
-            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint")));
+            FCk_Poi_Spec(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint")));
         DoAddCompassDisplay(Waypoint, 10, ECk_Poi_OffscreenPolicy::ClampToEdge);
 
         utils_pmg_basic_shapes::DrawFilledSphere(RingCenter + FVector(-2500.0, 0.0, 60.0), 55.0, 12, 12,
@@ -125,7 +125,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
     private void DoAddRingPoi(FVector InLocation, FName InCategoryName, int32 InPriority)
     {
         auto Poi = DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, InLocation),
-            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
+            FCk_Poi_Spec(utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
         DoAddCompassDisplay(Poi, InPriority, ECk_Poi_OffscreenPolicy::Hide);
 
         // Persistent in-world marker so the POI is visible where it stands (color = category)
@@ -136,7 +136,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
     // The standalone-POI pattern (utils_poi::Create was removed): own entity under the world's
     // TransientEntity + Transform at the target location + Poi composed directly on it. Destroying
     // the returned handle's entity removes the whole POI.
-    private FCk_Handle_Poi DoCreateStandalonePoi(FTransform InTransform, FCk_Fragment_Poi_ParamsData InParams)
+    private FCk_Handle_Poi DoCreateStandalonePoi(FTransform InTransform, FCk_Poi_Spec InParams)
     {
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Host = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
@@ -148,7 +148,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
     // consumer (CkPoi v2). Compose one direct-attach definition on the POI's own entity.
     private void DoAddCompassDisplay(FCk_Handle_Poi InPoi, int32 InPriority, ECk_Poi_OffscreenPolicy InOffscreenPolicy)
     {
-        auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+        auto DisplayParams = FCk_PoiDisplayDefinition_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Compass"));
         DisplayParams.Set_Priority(InPriority);
         DisplayParams.Set_OffscreenPolicy(InOffscreenPolicy);
@@ -238,7 +238,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
             ControlledPawn.GetActorForwardVector() * 1500.0;
 
         auto Ping = DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, Ahead),
-            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Ping")));
+            FCk_Poi_Spec(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Ping")));
         DoAddCompassDisplay(Ping, 20, ECk_Poi_OffscreenPolicy::ClampToEdge);
 
         // 5s TTL: a StopOnDone timer on the ping's host entity destroys it when done
@@ -301,7 +301,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
                     0.0);
                 auto Poi = DoCreateStandalonePoi(
                     FTransform(FRotator::ZeroRotator, FieldCenter + Offset),
-                    FCk_Fragment_Poi_ParamsData(Category));
+                    FCk_Poi_Spec(Category));
                 _StressPois.Add(FCk_Handle(Poi));
             }
         }

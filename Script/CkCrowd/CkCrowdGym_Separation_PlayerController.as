@@ -178,7 +178,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         // Agents are standalone top-level entities (lifetime-owned by the registry transient),
         // not sub-entities of the station — Clear destroys each agent explicitly.
         FCk_Handle TransientOwner = ck::TransientEntity();
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
 
         // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
         // onto the handle it is given and permits one agent per entity, so passing the transient
@@ -197,10 +197,10 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
         _Agents.Add(Agent);
 
-        auto VelocityParams = FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector);
+        auto VelocityParams = FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector);
         utils_velocity::Add(GenericAgent, VelocityParams, ECk_Replication::DoesNotReplicate);
 
-        auto AccelParams = FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector);
+        auto AccelParams = FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector);
         utils_acceleration::Add(GenericAgent, AccelParams, ECk_Replication::DoesNotReplicate);
 
         utils_euler_integrator::Request_Start(GenericAgent);

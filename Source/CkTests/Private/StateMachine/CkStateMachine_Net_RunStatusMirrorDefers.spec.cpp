@@ -72,7 +72,7 @@ bool FCkStateMachineNet_RunStatusMirror_DefersWhileReplayInFlight::RunTest(const
             if (ck::Is_NOT_Valid(GSmOwner))
             { AddError(TEXT("failed to create the transient owner entity")); return; }
 
-            auto Params = FCk_Fragment_StateMachine_ParamsData{UCk_AutoTest_Sm_RecordingState_A::StaticClass()};
+            auto Params = FCk_StateMachine_Spec{UCk_AutoTest_Sm_RecordingState_A::StaticClass()};
             // Defaults: AutoStart OnSetup, DoesNotReplicate.
             GSm = UCk_Utils_StateMachine_UE::Add(GSmOwner, Params);
             if (ck::Is_NOT_Valid(GSm))

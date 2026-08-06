@@ -73,7 +73,7 @@ class ACk_JoltGym_Hair_PlayerController : ACk_Gym_Base_PlayerController
 
         auto HeadShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         HeadShape.Set_Radius(_HeadRadius);
-        auto HeadParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto HeadParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         HeadParams.Set_ShapeDimensions(HeadShape);
         HeadParams.Set_MotionType(ECk_MotionType::Kinematic);
         auto HeadBody = utils_jolt_body::Add(HeadEntity, HeadParams);
@@ -97,7 +97,7 @@ class ACk_JoltGym_Hair_PlayerController : ACk_Gym_Base_PlayerController
             StrandRoot.Request_OverrideToSelf();
             utils_handle::Set_DebugName(StrandRoot, f"Hair.Strand{i}");
 
-            auto RopeParams = FCk_JoltRope_ParamsData(ScalpPoint);
+            auto RopeParams = FCk_JoltRope_Spec(ScalpPoint);
             RopeParams.Set_AnchorBody(HeadGeneric);
             RopeParams.Set_Direction(FVector(Math::Cos(Angle) * 0.35, Math::Sin(Angle) * 0.35, -1.0));
             RopeParams.Set_SegmentCount(5);

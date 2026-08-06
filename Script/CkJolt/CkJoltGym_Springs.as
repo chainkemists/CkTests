@@ -85,13 +85,13 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(FVector(70.0, 70.0, 10.0));
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Dynamic);
         Params.Set_LinearDamping(0.05);
         auto Body = utils_jolt_body::Add(Entity, Params);
 
-        auto ConstraintParams = FCk_Fragment_JoltConstraint_ParamsData(ECk_JoltConstraint_Type::Distance);
+        auto ConstraintParams = FCk_JoltConstraint_Spec(ECk_JoltConstraint_Type::Distance);
         ConstraintParams.Set_WorldAnchorA(PlateCenter);
         ConstraintParams.Set_WorldAnchorB(AnchorPoint);
         ConstraintParams.Set_UseSpring(ECk_EnableDisable::Enable);
@@ -119,7 +119,7 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         Shape.Set_Radius(35.0);
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Dynamic);
         Params.Set_SurfaceSource(ECk_JoltBody_SurfaceSource::Explicit);
@@ -127,7 +127,7 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
         Params.Set_Restitution(0.4);
         auto Body = utils_jolt_body::Add(Entity, Params);
 
-        auto ConstraintParams = FCk_Fragment_JoltConstraint_ParamsData(ECk_JoltConstraint_Type::Distance);
+        auto ConstraintParams = FCk_JoltConstraint_Spec(ECk_JoltConstraint_Type::Distance);
         ConstraintParams.Set_WorldAnchorA(BallCenter);
         ConstraintParams.Set_WorldAnchorB(AnchorPoint);
         ConstraintParams.Set_UseSpring(ECk_EnableDisable::Enable);
@@ -150,7 +150,7 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(InHalfExtents);
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(Entity, Params);

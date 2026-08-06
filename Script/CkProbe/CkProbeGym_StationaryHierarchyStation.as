@@ -111,7 +111,7 @@ class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntitySc
         NodeB = utils_scene_node::Create(NodeA.As_Transform(), NodeB_Local);
 
         // ---- Chained probe at end of chain ----
-        auto ChainedParams = FCk_Fragment_Probe_ParamsData(
+        auto ChainedParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.Gym.Marker"));
         ChainedParams.Set_MotionType(ECk_MotionType::Kinematic);
         ChainedParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Silent);
@@ -132,7 +132,7 @@ class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntitySc
         auto DetectorTransformHandle = utils_transform::Add(
             DetectorEntity, DetectorInitial, ECk_Replication::DoesNotReplicate);
 
-        auto DetectorParams = FCk_Fragment_Probe_ParamsData(
+        auto DetectorParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.Gym.Detector"));
         DetectorParams.Set_MotionType(ECk_MotionType::Static);
         DetectorParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);

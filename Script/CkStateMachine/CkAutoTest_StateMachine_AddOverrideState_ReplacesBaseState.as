@@ -63,7 +63,7 @@ class UCk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState : UCk_AutoTes
 
         // Disable AutoStart so Request_AddOverrideState gets processed before
         // the explicit Request_Start that follows.
-        auto SmParams = FCk_Fragment_StateMachine_ParamsData(UCk_SmTest_Override_Base);
+        auto SmParams = FCk_StateMachine_Spec(UCk_SmTest_Override_Base);
         SmParams.Set_AutoStart(ECk_SmAutoStart::Disabled);
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, SmParams);
 

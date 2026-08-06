@@ -38,7 +38,7 @@ class UCk_AutoTest_PathNetwork_BuildsFromRibbons : UCk_AutoTest_Base
         Ribbons.Add(FCk_PathNetwork_Ribbon(PointsA));
         Ribbons.Add(FCk_PathNetwork_Ribbon(PointsB));
 
-        _Network = utils_path_network::Add(LocalHandle, FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+        _Network = utils_path_network::Add(LocalHandle, FCk_PathNetwork_Spec(Ribbons));
 
         Assert_True(ck::IsValid(_Network), "Add() must return a valid network handle");
         Assert_True(utils_path_network::Has(FCk_Handle(_Network)), "network entity must carry the feature");

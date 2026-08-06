@@ -65,7 +65,7 @@ class UCk_AutoTest_StateMachine_PauseResume : UCk_AutoTest_Base
         // Disabled auto-start so we control start/pause ordering. Request_Pause only engages on a
         // Running SM (the Pause processor early-returns if not Running), so Start then Pause are
         // enqueued the same frame — the request queue drains in order Running -> Paused.
-        auto SmParams = FCk_Fragment_StateMachine_ParamsData(UCk_SmPauseTest_State_Idle);
+        auto SmParams = FCk_StateMachine_Spec(UCk_SmPauseTest_State_Idle);
         SmParams.Set_AutoStart(ECk_SmAutoStart::Disabled);
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, SmParams);
 

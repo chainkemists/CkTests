@@ -70,22 +70,22 @@ class UCk_EntityScript_AttributeGym_FloatRefill : UCk_GenericEntityScript_UE
 
 	void Request_SetupAttributes(FCk_Handle InHandle)
 	{
-		auto RefillParams = FCk_Fragment_FloatAttributeRefill_ParamsData(
+		auto RefillParams = FCk_FloatAttributeRefill_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Energy.Refill"), 5.0f);
 		RefillParams.Set_StartingState(ECk_Attribute_RefillState::Running);
 
-		auto EnergyParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto EnergyParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Energy"), 100.0f);
 		EnergyParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(100.0f);
 		EnergyParams.Set_EnableRefill(true).Set_RefillParams(RefillParams);
 		EnergyAttribute = utils_float_attribute::Add(InHandle, EnergyParams);
 
-		auto ManaRefillParams = FCk_Fragment_FloatAttributeRefill_ParamsData(
+		auto ManaRefillParams = FCk_FloatAttributeRefill_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Mana.Refill"), 3.0f);
 		ManaRefillParams.Set_RefillBehavior(ECk_Attribute_Refill_Policy::AlwaysReturnToZero);
 		ManaRefillParams.Set_StartingState(ECk_Attribute_RefillState::Running);
 
-		auto ManaParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto ManaParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Mana"), 80.0f);
 		ManaParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(0.0f).Set_MaxValue(80.0f);
 		ManaParams.Set_EnableRefill(true).Set_RefillParams(ManaRefillParams);

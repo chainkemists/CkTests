@@ -62,7 +62,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
 
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             false);
@@ -73,7 +73,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Ready"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(InitialGoal);
         ActionSetParams.Set_WorldStateSource(WS);
@@ -82,7 +82,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
 
         // PR-B.1b Stage 5: AtomicChild is the only candidate operator. No
         // implicit-root Action — the Planner's catalog drives the plan.
-        auto AtomicParams = FCk_Fragment_Goap_ActionParamsData(
+        auto AtomicParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_AtomicChild);
         _RootAction = utils_goap_planner::AddAction(_Planner, AtomicParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (AtomicChild) should return a valid handle");
@@ -112,7 +112,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
                 "Phase A: Plan[0] should be AtomicChild");
 
             // Runtime mutation: add a cheaper sibling Action under the same planner.
-            auto CheaperParams = FCk_Fragment_Goap_ActionParamsData(
+            auto CheaperParams = FCk_Goap_Action_Spec(
                 UCk_AutoTestAction_Goap_AddRemove_Cheaper);
             _CheaperAction = utils_goap_planner::AddAction(_Planner, CheaperParams);
             Assert_True(ck::IsValid(_CheaperAction),

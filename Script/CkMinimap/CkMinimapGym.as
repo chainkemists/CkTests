@@ -48,7 +48,7 @@ class ACk_MinimapGym_Pawn : ACk_Gym_Base_Pawn
     {
         _PawnEntity = FCk_Handle(InEntityScriptHandle);
 
-        auto Params = FCk_Fragment_Minimap_ParamsData(3000.0);
+        auto Params = FCk_Minimap_Spec(3000.0);
         Params.Set_MaxEntries(32);
         _Minimap = utils_minimap::Add(_PawnEntity, Params);
 
@@ -70,15 +70,15 @@ class ACk_MinimapGym_Pawn : ACk_Gym_Base_Pawn
         { return; }
 
         auto PawnPoi = utils_poi::Add(_PawnEntity,
-            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Player")));
+            FCk_Poi_Spec(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Player")));
 
         // Direct-attach display definition (Add, not Create — single consumer: the minimap).
-        auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+        auto DisplayParams = FCk_PoiDisplayDefinition_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Minimap"));
         DisplayParams.Set_Priority(100);
         utils_poi_display_definition::Add(PawnPoi, DisplayParams);
 
-        utils_visible_range::Add(_PawnEntity, FCk_Fragment_VisibleRange_ParamsData(0.0));
+        utils_visible_range::Add(_PawnEntity, FCk_VisibleRange_Spec(0.0));
     }
 
     FCk_Handle Get_PawnEntity()
@@ -187,7 +187,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         // One far ClampToEdge waypoint — pins to the frame rim from anywhere in the gym.
         auto Waypoint = DoCreateStandalonePoi(
             FTransform(FRotator::ZeroRotator, Center + FVector(-6000.0, 0.0, 0.0)),
-            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint")));
+            FCk_Poi_Spec(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint")));
         DoAddMinimapDisplay(Waypoint, 10, ECk_Poi_OffscreenPolicy::ClampToEdge);
 
         utils_pmg_basic_shapes::DrawFilledSphere(Center + FVector(-6000.0, 0.0, 60.0), 55.0, 12, 12,
@@ -208,7 +208,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         utils_transform::Add(Host, FTransform(FRotator::ZeroRotator, _WorldMapOrigin),
             ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_Minimap_ParamsData(3000.0);
+        auto Params = FCk_Minimap_Spec(3000.0);
         Params.Set_ProjectionMode(ECk_Minimap_ProjectionMode::FixedBounds);
         Params.Set_FixedBounds(FCk_Minimap_WorldBounds(
             FVector2D(_WorldMapOrigin.X - 800.0, _WorldMapOrigin.Y), FVector2D(3000.0, 3000.0)));
@@ -228,7 +228,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Host = utils_entity_lifetime::Request_CreateEntity(PawnEntity);
         Host.Request_OverrideToSelf();
 
-        auto Params = FCk_Fragment_FogOfWar_ParamsData(FCk_Minimap_WorldBounds(
+        auto Params = FCk_FogOfWar_Spec(FCk_Minimap_WorldBounds(
             FVector2D(_FogWalkOrigin.X - 800.0, _FogWalkOrigin.Y), FVector2D(2500.0, 2500.0)));
         Params.Set_CellSize(250.0);
         Params.Set_RevealRadius(600.0);
@@ -283,7 +283,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
     private void DoAddPoi(FVector InLocation, FName InCategoryName, int32 InPriority)
     {
         auto Poi = DoCreateStandalonePoi(FTransform(FRotator::ZeroRotator, InLocation),
-            FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
+            FCk_Poi_Spec(utils_gameplay_tag::ResolveGameplayTag(InCategoryName)));
         DoAddMinimapDisplay(Poi, InPriority, ECk_Poi_OffscreenPolicy::Hide);
 
         // Persistent in-world marker so the POI is visible where it stands (color = category)
@@ -294,7 +294,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
     // The standalone-POI pattern (utils_poi::Create was removed): own entity under the world's
     // TransientEntity + Transform at the target location + Poi composed directly on it. Destroying
     // the returned handle's entity removes the whole POI.
-    private FCk_Handle_Poi DoCreateStandalonePoi(FTransform InTransform, FCk_Fragment_Poi_ParamsData InParams)
+    private FCk_Handle_Poi DoCreateStandalonePoi(FTransform InTransform, FCk_Poi_Spec InParams)
     {
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Host = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
@@ -306,7 +306,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
     // consumer (CkPoi v2). Compose one direct-attach definition on the POI's own entity.
     private void DoAddMinimapDisplay(FCk_Handle_Poi InPoi, int32 InPriority, ECk_Poi_OffscreenPolicy InOffscreenPolicy)
     {
-        auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
+        auto DisplayParams = FCk_PoiDisplayDefinition_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Minimap"));
         DisplayParams.Set_Priority(InPriority);
         DisplayParams.Set_OffscreenPolicy(InOffscreenPolicy);
@@ -468,7 +468,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
                     0.0);
                 auto Poi = DoCreateStandalonePoi(
                     FTransform(FRotator::ZeroRotator, FieldCenter + Offset),
-                    FCk_Fragment_Poi_ParamsData(Category));
+                    FCk_Poi_Spec(Category));
                 _StressPois.Add(FCk_Handle(Poi));
             }
         }

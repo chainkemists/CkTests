@@ -28,7 +28,7 @@ class UCk_AutoTest_Grid_DisabledCellRejectsPlacement : UCk_AutoTest_Base
         auto DisabledOwner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto DisabledTransform = utils_transform::Add(
             DisabledOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        auto DisabledParams = FCk_Fragment_2dGridSystem_ParamsData(
+        auto DisabledParams = FCk_2dGridSystem_Spec(
             FIntPoint(3, 3), FVector2D(100.0f, 100.0f));
         DisabledParams.Set_DefaultCellState(ECk_EnableDisable::Disable);
         auto DisabledGrid = utils_2d_grid_system::Add(DisabledTransform, DisabledParams);
@@ -61,7 +61,7 @@ class UCk_AutoTest_Grid_DisabledCellRejectsPlacement : UCk_AutoTest_Base
         auto EnabledOwner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto EnabledTransform = utils_transform::Add(
             EnabledOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        auto EnabledParams = FCk_Fragment_2dGridSystem_ParamsData(
+        auto EnabledParams = FCk_2dGridSystem_Spec(
             FIntPoint(3, 3), FVector2D(100.0f, 100.0f));
         EnabledParams.Set_DefaultCellState(ECk_EnableDisable::Enable);
         auto EnabledGrid = utils_2d_grid_system::Add(EnabledTransform, EnabledParams);

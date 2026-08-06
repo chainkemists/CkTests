@@ -15,7 +15,7 @@ class UCk_AutoTest_Resolver_Source_HasFalseBeforeAdd : UCk_AutoTest_Base
         Assert_True(!utils_resolver_source::Has(Entity),
             "Pre-Add: ResolverSource Has should be false on a fresh entity");
 
-        utils_resolver_source::Add(Entity, FCk_Fragment_ResolverSource_ParamsData());
+        utils_resolver_source::Add(Entity, FCk_ResolverSource_Spec());
 
         Assert_True(utils_resolver_source::Has(Entity),
             "Post-Add: ResolverSource Has should be true");

@@ -47,7 +47,7 @@ class ACk_VoiceChatGym_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
-        auto Params = FCk_Fragment_VoiceTalker_ParamsData();
+        auto Params = FCk_VoiceTalker_Spec();
         Params.Set_Loopback(ECk_EnableDisable::Enable);
         _GymTalker = utils_voice_talker::Add(PawnEntity, Params);
 

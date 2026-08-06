@@ -47,7 +47,7 @@ class UCk_AutoTest_CkJolt_JoltCharacter_ReportsGroundStateTransitions : UCk_Auto
 
         auto FloorShape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         FloorShape.Set_HalfExtents(FVector(500.0, 500.0, 25.0));
-        auto FloorParams = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto FloorParams = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         FloorParams.Set_ShapeDimensions(FloorShape);
         FloorParams.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(FloorEntity, FloorParams);
@@ -59,7 +59,7 @@ class UCk_AutoTest_CkJolt_JoltCharacter_ReportsGroundStateTransitions : UCk_Auto
         utils_transform::Add(CharEntity, FTransform(FRotator::ZeroRotator, CharStart),
             ECk_Replication::DoesNotReplicate);
 
-        auto CharParams = FCk_Fragment_JoltCharacter_ParamsData(40.0, 60.0);
+        auto CharParams = FCk_JoltCharacter_Spec(40.0, 60.0);
         _Char = utils_jolt_character::Add(CharEntity, CharParams);
 
         utils_jolt_character::BindTo_OnJoltCharacterGroundStateChanged(_Char,

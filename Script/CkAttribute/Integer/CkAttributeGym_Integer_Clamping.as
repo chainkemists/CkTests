@@ -84,7 +84,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_GenericEntityScript_UE
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		auto ResourceParams = FCk_Fragment_IntegerAttribute_ParamsData(
+		auto ResourceParams = FCk_IntegerAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.Resource"),
 			50);
 		ResourceParams.Set_MinMax(ECk_MinMax::MinMax);

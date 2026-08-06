@@ -69,7 +69,7 @@ class UCk_EntityScript_AttributeGym_FloatMinMaxCurrent : UCk_GenericEntityScript
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		auto PowerParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto PowerParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.PowerLevel"), 100.0f);
 		PowerParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(10.0f).Set_MaxValue(200.0f);
 		PowerLevelAttribute = utils_float_attribute::Add(InHandle, PowerParams);

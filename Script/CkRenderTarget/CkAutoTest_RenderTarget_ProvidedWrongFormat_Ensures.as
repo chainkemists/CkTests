@@ -35,7 +35,7 @@ class UCk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures : UCk_AutoTest_Base
             64, 64, ETextureRenderTargetFormat::RTF_RGBA16f);
         Assert_True(ck::IsValid(WrongFormatTarget), "Test fixture RGBA16f target should create");
 
-        auto Params = FCk_Fragment_RenderTarget_ParamsData(SyncName);
+        auto Params = FCk_RenderTarget_Spec(SyncName);
         Params.Set_TargetMode(ECk_RenderTarget_TargetMode::UseProvided);
         Params.Set_ProvidedTarget(WrongFormatTarget);
         Params.Set_Replication(ECk_Replication::DoesNotReplicate);

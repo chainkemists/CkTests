@@ -45,11 +45,11 @@ class UCk_AutoTest_Interaction_ValidationChannelMismatch : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
 
         // Source uses the Default channel; target uses Secondary.
-        auto SourceParams = FCk_Fragment_InteractSource_ParamsData();
+        auto SourceParams = FCk_InteractSource_Spec();
         SourceParams._InteractionChannel = interaction_gym_helpers::DefaultChannel();
         _Source = utils_interact_source::Add(LocalHandle, SourceParams);
 
-        auto TargetParams = FCk_Fragment_InteractTarget_ParamsData(
+        auto TargetParams = FCk_InteractTarget_Spec(
             interaction_gym_helpers::SecondaryChannel());
         TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::Instant);
         _Target = utils_interact_target::Add(LocalHandle, TargetParams);

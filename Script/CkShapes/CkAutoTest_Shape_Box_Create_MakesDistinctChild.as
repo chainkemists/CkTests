@@ -24,7 +24,7 @@ class UCk_AutoTest_Shape_Box_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         auto Dimensions = FCk_ShapeBox_Dimensions(FVector(50.0f, 25.0f, 10.0f));
-        auto Params = FCk_Fragment_ShapeBox_ParamsData(Dimensions);
+        auto Params = FCk_ShapeBox_Spec(Dimensions);
 
         auto Child = utils_shape_box::Create(Owner, Params);
         auto ChildEntity = FCk_Handle(Child);

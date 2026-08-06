@@ -38,14 +38,14 @@ class UCk_AutoTest_Poi_Create_StandaloneAtLocation : UCk_AutoTest_Base
         utils_transform::Add(Observer, FTransform(FRotator::ZeroRotator, _Base),
             ECk_Replication::DoesNotReplicate);
 
-        auto CompassParams = FCk_Fragment_Compass_ParamsData();
+        auto CompassParams = FCk_Compass_Spec();
         CompassParams.Set_HeadingSource(ECk_Compass_HeadingSource::Manual);
         _Compass = utils_compass::Add(Observer, CompassParams);
         _Compass.Request_SetManualHeading(0.0);
 
         // Standalone POI 1000uu along +X from the observer: own entity + Transform + Poi.
         auto Category = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Landmark");
-        auto Params = FCk_Fragment_Poi_ParamsData(Category);
+        auto Params = FCk_Poi_Spec(Category);
 
         auto PoiHost = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         PoiHost.Request_OverrideToSelf();

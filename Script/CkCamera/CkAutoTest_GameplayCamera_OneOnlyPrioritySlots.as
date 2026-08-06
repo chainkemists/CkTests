@@ -41,7 +41,7 @@ class UCk_AutoTest_GameplayCamera_OneOnlyPrioritySlots : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
-        _Camera = utils_camera::Add(OwnedEntity, FCk_Fragment_Camera_ParamsData(_Helper.CameraComponent));
+        _Camera = utils_camera::Add(OwnedEntity, FCk_Camera_Spec(_Helper.CameraComponent));
 
         AddOneOnly(UCk_AutoTest_CameraLayer_A, 0);
 

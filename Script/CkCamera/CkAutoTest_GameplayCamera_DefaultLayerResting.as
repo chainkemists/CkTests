@@ -43,7 +43,7 @@ class UCk_AutoTest_GameplayCamera_DefaultLayerResting : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
-        _Camera = utils_camera::Add(OwnedEntity, FCk_Fragment_Camera_ParamsData(_Helper.CameraComponent));
+        _Camera = utils_camera::Add(OwnedEntity, FCk_Camera_Spec(_Helper.CameraComponent));
 
         _Phase  = 0;
         _Frames = 0;

@@ -23,7 +23,7 @@ class UCk_AutoTest_AutoReorient_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Fragment_AutoReorient_ParamsData(ECk_AutoReorient_Policy::OrientTowardsVelocity);
+        auto Params = FCk_AutoReorient_Spec(ECk_AutoReorient_Policy::OrientTowardsVelocity);
 
         auto Child = utils_auto_reorient::Create(Owner, Params);
         auto ChildEntity = FCk_Handle(Child);

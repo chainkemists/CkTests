@@ -104,7 +104,7 @@ bool
     auto UnlabeledEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
     UnlabeledEntity.Add<ck::FTag_ConstructSpawned>();
     UCk_Utils_Velocity_UE::Add(UnlabeledEntity,
-        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{1.0, 0.0, 0.0}},
+        FCk_Velocity_Spec{ECk_LocalWorld::World, FVector{1.0, 0.0, 0.0}},
         ECk_Replication::DoesNotReplicate);
 
     // A normal labeled child still persists its payload.
@@ -112,7 +112,7 @@ bool
     PayloadEntity.Add<ck::FTag_ConstructSpawned>();
     UCk_Utils_GameplayLabel_UE::Add(PayloadEntity, TAG_Test_V3_PayloadLabel);
     UCk_Utils_Velocity_UE::Add(PayloadEntity,
-        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{2.0, 0.0, 0.0}},
+        FCk_Velocity_Spec{ECk_LocalWorld::World, FVector{2.0, 0.0, 0.0}},
         ECk_Replication::DoesNotReplicate);
 
     // A labeled payload-bearing child whose feature explicitly declares reconstruct/reset-only state. It must not
@@ -122,7 +122,7 @@ bool
     ReconstructOnlyEntity.Add<ck::FTag_Snapshot_ReconstructOnly>();
     UCk_Utils_GameplayLabel_UE::Add(ReconstructOnlyEntity, TAG_Test_V3_ReconstructOnlyLabel);
     UCk_Utils_Velocity_UE::Add(ReconstructOnlyEntity,
-        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{3.0, 0.0, 0.0}},
+        FCk_Velocity_Spec{ECk_LocalWorld::World, FVector{3.0, 0.0, 0.0}},
         ECk_Replication::DoesNotReplicate);
 
     // RuntimeSpawned — a retained recipe.
@@ -221,7 +221,7 @@ bool
     ReconstructOnlyChild.Add<ck::FTag_Snapshot_SaveTransient>();
     UCk_Utils_GameplayLabel_UE::Add(ReconstructOnlyChild, TAG_Test_V3_ReconstructOnlyDescendantLabel);
     UCk_Utils_Velocity_UE::Add(ReconstructOnlyChild,
-        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{4.0, 0.0, 0.0}},
+        FCk_Velocity_Spec{ECk_LocalWorld::World, FVector{4.0, 0.0, 0.0}},
         ECk_Replication::DoesNotReplicate);
 
     // SaveTransient also owns its descendants: the named, payload-bearing child must be omitted rather than become
@@ -232,7 +232,7 @@ bool
     SaveTransientChild.Add<ck::FTag_ConstructSpawned>();
     UCk_Utils_GameplayLabel_UE::Add(SaveTransientChild, TAG_Test_V3_SaveTransientDescendantLabel);
     UCk_Utils_Velocity_UE::Add(SaveTransientChild,
-        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{5.0, 0.0, 0.0}},
+        FCk_Velocity_Spec{ECk_LocalWorld::World, FVector{5.0, 0.0, 0.0}},
         ECk_Replication::DoesNotReplicate);
 
     auto ByteWriter = FBufferArchive{};

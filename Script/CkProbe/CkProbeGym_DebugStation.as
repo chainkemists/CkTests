@@ -50,7 +50,7 @@ class UCk_EntityScript_ProbeGym_DebugStation : UCk_GenericEntityScript_UE
         // physical overlap entirely — it exercises the request pipeline
         // and signal state with the station's own handle as the dummy
         // other-entity).
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.Gym.Detector"));
         ProbeParams.Set_MotionType(ECk_MotionType::Static);
         ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);

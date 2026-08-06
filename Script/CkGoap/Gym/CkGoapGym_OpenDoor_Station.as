@@ -48,7 +48,7 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
         // World-state for this station — Door.IsOpen starts closed.
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Door"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Door.IsOpen"),
             false);
@@ -60,7 +60,7 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Door.IsOpen"),
             true));
 
-        auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto ActionSetParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Door"));
         ActionSetParams.Set_Goal(Goal);
         ActionSetParams.Set_WorldStateSource(_WS);
@@ -68,12 +68,12 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
         // Single operator — atomic OpenDoor. Registered directly on the Planner.
-        auto OpParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_Operator);
+        auto OpParams = FCk_Goap_Action_Spec(UCk_GoapGym_OpenDoor_Operator);
         utils_goap_planner::AddAction(_Planner, OpParams);
 
         // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
         utils_goap_planner::AddAction(_Planner,
-            FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_WaitAtDoor));
+            FCk_Goap_Action_Spec(UCk_GoapGym_OpenDoor_WaitAtDoor));
 
         // Label map for plan rendering.
         _KnownClasses.Add(UCk_GoapGym_OpenDoor_Operator);

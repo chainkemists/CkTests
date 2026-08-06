@@ -34,7 +34,7 @@ auto
     // the lookup fails forever. See the EC_DIAG investigation 2026-05-28.
     const auto CollectionTag = TAG_EntityCollection_AutoTest_Net.GetTag();
 
-    auto Params = FCk_Fragment_EntityCollection_ParamsData{CollectionTag};
+    auto Params = FCk_EntityCollection_Spec{CollectionTag};
     auto Collection = UCk_Utils_EntityCollection_UE::Add(InHandle, Params, ECk_Replication::Replicates);
 
     auto* OwningActor = UCk_Utils_OwningActor_UE::Get_EntityOwningActor(InHandle);

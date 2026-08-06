@@ -72,7 +72,7 @@ class UCk_EntityScript_AttributeGym_FloatValues : UCk_GenericEntityScript_UE
 	Request_SetupAttributes(
 		FCk_Handle InHandle)
 	{
-		auto TestParams = FCk_Fragment_FloatAttribute_ParamsData(
+		auto TestParams = FCk_FloatAttribute_Spec(
 			utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.Test"), 75.5f);
 		TestParams.Set_MinMax(ECk_MinMax::MinMax).Set_MinValue(5.0f).Set_MaxValue(180.0f);
 		TestAttribute = utils_float_attribute::Add(InHandle, TestParams);
@@ -132,7 +132,7 @@ class UCk_EntityScript_AttributeGym_FloatValues : UCk_GenericEntityScript_UE
 	void
 	Request_AddModifiers()
 	{
-		auto WeaponParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+		auto WeaponParams = FCk_FloatAttributeModifier_Spec();
 		WeaponParams.Set_ModifierDelta(20.5f);
 
 		auto WeaponMod = utils_float_attribute_modifier::Add_Revocable(
@@ -146,7 +146,7 @@ class UCk_EntityScript_AttributeGym_FloatValues : UCk_GenericEntityScript_UE
 			ActiveModifiers.Add(WeaponMod);
 		}
 
-		auto BuffParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+		auto BuffParams = FCk_FloatAttributeModifier_Spec();
 		BuffParams.Set_ModifierDelta(15.25f);
 
 		auto BuffMod = utils_float_attribute_modifier::Add_Revocable(
@@ -172,7 +172,7 @@ class UCk_EntityScript_AttributeGym_FloatValues : UCk_GenericEntityScript_UE
 	void
 	Request_AddMoreModifiers()
 	{
-		auto EnchantParams = FCk_Fragment_FloatAttributeModifier_ParamsData();
+		auto EnchantParams = FCk_FloatAttributeModifier_Spec();
 		EnchantParams.Set_ModifierDelta(12.75f);
 
 		auto EnchantMod = utils_float_attribute_modifier::Add_Revocable(

@@ -88,9 +88,9 @@ namespace ck_voice_hybrid_render_spec
         return nullptr;
     }
 
-    auto Make_HybridChannelParams() -> FCk_Fragment_VoiceChannel_ParamsData
+    auto Make_HybridChannelParams() -> FCk_VoiceChannel_Spec
     {
-        return FCk_Fragment_VoiceChannel_ParamsData{
+        return FCk_VoiceChannel_Spec{
             UCk_Utils_GameplayTag_UE::ResolveGameplayTag(TEXT("VoiceChat.Channel.TestHybrid"))}
             .Set_SpatializationPolicy(ECk_VoiceChat_SpatializationPolicy::HybridRadio)
             .Set_AudibleRange(HybridRangeCm);

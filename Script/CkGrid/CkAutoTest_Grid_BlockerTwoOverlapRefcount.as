@@ -36,18 +36,18 @@ class UCk_AutoTest_Grid_BlockerTwoOverlapRefcount : UCk_AutoTest_Base
         auto GridOwnerT = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto GP = FCk_Fragment_2dGridSystem_ParamsData(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
+        auto GP = FCk_2dGridSystem_Spec(FIntPoint(10, 10), FVector2D(100.0f, 100.0f));
         GP.Set_DefaultCellState(ECk_EnableDisable::Enable);
         _Grid = utils_2d_grid_system::Add(GridOwnerT, GP);
 
         // A covers (3,3)-(3,4): the column x=3, y in [3,4].
         _BlockerA = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto AP = FCk_Fragment_2dGridBlocker_ParamsData(_Grid, FIntPoint(3, 3), FIntPoint(3, 4));
+        auto AP = FCk_2dGridBlocker_Spec(_Grid, FIntPoint(3, 3), FIntPoint(3, 4));
         utils_2d_grid_blocker::Add(_BlockerA, AP);
 
         // B covers (3,3)-(4,3): the row y=3, x in [3,4].
         _BlockerB = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
-        auto BP = FCk_Fragment_2dGridBlocker_ParamsData(_Grid, FIntPoint(3, 3), FIntPoint(4, 3));
+        auto BP = FCk_2dGridBlocker_Spec(_Grid, FIntPoint(3, 3), FIntPoint(4, 3));
         utils_2d_grid_blocker::Add(_BlockerB, BP);
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));

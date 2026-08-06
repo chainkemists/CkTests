@@ -147,7 +147,7 @@ class UCk_AutoTest_Crowd_StationaryLine_PathsRouteAround : UCk_AutoTest_Base
         for (auto i = 0; i < PicketCount; ++i)
         {
             const auto Loc = FVector(0.0, float(i) * PicketSpacingUu - HalfSpan, _FloorZ + 100.0);
-            auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+            auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
             auto PicketEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
             auto AgentTransform = utils_transform::Add(PicketEntity, FTransform(FRotator::ZeroRotator, Loc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
             auto Agent = utils_crowd_agent::Add(AgentTransform, Params);

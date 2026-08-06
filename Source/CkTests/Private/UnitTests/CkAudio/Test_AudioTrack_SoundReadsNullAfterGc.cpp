@@ -41,7 +41,7 @@ bool FCkTest_AudioTrack_SoundReadsNullAfterGc::RunTest(const FString& Parameters
     const auto ExpectedTrackName = Sound->GetFName();
 
     auto Director = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    auto Track    = UCk_Utils_AudioTrack_UE::Create(Director, FCk_Fragment_AudioTrack_ParamsData{Sound});
+    auto Track    = UCk_Utils_AudioTrack_UE::Create(Director, FCk_AudioTrack_Spec{Sound});
 
     Sound = nullptr;
     CollectGarbage(RF_NoFlags, true);

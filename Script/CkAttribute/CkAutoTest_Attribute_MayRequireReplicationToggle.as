@@ -46,7 +46,7 @@ class UCk_AutoTest_Attribute_MayRequireReplicationToggle : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        auto ReplicatedParams = FCk_Fragment_FloatAttribute_ParamsData(
+        auto ReplicatedParams = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.AutoTest_RepFlag_Replicated"),
             100.0f);
         ReplicatedParams.Set_MinMax(ECk_MinMax::MinMax);
@@ -55,7 +55,7 @@ class UCk_AutoTest_Attribute_MayRequireReplicationToggle : UCk_AutoTest_Base
         _Replicated = utils_float_attribute::Add(LocalHandle, ReplicatedParams,
             ECk_Replication::Replicates);
 
-        auto NotRepParams = FCk_Fragment_FloatAttribute_ParamsData(
+        auto NotRepParams = FCk_FloatAttribute_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"FloatAttribute.AutoTest_RepFlag_NotReplicated"),
             100.0f);
         NotRepParams.Set_MinMax(ECk_MinMax::MinMax);

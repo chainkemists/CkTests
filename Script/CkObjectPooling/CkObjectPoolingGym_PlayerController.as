@@ -189,7 +189,7 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
         auto ThisEntity = ck::ToEntity(this);
         auto Member = utils_entity_lifetime::Request_CreateEntity(ThisEntity);
         Member.Set_DebugName(n"ObjectPooling.SmHerdMember");
-        UCk_Utils_StateMachine_UE::Add(Member, FCk_Fragment_StateMachine_ParamsData(UCk_PoolSmGym_State_Ping));
+        UCk_Utils_StateMachine_UE::Add(Member, FCk_StateMachine_Spec(UCk_PoolSmGym_State_Ping));
         _SmHerd.Add(Member);
     }
 
@@ -214,7 +214,7 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
             auto ThisEntity = ck::ToEntity(this);
             auto Member = utils_entity_lifetime::Request_CreateEntity(ThisEntity);
             Member.Set_DebugName(n"ObjectPooling.SmHerdMember");
-            UCk_Utils_StateMachine_UE::Add(Member, FCk_Fragment_StateMachine_ParamsData(UCk_PoolSmGym_State_Ping));
+            UCk_Utils_StateMachine_UE::Add(Member, FCk_StateMachine_Spec(UCk_PoolSmGym_State_Ping));
 
             if (Index < _SmHerd.Num())
             { _SmHerd[Index] = Member; }

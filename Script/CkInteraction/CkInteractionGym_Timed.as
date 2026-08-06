@@ -20,7 +20,7 @@ class UCk_EntityScript_InteractionGym_TimedSource : UCk_GenericEntityScript_UE
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_InteractionGym_TimedSource");
 
-        auto SourceParams = FCk_Fragment_InteractSource_ParamsData();
+        auto SourceParams = FCk_InteractSource_Spec();
         SourceParams._InteractionChannel = interaction_gym_helpers::DefaultChannel();
         SourceHandle = utils_interact_source::Add(InHandle, SourceParams);
 
@@ -58,7 +58,7 @@ class UCk_EntityScript_InteractionGym_TimedTarget : UCk_GenericEntityScript_UE
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::Replicates);
         utils_entity_tag::Add(InHandle, n"TAG_InteractionGym_TimedTarget");
 
-        auto TargetParams = FCk_Fragment_InteractTarget_ParamsData(
+        auto TargetParams = FCk_InteractTarget_Spec(
             interaction_gym_helpers::DefaultChannel()
         );
         TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::Timed);

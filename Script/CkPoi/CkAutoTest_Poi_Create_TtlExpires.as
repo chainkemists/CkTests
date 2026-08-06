@@ -32,7 +32,7 @@ class UCk_AutoTest_Poi_Create_TtlExpires : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
 
         auto Category = utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Ping");
-        auto Params = FCk_Fragment_Poi_ParamsData(Category);
+        auto Params = FCk_Poi_Spec(Category);
 
         _PingHost = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         _PingHost.Request_OverrideToSelf();

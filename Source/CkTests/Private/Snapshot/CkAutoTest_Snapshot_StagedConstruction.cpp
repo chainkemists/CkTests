@@ -184,7 +184,7 @@ auto
     -> ECk_EntityScript_ConstructionFlow
 {
     constexpr auto BaseValue = 1.0f;
-    auto Params = FCk_Fragment_FloatAttribute_ParamsData{
+    auto Params = FCk_FloatAttribute_Spec{
         ck_autotest_staged_construction::Get_ValueAttributeName(), BaseValue};
     UCk_Utils_FloatAttribute_UE::Add(InHandle, Params, ECk_Replication::DoesNotReplicate);
 
@@ -195,11 +195,11 @@ auto
     // and drop as forever-NotReady.
     constexpr auto MeterBase = 3;
     constexpr auto MeterFillRate = -0.2f;
-    auto MeterParams = FCk_Fragment_IntegerAttribute_ParamsData{
+    auto MeterParams = FCk_IntegerAttribute_Spec{
         ck_autotest_staged_construction::Get_MeterAttributeName(), MeterBase};
     MeterParams.Set_EnableRefill(true);
     MeterParams.Set_RefillParams(
-        FCk_Fragment_IntegerAttributeRefill_ParamsData{
+        FCk_IntegerAttributeRefill_Spec{
             ck_autotest_staged_construction::Get_MeterAttributeName(), MeterFillRate}
         .Set_RefillBehavior(ECk_Attribute_Refill_Policy::Variable)
         .Set_StartingState(ECk_Attribute_RefillState::Paused));

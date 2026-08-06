@@ -20,9 +20,9 @@ class UCk_AutoTest_Aggro_Decay_ReducesThreatOverTime : UCk_AutoTest_Base
         auto DefaultTargetThreat = FCk_AggroTarget_ThreatParams();
         DefaultTargetThreat.Set_ThreatDecayRate(5.0);
         DefaultTargetThreat.Set_InitialThreat(10.0);
-        auto DefaultTargetParams = FCk_Fragment_AggroTarget_ParamsData();
+        auto DefaultTargetParams = FCk_AggroTarget_Spec();
         DefaultTargetParams.Set_ThreatParams(DefaultTargetThreat);
-        auto OwnerParams = FCk_Fragment_Aggro_ParamsData();
+        auto OwnerParams = FCk_Aggro_Spec();
         OwnerParams.Set_DefaultTargetParams(DefaultTargetParams);
         auto Aggro = utils_aggro::Add(Owner, OwnerParams);
 

@@ -50,7 +50,7 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
 
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
@@ -63,7 +63,7 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
@@ -76,14 +76,14 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
         // PR-B.1b Stage 5: no implicit-root Action. MakeA and MakeB are direct
         // children of the Planner. Root_GoalIsEffects (AKey effect cost 1.0)
         // would compete with MakeA so it's dropped.
-        auto MakeAParams = FCk_Fragment_Goap_ActionParamsData(
+        auto MakeAParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_GetPlanEntities_MakeA);
         auto MakeAAction = utils_goap_planner::AddAction(_Planner, MakeAParams);
         Assert_True(ck::IsValid(MakeAAction), "AddAction (MakeA) should return a valid handle");
         _RootAction = MakeAAction;
 
         // MakeB — precondition AKey=true, effect BKey=true. Chains after MakeA.
-        auto MakeBParams = FCk_Fragment_Goap_ActionParamsData(
+        auto MakeBParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_GetPlanEntities_MakeB);
         auto MakeBAction = utils_goap_planner::AddAction(_Planner, MakeBParams);
         Assert_True(ck::IsValid(MakeBAction), "AddAction (MakeB) should return a valid handle");

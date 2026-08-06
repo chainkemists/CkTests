@@ -34,7 +34,7 @@ class UCk_AutoTest_Net_Integer_ModifierAddReplicates : UCk_AutoTest_NetBase
         {
             // Modifier index reuses the attribute tag (separate index from the attribute
             // name within CkAttribute), so no new tag registration is needed.
-            auto ModParams = FCk_Fragment_IntegerAttributeModifier_ParamsData();
+            auto ModParams = FCk_IntegerAttributeModifier_Spec();
             ModParams.Set_ModifierDelta(100);
             utils_integer_attribute_modifier::Add_Revocable(
                 Attribute,

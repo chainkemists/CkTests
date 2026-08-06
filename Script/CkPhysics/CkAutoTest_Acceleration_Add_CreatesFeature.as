@@ -45,7 +45,7 @@ class UCk_AutoTest_Acceleration_Add_CreatesFeature : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
-        auto Params = FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, StartingAcceleration);
+        auto Params = FCk_Acceleration_Spec(ECk_LocalWorld::World, StartingAcceleration);
         auto Acceleration = utils_acceleration::Add(OwnedEntity, Params, ECk_Replication::DoesNotReplicate);
 
         Assert_True(ck::IsValid(Acceleration),

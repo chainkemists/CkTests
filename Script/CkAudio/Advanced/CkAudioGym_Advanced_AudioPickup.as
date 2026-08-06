@@ -33,7 +33,7 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
     FCk_Handle_Timer CooldownTimer;
 
     // Probe parameters
-    FCk_Fragment_Probe_ParamsData ProbeParams(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Pickup"));
+    FCk_Probe_Spec ProbeParams(utils_gameplay_tag::ResolveGameplayTag(n"AudioGym.Advanced.Pickup"));
     default ProbeParams.Set_MotionType(ECk_MotionType::Kinematic).Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
     default ProbeParams._Filter.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"Player.Probe"));
 
@@ -69,7 +69,7 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
         utils_debug_draw::DrawDebugBox(PickupCenter, PickupExtent, PickupColor, PickupRotation, 0.0f, 3.0f);
 
         // Add visual representation using regular cube
-        auto IsmProxyParams = FCk_Fragment_IsmProxy_ParamsData(ck::Asset_RegularCube);
+        auto IsmProxyParams = FCk_IsmProxy_Spec(ck::Asset_RegularCube);
         // Scale the 260x260x260 regular cube to match our pickup size
         FVector ScaleMultiplier = CalculateRegularCubeScale(PickupSize);
         IsmProxyParams.Set_ScaleMultiplier(ScaleMultiplier);

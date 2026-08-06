@@ -98,7 +98,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(FVector(5.0, _DoorHalfWidth, _DoorHalfHeight));
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Dynamic);
         // A vertical-axis hinge is gravity-neutral; keep the slab from sagging against the constraint.
@@ -106,7 +106,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
         Params.Set_AngularDamping(0.2);
         auto Body = utils_jolt_body::Add(Entity, Params);
 
-        auto ConstraintParams = FCk_Fragment_JoltConstraint_ParamsData(ECk_JoltConstraint_Type::Hinge);
+        auto ConstraintParams = FCk_JoltConstraint_Spec(ECk_JoltConstraint_Type::Hinge);
         ConstraintParams.Set_WorldAnchorA(HingeEdge);
         ConstraintParams.Set_HingeAxis(FVector(0.0, 0.0, 1.0));
         if (InLaneIndex != 2)
@@ -132,7 +132,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Box);
         Shape.Set_HalfExtents(InHalfExtents);
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Static);
         utils_jolt_body::Add(Entity, Params);
@@ -160,7 +160,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
 
         auto Shape = FCk_Jolt_ShapeDimensions(ECk_Jolt_ShapeType::Sphere);
         Shape.Set_Radius(18.0);
-        auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
+        auto Params = FCk_JoltBody_Spec(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Dynamic);
         Params.Set_MotionQuality(ECk_MotionQuality::LinearCast);

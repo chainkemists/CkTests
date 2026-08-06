@@ -34,7 +34,7 @@ class UCk_AutoTest_RewindHistory_ForceRecord_RecordsImmediately : UCk_AutoTest_B
             UCk_Utils_Shapes_UE::Make_Sphere(FCk_ShapeSphere_Dimensions(50.0))));
 
         // Interval far longer than the test — interval-driven recording is impossible
-        auto Params = FCk_Fragment_RewindHistory_ParamsData(HitShapes);
+        auto Params = FCk_RewindHistory_Spec(HitShapes);
         Params.Set_RecordInterval(FCk_Time(60.0));
         Params.Set_RetentionPeriod(FCk_Time(120.0));
 

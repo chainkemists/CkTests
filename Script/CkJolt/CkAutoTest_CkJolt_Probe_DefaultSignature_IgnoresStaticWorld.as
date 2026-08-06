@@ -50,7 +50,7 @@ class UCk_AutoTest_CkJolt_Probe_DefaultSignature_IgnoresStaticWorld : UCk_AutoTe
         auto ProbeTransform = utils_transform::Add(
             ProbeEntity, FTransform(FRotator::ZeroRotator, _FloorCenter), ECk_Replication::DoesNotReplicate);
 
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.LinearCast.Wall"));
         ProbeParams.Set_MotionType(ECk_MotionType::Kinematic);
         ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
