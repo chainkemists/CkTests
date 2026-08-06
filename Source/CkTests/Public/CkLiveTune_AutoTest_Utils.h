@@ -4,6 +4,7 @@
 
 #include "CkAttribute/FloatAttribute/CkFloatAttribute_Fragment_Data.h"
 #include "CkEcs/Handle/CkHandle.h"
+#include "CkSpatialQuery/Probe/CkProbe_Fragment_Data.h"
 #include "CkTimer/CkTimer_Fragment_Data.h"
 
 #include <Engine/DataAsset.h>
@@ -174,6 +175,10 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite,
               meta = (AllowPrivateAccess = true))
+    FCk_Fragment_Probe_ParamsData _ProbeParams;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+              meta = (AllowPrivateAccess = true))
     float _NotAStruct = 0.0f;
 
 public:
@@ -182,6 +187,7 @@ public:
     CK_PROPERTY(_EntityScopeParams);
     CK_PROPERTY(_TimerParams);
     CK_PROPERTY(_HealthParams);
+    CK_PROPERTY(_ProbeParams);
     CK_PROPERTY(_NotAStruct);
 };
 
@@ -247,6 +253,13 @@ public:
     Set_HealthParams(
         UCk_LiveTuneTest_TuningAsset* InAsset,
         const FCk_Fragment_FloatAttribute_ParamsData& InParams);
+
+    UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
+              DisplayName = "[Ck][Tests][LiveTune] Set Probe Params")
+    static void
+    Set_ProbeParams(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        const FCk_Fragment_Probe_ParamsData& InParams);
 
     UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
               DisplayName = "[Ck][Tests][LiveTune] Get Pending Rebuild Count")

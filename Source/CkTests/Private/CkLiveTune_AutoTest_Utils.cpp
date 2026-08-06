@@ -179,6 +179,22 @@ auto
 
 auto
     UCk_LiveTuneTest_Utils::
+    Set_ProbeParams(
+        UCk_LiveTuneTest_TuningAsset* InAsset,
+        const FCk_Fragment_Probe_ParamsData& InParams)
+    -> void
+{
+    const auto AssetIsValid = ck::IsValid(InAsset);
+    CK_ENSURE_IF_NOT(AssetIsValid, TEXT("LiveTune test shim: invalid Tuning Asset"))
+    {}
+    if (NOT AssetIsValid)
+    { return; }
+
+    InAsset->_ProbeParams = InParams;
+}
+
+auto
+    UCk_LiveTuneTest_Utils::
     Get_PendingRebuildCount(
         FCk_Handle& InAnyWorldEntity)
     -> int32
