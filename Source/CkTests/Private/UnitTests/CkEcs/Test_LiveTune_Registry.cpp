@@ -170,6 +170,36 @@ bool FCkLiveTune_LinkValidation_NonStructMember::RunTest(const FString& Paramete
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkLiveTune_LinkValidation_UnregisteredParamsType,
+    "CkTests.UnitTests.LiveTune.LinkValidation.UnregisteredParamsType",
+    ck_tests_livetune_registry::kFlags)
+
+bool FCkLiveTune_LinkValidation_UnregisteredParamsType::RunTest(const FString& Parameters)
+{
+    auto Reg = ck::registry_table::EnttRegistryType{};
+    const auto SlotHandle = ck::registry_table::Allocate(&Reg);
+    const auto Registry = FCk_Registry{SlotHandle};
+
+    // The one failure mode a caller CANNOT notice on their own: without this refusal the stamp lands,
+    // the entity looks linked, and every later edit is silently swallowed. Opting a feature in is one
+    // Register_Via* line, so the refusal names that remedy rather than just reporting the state.
+    auto Entity = ck::MakeHandle(FCk_Entity{Reg.create()}, Registry);
+    auto* Asset = NewObject<UCk_LiveTuneTest_TuningAsset>(GetTransientPackage());
+
+    AddExpectedError(TEXT("is not live-tunable"), EAutomationExpectedErrorFlags::Contains, -1);
+    UCk_Utils_LiveTune_UE::Link(Entity, Asset, UCk_LiveTuneTest_Utils::Get_UnregisteredParamsMemberName());
+
+    TestFalse(TEXT("rejected Link leaves NO stamp on the entity"),
+        Entity.Has<ck::FFragment_LiveTune_Stamp>());
+
+    Reg.clear();
+    ck::registry_table::Free(SlotHandle);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkLiveTune_LinkValidation_MissingParamsFragment,
     "CkTests.UnitTests.LiveTune.LinkValidation.MissingParamsFragment",
     ck_tests_livetune_registry::kFlags)

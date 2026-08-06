@@ -177,6 +177,12 @@ private:
               meta = (AllowPrivateAccess = true))
     FCk_Fragment_Probe_ParamsData _ProbeParams;
 
+    // Deliberately never registered with FCk_LiveTuneHandlerRegistry — the fixture for Link's
+    // unregistered-type refusal.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,
+              meta = (AllowPrivateAccess = true))
+    FCk_LiveTuneTest_SpecParamsUnregistered _UnregisteredParams;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite,
               meta = (AllowPrivateAccess = true))
     float _NotAStruct = 0.0f;
@@ -188,6 +194,7 @@ public:
     CK_PROPERTY(_TimerParams);
     CK_PROPERTY(_HealthParams);
     CK_PROPERTY(_ProbeParams);
+    CK_PROPERTY(_UnregisteredParams);
     CK_PROPERTY(_NotAStruct);
 };
 
@@ -210,6 +217,7 @@ public:
     static auto Get_EntityScopeParamsMemberName() -> FName { return GET_MEMBER_NAME_CHECKED(UCk_LiveTuneTest_TuningAsset, _EntityScopeParams); }
     static auto Get_TimerParamsMemberName() -> FName { return GET_MEMBER_NAME_CHECKED(UCk_LiveTuneTest_TuningAsset, _TimerParams); }
     static auto Get_HealthParamsMemberName() -> FName { return GET_MEMBER_NAME_CHECKED(UCk_LiveTuneTest_TuningAsset, _HealthParams); }
+    static auto Get_UnregisteredParamsMemberName() -> FName { return GET_MEMBER_NAME_CHECKED(UCk_LiveTuneTest_TuningAsset, _UnregisteredParams); }
 
 public:
     UFUNCTION(BlueprintCallable, Category = "Ck|Tests|LiveTune",
