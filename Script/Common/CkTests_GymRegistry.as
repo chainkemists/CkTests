@@ -68,6 +68,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Solid Outline",      ACk_UsfOutlineGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Station Showcase",   ACk_StationShowcaseGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("State Machine",      ACk_SmTest_GymGameMode);
+        CkGym_Cycler::RegisterProjectGym("Stylize: Screen Dither", ACk_UsfStylizeDitherGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Timer",              ACk_TimerGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Transform",          ACk_TransformGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Tween",              ACk_TweenTest_GymGameMode);
