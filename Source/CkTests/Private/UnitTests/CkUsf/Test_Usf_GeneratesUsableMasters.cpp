@@ -5,8 +5,8 @@
 //
 // Generation writes to a lane-unique root (CkUsf_TestLookMasters.h), never the shipped GeneratedLooks —
 // concurrent test editors saving the same .uasset take each other down. The shipped masters are still
-// resolved through the RUNTIME lookup below, which is the API game code actually calls; that arm now
-// reads committed content rather than something this run rewrote, which is the stronger claim anyway.
+// resolved through the RUNTIME lookup below, which is the API game code actually calls, so that arm reads
+// committed content rather than something this run wrote.
 
 #if WITH_EDITOR
 

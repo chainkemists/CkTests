@@ -1,4 +1,4 @@
-// Gate for the CkUsf HandDrawn feature. Three tests, three distinct failure modes:
+// Contract tests for the CkUsf HandDrawn feature. Three tests, three distinct failure modes:
 //
 //   HandDrawnGeneration — the asset<->HLSL contract. A LookDefinition shaped exactly like
 //     Script/CkUsf/CkUsf_HandDrawnLook_Assets.as is built in code, validated, generated, checked pin by

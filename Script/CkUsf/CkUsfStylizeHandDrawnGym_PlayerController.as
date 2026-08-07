@@ -16,6 +16,7 @@
 //   Ck_GymStylizeHandDrawn_RestartAll        — respawn the judge scene and re-apply StorybookInk
 //   Ck_GymStylizeHandDrawn_CyclePreset       — next preset without walking
 //   Ck_GymStylizeHandDrawn_CycleDebug        — next debug view of the CURRENT settings
+//   Ck_GymStylizeHandDrawn_ToggleDitherStack — stack ScreenDither on top, for the cross-effect A/B
 //   Ck_GymStylizeHandDrawn_ToggleStrokeSpace — flip ScreenStable <-> WorldAttached, changing NOTHING
 //                                              else. This is the A/B for the world-attached
 //                                              verdict: orbit the architecture and only one of the two
@@ -35,6 +36,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
     private AActor _JudgeScene;
     private int32 _ActiveStation = -1;
     private int32 _DebugIndex = 0;
+    private bool _StackedOther = false;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -57,7 +59,8 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
             "Graphite on a sheet. The scribble must follow the pillars' faces around their corners without smearing across the edge."));
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnOff", "HAND-DRAWN: OFF",
             "The A/B reference — the subsystem's blendable disabled.",
-            "The frame must come back completely clean. Any residue here means disable is not actually disabling."));
+            "The frame must come back completely clean. Any residue here means disable is not actually disabling.",
+            "STACKING: Ck_GymStylizeHandDrawn_ToggleDitherStack puts ScreenDither on top — legal, and the paper grain must survive quantization. Hand-drawn + cel is unsupported but harmless: both restyle the whole frame at the same chain location, so the ink ends up drawn over already-banded light."));
 
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnDebugInk", "DEBUG: INK MASK",
             "StorybookInk with the ink mask forced on (white = inked).",
@@ -92,7 +95,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
         return Stations;
     }
 
-    private FCkGym_Station_SpawnParams_Payload Make_Station(FName InTag, FString InTitle, FString InLine1, FString InLine2)
+    private FCkGym_Station_SpawnParams_Payload Make_Station(FName InTag, FString InTitle, FString InLine1, FString InLine2, FString InLine3 = "")
     {
         auto Station = FCkGym_Station_SpawnParams_Payload();
         Station.Tags.Add(InTag);
@@ -100,6 +103,8 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
         auto Description = TArray<FText>();
         Description.Add(FText::FromString(InLine1));
         Description.Add(FText::FromString(InLine2));
+        if (InLine3 != "")
+        { Description.Add(FText::FromString(InLine3)); }
         Station.Description = Description;
         Station.AutoSize = true;
         return Station;
@@ -330,4 +335,27 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
         PrintToScreen("HAND-DRAWN stroke space: " + (WasWorldAttached ? "ScreenStable" : "WorldAttached"),
             2.0, FLinearColor::Green);
     }
+
+    // Cross-effect stacking A/B. ScreenDither is the legal partner: hand-drawn restyles before
+    // tonemapping and dither reduces the palette after it, so the paper grain reaches the quantizer
+    // rather than being replaced by it. The toggle owns its own flag rather than reading Get_IsEnabled(),
+    // because a subsystem nothing has touched yet reports Enabled while rendering nothing — reading it
+    // would make the first press a silent no-op.
+    UFUNCTION(Exec, DisplayName="Stylize Hand-Drawn Gym - Toggle ScreenDither Stack")
+    void Ck_GymStylizeHandDrawn_ToggleDitherStack()
+    {
+        auto Dither = UCkUsf_ScreenDitherSubsystem::Get_ScreenDitherSubsystem();
+        if (Dither == nullptr)
+        { return; }
+
+        _StackedOther = !_StackedOther;
+
+        if (_StackedOther)
+        { Dither.Apply_Preset(CkUsf::DA_Dither_Balanced); }
+        else
+        { Dither.Request_SetEnabled(ECk_EnableDisable::Disable); }
+
+        PrintToScreen("HAND-DRAWN + ScreenDither stack: " + (_StackedOther ? "ON" : "OFF"), 2.0, FLinearColor::Green);
+    }
+
 }

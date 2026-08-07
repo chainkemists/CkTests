@@ -1,4 +1,4 @@
-// Gate for the CkUsf CelShade feature. Four tests, four distinct failure modes:
+// Contract tests for the CkUsf CelShade feature. Four tests, four distinct failure modes:
 //
 //   CelShadeGeneration — the asset<->HLSL contract. A LookDefinition shaped exactly like
 //     Script/CkUsf/CkUsf_CelShadeLook_Assets.as is built in code, validated, generated, checked pin by

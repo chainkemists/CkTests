@@ -4,11 +4,8 @@
 //
 // NOT the shipped /CkFoundation/CkUsf/GeneratedLooks/: the toolbox spreads a real-RHI run over concurrent
 // headless editors, and two of them SavePackage-ing the same .uasset takes both processes down with
-// appError(ERROR_ALREADY_EXISTS) — which is why real-RHI CkUsf runs previously had to be forced serial.
-// The process id makes the root unique per lane, so no two lanes can ever target the same file.
-//
-// Second benefit: a test run no longer rewrites shipped content, so the GeneratedLooks churn a real-RHI
-// run used to leave behind (and that had to be `git checkout --`'d afterwards) is gone.
+// appError(ERROR_ALREADY_EXISTS). The process id makes the root unique per lane, so no two lanes can ever
+// target the same file, and a test run never rewrites shipped content.
 //
 // The rule this encodes: NO test may generate into the shipped root. A new generation test passes
 // Get_TestPackageRoot() to ck::usf_editor::Generate_* and deletes its masters with the helper below.

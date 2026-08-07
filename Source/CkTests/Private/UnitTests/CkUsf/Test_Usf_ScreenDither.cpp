@@ -1,11 +1,11 @@
-// Gate for the CkUsf ScreenDither feature. Three tests, three distinct failure modes:
+// Contract tests for the CkUsf ScreenDither feature. Three tests, three distinct failure modes:
 //
 //   ScreenDitherGeneration — the asset<->HLSL contract. A LookDefinition shaped exactly like
 //     Script/CkUsf/CkUsf_ScreenDitherLook_Assets.as is built in code, validated, generated, checked pin
 //     by pin, and FORCE-compiled. Editor-only and skipped when the process cannot render, for the same
 //     reason StylizeParamCount is. The force is what makes "ScreenDither.ush compiles" a real claim
 //     rather than a pending shader job — it is destructive, hence a throwaway master that is deleted
-//     again. Mutation-proven 2026-08-07: an undeclared identifier in ScreenDither.ush fails this test
+//     again. An undeclared identifier in ScreenDither.ush fails this test
 //     under a real RHI and passes without the force. Never weaken it to a bare shader-map null check.
 //
 //   ScreenDitherSubsystemSettings — the subsystem's settings value is the source of truth: a round-trip

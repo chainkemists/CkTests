@@ -11,8 +11,8 @@
 // The actor path is the one CkUsf itself implements: each subject spawns a
 // UCk_EntityScript_WithActor_UE bound to itself, so the entity carries an
 // owning actor and FProcessor_Usf_CelPatternActor_Sync writes the stencil onto
-// its primitives. ISM / ISKM proxies are recorded follow-ups for the renderer
-// modules, exactly as entity outlines were distributed.
+// its primitives. ISM / ISKM proxies are not covered — the same distribution
+// entity outlines have, one sync processor per renderer module.
 //
 // Judge these against the STENCIL row in the judge scene: the hand-tagged cubes
 // and these entity-driven ones must be indistinguishable, because they end up

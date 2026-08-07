@@ -10,6 +10,7 @@
 //   Ck_GymStylizeDither_RestartAll     — respawn the judge scene and re-apply Balanced
 //   Ck_GymStylizeDither_CyclePreset    — next preset without walking
 //   Ck_GymStylizeDither_CycleDebug     — next debug view of the CURRENT preset
+//   Ck_GymStylizeDither_ToggleCelStack — stack CelShade underneath, for the cross-effect A/B
 //
 // Needs the ScreenDither master on disk: on a fresh checkout run "Ck_Usf_GenerateLooks ScreenDither"
 // once in the editor console, or the subsystem warns and the view is untouched.
@@ -22,6 +23,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
     private AActor _JudgeScene;
     private int32 _ActiveStation = -1;
     private int32 _DebugIndex = 0;
+    private bool _StackedOther = false;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -44,7 +46,8 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
             "Should read as film grain in motion. Blotchy clumping means the blue-noise approximation degenerated to white noise."));
         Stations.Add(Make_Station(n"Gym.Stylize.DitherOff", "DITHER: OFF",
             "The A/B reference — the subsystem's blendable disabled.",
-            "The frame must come back completely clean. Any residue here means disable is not actually disabling."));
+            "The frame must come back completely clean. Any residue here means disable is not actually disabling.",
+            "STACKING: Ck_GymStylizeDither_ToggleCelStack puts CelShade underneath. The two sit at different chain locations (cel pre-TAA, dither post-tonemap), so cel bands the light and dither quantizes the result — the classic combo, and neither reads the other's parameters."));
 
         // Explicit single row, wider than the 800uu default: the judge scene sits in front of these and
         // the player has to be able to walk the row without leaving it.
@@ -61,7 +64,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
         return Stations;
     }
 
-    private FCkGym_Station_SpawnParams_Payload Make_Station(FName InTag, FString InTitle, FString InLine1, FString InLine2)
+    private FCkGym_Station_SpawnParams_Payload Make_Station(FName InTag, FString InTitle, FString InLine1, FString InLine2, FString InLine3 = "")
     {
         auto Station = FCkGym_Station_SpawnParams_Payload();
         Station.Tags.Add(InTag);
@@ -69,6 +72,8 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Description = TArray<FText>();
         Description.Add(FText::FromString(InLine1));
         Description.Add(FText::FromString(InLine2));
+        if (InLine3 != "")
+        { Description.Add(FText::FromString(InLine3)); }
         Station.Description = Description;
         Station.AutoSize = true;
         return Station;
@@ -242,4 +247,26 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
 
         PrintToScreen("SCREEN DITHER debug: " + Get_DebugNameAt(_DebugIndex), 2.0, FLinearColor::Green);
     }
+
+    // Cross-effect stacking A/B. CelShade is the classic partner: it bands the LIGHT before tonemapping
+    // while dither reduces the PALETTE after it, so the two compose rather than compete. The toggle owns
+    // its own flag rather than reading Get_IsEnabled(), because a subsystem nothing has touched yet
+    // reports Enabled while rendering nothing — reading it would make the first press a silent no-op.
+    UFUNCTION(Exec, DisplayName="Stylize Dither Gym - Toggle CelShade Stack")
+    void Ck_GymStylizeDither_ToggleCelStack()
+    {
+        auto Cel = UCkUsf_CelShadeSubsystem::Get_CelShadeSubsystem();
+        if (Cel == nullptr)
+        { return; }
+
+        _StackedOther = !_StackedOther;
+
+        if (_StackedOther)
+        { Cel.Apply_Preset(CkUsf::DA_Cel_Balanced); }
+        else
+        { Cel.Request_SetEnabled(ECk_EnableDisable::Disable); }
+
+        PrintToScreen("SCREEN DITHER + CelShade stack: " + (_StackedOther ? "ON" : "OFF"), 2.0, FLinearColor::Green);
+    }
+
 }
