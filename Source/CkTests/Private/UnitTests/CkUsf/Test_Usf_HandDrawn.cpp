@@ -127,6 +127,7 @@ namespace ck_test_usf_hand_drawn
             TEXT("EnablePaper"), TEXT("GrainStrength"), TEXT("GrainScale"), TEXT("FiberStrength"),
             TEXT("PaperWarmth"),
             TEXT("DebugMode"),
+            TEXT("MaskMode"), TEXT("MaskStencilMin"), TEXT("MaskStencilMax"),
         };
     }
 
@@ -200,6 +201,13 @@ namespace ck_test_usf_hand_drawn
         // Pre-TAA, the same placement the shipped asset declares — so this arm compiles the permutation
         // the gym actually renders, and the WorldPosition reconstruction is the un-scaled one.
         Definition->_BlendableLocation = ECk_Usf_BlendableLocation::SceneColorAfterDOF;
+        // The historical default trio plus CustomStencil for the effect mask. Stated explicitly because
+        // _SceneTextures is all-or-nothing — a non-empty list REPLACES the trio rather than extending it.
+        Definition->_SceneTextures =
+        {
+            ECk_Usf_SceneTexture::SceneColor, ECk_Usf_SceneTexture::SceneDepth,
+            ECk_Usf_SceneTexture::SceneNormal, ECk_Usf_SceneTexture::CustomStencil,
+        };
         // The whole world-attached stroke space rides on this opt-in.
         Definition->_PostProcessWorldPosition = true;
 
@@ -295,6 +303,11 @@ bool FCkTest_Usf_HandDrawnGeneration::RunTest(const FString& Parameters)
         TestTrue(TEXT("SceneColor is wired"), Get_IsCustomInputConnected(Custom, TEXT("SceneColor")));
         TestTrue(TEXT("SceneDepth is wired"), Get_IsCustomInputConnected(Custom, TEXT("SceneDepth")));
         TestTrue(TEXT("SceneNormal is wired"), Get_IsCustomInputConnected(Custom, TEXT("SceneNormal")));
+
+        // Without this the effect mask silently degrades: In.CustomStencil reads zero, every pixel looks
+        // untagged, and an IncludeStencilRange mask hides the whole look with nothing failing.
+        TestTrue(TEXT("CustomStencil is wired (the effect mask needs it)"),
+            Get_IsCustomInputConnected(Custom, TEXT("CustomStencil")));
 
         // Without this the world-attached stroke space silently degenerates: In.WorldPosition reads zero,
         // every pixel lands in the same pattern cell, and nothing in the pipeline reports a problem.
