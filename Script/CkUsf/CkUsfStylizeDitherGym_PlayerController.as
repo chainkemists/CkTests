@@ -140,7 +140,8 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
 
         // Hysteresis: a pawn idling on the midpoint between two stations is very nearly equidistant, and
         // without a margin the nearest flips on floating-point noise and re-applies a preset every tick.
-        // A challenger has to be meaningfully closer (20%) than the station already showing.
+        // A challenger has to be meaningfully closer than the station already showing: the 0.8 factor is
+        // applied in distance-SQUARED, so the real bar is ~10% closer in linear distance, not 20%.
         if (_StationLocations.IsValidIndex(_ActiveStation))
         {
             auto ActiveDistanceSq = (_StationLocations[_ActiveStation] - PawnLocation).SizeSquared();
