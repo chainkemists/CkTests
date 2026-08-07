@@ -15,6 +15,7 @@
 //   Ck_GymStylizeCel_CyclePreset     — next preset without walking
 //   Ck_GymStylizeCel_CycleDebug      — next debug view of the CURRENT preset
 //   Ck_GymStylizeCel_ToggleEntity    — clear/re-apply the ENTITY row's patterns
+//   Ck_GymStylizeCel_ToggleDitherStack — stack ScreenDither on top, for the cross-effect A/B
 //
 // Needs the CelShade master on disk: on a fresh checkout run "Ck_Usf_GenerateLooks CelShade" once in
 // the editor console, or the subsystem warns and the view is untouched.
@@ -28,6 +29,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
     private TArray<ACk_UsfGym_StylizeCelEntitySubject> _EntitySubjects;
     private int32 _ActiveStation = -1;
     private int32 _DebugIndex = 0;
+    private bool _StackedOther = false;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -50,7 +52,8 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
             "Reads as simplified shading, not as posterization — and the backlit figure must show a clear rim."));
         Stations.Add(Make_Station(n"Gym.Stylize.CelOff", "CEL: OFF",
             "The A/B reference — the subsystem's blendable disabled.",
-            "The frame must come back completely clean. Any residue here means disable is not actually disabling."));
+            "The frame must come back completely clean. Any residue here means disable is not actually disabling.",
+            "STACKING: Ck_GymStylizeCel_ToggleDitherStack puts ScreenDither on top — the classic combo; cel bands must survive the palette reduction. Cel + hand-drawn is NOT a supported pair: both restyle the whole frame at the same chain location, so the second one paints over the first's output rather than composing with it."));
 
         // Explicit single row, wider than the 800uu default: the judge scene sits in front of these and
         // the player has to be able to walk the row without leaving it.
@@ -67,7 +70,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
         return Stations;
     }
 
-    private FCkGym_Station_SpawnParams_Payload Make_Station(FName InTag, FString InTitle, FString InLine1, FString InLine2)
+    private FCkGym_Station_SpawnParams_Payload Make_Station(FName InTag, FString InTitle, FString InLine1, FString InLine2, FString InLine3 = "")
     {
         auto Station = FCkGym_Station_SpawnParams_Payload();
         Station.Tags.Add(InTag);
@@ -75,6 +78,8 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Description = TArray<FText>();
         Description.Add(FText::FromString(InLine1));
         Description.Add(FText::FromString(InLine2));
+        if (InLine3 != "")
+        { Description.Add(FText::FromString(InLine3)); }
         Station.Description = Description;
         Station.AutoSize = true;
         return Station;
@@ -316,4 +321,27 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
 
         PrintToScreen("CEL SHADE entity patterns toggled", 2.0, FLinearColor::Green);
     }
+
+    // Cross-effect stacking A/B. ScreenDither is the classic partner: cel bands the LIGHT before
+    // tonemapping while dither reduces the PALETTE after it, so the two compose rather than compete. The
+    // toggle owns its own flag rather than reading Get_IsEnabled(), because a subsystem nothing has
+    // touched yet reports Enabled while rendering nothing — reading it would make the first press a
+    // silent no-op.
+    UFUNCTION(Exec, DisplayName="Stylize Cel Gym - Toggle ScreenDither Stack")
+    void Ck_GymStylizeCel_ToggleDitherStack()
+    {
+        auto Dither = UCkUsf_ScreenDitherSubsystem::Get_ScreenDitherSubsystem();
+        if (Dither == nullptr)
+        { return; }
+
+        _StackedOther = !_StackedOther;
+
+        if (_StackedOther)
+        { Dither.Apply_Preset(CkUsf::DA_Dither_Balanced); }
+        else
+        { Dither.Request_SetEnabled(ECk_EnableDisable::Disable); }
+
+        PrintToScreen("CEL SHADE + ScreenDither stack: " + (_StackedOther ? "ON" : "OFF"), 2.0, FLinearColor::Green);
+    }
+
 }

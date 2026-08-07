@@ -1,4 +1,4 @@
-// Contract gate for CkUsf's stylize-campaign generator extensions: the four GBuffer scene textures
+// Contract gate for CkUsf's stylize generator extensions: the four GBuffer scene textures
 // (BaseColor/Metallic/Roughness/Specular) and the opt-in PostProcess world position.
 //
 // Two tests, because the two failure modes are opposites:
@@ -129,7 +129,7 @@ namespace ck_test_usf_stylize_contract
         Definition->_UshIncludePath = kProbeIncludePath;
         Definition->_UshFunctionName = TEXT("CkUsf_Look_StylizeProbe");
         Definition->_Domain = ECk_Usf_Domain::PostProcess;
-        // Where the campaign's WorldPosition consumers sit: the after-tonemap reconstruction is
+        // Where the stylize looks' WorldPosition consumers sit: the after-tonemap reconstruction is
         // dynamic-resolution scaled, so the wide arm proves the placement the looks will actually use.
         Definition->_BlendableLocation = ECk_Usf_BlendableLocation::SceneColorAfterDOF;
         Definition->_SceneTextures = Get_AllSceneTextures();
@@ -246,9 +246,8 @@ namespace ck_test_usf_stylize_contract
 
     // The generator's own gate, CALLED rather than re-implemented, so the probe is held to exactly the bar
     // every shipped look is: synchronous force-compile, then the resource's real HLSL errors.
-    // History worth keeping: until 2026-08-06 this test re-implemented the gate as a bare
-    // `IsCompilingOrHadCompileError` check, which mutation-testing proved toothless — a deliberately-undefined
-    // function in StylizeProbe.ush passed it twice. Never let that check stand alone again.
+    // A bare `IsCompilingOrHadCompileError` check is toothless — a deliberately-undefined function in
+    // StylizeProbe.ush passes it — so that check must never stand alone here.
     auto Get_ShaderCompileSucceeded(
         UMaterial* InMaterial, const FName InLookName, const bool InForceSynchronousCompile, FString& OutErrors) -> bool
     {
@@ -402,7 +401,7 @@ bool FCkTest_Usf_StylizeSceneTextureNegative::RunTest(const FString& Parameters)
 
         {
             // Also a throwaway master, so it can afford the same force. It does NOT stand in for the wide arm's
-            // compile proof: measured 2026-08-06, a broken sibling entry point in the shared StylizeProbe.ush
+            // compile proof: a broken sibling entry point in the shared StylizeProbe.ush
             // failed StylizeParamCount while this arm still passed — only the entry point a look actually
             // calls is proven by that look.
             constexpr auto ForceSynchronousCompile = true;

@@ -105,7 +105,7 @@ bool FCkTest_Usf_MultiPassRendersToTexture::RunTest(const FString& Parameters)
 
     // Deliberately does NOT regenerate: this is the RUNTIME path (Create_MID_ForLook resolves the shipped
     // master), and a whole-roster regeneration here would write the same .uasset files another concurrent
-    // test editor is writing — the collision that used to force real-RHI CkUsf runs serial. Generator
+    // test editor is writing, taking both processes down. Generator
     // freshness is GeneratesUsableMasters' and the contract tests' job; .ush edits need no regeneration.
 
     const auto& ARM = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
