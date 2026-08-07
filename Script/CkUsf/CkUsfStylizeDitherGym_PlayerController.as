@@ -16,6 +16,10 @@
 // once in the editor console, or the subsystem warns and the view is untouched.
 // --------------------------------------------------------------------------------------------------------------------
 
+// How far in front of a station's alcove mouth the judging position sits. The alcove is 500uu deep, so
+// 600 clears its front lip with standing room to spare.
+const float k_DitherGym_ViewingClearance = 600.0f;
+
 class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
 {
     private TArray<FName> _StationTags;
@@ -51,12 +55,18 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
 
         // Explicit single row, wider than the 800uu default: the judge scene sits in front of these and
         // the player has to be able to walk the row without leaving it.
+        //
+        // The row sits BEHIND the judging line, alcoves opening toward the judge scene. Selection is
+        // measured at Get_StationViewingPoint — one clearance in front of each mouth — so the player
+        // judges from outside the alcove with the whole scene ahead of them, and only turns around to
+        // read a panel. The judging line lands back at X=1800, the framing the presets were tuned at.
         const float StationSpacing = 1200.0f;
+        const float StationRowX = 1800.0f + k_DitherGym_ViewingClearance;
         auto RowStartOffset = -(Stations.Num() - 1) * StationSpacing * 0.5f;
         for (int32 i = 0; i < Stations.Num(); i++)
         {
             auto Xf = FTransform::Identity;
-            Xf.SetLocation(FVector(1800.0f, RowStartOffset + i * StationSpacing, 0.0f));
+            Xf.SetLocation(FVector(StationRowX, RowStartOffset + i * StationSpacing, 0.0f));
             Xf.SetRotation(FRotator(0.0f, 180.0f, 0.0f).Quaternion());
             Stations[i].Transform = Xf;
         }
@@ -104,11 +114,22 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
         _StationTags.Add(n"Gym.Stylize.DitherOff");
 
         for (auto Tag : _StationTags)
-        { _StationLocations.Add(Get_StationTransform(Tag.ToString()).Location); }
+        { _StationLocations.Add(Get_StationViewingPoint(Tag)); }
 
         _ActiveStation = -1;
         _DebugIndex = 0;
         Request_ApplyStation(0);
+    }
+
+    // Where a player stands to judge from: one clearance out of the alcove mouth, on the judge-scene
+    // side. The mouth is along the station's own forward axis, so this follows the row's rotation
+    // instead of assuming an axis. Selecting on the station's OWN location would put the player inside
+    // the alcove facing its back wall, with the judge scene behind them — you cannot look at the
+    // content while choosing the preset that restyles it.
+    private FVector Get_StationViewingPoint(FName InTag)
+    {
+        auto Xf = Get_StationTransform(InTag.ToString());
+        return Xf.Location + Xf.Rotator().GetForwardVector() * k_DitherGym_ViewingClearance;
     }
 
     // The station a player is standing at is the selection: there is no per-station subject to interact

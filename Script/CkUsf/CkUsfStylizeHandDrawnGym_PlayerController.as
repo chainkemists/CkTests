@@ -29,6 +29,10 @@
 const int32 k_HandDrawnGym_PresetStationCount = 6;
 const int32 k_HandDrawnGym_DebugStationCount = 3;
 
+// How far in front of a station's alcove mouth the judging position sits. The alcove is 500uu deep, so
+// 600 clears its front lip with standing room to spare.
+const float k_HandDrawnGym_ViewingClearance = 600.0f;
+
 class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerController
 {
     private TArray<FName> _StationTags;
@@ -74,6 +78,12 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
 
         // Two explicit rows, each centred on its OWN count — a single global index would leave the short
         // back row hanging off one end of the long front one.
+        //
+        // Both rows sit BEHIND their judging line, alcoves opening toward the judge scene. Selection is
+        // measured at Get_StationViewingPoint — one clearance in front of each mouth — so the player
+        // judges from outside the alcove with the whole scene ahead of them, and only turns around to
+        // read a panel. The judging lines land back at X=1800 / X=3000, the framing the presets were
+        // tuned at.
         const float StationSpacing = 1200.0f;
 
         auto PresetRowStart = -(k_HandDrawnGym_PresetStationCount - 1) * StationSpacing * 0.5f;
@@ -84,7 +94,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
             auto IsDebugRow = i >= k_HandDrawnGym_PresetStationCount;
             auto RowIndex = IsDebugRow ? i - k_HandDrawnGym_PresetStationCount : i;
             auto RowStart = IsDebugRow ? DebugRowStart : PresetRowStart;
-            auto RowX = IsDebugRow ? 3000.0f : 1800.0f;
+            auto RowX = (IsDebugRow ? 3000.0f : 1800.0f) + k_HandDrawnGym_ViewingClearance;
 
             auto Xf = FTransform::Identity;
             Xf.SetLocation(FVector(RowX, RowStart + RowIndex * StationSpacing, 0.0f));
@@ -138,11 +148,22 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
         _StationTags.Add(n"Gym.Stylize.HandDrawnDebugPaper");
 
         for (auto Tag : _StationTags)
-        { _StationLocations.Add(Get_StationTransform(Tag.ToString()).Location); }
+        { _StationLocations.Add(Get_StationViewingPoint(Tag)); }
 
         _ActiveStation = -1;
         _DebugIndex = 0;
         Request_ApplyStation(0);
+    }
+
+    // Where a player stands to judge from: one clearance out of the alcove mouth, on the judge-scene
+    // side. The mouth is along the station's own forward axis, so this follows the row's rotation
+    // instead of assuming an axis. Selecting on the station's OWN location would put the player inside
+    // the alcove facing its back wall, with the judge scene behind them — you cannot look at the
+    // content while choosing the preset that restyles it.
+    private FVector Get_StationViewingPoint(FName InTag)
+    {
+        auto Xf = Get_StationTransform(InTag.ToString());
+        return Xf.Location + Xf.Rotator().GetForwardVector() * k_HandDrawnGym_ViewingClearance;
     }
 
     // The station a player is standing at is the selection: there is no per-station subject to interact
