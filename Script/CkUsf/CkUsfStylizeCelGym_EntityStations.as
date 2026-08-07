@@ -58,12 +58,19 @@ class ACk_UsfGym_StylizeCelEntitySubject : AActor
             }
         }
 
-        auto SpawnParams = FCk_EntityScript_WithActor_SpawnParams();
-        SpawnParams._OwningActor = this;
-        auto PendingEntity = utils_entity_script::Request_SpawnEntity(
-            ck::TransientEntity(), UCk_EntityScript_WithActor_UE, SpawnParams);
-        utils_pending_entity_script::Promise_OnConstructed(
-            PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnEntityConstructed"));
+        // Request_SpawnEntityScript_OnActor, not the raw Request_SpawnEntity: the raw path derives the
+        // entity's NetParams from the EntityScript CDO, whose OwningActor is still null, so it reads
+        // Replicates and Construct then tries to build an EntityReplicationDriver for a purely cosmetic
+        // local actor that has no remote authority anywhere in its ownership chain. On a listen server
+        // that is an ensure at every spawn. This helper seeds the NetParams from the ACTOR instead.
+        auto PendingEntity = utils_entity_script_with_actor::Request_SpawnEntityScript_OnActor(
+            this, UCk_EntityScript_WithActor_UE);
+
+        if (utils_pending_entity_script::Get_IsValid(PendingEntity))
+        {
+            utils_pending_entity_script::Promise_OnConstructed(
+                PendingEntity, FCk_Delegate_EntityScript_Constructed(this, n"OnEntityConstructed"));
+        }
     }
 
     UFUNCTION()
