@@ -30,6 +30,8 @@
 #include "CkUsf/LookDefinition/CkUsf_LookDefinition_Naming.h"
 
 #include "CkUsf/Stylize/CkUsf_CelShadeSubsystem.h"
+#include "CkUsf/Stylize/CkUsf_CrossHatchSubsystem.h"
+#include "CkUsf/Stylize/CkUsf_CrossHatch_Params.h"
 #include "CkUsf/Stylize/CkUsf_CelShade_Params.h"
 #include "CkUsf/Stylize/CkUsf_HandDrawnSubsystem.h"
 #include "CkUsf/Stylize/CkUsf_HandDrawn_Params.h"
@@ -107,10 +109,12 @@ bool FCkTest_Usf_StylizeCVarOverlayLeavesSettingsIntact::RunTest(const FString& 
     const auto DitherEnabled = FScopedCVarInt{TEXT("ck.Usf.ScreenDither.Enabled")};
     const auto CelEnabled = FScopedCVarInt{TEXT("ck.Usf.CelShade.Enabled")};
     const auto HandDrawnEnabled = FScopedCVarInt{TEXT("ck.Usf.HandDrawn.Enabled")};
+    const auto CrossHatchEnabled = FScopedCVarInt{TEXT("ck.Usf.CrossHatch.Enabled")};
 
     TestTrue(TEXT("ck.Usf.ScreenDither.Enabled is registered"), DitherEnabled.IsRegistered());
     TestTrue(TEXT("ck.Usf.CelShade.Enabled is registered"), CelEnabled.IsRegistered());
     TestTrue(TEXT("ck.Usf.HandDrawn.Enabled is registered"), HandDrawnEnabled.IsRegistered());
+    TestTrue(TEXT("ck.Usf.CrossHatch.Enabled is registered"), CrossHatchEnabled.IsRegistered());
 
     TestEqual(TEXT("ScreenDither defaults to no override"),
         ck::usf::stylize::Get_EnabledOverride_ScreenDither(), -1);
@@ -118,6 +122,8 @@ bool FCkTest_Usf_StylizeCVarOverlayLeavesSettingsIntact::RunTest(const FString& 
         ck::usf::stylize::Get_EnabledOverride_CelShade(), -1);
     TestEqual(TEXT("HandDrawn defaults to no override"),
         ck::usf::stylize::Get_EnabledOverride_HandDrawn(), -1);
+    TestEqual(TEXT("CrossHatch defaults to no override"),
+        ck::usf::stylize::Get_EnabledOverride_CrossHatch(), -1);
 
     auto* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (TestNotNull(TEXT("a transient world exists"), World) == false)
@@ -126,10 +132,12 @@ bool FCkTest_Usf_StylizeCVarOverlayLeavesSettingsIntact::RunTest(const FString& 
     auto* Dither = UCkUsf_ScreenDitherSubsystem::Get_ScreenDitherSubsystem(World);
     auto* Cel = UCkUsf_CelShadeSubsystem::Get_CelShadeSubsystem(World);
     auto* HandDrawn = UCkUsf_HandDrawnSubsystem::Get_HandDrawnSubsystem(World);
+    auto* CrossHatch = UCkUsf_CrossHatchSubsystem::Get_CrossHatchSubsystem(World);
 
     if (TestNotNull(TEXT("the world carries a ScreenDither subsystem"), Dither) == false ||
         TestNotNull(TEXT("the world carries a CelShade subsystem"), Cel) == false ||
-        TestNotNull(TEXT("the world carries a HandDrawn subsystem"), HandDrawn) == false)
+        TestNotNull(TEXT("the world carries a HandDrawn subsystem"), HandDrawn) == false ||
+        TestNotNull(TEXT("the world carries a CrossHatch subsystem"), CrossHatch) == false)
     {
         World->DestroyWorld(false);
         return false;
@@ -140,14 +148,17 @@ bool FCkTest_Usf_StylizeCVarOverlayLeavesSettingsIntact::RunTest(const FString& 
     Dither->Request_SetEnabled(ECk_EnableDisable::Enable);
     Cel->Request_SetEnabled(ECk_EnableDisable::Enable);
     HandDrawn->Request_SetEnabled(ECk_EnableDisable::Enable);
+    CrossHatch->Request_SetEnabled(ECk_EnableDisable::Enable);
 
     const auto DitherBefore = Dither->Get_Settings();
     const auto CelBefore = Cel->Get_Settings();
     const auto HandDrawnBefore = HandDrawn->Get_Settings();
+    const auto CrossHatchBefore = CrossHatch->Get_Settings();
 
     DitherEnabled.Set(0);
     CelEnabled.Set(0);
     HandDrawnEnabled.Set(0);
+    CrossHatchEnabled.Set(0);
 
     TestEqual(TEXT("the ScreenDither override reads back through the accessor"),
         ck::usf::stylize::Get_EnabledOverride_ScreenDither(), 0);
@@ -155,6 +166,8 @@ bool FCkTest_Usf_StylizeCVarOverlayLeavesSettingsIntact::RunTest(const FString& 
         ck::usf::stylize::Get_EnabledOverride_CelShade(), 0);
     TestEqual(TEXT("the HandDrawn override reads back through the accessor"),
         ck::usf::stylize::Get_EnabledOverride_HandDrawn(), 0);
+    TestEqual(TEXT("the CrossHatch override reads back through the accessor"),
+        ck::usf::stylize::Get_EnabledOverride_CrossHatch(), 0);
 
     TestTrue(TEXT("a forced-off console value leaves every ScreenDither setting untouched"),
         Dither->Get_Settings() == DitherBefore);
@@ -162,6 +175,8 @@ bool FCkTest_Usf_StylizeCVarOverlayLeavesSettingsIntact::RunTest(const FString& 
         Cel->Get_Settings() == CelBefore);
     TestTrue(TEXT("a forced-off console value leaves every HandDrawn setting untouched"),
         HandDrawn->Get_Settings() == HandDrawnBefore);
+    TestTrue(TEXT("a forced-off console value leaves every CrossHatch setting untouched"),
+        CrossHatch->Get_Settings() == CrossHatchBefore);
 
     TestTrue(TEXT("a forced-OFF console value does not make an enabled ScreenDither report disabled"),
         Dither->Get_IsEnabled() == ECk_EnableDisable::Enable);
@@ -169,11 +184,14 @@ bool FCkTest_Usf_StylizeCVarOverlayLeavesSettingsIntact::RunTest(const FString& 
         Cel->Get_IsEnabled() == ECk_EnableDisable::Enable);
     TestTrue(TEXT("a forced-OFF console value does not make an enabled HandDrawn report disabled"),
         HandDrawn->Get_IsEnabled() == ECk_EnableDisable::Enable);
+    TestTrue(TEXT("a forced-OFF console value does not make an enabled CrossHatch report disabled"),
+        CrossHatch->Get_IsEnabled() == ECk_EnableDisable::Enable);
 
     // Clearing the overlay is only lossless because the stored value was never written over.
     DitherEnabled.Set(-1);
     CelEnabled.Set(-1);
     HandDrawnEnabled.Set(-1);
+    CrossHatchEnabled.Set(-1);
 
     TestTrue(TEXT("clearing the ScreenDither override changes nothing, because nothing was overwritten"),
         Dither->Get_Settings() == DitherBefore);
@@ -181,6 +199,8 @@ bool FCkTest_Usf_StylizeCVarOverlayLeavesSettingsIntact::RunTest(const FString& 
         Cel->Get_Settings() == CelBefore);
     TestTrue(TEXT("clearing the HandDrawn override changes nothing, because nothing was overwritten"),
         HandDrawn->Get_Settings() == HandDrawnBefore);
+    TestTrue(TEXT("clearing the CrossHatch override changes nothing, because nothing was overwritten"),
+        CrossHatch->Get_Settings() == CrossHatchBefore);
 
     // No project default preset is configured in this project, so reset must fall through to the
     // params-struct defaults. This arm is what turns a configured default into a red test rather than a
@@ -188,6 +208,7 @@ bool FCkTest_Usf_StylizeCVarOverlayLeavesSettingsIntact::RunTest(const FString& 
     Dither->Request_ResetToDefaults();
     Cel->Request_ResetToDefaults();
     HandDrawn->Request_ResetToDefaults();
+    CrossHatch->Request_ResetToDefaults();
 
     TestTrue(TEXT("with no project default configured, ScreenDither resets to the struct defaults"),
         Dither->Get_Settings() == FCk_Usf_ScreenDither_Params{});
@@ -195,6 +216,8 @@ bool FCkTest_Usf_StylizeCVarOverlayLeavesSettingsIntact::RunTest(const FString& 
         Cel->Get_Settings() == FCk_Usf_CelShade_Params{});
     TestTrue(TEXT("with no project default configured, HandDrawn resets to the struct defaults"),
         HandDrawn->Get_Settings() == FCk_Usf_HandDrawn_Params{});
+    TestTrue(TEXT("with no project default configured, CrossHatch resets to the struct defaults"),
+        CrossHatch->Get_Settings() == FCk_Usf_CrossHatch_Params{});
 
     World->DestroyWorld(false);
     return true;

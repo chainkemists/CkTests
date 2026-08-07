@@ -1,4 +1,4 @@
-// Contract tests for the CkUsf CelShade feature. Four tests, four distinct failure modes:
+// Contract tests for the CkUsf CelShade feature. Five tests, five distinct failure modes:
 //
 //   CelShadeGeneration — the asset<->HLSL contract. A LookDefinition shaped exactly like
 //     Script/CkUsf/CkUsf_CelShadeLook_Assets.as is built in code, validated, generated, checked pin by
@@ -22,6 +22,10 @@
 //     Request_SetCelPattern mutates immediately and completes synchronously (verified against
 //     UCk_Utils_Usf_Outline_UE::Request_ApplyOutline, which it mirrors), so there is no deferred
 //     drain to cancel and no Failed_Cancelled path to exercise.
+//
+//   CelShadeCustomBandEdges — the unequal-band mode's rejection boundary. The shader derives a band
+//     ordinal by COUNTING edges at or below the ramp, so a non-ascending list does not fail, it silently
+//     re-orders the bands; an edge on 0 or 1 fences off a band no pixel can reach. Both are refused.
 
 #include "Misc/AutomationTest.h"
 
@@ -185,6 +189,12 @@ namespace ck_test_usf_cel_shade
             TEXT("OutlineNormalThreshold"), TEXT("OutlineAlbedoThreshold"), TEXT("OutlineDistanceFade"),
 
             TEXT("EnableStencilPatterns"), TEXT("StencilBase"), TEXT("DebugMode"),
+
+            TEXT("DistributionMode"), TEXT("BandEdgeCount"),
+            TEXT("BandEdge0"), TEXT("BandEdge1"), TEXT("BandEdge2"), TEXT("BandEdge3"),
+            TEXT("BandEdge4"), TEXT("BandEdge5"), TEXT("BandEdge6"), TEXT("BandEdge7"),
+
+            TEXT("MaskMode"), TEXT("MaskStencilMin"), TEXT("MaskStencilMax"),
         };
     }
 
@@ -852,6 +862,118 @@ bool FCkTest_Usf_CelShadeEntityStencilSync::RunTest(const FString& Parameters)
     TestEqual(TEXT("with the outline gone the cel pattern returns to the primitive"),
         Primitive->CustomDepthStencilValue, ExpectedStencil);
     TestTrue(TEXT("custom depth is still on after the round trip"), Primitive->bRenderCustomDepth);
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_Usf_CelShadeCustomBandEdges,
+    "CkTests.UnitTests.CkUsf.CelShadeCustomBandEdges",
+    ck::tests::kCkUnitTestFlags)
+
+bool FCkTest_Usf_CelShadeCustomBandEdges::RunTest(const FString& Parameters)
+{
+    // The rejection boundary for ECk_Usf_CelDistribution::CustomEdges. The shader derives a band ordinal
+    // by COUNTING the edges at or below the ramp, which is only monotone on a strictly ascending list —
+    // a list that breaks that does not fail, it silently re-orders the bands. And an edge sitting exactly
+    // on 0 or 1 fences off a zero-width band that no pixel can land in, which reads as a band that is
+    // simply missing. Both are rejected with zero mutation rather than rendered.
+
+    const auto Make_Settings = [](const TArray<float>& InEdges) -> FCk_Usf_CelShade_Params
+    {
+        auto Settings = FCk_Usf_CelShade_Params{};
+        Settings.Set_DistributionMode(ECk_Usf_CelDistribution::CustomEdges).Set_BandEdges(InEdges);
+        return Settings;
+    };
+
+    // ---- 1. The Exponent mode never looks at the list ----
+    // It is the historical path and must stay reachable with whatever happens to be in the array, or
+    // switching modes back and forth would fail on data the mode ignores.
+    {
+        auto Exponent = FCk_Usf_CelShade_Params{};
+        Exponent.Set_DistributionMode(ECk_Usf_CelDistribution::Exponent)
+                .Set_BandEdges({0.9f, 0.1f});
+
+        TestTrue(TEXT("Exponent mode ignores the band-edge list entirely"),
+            UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(Exponent));
+    }
+
+    // ---- 2. Accepted shapes ----
+    TestTrue(TEXT("a single interior edge is valid — one edge makes two bands"),
+        UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(Make_Settings({0.5f})));
+
+    TestTrue(TEXT("a strictly ascending interior list is valid"),
+        UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(Make_Settings({0.12f, 0.35f, 0.8f})));
+
+    TestTrue(TEXT("a full-width list of MaxBandEdges entries is valid"),
+        UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(
+            Make_Settings({0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f})));
+
+    // ---- 3. Rejected shapes ----
+    TestFalse(TEXT("an EMPTY list is rejected — no boundaries is one flat band, not custom placement"),
+        UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(Make_Settings({})));
+
+    TestFalse(TEXT("a DESCENDING list is rejected"),
+        UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(Make_Settings({0.6f, 0.2f})));
+
+    TestFalse(TEXT("a list with a REPEATED value is rejected — the band between them is zero-width"),
+        UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(Make_Settings({0.2f, 0.2f})));
+
+    TestFalse(TEXT("an edge at exactly 0 is rejected"),
+        UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(Make_Settings({0.0f, 0.5f})));
+
+    TestFalse(TEXT("an edge at exactly 1 is rejected"),
+        UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(Make_Settings({0.5f, 1.0f})));
+
+    TestFalse(TEXT("a negative edge is rejected"),
+        UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(Make_Settings({-0.1f, 0.5f})));
+
+    // ---- 4. Entries past MaxBandEdges are DROPPED, and validation judges what the shader will see ----
+    // The palette precedent. It matters which way round this is: validating the authored list would
+    // reject a trailing entry the shader never reads, and validating nothing would let a truncation turn
+    // an ascending list into one whose last band is missing.
+    {
+        auto Overlong = TArray<float>{};
+        for (auto Index = 0; Index < FCk_Usf_CelShade_Params::MaxBandEdges + 3; ++Index)
+        { Overlong.Add(0.05f * static_cast<float>(Index + 1)); }
+
+        const auto Settings = Make_Settings(Overlong);
+
+        TestEqual(TEXT("the effective list is truncated to MaxBandEdges"),
+            Settings.Get_EffectiveBandEdges().Num(), FCk_Usf_CelShade_Params::MaxBandEdges);
+        TestTrue(TEXT("an over-long but ascending list is valid once truncated"),
+            UCkUsf_CelShadeSubsystem::Get_BandEdgesAreValid(Settings));
+    }
+
+    // ---- 5. Request_SetSettings refuses an invalid list with zero mutation ----
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+    if (TestNotNull(TEXT("a transient world exists"), World) == false)
+    { return false; }
+
+    auto* Subsystem = UCkUsf_CelShadeSubsystem::Get_CelShadeSubsystem(World);
+    if (TestNotNull(TEXT("the world carries a CelShade subsystem"), Subsystem) == false)
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+
+    const auto Valid = Make_Settings({0.12f, 0.35f});
+    Subsystem->Request_SetSettings(Valid);
+    TestTrue(TEXT("a valid custom-edge settings value round-trips"), Subsystem->Get_Settings() == Valid);
+
+    AddExpectedError(TEXT("NON-ASCENDING"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
+
+    Subsystem->Request_SetSettings(Make_Settings({0.6f, 0.2f}));
+    TestTrue(TEXT("a non-ascending list is rejected and the previous settings survive intact"),
+        Subsystem->Get_Settings() == Valid);
+
+    Subsystem->Request_SetSettings(Make_Settings({}));
+    TestTrue(TEXT("an empty list is rejected and the previous settings survive intact"),
+        Subsystem->Get_Settings() == Valid);
 
     World->DestroyWorld(false);
     return true;

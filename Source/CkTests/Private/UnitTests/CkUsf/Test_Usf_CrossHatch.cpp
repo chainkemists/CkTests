@@ -1,23 +1,24 @@
-// Contract tests for the CkUsf ScreenDither feature. Three tests, three distinct failure modes:
+// Contract tests for the CkUsf CrossHatch feature. Three tests, three distinct failure modes:
 //
-//   ScreenDitherGeneration — the asset<->HLSL contract. A LookDefinition shaped exactly like
-//     Script/CkUsf/CkUsf_ScreenDitherLook_Assets.as is built in code, validated, generated, checked pin
-//     by pin, and FORCE-compiled. Editor-only and skipped when the process cannot render, for the same
-//     reason StylizeParamCount is. The force is what makes "ScreenDither.ush compiles" a real claim
-//     rather than a pending shader job — it is destructive, hence a throwaway master that is deleted
-//     again. An undeclared identifier in ScreenDither.ush fails this test
-//     under a real RHI and passes without the force. Never weaken it to a bare shader-map null check.
+//   CrossHatchGeneration — the asset<->HLSL contract. A LookDefinition shaped exactly like
+//     Script/CkUsf/CkUsf_CrossHatchLook_Assets.as is built in code, validated, generated, checked pin by
+//     pin, and FORCE-compiled. Editor-only and skipped when the process cannot render, for the same
+//     reason StylizeParamCount is. The force is what makes "CrossHatch.ush compiles" a real claim rather
+//     than a pending shader job — it is destructive, hence a throwaway master that is deleted again.
+//     SceneNormal and CustomStencil each get their own assertion: the hatch DIRECTION is the projected
+//     normal, and the effect mask is the stencil, and both degrade SILENTLY if the input is dropped
+//     (every stroke would run at AngleOffset; every pixel would read as untagged).
 //
-//   ScreenDitherSubsystemSettings — the subsystem's settings value is the source of truth: a round-trip
-//     must be lossless and enable/disable must be idempotent. Deliberately NOT gated on the generated
-//     master existing: settings are tracked whether or not there is anything to render them with, and a
-//     test that silently needed content would pass vacuously on a fresh checkout.
+//   CrossHatchSubsystemSettings — the subsystem's settings value is the source of truth: a round-trip
+//     must be lossless and enable/disable must be idempotent. The settings half is deliberately NOT
+//     gated on the generated master existing: settings are tracked whether or not there is anything to
+//     render them with, and a test that silently needed content would pass vacuously on a fresh
+//     checkout. The MID-name half at the end IS gated on it, on purpose — see the comment there.
 //
-//   ScreenDitherInvalidInput — the rejection boundary. A null preset and a CustomPalette-with-an-empty-
-//     palette settings value are each rejected LOUDLY and change NOTHING. The "nothing" half is the one
-//     worth testing: a partial application would leave the world in a state no preset describes, and an
-//     empty custom palette specifically turns the whole view black with nothing naming the cause. The
-//     null world context is covered here too — by design it does not ensure; see the test body.
+//   CrossHatchInvalidInput — the rejection boundary. A null preset and an unusable effect-mask range are
+//     each rejected LOUDLY and change NOTHING. The "nothing" half is the one worth testing: a partial
+//     application would leave the world in a state no preset describes. The null world context is
+//     covered here too — by design it does not ensure; see the body.
 
 #include "Misc/AutomationTest.h"
 
@@ -25,11 +26,10 @@
 
 #include "CkCore/Macros/CkMacros.h"
 
-#include "CkUsf/Stylize/CkUsf_ScreenDitherPreset.h"
-#include "CkUsf/Stylize/CkUsf_ScreenDitherSubsystem.h"
-#include "CkUsf/Stylize/CkUsf_ScreenDither_Params.h"
-
 #include "CkUsf/LookDefinition/CkUsf_LookDefinition_Naming.h"
+#include "CkUsf/Stylize/CkUsf_CrossHatchPreset.h"
+#include "CkUsf/Stylize/CkUsf_CrossHatchSubsystem.h"
+#include "CkUsf/Stylize/CkUsf_CrossHatch_Params.h"
 
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -39,9 +39,7 @@
 #include "../CkUnitTest_Common.h"
 
 #if WITH_EDITOR
-#include "HAL/FileManager.h"
 #include "Misc/App.h"
-#include "Misc/PackageName.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialExpressionCustom.h"
 
@@ -54,52 +52,62 @@
 
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace ck_test_usf_screen_dither
+namespace ck_test_usf_cross_hatch
 {
     // A settings value that differs from the defaults in EVERY field, so a round-trip that drops one is
-    // caught rather than masked by a default that happened to match.
-    auto Make_NonDefaultSettings() -> FCk_Usf_ScreenDither_Params
+    // caught rather than masked by a default that happened to match. The mask range is ordered and clear
+    // of both other stencil claimants — an unusable one is the InvalidInput test's subject, not this one's.
+    auto Make_NonDefaultSettings() -> FCk_Usf_CrossHatch_Params
     {
-        auto Settings = FCk_Usf_ScreenDither_Params{};
+        auto Mask = FCk_Usf_StylizeMask_Params{};
+        Mask.Set_Mode(ECk_Usf_StylizeMaskMode::ExcludeStencilRange)
+            .Set_StencilMin(180)
+            .Set_StencilMax(185);
+
+        auto Settings = FCk_Usf_CrossHatch_Params{};
 
         Settings.Set_Enabled(ECk_EnableDisable::Disable)
-                .Set_Pattern(ECk_Usf_DitherPattern::BlueNoise)
-                .Set_PixelScale(6.0f)
-                .Set_DitherStrength(0.25f)
-                .Set_Animate(ECk_EnableDisable::Enable)
-                .Set_AnimationPeriod(0.33f)
-                .Set_BoxFilterDownsample(ECk_EnableDisable::Enable)
-                .Set_StabilizeGrid(ECk_EnableDisable::Disable)
-                .Set_PaletteMode(ECk_Usf_PaletteMode::CustomPalette)
-                .Set_ColorSteps(3)
-                .Set_Palette({FLinearColor::Red, FLinearColor::Green, FLinearColor::Blue})
-                .Set_ColorSpace(ECk_Usf_DitherColorSpace::Linear)
-                .Set_PreGamma(2.2f)
-                .Set_Monochrome(ECk_EnableDisable::Enable)
-                .Set_MonochromeShadowTint(FLinearColor(0.1f, 0.2f, 0.3f, 1.0f))
-                .Set_MonochromeHighlightTint(FLinearColor(0.9f, 0.8f, 0.7f, 1.0f))
-                .Set_Weight(0.4f)
+                .Set_StyleStrength(0.37f)
+                .Set_UseWorldSpaceNormals(ECk_EnableDisable::Enable)
+                .Set_AngleOffset(-115.0f)
+                .Set_NormalAlignment(0.42f)
+                .Set_Spacing(21.5f)
+                .Set_LayerCount(2)
+                .Set_LayerAngleStep(93.0f)
+                .Set_StrokePattern(ECk_Usf_HandDrawnStrokePattern::Stipple)
+                .Set_StrokeThickness(0.83f)
+                .Set_StrokeIrregularity(0.91f)
+                .Set_DarknessBias(-0.24f)
+                .Set_DarknessContrast(2.6f)
+                .Set_BackgroundMode(ECk_Usf_CrossHatchBackground::Scene)
+                .Set_PaperColor(FLinearColor(0.3f, 0.6f, 0.9f, 1.0f))
+                .Set_InkColor(FLinearColor(0.7f, 0.1f, 0.4f, 1.0f))
                 .Set_Saturation(1.7f)
-                .Set_Contrast(0.6f)
-                .Set_DebugMode(ECk_Usf_ScreenDither_DebugMode::QuantizationError);
+                .Set_AffectSky(ECk_EnableDisable::Enable)
+                .Set_SkyDistance(64321.0f)
+                .Set_Mask(Mask)
+                .Set_DebugMode(ECk_Usf_CrossHatch_DebugMode::HatchDirection);
 
         return Settings;
     }
 
     // The .ush parameter list, in declaration order — the generator binds POSITIONALLY, so this list and
-    // CkUsf_ScreenDitherLook_Assets.as must agree with CkUsf_PP_ScreenDither or every parameter past the
+    // CkUsf_CrossHatchLook_Assets.as must agree with CkUsf_PP_CrossHatch or every parameter past the
     // first difference is mis-bound. Stated here independently on purpose: if the AS asset drifts, this
-    // test still holds the shader's own signature. It doubles as the list of names the subsystem writes to
-    // the MID, which is what the resolution check at the end of ScreenDitherSubsystemSettings verifies.
+    // test still holds the shader's own signature. It doubles as the list of names the subsystem writes
+    // to the MID, which is what the resolution check at the end of CrossHatchSubsystemSettings verifies.
     auto Get_ScalarParamNames() -> TArray<FString>
     {
         return
         {
-            TEXT("DitherPattern"), TEXT("PixelScale"), TEXT("DitherStrength"), TEXT("Animate"),
-            TEXT("AnimationPeriod"), TEXT("BoxFilterDownsample"), TEXT("StabilizeGrid"),
-            TEXT("PaletteMode"), TEXT("ColorSteps"), TEXT("PaletteCount"),
-            TEXT("ColorSpace"), TEXT("PreGamma"), TEXT("Monochrome"), TEXT("Saturation"),
-            TEXT("Contrast"), TEXT("Weight"), TEXT("DebugMode"),
+            TEXT("StyleStrength"),
+            TEXT("UseWorldSpaceNormals"), TEXT("AngleOffset"), TEXT("NormalAlignment"),
+            TEXT("Spacing"), TEXT("LayerCount"), TEXT("LayerAngleStep"), TEXT("StrokePattern"),
+            TEXT("StrokeThickness"), TEXT("StrokeIrregularity"),
+            TEXT("DarknessBias"), TEXT("DarknessContrast"),
+            TEXT("BackgroundMode"), TEXT("Saturation"),
+            TEXT("AffectSky"), TEXT("SkyDistance"),
+            TEXT("DebugMode"),
             TEXT("MaskMode"), TEXT("MaskStencilMin"), TEXT("MaskStencilMax"),
         };
     }
@@ -108,9 +116,7 @@ namespace ck_test_usf_screen_dither
     {
         return
         {
-            TEXT("MonochromeShadowTint"), TEXT("MonochromeHighlightTint"),
-            TEXT("PaletteColor0"), TEXT("PaletteColor1"), TEXT("PaletteColor2"), TEXT("PaletteColor3"),
-            TEXT("PaletteColor4"), TEXT("PaletteColor5"), TEXT("PaletteColor6"), TEXT("PaletteColor7"),
+            TEXT("InkColor"), TEXT("PaperColor"),
         };
     }
 
@@ -157,27 +163,25 @@ namespace ck_test_usf_screen_dither
 
 #if WITH_EDITOR
 
-namespace ck_test_usf_screen_dither
+namespace ck_test_usf_cross_hatch
 {
-    constexpr auto kScreenDitherIncludePath = TEXT("/CkUsf/Looks/ScreenDither.ush");
-    constexpr auto kScreenDitherFunctionName = TEXT("CkUsf_PP_ScreenDither");
+    constexpr auto kCrossHatchIncludePath = TEXT("/CkUsf/Looks/CrossHatch.ush");
+    constexpr auto kCrossHatchFunctionName = TEXT("CkUsf_PP_CrossHatch");
 
-    // Throwaway name: the real "ScreenDither" master is content the gym uses, and the force-compile below
+    // Throwaway name: the real "CrossHatch" master is content the gym uses, and the force-compile below
     // leaves whatever it touches rendering black.
-    constexpr auto kProbeLookName = TEXT("ScreenDitherGenerationProbe");
+    constexpr auto kProbeLookName = TEXT("CrossHatchGenerationProbe");
 
     auto Make_ProbeLookDefinition() -> UCkUsf_LookDefinition*
     {
         auto* Definition = NewObject<UCkUsf_LookDefinition>(GetTransientPackage());
         Definition->_LookName = FName(kProbeLookName);
-        Definition->_UshIncludePath = kScreenDitherIncludePath;
-        Definition->_UshFunctionName = FName(kScreenDitherFunctionName);
+        Definition->_UshIncludePath = kCrossHatchIncludePath;
+        Definition->_UshFunctionName = FName(kCrossHatchFunctionName);
         Definition->_Domain = ECk_Usf_Domain::PostProcess;
-        // Palette reduction must see the final display-referred frame — the same placement the shipped
-        // asset declares, so this arm compiles the permutation the gym actually renders.
-        Definition->_BlendableLocation = ECk_Usf_BlendableLocation::AfterTonemapping;
-        // The historical default trio plus CustomStencil for the effect mask. Stated explicitly because
-        // _SceneTextures is all-or-nothing — a non-empty list REPLACES the trio rather than extending it.
+        // Pre-TAA, the same placement the shipped asset declares — so this arm compiles the permutation
+        // the gym actually renders, and the stencil mask sees a temporally resolved buffer.
+        Definition->_BlendableLocation = ECk_Usf_BlendableLocation::SceneColorAfterDOF;
         Definition->_SceneTextures =
         {
             ECk_Usf_SceneTexture::SceneColor, ECk_Usf_SceneTexture::SceneDepth,
@@ -227,13 +231,13 @@ namespace ck_test_usf_screen_dither
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_Usf_ScreenDitherGeneration,
-    "CkTests.UnitTests.CkUsf.ScreenDitherGeneration",
+    FCkTest_Usf_CrossHatchGeneration,
+    "CkTests.UnitTests.CkUsf.CrossHatchGeneration",
     ck::tests::kCkUnitTestFlags)
 
-bool FCkTest_Usf_ScreenDitherGeneration::RunTest(const FString& Parameters)
+bool FCkTest_Usf_CrossHatchGeneration::RunTest(const FString& Parameters)
 {
-    using namespace ck_test_usf_screen_dither;
+    using namespace ck_test_usf_cross_hatch;
 
     if (FApp::CanEverRender() == false)
     {
@@ -249,15 +253,15 @@ bool FCkTest_Usf_ScreenDitherGeneration::RunTest(const FString& Parameters)
     { AddInfo(FString::Printf(TEXT("validator warning: %s"), *Warning)); }
     for (const auto& Error : Validation.Errors)
     { AddError(FString::Printf(TEXT("validator error: %s"), *Error)); }
-    if (TestEqual(TEXT("the ScreenDither look validates with no errors"), Validation.Errors.Num(), 0) == false)
+    if (TestEqual(TEXT("the CrossHatch look validates with no errors"), Validation.Errors.Num(), 0) == false)
     { return false; }
 
     auto* Master = ck::usf_editor::Generate_LookMaterial(Probe.Get(), ck_test_usf::Get_TestPackageRoot());
-    if (TestNotNull(TEXT("the ScreenDither look generates a master material"), Master) == false)
+    if (TestNotNull(TEXT("the CrossHatch look generates a master material"), Master) == false)
     { return false; }
 
     const auto* Custom = Find_CustomNode(Master);
-    if (TestNotNull(TEXT("the ScreenDither master has a Custom node"), Custom))
+    if (TestNotNull(TEXT("the CrossHatch master has a Custom node"), Custom))
     {
         for (const auto& Name : Get_ScalarParamNames())
         {
@@ -271,8 +275,24 @@ bool FCkTest_Usf_ScreenDitherGeneration::RunTest(const FString& Parameters)
                 Get_IsCustomInputConnected(Custom, *Name));
         }
 
-        TestTrue(TEXT("SceneColor is wired (the look reads nothing else from the scene)"),
-            Get_IsCustomInputConnected(Custom, TEXT("SceneColor")));
+        TestTrue(TEXT("SceneColor is wired"), Get_IsCustomInputConnected(Custom, TEXT("SceneColor")));
+        TestTrue(TEXT("SceneDepth is wired"), Get_IsCustomInputConnected(Custom, TEXT("SceneDepth")));
+
+        // The hatch DIRECTION is the projected scene normal. Without this input every stroke would run at
+        // AngleOffset and the look would silently become a screen-space texture — the one thing that
+        // separates hatching from a pattern overlay, gone with nothing failing.
+        TestTrue(TEXT("SceneNormal is wired (the hatch direction IS the projected normal)"),
+            Get_IsCustomInputConnected(Custom, TEXT("SceneNormal")));
+
+        // Without this the effect mask silently degrades: In.CustomStencil reads zero, every pixel looks
+        // untagged, and an IncludeStencilRange mask hides the whole look with nothing failing.
+        TestTrue(TEXT("CustomStencil is wired (the effect mask needs it)"),
+            Get_IsCustomInputConnected(Custom, TEXT("CustomStencil")));
+
+        // The stroke lattice is screen-space by construction, so opting into the world-position
+        // reconstruction would cost a pin and an expression for nothing.
+        TestFalse(TEXT("WorldPosition is NOT wired — the hatch lattice is screen-space"),
+            Get_IsCustomInputConnected(Custom, TEXT("WorldPosition")));
     }
 
     {
@@ -286,7 +306,7 @@ bool FCkTest_Usf_ScreenDitherGeneration::RunTest(const FString& Parameters)
         const auto CompileErrors = FString::Join(Errors, TEXT("\n"));
         if (Compiled == false)
         { AddError(CompileErrors); }
-        TestEqual(TEXT("ScreenDither.ush reports no HLSL compile errors"), CompileErrors, FString{});
+        TestEqual(TEXT("CrossHatch.ush reports no HLSL compile errors"), CompileErrors, FString{});
     }
 
     if (ck_test_usf::Delete_TestGeneratedMaster(FName(kProbeLookName)) == false)
@@ -300,27 +320,27 @@ bool FCkTest_Usf_ScreenDitherGeneration::RunTest(const FString& Parameters)
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_Usf_ScreenDitherSubsystemSettings,
-    "CkTests.UnitTests.CkUsf.ScreenDitherSubsystemSettings",
+    FCkTest_Usf_CrossHatchSubsystemSettings,
+    "CkTests.UnitTests.CkUsf.CrossHatchSubsystemSettings",
     ck::tests::kCkUnitTestFlags)
 
-bool FCkTest_Usf_ScreenDitherSubsystemSettings::RunTest(const FString& Parameters)
+bool FCkTest_Usf_CrossHatchSubsystemSettings::RunTest(const FString& Parameters)
 {
-    using namespace ck_test_usf_screen_dither;
+    using namespace ck_test_usf_cross_hatch;
 
     auto* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (TestNotNull(TEXT("a transient world exists"), World) == false)
     { return false; }
 
-    auto* Subsystem = UCkUsf_ScreenDitherSubsystem::Get_ScreenDitherSubsystem(World);
-    if (TestNotNull(TEXT("the world carries a ScreenDither subsystem"), Subsystem) == false)
+    auto* Subsystem = UCkUsf_CrossHatchSubsystem::Get_CrossHatchSubsystem(World);
+    if (TestNotNull(TEXT("the world carries a CrossHatch subsystem"), Subsystem) == false)
     {
         World->DestroyWorld(false);
         return false;
     }
 
     TestTrue(TEXT("a fresh subsystem holds the default settings"),
-        Subsystem->Get_Settings() == FCk_Usf_ScreenDither_Params{});
+        Subsystem->Get_Settings() == FCk_Usf_CrossHatch_Params{});
     TestTrue(TEXT("a fresh subsystem is enabled"),
         Subsystem->Get_IsEnabled() == ECk_EnableDisable::Enable);
 
@@ -349,7 +369,7 @@ bool FCkTest_Usf_ScreenDitherSubsystemSettings::RunTest(const FString& Parameter
 
     Subsystem->Request_ResetToDefaults();
     TestTrue(TEXT("reset restores the default settings"),
-        Subsystem->Get_Settings() == FCk_Usf_ScreenDither_Params{});
+        Subsystem->Get_Settings() == FCk_Usf_CrossHatch_Params{});
 
     // ---- The MID name seam ----
     // Everything above proves the settings VALUE survives; none of it proves the value reaches the
@@ -358,10 +378,10 @@ bool FCkTest_Usf_ScreenDitherSubsystemSettings::RunTest(const FString& Parameter
     // deliberately: the master is shipped content, and its absence is exactly the "look renders nothing"
     // failure the subsystem warns about at runtime, so a missing one is worth a red rather than a skip.
     {
-        const auto MasterPath = ck::usf::Get_GeneratedMasterObjectPath(FName(TEXT("ScreenDither")));
+        const auto MasterPath = ck::usf::Get_GeneratedMasterObjectPath(FName(TEXT("CrossHatch")));
         auto* Master = LoadObject<UMaterialInterface>(nullptr, *MasterPath);
 
-        if (TestNotNull(*FString::Printf(TEXT("the ScreenDither master exists at [%s]"), *MasterPath), Master))
+        if (TestNotNull(*FString::Printf(TEXT("the CrossHatch master exists at [%s]"), *MasterPath), Master))
         {
             const auto Unresolved = Get_UnresolvedMidParameterNames(
                 Master, Get_ScalarParamNames(), Get_VectorParamNames());
@@ -378,28 +398,27 @@ bool FCkTest_Usf_ScreenDitherSubsystemSettings::RunTest(const FString& Parameter
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_Usf_ScreenDitherInvalidInput,
-    "CkTests.UnitTests.CkUsf.ScreenDitherInvalidInput",
+    FCkTest_Usf_CrossHatchInvalidInput,
+    "CkTests.UnitTests.CkUsf.CrossHatchInvalidInput",
     ck::tests::kCkUnitTestFlags)
 
-bool FCkTest_Usf_ScreenDitherInvalidInput::RunTest(const FString& Parameters)
+bool FCkTest_Usf_CrossHatchInvalidInput::RunTest(const FString& Parameters)
 {
-    using namespace ck_test_usf_screen_dither;
+    using namespace ck_test_usf_cross_hatch;
 
     // ---- 1. An unresolvable world context returns null and does NOT ensure ----
     // Deliberate, and the UCkUsf_OutlineSubsystem::Get_OutlineSubsystem precedent: the accessor is called
     // from actor/EntityScript code that legitimately runs while a world is tearing down or before one
-    // exists, so a diagnostic here would fire on correct code. The contract worth pinning is therefore
-    // "null, not a crash" — if this ever grows an ensure, this arm turns red and names the decision.
+    // exists, so a diagnostic here would fire on correct code.
     TestNull(TEXT("a null world context yields a null subsystem rather than a crash or an ensure"),
-        UCkUsf_ScreenDitherSubsystem::Get_ScreenDitherSubsystem(nullptr));
+        UCkUsf_CrossHatchSubsystem::Get_CrossHatchSubsystem(nullptr));
 
     auto* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (TestNotNull(TEXT("a transient world exists"), World) == false)
     { return false; }
 
-    auto* Subsystem = UCkUsf_ScreenDitherSubsystem::Get_ScreenDitherSubsystem(World);
-    if (TestNotNull(TEXT("the world carries a ScreenDither subsystem"), Subsystem) == false)
+    auto* Subsystem = UCkUsf_CrossHatchSubsystem::Get_CrossHatchSubsystem(World);
+    if (TestNotNull(TEXT("the world carries a CrossHatch subsystem"), Subsystem) == false)
     {
         World->DestroyWorld(false);
         return false;
@@ -410,9 +429,9 @@ bool FCkTest_Usf_ScreenDitherInvalidInput::RunTest(const FString& Parameters)
 
     // Each ensure fire emits a log entry plus an Error line, both carrying the message — whitelist by
     // substring without enforcing a count.
-    AddExpectedError(TEXT("null ScreenDither preset"),
+    AddExpectedError(TEXT("null CrossHatch preset"),
         EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
-    AddExpectedError(TEXT("CustomPalette with an EMPTY palette"),
+    AddExpectedError(TEXT("effect-mask range"),
         EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/-1);
 
     // ---- 2. A null preset ----
@@ -421,27 +440,75 @@ bool FCkTest_Usf_ScreenDitherInvalidInput::RunTest(const FString& Parameters)
     TestTrue(TEXT("a null preset changes nothing at all — no partial application"),
         Subsystem->Get_Settings() == Before);
 
-    // ---- 3. CustomPalette with nothing in the palette ----
-    // Not a cosmetic misconfiguration: every pixel snaps to the black the unused shader slots hold, so
-    // the whole view goes black with nothing naming the cause. Accepting it and rendering that is worse
-    // than refusing it.
-    auto EmptyPalette = Make_NonDefaultSettings();
-    EmptyPalette.Set_PaletteMode(ECk_Usf_PaletteMode::CustomPalette)
-                .Set_Palette(TArray<FLinearColor>{});
+    // ---- 3. An inverted effect-mask range ----
+    // It matches NO stencil value, so IncludeStencilRange would render the look nowhere and
+    // ExcludeStencilRange everywhere — in both directions the setting stops meaning what it says with
+    // nothing in the frame naming the cause.
+    {
+        auto InvertedMask = FCk_Usf_StylizeMask_Params{};
+        InvertedMask.Set_Mode(ECk_Usf_StylizeMaskMode::IncludeStencilRange)
+                    .Set_StencilMin(200)
+                    .Set_StencilMax(190);
 
-    Subsystem->Request_SetSettings(EmptyPalette);
+        auto Inverted = Make_NonDefaultSettings();
+        Inverted.Set_Mask(InvertedMask);
 
-    TestTrue(TEXT("an empty custom palette is rejected and the previous settings survive intact"),
-        Subsystem->Get_Settings() == Before);
+        Subsystem->Request_SetSettings(Inverted);
 
-    // The same value with one entry is legitimate — the guard must reject emptiness, not the mode.
-    auto OneEntryPalette = EmptyPalette;
-    OneEntryPalette.Set_Palette({FLinearColor::White});
+        TestTrue(TEXT("an inverted mask range is rejected and the previous settings survive intact"),
+            Subsystem->Get_Settings() == Before);
+    }
 
-    Subsystem->Request_SetSettings(OneEntryPalette);
+    // ---- 4. A mask range reaching Custom Stencil 0 ----
+    // 0 is what the renderer leaves for every mesh that wrote nothing, so a range containing it hands
+    // the whole untagged view membership.
+    {
+        auto ZeroMask = FCk_Usf_StylizeMask_Params{};
+        ZeroMask.Set_Mode(ECk_Usf_StylizeMaskMode::IncludeStencilRange)
+                .Set_StencilMin(0)
+                .Set_StencilMax(5);
 
-    TestTrue(TEXT("a single-entry custom palette is accepted"),
-        Subsystem->Get_Settings() == OneEntryPalette);
+        auto ReachesZero = Make_NonDefaultSettings();
+        ReachesZero.Set_Mask(ZeroMask);
+
+        Subsystem->Request_SetSettings(ReachesZero);
+
+        TestTrue(TEXT("a mask range reaching stencil 0 is rejected and changes nothing"),
+            Subsystem->Get_Settings() == Before);
+    }
+
+    // ---- 5. The legitimate neighbours of that boundary ----
+    // The guard must reject an unusable RANGE, not the feature. Off claims no stencil at all, so its
+    // bounds are never examined; a single-value ordered range is the ordinary case.
+    {
+        auto OffMask = FCk_Usf_StylizeMask_Params{};
+        OffMask.Set_Mode(ECk_Usf_StylizeMaskMode::Off)
+               .Set_StencilMin(200)
+               .Set_StencilMax(190);
+
+        auto MaskOff = Make_NonDefaultSettings();
+        MaskOff.Set_Mask(OffMask);
+
+        Subsystem->Request_SetSettings(MaskOff);
+
+        TestTrue(TEXT("an Off mask claims no stencil, so even an inverted range is accepted"),
+            Subsystem->Get_Settings() == MaskOff);
+    }
+
+    {
+        auto SingleMask = FCk_Usf_StylizeMask_Params{};
+        SingleMask.Set_Mode(ECk_Usf_StylizeMaskMode::IncludeStencilRange)
+                  .Set_StencilMin(190)
+                  .Set_StencilMax(190);
+
+        auto SingleValue = Make_NonDefaultSettings();
+        SingleValue.Set_Mask(SingleMask);
+
+        Subsystem->Request_SetSettings(SingleValue);
+
+        TestTrue(TEXT("a single-value mask range is accepted"),
+            Subsystem->Get_Settings() == SingleValue);
+    }
 
     World->DestroyWorld(false);
     return true;
