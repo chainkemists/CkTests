@@ -26,7 +26,6 @@
 
 #include "CkUsf/LookDefinition/CkUsf_LookDefinition.h"
 #include "CkUsf/Apply/CkUsf_Utils.h"
-#include "CkUsfEditor/Generator/CkUsf_Generator.h"
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -104,8 +103,10 @@ bool FCkTest_Usf_MultiPassRendersToTexture::RunTest(const FString& Parameters)
     if (TestNotNull(TEXT("editor world available"), World) == false)
     { return false; }
 
-    // Regenerate masters so the test reflects the current generator + .ush.
-    ck::usf_editor::Generate_AllLookMaterials();
+    // Deliberately does NOT regenerate: this is the RUNTIME path (Create_MID_ForLook resolves the shipped
+    // master), and a whole-roster regeneration here would write the same .uasset files another concurrent
+    // test editor is writing — the collision that used to force real-RHI CkUsf runs serial. Generator
+    // freshness is GeneratesUsableMasters' and the contract tests' job; .ush edits need no regeneration.
 
     const auto& ARM = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
     TArray<FAssetData> Looks;

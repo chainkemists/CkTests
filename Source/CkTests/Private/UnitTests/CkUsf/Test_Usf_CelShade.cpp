@@ -68,6 +68,8 @@
 #include "CkUsf/LookDefinition/CkUsf_LookDefinition.h"
 #include "CkUsfEditor/Generator/CkUsf_Generator.h"
 #include "CkUsfEditor/Generator/CkUsf_LookValidator.h"
+
+#include "CkUsf_TestLookMasters.h"
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -316,19 +318,6 @@ namespace ck_test_usf_cel_shade
         }
         return false;
     }
-
-    auto Delete_GeneratedMaster(const FName InLookName) -> bool
-    {
-        const auto FileName = FPackageName::LongPackageNameToFilename(
-            ck::usf::Get_GeneratedMasterPackagePath(InLookName), FPackageName::GetAssetPackageExtension());
-
-        if (NOT IFileManager::Get().FileExists(*FileName))
-        { return true; }
-
-        constexpr auto RequireExists = false;
-        constexpr auto EvenIfReadOnly = true;
-        return IFileManager::Get().Delete(*FileName, RequireExists, EvenIfReadOnly);
-    }
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -357,7 +346,7 @@ bool FCkTest_Usf_CelShadeGeneration::RunTest(const FString& Parameters)
     if (TestEqual(TEXT("the CelShade look validates with no errors"), Validation.Errors.Num(), 0) == false)
     { return false; }
 
-    auto* Master = ck::usf_editor::Generate_LookMaterial(Probe.Get());
+    auto* Master = ck::usf_editor::Generate_LookMaterial(Probe.Get(), ck_test_usf::Get_TestPackageRoot());
     if (TestNotNull(TEXT("the CelShade look generates a master material"), Master) == false)
     { return false; }
 
@@ -402,7 +391,7 @@ bool FCkTest_Usf_CelShadeGeneration::RunTest(const FString& Parameters)
         TestEqual(TEXT("CelShade.ush reports no HLSL compile errors"), CompileErrors, FString{});
     }
 
-    if (Delete_GeneratedMaster(FName(kProbeLookName)) == false)
+    if (ck_test_usf::Delete_TestGeneratedMaster(FName(kProbeLookName)) == false)
     { AddInfo(TEXT("Could not delete the probe's generated master file — harmless, but it is a stray asset on disk.")); }
 
     return true;

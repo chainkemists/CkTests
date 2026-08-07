@@ -42,6 +42,8 @@
 #include "CkUsfEditor/Generator/CkUsf_Generator.h"
 #include "CkUsfEditor/Generator/CkUsf_LookValidator.h"
 
+#include "CkUsf_TestLookMasters.h"
+
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace ck_test_usf_stylize_contract
@@ -242,22 +244,6 @@ namespace ck_test_usf_stylize_contract
         return Definitions;
     }
 
-    // The generated master is a real package on disk. These subjects are test fixtures, not content, so
-    // the file is removed again — the in-memory package stays and the generator's idempotent refresh
-    // path handles a second run inside the same editor session.
-    auto Delete_GeneratedMaster(const FName InLookName) -> bool
-    {
-        const auto FileName = FPackageName::LongPackageNameToFilename(
-            ck::usf::Get_GeneratedMasterPackagePath(InLookName), FPackageName::GetAssetPackageExtension());
-
-        if (NOT IFileManager::Get().FileExists(*FileName))
-        { return true; }
-
-        constexpr auto RequireExists = false;
-        constexpr auto EvenIfReadOnly = true;
-        return IFileManager::Get().Delete(*FileName, RequireExists, EvenIfReadOnly);
-    }
-
     // The generator's own gate, CALLED rather than re-implemented, so the probe is held to exactly the bar
     // every shipped look is: synchronous force-compile, then the resource's real HLSL errors.
     // History worth keeping: until 2026-08-06 this test re-implemented the gate as a bare
@@ -304,7 +290,7 @@ bool FCkTest_Usf_StylizeParamCount::RunTest(const FString& Parameters)
     { return false; }
 
     // ---- 2. It generates ----
-    auto* Master = ck::usf_editor::Generate_LookMaterial(Probe.Get());
+    auto* Master = ck::usf_editor::Generate_LookMaterial(Probe.Get(), ck_test_usf::Get_TestPackageRoot());
     if (TestNotNull(TEXT("the 50-param probe generates a master material"), Master) == false)
     { return false; }
 
@@ -362,7 +348,7 @@ bool FCkTest_Usf_StylizeParamCount::RunTest(const FString& Parameters)
         TestEqual(TEXT("the 50-param probe reports no HLSL compile errors"), CompileErrors, FString{});
     }
 
-    if (Delete_GeneratedMaster(FName(kProbeLookName)) == false)
+    if (ck_test_usf::Delete_TestGeneratedMaster(FName(kProbeLookName)) == false)
     { AddInfo(TEXT("Could not delete the probe's generated master file — harmless, but it is a stray asset on disk.")); }
 
     return true;
@@ -394,7 +380,7 @@ bool FCkTest_Usf_StylizeSceneTextureNegative::RunTest(const FString& Parameters)
         TestFalse(TEXT("the minimal look leaves _PostProcessWorldPosition at its default"),
             Minimal->_PostProcessWorldPosition);
 
-        auto* Master = ck::usf_editor::Generate_LookMaterial(Minimal.Get());
+        auto* Master = ck::usf_editor::Generate_LookMaterial(Minimal.Get(), ck_test_usf::Get_TestPackageRoot());
         if (TestNotNull(TEXT("the minimal look generates a master material"), Master) == false)
         { return false; }
 
@@ -426,7 +412,7 @@ bool FCkTest_Usf_StylizeSceneTextureNegative::RunTest(const FString& Parameters)
             TestEqual(TEXT("the minimal look reports no HLSL compile errors"), CompileErrors, FString{});
         }
 
-        if (Delete_GeneratedMaster(FName(kMinimalLookName)) == false)
+        if (ck_test_usf::Delete_TestGeneratedMaster(FName(kMinimalLookName)) == false)
         { AddInfo(TEXT("Could not delete the minimal look's generated master file — harmless, but it is a stray asset on disk.")); }
     }
 
@@ -435,6 +421,7 @@ bool FCkTest_Usf_StylizeSceneTextureNegative::RunTest(const FString& Parameters)
     //         before the extensions lacks the inputs whether or not the generator leaks them. ----
     const auto OptInInputNames = Get_OptInInputNames();
     auto NumRosterLooksChecked = 0;
+    auto RegeneratedLookNames = TArray<FName>{};
 
     for (auto* Definition : Get_AllLookDefinitions())
     {
@@ -454,11 +441,12 @@ bool FCkTest_Usf_StylizeSceneTextureNegative::RunTest(const FString& Parameters)
 
         const auto Name = Definition->Get_EffectiveLookName().ToString();
 
-        auto* Master = ck::usf_editor::Generate_LookMaterial(Definition);
+        auto* Master = ck::usf_editor::Generate_LookMaterial(Definition, ck_test_usf::Get_TestPackageRoot());
         if (TestNotNull(*FString::Printf(TEXT("PostProcess look [%s] regenerates"), *Name), Master) == false)
         { continue; }
 
         ++NumRosterLooksChecked;
+        RegeneratedLookNames.Add(Definition->Get_EffectiveLookName());
 
         const auto* Custom = Find_CustomNode(Master);
         if (TestNotNull(*FString::Printf(TEXT("PostProcess look [%s] has a Custom node"), *Name), Custom) == false)
@@ -473,6 +461,16 @@ bool FCkTest_Usf_StylizeSceneTextureNegative::RunTest(const FString& Parameters)
 
         TestFalse(*FString::Printf(TEXT("look [%s] did not gain a world-position assignment"), *Name),
             Custom->Code.Contains(TEXT("In.WorldPosition")));
+    }
+
+    for (const auto& RegeneratedLookName : RegeneratedLookNames)
+    {
+        if (ck_test_usf::Delete_TestGeneratedMaster(RegeneratedLookName) == false)
+        {
+            AddInfo(FString::Printf(
+                TEXT("Could not delete the regenerated master for look [%s] — harmless, but it is a stray asset on disk."),
+                *RegeneratedLookName.ToString()));
+        }
     }
 
     TestTrue(TEXT("at least one shipped PostProcess look was checked (else this test passes vacuously)"),

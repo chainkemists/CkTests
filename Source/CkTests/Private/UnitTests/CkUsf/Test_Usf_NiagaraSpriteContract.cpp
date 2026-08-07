@@ -28,6 +28,8 @@
 #include "CkUsf/Apply/CkUsf_Utils.h"
 #include "CkUsfEditor/Generator/CkUsf_Generator.h"
 
+#include "CkUsf_TestLookMasters.h"
+
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace ck_test_usf_niagara_sprite_contract
@@ -188,6 +190,10 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
         return true;
     }
 
+    // Regeneration goes to a lane-unique root, never the shipped GeneratedLooks — see CkUsf_TestLookMasters.h.
+    // Step 4's negative still reads the SHIPPED masters, which is what it is about.
+    const auto TestPackageRoot = ck_test_usf::Get_TestPackageRoot();
+
     auto Definitions = Get_AllLookDefinitions();
     if (TestTrue(TEXT("found at least one UCkUsf_LookDefinition"), Definitions.Num() > 0) == false)
     { return false; }
@@ -203,7 +209,7 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
     TestFalse(TEXT("RingDissolveAdd does NOT opt into _UsedWithNiagaraRibbons"), ParticleLook->_UsedWithNiagaraRibbons);
 
     // ---- 1. The look generates ----
-    auto* Master = ck::usf_editor::Generate_LookMaterial(ParticleLook);
+    auto* Master = ck::usf_editor::Generate_LookMaterial(ParticleLook, TestPackageRoot);
     if (TestNotNull(TEXT("RingDissolveAdd generates a master material"), Master) == false)
     { return false; }
 
@@ -265,7 +271,7 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
             TestFalse(TEXT("SlashDisAdd01 does NOT opt into _UsedWithNiagaraSprites"),
                 MeshLook->_UsedWithNiagaraSprites);
 
-            if (auto* MeshMaster = ck::usf_editor::Generate_LookMaterial(MeshLook);
+            if (auto* MeshMaster = ck::usf_editor::Generate_LookMaterial(MeshLook, TestPackageRoot);
                 TestNotNull(TEXT("SlashDisAdd01 generates a master material"), MeshMaster))
             {
                 TestTrue(TEXT("generated master declares bUsedWithNiagaraMeshParticles"),
@@ -297,7 +303,7 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
             TestTrue(TEXT("FlatAdd02 opts into _ParticleColor"),          FlatLook->_ParticleColor);
             TestFalse(TEXT("FlatAdd02 declares NO dynamic parameter"),    FlatLook->_ParticleDynamicParameter);
 
-            if (auto* FlatMaster = ck::usf_editor::Generate_LookMaterial(FlatLook);
+            if (auto* FlatMaster = ck::usf_editor::Generate_LookMaterial(FlatLook, TestPackageRoot);
                 TestNotNull(TEXT("FlatAdd02 generates a master material"), FlatMaster))
             {
                 TestTrue(TEXT("generated master declares bUsedWithNiagaraSprites"),
@@ -331,7 +337,7 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
             TestFalse(TEXT("BombToon does NOT opt into _UsedWithNiagaraSprites"),
                 ToonLook->_UsedWithNiagaraSprites);
 
-            if (auto* ToonMaster = ck::usf_editor::Generate_LookMaterial(ToonLook);
+            if (auto* ToonMaster = ck::usf_editor::Generate_LookMaterial(ToonLook, TestPackageRoot);
                 TestNotNull(TEXT("BombToon generates a master material"), ToonMaster))
             {
                 TestTrue(TEXT("generated master declares bUsedWithNiagaraMeshParticles"),
@@ -361,7 +367,7 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
         {
             const auto RibbonName = RibbonLook->Get_EffectiveLookName().ToString();
 
-            if (auto* RibbonMaster = ck::usf_editor::Generate_LookMaterial(RibbonLook);
+            if (auto* RibbonMaster = ck::usf_editor::Generate_LookMaterial(RibbonLook, TestPackageRoot);
                 TestNotNull(*FString::Printf(TEXT("%s generates a master material"), *RibbonName), RibbonMaster))
             {
                 TestTrue(*FString::Printf(TEXT("[%s] generated master declares bUsedWithNiagaraRibbons"), *RibbonName),
@@ -395,7 +401,7 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
         TestTrue(*FString::Printf(TEXT("%s opts into _ParticleDynamicParameter"), FresnelName),
             FresnelLook->_ParticleDynamicParameter);
 
-        auto* FresnelMaster = ck::usf_editor::Generate_LookMaterial(FresnelLook);
+        auto* FresnelMaster = ck::usf_editor::Generate_LookMaterial(FresnelLook, TestPackageRoot);
         if (TestNotNull(*FString::Printf(TEXT("%s generates a master material"), FresnelName), FresnelMaster) == false)
         { continue; }
 
@@ -453,7 +459,7 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
 
     // ---- 5. Double generation is idempotent: same flags, same wiring, no new errors ----
     {
-        auto* Regenerated = ck::usf_editor::Generate_LookMaterial(ParticleLook);
+        auto* Regenerated = ck::usf_editor::Generate_LookMaterial(ParticleLook, TestPackageRoot);
         if (TestNotNull(TEXT("RingDissolveAdd regenerates"), Regenerated))
         {
             TestTrue(TEXT("sprite usage is stable across regeneration"), Regenerated->bUsedWithNiagaraSprites != 0);
@@ -483,6 +489,17 @@ bool FCkTest_Usf_NiagaraSpriteContract::RunTest(const FString& Parameters)
             }
             TestEqual(TEXT("regeneration leaves exactly one ParticleColor node"),    NumParticleColor, 1);
             TestEqual(TEXT("regeneration leaves exactly one DynamicParameter node"), NumDynamicParameter, 1);
+        }
+    }
+
+    for (const auto* Definition : Definitions)
+    {
+        const auto LookName = Definition->Get_EffectiveLookName();
+        if (ck_test_usf::Delete_TestGeneratedMaster(LookName) == false)
+        {
+            AddInfo(FString::Printf(
+                TEXT("Could not delete the regenerated master for look [%s] — harmless, but it is a stray asset on disk."),
+                *LookName.ToString()));
         }
     }
 
