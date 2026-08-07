@@ -49,6 +49,13 @@
 #include "CkUsf/Stylize/CkUsf_CelShadeSubsystem.h"
 #include "CkUsf/Stylize/CkUsf_CelShade_Params.h"
 
+#include "CkUsf/LookDefinition/CkUsf_LookDefinition_Naming.h"
+
+#include "Materials/MaterialInterface.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialParameters.h"
+#include "UObject/StrongObjectPtr.h"
+
 #include "../CkUnitTest_Common.h"
 
 #if WITH_EDITOR
@@ -57,10 +64,8 @@
 #include "Misc/PackageName.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialExpressionCustom.h"
-#include "UObject/StrongObjectPtr.h"
 
 #include "CkUsf/LookDefinition/CkUsf_LookDefinition.h"
-#include "CkUsf/LookDefinition/CkUsf_LookDefinition_Naming.h"
 #include "CkUsfEditor/Generator/CkUsf_Generator.h"
 #include "CkUsfEditor/Generator/CkUsf_LookValidator.h"
 #endif
@@ -141,25 +146,12 @@ namespace ck_test_usf_cel_shade
 
         return Settings;
     }
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-
-#if WITH_EDITOR
-
-namespace ck_test_usf_cel_shade
-{
-    constexpr auto kCelShadeIncludePath = TEXT("/CkUsf/Looks/CelShade.ush");
-    constexpr auto kCelShadeFunctionName = TEXT("CkUsf_PP_CelShade");
-
-    // Throwaway name: the real "CelShade" master is content the gym uses, and the force-compile below
-    // leaves whatever it touches rendering black.
-    constexpr auto kProbeLookName = TEXT("CelShadeGenerationProbe");
 
     // The .ush parameter list, in declaration order — the generator binds POSITIONALLY, so this list and
     // CkUsf_CelShadeLook_Assets.as must agree with CkUsf_PP_CelShade or every parameter past the first
     // difference is mis-bound. Stated here independently on purpose: if the AS asset drifts, this test
-    // still holds the shader's own signature.
+    // still holds the shader's own signature. It doubles as the list of names the subsystem writes to
+    // the MID, which is what the resolution check at the end of CelShadeSubsystemSettings verifies.
     auto Get_ScalarParamNames() -> TArray<FString>
     {
         return
@@ -201,6 +193,58 @@ namespace ck_test_usf_cel_shade
             TEXT("ShadowTint"), TEXT("LightTint"), TEXT("RimColor"), TEXT("OutlineColor"),
         };
     }
+
+    // Resolve every parameter NAME against a MID built from the look's generated master, and return the
+    // ones that do not exist. This is the seam a settings round-trip cannot see: SetScalarParameterValue
+    // on a name the material does not carry is a SILENT no-op — it neither warns nor fails — so a rename
+    // on either side would leave that setting stuck at its authored default with nothing in the log and
+    // only a gym screenshot to catch it.
+    auto Get_UnresolvedMidParameterNames(
+        UMaterialInterface* InMaster,
+        const TArray<FString>& InScalarNames,
+        const TArray<FString>& InVectorNames) -> TArray<FString>
+    {
+        auto Unresolved = TArray<FString>{};
+
+        const auto Mid = TStrongObjectPtr<UMaterialInstanceDynamic>{
+            UMaterialInstanceDynamic::Create(InMaster, GetTransientPackage())};
+
+        if (Mid.IsValid() == false)
+        {
+            Unresolved.Add(TEXT("<the master produced no MID>"));
+            return Unresolved;
+        }
+
+        for (const auto& Name : InScalarNames)
+        {
+            auto Value = 0.0f;
+            if (Mid->GetScalarParameterValue(FHashedMaterialParameterInfo{FName(*Name)}, Value) == false)
+            { Unresolved.Add(Name); }
+        }
+
+        for (const auto& Name : InVectorNames)
+        {
+            auto Value = FLinearColor{};
+            if (Mid->GetVectorParameterValue(FHashedMaterialParameterInfo{FName(*Name)}, Value) == false)
+            { Unresolved.Add(Name); }
+        }
+
+        return Unresolved;
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+#if WITH_EDITOR
+
+namespace ck_test_usf_cel_shade
+{
+    constexpr auto kCelShadeIncludePath = TEXT("/CkUsf/Looks/CelShade.ush");
+    constexpr auto kCelShadeFunctionName = TEXT("CkUsf_PP_CelShade");
+
+    // Throwaway name: the real "CelShade" master is content the gym uses, and the force-compile below
+    // leaves whatever it touches rendering black.
+    constexpr auto kProbeLookName = TEXT("CelShadeGenerationProbe");
 
     auto Get_SceneTextureInputNames() -> TArray<FString>
     {
@@ -444,6 +488,26 @@ bool FCkTest_Usf_CelShadeSubsystemSettings::RunTest(const FString& Parameters)
     Subsystem->Request_ResetToDefaults();
     TestTrue(TEXT("reset restores the default settings"),
         Subsystem->Get_Settings() == FCk_Usf_CelShade_Params{});
+
+    // ---- The MID name seam ----
+    // Everything above proves the settings VALUE survives; none of it proves the value reaches the
+    // shader. The subsystem projects onto the MID purely by name, and an unknown name is written into
+    // nothing at all, silently. Unlike the settings arms this one IS gated on the generated master,
+    // deliberately: the master is shipped content, and its absence is exactly the "look renders nothing"
+    // failure the subsystem warns about at runtime, so a missing one is worth a red rather than a skip.
+    {
+        const auto MasterPath = ck::usf::Get_GeneratedMasterObjectPath(FName(TEXT("CelShade")));
+        auto* Master = LoadObject<UMaterialInterface>(nullptr, *MasterPath);
+
+        if (TestNotNull(*FString::Printf(TEXT("the CelShade master exists at [%s]"), *MasterPath), Master))
+        {
+            const auto Unresolved = Get_UnresolvedMidParameterNames(
+                Master, Get_ScalarParamNames(), Get_VectorParamNames());
+
+            TestEqual(TEXT("every parameter name the subsystem writes resolves on the master's MID"),
+                FString::Join(Unresolved, TEXT(", ")), FString{});
+        }
+    }
 
     World->DestroyWorld(false);
     return true;
