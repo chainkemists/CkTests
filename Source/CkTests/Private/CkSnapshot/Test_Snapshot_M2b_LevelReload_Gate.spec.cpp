@@ -94,7 +94,7 @@ namespace
         auto& CkRegistry = Ecs->Get_Registry();
         auto* Raw = ck::registry_table::TryResolve(CkRegistry.Get_RegistryHandle());
         if (Raw == nullptr) { return Final; }
-        for (const auto Entity : Raw->view<ck::FFragment_FloatAttribute_Current>())
+        for (const auto Entity : Raw->view<ck::FFragment_FloatAttribute>())
         {
             ++OutCount;
             auto Handle = ck::MakeHandle(FCk_Entity{Entity}, CkRegistry);

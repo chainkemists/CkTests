@@ -640,7 +640,7 @@ bool FCkTest_VoxelNav_Occluder_TrackerEmitsOnlyOnMovementPastTheThreshold::RunTe
     // the view hands them, so a graph would add ordering machinery without adding coverage.
     ck::FProcessor_VoxelNavOccluder_Setup::ForEachEntity(FCk_Time{SixtyHertz}, Occluder,
         Occluder.Get<ck::FFragment_VoxelNavOccluder_Params>(),
-        Occluder.Get<ck::FFragment_VoxelNavOccluder_Current>());
+        Occluder.Get<ck::FFragment_VoxelNavOccluder>());
 
     TestTrue(TEXT("setup seeds the tracked bounds from the entity's own transform"),
         UCk_Utils_VoxelNavOccluder_UE::Get_TrackedBounds(Occluder).GetCenter().Equals(StartLocation));
@@ -653,7 +653,7 @@ bool FCkTest_VoxelNav_Occluder_TrackerEmitsOnlyOnMovementPastTheThreshold::RunTe
     {
         Tracker.ForEachEntity(FCk_Time{SixtyHertz}, Occluder,
             Occluder.Get<ck::FFragment_VoxelNavOccluder_Params>(),
-            Occluder.Get<ck::FFragment_VoxelNavOccluder_Current>());
+            Occluder.Get<ck::FFragment_VoxelNavOccluder>());
     };
 
     const auto DoMoveTo = [&](const FVector& InLocation) -> void

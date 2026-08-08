@@ -4,7 +4,7 @@
 // the server stamps a placement at a NON-DEFAULT cell pre-save; post-reload both worlds must report that cell
 // Occupied — proving:
 //   - the restored server re-composed the grid's PRIVATE nested cell registry: the snapshot can never capture
-//     the live FFragment_2dGridSystem_Current's TUniquePtr<FEcsWorld>, so the bridged actor's Construct RE-RUNS
+//     the live FFragment_2dGridSystem's TUniquePtr<FEcsWorld>, so the bridged actor's Construct RE-RUNS
 //     on load and re-composes it (the grid carries its compose-only debug name post-travel),
 //   - the grid's placement RECORD — NOT re-created by Construct (it was a runtime Request_AddPlacement) — is
 //     rebuilt on the AUTHORITY host by the 2dGridOccupancy Apply handler's load-hydration branch, which

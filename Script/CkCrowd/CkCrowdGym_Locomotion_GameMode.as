@@ -3,7 +3,7 @@
 //
 // Smoke-tests Sub-task 2A - FProcessor_CrowdAgent_ApplyOffset.
 // The chain under test:
-//   FFragment_Velocity_Current -> FProcessor_EulerIntegrator_Update -> FFragment_EulerIntegrator_Current::_DistanceOffset
+//   FFragment_Velocity -> FProcessor_EulerIntegrator_Update -> FFragment_EulerIntegrator::_DistanceOffset
 //   -> FProcessor_CrowdAgent_ApplyOffset -> Request_AddLocationOffset -> FProcessor_Transform_HandleRequests -> SceneNode
 //
 // The gym spawns one CrowdAgent with a Transform feature, a Velocity feature initialized to (100, 0, 0) cm/s

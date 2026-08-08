@@ -72,7 +72,7 @@ namespace
         auto* Raw = ck::registry_table::TryResolve(CkRegistry.Get_RegistryHandle());
         if (Raw == nullptr) { return Final; }
 
-        auto View = Raw->view<ck::FFragment_FloatAttribute_Current>();
+        auto View = Raw->view<ck::FFragment_FloatAttribute>();
         for (const auto Entity : View)
         {
             ++OutCount;

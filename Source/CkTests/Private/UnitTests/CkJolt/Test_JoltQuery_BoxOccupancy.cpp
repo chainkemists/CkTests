@@ -184,7 +184,7 @@ bool FCkTest_JoltQuery_BoxOccupancy_StaticBoxOccupancyAndBroadPhase::RunTest(con
                 EnclosingBodyIds.Num(), 1);
 
             const auto ExpectedBodyId = static_cast<uint64>(
-                GBoxBody.Get<ck::FFragment_JoltBody_Current>().Get_BodyId().GetIndexAndSequenceNumber());
+                GBoxBody.Get<ck::FFragment_JoltBody>().Get_BodyId().GetIndexAndSequenceNumber());
 
             const auto FoundTheBox = FoundExactlyOne && TestTrue(
                 *FString::Printf(TEXT("the returned body [%llu] is the spawned static box [%llu]"),

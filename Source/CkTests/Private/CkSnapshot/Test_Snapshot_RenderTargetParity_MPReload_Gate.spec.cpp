@@ -26,7 +26,7 @@
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
 
-#include "CkRenderTarget/RenderTarget/CkRenderTarget_Fragment.h"   // ck::FFragment_RenderTarget_Current (resolved-guard)
+#include "CkRenderTarget/RenderTarget/CkRenderTarget_Fragment.h"   // ck::FFragment_RenderTarget (resolved-guard)
 #include "CkRenderTarget/RenderTarget/CkRenderTarget_Utils.h"
 
 #include "CkSnapshot/Subsystem/CkSnapshot_Subsystem.h"
@@ -79,14 +79,14 @@ namespace
     }
 
     // True when the world's RenderTarget is resolved, has had its runtime state re-derived (a restored
-    // target whose FFragment_RenderTarget_Current has not yet been re-added must read as "not converged",
+    // target whose FFragment_RenderTarget has not yet been re-added must read as "not converged",
     // not ensure), and reports the expected latest-applied batch seq.
     auto RtParity_SeqMatches(UWorld* InWorld) -> bool
     {
         auto RenderTarget = RtParity_ResolveRenderTarget(InWorld);
         if (ck::Is_NOT_Valid(RenderTarget)) { return false; }
 
-        if (NOT FCk_Handle{RenderTarget}.Has<ck::FFragment_RenderTarget_Current>()) { return false; }
+        if (NOT FCk_Handle{RenderTarget}.Has<ck::FFragment_RenderTarget>()) { return false; }
 
         return UCk_Utils_RenderTarget_UE::Get_LatestAppliedBatchSeq(RenderTarget) == RtParity_ExpectedSeq;
     }

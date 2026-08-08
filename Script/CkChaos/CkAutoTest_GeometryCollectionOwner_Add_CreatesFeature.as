@@ -5,7 +5,7 @@
 //============================================================================
 //
 // First-coverage seed for CkChaos. GeometryCollectionOwner Add ensures
-// the entity has FFragment_OwningActor_Current, so the test spawns an
+// the entity has FFragment_OwningActor, so the test spawns an
 // actor-backed entity via ACkAutoTest_ActorEntity_Helper, waits for the
 // entity to be ready, then verifies the owner Add succeeds.
 //============================================================================

@@ -25,7 +25,7 @@ bool FCkPmg_TextShape_AddComposesFragments::RunTest(const FString& Parameters)
 
     TestTrue(TEXT("has Text params"),     Entity.Has<ck::FFragment_Pmg_Text_Params>());
     TestTrue(TEXT("has Common"),          Entity.Has<ck::FFragment_Pmg_DebugShape_Common>());
-    TestTrue(TEXT("has Current"),         Entity.Has<ck::FFragment_Pmg_DebugShape_Current>());
+    TestTrue(TEXT("has Current"),         Entity.Has<ck::FFragment_Pmg_DebugShape>());
     TestTrue(TEXT("has NeedsSetup gate"), Entity.Has<ck::FTag_Pmg_DebugShape_NeedsSetup>());
     if (Entity.Has<ck::FFragment_Pmg_Text_Params>())
     {

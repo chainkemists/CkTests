@@ -163,7 +163,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         auto AccelParams = FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector);
         utils_acceleration::Add(GenericAgent, AccelParams, ECk_Replication::DoesNotReplicate);
 
-        // Start the integrator so FFragment_EulerIntegrator_Current + FTag_EulerIntegrator_NeedsUpdate land
+        // Start the integrator so FFragment_EulerIntegrator + FTag_EulerIntegrator_NeedsUpdate land
         // on the entity. The view of FProcessor_CrowdAgent_ApplyOffset is then satisfied each tick.
         utils_euler_integrator::Request_Start(GenericAgent);
 

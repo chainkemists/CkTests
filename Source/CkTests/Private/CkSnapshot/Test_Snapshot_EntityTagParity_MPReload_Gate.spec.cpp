@@ -29,7 +29,7 @@
 #include "EngineUtils.h" // TActorIterator
 
 #include "CkEntityTag/CkEntityTag_Utils.h"
-#include "CkEntityTag/CkEntityTag_Fragment.h" // ck::FFragment_EntityTag_Current (count read)
+#include "CkEntityTag/CkEntityTag_Fragment.h" // ck::FFragment_EntityTag (count read)
 
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/OwningActor/CkOwningActor_Utils.h"
@@ -86,9 +86,9 @@ namespace
     // 0 == absent.
     auto EntityTagParity_CountOf(const FCk_Handle& InEntity, FName InTag) -> int32
     {
-        if (ck::Is_NOT_Valid(InEntity) || NOT InEntity.Has<ck::FFragment_EntityTag_Current>())
+        if (ck::Is_NOT_Valid(InEntity) || NOT InEntity.Has<ck::FFragment_EntityTag>())
         { return 0; }
-        for (const auto& TagCount : InEntity.Get<ck::FFragment_EntityTag_Current>().Get_Tags())
+        for (const auto& TagCount : InEntity.Get<ck::FFragment_EntityTag>().Get_Tags())
         {
             if (TagCount._Name == InTag)
             { return TagCount._Count; }
