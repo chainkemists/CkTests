@@ -797,7 +797,7 @@ bool FCkTest_Usf_CelShadeEntityStencilSync::RunTest(const FString& Parameters)
         ck::FProcessor_Usf_CelPatternActor_Sync::ForEachEntity(
             ck::FProcessor_Usf_CelPatternActor_Sync::TimeType{}, Entity,
             Entity.Get<ck::FFragment_Usf_CelPatternTarget>(),
-            Entity.Get<ck::FFragment_OwningActor_Current>());
+            Entity.Get<ck::FFragment_OwningActor>());
     };
 
     constexpr auto Pattern = ECk_Usf_CelPattern::Crosshatch;

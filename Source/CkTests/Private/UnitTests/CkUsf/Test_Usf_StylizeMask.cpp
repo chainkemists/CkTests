@@ -507,7 +507,7 @@ bool FCkTest_Usf_StylizeMaskEntityStencilSync::RunTest(const FString& Parameters
         ck::FProcessor_Usf_StylizeMaskActor_Sync::ForEachEntity(
             ck::FProcessor_Usf_StylizeMaskActor_Sync::TimeType{}, Entity,
             Entity.Get<ck::FFragment_Usf_StylizeMaskTarget>(),
-            Entity.Get<ck::FFragment_OwningActor_Current>());
+            Entity.Get<ck::FFragment_OwningActor>());
     };
 
     const auto ExpectedStencil = UCk_Utils_Usf_Stylize_Settings_UE::Get_MaskStencilValue();
