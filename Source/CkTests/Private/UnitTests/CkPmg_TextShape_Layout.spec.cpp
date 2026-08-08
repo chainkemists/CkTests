@@ -30,7 +30,7 @@ bool FCkPmg_TextShape_AddComposesFragments::RunTest(const FString& Parameters)
     if (Entity.Has<ck::FFragment_Pmg_Text_Params>())
     {
         TestEqual(TEXT("text stored"),
-            Entity.Get<ck::FFragment_Pmg_Text_Params>().Get_Text(), FString(TEXT("Hi")));
+            Entity.Get<ck::FFragment_Pmg_Text>().Get_Text(), FString(TEXT("Hi")));
     }
     return true;
 }
@@ -57,7 +57,7 @@ bool FCkPmg_TextShape_SetTextReArmsSetup::RunTest(const FString& Parameters)
     UCk_Utils_Pmg_DebugShape_UE::Request_SetText(TextHandle, TEXT("two"), {});
 
     TestEqual(TEXT("text updated"),
-        Entity.Get<ck::FFragment_Pmg_Text_Params>().Get_Text(), FString(TEXT("two")));
+        Entity.Get<ck::FFragment_Pmg_Text>().Get_Text(), FString(TEXT("two")));
     TestTrue(TEXT("setup gate re-armed"), Entity.Has<ck::FTag_Pmg_DebugShape_NeedsSetup>());
     return true;
 }
