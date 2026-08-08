@@ -70,7 +70,7 @@ auto
         UCk_AutoTest_Snapshot_ObjectiveProbe_LeafB_EntityScript_UE::StaticClass()
     };
 
-    UCk_Utils_ObjectiveOwner_UE::Add(InHandle, FCk_ObjectiveOwner_ParamsData{Defaults});
+    UCk_Utils_ObjectiveOwner_UE::Add(InHandle, FCk_ObjectiveOwner_Spec{Defaults});
 
     return Ret;
 }
