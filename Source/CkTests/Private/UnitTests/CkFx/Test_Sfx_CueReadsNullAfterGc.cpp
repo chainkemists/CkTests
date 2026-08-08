@@ -49,7 +49,7 @@ bool FCkTest_Sfx_CueReadsNullAfterGc::RunTest(const FString& Parameters)
     TestFalse(TEXT("a cue reachable only through an Sfx fragment is NOT kept alive by that fragment"),
         WeakCue.IsValid());
 
-    const auto& Params = Entity.Get<ck::FFragment_Sfx_Params>().Get_Params();
+    const auto& Params = Entity.Get<ck::FFragment_Sfx_Params>();
 
     TestNull(TEXT("the collected cue resolves from the params as null, never as a dangling pointer"),
         Params.Get_SoundCue().Get());
