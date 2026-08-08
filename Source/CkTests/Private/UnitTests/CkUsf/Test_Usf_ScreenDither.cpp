@@ -31,6 +31,8 @@
 
 #include "CkUsf/LookDefinition/CkUsf_LookDefinition_Naming.h"
 
+#include "CkUsf_TestBlendable.h"
+
 #include "Materials/MaterialInterface.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialParameters.h"
@@ -351,6 +353,18 @@ bool FCkTest_Usf_ScreenDitherSubsystemSettings::RunTest(const FString& Parameter
     TestTrue(TEXT("reset restores the default settings"),
         Subsystem->Get_Settings() == FCk_Usf_ScreenDither_Params{});
 
+    // ---- The palette-mode index contract ----
+    // The subsystem writes this enum's integer value straight into the look's PaletteMode parameter and
+    // ScreenDither.ush branches on it by exact value, so the ordinals ARE the contract. Pinned here rather
+    // than in the generation test because that one skips under -nullrhi, and a reorder is exactly the kind
+    // of change that would otherwise only show up as a differently-reduced frame.
+    TestEqual(TEXT("ColorSteps is shader mode 0"),
+        static_cast<int32>(ECk_Usf_PaletteMode::ColorSteps), 0);
+    TestEqual(TEXT("CustomPalette is shader mode 1"),
+        static_cast<int32>(ECk_Usf_PaletteMode::CustomPalette), 1);
+    TestEqual(TEXT("LuminanceSteps is shader mode 2"),
+        static_cast<int32>(ECk_Usf_PaletteMode::LuminanceSteps), 2);
+
     // ---- The MID name seam ----
     // Everything above proves the settings VALUE survives; none of it proves the value reaches the
     // shader. The subsystem projects onto the MID purely by name, and an unknown name is written into
@@ -368,6 +382,30 @@ bool FCkTest_Usf_ScreenDitherSubsystemSettings::RunTest(const FString& Parameter
 
             TestEqual(TEXT("every parameter name the subsystem writes resolves on the master's MID"),
                 FString::Join(Unresolved, TEXT(", ")), FString{});
+        }
+    }
+
+    // ---- The palette mode reaches the shader as its ordinal ----
+    // A mode the settings round-trip perfectly but that never lands in PaletteMode renders as ColorSteps
+    // with nothing saying so, because SetScalarParameterValue on an unwritten name is a silent no-op.
+    {
+        auto LuminanceMode = FCk_Usf_ScreenDither_Params{};
+        LuminanceMode.Set_PaletteMode(ECk_Usf_PaletteMode::LuminanceSteps);
+        Subsystem->Request_SetSettings(LuminanceMode);
+
+        TestTrue(TEXT("LuminanceSteps survives a settings round-trip"),
+            Subsystem->Get_Settings().Get_PaletteMode() == ECk_Usf_PaletteMode::LuminanceSteps);
+
+        const auto MasterPath = ck::usf::Get_GeneratedMasterObjectPath(FName(TEXT("ScreenDither")));
+        if (auto* Master = LoadObject<UMaterialInterface>(nullptr, *MasterPath))
+        {
+            auto* Mid = ck_test_usf::Get_LiveBlendableMidForMaster(World, Master);
+            if (TestNotNull(TEXT("the subsystem spawned a view effect carrying a blendable MID"), Mid))
+            {
+                auto Written = 0.0f;
+                Mid->GetScalarParameterValue(TEXT("PaletteMode"), Written);
+                TestEqual(TEXT("LuminanceSteps reaches the MID as shader mode 2"), Written, 2.0f);
+            }
         }
     }
 
@@ -442,6 +480,19 @@ bool FCkTest_Usf_ScreenDitherInvalidInput::RunTest(const FString& Parameters)
 
     TestTrue(TEXT("a single-entry custom palette is accepted"),
         Subsystem->Get_Settings() == OneEntryPalette);
+
+    // ---- 4. An empty palette is the NORMAL state of every mode that does not read one ----
+    // The guard has to be keyed on CustomPalette specifically. Written as "not ColorSteps" it would read
+    // identically today and reject LuminanceSteps, which quantizes the luminance and has no palette to
+    // author — a mode that could never be selected, refused by a diagnostic about a palette nothing wants.
+    auto LuminanceSteps = Make_NonDefaultSettings();
+    LuminanceSteps.Set_PaletteMode(ECk_Usf_PaletteMode::LuminanceSteps)
+                  .Set_Palette(TArray<FLinearColor>{});
+
+    Subsystem->Request_SetSettings(LuminanceSteps);
+
+    TestTrue(TEXT("LuminanceSteps with an empty palette is accepted — it reads no palette"),
+        Subsystem->Get_Settings() == LuminanceSteps);
 
     World->DestroyWorld(false);
     return true;
