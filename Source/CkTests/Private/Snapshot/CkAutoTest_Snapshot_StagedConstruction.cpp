@@ -70,12 +70,12 @@ namespace ck_autotest_staged_construction
         auto Count = 0;
         for (auto Child : InParent.Get<ck::FFragment_LifetimeDependents>().Get_Entities())
         {
-            if (ck::Is_NOT_Valid(Child) || NOT Child.Has<ck::FFragment_EntityScript_Current>())
+            if (ck::Is_NOT_Valid(Child) || NOT Child.Has<ck::FFragment_EntityScript>())
             { continue; }
             if (bRequireBegunPlay && NOT Child.Has<ck::FTag_EntityScript_HasBegunPlay>())
             { continue; }
 
-            const auto* Script = Child.Get<ck::FFragment_EntityScript_Current>().Get_Script().Get();
+            const auto* Script = Child.Get<ck::FFragment_EntityScript>().Get_Script().Get();
             if (ck::IsValid(Script, ck::IsValid_Policy_NullptrOnly{}) &&
                 Script->IsA<UCk_AutoTest_Snapshot_PopulationKeeper_EntityScript_UE>())
             { ++Count; }
@@ -98,7 +98,7 @@ namespace ck
         InHandle.Remove<MarkedDirtyBy>();
 
         auto* Script = Cast<UCk_AutoTest_Snapshot_StagedChild_EntityScript_UE>(
-            InHandle.Get<FFragment_EntityScript_Current>().Get_Script().Get());
+            InHandle.Get<FFragment_EntityScript>().Get_Script().Get());
 
         const auto ScriptIsValid = ck::IsValid(Script, ck::IsValid_Policy_NullptrOnly{});
         CK_ENSURE_IF_NOT(ScriptIsValid,

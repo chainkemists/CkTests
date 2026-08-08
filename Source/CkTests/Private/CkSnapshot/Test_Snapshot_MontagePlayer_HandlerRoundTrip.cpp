@@ -29,7 +29,7 @@ bool FCkSnapshot_MontagePlayer_HandlerRoundTrip::RunTest(const FString& Paramete
         .Set_Kind(ECk_MontagePlayer_StateKind::Pause);
 
     auto Source = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    Source.Add<ck::FFragment_MontagePlayer_Current>(SavedState);
+    Source.Add<ck::FFragment_MontagePlayer>(SavedState);
 
     const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_RepData_MontagePlayer::StaticStruct());
     if (NOT TestNotNull(TEXT("MontagePlayer save handler registered"), Handler) || Handler == nullptr)
@@ -46,7 +46,7 @@ bool FCkSnapshot_MontagePlayer_HandlerRoundTrip::RunTest(const FString& Paramete
 
     auto Target = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
     Target.Add<ck::FFragment_MontagePlayer_Params>(FCk_MontagePlayer_Spec{});
-    Target.Add<ck::FFragment_MontagePlayer_Current>();
+    Target.Add<ck::FFragment_MontagePlayer>();
 
     auto TargetRef = Target;
     const auto ApplyResult = Handler->HydrationApply(TargetRef, Produced.GetValue(), {});

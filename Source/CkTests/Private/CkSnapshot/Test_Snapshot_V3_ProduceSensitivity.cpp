@@ -48,7 +48,7 @@ namespace
         Params.Set_ReplicationModel(InReplicationModel);
         Params.Set_ShouldPersistCurrentState(bShouldPersistCurrentState);
         Entity.Add<ck::FFragment_Sm_Params>(Params);
-        Entity.Add<ck::FFragment_Sm_Current>();
+        Entity.Add<ck::FFragment_Sm>();
         if (bSaveTransient)
         { Entity.Add<ck::FTag_Snapshot_SaveTransient>(); }
         return Entity;
@@ -143,7 +143,7 @@ bool FCkSnapshot_V3_ProduceSensitivity::RunTest(const FString& Parameters)
 
     const auto Initial = FVector{10.0, 20.0, 30.0};
     const auto Mutated = FVector{-40.0, 50.0, 60.0};
-    Entity.Add<ck::FFragment_Velocity_Current>(Initial);
+    Entity.Add<ck::FFragment_Velocity>(Initial);
 
     const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_RepData_Velocity::StaticStruct());
     if (NOT TestNotNull(TEXT("Velocity save handler registered"), Handler) ||
@@ -159,7 +159,7 @@ bool FCkSnapshot_V3_ProduceSensitivity::RunTest(const FString& Parameters)
     const auto UnchangedBytes = SerializePayload(Unchanged.GetValue());
     TestTrue(TEXT("unchanged live state produces identical payload bytes"), FirstBytes == UnchangedBytes);
 
-    Entity.Replace<ck::FFragment_Velocity_Current>(Mutated);
+    Entity.Replace<ck::FFragment_Velocity>(Mutated);
     const auto Changed = Handler->Produce(Entity);
     if (NOT TestTrue(TEXT("Produce emitted the mutated sample"), Changed.IsSet()))
     { return false; }

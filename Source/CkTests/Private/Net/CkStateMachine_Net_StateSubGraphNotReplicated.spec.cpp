@@ -56,10 +56,10 @@ namespace ck_sm_norep_test
         if (ck::Is_NOT_Valid(StateHandle))
         { InTest->AddError(FString::Printf(TEXT("%s: SM current-state handle invalid"), InWho)); return {}; }
 
-        if (StateHandle.Has<ck::FFragment_EntityScript_Current>() == false)
+        if (StateHandle.Has<ck::FFragment_EntityScript>() == false)
         { InTest->AddError(FString::Printf(TEXT("%s: current-state entity has no EntityScript fragment"), InWho)); return {}; }
 
-        auto* Script = StateHandle.Get<ck::FFragment_EntityScript_Current>().Get_Script().Get();
+        auto* Script = StateHandle.Get<ck::FFragment_EntityScript>().Get_Script().Get();
         if (Cast<UCk_SmState_EntityScript>(Script) == nullptr)
         { InTest->AddError(FString::Printf(TEXT("%s: current-state script is not a UCk_SmState_EntityScript"), InWho)); return {}; }
 
