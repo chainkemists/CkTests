@@ -45,6 +45,9 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
         Stations.Add(Make_Station(n"Gym.Stylize.DitherFourColor", "DITHER: 4-COLOUR HANDHELD",
             "Custom 4-entry green palette, 3px blocks, Bayer 2x2.",
             "EXACTLY four colours on screen, with visible ordered dither between them — banding without dither means the threshold is applied after quantization."));
+        Stations.Add(Make_Station(n"Gym.Stylize.DitherScreenPrint", "DITHER: SCREEN PRINT",
+            "Five steps on the LUMINANCE only — Balanced's pattern, scale and strength, quantizing tone instead of channels.",
+            "Saturated surfaces must keep their hue and only jump in brightness. A hue that shifts at a band edge means the luminance path fell through to per-channel quantization."));
         Stations.Add(Make_Station(n"Gym.Stylize.DitherAnimatedGrain", "DITHER: ANIMATED GRAIN",
             "Blue-noise threshold re-rolled 20x a second, 10 steps, full resolution.",
             "Should read as film grain in motion. Blotchy clumping means the blue-noise approximation degenerated to white noise."));
@@ -110,6 +113,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
         _StationTags.Add(n"Gym.Stylize.DitherSubtleColor");
         _StationTags.Add(n"Gym.Stylize.DitherRetroPixel");
         _StationTags.Add(n"Gym.Stylize.DitherFourColor");
+        _StationTags.Add(n"Gym.Stylize.DitherScreenPrint");
         _StationTags.Add(n"Gym.Stylize.DitherAnimatedGrain");
         _StationTags.Add(n"Gym.Stylize.DitherOff");
 
@@ -203,8 +207,9 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
         if (InIndex == 1) { return CkUsf::DA_Dither_SubtleColor; }
         if (InIndex == 2) { return CkUsf::DA_Dither_RetroPixel; }
         if (InIndex == 3) { return CkUsf::DA_Dither_FourColorHandheld; }
-        if (InIndex == 4) { return CkUsf::DA_Dither_AnimatedGrain; }
-        if (InIndex == 5) { return CkUsf::DA_Dither_Off; }
+        if (InIndex == 4) { return CkUsf::DA_Dither_ScreenPrint; }
+        if (InIndex == 5) { return CkUsf::DA_Dither_AnimatedGrain; }
+        if (InIndex == 6) { return CkUsf::DA_Dither_Off; }
         return nullptr;
     }
 
@@ -216,8 +221,9 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
         if (InIndex == 1) { return "SubtleColor"; }
         if (InIndex == 2) { return "RetroPixel"; }
         if (InIndex == 3) { return "FourColorHandheld"; }
-        if (InIndex == 4) { return "AnimatedGrain"; }
-        if (InIndex == 5) { return "Off"; }
+        if (InIndex == 4) { return "ScreenPrint"; }
+        if (InIndex == 5) { return "AnimatedGrain"; }
+        if (InIndex == 6) { return "Off"; }
         return "?";
     }
 
