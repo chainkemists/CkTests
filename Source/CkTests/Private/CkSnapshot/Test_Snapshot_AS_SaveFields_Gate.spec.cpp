@@ -167,10 +167,10 @@ namespace ck_snapshot_as_savefields_gate
 
         for (auto Child : UCk_Utils_EntityLifetime_UE::Get_LifetimeDependents(Owner))
         {
-            if (ck::Is_NOT_Valid(Child) || NOT Child.Has<ck::FFragment_EntityScript_Current>())
+            if (ck::Is_NOT_Valid(Child) || NOT Child.Has<ck::FFragment_EntityScript>())
             { continue; }
 
-            auto* Script = Child.Get<ck::FFragment_EntityScript_Current>().Get_Script().Get();
+            auto* Script = Child.Get<ck::FFragment_EntityScript>().Get_Script().Get();
             if (Script != nullptr && Script->GetClass() == InFixtureClass)
             { return Script; }
         }

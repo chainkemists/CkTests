@@ -5,7 +5,7 @@
 //============================================================================
 //
 // After fully removing every tag, Get_AllTags must return an empty array
-// (the underlying FFragment_EntityTag_Current is removed when both the
+// (the underlying FFragment_EntityTag is removed when both the
 // FName _Tags array and the gameplay-tag _GameplayTagCounts array empty).
 //
 // Re-adding a tag afterward must work - the fragment must come back
