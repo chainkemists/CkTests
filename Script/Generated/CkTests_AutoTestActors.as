@@ -4077,6 +4077,19 @@ class ACk_AutoTest_Intent_SamplerRecordsConditionedAxis_Actor : ACk_AutoTestRunn
     }
 }
 
+class ACk_AutoTest_Intent_ScanDiagnosticsRecordOnlyWhenEnabled_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 30.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Intent_ScanDiagnosticsRecordOnlyWhenEnabled");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Intent_SocdLastAndFirstInputPriorityDisagree_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 15.0f;
