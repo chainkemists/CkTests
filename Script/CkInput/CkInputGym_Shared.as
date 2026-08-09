@@ -7,11 +7,20 @@
 // Station tags, the mapping names the gym drives, and the read/format helpers
 // every station shares.
 //
+// EVERY PANEL IS A LIST OF COLOURED LINES, never one blob of text. A station
+// panel is a UTextRenderComponent per colour run (CkGym_Utils.as), so the whole
+// gym speaks in FCkGym_ColoredLine: green means a check matched, red means it
+// did not, amber means a value drifted from its authored default, cyan is the
+// live step or an instruction to the viewer, and grey is idle. The exec commands
+// on the PlayerController report in the same currency, which is what lets a
+// station render the last command's outcome without re-colouring it.
+//
 // WHY THE MUTATIONS LIVE ON THE PLAYER CONTROLLER, NOT THE STATIONS. A key
 // profile belongs to the LOCAL PLAYER, not to any station — there is no
 // station-scoped binding state to mutate. The stations are read-only displays;
-// every remap / swap / reset is an exec command on the gym PlayerController,
-// and the stations show the result on their next display tick.
+// every remap / swap / reset is either a demo step on the Remap + Conflict
+// station's state machine or an exec command on the gym PlayerController, and
+// the stations show the result on their next display tick.
 //
 // LIVE READS, NEVER CACHED. Every station re-reads the profile on its display
 // tick instead of snapshotting at construct, so a rebind performed from any
@@ -22,7 +31,9 @@
 //
 // TEARDOWN IS LAW HERE. SaveKeyBindings writes real user settings under Saved/
 // that outlive the PIE session (CkInput/CLAUDE.md anti-pattern 2), so a leaked
-// rebind poisons every later run and the next baseline capture.
+// rebind poisons every later run and the next baseline capture. That matters
+// more now that the demo runs unattended: leaving the gym mid-cycle would
+// otherwise persist whatever step happened to be on screen.
 // Request_ResetAllAndSave below is the single teardown call, reached two ways:
 // the DoEndPlay of every station that can leave the profile customized, and an
 // exec on the PlayerController. The DoEndPlay path is ARMED BY DEFAULT and can
@@ -67,8 +78,84 @@ struct FCkInputGym_StationSpawnParams
     FString StationDescription;
 }
 
+//----------------------------------------------------------------------------
+// Verdict written by a demo step and rendered by its station on the next tick.
+//
+// A step state is its own entity script and must not reach into the station
+// script's members, so the verdict travels as a fragment. It lands on the
+// station SCRIPT entity, found by the private tag that station adds to itself:
+// that is the one entity both sides can name without either of them depending
+// on how the gym's entity hierarchy happens to resolve context owners.
+//----------------------------------------------------------------------------
+
+USTRUCT()
+struct FCkInputGym_StepVerdict
+{
+    UPROPERTY()
+    FString StepLabel;
+
+    UPROPERTY()
+    TArray<FCkGym_ColoredLine> Lines;
+}
+
+//----------------------------------------------------------------------------
+// Result of the once-per-construct persistence probe. Recorded before the demo
+// loop can move anything, so a PASS can only mean the marker key came off disk.
+//----------------------------------------------------------------------------
+
+USTRUCT()
+struct FCkInputGym_PersistenceProbe
+{
+    UPROPERTY()
+    bool Checked = false;
+
+    UPROPERTY()
+    bool Passed = false;
+
+    UPROPERTY()
+    FString ObservedJumpKey;
+}
+
+//----------------------------------------------------------------------------
+// One row's glyph state, resolved and handed back rather than rendered on the
+// spot: how a miss should READ depends on whether any other row resolved, and
+// that is only knowable once the whole pass is in.
+//----------------------------------------------------------------------------
+
+USTRUCT()
+struct FCkInputGym_GlyphRow
+{
+    UPROPERTY()
+    FString KeyText;
+
+    UPROPERTY()
+    FColor KeyColour = FColor(255, 255, 255, 255);
+
+    UPROPERTY()
+    bool FromKeyResolved = false;
+
+    UPROPERTY()
+    FString FromKeyResource;
+
+    UPROPERTY()
+    bool FromActionResolved = false;
+
+    UPROPERTY()
+    FString FromActionResource;
+}
+
 namespace input_gym
 {
+    // Private per-station tags. The GymStation display entity carries the
+    // Gym.Input.* tags; these sit on the station SCRIPT entities so a demo step
+    // can find the station it is reporting against, and so the auto toggle can
+    // reach the station that owns the demo state machine.
+    const FName k_Tag_Inspection       = n"TAG_InputGym_Inspection";
+    const FName k_Tag_RemapConflict    = n"TAG_InputGym_RemapConflict";
+    const FName k_Tag_ResetPersistence = n"TAG_InputGym_ResetPersistence";
+    const FName k_Tag_KeyIcon          = n"TAG_InputGym_KeyIcon";
+    const FName k_Tag_ChangeSignal     = n"TAG_InputGym_ChangeSignal";
+
     // The mapping names authored on the four Input Actions
     // (CkInput_Assets.as:47, 56, 65, 74). Categories are load-bearing:
     // Jump/Crouch are both Movement and Interact/Flashlight are both
@@ -83,9 +170,15 @@ namespace input_gym
     // key succeeds" case.
     const FKey k_FreeKey = EKeys::J;
 
-    // Second free key. The batch remap lands both movement rows on it so the
-    // conflict view has a two-holder key to report.
+    // Second free key. The batch remap lands several rows on it so the conflict
+    // view has a multi-holder key to report.
     const FKey k_BatchKey = EKeys::X;
+
+    // Reserved for the persistence check and nothing else. No exec command and
+    // no demo step ever assigns it, which is what lets the construct-time probe
+    // read "Jump holds this key" as proof the value came off disk rather than
+    // from the loop that was running a moment ago.
+    const FKey k_PersistMarkerKey = EKeys::Y;
 
     APlayerController Get_LocalPlayerController()
     {
@@ -123,6 +216,10 @@ namespace input_gym
         utils_key_binding::SaveKeyBindings(InPlayerController);
     }
 
+    //------------------------------------------------------------------------
+    // VALUE FORMATTING
+    //------------------------------------------------------------------------
+
     FString Format_Key(FKey InKey)
     {
         if (InKey.IsValid() == false)
@@ -139,142 +236,422 @@ namespace input_gym
     FString Format_BrushResource(FSlateBrush InBrush)
     {
         if (ck::Is_NOT_Valid(InBrush.ResourceObject))
-        { return "<no glyph for this key on the active device>"; }
+        { return "<none>"; }
 
         return InBrush.ResourceObject.GetName().ToString();
     }
 
-    // One row of the binding table: the mapping's display metadata off its
-    // Input Action, the key it currently holds, and every other mapping sharing
-    // that key. Read fresh on every call — see the file header.
-    FString Format_MappingRow(APlayerController InPlayerController, const UInputAction InInputAction)
+    // "Crouch [Movement]" — the display name and category authored on the
+    // Input Action. Conflict verdicts are stated in these terms because that is
+    // what a player sees in a settings screen, not the internal mapping name.
+    FString Format_MappingIdentity(const UInputAction InInputAction)
     {
         FCk_KeyBinding_MappableKeyInfo Info;
-        auto HasInfo = utils_key_binding::Get_MappableKeyInfoFromInputAction(InInputAction, Info);
-        if (HasInfo == false)
-        { return "  <input action carries no player-mappable key settings>\n"; }
+        if (utils_key_binding::Get_MappableKeyInfoFromInputAction(InInputAction, Info) == false)
+        { return "<no player-mappable key settings>"; }
 
-        auto MappingName = Info.Get_MappingName();
-        auto CurrentKey  = utils_key_binding::Get_KeyForMapping(
-            InPlayerController, MappingName, EPlayerMappableKeySlot::First);
-
-        auto Row = f"  {Info.Get_DisplayName().ToString()} [{Info.Get_DisplayCategory().ToString()}]\n";
-        Row = f"{Row}    name={MappingName}  key={Format_Key(CurrentKey)}\n";
-
-        auto SharedWith = utils_key_binding::Get_MappingNamesForKey(InPlayerController, CurrentKey);
-        if (SharedWith.Num() > 1)
-        {
-            auto Others = FString();
-            for (auto Other : SharedWith)
-            {
-                if (Other == MappingName)
-                { continue; }
-
-                Others = f"{Others} {Other}";
-            }
-            Row = f"{Row}    SHARES KEY WITH:{Others}\n";
-        }
-
-        return Row;
+        return f"{Info.Get_DisplayName().ToString()} [{Info.Get_DisplayCategory().ToString()}]";
     }
 
-    FString Format_AllMappingRows(APlayerController InPlayerController)
-    {
-        auto Text = Format_MappingRow(InPlayerController, input_assets::IA_CkTests_Jump);
-        Text = f"{Text}{Format_MappingRow(InPlayerController, input_assets::IA_CkTests_Crouch)}";
-        Text = f"{Text}{Format_MappingRow(InPlayerController, input_assets::IA_CkTests_Interact)}";
-        Text = f"{Text}{Format_MappingRow(InPlayerController, input_assets::IA_CkTests_Flashlight)}";
-        return Text;
-    }
-
-    // The raw profile view — what Get_AllRemappableKeys itself returns, so a
-    // row present in the profile but absent from the authored four is visible
-    // rather than silently dropped by the per-Input-Action walk above.
-    FString Format_ProfileRows(APlayerController InPlayerController)
-    {
-        auto Rows = utils_key_binding::Get_AllRemappableKeys(InPlayerController);
-        auto Text = f"Profile rows: {Rows.Num()} (expected {input_assets::k_MappableRowCount})\n";
-
-        for (auto Index = 0; Index < Rows.Num(); Index++)
-        {
-            auto Row = Rows[Index];
-            Text = f"{Text}  {Row.MappingName} {Format_Slot(Row.Slot)}";
-            Text = f"{Text}  current={Format_Key(Row.CurrentKey)}  default={Format_Key(Row.DefaultKey)}\n";
-        }
-
-        if (Rows.Num() == 0)
-        {
-            Text = f"{Text}  EMPTY — IMC_CkTests_KeyBinding never reached the key profile.\n";
-            Text = f"{Text}  Nothing below this line is meaningful until it does.\n";
-        }
-
-        return Text;
-    }
-
-    FString Format_Conflicts(TArray<FCk_KeyBinding_ConflictInfo> InConflicts)
+    FString Format_ConflictHolders(TArray<FCk_KeyBinding_ConflictInfo> InConflicts)
     {
         if (InConflicts.Num() == 0)
-        { return "    (no conflicts)\n"; }
+        { return "(none)"; }
 
         auto Text = FString();
-        for (auto Conflict : InConflicts)
+        for (auto Index = 0; Index < InConflicts.Num(); Index++)
         {
-            Text = f"{Text}    {Conflict.Get_DisplayName().ToString()}";
-            Text = f"{Text} (name={Conflict.Get_MappingName()}, category={Conflict.Get_DisplayCategory().ToString()})";
-            Text = f"{Text} holds {Format_Key(Conflict.Get_CurrentKey())} in {Format_Slot(Conflict.Get_Slot())}\n";
+            auto Conflict = InConflicts[Index];
+            auto Identity = f"{Conflict.Get_DisplayName().ToString()} [{Conflict.Get_DisplayCategory().ToString()}]";
+
+            if (Index == 0)
+            {
+                Text = Identity;
+                continue;
+            }
+
+            Text = f"{Text}, {Identity}";
         }
+
         return Text;
     }
 
-    // Reports the conflicts InNewKey would cause for InMappingName under BOTH
-    // scopes. Two calls rather than one because the difference between them IS
-    // what the authored category design exists to demonstrate.
-    FString Format_ConflictReport(APlayerController InPlayerController, FName InMappingName, FKey InNewKey)
+    // Who would collide if InMappingName took InNewKey, under the named scope.
+    // InMappingName is excluded from its own conflict list — it is the one
+    // asking, not a holder.
+    TArray<FCk_KeyBinding_ConflictInfo> Get_ConflictsFor(
+        APlayerController InPlayerController,
+        FName InMappingName,
+        FKey InNewKey,
+        ECk_KeyConflictScope InScope)
     {
         auto Excluded = TArray<FName>();
         Excluded.Add(InMappingName);
 
-        TArray<FCk_KeyBinding_ConflictInfo> AllScope;
-        auto HasAll = utils_key_binding::Get_HasKeyConflicts(
-            InPlayerController, InNewKey, Excluded, AllScope, ECk_KeyConflictScope::All);
-
-        TArray<FCk_KeyBinding_ConflictInfo> SameCategoryScope;
-        auto HasSameCategory = utils_key_binding::Get_HasKeyConflicts(
-            InPlayerController, InNewKey, Excluded, SameCategoryScope, ECk_KeyConflictScope::SameCategory);
-
-        auto Text = f"  {InMappingName} -> {Format_Key(InNewKey)}\n";
-        Text = f"{Text}  scope=All          conflicts={HasAll}\n";
-        Text = f"{Text}{Format_Conflicts(AllScope)}";
-        Text = f"{Text}  scope=SameCategory conflicts={HasSameCategory}\n";
-        Text = f"{Text}{Format_Conflicts(SameCategoryScope)}";
-        return Text;
+        TArray<FCk_KeyBinding_ConflictInfo> Conflicts;
+        utils_key_binding::Get_HasKeyConflicts(InPlayerController, InNewKey, Excluded, Conflicts, InScope);
+        return Conflicts;
     }
 
-    // Glyph resolution, re-run on every call. Reports the resolved brush's
-    // resource object rather than drawing it — the gym station panel is
-    // procedural 3D text, not Slate — which is still enough to watch the row
-    // swap between keyboard and gamepad artwork when the device changes.
-    FString Format_GlyphRow(APlayerController InPlayerController, const UInputAction InInputAction)
+    FString Format_Bool(bool InValue)
     {
-        auto MappingName = utils_key_binding::Get_MappingNameFromInputAction(InInputAction);
-        auto CurrentKey  = utils_key_binding::Get_KeyForInputAction(
-            InPlayerController, InInputAction, EPlayerMappableKeySlot::First);
+        if (InValue)
+        { return "yes"; }
 
-        auto ByKey    = utils_key_icon::Get_BrushForKey(InPlayerController, CurrentKey);
+        return "no";
+    }
+
+    //------------------------------------------------------------------------
+    // COLOURED PANEL BUILDING BLOCKS
+    //------------------------------------------------------------------------
+
+    void Add_Line(TArray<FCkGym_ColoredLine>& OutLines, FString InText, FColor InColour)
+    {
+        OutLines.Add(FCkGym_ColoredLine(InText, InColour));
+    }
+
+    // A blank line still belongs to a run, so it carries the colour of whatever
+    // it separates rather than starting one of its own.
+    void Add_Spacer(TArray<FCkGym_ColoredLine>& OutLines, FColor InColour)
+    {
+        OutLines.Add(FCkGym_ColoredLine(" ", InColour));
+    }
+
+    // InLines is a non-const reference on purpose: AngelScript rejects
+    // TArray::Add of a const element, so a by-value (implicitly const)
+    // parameter here would not compile. Callers stash a returned array in a
+    // local first.
+    void Add_Lines(TArray<FCkGym_ColoredLine>& OutLines, TArray<FCkGym_ColoredLine>& InLines)
+    {
+        for (auto Index = 0; Index < InLines.Num(); Index++)
+        {
+            OutLines.Add(InLines[Index]);
+        }
+    }
+
+    FColor Get_VerdictColour(bool InPassed)
+    {
+        if (InPassed)
+        { return gym_palette::Green; }
+
+        return gym_palette::Red;
+    }
+
+    // The one self-asserting shape every station on this gym uses. Whatever the
+    // check is, it reads the same way: what was expected, what was actually
+    // there, and green or red for whether the two agree.
+    void Add_Verdict(TArray<FCkGym_ColoredLine>& OutLines, FString InWhat, FString InExpect, FString InGot)
+    {
+        Add_Line(OutLines, f"  {InWhat}  EXPECT {InExpect} -> GOT {InGot}", Get_VerdictColour(InExpect == InGot));
+    }
+
+    FColor Get_DriftColour(bool InMatched)
+    {
+        if (InMatched)
+        { return gym_palette::Green; }
+
+        return gym_palette::Amber;
+    }
+
+    // Same shape as Add_Verdict, for a reading that legitimately disagrees while
+    // something else is mid-flight. Red on this gym means a check the surface
+    // should have passed and did not; a value that is merely following a running
+    // demo has not failed anything, so it drifts amber instead.
+    void Add_Verdict_AmberOnMismatch(TArray<FCkGym_ColoredLine>& OutLines, FString InWhat, FString InExpect, FString InGot)
+    {
+        Add_Line(OutLines, f"  {InWhat}  EXPECT {InExpect} -> GOT {InGot}", Get_DriftColour(InExpect == InGot));
+    }
+
+    // Live step list, sourced from the state machine's current state the same
+    // way gym_sm::FormatAutoSequence sources it, so the panel cannot advertise a
+    // step other than the one running.
+    void Add_SmSteps(TArray<FCkGym_ColoredLine>& OutLines, const FCkGym_SmConfig&in InConfig, FCk_Handle_StateMachine InSm)
+    {
+        auto HasCurrent = ck::IsValid(InSm);
+        TSubclassOf<UCk_SmState_EntityScript> Current;
+        if (HasCurrent)
+        { Current = utils_state_machine::Get_CurrentStateClass(InSm); }
+
+        for (auto Index = 0; Index < InConfig.Steps.Num(); Index++)
+        {
+            auto IsActive = HasCurrent && InConfig.Steps[Index].StateClass == Current;
+
+            if (IsActive)
+            {
+                Add_Line(OutLines, f"  >> {InConfig.Steps[Index].Description}", gym_palette::Cyan);
+                continue;
+            }
+
+            Add_Line(OutLines, f"     {InConfig.Steps[Index].Description}", gym_palette::Grey);
+        }
+    }
+
+    // One line per profile row. Amber names the authored default alongside the
+    // live key whenever the two have drifted apart.
+    void Add_MappingRows(TArray<FCkGym_ColoredLine>& OutLines, APlayerController InPlayerController)
+    {
+        auto Rows = utils_key_binding::Get_AllRemappableKeys(InPlayerController);
+
+        if (Rows.Num() == 0)
+        {
+            Add_Line(OutLines, "  Nothing in the key profile — the mapping context never reached it.", gym_palette::Red);
+            return;
+        }
+
+        for (auto Index = 0; Index < Rows.Num(); Index++)
+        {
+            auto Row = Rows[Index];
+            auto Current = Format_Key(Row.CurrentKey);
+            auto Default = Format_Key(Row.DefaultKey);
+
+            if (Current == Default)
+            {
+                Add_Line(OutLines, f"  {Row.MappingName} is on {Current}", gym_palette::White);
+                continue;
+            }
+
+            Add_Line(OutLines, f"  {Row.MappingName} is on {Current} (default {Default})", gym_palette::Amber);
+        }
+    }
+
+    // The per-Input-Action view: display name, category, and anyone else holding
+    // the same key. Complements Add_MappingRows, which reads the raw profile.
+    void Add_MappingDetail(TArray<FCkGym_ColoredLine>& OutLines, APlayerController InPlayerController, const UInputAction InInputAction)
+    {
+        FCk_KeyBinding_MappableKeyInfo Info;
+        if (utils_key_binding::Get_MappableKeyInfoFromInputAction(InInputAction, Info) == false)
+        {
+            Add_Line(OutLines, "  <input action carries no player-mappable key settings>", gym_palette::Red);
+            return;
+        }
+
+        auto MappingName = Info.Get_MappingName();
+        auto CurrentKey = utils_key_binding::Get_KeyForMapping(InPlayerController, MappingName, EPlayerMappableKeySlot::First);
+
+        Add_Line(OutLines, f"  {Format_MappingIdentity(InInputAction)} on {Format_Key(CurrentKey)}", gym_palette::White);
+
+        auto SharedWith = utils_key_binding::Get_MappingNamesForKey(InPlayerController, CurrentKey);
+        if (SharedWith.Num() <= 1)
+        { return; }
+
+        auto Others = FString();
+        for (auto Other : SharedWith)
+        {
+            if (Other == MappingName)
+            { continue; }
+
+            Others = f"{Others} {Other}";
+        }
+
+        Add_Line(OutLines, f"    also held by:{Others}", gym_palette::Amber);
+    }
+
+    void Add_AllMappingDetails(TArray<FCkGym_ColoredLine>& OutLines, APlayerController InPlayerController)
+    {
+        Add_MappingDetail(OutLines, InPlayerController, input_assets::IA_CkTests_Jump);
+        Add_MappingDetail(OutLines, InPlayerController, input_assets::IA_CkTests_Crouch);
+        Add_MappingDetail(OutLines, InPlayerController, input_assets::IA_CkTests_Interact);
+        Add_MappingDetail(OutLines, InPlayerController, input_assets::IA_CkTests_Flashlight);
+    }
+
+    // What a remap onto InNewKey would collide with, under BOTH scopes, without
+    // mutating anything. Two reads rather than one because the difference
+    // between them IS what the authored categories exist to demonstrate.
+    void Add_ConflictPreview(
+        TArray<FCkGym_ColoredLine>& OutLines,
+        APlayerController InPlayerController,
+        FName InMappingName,
+        FKey InNewKey)
+    {
+        Add_Line(OutLines, f"  if {InMappingName} took {Format_Key(InNewKey)}:", gym_palette::White);
+
+        auto AllScope = Get_ConflictsFor(InPlayerController, InMappingName, InNewKey, ECk_KeyConflictScope::All);
+        auto SameCategory = Get_ConflictsFor(InPlayerController, InMappingName, InNewKey, ECk_KeyConflictScope::SameCategory);
+
+        Add_Line(OutLines, f"    any category  -> {Format_ConflictHolders(AllScope)}", gym_palette::White);
+        Add_Line(OutLines, f"    same category -> {Format_ConflictHolders(SameCategory)}", gym_palette::White);
+    }
+
+    int32 Get_CustomizedRowCount(APlayerController InPlayerController)
+    {
+        auto Rows = utils_key_binding::Get_AllRemappableKeys(InPlayerController);
+        auto Count = 0;
+
+        for (auto Index = 0; Index < Rows.Num(); Index++)
+        {
+            auto Row = Rows[Index];
+            if (Format_Key(Row.CurrentKey) != Format_Key(Row.DefaultKey))
+            { Count++; }
+        }
+
+        return Count;
+    }
+
+    // Device class off the key's own name rather than a device query: the panel
+    // is procedural 3D text with no CommonUI subsystem read of its own, and
+    // Get_ActiveControllerData ensures on a legitimate miss
+    // (CkInput/CLAUDE.md anti-pattern 4).
+    bool Get_IsGamepadKey(FKey InKey)
+    {
+        return Format_Key(InKey).Contains("Gamepad");
+    }
+
+    // The profile is the only place a row's authored default is readable — the
+    // Input Action itself carries display metadata, not the default key.
+    FKey Get_DefaultKeyForMapping(APlayerController InPlayerController, FName InMappingName)
+    {
+        auto Rows = utils_key_binding::Get_AllRemappableKeys(InPlayerController);
+
+        for (auto Index = 0; Index < Rows.Num(); Index++)
+        {
+            auto Row = Rows[Index];
+            if (Row.MappingName == InMappingName)
+            { return Row.DefaultKey; }
+        }
+
+        return FKey();
+    }
+
+    int32 Get_RowsAtDefaultCount(APlayerController InPlayerController)
+    {
+        auto Rows = utils_key_binding::Get_AllRemappableKeys(InPlayerController);
+        auto Count = 0;
+
+        for (auto Index = 0; Index < Rows.Num(); Index++)
+        {
+            auto Row = Rows[Index];
+            if (Format_Key(Row.CurrentKey) == Format_Key(Row.DefaultKey))
+            { Count++; }
+        }
+
+        return Count;
+    }
+
+    void Add_GlyphVerdict(TArray<FCkGym_ColoredLine>& OutLines, FString InLabel, bool InResolved, FString InResource)
+    {
+        if (InResolved == false)
+        {
+            Add_Line(OutLines, f"{InLabel}  NO GLYPH", gym_palette::Red);
+            return;
+        }
+
+        Add_Line(OutLines, f"{InLabel}  glyph ok ({InResource})", gym_palette::Green);
+    }
+
+    // Per-row glyph state. Re-resolved on every call and NOTHING is stored:
+    // both brush getters read the live CommonUI device state, so a cached
+    // FSlateBrush is stale the moment the player changes device.
+    FCkInputGym_GlyphRow Get_GlyphRow(APlayerController InPlayerController, const UInputAction InInputAction)
+    {
+        auto Row = FCkInputGym_GlyphRow();
+
+        auto MappingName = utils_key_binding::Get_MappingNameFromInputAction(InInputAction);
+        auto CurrentKey = utils_key_binding::Get_KeyForInputAction(InPlayerController, InInputAction, EPlayerMappableKeySlot::First);
+        auto DefaultKey = Get_DefaultKeyForMapping(InPlayerController, MappingName);
+
+        auto KeyColour = gym_palette::White;
+        if (Get_IsGamepadKey(CurrentKey))
+        { KeyColour = gym_palette::Cyan; }
+        if (Format_Key(CurrentKey) != Format_Key(DefaultKey))
+        { KeyColour = gym_palette::Amber; }
+
+        Row.KeyText = f"  {Format_MappingIdentity(InInputAction)} on {Format_Key(CurrentKey)}";
+        Row.KeyColour = KeyColour;
+
+        auto ByKey = utils_key_icon::Get_BrushForKey(InPlayerController, CurrentKey);
         auto ByAction = utils_key_icon::Get_BrushForInputAction(InPlayerController, InInputAction);
 
-        auto Text = f"  {MappingName}  key={Format_Key(CurrentKey)}\n";
-        Text = f"{Text}    ForKey    {Format_BrushResource(ByKey)}\n";
-        Text = f"{Text}    ForAction {Format_BrushResource(ByAction)}\n";
-        return Text;
+        Row.FromKeyResolved = ck::IsValid(ByKey.ResourceObject);
+        Row.FromKeyResource = Format_BrushResource(ByKey);
+        Row.FromActionResolved = ck::IsValid(ByAction.ResourceObject);
+        Row.FromActionResource = Format_BrushResource(ByAction);
+
+        return Row;
     }
 
-    FString Format_AllGlyphRows(APlayerController InPlayerController)
+    int32 Get_ResolvedGlyphCount(TArray<FCkInputGym_GlyphRow>& InRows)
     {
-        auto Text = Format_GlyphRow(InPlayerController, input_assets::IA_CkTests_Jump);
-        Text = f"{Text}{Format_GlyphRow(InPlayerController, input_assets::IA_CkTests_Crouch)}";
-        Text = f"{Text}{Format_GlyphRow(InPlayerController, input_assets::IA_CkTests_Interact)}";
-        Text = f"{Text}{Format_GlyphRow(InPlayerController, input_assets::IA_CkTests_Flashlight)}";
-        return Text;
+        auto Count = 0;
+
+        for (auto Index = 0; Index < InRows.Num(); Index++)
+        {
+            if (InRows[Index].FromKeyResolved)
+            { Count++; }
+
+            if (InRows[Index].FromActionResolved)
+            { Count++; }
+        }
+
+        return Count;
+    }
+
+    // A pass where EVERY lookup missed is an empty art set, not four failures:
+    // a project that configures no CommonUI controller data has nothing for a
+    // correctly-wired resolver to hand back, so the panel says that once in
+    // amber and drops the per-row verdicts. The moment ONE row resolves the
+    // per-row green/red comes back — a miss next to a hit is a real difference,
+    // and only the whole pass can tell the two apart.
+    void Add_AllGlyphRows(TArray<FCkGym_ColoredLine>& OutLines, APlayerController InPlayerController)
+    {
+        auto JumpRow = Get_GlyphRow(InPlayerController, input_assets::IA_CkTests_Jump);
+        auto CrouchRow = Get_GlyphRow(InPlayerController, input_assets::IA_CkTests_Crouch);
+        auto InteractRow = Get_GlyphRow(InPlayerController, input_assets::IA_CkTests_Interact);
+        auto FlashlightRow = Get_GlyphRow(InPlayerController, input_assets::IA_CkTests_Flashlight);
+
+        auto Rows = TArray<FCkInputGym_GlyphRow>();
+        Rows.Add(JumpRow);
+        Rows.Add(CrouchRow);
+        Rows.Add(InteractRow);
+        Rows.Add(FlashlightRow);
+
+        auto AnyResolved = Get_ResolvedGlyphCount(Rows) > 0;
+
+        if (AnyResolved == false)
+        {
+            Add_Line(OutLines, "  no key artwork configured in this host project - glyph art ships", gym_palette::Amber);
+            Add_Line(OutLines, "  with game projects (e.g. BusterBlock); the resolver wiring is", gym_palette::Amber);
+            Add_Line(OutLines, "  exercised, the art set is empty", gym_palette::Amber);
+        }
+
+        for (auto Index = 0; Index < Rows.Num(); Index++)
+        {
+            Add_Line(OutLines, Rows[Index].KeyText, Rows[Index].KeyColour);
+
+            if (AnyResolved == false)
+            { continue; }
+
+            Add_GlyphVerdict(OutLines, "    from key   ", Rows[Index].FromKeyResolved, Rows[Index].FromKeyResource);
+            Add_GlyphVerdict(OutLines, "    from action", Rows[Index].FromActionResolved, Rows[Index].FromActionResource);
+        }
+    }
+
+    //------------------------------------------------------------------------
+    // STATION LOOKUP + VERDICT TRANSPORT
+    //------------------------------------------------------------------------
+
+    // Any entity in the world works as the query anchor — the tag store is
+    // world-wide, which is what lets a demo step reach a station it holds no
+    // reference to.
+    FCk_Handle TryGet_TaggedStation(FCk_Handle InAnyEntity, FName InStationTag)
+    {
+        if (ck::Is_NOT_Valid(InAnyEntity))
+        { return FCk_Handle(); }
+
+        auto Entities = utils_entity_tag::ForEach_Entity(InAnyEntity, InStationTag);
+        if (Entities.Num() == 0)
+        { return FCk_Handle(); }
+
+        return Entities[0];
+    }
+
+    void Write_StepVerdict(FCk_Handle InAnyEntity, FName InStationTag, FString InStepLabel, TArray<FCkGym_ColoredLine>& InLines)
+    {
+        auto Station = TryGet_TaggedStation(InAnyEntity, InStationTag);
+        if (ck::Is_NOT_Valid(Station))
+        { return; }
+
+        auto& Verdict = Station.AddOrGet_Fragment(FCkInputGym_StepVerdict);
+        Verdict.StepLabel = InStepLabel;
+        Verdict.Lines = InLines;
     }
 }

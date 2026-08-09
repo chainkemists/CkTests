@@ -13,9 +13,11 @@
 // (CkInput/CLAUDE.md anti-pattern 3), so a second listener on a row this station
 // already watches would be silently killed by this station's own teardown.
 //
-// The fire counter is what makes "fires exactly once per remap" checkable: run
-// one remap command on the Remap + Conflict station and exactly one row's count
-// should advance by one, with no manual refresh anywhere.
+// WHAT THIS PANEL ASSERTS: every watched row's listener has fired at least once.
+// Nothing on this station synchronises with the demo's cycle — a row is either
+// known to have fired or it is not, and that answer survives whatever the demo
+// is doing at the moment you look. The demo on the Remap + Conflict station
+// moves all four rows within one lap, so the header goes green on its own.
 //
 // This station never mutates the profile, so its DoEndPlay only unbinds.
 //============================================================================
@@ -37,8 +39,8 @@ class UCk_EntityScript_InputGym_ChangeSignal : UCk_GenericEntityScript_UE
     private TArray<FKey> _PolledKeys;
     private TArray<int32> _FireCounts;
 
-    private FString _LastDelegateEvent = "(none yet)";
-    private FString _LastPolledEvent = "(none yet)";
+    private FString _LastDelegateEvent = "(nothing yet)";
+    private FString _LastPolledEvent = "(nothing yet)";
     private int32 _PolledChangeCount = 0;
 
     UFUNCTION(BlueprintOverride)
@@ -46,6 +48,7 @@ class UCk_EntityScript_InputGym_ChangeSignal : UCk_GenericEntityScript_UE
     DoConstruct(FCk_Handle& InHandle)
     {
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
+        utils_entity_tag::Add(InHandle, input_gym::k_Tag_ChangeSignal);
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnDisplayTick"));
 
         Request_BindListeners();
@@ -130,9 +133,50 @@ class UCk_EntityScript_InputGym_ChangeSignal : UCk_GenericEntityScript_UE
 
         Request_PollForChanges(PlayerController);
 
+        auto Lines = TArray<FCkGym_ColoredLine>();
+
+        Add_HeaderVerdict(Lines);
+        Add_PushRows(Lines, PlayerController);
+        Add_PollBlock(Lines);
+
+        CkGym_Common::Update_StationDisplay_Colored(
+            ck::ToEntity(this), StationTitle, Lines, StationDescription);
+    }
+
+    private void Add_HeaderVerdict(TArray<FCkGym_ColoredLine>& OutLines)
+    {
+        auto FiredCount = Get_RowsEverFiredCount();
         auto Watched = Get_WatchedMappings();
-        auto Display = f"Listeners bound: {_Listeners.Num()} (one per row)\n\n";
-        Display = f"{Display}===== Push: BindTo_OnMappingKeyChanged =====\n";
+
+        if (FiredCount == Watched.Num() && Watched.Num() > 0)
+        {
+            input_gym::Add_Line(OutLines, "  every row's change-listener has fired", gym_palette::Green);
+        }
+        else
+        {
+            input_gym::Add_Verdict(OutLines, "rows whose listener has fired", f"{Watched.Num()}", f"{FiredCount}");
+        }
+
+        input_gym::Add_Line(OutLines, f"  Listeners bound: {_Listeners.Num()} (one per row)", gym_palette::White);
+    }
+
+    private int32 Get_RowsEverFiredCount()
+    {
+        auto Count = 0;
+        for (auto Index = 0; Index < _FireCounts.Num(); Index++)
+        {
+            if (_FireCounts[Index] > 0)
+            { Count++; }
+        }
+        return Count;
+    }
+
+    private void Add_PushRows(TArray<FCkGym_ColoredLine>& OutLines, APlayerController InPlayerController)
+    {
+        input_gym::Add_Spacer(OutLines, gym_palette::White);
+        input_gym::Add_Line(OutLines, "TOLD BY THE ENGINE (a listener per row)", gym_palette::White);
+
+        auto Watched = Get_WatchedMappings();
 
         for (auto Index = 0; Index < Watched.Num(); Index++)
         {
@@ -141,19 +185,30 @@ class UCk_EntityScript_InputGym_ChangeSignal : UCk_GenericEntityScript_UE
             { FireCount = _FireCounts[Index]; }
 
             auto CurrentKey = utils_key_binding::Get_KeyForMapping(
-                PlayerController, Watched[Index], EPlayerMappableKeySlot::First);
+                InPlayerController, Watched[Index], EPlayerMappableKeySlot::First);
 
-            Display = f"{Display}  {Watched[Index]}  key={input_gym::Format_Key(CurrentKey)}  fires={FireCount}\n";
+            auto RowText = f"  {Watched[Index]} on {input_gym::Format_Key(CurrentKey)} — fired {FireCount} times";
+            if (FireCount == 0)
+            {
+                RowText = f"  {Watched[Index]} on {input_gym::Format_Key(CurrentKey)} — never fired";
+            }
+
+            input_gym::Add_Line(OutLines, RowText, input_gym::Get_VerdictColour(FireCount > 0));
         }
 
-        Display = f"{Display}  last: {_LastDelegateEvent}\n";
+        input_gym::Add_Line(OutLines, f"  last: {_LastDelegateEvent}", gym_palette::White);
+    }
 
-        Display = f"{Display}\n===== Poll: Get_DidMappingKeyChange =====\n";
-        Display = f"{Display}  changes detected: {_PolledChangeCount}\n";
-        Display = f"{Display}  last: {_LastPolledEvent}\n";
+    private void Add_PollBlock(TArray<FCkGym_ColoredLine>& OutLines)
+    {
+        input_gym::Add_Spacer(OutLines, gym_palette::White);
+        input_gym::Add_Line(OutLines, "FOUND BY ASKING EVERY TICK (the polling alternative)", gym_palette::White);
+        input_gym::Add_Line(OutLines, f"  changes noticed: {_PolledChangeCount}", gym_palette::White);
+        input_gym::Add_Line(OutLines, f"  last: {_LastPolledEvent}", gym_palette::White);
 
-        CkGym_Common::Update_StationDisplay(
-            ck::ToEntity(this), StationTitle, Display, StationDescription);
+        input_gym::Add_Spacer(OutLines, gym_palette::White);
+        input_gym::Add_Line(OutLines, "  Both columns should move together. Drive them from the", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  Remap + Conflict station — its demo moves every row each lap.", gym_palette::Cyan);
     }
 
     // Get_DidMappingKeyChange compares against a key the CALLER cached, so the

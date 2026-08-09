@@ -257,6 +257,26 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	private FCk_Handle_SceneNode _FloorDescriptionSCN;
 	private FCk_Handle_SceneNode _SpotlightSCN;
 
+	// Coloured-body runs. One UTextRenderComponent per run of consecutive
+	// same-coloured lines, because a UTextRenderComponent holds one colour for
+	// its whole text. Parallel arrays rather than a struct array: only whole
+	// elements are ever assigned, which is the shape AngelScript handles
+	// predictably for value types stored in a TArray.
+	private TArray<FCk_Handle_UnrealComponent> _ColouredRunHandles;
+	private TArray<FCk_Handle_SceneNode>       _ColouredRunSCNs;
+	private TArray<FString>                    _ColouredRunAppliedText;
+	private TArray<FColor>                     _ColouredRunAppliedColour;
+
+	// First body-line index each run starts at — the run's vertical offset below
+	// the description anchor is a multiple of it.
+	private TArray<int32> _ColouredRunStartLine;
+
+	// The plain description component renders the spawn-payload text at the
+	// same anchor the coloured runs stack from, so a coloured station must
+	// blank it or the two overlap. False until the async component exists and
+	// the clear actually landed.
+	private bool _DescriptionClearedForColour = false;
+
 	// PMG handles for debug overlays (when ShowDebugOverlays=true).
 	private TArray<FCk_Handle_Pmg_DebugShape> _DebugOverlays;
 
@@ -347,6 +367,22 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	private void OnDisplayTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
 	{
 		auto SelfEntity = ck::ToEntity(this);
+
+		// Colour wins when a station opted into it: the two bodies would
+		// otherwise render on top of each other.
+		auto& ColouredBody = SelfEntity.AddOrGet_Fragment(FCkGym_Station_ColoredBody);
+		if (ColouredBody.Active)
+		{
+			Apply_ColouredBody(ColouredBody);
+
+			if (AutoSize)
+			{
+				Refit_FromMeasuredBounds();
+			}
+
+			return;
+		}
+
 		auto& Fragment = SelfEntity.AddOrGet_Fragment(FCkGym_Station_TitleAndDescription);
 
 		if (!Fragment.Title.EqualTo(_CachedTitle))
@@ -400,6 +436,217 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		const auto HasText = !InText.IsEmpty();
 		Text.SetVisibility(HasText, false);
 		if (HasText) { Text.SetText(InText); }
+	}
+
+	//------------------------------------------------------------------------
+	// Coloured body — same title and floor-instruction channels as the plain
+	// path; only the body is different, and it is rendered as one component per
+	// run of consecutive same-coloured lines.
+	//------------------------------------------------------------------------
+
+	private void Apply_ColouredBody(FCkGym_Station_ColoredBody& InBody)
+	{
+		if (!_DescriptionClearedForColour)
+		{
+			auto DescText = Cast<UTextRenderComponent>(utils_unreal_component::Get_Component(_DescriptionHandle));
+			if (DescText != nullptr)
+			{
+				DescText.SetText(FText::FromString(""));
+				_CachedDescription = FText::FromString("");
+				_DescriptionClearedForColour = true;
+			}
+		}
+
+		if (!InBody.Title.EqualTo(_CachedTitle))
+		{
+			_CachedTitle = InBody.Title;
+			Apply_TitleText(InBody.Title);
+		}
+		if (!InBody.Instructions.EqualTo(_CachedInstructions))
+		{
+			_CachedInstructions = InBody.Instructions;
+			Apply_FloorDescriptionText(InBody.Instructions);
+		}
+
+		Apply_ColouredRuns(InBody.Lines);
+	}
+
+	private void Apply_ColouredRuns(TArray<FCkGym_ColoredLine>& InLines)
+	{
+		auto RunTexts = TArray<FString>();
+		auto RunColours = TArray<FColor>();
+		auto RunStartLines = TArray<int32>();
+
+		for (auto Index = 0; Index < InLines.Num(); Index++)
+		{
+			const auto LastRun = RunTexts.Num() - 1;
+
+			if (LastRun >= 0 && Colours_Match(RunColours[LastRun], InLines[Index].Colour))
+			{
+				RunTexts[LastRun] = f"{RunTexts[LastRun]}\n{InLines[Index].Text}";
+				continue;
+			}
+
+			RunTexts.Add(InLines[Index].Text);
+			RunColours.Add(InLines[Index].Colour);
+			RunStartLines.Add(Index);
+		}
+
+		// Components are only torn down when the RUN COUNT moves. Text and
+		// colour changes reuse what is already there — the display ticks every
+		// frame, so recreating on content would churn components continuously.
+		const auto RunCountChanged = RunTexts.Num() != _ColouredRunHandles.Num();
+		const auto LayoutChanged = RunCountChanged || Get_ColouredRunLayoutChanged(RunStartLines);
+
+		_ColouredRunStartLine = RunStartLines;
+
+		if (RunCountChanged)
+		{
+			Rebuild_ColouredRunComponents(RunTexts.Num());
+		}
+		else if (LayoutChanged)
+		{
+			Update_ColouredRunTransforms();
+		}
+
+		for (auto Index = 0; Index < RunTexts.Num(); Index++)
+		{
+			Apply_ColouredRun(Index, RunTexts[Index], RunColours[Index]);
+		}
+	}
+
+	private bool Get_ColouredRunLayoutChanged(TArray<int32>& InStartLines)
+	{
+		if (InStartLines.Num() != _ColouredRunStartLine.Num())
+		{
+			return true;
+		}
+
+		for (auto Index = 0; Index < InStartLines.Num(); Index++)
+		{
+			if (InStartLines[Index] != _ColouredRunStartLine[Index])
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	// A run whose component has not been instantiated yet leaves its applied
+	// cache untouched, so the next display tick retries rather than dropping
+	// the text on the floor.
+	private void Apply_ColouredRun(int32 InIndex, FString InText, FColor InColour)
+	{
+		if (InIndex >= _ColouredRunHandles.Num())
+		{
+			return;
+		}
+
+		if (_ColouredRunAppliedText[InIndex] == InText && Colours_Match(_ColouredRunAppliedColour[InIndex], InColour))
+		{
+			return;
+		}
+
+		auto Text = Cast<UTextRenderComponent>(utils_unreal_component::Get_Component(_ColouredRunHandles[InIndex]));
+		if (Text == nullptr) { return; }
+
+		Text.SetText(FText::FromString(InText));
+		Text.SetWorldSize(float(DescriptionScale));
+		Text.SetTextRenderColor(InColour);
+		Text.SetHorizontalAlignment(TextAlignment);
+		Text.SetVerticalAlignment(EVerticalTextAligment::EVRTA_TextTop);
+
+		_ColouredRunAppliedText[InIndex] = InText;
+		_ColouredRunAppliedColour[InIndex] = InColour;
+	}
+
+	private void Rebuild_ColouredRunComponents(int32 InCount)
+	{
+		Destroy_ColouredRunComponents();
+
+		auto SelfEntity = ck::ToEntity(this);
+		auto StationTH = SelfEntity.As_Transform();
+
+		for (auto Index = 0; Index < InCount; Index++)
+		{
+			auto RunSCN = FCk_Handle_SceneNode();
+			auto RunComponent = Spawn_TextPiece(StationTH, n"ColouredRunText", n"OnColouredRunAdded",
+				Get_ColouredRunLocalLocation(Index),
+				FRotator::ZeroRotator,
+				RunSCN);
+
+			_ColouredRunHandles.Add(RunComponent);
+			_ColouredRunSCNs.Add(RunSCN);
+			_ColouredRunAppliedText.Add("");
+			_ColouredRunAppliedColour.Add(FColor(0, 0, 0, 0));
+		}
+	}
+
+	private void Destroy_ColouredRunComponents()
+	{
+		// Destroying the run's SceneNode entity takes its UTextRenderComponent
+		// with it — same cascade the station itself relies on.
+		for (auto RunSCN : _ColouredRunSCNs)
+		{
+			utils_entity_lifetime::Request_DestroyEntity(RunSCN);
+		}
+
+		_ColouredRunHandles.Empty();
+		_ColouredRunSCNs.Empty();
+		_ColouredRunAppliedText.Empty();
+		_ColouredRunAppliedColour.Empty();
+	}
+
+	UFUNCTION()
+	private void OnColouredRunAdded(FCk_Handle_UnrealComponent InHandle)
+	{
+		auto Text = Cast<UTextRenderComponent>(utils_unreal_component::Get_Component(InHandle));
+		if (Text == nullptr) { return; }
+
+		Text.SetWorldSize(float(DescriptionScale));
+		Text.SetHorizontalAlignment(TextAlignment);
+		Text.SetVerticalAlignment(EVerticalTextAligment::EVRTA_TextTop);
+	}
+
+	// Runs stack downward from the same anchor the plain description uses, one
+	// line-height per body line above them.
+	private FVector Get_ColouredRunLocalLocation(int32 InIndex)
+	{
+		const auto BackWallInnerX = -Depth * 50.0 + WallThickness;
+		const auto TextX = BackWallInnerX + 5.0;
+		const auto PanelTopZ = Height * 100.0;
+		const auto DescZ = PanelTopZ - (TitleScale + 60.0);
+		const auto TextY = TextAlignmentOffset(TextAlignment, 1.0);
+
+		auto StartLine = 0;
+		if (InIndex < _ColouredRunStartLine.Num())
+		{
+			StartLine = _ColouredRunStartLine[InIndex];
+		}
+
+		return FVector(TextX, TextY, DescZ - double(StartLine) * Get_ColouredRunLineHeight_cm());
+	}
+
+	// Mirrors the 1.5 line-height factor Compute_AutoHeight sizes the alcove
+	// with, so a stacked run lands where the auto-size math expects its lines.
+	private double Get_ColouredRunLineHeight_cm()
+	{
+		return DescriptionScale * 1.5;
+	}
+
+	private void Update_ColouredRunTransforms()
+	{
+		for (auto Index = 0; Index < _ColouredRunSCNs.Num(); Index++)
+		{
+			auto RunSCN = _ColouredRunSCNs[Index];
+			Update_PieceLocAndRot(RunSCN, Get_ColouredRunLocalLocation(Index), FRotator::ZeroRotator);
+		}
+	}
+
+	private bool Colours_Match(FColor InA, FColor InB)
+	{
+		return InA.R == InB.R && InA.G == InB.G && InA.B == InB.B && InA.A == InB.A;
 	}
 
 	// DoEndPlay intentionally omitted — SceneNode children cascade-destroy with
@@ -879,8 +1126,21 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		const auto TitleSize = TitleComp.GetTextLocalSize();
 		const auto DescSize  = DescComp.GetTextLocalSize();
 
-		const auto MaxWidth_cm    = Math::Max(TitleSize.Y, DescSize.Y);
-		const auto TotalHeight_cm = TitleSize.Z + DescSize.Z;
+		auto MaxWidth_cm    = Math::Max(TitleSize.Y, DescSize.Y);
+		auto TotalHeight_cm = TitleSize.Z + DescSize.Z;
+
+		// Coloured runs render outside the description component, so the alcove
+		// would never grow to fit them without measuring each one. With no runs
+		// this loop is a no-op and the plain path measures what it always did.
+		for (auto Index = 0; Index < _ColouredRunHandles.Num(); Index++)
+		{
+			auto RunComp = Cast<UTextRenderComponent>(utils_unreal_component::Get_Component(_ColouredRunHandles[Index]));
+			if (RunComp == nullptr) { continue; }
+
+			const auto RunSize = RunComp.GetTextLocalSize();
+			MaxWidth_cm = Math::Max(MaxWidth_cm, RunSize.Y);
+			TotalHeight_cm += RunSize.Z;
+		}
 
 		const auto Padding_cm    = 60.0;
 		const auto GapBetween_cm = 30.0;
@@ -993,6 +1253,9 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		const auto FloorX = FloorPlacementOffset(1.0);
 		const auto FloorY = TextAlignmentOffset(FloorTextAlignment, 1.0);
 		Update_PieceLocAndRot(_FloorDescriptionSCN, FVector(FloorX, FloorY, FloorTopZ), FRotator(90.0, 0.0, 0.0));
+
+		// No-op on a station that never wrote a coloured body.
+		Update_ColouredRunTransforms();
 	}
 
 	private void Update_SpotlightTransform()
