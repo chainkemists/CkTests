@@ -85,6 +85,81 @@ struct FCkGym_Station_TitleAndDescription
 };
 
 //--------------------------------------------------------------------------------------------------------------------------
+// COLOURED PANEL BODY
+//
+// A UTextRenderComponent carries ONE colour for the whole component, so a panel
+// that wants per-line colour has to be rendered as one component per RUN of
+// consecutive same-coloured lines. That constraint is the entire reason this
+// fragment exists next to FCkGym_Station_TitleAndDescription rather than
+// replacing it: a station that writes the plain fragment keeps rendering through
+// the single description component exactly as it always did.
+//
+// Active is the in-use flag. Mere fragment presence cannot be one — the station
+// AddOrGet's it every tick — and a station that legitimately renders zero body
+// lines would otherwise be indistinguishable from one that never opted in.
+//--------------------------------------------------------------------------------------------------------------------------
+
+USTRUCT()
+struct FCkGym_ColoredLine
+{
+    UPROPERTY()
+    FString Text;
+
+    UPROPERTY()
+    FColor Colour = FColor(255, 255, 255, 255);
+
+    FCkGym_ColoredLine(FString InText = "", FColor InColour = FColor(255, 255, 255, 255))
+    {
+        Text = InText;
+        Colour = InColour;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------
+
+USTRUCT()
+struct FCkGym_Station_ColoredBody
+{
+    UPROPERTY()
+    FText Title;
+
+    UPROPERTY()
+    TArray<FCkGym_ColoredLine> Lines;
+
+    UPROPERTY()
+    FText Instructions;
+
+    UPROPERTY()
+    bool Active = false;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------
+// Shared meaning for every coloured gym panel, so "green" means the same thing
+// on every station a viewer walks past.
+//--------------------------------------------------------------------------------------------------------------------------
+
+namespace gym_palette
+{
+    // Neutral body text.
+    const FColor White = FColor(255, 255, 255, 255);
+
+    // A check that matched.
+    const FColor Green = FColor(80, 220, 120, 255);
+
+    // A check that did not match.
+    const FColor Red = FColor(235, 80, 80, 255);
+
+    // Live value differs from its authored default.
+    const FColor Amber = FColor(240, 190, 60, 255);
+
+    // The step running right now, and anything the viewer is asked to do.
+    const FColor Cyan = FColor(90, 200, 235, 255);
+
+    // Idle / not currently running.
+    const FColor Grey = FColor(140, 140, 140, 255);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------
 
 USTRUCT()
 struct FCk_Gym_TransformSpawnParams
@@ -188,6 +263,25 @@ namespace CkGym_Common
         Fragment.Title = FText::FromString(InTitle);
         Fragment.Description = FText::FromString(InDescription);
         Fragment.Instructions = FText::FromString(InInstructions);
+    }
+
+    // Update station display text with one colour per body line. Same title and
+    // instruction channels as Update_StationDisplay above; only the body differs,
+    // and it renders through its own components — a station picks one path or the
+    // other and the plain path is unchanged for every station that keeps it.
+    void Update_StationDisplay_Colored(FCk_Handle InEntity, FString InTitle, const TArray<FCkGym_ColoredLine>&in InBodyLines, FString InInstructions)
+    {
+        auto Owner = utils_entity_lifetime::Get_LifetimeOwner(InEntity);
+        if (ck::Is_NOT_Valid(Owner))
+        {
+            return;
+        }
+
+        auto& Fragment = Owner.AddOrGet_Fragment(FCkGym_Station_ColoredBody);
+        Fragment.Title = FText::FromString(InTitle);
+        Fragment.Lines = InBodyLines;
+        Fragment.Instructions = FText::FromString(InInstructions);
+        Fragment.Active = true;
     }
 
     // Draw debug sphere at entity location with offset

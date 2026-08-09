@@ -10,16 +10,20 @@
 // (CkInput/CLAUDE.md anti-pattern 4). Re-resolving every tick is strictly
 // stronger than re-resolving on the device-change event and needs no listener.
 //
+// WHAT THIS PANEL ASSERTS: every row resolves to a real glyph, when there is an
+// art set to resolve against. Green says the brush came back with a resource;
+// red says the active device has no artwork for that key while other rows do
+// have some — that difference is the finding worth showing. When EVERY lookup
+// in the pass misses, the panel says so once in amber and drops the per-row
+// verdicts: this host configures no CommonUI controller data at all, so four
+// reds would read as four defects rather than an empty art set.
+//
 // Get_ActiveControllerData is deliberately NOT called here. It ENSUREs when no
 // controller data matches the current device — a legitimate miss, not an error —
 // so a device-agnostic panel that polls it every tick would fire ensures at the
-// viewer instead of showing them the glyph state.
-//
-// The station panel is procedural 3D text, not Slate, so the resolved brush is
-// reported by its resource object rather than drawn. That is still enough for
-// the hot-swap observation: the resource names change together when the active
-// device changes, and read "<no glyph...>" when the device has no artwork for
-// that key.
+// viewer instead of showing them the glyph state. That is also why the panel
+// cannot name the device it is currently resolving against: the only query that
+// would answer is the one that ensures.
 //
 // This station never mutates the profile, so it has no teardown.
 //============================================================================
@@ -42,6 +46,7 @@ class UCk_EntityScript_InputGym_KeyIcon : UCk_GenericEntityScript_UE
     DoConstruct(FCk_Handle& InHandle)
     {
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
+        utils_entity_tag::Add(InHandle, input_gym::k_Tag_KeyIcon);
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnDisplayTick"));
 
         return ECk_EntityScript_ConstructionFlow::Finished;
@@ -54,15 +59,41 @@ class UCk_EntityScript_InputGym_KeyIcon : UCk_GenericEntityScript_UE
         if (ck::Is_NOT_Valid(PlayerController))
         { return; }
 
-        auto Display = input_gym::Format_AllGlyphRows(PlayerController);
+        auto Lines = TArray<FCkGym_ColoredLine>();
 
-        Display = f"{Display}\n===== Device hot-swap =====\n";
-        Display = f"{Display}  Press a gamepad button, then a keyboard key.\n";
-        Display = f"{Display}  Every resource name above should swap together on each change.\n";
-        Display = f"{Display}  Rows read <no glyph...> when the active device has no artwork\n";
-        Display = f"{Display}  for that key — an empty brush, not a failure.\n";
+        input_gym::Add_Line(Lines, "ARTWORK FOR EVERY BOUND KEY", gym_palette::White);
+        input_gym::Add_AllGlyphRows(Lines, PlayerController);
 
-        CkGym_Common::Update_StationDisplay(
-            ck::ToEntity(this), StationTitle, Display, StationDescription);
+        Add_Legend(Lines);
+        Add_LastCommand(Lines);
+
+        CkGym_Common::Update_StationDisplay_Colored(
+            ck::ToEntity(this), StationTitle, Lines, StationDescription);
+    }
+
+    private void Add_Legend(TArray<FCkGym_ColoredLine>& OutLines)
+    {
+        input_gym::Add_Spacer(OutLines, gym_palette::White);
+        input_gym::Add_Line(OutLines, "READING THE ROWS", gym_palette::White);
+        input_gym::Add_Line(OutLines, "  white key = keyboard or mouse", gym_palette::White);
+        input_gym::Add_Line(OutLines, "  blue key  = gamepad", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  amber key = moved off the key it was authored with", gym_palette::Amber);
+
+        input_gym::Add_Spacer(OutLines, gym_palette::White);
+        input_gym::Add_Line(OutLines, "  Plug or unplug a controller and press something on it: the", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  whole glyph set should flip together on the very next tick.", gym_palette::Cyan);
+    }
+
+    private void Add_LastCommand(TArray<FCkGym_ColoredLine>& OutLines)
+    {
+        input_gym::Add_Spacer(OutLines, gym_palette::White);
+        input_gym::Add_Line(OutLines, f"LAST COMMAND — {input_gym_pc::Get_GlyphReportLabel()}", gym_palette::White);
+
+        auto Report = input_gym_pc::Get_GlyphReportLines();
+        input_gym::Add_Lines(OutLines, Report);
+
+        input_gym::Add_Spacer(OutLines, gym_palette::White);
+        input_gym::Add_Line(OutLines, "TRY IT YOURSELF", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  Ck_GymInput_RefreshGlyphs    resolve every brush again, now", gym_palette::Cyan);
     }
 }
