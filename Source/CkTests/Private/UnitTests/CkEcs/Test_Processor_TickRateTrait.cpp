@@ -24,6 +24,9 @@
 //      accumulated scheduler time while a trait-LESS processor over the same view fires every tick.
 //   2. TickCatchUpPolicy: after a multi-interval hitch, ReplayMissedTicks (default) replays DoTick per
 //      whole interval with DeltaT = the interval; SampleLatestOnly fires ONCE with the summed elapsed.
+//   2b. MaxReplayedTicks: the same hitch replayed by a clamped and an unclamped processor side by side —
+//      the bound caps the burst, the absent trait preserves today's unbounded replay, and the excess is
+//      DROPPED rather than left in the accumulator to replay again next frame.
 //   3. Bucket immediate-first-eval: an entity quantized into a nonzero bucket is evaluated on the FIRST
 //      tick after AddCadenceTags (via its transient bucket-0 membership), not an interval later, and the
 //      transient tags are consumed by that evaluation.
@@ -85,6 +88,32 @@ namespace ck_test_tickrate_trait
 
         // THE one-line author declaration under test. Default catch-up = ReplayMissedTicks.
         static constexpr auto TickRate = ck::time::Hz(4);
+
+        static inline int32 FireCount = 0;
+        static inline double LastDeltaSeconds = 0.0;
+
+        auto
+        ForEachEntity(
+            TimeType InDeltaT,
+            HandleType InHandle)
+            -> void
+        {
+            ++FireCount;
+            LastDeltaSeconds = InDeltaT.Get_Seconds();
+        }
+    };
+
+    // Identical to RatedReplay except for the clamp, so a side-by-side hitch isolates the trait: same view,
+    // same rate, same tick.
+    class FProcessor_TickRateTest_RatedReplayClamped
+        : public ck::TProcessor<FProcessor_TickRateTest_RatedReplayClamped, ck::FTag_TickRateTest_Subject>
+    {
+    public:
+        using Super = ck::TProcessor<FProcessor_TickRateTest_RatedReplayClamped, ck::FTag_TickRateTest_Subject>;
+        using Super::Super;
+
+        static constexpr auto TickRate = ck::time::Hz(4);
+        static constexpr int32 MaxReplayedTicks = 2;
 
         static inline int32 FireCount = 0;
         static inline double LastDeltaSeconds = 0.0;
@@ -230,6 +259,15 @@ namespace ck_test_tickrate_trait
         return Descriptors;
     }
 
+    auto
+    MakeClampPairDescriptors() -> TArray<ck::FProcessorDescriptor>
+    {
+        auto Descriptors = TArray<ck::FProcessorDescriptor>{};
+        Descriptors.Add(MakeDescriptor<FProcessor_TickRateTest_RatedReplay>());
+        Descriptors.Add(MakeDescriptor<FProcessor_TickRateTest_RatedReplayClamped>());
+        return Descriptors;
+    }
+
     template <int32... T_BucketIndices>
     auto
     DoMakeBucketDescriptors(std::integer_sequence<int32, T_BucketIndices...>) -> TArray<ck::FProcessorDescriptor>
@@ -251,6 +289,8 @@ namespace ck_test_tickrate_trait
         FProcessor_TickRateTest_Unrated::FireCount = 0;
         FProcessor_TickRateTest_RatedReplay::FireCount = 0;
         FProcessor_TickRateTest_RatedReplay::LastDeltaSeconds = 0.0;
+        FProcessor_TickRateTest_RatedReplayClamped::FireCount = 0;
+        FProcessor_TickRateTest_RatedReplayClamped::LastDeltaSeconds = 0.0;
         FProcessor_TickRateTest_RatedSample::FireCount = 0;
         FProcessor_TickRateTest_RatedSample::LastDeltaSeconds = 0.0;
         FBucketTestState::Reset();
@@ -320,6 +360,50 @@ bool FCkTest_Processor_TickRateTrait_CatchUpPolicies::RunTest(const FString& Par
         FProcessor_TickRateTest_RatedSample::FireCount, 1);
     TestEqual(TEXT("the single sample received the summed elapsed intervals"),
         FProcessor_TickRateTest_RatedSample::LastDeltaSeconds, 1.0);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_Processor_TickRateTrait_ClampBoundsCatchUpReplay,
+    "CkTests.UnitTests.CkEcs.Processor.TickRateTrait_ClampBoundsCatchUpReplay",
+    ck_test_tickrate_trait::kTickRateTestFlags)
+
+bool FCkTest_Processor_TickRateTrait_ClampBoundsCatchUpReplay::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_tickrate_trait;
+
+    auto Fixture = FTickRateTestFixture{};
+    if (NOT TestTrue(TEXT("fixture built a scheduler"), Fixture.Build(MakeClampPairDescriptors())))
+    { return false; }
+
+    auto Entity = Fixture.CreateEntity();
+    Entity.Add<ck::FTag_TickRateTest_Subject>();
+
+    ResetAllCounters();
+    Fixture.TickWith(FCk_Time{1.0}); // one hitch frame spanning 4 whole 0.25s intervals
+
+    // The pair is the pin: the two processors differ ONLY by the trait, so the unclamped count is
+    // simultaneously the clamp's control and the proof that declaring nothing preserves today's semantics.
+    TestEqual(TEXT("a processor declaring no clamp still replays every elapsed interval"),
+        FProcessor_TickRateTest_RatedReplay::FireCount, 4);
+    TestEqual(TEXT("MaxReplayedTicks{2} replayed exactly its bound out of the 4 elapsed intervals"),
+        FProcessor_TickRateTest_RatedReplayClamped::FireCount, 2);
+    TestEqual(TEXT("a clamped fire still receives the interval, not the hitch"),
+        FProcessor_TickRateTest_RatedReplayClamped::LastDeltaSeconds, 0.25);
+
+    // Dropped, not deferred. Had the excess stayed in the accumulator it would sit at 0.5s here, and the very
+    // next (1/64 s) tick would immediately replay the bound again.
+    Fixture.TickSteps(1);
+    TestEqual(TEXT("the intervals past the bound were drained, not carried into the next frame"),
+        FProcessor_TickRateTest_RatedReplayClamped::FireCount, 2);
+
+    // ...and the phase is intact: a clamped processor keeps ticking at its declared rate afterwards.
+    Fixture.TickSteps(15); // 16 steps since the hitch = exactly 0.25s
+    TestEqual(TEXT("the clamped processor resumes its declared cadence after the drop"),
+        FProcessor_TickRateTest_RatedReplayClamped::FireCount, 3);
 
     return true;
 }
