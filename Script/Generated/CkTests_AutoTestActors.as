@@ -3561,6 +3561,19 @@ class ACk_AutoTest_Input_SaveWritesUserSettings_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Input_SubsystemSourceLazyCreateIdempotent_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Input_SubsystemSourceLazyCreateIdempotent");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Input_SwapSymmetry_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
@@ -3909,6 +3922,18 @@ class ACk_AutoTest_Intent_DeliveryOutcomeRecorded_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Intent_FortyMoveBake_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Intent_FortyMoveBake");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Intent_LatchDecayClearsClaim_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 25.0f;
@@ -4142,6 +4167,19 @@ class ACk_AutoTest_Intent_SwapSetIsAtomic_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Intent_TagKeyedReadsAnswerEmptyOnUnmintedTag_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 25.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Intent_TagKeyedReadsAnswerEmptyOnUnmintedTag");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Intent_TapVsHoldResolvesAtThresholds_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 30.0f;
@@ -4149,6 +4187,19 @@ class ACk_AutoTest_Intent_TapVsHoldResolvesAtThresholds_Actor : ACk_AutoTestRunn
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Intent_TapVsHoldResolvesAtThresholds");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Intent_UnbindStopsDelivery_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 30.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Intent_UnbindStopsDelivery");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
