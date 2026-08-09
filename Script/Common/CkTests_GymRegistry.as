@@ -34,7 +34,10 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Entity Lifecycle",   ACk_EntityLifecycleGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Entity Script",      ACk_EntityScriptGym_Spawn_GameMode);
         CkGym_Cycler::RegisterProjectGym("EQS",                ACk_EqsGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Input Debugger",     ACk_IntentGym_Debugger_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Input Fighting",     ACk_IntentGym_Fighting_GameMode);
         CkGym_Cycler::RegisterProjectGym("Input Key Binding",  ACk_InputGym_KeyBinding_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Input Souls",        ACk_IntentGym_Souls_GameMode);
         CkGym_Cycler::RegisterProjectGym("Interaction",        ACk_InteractionGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Inventory",          ACk_InventoryGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("IskmRenderer",                  ACk_IskmRendererGym_GameMode);
