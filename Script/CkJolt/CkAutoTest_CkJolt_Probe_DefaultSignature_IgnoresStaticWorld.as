@@ -11,6 +11,14 @@
 //   3. No OnBeginOverlap fires within the settle window; the probe stays
 //      overlap-free. (A Jolt trace-semantics ray still HITS the floor — it is
 //      a query target, just not an overlap participant for probes.)
+//
+// Probe OVERLAP semantics and the ProbeTrace world-hit policy are separate
+// contracts and deliberately coexist. ProbeTrace can be told to report world
+// bodies (see CkAutoTest_ProbeTrace_*), but that is a per-call QUERY opt-in
+// decided per hit inside the trace's collector — it changes no layer pairing.
+// This test stays green precisely because nothing about it is query-side: if it
+// ever goes red because of a trace change, the layer table was touched and the
+// change is wrong.
 //============================================================================
 
 class UCk_AutoTest_CkJolt_Probe_DefaultSignature_IgnoresStaticWorld : UCk_AutoTest_Base

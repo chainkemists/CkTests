@@ -11,6 +11,7 @@
 //   CkTests.Probe.Gym.Marker   — detectable identity (balls, pawn, chained
 //                                 probe at end of scene-node chain)
 //   CkTests.Probe.Gym.Detector — detector identity (static sensor probes)
+//   CkTests.Probe.Gym.TraceTarget — the trace station's target probe
 //============================================================================
 
 namespace Ck
@@ -19,6 +20,7 @@ namespace Ck
     {
         GameplayTags.Add(n"CkTests.Probe.Gym.Marker");
         GameplayTags.Add(n"CkTests.Probe.Gym.Detector");
+        GameplayTags.Add(n"CkTests.Probe.Gym.TraceTarget");
     }
 }
 
@@ -45,4 +47,17 @@ struct FCk_Message_ProbeGym_Reset
 USTRUCT()
 struct FCk_Message_ProbeGym_NestedReset
 {
+};
+
+USTRUCT()
+struct FCk_Message_ProbeGymTrace_SetWorldHitPolicy
+{
+    UPROPERTY()
+    ECk_ProbeTrace_WorldHitPolicy Policy;
+
+    FCk_Message_ProbeGymTrace_SetWorldHitPolicy(
+        ECk_ProbeTrace_WorldHitPolicy InPolicy = ECk_ProbeTrace_WorldHitPolicy::Ignore)
+    {
+        Policy = InPolicy;
+    }
 };
