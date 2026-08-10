@@ -12,8 +12,9 @@
 // On ready it adds the camera director on the pawn entity (whose actor-synced
 // transform is the camera anchor, so the framing follows the pawn; the view sink
 // is this pawn's UCk_CameraComponent — the framework does not create one), pushes
-// the top-down layer as the one and only view, spawns the floor, raises the combat
-// kit's readouts, and emits the binding self-check below.
+// the top-down layer as the one and only view, spawns the floor, spawns the
+// dummy, raises the combat kit's readouts, and emits the binding self-check
+// below.
 //
 // ADefaultPawn has no in-game mesh, so the body is assembled here: a cylinder trunk between two sphere caps
 // (a ~90cm capsule silhouette) plus a forward nose cube for facing. Visual only — no collision.
@@ -48,9 +49,9 @@
 // TRACKED. A swing is a PMG entity created with a positive duration: it counts
 // itself down and destroys itself, and that countdown IS the attack rendered. The
 // state's own countdown is started on the same tick from the same number, so the
-// two cannot drift. Three persistent shapes have no such clock — the charge
-// accumulator, the buffered marker, and the two readout lines — and those are the
-// ones this file owns and destroys.
+// two cannot drift. Four persistent shapes have no such clock — the charge
+// accumulator, the buffered marker, the block plate, and the two readout lines —
+// and those are the ones this file owns and destroys.
 //
 // THE CHARGE ACCUMULATOR IS DISPLAY, AND THE CODE SAYS SO WHERE IT READS IT. It
 // is driven by the RECORD's held rows — the physical fact, which keeps counting
@@ -68,6 +69,38 @@
 // carried a real LeftMouseButton event to a matcher, so the readouts render with
 // ZERO input and quote the last press frame and held run of both buttons: a dead
 // button has to look different from a dead kit.
+//
+//----------------------------------------------------------------------------
+// THE DUMMY, AND THE BLOCK
+//----------------------------------------------------------------------------
+//
+// SOMETHING TO HIT. A swing thrown at empty floor looks the same whether it
+// connects or not, so the pawn spawns one dummy 800cm along world +X from its own
+// spawn point (UCk_EntityScript_PlaygroundGym_Enemy) and tests every swing
+// against it. The test is a planar distance against the swing's own reach — the
+// forward offset the shape was drawn at, plus its extent, plus a hand's-width of
+// padding — and an arc around the ACTOR FORWARD, which is the cursor aim. A wider
+// arc for the specials, because a special that missed a target the player was
+// clearly pointing at would read as a bug in the aim rather than a miss.
+//
+// BLOCK IS A HELD SET, NOT A MOVE, AND THAT IS THE WHOLE POINT. Q is minted into
+// the button map so the record carries a row for it, and no move table names it —
+// so the block is read off the newest row's held set rather than graded by the
+// matcher. Four moves that are notation compiled into a set, beside one state
+// that is a fact about a row: the contrast is the exercise, and the deleted sekiro
+// station demonstrated the same pair.
+//
+// BLOCKING IS INDEPENDENT OF THE ATTACK MACHINE. `_State` is not consulted to
+// raise the plate and is not changed by raising it, so a block can go up mid-chain
+// and a chain can start with the plate up. That is a DECISION, not an oversight:
+// the two systems answer different questions (what did the matcher grade, and
+// what is the record reporting held right now), and coupling them would make the
+// held read look like a move with priority rules.
+//
+// THE PAWN HAS NO HEALTH. A projectile that reaches the pawn is answered with
+// BLOCKED or HIT and nothing else — no damage, no state change, no stagger. The
+// dummy renders nothing at the point of resolution; the verdict is a fact about
+// this pawn's input and it is drawn on this pawn.
 //============================================================================
 
 namespace playground_gym_kit
@@ -94,6 +127,12 @@ namespace playground_gym_kit
     const int32 k_Family_None  = 0;
     const int32 k_Family_Light = 1;
     const int32 k_Family_Heavy = 2;
+
+    // The step a special reports when it lands a hit. Zero is already what
+    // Get_ChainStep answers for anything that is not a chain step, so the dummy
+    // reads "not one of the three" from the same number this file already means it
+    // by — a fourth step index would be a second way to say the same thing.
+    const int32 k_Step_Special = 0;
 
     //------------------------------------------------------------------------
     // How long a swing lasts
@@ -139,6 +178,30 @@ namespace playground_gym_kit
     const float32 k_Extent_Special_Heavy = 150.0f;
 
     //------------------------------------------------------------------------
+    // Landing it on something
+    //------------------------------------------------------------------------
+    //
+    // The reach is DERIVED from the swing that was just drawn — the offset it came
+    // out at plus its own extent — so a hit-test can never disagree with the shape
+    // a player watched. The padding is the one number that is not derived: a
+    // target whose own body is 60cm wide has to be hittable when the box stops
+    // just short of its centre.
+    //
+    // The arc is around the ACTOR FORWARD, which the cursor aim set earlier on the
+    // same tick. Specials are more generous because they are the moves a player
+    // commits a full hold to, and a whiffed special reads as the aim lying rather
+    // than as a miss.
+
+    const float32 k_HitTest_Padding           = 70.0f;
+    const float32 k_HitTest_ArcDegrees        = 55.0f;
+    const float32 k_HitTest_SpecialArcDegrees = 75.0f;
+
+    // Far enough that the arena reads as having somewhere to walk to, close enough
+    // that the dummy is in the first screenful. World +X, on the floor: the floor
+    // slab's walkable surface sits at the pawn's own spawn height.
+    const float32 k_Enemy_SpawnForwardOffset = 800.0f;
+
+    //------------------------------------------------------------------------
     // The charge accumulator
     //------------------------------------------------------------------------
     //
@@ -157,17 +220,23 @@ namespace playground_gym_kit
     const float32 k_ChargeHeight   = 50.0f;
 
     //------------------------------------------------------------------------
-    // The buffered marker
+    // The block plate
     //------------------------------------------------------------------------
     //
-    // The queued input, made visible while it waits — the sekiro station's
-    // precedent, shrunk to a hint over the pawn's head. Small and dim on purpose:
-    // it is a promise about the next attack, not an attack.
+    // A translucent plate held out along the ACTOR FORWARD — the cursor aim, so
+    // the block covers the direction the player is looking at, exactly like the
+    // swings do. A YZ plane's normal runs along the shape's own forward, so the
+    // actor rotation is what turns the plate to face outward.
+    //
+    // It is a persistent shape re-transformed every tick and destroyed the frame
+    // the button leaves the record's held set: PMG has no parenting, so a shape
+    // that follows the pawn is a transform driven per tick, and a plate that
+    // outlived the hold would be a block the record no longer reports.
 
-    const float32 k_Buffer_Radius   = 16.0f;
-    const int32   k_Buffer_Segments = 10;
-    const int32   k_Buffer_Rings    = 10;
-    const float32 k_Buffer_Height   = 145.0f;
+    const float32 k_Block_ForwardOffset = 70.0f;
+    const float32 k_Block_Height        = 70.0f;
+    const float32 k_Block_Width         = 130.0f;
+    const float32 k_Block_PlateHeight   = 110.0f;
 
     //------------------------------------------------------------------------
     // The single-frame beat
@@ -184,6 +253,25 @@ namespace playground_gym_kit
     const float32 k_BeatThickness = 3.0f;
     const float32 k_BeatHeight    = 30.0f;
 
+    // A projectile resolving is the same kind of "right now", drawn with the same
+    // primitive on the same schedule — at the PLATE when it was blocked, on the
+    // pawn's own body when it was not.
+    const int32   k_ProjectileBeatTicks  = 12;
+    const float32 k_ProjectileBeatRadius = 42.0f;
+
+    //------------------------------------------------------------------------
+    // The buffered marker
+    //------------------------------------------------------------------------
+    //
+    // The queued input, made visible while it waits — the sekiro station's
+    // precedent, shrunk to a hint over the pawn's head. Small and dim on purpose:
+    // it is a promise about the next attack, not an attack.
+
+    const float32 k_Buffer_Radius   = 16.0f;
+    const int32   k_Buffer_Segments = 10;
+    const int32   k_Buffer_Rings    = 10;
+    const float32 k_Buffer_Height   = 145.0f;
+
     //------------------------------------------------------------------------
     // The palette
     //------------------------------------------------------------------------
@@ -191,6 +279,9 @@ namespace playground_gym_kit
     // Cyan is light, orange is heavy, all the way through: a viewer never has to
     // work out which button a shape belongs to. Within a family the alpha climbs
     // with the chain step, and the special is the brightest thing the kit draws.
+    //
+    // The block is steel blue and belongs to neither family, because it is not a
+    // move: a plate in either family's colour would read as a third attack.
 
     const FLinearColor k_Colour_Light1  = FLinearColor(0.35f, 0.85f, 1.00f, 0.55f);
     const FLinearColor k_Colour_Light2  = FLinearColor(0.30f, 0.90f, 1.00f, 0.65f);
@@ -208,6 +299,10 @@ namespace playground_gym_kit
     const FLinearColor k_Colour_Buffer      = FLinearColor(1.00f, 0.70f, 0.15f, 0.35f);
     const FLinearColor k_Colour_Beat_Acted  = FLinearColor(0.90f, 1.00f, 0.70f, 1.00f);
     const FLinearColor k_Colour_Beat_Ignored = FLinearColor(0.45f, 0.45f, 0.50f, 1.00f);
+
+    const FLinearColor k_Colour_Block   = FLinearColor(0.35f, 0.60f, 0.90f, 0.35f);
+    const FLinearColor k_Colour_Blocked = FLinearColor(0.40f, 1.00f, 1.00f, 1.00f);
+    const FLinearColor k_Colour_Struck  = FLinearColor(1.00f, 0.25f, 0.25f, 1.00f);
 
     //------------------------------------------------------------------------
     // The readouts
@@ -234,7 +329,9 @@ namespace playground_gym_kit
     // because the two mouse buttons are unproven through this stack: it quotes
     // both buttons' last press frame and held run whether or not anything has ever
     // landed, so "the kit is broken" and "the button never arrived" are two
-    // different pictures.
+    // different pictures. Q's held run is on the same line for the same reason —
+    // a block that never rises has to be diagnosable as a dead key rather than as
+    // a dead plate.
 
     const float32 k_Label_StateBehindOffset = 150.0f;
     const float32 k_Label_StateSize         = 52.0f;
@@ -315,13 +412,23 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // chain could never spend.
     private bool _BufferedNext = false;
 
+    // The dummy registers itself once it has found this pawn (it is spawned from
+    // Request_OnPawnReady but constructs on its own schedule). Nothing here waits
+    // for it: an unregistered dummy is a swing that lands on nothing, which is
+    // exactly what the playground did before there was one.
+    private UCk_EntityScript_PlaygroundGym_Enemy _Enemy;
+
     private FCk_Handle_Pmg_DebugShape _ChargeShape;
     private FCk_Handle_Pmg_DebugShape _BufferMarker;
+    private FCk_Handle_Pmg_DebugShape _BlockPlate;
     private FCk_Handle_Pmg_DebugShape _StateLabel;
     private FCk_Handle_Pmg_DebugShape _InputLabel;
 
     private int32 _BeatTicksRemaining = 0;
     private bool  _BeatWasActedOn = false;
+
+    private int32 _ProjectileBeatTicksRemaining = 0;
+    private bool  _ProjectileBeatWasBlocked = false;
 
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
@@ -373,6 +480,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         _Camera = utils_camera::Add(_PawnEntity, FCk_Fragment_Camera_ParamsData(CameraComponent));
 
         Request_SpawnFloor();
+        Request_SpawnEnemy();
         Request_EmitBindingSelfCheck();
 
         // Raised here rather than lazily from the tick so they are up before the
@@ -402,6 +510,27 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             Floor.SetActorScale3D(FVector(60.0f, 60.0f, 0.5f));
             FinishSpawningActor(Floor);
         }
+    }
+
+    // The dummy is an ENTITY SCRIPT, not an actor: it has no movement, no
+    // collision and no mesh, and everything it renders is PMG geometry it owns.
+    // Its lifetime hangs off the pawn entity, so a gym cycle takes it with the
+    // pawn rather than leaving a target standing on an empty map.
+    //
+    // The floor slab's walkable surface is at the pawn's own spawn height (see
+    // Request_SpawnFloor), so the spawn point's Z is the ground the dummy stands
+    // on and no offset is applied to it.
+    private void Request_SpawnEnemy()
+    {
+        const auto EnemyLocation = GetActorLocation()
+            + FVector(playground_gym_kit::k_Enemy_SpawnForwardOffset, 0.0, 0.0);
+
+        auto SpawnParams = FCk_Gym_TransformSpawnParams(FTransform(EnemyLocation));
+
+        utils_entity_script::Request_SpawnEntity(
+            _PawnEntity,
+            UCk_EntityScript_PlaygroundGym_Enemy,
+            FInstancedStruct::Make(SpawnParams));
     }
 
     private void Request_EmitBindingSelfCheck()
@@ -528,6 +657,56 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     }
 
     //------------------------------------------------------------------------
+    // What the dummy calls
+    //------------------------------------------------------------------------
+
+    // Stored, not validated against anything: the dummy registers once it has
+    // found this pawn, and a pawn that is handed a second one simply points at the
+    // newer target rather than keeping a list nothing would iterate.
+    void Request_RegisterEnemy(UCk_EntityScript_PlaygroundGym_Enemy InEnemy)
+    {
+        _Enemy = InEnemy;
+    }
+
+    // Read LIVE off the newest record row rather than off a flag this tick cached,
+    // because the dummy's projectile advances on its own timer tick and nothing
+    // orders the two against each other. The record is the same answer to both.
+    bool Get_IsBlocking() const
+    {
+        return playground_gym::Get_IsButtonHeld(
+            playground_gym::TryGet_Sampler(),
+            playground_gym::k_Key_Block.GetKeyName());
+    }
+
+    // No health, no state change, no interruption of the attack machine — the
+    // whole outcome is a beat and a line. Blocked-versus-hit is a fact about this
+    // pawn's input, which is why the dummy renders nothing at resolution and hands
+    // the event here instead.
+    void Request_TakeProjectileHit()
+    {
+        _ProjectileBeatWasBlocked = Get_IsBlocking();
+        _ProjectileBeatTicksRemaining = playground_gym_kit::k_ProjectileBeatTicks;
+
+        if (_ProjectileBeatWasBlocked)
+        {
+            Print("[Playground] BLOCKED", 1.5f);
+            return;
+        }
+
+        Print("[Playground] HIT", 1.5f);
+    }
+
+    // The camera director lives on this pawn's entity, so the dummy's floor label
+    // asks for the yaw rather than composing a second read of the same camera.
+    float64 Get_CameraYaw() const
+    {
+        if (ck::Is_NOT_Valid(_Camera))
+        { return 0.0; }
+
+        return utils_camera::Get_ViewRotation(_Camera).Yaw;
+    }
+
+    //------------------------------------------------------------------------
     // The kit's tick
     //------------------------------------------------------------------------
     //
@@ -546,6 +725,10 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     //      swing's FIRST tick, so the state lasts exactly as long as the shape's
     //      own clock and the two cannot drift by the tick an entry-exempt
     //      countdown would add.
+    //
+    // The block is refreshed alongside the other persistent shapes and is not part
+    // of that order at all: it reads its own key off the record and never consults
+    // `_State`, which is the independence the header describes.
 
     private void DoAdvance_CombatKit(float32 InDeltaSeconds)
     {
@@ -555,6 +738,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         const auto LightRun = playground_gym::Get_HeldRunFrames(Sampler, playground_gym::k_Key_Light.GetKeyName());
         const auto HeavyRun = playground_gym::Get_HeldRunFrames(Sampler, playground_gym::k_Key_Heavy.GetKeyName());
+        const auto BlockRun = playground_gym::Get_HeldRunFrames(Sampler, playground_gym::k_Key_Block.GetKeyName());
 
         DoTryRecordAttempts(Sampler);
 
@@ -563,8 +747,10 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         DoRefresh_ChargeShape(LightRun, HeavyRun);
         DoRefresh_BufferMarker();
-        DoRefresh_Readouts(Sampler, LightRun, HeavyRun);
+        DoRefresh_BlockPlate(BlockRun);
+        DoRefresh_Readouts(Sampler, LightRun, HeavyRun, BlockRun);
         DoAdvance_Beat();
+        DoAdvance_ProjectileBeat();
     }
 
     //------------------------------------------------------------------------
@@ -616,7 +802,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         // A swap is atomic — one unresolved terminal rejects the whole set — so it
         // waits for BOTH keys to be minted rather than being rejected for keys
-        // that only look unresolvable.
+        // that only look unresolvable. The block key is NOT waited on: no move
+        // terminates on it, so it cannot resolve or fail to resolve a terminal.
         auto ButtonMap = playground_gym::TryGet_ButtonMap();
 
         if (playground_gym::Get_IsKeyMinted(ButtonMap, playground_gym::k_Key_Light) == false)
@@ -834,7 +1021,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             {
                 _State = playground_gym_kit::k_State_Light1;
                 _StateSecondsRemaining = playground_gym_kit::k_Duration_Light1;
-                DoSpawnSwing(playground_gym_kit::k_Extent_Light1, playground_gym_kit::k_Colour_Light1,
+                DoSpawnSwing(InFamily, 1, playground_gym_kit::k_Extent_Light1, playground_gym_kit::k_Colour_Light1,
                     playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Light1);
                 return;
             }
@@ -843,14 +1030,14 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             {
                 _State = playground_gym_kit::k_State_Light2;
                 _StateSecondsRemaining = playground_gym_kit::k_Duration_Light2;
-                DoSpawnSwing(playground_gym_kit::k_Extent_Light2, playground_gym_kit::k_Colour_Light2,
+                DoSpawnSwing(InFamily, 2, playground_gym_kit::k_Extent_Light2, playground_gym_kit::k_Colour_Light2,
                     playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Light2);
                 return;
             }
 
             _State = playground_gym_kit::k_State_Light3;
             _StateSecondsRemaining = playground_gym_kit::k_Duration_Light3;
-            DoSpawnSwing(playground_gym_kit::k_Extent_Light3, playground_gym_kit::k_Colour_Light3,
+            DoSpawnSwing(InFamily, 3, playground_gym_kit::k_Extent_Light3, playground_gym_kit::k_Colour_Light3,
                 playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Light3);
             return;
         }
@@ -859,7 +1046,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         {
             _State = playground_gym_kit::k_State_Heavy1;
             _StateSecondsRemaining = playground_gym_kit::k_Duration_Heavy1;
-            DoSpawnSwing(playground_gym_kit::k_Extent_Heavy1, playground_gym_kit::k_Colour_Heavy1,
+            DoSpawnSwing(InFamily, 1, playground_gym_kit::k_Extent_Heavy1, playground_gym_kit::k_Colour_Heavy1,
                 playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Heavy1);
             return;
         }
@@ -868,14 +1055,14 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         {
             _State = playground_gym_kit::k_State_Heavy2;
             _StateSecondsRemaining = playground_gym_kit::k_Duration_Heavy2;
-            DoSpawnSwing(playground_gym_kit::k_Extent_Heavy2, playground_gym_kit::k_Colour_Heavy2,
+            DoSpawnSwing(InFamily, 2, playground_gym_kit::k_Extent_Heavy2, playground_gym_kit::k_Colour_Heavy2,
                 playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Heavy2);
             return;
         }
 
         _State = playground_gym_kit::k_State_Heavy3;
         _StateSecondsRemaining = playground_gym_kit::k_Duration_Heavy3;
-        DoSpawnSwing(playground_gym_kit::k_Extent_Heavy3, playground_gym_kit::k_Colour_Heavy3,
+        DoSpawnSwing(InFamily, 3, playground_gym_kit::k_Extent_Heavy3, playground_gym_kit::k_Colour_Heavy3,
             playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Heavy3);
     }
 
@@ -888,7 +1075,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             _State = playground_gym_kit::k_State_Special_Light;
             _StateSecondsRemaining = playground_gym_kit::k_Duration_Special_Light;
 
-            DoSpawnSwing(playground_gym_kit::k_Extent_Special_Light, playground_gym_kit::k_Colour_Special_Light,
+            DoSpawnSwing(InFamily, playground_gym_kit::k_Step_Special,
+                playground_gym_kit::k_Extent_Special_Light, playground_gym_kit::k_Colour_Special_Light,
                 playground_gym_kit::k_Attack_SpecialForwardOffset, playground_gym_kit::k_Duration_Special_Light);
             return;
         }
@@ -896,7 +1084,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         _State = playground_gym_kit::k_State_Special_Heavy;
         _StateSecondsRemaining = playground_gym_kit::k_Duration_Special_Heavy;
 
-        DoSpawnSwing(playground_gym_kit::k_Extent_Special_Heavy, playground_gym_kit::k_Colour_Special_Heavy,
+        DoSpawnSwing(InFamily, playground_gym_kit::k_Step_Special,
+            playground_gym_kit::k_Extent_Special_Heavy, playground_gym_kit::k_Colour_Special_Heavy,
             playground_gym_kit::k_Attack_SpecialForwardOffset, playground_gym_kit::k_Duration_Special_Heavy);
     }
 
@@ -953,7 +1142,17 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // down and destroys itself, and that countdown IS the attack's length made
     // visible. Nothing here is tracked, because there is no path on which one of
     // these outlives its own clock.
-    private void DoSpawnSwing(float32 InExtent, FLinearColor InColour, float32 InForwardOffset, float32 InDurationSeconds)
+    //
+    // The hit-test runs on the same call, from the same numbers the shape was drawn
+    // with: a swing that connects and a swing that is drawn are the same event, and
+    // a second place deciding reach could disagree with the picture.
+    private void DoSpawnSwing(
+        int32 InFamily,
+        int32 InStep,
+        float32 InExtent,
+        FLinearColor InColour,
+        float32 InForwardOffset,
+        float32 InDurationSeconds)
     {
         utils_pmg_basic_shapes::Create_Box(
             _PawnEntity,
@@ -964,6 +1163,46 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             true,
             playground_gym_kit::k_ShapeLineThickness,
             InDurationSeconds);
+
+        DoTryHitEnemy(InFamily, InStep, InExtent, InForwardOffset);
+    }
+
+    // PLANAR distance and a PLANAR arc: the dummy stands on the same floor the pawn
+    // does and the aim is a yaw, so a height difference between two things on one
+    // slab is not a reason to miss.
+    private void DoTryHitEnemy(int32 InFamily, int32 InStep, float32 InExtent, float32 InForwardOffset)
+    {
+        if (ck::Is_NOT_Valid(_Enemy))
+        { return; }
+
+        auto ToEnemy = _Enemy.Get_Location() - GetActorLocation();
+        ToEnemy.Z = 0.0;
+
+        if (ToEnemy.IsNearlyZero())
+        { return; }
+
+        if (ToEnemy.Size() > InForwardOffset + InExtent + playground_gym_kit::k_HitTest_Padding)
+        { return; }
+
+        auto Forward = GetActorRotation().GetForwardVector();
+        Forward.Z = 0.0;
+
+        if (Forward.IsNearlyZero())
+        { return; }
+
+        const auto ArcDegrees = InStep == playground_gym_kit::k_Step_Special
+            ? playground_gym_kit::k_HitTest_SpecialArcDegrees
+            : playground_gym_kit::k_HitTest_ArcDegrees;
+
+        // Compared as a cosine rather than as an angle: one Cos of a constant beats
+        // an Acos per swing, and the comparison never has to clamp a dot product
+        // that drifted a hair past one.
+        const auto CosLimit = Math::Cos(ArcDegrees * Math::PI / 180.0f);
+
+        if (Forward.GetSafeNormal().DotProduct(ToEnemy.GetSafeNormal()) < CosLimit)
+        { return; }
+
+        _Enemy.Request_TakeHit(InFamily, InStep);
     }
 
     // The accumulator is DISPLAY ONLY: it counts the rows the RECORD reports the
@@ -1051,6 +1290,37 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         DoSetShapeTransform(_BufferMarker, Get_MarkerTransform(playground_gym_kit::k_Buffer_Height));
     }
 
+    // The plate is up for exactly as long as the record reports Q held, and it is
+    // re-transformed every tick because it rides the cursor aim. `_State` is not
+    // consulted: a block during a chain is a block, which is the independence the
+    // header describes.
+    private void DoRefresh_BlockPlate(int32 InBlockRun)
+    {
+        if (InBlockRun <= 0)
+        {
+            DoDestroyShape(_BlockPlate);
+            return;
+        }
+
+        if (ck::Is_NOT_Valid(_BlockPlate))
+        {
+            _BlockPlate = utils_pmg_flat_shapes::Create_Plane(
+                _PawnEntity,
+                Get_BlockTransform(),
+                playground_gym_kit::k_Block_Width,
+                playground_gym_kit::k_Block_PlateHeight,
+                playground_gym_kit::k_Colour_Block,
+                true,
+                playground_gym_kit::k_ShapeLineThickness,
+                ECk_Plane_Axis::YZ,
+                playground_gym::k_ShapeDuration_Persistent);
+
+            return;
+        }
+
+        DoSetShapeTransform(_BlockPlate, Get_BlockTransform());
+    }
+
     // A completion arriving is a "right now", so it is the single-frame primitive
     // re-issued for a fifth of a second rather than an entity with a lifetime. The
     // dim variant is a completion the kit deliberately did not act on — the module
@@ -1077,6 +1347,39 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             playground_gym_kit::k_BeatRadius,
             playground_gym_kit::k_BeatSegments,
             Colour,
+            playground_gym::k_ShapeDuration_SingleFrame,
+            playground_gym_kit::k_BeatThickness);
+    }
+
+    // Where the burst lands is the answer: on the PLATE if the record had Q held
+    // when the projectile arrived, on the pawn's own body if it did not. The plate
+    // transform is a pure computation, so a burst can still be drawn where the
+    // block was on the frames after the player let go.
+    private void DoAdvance_ProjectileBeat()
+    {
+        if (_ProjectileBeatTicksRemaining <= 0)
+        { return; }
+
+        _ProjectileBeatTicksRemaining--;
+
+        if (_ProjectileBeatWasBlocked)
+        {
+            utils_debug_draw::DrawDebugSphere(
+                Get_BlockTransform().GetLocation(),
+                playground_gym_kit::k_ProjectileBeatRadius,
+                playground_gym_kit::k_BeatSegments,
+                playground_gym_kit::k_Colour_Blocked,
+                playground_gym::k_ShapeDuration_SingleFrame,
+                playground_gym_kit::k_BeatThickness);
+
+            return;
+        }
+
+        utils_debug_draw::DrawDebugSphere(
+            GetActorLocation() + FVector(0.0, 0.0, playground_gym_kit::k_Attack_Height),
+            playground_gym_kit::k_ProjectileBeatRadius,
+            playground_gym_kit::k_BeatSegments,
+            playground_gym_kit::k_Colour_Struck,
             playground_gym::k_ShapeDuration_SingleFrame,
             playground_gym_kit::k_BeatThickness);
     }
@@ -1138,6 +1441,20 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             FVector(InScale, InScale, InScale));
     }
 
+    // The plate turns WITH the pawn, unlike the readouts: it is held out along the
+    // aim, so a plate that ignored the actor rotation would be a block facing
+    // somewhere the player is not looking. A YZ plane's normal is the shape's own
+    // forward, so the actor rotation is what makes it face outward.
+    private FTransform Get_BlockTransform() const
+    {
+        return FTransform(
+            GetActorRotation(),
+            GetActorLocation()
+                + (GetActorRotation().GetForwardVector() * playground_gym_kit::k_Block_ForwardOffset)
+                + FVector(0.0, 0.0, playground_gym_kit::k_Block_Height),
+            FVector(1.0, 1.0, 1.0));
+    }
+
     // Identity rotation on purpose: the pawn spins with the cursor, and a readout
     // or a marker that spun with it would be unreadable exactly while the player is
     // aiming.
@@ -1179,7 +1496,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             playground_gym_kit::k_Colour_Label_Idle);
 
         _InputLabel = DoCreateReadoutLine(
-            "L - / - H - / -",
+            "L - / - H - / - B -",
             playground_gym_kit::k_Label_InputBehindOffset,
             playground_gym_kit::k_Label_InputSize,
             playground_gym_kit::k_Colour_Label_Input);
@@ -1206,13 +1523,13 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             playground_gym::k_ShapeDuration_Persistent);
     }
 
-    private void DoRefresh_Readouts(FCk_Handle_IntentSampler InSampler, int32 InLightRun, int32 InHeavyRun)
+    private void DoRefresh_Readouts(FCk_Handle_IntentSampler InSampler, int32 InLightRun, int32 InHeavyRun, int32 InBlockRun)
     {
         DoSetShapeTransform(_StateLabel, Get_ReadoutTransform(playground_gym_kit::k_Label_StateBehindOffset));
         DoSetShapeTransform(_InputLabel, Get_ReadoutTransform(playground_gym_kit::k_Label_InputBehindOffset));
 
         DoRefresh_StateLabel(InLightRun, InHeavyRun);
-        DoRefresh_InputLabel(InSampler, InLightRun, InHeavyRun);
+        DoRefresh_InputLabel(InSampler, InLightRun, InHeavyRun, InBlockRun);
     }
 
     private void DoRefresh_StateLabel(int32 InLightRun, int32 InHeavyRun)
@@ -1270,12 +1587,14 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         DoSetLabel(_StateLabel, playground_gym_kit::k_LabelText_Idle, playground_gym_kit::k_Colour_Label_Idle);
     }
 
-    // The line that has to render with ZERO input. Both buttons' last press frame
-    // and current held run come straight off the record, so a mouse button that
-    // never reaches the Slate writer reads as a press frame stuck at -1 while the
-    // record's own frame counter keeps climbing — which is a different picture from
-    // a kit that is not armed.
-    private void DoRefresh_InputLabel(FCk_Handle_IntentSampler InSampler, int32 InLightRun, int32 InHeavyRun)
+    // The line that has to render with ZERO input. Both mouse buttons' last press
+    // frame and current held run come straight off the record, so a mouse button
+    // that never reaches the Slate writer reads as a press frame stuck at -1 while
+    // the record's own frame counter keeps climbing — which is a different picture
+    // from a kit that is not armed. Q carries only its held run, because a held run
+    // IS the whole of what the block reads: a block that never rises has to be
+    // separable into "the key never arrived" and "the plate never drew".
+    private void DoRefresh_InputLabel(FCk_Handle_IntentSampler InSampler, int32 InLightRun, int32 InHeavyRun, int32 InBlockRun)
     {
         const auto LightPress = playground_gym::Get_LatestPressFrame(InSampler, playground_gym::k_Key_Light.GetKeyName());
         const auto HeavyPress = playground_gym::Get_LatestPressFrame(InSampler, playground_gym::k_Key_Heavy.GetKeyName());
@@ -1286,7 +1605,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             playground_gym::Get_IsArmed(_Matcher, playground_gym::k_Key_Heavy));
 
         DoSetLabel(_InputLabel,
-            f"L p{LightPress} h{InLightRun}f | H p{HeavyPress} h{InHeavyRun}f | row {LiveFrame} | armed {Armed}",
+            f"L p{LightPress} h{InLightRun}f | H p{HeavyPress} h{InHeavyRun}f | B h{InBlockRun}f | row {LiveFrame} | armed {Armed}",
             playground_gym_kit::k_Colour_Label_Input);
     }
 
