@@ -36,9 +36,12 @@ class UCk_AutoTest_CkJolt_ChaosParity_CcdProjectileStopsAtThinWall : UCk_AutoTes
     private TArray<AStaticMeshActor> _Actors;
     private AStaticMeshActor _Projectile;
     private UStaticMeshComponent _ProjectileMesh;
+    private AStaticMeshActor _Wall;
+    private bool _HitWall = false;
 
     private float _ParkY = 84000.0;
     private float _WallX = 0.0;                 // wall centre X (thin in X)
+    private float _LaunchX = -400.0;            // projectile spawn X
     private float _LaunchSpeed = 12000.0;
 
     private int _Phase = 0;   // 0 = wait for setup then launch, 1 = watch for stop
@@ -69,10 +72,12 @@ class UCk_AutoTest_CkJolt_ChaosParity_CcdProjectileStopsAtThinWall : UCk_AutoTes
         WallMesh.SetStaticMesh(_CubeMesh);
         Wall.SetActorScale3D(FVector(0.1, 10.0, 10.0));
         WallMesh.SetCollisionProfileName(n"BlockAll");
+        _Wall = Wall;
         _Actors.Add(Wall);
 
         // ---- Fast dynamic sphere (radius 10) with continuous collision detection ---------------
-        auto ProjectileStart = FVector(_WallX - 400.0, _ParkY, 300.0);
+        _LaunchX = _WallX - 400.0;
+        auto ProjectileStart = FVector(_LaunchX, _ParkY, 300.0);
         _Projectile = Cast<AStaticMeshActor>(SpawnActor(AStaticMeshActor, ProjectileStart));
         _ProjectileMesh = _Projectile.StaticMeshComponent;
         _ProjectileMesh.SetMobility(EComponentMobility::Movable);
@@ -83,9 +88,20 @@ class UCk_AutoTest_CkJolt_ChaosParity_CcdProjectileStopsAtThinWall : UCk_AutoTes
         // No gravity so the horizontal CCD result is not muddied by any vertical drop.
         _ProjectileMesh.SetEnableGravity(false);
         _ProjectileMesh.SetUseCCD(true);
+        // The impact is witnessed by EVENT, not by tick sampling — see OnTick for why.
+        _ProjectileMesh.SetNotifyRigidBodyCollision(true);
+        _ProjectileMesh.OnComponentHit.AddUFunction(this, n"OnProjectileHit");
         _Actors.Add(_Projectile);
 
         utils_timer::Create_Tick(_SelfHandle, FCk_Delegate_Timer(this, n"OnTick"));
+    }
+
+    UFUNCTION()
+    private void OnProjectileHit(UPrimitiveComponent HitComp, AActor OtherActor, UPrimitiveComponent OtherComp,
+                                 FVector NormalImpulse, const FHitResult&in Hit)
+    {
+        if (OtherActor == _Wall)
+        { _HitWall = true; }
     }
 
     private void DoCleanup()
@@ -123,10 +139,27 @@ class UCk_AutoTest_CkJolt_ChaosParity_CcdProjectileStopsAtThinWall : UCk_AutoTes
 
         if (_ElapsedSinceLaunch >= 0.667)
         {
-            Assert_True(_PeakX > _WallX - 50.0,
-                f"Projectile should have launched and reached the wall (peak X={_PeakX}, wall X={_WallX})");
+            // REACHED THE WALL — witnessed two frame-rate-independent ways, never by the sampled
+            // peak. At 12000uu/s a contended ~30ms frame steps over the ENTIRE 400uu approach, so
+            // no sample lands between (wall-50) and the wall and the peak reads short; that was a
+            // phantom red under three test lanes (peak -53.2 vs a -50 threshold, true peak -15).
+            //   1. the impact event fired, or
+            //   2. the sphere is now well BEHIND its launch point, which only a restitution bounce
+            //      off the wall can do (nothing else is in this Y band and gravity is off).
+            // Widening the old threshold was rejected: it weakens the "the experiment actually
+            // ran" guard without fixing the sampling.
+            const auto FinalX = float(_Projectile.GetActorLocation().X);
+            const auto BouncedBack = FinalX < _LaunchX - 100.0;
+
+            Assert_True(_HitWall || BouncedBack,
+                f"Projectile should have launched and struck the wall (hit event={_HitWall}, final X={FinalX}, launch X={_LaunchX}, peak X={_PeakX}, wall X={_WallX})");
+
+            // The peak stays the TUNNEL discriminator and is safe against coarse sampling in that
+            // role: under-sampling can only make the peak SMALLER, never larger, so it cannot
+            // manufacture a false tunnel report — and a sphere that did tunnel keeps going (no
+            // gravity, nothing to stop it), so every later sample is far past the wall.
             Assert_True(_PeakX < _WallX,
-                f"CCD projectile must NOT tunnel the wall — its centre must stay on the near side (peak X={_PeakX}, wall X={_WallX})");
+                f"CCD projectile must NOT tunnel the wall — its centre must stay on the near side (peak X={_PeakX}, final X={FinalX}, wall X={_WallX})");
             DoCleanup();
             FinishSuccess();
         }
