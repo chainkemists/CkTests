@@ -31,6 +31,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
     private FCk_Handle_Goap_Planner _MidAsPlanner;
     private bool _RootPlanReceived = false;
     private int32 _DeactivatedCount = 0;
+    private TArray<FCk_Goap_SearchDebugRow> _MidSearchDebug;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -73,8 +74,13 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         _RootAction = MidAction;
 
         // Promote Mid so Leaf_A/Leaf_B become its tree children.
+        auto MidGoal = TArray<FCk_GoapWS_Condition_Authored>();
+        MidGoal.Add(FCk_GoapWS_Condition_Authored(
+            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
+            true));
         auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
+        MidPlannerParams.Set_Goal(MidGoal);
         _MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(MidAction, MidPlannerParams);
         Assert_True(ck::IsValid(_MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
         auto MidAsPlanner = _MidAsPlanner;
@@ -121,8 +127,11 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
     UFUNCTION()
     private void Check_ChainExtended(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
+        auto MidStats = utils_goap_planner::Get_LastSearchStats(_MidAsPlanner);
+
         auto Res = OutResult;
-        Res.Set(utils_goap_planner::Get_ActiveChain(_Planner).Num() >= 1);
+        Res.Set(utils_goap_planner::Get_ActiveChain(_Planner).Num() >= 1
+            && MidStats.Get_StatePoolSize() > 0);
     }
 
     UFUNCTION()
@@ -146,6 +155,13 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
                 FCk_Delegate_Goap_OnPlannerDeactivated(this, n"OnMidDeactivated"));
         }
 
+        auto ActiveHistoryAvailable = utils_goap_planner::TryGet_LastSearchDebug(
+            _MidAsPlanner, _MidSearchDebug);
+        Assert_True(ActiveHistoryAvailable,
+            "An active promoted Planner should expose its completed search history");
+        Assert_True(_MidSearchDebug.Num() > 0,
+            "The active promoted Planner should have at least one search-debug row");
+
         // Reset the chain. Teardown and OnPlannerDeactivated broadcast happen
         // synchronously inside Request_ResetActiveChain.
         utils_goap_planner::Request_ResetActiveChain(_Planner);
@@ -155,6 +171,17 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 0,
             f"ActiveChain should collapse to [] immediately after Request_ResetActiveChain (got {Chain.Num()})");
+
+        auto RetainedStats = utils_goap_planner::Get_LastSearchStats(_MidAsPlanner);
+        Assert_True(RetainedStats.Get_StatePoolSize() > 0,
+            "Deactivation should retain the promoted Planner's completed search graph");
+
+        auto InactiveHistoryAvailable = utils_goap_planner::TryGet_LastSearchDebug(
+            _MidAsPlanner, _MidSearchDebug);
+        Assert_False(InactiveHistoryAvailable,
+            "An inactive promoted Planner with an unresolved inherited WorldState should report history unavailable");
+        Assert_True(_MidSearchDebug.Num() == 0,
+            "Unavailable search history should clear previously returned rows");
 
         // Disable Planner so ChainUpdate doesn't re-extend the chain on the
         // next frame (Root's plan still shows Mid, so ChainUpdate would normally
