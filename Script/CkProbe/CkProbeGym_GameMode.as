@@ -72,6 +72,19 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
 
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
+            Station.Tags.Add(n"Gym.Probe.Trace");
+            Station.Title = FText::FromString("PROBE TRACE WORLD HITS");
+            Station.AutoSize = true;
+            auto TraceDescription = TArray<FText>();
+            TraceDescription.Add(FText::FromString("Shape trace across a baked cube and a target probe."));
+            TraceDescription.Add(FText::FromString("Console: Ck_GymProbeTrace_Ignore / _Blocking / _Reported"));
+            TraceDescription.Add(FText::FromString("Ignore = wallhack, Blocking = cube truncates, Reported = both."));
+            Station.Description = TraceDescription;
+            Stations.Add(Station);
+        }
+
+        {
+            auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Probe.NestedSceneNode");
             Station.Title = FText::FromString("PROBE NESTED SCENE NODES");
             Station.AutoSize = true;
@@ -92,7 +105,19 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_StartSinglePhysicalStation();
         Request_StartPhysicalStation();
         Request_StartStationaryHierarchyStation();
+        Request_StartTraceStation();
         Request_StartNestedSceneNodeStation();
+    }
+
+    void Request_StartTraceStation()
+    {
+        auto StationTransform = Get_StationAnchorTransform("Gym.Probe.Trace", ECk_GymStation_Anchor::PanelCenter);
+        auto SpawnParams = FCk_Gym_TransformSpawnParams(StationTransform);
+
+        utils_entity_script::Request_SpawnEntity(
+            Get_StationHandle("Gym.Probe.Trace"),
+            UCk_EntityScript_ProbeGym_TraceStation,
+            FInstancedStruct::Make(SpawnParams));
     }
 
     void Request_StartStationaryHierarchyStation()
@@ -183,6 +208,34 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
+    // Console Commands — Trace station world-hit policy
+    //------------------------------------------------------------------------
+
+    UFUNCTION(Exec, DisplayName="Probe Gym - Trace World Hits: Ignore")
+    void Ck_GymProbeTrace_Ignore()
+    {
+        Do_SetTraceWorldHitPolicy(ECk_ProbeTrace_WorldHitPolicy::Ignore);
+    }
+
+    UFUNCTION(Exec, DisplayName="Probe Gym - Trace World Hits: Blocking")
+    void Ck_GymProbeTrace_Blocking()
+    {
+        Do_SetTraceWorldHitPolicy(ECk_ProbeTrace_WorldHitPolicy::Blocking);
+    }
+
+    UFUNCTION(Exec, DisplayName="Probe Gym - Trace World Hits: Reported")
+    void Ck_GymProbeTrace_Reported()
+    {
+        Do_SetTraceWorldHitPolicy(ECk_ProbeTrace_WorldHitPolicy::Reported);
+    }
+
+    private void Do_SetTraceWorldHitPolicy(ECk_ProbeTrace_WorldHitPolicy InPolicy)
+    {
+        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_TraceStation"))
+        { utils_messaging::Broadcast(E, FCk_Message_ProbeGymTrace_SetWorldHitPolicy(InPolicy)); }
+    }
+
+    //------------------------------------------------------------------------
     // Console Commands — Auto
     //------------------------------------------------------------------------
 
@@ -196,6 +249,15 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
         { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
         for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_NestedSceneNodeStation"))
         { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
+        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_TraceStation"))
+        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(Enabled)); }
+    }
+
+    UFUNCTION(Exec, DisplayName="Probe Gym - Auto Trace")
+    void Ck_GymProbe_AutoTrace()
+    {
+        for (auto E : utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_ProbeGym_TraceStation"))
+        { utils_messaging::Broadcast(E, FCk_Message_Gym_AutoSet(true)); }
     }
 
     UFUNCTION(Exec, DisplayName="Probe Gym - Auto Debug")
