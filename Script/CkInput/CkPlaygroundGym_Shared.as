@@ -26,11 +26,12 @@
 //
 // DIRECTIONS ARE ANALOG-ONLY, AND NOTHING IS MATCHED AGAINST ONE. The record's
 // octant is derived from the sampler's axis pair and nothing else, so a keyboard
-// cannot move it. No move in this gym declares a direction step, so the octant is
-// read but never matched, and the SOCD quad is left UNNAMED — an unnamed quad is
-// the documented unset state, both cleaned slots stay Neutral, and no SOCD work
-// runs. That is a composition with no direction keys at all, which is exactly
-// what a mouse-driven kit needs.
+// cannot move it. No move in this gym declares a direction STEP — the forward
+// combo is a chord of two BUTTONS, one of which happens to be the forward key —
+// so the octant is read but never matched, and the SOCD quad is left UNNAMED: an
+// unnamed quad is the documented unset state, both cleaned slots stay Neutral,
+// and no SOCD work runs. That is a composition with no direction keys at all,
+// which is exactly what a mouse-driven kit needs.
 //
 // THE PLAYGROUND RENDERS SHAPES, NOT PANELS. There is no coloured-line panel
 // vocabulary here and no display entity: the pawn says what it means with the PMG
@@ -51,13 +52,25 @@
 //
 //   LeftMouseButton                    light attacks + light charge (k_Key_Light)
 //   RightMouseButton                   heavy attacks + heavy charge (k_Key_Heavy)
+//   W                                  forward locomotion AND the forward combo's
+//                                      chord partner (k_Key_Forward)
 //   Q                                  block (k_Key_Block) — MINTED, NO MOVE ROWS
+//
+// W IS READ TWICE, DELIBERATELY. It is the only key in this gym with two
+// claimants, and they cannot starve each other because they read different
+// surfaces: the combat kit's matcher captures W on its own input LAYER (a
+// `Consume` capture, like every other terminal the set registers), while
+// locomotion polls `APlayerController::IsInputKeyDown` in the pawn's tick, which
+// is engine-level state outside the routed pipeline entirely. A capture ends a
+// ROUTING walk; it does not make a key stop being down. So holding W walks the
+// character forward and simultaneously satisfies the `W+L` chord the instant the
+// mouse button lands, which is the whole shape of a direction combo.
 //
 // Q IS MINTED AND CARRIES NOTHING, ON PURPOSE. It appears in no move table, no
 // intent terminates on it, and the matcher never grades it — it is minted so the
 // RECORD carries a row for it, and the pawn reads the block straight off that
 // row's HELD SET. That is the deliberate contrast this playground exists to show:
-// four moves that are notation compiled into a set and graded by the module,
+// seven moves that are notation compiled into a set and graded by the module,
 // beside one state that is a fact about the newest row and is read, not graded.
 // The deleted sekiro station demonstrated exactly this shape — a held block sat
 // beside matched deflect timing — and the block is the last piece of it that
@@ -69,7 +82,7 @@
 // never mints them, so no row of the record names them and nothing can terminate
 // on them:
 //
-//   W / A / S / D                      locomotion, polled  (CkPlaygroundGym_Pawn)
+//   A / S / D                          locomotion, polled  (CkPlaygroundGym_Pawn)
 //   Mouse2D                            cursor aim, deprojected (CkPlaygroundGym_Pawn)
 //   Tab                                gym menu, gym shell
 //
@@ -161,22 +174,24 @@ namespace playground_gym
     // The keys this gym reads
     //------------------------------------------------------------------------
     //
-    // The full ledger is in the file header. These are the three constants; a key
+    // The full ledger is in the file header. These are the four constants; a key
     // the playground polls straight off the PlayerController lives beside its
     // poller and is never minted here.
     //
-    // Two graded buttons and not one, because each carries a hold sibling and its
-    // bare rival: the light chain and the light charge are one terminal's two
-    // answers, and the heavy pair is the other's. A single button could not say
-    // that.
+    // Three graded buttons and not one. The two mouse buttons each carry a hold
+    // sibling and its bare rival — the light chain and the light charge are one
+    // terminal's two answers, and the heavy pair is the other's — and the third,
+    // forward, is graded only as the partner of a chord: nothing terminates on W
+    // alone, and a press of it while the mouse button is up completes nothing.
     //
-    // The third button is minted and graded by nothing. Block is a HELD SET read
+    // The fourth button is minted and graded by nothing. Block is a HELD SET read
     // off the newest record row (see the ledger note above), so Q needs a row in
     // the record and nothing else — no move table entry, no terminal, no verdict.
 
-    const FKey k_Key_Light = EKeys::LeftMouseButton;
-    const FKey k_Key_Heavy = EKeys::RightMouseButton;
-    const FKey k_Key_Block = EKeys::Q;
+    const FKey k_Key_Light   = EKeys::LeftMouseButton;
+    const FKey k_Key_Heavy   = EKeys::RightMouseButton;
+    const FKey k_Key_Forward = EKeys::W;
+    const FKey k_Key_Block   = EKeys::Q;
 
     //------------------------------------------------------------------------
     // Tuning
@@ -229,6 +244,7 @@ namespace playground_gym
 
         Keys.Add(k_Key_Light);
         Keys.Add(k_Key_Heavy);
+        Keys.Add(k_Key_Forward);
         Keys.Add(k_Key_Block);
 
         return Keys;
