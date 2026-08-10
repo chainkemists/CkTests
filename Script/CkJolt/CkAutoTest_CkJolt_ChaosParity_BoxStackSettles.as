@@ -39,6 +39,7 @@ class UCk_AutoTest_CkJolt_ChaosParity_BoxStackSettles : UCk_AutoTest_Base
     private float _Elapsed = 0.0;
     private float _StableTime = 0.0;
     private float _HoldTime = 0.0;
+    private bool _HasMoved = false;
 
     private UStaticMesh _CubeMesh;
 
@@ -118,7 +119,15 @@ class UCk_AutoTest_CkJolt_ChaosParity_BoxStackSettles : UCk_AutoTest_Base
 
         if (_Phase == 0)
         {
-            if (MaxDelta < 0.1)
+            // "At rest" and "has not started falling yet" are the SAME reading — every delta is
+            // exactly 0 until Chaos first steps these bodies. Latch real motion before the
+            // stability window may count, or the window completes at the SPAWN positions and the
+            // spacing assertion measures the 200uu spawn gap instead of the 100uu settled one.
+            // (Observed as a phantom red under three contended test lanes: "got 200.0".)
+            if (MaxDelta > 1.0)
+            { _HasMoved = true; }
+
+            if (_HasMoved && MaxDelta < 0.1)
             { _StableTime += float(InDeltaT.Get_Seconds()); }
             else
             { _StableTime = 0.0; }
@@ -145,7 +154,9 @@ class UCk_AutoTest_CkJolt_ChaosParity_BoxStackSettles : UCk_AutoTest_Base
             if (_Elapsed > 15.0)
             {
                 DoCleanup();
-                FinishFailure(f"Chaos stack never settled after {_Elapsed} seconds");
+                FinishFailure(_HasMoved
+                    ? f"Chaos stack never settled after {_Elapsed} seconds"
+                    : f"Chaos stack never started simulating after {_Elapsed} seconds (no box ever moved)");
             }
 
             return;
