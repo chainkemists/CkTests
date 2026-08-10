@@ -35,9 +35,10 @@
 // both terminals and the hold cause is the only thing making these buttons wait.
 //
 // THE THRESHOLD IS WRITTEN TWICE ON PURPOSE — literally in the notation, which is
-// the authoring surface and stays literal, and as the constant below, which is
-// what the pawn's charge counter quotes. A reader compares the two; neither one
-// alone could pin the number.
+// the authoring surface and stays literal, and as the constant below. A reader
+// compares the two; neither one alone could pin the number. (The pawn's charge
+// counter quotes a THIRD number, k_ChargeFullFrames — that one is display, not a
+// verdict, and deliberately does not live here.)
 //
 // PRIORITIES ARE DISTINCT ACROSS THE WHOLE TABLE, and each hold OUTWEIGHS the tap
 // it shares a terminal with — the same 900/890 over 600/590 shape the archived
@@ -57,12 +58,14 @@ namespace playground_gym_kit_moves
     const FName k_Move_Light_Tap    = n"Kit_Light_Tap";
     const FName k_Move_Heavy_Tap    = n"Kit_Heavy_Tap";
 
-    // Three quarters of a second at the sampler's 60 Hz cadence. Long enough that
-    // a player feels themselves holding rather than mistiming a click, short
-    // enough that failing it costs nothing and the next attempt starts
-    // immediately. Both buttons carry the SAME threshold here — this kit's two
-    // families differ in what comes out, not in how long the wind-up is.
-    const int32 k_ChargeHoldFrames = 45;
+    // ~83ms at the sampler's 60 Hz cadence — the tap-versus-hold VERDICT point,
+    // not the charge-up time (maintainer tuning: the usual verdict threshold is
+    // 70-80ms so the non-hold attack never feels sluggish). A crisp click releases
+    // under it and answers as a tap almost immediately; any press that outlives it
+    // IS a hold, so the tap's worst-case wait is bounded at five frames. How long
+    // a charge takes to LOOK full is a different number and it lives with the
+    // display that draws it (the pawn's k_ChargeFullFrames).
+    const int32 k_ChargeHoldFrames = 5;
 
     // The table asserts nothing about its own length, but a kit that armed a set
     // with a move missing would be silently teaching the wrong law.
@@ -75,8 +78,8 @@ namespace playground_gym_kit_moves
         Declare_Button(n"L");
         Declare_Button(n"H");
 
-        Declare_Move(k_Move_Light_Charge, "L hold=45", 900);
-        Declare_Move(k_Move_Heavy_Charge, "H hold=45", 890);
+        Declare_Move(k_Move_Light_Charge, "L hold=5", 900);
+        Declare_Move(k_Move_Heavy_Charge, "H hold=5", 890);
 
         Declare_Move(k_Move_Light_Tap, "L", 600);
         Declare_Move(k_Move_Heavy_Tap, "H", 590);

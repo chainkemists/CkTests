@@ -45,11 +45,14 @@
 // this kit's swings last. They are UNEQUAL on purpose: a chain whose third hit
 // visibly outlives its first reads as three moves rather than one repeated.
 //
-// THE SHAPE'S LIFETIME IS THE ATTACK'S LENGTH, WHICH IS WHY THE SWINGS ARE NOT
-// TRACKED. A swing is a PMG entity created with a positive duration: it counts
-// itself down and destroys itself, and that countdown IS the attack rendered. The
-// state's own countdown is started on the same tick from the same number, so the
-// two cannot drift. Four persistent shapes have no such clock — the charge
+// EVERY CHAIN STEP IS PHASED: a wind-up nothing comes out of (20%), then the
+// strike. The swing is a PMG entity spawned where the wind-up ENDS, with the
+// active-plus-wind-down remainder as its duration: it counts itself down and
+// destroys itself on the same tick the state expires, so the two cannot drift,
+// and the swings are never tracked. The CHAIN WINDOW is everything after the
+// wind-up, the buffer answers the PRESS row rather than the completion, and a
+// step that expires unbuffered leaves a short grace window where a late tap
+// still chains ([P10-D6] — the maintainer's wind-up/attack/wind-down model). Four persistent shapes have no such clock — the charge
 // accumulator, the buffered marker, the block plate, and the two readout lines —
 // and those are the ones this file owns and destroys.
 //
@@ -155,6 +158,30 @@ namespace playground_gym_kit
     const float32 k_Duration_Special_Heavy = 1.20f;
 
     //------------------------------------------------------------------------
+    // The phases (maintainer's model: wind-up, attack, wind-down)
+    //------------------------------------------------------------------------
+    //
+    // Every chain step opens with a wind-up nothing comes out of: the swing shape
+    // spawns where the wind-up ENDS, so cancelling into a charge during it costs
+    // no strike, and the hit lands when the strike is visible rather than on the
+    // press. The CHAIN WINDOW is everything after the wind-up — active plus
+    // wind-down — which is where a same-family press queues the next step. A
+    // press completing just after the step expired still chains through the grace
+    // window instead of resetting to step 1: "almost chained" has to read as a
+    // chain, not as a fresh opener.
+    //
+    // Specials have no wind-up — the charge the player just sat through WAS the
+    // wind-up.
+
+    const float32 k_Phase_WindUpFraction = 0.20f;
+
+    const int32 k_ChainGraceFrames = 10;
+
+    // The record's cadence, for converting a phase length in seconds into the
+    // frame index a press has to beat (Shared.as sizes its ring on the same 60).
+    const float32 k_SamplerHz = 60.0f;
+
+    //------------------------------------------------------------------------
     // Where a swing lands
     //------------------------------------------------------------------------
     //
@@ -218,6 +245,12 @@ namespace playground_gym_kit
     const int32   k_ChargeSegments = 16;
     const int32   k_ChargeRings    = 16;
     const float32 k_ChargeHeight   = 50.0f;
+
+    // How long a charge takes to LOOK full — display only, and deliberately a
+    // different number from the move table's hold=5 verdict point: the verdict
+    // says "this press is a hold", this says "the hold has ripened". The counter
+    // quotes it and the sphere saturates at it; nothing grades against it.
+    const int32 k_ChargeFullFrames = 45;
 
     //------------------------------------------------------------------------
     // The block plate
@@ -411,6 +444,27 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // nothing left to say, so it is dropped rather than deepening a queue the
     // chain could never spend.
     private bool _BufferedNext = false;
+
+    // The current chain step's phase bookkeeping: total length (elapsed is derived
+    // from it and the remaining), the record frame where its wind-up ends (the
+    // frame a chain press has to beat), and the swing stashed until the wind-up
+    // has been served. A charge landing mid-wind-up leaves _SwingSpawned false and
+    // the strike never comes out — a cancelled attack costs no shape.
+    private float32 _StateTotalSeconds = 0.0f;
+    private int32   _WindUpEndFrame    = -1;
+    private bool    _SwingSpawned      = true;
+
+    private int32        _PendingSwing_Family = 0;
+    private int32        _PendingSwing_Step   = 0;
+    private float32      _PendingSwing_Extent = 0.0f;
+    private FLinearColor _PendingSwing_Colour;
+    private float32      _PendingSwing_DurationSeconds = 0.0f;
+
+    // The grace window: for a few frames after a step expires unbuffered, a
+    // same-family tap continues the chain instead of opening a new one.
+    private int32 _GraceUntilFrame = -1;
+    private int32 _GraceFamily     = 0;
+    private int32 _GraceNextStep   = 0;
 
     // The dummy registers itself once it has found this pawn (it is spawned from
     // Request_OnPawnReady but constructs on its own schedule). Nothing here waits
@@ -715,16 +769,17 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // same frame if a row landed between two of them.
     //
     // The step order below is the design:
-    //   1. charges, so a completed hold interrupts whatever chain was live before
+    //   1. the chain-press read, FIRST — the buffer answers the button-down the
+    //      moment its row lands, and a charge landing later this same tick gets
+    //      the last word by clearing it;
+    //   2. charges, so a completed hold interrupts whatever chain was live before
     //      that chain's own timer can end it on the same tick;
-    //   2. taps, so a press landing on the very frame a step ends is buffered into
-    //      the chain rather than starting a fresh one;
-    //   3. the release check, which turns a charge into its special on the frame
+    //   3. taps, the back-stop for the press read and the grace-window consumer;
+    //   4. the release check, which turns a charge into its special on the frame
     //      the button actually left the record's held set;
-    //   4. the countdown, LAST — which makes the tick that starts a swing that
-    //      swing's FIRST tick, so the state lasts exactly as long as the shape's
-    //      own clock and the two cannot drift by the tick an entry-exempt
-    //      countdown would add.
+    //   5. the countdown, LAST — it serves the wind-up (spawning the stashed
+    //      swing where the wind-up ends), expires the state, and arms the grace
+    //      window when nothing was buffered.
     //
     // The block is refreshed alongside the other persistent shapes and is not part
     // of that order at all: it reads its own key off the record and never consults
@@ -739,6 +794,10 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         const auto LightRun = playground_gym::Get_HeldRunFrames(Sampler, playground_gym::k_Key_Light.GetKeyName());
         const auto HeavyRun = playground_gym::Get_HeldRunFrames(Sampler, playground_gym::k_Key_Heavy.GetKeyName());
         const auto BlockRun = playground_gym::Get_HeldRunFrames(Sampler, playground_gym::k_Key_Block.GetKeyName());
+
+        // BEFORE the completions: a charge landing this tick must have the last
+        // word on the buffer, and this reads the same press the charge grew from.
+        DoAdvance_ChainPressIntent(Sampler);
 
         DoTryRecordAttempts(Sampler);
 
@@ -934,12 +993,43 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // The machine
     //------------------------------------------------------------------------
 
+    // The chain intent is the PRESS, read off the record the moment its row lands
+    // — [P10-D5] played game-side: act on button-down, let the verdict re-resolve
+    // it. A press during active or wind-down buffers the next step immediately; if
+    // the matcher later grades that same press a CHARGE, the charge's interrupt
+    // clears the buffer it briefly held. Presses during the WIND-UP are not chain
+    // inputs (the maintainer's model): the window opens where the wind-up ends,
+    // which is the frame `_WindUpEndFrame` names.
+    private void DoAdvance_ChainPressIntent(FCk_Handle_IntentSampler InSampler)
+    {
+        const auto Step = Get_ChainStep();
+
+        if (Step < 1 || Step > 2)
+        { return; }
+
+        const auto Key = Get_StateFamily() == playground_gym_kit::k_Family_Light
+            ? playground_gym::k_Key_Light
+            : playground_gym::k_Key_Heavy;
+
+        const auto PressFrame = playground_gym::Get_LatestPressFrame(InSampler, Key.GetKeyName());
+
+        // Also rejects the press that STARTED this step — its row predates the
+        // step's own wind-up, so it can never buffer the step after it.
+        if (PressFrame < _WindUpEndFrame)
+        { return; }
+
+        _BufferedNext = true;
+    }
+
     // A charge interrupts everything. The buffer goes with it: a queued next step
     // belongs to a chain that is no longer running, and firing it after the special
-    // would be answering an input the player made about a different move.
+    // would be answering an input the player made about a different move. A
+    // mid-wind-up charge also cancels the strike itself: the pending swing never
+    // spawns, so a cancelled attack costs no shape.
     private void DoOnChargeLanded(int32 InFamily)
     {
         _BufferedNext = false;
+        _GraceUntilFrame = -1;
         _StateSecondsRemaining = 0.0f;
 
         _State = InFamily == playground_gym_kit::k_Family_Light
@@ -949,13 +1039,25 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         DoFlashBeat(true);
     }
 
-    // Idle starts a chain. A step of the SAME family queues the next one. Anything
-    // else — the other family mid-chain, a press during a charge, a press during a
-    // special — is delivered, recorded and deliberately not acted on.
+    // Idle starts a chain — or CONTINUES one, when the tap lands inside the grace
+    // window a just-expired step left behind. A completion during a step is the
+    // back-stop for the press-intent read (its press has to clear the same
+    // wind-up gate). Anything else — the other family mid-chain, a press during a
+    // charge, a press during a special, a wind-up press — is delivered, recorded
+    // and deliberately not acted on.
     private void DoOnTapLanded(int32 InFamily)
     {
         if (_State == playground_gym_kit::k_State_Idle)
         {
+            const auto LiveFrame = playground_gym::Get_LiveFrameIndex(playground_gym::TryGet_Sampler());
+
+            if (_GraceUntilFrame >= 0 && LiveFrame <= _GraceUntilFrame && InFamily == _GraceFamily)
+            {
+                DoEnterChainStep(InFamily, _GraceNextStep);
+                DoFlashBeat(true);
+                return;
+            }
+
             DoEnterChainStep(InFamily, 1);
             DoFlashBeat(true);
             return;
@@ -963,9 +1065,16 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         if (Get_StateFamily() == InFamily && Get_ChainStep() >= 1 && Get_ChainStep() <= 2)
         {
-            _BufferedNext = true;
-            DoFlashBeat(true);
-            return;
+            const auto PressFrame = InFamily == playground_gym_kit::k_Family_Light
+                ? _Attempt_LightTap.PressFrame
+                : _Attempt_HeavyTap.PressFrame;
+
+            if (PressFrame >= _WindUpEndFrame)
+            {
+                _BufferedNext = true;
+                DoFlashBeat(true);
+                return;
+            }
         }
 
         DoFlashBeat(false);
@@ -995,6 +1104,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         _StateSecondsRemaining -= InDeltaSeconds;
 
+        DoTrySpawnPendingSwing();
+
         if (_StateSecondsRemaining > 0.0f)
         { return; }
 
@@ -1009,70 +1120,137 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             return;
         }
 
+        // Expiring unbuffered arms the grace window: a same-family tap landing in
+        // Idle within it CONTINUES the chain rather than opening a new one. Step 3
+        // arms nothing — there is no fourth hit to be late for.
+        if (Step >= 1 && Step <= 2)
+        {
+            _GraceUntilFrame = playground_gym::Get_LiveFrameIndex(playground_gym::TryGet_Sampler())
+                + playground_gym_kit::k_ChainGraceFrames;
+            _GraceFamily   = Get_StateFamily();
+            _GraceNextStep = Step + 1;
+        }
+
         _BufferedNext = false;
         _State = playground_gym_kit::k_State_Idle;
     }
 
+    // The strike comes out where the wind-up ends: the shape's lifetime is the
+    // active-plus-wind-down remainder, so the state and its swing still expire on
+    // the same tick, and the hit-test runs at the strike rather than at the press.
+    private void DoTrySpawnPendingSwing()
+    {
+        if (_SwingSpawned || Get_ChainStep() == 0)
+        { return; }
+
+        const auto Elapsed = _StateTotalSeconds - _StateSecondsRemaining;
+
+        if (Elapsed < _StateTotalSeconds * playground_gym_kit::k_Phase_WindUpFraction)
+        { return; }
+
+        _SwingSpawned = true;
+
+        DoSpawnSwing(
+            _PendingSwing_Family,
+            _PendingSwing_Step,
+            _PendingSwing_Extent,
+            _PendingSwing_Colour,
+            playground_gym_kit::k_Attack_ForwardOffset,
+            _PendingSwing_DurationSeconds);
+    }
+
+    // Entering a step does NOT spawn its swing — the strike is stashed and comes
+    // out when the wind-up has been served (DoTrySpawnPendingSwing), which is also
+    // what lets a mid-wind-up charge cancel it for free.
     private void DoEnterChainStep(int32 InFamily, int32 InStep)
+    {
+        _GraceUntilFrame = -1;
+
+        _State                 = Get_ChainState(InFamily, InStep);
+        _StateTotalSeconds     = Get_ChainDuration(InFamily, InStep);
+        _StateSecondsRemaining = _StateTotalSeconds;
+
+        const auto WindUpSeconds = _StateTotalSeconds * playground_gym_kit::k_Phase_WindUpFraction;
+
+        _SwingSpawned                 = false;
+        _PendingSwing_Family          = InFamily;
+        _PendingSwing_Step            = InStep;
+        _PendingSwing_Extent          = Get_ChainExtent(InFamily, InStep);
+        _PendingSwing_Colour          = Get_ChainColour(InFamily, InStep);
+        _PendingSwing_DurationSeconds = _StateTotalSeconds - WindUpSeconds;
+
+        _WindUpEndFrame = playground_gym::Get_LiveFrameIndex(playground_gym::TryGet_Sampler())
+            + int32(WindUpSeconds * playground_gym_kit::k_SamplerHz);
+    }
+
+    private int32 Get_ChainState(int32 InFamily, int32 InStep) const
     {
         if (InFamily == playground_gym_kit::k_Family_Light)
         {
-            if (InStep == 1)
-            {
-                _State = playground_gym_kit::k_State_Light1;
-                _StateSecondsRemaining = playground_gym_kit::k_Duration_Light1;
-                DoSpawnSwing(InFamily, 1, playground_gym_kit::k_Extent_Light1, playground_gym_kit::k_Colour_Light1,
-                    playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Light1);
-                return;
-            }
-
-            if (InStep == 2)
-            {
-                _State = playground_gym_kit::k_State_Light2;
-                _StateSecondsRemaining = playground_gym_kit::k_Duration_Light2;
-                DoSpawnSwing(InFamily, 2, playground_gym_kit::k_Extent_Light2, playground_gym_kit::k_Colour_Light2,
-                    playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Light2);
-                return;
-            }
-
-            _State = playground_gym_kit::k_State_Light3;
-            _StateSecondsRemaining = playground_gym_kit::k_Duration_Light3;
-            DoSpawnSwing(InFamily, 3, playground_gym_kit::k_Extent_Light3, playground_gym_kit::k_Colour_Light3,
-                playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Light3);
-            return;
+            if (InStep == 1) { return playground_gym_kit::k_State_Light1; }
+            if (InStep == 2) { return playground_gym_kit::k_State_Light2; }
+            return playground_gym_kit::k_State_Light3;
         }
 
-        if (InStep == 1)
-        {
-            _State = playground_gym_kit::k_State_Heavy1;
-            _StateSecondsRemaining = playground_gym_kit::k_Duration_Heavy1;
-            DoSpawnSwing(InFamily, 1, playground_gym_kit::k_Extent_Heavy1, playground_gym_kit::k_Colour_Heavy1,
-                playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Heavy1);
-            return;
-        }
-
-        if (InStep == 2)
-        {
-            _State = playground_gym_kit::k_State_Heavy2;
-            _StateSecondsRemaining = playground_gym_kit::k_Duration_Heavy2;
-            DoSpawnSwing(InFamily, 2, playground_gym_kit::k_Extent_Heavy2, playground_gym_kit::k_Colour_Heavy2,
-                playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Heavy2);
-            return;
-        }
-
-        _State = playground_gym_kit::k_State_Heavy3;
-        _StateSecondsRemaining = playground_gym_kit::k_Duration_Heavy3;
-        DoSpawnSwing(InFamily, 3, playground_gym_kit::k_Extent_Heavy3, playground_gym_kit::k_Colour_Heavy3,
-            playground_gym_kit::k_Attack_ForwardOffset, playground_gym_kit::k_Duration_Heavy3);
+        if (InStep == 1) { return playground_gym_kit::k_State_Heavy1; }
+        if (InStep == 2) { return playground_gym_kit::k_State_Heavy2; }
+        return playground_gym_kit::k_State_Heavy3;
     }
 
+    private float32 Get_ChainDuration(int32 InFamily, int32 InStep) const
+    {
+        if (InFamily == playground_gym_kit::k_Family_Light)
+        {
+            if (InStep == 1) { return playground_gym_kit::k_Duration_Light1; }
+            if (InStep == 2) { return playground_gym_kit::k_Duration_Light2; }
+            return playground_gym_kit::k_Duration_Light3;
+        }
+
+        if (InStep == 1) { return playground_gym_kit::k_Duration_Heavy1; }
+        if (InStep == 2) { return playground_gym_kit::k_Duration_Heavy2; }
+        return playground_gym_kit::k_Duration_Heavy3;
+    }
+
+    private float32 Get_ChainExtent(int32 InFamily, int32 InStep) const
+    {
+        if (InFamily == playground_gym_kit::k_Family_Light)
+        {
+            if (InStep == 1) { return playground_gym_kit::k_Extent_Light1; }
+            if (InStep == 2) { return playground_gym_kit::k_Extent_Light2; }
+            return playground_gym_kit::k_Extent_Light3;
+        }
+
+        if (InStep == 1) { return playground_gym_kit::k_Extent_Heavy1; }
+        if (InStep == 2) { return playground_gym_kit::k_Extent_Heavy2; }
+        return playground_gym_kit::k_Extent_Heavy3;
+    }
+
+    private FLinearColor Get_ChainColour(int32 InFamily, int32 InStep) const
+    {
+        if (InFamily == playground_gym_kit::k_Family_Light)
+        {
+            if (InStep == 1) { return playground_gym_kit::k_Colour_Light1; }
+            if (InStep == 2) { return playground_gym_kit::k_Colour_Light2; }
+            return playground_gym_kit::k_Colour_Light3;
+        }
+
+        if (InStep == 1) { return playground_gym_kit::k_Colour_Heavy1; }
+        if (InStep == 2) { return playground_gym_kit::k_Colour_Heavy2; }
+        return playground_gym_kit::k_Colour_Heavy3;
+    }
+
+    // Specials spawn their swing IMMEDIATELY — the charge the player sat through
+    // was the wind-up.
     private void DoEnterSpecial(int32 InFamily)
     {
         _BufferedNext = false;
+        _GraceUntilFrame = -1;
+        _SwingSpawned = true;
 
         if (InFamily == playground_gym_kit::k_Family_Light)
         {
             _State = playground_gym_kit::k_State_Special_Light;
+            _StateTotalSeconds = playground_gym_kit::k_Duration_Special_Light;
             _StateSecondsRemaining = playground_gym_kit::k_Duration_Special_Light;
 
             DoSpawnSwing(InFamily, playground_gym_kit::k_Step_Special,
@@ -1082,6 +1260,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         }
 
         _State = playground_gym_kit::k_State_Special_Heavy;
+        _StateTotalSeconds = playground_gym_kit::k_Duration_Special_Heavy;
         _StateSecondsRemaining = playground_gym_kit::k_Duration_Special_Heavy;
 
         DoSpawnSwing(InFamily, playground_gym_kit::k_Step_Special,
@@ -1252,7 +1431,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // has already been answered.
     private float32 Get_ChargeScale(int32 InRun) const
     {
-        const auto Progress = float32(InRun) / float32(playground_gym_kit_moves::k_ChargeHoldFrames);
+        const auto Progress = float32(InRun) / float32(playground_gym_kit::k_ChargeFullFrames);
 
         const auto Scaled = playground_gym_kit::k_ChargeScale_Min
             + (Progress * (1.0f - playground_gym_kit::k_ChargeScale_Min));
@@ -1552,7 +1731,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         if (Get_IsCharging())
         {
             const auto Run = _State == playground_gym_kit::k_State_Charging_Light ? InLightRun : InHeavyRun;
-            const auto Threshold = playground_gym_kit_moves::k_ChargeHoldFrames;
+            const auto Threshold = playground_gym_kit::k_ChargeFullFrames;
 
             DoSetLabel(_StateLabel, f"CHARGE {Run}f / {Threshold}f", Colour);
             return;
