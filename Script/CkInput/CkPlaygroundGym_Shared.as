@@ -308,28 +308,6 @@ namespace playground_gym
         return CastResult.GetValue();
     }
 
-    // Found by walking the SOURCE to the combat kit's layer rather than by keeping
-    // a handle here: a namespace has no lifetime to hang one off, and the layer's
-    // priority is already the one authority on which layer this is. The pawn
-    // creates the layer and composes the matcher; everyone else asks this.
-    FCk_Handle_IntentMatcher TryGet_Matcher()
-    {
-        auto Source = TryGet_PlayerSource();
-        if (ck::Is_NOT_Valid(Source))
-        { return utils_intent_matcher::Get_InvalidHandle(); }
-
-        auto Layer = utils_input_layer::TryGet_LayerWithPriority(Source, k_LayerPriority_CombatKit);
-        if (ck::Is_NOT_Valid(Layer))
-        { return utils_intent_matcher::Get_InvalidHandle(); }
-
-        FCk_Handle LayerEntity = Layer;
-        auto CastResult = utils_intent_matcher::DoCast(LayerEntity);
-        if (CastResult.IsSet() == false)
-        { return utils_intent_matcher::Get_InvalidHandle(); }
-
-        return CastResult.GetValue();
-    }
-
     // A tier-2 button's identity IS its key's own name, so the expectation is
     // derived rather than spelled out — a literal would silently stop matching if
     // a key's name ever changed.
@@ -429,34 +407,6 @@ namespace playground_gym
         }
 
         return Run;
-    }
-
-    // The newest row's held set, in button space. The debugger's key/state view
-    // lists exactly this, one row per button, which is why anything meant to be
-    // compared against it renders the names rather than a count.
-    TArray<FName> Get_HeldButtonNames(FCk_Handle_IntentSampler InSampler)
-    {
-        auto Names = TArray<FName>();
-
-        if (ck::Is_NOT_Valid(InSampler))
-        { return Names; }
-
-        auto Buttons = utils_intent_sampler::Get_LatestFrame(InSampler).Get_Held();
-
-        for (auto Index = 0; Index < Buttons.Num(); Index++)
-        {
-            Names.Add(Buttons[Index].Get_Name());
-        }
-
-        return Names;
-    }
-
-    ECk_Intent_Octant Get_LiveOctant(FCk_Handle_IntentSampler InSampler)
-    {
-        if (ck::Is_NOT_Valid(InSampler))
-        { return ECk_Intent_Octant::Neutral; }
-
-        return utils_intent_sampler::Get_LatestFrame(InSampler).Get_Octant();
     }
 
     int32 Get_LiveFrameIndex(FCk_Handle_IntentSampler InSampler)
