@@ -178,7 +178,7 @@ class UCk_AutoTest_Intent_TagKeyedReadsAnswerEmptyOnUnmintedTag : UCk_AutoTest_B
 
         // A real, registered tag from another feature's namespace. It reaches the set and finds no row, which is the
         // OTHER way a tag-keyed read misses — and the way that survives whatever the Intent.* namespace turns out to be.
-        auto UnrelatedTag = utils_gameplay_tag::ResolveGameplayTag(n"Gym.Intent.NearMiss");
+        auto UnrelatedTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Cue.AfterOneFrame");
 
         Assert_True(UnrelatedTag.IsValid(),
             "the unrelated tag must be a registered one, or this leg would be a second empty-tag leg wearing a name");
