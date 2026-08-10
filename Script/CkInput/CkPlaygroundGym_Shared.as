@@ -51,6 +51,18 @@
 //
 //   LeftMouseButton                    light attacks + light charge (k_Key_Light)
 //   RightMouseButton                   heavy attacks + heavy charge (k_Key_Heavy)
+//   Q                                  block (k_Key_Block) — MINTED, NO MOVE ROWS
+//
+// Q IS MINTED AND CARRIES NOTHING, ON PURPOSE. It appears in no move table, no
+// intent terminates on it, and the matcher never grades it — it is minted so the
+// RECORD carries a row for it, and the pawn reads the block straight off that
+// row's HELD SET. That is the deliberate contrast this playground exists to show:
+// four moves that are notation compiled into a set and graded by the module,
+// beside one state that is a fact about the newest row and is read, not graded.
+// The deleted sekiro station demonstrated exactly this shape — a held block sat
+// beside matched deflect timing — and the block is the last piece of it that
+// survives here. A hold= sibling on Q would be the opposite lesson: it would make
+// the block a move, and the whole point is that it is not one.
 //
 // CLAIMED BUT UNMINTED — polled straight off the PlayerController or owned by the
 // gym shell. They carry no move, appear in no move table, and the button map
@@ -72,7 +84,7 @@
 // asked to carry through the Slate writer, and nothing upstream proves they
 // arrive. That is why the pawn's diagnostics render with zero input rather than
 // only once something lands: a dead button has to look different from a dead
-// kit.
+// kit. Q's held run is quoted on the same line for the same reason.
 //
 // The deleted station gyms (fighting / souls / sekiro / debugger fodder) held the
 // right-hand punctuation cluster, the function row, the numeric pad's operator
@@ -149,16 +161,22 @@ namespace playground_gym
     // The keys this gym reads
     //------------------------------------------------------------------------
     //
-    // The full ledger is in the file header. These are the two constants; a key
+    // The full ledger is in the file header. These are the three constants; a key
     // the playground polls straight off the PlayerController lives beside its
     // poller and is never minted here.
     //
-    // Two buttons and not one, because each carries a hold sibling and its bare
-    // rival: the light chain and the light charge are one terminal's two answers,
-    // and the heavy pair is the other's. A single button could not say that.
+    // Two graded buttons and not one, because each carries a hold sibling and its
+    // bare rival: the light chain and the light charge are one terminal's two
+    // answers, and the heavy pair is the other's. A single button could not say
+    // that.
+    //
+    // The third button is minted and graded by nothing. Block is a HELD SET read
+    // off the newest record row (see the ledger note above), so Q needs a row in
+    // the record and nothing else — no move table entry, no terminal, no verdict.
 
     const FKey k_Key_Light = EKeys::LeftMouseButton;
     const FKey k_Key_Heavy = EKeys::RightMouseButton;
+    const FKey k_Key_Block = EKeys::Q;
 
     //------------------------------------------------------------------------
     // Tuning
@@ -201,15 +219,17 @@ namespace playground_gym
         return SourceSubsystem.Get_InputSource();
     }
 
-    // Every key any move in this gym terminates on. Declared at Add rather than
-    // registered one at a time so the map mints the whole vocabulary in the first
-    // derive pass, and a consumer that arms later finds its keys already there.
+    // Every key any move in this gym terminates on, PLUS the one key that is read
+    // rather than matched. Declared at Add rather than registered one at a time so
+    // the map mints the whole vocabulary in the first derive pass, and a consumer
+    // that arms later finds its keys already there.
     TArray<FKey> Get_AllPlaygroundKeys()
     {
         auto Keys = TArray<FKey>();
 
         Keys.Add(k_Key_Light);
         Keys.Add(k_Key_Heavy);
+        Keys.Add(k_Key_Block);
 
         return Keys;
     }
@@ -369,6 +389,11 @@ namespace playground_gym
     // mask. The matcher's accumulator is the policy-applied count, it is not
     // readable, and it is the completions — not this number — that a consumer is
     // allowed to act on.
+    //
+    // The block is the one reader that acts on a run rather than displaying it,
+    // and it is allowed to because there is no verdict to disagree with: nothing
+    // grades Q, so the record's held rows are not a second opinion about it — they
+    // are the only opinion.
     int32 Get_HeldRunFrames(FCk_Handle_IntentSampler InSampler, FName InButtonName)
     {
         if (ck::Is_NOT_Valid(InSampler))
