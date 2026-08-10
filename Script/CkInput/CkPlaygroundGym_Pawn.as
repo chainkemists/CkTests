@@ -29,16 +29,16 @@
 //----------------------------------------------------------------------------
 //
 // Everything below the aim update is a CONSUMER of CkIntent, not an extension of
-// it. The matcher grades exactly four things — a light tap, a light charge, and
-// the same pair on the heavy button — and every chain, buffer, charge and special
-// a viewer watches happen is game state owned by this file, driven by polling
-// those completions. That is the shape a real consumer has and the shape the
-// module's doc prescribes: poll the completion FRAME, act once, never branch on a
-// latched phase (CkIntent/CLAUDE.md anti-pattern 15).
+// it. The matcher grades exactly seven things — a light tap, a light charge, the
+// same pair on the heavy button, and three combos — and every chain, buffer,
+// charge and special a viewer watches happen is game state owned by this file,
+// driven by polling those completions. That is the shape a real consumer has and
+// the shape the module's doc prescribes: poll the completion FRAME, act once,
+// never branch on a latched phase (CkIntent/CLAUDE.md anti-pattern 15).
 //
-// ONE MACHINE, ELEVEN STATES. Idle, three light steps, three heavy steps, two
-// charges and two specials all live in one `_State`. A second flag mirroring "am I
-// attacking" would be a second answer to a question that has one.
+// ONE MACHINE, FOURTEEN STATES. Idle, three light steps, three heavy steps, two
+// charges, two specials and three combos all live in one `_State`. A second flag
+// mirroring "am I attacking" would be a second answer to a question that has one.
 //
 // THE ATTACK LENGTHS ARE THIS FILE'S OWN NUMBERS. No notation quotes them, the
 // matcher never sees them, and nothing is graded against them — they are how long
@@ -52,9 +52,16 @@
 // and the swings are never tracked. The CHAIN WINDOW is everything after the
 // wind-up, the buffer answers the PRESS row rather than the completion, and a
 // step that expires unbuffered leaves a short grace window where a late tap
-// still chains ([P10-D6] — the maintainer's wind-up/attack/wind-down model). Four persistent shapes have no such clock — the charge
+// still chains (the wind-up/attack/wind-down model). Four persistent shapes have no such clock — the charge
 // accumulator, the buffered marker, the block plate, and the two readout lines —
 // and those are the ones this file owns and destroys.
+//
+// COMBOS ARE PHASE-EXEMPT, LIKE THE SPECIALS, AND FOR THE SAME REASON: the
+// sequence the player already produced WAS the wind-up, so the strike comes out
+// on the frame the completion is read. A combo also SUPERSEDES whatever the
+// machine was doing — it clears the chain step, its buffer and its grace window
+// — because a combo is what the player meant by the presses a chain would
+// otherwise have read one at a time.
 //
 // THE CHARGE ACCUMULATOR IS DISPLAY, AND THE CODE SAYS SO WHERE IT READS IT. It
 // is driven by the RECORD's held rows — the physical fact, which keeps counting
@@ -89,7 +96,7 @@
 // BLOCK IS A HELD SET, NOT A MOVE, AND THAT IS THE WHOLE POINT. Q is minted into
 // the button map so the record carries a row for it, and no move table names it —
 // so the block is read off the newest row's held set rather than graded by the
-// matcher. Four moves that are notation compiled into a set, beside one state
+// matcher. Seven moves that are notation compiled into a set, beside one state
 // that is a fact about a row: the contrast is the exercise, and the deleted sekiro
 // station demonstrated the same pair.
 //
@@ -124,6 +131,14 @@ namespace playground_gym_kit
     const int32 k_State_Special_Light  = 9;
     const int32 k_State_Special_Heavy  = 10;
 
+    // One state per combo rather than one Combo state carrying which-one beside
+    // it: the two specials are already two states for the same reason, and the
+    // floor label reads the name straight off `_State` instead of off a second
+    // value that could disagree with it.
+    const int32 k_State_Combo_LH = 11;
+    const int32 k_State_Combo_HL = 12;
+    const int32 k_State_Combo_WL = 13;
+
     // The two families, as one value. A tap, a charge, a chain step and a special
     // all have to say which side of the kit they belong to, and three bools would
     // be three places one answer could disagree with itself.
@@ -134,7 +149,8 @@ namespace playground_gym_kit
     // The step a special reports when it lands a hit. Zero is already what
     // Get_ChainStep answers for anything that is not a chain step, so the dummy
     // reads "not one of the three" from the same number this file already means it
-    // by — a fourth step index would be a second way to say the same thing.
+    // by — a fourth step index would be a second way to say the same thing. A
+    // combo reports the same number, because it is not a chain step either.
     const int32 k_Step_Special = 0;
 
     //------------------------------------------------------------------------
@@ -157,6 +173,10 @@ namespace playground_gym_kit
     const float32 k_Duration_Special_Light = 0.80f;
     const float32 k_Duration_Special_Heavy = 1.20f;
 
+    // One length for all three combos: what tells them apart is which inputs
+    // produced them and what colour comes out, not how long they stand.
+    const float32 k_Duration_Combo = 0.70f;
+
     //------------------------------------------------------------------------
     // The phases (maintainer's model: wind-up, attack, wind-down)
     //------------------------------------------------------------------------
@@ -171,7 +191,7 @@ namespace playground_gym_kit
     // chain, not as a fresh opener.
     //
     // Specials have no wind-up — the charge the player just sat through WAS the
-    // wind-up.
+    // wind-up. Neither do combos: the sequence was.
 
     const float32 k_Phase_WindUpFraction = 0.20f;
 
@@ -204,6 +224,10 @@ namespace playground_gym_kit
     const float32 k_Extent_Special_Light = 120.0f;
     const float32 k_Extent_Special_Heavy = 150.0f;
 
+    // Bigger than anything either family throws, including the heavy special: a
+    // combo is the most the kit can be asked for, and it has to look like it.
+    const float32 k_Extent_Combo = 170.0f;
+
     //------------------------------------------------------------------------
     // Landing it on something
     //------------------------------------------------------------------------
@@ -217,7 +241,8 @@ namespace playground_gym_kit
     // The arc is around the ACTOR FORWARD, which the cursor aim set earlier on the
     // same tick. Specials are more generous because they are the moves a player
     // commits a full hold to, and a whiffed special reads as the aim lying rather
-    // than as a miss.
+    // than as a miss. A combo is committed the same way and gets the same arc from
+    // the same test, because it reports the same not-a-chain-step index.
 
     const float32 k_HitTest_Padding           = 70.0f;
     const float32 k_HitTest_ArcDegrees        = 55.0f;
@@ -315,6 +340,12 @@ namespace playground_gym_kit
     //
     // The block is steel blue and belongs to neither family, because it is not a
     // move: a plate in either family's colour would read as a third attack.
+    //
+    // The three combos are OFF both family ramps for the same reason — a combo is
+    // not a louder light or a louder heavy, it is the third thing the kit can be
+    // asked for — and they are three different hues rather than three alphas of
+    // one, because which combo landed is the whole question a viewer has about
+    // them.
 
     const FLinearColor k_Colour_Light1  = FLinearColor(0.35f, 0.85f, 1.00f, 0.55f);
     const FLinearColor k_Colour_Light2  = FLinearColor(0.30f, 0.90f, 1.00f, 0.65f);
@@ -325,6 +356,10 @@ namespace playground_gym_kit
 
     const FLinearColor k_Colour_Special_Light = FLinearColor(0.60f, 1.00f, 1.00f, 0.90f);
     const FLinearColor k_Colour_Special_Heavy = FLinearColor(1.00f, 0.80f, 0.35f, 0.90f);
+
+    const FLinearColor k_Colour_Combo_LH = FLinearColor(0.70f, 0.35f, 1.00f, 0.85f);
+    const FLinearColor k_Colour_Combo_HL = FLinearColor(1.00f, 0.30f, 0.75f, 0.85f);
+    const FLinearColor k_Colour_Combo_WL = FLinearColor(0.35f, 1.00f, 0.55f, 0.85f);
 
     const FLinearColor k_Colour_ChargeGrow_Light = FLinearColor(0.30f, 0.90f, 1.00f, 0.45f);
     const FLinearColor k_Colour_ChargeGrow_Heavy = FLinearColor(1.00f, 0.55f, 0.15f, 0.45f);
@@ -384,7 +419,15 @@ namespace playground_gym_kit
     const FLinearColor k_Colour_Label_Broken  = FLinearColor(1.00f, 0.30f, 0.30f, 1.00f);
     const FLinearColor k_Colour_Label_Input   = FLinearColor(0.70f, 0.75f, 0.80f, 0.95f);
 
+    // One colour for all three combos, because the LINE already names which one
+    // landed — the colour only has to say "this was a combo, not a chain step".
+    const FLinearColor k_Colour_Label_Combo   = FLinearColor(0.85f, 0.55f, 1.00f, 1.00f);
+
     const FString k_LabelText_Idle = "IDLE";
+
+    const FString k_LabelText_Combo_LH = "COMBO L-H";
+    const FString k_LabelText_Combo_HL = "COMBO H-L";
+    const FString k_LabelText_Combo_WL = "COMBO W+L";
 
     const float32 k_ShapeLineThickness = 2.0f;
 }
@@ -436,6 +479,9 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     private FCkPlaygroundGym_Attempt _Attempt_HeavyTap;
     private FCkPlaygroundGym_Attempt _Attempt_LightCharge;
     private FCkPlaygroundGym_Attempt _Attempt_HeavyCharge;
+    private FCkPlaygroundGym_Attempt _Attempt_ComboLH;
+    private FCkPlaygroundGym_Attempt _Attempt_ComboHL;
+    private FCkPlaygroundGym_Attempt _Attempt_ComboWL;
 
     private int32   _State = playground_gym_kit::k_State_Idle;
     private float32 _StateSecondsRemaining = 0.0f;
@@ -619,6 +665,10 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // Movement is polled each frame and applied relative to the camera's view yaw so W always means "up the
     // screen". Yaw-only basis vectors are already planar, so nothing can push the pawn vertically. Facing is
     // decoupled from movement entirely: the character points at the cursor, walking backwards if need be.
+    //
+    // W is polled here AND graded by the matcher as the forward combo's chord partner. The two cannot starve
+    // each other: a capture ends a routing walk, and this read is engine-level key state that no capture
+    // touches (key ledger, Shared.as).
     UFUNCTION(BlueprintOverride)
     void Tick(float32 InDeltaSeconds)
     {
@@ -772,8 +822,9 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     //   1. the chain-press read, FIRST — the buffer answers the button-down the
     //      moment its row lands, and a charge landing later this same tick gets
     //      the last word by clearing it;
-    //   2. charges, so a completed hold interrupts whatever chain was live before
-    //      that chain's own timer can end it on the same tick;
+    //   2. combos and charges, so a completed sequence or hold interrupts whatever
+    //      chain was live before that chain's own timer can end it on the same
+    //      tick;
     //   3. taps, the back-stop for the press read and the grace-window consumer;
     //   4. the release check, which turns a charge into its special on the frame
     //      the button actually left the record's held set;
@@ -860,15 +911,20 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         { return; }
 
         // A swap is atomic — one unresolved terminal rejects the whole set — so it
-        // waits for BOTH keys to be minted rather than being rejected for keys
-        // that only look unresolvable. The block key is NOT waited on: no move
-        // terminates on it, so it cannot resolve or fail to resolve a terminal.
+        // waits for ALL THREE terminal keys to be minted rather than being rejected
+        // for keys that only look unresolvable. Forward is one of them: a chord
+        // terminal contributes EVERY button in it, so W is a terminal exactly as
+        // much as L is. The block key is NOT waited on: no move terminates on it,
+        // so it cannot resolve or fail to resolve a terminal.
         auto ButtonMap = playground_gym::TryGet_ButtonMap();
 
         if (playground_gym::Get_IsKeyMinted(ButtonMap, playground_gym::k_Key_Light) == false)
         { return; }
 
         if (playground_gym::Get_IsKeyMinted(ButtonMap, playground_gym::k_Key_Heavy) == false)
+        { return; }
+
+        if (playground_gym::Get_IsKeyMinted(ButtonMap, playground_gym::k_Key_Forward) == false)
         { return; }
 
         DoRequestSwap();
@@ -901,10 +957,14 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         TArray<FCk_Intent_ButtonNameRow> ButtonRows;
         ButtonRows.Add(FCk_Intent_ButtonNameRow(n"L", playground_gym::Make_PhysicalButton(playground_gym::k_Key_Light)));
         ButtonRows.Add(FCk_Intent_ButtonNameRow(n"H", playground_gym::Make_PhysicalButton(playground_gym::k_Key_Heavy)));
+        ButtonRows.Add(FCk_Intent_ButtonNameRow(n"W", playground_gym::Make_PhysicalButton(playground_gym::k_Key_Forward)));
 
-        // No move in this set has a two-button chord terminal, so the bake's chord
-        // window governs nothing here and the default stands rather than a number
-        // the set would never consult.
+        // The forward combo IS a two-button chord terminal, so the bake's chord
+        // window is live now and governs how long an L press waits for a W that
+        // might still be arriving. The default (3 frames) stands: it is already
+        // shorter than the hold wait the same press carries, so nothing about the
+        // light button's latency changes, and a number named here would be a
+        // second opinion about a window nobody asked to move.
         auto Baked = utils_intent_grammar::Bake(Definitions, ButtonRows);
 
         if (Baked.Get_Outcome() != ECk_SucceededFailed::Succeeded)
@@ -949,12 +1009,17 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // Reading the result
     //------------------------------------------------------------------------
     //
-    // ALL FOUR rows are asked every tick, unconditionally. A skipped call would
+    // ALL SEVEN rows are asked every tick, unconditionally. A skipped call would
     // leave that move's record behind the matcher's, and the next landing it did
     // see would be graded against a frame two completions old. That is also why
     // nothing below short-circuits when the kit has decided to ignore the press:
     // the module delivered it, the record carries it, and this file declines to
     // act on it — three different statements, and only the last one is the kit's.
+    //
+    // The combos are handled FIRST because they supersede: only one intent can
+    // complete per button per row, so two of these can only ever land together on
+    // two different buttons — and a combo is the more specific reading of the
+    // presses that produced it.
 
     private void DoTryRecordAttempts(FCk_Handle_IntentSampler InSampler)
     {
@@ -963,6 +1028,18 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         const auto LightName = playground_gym::k_Key_Light.GetKeyName();
         const auto HeavyName = playground_gym::k_Key_Heavy.GetKeyName();
+
+        // Each combo's terminal names the button whose PRESS completed it: L-then-H
+        // ends on the heavy button, H-then-L on the light one, and the forward
+        // chord completes on the light press its held partner was waiting for.
+        const auto ComboLHLanded = playground_gym::Request_RecordAttempt(
+            _Attempt_ComboLH, _Matcher, InSampler, playground_gym_kit_moves::k_Move_Combo_LH, HeavyName);
+
+        const auto ComboHLLanded = playground_gym::Request_RecordAttempt(
+            _Attempt_ComboHL, _Matcher, InSampler, playground_gym_kit_moves::k_Move_Combo_HL, LightName);
+
+        const auto ComboWLLanded = playground_gym::Request_RecordAttempt(
+            _Attempt_ComboWL, _Matcher, InSampler, playground_gym_kit_moves::k_Move_Combo_WL, LightName);
 
         const auto LightChargeLanded = playground_gym::Request_RecordAttempt(
             _Attempt_LightCharge, _Matcher, InSampler, playground_gym_kit_moves::k_Move_Light_Charge, LightName);
@@ -975,6 +1052,15 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         const auto HeavyTapLanded = playground_gym::Request_RecordAttempt(
             _Attempt_HeavyTap, _Matcher, InSampler, playground_gym_kit_moves::k_Move_Heavy_Tap, HeavyName);
+
+        if (ComboLHLanded)
+        { DoOnComboLanded(playground_gym_kit::k_State_Combo_LH); }
+
+        if (ComboHLLanded)
+        { DoOnComboLanded(playground_gym_kit::k_State_Combo_HL); }
+
+        if (ComboWLLanded)
+        { DoOnComboLanded(playground_gym_kit::k_State_Combo_WL); }
 
         if (LightChargeLanded)
         { DoOnChargeLanded(playground_gym_kit::k_Family_Light); }
@@ -994,7 +1080,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     //------------------------------------------------------------------------
 
     // The chain intent is the PRESS, read off the record the moment its row lands
-    // — [P10-D5] played game-side: act on button-down, let the verdict re-resolve
+    // — the candidate-lifecycle read played game-side: act on button-down, let the verdict re-resolve
     // it. A press during active or wind-down buffers the next step immediately; if
     // the matcher later grades that same press a CHARGE, the charge's interrupt
     // clears the buffer it briefly held. Presses during the WIND-UP are not chain
@@ -1021,6 +1107,40 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         _BufferedNext = true;
     }
 
+    // A combo supersedes whatever was running, exactly as a charge does, and for a
+    // stronger reason: the presses a chain was reading one at a time are the same
+    // presses the matcher just read as one move, so continuing the chain would be
+    // answering the same input twice. The chain bookkeeping goes with it — step,
+    // buffer and grace window all belong to a chain that is no longer running.
+    //
+    // Phase-exempt: the sequence WAS the wind-up, so the strike is spawned on this
+    // frame rather than stashed, and `_SwingSpawned` is set so the countdown's
+    // wind-up server has nothing left to do.
+    private void DoOnComboLanded(int32 InComboState)
+    {
+        _BufferedNext = false;
+        _GraceUntilFrame = -1;
+        _SwingSpawned = true;
+
+        _State                 = InComboState;
+        _StateTotalSeconds     = playground_gym_kit::k_Duration_Combo;
+        _StateSecondsRemaining = playground_gym_kit::k_Duration_Combo;
+
+        // Family None because a combo belongs to neither side of the kit, and the
+        // special step index because a combo is not a chain step — which is the
+        // same number Get_ChainStep already answers for one, and what earns the
+        // swing the generous arc the hit-test gives a committed move.
+        DoSpawnSwing(
+            playground_gym_kit::k_Family_None,
+            playground_gym_kit::k_Step_Special,
+            playground_gym_kit::k_Extent_Combo,
+            Get_ComboColour(InComboState),
+            playground_gym_kit::k_Attack_SpecialForwardOffset,
+            playground_gym_kit::k_Duration_Combo);
+
+        DoFlashBeat(true);
+    }
+
     // A charge interrupts everything. The buffer goes with it: a queued next step
     // belongs to a chain that is no longer running, and firing it after the special
     // would be answering an input the player made about a different move. A
@@ -1043,8 +1163,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // window a just-expired step left behind. A completion during a step is the
     // back-stop for the press-intent read (its press has to clear the same
     // wind-up gate). Anything else — the other family mid-chain, a press during a
-    // charge, a press during a special, a wind-up press — is delivered, recorded
-    // and deliberately not acted on.
+    // charge, a press during a special, a press during a combo, a wind-up press —
+    // is delivered, recorded and deliberately not acted on.
     private void DoOnTapLanded(int32 InFamily)
     {
         if (_State == playground_gym_kit::k_State_Idle)
@@ -1122,7 +1242,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         // Expiring unbuffered arms the grace window: a same-family tap landing in
         // Idle within it CONTINUES the chain rather than opening a new one. Step 3
-        // arms nothing — there is no fourth hit to be late for.
+        // arms nothing — there is no fourth hit to be late for, and neither a
+        // special nor a combo arms one, because neither is a chain step.
         if (Step >= 1 && Step <= 2)
         {
             _GraceUntilFrame = playground_gym::Get_LiveFrameIndex(playground_gym::TryGet_Sampler())
@@ -1239,6 +1360,28 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         return playground_gym_kit::k_Colour_Heavy3;
     }
 
+    private FLinearColor Get_ComboColour(int32 InComboState) const
+    {
+        if (InComboState == playground_gym_kit::k_State_Combo_LH)
+        { return playground_gym_kit::k_Colour_Combo_LH; }
+
+        if (InComboState == playground_gym_kit::k_State_Combo_HL)
+        { return playground_gym_kit::k_Colour_Combo_HL; }
+
+        return playground_gym_kit::k_Colour_Combo_WL;
+    }
+
+    private FString Get_ComboLabelText(int32 InComboState) const
+    {
+        if (InComboState == playground_gym_kit::k_State_Combo_LH)
+        { return playground_gym_kit::k_LabelText_Combo_LH; }
+
+        if (InComboState == playground_gym_kit::k_State_Combo_HL)
+        { return playground_gym_kit::k_LabelText_Combo_HL; }
+
+        return playground_gym_kit::k_LabelText_Combo_WL;
+    }
+
     // Specials spawn their swing IMMEDIATELY — the charge the player sat through
     // was the wind-up.
     private void DoEnterSpecial(int32 InFamily)
@@ -1311,6 +1454,13 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     {
         return _State == playground_gym_kit::k_State_Charging_Light
             || _State == playground_gym_kit::k_State_Charging_Heavy;
+    }
+
+    private bool Get_IsCombo() const
+    {
+        return _State == playground_gym_kit::k_State_Combo_LH
+            || _State == playground_gym_kit::k_State_Combo_HL
+            || _State == playground_gym_kit::k_State_Combo_WL;
     }
 
     //------------------------------------------------------------------------
@@ -1719,6 +1869,14 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         if (_BufferedNext)
         {
             DoSetLabel(_StateLabel, "BUFFERED", playground_gym_kit::k_Colour_Label_Buffer);
+            return;
+        }
+
+        // Ahead of the family branch, because a combo has no family: the line names
+        // which combo landed and the colour says only that it was one.
+        if (Get_IsCombo())
+        {
+            DoSetLabel(_StateLabel, Get_ComboLabelText(_State), playground_gym_kit::k_Colour_Label_Combo);
             return;
         }
 
