@@ -162,6 +162,22 @@ class UCk_AutoTest_Goap_Planner_DeactivateChildren : UCk_AutoTest_Base
         Assert_True(_MidSearchDebug.Num() > 0,
             "The active promoted Planner should have at least one search-debug row");
 
+        auto EnsureCountBeforeInvalidSource = utils_ensure::Get_EnsureCount();
+        auto ActiveInvalidHistoryAvailable =
+            UCk_Utils_AutoTest_UE::TryGet_GoapLastSearchDebugWithoutWorldStateSource_ForTesting(
+                _MidAsPlanner, _MidSearchDebug);
+        Assert_False(ActiveInvalidHistoryAvailable,
+            "An active promoted Planner missing its WorldStateSource should reject history decoding");
+        Assert_True(_MidSearchDebug.Num() == 0,
+            "Rejected active-invalid history should leave no rows");
+        Assert_True(utils_ensure::Get_EnsureCount() == EnsureCountBeforeInvalidSource + 1,
+            "An active promoted Planner missing its WorldStateSource should retain one visible invariant ensure");
+
+        auto RestoredActiveHistoryAvailable = utils_goap_planner::TryGet_LastSearchDebug(
+            _MidAsPlanner, _MidSearchDebug);
+        Assert_True(RestoredActiveHistoryAvailable && _MidSearchDebug.Num() > 0,
+            "The test-only malformed-state probe should restore the Planner source before returning");
+
         // Reset the chain. Teardown and OnPlannerDeactivated broadcast happen
         // synchronously inside Request_ResetActiveChain.
         utils_goap_planner::Request_ResetActiveChain(_Planner);
@@ -227,4 +243,12 @@ class ACk_AutoTest_Goap_Planner_DeactivateChildren_Actor : ACk_AutoTestRunner
 {
     default _TestEntityScriptClass = UCk_AutoTest_Goap_Planner_DeactivateChildren;
     default _TimeoutSeconds = 15.0f;
+
+    UFUNCTION(BlueprintOverride)
+    TArray<FString> Get_ExpectedLogErrors() const
+    {
+        TArray<FString> Out;
+        Out.Add("has search state but no WorldStateSource fragment");
+        return Out;
+    }
 }
