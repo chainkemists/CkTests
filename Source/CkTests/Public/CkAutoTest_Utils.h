@@ -5,6 +5,7 @@
 #include "CkAutoTest_Bridge.h"
 
 #include "CkEcs/Handle/CkHandle.h"
+#include "CkGoap/Planner/CkGoap_Planner_Utils.h"
 
 #include "CkAutoTest_Utils.generated.h"
 
@@ -35,4 +36,12 @@ public:
     static FCk_AutoTest_Result
     Get_Result(
         const FCk_Handle& InHandle);
+
+    // Deliberately creates one active-planner invariant failure only for focused negative coverage, then restores
+    // the removed fragment on the same stack before returning.
+    UFUNCTION(BlueprintCallable, Category = "Ck|Utils|AutoTest", meta = (DevelopmentOnly))
+    static bool
+    TryGet_GoapLastSearchDebugWithoutWorldStateSource_ForTesting(
+        const FCk_Handle_Goap_Planner& InPlanner,
+        UPARAM(ref) TArray<FCk_Goap_SearchDebugRow>& OutRows);
 };
