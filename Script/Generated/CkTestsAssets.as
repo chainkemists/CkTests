@@ -380,6 +380,7 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor> Ck_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor_UAID_C87F5401E535EFDB02_1793898826() { return TSoftObjectPtr<ACk_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_Spatial_RelocateItem_Success_Actor_UAID_C87F5401E535EFDB02_1793898826")); }
     TSoftObjectPtr<ACk_AutoTest_Inventory_SpatialPlacementRejection_Actor> Ck_AutoTest_Inventory_SpatialPlacementRejection_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Inventory_SpatialPlacementRejection_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_SpatialPlacementRejection_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Inventory_SplitInheritsRuntimeTag_Actor> Ck_AutoTest_Inventory_SplitInheritsRuntimeTag_Actor_UAID_D843AEBAD5E20BE502_1715519255() { return TSoftObjectPtr<ACk_AutoTest_Inventory_SplitInheritsRuntimeTag_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_SplitInheritsRuntimeTag_Actor_UAID_D843AEBAD5E20BE502_1715519255")); }
+    TSoftObjectPtr<ACk_AutoTest_Inventory_StackableTrait_ConsumeFromStack_Actor> Ck_AutoTest_Inventory_StackableTrait_ConsumeFromStack_Actor_UAID_60CF84A99C2C26F502_1575289903() { return TSoftObjectPtr<ACk_AutoTest_Inventory_StackableTrait_ConsumeFromStack_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_StackableTrait_ConsumeFromStack_Actor_UAID_60CF84A99C2C26F502_1575289903")); }
     TSoftObjectPtr<ACk_AutoTest_Inventory_StackableTrait_SplitStack_Actor> Ck_AutoTest_Inventory_StackableTrait_SplitStack_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Inventory_StackableTrait_SplitStack_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_StackableTrait_SplitStack_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor> Ck_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor_0")); }
     TSoftObjectPtr<ACk_AutoTest_Inventory_StackableTrait_StackItems_Actor> Ck_AutoTest_Inventory_StackableTrait_StackItems_Actor_0() { return TSoftObjectPtr<ACk_AutoTest_Inventory_StackableTrait_StackItems_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_Inventory_StackableTrait_StackItems_Actor_0")); }
@@ -692,6 +693,9 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor> Ck_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor_UAID_C87F5401E535E0DB02_2142584188() { return TSoftObjectPtr<ACk_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_UnrealComponent_TryGetHandleByTypeFound_Actor_UAID_C87F5401E535E0DB02_2142584188")); }
     TSoftObjectPtr<ACk_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor> Ck_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor_UAID_C87F5401E535E0DB02_2142585189() { return TSoftObjectPtr<ACk_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound_Actor_UAID_C87F5401E535E0DB02_2142585189")); }
     TSoftObjectPtr<ACk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor> Ck_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor_UAID_C87F5401E535E0DB02_2142585190() { return TSoftObjectPtr<ACk_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor_UAID_C87F5401E535E0DB02_2142585190")); }
+    TSoftObjectPtr<ACk_AutoTest_UsfCelPattern_BatchedMembers_Actor> Ck_AutoTest_UsfCelPattern_BatchedMembers_Actor_UAID_60CF84A99C2C8EF502_1211049207() { return TSoftObjectPtr<ACk_AutoTest_UsfCelPattern_BatchedMembers_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_UsfCelPattern_BatchedMembers_Actor_UAID_60CF84A99C2C8EF502_1211049207")); }
+    TSoftObjectPtr<ACk_AutoTest_UsfCelPattern_IskmApplyRemove_Actor> Ck_AutoTest_UsfCelPattern_IskmApplyRemove_Actor_UAID_60CF84A99C2C8CF502_1879019855() { return TSoftObjectPtr<ACk_AutoTest_UsfCelPattern_IskmApplyRemove_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_UsfCelPattern_IskmApplyRemove_Actor_UAID_60CF84A99C2C8CF502_1879019855")); }
+    TSoftObjectPtr<ACk_AutoTest_UsfCelPattern_IsmShadowInstances_Actor> Ck_AutoTest_UsfCelPattern_IsmShadowInstances_Actor_UAID_60CF84A99C2C8CF502_1879021856() { return TSoftObjectPtr<ACk_AutoTest_UsfCelPattern_IsmShadowInstances_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_UsfCelPattern_IsmShadowInstances_Actor_UAID_60CF84A99C2C8CF502_1879021856")); }
     TSoftObjectPtr<ACk_AutoTest_UsfOutline_BatchedMembers_Actor> Ck_AutoTest_UsfOutline_BatchedMembers_Actor_UAID_C87F5401E53558ED02_1308823255() { return TSoftObjectPtr<ACk_AutoTest_UsfOutline_BatchedMembers_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_UsfOutline_BatchedMembers_Actor_UAID_C87F5401E53558ED02_1308823255")); }
     TSoftObjectPtr<ACk_AutoTest_UsfOutline_CascadeDependents_Actor> Ck_AutoTest_UsfOutline_CascadeDependents_Actor_UAID_C87F5401E53558ED02_1308828256() { return TSoftObjectPtr<ACk_AutoTest_UsfOutline_CascadeDependents_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_UsfOutline_CascadeDependents_Actor_UAID_C87F5401E53558ED02_1308828256")); }
     TSoftObjectPtr<ACk_AutoTest_UsfOutline_IskmApplyRemove_Actor> Ck_AutoTest_UsfOutline_IskmApplyRemove_Actor_UAID_C87F5401E53558ED02_1308829257() { return TSoftObjectPtr<ACk_AutoTest_UsfOutline_IskmApplyRemove_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_UsfOutline_IskmApplyRemove_Actor_UAID_C87F5401E53558ED02_1308829257")); }
@@ -711,6 +715,7 @@ namespace assets
     TSoftObjectPtr<ACk_AutoTest_VisibleRange_CadenceGatesUpdates_Actor> Ck_AutoTest_VisibleRange_CadenceGatesUpdates_Actor_UAID_C87F5401E53560F002_1294633831() { return TSoftObjectPtr<ACk_AutoTest_VisibleRange_CadenceGatesUpdates_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_VisibleRange_CadenceGatesUpdates_Actor_UAID_C87F5401E53560F002_1294633831")); }
     TSoftObjectPtr<ACk_AutoTest_VisibleRange_ExplicitOverrideIsIndependentVote_Actor> Ck_AutoTest_VisibleRange_ExplicitOverrideIsIndependentVote_Actor_UAID_C87F5401E53560F002_1294636832() { return TSoftObjectPtr<ACk_AutoTest_VisibleRange_ExplicitOverrideIsIndependentVote_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_VisibleRange_ExplicitOverrideIsIndependentVote_Actor_UAID_C87F5401E53560F002_1294636832")); }
     TSoftObjectPtr<ACk_AutoTest_VisibleRange_OwnRangeBoundaryCrossing_Actor> Ck_AutoTest_VisibleRange_OwnRangeBoundaryCrossing_Actor_UAID_C87F5401E53560F002_1294637833() { return TSoftObjectPtr<ACk_AutoTest_VisibleRange_OwnRangeBoundaryCrossing_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_VisibleRange_OwnRangeBoundaryCrossing_Actor_UAID_C87F5401E53560F002_1294637833")); }
+    TSoftObjectPtr<ACk_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle_Actor> Ck_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle_Actor_UAID_C87F5401E535ABF402_1232819255() { return TSoftObjectPtr<ACk_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle_Actor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.Ck_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle_Actor_UAID_C87F5401E535ABF402_1232819255")); }
     TSoftObjectPtr<ANavMeshBoundsVolume> NavMeshBoundsVolume_1() { return TSoftObjectPtr<ANavMeshBoundsVolume>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.NavMeshBoundsVolume_1")); }
     TSoftObjectPtr<ARecastNavMesh> RecastNavMeshDefault() { return TSoftObjectPtr<ARecastNavMesh>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.RecastNavMesh-Default")); }
     TSoftObjectPtr<AStaticMeshActor> StaticMeshActor_1() { return TSoftObjectPtr<AStaticMeshActor>(FSoftObjectPath("/CkTests/AutoTests/AutoTests_CkTests_Level.AutoTests_CkTests_Level:PersistentLevel.StaticMeshActor_1")); }
@@ -4174,6 +4179,15 @@ namespace assets::load
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_SplitInheritsRuntimeTag_Actor_UAID_D843AEBAD5E20BE502_1715519255());
     }
+    ACk_AutoTest_Inventory_StackableTrait_ConsumeFromStack_Actor Ck_AutoTest_Inventory_StackableTrait_ConsumeFromStack_Actor_UAID_60CF84A99C2C26F502_1575289903()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_Inventory_StackableTrait_ConsumeFromStack_Actor_UAID_60CF84A99C2C26F502_1575289903() called before engine init. Use assets::Ck_AutoTest_Inventory_StackableTrait_ConsumeFromStack_Actor_UAID_60CF84A99C2C26F502_1575289903() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_Inventory_StackableTrait_ConsumeFromStack_Actor_UAID_60CF84A99C2C26F502_1575289903());
+    }
     ACk_AutoTest_Inventory_StackableTrait_SplitStack_Actor Ck_AutoTest_Inventory_StackableTrait_SplitStack_Actor_0()
     {
         if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
@@ -6982,6 +6996,33 @@ namespace assets::load
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_UnrealComponent_TryGetOwningHandleFromComponent_Actor_UAID_C87F5401E535E0DB02_2142585190());
     }
+    ACk_AutoTest_UsfCelPattern_BatchedMembers_Actor Ck_AutoTest_UsfCelPattern_BatchedMembers_Actor_UAID_60CF84A99C2C8EF502_1211049207()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UsfCelPattern_BatchedMembers_Actor_UAID_60CF84A99C2C8EF502_1211049207() called before engine init. Use assets::Ck_AutoTest_UsfCelPattern_BatchedMembers_Actor_UAID_60CF84A99C2C8EF502_1211049207() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_UsfCelPattern_BatchedMembers_Actor_UAID_60CF84A99C2C8EF502_1211049207());
+    }
+    ACk_AutoTest_UsfCelPattern_IskmApplyRemove_Actor Ck_AutoTest_UsfCelPattern_IskmApplyRemove_Actor_UAID_60CF84A99C2C8CF502_1879019855()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UsfCelPattern_IskmApplyRemove_Actor_UAID_60CF84A99C2C8CF502_1879019855() called before engine init. Use assets::Ck_AutoTest_UsfCelPattern_IskmApplyRemove_Actor_UAID_60CF84A99C2C8CF502_1879019855() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_UsfCelPattern_IskmApplyRemove_Actor_UAID_60CF84A99C2C8CF502_1879019855());
+    }
+    ACk_AutoTest_UsfCelPattern_IsmShadowInstances_Actor Ck_AutoTest_UsfCelPattern_IsmShadowInstances_Actor_UAID_60CF84A99C2C8CF502_1879021856()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_UsfCelPattern_IsmShadowInstances_Actor_UAID_60CF84A99C2C8CF502_1879021856() called before engine init. Use assets::Ck_AutoTest_UsfCelPattern_IsmShadowInstances_Actor_UAID_60CF84A99C2C8CF502_1879021856() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_UsfCelPattern_IsmShadowInstances_Actor_UAID_60CF84A99C2C8CF502_1879021856());
+    }
     ACk_AutoTest_UsfOutline_BatchedMembers_Actor Ck_AutoTest_UsfOutline_BatchedMembers_Actor_UAID_C87F5401E53558ED02_1308823255()
     {
         if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
@@ -7152,6 +7193,15 @@ namespace assets::load
             return nullptr;
         }
         return System::LoadAsset_Blocking(assets::Ck_AutoTest_VisibleRange_OwnRangeBoundaryCrossing_Actor_UAID_C87F5401E53560F002_1294637833());
+    }
+    ACk_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle_Actor Ck_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle_Actor_UAID_C87F5401E535ABF402_1232819255()
+    {
+        if (UCk_Utils_IO_UE::IsEngineSafeForBlockingLoads() == false)
+        {
+            ck::EnsureIfNot_PrematureAssetLoad(UCk_Utils_IO_UE::Get_IsRunningCommandlet(), "assets::load::Ck_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle_Actor_UAID_C87F5401E535ABF402_1232819255() called before engine init. Use assets::Ck_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle_Actor_UAID_C87F5401E535ABF402_1232819255() (soft ref) with UCk_DeferredConfig_UE instead.");
+            return nullptr;
+        }
+        return System::LoadAsset_Blocking(assets::Ck_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle_Actor_UAID_C87F5401E535ABF402_1232819255());
     }
     ANavMeshBoundsVolume NavMeshBoundsVolume_1()
     {
