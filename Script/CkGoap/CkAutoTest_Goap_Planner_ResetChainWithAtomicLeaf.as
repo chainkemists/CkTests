@@ -5,33 +5,35 @@
 //============================================================================
 //
 // Regression gate for the atomic-leaf guard in Request_ResetActiveChain:
-// Get_ActiveChain deliberately includes an atomic leaf Action (no Planner
-// role, no Activation fragment) as the final chain step, but the reset loop
-// used to call DoDeactivatePlanner on every node — tripping a CkEnsure on the
-// leaf (the harness escalates that to a test failure, which is this test's
-// red condition pre-guard).
+// Get_ActiveChain includes an atomic leaf Action (no Planner role, no
+// Activation fragment) as a chain step, but the reset loop used to call
+// DoDeactivatePlanner on every node — tripping a CkEnsure on the leaf (the
+// harness escalates that to a failure, which is this test's red condition
+// without the guard).
 //
-// Sibling DeactivateChildren resets as soon as chain.Num() >= 1, which races
-// ahead of Mid's own sub-plan — its chain is composite-only at reset time, so
-// it never covered this path. This test explicitly WAITS for the chain to
-// extend through Mid to an atomic leaf (Num() >= 2) before resetting.
+// The minimal shape IS the shape that hit production: a top-level planner
+// whose OWN Plan[0] is an atomic action — the chain is then [leaf] with no
+// composite anywhere (BusterBlock's tourist Intent chain [Roam]). Sibling
+// DeactivateChildren never covers this: its only chain node is a promoted
+// composite, and a goal-less composite never extends the chain further.
 //
-// Reuses the GoalIsEffects action fixtures:
-//   - Planner goal {BKey=true}; Mid (effect BKey=true) promoted composite
-//     with atomic children LeafB (BKey=true) and LeafA (AKey=true).
+// Fixture: goal {BKey=true}; LeafB (atomic, effect BKey=true) as the
+// planner's only child. Plan = [LeafB] -> chain = [LeafB].
 //
-// Assertions after Request_ResetActiveChain on the extended chain:
-//   - no ensure fired (implicit — harness-enforced)
-//   - chain collapses to [] (the walk stops at the now-inactive Mid)
-//   - OnPlannerDeactivated fired exactly once, for Mid — never for the leaf
+// Pinned contract for resetting that chain:
+//   - no ensure fires (implicit — harness-enforced)
+//   - the completion delegate reports Succeeded
+//   - the chain still reports [LeafB] afterwards: an atomic Plan[0] is
+//     included unconditionally by the walk, and a reset does not clear the
+//     planner's own plan — reset means "deactivate", and an atomic leaf has
+//     nothing to deactivate
 //============================================================================
 
 class UCk_AutoTest_Goap_Planner_ResetChainWithAtomicLeaf : UCk_AutoTest_Base
 {
     private FCk_Handle_Goap_Planner _Planner;
-    private FCk_Handle_Goap_Planner _MidAsPlanner;
-    private bool _ChainSeenExtended = false;
-    private int32 _DeactivatedCount = 0;
+    private bool _ResetHandled = false;
+    private bool _ResetSucceeded = false;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -43,9 +45,6 @@ class UCk_AutoTest_Goap_Planner_ResetChainWithAtomicLeaf : UCk_AutoTest_Base
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
             FCk_Fragment_Goap_WorldState_ParamsData());
-        utils_goap_world_state::Set_Value(WS,
-            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
-            false);
         utils_goap_world_state::Set_Value(WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
@@ -62,90 +61,58 @@ class UCk_AutoTest_Goap_Planner_ResetChainWithAtomicLeaf : UCk_AutoTest_Base
         _Planner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        auto MidParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
-        auto MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
-        Assert_True(ck::IsValid(MidAction), "Mid AddAction should succeed");
-
-        auto MidPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
-            utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
-        _MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(MidAction, MidPlannerParams);
-        Assert_True(ck::IsValid(_MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
-        auto MidAsPlanner = _MidAsPlanner;
-
+        // The planner's ONLY child is atomic — Plan[0] lands directly on it.
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
-        auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
+        auto LeafBAction = utils_goap_planner::AddAction(_Planner, LeafBParams);
         Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
 
-        auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
-            UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects);
-        auto LeafAAction = utils_goap_planner::AddAction(MidAsPlanner, LeafAParams);
-        Assert_True(ck::IsValid(LeafAAction), "LeafA AddAction should succeed");
-
-        // The whole point: reset only once the chain has extended THROUGH Mid
-        // to one of its atomic leaves.
-        WaitUntil(n"Check_ChainReachesAtomicLeaf", n"OnChainExtended");
+        WaitUntil(n"Check_AtomicLeafInChain", n"OnChainReady");
     }
 
     UFUNCTION()
-    private void Check_ChainReachesAtomicLeaf(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    private void Check_AtomicLeafInChain(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         auto Res = OutResult;
-        Res.Set(utils_goap_planner::Get_ActiveChain(_Planner).Num() >= 2);
+        Res.Set(utils_goap_planner::Get_ActiveChain(_Planner).Num() >= 1);
     }
 
     UFUNCTION()
-    private void OnChainExtended(
+    private void OnChainReady(
         FCk_Handle_Timer InTimer,
         FCk_Chrono InChrono,
         FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
-        if (_ChainSeenExtended) { return; }
-        _ChainSeenExtended = true;
 
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
-        Assert_True(Chain.Num() >= 2,
-            f"chain should reach through Mid to an atomic leaf before reset (got {Chain.Num()})");
+        Assert_True(Chain.Num() == 1,
+            f"chain should be exactly the atomic leaf (got {Chain.Num()})");
+        // Guard against fixture drift: the whole point is a chain node WITHOUT
+        // the Planner role. If this fires, the fixture stopped being atomic.
+        Assert_True(Chain.Num() == 1 && utils_goap_planner::Has(Chain[0]) == false,
+            "chain node must be a bare atomic Action (no Planner role)");
 
-        utils_goap_planner::BindTo_OnPlannerDeactivated(_MidAsPlanner,
-            FCk_Delegate_Goap_OnPlannerDeactivated(this, n"OnMidDeactivated"));
-
-        // Pre-guard this tripped the Activation-fragment ensure on the atomic
+        // Pre-guard, this tripped the Activation-fragment ensure on the atomic
         // leaf; the harness escalates ensures, so surviving this call IS the test.
-        utils_goap_planner::Request_ResetActiveChain(_Planner);
+        utils_goap_planner::Request_ResetActiveChain(_Planner,
+            FCk_Delegate_Request_OnCompleted(this, n"OnResetCompleted"));
+
+        Assert_True(_ResetHandled && _ResetSucceeded,
+            "Request_ResetActiveChain is an immediate mutator — completion fires Succeeded synchronously");
 
         auto ChainAfter = utils_goap_planner::Get_ActiveChain(_Planner);
-        Assert_True(ChainAfter.Num() == 0,
-            f"chain should collapse to [] after reset (walk stops at inactive Mid; got {ChainAfter.Num()})");
-
-        // Prevent ChainUpdate re-extension next frame — we test the reset, not re-extension.
-        utils_goap_planner::Request_SetEnableToggle(_Planner, ECk_EnableDisable::Disable);
-
-        WaitOneFrame(n"OnCheckDeactivation");
-    }
-
-    UFUNCTION()
-    private void OnMidDeactivated(
-        FCk_Handle_Goap_Planner InPlanner,
-        FCk_Goap_Payload_OnPlannerDeactivated InPayload)
-    {
-        _DeactivatedCount = _DeactivatedCount + 1;
-    }
-
-    UFUNCTION()
-    private void OnCheckDeactivation(
-        FCk_Handle_Timer InTimer,
-        FCk_Chrono InChrono,
-        FCk_Time InDeltaT)
-    {
-        if (IsFinished()) { return; }
-
-        Assert_True(_DeactivatedCount == 1,
-            f"OnPlannerDeactivated should fire exactly once, for Mid only — atomic leaves are skipped, not deactivated (fired {_DeactivatedCount} times)");
+        Assert_True(ChainAfter.Num() == 1,
+            f"atomic Plan[0] is included unconditionally and a reset does not clear the plan — chain still [leaf] (got {ChainAfter.Num()})");
 
         FinishSuccess();
+    }
+
+    UFUNCTION()
+    private void OnResetCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    {
+        _ResetHandled = true;
+        _ResetSucceeded = InResult == ECk_Request_OperationResult::Succeeded;
     }
 }
 
