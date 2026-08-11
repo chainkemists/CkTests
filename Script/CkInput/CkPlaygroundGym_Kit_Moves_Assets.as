@@ -4,7 +4,7 @@
 // CK INPUT PLAYGROUND GYM — THE COMBAT KIT'S MOVE VOCABULARY
 //============================================================================
 //
-// Seven moves on three buttons, authored the way every other table in this
+// Eight moves on four buttons, authored the way every other table in this
 // project authors moves: a name, the notation STRING, and the priority that
 // decides who wins a terminal they share. The grammar is the only thing that
 // turns a string into a move, and a table carrying a pre-built shape beside the
@@ -32,28 +32,31 @@
 // name with different keys is a bake rejection (`ConflictingButtonRow`). This kit
 // is mouse-driven and has exactly one device, so each move is declared once.
 //
-// PRESS ORDER IS A SEQUENCE, NOT A CHORD. `L then H` and `H then L` are two
-// different combos, and a chord cannot express either of them: a chord's atoms
-// are a SET, so `L+H` and `H+L` are the same step semantically and the order the
-// player produced is gone. The two are therefore two-step SEQUENCES with
-// different terminals — `"L H"` ends on H, `"H L"` ends on L — which is also
-// what keeps them cheap: sharing a terminal never defers, so neither combo costs
-// the bare tap on its terminal a single frame of latency. `w=30` is the whole
-// window, half a second at the sampler's cadence, and it is the number to steer
-// if the combos feel tight.
+// PRESS ORDER IS A SEQUENCE, NOT A CHORD. A chord absorbs a DELTA between its
+// presses — the bake's chord window is exactly that tolerance — but its atoms
+// are a SET, so `L+H` and `H+L` are the same step semantically and WHICH CAME
+// FIRST is gone. Ordering is the thing these two moves exist to exercise, so
+// they are two-step SEQUENCES with different terminals — `"L H"` ends on H,
+// `"H L"` ends on L — which is also what keeps them cheap: sharing a terminal
+// never defers, so neither combo costs the bare tap on its terminal a single
+// frame of latency. `w=30` is the whole window, half a second at the sampler's
+// cadence, and it is the number to steer if the combos feel tight.
 //
-// THE DIRECTION COMBO IS A REAL CHORD, AND IT COMPLETES ON THE PRESS ROW.
-// `"W+L"` is one step of two buttons, and a chord terminal accepts a partner
-// that is merely still DOWN — so a W already held for locomotion satisfies the
-// chord on L's own press row, and within a row the chord is asked before the
-// hold. The chord cause it introduces on L (the bake's default window, 3 frames)
-// is dominated by the hold cause L already carried (5), so the direction combo
-// costs the light tap nothing either.
+// THE SPRINT COMBOS ARE REAL CHORDS, AND THEY COMPLETE ON THE PRESS ROW.
+// `"W+R+L"` is one step of three buttons, and a chord terminal accepts partners
+// that are merely still DOWN — so a W and a Shift already held for sprinting
+// satisfy the chord on the mouse button's own press row, and within a row the
+// chord is asked before the hold. That is what "attacks only while running"
+// compiles to: both locomotion keys are chord members, so the move is
+// unreachable standing still. The chord cause the sprints introduce on L and H
+// (the bake's default window, 3 frames) is dominated by the hold cause both
+// buttons already carried (10), so neither bare tap pays a single extra frame.
 //
-// W IS A GRADED TERMINAL AND A LOCOMOTION KEY AT THE SAME TIME. That is a
-// deliberate dual read, not a collision: the matcher's capture lives on the
-// routed pipeline, and the pawn's WASD poll reads the PlayerController's own key
-// state, which no capture can starve. See the key ledger in Shared.as.
+// W AND SHIFT ARE GRADED TERMINALS AND LOCOMOTION KEYS AT THE SAME TIME. That
+// is a deliberate dual read, not a collision: the matcher's capture lives on
+// the routed pipeline, and the pawn's movement poll reads the
+// PlayerController's own key state, which no capture can starve. See the key
+// ledger in Shared.as.
 //
 // THE THRESHOLD IS WRITTEN TWICE ON PURPOSE — literally in the notation, which is
 // the authoring surface and stays literal, and as the constant below. A reader
@@ -63,9 +66,9 @@
 //
 // PRIORITIES ARE DISTINCT ACROSS THE WHOLE TABLE, and the order on each terminal
 // is the order a press should be READ in: the most specific thing the player
-// could have meant first. On L that is the direction chord, then the two-step
-// combo, then the charge, then the bare tap; on H the combo, then the charge,
-// then the tap. A tie is only a defect where two moves share a terminal, but a
+// could have meant first. On each mouse button that is the sprint chord, then
+// the two-step combo, then the charge, then the bare tap. A tie is only a
+// defect where two moves share a terminal, but a
 // table-unique number costs nothing and makes "did I just tie something" a
 // question nobody has to answer by hand.
 //============================================================================
@@ -84,15 +87,17 @@ namespace playground_gym_kit_moves
     const FName k_Move_Combo_LH = n"Kit_Combo_LH";
     const FName k_Move_Combo_HL = n"Kit_Combo_HL";
     const FName k_Move_Combo_WL = n"Kit_Combo_WL";
+    const FName k_Move_Combo_WH = n"Kit_Combo_WH";
 
-    // ~83ms at the sampler's 60 Hz cadence — the tap-versus-hold VERDICT point,
-    // not the charge-up time (maintainer tuning: the usual verdict threshold is
-    // 70-80ms so the non-hold attack never feels sluggish). A crisp click releases
-    // under it and answers as a tap almost immediately; any press that outlives it
-    // IS a hold, so the tap's worst-case wait is bounded at five frames. How long
-    // a charge takes to LOOK full is a different number and it lives with the
-    // display that draws it (the pawn's k_ChargeFullFrames).
-    const int32 k_ChargeHoldFrames = 5;
+    // ~166ms at the sampler's 60 Hz cadence — the tap-versus-hold VERDICT point,
+    // not the charge-up time. The first cut sat at 5 frames (~83ms) and PIE
+    // disproved it: an ordinary mouse click lasts ~90-150ms, so the matcher
+    // graded most single clicks as holds and a lone press came out as a special.
+    // Ten frames clears the click-duration distribution, and a deliberate hold
+    // still commits long before it LOOKS ripe. How long a charge takes to look
+    // full is that different number, and it lives with the display that draws it
+    // (the pawn's k_ChargeFullFrames).
+    const int32 k_ChargeHoldFrames = 10;
 
     // Half a second at the same cadence: the whole-sequence window the two
     // ordered combos are given to arrive in. Wide enough that a deliberate
@@ -102,7 +107,7 @@ namespace playground_gym_kit_moves
 
     // The table asserts nothing about its own length, but a kit that armed a set
     // with a move missing would be silently teaching the wrong law.
-    const int32 k_MoveCount = 7;
+    const int32 k_MoveCount = 8;
 
     asset MoveTable_PlaygroundKit of UCkTests_Intent_MoveTable
     {
@@ -111,13 +116,15 @@ namespace playground_gym_kit_moves
         Declare_Button(n"L");
         Declare_Button(n"H");
         Declare_Button(n"W");
+        Declare_Button(n"R");
 
-        Declare_Move(k_Move_Combo_WL, "W+L", 960);
+        Declare_Move(k_Move_Combo_WL, "W+R+L", 960);
+        Declare_Move(k_Move_Combo_WH, "W+R+H", 955);
         Declare_Move(k_Move_Combo_HL, "H L w=30", 950);
         Declare_Move(k_Move_Combo_LH, "L H w=30", 940);
 
-        Declare_Move(k_Move_Light_Charge, "L hold=5", 900);
-        Declare_Move(k_Move_Heavy_Charge, "H hold=5", 890);
+        Declare_Move(k_Move_Light_Charge, "L hold=10", 900);
+        Declare_Move(k_Move_Heavy_Charge, "H hold=10", 890);
 
         Declare_Move(k_Move_Light_Tap, "L", 600);
         Declare_Move(k_Move_Heavy_Tap, "H", 590);

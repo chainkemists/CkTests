@@ -29,15 +29,15 @@
 //----------------------------------------------------------------------------
 //
 // Everything below the aim update is a CONSUMER of CkIntent, not an extension of
-// it. The matcher grades exactly seven things — a light tap, a light charge, the
-// same pair on the heavy button, and three combos — and every chain, buffer,
+// it. The matcher grades exactly eight things — a light tap, a light charge, the
+// same pair on the heavy button, and four combos — and every chain, buffer,
 // charge and special a viewer watches happen is game state owned by this file,
 // driven by polling those completions. That is the shape a real consumer has and
 // the shape the module's doc prescribes: poll the completion FRAME, act once,
 // never branch on a latched phase (CkIntent/CLAUDE.md anti-pattern 15).
 //
-// ONE MACHINE, FOURTEEN STATES. Idle, three light steps, three heavy steps, two
-// charges, two specials and three combos all live in one `_State`. A second flag
+// ONE MACHINE, FIFTEEN STATES. Idle, three light steps, three heavy steps, two
+// charges, two specials and four combos all live in one `_State`. A second flag
 // mirroring "am I attacking" would be a second answer to a question that has one.
 //
 // THE ATTACK LENGTHS ARE THIS FILE'S OWN NUMBERS. No notation quotes them, the
@@ -87,16 +87,18 @@
 // SOMETHING TO HIT. A swing thrown at empty floor looks the same whether it
 // connects or not, so the pawn spawns one dummy 800cm along world +X from its own
 // spawn point (UCk_EntityScript_PlaygroundGym_Enemy) and tests every swing
-// against it. The test is a planar distance against the swing's own reach — the
-// forward offset the shape was drawn at, plus its extent, plus a hand's-width of
-// padding — and an arc around the ACTOR FORWARD, which is the cursor aim. A wider
-// arc for the specials, because a special that missed a target the player was
-// clearly pointing at would read as a bug in the aim rather than a miss.
+// against it. THE DRAWN SHAPE IS THE HITBOX: the swing arms a hit window at the
+// shape's own world position for the shape's own lifetime, tested every tick as
+// a planar distance from that centre — its extent plus a hand's-width of padding
+// — and it lands at most once. A shape the player can watch standing over the
+// dummy MUST connect, however late in the step the two came together; the old
+// at-spawn-only test missed exactly that, and an arc test is not needed at all
+// once the test is centred on the shape rather than on the pawn.
 //
 // BLOCK IS A HELD SET, NOT A MOVE, AND THAT IS THE WHOLE POINT. Q is minted into
 // the button map so the record carries a row for it, and no move table names it —
 // so the block is read off the newest row's held set rather than graded by the
-// matcher. Seven moves that are notation compiled into a set, beside one state
+// matcher. Eight moves that are notation compiled into a set, beside one state
 // that is a fact about a row: the contrast is the exercise, and the deleted sekiro
 // station demonstrated the same pair.
 //
@@ -108,9 +110,10 @@
 // held read look like a move with priority rules.
 //
 // THE PAWN HAS NO HEALTH. A projectile that reaches the pawn is answered with
-// BLOCKED or HIT and nothing else — no damage, no state change, no stagger. The
-// dummy renders nothing at the point of resolution; the verdict is a fact about
-// this pawn's input and it is drawn on this pawn.
+// STRUCK, BLOCKED or PARRIED and nothing else — no damage, no state change, no
+// stagger. The dummy renders nothing at the point of resolution; the verdict is
+// a fact about this pawn's input, it is drawn on this pawn, and the dummy only
+// ACTS on the answer handed back (a parried shot flies home).
 //============================================================================
 
 namespace playground_gym_kit
@@ -138,6 +141,7 @@ namespace playground_gym_kit
     const int32 k_State_Combo_LH = 11;
     const int32 k_State_Combo_HL = 12;
     const int32 k_State_Combo_WL = 13;
+    const int32 k_State_Combo_WH = 14;
 
     // The two families, as one value. A tap, a charge, a chain step and a special
     // all have to say which side of the kit they belong to, and three bools would
@@ -146,34 +150,41 @@ namespace playground_gym_kit
     const int32 k_Family_Light = 1;
     const int32 k_Family_Heavy = 2;
 
-    // The step a special reports when it lands a hit. Zero is already what
-    // Get_ChainStep answers for anything that is not a chain step, so the dummy
-    // reads "not one of the three" from the same number this file already means it
-    // by — a fourth step index would be a second way to say the same thing. A
-    // combo reports the same number, because it is not a chain step either.
-    const int32 k_Step_Special = 0;
+    //------------------------------------------------------------------------
+    // Locomotion
+    //------------------------------------------------------------------------
+    //
+    // Two speeds, polled every tick off Shift: the sprint is a real locomotion
+    // state, not a flag the combos invent — the sprint attacks exist only while
+    // both W and Shift are down, and a sprint that did not MOVE faster would
+    // make that condition invisible. Walk is half of ADefaultPawn's stock 1200,
+    // which read as a sprint at this framing.
+
+    const float32 k_MoveSpeed_Walk   = 600.0f;
+    const float32 k_MoveSpeed_Sprint = 1000.0f;
 
     //------------------------------------------------------------------------
     // How long a swing lasts
     //------------------------------------------------------------------------
     //
     // Seconds, because a PMG duration is seconds and the identity between the two
-    // is the design. The light chain accelerates into its finisher; the heavy
-    // chain is slower at every step, which is the whole difference between the
-    // families to play.
+    // is the design. One length per family, maintainer-tuned LONG: the step is
+    // the window the next press buffers into, so its length is the time the
+    // player is given to queue the follow-up, and the families' 2x split is the
+    // whole difference between them to play.
 
-    const float32 k_Duration_Light1 = 0.35f;
-    const float32 k_Duration_Light2 = 0.45f;
-    const float32 k_Duration_Light3 = 0.60f;
+    const float32 k_Duration_Light1 = 2.00f;
+    const float32 k_Duration_Light2 = 2.00f;
+    const float32 k_Duration_Light3 = 2.00f;
 
-    const float32 k_Duration_Heavy1 = 0.60f;
-    const float32 k_Duration_Heavy2 = 0.80f;
-    const float32 k_Duration_Heavy3 = 1.00f;
+    const float32 k_Duration_Heavy1 = 4.00f;
+    const float32 k_Duration_Heavy2 = 4.00f;
+    const float32 k_Duration_Heavy3 = 4.00f;
 
     const float32 k_Duration_Special_Light = 0.80f;
     const float32 k_Duration_Special_Heavy = 1.20f;
 
-    // One length for all three combos: what tells them apart is which inputs
+    // One length for all four combos: what tells them apart is which inputs
     // produced them and what colour comes out, not how long they stand.
     const float32 k_Duration_Combo = 0.70f;
 
@@ -184,11 +195,13 @@ namespace playground_gym_kit
     // Every chain step opens with a wind-up nothing comes out of: the swing shape
     // spawns where the wind-up ENDS, so cancelling into a charge during it costs
     // no strike, and the hit lands when the strike is visible rather than on the
-    // press. The CHAIN WINDOW is everything after the wind-up — active plus
-    // wind-down — which is where a same-family press queues the next step. A
-    // press completing just after the step expired still chains through the grace
-    // window instead of resetting to step 1: "almost chained" has to read as a
-    // chain, not as a fresh opener.
+    // press. The wind-up is ANIMATION, not an input gate: the chain window is the
+    // whole step from its entry row, because a double-click's second press lands
+    // ~50-100ms after the first click's release — inside any wind-up measured
+    // from the entry the release caused — and the maintainer's ruling is that it
+    // chains. A press completing just after the step expired still chains through
+    // the grace window instead of resetting to step 1: "almost chained" has to
+    // read as a chain, not as a fresh opener.
     //
     // Specials have no wind-up — the charge the player just sat through WAS the
     // wind-up. Neither do combos: the sequence was.
@@ -196,10 +209,6 @@ namespace playground_gym_kit
     const float32 k_Phase_WindUpFraction = 0.20f;
 
     const int32 k_ChainGraceFrames = 10;
-
-    // The record's cadence, for converting a phase length in seconds into the
-    // frame index a press has to beat (Shared.as sizes its ring on the same 60).
-    const float32 k_SamplerHz = 60.0f;
 
     //------------------------------------------------------------------------
     // Where a swing lands
@@ -228,25 +237,23 @@ namespace playground_gym_kit
     // combo is the most the kit can be asked for, and it has to look like it.
     const float32 k_Extent_Combo = 170.0f;
 
+    // The sprint attacks are AREA moves: a flat ring around the pawn rather than
+    // a box along the aim, because an attack thrown at a run has no aim to speak
+    // of — the commitment is the sprint, and the payoff is everything nearby.
+    const float32 k_Extent_SprintAoE = 300.0f;
+
     //------------------------------------------------------------------------
     // Landing it on something
     //------------------------------------------------------------------------
     //
-    // The reach is DERIVED from the swing that was just drawn — the offset it came
-    // out at plus its own extent — so a hit-test can never disagree with the shape
-    // a player watched. The padding is the one number that is not derived: a
-    // target whose own body is 60cm wide has to be hittable when the box stops
-    // just short of its centre.
-    //
-    // The arc is around the ACTOR FORWARD, which the cursor aim set earlier on the
-    // same tick. Specials are more generous because they are the moves a player
-    // commits a full hold to, and a whiffed special reads as the aim lying rather
-    // than as a miss. A combo is committed the same way and gets the same arc from
-    // the same test, because it reports the same not-a-chain-step index.
+    // The hit window IS the drawn shape: same centre, its extent plus the
+    // padding, alive exactly as long as the shape is. Tested every tick and
+    // landing at most once, so walking the dummy into a standing swing connects
+    // and one swing never counts twice. The padding is the one number that is
+    // not derived from the shape: a target whose own body is 60cm wide has to be
+    // hittable when the box stops just short of its centre.
 
-    const float32 k_HitTest_Padding           = 70.0f;
-    const float32 k_HitTest_ArcDegrees        = 55.0f;
-    const float32 k_HitTest_SpecialArcDegrees = 75.0f;
+    const float32 k_HitTest_Padding = 70.0f;
 
     // Far enough that the arena reads as having somewhere to walk to, close enough
     // that the dummy is in the first screenful. World +X, on the floor: the floor
@@ -272,7 +279,7 @@ namespace playground_gym_kit
     const float32 k_ChargeHeight   = 50.0f;
 
     // How long a charge takes to LOOK full — display only, and deliberately a
-    // different number from the move table's hold=5 verdict point: the verdict
+    // different number from the move table's hold=10 verdict point: the verdict
     // says "this press is a hold", this says "the hold has ripened". The counter
     // quotes it and the sphere saturates at it; nothing grades against it.
     const int32 k_ChargeFullFrames = 45;
@@ -312,10 +319,24 @@ namespace playground_gym_kit
     const float32 k_BeatHeight    = 30.0f;
 
     // A projectile resolving is the same kind of "right now", drawn with the same
-    // primitive on the same schedule — at the PLATE when it was blocked, on the
-    // pawn's own body when it was not.
+    // primitive on the same schedule — at the PLATE when it was blocked or
+    // parried, on the pawn's own body when it was not.
     const int32   k_ProjectileBeatTicks  = 12;
     const float32 k_ProjectileBeatRadius = 42.0f;
+
+    // A PARRY is a block that BARELY started: at impact, the record answers how
+    // long Q has been down, and a run inside this window is a read of the
+    // incoming shot rather than a wall the player was already hiding behind. Q
+    // stays verdict-free in the grammar (no move terminates on it), so the press
+    // registers the row it lands — the window is judged at IMPACT, adding zero
+    // latency to the block itself. ~133ms; the number to steer for parry feel.
+    const int32 k_ParryWindowFrames = 8;
+
+    const float32 k_ParryBeatRadius = 64.0f;
+
+    const int32 k_ProjectileVerdict_Struck  = 0;
+    const int32 k_ProjectileVerdict_Blocked = 1;
+    const int32 k_ProjectileVerdict_Parried = 2;
 
     //------------------------------------------------------------------------
     // The buffered marker
@@ -341,7 +362,7 @@ namespace playground_gym_kit
     // The block is steel blue and belongs to neither family, because it is not a
     // move: a plate in either family's colour would read as a third attack.
     //
-    // The three combos are OFF both family ramps for the same reason — a combo is
+    // The four combos are OFF both family ramps for the same reason — a combo is
     // not a louder light or a louder heavy, it is the third thing the kit can be
     // asked for — and they are three different hues rather than three alphas of
     // one, because which combo landed is the whole question a viewer has about
@@ -360,6 +381,7 @@ namespace playground_gym_kit
     const FLinearColor k_Colour_Combo_LH = FLinearColor(0.70f, 0.35f, 1.00f, 0.85f);
     const FLinearColor k_Colour_Combo_HL = FLinearColor(1.00f, 0.30f, 0.75f, 0.85f);
     const FLinearColor k_Colour_Combo_WL = FLinearColor(0.35f, 1.00f, 0.55f, 0.85f);
+    const FLinearColor k_Colour_Combo_WH = FLinearColor(0.20f, 0.85f, 0.45f, 0.85f);
 
     const FLinearColor k_Colour_ChargeGrow_Light = FLinearColor(0.30f, 0.90f, 1.00f, 0.45f);
     const FLinearColor k_Colour_ChargeGrow_Heavy = FLinearColor(1.00f, 0.55f, 0.15f, 0.45f);
@@ -370,6 +392,7 @@ namespace playground_gym_kit
 
     const FLinearColor k_Colour_Block   = FLinearColor(0.35f, 0.60f, 0.90f, 0.35f);
     const FLinearColor k_Colour_Blocked = FLinearColor(0.40f, 1.00f, 1.00f, 1.00f);
+    const FLinearColor k_Colour_Parried = FLinearColor(1.00f, 0.85f, 0.20f, 1.00f);
     const FLinearColor k_Colour_Struck  = FLinearColor(1.00f, 0.25f, 0.25f, 1.00f);
 
     //------------------------------------------------------------------------
@@ -419,7 +442,7 @@ namespace playground_gym_kit
     const FLinearColor k_Colour_Label_Broken  = FLinearColor(1.00f, 0.30f, 0.30f, 1.00f);
     const FLinearColor k_Colour_Label_Input   = FLinearColor(0.70f, 0.75f, 0.80f, 0.95f);
 
-    // One colour for all three combos, because the LINE already names which one
+    // One colour for all four combos, because the LINE already names which one
     // landed — the colour only has to say "this was a combo, not a chain step".
     const FLinearColor k_Colour_Label_Combo   = FLinearColor(0.85f, 0.55f, 1.00f, 1.00f);
 
@@ -427,7 +450,8 @@ namespace playground_gym_kit
 
     const FString k_LabelText_Combo_LH = "COMBO L-H";
     const FString k_LabelText_Combo_HL = "COMBO H-L";
-    const FString k_LabelText_Combo_WL = "COMBO W+L";
+    const FString k_LabelText_Combo_WL = "SPRINT ATTACK L";
+    const FString k_LabelText_Combo_WH = "SPRINT ATTACK H";
 
     const float32 k_ShapeLineThickness = 2.0f;
 }
@@ -482,6 +506,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     private FCkPlaygroundGym_Attempt _Attempt_ComboLH;
     private FCkPlaygroundGym_Attempt _Attempt_ComboHL;
     private FCkPlaygroundGym_Attempt _Attempt_ComboWL;
+    private FCkPlaygroundGym_Attempt _Attempt_ComboWH;
 
     private int32   _State = playground_gym_kit::k_State_Idle;
     private float32 _StateSecondsRemaining = 0.0f;
@@ -492,19 +517,26 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     private bool _BufferedNext = false;
 
     // The current chain step's phase bookkeeping: total length (elapsed is derived
-    // from it and the remaining), the record frame where its wind-up ends (the
-    // frame a chain press has to beat), and the swing stashed until the wind-up
-    // has been served. A charge landing mid-wind-up leaves _SwingSpawned false and
-    // the strike never comes out — a cancelled attack costs no shape.
+    // from it and the remaining), the record frame the step was entered on (the
+    // frame a chain press has to beat — only the step's OWN initiating press
+    // predates it), and the swing stashed until the wind-up has been served. A
+    // charge landing mid-wind-up leaves _SwingSpawned false and the strike never
+    // comes out — a cancelled attack costs no shape.
     private float32 _StateTotalSeconds = 0.0f;
-    private int32   _WindUpEndFrame    = -1;
+    private int32   _StepEntryFrame    = -1;
     private bool    _SwingSpawned      = true;
 
     private int32        _PendingSwing_Family = 0;
-    private int32        _PendingSwing_Step   = 0;
     private float32      _PendingSwing_Extent = 0.0f;
     private FLinearColor _PendingSwing_Colour;
-    private float32      _PendingSwing_DurationSeconds = 0.0f;
+
+    // The live hit window — the drawn shape's centre and reach, counting down the
+    // shape's own lifetime. One at a time: a new swing replaces whatever window
+    // was still open, exactly as its state replaced the old state.
+    private float32 _Hitbox_SecondsRemaining = 0.0f;
+    private FVector _Hitbox_Centre           = FVector::ZeroVector;
+    private float32 _Hitbox_Reach            = 0.0f;
+    private bool    _Hitbox_Landed           = true;
 
     // The grace window: for a few frames after a step expires unbuffered, a
     // same-family tap continues the chain instead of opening a new one.
@@ -528,7 +560,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     private bool  _BeatWasActedOn = false;
 
     private int32 _ProjectileBeatTicksRemaining = 0;
-    private bool  _ProjectileBeatWasBlocked = false;
+    private int32 _ProjectileBeatVerdict = 0;
 
     UFUNCTION(BlueprintOverride)
     void ConstructionScript()
@@ -587,11 +619,6 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         // first frame the player could press anything: a kit that only draws once
         // something lands cannot say that nothing landed.
         Request_CreateReadouts();
-
-        // ADefaultPawn's stock 1200 is a sprint at this framing; half reads as a walk.
-        auto Movement = Cast<UFloatingPawnMovement>(GetMovementComponent());
-        if (Movement != nullptr)
-        { Movement.MaxSpeed = 600.0f; }
 
         // Poll WASD movement, the cursor aim and the combat kit each frame (see Tick).
         SetActorTickEnabled(true);
@@ -687,6 +714,17 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         const auto Forward = YawRot.GetForwardVector();
         const auto Right   = YawRot.GetRightVector();
 
+        // Sprint is a held Shift, applied before the movement input so this
+        // frame's steps are already at this frame's speed. The same two keys the
+        // speed reads are the sprint combos' chord partners (key ledger, Shared.as).
+        auto Movement = Cast<UFloatingPawnMovement>(GetMovementComponent());
+        if (Movement != nullptr)
+        {
+            Movement.MaxSpeed = PC.IsInputKeyDown(playground_gym::k_Key_Sprint)
+                ? playground_gym_kit::k_MoveSpeed_Sprint
+                : playground_gym_kit::k_MoveSpeed_Walk;
+        }
+
         if (PC.IsInputKeyDown(EKeys::W)) { AddMovementInput(Forward,  1.0f); }
         if (PC.IsInputKeyDown(EKeys::S)) { AddMovementInput(Forward, -1.0f); }
         if (PC.IsInputKeyDown(EKeys::D)) { AddMovementInput(Right,    1.0f); }
@@ -772,32 +810,37 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         _Enemy = InEnemy;
     }
 
-    // Read LIVE off the newest record row rather than off a flag this tick cached,
-    // because the dummy's projectile advances on its own timer tick and nothing
-    // orders the two against each other. The record is the same answer to both.
-    bool Get_IsBlocking() const
+    // No health, no state change, no interruption of the attack machine — the
+    // whole outcome is a beat, a line, and the VERDICT handed back. Blocked-
+    // versus-parried-versus-hit is a fact about this pawn's input — specifically
+    // how LONG the block key has been down when the shot lands — which is why the
+    // dummy renders nothing at resolution and asks here instead. The dummy acts
+    // on the answer (a parried shot flies home), but it never re-derives it.
+    int32 Request_ResolveProjectileImpact()
     {
-        return playground_gym::Get_IsButtonHeld(
+        const auto BlockRun = playground_gym::Get_HeldRunFrames(
             playground_gym::TryGet_Sampler(),
             playground_gym::k_Key_Block.GetKeyName());
-    }
 
-    // No health, no state change, no interruption of the attack machine — the
-    // whole outcome is a beat and a line. Blocked-versus-hit is a fact about this
-    // pawn's input, which is why the dummy renders nothing at resolution and hands
-    // the event here instead.
-    void Request_TakeProjectileHit()
-    {
-        _ProjectileBeatWasBlocked = Get_IsBlocking();
         _ProjectileBeatTicksRemaining = playground_gym_kit::k_ProjectileBeatTicks;
 
-        if (_ProjectileBeatWasBlocked)
+        if (BlockRun <= 0)
         {
+            _ProjectileBeatVerdict = playground_gym_kit::k_ProjectileVerdict_Struck;
+            Print("[Playground] HIT", 1.5f);
+        }
+        else if (BlockRun <= playground_gym_kit::k_ParryWindowFrames)
+        {
+            _ProjectileBeatVerdict = playground_gym_kit::k_ProjectileVerdict_Parried;
+            Print("[Playground] PARRY", 1.5f);
+        }
+        else
+        {
+            _ProjectileBeatVerdict = playground_gym_kit::k_ProjectileVerdict_Blocked;
             Print("[Playground] BLOCKED", 1.5f);
-            return;
         }
 
-        Print("[Playground] HIT", 1.5f);
+        return _ProjectileBeatVerdict;
     }
 
     // The camera director lives on this pawn's entity, so the dummy's floor label
@@ -828,9 +871,12 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     //   3. taps, the back-stop for the press read and the grace-window consumer;
     //   4. the release check, which turns a charge into its special on the frame
     //      the button actually left the record's held set;
-    //   5. the countdown, LAST — it serves the wind-up (spawning the stashed
-    //      swing where the wind-up ends), expires the state, and arms the grace
-    //      window when nothing was buffered.
+    //   5. the countdown — it serves the wind-up (spawning the stashed swing
+    //      where the wind-up ends and the press's verdict is in), expires the
+    //      state, and arms the grace window when nothing was buffered;
+    //   6. the hit window, LAST — it tests the live swing's own region against
+    //      the dummy, after the countdown so the swing a spawn just armed is
+    //      tested on the tick it appeared.
     //
     // The block is refreshed alongside the other persistent shapes and is not part
     // of that order at all: it reads its own key off the record and never consults
@@ -853,7 +899,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         DoTryRecordAttempts(Sampler);
 
         DoAdvance_ChargeRelease(LightRun, HeavyRun);
-        DoAdvance_Countdown(InDeltaSeconds);
+        DoAdvance_Countdown(InDeltaSeconds, LightRun, HeavyRun);
+        DoAdvance_Hitbox(InDeltaSeconds);
 
         DoRefresh_ChargeShape(LightRun, HeavyRun);
         DoRefresh_BufferMarker();
@@ -911,11 +958,12 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         { return; }
 
         // A swap is atomic — one unresolved terminal rejects the whole set — so it
-        // waits for ALL THREE terminal keys to be minted rather than being rejected
-        // for keys that only look unresolvable. Forward is one of them: a chord
-        // terminal contributes EVERY button in it, so W is a terminal exactly as
-        // much as L is. The block key is NOT waited on: no move terminates on it,
-        // so it cannot resolve or fail to resolve a terminal.
+        // waits for ALL FOUR terminal keys to be minted rather than being rejected
+        // for keys that only look unresolvable. Forward and sprint are two of
+        // them: a chord terminal contributes EVERY button in it, so W and Shift
+        // are terminals exactly as much as L is. The block key is NOT waited on:
+        // no move terminates on it, so it cannot resolve or fail to resolve a
+        // terminal.
         auto ButtonMap = playground_gym::TryGet_ButtonMap();
 
         if (playground_gym::Get_IsKeyMinted(ButtonMap, playground_gym::k_Key_Light) == false)
@@ -925,6 +973,9 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         { return; }
 
         if (playground_gym::Get_IsKeyMinted(ButtonMap, playground_gym::k_Key_Forward) == false)
+        { return; }
+
+        if (playground_gym::Get_IsKeyMinted(ButtonMap, playground_gym::k_Key_Sprint) == false)
         { return; }
 
         DoRequestSwap();
@@ -958,13 +1009,14 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         ButtonRows.Add(FCk_Intent_ButtonNameRow(n"L", playground_gym::Make_PhysicalButton(playground_gym::k_Key_Light)));
         ButtonRows.Add(FCk_Intent_ButtonNameRow(n"H", playground_gym::Make_PhysicalButton(playground_gym::k_Key_Heavy)));
         ButtonRows.Add(FCk_Intent_ButtonNameRow(n"W", playground_gym::Make_PhysicalButton(playground_gym::k_Key_Forward)));
+        ButtonRows.Add(FCk_Intent_ButtonNameRow(n"R", playground_gym::Make_PhysicalButton(playground_gym::k_Key_Sprint)));
 
-        // The forward combo IS a two-button chord terminal, so the bake's chord
-        // window is live now and governs how long an L press waits for a W that
-        // might still be arriving. The default (3 frames) stands: it is already
-        // shorter than the hold wait the same press carries, so nothing about the
-        // light button's latency changes, and a number named here would be a
-        // second opinion about a window nobody asked to move.
+        // The sprint combos ARE chord terminals, so the bake's chord window is
+        // live now and governs how long a mouse press waits for a W or Shift
+        // that might still be arriving. The default (3 frames) stands: it is
+        // already shorter than the hold wait the same press carries, so nothing
+        // about either button's latency changes, and a number named here would
+        // be a second opinion about a window nobody asked to move.
         auto Baked = utils_intent_grammar::Bake(Definitions, ButtonRows);
 
         if (Baked.Get_Outcome() != ECk_SucceededFailed::Succeeded)
@@ -1030,8 +1082,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         const auto HeavyName = playground_gym::k_Key_Heavy.GetKeyName();
 
         // Each combo's terminal names the button whose PRESS completed it: L-then-H
-        // ends on the heavy button, H-then-L on the light one, and the forward
-        // chord completes on the light press its held partner was waiting for.
+        // ends on the heavy button, H-then-L on the light one, and each sprint
+        // chord completes on the mouse press its held partners were waiting for.
         const auto ComboLHLanded = playground_gym::Request_RecordAttempt(
             _Attempt_ComboLH, _Matcher, InSampler, playground_gym_kit_moves::k_Move_Combo_LH, HeavyName);
 
@@ -1040,6 +1092,9 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         const auto ComboWLLanded = playground_gym::Request_RecordAttempt(
             _Attempt_ComboWL, _Matcher, InSampler, playground_gym_kit_moves::k_Move_Combo_WL, LightName);
+
+        const auto ComboWHLanded = playground_gym::Request_RecordAttempt(
+            _Attempt_ComboWH, _Matcher, InSampler, playground_gym_kit_moves::k_Move_Combo_WH, HeavyName);
 
         const auto LightChargeLanded = playground_gym::Request_RecordAttempt(
             _Attempt_LightCharge, _Matcher, InSampler, playground_gym_kit_moves::k_Move_Light_Charge, LightName);
@@ -1062,6 +1117,9 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         if (ComboWLLanded)
         { DoOnComboLanded(playground_gym_kit::k_State_Combo_WL); }
 
+        if (ComboWHLanded)
+        { DoOnComboLanded(playground_gym_kit::k_State_Combo_WH); }
+
         if (LightChargeLanded)
         { DoOnChargeLanded(playground_gym_kit::k_Family_Light); }
 
@@ -1081,11 +1139,11 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
     // The chain intent is the PRESS, read off the record the moment its row lands
     // — the candidate-lifecycle read played game-side: act on button-down, let the verdict re-resolve
-    // it. A press during active or wind-down buffers the next step immediately; if
-    // the matcher later grades that same press a CHARGE, the charge's interrupt
-    // clears the buffer it briefly held. Presses during the WIND-UP are not chain
-    // inputs (the maintainer's model): the window opens where the wind-up ends,
-    // which is the frame `_WindUpEndFrame` names.
+    // it. ANY press after the step's entry row buffers the next step immediately —
+    // the wind-up is animation, not an input gate ([P10-D6]'s wind-up rejection
+    // swallowed the second click of a natural double-click, which lands inside
+    // the wind-up the first click's release started). If the matcher later grades
+    // the press a CHARGE, the charge's interrupt clears the buffer it briefly held.
     private void DoAdvance_ChainPressIntent(FCk_Handle_IntentSampler InSampler)
     {
         const auto Step = Get_ChainStep();
@@ -1099,9 +1157,9 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         const auto PressFrame = playground_gym::Get_LatestPressFrame(InSampler, Key.GetKeyName());
 
-        // Also rejects the press that STARTED this step — its row predates the
-        // step's own wind-up, so it can never buffer the step after it.
-        if (PressFrame < _WindUpEndFrame)
+        // Strictly after: the press that STARTED this step landed on or before
+        // the entry row, and it can never buffer the step after itself.
+        if (PressFrame <= _StepEntryFrame)
         { return; }
 
         _BufferedNext = true;
@@ -1126,17 +1184,23 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         _StateTotalSeconds     = playground_gym_kit::k_Duration_Combo;
         _StateSecondsRemaining = playground_gym_kit::k_Duration_Combo;
 
-        // Family None because a combo belongs to neither side of the kit, and the
-        // special step index because a combo is not a chain step — which is the
-        // same number Get_ChainStep already answers for one, and what earns the
-        // swing the generous arc the hit-test gives a committed move.
-        DoSpawnSwing(
-            playground_gym_kit::k_Family_None,
-            playground_gym_kit::k_Step_Special,
-            playground_gym_kit::k_Extent_Combo,
-            Get_ComboColour(InComboState),
-            playground_gym_kit::k_Attack_SpecialForwardOffset,
-            playground_gym_kit::k_Duration_Combo);
+        // The ordered combos are aimed moves and come out as a box along the aim
+        // like everything else; the sprint attacks are AREA moves — a ring around
+        // the pawn, hit-tested from the pawn — because an attack thrown at a run
+        // has no aim to speak of.
+        if (InComboState == playground_gym_kit::k_State_Combo_WL ||
+            InComboState == playground_gym_kit::k_State_Combo_WH)
+        {
+            DoSpawnSprintAoE(Get_ComboColour(InComboState));
+        }
+        else
+        {
+            DoSpawnSwing(
+                playground_gym_kit::k_Extent_Combo,
+                Get_ComboColour(InComboState),
+                playground_gym_kit::k_Attack_SpecialForwardOffset,
+                playground_gym_kit::k_Duration_Combo);
+        }
 
         DoFlashBeat(true);
     }
@@ -1162,9 +1226,9 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // Idle starts a chain — or CONTINUES one, when the tap lands inside the grace
     // window a just-expired step left behind. A completion during a step is the
     // back-stop for the press-intent read (its press has to clear the same
-    // wind-up gate). Anything else — the other family mid-chain, a press during a
-    // charge, a press during a special, a press during a combo, a wind-up press —
-    // is delivered, recorded and deliberately not acted on.
+    // entry-row gate). Anything else — the other family mid-chain, a press during
+    // a charge, a press during a special, a press during a combo — is delivered,
+    // recorded and deliberately not acted on.
     private void DoOnTapLanded(int32 InFamily)
     {
         if (_State == playground_gym_kit::k_State_Idle)
@@ -1189,7 +1253,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
                 ? _Attempt_LightTap.PressFrame
                 : _Attempt_HeavyTap.PressFrame;
 
-            if (PressFrame >= _WindUpEndFrame)
+            if (PressFrame > _StepEntryFrame)
             {
                 _BufferedNext = true;
                 DoFlashBeat(true);
@@ -1217,14 +1281,14 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
     // A charge has no countdown of its own — it lasts as long as the player holds —
     // so a zero remaining while charging is the normal state and not an expiry.
-    private void DoAdvance_Countdown(float32 InDeltaSeconds)
+    private void DoAdvance_Countdown(float32 InDeltaSeconds, int32 InLightRun, int32 InHeavyRun)
     {
         if (_StateSecondsRemaining <= 0.0f)
         { return; }
 
         _StateSecondsRemaining -= InDeltaSeconds;
 
-        DoTrySpawnPendingSwing();
+        DoTrySpawnPendingSwing(InLightRun, InHeavyRun);
 
         if (_StateSecondsRemaining > 0.0f)
         { return; }
@@ -1256,10 +1320,18 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         _State = playground_gym_kit::k_State_Idle;
     }
 
-    // The strike comes out where the wind-up ends: the shape's lifetime is the
-    // active-plus-wind-down remainder, so the state and its swing still expire on
-    // the same tick, and the hit-test runs at the strike rather than at the press.
-    private void DoTrySpawnPendingSwing()
+    // The strike comes out where the wind-up ends: the swing is given the state's
+    // remaining seconds, so the two still expire on the same tick however late the
+    // spawn ran, and the hit-test runs at the strike rather than at the press.
+    //
+    // AND ONLY ONCE THE STEP'S PRESS HAS A VERDICT. A press still down under the
+    // verdict point may yet be graded a hold, and a hold's cancel must stay free —
+    // so the strike waits out the run rather than spawning under a press that
+    // might retract it. A tap resolves at its release and the swing comes out a
+    // beat late; a hold's charge supersedes the state in the completions read,
+    // which runs earlier in the tick than this does, so the threshold branch
+    // below is a backstop rather than a path.
+    private void DoTrySpawnPendingSwing(int32 InLightRun, int32 InHeavyRun)
     {
         if (_SwingSpawned || Get_ChainStep() == 0)
         { return; }
@@ -1269,15 +1341,20 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         if (Elapsed < _StateTotalSeconds * playground_gym_kit::k_Phase_WindUpFraction)
         { return; }
 
+        const auto Run = _PendingSwing_Family == playground_gym_kit::k_Family_Light
+            ? InLightRun
+            : InHeavyRun;
+
+        if (Run > 0 && Run < playground_gym_kit_moves::k_ChargeHoldFrames)
+        { return; }
+
         _SwingSpawned = true;
 
         DoSpawnSwing(
-            _PendingSwing_Family,
-            _PendingSwing_Step,
             _PendingSwing_Extent,
             _PendingSwing_Colour,
             playground_gym_kit::k_Attack_ForwardOffset,
-            _PendingSwing_DurationSeconds);
+            _StateSecondsRemaining);
     }
 
     // Entering a step does NOT spawn its swing — the strike is stashed and comes
@@ -1291,17 +1368,12 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         _StateTotalSeconds     = Get_ChainDuration(InFamily, InStep);
         _StateSecondsRemaining = _StateTotalSeconds;
 
-        const auto WindUpSeconds = _StateTotalSeconds * playground_gym_kit::k_Phase_WindUpFraction;
+        _SwingSpawned        = false;
+        _PendingSwing_Family = InFamily;
+        _PendingSwing_Extent = Get_ChainExtent(InFamily, InStep);
+        _PendingSwing_Colour = Get_ChainColour(InFamily, InStep);
 
-        _SwingSpawned                 = false;
-        _PendingSwing_Family          = InFamily;
-        _PendingSwing_Step            = InStep;
-        _PendingSwing_Extent          = Get_ChainExtent(InFamily, InStep);
-        _PendingSwing_Colour          = Get_ChainColour(InFamily, InStep);
-        _PendingSwing_DurationSeconds = _StateTotalSeconds - WindUpSeconds;
-
-        _WindUpEndFrame = playground_gym::Get_LiveFrameIndex(playground_gym::TryGet_Sampler())
-            + int32(WindUpSeconds * playground_gym_kit::k_SamplerHz);
+        _StepEntryFrame = playground_gym::Get_LiveFrameIndex(playground_gym::TryGet_Sampler());
     }
 
     private int32 Get_ChainState(int32 InFamily, int32 InStep) const
@@ -1368,6 +1440,9 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         if (InComboState == playground_gym_kit::k_State_Combo_HL)
         { return playground_gym_kit::k_Colour_Combo_HL; }
 
+        if (InComboState == playground_gym_kit::k_State_Combo_WH)
+        { return playground_gym_kit::k_Colour_Combo_WH; }
+
         return playground_gym_kit::k_Colour_Combo_WL;
     }
 
@@ -1378,6 +1453,9 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         if (InComboState == playground_gym_kit::k_State_Combo_HL)
         { return playground_gym_kit::k_LabelText_Combo_HL; }
+
+        if (InComboState == playground_gym_kit::k_State_Combo_WH)
+        { return playground_gym_kit::k_LabelText_Combo_WH; }
 
         return playground_gym_kit::k_LabelText_Combo_WL;
     }
@@ -1396,7 +1474,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             _StateTotalSeconds = playground_gym_kit::k_Duration_Special_Light;
             _StateSecondsRemaining = playground_gym_kit::k_Duration_Special_Light;
 
-            DoSpawnSwing(InFamily, playground_gym_kit::k_Step_Special,
+            DoSpawnSwing(
                 playground_gym_kit::k_Extent_Special_Light, playground_gym_kit::k_Colour_Special_Light,
                 playground_gym_kit::k_Attack_SpecialForwardOffset, playground_gym_kit::k_Duration_Special_Light);
             return;
@@ -1406,7 +1484,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         _StateTotalSeconds = playground_gym_kit::k_Duration_Special_Heavy;
         _StateSecondsRemaining = playground_gym_kit::k_Duration_Special_Heavy;
 
-        DoSpawnSwing(InFamily, playground_gym_kit::k_Step_Special,
+        DoSpawnSwing(
             playground_gym_kit::k_Extent_Special_Heavy, playground_gym_kit::k_Colour_Special_Heavy,
             playground_gym_kit::k_Attack_SpecialForwardOffset, playground_gym_kit::k_Duration_Special_Heavy);
     }
@@ -1460,7 +1538,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     {
         return _State == playground_gym_kit::k_State_Combo_LH
             || _State == playground_gym_kit::k_State_Combo_HL
-            || _State == playground_gym_kit::k_State_Combo_WL;
+            || _State == playground_gym_kit::k_State_Combo_WL
+            || _State == playground_gym_kit::k_State_Combo_WH;
     }
 
     //------------------------------------------------------------------------
@@ -1472,20 +1551,20 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // visible. Nothing here is tracked, because there is no path on which one of
     // these outlives its own clock.
     //
-    // The hit-test runs on the same call, from the same numbers the shape was drawn
-    // with: a swing that connects and a swing that is drawn are the same event, and
-    // a second place deciding reach could disagree with the picture.
+    // The hit window is armed on the same call, from the same numbers the shape
+    // was drawn with: the shape and the hitbox are one event, and a second place
+    // deciding reach could disagree with the picture.
     private void DoSpawnSwing(
-        int32 InFamily,
-        int32 InStep,
         float32 InExtent,
         FLinearColor InColour,
         float32 InForwardOffset,
         float32 InDurationSeconds)
     {
+        const auto Centre = Get_AttackLocation(InForwardOffset);
+
         utils_pmg_basic_shapes::Create_Box(
             _PawnEntity,
-            FTransform(GetActorRotation(), Get_AttackLocation(InForwardOffset), FVector(1.0, 1.0, 1.0)),
+            FTransform(GetActorRotation(), Centre, FVector(1.0, 1.0, 1.0)),
             FVector(InExtent, InExtent, InExtent),
             ECk_Plane_Axis::XY,
             InColour,
@@ -1493,45 +1572,61 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             playground_gym_kit::k_ShapeLineThickness,
             InDurationSeconds);
 
-        DoTryHitEnemy(InFamily, InStep, InExtent, InForwardOffset);
+        DoArmHitbox(Centre, InExtent, InDurationSeconds);
     }
 
-    // PLANAR distance and a PLANAR arc: the dummy stands on the same floor the pawn
-    // does and the aim is a yaw, so a height difference between two things on one
-    // slab is not a reason to miss.
-    private void DoTryHitEnemy(int32 InFamily, int32 InStep, float32 InExtent, float32 InForwardOffset)
+    // The sprint attacks' shape: a flat ring on the floor around the pawn, the
+    // area the hit window covers made visible. Same one-call identity as the box.
+    private void DoSpawnSprintAoE(FLinearColor InColour)
     {
-        if (ck::Is_NOT_Valid(_Enemy))
+        const auto Centre = GetActorLocation();
+
+        utils_pmg_flat_shapes::Create_Circle(
+            _PawnEntity,
+            FTransform(Centre + FVector(0.0, 0.0, playground_gym_kit::k_Label_FloorLift)),
+            playground_gym_kit::k_Extent_SprintAoE,
+            32,
+            InColour,
+            true,
+            playground_gym_kit::k_ShapeLineThickness,
+            false,
+            ECk_Plane_Axis::XY,
+            playground_gym_kit::k_Duration_Combo);
+
+        DoArmHitbox(Centre, playground_gym_kit::k_Extent_SprintAoE, playground_gym_kit::k_Duration_Combo);
+    }
+
+    private void DoArmHitbox(FVector InCentre, float32 InExtent, float32 InSeconds)
+    {
+        _Hitbox_SecondsRemaining = InSeconds;
+        _Hitbox_Centre           = InCentre;
+        _Hitbox_Reach            = InExtent + playground_gym_kit::k_HitTest_Padding;
+        _Hitbox_Landed           = false;
+    }
+
+    // PLANAR distance from the drawn shape's own centre, every tick the shape is
+    // up, landing at most once: the dummy stands on the same floor the pawn does,
+    // so a height difference between two things on one slab is not a reason to
+    // miss — and a dummy walked into a standing swing is a hit, however late the
+    // two came together.
+    private void DoAdvance_Hitbox(float32 InDeltaSeconds)
+    {
+        if (_Hitbox_SecondsRemaining <= 0.0f)
         { return; }
 
-        auto ToEnemy = _Enemy.Get_Location() - GetActorLocation();
+        _Hitbox_SecondsRemaining -= InDeltaSeconds;
+
+        if (_Hitbox_Landed || ck::Is_NOT_Valid(_Enemy))
+        { return; }
+
+        auto ToEnemy = _Enemy.Get_Location() - _Hitbox_Centre;
         ToEnemy.Z = 0.0;
 
-        if (ToEnemy.IsNearlyZero())
+        if (ToEnemy.Size() > _Hitbox_Reach)
         { return; }
 
-        if (ToEnemy.Size() > InForwardOffset + InExtent + playground_gym_kit::k_HitTest_Padding)
-        { return; }
-
-        auto Forward = GetActorRotation().GetForwardVector();
-        Forward.Z = 0.0;
-
-        if (Forward.IsNearlyZero())
-        { return; }
-
-        const auto ArcDegrees = InStep == playground_gym_kit::k_Step_Special
-            ? playground_gym_kit::k_HitTest_SpecialArcDegrees
-            : playground_gym_kit::k_HitTest_ArcDegrees;
-
-        // Compared as a cosine rather than as an angle: one Cos of a constant beats
-        // an Acos per swing, and the comparison never has to clamp a dot product
-        // that drifted a hair past one.
-        const auto CosLimit = Math::Cos(ArcDegrees * Math::PI / 180.0f);
-
-        if (Forward.GetSafeNormal().DotProduct(ToEnemy.GetSafeNormal()) < CosLimit)
-        { return; }
-
-        _Enemy.Request_TakeHit(InFamily, InStep);
+        _Hitbox_Landed = true;
+        _Enemy.Request_TakeHit();
     }
 
     // The accumulator is DISPLAY ONLY: it counts the rows the RECORD reports the
@@ -1691,24 +1786,26 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         _ProjectileBeatTicksRemaining--;
 
-        if (_ProjectileBeatWasBlocked)
+        if (_ProjectileBeatVerdict == playground_gym_kit::k_ProjectileVerdict_Struck)
         {
             utils_debug_draw::DrawDebugSphere(
-                Get_BlockTransform().GetLocation(),
+                GetActorLocation() + FVector(0.0, 0.0, playground_gym_kit::k_Attack_Height),
                 playground_gym_kit::k_ProjectileBeatRadius,
                 playground_gym_kit::k_BeatSegments,
-                playground_gym_kit::k_Colour_Blocked,
+                playground_gym_kit::k_Colour_Struck,
                 playground_gym::k_ShapeDuration_SingleFrame,
                 playground_gym_kit::k_BeatThickness);
 
             return;
         }
 
+        const auto Parried = _ProjectileBeatVerdict == playground_gym_kit::k_ProjectileVerdict_Parried;
+
         utils_debug_draw::DrawDebugSphere(
-            GetActorLocation() + FVector(0.0, 0.0, playground_gym_kit::k_Attack_Height),
-            playground_gym_kit::k_ProjectileBeatRadius,
+            Get_BlockTransform().GetLocation(),
+            Parried ? playground_gym_kit::k_ParryBeatRadius : playground_gym_kit::k_ProjectileBeatRadius,
             playground_gym_kit::k_BeatSegments,
-            playground_gym_kit::k_Colour_Struck,
+            Parried ? playground_gym_kit::k_Colour_Parried : playground_gym_kit::k_Colour_Blocked,
             playground_gym::k_ShapeDuration_SingleFrame,
             playground_gym_kit::k_BeatThickness);
     }
@@ -1866,12 +1963,6 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         if (_SetRejected)
         { return; }
 
-        if (_BufferedNext)
-        {
-            DoSetLabel(_StateLabel, "BUFFERED", playground_gym_kit::k_Colour_Label_Buffer);
-            return;
-        }
-
         // Ahead of the family branch, because a combo has no family: the line names
         // which combo landed and the colour says only that it was one.
         if (Get_IsCombo())
@@ -1909,15 +2000,20 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         const auto Step = Get_ChainStep();
 
-        if (Step > 0 && Family == playground_gym_kit::k_Family_Light)
-        {
-            DoSetLabel(_StateLabel, f"LIGHT {Step}", Colour);
-            return;
-        }
-
         if (Step > 0)
         {
-            DoSetLabel(_StateLabel, f"HEAVY {Step}", Colour);
+            const auto FamilyText = Family == playground_gym_kit::k_Family_Light ? "LIGHT" : "HEAVY";
+
+            // The buffer ANNOTATES the step rather than replacing it: which attack
+            // is running is the one thing the player mid-chain needs the line for,
+            // and the amber says a follow-up is queued behind it.
+            if (_BufferedNext)
+            {
+                DoSetLabel(_StateLabel, f"{FamilyText} {Step} + BUFFERED", playground_gym_kit::k_Colour_Label_Buffer);
+                return;
+            }
+
+            DoSetLabel(_StateLabel, f"{FamilyText} {Step}", Colour);
             return;
         }
 
