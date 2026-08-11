@@ -12,25 +12,27 @@
 // number, which is all the feedback a kit demo can honestly claim.
 //
 // AND IT SHOOTS, BECAUSE BLOCK NEEDS A REASON TO EXIST. Q is a held set read
-// straight off the record — the deliberate contrast to the four graded moves —
-// and a held button with nothing to hold it against is not a demonstration. Every
+// straight off the record — the deliberate contrast to the graded moves — and a
+// held button with nothing to hold it against is not a demonstration. Every
 // three seconds, if the player is close enough to be worth shooting, the dummy
 // telegraphs and throws ONE slow projectile at where the player was standing at
-// fire time. Walking out of the way beats it; holding Q beats it; standing still
-// with the hand off Q does not. That is the whole lesson.
+// fire time. Walking out of the way beats it; holding Q beats it; PARRYING it
+// sends it home; standing still with the hand off Q does not. That is the whole
+// lesson.
 //
 // THE PLAYER OWNS THE VERDICT, NOT THE DUMMY. When a projectile reaches the pawn
-// this file calls Request_TakeProjectileHit and renders NOTHING at the point of
-// resolution. Blocked-versus-hit is a fact about the player's input, the player
-// reads it off their own body, and a dummy that drew its own opinion of the
-// outcome would be a second answer to a question that has one.
+// this file asks Request_ResolveProjectileImpact and renders NOTHING at the
+// point of resolution — the pawn draws the outcome on its own body. The dummy
+// only ACTS on the answer: a parried shot turns gold and flies back the way it
+// came, and a returned shot that reaches the dummy counts exactly like a swing.
 //
 // THE BODY IS PMG, NOT MESHES, BECAUSE THE BODY IS THE FEEDBACK. A sphere torso
-// over a flat base ring, and the torso's COLOUR is the whole hit language:
-// utils_pmg_debug_shape::Request_SetColor recolours a live shape in place, which
-// a StaticMeshComponent silhouette could not do without a material instance the
-// gym has no reason to own. The base ring is there so the torso reads as standing
-// on the floor rather than floating over it.
+// over a flat base ring, and the torso's COLOUR is the hit feedback: it flashes
+// RED for any landed hit — red is damage, full stop — via
+// utils_pmg_debug_shape::Request_SetColor, which recolours a live shape in
+// place; a StaticMeshComponent silhouette could not do that without a material
+// instance the gym has no reason to own. The base ring is there so the torso
+// reads as standing on the floor rather than floating over it.
 //
 // PMG HAS NO SIZE MUTATION AND NO PARENTING, so the projectile is a persistent
 // sphere whose Transform fragment is driven every tick, and the floor label is
@@ -68,35 +70,29 @@ namespace playground_gym_enemy
     const float32 k_ShapeLineThickness = 2.0f;
 
     //------------------------------------------------------------------------
-    // The hit language
+    // The hit feedback
     //------------------------------------------------------------------------
     //
-    // Cyan is light and orange is heavy, the same palette the kit throws its
-    // swings in, so the dummy answers in the colour of the thing that hit it. The
-    // specials are the brightest tints the dummy ever shows and they still count
-    // as exactly one hit — there is no damage model here, only "that landed".
+    // RED, whatever landed it. Red is the one colour the kit never throws a
+    // swing in, so on this body it can only mean "that hit" — the maintainer's
+    // ruling over the earlier family-coloured tints, which read as nothing at a
+    // glance. Long enough to register; there is no damage model here, only
+    // "that landed" and the counter.
 
     const FLinearColor k_Colour_Torso_Idle = FLinearColor(0.55f, 0.57f, 0.60f, 0.65f);
     const FLinearColor k_Colour_Base       = FLinearColor(0.30f, 0.32f, 0.36f, 0.55f);
 
-    const FLinearColor k_Colour_Hit_Light         = FLinearColor(0.35f, 0.90f, 1.00f, 0.85f);
-    const FLinearColor k_Colour_Hit_Heavy         = FLinearColor(1.00f, 0.55f, 0.15f, 0.85f);
-    const FLinearColor k_Colour_Hit_SpecialLight  = FLinearColor(0.75f, 1.00f, 1.00f, 1.00f);
-    const FLinearColor k_Colour_Hit_SpecialHeavy  = FLinearColor(1.00f, 0.90f, 0.55f, 1.00f);
-
+    const FLinearColor k_Colour_Hit       = FLinearColor(1.00f, 0.15f, 0.15f, 1.00f);
     const FLinearColor k_Colour_Telegraph = FLinearColor(1.00f, 0.75f, 0.10f, 0.95f);
 
-    const float32 k_HitFlashSeconds = 0.15f;
+    const float32 k_HitFlashSeconds = 0.40f;
 
     // The torso's colour is requested only when the tint CHANGES, so the codes
     // below are what "what colour am I already" is stored as. A colour compared
     // against a colour would be a float comparison asked once per tick forever.
-    const int32 k_Tint_Idle          = 0;
-    const int32 k_Tint_Light         = 1;
-    const int32 k_Tint_Heavy         = 2;
-    const int32 k_Tint_SpecialLight  = 3;
-    const int32 k_Tint_SpecialHeavy  = 4;
-    const int32 k_Tint_Telegraph     = 5;
+    const int32 k_Tint_Idle      = 0;
+    const int32 k_Tint_Hit       = 1;
+    const int32 k_Tint_Telegraph = 2;
 
     //------------------------------------------------------------------------
     // The counter
@@ -160,7 +156,6 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
 
     private int32   _HitCount          = 0;
     private float32 _HitFlashRemaining = 0.0f;
-    private int32   _HitTint           = playground_gym_enemy::k_Tint_Idle;
     private int32   _TintApplied       = playground_gym_enemy::k_Tint_Idle;
 
     private int32 _LabelCountRendered = -1;
@@ -171,6 +166,7 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
     private FVector _ProjectileLocation  = FVector::ZeroVector;
     private FVector _ProjectileDirection = FVector::ZeroVector;
     private float32 _ProjectileAge       = 0.0f;
+    private bool    _ProjectileReflected = false;
 
     UFUNCTION(BlueprintOverride)
     ECk_EntityScript_ConstructionFlow
@@ -208,15 +204,13 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
     // What the pawn calls
     //------------------------------------------------------------------------
 
-    // Family and step come from the kit's own vocabulary (playground_gym_kit), so
-    // the dummy answers in the colour of the thing that hit it without knowing
-    // anything about how the kit decided. A special is the same one hit as a jab
-    // — it just says so louder.
-    void Request_TakeHit(int32 InFamily, int32 InStep)
+    // A jab, a special, a combo and a returned projectile are all the same one
+    // hit: a red flash and a number. What landed it is the pawn's story, told in
+    // the swing's own colour on the way in.
+    void Request_TakeHit()
     {
         _HitCount++;
         _HitFlashRemaining = playground_gym_enemy::k_HitFlashSeconds;
-        _HitTint = Get_TintForHit(InFamily, InStep);
     }
 
     FVector Get_Location() const
@@ -279,20 +273,6 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
         _HitFlashRemaining = 0.0f;
     }
 
-    private int32 Get_TintForHit(int32 InFamily, int32 InStep) const
-    {
-        if (InStep == playground_gym_kit::k_Step_Special)
-        {
-            return InFamily == playground_gym_kit::k_Family_Light
-                ? playground_gym_enemy::k_Tint_SpecialLight
-                : playground_gym_enemy::k_Tint_SpecialHeavy;
-        }
-
-        return InFamily == playground_gym_kit::k_Family_Light
-            ? playground_gym_enemy::k_Tint_Light
-            : playground_gym_enemy::k_Tint_Heavy;
-    }
-
     // The telegraph outranks the hit flash: a dummy that swallowed its own wind-up
     // because the player was mid-chain would be hiding the one warning the shot
     // has.
@@ -301,7 +281,7 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
         auto Wanted = playground_gym_enemy::k_Tint_Idle;
 
         if (_HitFlashRemaining > 0.0f)
-        { Wanted = _HitTint; }
+        { Wanted = playground_gym_enemy::k_Tint_Hit; }
 
         if (_TelegraphRemaining > 0.0f)
         { Wanted = playground_gym_enemy::k_Tint_Telegraph; }
@@ -323,17 +303,8 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
         if (InTint == playground_gym_enemy::k_Tint_Telegraph)
         { return playground_gym_enemy::k_Colour_Telegraph; }
 
-        if (InTint == playground_gym_enemy::k_Tint_SpecialLight)
-        { return playground_gym_enemy::k_Colour_Hit_SpecialLight; }
-
-        if (InTint == playground_gym_enemy::k_Tint_SpecialHeavy)
-        { return playground_gym_enemy::k_Colour_Hit_SpecialHeavy; }
-
-        if (InTint == playground_gym_enemy::k_Tint_Light)
-        { return playground_gym_enemy::k_Colour_Hit_Light; }
-
-        if (InTint == playground_gym_enemy::k_Tint_Heavy)
-        { return playground_gym_enemy::k_Colour_Hit_Heavy; }
+        if (InTint == playground_gym_enemy::k_Tint_Hit)
+        { return playground_gym_enemy::k_Colour_Hit; }
 
         return playground_gym_enemy::k_Colour_Torso_Idle;
     }
@@ -403,6 +374,7 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
         _ProjectileDirection = ToPawn.GetSafeNormal();
         _ProjectileLocation  = Origin;
         _ProjectileAge       = 0.0f;
+        _ProjectileReflected = false;
 
         _Projectile = utils_pmg_basic_shapes::Create_Sphere(
             ck::ToEntity(this),
@@ -417,9 +389,13 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
             playground_gym::k_ShapeDuration_Persistent);
     }
 
-    // The dummy renders NOTHING at resolution: it hands the event to the pawn and
-    // takes the shape down. Whether that was a block or a hit is the player's
-    // fact about the player's input, and it is drawn on the player's body.
+    // The dummy renders NOTHING at resolution: it asks the pawn for the verdict
+    // and acts on the answer. A struck or blocked shot ends at the pawn; a
+    // PARRIED one turns gold, flies back the way it came, and counts a hit when
+    // it arrives — the one-in-flight rule holds through the return leg, so a
+    // dummy waiting on its own returned shot cannot fire through it. The age
+    // resets on the turn because the return is a second flight, not the tail
+    // of the first.
     private void DoAdvance_Projectile(float32 InDeltaSeconds)
     {
         if (ck::Is_NOT_Valid(_Projectile))
@@ -431,15 +407,49 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
 
         DoSetShapeTransform(_Projectile, FTransform(_ProjectileLocation));
 
-        if (ck::IsValid(_Pawn))
+        if (_ProjectileReflected)
+        {
+            auto ToHome = Get_ProjectileOrigin() - _ProjectileLocation;
+            ToHome.Z = 0.0;
+
+            if (ToHome.Size() <= playground_gym_enemy::k_Projectile_HitRadiusCm)
+            {
+                Request_TakeHit();
+                DoDestroyShape(_Projectile);
+                return;
+            }
+        }
+        else if (ck::IsValid(_Pawn))
         {
             auto ToPawn = _Pawn.GetActorLocation() - _ProjectileLocation;
             ToPawn.Z = 0.0;
 
             if (ToPawn.Size() <= playground_gym_enemy::k_Projectile_HitRadiusCm)
             {
-                _Pawn.Request_TakeProjectileHit();
-                DoDestroyShape(_Projectile);
+                const auto Verdict = _Pawn.Request_ResolveProjectileImpact();
+
+                if (Verdict != playground_gym_kit::k_ProjectileVerdict_Parried)
+                {
+                    DoDestroyShape(_Projectile);
+                    return;
+                }
+
+                auto ToHome = Get_ProjectileOrigin() - _ProjectileLocation;
+                ToHome.Z = 0.0;
+
+                if (ToHome.IsNearlyZero())
+                {
+                    DoDestroyShape(_Projectile);
+                    return;
+                }
+
+                _ProjectileReflected = true;
+                _ProjectileDirection = ToHome.GetSafeNormal();
+                _ProjectileAge       = 0.0f;
+
+                utils_pmg_debug_shape::Request_SetColor(_Projectile,
+                    FCk_Request_Pmg_DebugShape_SetColor(playground_gym_kit::k_Colour_Parried));
+
                 return;
             }
         }

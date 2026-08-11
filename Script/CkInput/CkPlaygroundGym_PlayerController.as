@@ -42,7 +42,7 @@ class ACk_PlaygroundGym_PlayerController : ACk_Gym_Base_PlayerController
     // Skip the base gym-selector menu — the playground is drivable from the first frame (Tab still toggles the menu).
     void Request_StartGym() override
     {
-        Print("Input Playground | WASD: move | mouse: aim | LMB: light chain x3 (hold = light special) | RMB: heavy chain x3 (hold = heavy special) | LMB then RMB: combo L-H | RMB then LMB: combo H-L | hold W + LMB: combo W+L | Q: block (hold) | the dummy shoots every 3s inside 1600cm - walk out of it or block it | Tab: gym menu", 12.0f);
+        Print("Input Playground | WASD: move, SHIFT: sprint | mouse: aim | LMB: light chain x3 (hold = light special) | RMB: heavy chain x3 (hold = heavy special) | LMB then RMB: combo L-H | RMB then LMB: combo H-L | sprint (W+SHIFT) + LMB/RMB: sprint AoE attack | Q: block (hold; press just before the hit = PARRY, which returns the shot) | the dummy shoots every 3s inside 1600cm - walk out of it, block it, or parry it back | Tab: gym menu", 12.0f);
     }
 
     UFUNCTION()
