@@ -204,8 +204,13 @@ namespace playground_gym
 
     // Four seconds of history at the sampler's 60 Hz cadence. Wider than any hold
     // threshold this gym declares, which is what the backward scan behind a
-    // terminal press needs; not a session log (CkIntent/CLAUDE.md anti-pattern 5).
+    // terminal press needs; not a session log (CkIntent/CLAUDE.md anti-pattern 5 —
+    // the IntentDebugHistory recording below carries the deep timeline instead).
     const int32 k_RingCapacity = 240;
+
+    // ~30s of debug-depth timeline for the intent debugger; retunable live from its
+    // "history" field. Compiled out in Shipping with the rest of the feature.
+    const int32 k_HistoryFrames = 1800;
 
     // Ten seconds. The default 20 frames decays a third of a second after the move
     // lands, which is fine for a consumer and useless for something a human is
@@ -282,6 +287,9 @@ namespace playground_gym
 
         if (utils_intent_sampler::DoCast(SourceEntity).IsSet() == false)
         { utils_intent_sampler::Add(SourceEntity, FCk_Fragment_IntentSampler_ParamsData(k_RingCapacity)); }
+
+        if (utils_intent_debug_history::DoCast(SourceEntity).IsSet() == false)
+        { utils_intent_debug_history::Add(SourceEntity, FCk_Fragment_IntentDebugHistory_ParamsData(k_HistoryFrames)); }
 
         return true;
     }
