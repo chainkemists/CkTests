@@ -15,7 +15,11 @@
 // Without this the profile is empty, Get_AllRemappableKeys returns an empty
 // array, and every remap / conflict / reset test passes while exercising
 // nothing. Assert the count against input_assets::k_MappableRowCount rather
-// than a bare "non-empty" so adding content without adding coverage is red.
+// than a bare "non-empty" so adding content without adding coverage is red —
+// but count ONLY CkTests_-prefixed rows: the key profile is per-player and
+// SHARED with the host project, which registers its own mappable actions
+// (BusterBlock alone contributes 9 IA_* rows), so a global count can never
+// be stable across host projects.
 //
 // TEARDOWN IS PARTIAL, AND THAT IS AN ENGINE LIMIT rather than an oversight.
 // UnregisterInputMappingContext only drops the context from the registered set
@@ -56,12 +60,16 @@ class UCk_AutoTest_Input_RemappableKeysRegistered : UCk_AutoTest_Base
             "Get_AllRemappableKeys returned an empty profile after registering IMC_CkTests_KeyBinding");
 
         auto ProfileDump = FString();
+        auto NumCkTestsRows = 0;
         for (auto Index = 0; Index < RemappableKeys.Num(); Index++)
         {
             ProfileDump += f" [{RemappableKeys[Index].MappingName}|slot={int(RemappableKeys[Index].Slot)}]";
+
+            if (RemappableKeys[Index].MappingName.ToString().StartsWith("CkTests_"))
+            { NumCkTestsRows++; }
         }
-        Assert_Equals_Int(RemappableKeys.Num(), input_assets::k_MappableRowCount,
-            f"player-mappable rows in the active key profile — rows:{ProfileDump}");
+        Assert_Equals_Int(NumCkTestsRows, input_assets::k_MappableRowCount,
+            f"CkTests_-prefixed player-mappable rows in the active key profile (host-project rows excluded) — all rows:{ProfileDump}");
 
         Assert_True(utils_key_binding::Get_MappingNamesForKey(PlayerController, EKeys::SpaceBar).Contains(n"CkTests_Jump"),
             "SpaceBar is registered under the CkTests_Jump mapping name");
