@@ -32,10 +32,11 @@
 namespace input_assets
 {
     // Player-mappable rows IMC_CkTests_KeyBinding contributes to the key profile —
-    // one per MapKey call below, each under a distinct mapping name so each lands
-    // in its own row. Tests assert Get_AllRemappableKeys against this, so the
-    // count and the content cannot drift apart.
-    const int32 k_MappableRowCount = 4;
+    // one per MapKey call below. Four mapping names are single-slot, so each
+    // contributes exactly one row; CkTests_DualBound is mapped twice (F8 then F12)
+    // and contributes two, one per slot. Tests assert Get_AllRemappableKeys
+    // against this, so the count and the content cannot drift apart.
+    const int32 k_MappableRowCount = 6;
 
     // ------------------------------------------------------------------------
     // INPUT ACTIONS
@@ -77,6 +78,24 @@ namespace input_assets
         PlayerMappableKeySettings = MappableKeySettings;
     }
 
+    // The only mapping in this file bound in TWO slots on the same device class.
+    // UEnhancedInputUserSettings buckets slots by (mapping name, hardware device
+    // type) in MapKey-registration order (EnhancedInputUserSettings.cpp — the
+    // engine's own DetermineHardwareDeviceForActionMapping is unoverridden here,
+    // so every key falls into one shared bucket) — the FIRST MapKey call below
+    // for this action lands in EPlayerMappableKeySlot::First, the SECOND in
+    // ::Second. That is what gives the multi-key button-map tests a mapping with
+    // a genuine primary and secondary key to exercise, rather than one key bound
+    // twice.
+    asset IA_CkTests_DualBound of UInputAction
+    {
+        auto MappableKeySettings = Cast<UPlayerMappableKeySettings>(NewObject(this, UPlayerMappableKeySettings));
+        MappableKeySettings.Name = n"CkTests_DualBound";
+        MappableKeySettings.DisplayName = FText::FromString("Dual Bound");
+        MappableKeySettings.DisplayCategory = FText::FromString("Testing");
+        PlayerMappableKeySettings = MappableKeySettings;
+    }
+
     // ------------------------------------------------------------------------
     // MAPPING CONTEXT
     // ------------------------------------------------------------------------
@@ -91,5 +110,9 @@ namespace input_assets
         MapKey(IA_CkTests_Crouch, EKeys::C);
         MapKey(IA_CkTests_Interact, EKeys::E);
         MapKey(IA_CkTests_Flashlight, EKeys::F);
+        // Order is load-bearing: the FIRST MapKey call for a mapping name becomes
+        // its First slot. F8 is therefore the primary key, F12 the secondary.
+        MapKey(IA_CkTests_DualBound, EKeys::F8);
+        MapKey(IA_CkTests_DualBound, EKeys::F12);
     }
 }
