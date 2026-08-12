@@ -4109,6 +4109,19 @@ class ACk_AutoTest_Intent_FortyMoveBake_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 30.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Intent_HoldSurvivesOpeningKeyRelease");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Intent_LatchDecayClearsClaim_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 25.0f;
