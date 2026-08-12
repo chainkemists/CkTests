@@ -117,9 +117,12 @@ class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
         Add_Step_WaitUntil("the primary release reaches the record",                n"Check_PrimaryReleaseRecorded");
         Add_Step(          "assert the charge survived its opening key coming up",  n"Step_AssertStillCharging");
 
-        // Explicit budget: the default 240 polls is ~2.1s of render frames, which cannot outlast a
-        // 180-logic-frame (3s) threshold no matter how the charge behaves. 600 clears it with room.
-        Add_Step_WaitUntil("the charge reaches its threshold",                       n"Check_ChargeCompleted", 600);
+        // Explicit budget, sized in WALL CLOCK, not polls: the budget is a POLL count and the
+        // poll rate is machine-load-dependent — measured 113 polls/s solo but 230 polls/s under
+        // 3-lane contention, where 600 polls = 2.61s and expired BEFORE the 3.0s threshold
+        // (full-suite red, 2026-08-12). 1500 covers 3s at 500 polls/s and ~13s at the solo rate,
+        // both inside _TimeoutSeconds = 30.
+        Add_Step_WaitUntil("the charge reaches its threshold",                       n"Check_ChargeCompleted", 1500);
         Add_Step(          "assert it landed exactly on the threshold frame, then release", n"Step_AssertChargeCompleted");
 
         Run_Steps(InHandle);
