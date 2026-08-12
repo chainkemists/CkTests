@@ -3864,6 +3864,19 @@ class ACk_AutoTest_InputButtonMap_IdentitiesAreDistinctPerName_Actor : ACk_AutoT
     }
 }
 
+class ACk_AutoTest_InputButtonMap_MultiSlotMappingCarriesAllKeys_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_InputButtonMap_MultiSlotMappingCarriesAllKeys");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_InputButtonMap_PhysicalTierIsFixedAndUntouchedByRederive_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 10.0f;
@@ -4071,6 +4084,19 @@ class ACk_AutoTest_Intent_DeliveryOutcomeRecorded_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Intent_EitherKeyCompletesDualBoundTerminal_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Intent_EitherKeyCompletesDualBoundTerminal");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Intent_FortyMoveBake_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
@@ -4180,6 +4206,19 @@ class ACk_AutoTest_Intent_OctantNeutralRadiusReadsNeutral_Actor : ACk_AutoTestRu
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Intent_OctantNeutralRadiusReadsNeutral");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Intent_PartiallyUnboundTerminalStillActivates");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
