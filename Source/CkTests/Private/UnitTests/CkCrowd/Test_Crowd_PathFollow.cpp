@@ -82,3 +82,63 @@ bool FCkTest_Crowd_PathFollow_RebuildSwapSkipsPassedPrefix::RunTest(const FStrin
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_Crowd_PathFollow_EscapePrefixIsNeverNormalizedAway,
+    "CkTests.UnitTests.CkCrowd.PathFollow.EscapePrefixIsNeverNormalizedAway",
+    kCkUnitTestFlags)
+
+bool FCkTest_Crowd_PathFollow_EscapePrefixIsNeverNormalizedAway::RunTest(const FString& Parameters)
+{
+    // An agent inside an overlapping stationary-markup line ray-marches outward before the
+    // remaining route turns back toward its goal. Ordinary passed-plane normalization sees that
+    // turn and would classify the outward point as a stale prefix before Steering gets one frame.
+    const auto AgentLocation = FVector{0.0f, -150.0f, 0.0f};
+    const auto EscapeWaypoint = FVector{0.0f, 330.0f, 0.0f};
+    const auto Waypoints = TArray<FVector>{
+        EscapeWaypoint,
+        FVector{100.0f, 0.0f, 0.0f},
+        FVector{450.0f, 0.0f, 0.0f}};
+
+    TestTrue(
+        TEXT("The outward-then-goalward shape would normally look already passed"),
+        FVector::DotProduct(
+            EscapeWaypoint - AgentLocation,
+            Waypoints[1] - EscapeWaypoint) < 0.0f);
+
+    auto UnprotectedWaypointIndex = 0;
+    auto UnprotectedSegmentStart = AgentLocation;
+    const auto UnprotectedSkipCount = SkipAlreadyPassedLeadingWaypoints(
+        AgentLocation,
+        Waypoints,
+        UnprotectedWaypointIndex,
+        UnprotectedSegmentStart);
+    TestEqual(
+        TEXT("The control case reproduces normalization dropping the escape"),
+        UnprotectedSkipCount,
+        1);
+
+    auto ProtectedWaypointIndex = 0;
+    auto ProtectedSegmentStart = AgentLocation;
+    const auto ProtectedSkipCount = SkipAlreadyPassedLeadingWaypoints(
+        AgentLocation,
+        Waypoints,
+        ProtectedWaypointIndex,
+        ProtectedSegmentStart,
+        /*InProtectedLeadingWaypointCount*/ 1);
+
+    TestEqual(
+        TEXT("A protected escape prefix is not normalized away"),
+        ProtectedSkipCount,
+        0);
+    TestEqual(
+        TEXT("Steering still receives the escape as its next physical target"),
+        ProtectedWaypointIndex,
+        0);
+    TestTrue(
+        TEXT("Protecting the prefix leaves the body-to-escape segment anchor intact"),
+        ProtectedSegmentStart.Equals(AgentLocation, 0.001f));
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
