@@ -1,10 +1,16 @@
 // Language=angelscript
 
 // Verifies the settings screen generates its rows FROM THE REGISTRY: a demo collection (one
-// setting per row type) produces one visible row per setting, each resolved to the expected
-// built-in row class. Widget creation works headless; rendering is not asserted.
+// setting per row type) produces one visible row per setting, bound by key. Widget creation works
+// headless; rendering is not asserted.
+//
+// Which CLASS each row resolves to is deliberately NOT asserted here — a host that configures
+// project-settings row overrides (BusterBlock does) legitimately gets its own WBP classes. The
+// resolution contract itself is covered host-independently by Ck.CkGameSettings.UI.RowClassResolution.
 class UCk_AutoTest_GameSettings_ScreenGeneratesRowsFromRegistry : UCk_AutoTest_Base
 {
+    private UCk_GameSettingsUI_ScreenWidget _Screen;
+
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
@@ -29,34 +35,37 @@ class UCk_AutoTest_GameSettings_ScreenGeneratesRowsFromRegistry : UCk_AutoTest_B
             FCk_GameSettings_SettingDefinition(n"astest.screen.stepper", ECk_GameSettings_ValueType::Int32, "3")),
             "stepper setting registers");
 
-        auto Screen = Cast<UCk_GameSettingsUI_ScreenWidget>(
+        _Screen = Cast<UCk_GameSettingsUI_ScreenWidget>(
             WidgetBlueprint::CreateWidget(UCk_GameSettingsUI_ScreenWidget, Gameplay::GetPlayerController(0)));
-        if (Screen == nullptr)
+        if (_Screen == nullptr)
         {
             FinishFailure("settings screen widget failed to create headless");
             return;
         }
 
-        Screen.Request_RebuildRows();
+        _Screen.Request_RebuildRows();
 
-        Assert_True(Screen.Get_CategoryTabCount() >= 1, "at least the General category tab exists");
-        Assert_True(Screen.Request_SetActiveCategory(n"General"), "the General tab (uncategorized settings) is selectable");
+        Assert_True(_Screen.Get_CategoryTabCount() >= 1, "at least the General category tab exists");
+        Assert_True(_Screen.Request_SetActiveCategory(n"General"), "the General tab (uncategorized settings) is selectable");
 
-        Assert_True(Screen.Get_GeneratedRowCount() >= 4, "all four demo settings produced rows");
+        // Row classes are soft references: the screen injects nothing until they finish loading.
+        WaitUntil(n"Check_DemoRowsGenerated", n"OnDemoRowsGenerated");
+    }
 
-        Assert_True(Screen.Get_HasRowForKey(n"astest.screen.toggle"), "toggle row generated");
-        Assert_True(Screen.Get_HasRowForKey(n"astest.screen.slider"), "slider row generated");
-        Assert_True(Screen.Get_HasRowForKey(n"astest.screen.select"), "select row generated");
-        Assert_True(Screen.Get_HasRowForKey(n"astest.screen.stepper"), "stepper row generated");
+    UFUNCTION()
+    private void Check_DemoRowsGenerated(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Res = OutResult;
+        Res.Set(_Screen != nullptr && _Screen.Get_GeneratedRowCount() >= 4);
+    }
 
-        Assert_True(Screen.Get_RowClassForKey(n"astest.screen.toggle") == UCk_GameSettingsUI_RowWidget_Toggle,
-            "Bool resolved to the Toggle row");
-        Assert_True(Screen.Get_RowClassForKey(n"astest.screen.slider") == UCk_GameSettingsUI_RowWidget_Slider,
-            "ranged Float resolved to the Slider row");
-        Assert_True(Screen.Get_RowClassForKey(n"astest.screen.select") == UCk_GameSettingsUI_RowWidget_Select,
-            "options-present resolved to the Select row");
-        Assert_True(Screen.Get_RowClassForKey(n"astest.screen.stepper") == UCk_GameSettingsUI_RowWidget_Select,
-            "rangeless Int32 resolved to the Select (stepper) row");
+    UFUNCTION()
+    private void OnDemoRowsGenerated(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        Assert_True(_Screen.Get_HasRowForKey(n"astest.screen.toggle"), "toggle row generated");
+        Assert_True(_Screen.Get_HasRowForKey(n"astest.screen.slider"), "slider row generated");
+        Assert_True(_Screen.Get_HasRowForKey(n"astest.screen.select"), "select row generated");
+        Assert_True(_Screen.Get_HasRowForKey(n"astest.screen.stepper"), "stepper row generated");
 
         FinishSuccess();
     }
