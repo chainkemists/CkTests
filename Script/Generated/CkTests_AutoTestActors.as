@@ -4602,6 +4602,19 @@ class ACk_AutoTest_Intent_UnbindStopsDelivery_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Intent_WheelNotchRepeatsWithoutAnIntermediateRelease_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Intent_WheelNotchRepeatsWithoutAnIntermediateRelease");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Interaction_CancelAllInteractions_FinishesAsFailed_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
