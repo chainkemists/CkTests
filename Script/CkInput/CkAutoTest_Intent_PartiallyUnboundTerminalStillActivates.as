@@ -26,10 +26,18 @@
 // multi-slot mapping (the closest precedent, UnbindConflictAndRemapUnbindsHolder,
 // unbinds a single-slot mapping outright) — this is the first one to.
 //
-// TEARDOWN IS UNCONDITIONAL within its step: all autotests share one PIE
-// session and profile rows outlive the test that touched them. A single
-// ResetMappingToDefault call restores BOTH slots — it resets the whole row,
-// not one slot at a time (Settings->ResetAllPlayerKeysInRow).
+// TEARDOWN IS UNCONDITIONAL, and it has to be RESTORED RATHER THAN CLAIMED:
+// all autotests share one PIE session and profile rows outlive the test that
+// touched them, so a CkTests_DualBound left half-unbound is not one red, it is
+// every later test that reads that row. Putting the reset in the final step
+// only covers the route where every step runs — a wait that exhausts its poll
+// budget goes through FinishFailure, which stops the sequencer where it stands
+// and never reaches the steps behind it. So the reset lives in DoRestoreMapping
+// and is driven from BOTH routes: the last step on the way out, and a
+// FinishFailure override on every other. It is idempotent, so the two cannot
+// double up. A single ResetMappingToDefault call restores BOTH slots — it
+// resets the whole row, not one slot at a time
+// (Settings->ResetAllPlayerKeysInRow).
 //============================================================================
 
 class UCk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates : UCk_AutoTest_Base
@@ -52,6 +60,8 @@ class UCk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates : UCk_AutoTest_
     private ECk_Request_OperationResult _LastResult          = ECk_Request_OperationResult::Failed;
 
     private int32 _PrimaryCompletionFrame = -1;
+
+    private bool _MappingRestored = false;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -113,6 +123,17 @@ class UCk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates : UCk_AutoTest_
         Add_Step(          "assert it rejected, then restore the profile",  n"Step_AssertRejectedThenTeardown");
 
         Run_Steps(InHandle);
+    }
+
+    // The failure route out of this test. Every wait above can end here instead of at its next
+    // step — a budget that runs out calls FinishFailure, which stops the sequencer where it stands
+    // — so this is the only place the profile restore can sit and still be reached from a run that
+    // did NOT complete. Restoring FIRST matters: Super writes the terminal result, and a mutation
+    // queued after that write is racing the runner's poll.
+    void FinishFailure(const FString& InMessage) override
+    {
+        DoRestoreMapping();
+        Super::FinishFailure(InMessage);
     }
 
     //------------------------------------------------------------------------
@@ -203,9 +224,7 @@ class UCk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates : UCk_AutoTest_
             _PrimaryCompletionFrame,
             "the previous set's latch was never touched by the rejected swap");
 
-        auto PlayerController = Gameplay::GetPlayerController(0);
-        utils_key_binding::ResetMappingToDefault(PlayerController, _MappingName);
-        utils_input_button_map::Request_Rederive(_Map, FCk_Request_InputButtonMap_Rederive());
+        DoRestoreMapping();
     }
 
     //------------------------------------------------------------------------
@@ -262,6 +281,27 @@ class UCk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates : UCk_AutoTest_
     }
 
     //------------------------------------------------------------------------
+
+    // Idempotent because it is reached from two routes and must not care which arrived first: the
+    // final step on the way out, and the FinishFailure override on every other. The guards are not
+    // defensive noise either — DoBeginPlay's own early-outs call FinishFailure before there is a
+    // controller or a map to talk to.
+    private void DoRestoreMapping()
+    {
+        if (_MappingRestored)
+        { return; }
+
+        _MappingRestored = true;
+
+        auto PlayerController = Gameplay::GetPlayerController(0);
+        if (ck::Is_NOT_Valid(PlayerController))
+        { return; }
+
+        utils_key_binding::ResetMappingToDefault(PlayerController, _MappingName);
+
+        if (ck::IsValid(_Map))
+        { utils_input_button_map::Request_Rederive(_Map, FCk_Request_InputButtonMap_Rederive()); }
+    }
 
     private FCk_Intent_Definition DoParse(const FString& InNotation, FName InName, int32 InPriority)
     {
