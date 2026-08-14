@@ -89,7 +89,7 @@ public class CkTests : CkModuleRules
             "CkTagSet",
             "CkTargeting",
             "CkTimer",
-            "CkUI",
+            "CkWidgets",
             "CkUICore",
             "CkUnrealComponent",
             "CkUsf",

@@ -6,7 +6,7 @@
 #include "Misc/AutomationTest.h"
 
 #include "CkCore/Format/CkFormat.h"
-#include "CkUI/CkScreen_Utils.h"
+#include "CkWidgets/CkScreen_Utils.h"
 #include "CkUICore/ScreenFade/CkScreenFade_Utils.h"
 
 // --------------------------------------------------------------------------------------------------------------------
