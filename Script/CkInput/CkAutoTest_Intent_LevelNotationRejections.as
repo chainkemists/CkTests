@@ -29,6 +29,14 @@
 // because a special case is exactly where a duplicate or a mis-ordered token
 // stops being caught.
 //
+// The offending TOKEN is asserted alongside every reason, and the three level
+// families assert it EMPTY. That is a contract, not an omission: the token
+// exists so an authoring tool can underline the text a designer has to fix, and
+// these three rules are about the notation as a whole — once `level` and the
+// steps contradict each other, blaming one word would point the designer at the
+// wrong one. The two ordinary modifier errors name their token, which is what
+// makes the empty ones legible as a decision.
+//
 // The acceptance legs pin the other half: `level` sets the definition's KIND
 // and nothing else. A parser that quietly dropped an inert `w=`/`lenient` on
 // a level intent, or that forgot to leave `Edge` alone as the default, would
@@ -55,12 +63,12 @@ class UCk_AutoTest_Intent_LevelNotationRejections : UCk_AutoTest_Base
 
     private void DoAssert_LevelAndHoldAreExclusive()
     {
-        DoAssert_Rejects("IP level hold=60", ECk_Intent_ParseError::LevelWithHold,
+        DoAssert_Rejects("IP level hold=60", ECk_Intent_ParseError::LevelWithHold, "",
             "a hold measures frames from a press edge, and a level intent has a state rather than an edge to measure from");
 
         // Both orderings, because the two tokens are trailing modifiers and the parser sees them in
         // whichever order they were authored — a check written into only one branch passes one of these.
-        DoAssert_Rejects("IP hold=60 level", ECk_Intent_ParseError::LevelWithHold,
+        DoAssert_Rejects("IP hold=60 level", ECk_Intent_ParseError::LevelWithHold, "",
             "the same pair the other way round is the same impossibility, so the rejection cannot depend on which arrived first");
     }
 
@@ -68,10 +76,10 @@ class UCk_AutoTest_Intent_LevelNotationRejections : UCk_AutoTest_Base
 
     private void DoAssert_LevelAndSequenceAreExclusive()
     {
-        DoAssert_Rejects("236 IP level", ECk_Intent_ParseError::LevelWithSequence,
+        DoAssert_Rejects("236 IP level", ECk_Intent_ParseError::LevelWithSequence, "",
             "a sequence is answered by its last step, so a state written on one has no defined moment to open");
 
-        DoAssert_Rejects("IP IP2 level", ECk_Intent_ParseError::LevelWithSequence,
+        DoAssert_Rejects("IP IP2 level", ECk_Intent_ParseError::LevelWithSequence, "",
             "a two-button sequence is still a sequence — the rejection is about step COUNT, not about directions");
     }
 
@@ -79,16 +87,16 @@ class UCk_AutoTest_Intent_LevelNotationRejections : UCk_AutoTest_Base
 
     private void DoAssert_LevelTerminalMustBeOneButton()
     {
-        DoAssert_Rejects("6 level", ECk_Intent_ParseError::LevelTerminalNotSingleButton,
+        DoAssert_Rejects("6 level", ECk_Intent_ParseError::LevelTerminalNotSingleButton, "",
             "a direction is a reading of the stick, not a button with a held-union to answer 'still down?' with");
 
-        DoAssert_Rejects("5 level", ECk_Intent_ParseError::LevelTerminalNotSingleButton,
+        DoAssert_Rejects("5 level", ECk_Intent_ParseError::LevelTerminalNotSingleButton, "",
             "neutral is the ABSENCE of a direction, so a state that is on while neutral holds is on while nothing is happening");
 
-        DoAssert_Rejects("6+IP level", ECk_Intent_ParseError::LevelTerminalNotSingleButton,
+        DoAssert_Rejects("6+IP level", ECk_Intent_ParseError::LevelTerminalNotSingleButton, "",
             "a chord's direction half can change under a button that never came up, so the pair has no single state to be in");
 
-        DoAssert_Rejects("IP+IS level", ECk_Intent_ParseError::LevelTerminalNotSingleButton,
+        DoAssert_Rejects("IP+IS level", ECk_Intent_ParseError::LevelTerminalNotSingleButton, "",
             "two buttons is two states — which one closes it is a question the notation does not answer");
     }
 
@@ -96,10 +104,10 @@ class UCk_AutoTest_Intent_LevelNotationRejections : UCk_AutoTest_Base
 
     private void DoAssert_LevelObeysTheModifierGrammar()
     {
-        DoAssert_Rejects("IP level level", ECk_Intent_ParseError::DuplicateModifier,
+        DoAssert_Rejects("IP level level", ECk_Intent_ParseError::DuplicateModifier, "level",
             "`level` is an ordinary trailing modifier, so declaring it twice is caught by the ordinary rule rather than silently absorbed");
 
-        DoAssert_Rejects("IP level 6", ECk_Intent_ParseError::ModifierNotTrailing,
+        DoAssert_Rejects("IP level 6", ECk_Intent_ParseError::ModifierNotTrailing, "6",
             "modifiers are TRAILING — a step token after `level` is the same error it would be after any other modifier");
     }
 
@@ -139,7 +147,17 @@ class UCk_AutoTest_Intent_LevelNotationRejections : UCk_AutoTest_Base
 
     //------------------------------------------------------------------------
 
-    private void DoAssert_Rejects(const FString& InNotation, ECk_Intent_ParseError InExpectedError, const FString& InWhy)
+    // InExpectedToken is the offending token VERBATIM, and "" is a real expectation rather than a
+    // "don't care": the token exists so an authoring tool can point at the text to fix, and the
+    // three level rules are about the notation as a WHOLE — once `level` and the steps contradict
+    // each other there is no honest single token to blame, so blaming one would send a designer to
+    // edit the wrong word. The two ordinary modifier errors DO name their token, which is what shows
+    // the empty ones are a decision rather than a field nobody filled in.
+    private void DoAssert_Rejects(
+        const FString& InNotation,
+        ECk_Intent_ParseError InExpectedError,
+        const FString& InExpectedToken,
+        const FString& InWhy)
     {
         auto Result = utils_intent_grammar::Parse(InNotation, n"AS_LevelParse_Rejected", 0, FGameplayTag());
 
@@ -148,6 +166,9 @@ class UCk_AutoTest_Intent_LevelNotationRejections : UCk_AutoTest_Base
 
         Assert_True(Result.Get_Error() == InExpectedError,
             f"'{InNotation}' must be rejected for its OWN reason — a script author who cannot tell which rule fired cannot tell what to fix");
+
+        Assert_Equals_String(Result.Get_ErrorToken(), InExpectedToken,
+            f"'{InNotation}' must carry the token an authoring tool would underline");
 
         Assert_Equals_Int(Result.Get_Definition().Get_Steps().Num(), 0,
             f"'{InNotation}' was rejected, so it must leave nothing partially usable behind");
