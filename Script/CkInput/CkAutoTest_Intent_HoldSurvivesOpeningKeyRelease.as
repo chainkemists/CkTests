@@ -58,6 +58,12 @@ class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
     // outlast the whole release sequence, not merely the press.
     private int32 _HoldThresholdFrames = 180;
 
+    // Frames given to the matcher AFTER the record crosses the threshold, before the completion is
+    // read. The stamp lands on the threshold frame itself; this only covers the processor hop
+    // between the sampler writing that row and the matcher acting on it, and stays far inside the
+    // 600-frame decay window the latch is held under.
+    private int32 _ThresholdMarginFrames = 15;
+
     private int32 _PressFrame = -1;
 
     UFUNCTION(BlueprintOverride)
@@ -117,12 +123,16 @@ class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
         Add_Step_WaitUntil("the primary release reaches the record",                n"Check_PrimaryReleaseRecorded");
         Add_Step(          "assert the charge survived its opening key coming up",  n"Step_AssertStillCharging");
 
-        // Explicit budget, sized in WALL CLOCK, not polls: the budget is a POLL count and the
-        // poll rate is machine-load-dependent — measured 113 polls/s solo but 230 polls/s under
-        // 3-lane contention, where 600 polls = 2.61s and expired BEFORE the 3.0s threshold
-        // (full-suite red, 2026-08-12). 1500 covers 3s at 500 polls/s and ~13s at the solo rate,
-        // both inside _TimeoutSeconds = 30.
-        Add_Step_WaitUntil("the charge reaches its threshold",                       n"Check_ChargeCompleted", 1500);
+        // This wait is on the SAMPLER's own clock, not on the poller's. A budget is a POLL count
+        // and the threshold is a FRAME count, and the two clocks run at machine-load-dependent
+        // ratios — measured 113 polls/s solo but 230 polls/s under 3-lane contention, where the
+        // old 600-poll budget was 2.61s and expired BEFORE the 3.0s threshold (full-suite red,
+        // 2026-08-12). Sizing that budget larger only moves the ratio at which it breaks again.
+        // So the predicate reads the same frame delta Step_AssertStillCharging already reads, and
+        // converges when the RECORD has advanced past the threshold no matter how often it was
+        // asked. The budget behind it is a hang guard and nothing else: the 0.9 * _TimeoutSeconds
+        // deadline is what a genuinely wedged sampler runs into, and it names this condition.
+        Add_Step_WaitUntil("the record advances past the hold threshold",            n"Check_ThresholdFramesElapsed", 20000);
         Add_Step(          "assert it landed exactly on the threshold frame, then release", n"Step_AssertChargeCompleted");
 
         Run_Steps(InHandle);
@@ -209,6 +219,13 @@ class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
     {
         auto CompletionFrame = utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_DualHold_Charged");
 
+        // The wait ahead of this one is on the RECORD, so arriving here proves the threshold was
+        // really crossed and nothing else. Whether the charge answered it is this assertion's job,
+        // and it is stated separately so an unanswered threshold reads as an unanswered threshold
+        // rather than as arithmetic against -1.
+        Assert_True(CompletionFrame >= 0,
+            "the record passed the threshold and the charge never completed — the episode was cancelled or disarmed somewhere in the release sequence");
+
         Assert_Equals_Int(CompletionFrame - _PressFrame, _HoldThresholdFrames,
             "the charge completes exactly its threshold after the press — a reset accumulator would land late, and a cancelled episode would never land at all");
 
@@ -264,12 +281,22 @@ class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
         Res.Set(DoFind_RoutedEdge(_PrimaryKey, ECk_InputSource_EventType::Released));
     }
 
+    // Deliberately NOT "the phase reads Completed". The step behind this one asserts the completion
+    // frame to the exact frame, so a charge that never completed fails there with the arithmetic it
+    // got — which says what went wrong — rather than here as a budget that ran out, which says only
+    // that the machine was busy. What this waits for is the one thing that has to have happened
+    // before that assertion can mean anything: the record itself moving past the threshold.
     UFUNCTION()
-    private void Check_ChargeCompleted(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    private void Check_ThresholdFramesElapsed(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         auto Res = OutResult;
-        Res.Set(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_DualHold_Charged") ==
-                ECk_Intent_Phase::Completed);
+
+        if (_PressFrame < 0)
+        { Res.Set(false); return; }
+
+        auto ElapsedFrames = utils_intent_sampler::Get_LatestFrame(_Sampler).Get_FrameIndex() - _PressFrame;
+
+        Res.Set(ElapsedFrames >= _HoldThresholdFrames + _ThresholdMarginFrames);
     }
 
     //------------------------------------------------------------------------
