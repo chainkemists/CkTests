@@ -7,16 +7,22 @@
 #include "CkCore/Format/CkFormat_Defaults.h"
 
 #include "CkEcs/Handle/CkHandle.h"
+#include "CkEcs/Registry/CkRegistry.h"
+#include "CkEcs/World/CkEcsWorld.h"
 
 #include "CkJolt/CkJolt_Utils.h"
 #include "CkJolt/CollisionLayers/CkJoltCollisionLayerTable.h"
 #include "CkJolt/CollisionLayers/CkJoltCollisionLayer_Utils.h"
+#include "CkJolt/Settings/CkJolt_ProjectSettings.h"
 #include "CkJolt/Subsystem/CkJolt_DebugDrawTarget.h"
 #include "CkJolt/Subsystem/CkJolt_DebugRenderer.h"
 #include "CkJolt/World/CkJoltWorld.h"
+#include "CkJolt/World/CkJoltWorld_Processor.h"
 
 #include <Components/InstancedStaticMeshComponent.h>
 #include <Engine/World.h>
+#include <GameFramework/PlayerState.h>
+#include <GameFramework/WorldSettings.h>
 #include <Materials/Material.h>
 #include <Materials/MaterialInstanceDynamic.h>
 
@@ -2027,68 +2033,127 @@ bool FCkTest_JoltDebugDraw_PauseAndStepOnce::RunTest(const FString& Parameters)
     { return false; }
 
     {
-        // The fixture is only here for Jolt's global allocator, which FJoltWorld's own members allocate through.
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+
         auto JoltFixture = FScopedJoltWorld{};
+        JoltFixture.Add_Box(JPH::EMotionType::Dynamic, 0.0f, IsNotSensor, Activate);
+        JoltFixture.Add_Box(JPH::EMotionType::Dynamic, 300.0f, IsNotSensor, Activate);
+        JoltFixture.Optimize_BroadPhase();
+
+        // The pause/step contract belongs to the PROCESSORS, not to the gate function: PlanStep is what decides
+        // how many steps a frame runs, and driving it is the only way an assertion can say "exactly one".
+        auto EcsWorld = ck::FEcsWorld{};
+        auto& Registry = EcsWorld.Get_Registry();
 
         auto Params = ck::FJoltWorld::FInitParams{};
+        Params.PhysicsSystem = JoltFixture.Get_PhysicsSystemShared();
+        Params.TempAllocator = JoltFixture.Get_TempAllocator();
+        Params.JobSystem = JoltFixture.Get_JobSystem();
         Params.World = World;
 
-        auto JoltWorld = ck::FJoltWorld{Params};
+        const auto JoltWorld = MakeShared<ck::FJoltWorld>(Params);
+        Registry.SetContext<TSharedPtr<ck::FJoltWorld>>(JoltWorld);
 
-        // The gate is what FProcessor_JoltWorld_PlanStep consumes once per frame, so asserting on it IS
-        // asserting on how many steps a frame plans — without needing the scheduler to drive a processor.
-        TestFalse(TEXT("a fresh world is not debug-paused"), JoltWorld.Get_IsDebugPaused());
-        TestFalse(TEXT("and its gate blocks nothing"), JoltWorld.TryConsume_DebugPauseGate());
+        auto PlanStep = ck::FProcessor_JoltWorld_PlanStep{Registry};
+        auto Step = ck::FProcessor_JoltWorld_Step{Registry};
 
-        JoltWorld.Request_SetDebugPaused(true);
+        const auto FixedHz = FMath::Max(1, UCk_Utils_Jolt_ProjectSettings::Get_FixedTimestepHz());
+        const auto FixedDt = 1.0f / static_cast<float>(FixedHz);
 
-        TestTrue(TEXT("the world reports itself debug-paused"), JoltWorld.Get_IsDebugPaused());
-        TestTrue(TEXT("a paused frame plans no steps"), JoltWorld.TryConsume_DebugPauseGate());
-        TestFalse(TEXT("and grants the Step processor nothing"), JoltWorld.Get_StepOnceGrantedThisFrame());
-        TestTrue(TEXT("a second paused frame still plans no steps"), JoltWorld.TryConsume_DebugPauseGate());
+        // A frame FAT enough to plan several fixed steps. It is what makes the step-once leg discriminating: a
+        // granted frame that ran ComputeStepPlan would plan this frame's worth of steps, not one.
+        const auto FatFrame = FCk_Time{10.0 * static_cast<double>(FixedDt)};
 
-        JoltWorld.Request_StepOnce();
+        TestFalse(TEXT("a fresh world is not debug-paused"), JoltWorld->Get_IsDebugPaused());
 
-        TestFalse(TEXT("the frame after a step-once request plans steps"), JoltWorld.TryConsume_DebugPauseGate());
-        TestTrue(TEXT("and grants the Step processor that one frame"), JoltWorld.Get_StepOnceGrantedThisFrame());
-        TestTrue(TEXT("the world stays paused across the granted step"), JoltWorld.Get_IsDebugPaused());
+        PlanStep.DoTick(FatFrame);
 
-        TestTrue(TEXT("EXACTLY one step is granted - the next frame is blocked again"),
-            JoltWorld.TryConsume_DebugPauseGate());
-        TestFalse(TEXT("and the grant is cleared with it"), JoltWorld.Get_StepOnceGrantedThisFrame());
+        TestTrue(TEXT("a running world plans more than one step for a fat frame"),
+            JoltWorld->Get_NumStepsLastFrame() > 1);
+
+        Step.DoTick(FatFrame);
+
+        // The step duration is MEASURED, not merely stored: the only thing that can write it is the step loop.
+        TestTrue(TEXT("stepping records a non-zero solve duration"),
+            JoltWorld->Get_LastStepDurationMs() > 0.0f);
+
+        JoltWorld->Request_SetDebugPaused(true);
+        PlanStep.DoTick(FatFrame);
+
+        TestEqual(TEXT("a debug-paused frame plans no steps"), JoltWorld->Get_NumStepsLastFrame(), 0);
+        TestFalse(TEXT("and grants the Step processor nothing"), JoltWorld->Get_StepOnceGrantedThisFrame());
+
+        PlanStep.DoTick(FatFrame);
+
+        TestEqual(TEXT("a second paused frame still plans none"), JoltWorld->Get_NumStepsLastFrame(), 0);
+
+        // The one-shot is armed, then the ENGINE pauses on top of the debug pause. A gate consumed before the
+        // engine's own block was tested would eat the request on a frame that steps nothing — the click lost.
+        JoltWorld->Request_StepOnce();
+
+        constexpr auto DoNotCheckStreamingPersistent = false;
+        constexpr auto DoNotCheck = false;
+        auto* WorldSettings = World->GetWorldSettings(DoNotCheckStreamingPersistent, DoNotCheck);
+
+        if (TestNotNull(TEXT("the fixture world has world settings"), WorldSettings))
+        {
+            WorldSettings->SetPauserPlayerState(NewObject<APlayerState>(World));
+
+            if (TestTrue(TEXT("the fixture world can be engine-paused"), World->IsPaused()))
+            {
+                PlanStep.DoTick(FatFrame);
+
+                TestEqual(TEXT("an engine-paused frame plans no steps"), JoltWorld->Get_NumStepsLastFrame(), 0);
+                TestFalse(TEXT("and grants nothing"), JoltWorld->Get_StepOnceGrantedThisFrame());
+            }
+
+            WorldSettings->SetPauserPlayerState(nullptr);
+            TestFalse(TEXT("and un-pausing the engine restores it"), World->IsPaused());
+        }
+
+        const auto AccumulatorBeforeGrant = JoltWorld->Get_Accumulator();
+
+        PlanStep.DoTick(FatFrame);
+
+        TestTrue(TEXT("the step-once SURVIVED the engine pause and is granted on the next unblocked frame"),
+            JoltWorld->Get_StepOnceGrantedThisFrame());
+        TestEqual(TEXT("a granted frame plans EXACTLY one step, however long the frame was"),
+            JoltWorld->Get_NumStepsLastFrame(), 1);
+        TestTrue(TEXT("and advances the sim by exactly one fixed step"),
+            FMath::IsNearlyEqual(JoltWorld->Get_PendingSimTime(), FixedDt, 1e-5f));
+        TestTrue(TEXT("the granted frame leaves the accumulator untouched"),
+            FMath::IsNearlyEqual(JoltWorld->Get_Accumulator(), AccumulatorBeforeGrant, 1e-6f));
+        TestTrue(TEXT("the world stays paused across the granted step"), JoltWorld->Get_IsDebugPaused());
+
+        PlanStep.DoTick(FatFrame);
+
+        TestEqual(TEXT("EXACTLY one step is granted - the next frame plans none again"),
+            JoltWorld->Get_NumStepsLastFrame(), 0);
+        TestFalse(TEXT("and the grant is cleared with it"), JoltWorld->Get_StepOnceGrantedThisFrame());
 
         // A request made while running is meaningless and must not be banked: it would fire at the start of the
         // next pause, stepping a world the user had just frozen.
-        JoltWorld.Request_SetDebugPaused(false);
-        JoltWorld.Request_StepOnce();
-        JoltWorld.Request_SetDebugPaused(true);
+        JoltWorld->Request_SetDebugPaused(false);
+        JoltWorld->Request_StepOnce();
+        JoltWorld->Request_SetDebugPaused(true);
+        PlanStep.DoTick(FatFrame);
 
-        TestTrue(TEXT("a step-once requested while running is not banked for the next pause"),
-            JoltWorld.TryConsume_DebugPauseGate());
+        TestEqual(TEXT("a step-once requested while running is not banked for the next pause"),
+            JoltWorld->Get_NumStepsLastFrame(), 0);
 
         // Resuming with a pending one-shot must not leave it armed either.
-        JoltWorld.Request_StepOnce();
-        JoltWorld.Request_SetDebugPaused(false);
-        JoltWorld.Request_SetDebugPaused(true);
+        JoltWorld->Request_StepOnce();
+        JoltWorld->Request_SetDebugPaused(false);
+        JoltWorld->Request_SetDebugPaused(true);
+        PlanStep.DoTick(FatFrame);
 
-        TestTrue(TEXT("resuming discards an unconsumed step-once"), JoltWorld.TryConsume_DebugPauseGate());
+        TestEqual(TEXT("resuming discards an unconsumed step-once"), JoltWorld->Get_NumStepsLastFrame(), 0);
 
-        JoltWorld.Request_SetDebugPaused(false);
+        JoltWorld->Request_SetDebugPaused(false);
+        PlanStep.DoTick(FatFrame);
 
-        TestFalse(TEXT("resuming restores normal stepping"), JoltWorld.TryConsume_DebugPauseGate());
-
-        // The accumulator belongs to PlanStep, and a paused frame never reaches ComputeStepPlan - so a long
-        // pause cannot bank real time and burst on resume.
-        TestEqual(TEXT("a pause leaves the accumulator untouched"), JoltWorld.Get_Accumulator(), 0.0f);
-
-        TestEqual(TEXT("a world that never stepped reports no step duration"),
-            JoltWorld.Get_LastStepDurationMs(), 0.0f);
-
-        constexpr auto DurationMs = 1.25f;
-        JoltWorld.Set_LastStepDurationMs(DurationMs);
-
-        TestEqual(TEXT("the step duration reads back what the step loop wrote"),
-            JoltWorld.Get_LastStepDurationMs(), DurationMs);
+        TestTrue(TEXT("resuming restores normal stepping"), JoltWorld->Get_NumStepsLastFrame() > 0);
     }
 
     World->DestroyWorld(false);
@@ -2522,6 +2587,80 @@ bool FCkTest_JoltDebugDraw_DragMovesDynamicBody::RunTest(const FString& Paramete
         TestFalse(TEXT("a STATIC body cannot be dragged"), JoltWorld.Get_IsDragging());
         TestEqual(TEXT("and the refusal left no anchor behind"),
             static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies), BodiesBeforeDrag);
+        TestEqual(TEXT("nor a constraint"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetConstraints().size()), 0);
+
+        // Kinematic is refused for the same reason Static is: something else already owns where it goes, and a
+        // spring on it either does nothing or fights that writer.
+        const auto KinematicBodyId = JoltFixture.Add_Box(
+            JPH::EMotionType::Kinematic, 2000.0f, IsNotSensor, DoNotActivate);
+
+        const auto BodiesWithKinematic = static_cast<int32>(
+            JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies);
+
+        JoltWorld.Request_BeginDrag(Get_BodyKey(KinematicBodyId), FVector::ZeroVector);
+        JoltWorld.Apply_DragRequests();
+
+        TestFalse(TEXT("a KINEMATIC body cannot be dragged either"), JoltWorld.Get_IsDragging());
+        TestEqual(TEXT("and that refusal left no anchor behind"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies), BodiesWithKinematic);
+        TestEqual(TEXT("nor a constraint"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetConstraints().size()), 0);
+
+        // ONE drag at a time: a second Begin REPLACES the live one rather than hanging a second spring off the
+        // same hand. The dragged body follows the second request, and the body/constraint counts do not grow.
+        const auto SecondDynamicBodyId = JoltFixture.Add_BoxAt(
+            JPH::EMotionType::Dynamic, JPH::RVec3{800.0f, 0.0f, 0.0f}, Activate);
+
+        JoltWorld.Request_BeginDrag(Get_BodyKey(DynamicBodyId), FVector::ZeroVector);
+        JoltWorld.Apply_DragRequests();
+
+        const auto BodiesDuringFirstDrag = static_cast<int32>(
+            JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies);
+
+        JoltWorld.Request_BeginDrag(Get_BodyKey(SecondDynamicBodyId), FVector{800.0, 0.0, 0.0});
+        JoltWorld.Apply_DragRequests();
+
+        TestTrue(TEXT("a second Begin leaves a drag live"), JoltWorld.Get_IsDragging());
+        TestEqual(TEXT("and REPLACES the first rather than adding a second anchor"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies), BodiesDuringFirstDrag);
+        TestEqual(TEXT("nor a second constraint"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetConstraints().size()), 1);
+
+        if (const auto ReplacedState = JoltWorld.Get_DragState(); TestTrue(
+            TEXT("the replacing drag reports state"), ReplacedState.IsSet()))
+        {
+            TestEqual(TEXT("and it names the SECOND body"),
+                ReplacedState->Get_BodyKey(), Get_BodyKey(SecondDynamicBodyId));
+        }
+
+        // A body destroyed under a live drag takes the drag with it: the constraint must go BEFORE either of its
+        // ends does, and no request arrives to say so.
+        JoltFixture.Remove_Body(SecondDynamicBodyId);
+        JoltWorld.Apply_DragRequests();
+
+        TestFalse(TEXT("destroying the dragged body ends the drag"), JoltWorld.Get_IsDragging());
+        TestEqual(TEXT("and leaves no constraint hanging off a dead body"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetConstraints().size()), 0);
+        TestTrue(TEXT("nor an anchor"), JoltWorld.Get_DebugInternalBodyKeys().IsEmpty());
+
+        // Shutdown is the last of the four teardown funnels, and it runs BEFORE the Jolt pointers are nulled
+        // precisely so a world torn down mid-drag cannot orphan the anchor it created.
+        const auto BodiesBeforeShutdownDrag = static_cast<int32>(
+            JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies);
+
+        JoltWorld.Request_BeginDrag(Get_BodyKey(DynamicBodyId), FVector::ZeroVector);
+        JoltWorld.Apply_DragRequests();
+
+        if (NOT TestTrue(TEXT("a drag is live going into Shutdown"), JoltWorld.Get_IsDragging()))
+        { return false; }
+
+        JoltWorld.Shutdown();
+
+        TestFalse(TEXT("Shutdown ends the drag"), JoltWorld.Get_IsDragging());
+        TestEqual(TEXT("and leaves no anchor body behind"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies),
+            BodiesBeforeShutdownDrag);
         TestEqual(TEXT("nor a constraint"),
             static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetConstraints().size()), 0);
     }
