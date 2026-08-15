@@ -218,6 +218,22 @@ namespace ck_test_jolt_debugdraw
     // --------------------------------------------------------------------------------------------------------------------
 
     auto
+        Get_NumVisibleIsms(
+            const FCk_Jolt_DebugDrawTarget& InTarget)
+        -> int32
+    {
+        auto Count = 0;
+
+        for (const auto* Ism : InTarget.Get_Isms())
+        {
+            if (Ism->IsVisible())
+            { ++Count; }
+        }
+
+        return Count;
+    }
+
+    auto
         Get_BucketMaterialParent(
             const UInstancedStaticMeshComponent& InIsm)
         -> UMaterialInterface*
@@ -486,6 +502,162 @@ bool FCkTest_JoltDebugDraw_ClassPalette::RunTest(const FString& Parameters)
         TestEqual(TEXT("the sleeping class opens a fifth bucket on the same geometry"),
             Target->Get_NumBuckets(), 5);
         TestEqual(TEXT("every body still draws exactly once"), Target->Get_NumInstances(), 4);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_ClassVisibility,
+    "Ck.Jolt.DebugDraw.ClassVisibility",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_ClassVisibility::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+        constexpr auto DoNotActivate = false;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        JoltWorld.Add_Box(JPH::EMotionType::Kinematic, 500.0f, IsNotSensor, Activate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        TestTrue(TEXT("every class starts visible"),
+            Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Static));
+        TestEqual(TEXT("both bodies drew"), Target->Get_NumInstances(), 2);
+
+        const auto InstancesBefore = Target->Get_NumInstances();
+        const auto BucketsBefore = Target->Get_NumBuckets();
+        const auto VisibleIsmsBefore = Get_NumVisibleIsms(*Target);
+
+        TestEqual(TEXT("both colour classes start as visible components"), VisibleIsmsBefore, 2);
+
+        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Static, false);
+
+        TestFalse(TEXT("the hidden class reports hidden"),
+            Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Static));
+        TestTrue(TEXT("hiding one class leaves the others visible"),
+            Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Kinematic));
+
+        // The toggle is component-level: it must NOT tear down geometry or drop instances.
+        TestEqual(TEXT("hiding a class rebuilds no geometry"), Target->Get_NumBuckets(), BucketsBefore);
+        TestEqual(TEXT("hiding a class drops no instance"), Target->Get_NumInstances(), InstancesBefore);
+
+        TestEqual(TEXT("hiding one of two classes leaves exactly one visible component"),
+            Get_NumVisibleIsms(*Target), VisibleIsmsBefore - 1);
+
+        // A capture while hidden must keep the class up to date rather than skipping it.
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision + 1, FCk_Handle{});
+
+        const auto& HiddenStats = Target->Get_LastCaptureStats();
+        TestTrue(TEXT("a hidden class is still captured, not skipped"), HiddenStats._BodiesCaptured > 0);
+        TestEqual(TEXT("capturing while hidden keeps every instance"), Target->Get_NumInstances(), InstancesBefore);
+
+        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Static, true);
+
+        TestTrue(TEXT("unhiding restores the class"),
+            Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Static));
+        TestEqual(TEXT("unhiding rebuilds no geometry"), Target->Get_NumBuckets(), BucketsBefore);
+        TestEqual(TEXT("unhiding restores every instance"), Target->Get_NumInstances(), InstancesBefore);
+        TestEqual(TEXT("unhiding restores every visible component"),
+            Get_NumVisibleIsms(*Target), VisibleIsmsBefore);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_ContentBounds,
+    "Ck.Jolt.DebugDraw.ContentBounds",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_ContentBounds::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto DoNotActivate = false;
+        // Deliberately off the origin: a box authored at 0 makes IsInsideOrOn(ZeroVector) pass for any bounds
+        // that merely touch the world centre, which would assert nothing.
+        constexpr auto NearBodyX = 1200.0f;
+        constexpr auto FarBodyX = 5000.0f;
+
+        auto JoltWorld = FScopedJoltWorld{};
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        TestFalse(TEXT("an empty target has no content bounds"), Target->Get_ContentBounds().IsValid != 0);
+
+        JoltWorld.Add_Box(JPH::EMotionType::Static, NearBodyX, IsNotSensor, DoNotActivate);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto NearBounds = Target->Get_ContentBounds();
+        TestTrue(TEXT("a captured body yields valid content bounds"), NearBounds.IsValid != 0);
+        TestTrue(TEXT("the bounds contain the body they were captured from"),
+            NearBounds.IsInsideOrOn(FVector{NearBodyX, 0.0, 0.0}));
+        TestFalse(TEXT("the bounds track the body, not the world origin"),
+            NearBounds.IsInsideOrOn(FVector::ZeroVector));
+
+        // A second body far away must widen the box — bounds track content, not just the first thing drawn.
+        JoltWorld.Add_Box(JPH::EMotionType::Kinematic, FarBodyX, IsNotSensor, DoNotActivate);
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision + 1, FCk_Handle{});
+
+        const auto WidenedBounds = Target->Get_ContentBounds();
+        TestTrue(TEXT("the widened bounds are still valid"), WidenedBounds.IsValid != 0);
+        TestTrue(TEXT("the widened bounds reach the far body"),
+            WidenedBounds.IsInsideOrOn(FVector{FarBodyX, 0.0, 0.0}));
+        TestTrue(TEXT("the widened bounds are larger than the single-body bounds"),
+            WidenedBounds.GetSize().X > NearBounds.GetSize().X);
+
+        // Framing follows what is DRAWN: a hidden class must not drag the camera out to empty space.
+        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Kinematic, false);
+
+        const auto VisibleOnlyBounds = Target->Get_ContentBounds();
+        TestTrue(TEXT("hiding the far class keeps valid bounds"), VisibleOnlyBounds.IsValid != 0);
+        TestTrue(TEXT("hiding the far class shrinks the bounds back"),
+            VisibleOnlyBounds.GetSize().X < WidenedBounds.GetSize().X);
+        TestFalse(TEXT("hidden content is excluded from the bounds"),
+            VisibleOnlyBounds.IsInsideOrOn(FVector{FarBodyX, 0.0, 0.0}));
+
+        // Hiding is component visibility, not a capture skip: unhiding must restore the framing box without a
+        // re-capture, otherwise the camera would frame stale content until the next pass.
+        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Kinematic, true);
+
+        const auto RestoredBounds = Target->Get_ContentBounds();
+        TestTrue(TEXT("unhiding the far class restores valid bounds"), RestoredBounds.IsValid != 0);
+        TestTrue(TEXT("unhiding the far class reaches the far body again"),
+            RestoredBounds.IsInsideOrOn(FVector{FarBodyX, 0.0, 0.0}));
+        TestTrue(TEXT("the restored bounds match the pre-hide bounds"),
+            RestoredBounds.GetSize().Equals(WidenedBounds.GetSize()));
     }
 
     World->DestroyWorld(false);
