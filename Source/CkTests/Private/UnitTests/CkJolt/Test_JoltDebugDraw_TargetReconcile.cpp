@@ -1,8 +1,10 @@
-#include <Misc/AutomationTest.h>
+﻿#include <Misc/AutomationTest.h>
 
 #include <Jolt/Jolt.h>
 
 #if WITH_DEV_AUTOMATION_TESTS && JPH_DEBUG_RENDERER
+
+#include "CkCore/Format/CkFormat_Defaults.h"
 
 #include "CkEcs/Handle/CkHandle.h"
 
@@ -17,11 +19,15 @@
 #include <Materials/Material.h>
 #include <Materials/MaterialInstanceDynamic.h>
 
+#include <Jolt/Core/JobSystemSingleThreaded.h>
+#include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyInterface.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
+#include <Jolt/Physics/Constraints/ContactConstraintManager.h>
 
 // --------------------------------------------------------------------------------------------------------------------
 // Pins the world-targetable batched Jolt debug renderer against a standalone JPH::PhysicsSystem and a transient
@@ -77,9 +83,16 @@ namespace ck_test_jolt_debugdraw
 
         ~FScopedJoltWorld()
         {
+            // The contact recorder keys its buffers by PhysicsSystem address, and the next fixture in the same
+            // process is very likely to be allocated at this one's — an un-forgotten record would be replayed
+            // into a later case's targets as if it were that case's own step.
+            ck::jolt::debug_draw::Forget_ContactRecord(_PhysicsSystem.Get());
+
             _BodyIds.Reset();
             _SharedBox = nullptr;
             _SharedHull = nullptr;
+            _JobSystem.Reset();
+            _TempAllocator.Reset();
             _PhysicsSystem.Reset();
             _ObjectVsObjectFilter.Reset();
             _ObjectVsBroadPhaseFilter.Reset();
@@ -227,8 +240,8 @@ namespace ck_test_jolt_debugdraw
             _PhysicsSystem->GetBodyInterface().DeactivateBody(InBodyId);
         }
 
-        /// Teleports a body without stepping the simulation — the fixture never steps, so this is the only way
-        /// a body moves between captures.
+        /// Teleports a body without stepping the simulation — most cases never step, so this is how a body
+        /// moves between their captures.
         auto
         Move_Body(
             const JPH::BodyID& InBodyId,
@@ -238,7 +251,72 @@ namespace ck_test_jolt_debugdraw
                 JPH::EActivation::Activate);
         }
 
+        auto
+        Add_BoxAt(
+            JPH::EMotionType InMotionType,
+            JPH::RVec3Arg InLocation,
+            bool InActivate) -> JPH::BodyID
+        {
+            const auto Domain = InMotionType == JPH::EMotionType::Static
+                ? ECk_Jolt_BodyDomain::Static
+                : ECk_Jolt_BodyDomain::Dynamic;
+
+            auto Settings = JPH::BodyCreationSettings{
+                _SharedBox.GetPtr(),
+                InLocation,
+                JPH::Quat::sIdentity(),
+                InMotionType,
+                Get_Layer(Domain)};
+
+            auto& BodyInterface = _PhysicsSystem->GetBodyInterface();
+            auto* Body = BodyInterface.CreateBody(Settings);
+
+            if (Body == nullptr)
+            { return JPH::BodyID{}; }
+
+            BodyInterface.AddBody(Body->GetID(),
+                InActivate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+
+            _BodyIds.Emplace(Body->GetID());
+            return Body->GetID();
+        }
+
+        /// Runs the real step, contact recording and all. The reconcile cases deliberately do not step — a
+        /// deterministic pose is easier to assert against — but contacts exist ONLY during Update, so the
+        /// contact case has no other way to produce one.
+        auto
+        Step(
+            int32 InNumSteps = 1) -> void
+        {
+            constexpr auto FixedDt = 1.0f / 60.0f;
+            constexpr auto CollisionSteps = 1;
+            constexpr auto TempAllocatorBytes = 4 * 1024 * 1024;
+
+            if (NOT _TempAllocator.IsValid())
+            {
+                _TempAllocator = MakeUnique<JPH::TempAllocatorImpl>(TempAllocatorBytes);
+                _JobSystem = MakeUnique<JPH::JobSystemSingleThreaded>(JPH::cMaxPhysicsJobs);
+            }
+
+            _PhysicsSystem->OptimizeBroadPhase();
+
+            for (auto StepIndex = 0; StepIndex < InNumSteps; ++StepIndex)
+            {
+                // Keyed by this fixture's own PhysicsSystem, exactly as FJoltWorld::DoPhysicsUpdate keys it.
+                ck::jolt::debug_draw::Begin_ContactRecord(_PhysicsSystem.Get());
+                _PhysicsSystem->Update(FixedDt, CollisionSteps, _TempAllocator.Get(), _JobSystem.Get());
+                ck::jolt::debug_draw::End_ContactRecord(_PhysicsSystem.Get());
+            }
+        }
+
     private:
+        // Heap-held rather than by value: both allocate through Jolt's global allocator, which only exists
+        // between Request_GlobalJoltInit and Request_GlobalJoltShutdown — a by-value member would be
+        // constructed before the ctor body has run the former. Single threaded on purpose: a headless test
+        // asserting on line COUNTS must not depend on worker scheduling.
+        TUniquePtr<JPH::TempAllocatorImpl> _TempAllocator;
+        TUniquePtr<JPH::JobSystemSingleThreaded> _JobSystem;
+
         TUniquePtr<ck::jolt::FCk_Jolt_CollisionLayerTable> _LayerTable;
         TUniquePtr<ck::jolt::FCk_Jolt_BroadPhaseLayerInterface_Table> _BroadPhaseLayerInterface;
         TUniquePtr<ck::jolt::FCk_Jolt_ObjectVsBroadPhaseLayerFilter_Table> _ObjectVsBroadPhaseFilter;
@@ -273,6 +351,30 @@ namespace ck_test_jolt_debugdraw
         -> uint64
     {
         return ck::jolt::debug_draw::Make_BodyKey(InBodyId.GetIndexAndSequenceNumber());
+    }
+
+    /// The facility's visibility and bucket API speak class INDICES, which are shared across every colour mode.
+    /// These cases all assert against BodyClass mode, so its enum is what they name.
+    auto
+        Idx(
+            ECk_Jolt_DebugDraw_ColorClass InColorClass)
+        -> uint8
+    {
+        return ck::jolt::debug_draw::Get_ClassIndex(InColorClass);
+    }
+
+    auto
+        Get_LegendNames(
+            const FCk_Jolt_DebugDrawTarget& InTarget,
+            ECk_Jolt_DebugDrawColorMode InColorMode)
+        -> TArray<FString>
+    {
+        auto Names = TArray<FString>{};
+
+        for (const auto& Entry : InTarget.Get_LegendEntries(InColorMode))
+        { Names.Emplace(Entry.Get_Name().ToString()); }
+
+        return Names;
     }
 
     /// Most cases only ever move the static-scene token; the body-removed token belongs to the sweep and is
@@ -418,10 +520,10 @@ bool FCkTest_JoltDebugDraw_SleepTransitionRecolors::RunTest(const FString& Param
 
         const auto FirstClasses = Target->Get_BucketColorClasses();
         TestTrue(TEXT("the awake dynamic body is coloured Dynamic_Awake"),
-            FirstClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake));
+            FirstClasses.Contains(Idx(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake)));
         // The body was never active, so only the revision-keyed full pass can have drawn it.
         TestTrue(TEXT("a body asleep BEFORE the first capture is drawn, coloured Dynamic_Sleeping"),
-            FirstClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Sleeping));
+            FirstClasses.Contains(Idx(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Sleeping)));
         TestEqual(TEXT("awake and asleep-at-birth bodies split into two buckets"), Target->Get_NumBuckets(), 2);
         TestEqual(TEXT("both dynamic bodies draw once each"), Target->Get_NumInstances(), 2);
 
@@ -435,7 +537,7 @@ bool FCkTest_JoltDebugDraw_SleepTransitionRecolors::RunTest(const FString& Param
         TestEqual(TEXT("both bodies still draw exactly once each"), Target->Get_NumInstances(), 2);
 
         TestTrue(TEXT("the sleeping-coloured bucket survives the transition"),
-            Target->Get_BucketColorClasses().Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Sleeping));
+            Target->Get_BucketColorClasses().Contains(Idx(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Sleeping)));
         TestEqual(TEXT("the same geometry still spans an awake and a sleeping bucket"), Target->Get_NumBuckets(), 2);
     }
 
@@ -556,13 +658,13 @@ bool FCkTest_JoltDebugDraw_ClassPalette::RunTest(const FString& Parameters)
 
         const auto AwakeClasses = Target->Get_BucketColorClasses();
         TestTrue(TEXT("a Static-motion body lands in the Static bucket"),
-            AwakeClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Static));
+            AwakeClasses.Contains(Idx(ECk_Jolt_DebugDraw_ColorClass::Static)));
         TestTrue(TEXT("a Kinematic body lands in the Kinematic bucket"),
-            AwakeClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Kinematic));
+            AwakeClasses.Contains(Idx(ECk_Jolt_DebugDraw_ColorClass::Kinematic)));
         TestTrue(TEXT("a sensor lands in the Sensor bucket regardless of its motion type"),
-            AwakeClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Sensor));
+            AwakeClasses.Contains(Idx(ECk_Jolt_DebugDraw_ColorClass::Sensor)));
         TestTrue(TEXT("an active Dynamic body lands in the Dynamic_Awake bucket"),
-            AwakeClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake));
+            AwakeClasses.Contains(Idx(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake)));
         TestEqual(TEXT("one shared geometry across four colour classes yields four buckets"),
             Target->Get_NumBuckets(), 4);
 
@@ -571,7 +673,7 @@ bool FCkTest_JoltDebugDraw_ClassPalette::RunTest(const FString& Parameters)
 
         const auto SleepingClasses = Target->Get_BucketColorClasses();
         TestTrue(TEXT("a deactivated Dynamic body lands in the Dynamic_Sleeping bucket"),
-            SleepingClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Sleeping));
+            SleepingClasses.Contains(Idx(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Sleeping)));
         TestEqual(TEXT("the sleeping class opens a fifth bucket on the same geometry"),
             Target->Get_NumBuckets(), 5);
         TestEqual(TEXT("every body still draws exactly once"), Target->Get_NumInstances(), 4);
@@ -613,7 +715,7 @@ bool FCkTest_JoltDebugDraw_ClassVisibility::RunTest(const FString& Parameters)
         Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         TestTrue(TEXT("every class starts visible"),
-            Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Static));
+            Target->Get_IsClassVisible(Idx(ECk_Jolt_DebugDraw_ColorClass::Static)));
         TestEqual(TEXT("both bodies drew"), Target->Get_NumInstances(), 2);
 
         const auto InstancesBefore = Target->Get_NumInstances();
@@ -622,12 +724,12 @@ bool FCkTest_JoltDebugDraw_ClassVisibility::RunTest(const FString& Parameters)
 
         TestEqual(TEXT("both colour classes start as visible components"), VisibleIsmsBefore, 2);
 
-        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Static, false);
+        Target->Set_ClassVisibility(Idx(ECk_Jolt_DebugDraw_ColorClass::Static), false);
 
         TestFalse(TEXT("the hidden class reports hidden"),
-            Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Static));
+            Target->Get_IsClassVisible(Idx(ECk_Jolt_DebugDraw_ColorClass::Static)));
         TestTrue(TEXT("hiding one class leaves the others visible"),
-            Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Kinematic));
+            Target->Get_IsClassVisible(Idx(ECk_Jolt_DebugDraw_ColorClass::Kinematic)));
 
         // The toggle is component-level: it must NOT tear down geometry or drop instances.
         TestEqual(TEXT("hiding a class rebuilds no geometry"), Target->Get_NumBuckets(), BucketsBefore);
@@ -643,10 +745,10 @@ bool FCkTest_JoltDebugDraw_ClassVisibility::RunTest(const FString& Parameters)
         TestTrue(TEXT("a hidden class is still captured, not skipped"), HiddenStats._BodiesCaptured > 0);
         TestEqual(TEXT("capturing while hidden keeps every instance"), Target->Get_NumInstances(), InstancesBefore);
 
-        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Static, true);
+        Target->Set_ClassVisibility(Idx(ECk_Jolt_DebugDraw_ColorClass::Static), true);
 
         TestTrue(TEXT("unhiding restores the class"),
-            Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Static));
+            Target->Get_IsClassVisible(Idx(ECk_Jolt_DebugDraw_ColorClass::Static)));
         TestEqual(TEXT("unhiding rebuilds no geometry"), Target->Get_NumBuckets(), BucketsBefore);
         TestEqual(TEXT("unhiding restores every instance"), Target->Get_NumInstances(), InstancesBefore);
         TestEqual(TEXT("unhiding restores every visible component"),
@@ -712,7 +814,7 @@ bool FCkTest_JoltDebugDraw_ContentBounds::RunTest(const FString& Parameters)
             WidenedBounds.GetSize().X > NearBounds.GetSize().X);
 
         // Framing follows what is DRAWN: a hidden class must not drag the camera out to empty space.
-        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Kinematic, false);
+        Target->Set_ClassVisibility(Idx(ECk_Jolt_DebugDraw_ColorClass::Kinematic), false);
 
         const auto VisibleOnlyBounds = Target->Get_ContentBounds();
         TestTrue(TEXT("hiding the far class keeps valid bounds"), VisibleOnlyBounds.IsValid != 0);
@@ -723,7 +825,7 @@ bool FCkTest_JoltDebugDraw_ContentBounds::RunTest(const FString& Parameters)
 
         // Hiding is component visibility, not a capture skip: unhiding must restore the framing box without a
         // re-capture, otherwise the camera would frame stale content until the next pass.
-        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Kinematic, true);
+        Target->Set_ClassVisibility(Idx(ECk_Jolt_DebugDraw_ColorClass::Kinematic), true);
 
         const auto RestoredBounds = Target->Get_ContentBounds();
         TestTrue(TEXT("unhiding the far class restores valid bounds"), RestoredBounds.IsValid != 0);
@@ -909,20 +1011,64 @@ bool FCkTest_JoltDebugDraw_HighlightAddsOverlayInstance::RunTest(const FString& 
 
         const auto HighlightedClasses = Target->Get_BucketColorClasses();
         TestTrue(TEXT("the overlay lands in its own Highlight bucket"),
-            HighlightedClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Highlight));
+            HighlightedClasses.Contains(ck::jolt::debug_draw::HighlightClassIndex));
         TestTrue(TEXT("the selected body keeps its normal colour class"),
-            HighlightedClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake));
+            HighlightedClasses.Contains(Idx(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake)));
+
+        // P5-D41's two visibility legs. The overlay traces the body's own geometry, so without a swell it is
+        // co-planar with the surface it is meant to stand out against; and a highlight colour that any palette
+        // entry could be mistaken for is what the user reported as "nothing looks selected".
+        auto AnySwollenInstance = false;
+
+        for (const auto* Ism : Target->Get_Isms())
+        {
+            for (auto InstanceIndex = 0; InstanceIndex < Ism->GetInstanceCount(); ++InstanceIndex)
+            {
+                auto InstanceTransform = FTransform{};
+                constexpr auto WorldSpace = false;
+
+                if (NOT Ism->GetInstanceTransform(InstanceIndex, InstanceTransform, WorldSpace))
+                { continue; }
+
+                AnySwollenInstance |= NOT FMath::IsNearlyEqual(InstanceTransform.GetScale3D().X, 1.0, 1.0e-4);
+            }
+        }
+
+        TestTrue(TEXT("the overlay instance is drawn at a scale other than 1"), AnySwollenInstance);
+
+        const auto& Palette = Target->Get_Palette();
+        const auto HighlightColor = Palette.Get_Color(ECk_Jolt_DebugDrawColorMode::BodyClass,
+            ck::jolt::debug_draw::HighlightClassIndex);
+
+        auto HighlightIsDistinct = true;
+
+        for (const auto Mode : {ECk_Jolt_DebugDrawColorMode::BodyClass, ECk_Jolt_DebugDrawColorMode::SleepState,
+                                ECk_Jolt_DebugDrawColorMode::ObjectLayer, ECk_Jolt_DebugDrawColorMode::Island,
+                                ECk_Jolt_DebugDrawColorMode::ShapeType})
+        {
+            for (const auto& Entry : Target->Get_LegendEntries(Mode))
+            {
+                if (Entry.Get_ClassIndex() == ck::jolt::debug_draw::HighlightClassIndex ||
+                    Entry.Get_ClassIndex() == ck::jolt::debug_draw::HoverClassIndex)
+                { continue; }
+
+                HighlightIsDistinct &= NOT Entry.Get_Color().Equals(HighlightColor, 0.05f);
+            }
+        }
+
+        TestTrue(TEXT("the highlight colour differs from EVERY palette colour of EVERY mode"),
+            HighlightIsDistinct);
 
         // The whole point of giving the overlay its own class: a population toggle must not be able to hide it.
         const auto VisibleIsmsBefore = Get_NumVisibleIsms(*Target);
-        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake, false);
+        Target->Set_ClassVisibility(Idx(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake), false);
 
         TestTrue(TEXT("hiding the body's own class leaves the Highlight class visible"),
-            Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Highlight));
+            Target->Get_IsClassVisible(ck::jolt::debug_draw::HighlightClassIndex));
         TestEqual(TEXT("hiding the body's class hides exactly one component, not the overlay too"),
             Get_NumVisibleIsms(*Target), VisibleIsmsBefore - 1);
 
-        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake, true);
+        Target->Set_ClassVisibility(Idx(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake), true);
 
         // A moving selection is the case a one-shot overlay would get wrong: the overlay must be re-drawn in
         // lockstep with the body, reusing its slot rather than being left behind at the old pose.
@@ -1161,13 +1307,13 @@ bool FCkTest_JoltDebugDraw_PickNearestBody::RunTest(const FString& Parameters)
         TestFalse(TEXT("a ray that passes above everything hits nothing"),
             Target->TryPick_Body(MissOrigin, RayDirection).IsSet());
 
-        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Static, false);
+        Target->Set_ClassVisibility(Idx(ECk_Jolt_DebugDraw_ColorClass::Static), false);
 
         const auto HiddenNearHit = Target->TryPick_Body(RayOrigin, RayDirection);
         TestTrue(TEXT("a hidden class is not pickable and the ray falls through to the far body"),
             HiddenNearHit == TOptional<uint64>{FarKey});
 
-        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Static, true);
+        Target->Set_ClassVisibility(Idx(ECk_Jolt_DebugDraw_ColorClass::Static), true);
 
         // The overlay doubles the near body's geometry; picking it would return a key no consumer can resolve.
         Target->Set_HighlightedBody(NearKey);
@@ -1250,6 +1396,539 @@ bool FCkTest_JoltDebugDraw_DestroyedSleepingBodyReleasesBothSlots::RunTest(const
             Target->Get_HighlightedBody() == TOptional<uint64>{SleepingKey});
         TestFalse(TEXT("a selection whose body was destroyed has no bounds"),
             Target->Get_HighlightedBodyBounds().IsSet());
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_LineAndLabelChannels,
+    "Ck.Jolt.DebugDraw.LineAndLabelChannels",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_LineAndLabelChannels::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+        constexpr auto DoNotActivate = false;
+        constexpr auto DynamicBodyX = 500.0f;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        const auto MovingBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, DynamicBodyX, IsNotSensor, Activate);
+        JoltWorld.Set_LinearVelocity(MovingBodyId, JPH::Vec3{200.0f, 0.0f, 0.0f});
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+
+        TestEqual(TEXT("nothing is in the line channel before a capture"), Target->Get_NumLines(), 0);
+        TestEqual(TEXT("nothing is in the label channel before a capture"), Target->Get_Labels().Num(), 0);
+
+        // MassAndInertia is the one per-body extra that emits TEXT as well as lines, so it is what proves the
+        // label channel without needing a constraint or a contact. It needs Labels BESIDE it: the wire box is
+        // MassAndInertia's output, the number beside it is text and text is what Labels gates (P5-D64/F4).
+        Target->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape |
+                              ECk_Jolt_DebugDrawFlags::Velocity |
+                              ECk_Jolt_DebugDrawFlags::MassAndInertia |
+                              ECk_Jolt_DebugDrawFlags::Labels);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto LinesAfterFirstCapture = Target->Get_NumLines();
+        TestTrue(TEXT("a JPH DrawLine during the capture lands in the target's line channel"),
+            LinesAfterFirstCapture > 0);
+
+        const auto& Labels = Target->Get_Labels();
+        if (TestEqual(TEXT("the dynamic body's mass label is stored"), Labels.Num(), 1))
+        {
+            TestTrue(TEXT("the label sits at the body it describes"),
+                Labels[0].Get_WorldPosition().Equals(FVector{DynamicBodyX, 0.0, 0.0}));
+            TestFalse(TEXT("the label carries its text"), Labels[0].Get_Text().IsEmpty());
+        }
+
+        // The whole point of flushing at the start of each capture: JPH output is per-frame, so an identical
+        // second capture must REPLACE the first one's lines rather than pile on top of them.
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("the line channel is flushed each capture rather than accumulating"),
+            Target->Get_NumLines(), LinesAfterFirstCapture);
+        TestEqual(TEXT("the label channel is refilled, not appended to"), Target->Get_Labels().Num(), 1);
+
+        // The External channel is the asymmetric half: its contributor owns it, so a capture re-emits it
+        // WITHOUT clearing it and a push made between captures is never dropped.
+        const auto TestChannel = FName{TEXT("Test")};
+        const auto OtherChannel = FName{TEXT("Other")};
+
+        Target->Draw_ExternalLine(TestChannel, FVector::ZeroVector, FVector{100.0, 0.0, 0.0}, FLinearColor::Red);
+        TestEqual(TEXT("an External line is retained the moment it is pushed"),
+            Target->Get_NumExternalLines(TestChannel), 1);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("an External sub-channel SURVIVES two captures"),
+            Target->Get_NumExternalLines(TestChannel), 1);
+        TestEqual(TEXT("and is re-emitted on top of this capture's JPH lines"),
+            Target->Get_NumLines(), LinesAfterFirstCapture + 1);
+
+        Target->Draw_ExternalLine(OtherChannel, FVector::ZeroVector, FVector{0.0, 100.0, 0.0}, FLinearColor::Blue);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("a second sub-channel does not disturb the first"),
+            Target->Get_NumExternalLines(TestChannel), 1);
+        TestEqual(TEXT("the second sub-channel holds its own line"),
+            Target->Get_NumExternalLines(OtherChannel), 1);
+
+        Target->Clear_External(TestChannel);
+
+        TestEqual(TEXT("Clear_External empties exactly the named sub-channel"),
+            Target->Get_NumExternalLines(TestChannel), 0);
+        TestEqual(TEXT("and leaves every other one alone"),
+            Target->Get_NumExternalLines(OtherChannel), 1);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("the cleared sub-channel's line is gone from the batcher too"),
+            Target->Get_NumLines(), LinesAfterFirstCapture + 1);
+
+        // Labels are per-capture: dropping the flag that produced them empties the channel on the next one.
+        Target->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("dropping the flag that produced the label clears the label channel"),
+            Target->Get_Labels().Num(), 0);
+        TestEqual(TEXT("only the retained External line is left in the batcher"), Target->Get_NumLines(), 1);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_DrawFlagsGatePerBodyExtras,
+    "Ck.Jolt.DebugDraw.DrawFlagsGatePerBodyExtras",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_DrawFlagsGatePerBodyExtras::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+        constexpr auto DoNotActivate = false;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        const auto MovingBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 500.0f, IsNotSensor, Activate);
+        JoltWorld.Set_LinearVelocity(MovingBodyId, JPH::Vec3{200.0f, 0.0f, 0.0f});
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+
+        TestTrue(TEXT("a fresh target draws shapes and nothing else"),
+            Target->Get_DrawFlags() == ECk_Jolt_DebugDrawFlags::Shape);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("Shape alone draws both bodies"), Target->Get_NumInstances(), 2);
+        TestEqual(TEXT("Shape alone emits NO lines, even for a moving body"), Target->Get_NumLines(), 0);
+
+        Target->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape | ECk_Jolt_DebugDrawFlags::Velocity);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto LinesWithVelocity = Target->Get_NumLines();
+        TestTrue(TEXT("enabling Velocity emits lines for the moving body"), LinesWithVelocity > 0);
+        TestEqual(TEXT("a line flag does not change the instanced-mesh count"), Target->Get_NumInstances(), 2);
+
+        Target->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape |
+                              ECk_Jolt_DebugDrawFlags::Velocity |
+                              ECk_Jolt_DebugDrawFlags::BoundingBox);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestTrue(TEXT("adding BoundingBox emits strictly more lines"),
+            Target->Get_NumLines() > LinesWithVelocity);
+
+        Target->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("clearing back to Shape returns the line count to zero"), Target->Get_NumLines(), 0);
+        TestEqual(TEXT("and leaves both bodies drawn"), Target->Get_NumInstances(), 2);
+
+        // Shape is a flag like any other: turning it off has to RELEASE the instances it created, including for
+        // the static body the incremental pass would otherwise have skipped.
+        Target->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Velocity);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("dropping the Shape flag leaves no instanced-mesh instance at all"),
+            Target->Get_NumInstances(), 0);
+        TestTrue(TEXT("while the line extras keep drawing"), Target->Get_NumLines() > 0);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_ColorModesAndLegend,
+    "Ck.Jolt.DebugDraw.ColorModesAndLegend",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_ColorModesAndLegend::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+        constexpr auto DoNotActivate = false;
+
+        // Two boxes that differ ONLY in sleep state, plus a hull that differs only in geometry. Which of them
+        // share a bucket is then a pure statement about the colour mode.
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 0.0f, IsNotSensor, Activate);
+        JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 500.0f, IsNotSensor, DoNotActivate);
+        JoltWorld.Add_ConvexHull(JPH::EMotionType::Dynamic, 1000.0f, Activate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+
+        TestTrue(TEXT("a fresh target colours by body class"),
+            Target->Get_ColorMode() == ECk_Jolt_DebugDrawColorMode::BodyClass);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto BodyClassBuckets = Target->Get_BucketColorClasses().Num();
+        TestEqual(TEXT("body class splits the awake box, the sleeping box and the hull"), BodyClassBuckets, 3);
+
+        // ShapeType has to COLLAPSE the two boxes (same sub-type, same geometry) and keep the hull apart.
+        Target->Set_ColorMode(ECk_Jolt_DebugDrawColorMode::ShapeType);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto ShapeTypeClasses = Target->Get_BucketColorClasses();
+        TestEqual(TEXT("shape type re-buckets the two boxes into one"), ShapeTypeClasses.Num(), 2);
+        TestTrue(TEXT("and names them by sub-type, not by the raw JPH enum value"),
+            ShapeTypeClasses.Contains(static_cast<uint8>(ck::jolt::debug_draw::EShapeTypeClass::Box)) &&
+            ShapeTypeClasses.Contains(static_cast<uint8>(ck::jolt::debug_draw::EShapeTypeClass::ConvexHull)));
+
+        // SleepState has to split the AWAKE box from the ASLEEP one — the two differ in nothing else, so a
+        // re-bucket here is a pure statement that the mode reads sleep state and not body class.
+        Target->Set_ColorMode(ECk_Jolt_DebugDrawColorMode::SleepState);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto SleepStateClasses = TSet<uint8>{Target->Get_BucketColorClasses()};
+
+        TestTrue(TEXT("sleep state re-buckets awake bodies apart from asleep ones"),
+            SleepStateClasses.Num() > 1);
+        TestTrue(TEXT("and names them by the sleep-state classes, not the body-class ones"),
+            SleepStateClasses.Contains(static_cast<uint8>(ck::jolt::debug_draw::ESleepStateClass::Awake)) &&
+            SleepStateClasses.Contains(static_cast<uint8>(ck::jolt::debug_draw::ESleepStateClass::Asleep)));
+
+        // Island: nothing has been stepped, so no body belongs to one and every body collapses into "no island".
+        Target->Set_ColorMode(ECk_Jolt_DebugDrawColorMode::Island);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto IslandClasses = Target->Get_BucketColorClasses();
+        TestTrue(TEXT("un-stepped bodies all report no island"),
+            IslandClasses.Num() == 2 && IslandClasses.Contains(0));
+
+        Target->Set_ColorMode(ECk_Jolt_DebugDrawColorMode::BodyClass);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("switching back restores the body-class split"),
+            Target->Get_BucketColorClasses().Num(), BodyClassBuckets);
+
+        // ---- Legend ----
+
+        for (const auto Mode : {ECk_Jolt_DebugDrawColorMode::BodyClass, ECk_Jolt_DebugDrawColorMode::SleepState,
+                                ECk_Jolt_DebugDrawColorMode::ObjectLayer, ECk_Jolt_DebugDrawColorMode::Island,
+                                ECk_Jolt_DebugDrawColorMode::ShapeType})
+        {
+            const auto Names = Get_LegendNames(*Target, Mode);
+
+            TestTrue(TEXT("every mode has a non-empty legend"), Names.Num() > 2);
+            TestTrue(TEXT("every mode's legend carries the selection markers"),
+                Names.Contains(TEXT("Selected")) && Names.Contains(TEXT("Hovered")));
+
+            const auto UniqueNames = TSet<FString>{Names};
+            TestEqual(TEXT("legend names are unique within a mode"), UniqueNames.Num(), Names.Num());
+        }
+
+        // P5-D64/F7(c)+F8: names are published by the capture from a live layer TABLE, which this headless
+        // fixture has no registry context to supply — so this leg asserts the bare-`Layer N` fallback instead
+        // of driving TryRefresh_ObjectLayerNames. A legend that named nothing while the viewport was visibly
+        // drawing layer-coloured bodies is the defect; every index a live bucket uses earns a row.
+        Target->Set_ColorMode(ECk_Jolt_DebugDrawColorMode::ObjectLayer);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto DrawnLayerClasses = Target->Get_BucketColorClasses();
+
+        if (TestTrue(TEXT("the bodies are drawn in at least one object-layer class"),
+            DrawnLayerClasses.Num() > 0))
+        {
+            const auto UnnamedLegend = Get_LegendNames(*Target, ECk_Jolt_DebugDrawColorMode::ObjectLayer);
+
+            TestTrue(TEXT("a layer nothing published a name for still gets a bare 'Layer N' row"),
+                UnnamedLegend.Contains(ck::Format_UE(TEXT("Layer {}"), DrawnLayerClasses[0])));
+        }
+
+        // P5-D61/S6: a Jolt object layer has no name of its own, so the legend borrows the object channel of
+        // the signature registered at it. A layer the capture could not name falls back to a bare number.
+        Target->Set_ObjectLayerNames({TEXT("WorldStatic"), FString{}});
+
+        const auto LayerNames = Get_LegendNames(*Target, ECk_Jolt_DebugDrawColorMode::ObjectLayer);
+
+        TestTrue(TEXT("a named layer reads as 'Layer N — <object channel>'"),
+            LayerNames.Contains(TEXT("Layer 0 — WorldStatic")));
+        TestTrue(TEXT("an unnamed layer falls back to a bare 'Layer N'"),
+            LayerNames.Contains(TEXT("Layer 1")));
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_HoverOverlay,
+    "Ck.Jolt.DebugDraw.HoverOverlay",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_HoverOverlay::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto SelectedBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 0.0f, IsNotSensor, Activate);
+        const auto HoveredBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 500.0f, IsNotSensor, Activate);
+
+        const auto SelectedKey = Get_BodyKey(SelectedBodyId);
+        const auto HoveredKey = Get_BodyKey(HoveredBodyId);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto BaselineInstances = Target->Get_NumInstances();
+        TestEqual(TEXT("the baseline capture draws one instance per body"), BaselineInstances, 2);
+        TestFalse(TEXT("nothing is hovered before a hover"), Target->Get_HoveredBody().IsSet());
+
+        // Hover and highlight are independent: two different bodies, two different overlays, two buckets.
+        Target->Set_HighlightedBody(SelectedKey);
+        Target->Set_HoveredBody(HoveredKey);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestTrue(TEXT("the target reports the hover back"),
+            Target->Get_HoveredBody() == TOptional<uint64>{HoveredKey});
+        TestEqual(TEXT("hover and highlight each ADD their own instance"),
+            Target->Get_NumInstances(), BaselineInstances + 2);
+
+        const auto Classes = Target->Get_BucketColorClasses();
+        TestTrue(TEXT("the hover overlay lands in its own class, apart from the highlight's"),
+            Classes.Contains(ck::jolt::debug_draw::HoverClassIndex) &&
+            Classes.Contains(ck::jolt::debug_draw::HighlightClassIndex));
+
+        // Neither overlay class is hideable — a preview the viewer cannot see is not a preview.
+        Target->Set_ClassVisibility(ck::jolt::debug_draw::HoverClassIndex, false);
+        TestTrue(TEXT("the hover class cannot be hidden"),
+            Target->Get_IsClassVisible(ck::jolt::debug_draw::HoverClassIndex));
+
+        // Hovering the body that is already selected must not swallow one of the two overlays.
+        Target->Set_HoveredBody(SelectedKey);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("a body that is both selected and hovered carries both overlays"),
+            Target->Get_NumInstances(), BaselineInstances + 2);
+
+        Target->Set_HoveredBody({});
+
+        TestFalse(TEXT("clearing forgets the hover"), Target->Get_HoveredBody().IsSet());
+        TestEqual(TEXT("clearing releases the hover overlay immediately"),
+            Target->Get_NumInstances(), BaselineInstances + 1);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_ContactRecordingReplays,
+    "Ck.Jolt.DebugDraw.ContactRecordingReplays",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_ContactRecordingReplays::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto Activate = true;
+
+        // Two boxes overlapping by 5 uu along X: one step produces a real face-vs-face manifold, which is what
+        // Jolt draws contact points from. Contacts exist ONLY during Update, so this is the one case that steps.
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_BoxAt(JPH::EMotionType::Dynamic, JPH::RVec3{0.0f, 0.0f, 0.0f}, Activate);
+        JoltWorld.Add_BoxAt(JPH::EMotionType::Dynamic, JPH::RVec3{95.0f, 0.0f, 0.0f}, Activate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+
+        auto DemandingTarget = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+        auto QuietTarget = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        auto Targets = TArray<TSharedPtr<FCk_Jolt_DebugDrawTarget>>{DemandingTarget, QuietTarget};
+
+        constexpr uint64 StaticSceneRevision = 1;
+
+        // ---- Nothing demands contacts ----
+
+        TestFalse(TEXT("no target demands contacts by default"),
+            ck::jolt::debug_draw::Get_IsAnyTargetDemandingContacts());
+        TestFalse(TEXT("and Jolt's process-wide contact draw is off"),
+            JPH::ContactConstraintManager::sDrawContactPoint);
+
+        JoltWorld.Step();
+        ck::jolt::debug_draw::Replay_RecordedContacts(&JoltWorld.Get_PhysicsSystem(), Targets);
+
+        Renderer.Capture_JoltWorld(*DemandingTarget, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("a step with nothing demanding contacts records none"),
+            DemandingTarget->Get_NumContactLines(), 0);
+
+        // ---- One target demands them ----
+
+        DemandingTarget->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape | ECk_Jolt_DebugDrawFlags::ContactPoints);
+
+        TestTrue(TEXT("a contact flag arms the process-wide demand"),
+            ck::jolt::debug_draw::Get_IsAnyTargetDemandingContacts());
+        TestTrue(TEXT("and the union is written into Jolt's own contact-point static"),
+            JPH::ContactConstraintManager::sDrawContactPoint);
+        TestFalse(TEXT("while the flags nobody asked for stay off"),
+            JPH::ContactConstraintManager::sDrawSupportingFaces);
+
+        JoltWorld.Step();
+        ck::jolt::debug_draw::Replay_RecordedContacts(&JoltWorld.Get_PhysicsSystem(), Targets);
+
+        Renderer.Capture_JoltWorld(*DemandingTarget, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+        Renderer.Capture_JoltWorld(*QuietTarget, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestTrue(TEXT("the demanding target receives the recorded contact lines"),
+            DemandingTarget->Get_NumContactLines() > 0);
+        TestEqual(TEXT("a second target that did not ask stays empty"),
+            QuietTarget->Get_NumContactLines(), 0);
+
+        // ---- The supporting-faces flag widens the union ----
+
+        QuietTarget->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape | ECk_Jolt_DebugDrawFlags::SupportingFaces);
+
+        TestTrue(TEXT("the union is over ALL live targets, not just the first"),
+            JPH::ContactConstraintManager::sDrawContactPoint &&
+            JPH::ContactConstraintManager::sDrawSupportingFaces);
+
+        // ---- Demand dropped everywhere ----
+
+        DemandingTarget->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape);
+        QuietTarget->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape);
+
+        TestFalse(TEXT("dropping the last contact flag disarms the demand"),
+            ck::jolt::debug_draw::Get_IsAnyTargetDemandingContacts());
+        TestFalse(TEXT("and clears Jolt's statics — the toggle is process-wide"),
+            JPH::ContactConstraintManager::sDrawContactPoint ||
+            JPH::ContactConstraintManager::sDrawSupportingFaces);
+
+        JoltWorld.Step();
+        ck::jolt::debug_draw::Replay_RecordedContacts(&JoltWorld.Get_PhysicsSystem(), Targets);
+
+        Renderer.Capture_JoltWorld(*DemandingTarget, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("a target that stopped asking is emptied rather than left showing stale contacts"),
+            DemandingTarget->Get_NumContactLines(), 0);
     }
 
     World->DestroyWorld(false);
