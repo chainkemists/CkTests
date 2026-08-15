@@ -198,10 +198,29 @@ namespace ck_test_jolt_debugdraw
         }
 
         auto
+        Set_LinearVelocity(
+            const JPH::BodyID& InBodyId,
+            JPH::Vec3Arg InVelocity) -> void
+        {
+            _PhysicsSystem->GetBodyInterface().SetLinearVelocity(InBodyId, InVelocity);
+        }
+
+        auto
         Deactivate(
             const JPH::BodyID& InBodyId) -> void
         {
             _PhysicsSystem->GetBodyInterface().DeactivateBody(InBodyId);
+        }
+
+        /// Teleports a body without stepping the simulation — the fixture never steps, so this is the only way
+        /// a body moves between captures.
+        auto
+        Move_Body(
+            const JPH::BodyID& InBodyId,
+            float InLocationX) -> void
+        {
+            _PhysicsSystem->GetBodyInterface().SetPosition(InBodyId, JPH::RVec3{InLocationX, 0.0f, 0.0f},
+                JPH::EActivation::Activate);
         }
 
     private:
@@ -231,6 +250,14 @@ namespace ck_test_jolt_debugdraw
         }
 
         return Count;
+    }
+
+    auto
+        Get_BodyKey(
+            const JPH::BodyID& InBodyId)
+        -> uint64
+    {
+        return static_cast<uint64>(InBodyId.GetIndexAndSequenceNumber());
     }
 
     auto
@@ -779,6 +806,328 @@ bool FCkTest_JoltDebugDraw_PreviewWorldCompat::RunTest(const FString& Parameters
             TestTrue(TEXT("the bucket component registered with the preview world"), Ism->IsRegistered());
             TestTrue(TEXT("the bucket component belongs to the preview world"), Ism->GetWorld() == World);
         }
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_HighlightAddsOverlayInstance,
+    "Ck.Jolt.DebugDraw.HighlightAddsOverlayInstance",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_HighlightAddsOverlayInstance::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+        constexpr auto DoNotActivate = false;
+        constexpr auto MovedBodyX = 3000.0f;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        const auto SelectedBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 500.0f, IsNotSensor, Activate);
+        const auto SelectedKey = Get_BodyKey(SelectedBodyId);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto BaselineInstances = Target->Get_NumInstances();
+        TestEqual(TEXT("the baseline capture draws one instance per body"), BaselineInstances, 2);
+        TestFalse(TEXT("nothing is highlighted before a selection"), Target->Get_HighlightedBody().IsSet());
+
+        Target->Set_HighlightedBody(SelectedKey);
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        TestTrue(TEXT("the target reports the selection back"),
+            Target->Get_HighlightedBody() == TOptional<uint64>{SelectedKey});
+        TestEqual(TEXT("the selection ADDS an instance rather than moving one"),
+            Target->Get_NumInstances(), BaselineInstances + 1);
+        TestEqual(TEXT("exactly one overlay instance was added"),
+            Target->Get_LastCaptureStats()._InstancesAdded, 1);
+
+        const auto HighlightedClasses = Target->Get_BucketColorClasses();
+        TestTrue(TEXT("the overlay lands in its own Highlight bucket"),
+            HighlightedClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Highlight));
+        TestTrue(TEXT("the selected body keeps its normal colour class"),
+            HighlightedClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake));
+
+        // The whole point of giving the overlay its own class: a population toggle must not be able to hide it.
+        const auto VisibleIsmsBefore = Get_NumVisibleIsms(*Target);
+        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake, false);
+
+        TestTrue(TEXT("hiding the body's own class leaves the Highlight class visible"),
+            Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Highlight));
+        TestEqual(TEXT("hiding the body's class hides exactly one component, not the overlay too"),
+            Get_NumVisibleIsms(*Target), VisibleIsmsBefore - 1);
+
+        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake, true);
+
+        // A moving selection is the case a one-shot overlay would get wrong: the overlay must be re-drawn in
+        // lockstep with the body, reusing its slot rather than being left behind at the old pose.
+        JoltWorld.Move_Body(SelectedBodyId, MovedBodyX);
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto& MoveStats = Target->Get_LastCaptureStats();
+        TestEqual(TEXT("the moved body and its overlay are both updated in place"), MoveStats._InstancesUpdated, 2);
+        TestEqual(TEXT("following the body adds no instance"), MoveStats._InstancesAdded, 0);
+        TestEqual(TEXT("following the body releases no instance"), MoveStats._InstancesRemoved, 0);
+        TestEqual(TEXT("the overlay still doubles exactly one body"),
+            Target->Get_NumInstances(), BaselineInstances + 1);
+
+        const auto MovedBounds = Target->Get_HighlightedBodyBounds();
+        TestTrue(TEXT("the selection bounds followed the body"),
+            MovedBounds.IsSet() && MovedBounds->IsInsideOrOn(FVector{MovedBodyX, 0.0, 0.0}));
+
+        // Clearing must not wait for a capture — a stale overlay outliving its selection is the visible bug.
+        Target->Set_HighlightedBody({});
+
+        TestFalse(TEXT("clearing forgets the selection"), Target->Get_HighlightedBody().IsSet());
+        TestEqual(TEXT("clearing releases the overlay instance immediately"),
+            Target->Get_NumInstances(), BaselineInstances);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_HighlightedBodyBounds,
+    "Ck.Jolt.DebugDraw.HighlightedBodyBounds",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_HighlightedBodyBounds::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto DoNotActivate = false;
+        // Off the origin on purpose: bounds that merely touch the world centre would satisfy an origin check
+        // while framing nothing.
+        constexpr auto SelectedBodyX = 1200.0f;
+        constexpr auto OtherBodyX = 5000.0f;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto SelectedBodyId = JoltWorld.Add_Box(JPH::EMotionType::Static, SelectedBodyX, IsNotSensor, DoNotActivate);
+        JoltWorld.Add_Box(JPH::EMotionType::Static, OtherBodyX, IsNotSensor, DoNotActivate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        TestFalse(TEXT("an unselected target has no selection bounds"),
+            Target->Get_HighlightedBodyBounds().IsSet());
+
+        Target->Set_HighlightedBody(Get_BodyKey(SelectedBodyId));
+
+        // The bounds are read off the body's NORMAL instance, which is already drawn — so Frame Selection fired
+        // straight after a row click frames the body on THAT click, without waiting for the next capture.
+        const auto SelectionBounds = Target->Get_HighlightedBodyBounds();
+
+        if (NOT TestTrue(TEXT("selecting an already-drawn body yields bounds with no re-capture"),
+            SelectionBounds.IsSet()))
+        { return false; }
+
+        TestTrue(TEXT("the bounds contain the selected body"),
+            SelectionBounds->IsInsideOrOn(FVector{SelectedBodyX, 0.0, 0.0}));
+        // Framing the SELECTION, not the scene: the other body must be outside the box.
+        TestFalse(TEXT("the bounds exclude the body that was not selected"),
+            SelectionBounds->IsInsideOrOn(FVector{OtherBodyX, 0.0, 0.0}));
+        TestTrue(TEXT("the bounds are smaller than the whole drawn scene"),
+            SelectionBounds->GetSize().X < Target->Get_ContentBounds().GetSize().X);
+
+        // The capture that adds the overlay must not disturb the box the normal instance defines.
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto CapturedBounds = Target->Get_HighlightedBodyBounds();
+        TestTrue(TEXT("capturing the overlay leaves the selection bounds unchanged"),
+            CapturedBounds.IsSet() && CapturedBounds->GetSize().Equals(SelectionBounds->GetSize()));
+
+        // A body that exists but has never been drawn has no instance to derive a box from.
+        const auto UndrawnBodyId = JoltWorld.Add_Box(JPH::EMotionType::Static, 9000.0f, IsNotSensor, DoNotActivate);
+        Target->Set_HighlightedBody(Get_BodyKey(UndrawnBodyId));
+
+        TestFalse(TEXT("a selected body that has never been drawn has no bounds"),
+            Target->Get_HighlightedBodyBounds().IsSet());
+
+        Target->Set_HighlightedBody({});
+
+        TestFalse(TEXT("clearing the selection clears its bounds"),
+            Target->Get_HighlightedBodyBounds().IsSet());
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_HighlightedBodyLinearVelocity,
+    "Ck.Jolt.DebugDraw.HighlightedBodyLinearVelocity",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_HighlightedBodyLinearVelocity::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto MovingBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 0.0f, IsNotSensor, Activate);
+        const auto OtherBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 500.0f, IsNotSensor, Activate);
+
+        // Asymmetric on every axis, so a dropped or swapped component cannot pass.
+        const auto Velocity = JPH::Vec3{250.0f, -125.0f, 60.0f};
+        JoltWorld.Set_LinearVelocity(MovingBodyId, Velocity);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        TestFalse(TEXT("an unselected target samples no velocity"),
+            Target->Get_HighlightedBodyLinearVelocity().IsSet());
+
+        // Selecting alone must not produce a sample: the value belongs to a capture, and reading live Jolt state
+        // to fill the gap is exactly what this API exists to prevent.
+        Target->Set_HighlightedBody(Get_BodyKey(MovingBodyId));
+
+        TestFalse(TEXT("selecting a body samples nothing until the next capture"),
+            Target->Get_HighlightedBodyLinearVelocity().IsSet());
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto Sampled = Target->Get_HighlightedBodyLinearVelocity();
+
+        if (NOT TestTrue(TEXT("the capture samples the highlighted body's velocity"), Sampled.IsSet()))
+        { return false; }
+
+        constexpr auto Tolerance = 0.5;
+        TestTrue(TEXT("the sampled velocity is the selected body's, converted to UE space"),
+            Sampled->Equals(ck::jolt::Conv(Velocity), Tolerance));
+
+        // The sample follows the SELECTION, not whichever body moved: the other body is at rest.
+        Target->Set_HighlightedBody(Get_BodyKey(OtherBodyId));
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto RestingSample = Target->Get_HighlightedBodyLinearVelocity();
+        TestTrue(TEXT("re-selecting samples the newly selected body"),
+            RestingSample.IsSet() && RestingSample->IsNearlyZero(Tolerance));
+
+        Target->Set_HighlightedBody({});
+
+        TestFalse(TEXT("clearing the selection forgets the velocity immediately"),
+            Target->Get_HighlightedBodyLinearVelocity().IsSet());
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_PickNearestBody,
+    "Ck.Jolt.DebugDraw.PickNearestBody",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_PickNearestBody::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto DoNotActivate = false;
+        constexpr auto NearBodyX = 1200.0f;
+        constexpr auto FarBodyX = 5000.0f;
+
+        // Two colour classes on one shared geometry, so the hidden-class case can hide the NEAR body alone.
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto NearBodyId = JoltWorld.Add_Box(JPH::EMotionType::Static, NearBodyX, IsNotSensor, DoNotActivate);
+        const auto FarBodyId = JoltWorld.Add_Box(JPH::EMotionType::Kinematic, FarBodyX, IsNotSensor, DoNotActivate);
+
+        const auto NearKey = Get_BodyKey(NearBodyId);
+        const auto FarKey = Get_BodyKey(FarBodyId);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        const auto RayOrigin = FVector{-1000.0, 0.0, 0.0};
+        const auto RayDirection = FVector{1.0, 0.0, 0.0};
+        const auto MissOrigin = FVector{-1000.0, 0.0, 100000.0};
+
+        TestFalse(TEXT("nothing is pickable before anything is drawn"),
+            Target->TryPick_Body(RayOrigin, RayDirection).IsSet());
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        TestEqual(TEXT("both bodies drew"), Target->Get_NumInstances(), 2);
+
+        const auto NearestHit = Target->TryPick_Body(RayOrigin, RayDirection);
+        TestTrue(TEXT("a ray through both bodies returns the nearer one"),
+            NearestHit == TOptional<uint64>{NearKey});
+
+        // Same two bodies, opposite direction: the answer must flip, or the test only proved map iteration order.
+        const auto ReversedHit = Target->TryPick_Body(FVector{9000.0, 0.0, 0.0}, -RayDirection);
+        TestTrue(TEXT("a ray from the far side returns the body nearer to IT"),
+            ReversedHit == TOptional<uint64>{FarKey});
+
+        TestFalse(TEXT("a ray that passes above everything hits nothing"),
+            Target->TryPick_Body(MissOrigin, RayDirection).IsSet());
+
+        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Static, false);
+
+        const auto HiddenNearHit = Target->TryPick_Body(RayOrigin, RayDirection);
+        TestTrue(TEXT("a hidden class is not pickable and the ray falls through to the far body"),
+            HiddenNearHit == TOptional<uint64>{FarKey});
+
+        Target->Set_ClassVisibility(ECk_Jolt_DebugDraw_ColorClass::Static, true);
+
+        // The overlay doubles the near body's geometry; picking it would return a key no consumer can resolve.
+        Target->Set_HighlightedBody(NearKey);
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        TestEqual(TEXT("the overlay is drawn"), Target->Get_NumInstances(), 3);
+        TestTrue(TEXT("the overlay instance is never what a pick returns"),
+            Target->TryPick_Body(RayOrigin, RayDirection) == TOptional<uint64>{NearKey});
     }
 
     World->DestroyWorld(false);
