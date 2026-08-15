@@ -446,6 +446,15 @@ namespace ck::auto_test::expected_errors
         TEXT("High pump count this frame"),
         TEXT("Pump limit ["),
         TEXT("implicit write-ordering edge"),
+        // ZenServer (the DDC backend) drops its HTTP service and self-recovers a few
+        // seconds later — routine on a machine running several editors, and the recovery
+        // is logged as successful right after. The Warning lands on whichever test happens
+        // to be mid-run, so it fails a DIFFERENT, innocent test every run and reads exactly
+        // like flake. Observed 2026-08-15: one run failed BOTH Crowd_Stall_RepathsAround-
+        // LateObstacle and Crowd_Separation_SpatialOrbitSearch this way — neither emitted a
+        // `FinishTest TestResult=Failed` line, i.e. both had passed their own assertions.
+        // Nothing under test asserts on DDC availability.
+        TEXT("Unable to reach Unreal Zen Storage Server"),
     };
 }
 
