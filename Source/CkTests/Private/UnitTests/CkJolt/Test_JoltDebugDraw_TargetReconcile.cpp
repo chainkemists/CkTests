@@ -13,6 +13,7 @@
 #include "CkJolt/CollisionLayers/CkJoltCollisionLayer_Utils.h"
 #include "CkJolt/Subsystem/CkJolt_DebugDrawTarget.h"
 #include "CkJolt/Subsystem/CkJolt_DebugRenderer.h"
+#include "CkJolt/World/CkJoltWorld.h"
 
 #include <Components/InstancedStaticMeshComponent.h>
 #include <Engine/World.h>
@@ -231,6 +232,28 @@ namespace ck_test_jolt_debugdraw
             JPH::Vec3Arg InVelocity) -> void
         {
             _PhysicsSystem->GetBodyInterface().SetLinearVelocity(InBodyId, InVelocity);
+        }
+
+        /// Distinctive per-body scalars, so a sample that read the WRONG body — or a default — cannot pass.
+        auto
+        Set_Material(
+            const JPH::BodyID& InBodyId,
+            float InFriction,
+            float InRestitution,
+            float InGravityFactor) -> void
+        {
+            auto& BodyInterface = _PhysicsSystem->GetBodyInterface();
+            BodyInterface.SetFriction(InBodyId, InFriction);
+            BodyInterface.SetRestitution(InBodyId, InRestitution);
+            BodyInterface.SetGravityFactor(InBodyId, InGravityFactor);
+        }
+
+        /// Rebuilds the broadphase without stepping. A narrow-phase query has to reach the bodies through the
+        /// tree, and the reconcile cases deliberately never step.
+        auto
+        Optimize_BroadPhase() -> void
+        {
+            _PhysicsSystem->OptimizeBroadPhase();
         }
 
         auto
@@ -1043,8 +1066,7 @@ bool FCkTest_JoltDebugDraw_HighlightAddsOverlayInstance::RunTest(const FString& 
         auto HighlightIsDistinct = true;
 
         for (const auto Mode : {ECk_Jolt_DebugDrawColorMode::BodyClass, ECk_Jolt_DebugDrawColorMode::SleepState,
-                                ECk_Jolt_DebugDrawColorMode::ObjectLayer, ECk_Jolt_DebugDrawColorMode::Island,
-                                ECk_Jolt_DebugDrawColorMode::ShapeType})
+                                ECk_Jolt_DebugDrawColorMode::ObjectLayer, ECk_Jolt_DebugDrawColorMode::ShapeType})
         {
             for (const auto& Entry : Target->Get_LegendEntries(Mode))
             {
@@ -1180,11 +1202,11 @@ bool FCkTest_JoltDebugDraw_HighlightedBodyBounds::RunTest(const FString& Paramet
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_JoltDebugDraw_HighlightedBodyLinearVelocity,
-    "Ck.Jolt.DebugDraw.HighlightedBodyLinearVelocity",
+    FCkTest_JoltDebugDraw_SelectionSampleIsCaptureOwned,
+    "Ck.Jolt.DebugDraw.SelectionSampleIsCaptureOwned",
     ck_test_jolt_debugdraw::TestFlags)
 
-bool FCkTest_JoltDebugDraw_HighlightedBodyLinearVelocity::RunTest(const FString& Parameters)
+bool FCkTest_JoltDebugDraw_SelectionSampleIsCaptureOwned::RunTest(const FString& Parameters)
 {
     using namespace ck_test_jolt_debugdraw;
 
@@ -1211,39 +1233,39 @@ bool FCkTest_JoltDebugDraw_HighlightedBodyLinearVelocity::RunTest(const FString&
         constexpr uint64 StaticSceneRevision = 1;
         Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
-        TestFalse(TEXT("an unselected target samples no velocity"),
-            Target->Get_HighlightedBodyLinearVelocity().IsSet());
+        TestFalse(TEXT("an unselected target samples nothing"),
+            Target->Get_BodySample().IsSet());
 
         // Selecting alone must not produce a sample: the value belongs to a capture, and reading live Jolt state
         // to fill the gap is exactly what this API exists to prevent.
         Target->Set_HighlightedBody(Get_BodyKey(MovingBodyId));
 
         TestFalse(TEXT("selecting a body samples nothing until the next capture"),
-            Target->Get_HighlightedBodyLinearVelocity().IsSet());
+            Target->Get_BodySample().IsSet());
 
         Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
-        const auto Sampled = Target->Get_HighlightedBodyLinearVelocity();
+        const auto Sampled = Target->Get_BodySample();
 
-        if (NOT TestTrue(TEXT("the capture samples the highlighted body's velocity"), Sampled.IsSet()))
+        if (NOT TestTrue(TEXT("the capture samples the highlighted body"), Sampled.IsSet()))
         { return false; }
 
         constexpr auto Tolerance = 0.5;
         TestTrue(TEXT("the sampled velocity is the selected body's, converted to UE space"),
-            Sampled->Equals(ck::jolt::Conv(Velocity), Tolerance));
+            Sampled->Get_LinearVelocity().Equals(ck::jolt::Conv(Velocity), Tolerance));
 
         // The sample follows the SELECTION, not whichever body moved: the other body is at rest.
         Target->Set_HighlightedBody(Get_BodyKey(OtherBodyId));
         Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
-        const auto RestingSample = Target->Get_HighlightedBodyLinearVelocity();
+        const auto RestingSample = Target->Get_BodySample();
         TestTrue(TEXT("re-selecting samples the newly selected body"),
-            RestingSample.IsSet() && RestingSample->IsNearlyZero(Tolerance));
+            RestingSample.IsSet() && RestingSample->Get_LinearVelocity().IsNearlyZero(Tolerance));
 
         Target->Set_HighlightedBody({});
 
-        TestFalse(TEXT("clearing the selection forgets the velocity immediately"),
-            Target->Get_HighlightedBodyLinearVelocity().IsSet());
+        TestFalse(TEXT("clearing the selection forgets the sample immediately"),
+            Target->Get_BodySample().IsSet());
     }
 
     World->DestroyWorld(false);
@@ -1678,16 +1700,6 @@ bool FCkTest_JoltDebugDraw_ColorModesAndLegend::RunTest(const FString& Parameter
             SleepStateClasses.Contains(static_cast<uint8>(ck::jolt::debug_draw::ESleepStateClass::Awake)) &&
             SleepStateClasses.Contains(static_cast<uint8>(ck::jolt::debug_draw::ESleepStateClass::Asleep)));
 
-        // Island: nothing has been stepped, so no body belongs to one and every body collapses into "no island".
-        Target->Set_ColorMode(ECk_Jolt_DebugDrawColorMode::Island);
-
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
-            Make_Revisions(StaticSceneRevision), FCk_Handle{});
-
-        const auto IslandClasses = Target->Get_BucketColorClasses();
-        TestTrue(TEXT("un-stepped bodies all report no island"),
-            IslandClasses.Num() == 2 && IslandClasses.Contains(0));
-
         Target->Set_ColorMode(ECk_Jolt_DebugDrawColorMode::BodyClass);
 
         Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
@@ -1699,8 +1711,7 @@ bool FCkTest_JoltDebugDraw_ColorModesAndLegend::RunTest(const FString& Parameter
         // ---- Legend ----
 
         for (const auto Mode : {ECk_Jolt_DebugDrawColorMode::BodyClass, ECk_Jolt_DebugDrawColorMode::SleepState,
-                                ECk_Jolt_DebugDrawColorMode::ObjectLayer, ECk_Jolt_DebugDrawColorMode::Island,
-                                ECk_Jolt_DebugDrawColorMode::ShapeType})
+                                ECk_Jolt_DebugDrawColorMode::ObjectLayer, ECk_Jolt_DebugDrawColorMode::ShapeType})
         {
             const auto Names = Get_LegendNames(*Target, Mode);
 
@@ -1929,6 +1940,404 @@ bool FCkTest_JoltDebugDraw_ContactRecordingReplays::RunTest(const FString& Param
 
         TestEqual(TEXT("a target that stopped asking is emptied rather than left showing stale contacts"),
             DemandingTarget->Get_NumContactLines(), 0);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_PauseAndStepOnce,
+    "Ck.Jolt.DebugDraw.PauseAndStepOnce",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_PauseAndStepOnce::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        // The fixture is only here for Jolt's global allocator, which FJoltWorld's own members allocate through.
+        auto JoltFixture = FScopedJoltWorld{};
+
+        auto Params = ck::FJoltWorld::FInitParams{};
+        Params.World = World;
+
+        auto JoltWorld = ck::FJoltWorld{Params};
+
+        // The gate is what FProcessor_JoltWorld_PlanStep consumes once per frame, so asserting on it IS
+        // asserting on how many steps a frame plans — without needing the scheduler to drive a processor.
+        TestFalse(TEXT("a fresh world is not debug-paused"), JoltWorld.Get_IsDebugPaused());
+        TestFalse(TEXT("and its gate blocks nothing"), JoltWorld.TryConsume_DebugPauseGate());
+
+        JoltWorld.Request_SetDebugPaused(true);
+
+        TestTrue(TEXT("the world reports itself debug-paused"), JoltWorld.Get_IsDebugPaused());
+        TestTrue(TEXT("a paused frame plans no steps"), JoltWorld.TryConsume_DebugPauseGate());
+        TestFalse(TEXT("and grants the Step processor nothing"), JoltWorld.Get_StepOnceGrantedThisFrame());
+        TestTrue(TEXT("a second paused frame still plans no steps"), JoltWorld.TryConsume_DebugPauseGate());
+
+        JoltWorld.Request_StepOnce();
+
+        TestFalse(TEXT("the frame after a step-once request plans steps"), JoltWorld.TryConsume_DebugPauseGate());
+        TestTrue(TEXT("and grants the Step processor that one frame"), JoltWorld.Get_StepOnceGrantedThisFrame());
+        TestTrue(TEXT("the world stays paused across the granted step"), JoltWorld.Get_IsDebugPaused());
+
+        TestTrue(TEXT("EXACTLY one step is granted - the next frame is blocked again"),
+            JoltWorld.TryConsume_DebugPauseGate());
+        TestFalse(TEXT("and the grant is cleared with it"), JoltWorld.Get_StepOnceGrantedThisFrame());
+
+        // A request made while running is meaningless and must not be banked: it would fire at the start of the
+        // next pause, stepping a world the user had just frozen.
+        JoltWorld.Request_SetDebugPaused(false);
+        JoltWorld.Request_StepOnce();
+        JoltWorld.Request_SetDebugPaused(true);
+
+        TestTrue(TEXT("a step-once requested while running is not banked for the next pause"),
+            JoltWorld.TryConsume_DebugPauseGate());
+
+        // Resuming with a pending one-shot must not leave it armed either.
+        JoltWorld.Request_StepOnce();
+        JoltWorld.Request_SetDebugPaused(false);
+        JoltWorld.Request_SetDebugPaused(true);
+
+        TestTrue(TEXT("resuming discards an unconsumed step-once"), JoltWorld.TryConsume_DebugPauseGate());
+
+        JoltWorld.Request_SetDebugPaused(false);
+
+        TestFalse(TEXT("resuming restores normal stepping"), JoltWorld.TryConsume_DebugPauseGate());
+
+        // The accumulator belongs to PlanStep, and a paused frame never reaches ComputeStepPlan - so a long
+        // pause cannot bank real time and burst on resume.
+        TestEqual(TEXT("a pause leaves the accumulator untouched"), JoltWorld.Get_Accumulator(), 0.0f);
+
+        TestEqual(TEXT("a world that never stepped reports no step duration"),
+            JoltWorld.Get_LastStepDurationMs(), 0.0f);
+
+        constexpr auto DurationMs = 1.25f;
+        JoltWorld.Set_LastStepDurationMs(DurationMs);
+
+        TestEqual(TEXT("the step duration reads back what the step loop wrote"),
+            JoltWorld.Get_LastStepDurationMs(), DurationMs);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_BodySampleFields,
+    "Ck.Jolt.DebugDraw.BodySampleFields",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_BodySampleFields::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsSensor = true;
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+        constexpr auto DoNotActivate = false;
+
+        constexpr auto Friction = 0.37f;
+        constexpr auto Restitution = 0.62f;
+        constexpr auto GravityFactor = 0.5f;
+        constexpr auto Tolerance = 0.001f;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto DynamicBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 0.0f, IsNotSensor, Activate);
+        const auto StaticBodyId = JoltWorld.Add_Box(JPH::EMotionType::Static, 2000.0f, IsNotSensor, DoNotActivate);
+        const auto SensorBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 4000.0f, IsSensor, Activate);
+
+        JoltWorld.Set_Material(DynamicBodyId, Friction, Restitution, GravityFactor);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+
+        Target->Set_HighlightedBody(Get_BodyKey(DynamicBodyId));
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto DynamicSample = Target->Get_BodySample();
+
+        if (NOT TestTrue(TEXT("the capture samples the selected dynamic body"), DynamicSample.IsSet()))
+        { return false; }
+
+        TestEqual(TEXT("friction is the body's own"), DynamicSample->Get_Friction(), Friction, Tolerance);
+        TestEqual(TEXT("restitution is the body's own"), DynamicSample->Get_Restitution(), Restitution, Tolerance);
+        TestEqual(TEXT("gravity factor is the body's own"),
+            DynamicSample->Get_GravityFactor(), GravityFactor, Tolerance);
+        TestTrue(TEXT("a dynamic box has a finite, positive mass"), DynamicSample->Get_Mass() > 0.0f);
+        TestTrue(TEXT("the motion type is mirrored, not cast"),
+            DynamicSample->Get_MotionType() == ECk_MotionType::Dynamic);
+        TestTrue(TEXT("a body with no CCD reports Discrete motion quality"),
+            DynamicSample->Get_MotionQuality() == ECk_MotionQuality::Discrete);
+        TestFalse(TEXT("a plain body is not a sensor"), DynamicSample->Get_IsSensor());
+        TestTrue(TEXT("a dynamic body's sleeping permission IS readable"),
+            DynamicSample->Get_AllowsSleeping().IsSet());
+        TestEqual(TEXT("the object layer is the body's own"),
+            static_cast<int32>(DynamicSample->Get_ObjectLayer()),
+            static_cast<int32>(JoltWorld.Get_Layer(ECk_Jolt_BodyDomain::Dynamic)));
+        TestEqual(TEXT("the shape sub-type is named, not numbered"), DynamicSample->Get_ShapeSubType(),
+            FString{TEXT("Box")});
+        TestEqual(TEXT("a box is a convex shape"), DynamicSample->Get_ShapeType(), FString{TEXT("Convex")});
+        TestTrue(TEXT("an unscaled shape reports unit scale"),
+            DynamicSample->Get_ShapeScale().Equals(FVector::OneVector, Tolerance));
+
+        const auto SampledBounds = DynamicSample->Get_WorldBounds();
+        TestTrue(TEXT("the world bounds are valid and enclose the body's own position"),
+            SampledBounds.IsValid != 0 && SampledBounds.IsInsideOrOn(FVector::ZeroVector));
+
+        // The static leg is the assert-safety one: a static body has NO MotionProperties, so a sample that
+        // reached for them would fire a JPH assert rather than degrade.
+        Target->Set_HighlightedBody(Get_BodyKey(StaticBodyId));
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision + 1), FCk_Handle{});
+
+        const auto StaticSample = Target->Get_BodySample();
+
+        if (NOT TestTrue(TEXT("the capture samples the selected static body"), StaticSample.IsSet()))
+        { return false; }
+
+        TestEqual(TEXT("a static body reports INFINITE mass as zero"), StaticSample->Get_Mass(), 0.0f);
+        TestFalse(TEXT("and its sleeping permission is never read"),
+            StaticSample->Get_AllowsSleeping().IsSet());
+        TestTrue(TEXT("its motion type is Static"),
+            StaticSample->Get_MotionType() == ECk_MotionType::Static);
+
+        Target->Set_HighlightedBody(Get_BodyKey(SensorBodyId));
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision + 1), FCk_Handle{});
+
+        const auto SensorSample = Target->Get_BodySample();
+        TestTrue(TEXT("a sensor reports itself as one"),
+            SensorSample.IsSet() && SensorSample->Get_IsSensor());
+
+        TestFalse(TEXT("a rigid-body selection produces no character sample"),
+            Target->Get_CharacterSample().IsSet());
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_SelectionContacts,
+    "Ck.Jolt.DebugDraw.SelectionContacts",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_SelectionContacts::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+
+        // Exactly face-to-face at 2 x BoxHalfExtent: a RESTING pair, not a penetrating one, which is the case
+        // the query's separation distance exists for.
+        constexpr auto TouchingX = 2.0f * BoxHalfExtent;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto SelectedBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 0.0f, IsNotSensor, Activate);
+        const auto TouchedBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, TouchingX, IsNotSensor, Activate);
+        JoltWorld.Optimize_BroadPhase();
+
+        const auto SelectedKey = Get_BodyKey(SelectedBodyId);
+        const auto TouchedKey = Get_BodyKey(TouchedBodyId);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+
+        Target->Set_HighlightedBody(SelectedKey);
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("contacts are not queried until a consumer asks for them"),
+            Target->Get_SelectionContacts().Num(), 0);
+
+        Target->Set_WantsSelectionContacts(true);
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto& Contacts = Target->Get_SelectionContacts();
+
+        if (NOT TestTrue(TEXT("a touching pair produces at least one contact entry"), Contacts.Num() > 0))
+        { return false; }
+
+        auto NamesTheOtherBody = false;
+        auto NamesItself = false;
+        auto CarriesPoints = false;
+
+        for (const auto& Entry : Contacts)
+        {
+            NamesTheOtherBody |= Entry.Get_OtherBodyKey() == TouchedKey;
+            NamesItself |= Entry.Get_OtherBodyKey() == SelectedKey;
+            CarriesPoints |= Entry.Get_NumContactPoints() > 0 &&
+                Entry.Get_ContactPoints().Num() == Entry.Get_NumContactPoints();
+        }
+
+        TestTrue(TEXT("the entry names the body the selection is touching"), NamesTheOtherBody);
+        TestFalse(TEXT("and never the selection itself - the body filter excludes it"), NamesItself);
+        TestTrue(TEXT("every entry carries the contact points it counts"), CarriesPoints);
+
+        // Separating them past the query's own separation distance must empty the list.
+        constexpr auto FarX = 5000.0f;
+        JoltWorld.Move_Body(TouchedBodyId, FarX);
+        JoltWorld.Optimize_BroadPhase();
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("separating the pair empties the contacts"),
+            Target->Get_SelectionContacts().Num(), 0);
+
+        JoltWorld.Move_Body(TouchedBodyId, TouchingX);
+        JoltWorld.Optimize_BroadPhase();
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestTrue(TEXT("bringing it back finds the pair again"), Target->Get_SelectionContacts().Num() > 0);
+
+        // Dropping the DEMAND empties the list without waiting for a capture: a consumer that stopped showing
+        // contacts must not be able to read a superseded manifold.
+        Target->Set_WantsSelectionContacts(false);
+
+        TestEqual(TEXT("dropping the demand empties the contacts immediately"),
+            Target->Get_SelectionContacts().Num(), 0);
+
+        Target->Set_WantsSelectionContacts(true);
+        Target->Set_HighlightedBody({});
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("with nothing selected there is nothing to query"),
+            Target->Get_SelectionContacts().Num(), 0);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_MultiHighlightAndIsolate,
+    "Ck.Jolt.DebugDraw.MultiHighlightAndIsolate",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_MultiHighlightAndIsolate::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+        constexpr auto NumBodies = 4;
+        constexpr auto BodySpacing = 1000.0f;
+
+        auto JoltWorld = FScopedJoltWorld{};
+
+        auto BodyKeys = TArray<uint64>{};
+        for (auto Index = 0; Index < NumBodies; ++Index)
+        {
+            const auto BodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic,
+                static_cast<float>(Index) * BodySpacing, IsNotSensor, Activate);
+            BodyKeys.Emplace(Get_BodyKey(BodyId));
+        }
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        const auto& Capture = [&]() -> void
+        {
+            Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+                Make_Revisions(StaticSceneRevision), FCk_Handle{});
+        };
+
+        Capture();
+
+        const auto BaselineInstances = Target->Get_NumInstances();
+        TestEqual(TEXT("one instance per body before any selection"), BaselineInstances, NumBodies);
+
+        Target->Set_HighlightedBodies({BodyKeys[0], BodyKeys[1], BodyKeys[2]});
+        Capture();
+
+        TestEqual(TEXT("N highlighted bodies add N overlay instances, not one"),
+            Target->Get_NumInstances(), BaselineInstances + 3);
+        TestTrue(TEXT("the primary selection is the FIRST key"),
+            Target->Get_HighlightedBody().IsSet() && *Target->Get_HighlightedBody() == BodyKeys[0]);
+        TestEqual(TEXT("and the whole selection is readable"), Target->Get_HighlightedBodies().Num(), 3);
+
+        // Dropping one releases EXACTLY one overlay - the set difference, not the whole selection.
+        Target->Set_HighlightedBodies({BodyKeys[0], BodyKeys[1]});
+
+        TestEqual(TEXT("dropping one body releases exactly one overlay, immediately"),
+            Target->Get_NumInstances(), BaselineInstances + 2);
+
+        const auto SelectionBounds = Target->Get_HighlightedBodyBounds();
+        TestTrue(TEXT("the selection bounds cover the UNION of the highlighted bodies"),
+            SelectionBounds.IsSet() && SelectionBounds->GetSize().X > BodySpacing);
+
+        Target->Set_IsolatedBodies(TSet<uint64>{BodyKeys[0]});
+        Capture();
+
+        // One normal instance and one overlay: isolation and highlight COMPOSE, and the isolated body keeps
+        // the selection it had.
+        TestEqual(TEXT("isolating one body releases every other body's instances"),
+            Target->Get_NumInstances(), 2);
+
+        Target->Clear_Isolation();
+        Capture();
+
+        TestEqual(TEXT("clearing isolation brings every body back"),
+            Target->Get_NumInstances(), BaselineInstances + 2);
+
+        // Isolating a body that is NOT selected must still leave exactly that body drawn.
+        Target->Set_HighlightedBodies({});
+        Target->Set_IsolatedBodies(TSet<uint64>{BodyKeys[3]});
+        Capture();
+
+        TestEqual(TEXT("an unselected isolated body draws alone"), Target->Get_NumInstances(), 1);
+
+        Target->Clear_Isolation();
+        Capture();
+
+        TestEqual(TEXT("and clearing restores the whole population"),
+            Target->Get_NumInstances(), BaselineInstances);
     }
 
     World->DestroyWorld(false);
