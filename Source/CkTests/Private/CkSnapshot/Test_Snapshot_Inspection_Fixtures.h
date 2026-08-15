@@ -30,7 +30,8 @@ class UCk_Test_NotSnapshot_SaveGame : public USaveGame
     GENERATED_BODY()
 
 public:
-    UPROPERTY() int32 _Marker = 0;
+    UPROPERTY()
+    int32 _Marker = 0;
 };
 
 // --------------------------------------------------------------------------------------------------------------------
