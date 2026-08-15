@@ -7573,6 +7573,19 @@ class ACk_AutoTest_ShapeSphere_Create_MakesDistinctChild_Actor : ACk_AutoTestRun
     }
 }
 
+class ACk_AutoTest_SmTask_Delay_DestroysTimerOnCompletion_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_SmTask_Delay_DestroysTimerOnCompletion");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 3.0f;
