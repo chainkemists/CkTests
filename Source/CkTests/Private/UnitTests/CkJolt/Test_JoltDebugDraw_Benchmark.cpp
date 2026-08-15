@@ -218,10 +218,36 @@ namespace ck_test_jolt_debugdraw_benchmark
 
     // ----------------------------------------------------------------------------------------------------------------
 
+    /*
+     * Every per-body extra the flags can ask for. Measured beside the default because the extras are LINES and
+     * lines are cleared every capture, so while one is on the incremental full pass cannot skip anything — the
+     * measured delta between the two runs IS the cost of that.
+     */
+    constexpr auto AllBodyDrawFlags =
+        ECk_Jolt_DebugDrawFlags::Shape |
+        ECk_Jolt_DebugDrawFlags::Velocity |
+        ECk_Jolt_DebugDrawFlags::AngularVelocity |
+        ECk_Jolt_DebugDrawFlags::WorldTransform |
+        ECk_Jolt_DebugDrawFlags::CenterOfMassTransform |
+        ECk_Jolt_DebugDrawFlags::BoundingBox |
+        ECk_Jolt_DebugDrawFlags::MassAndInertia;
+
+    enum class EBudgetPolicy : uint8
+    {
+        // The default-flag run gates; the all-flags run only MEASURES. A pass that redraws every body every
+        // capture is a different algorithmic class by construction, so holding it to the same sanity bound
+        // would either fail the gate or force the bound so wide it stops catching anything.
+        Enforced,
+        MeasureOnly
+    };
+
     auto
         Run_Config(
             FAutomationTestBase& InTest,
-            int32 InNumStatics)
+            int32 InNumStatics,
+            ECk_Jolt_DebugDrawFlags InDrawFlags = ECk_Jolt_DebugDrawFlags::Shape,
+            const FString& InCasePrefix = FString{},
+            EBudgetPolicy InBudgetPolicy = EBudgetPolicy::Enforced)
         -> void
     {
         auto* World = UWorld::CreateWorld(EWorldType::Game, false);
@@ -256,6 +282,12 @@ namespace ck_test_jolt_debugdraw_benchmark
             auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
             auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
             Target->Set_IsDesired(true);
+            Target->Set_DrawFlags(InDrawFlags);
+
+            const auto& Log_PrefixedCase = [&](const TCHAR* InCase, double InMilliseconds) -> void
+            {
+                Log_Case(InNumStatics, InCasePrefix + InCase, InMilliseconds);
+            };
 
             auto Revision = uint64{1};
 
@@ -264,7 +296,7 @@ namespace ck_test_jolt_debugdraw_benchmark
                 Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
                     ck::jolt::debug_draw::FCaptureRevisions{Revision}, FCk_Handle{});
             });
-            Log_Case(InNumStatics, TEXT("first_full_pass"), FirstPassMs);
+            Log_PrefixedCase(TEXT("first_full_pass"), FirstPassMs);
 
             // Steady state: the revision never moves, so only the awake dynamics are walked.
             auto SteadyTotalMs = 0.0;
@@ -279,7 +311,7 @@ namespace ck_test_jolt_debugdraw_benchmark
             }
 
             const auto SteadyMs = SteadyTotalMs / SteadyStateCaptures;
-            Log_Case(InNumStatics, TEXT("steady_state_avg"), SteadyMs);
+            Log_PrefixedCase(TEXT("steady_state_avg"), SteadyMs);
 
             ++Revision;
 
@@ -288,7 +320,7 @@ namespace ck_test_jolt_debugdraw_benchmark
                 Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
                     ck::jolt::debug_draw::FCaptureRevisions{Revision}, FCk_Handle{});
             });
-            Log_Case(InNumStatics, TEXT("revision_rerun"), RevisionRerunMs);
+            Log_PrefixedCase(TEXT("revision_rerun"), RevisionRerunMs);
 
             // A ray straight down the grid's first row, so it crosses real instances rather than empty space.
             const auto PickOrigin = FVector{-100000.0, 0.0, 0.0};
@@ -298,7 +330,7 @@ namespace ck_test_jolt_debugdraw_benchmark
             {
                 Target->TryPick_Body(PickOrigin, PickDirection);
             });
-            Log_Case(InNumStatics, TEXT("pick_body"), PickMs);
+            Log_PrefixedCase(TEXT("pick_body"), PickMs);
 
             // Selecting re-arms the full inactive pass, so this measures what one selection change costs.
             Target->Set_HighlightedBody(JoltWorld.Get_FirstBodyKey());
@@ -308,27 +340,30 @@ namespace ck_test_jolt_debugdraw_benchmark
                 Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
                     ck::jolt::debug_draw::FCaptureRevisions{Revision}, FCk_Handle{});
             });
-            Log_Case(InNumStatics, TEXT("highlight_rearmed_pass"), HighlightPassMs);
+            Log_PrefixedCase(TEXT("highlight_rearmed_pass"), HighlightPassMs);
 
             InTest.TestTrue(TEXT("every static body drew an instance"),
                 Target->Get_NumInstances() >= NumStaticsAdded);
 
-            InTest.TestTrue(FString::Printf(
-                TEXT("steady-state capture at N=%d stays under the sanity budget"), InNumStatics),
-                SteadyMs < SteadyStateBudgetMs);
+            if (InBudgetPolicy == EBudgetPolicy::Enforced)
+            {
+                InTest.TestTrue(FString::Printf(
+                    TEXT("steady-state capture at N=%d stays under the sanity budget"), InNumStatics),
+                    SteadyMs < SteadyStateBudgetMs);
 
-            InTest.TestTrue(FString::Printf(
-                TEXT("the first full pass at N=%d stays under the sanity budget"), InNumStatics),
-                FirstPassMs < PassBudgetMs);
-            InTest.TestTrue(FString::Printf(
-                TEXT("a revision re-run at N=%d stays under the sanity budget"), InNumStatics),
-                RevisionRerunMs < PassBudgetMs);
-            InTest.TestTrue(FString::Printf(
-                TEXT("a pick at N=%d stays under the sanity budget"), InNumStatics),
-                PickMs < PassBudgetMs);
-            InTest.TestTrue(FString::Printf(
-                TEXT("a re-armed pass after a selection at N=%d stays under the sanity budget"), InNumStatics),
-                HighlightPassMs < PassBudgetMs);
+                InTest.TestTrue(FString::Printf(
+                    TEXT("the first full pass at N=%d stays under the sanity budget"), InNumStatics),
+                    FirstPassMs < PassBudgetMs);
+                InTest.TestTrue(FString::Printf(
+                    TEXT("a revision re-run at N=%d stays under the sanity budget"), InNumStatics),
+                    RevisionRerunMs < PassBudgetMs);
+                InTest.TestTrue(FString::Printf(
+                    TEXT("a pick at N=%d stays under the sanity budget"), InNumStatics),
+                    PickMs < PassBudgetMs);
+                InTest.TestTrue(FString::Printf(
+                    TEXT("a re-armed pass after a selection at N=%d stays under the sanity budget"), InNumStatics),
+                    HighlightPassMs < PassBudgetMs);
+            }
         }
 
         World->DestroyWorld(false);
@@ -350,6 +385,11 @@ bool FCkTest_JoltDebugDraw_Benchmark_ScaleMatrix::RunTest(const FString& Paramet
 
     for (const auto NumStatics : BodyCounts)
     { Run_Config(*this, NumStatics); }
+
+    // The same 100k scene with every per-body extra on. Only at the scale bar, and MEASURE-ONLY: extras are
+    // lines, lines are cleared every capture, so the incremental pass has to redraw every body every time — a
+    // different algorithmic class, deliberately reported rather than gated.
+    Run_Config(*this, 100000, AllBodyDrawFlags, TEXT("allflags_"), EBudgetPolicy::MeasureOnly);
 
     return true;
 }
