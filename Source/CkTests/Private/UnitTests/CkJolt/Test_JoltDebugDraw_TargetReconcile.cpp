@@ -172,6 +172,21 @@ namespace ck_test_jolt_debugdraw
             return Body->GetID();
         }
 
+        /// Destroys ONE body, the way a JoltBody entity's EndPlay does — which is the funnel that bumps the
+        /// world's body-removed revision and therefore the only thing that can arm the capture's sweep.
+        auto
+        Remove_Body(
+            const JPH::BodyID& InBodyId) -> void
+        {
+            auto& BodyInterface = _PhysicsSystem->GetBodyInterface();
+
+            if (BodyInterface.IsAdded(InBodyId))
+            { BodyInterface.RemoveBody(InBodyId); }
+
+            BodyInterface.DestroyBody(InBodyId);
+            _BodyIds.Remove(InBodyId);
+        }
+
         auto
         Remove_AllBodies() -> void
         {
@@ -257,7 +272,18 @@ namespace ck_test_jolt_debugdraw
             const JPH::BodyID& InBodyId)
         -> uint64
     {
-        return static_cast<uint64>(InBodyId.GetIndexAndSequenceNumber());
+        return ck::jolt::debug_draw::Make_BodyKey(InBodyId.GetIndexAndSequenceNumber());
+    }
+
+    /// Most cases only ever move the static-scene token; the body-removed token belongs to the sweep and is
+    /// driven explicitly by the one case that destroys a body.
+    auto
+        Make_Revisions(
+            uint64 InStaticScene,
+            uint64 InBodyRemoved = 0)
+        -> ck::jolt::debug_draw::FCaptureRevisions
+    {
+        return ck::jolt::debug_draw::FCaptureRevisions{InStaticScene, InBodyRemoved};
     }
 
     auto
@@ -295,14 +321,14 @@ bool FCkTest_JoltDebugDraw_TargetReconcile_StaticPassIsIdempotent::RunTest(const
         constexpr auto DoNotActivate = false;
 
         auto JoltWorld = FScopedJoltWorld{};
-        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        const auto MovedBodyId = JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
         JoltWorld.Add_Box(JPH::EMotionType::Static, 500.0f, IsNotSensor, DoNotActivate);
 
         auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
         auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto& FirstStats = Target->Get_LastCaptureStats();
         TestTrue(TEXT("the first capture runs the full pass"), FirstStats._FullPassRan);
@@ -311,7 +337,7 @@ bool FCkTest_JoltDebugDraw_TargetReconcile_StaticPassIsIdempotent::RunTest(const
         TestEqual(TEXT("two same-geometry same-class bodies share one bucket"), Target->Get_NumBuckets(), 1);
         TestEqual(TEXT("the bucket holds one instance per body"), Target->Get_NumInstances(), 2);
 
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto& SecondStats = Target->Get_LastCaptureStats();
         TestFalse(TEXT("an unchanged static revision skips the full pass entirely"), SecondStats._FullPassRan);
@@ -321,18 +347,38 @@ bool FCkTest_JoltDebugDraw_TargetReconcile_StaticPassIsIdempotent::RunTest(const
         TestEqual(TEXT("the second capture removes nothing"), SecondStats._InstancesRemoved, 0);
         TestEqual(TEXT("the retained instances survive the no-op capture"), Target->Get_NumInstances(), 2);
 
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision + 1, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision + 1), FCk_Handle{});
 
         const auto& ThirdStats = Target->Get_LastCaptureStats();
         TestTrue(TEXT("a bumped static revision re-runs the full pass"), ThirdStats._FullPassRan);
         TestEqual(TEXT("the rebuilt static scene still holds one instance per body"), Target->Get_NumInstances(), 2);
 
-        // The whole point of the persistent-slot model: a re-run over unchanged bodies REUSES their slots
-        // rather than tearing the instances down and re-adding them.
+        // The incremental half of the persistent-slot model: a body whose pose and shape are exactly what the
+        // last pass drew is not touched AT ALL — not rebuilt, and not even re-updated. That is what keeps the
+        // cost of a scene-revision bump proportional to what CHANGED rather than to the whole world.
         TestEqual(TEXT("a re-run over unchanged bodies adds no instance"), ThirdStats._InstancesAdded, 0);
         TestEqual(TEXT("a re-run over unchanged bodies removes no instance"), ThirdStats._InstancesRemoved, 0);
-        TestEqual(TEXT("a re-run over unchanged bodies updates each body's slot in place"),
-            ThirdStats._InstancesUpdated, 2);
+        TestEqual(TEXT("a re-run over unchanged bodies updates no instance either"),
+            ThirdStats._InstancesUpdated, 0);
+        TestEqual(TEXT("a re-run over unchanged bodies draws no body"), ThirdStats._BodiesCaptured, 0);
+
+        // ...and the other half: the skip is pose-aware, so a static that MOVED (its only funnel is the
+        // revision, since it never activates) still lands at its new pose, in the slot it already had.
+        constexpr auto MovedBodyX = 4200.0f;
+        JoltWorld.Move_Body(MovedBodyId, MovedBodyX);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision + 2), FCk_Handle{});
+
+        const auto& MovedStats = Target->Get_LastCaptureStats();
+        TestEqual(TEXT("a moved static is re-drawn"), MovedStats._BodiesCaptured, 1);
+        TestEqual(TEXT("a moved static reuses its slot"), MovedStats._InstancesUpdated, 1);
+        TestEqual(TEXT("a moved static adds no instance"), MovedStats._InstancesAdded, 0);
+        TestEqual(TEXT("a moved static removes no instance"), MovedStats._InstancesRemoved, 0);
+        TestEqual(TEXT("the scene still holds one instance per body"), Target->Get_NumInstances(), 2);
+
+        const auto MovedBounds = Target->Get_ContentBounds();
+        TestTrue(TEXT("the drawn content followed the moved body"),
+            MovedBounds.IsInsideOrOn(FVector{MovedBodyX, 0.0, 0.0}));
     }
 
     World->DestroyWorld(false);
@@ -368,7 +414,7 @@ bool FCkTest_JoltDebugDraw_SleepTransitionRecolors::RunTest(const FString& Param
         auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto FirstClasses = Target->Get_BucketColorClasses();
         TestTrue(TEXT("the awake dynamic body is coloured Dynamic_Awake"),
@@ -381,7 +427,7 @@ bool FCkTest_JoltDebugDraw_SleepTransitionRecolors::RunTest(const FString& Param
 
         JoltWorld.Deactivate(AwakeBodyId);
 
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto& SleepStats = Target->Get_LastCaptureStats();
         TestEqual(TEXT("falling asleep releases the awake bucket's instance"), SleepStats._InstancesRemoved, 1);
@@ -432,7 +478,7 @@ bool FCkTest_JoltDebugDraw_MaterialSwap::RunTest(const FString& Parameters)
         auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto InstanceCountBefore = Target->Get_NumInstances();
         TestEqual(TEXT("the solid capture produced one instance per body"), InstanceCountBefore, 2);
@@ -506,7 +552,7 @@ bool FCkTest_JoltDebugDraw_ClassPalette::RunTest(const FString& Parameters)
         auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto AwakeClasses = Target->Get_BucketColorClasses();
         TestTrue(TEXT("a Static-motion body lands in the Static bucket"),
@@ -521,7 +567,7 @@ bool FCkTest_JoltDebugDraw_ClassPalette::RunTest(const FString& Parameters)
             Target->Get_NumBuckets(), 4);
 
         JoltWorld.Deactivate(DynamicBodyId);
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto SleepingClasses = Target->Get_BucketColorClasses();
         TestTrue(TEXT("a deactivated Dynamic body lands in the Dynamic_Sleeping bucket"),
@@ -564,7 +610,7 @@ bool FCkTest_JoltDebugDraw_ClassVisibility::RunTest(const FString& Parameters)
         auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         TestTrue(TEXT("every class starts visible"),
             Target->Get_IsClassVisible(ECk_Jolt_DebugDraw_ColorClass::Static));
@@ -591,7 +637,7 @@ bool FCkTest_JoltDebugDraw_ClassVisibility::RunTest(const FString& Parameters)
             Get_NumVisibleIsms(*Target), VisibleIsmsBefore - 1);
 
         // A capture while hidden must keep the class up to date rather than skipping it.
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision + 1, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision + 1), FCk_Handle{});
 
         const auto& HiddenStats = Target->Get_LastCaptureStats();
         TestTrue(TEXT("a hidden class is still captured, not skipped"), HiddenStats._BodiesCaptured > 0);
@@ -645,7 +691,7 @@ bool FCkTest_JoltDebugDraw_ContentBounds::RunTest(const FString& Parameters)
         JoltWorld.Add_Box(JPH::EMotionType::Static, NearBodyX, IsNotSensor, DoNotActivate);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto NearBounds = Target->Get_ContentBounds();
         TestTrue(TEXT("a captured body yields valid content bounds"), NearBounds.IsValid != 0);
@@ -656,7 +702,7 @@ bool FCkTest_JoltDebugDraw_ContentBounds::RunTest(const FString& Parameters)
 
         // A second body far away must widen the box — bounds track content, not just the first thing drawn.
         JoltWorld.Add_Box(JPH::EMotionType::Kinematic, FarBodyX, IsNotSensor, DoNotActivate);
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision + 1, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision + 1), FCk_Handle{});
 
         const auto WidenedBounds = Target->Get_ContentBounds();
         TestTrue(TEXT("the widened bounds are still valid"), WidenedBounds.IsValid != 0);
@@ -722,8 +768,8 @@ bool FCkTest_JoltDebugDraw_MultiTargetBatchPrune::RunTest(const FString& Paramet
         TargetB->Set_IsDesired(true);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*TargetA, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
-        Renderer.Capture_JoltWorld(*TargetB, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*TargetA, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
+        Renderer.Capture_JoltWorld(*TargetB, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         TestEqual(TEXT("both targets bucket the shared geometry independently"), TargetA->Get_NumBuckets(), 1);
         TestEqual(TEXT("the second target buckets it too"), TargetB->Get_NumBuckets(), 1);
@@ -737,23 +783,25 @@ bool FCkTest_JoltDebugDraw_MultiTargetBatchPrune::RunTest(const FString& Paramet
         TestEqual(TEXT("the surviving target keeps its instance after the other is destroyed"),
             TargetB->Get_NumInstances(), 1);
 
-        Renderer.Capture_JoltWorld(*TargetB, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision + 1, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*TargetB, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision + 1), FCk_Handle{});
 
         const auto& SurvivorStats = TargetB->Get_LastCaptureStats();
         TestEqual(TEXT("the survivor re-captures by reusing its slots, adding nothing"),
             SurvivorStats._InstancesAdded, 0);
         TestEqual(TEXT("the survivor re-captures without releasing anything"),
             SurvivorStats._InstancesRemoved, 0);
-        TestEqual(TEXT("the survivor updates its existing slot in place"),
-            SurvivorStats._InstancesUpdated, 1);
+        // The body did not move, so the incremental pass leaves its slot entirely alone.
+        TestEqual(TEXT("the survivor does not even re-update its unchanged slot"),
+            SurvivorStats._InstancesUpdated, 0);
         TestEqual(TEXT("the survivor's bucket is still alive after the re-capture"),
             TargetB->Get_NumBuckets(), 1);
+        TestEqual(TEXT("the survivor is still rendering its instance"), TargetB->Get_NumInstances(), 1);
 
         // Now nothing Jolt-side references the geometry: destroy the bodies, then drop the shape itself.
         JoltWorld.Remove_AllBodies();
         JoltWorld.Release_SharedShapes();
 
-        Renderer.Capture_JoltWorld(*TargetB, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision + 2, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*TargetB, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision + 2), FCk_Handle{});
 
         TestEqual(TEXT("the batch is pruned once no Jolt geometry references it"), TargetB->Get_NumBuckets(), 0);
         TestEqual(TEXT("the pruned bucket took its component with it"), TargetB->Get_Isms().Num(), 0);
@@ -794,7 +842,7 @@ bool FCkTest_JoltDebugDraw_PreviewWorldCompat::RunTest(const FString& Parameters
         auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto Isms = Target->Get_Isms();
 
@@ -843,14 +891,14 @@ bool FCkTest_JoltDebugDraw_HighlightAddsOverlayInstance::RunTest(const FString& 
         auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto BaselineInstances = Target->Get_NumInstances();
         TestEqual(TEXT("the baseline capture draws one instance per body"), BaselineInstances, 2);
         TestFalse(TEXT("nothing is highlighted before a selection"), Target->Get_HighlightedBody().IsSet());
 
         Target->Set_HighlightedBody(SelectedKey);
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         TestTrue(TEXT("the target reports the selection back"),
             Target->Get_HighlightedBody() == TOptional<uint64>{SelectedKey});
@@ -879,7 +927,7 @@ bool FCkTest_JoltDebugDraw_HighlightAddsOverlayInstance::RunTest(const FString& 
         // A moving selection is the case a one-shot overlay would get wrong: the overlay must be re-drawn in
         // lockstep with the body, reusing its slot rather than being left behind at the old pose.
         JoltWorld.Move_Body(SelectedBodyId, MovedBodyX);
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto& MoveStats = Target->Get_LastCaptureStats();
         TestEqual(TEXT("the moved body and its overlay are both updated in place"), MoveStats._InstancesUpdated, 2);
@@ -936,7 +984,7 @@ bool FCkTest_JoltDebugDraw_HighlightedBodyBounds::RunTest(const FString& Paramet
         auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         TestFalse(TEXT("an unselected target has no selection bounds"),
             Target->Get_HighlightedBodyBounds().IsSet());
@@ -960,7 +1008,7 @@ bool FCkTest_JoltDebugDraw_HighlightedBodyBounds::RunTest(const FString& Paramet
             SelectionBounds->GetSize().X < Target->Get_ContentBounds().GetSize().X);
 
         // The capture that adds the overlay must not disturb the box the normal instance defines.
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto CapturedBounds = Target->Get_HighlightedBodyBounds();
         TestTrue(TEXT("capturing the overlay leaves the selection bounds unchanged"),
@@ -1015,7 +1063,7 @@ bool FCkTest_JoltDebugDraw_HighlightedBodyLinearVelocity::RunTest(const FString&
         auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         TestFalse(TEXT("an unselected target samples no velocity"),
             Target->Get_HighlightedBodyLinearVelocity().IsSet());
@@ -1027,7 +1075,7 @@ bool FCkTest_JoltDebugDraw_HighlightedBodyLinearVelocity::RunTest(const FString&
         TestFalse(TEXT("selecting a body samples nothing until the next capture"),
             Target->Get_HighlightedBodyLinearVelocity().IsSet());
 
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto Sampled = Target->Get_HighlightedBodyLinearVelocity();
 
@@ -1040,7 +1088,7 @@ bool FCkTest_JoltDebugDraw_HighlightedBodyLinearVelocity::RunTest(const FString&
 
         // The sample follows the SELECTION, not whichever body moved: the other body is at rest.
         Target->Set_HighlightedBody(Get_BodyKey(OtherBodyId));
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         const auto RestingSample = Target->Get_HighlightedBodyLinearVelocity();
         TestTrue(TEXT("re-selecting samples the newly selected body"),
@@ -1097,7 +1145,7 @@ bool FCkTest_JoltDebugDraw_PickNearestBody::RunTest(const FString& Parameters)
             Target->TryPick_Body(RayOrigin, RayDirection).IsSet());
 
         constexpr uint64 StaticSceneRevision = 1;
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         TestEqual(TEXT("both bodies drew"), Target->Get_NumInstances(), 2);
 
@@ -1123,11 +1171,85 @@ bool FCkTest_JoltDebugDraw_PickNearestBody::RunTest(const FString& Parameters)
 
         // The overlay doubles the near body's geometry; picking it would return a key no consumer can resolve.
         Target->Set_HighlightedBody(NearKey);
-        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
         TestEqual(TEXT("the overlay is drawn"), Target->Get_NumInstances(), 3);
         TestTrue(TEXT("the overlay instance is never what a pick returns"),
             Target->TryPick_Body(RayOrigin, RayDirection) == TOptional<uint64>{NearKey});
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_DestroyedSleepingBodyReleasesBothSlots,
+    "Ck.Jolt.DebugDraw.DestroyedSleepingBodyReleasesBothSlots",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_DestroyedSleepingBodyReleasesBothSlots::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto DoNotActivate = false;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        const auto SleepingBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 500.0f, IsNotSensor, DoNotActivate);
+        const auto SleepingKey = Get_BodyKey(SleepingBodyId);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        constexpr uint64 NoBodiesRemoved = 0;
+        constexpr uint64 OneBodyRemoved = 1;
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision, NoBodiesRemoved), FCk_Handle{});
+
+        TestEqual(TEXT("both bodies drew"), Target->Get_NumInstances(), 2);
+        TestTrue(TEXT("the first capture always sweeps, having nothing to compare against"),
+            Target->Get_LastCaptureStats()._SweepRan);
+
+        Target->Set_HighlightedBody(SleepingKey);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision, NoBodiesRemoved), FCk_Handle{});
+
+        TestEqual(TEXT("the selection overlay doubles the sleeping body"), Target->Get_NumInstances(), 3);
+        // The sweep is O(sleeping bodies); an unchanged body-removed token means nothing can have died.
+        TestFalse(TEXT("an unchanged body-removed revision skips the sweep entirely"),
+            Target->Get_LastCaptureStats()._SweepRan);
+
+        // A sleeping body is in NEITHER body pass, so only the sweep can notice it is gone. The static-scene
+        // revision deliberately does not move here — the full pass must not be what covers this.
+        JoltWorld.Remove_Body(SleepingBodyId);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision, OneBodyRemoved), FCk_Handle{});
+
+        const auto& SweepStats = Target->Get_LastCaptureStats();
+        TestTrue(TEXT("a bumped body-removed revision runs the sweep"), SweepStats._SweepRan);
+        TestFalse(TEXT("the sweep did not need the full pass to run"), SweepStats._FullPassRan);
+        TestEqual(TEXT("the destroyed body releases its own instance AND its overlay"),
+            SweepStats._InstancesRemoved, 2);
+        TestEqual(TEXT("only the surviving static is still drawn"), Target->Get_NumInstances(), 1);
+
+        // The selection itself survives — what died is the body behind it, so the bounds are what go away.
+        TestTrue(TEXT("the target still reports the selection"),
+            Target->Get_HighlightedBody() == TOptional<uint64>{SleepingKey});
+        TestFalse(TEXT("a selection whose body was destroyed has no bounds"),
+            Target->Get_HighlightedBodyBounds().IsSet());
     }
 
     World->DestroyWorld(false);
