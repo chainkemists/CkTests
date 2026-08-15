@@ -21,6 +21,10 @@ public class CkTests : CkModuleRules
             "Gauntlet",
             "EnhancedInput",
             "RenderCore",
+            // The CkJolt dynamic-mesh bake tests author a runtime FDynamicMesh3 (GeometryCore) on an
+            // ADynamicMeshActor (GeometryFramework) — the exact runtime-generated geometry that bake serves.
+            "GeometryCore",
+            "GeometryFramework",
             // Direct, not inherited through CkParticles: the CkParticles authoring gate loads a UNiagaraSystem
             // itself, and the transitive public dependency did not put Niagara's import lib on this link
             // (LNK2019 on Z_Construct_UClass_UNiagaraSystem_NoRegister).
