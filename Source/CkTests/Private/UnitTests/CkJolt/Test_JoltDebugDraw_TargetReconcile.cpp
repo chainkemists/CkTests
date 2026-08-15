@@ -1,0 +1,618 @@
+#include <Misc/AutomationTest.h>
+
+#include <Jolt/Jolt.h>
+
+#if WITH_DEV_AUTOMATION_TESTS && JPH_DEBUG_RENDERER
+
+#include "CkEcs/Handle/CkHandle.h"
+
+#include "CkJolt/CkJolt_Utils.h"
+#include "CkJolt/CollisionLayers/CkJoltCollisionLayerTable.h"
+#include "CkJolt/CollisionLayers/CkJoltCollisionLayer_Utils.h"
+#include "CkJolt/Subsystem/CkJolt_DebugDrawTarget.h"
+#include "CkJolt/Subsystem/CkJolt_DebugRenderer.h"
+
+#include <Components/InstancedStaticMeshComponent.h>
+#include <Engine/World.h>
+#include <Materials/Material.h>
+#include <Materials/MaterialInstanceDynamic.h>
+
+#include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyInterface.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
+
+// --------------------------------------------------------------------------------------------------------------------
+// Pins the world-targetable batched Jolt debug renderer against a standalone JPH::PhysicsSystem and a transient
+// UWorld — no PIE, no Jolt subsystem, no ECS registry. Every body in a case shares ONE BoxShape, so a bucket split
+// can only ever come from the colour class, which is what the per-(geometry, colour-class) bucket model claims.
+//
+// Not covered here (both need a live ECS registry, so they belong to a PIE-level spec): the BakedStatic colour
+// class, which is resolved through a body's JoltStaticActor attribution entity, and the character pass.
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_test_jolt_debugdraw
+{
+    constexpr auto TestFlags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter;
+
+    constexpr JPH::uint MaxBodies = 256;
+    constexpr auto BoxHalfExtent = 50.0f;
+
+    const auto SolidMaterialPath = FString{TEXT("/Engine/EngineDebugMaterials/M_SimpleUnlitTranslucent.M_SimpleUnlitTranslucent")};
+    const auto WireframeMaterialPath = FString{TEXT("/Engine/EngineDebugMaterials/WireframeMaterial.WireframeMaterial")};
+
+    // Everything CkJolt's subsystem builds around a PhysicsSystem, minus the world/ECS/threading: the layer table
+    // and its three filters must outlive the PhysicsSystem that holds references to them.
+    struct FScopedJoltWorld
+    {
+        FScopedJoltWorld()
+        {
+            ck::jolt::Request_GlobalJoltInit();
+
+            _LayerTable = MakeUnique<ck::jolt::FCk_Jolt_CollisionLayerTable>();
+            _LayerTable->Build_FromCollisionProfiles();
+
+            _BroadPhaseLayerInterface = MakeUnique<ck::jolt::FCk_Jolt_BroadPhaseLayerInterface_Table>(*_LayerTable);
+            _ObjectVsBroadPhaseFilter = MakeUnique<ck::jolt::FCk_Jolt_ObjectVsBroadPhaseLayerFilter_Table>(*_LayerTable);
+            _ObjectVsObjectFilter = MakeUnique<ck::jolt::FCk_Jolt_ObjectLayerPairFilter_Table>(*_LayerTable);
+
+            _PhysicsSystem = MakeUnique<JPH::PhysicsSystem>();
+            _PhysicsSystem->Init(MaxBodies, 0, MaxBodies, MaxBodies,
+                *_BroadPhaseLayerInterface, *_ObjectVsBroadPhaseFilter, *_ObjectVsObjectFilter);
+
+            _SharedBox = new JPH::BoxShape{JPH::Vec3{BoxHalfExtent, BoxHalfExtent, BoxHalfExtent}};
+
+            auto HullPoints = JPH::Array<JPH::Vec3>{};
+            for (const auto SignX : {-1.0f, 1.0f})
+            for (const auto SignY : {-1.0f, 1.0f})
+            for (const auto SignZ : {-1.0f, 1.0f})
+            { HullPoints.push_back(JPH::Vec3{SignX * BoxHalfExtent, SignY * BoxHalfExtent, SignZ * BoxHalfExtent}); }
+
+            auto HullSettings = JPH::ConvexHullShapeSettings{HullPoints};
+            const auto HullResult = HullSettings.Create();
+            if (HullResult.IsValid())
+            { _SharedHull = HullResult.Get(); }
+        }
+
+        ~FScopedJoltWorld()
+        {
+            _BodyIds.Reset();
+            _SharedBox = nullptr;
+            _SharedHull = nullptr;
+            _PhysicsSystem.Reset();
+            _ObjectVsObjectFilter.Reset();
+            _ObjectVsBroadPhaseFilter.Reset();
+            _BroadPhaseLayerInterface.Reset();
+            _LayerTable.Reset();
+
+            ck::jolt::Request_GlobalJoltShutdown();
+        }
+
+        FScopedJoltWorld(const FScopedJoltWorld&) = delete;
+        auto operator=(const FScopedJoltWorld&) -> FScopedJoltWorld& = delete;
+
+        auto Get_PhysicsSystem() -> JPH::PhysicsSystem& { return *_PhysicsSystem; }
+
+        auto
+        Get_Layer(
+            ECk_Jolt_BodyDomain InDomain) -> JPH::ObjectLayer
+        {
+            const auto Signature = ck::jolt::TryDerive_SignatureFromProfile(FName{TEXT("BlockAll")}, InDomain);
+
+            if (NOT Signature.IsSet())
+            { return JPH::ObjectLayer{_LayerTable->Get_ProbeLayer()}; }
+
+            return JPH::ObjectLayer{_LayerTable->Get_OrRegisterLayer(*Signature)};
+        }
+
+        auto
+        Add_Box(
+            JPH::EMotionType InMotionType,
+            float InLocationX,
+            bool InIsSensor,
+            bool InActivate) -> JPH::BodyID
+        {
+            const auto Domain = InMotionType == JPH::EMotionType::Static
+                ? ECk_Jolt_BodyDomain::Static
+                : ECk_Jolt_BodyDomain::Dynamic;
+
+            auto Settings = JPH::BodyCreationSettings{
+                _SharedBox.GetPtr(),
+                JPH::RVec3{InLocationX, 0.0f, 0.0f},
+                JPH::Quat::sIdentity(),
+                InMotionType,
+                Get_Layer(Domain)};
+
+            Settings.mIsSensor = InIsSensor;
+
+            auto& BodyInterface = _PhysicsSystem->GetBodyInterface();
+            auto* Body = BodyInterface.CreateBody(Settings);
+
+            if (Body == nullptr)
+            { return JPH::BodyID{}; }
+
+            BodyInterface.AddBody(Body->GetID(),
+                InActivate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+
+            _BodyIds.Emplace(Body->GetID());
+            return Body->GetID();
+        }
+
+        /// A box draws through the renderer's SHARED unit-box geometry, which the DebugRenderer holds for its
+        /// whole lifetime — its batch is deliberately never prunable. A convex hull caches its own per-shape
+        /// geometry, so it is the shape a batch-prune case has to use.
+        auto
+        Add_ConvexHull(
+            JPH::EMotionType InMotionType,
+            float InLocationX,
+            bool InActivate) -> JPH::BodyID
+        {
+            const auto Domain = InMotionType == JPH::EMotionType::Static
+                ? ECk_Jolt_BodyDomain::Static
+                : ECk_Jolt_BodyDomain::Dynamic;
+
+            auto Settings = JPH::BodyCreationSettings{
+                _SharedHull.GetPtr(),
+                JPH::RVec3{InLocationX, 0.0f, 0.0f},
+                JPH::Quat::sIdentity(),
+                InMotionType,
+                Get_Layer(Domain)};
+
+            auto& BodyInterface = _PhysicsSystem->GetBodyInterface();
+            auto* Body = BodyInterface.CreateBody(Settings);
+
+            if (Body == nullptr)
+            { return JPH::BodyID{}; }
+
+            BodyInterface.AddBody(Body->GetID(),
+                InActivate ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+
+            _BodyIds.Emplace(Body->GetID());
+            return Body->GetID();
+        }
+
+        auto
+        Remove_AllBodies() -> void
+        {
+            auto& BodyInterface = _PhysicsSystem->GetBodyInterface();
+
+            for (const auto& BodyId : _BodyIds)
+            {
+                if (BodyInterface.IsAdded(BodyId))
+                { BodyInterface.RemoveBody(BodyId); }
+
+                BodyInterface.DestroyBody(BodyId);
+            }
+
+            _BodyIds.Reset();
+        }
+
+        /// Drops the fixture's own shape references. With every body already destroyed, this is the last thing
+        /// holding the shapes — and therefore the last thing holding their cached debug geometry.
+        auto
+        Release_SharedShapes() -> void
+        {
+            _SharedBox = nullptr;
+            _SharedHull = nullptr;
+        }
+
+        auto
+        Deactivate(
+            const JPH::BodyID& InBodyId) -> void
+        {
+            _PhysicsSystem->GetBodyInterface().DeactivateBody(InBodyId);
+        }
+
+    private:
+        TUniquePtr<ck::jolt::FCk_Jolt_CollisionLayerTable> _LayerTable;
+        TUniquePtr<ck::jolt::FCk_Jolt_BroadPhaseLayerInterface_Table> _BroadPhaseLayerInterface;
+        TUniquePtr<ck::jolt::FCk_Jolt_ObjectVsBroadPhaseLayerFilter_Table> _ObjectVsBroadPhaseFilter;
+        TUniquePtr<ck::jolt::FCk_Jolt_ObjectLayerPairFilter_Table> _ObjectVsObjectFilter;
+        TUniquePtr<JPH::PhysicsSystem> _PhysicsSystem;
+        JPH::Ref<JPH::Shape> _SharedBox;
+        JPH::Ref<JPH::Shape> _SharedHull;
+        TArray<JPH::BodyID> _BodyIds;
+    };
+
+    // --------------------------------------------------------------------------------------------------------------------
+
+    auto
+        Get_BucketMaterialParent(
+            const UInstancedStaticMeshComponent& InIsm)
+        -> UMaterialInterface*
+    {
+        auto* Mid = Cast<UMaterialInstanceDynamic>(InIsm.GetMaterial(0));
+
+        if (ck::Is_NOT_Valid(Mid))
+        { return nullptr; }
+
+        return Mid->Parent;
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_TargetReconcile_StaticPassIsIdempotent,
+    "Ck.Jolt.DebugDraw.TargetReconcile.StaticPassIsIdempotent",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_TargetReconcile_StaticPassIsIdempotent::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto DoNotActivate = false;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 500.0f, IsNotSensor, DoNotActivate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto& FirstStats = Target->Get_LastCaptureStats();
+        TestTrue(TEXT("the first capture runs the full pass"), FirstStats._FullPassRan);
+        TestEqual(TEXT("both static bodies were captured"), FirstStats._BodiesCaptured, 2);
+        TestEqual(TEXT("both static bodies added an instance"), FirstStats._InstancesAdded, 2);
+        TestEqual(TEXT("two same-geometry same-class bodies share one bucket"), Target->Get_NumBuckets(), 1);
+        TestEqual(TEXT("the bucket holds one instance per body"), Target->Get_NumInstances(), 2);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto& SecondStats = Target->Get_LastCaptureStats();
+        TestFalse(TEXT("an unchanged static revision skips the full pass entirely"), SecondStats._FullPassRan);
+        TestEqual(TEXT("the second capture visits no body"), SecondStats._BodiesCaptured, 0);
+        TestEqual(TEXT("the second capture adds nothing"), SecondStats._InstancesAdded, 0);
+        TestEqual(TEXT("the second capture updates nothing"), SecondStats._InstancesUpdated, 0);
+        TestEqual(TEXT("the second capture removes nothing"), SecondStats._InstancesRemoved, 0);
+        TestEqual(TEXT("the retained instances survive the no-op capture"), Target->Get_NumInstances(), 2);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision + 1, FCk_Handle{});
+
+        const auto& ThirdStats = Target->Get_LastCaptureStats();
+        TestTrue(TEXT("a bumped static revision re-runs the full pass"), ThirdStats._FullPassRan);
+        TestEqual(TEXT("the rebuilt static scene still holds one instance per body"), Target->Get_NumInstances(), 2);
+
+        // The whole point of the persistent-slot model: a re-run over unchanged bodies REUSES their slots
+        // rather than tearing the instances down and re-adding them.
+        TestEqual(TEXT("a re-run over unchanged bodies adds no instance"), ThirdStats._InstancesAdded, 0);
+        TestEqual(TEXT("a re-run over unchanged bodies removes no instance"), ThirdStats._InstancesRemoved, 0);
+        TestEqual(TEXT("a re-run over unchanged bodies updates each body's slot in place"),
+            ThirdStats._InstancesUpdated, 2);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_SleepTransitionRecolors,
+    "Ck.Jolt.DebugDraw.SleepTransitionRecolors",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_SleepTransitionRecolors::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+        constexpr auto DoNotActivate = false;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto AwakeBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 0.0f, IsNotSensor, Activate);
+        JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 500.0f, IsNotSensor, DoNotActivate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto FirstClasses = Target->Get_BucketColorClasses();
+        TestTrue(TEXT("the awake dynamic body is coloured Dynamic_Awake"),
+            FirstClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake));
+        // The body was never active, so only the revision-keyed full pass can have drawn it.
+        TestTrue(TEXT("a body asleep BEFORE the first capture is drawn, coloured Dynamic_Sleeping"),
+            FirstClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Sleeping));
+        TestEqual(TEXT("awake and asleep-at-birth bodies split into two buckets"), Target->Get_NumBuckets(), 2);
+        TestEqual(TEXT("both dynamic bodies draw once each"), Target->Get_NumInstances(), 2);
+
+        JoltWorld.Deactivate(AwakeBodyId);
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto& SleepStats = Target->Get_LastCaptureStats();
+        TestEqual(TEXT("falling asleep releases the awake bucket's instance"), SleepStats._InstancesRemoved, 1);
+        TestEqual(TEXT("falling asleep re-adds the instance in the sleeping bucket"), SleepStats._InstancesAdded, 1);
+        TestEqual(TEXT("both bodies still draw exactly once each"), Target->Get_NumInstances(), 2);
+
+        TestTrue(TEXT("the sleeping-coloured bucket survives the transition"),
+            Target->Get_BucketColorClasses().Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Sleeping));
+        TestEqual(TEXT("the same geometry still spans an awake and a sleeping bucket"), Target->Get_NumBuckets(), 2);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_MaterialSwap,
+    "Ck.Jolt.DebugDraw.MaterialSwap",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_MaterialSwap::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* SolidMaterial = LoadObject<UMaterial>(nullptr, *SolidMaterialPath);
+    auto* WireframeMaterial = LoadObject<UMaterial>(nullptr, *WireframeMaterialPath);
+
+    if (NOT TestNotNull(TEXT("the engine solid debug material loads"), SolidMaterial) ||
+        NOT TestNotNull(TEXT("the engine wireframe debug material loads"), WireframeMaterial))
+    { return false; }
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto DoNotActivate = false;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 500.0f, IsNotSensor, DoNotActivate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto InstanceCountBefore = Target->Get_NumInstances();
+        TestEqual(TEXT("the solid capture produced one instance per body"), InstanceCountBefore, 2);
+
+        // Asserted BEFORE the material loops below: an empty bucket set would let every one of them pass
+        // vacuously. Set_RenderMode never recreates components, so one capture is enough for all three loops.
+        const auto Isms = Target->Get_Isms();
+        TestEqual(TEXT("the solid capture produced exactly one bucket component"), Isms.Num(), 1);
+
+        for (const auto* Ism : Isms)
+        {
+            TestTrue(TEXT("solid mode drives the unlit translucent material"),
+                Get_BucketMaterialParent(*Ism) == SolidMaterial);
+        }
+
+        Target->Set_RenderMode(ECk_Jolt_DebugDraw_RenderMode::Wireframe);
+
+        for (const auto* Ism : Isms)
+        {
+            TestTrue(TEXT("wireframe mode drives the engine wireframe material"),
+                Get_BucketMaterialParent(*Ism) == WireframeMaterial);
+        }
+
+        TestEqual(TEXT("the material swap rebuilds no geometry"), Target->Get_NumInstances(), InstanceCountBefore);
+
+        Target->Set_RenderMode(ECk_Jolt_DebugDraw_RenderMode::Solid);
+
+        for (const auto* Ism : Isms)
+        {
+            TestTrue(TEXT("swapping back restores the unlit translucent material"),
+                Get_BucketMaterialParent(*Ism) == SolidMaterial);
+        }
+
+        TestEqual(TEXT("swapping back rebuilds no geometry"), Target->Get_NumInstances(), InstanceCountBefore);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_ClassPalette,
+    "Ck.Jolt.DebugDraw.ClassPalette",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_ClassPalette::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        auto JoltWorld = FScopedJoltWorld{};
+
+        constexpr auto IsSensor = true;
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+        constexpr auto DoNotActivate = false;
+
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        JoltWorld.Add_Box(JPH::EMotionType::Kinematic, 500.0f, IsNotSensor, Activate);
+        JoltWorld.Add_Box(JPH::EMotionType::Kinematic, 1000.0f, IsSensor, Activate);
+        const auto DynamicBodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 1500.0f, IsNotSensor, Activate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto AwakeClasses = Target->Get_BucketColorClasses();
+        TestTrue(TEXT("a Static-motion body lands in the Static bucket"),
+            AwakeClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Static));
+        TestTrue(TEXT("a Kinematic body lands in the Kinematic bucket"),
+            AwakeClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Kinematic));
+        TestTrue(TEXT("a sensor lands in the Sensor bucket regardless of its motion type"),
+            AwakeClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Sensor));
+        TestTrue(TEXT("an active Dynamic body lands in the Dynamic_Awake bucket"),
+            AwakeClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Awake));
+        TestEqual(TEXT("one shared geometry across four colour classes yields four buckets"),
+            Target->Get_NumBuckets(), 4);
+
+        JoltWorld.Deactivate(DynamicBodyId);
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto SleepingClasses = Target->Get_BucketColorClasses();
+        TestTrue(TEXT("a deactivated Dynamic body lands in the Dynamic_Sleeping bucket"),
+            SleepingClasses.Contains(ECk_Jolt_DebugDraw_ColorClass::Dynamic_Sleeping));
+        TestEqual(TEXT("the sleeping class opens a fifth bucket on the same geometry"),
+            Target->Get_NumBuckets(), 5);
+        TestEqual(TEXT("every body still draws exactly once"), Target->Get_NumInstances(), 4);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_MultiTargetBatchPrune,
+    "Ck.Jolt.DebugDraw.MultiTargetBatchPrune",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_MultiTargetBatchPrune::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto DoNotActivate = false;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_ConvexHull(JPH::EMotionType::Static, 0.0f, DoNotActivate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        // TSharedPtr, not the TSharedRef MakeShared hands back: this case destroys one target mid-test.
+        TSharedPtr<FCk_Jolt_DebugDrawTarget> TargetA = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+        TSharedPtr<FCk_Jolt_DebugDrawTarget> TargetB = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        TargetA->Set_IsDesired(true);
+        TargetB->Set_IsDesired(true);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*TargetA, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+        Renderer.Capture_JoltWorld(*TargetB, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        TestEqual(TEXT("both targets bucket the shared geometry independently"), TargetA->Get_NumBuckets(), 1);
+        TestEqual(TEXT("the second target buckets it too"), TargetB->Get_NumBuckets(), 1);
+        TestEqual(TEXT("the second target renders the body once"), TargetB->Get_NumInstances(), 1);
+
+        // Destroying one holder must not pull the shared batch out from under the other.
+        TargetA.Reset();
+
+        TestEqual(TEXT("the surviving target keeps its bucket after the other is destroyed"),
+            TargetB->Get_NumBuckets(), 1);
+        TestEqual(TEXT("the surviving target keeps its instance after the other is destroyed"),
+            TargetB->Get_NumInstances(), 1);
+
+        Renderer.Capture_JoltWorld(*TargetB, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision + 1, FCk_Handle{});
+
+        const auto& SurvivorStats = TargetB->Get_LastCaptureStats();
+        TestEqual(TEXT("the survivor re-captures by reusing its slots, adding nothing"),
+            SurvivorStats._InstancesAdded, 0);
+        TestEqual(TEXT("the survivor re-captures without releasing anything"),
+            SurvivorStats._InstancesRemoved, 0);
+        TestEqual(TEXT("the survivor updates its existing slot in place"),
+            SurvivorStats._InstancesUpdated, 1);
+        TestEqual(TEXT("the survivor's bucket is still alive after the re-capture"),
+            TargetB->Get_NumBuckets(), 1);
+
+        // Now nothing Jolt-side references the geometry: destroy the bodies, then drop the shape itself.
+        JoltWorld.Remove_AllBodies();
+        JoltWorld.Release_SharedShapes();
+
+        Renderer.Capture_JoltWorld(*TargetB, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision + 2, FCk_Handle{});
+
+        TestEqual(TEXT("the batch is pruned once no Jolt geometry references it"), TargetB->Get_NumBuckets(), 0);
+        TestEqual(TEXT("the pruned bucket took its component with it"), TargetB->Get_Isms().Num(), 0);
+        TestEqual(TEXT("nothing is left rendering"), TargetB->Get_NumInstances(), 0);
+
+        TargetB.Reset();
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_PreviewWorldCompat,
+    "Ck.Jolt.DebugDraw.PreviewWorldCompat",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_PreviewWorldCompat::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::EditorPreview, false);
+
+    if (NOT TestNotNull(TEXT("transient EditorPreview world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto DoNotActivate = false;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 500.0f, IsNotSensor, DoNotActivate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), StaticSceneRevision, FCk_Handle{});
+
+        const auto Isms = Target->Get_Isms();
+
+        TestEqual(TEXT("the preview world got one bucket component"), Isms.Num(), 1);
+        TestEqual(TEXT("the preview world holds one instance per body"), Target->Get_NumInstances(), 2);
+
+        for (const auto* Ism : Isms)
+        {
+            TestTrue(TEXT("the bucket component registered with the preview world"), Ism->IsRegistered());
+            TestTrue(TEXT("the bucket component belongs to the preview world"), Ism->GetWorld() == World);
+        }
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+#endif
