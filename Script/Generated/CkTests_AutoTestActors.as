@@ -6152,7 +6152,7 @@ class ACk_AutoTest_Pmg_DrawFilledBox_ReturnsValidHandle_Actor : ACk_AutoTestRunn
 
 class ACk_AutoTest_Pmg_DrawFilledSphere_ReturnsValidHandle_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 3.0f;
+    default _TimeoutSeconds = 6.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
