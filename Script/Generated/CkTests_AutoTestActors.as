@@ -7404,6 +7404,19 @@ class ACk_AutoTest_ScriptProcessor_PumpDrainsSameFrame_Actor : ACk_AutoTestRunne
     }
 }
 
+class ACk_AutoTest_ScriptProcessor_PumpStopsAfterMarkerDrain_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_ScriptProcessor_PumpStopsAfterMarkerDrain");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Sfx_Add_CreatesValidHandle_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 2.0f;
