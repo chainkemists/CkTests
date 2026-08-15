@@ -13,8 +13,11 @@
 //   Stage B — BindTo_OnOverlapUpdated (implicit opt-in)   -> events flow, signal fires
 //   Stage C — UnbindFrom_OnOverlapUpdated (opt-out)       -> back to zero
 //
-// The counter read is FJoltWorld::_Debug_NumPersistedContactEventsLastDrain,
-// i.e. what the LAST drain consumed — a per-frame reading, not a total.
+// Every stage reads FJoltWorld::_Debug_NumPersistedContactEventsTotal — a CUMULATIVE
+// counter — at both ends of its settle window and asserts on the DELTA. A single-frame
+// reading is not an observable here: the fixed-step pump may not sub-step between two
+// drains, so the last drain can legitimately have consumed nothing while generation is
+// wide open (that false red is exactly what a loaded co-tenanted lane produced).
 //
 // The mover is nudged every tick: a kinematic body that stops moving falls
 // asleep and stops producing contacts, which would make Stage A pass for the
@@ -46,6 +49,12 @@ class UCk_AutoTest_CkJolt_PersistedContactGating : UCk_AutoTest_Base
 
     // ~1s at 60fps; both probes stay overlapped the whole time.
     private int32 _SettleFrames = 60;
+
+    // ~0.5s at 60fps: lets events already queued at unbind time drain before Stage C opens its window.
+    private int32 _DrainFrames = 30;
+
+    // Cumulative persisted-event count sampled at the start of the current stage's settle window.
+    private int64 _WindowStartTotal = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -91,6 +100,8 @@ class UCk_AutoTest_CkJolt_PersistedContactGating : UCk_AutoTest_Base
         // Set_PersistContacts is never called — Stage A must observe zero interest.
         utils_timer::Create_Tick(_SelfHandle, FCk_Delegate_Timer(this, n"OnNudge"));
 
+        _WindowStartTotal = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsTotal(_SelfHandle);
+
         WaitFrames(_SettleFrames, n"OnStageA");
     }
 
@@ -110,13 +121,15 @@ class UCk_AutoTest_CkJolt_PersistedContactGating : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        auto Count = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsLastDrain(_SelfHandle);
-        Assert_Equals_Int(Count, 0,
-            f"persisted events generated with zero interest — gate missing/broken (count={Count})");
+        int64 Delta = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsTotal(_SelfHandle) - _WindowStartTotal;
+        Assert_True(Delta == 0,
+            f"persisted events generated with zero interest — gate missing/broken (delta={Delta})");
 
         // Implicit opt-in: BindTo_OnOverlapUpdated adds FTag_Probe_PersistContacts.
         _AnchorProbe = utils_probe::BindTo_OnOverlapUpdated(_AnchorProbe,
             FCk_Delegate_Probe_OnOverlapUpdated(this, n"OnAnchorOverlapUpdated"));
+
+        _WindowStartTotal = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsTotal(_SelfHandle);
 
         WaitFrames(_SettleFrames, n"OnStageB");
     }
@@ -130,25 +143,35 @@ class UCk_AutoTest_CkJolt_PersistedContactGating : UCk_AutoTest_Base
         Assert_True(_OverlapUpdatedCount > 0,
             f"OnOverlapUpdated never fired after opting in — the probes are not overlapping (updates={_OverlapUpdatedCount})");
 
-        auto Count = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsLastDrain(_SelfHandle);
-        Assert_True(Count > 0,
-            f"opting in did not restore persisted-contact generation (count={Count}, updates={_OverlapUpdatedCount})");
+        int64 Delta = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsTotal(_SelfHandle) - _WindowStartTotal;
+        Assert_True(Delta > 0,
+            f"opting in did not restore persisted-contact generation (delta={Delta}, updates={_OverlapUpdatedCount})");
 
         _AnchorProbe = utils_probe::UnbindFrom_OnOverlapUpdated(_AnchorProbe,
             FCk_Delegate_Probe_OnOverlapUpdated(this, n"OnAnchorOverlapUpdated"));
 
-        WaitFrames(_SettleFrames, n"OnStageC");
+        WaitFrames(_DrainFrames, n"OnStageC_OpenWindow");
     }
 
     // ---- Stage C: last unbind opts back out ----
+    UFUNCTION()
+    private void OnStageC_OpenWindow(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        _WindowStartTotal = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsTotal(_SelfHandle);
+
+        WaitFrames(_SettleFrames, n"OnStageC");
+    }
+
     UFUNCTION()
     private void OnStageC(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         if (IsFinished()) { return; }
 
-        auto Count = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsLastDrain(_SelfHandle);
-        Assert_Equals_Int(Count, 0,
-            f"unbinding the last OnOverlapUpdated listener did not stop persisted-contact generation (count={Count})");
+        int64 Delta = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsTotal(_SelfHandle) - _WindowStartTotal;
+        Assert_True(Delta == 0,
+            f"unbinding the last OnOverlapUpdated listener did not stop persisted-contact generation (delta={Delta})");
 
         FinishSuccess();
     }
