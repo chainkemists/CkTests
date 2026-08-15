@@ -26,6 +26,7 @@
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyInterface.h>
+#include <Jolt/Physics/Collision/ContactListener.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
 #include <Jolt/Physics/Constraints/ContactConstraintManager.h>
@@ -64,7 +65,7 @@ namespace ck_test_jolt_debugdraw
             _ObjectVsBroadPhaseFilter = MakeUnique<ck::jolt::FCk_Jolt_ObjectVsBroadPhaseLayerFilter_Table>(*_LayerTable);
             _ObjectVsObjectFilter = MakeUnique<ck::jolt::FCk_Jolt_ObjectLayerPairFilter_Table>(*_LayerTable);
 
-            _PhysicsSystem = MakeUnique<JPH::PhysicsSystem>();
+            _PhysicsSystem = MakeShared<JPH::PhysicsSystem>();
             _PhysicsSystem->Init(MaxBodies, 0, MaxBodies, MaxBodies,
                 *_BroadPhaseLayerInterface, *_ObjectVsBroadPhaseFilter, *_ObjectVsObjectFilter);
 
@@ -107,6 +108,29 @@ namespace ck_test_jolt_debugdraw
         auto operator=(const FScopedJoltWorld&) -> FScopedJoltWorld& = delete;
 
         auto Get_PhysicsSystem() -> JPH::PhysicsSystem& { return *_PhysicsSystem; }
+        auto Get_PhysicsSystemShared() -> TSharedPtr<JPH::PhysicsSystem> { return _PhysicsSystem; }
+        auto Get_LayerTable() -> ck::jolt::FCk_Jolt_CollisionLayerTable& { return *_LayerTable; }
+
+        /// Forces the step scaffolding into existence, so a case driving ck::FJoltWorld::DoPhysicsUpdate directly
+        /// (rather than this fixture's own Step) has an allocator and a job system to hand it.
+        auto
+        Ensure_StepScaffolding() -> void
+        {
+            if (_TempAllocator.IsValid())
+            { return; }
+
+            constexpr auto TempAllocatorBytes = 4 * 1024 * 1024;
+            _TempAllocator = MakeUnique<JPH::TempAllocatorImpl>(TempAllocatorBytes);
+            _JobSystem = MakeUnique<JPH::JobSystemSingleThreaded>(JPH::cMaxPhysicsJobs);
+        }
+
+        auto Get_TempAllocator() -> JPH::TempAllocatorImpl* { Ensure_StepScaffolding(); return _TempAllocator.Get(); }
+        auto Get_JobSystem() -> JPH::JobSystem* { Ensure_StepScaffolding(); return _JobSystem.Get(); }
+
+        /// Jolt's default gravity is METRES-tuned, so in this centimetre world it is a slow drift rather than a
+        /// fall — small, but not zero, and a case asserting that a SPRING moved a body must not have to argue
+        /// about it.
+        auto Set_ZeroGravity() -> void { _PhysicsSystem->SetGravity(JPH::Vec3::sZero()); }
 
         auto
         Get_Layer(
@@ -313,13 +337,8 @@ namespace ck_test_jolt_debugdraw
         {
             constexpr auto FixedDt = 1.0f / 60.0f;
             constexpr auto CollisionSteps = 1;
-            constexpr auto TempAllocatorBytes = 4 * 1024 * 1024;
 
-            if (NOT _TempAllocator.IsValid())
-            {
-                _TempAllocator = MakeUnique<JPH::TempAllocatorImpl>(TempAllocatorBytes);
-                _JobSystem = MakeUnique<JPH::JobSystemSingleThreaded>(JPH::cMaxPhysicsJobs);
-            }
+            Ensure_StepScaffolding();
 
             _PhysicsSystem->OptimizeBroadPhase();
 
@@ -344,7 +363,9 @@ namespace ck_test_jolt_debugdraw
         TUniquePtr<ck::jolt::FCk_Jolt_BroadPhaseLayerInterface_Table> _BroadPhaseLayerInterface;
         TUniquePtr<ck::jolt::FCk_Jolt_ObjectVsBroadPhaseLayerFilter_Table> _ObjectVsBroadPhaseFilter;
         TUniquePtr<ck::jolt::FCk_Jolt_ObjectLayerPairFilter_Table> _ObjectVsObjectFilter;
-        TUniquePtr<JPH::PhysicsSystem> _PhysicsSystem;
+        // SHARED rather than unique because ck::FJoltWorld holds its PhysicsSystem weakly, and the drag and stats
+        // cases drive a real FJoltWorld over this fixture's world.
+        TSharedPtr<JPH::PhysicsSystem> _PhysicsSystem;
         JPH::Ref<JPH::Shape> _SharedBox;
         JPH::Ref<JPH::Shape> _SharedHull;
         TArray<JPH::BodyID> _BodyIds;
@@ -410,6 +431,49 @@ namespace ck_test_jolt_debugdraw
     {
         return ck::jolt::debug_draw::FCaptureRevisions{InStaticScene, InBodyRemoved};
     }
+
+    /*
+     * A stand-in for the subsystem's own CkContactListener, which is private to its translation unit. It makes the
+     * SAME call the real one makes (ck::FJoltWorld::Note_ContactPair) from the same callbacks, so what this pins is
+     * the wire the stats read: reset at the top of every DoPhysicsUpdate, accumulated by the solve's worker
+     * callbacks, read on the game thread afterwards.
+     */
+    class FContactPairCountingListener final : public JPH::ContactListener
+    {
+    public:
+        explicit FContactPairCountingListener(
+            ck::FJoltWorld& InJoltWorld)
+            : _JoltWorld(&InJoltWorld)
+        {
+        }
+
+        auto
+            OnContactAdded(
+                const JPH::Body& inBody1,
+                const JPH::Body& inBody2,
+                const JPH::ContactManifold& inManifold,
+                JPH::ContactSettings& ioSettings)
+            -> void override
+        {
+            _JoltWorld->Note_ContactPair();
+        }
+
+        auto
+            OnContactPersisted(
+                const JPH::Body& inBody1,
+                const JPH::Body& inBody2,
+                const JPH::ContactManifold& inManifold,
+                JPH::ContactSettings& ioSettings)
+            -> void override
+        {
+            _JoltWorld->Note_ContactPair();
+        }
+
+    private:
+        ck::FJoltWorld* _JoltWorld = nullptr;
+    };
+
+    // ----------------------------------------------------------------------------------------------------------------
 
     auto
         Get_BucketMaterialParent(
@@ -2338,6 +2402,345 @@ bool FCkTest_JoltDebugDraw_MultiHighlightAndIsolate::RunTest(const FString& Para
 
         TestEqual(TEXT("and clearing restores the whole population"),
             Target->Get_NumInstances(), BaselineInstances);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_DragMovesDynamicBody,
+    "Ck.Jolt.DebugDraw.DragMovesDynamicBody",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_DragMovesDynamicBody::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+        constexpr auto DoNotActivate = false;
+        constexpr auto FixedDt = 1.0f / 60.0f;
+        constexpr auto NumSteps = 120;
+
+        const auto TargetPoint = FVector{500.0, 0.0, 0.0};
+
+        // Declared FIRST so it outlives the world below: FJoltWorld's teardown ends any live drag, which needs the
+        // PhysicsSystem it created the anchor in.
+        auto JoltFixture = FScopedJoltWorld{};
+        JoltFixture.Set_ZeroGravity();
+
+        const auto DynamicBodyId = JoltFixture.Add_BoxAt(JPH::EMotionType::Dynamic, JPH::RVec3::sZero(), Activate);
+        const auto StaticBodyId = JoltFixture.Add_Box(JPH::EMotionType::Static, 5000.0f, IsNotSensor, DoNotActivate);
+
+        JoltFixture.Optimize_BroadPhase();
+
+        auto Params = ck::FJoltWorld::FInitParams{};
+        Params.PhysicsSystem = JoltFixture.Get_PhysicsSystemShared();
+        Params.LayerTable = &JoltFixture.Get_LayerTable();
+        Params.TempAllocator = JoltFixture.Get_TempAllocator();
+        Params.JobSystem = JoltFixture.Get_JobSystem();
+        Params.World = World;
+
+        auto JoltWorld = ck::FJoltWorld{Params};
+
+        const auto BodiesBeforeDrag = static_cast<int32>(
+            JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies);
+
+        TestFalse(TEXT("a fresh world is not dragging"), JoltWorld.Get_IsDragging());
+        TestTrue(TEXT("and owns no internal bodies"), JoltWorld.Get_DebugInternalBodyKeys().IsEmpty());
+
+        // A request is QUEUED, not applied: the whole point of the queue is that a debugger click never mutates
+        // the simulation from the Slate tick.
+        JoltWorld.Request_BeginDrag(Get_BodyKey(DynamicBodyId), FVector::ZeroVector);
+
+        TestFalse(TEXT("a queued drag request has not begun the drag yet"), JoltWorld.Get_IsDragging());
+
+        JoltWorld.Apply_DragRequests();
+
+        TestTrue(TEXT("applying the queue begins the drag"), JoltWorld.Get_IsDragging());
+        TestEqual(TEXT("the drag added exactly one anchor body"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies), BodiesBeforeDrag + 1);
+        TestEqual(TEXT("and exactly one constraint"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetConstraints().size()), 1);
+        TestEqual(TEXT("and published the anchor as an internal body"),
+            JoltWorld.Get_DebugInternalBodyKeys().Num(), 1);
+
+        JoltWorld.Request_UpdateDrag(TargetPoint);
+        JoltWorld.Apply_DragRequests();
+
+        const auto DistanceBefore = FVector::Dist(
+            ck::jolt::Conv(JoltFixture.Get_PhysicsSystem().GetBodyInterface().GetPosition(DynamicBodyId)),
+            TargetPoint);
+
+        for (auto StepIndex = 0; StepIndex < NumSteps; ++StepIndex)
+        { JoltWorld.DoPhysicsUpdate(FixedDt); }
+
+        const auto DistanceAfter = FVector::Dist(
+            ck::jolt::Conv(JoltFixture.Get_PhysicsSystem().GetBodyInterface().GetPosition(DynamicBodyId)),
+            TargetPoint);
+
+        // The discriminating assertion: the body ENDED UP closer to where it was dragged, by a margin no numerical
+        // drift produces. "The call did not crash" would pass without a spring at all.
+        TestTrue(TEXT("the drag pulled the body at least halfway to the target"),
+            DistanceAfter < DistanceBefore * 0.5);
+
+        const auto DragState = JoltWorld.Get_DragState();
+
+        if (TestTrue(TEXT("a live drag reports its state"), DragState.IsSet()))
+        {
+            TestEqual(TEXT("the state names the dragged body"),
+                DragState->Get_BodyKey(), Get_BodyKey(DynamicBodyId));
+            TestTrue(TEXT("and the anchor sits where the drag was last pulled to"),
+                DragState->Get_AnchorPointWorld().Equals(TargetPoint));
+        }
+
+        JoltWorld.Request_EndDrag();
+        JoltWorld.Apply_DragRequests();
+
+        TestFalse(TEXT("ending the drag stops it"), JoltWorld.Get_IsDragging());
+        TestEqual(TEXT("the anchor body is gone"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies), BodiesBeforeDrag);
+        TestEqual(TEXT("the constraint is gone"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetConstraints().size()), 0);
+        TestTrue(TEXT("and the internal-body set is empty again"),
+            JoltWorld.Get_DebugInternalBodyKeys().IsEmpty());
+        TestFalse(TEXT("and there is no drag state to read"), JoltWorld.Get_DragState().IsSet());
+
+        // A static body is driven by the level, not by a spring — refused, and with no side effect at all.
+        JoltWorld.Request_BeginDrag(Get_BodyKey(StaticBodyId), FVector::ZeroVector);
+        JoltWorld.Apply_DragRequests();
+
+        TestFalse(TEXT("a STATIC body cannot be dragged"), JoltWorld.Get_IsDragging());
+        TestEqual(TEXT("and the refusal left no anchor behind"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetBodyStats().mNumBodies), BodiesBeforeDrag);
+        TestEqual(TEXT("nor a constraint"),
+            static_cast<int32>(JoltFixture.Get_PhysicsSystem().GetConstraints().size()), 0);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_InternalBodiesAreInvisible,
+    "Ck.Jolt.DebugDraw.InternalBodiesAreInvisible",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_InternalBodiesAreInvisible::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto Activate = true;
+        constexpr uint64 StaticSceneRevision = 1;
+
+        // Far from the dragged body, so a ray fired at the anchor can only ever hit the anchor.
+        const auto AnchorPoint = FVector{1000.0, 0.0, 0.0};
+
+        auto JoltFixture = FScopedJoltWorld{};
+        JoltFixture.Set_ZeroGravity();
+
+        const auto DynamicBodyId = JoltFixture.Add_BoxAt(JPH::EMotionType::Dynamic, JPH::RVec3::sZero(), Activate);
+        JoltFixture.Optimize_BroadPhase();
+
+        auto Params = ck::FJoltWorld::FInitParams{};
+        Params.PhysicsSystem = JoltFixture.Get_PhysicsSystemShared();
+        Params.LayerTable = &JoltFixture.Get_LayerTable();
+        Params.World = World;
+
+        auto JoltWorld = ck::FJoltWorld{Params};
+
+        JoltWorld.Request_BeginDrag(Get_BodyKey(DynamicBodyId), FVector::ZeroVector);
+        JoltWorld.Request_UpdateDrag(AnchorPoint);
+        JoltWorld.Apply_DragRequests();
+
+        const auto InternalKeys = JoltWorld.Get_DebugInternalBodyKeys();
+
+        if (NOT TestEqual(TEXT("the drag published exactly one internal body"), InternalKeys.Num(), 1))
+        { return false; }
+
+        const auto AnchorKey = *InternalKeys.CreateConstIterator();
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        const auto& Capture = [&]() -> void
+        {
+            Renderer.Capture_JoltWorld(*Target, JoltFixture.Get_PhysicsSystem(),
+                Make_Revisions(StaticSceneRevision), FCk_Handle{});
+        };
+
+        // Leg one WITHOUT the internal set: the anchor is an ordinary kinematic body to the capture, so it draws
+        // and it picks. This is what makes leg two discriminating rather than a test of an empty world.
+        Capture();
+
+        const auto InstancesWithAnchor = Target->Get_NumInstances();
+
+        TestEqual(TEXT("without the internal set the anchor is drawn like any other body"), InstancesWithAnchor, 2);
+
+        const auto RayOrigin = AnchorPoint + FVector{0.0, 0.0, 500.0};
+        const auto RayDirection = FVector{0.0, 0.0, -1.0};
+
+        const auto PickWithAnchor = Target->TryPick_Body(RayOrigin, RayDirection);
+
+        if (TestTrue(TEXT("and it is pickable"), PickWithAnchor.IsSet()))
+        { TestEqual(TEXT("as itself"), *PickWithAnchor, AnchorKey); }
+
+        // Leg two: the same world, the same ray, with the facility told which body it owns.
+        Target->Set_InternalBodyKeys(InternalKeys);
+
+        TestEqual(TEXT("becoming internal releases the anchor's instances at once, without waiting for a capture"),
+            Target->Get_NumInstances(), InstancesWithAnchor - 1);
+
+        Capture();
+
+        TestEqual(TEXT("and a capture never draws it again"), Target->Get_NumInstances(), 1);
+        TestFalse(TEXT("nor can a ray straight through it pick it"),
+            Target->TryPick_Body(RayOrigin, RayDirection).IsSet());
+
+        JoltWorld.Request_EndDrag();
+        JoltWorld.Apply_DragRequests();
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_StatsSampled,
+    "Ck.Jolt.DebugDraw.StatsSampled",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_StatsSampled::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto Activate = true;
+        constexpr auto DoNotActivate = false;
+        constexpr auto FixedDt = 1.0f / 60.0f;
+        constexpr uint64 StaticSceneRevision = 1;
+
+        // The two boxes are 100 uu across and overlap by 1, so the very first step produces a manifold.
+        const auto RestingBoxLocation = JPH::RVec3{0.0f, 0.0f, 0.0f};
+        const auto FloorBoxLocation = JPH::RVec3{0.0f, 0.0f, -99.0f};
+
+        auto JoltFixture = FScopedJoltWorld{};
+
+        JoltFixture.Add_BoxAt(JPH::EMotionType::Dynamic, RestingBoxLocation, Activate);
+        JoltFixture.Add_BoxAt(JPH::EMotionType::Static, FloorBoxLocation, DoNotActivate);
+        JoltFixture.Optimize_BroadPhase();
+
+        auto Params = ck::FJoltWorld::FInitParams{};
+        Params.PhysicsSystem = JoltFixture.Get_PhysicsSystemShared();
+        Params.LayerTable = &JoltFixture.Get_LayerTable();
+        Params.TempAllocator = JoltFixture.Get_TempAllocator();
+        Params.JobSystem = JoltFixture.Get_JobSystem();
+        Params.World = World;
+
+        auto JoltWorld = ck::FJoltWorld{Params};
+
+        auto ContactListener = FContactPairCountingListener{JoltWorld};
+        JoltFixture.Get_PhysicsSystem().SetContactListener(&ContactListener);
+
+        TestEqual(TEXT("a world that never stepped has counted no contact pairs"),
+            JoltWorld.Get_ContactPairsLastStep(), 0);
+
+        JoltWorld.DoPhysicsUpdate(FixedDt);
+        JoltWorld.DoPhysicsUpdate(FixedDt);
+
+        TestTrue(TEXT("two touching bodies produce contact pairs"), JoltWorld.Get_ContactPairsLastStep() > 0);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        const auto& Capture = [&]() -> void
+        {
+            Renderer.Capture_JoltWorld(*Target, JoltFixture.Get_PhysicsSystem(),
+                Make_Revisions(StaticSceneRevision), FCk_Handle{});
+        };
+
+        TestFalse(TEXT("nothing is sampled before the first capture"),
+            Target->Get_WorldStats().Get_HasSample());
+
+        Capture();
+
+        {
+            const auto& Stats = Target->Get_WorldStats();
+
+            TestTrue(TEXT("the first capture samples"), Stats.Get_HasSample());
+            TestEqual(TEXT("and its sample is this capture's"), Stats.Get_SampleAge(), 0);
+            TestEqual(TEXT("the body count is the fixture's"), Stats.Get_NumBodies(), 2);
+            TestEqual(TEXT("split one dynamic"), Stats.Get_NumDynamicBodies(), 1);
+            TestEqual(TEXT("and one static"), Stats.Get_NumStaticBodies(), 1);
+            TestTrue(TEXT("the budget is at least the one the fixture initialised with"),
+                Stats.Get_MaxBodies() >= static_cast<int32>(MaxBodies));
+            TestEqual(TEXT("nothing has been constrained"), Stats.Get_NumConstraints(), 0);
+            TestEqual(TEXT("the live active-rigid count is the awake dynamic box"),
+                Stats.Get_NumActiveRigidBodies(), 1);
+        }
+
+        // The two fields the capture cannot reach: they belong to the world, so whoever pumps the capture pushes
+        // them in. Zero until something does.
+        TestEqual(TEXT("the pushed fields start at zero"),
+            Target->Get_WorldStats().Get_ContactPairsLastStep(), 0);
+
+        Target->Set_StepStats(JoltWorld.Get_LastStepDurationMs(), JoltWorld.Get_ContactPairsLastStep());
+
+        TestTrue(TEXT("and carry the world's contact pairs once pushed"),
+            Target->Get_WorldStats().Get_ContactPairsLastStep() > 0);
+
+        // The throttle: a third body appears, and the SAMPLED count is allowed to be late but never wrong.
+        JoltFixture.Add_BoxAt(JPH::EMotionType::Dynamic, JPH::RVec3{5000.0f, 0.0f, 0.0f}, Activate);
+
+        for (auto CaptureIndex = 0; CaptureIndex < ck::jolt::debug_draw::WorldStatsSampleInterval - 1;
+             ++CaptureIndex)
+        { Capture(); }
+
+        {
+            const auto& Stats = Target->Get_WorldStats();
+
+            TestEqual(TEXT("the sample ages by one per capture"),
+                Stats.Get_SampleAge(), ck::jolt::debug_draw::WorldStatsSampleInterval - 1);
+            TestEqual(TEXT("and the throttled count is STALE, not wrong"), Stats.Get_NumBodies(), 2);
+            TestEqual(TEXT("while the un-throttled active count followed the new body immediately"),
+                Stats.Get_NumActiveRigidBodies(), 2);
+        }
+
+        Capture();
+
+        {
+            const auto& Stats = Target->Get_WorldStats();
+
+            TestEqual(TEXT("the Nth capture refreshes the sample"), Stats.Get_SampleAge(), 0);
+            TestEqual(TEXT("and it catches up to the real population"), Stats.Get_NumBodies(), 3);
+        }
+
+        // Detached before the listener goes out of scope: the PhysicsSystem outlives this frame's locals.
+        JoltFixture.Get_PhysicsSystem().SetContactListener(nullptr);
     }
 
     World->DestroyWorld(false);
