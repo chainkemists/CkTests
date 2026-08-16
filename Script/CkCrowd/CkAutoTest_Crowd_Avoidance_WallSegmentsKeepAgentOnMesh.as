@@ -23,12 +23,10 @@
 //
 // FIXTURE. Probe for the navmesh's -X edge, then run walker A up the +Y axis on
 // a lane CorridorInsetUu inboard of it. Blocker B stands still on that lane but
-// nudged BlockerWallOffsetUu further toward the wall, so:
-//   * the gap between B and the boundary is far narrower than the 84uu radius
-//     sum — squeezing past on the wall side is geometrically impossible;
-//   * the interior (+X) side is wide-open mesh;
-//   * both the neighbour dodge and the side preference point at the wall.
-// Only the wall term can make the sampler prefer the side that actually works.
+// nudged BlockerWallOffsetUu further toward the wall, so the gap between B and
+// the boundary is far narrower than the 84uu radius sum — squeezing past on the
+// wall side is geometrically impossible — while the interior (+X) side is
+// wide-open mesh.
 //
 // ASSERTIONS. A reaches its goal; A never stalls longer than MaxStallSec
 // (sampled every SampleIntervalSec, so a pinned agent is caught rather than
@@ -38,7 +36,60 @@
 // markup detour that re-routes A before it ever meets B, would otherwise
 // satisfy every other check without exercising the sampler at all.
 //
-// Red-green via UCk_Crowd_ProjectSettings_UE::_AvoidanceWallSegments.
+// ---------------------------------------------------------------------------
+// THIS TEST PINS THE CONTRACT. IT DOES NOT REPRODUCE THE PRE-FIX FAILURE.
+// ---------------------------------------------------------------------------
+// It is NOT red-green on _AvoidanceWallSegments: measured 2026-08-16, it passes
+// with the setting Disabled exactly as it passes with it Enabled (walker 128uu
+// clear on the INTERIOR side, worst stall 0.3s). What it guards is a regression
+// that drives the walker onto the boundary or deadlocks it — real value, but
+// not proof that the wall term is what keeps it off. A "red-green" claim stood
+// in this header before; it was never true.
+//
+// FOUR FIXTURES WERE BUILT AND MEASURED TRYING TO MAKE IT BITE, AND EACH FAILED
+// FOR A DIFFERENT STRUCTURAL REASON. Read these before spending a day on a
+// fifth:
+//
+//  1. B ON THE WALL SIDE (this fixture). "Dodge away from the neighbour"
+//     already points at the open interior, so the sampler is never asked to
+//     choose the wall and the wall term has nothing to overrule.
+//
+//  2. B MOVED INBOARD, so the cheap dodge points at the wall. Then SEPARATION,
+//     not the sampler, decides: it is a reactive force computed from the
+//     current neighbour offset with no navmesh in its path, and inside its
+//     radius it dominates the desired velocity. Measured with the wall term
+//     ENABLED: the walker ended 6.7uu off the boundary, stalled 6.4s, never
+//     arrived.
+//
+//  3. AS (2) WITH _SeparationWeight = 0 on both agents, to leave the sampler
+//     alone in charge. Against a STATIONARY obstacle the sampler's cheapest
+//     candidate is a slower version of straight ahead — slowing pushes the
+//     predicted collision past the horizon and costs almost nothing — so the
+//     walker crept up and dithered, and push-apart owned the endgame. Measured
+//     with the term ENABLED: 5.1uu off the boundary, worst stall 10.2s.
+//
+//  4. B REPLACED BY A NON-YIELDING MOVING OPPOSER (TAG_CrowdAvoidance_
+//     NeverSample), head-on, separation zeroed, probe reach widened — a closing
+//     pair has no escape in time, so the choice really is lateral. The sampler
+//     emits the MINIMUM deflection that clears the predicted collision, contact
+//     happens anyway, and PushApart — wall-blind by design, and a different
+//     setting — carries the walker onto the boundary. Measured with the term
+//     ENABLED, both with an inboard opposer lane and with a dead-on one: 5uu
+//     off the boundary.
+//
+// AND THE STRUCTURAL REASON THE WALL TERM IS WEAK AT RANGE, which is the thing
+// worth looking at if this test should ever go red-green: the segment branch
+// scores a candidate through IntersectRaySegment2D, whose ray parameter is
+// clamped to [0,1]. With a candidate VELOCITY as the ray direction that
+// parameter is SECONDS, so a boundary further away than (candidate speed * 1s)
+// is not scored at all — no penalty, not even a small one. A minimal-deflection
+// winner is therefore already committed to the wall side by the time the term
+// engages. dtCrowd has the same clamp, so this is port-faithful; it is a limit
+// of the feature, not a defect in the fixture.
+//
+// (Its sibling, Crowd_Steering_CornerRetirementKeepsAgentOnMesh, IS red-green
+// on _WaypointRetirementLineOfSight — see that file for the shape of a fixture
+// that discriminates.)
 //
 // REQUIREMENT: AutoTests_CkTests_Level's NavMeshBoundsVolume + floor.
 //============================================================================

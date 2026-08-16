@@ -28,16 +28,32 @@
 // corner at the eroded NE tip (call it C1) with the next corner ~870uu due west
 // at the eroded NW tip (C2).
 //
-// WHY IT IS RED PRE-FIX. Approaching C1 from the south-east, the agent hits the
-// 25uu proximity test while still ~20uu SOUTH of the north-face line. The chord
-// from there to C2 runs almost due west and dips straight into the eroded wall,
-// so the pre-fix retirement points the agent at a face it cannot enter. The pin
-// duration is not the 25uu of corner-cut — it is (length of C1->C2) / MaxSpeed,
-// because the surviving tangential creep is MaxSpeed * (dy / segmentLength).
-// With a ~870uu second leg that is ~3.6s of ~6uu/s creep: far past the 1.0s
-// stall bar, and only ended by BlockDetect re-pathing. POST-FIX the chord reads
-// blocked, the corner is NOT retired, the agent walks to C1 — on-mesh by
-// construction — and turns there.
+// WHY IT IS RED PRE-FIX — AND WHY THE APPROACH ANGLE IS THE WHOLE FIXTURE.
+// Approaching C1, the agent hits the 25uu proximity test while still
+// h = 25*sin(theta) SOUTH of the C1->C2 line, theta being the turn angle at the
+// corner. The chord from there to C2 runs almost due west and enters the eroded
+// wall through its EAST face, so the pre-fix retirement points steering at
+// geometry the agent cannot enter; ConstrainToNavmesh keeps only the sliver
+// tangential to that face, which is MaxSpeed * h / |C1->C2| — a couple of uu/s
+// against a 240uu/s desired velocity — and h decays with a time constant of
+// |C1->C2| / MaxSpeed (~3.6s here), so nothing but BlockDetect's 3s ladder ends
+// it.
+//
+// What rescues the agent is its RESIDUAL velocity: at retirement it is still
+// aimed at C1 and rotates onto the new aim at _MaxTurnRate, climbing
+// (MaxSpeed / MaxTurnRate) * (1 - cos theta) = 60 * (1 - cos theta) uu in the
+// process. Reaching C1's level frees it. So the corner only pins when
+//
+//     60 * (1 - cos theta)  <  25 * sin(theta)   <=>   theta < ~45 deg
+//
+// at the shipped defaults (MaxSpeed 240, MaxTurnRate 4, _WaypointArrivalRadius
+// 25). SpawnY is chosen to put theta at ~23 deg — comfortably inside the pinning
+// regime while leaving h ~10uu, big enough that the chord is unambiguously
+// blocked against voxel-quantised erosion. An earlier revision of this fixture
+// approached at 58 deg and passed with the gate OFF for exactly this reason:
+// measured, the agent cleared the corner in 0.1s and never clipped at all.
+// POST-FIX the chord reads blocked, the corner is NOT retired, the agent walks
+// to C1 — on-mesh by construction — and turns there.
 //
 // Red-green via UCk_Crowd_ProjectSettings_UE::_WaypointRetirementLineOfSight.
 //
@@ -91,8 +107,15 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     private const float WallHalfZ = 300.0;
 
     private const float SpawnX = 600.0;
+    // The load-bearing number. The turn at C1 is theta = atan((C1.y - SpawnY) / (SpawnX - C1.x));
+    // with the eroded tip near (135, 347) that is ~23 deg, inside the pinning regime derived in
+    // the header. Raising SpawnY toward the tip SHRINKS theta (longer pin, but a smaller lateral
+    // error h to keep the chord unambiguously blocked); LOWERING it grows theta, and past ~45 deg
+    // the agent's residual velocity clears the corner on its own — that is the configuration this
+    // test shipped with, and it passed with the gate OFF.
+    private const float SpawnY = 150.0;
     private const float GoalX = -830.0;
-    private const float RunY = -400.0;            // both spawn and goal, well south of the tip
+    private const float RunY = -400.0;            // the goal, well south of the tip
 
     // ---- sampling / stall detection ----
     private const float SampleIntervalSec = 0.1;
@@ -372,7 +395,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
 
     private void SpawnWalker(FCk_Handle& InOwner)
     {
-        const auto Spawn = FVector(SpawnX, RunY, _FloorZ + 100.0);
+        const auto Spawn = FVector(SpawnX, SpawnY, _FloorZ + 100.0);
         const auto Goal = FVector(GoalX, RunY, _FloorZ);
 
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(AgentRadiusUu, AgentHeightUu);
