@@ -25,6 +25,8 @@
 
 #include "Misc/AutomationTest.h"
 
+#include "UObject/StrongObjectPtr.h" // rooting the delegate-preservation test's listener
+
 #include <StructUtils/InstancedStruct.h>
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -400,6 +402,223 @@ bool
     TestEqual(TEXT("transient handle still points at the FRESH construction-written child"),
         static_cast<int64>(Hydrated.RuntimeChild.Get_Entity().Get_ID()),
         static_cast<int64>(FreshChild.Get_Entity().Get_ID()));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_V3_DynamicFragment_HydratePreservesDelegateBindings_Test,
+    "Ck.Snapshot.V3.DynamicFragment.HydratePreservesDelegateBindings",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_V3_DynamicFragment_HydratePreservesDelegateBindings_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& CkRegistry = EcsWorld.Get_Registry();
+    const auto RegistryHandle = CkRegistry.Get_RegistryHandle();
+
+    // Save-side owner: durable value only. Whatever the archive records for the delegate belongs to a world that
+    // no longer exists by the time the payload is applied.
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    {
+        auto Signals = FCk_Test_DynFrag_WithDelegate{};
+        Signals.DurableMarker = 42;
+        UCk_Utils_DynamicFragment_UE::Add_Fragment(Owner, FInstancedStruct::Make(Signals), ECk_Replication::DoesNotReplicate);
+    }
+
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
+    if (NOT TestNotNull(TEXT("G2 dynamic-fragments handler is registered"), Handler))
+    { return false; }
+
+    const auto Produced = Handler->Produce(Owner);
+    if (NOT TestTrue(TEXT("Produce emitted a payload for the owner"), Produced.IsSet()))
+    { return false; }
+
+    const auto Blob = ck_test_dynfrag_roundtrip::SerializeBlob_Save(Produced.GetValue());
+    const auto Restored = ck_test_dynfrag_roundtrip::DeserializeBlob_Mapped(Blob, TMap<uint32, FCk_Handle>{}, RegistryHandle);
+    if (NOT TestTrue(TEXT("payload deserialized to the G2 wrapper"),
+        Restored.GetScriptStruct() == FCk_SaveData_DynamicFragments::StaticStruct()))
+    { return false; }
+
+    // Load-side owner: construction replay composed the fragment, then a consumer (a HUD widget, in production)
+    // subscribed. That subscription is the thing hydration must not destroy.
+    auto NewOwner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    {
+        auto Fresh = FCk_Test_DynFrag_WithDelegate{};
+        Fresh.DurableMarker = 0;
+        UCk_Utils_DynamicFragment_UE::Add_Fragment(NewOwner, FInstancedStruct::Make(Fresh), ECk_Replication::DoesNotReplicate);
+    }
+
+    auto Listener = TStrongObjectPtr<UCk_Test_DynFrag_SignalListener>{NewObject<UCk_Test_DynFrag_SignalListener>()};
+    {
+        auto* Storage = UCk_Utils_DynamicFragment_UE::TryAddOrGet_Fragment_TypeUnsafe(
+            NewOwner, FCk_Test_DynFrag_WithDelegate::StaticStruct());
+        if (NOT TestNotNull(TEXT("live fragment storage resolved"), Storage))
+        { return false; }
+
+        Storage->GetMutable<FCk_Test_DynFrag_WithDelegate>().OnSignal.AddDynamic(
+            Listener.Get(), &UCk_Test_DynFrag_SignalListener::HandleSignal);
+    }
+
+    auto NewOwnerRef = NewOwner;
+    const auto ApplyResult = Handler->HydrationApply(NewOwnerRef, Restored, {});
+    TestEqual(TEXT("HydrationApply returned Applied"),
+        static_cast<int32>(ApplyResult), static_cast<int32>(ECk_Persistence_ApplyResult::Applied));
+
+    const auto& Hydrated = UCk_Utils_DynamicFragment_UE::Get_Fragment_TypeUnsafe(
+        NewOwner, FCk_Test_DynFrag_WithDelegate::StaticStruct()).Get<FCk_Test_DynFrag_WithDelegate>();
+
+    TestEqual(TEXT("durable field hydrated from the save"), Hydrated.DurableMarker, 42);
+    TestTrue(TEXT("live delegate binding survived hydration"), Hydrated.OnSignal.IsBound());
+
+    // IsBound() alone would pass on a delegate holding a stale entry — broadcast to prove it still DELIVERS.
+    Hydrated.OnSignal.Broadcast(7);
+    TestEqual(TEXT("surviving binding still delivers"), Listener->_CallCount, 1);
+    TestEqual(TEXT("surviving binding delivered the broadcast payload"), Listener->_Received, 7);
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_V3_DynamicFragment_HydrateKeepsUnresolvedHandleFresh_Test,
+    "Ck.Snapshot.V3.DynamicFragment.HydrateKeepsUnresolvedHandleFresh",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_V3_DynamicFragment_HydrateKeepsUnresolvedHandleFresh_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& CkRegistry = EcsWorld.Get_Registry();
+    const auto RegistryHandle = CkRegistry.Get_RegistryHandle();
+
+    // The save-side child stands in for an unlabeled ConstructSpawned node (a SceneNode, a probe, an
+    // Interactable). Capture rule 3 classifies those save-transient, so the loader never maps their saved
+    // id -- the empty map below reproduces exactly that. The field is NOT Transient, which is the whole
+    // point: this is the un-audited case the backstop exists for.
+    auto Owner        = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    auto SkippedChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    {
+        auto WithHandle = FCk_Test_DynFrag_WithHandle{};
+        WithHandle.Marker       = 7;
+        WithHandle.TargetHandle = SkippedChild;
+        UCk_Utils_DynamicFragment_UE::Add_Fragment(Owner, FInstancedStruct::Make(WithHandle), ECk_Replication::DoesNotReplicate);
+    }
+
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
+    if (NOT TestNotNull(TEXT("G2 dynamic-fragments handler is registered"), Handler))
+    { return false; }
+
+    const auto Produced = Handler->Produce(Owner);
+    if (NOT TestTrue(TEXT("Produce emitted a payload for the owner"), Produced.IsSet()))
+    { return false; }
+
+    const auto Blob = ck_test_dynfrag_roundtrip::SerializeBlob_Save(Produced.GetValue());
+    const auto Restored = ck_test_dynfrag_roundtrip::DeserializeBlob_Mapped(Blob, TMap<uint32, FCk_Handle>{}, RegistryHandle);
+    if (NOT TestTrue(TEXT("payload deserialized to the G2 wrapper"),
+        Restored.GetScriptStruct() == FCk_SaveData_DynamicFragments::StaticStruct()))
+    { return false; }
+
+    // Construction replay already composed the fragment with a FRESH child. Hydration must take the
+    // durable scalar from the save and leave the handle alone.
+    auto NewOwner   = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    auto FreshChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    {
+        auto Fresh = FCk_Test_DynFrag_WithHandle{};
+        Fresh.Marker       = 0;
+        Fresh.TargetHandle = FreshChild;
+        UCk_Utils_DynamicFragment_UE::Add_Fragment(NewOwner, FInstancedStruct::Make(Fresh), ECk_Replication::DoesNotReplicate);
+    }
+
+    auto NewOwnerRef = NewOwner;
+    const auto ApplyResult = Handler->HydrationApply(NewOwnerRef, Restored, {});
+    TestEqual(TEXT("HydrationApply returned Applied"),
+        static_cast<int32>(ApplyResult), static_cast<int32>(ECk_Persistence_ApplyResult::Applied));
+
+    const auto& Hydrated = UCk_Utils_DynamicFragment_UE::Get_Fragment_TypeUnsafe(
+        NewOwner, FCk_Test_DynFrag_WithHandle::StaticStruct()).Get<FCk_Test_DynFrag_WithHandle>();
+
+    TestEqual(TEXT("durable scalar still hydrates from the save"), Hydrated.Marker, 7);
+    TestTrue(TEXT("the unresolved saved handle did not stomp the live one"), ck::IsValid(Hydrated.TargetHandle));
+    TestEqual(TEXT("the handle still points at the construction-fresh child"),
+        static_cast<int64>(Hydrated.TargetHandle.Get_Entity().Get_ID()),
+        static_cast<int64>(FreshChild.Get_Entity().Get_ID()));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_V3_DynamicFragment_HydrateBackstopStandsDownOnLayoutDrift_Test,
+    "Ck.Snapshot.V3.DynamicFragment.HydrateBackstopStandsDownOnLayoutDrift",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_V3_DynamicFragment_HydrateBackstopStandsDownOnLayoutDrift_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    // Pins the DOCUMENTED LIMIT of the unresolved-handle backstop, so nobody widens it by accident. The
+    // backstop pairs handles positionally; a saved container of a different length shifts every later slot,
+    // so correspondence is gone and it must stand down rather than write a handle into the wrong field.
+    // The saved (unresolvable) values win there — a field in that shape needs UPROPERTY(Transient).
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& CkRegistry = EcsWorld.Get_Registry();
+    const auto RegistryHandle = CkRegistry.Get_RegistryHandle();
+
+    auto Owner       = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    auto SkippedA    = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    auto SkippedB    = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    {
+        auto WithHandle = FCk_Test_DynFrag_WithHandle{};
+        WithHandle.Marker       = 5;
+        WithHandle.TargetHandle = SkippedA;
+        WithHandle.TargetArray  = { SkippedA, SkippedB }; // 3 handle slots on the save side
+        UCk_Utils_DynamicFragment_UE::Add_Fragment(Owner, FInstancedStruct::Make(WithHandle), ECk_Replication::DoesNotReplicate);
+    }
+
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
+    if (NOT TestNotNull(TEXT("G2 dynamic-fragments handler is registered"), Handler))
+    { return false; }
+
+    const auto Produced = Handler->Produce(Owner);
+    if (NOT TestTrue(TEXT("Produce emitted a payload for the owner"), Produced.IsSet()))
+    { return false; }
+
+    const auto Blob = ck_test_dynfrag_roundtrip::SerializeBlob_Save(Produced.GetValue());
+    const auto Restored = ck_test_dynfrag_roundtrip::DeserializeBlob_Mapped(Blob, TMap<uint32, FCk_Handle>{}, RegistryHandle);
+
+    // Fresh side carries ONE handle slot (empty array) against the save's three.
+    auto NewOwner   = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    auto FreshChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    {
+        auto Fresh = FCk_Test_DynFrag_WithHandle{};
+        Fresh.TargetHandle = FreshChild;
+        UCk_Utils_DynamicFragment_UE::Add_Fragment(NewOwner, FInstancedStruct::Make(Fresh), ECk_Replication::DoesNotReplicate);
+    }
+
+    auto NewOwnerRef = NewOwner;
+    const auto ApplyResult = Handler->HydrationApply(NewOwnerRef, Restored, {});
+    TestEqual(TEXT("HydrationApply returned Applied"),
+        static_cast<int32>(ApplyResult), static_cast<int32>(ECk_Persistence_ApplyResult::Applied));
+
+    const auto& Hydrated = UCk_Utils_DynamicFragment_UE::Get_Fragment_TypeUnsafe(
+        NewOwner, FCk_Test_DynFrag_WithHandle::StaticStruct()).Get<FCk_Test_DynFrag_WithHandle>();
+
+    TestEqual(TEXT("durable scalar still hydrates from the save"), Hydrated.Marker, 5);
+    TestEqual(TEXT("the saved container length wins, which is what breaks positional pairing"),
+        Hydrated.TargetArray.Num(), 2);
+    TestFalse(TEXT("backstop stood down, so the unresolved saved handle survives (documented limit)"),
+        ck::IsValid(Hydrated.TargetHandle));
 
     return true;
 }
