@@ -57,13 +57,13 @@ class UCk_AutoTest_Intent_SocdLastAndFirstInputPriorityDisagree : UCk_AutoTest_B
         _RightKey = EKeys::Gamepad_DPad_Right;
 
         _OwnerLast   = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _SourceLast  = utils_input_source::Add(_OwnerLast, FCk_Fragment_InputSource_ParamsData(0));
+        _SourceLast  = utils_input_source::Add(_OwnerLast, FCk_InputSource_Spec(0));
         _MapLast     = utils_input_button_map::Add(_OwnerLast, DoMakeMapParams());
         _SamplerLast = utils_intent_sampler::Add(_OwnerLast,
             DoMakeSamplerParams(ECk_Intent_SocdPolicy::LastInputPriority));
 
         _OwnerFirst   = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _SourceFirst  = utils_input_source::Add(_OwnerFirst, FCk_Fragment_InputSource_ParamsData(0));
+        _SourceFirst  = utils_input_source::Add(_OwnerFirst, FCk_InputSource_Spec(0));
         _MapFirst     = utils_input_button_map::Add(_OwnerFirst, DoMakeMapParams());
         _SamplerFirst = utils_intent_sampler::Add(_OwnerFirst,
             DoMakeSamplerParams(ECk_Intent_SocdPolicy::FirstInputPriority));
@@ -166,7 +166,7 @@ class UCk_AutoTest_Intent_SocdLastAndFirstInputPriorityDisagree : UCk_AutoTest_B
 
     //------------------------------------------------------------------------
 
-    private FCk_Fragment_InputButtonMap_ParamsData DoMakeMapParams()
+    private FCk_InputButtonMap_Spec DoMakeMapParams()
     {
         TArray<FKey> PhysicalButtons;
         PhysicalButtons.Add(_UpKey);
@@ -174,12 +174,12 @@ class UCk_AutoTest_Intent_SocdLastAndFirstInputPriorityDisagree : UCk_AutoTest_B
         PhysicalButtons.Add(_LeftKey);
         PhysicalButtons.Add(_RightKey);
 
-        return FCk_Fragment_InputButtonMap_ParamsData(PhysicalButtons);
+        return FCk_InputButtonMap_Spec(PhysicalButtons);
     }
 
-    private FCk_Fragment_IntentSampler_ParamsData DoMakeSamplerParams(ECk_Intent_SocdPolicy InPolicy)
+    private FCk_IntentSampler_Spec DoMakeSamplerParams(ECk_Intent_SocdPolicy InPolicy)
     {
-        auto Params = FCk_Fragment_IntentSampler_ParamsData(120);
+        auto Params = FCk_IntentSampler_Spec(120);
 
         Params.Set_SocdQuad(FCk_Intent_SocdQuad(
             DoPhysicalButton(_UpKey),

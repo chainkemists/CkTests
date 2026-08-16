@@ -39,7 +39,7 @@ class UCk_AutoTest_InputSource_InjectAndOwnership : UCk_AutoTest_Base
     {
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
-        auto Params = FCk_Fragment_InputSource_ParamsData(0);
+        auto Params = FCk_InputSource_Spec(0);
         _Source = utils_input_source::Add(_Owner, Params);
 
         Assert_True(ck::IsValid(_Source),

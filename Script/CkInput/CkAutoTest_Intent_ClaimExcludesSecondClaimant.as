@@ -49,7 +49,7 @@ class UCk_AutoTest_Intent_ClaimExcludesSecondClaimant : UCk_AutoTest_Base
         _PunchKey = EKeys::R;
 
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
 
         _ClaimantA = utils_entity_lifetime::Request_CreateEntity(InHandle);
         _ClaimantB = utils_entity_lifetime::Request_CreateEntity(InHandle);
@@ -57,13 +57,13 @@ class UCk_AutoTest_Intent_ClaimExcludesSecondClaimant : UCk_AutoTest_Base
         TArray<FKey> PhysicalButtons;
         PhysicalButtons.Add(_PunchKey);
 
-        _Map     = utils_input_button_map::Add(_Owner, FCk_Fragment_InputButtonMap_ParamsData(PhysicalButtons));
-        _Sampler = utils_intent_sampler::Add(_Owner, FCk_Fragment_IntentSampler_ParamsData(120));
+        _Map     = utils_input_button_map::Add(_Owner, FCk_InputButtonMap_Spec(PhysicalButtons));
+        _Sampler = utils_intent_sampler::Add(_Owner, FCk_IntentSampler_Spec(120));
 
-        _Layer   = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 50));
+        _Layer   = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 50));
 
         FCk_Handle LayerEntity = _Layer;
-        _Matcher = utils_intent_matcher::Add(LayerEntity, FCk_Fragment_IntentMatcher_ParamsData());
+        _Matcher = utils_intent_matcher::Add(LayerEntity, FCk_IntentMatcher_Spec());
 
         Assert_True(ck::IsValid(_ClaimantA), "claimant A must exist for the exclusion to name anybody");
         Assert_True(ck::IsValid(_ClaimantB), "claimant B must exist for the exclusion to be testable");
