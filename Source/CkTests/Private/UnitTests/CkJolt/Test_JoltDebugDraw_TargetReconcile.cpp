@@ -1416,6 +1416,58 @@ bool FCkTest_JoltDebugDraw_PickNearestBody::RunTest(const FString& Parameters)
         TestEqual(TEXT("the overlay is drawn"), Target->Get_NumInstances(), 3);
         TestTrue(TEXT("the overlay instance is never what a pick returns"),
             Target->TryPick_Body(RayOrigin, RayDirection) == TOptional<uint64>{NearKey});
+
+        /*
+         * The HIT half (P7-D70/i). The debugger's drag opens on the press at the exact point the ray met the
+         * body, so what has to be pinned is that the point is ON the picked body's oriented bounds — not its
+         * centre, which is what the workaround this replaces was guessing at.
+         */
+        {
+            auto HitKey = uint64{0};
+            auto HitPoint = FVector::ZeroVector;
+            auto HitDistance = 0.0f;
+
+            const auto DidHit = Target->TryPick_BodyHit(RayOrigin, RayDirection, HitKey, HitPoint, HitDistance);
+
+            if (TestTrue(TEXT("the hit pick finds the same near body the key-only pick does"), DidHit))
+            {
+                TestTrue(TEXT("and reports it as the near body"), HitKey == NearKey);
+
+                // The near FACE of a box whose centre is at NearBodyX: the point is on the surface the ray
+                // entered through, and reporting the centre (or the far face) fails here.
+                constexpr auto SurfaceTolerance = 1.0;
+
+                TestTrue(TEXT("the hit point lies on the picked body's near bounds face"),
+                    FMath::Abs(HitPoint.X - (NearBodyX - BoxHalfExtent)) <= SurfaceTolerance);
+                TestTrue(TEXT("and on the ray itself, not merely near the body"),
+                    FMath::Abs(HitPoint.Y) <= SurfaceTolerance && FMath::Abs(HitPoint.Z) <= SurfaceTolerance);
+
+                // The distance is the WORLD one from the ray's origin, which is what a drag uses to place its
+                // plane — a parametric leak would show up as a factor of the direction's length.
+                TestTrue(TEXT("the reported distance is the world distance to that point"),
+                    FMath::Abs(HitDistance - static_cast<float>((HitPoint - RayOrigin).Size())) <= 1.0f);
+            }
+
+            // An unnormalized direction must not change either answer: the slab test is parametric, and the
+            // distance is scaled back out of that parameter rather than reported in it.
+            auto ScaledKey = uint64{0};
+            auto ScaledPoint = FVector::ZeroVector;
+            auto ScaledDistance = 0.0f;
+
+            if (TestTrue(TEXT("an unnormalized ray direction still hits"),
+                Target->TryPick_BodyHit(RayOrigin, RayDirection * 7.0, ScaledKey, ScaledPoint, ScaledDistance)))
+            {
+                TestTrue(TEXT("and lands on the same point"), ScaledPoint.Equals(HitPoint, 1.0));
+                TestTrue(TEXT("at the same distance"), FMath::Abs(ScaledDistance - HitDistance) <= 1.0f);
+            }
+
+            auto MissKey = uint64{0};
+            auto MissPoint = FVector::ZeroVector;
+            auto MissDistance = 0.0f;
+
+            TestFalse(TEXT("a ray that hits nothing reports no hit"),
+                Target->TryPick_BodyHit(MissOrigin, RayDirection, MissKey, MissPoint, MissDistance));
+        }
     }
 
     World->DestroyWorld(false);
