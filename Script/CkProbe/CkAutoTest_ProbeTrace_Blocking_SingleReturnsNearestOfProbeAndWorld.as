@@ -62,7 +62,7 @@ class UCk_AutoTest_ProbeTrace_Blocking_SingleReturnsNearestOfProbeAndWorld : UCk
         auto ProbeTransform = utils_transform::Add(_ProbeEntity,
             FTransform(FRotator::ZeroRotator, FVector(300.0, _Band, _TraceZ)), ECk_Replication::DoesNotReplicate);
 
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.ProbeTrace.Single.Target"));
         ProbeParams.Set_MotionType(ECk_MotionType::Static);
         utils_probe::Add_Box(ProbeTransform, FVector(50.0, 50.0, 50.0), ProbeParams, FCk_Probe_DebugInfo());

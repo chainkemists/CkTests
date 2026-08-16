@@ -36,7 +36,7 @@ class UCk_AutoTest_Goap_IdlePlannerNotVisitedByAutoReplan : UCk_AutoTest_Base
 
         _WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
         utils_goap_world_state::Set_Value(_WS,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
@@ -46,14 +46,14 @@ class UCk_AutoTest_Goap_IdlePlannerNotVisitedByAutoReplan : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             true));
 
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParams.Set_Goal(InitialGoal);
         PlannerParams.Set_WorldStateSource(_WS);
         _Planner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        auto LeafAParams = FCk_Fragment_Goap_ActionParamsData(
+        auto LeafAParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects);
         auto LeafA = utils_goap_planner::AddAction(_Planner, LeafAParams);
         Assert_True(ck::IsValid(LeafA), "AddAction (LeafA) should return a valid handle");

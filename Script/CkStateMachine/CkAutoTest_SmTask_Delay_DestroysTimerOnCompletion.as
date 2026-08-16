@@ -72,7 +72,7 @@ class UCk_AutoTest_SmTask_Delay_DestroysTimerOnCompletion : UCk_AutoTest_Base
 
         auto LocalHandle = InHandle;
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle,
-            FCk_Fragment_StateMachine_ParamsData(UCk_SmDelayTimerLeak_State_Delaying));
+            FCk_StateMachine_Spec(UCk_SmDelayTimerLeak_State_Delaying));
 
         FCk_Delegate_Sm_OnStateChanged Delegate;
         Delegate.BindUFunction(this, n"OnStateChanged");

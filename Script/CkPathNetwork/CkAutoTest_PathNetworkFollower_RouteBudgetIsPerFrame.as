@@ -77,7 +77,7 @@ class UCk_AutoTest_PathNetworkFollower_RouteBudgetIsPerFrame : UCk_AutoTest_Base
         Ribbons.Add(FCk_PathNetwork_Ribbon(PointsA));
         Ribbons.Add(FCk_PathNetwork_Ribbon(PointsB));
 
-        _Network = utils_path_network::Add(LocalHandle, FCk_Fragment_PathNetwork_ParamsData(Ribbons));
+        _Network = utils_path_network::Add(LocalHandle, FCk_PathNetwork_Spec(Ribbons));
 
         _Budget = utils_path_network_settings::Get_MaxRouteQueriesPerFrame();
 
@@ -94,7 +94,7 @@ class UCk_AutoTest_PathNetworkFollower_RouteBudgetIsPerFrame : UCk_AutoTest_Base
                 FTransform(FRotator::ZeroRotator, Start, FVector::OneVector),
                 ECk_Replication::DoesNotReplicate);
 
-            auto FollowerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
+            auto FollowerParams = FCk_PathNetworkFollower_Spec();
             FollowerParams.Set_Network(_Network);
             FollowerParams.Set_CorridorWaypointSpacing(100.0);
 

@@ -23,7 +23,7 @@ class UCk_AutoTest_Goap_ParentFallback_ReadThrough : UCk_AutoTest_Base
         auto Local = InHandle;
         utils_transform::Add(Local, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto ParentParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto ParentParams = FCk_Goap_WorldState_Spec();
         auto PreReg = TArray<FGameplayTag>();
         PreReg.Add(SharedKey());
         ParentParams.Set_PreRegisteredKeys(PreReg);
@@ -31,7 +31,7 @@ class UCk_AutoTest_Goap_ParentFallback_ReadThrough : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Parent"),
             ParentParams);
 
-        auto SubParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto SubParams = FCk_Goap_WorldState_Spec();
         SubParams.Set_FallbackParent(_Parent);
         _Sub = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Sub"),

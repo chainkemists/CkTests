@@ -51,7 +51,7 @@ class UCk_AutoTest_WorldSpaceWidget_CollapseOnDisable : UCk_AutoTest_Base
         auto AnchorTransform = utils_transform::Add(
             AnchorEntity, FTransform(FRotator::ZeroRotator, FVector(0.0, 0.0, 300.0)), ECk_Replication::DoesNotReplicate);
 
-        auto Params = FCk_Fragment_WorldSpaceWidget_ParamsData(
+        auto Params = FCk_WorldSpaceWidget_Spec(
             ContentWidget, ECk_UI_Widget_ViewportOperation::AddToViewport, 0);
         Params.Set_RenderMode(ECk_WorldSpaceWidget_RenderMode::ScreenOverlay);
 

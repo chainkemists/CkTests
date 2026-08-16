@@ -30,7 +30,7 @@ class UCk_AutoTest_Goap_ParentFallback_PlanFlip : UCk_AutoTest_Base
         auto Local = InHandle;
         utils_transform::Add(Local, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto ParentParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto ParentParams = FCk_Goap_WorldState_Spec();
         auto PreReg = TArray<FGameplayTag>();
         PreReg.Add(SharedKey());
         ParentParams.Set_PreRegisteredKeys(PreReg);
@@ -38,7 +38,7 @@ class UCk_AutoTest_Goap_ParentFallback_PlanFlip : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Parent"),
             ParentParams);
 
-        auto SubParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto SubParams = FCk_Goap_WorldState_Spec();
         SubParams.Set_FallbackParent(_Parent);
         _Sub = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Sub"),
@@ -46,14 +46,14 @@ class UCk_AutoTest_Goap_ParentFallback_PlanFlip : UCk_AutoTest_Base
 
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(LocalKey(), true));
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.Set"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(_Sub);
         PlannerParams.Set_AllowPlanFailed(true);
         _Planner = utils_goap_planner::Add(Local, PlannerParams);
 
-        utils_goap_planner::AddAction(_Planner, FCk_Fragment_Goap_ActionParamsData(
+        utils_goap_planner::AddAction(_Planner, FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ParentFallback_AchieveLocal));
 
         Add_Step_WaitUntil("initial plan fails (parent gate false)", n"Check_PlanFailed");

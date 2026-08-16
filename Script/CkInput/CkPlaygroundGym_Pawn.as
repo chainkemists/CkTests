@@ -610,7 +610,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         // The pawn entity (a WithActor entity script) already carries an actor-synced transform - that IS the camera
         // anchor, and the POV reads it each frame, so the framing follows the pawn with no extra transform to add.
         auto PawnTransform = _PawnEntity.As_Transform();
-        _Camera = utils_camera::Add(PawnTransform, FCk_Fragment_Camera_ParamsData(CameraComponent));
+        _Camera = utils_camera::Add(PawnTransform, FCk_Camera_Spec(CameraComponent));
 
         Request_SpawnFloor();
         Request_SpawnEnemy();

@@ -46,7 +46,7 @@ class UCk_AutoTest_ProbeTrace_OverlapNotify_SilentFiresNothing : UCk_AutoTest_Ba
         auto ProbeTransform = utils_transform::Add(_ProbeEntity,
             FTransform(FRotator::ZeroRotator, FVector(500.0, _Band, _TraceZ)), ECk_Replication::DoesNotReplicate);
 
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.ProbeTrace.Silent.Target"));
         ProbeParams.Set_MotionType(ECk_MotionType::Static);
         ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);

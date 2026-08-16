@@ -38,7 +38,7 @@ class UCk_AutoTest_Goap_ParentFallback_Classification : UCk_AutoTest_Base
         auto Local = InHandle;
         utils_transform::Add(Local, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto ParentParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto ParentParams = FCk_Goap_WorldState_Spec();
         auto PreReg = TArray<FGameplayTag>();
         PreReg.Add(SharedKey());
         ParentParams.Set_PreRegisteredKeys(PreReg);
@@ -51,7 +51,7 @@ class UCk_AutoTest_Goap_ParentFallback_Classification : UCk_AutoTest_Base
         Assert_True(utils_goap_world_state::Has_Key(_Parent, SharedKey()),
             "pre-registered Key.Shared must be resident on the parent the moment Create returns");
 
-        auto SubParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto SubParams = FCk_Goap_WorldState_Spec();
         SubParams.Set_FallbackParent(_Parent);
         _Sub = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Sub"),
@@ -62,7 +62,7 @@ class UCk_AutoTest_Goap_ParentFallback_Classification : UCk_AutoTest_Base
 
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(LocalKey(), true));
-        auto PlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.Set"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(_Sub);
@@ -70,7 +70,7 @@ class UCk_AutoTest_Goap_ParentFallback_Classification : UCk_AutoTest_Base
         auto Planner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(Planner), "Add Planner should return a valid handle");
 
-        utils_goap_planner::AddAction(Planner, FCk_Fragment_Goap_ActionParamsData(
+        utils_goap_planner::AddAction(Planner, FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ParentFallback_AchieveLocal));
 
         Add_Step_WaitUntil("action setup classifies Key.Shared as an import on the sub-WS", n"Check_Classified");
