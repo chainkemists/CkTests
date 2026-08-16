@@ -280,16 +280,16 @@ namespace playground_gym
         FCk_Handle SourceEntity = Source;
 
         if (utils_input_bias::DoCast(SourceEntity).IsSet() == false)
-        { utils_input_bias::Add(SourceEntity, FCk_Fragment_InputBias_ParamsData()); }
+        { utils_input_bias::Add(SourceEntity, FCk_InputBias_Spec()); }
 
         if (utils_input_button_map::DoCast(SourceEntity).IsSet() == false)
-        { utils_input_button_map::Add(SourceEntity, FCk_Fragment_InputButtonMap_ParamsData(Get_AllPlaygroundKeys())); }
+        { utils_input_button_map::Add(SourceEntity, FCk_InputButtonMap_Spec(Get_AllPlaygroundKeys())); }
 
         if (utils_intent_sampler::DoCast(SourceEntity).IsSet() == false)
-        { utils_intent_sampler::Add(SourceEntity, FCk_Fragment_IntentSampler_ParamsData(k_RingCapacity)); }
+        { utils_intent_sampler::Add(SourceEntity, FCk_IntentSampler_Spec(k_RingCapacity)); }
 
         if (utils_intent_debug_history::DoCast(SourceEntity).IsSet() == false)
-        { utils_intent_debug_history::Add(SourceEntity, FCk_Fragment_IntentDebugHistory_ParamsData(k_HistoryFrames)); }
+        { utils_intent_debug_history::Add(SourceEntity, FCk_IntentDebugHistory_Spec(k_HistoryFrames)); }
 
         return true;
     }

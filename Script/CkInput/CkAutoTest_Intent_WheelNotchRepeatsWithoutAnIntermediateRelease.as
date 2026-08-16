@@ -53,19 +53,19 @@ class UCk_AutoTest_Intent_WheelNotchRepeatsWithoutAnIntermediateRelease : UCk_Au
         _NotchKey = EKeys::MouseScrollUp;
 
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
 
         TArray<FKey> PhysicalButtons;
         PhysicalButtons.Add(_NotchKey);
 
-        _Map     = utils_input_button_map::Add(_Owner, FCk_Fragment_InputButtonMap_ParamsData(PhysicalButtons));
-        _Sampler = utils_intent_sampler::Add(_Owner, FCk_Fragment_IntentSampler_ParamsData(120));
+        _Map     = utils_input_button_map::Add(_Owner, FCk_InputButtonMap_Spec(PhysicalButtons));
+        _Sampler = utils_intent_sampler::Add(_Owner, FCk_IntentSampler_Spec(120));
 
-        _Layer   = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 50));
+        _Layer   = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 50));
 
         // The first completion's frame is held across several step-hops and compared against a later
         // one, so the decay window must not expire underneath the comparison.
-        auto MatcherParams = FCk_Fragment_IntentMatcher_ParamsData();
+        auto MatcherParams = FCk_IntentMatcher_Spec();
         MatcherParams.Set_LatchDecayFrames(200);
 
         FCk_Handle LayerEntity = _Layer;

@@ -940,7 +940,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             { return; }
 
             _Layer = utils_input_layer::Create(_PawnEntity,
-                FCk_Fragment_InputLayer_ParamsData(Source, playground_gym::k_LayerPriority_CombatKit));
+                FCk_InputLayer_Spec(Source, playground_gym::k_LayerPriority_CombatKit));
         }
 
         if (ck::Is_NOT_Valid(_Layer))
@@ -948,7 +948,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         if (ck::Is_NOT_Valid(_Matcher))
         {
-            auto MatcherParams = FCk_Fragment_IntentMatcher_ParamsData();
+            auto MatcherParams = FCk_IntentMatcher_Spec();
             MatcherParams.Set_LatchDecayFrames(playground_gym::k_LatchDecayFrames);
 
             FCk_Handle LayerEntity = _Layer;

@@ -56,19 +56,19 @@ class UCk_AutoTest_Intent_LevelActivatesOnPressFrame : UCk_AutoTest_Base
         _DragButtonName = _DragKey.GetKeyName();
 
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
 
         TArray<FKey> PhysicalButtons;
         PhysicalButtons.Add(_DragKey);
 
-        _Map     = utils_input_button_map::Add(_Owner, FCk_Fragment_InputButtonMap_ParamsData(PhysicalButtons));
-        _Sampler = utils_intent_sampler::Add(_Owner, FCk_Fragment_IntentSampler_ParamsData(240));
+        _Map     = utils_input_button_map::Add(_Owner, FCk_InputButtonMap_Spec(PhysicalButtons));
+        _Sampler = utils_intent_sampler::Add(_Owner, FCk_IntentSampler_Spec(240));
 
-        _Layer   = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 50));
+        _Layer   = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 50));
 
         // A level intent never completes, so the decay window governs nothing here - it is set long
         // anyway so a failure can never be read as "the latch expired mid-assertion".
-        auto MatcherParams = FCk_Fragment_IntentMatcher_ParamsData();
+        auto MatcherParams = FCk_IntentMatcher_Spec();
         MatcherParams.Set_LatchDecayFrames(200);
 
         FCk_Handle LayerEntity = _Layer;

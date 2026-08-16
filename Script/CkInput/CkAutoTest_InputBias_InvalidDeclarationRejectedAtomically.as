@@ -45,8 +45,8 @@ class UCk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically : UCk_AutoTest
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
-        _Bias   = utils_input_bias::Add(_Owner, FCk_Fragment_InputBias_ParamsData());
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
+        _Bias   = utils_input_bias::Add(_Owner, FCk_InputBias_Spec());
 
         Assert_True(ck::IsValid(_Bias),
             "the bias must compose for the rejection legs to have a target");
@@ -110,7 +110,7 @@ class UCk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically : UCk_AutoTest
     private void DoRunCompositionRejectionLeg(FCk_Handle InHandle)
     {
         _OtherOwner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _OtherSource = utils_input_source::Add(_OtherOwner, FCk_Fragment_InputSource_ParamsData(1));
+        _OtherSource = utils_input_source::Add(_OtherOwner, FCk_InputSource_Spec(1));
 
         Assert_True(ck::IsValid(_OtherSource),
             "the second entity must be an InputSource before a bias can be composed onto it");
@@ -121,7 +121,7 @@ class UCk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically : UCk_AutoTest
         auto OutOfRangeRows = TArray<FCk_InputBias_AxisBias>();
         OutOfRangeRows.Add(OutOfRange);
 
-        auto RejectedForRange = utils_input_bias::Add(_OtherOwner, FCk_Fragment_InputBias_ParamsData(OutOfRangeRows));
+        auto RejectedForRange = utils_input_bias::Add(_OtherOwner, FCk_InputBias_Spec(OutOfRangeRows));
 
         Assert_True(!ck::IsValid(RejectedForRange),
             "a composition declaring an out-of-range row must return an invalid handle");
@@ -130,7 +130,7 @@ class UCk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically : UCk_AutoTest
         DuplicateRows.Add(FCk_InputBias_AxisBias(EKeys::Gamepad_RightY));
         DuplicateRows.Add(FCk_InputBias_AxisBias(EKeys::Gamepad_RightY));
 
-        auto RejectedForDuplicate = utils_input_bias::Add(_OtherOwner, FCk_Fragment_InputBias_ParamsData(DuplicateRows));
+        auto RejectedForDuplicate = utils_input_bias::Add(_OtherOwner, FCk_InputBias_Spec(DuplicateRows));
 
         Assert_True(!ck::IsValid(RejectedForDuplicate),
             "an axis declared twice in one table must reject the whole declaration");
@@ -138,7 +138,7 @@ class UCk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically : UCk_AutoTest
         auto GoodRows = TArray<FCk_InputBias_AxisBias>();
         GoodRows.Add(FCk_InputBias_AxisBias(EKeys::Gamepad_RightY));
 
-        auto Accepted = utils_input_bias::Add(_OtherOwner, FCk_Fragment_InputBias_ParamsData(GoodRows));
+        auto Accepted = utils_input_bias::Add(_OtherOwner, FCk_InputBias_Spec(GoodRows));
 
         Assert_True(ck::IsValid(Accepted),
             "the entity must still be composable - a rejected composition that left a fragment behind would be refused here");

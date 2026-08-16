@@ -50,8 +50,8 @@ class UCk_AutoTest_InputButtonMap_SharedKeyReturnsAllHolders : UCk_AutoTest_Base
         UserSettings.RegisterInputMappingContext(input_assets::IMC_CkTests_KeyBinding);
 
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
-        _Map    = utils_input_button_map::Add(_Owner, FCk_Fragment_InputButtonMap_ParamsData());
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
+        _Map    = utils_input_button_map::Add(_Owner, FCk_InputButtonMap_Spec());
 
         Assert_True(ck::IsValid(_Map),
             "the button map must compose for this test to mean anything");
