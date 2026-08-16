@@ -59,9 +59,9 @@ namespace ck_test_jolt_overlap_occupancy
 
     constexpr int32 SettleFrames = 30;
 
-    static auto Make_StaticBoxParams(FName InCollisionProfile) -> FCk_Fragment_JoltBody_ParamsData
+    static auto Make_StaticBoxParams(FName InCollisionProfile) -> FCk_JoltBody_Spec
     {
-        auto Params = FCk_Fragment_JoltBody_ParamsData{ECk_JoltBody_ShapeSource::ExplicitShape};
+        auto Params = FCk_JoltBody_Spec{ECk_JoltBody_ShapeSource::ExplicitShape};
         Params.Set_ShapeDimensions(FCk_Jolt_ShapeDimensions{ECk_Jolt_ShapeType::Box});
         Params.Set_MotionType(ECk_MotionType::Static);
         Params.Set_CollisionProfileName(InCollisionProfile);

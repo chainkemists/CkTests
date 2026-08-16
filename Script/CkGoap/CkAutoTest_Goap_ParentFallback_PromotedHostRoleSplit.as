@@ -41,7 +41,7 @@ class UCk_AutoTest_Goap_ParentFallback_PromotedHostRoleSplit : UCk_AutoTest_Base
         auto Local = InHandle;
         utils_transform::Add(Local, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto ParentParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto ParentParams = FCk_Goap_WorldState_Spec();
         auto ParentPreReg = TArray<FGameplayTag>();
         ParentPreReg.Add(SharedKey());
         ParentPreReg.Add(NewKey());
@@ -51,7 +51,7 @@ class UCk_AutoTest_Goap_ParentFallback_PromotedHostRoleSplit : UCk_AutoTest_Base
             ParentParams);
 
         // Different first key => diverged index meaning versus the parent.
-        auto SubParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto SubParams = FCk_Goap_WorldState_Spec();
         auto SubPreReg = TArray<FGameplayTag>();
         SubPreReg.Add(ProbeKey());
         SubParams.Set_PreRegisteredKeys(SubPreReg);
@@ -62,7 +62,7 @@ class UCk_AutoTest_Goap_ParentFallback_PromotedHostRoleSplit : UCk_AutoTest_Base
 
         auto TopGoal = TArray<FCk_GoapWS_Condition_Authored>();
         TopGoal.Add(FCk_GoapWS_Condition_Authored(NewKey(), true));
-        auto TopParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto TopParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.Set"));
         TopParams.Set_Goal(TopGoal);
         TopParams.Set_WorldStateSource(_ParentWS);
@@ -70,21 +70,21 @@ class UCk_AutoTest_Goap_ParentFallback_PromotedHostRoleSplit : UCk_AutoTest_Base
         _TopPlanner = utils_goap_planner::Add(Local, TopParams);
 
         // The dual-role host: candidate in _TopPlanner, promoted planner over _SubWS.
-        auto HostParams = FCk_Fragment_Goap_ActionParamsData(
+        auto HostParams = FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ParentFallback_Host);
         HostParams.Set_WorldStateSource_Override(_SubWS);
         auto HostAsAction = utils_goap_planner::AddAction(_TopPlanner, HostParams);
 
         auto SubGoal = TArray<FCk_GoapWS_Condition_Authored>();
         SubGoal.Add(FCk_GoapWS_Condition_Authored(LocalKey(), true));
-        auto SubPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto SubPlannerParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         SubPlannerParams.Set_Goal(SubGoal);
         SubPlannerParams.Set_PlanOnStart(false); // sub-planners plan on activation only
         SubPlannerParams.Set_AllowPlanFailed(true);
         _SubPlanner = utils_goap_planner::PromoteActionToPlanner(HostAsAction, SubPlannerParams);
 
-        utils_goap_planner::AddAction(_SubPlanner, FCk_Fragment_Goap_ActionParamsData(
+        utils_goap_planner::AddAction(_SubPlanner, FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ParentFallback_SubAchieve));
 
         Add_Step_WaitUntil("parent plan fails while the gate is false", n"Check_ParentPlanFailed");

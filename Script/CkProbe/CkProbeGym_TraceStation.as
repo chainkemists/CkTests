@@ -76,14 +76,14 @@ class UCk_EntityScript_ProbeGym_TraceStation : UCk_GenericEntityScript_UE
         auto ProbeTransform = utils_transform::Add(ProbeEntity,
             FTransform(FRotator::ZeroRotator, Get_LocalPoint(ProbeOffset)), ECk_Replication::DoesNotReplicate);
 
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.Gym.TraceTarget"));
         ProbeParams.Set_MotionType(ECk_MotionType::Static);
         ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Silent);
         utils_probe::Add_Box(ProbeTransform,
             FVector(ProbeHalfExtent, ProbeHalfExtent, ProbeHalfExtent), ProbeParams, FCk_Probe_DebugInfo());
 
-        auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
+        auto DisplayTimerParams = FCk_Timer_Spec(FCk_Time(0.0f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"FrameTick"));

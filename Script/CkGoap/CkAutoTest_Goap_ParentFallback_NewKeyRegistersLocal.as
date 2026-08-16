@@ -25,9 +25,9 @@ class UCk_AutoTest_Goap_ParentFallback_NewKeyRegistersLocal : UCk_AutoTest_Base
 
         _Parent = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Parent"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
 
-        auto SubParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto SubParams = FCk_Goap_WorldState_Spec();
         SubParams.Set_FallbackParent(_Parent);
         _Sub = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Sub"),

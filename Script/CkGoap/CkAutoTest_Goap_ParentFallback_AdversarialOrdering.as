@@ -45,9 +45,9 @@ class UCk_AutoTest_Goap_ParentFallback_AdversarialOrdering : UCk_AutoTest_Base
         // ---- Pair A: pre-registration deliberately OMITTED ----
         _ParentA = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Parent"),
-            FCk_Fragment_Goap_WorldState_ParamsData());
+            FCk_Goap_WorldState_Spec());
 
-        auto SubAParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto SubAParams = FCk_Goap_WorldState_Spec();
         SubAParams.Set_FallbackParent(_ParentA);
         _SubA = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Sub"),
@@ -56,7 +56,7 @@ class UCk_AutoTest_Goap_ParentFallback_AdversarialOrdering : UCk_AutoTest_Base
         auto Goal = TArray<FCk_GoapWS_Condition_Authored>();
         Goal.Add(FCk_GoapWS_Condition_Authored(LocalKey(), true));
 
-        auto PlannerAParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerAParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.Set"));
         PlannerAParams.Set_Goal(Goal);
         PlannerAParams.Set_WorldStateSource(_SubA);
@@ -64,11 +64,11 @@ class UCk_AutoTest_Goap_ParentFallback_AdversarialOrdering : UCk_AutoTest_Base
         auto PlannerA = utils_goap_planner::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.Set"),
             PlannerAParams);
-        utils_goap_planner::AddAction(PlannerA, FCk_Fragment_Goap_ActionParamsData(
+        utils_goap_planner::AddAction(PlannerA, FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ParentFallback_ProbeOnly));
 
         // ---- Pair B: parent pre-registers the probe ----
-        auto ParentBParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto ParentBParams = FCk_Goap_WorldState_Spec();
         auto PreReg = TArray<FGameplayTag>();
         PreReg.Add(ProbeKey());
         ParentBParams.Set_PreRegisteredKeys(PreReg);
@@ -76,13 +76,13 @@ class UCk_AutoTest_Goap_ParentFallback_AdversarialOrdering : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Parent2"),
             ParentBParams);
 
-        auto SubBParams = FCk_Fragment_Goap_WorldState_ParamsData();
+        auto SubBParams = FCk_Goap_WorldState_Spec();
         SubBParams.Set_FallbackParent(_ParentB);
         _SubB = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ParentFallback.WS.Sub2"),
             SubBParams);
 
-        auto PlannerBParams = FCk_Fragment_Goap_PlannerParamsData(
+        auto PlannerBParams = FCk_Goap_Planner_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerBParams.Set_Goal(Goal);
         PlannerBParams.Set_WorldStateSource(_SubB);
@@ -90,7 +90,7 @@ class UCk_AutoTest_Goap_ParentFallback_AdversarialOrdering : UCk_AutoTest_Base
         auto PlannerB = utils_goap_planner::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"),
             PlannerBParams);
-        utils_goap_planner::AddAction(PlannerB, FCk_Fragment_Goap_ActionParamsData(
+        utils_goap_planner::AddAction(PlannerB, FCk_Goap_Action_Spec(
             UCk_AutoTestAction_Goap_ParentFallback_ProbeOnly));
 
         Add_Step_WaitUntil("both pairs' action setups have classified the probe", n"Check_BothClassified");

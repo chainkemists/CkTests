@@ -52,14 +52,14 @@ class UCk_AutoTest_Crowd_NavQueryFilter_ForceReplan : UCk_AutoTest_Base
         // This framework-owned policy has a native definition. Customer is project-owned and has
         // no framework mapping, so it cannot serve as a portable non-default fixture.
         _InitialPolicy = utils_gameplay_tag::ResolveGameplayTag(n"Nav.Filter.Crowd.AvoidStandingCrowds");
-        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto Params = FCk_CrowdAgent_Spec(42.0f, 192.0f);
         Params.Set_NavQueryFilter(_InitialPolicy);
         _Agent = utils_crowd_agent::Add(AgentTransform, Params);
         utils_velocity::Add(LocalHandle,
-            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Velocity_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_acceleration::Add(LocalHandle,
-            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            FCk_Acceleration_Spec(ECk_LocalWorld::World, FVector::ZeroVector),
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(LocalHandle);
 
@@ -82,7 +82,7 @@ class UCk_AutoTest_Crowd_NavQueryFilter_ForceReplan : UCk_AutoTest_Base
              .Set_CorrelationId(CorrelationA);
         utils_crowd_agent::Request_MoveTo(_Agent, MoveA);
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.02));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(0.02));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);

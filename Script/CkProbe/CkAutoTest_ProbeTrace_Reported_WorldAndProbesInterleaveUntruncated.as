@@ -68,7 +68,7 @@ class UCk_AutoTest_ProbeTrace_Reported_WorldAndProbesInterleaveUntruncated : UCk
         auto ProbeTransform = utils_transform::Add(Entity,
             FTransform(FRotator::ZeroRotator, FVector(InX, _Band, _TraceZ)), ECk_Replication::DoesNotReplicate);
 
-        auto ProbeParams = FCk_Fragment_Probe_ParamsData(
+        auto ProbeParams = FCk_Probe_Spec(
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.ProbeTrace.Reported.Target"));
         ProbeParams.Set_MotionType(ECk_MotionType::Static);
         ProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);

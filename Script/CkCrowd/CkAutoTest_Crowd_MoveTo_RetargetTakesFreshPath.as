@@ -89,7 +89,7 @@ class UCk_AutoTest_Crowd_MoveTo_RetargetTakesFreshPath : UCk_AutoTest_Base
         Assert_False(utils_crowd_agent::Get_HasReachedActiveGoal(_Agent),
             "queued MoveTo invalidates any retained completion before request drain");
 
-        auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.01));
+        auto TimerParams = FCk_Timer_Spec(FCk_Time(0.01));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto Timer = utils_timer::Add(LocalHandle, TimerParams);
