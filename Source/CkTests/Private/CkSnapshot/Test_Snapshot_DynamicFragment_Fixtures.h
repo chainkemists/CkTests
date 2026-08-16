@@ -181,6 +181,48 @@ struct FCk_Test_DynFrag_MixedTransient
     FCk_Handle RuntimeChild;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCk_Test_DynFrag_OnSignal, int32, InValue);
+
+// The shape of every AngelScript "<Feature>_Signals" fragment: durable data alongside a multicast delegate whose
+// subscribers bound during the REBUILT world's construction. The saved delegate is stale or empty by construction
+// (it named objects belonging to the torn-down world), so hydration must overwrite the durable field and PRESERVE
+// the live subscriber list. Stomping it leaves the feature holding correct state that never notifies again.
+USTRUCT()
+struct FCk_Test_DynFrag_WithDelegate
+{
+    GENERATED_BODY()
+
+    UPROPERTY(SaveGame)
+    int32 DurableMarker = 0;
+
+    UPROPERTY()
+    FCk_Test_DynFrag_OnSignal OnSignal;
+};
+
+// Subscriber for the fixture above — records the last broadcast so a test can prove the surviving binding still
+// DELIVERS, not merely that IsBound() reports true.
+UCLASS()
+class UCk_Test_DynFrag_SignalListener : public UObject
+{
+    GENERATED_BODY()
+
+public:
+    UFUNCTION()
+    void
+    HandleSignal(
+        int32 InValue)
+    {
+        _Received = InValue;
+        ++_CallCount;
+    }
+
+public:
+    int32 _Received = 0;
+    int32 _CallCount = 0;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
 USTRUCT()
 struct FCk_Test_UntracedSafeObjectRefs
 {
