@@ -37,6 +37,8 @@
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
 #include <Jolt/Physics/Constraints/ContactConstraintManager.h>
 
+#include <limits>
+
 // --------------------------------------------------------------------------------------------------------------------
 // Pins the world-targetable batched Jolt debug renderer against a standalone JPH::PhysicsSystem and a transient
 // UWorld — no PIE, no Jolt subsystem, no ECS registry. Every body in a case shares ONE BoxShape, so a bucket split
@@ -2880,6 +2882,167 @@ bool FCkTest_JoltDebugDraw_StatsSampled::RunTest(const FString& Parameters)
 
         // Detached before the listener goes out of scope: the PhysicsSystem outlives this frame's locals.
         JoltFixture.Get_PhysicsSystem().SetContactListener(nullptr);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_ProblemBodiesFlagTheBrokenOnes,
+    "Ck.Jolt.DebugDraw.ProblemBodiesFlagTheBrokenOnes",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_ProblemBodiesFlagTheBrokenOnes::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    using EProblem = ECk_Jolt_DebugDraw_ProblemFlags;
+
+    // The NaN arms first, against the PURE predicate. They cannot be driven through the capture: Jolt CLAMPS
+    // BodyInterface::SetLinearVelocity and asserts inside every MotionProperties setter (JPH_ENABLE_ASSERTS is
+    // on in every configuration), so a NaN can never be INSTALLED on a live body from a test.
+    {
+        const auto NaN = std::numeric_limits<double>::quiet_NaN();
+        const auto HealthyBounds = FBox{FVector{-50.0}, FVector{50.0}};
+        const auto Thresholds = FCk_Jolt_DebugDraw_ProblemThresholds{1000.0f, -10000.0f};
+
+        const auto NaNPosition = ck::jolt::debug_draw::Compute_ProblemFlags(
+            FVector{NaN, 0.0, 0.0}, FQuat::Identity,
+            FVector::ZeroVector, HealthyBounds, Thresholds);
+
+        TestTrue(TEXT("a NaN position flags the transform"),
+            EnumHasAnyFlags(NaNPosition, EProblem::NaNTransform));
+
+        const auto NaNVelocity = ck::jolt::debug_draw::Compute_ProblemFlags(
+            FVector::ZeroVector, FQuat::Identity,
+            FVector{0.0, NaN, 0.0}, HealthyBounds, Thresholds);
+
+        TestTrue(TEXT("a NaN velocity flags the velocity"),
+            EnumHasAnyFlags(NaNVelocity, EProblem::NaNVelocity));
+
+        // A NaN velocity compares false against every bar, so reporting it as a runaway TOO would have the scan
+        // disagreeing with itself about what it just found.
+        TestFalse(TEXT("a NaN velocity is not ALSO reported as a runaway"),
+            EnumHasAnyFlags(NaNVelocity, EProblem::RunawayVelocity));
+
+        const auto Runaway = ck::jolt::debug_draw::Compute_ProblemFlags(
+            FVector::ZeroVector, FQuat::Identity,
+            FVector{2000.0, 0.0, 0.0}, HealthyBounds, Thresholds);
+
+        TestTrue(TEXT("a velocity past the bar is a runaway"),
+            EnumHasAnyFlags(Runaway, EProblem::RunawayVelocity));
+
+        const auto ZeroExtent = ck::jolt::debug_draw::Compute_ProblemFlags(
+            FVector::ZeroVector, FQuat::Identity, FVector::ZeroVector,
+            FBox{FVector::ZeroVector, FVector::ZeroVector}, Thresholds);
+
+        TestTrue(TEXT("a body with no size at all is flagged"),
+            EnumHasAnyFlags(ZeroExtent, EProblem::ZeroExtentBounds));
+
+        const auto BelowKillZ = ck::jolt::debug_draw::Compute_ProblemFlags(
+            FVector::ZeroVector, FQuat::Identity, FVector::ZeroVector,
+            FBox{FVector{-50.0, -50.0, -20050.0}, FVector{50.0, 50.0, -19950.0}}, Thresholds);
+
+        TestTrue(TEXT("a body wholly under KillZ has fallen out of the world"),
+            EnumHasAnyFlags(BelowKillZ, EProblem::BelowKillZ));
+
+        const auto Straddling = ck::jolt::debug_draw::Compute_ProblemFlags(
+            FVector::ZeroVector, FQuat::Identity, FVector::ZeroVector,
+            FBox{FVector{-50.0, -50.0, -10050.0}, FVector{50.0, 50.0, -9950.0}}, Thresholds);
+
+        TestFalse(TEXT("a body straddling KillZ is still in the world"),
+            EnumHasAnyFlags(Straddling, EProblem::BelowKillZ));
+
+        const auto Healthy = ck::jolt::debug_draw::Compute_ProblemFlags(
+            FVector::ZeroVector, FQuat::Identity, FVector{10.0, 0.0, 0.0}, HealthyBounds, Thresholds);
+
+        TestEqual(TEXT("a healthy body is flagged with nothing"),
+            static_cast<int32>(Healthy), static_cast<int32>(EProblem::None));
+    }
+
+    // ...then the capture path, which is what actually FILLS the map a debugger reads.
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Set_ZeroGravity();
+
+        const auto RunawayId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 0.0f, IsNotSensor, Activate);
+        const auto HealthyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 500.0f, IsNotSensor, Activate);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        const auto Capture = [&]()
+        {
+            Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+                Make_Revisions(StaticSceneRevision), FCk_Handle{});
+        };
+
+        // Unarmed by default: nothing pays for the scan while no consumer is showing its result.
+        JoltWorld.Set_LinearVelocity(RunawayId, JPH::Vec3{300.0f, 0.0f, 0.0f});
+        JoltWorld.Set_LinearVelocity(HealthyId, JPH::Vec3{10.0f, 0.0f, 0.0f});
+        Capture();
+
+        TestEqual(TEXT("an unarmed target scans nothing"), Target->Get_ProblemBodies().Num(), 0);
+
+        // The bar sits UNDER Jolt's own max-linear-velocity clamp on purpose: BodyInterface::SetLinearVelocity
+        // clamps to it, so a "runaway" in a test has to be one this world can actually hold.
+        constexpr auto RunawayBar = 100.0f;
+        constexpr auto KillZ = -100000.0f;
+        Target->Set_ProblemThresholds(FCk_Jolt_DebugDraw_ProblemThresholds{RunawayBar, KillZ});
+
+        Capture();
+
+        const auto RunawayKey = ck::jolt::debug_draw::Make_BodyKey(RunawayId.GetIndexAndSequenceNumber());
+        const auto HealthyKey = ck::jolt::debug_draw::Make_BodyKey(HealthyId.GetIndexAndSequenceNumber());
+
+        {
+            const auto& Flagged = Target->Get_ProblemBodies();
+            TestEqual(TEXT("exactly the runaway is flagged"), Flagged.Num(), 1);
+
+            if (const auto* RunawayFlags = Flagged.Find(RunawayKey))
+            {
+                TestTrue(TEXT("and it is flagged as a runaway"),
+                    EnumHasAnyFlags(*RunawayFlags, EProblem::RunawayVelocity));
+            }
+            else
+            {
+                AddError(TEXT("the runaway body is missing from the problem set"));
+            }
+
+            TestFalse(TEXT("the healthy body is not flagged"), Flagged.Contains(HealthyKey));
+        }
+
+        // The verdict is LIVE state, not a record: slowing the body down clears its flag on the very next
+        // capture rather than leaving a warning nobody can dismiss.
+        JoltWorld.Set_LinearVelocity(RunawayId, JPH::Vec3{5.0f, 0.0f, 0.0f});
+        Capture();
+
+        TestEqual(TEXT("a body that stopped being a runaway is no longer flagged"),
+            Target->Get_ProblemBodies().Num(), 0);
+
+        JoltWorld.Set_LinearVelocity(RunawayId, JPH::Vec3{300.0f, 0.0f, 0.0f});
+        Capture();
+        TestEqual(TEXT("re-arming the condition flags it again"), Target->Get_ProblemBodies().Num(), 1);
+
+        // Disarming drops the verdict outright, so a consumer that turned the scan off cannot keep reading it.
+        Target->Set_ProblemThresholds({});
+        TestEqual(TEXT("disarming clears the verdict on the spot"), Target->Get_ProblemBodies().Num(), 0);
+
+        Capture();
+        TestEqual(TEXT("and a capture with no thresholds leaves it empty"),
+            Target->Get_ProblemBodies().Num(), 0);
     }
 
     World->DestroyWorld(false);
