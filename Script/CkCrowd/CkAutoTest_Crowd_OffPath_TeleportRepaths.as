@@ -10,8 +10,10 @@
 // near the corridor it is walking. Steering keeps aiming at the waypoint the
 // installed polyline says is next — so a teleport, a save restore or an
 // external shove leaves the agent walking BACK to a corridor it has no reason
-// to be on, all the way around, before it finally heads for the goal. Being
-// displaced is not a stall, so this does not consume the stall-repath budget.
+// to be on, all the way around, before it finally heads for the goal. A
+// displacement spends ONE rung of the shared re-path ladder
+// (_BlockDetectionMaxStallRepaths = 2, refunded on progress); this fixture
+// drifts exactly once, so a single heal must never escalate to a block.
 //
 // Shape: the scenario needs a MULTI-WAYPOINT path, otherwise the stale-corridor
 // bug is unobservable — a one-segment path aims straight at the goal, and an
@@ -400,7 +402,7 @@ class UCk_AutoTest_Crowd_OffPath_TeleportRepaths : UCk_AutoTest_Base
         // the goal is open floor. A block here means the displacement was mistaken
         // for a stall, which is exactly the distinction the off-path branch draws.
         Assert_True(false,
-            f"DISPLACEMENT MISREAD AS A STALL: OnGoalBlocked fired (reason={InInfo.Get_Reason()}) for an agent whose goal was open floor. Being displaced must consume the off-path re-path, not the stall-repath budget.");
+            f"DISPLACEMENT MISREAD AS A STALL: OnGoalBlocked fired (reason={InInfo.Get_Reason()}) for an agent whose goal was open floor. One displacement must heal with a re-path, not escalate to a block: the off-path heal spends one of 2 ladder rungs and this fixture drifts exactly once.");
     }
 
     private FString Dump_Polyline(const TArray<FVector>& InWaypoints)
