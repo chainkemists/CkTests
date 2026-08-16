@@ -70,7 +70,7 @@ class UCk_AutoTest_CkJolt_PersistedContactGating : UCk_AutoTest_Base
         auto AnchorTransform = utils_transform::Add(
             AnchorEntity, FTransform(FRotator::ZeroRotator, _Center), ECk_Replication::DoesNotReplicate);
 
-        auto AnchorParams = FCk_Fragment_Probe_ParamsData(AnchorTag);
+        auto AnchorParams = FCk_Probe_Spec(AnchorTag);
         AnchorParams.Set_MotionType(ECk_MotionType::Kinematic);
         AnchorParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
 
@@ -86,7 +86,7 @@ class UCk_AutoTest_CkJolt_PersistedContactGating : UCk_AutoTest_Base
         _MoverTransform = utils_transform::Add(
             MoverEntity, FTransform(FRotator::ZeroRotator, _Center), ECk_Replication::DoesNotReplicate);
 
-        auto MoverParams = FCk_Fragment_Probe_ParamsData(MoverTag);
+        auto MoverParams = FCk_Probe_Spec(MoverTag);
         MoverParams.Set_MotionType(ECk_MotionType::Kinematic);
         MoverParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
 
