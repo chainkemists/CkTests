@@ -33,16 +33,16 @@ class UCk_AutoTest_InputLayer_PriorityCollisionRejected : UCk_AutoTest_Base
         auto SourceOwner      = utils_entity_lifetime::Request_CreateEntity(_Owner);
         auto OtherSourceOwner = utils_entity_lifetime::Request_CreateEntity(_Owner);
 
-        _Source      = utils_input_source::Add(SourceOwner,      FCk_Fragment_InputSource_ParamsData(0));
-        _OtherSource = utils_input_source::Add(OtherSourceOwner, FCk_Fragment_InputSource_ParamsData(1));
+        _Source      = utils_input_source::Add(SourceOwner,      FCk_InputSource_Spec(0));
+        _OtherSource = utils_input_source::Add(OtherSourceOwner, FCk_InputSource_Spec(1));
 
-        auto Incumbent = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 50));
+        auto Incumbent = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 50));
 
         Assert_True(ck::IsValid(Incumbent),
             "the first layer to claim a priority must be accepted");
 
         auto Contender = utils_entity_lifetime::Request_CreateEntity(_Owner);
-        auto Rejected  = utils_input_layer::Add(Contender, FCk_Fragment_InputLayer_ParamsData(_Source, 50));
+        auto Rejected  = utils_input_layer::Add(Contender, FCk_InputLayer_Spec(_Source, 50));
 
         Assert_True(!ck::IsValid(Rejected),
             "a second layer claiming a live priority on the same source must be rejected");
@@ -51,12 +51,12 @@ class UCk_AutoTest_InputLayer_PriorityCollisionRejected : UCk_AutoTest_Base
         Assert_Equals_Int(utils_input_layer::Get_NumCaptures(Incumbent), 0,
             "a rejected registration must not disturb the incumbent's capture set");
 
-        auto OnOtherSource = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_OtherSource, 50));
+        auto OnOtherSource = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_OtherSource, 50));
 
         Assert_True(ck::IsValid(OnOtherSource),
             "the same priority on a DIFFERENT source is a different stack slot and must be accepted");
 
-        auto Neighbour = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 51));
+        auto Neighbour = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 51));
 
         Assert_True(ck::IsValid(Neighbour),
             "a free priority on the same source must still be accepted after a rejection");

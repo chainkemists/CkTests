@@ -50,7 +50,7 @@ class UCk_AutoTest_Intent_SocdNeutralCancelsOpposingHeld : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
 
         _UpKey    = EKeys::Gamepad_DPad_Up;
         _DownKey  = EKeys::Gamepad_DPad_Down;
@@ -63,9 +63,9 @@ class UCk_AutoTest_Intent_SocdNeutralCancelsOpposingHeld : UCk_AutoTest_Base
         PhysicalButtons.Add(_LeftKey);
         PhysicalButtons.Add(_RightKey);
 
-        _Map = utils_input_button_map::Add(_Owner, FCk_Fragment_InputButtonMap_ParamsData(PhysicalButtons));
+        _Map = utils_input_button_map::Add(_Owner, FCk_InputButtonMap_Spec(PhysicalButtons));
 
-        auto Params = FCk_Fragment_IntentSampler_ParamsData(120);
+        auto Params = FCk_IntentSampler_Spec(120);
         Params.Set_SocdQuad(FCk_Intent_SocdQuad(
             DoPhysicalButton(_UpKey),
             DoPhysicalButton(_DownKey),

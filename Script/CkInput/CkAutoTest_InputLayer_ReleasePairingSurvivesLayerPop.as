@@ -36,10 +36,10 @@ class UCk_AutoTest_InputLayer_ReleasePairingSurvivesLayerPop : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
 
-        _Modal    = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 100));
-        _Gameplay = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 10));
+        _Modal    = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 100));
+        _Gameplay = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 10));
 
         Assert_True(ck::IsValid(_Modal),    "the modal layer must be created");
         Assert_True(ck::IsValid(_Gameplay), "the gameplay layer must be created");

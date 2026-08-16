@@ -48,7 +48,7 @@ class UCk_AutoTest_Intent_NoEdgeLostAcrossSkippedRenderFrames : UCk_AutoTest_Bas
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
 
         _SubjectKey = EKeys::Y;
         _SubjectButtonName = _SubjectKey.GetKeyName();
@@ -56,8 +56,8 @@ class UCk_AutoTest_Intent_NoEdgeLostAcrossSkippedRenderFrames : UCk_AutoTest_Bas
         TArray<FKey> PhysicalButtons;
         PhysicalButtons.Add(_SubjectKey);
 
-        _Map     = utils_input_button_map::Add(_Owner, FCk_Fragment_InputButtonMap_ParamsData(PhysicalButtons));
-        _Sampler = utils_intent_sampler::Add(_Owner, FCk_Fragment_IntentSampler_ParamsData(120));
+        _Map     = utils_input_button_map::Add(_Owner, FCk_InputButtonMap_Spec(PhysicalButtons));
+        _Sampler = utils_intent_sampler::Add(_Owner, FCk_IntentSampler_Spec(120));
 
         Assert_True(ck::IsValid(_Map),     "the button map must compose for this test to mean anything");
         Assert_True(ck::IsValid(_Sampler), "the sampler must compose for this test to mean anything");

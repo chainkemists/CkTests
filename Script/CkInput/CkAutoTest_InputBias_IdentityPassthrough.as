@@ -26,8 +26,8 @@ class UCk_AutoTest_InputBias_IdentityPassthrough : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
-        _Bias   = utils_input_bias::Add(_Owner, FCk_Fragment_InputBias_ParamsData());
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
+        _Bias   = utils_input_bias::Add(_Owner, FCk_InputBias_Spec());
 
         Assert_True(ck::IsValid(_Bias),
             "InputBias Add on an InputSource entity should return a valid FCk_Handle_InputBias");

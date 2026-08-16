@@ -81,16 +81,16 @@ class UCk_AutoTest_Intent_LevelReanchorsToRemainingHeldKey : UCk_AutoTest_Base
         UserSettings.RegisterInputMappingContext(input_assets::IMC_CkTests_KeyBinding);
 
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
 
-        _Map     = utils_input_button_map::Add(_Owner, FCk_Fragment_InputButtonMap_ParamsData());
-        _Sampler = utils_intent_sampler::Add(_Owner, FCk_Fragment_IntentSampler_ParamsData(240));
+        _Map     = utils_input_button_map::Add(_Owner, FCk_InputButtonMap_Spec());
+        _Sampler = utils_intent_sampler::Add(_Owner, FCk_IntentSampler_Spec(240));
 
-        _Layer   = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 50));
-        _Masker  = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 100));
+        _Layer   = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 50));
+        _Masker  = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 100));
 
         FCk_Handle LayerEntity = _Layer;
-        _Matcher = utils_intent_matcher::Add(LayerEntity, FCk_Fragment_IntentMatcher_ParamsData());
+        _Matcher = utils_intent_matcher::Add(LayerEntity, FCk_IntentMatcher_Spec());
 
         Assert_True(ck::IsValid(_Map),     "the button map must compose for this test to mean anything");
         Assert_True(ck::IsValid(_Masker),  "the masking layer must be created");

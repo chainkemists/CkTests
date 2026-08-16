@@ -86,15 +86,15 @@ class UCk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates : UCk_AutoTest_
         UserSettings.RegisterInputMappingContext(input_assets::IMC_CkTests_KeyBinding);
 
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
 
-        _Map     = utils_input_button_map::Add(_Owner, FCk_Fragment_InputButtonMap_ParamsData());
-        _Sampler = utils_intent_sampler::Add(_Owner, FCk_Fragment_IntentSampler_ParamsData(120));
+        _Map     = utils_input_button_map::Add(_Owner, FCk_InputButtonMap_Spec());
+        _Sampler = utils_intent_sampler::Add(_Owner, FCk_IntentSampler_Spec(120));
 
-        _Layer   = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 50));
+        _Layer   = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 50));
         // This test holds the partial-binding completion's frame across the second unbind and the rejected
         // swap and asserts it UNCHANGED, so it must not be coupled to the decay window it is not about.
-        auto MatcherParams = FCk_Fragment_IntentMatcher_ParamsData();
+        auto MatcherParams = FCk_IntentMatcher_Spec();
         MatcherParams.Set_LatchDecayFrames(200);
 
         FCk_Handle LayerEntity = _Layer;

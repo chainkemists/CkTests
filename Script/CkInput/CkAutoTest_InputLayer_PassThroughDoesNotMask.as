@@ -33,10 +33,10 @@ class UCk_AutoTest_InputLayer_PassThroughDoesNotMask : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
 
-        _Observer = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 100));
-        _Consumer = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 10));
+        _Observer = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 100));
+        _Consumer = utils_input_layer::Create(_Owner, FCk_InputLayer_Spec(_Source, 10));
 
         Assert_True(ck::IsValid(_Observer), "the pass-through layer must be created");
         Assert_True(ck::IsValid(_Consumer), "the consuming layer must be created");

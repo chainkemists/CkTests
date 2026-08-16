@@ -31,7 +31,7 @@ class UCk_AutoTest_InputBias_DeadzoneRescalesOutsideThreshold : UCk_AutoTest_Bas
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
 
         auto Row = FCk_InputBias_AxisBias(EKeys::Gamepad_LeftX);
         Row.Set_Deadzone(0.25f);
@@ -39,7 +39,7 @@ class UCk_AutoTest_InputBias_DeadzoneRescalesOutsideThreshold : UCk_AutoTest_Bas
         auto Rows = TArray<FCk_InputBias_AxisBias>();
         Rows.Add(Row);
 
-        _Bias = utils_input_bias::Add(_Owner, FCk_Fragment_InputBias_ParamsData(Rows));
+        _Bias = utils_input_bias::Add(_Owner, FCk_InputBias_Spec(Rows));
 
         Assert_True(ck::IsValid(_Bias),
             "a bias declaring one in-range row must compose");

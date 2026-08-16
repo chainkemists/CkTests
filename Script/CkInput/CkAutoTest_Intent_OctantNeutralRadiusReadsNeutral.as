@@ -47,10 +47,10 @@ class UCk_AutoTest_Intent_OctantNeutralRadiusReadsNeutral : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
-        _Bias   = utils_input_bias::Add(_Owner, FCk_Fragment_InputBias_ParamsData());
+        _Source = utils_input_source::Add(_Owner, FCk_InputSource_Spec(0));
+        _Bias   = utils_input_bias::Add(_Owner, FCk_InputBias_Spec());
 
-        auto Params = FCk_Fragment_IntentSampler_ParamsData(120);
+        auto Params = FCk_IntentSampler_Spec(120);
         Params.Set_OctantNeutralRadius(_NeutralRadius);
 
         _Sampler = utils_intent_sampler::Add(_Owner, Params);
