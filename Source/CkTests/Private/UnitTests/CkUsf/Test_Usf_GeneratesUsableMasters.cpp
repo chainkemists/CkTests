@@ -14,7 +14,7 @@
 
 #include "Misc/App.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "Materials/MaterialInterface.h"
+#include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 #include "CkUsf/LookDefinition/CkUsf_LookDefinition.h"
@@ -73,21 +73,31 @@ bool FCkTest_Usf_GeneratesUsableMasters::RunTest(const FString& Parameters)
     //    lookup, and a MID can be created from it.
     for (const auto& A : Assets)
     {
-        auto* Def = Cast<UCkUsf_LookDefinition>(A.GetAsset());
-        if (Def == nullptr) { continue; }
+        const TWeakObjectPtr<UCkUsf_LookDefinition> Def = Cast<UCkUsf_LookDefinition>(A.GetAsset());
+        if (NOT Def.IsValid()) { continue; }
 
         const auto LookName = Def->Get_EffectiveLookName();
         const auto Name = LookName.ToString();
 
         const auto GeneratedPath = ck::usf::Get_GeneratedMasterObjectPath(LookName, TestPackageRoot);
-        TestNotNull(*FString::Printf(TEXT("the master generated this run resolves for look [%s]"), *Name),
-            LoadObject<UMaterialInterface>(nullptr, *GeneratedPath));
+        const TWeakObjectPtr<UMaterial> GeneratedMaster = LoadObject<UMaterial>(nullptr, *GeneratedPath);
+        if (TestNotNull(*FString::Printf(TEXT("the master generated this run resolves for look [%s]"), *Name),
+            GeneratedMaster.Get()))
+        {
+            TestEqual(*FString::Printf(TEXT("generated Nanite usage matches look [%s]"), *Name),
+                GeneratedMaster->bUsedWithNanite != 0, Def->_UsedWithNanite);
+        }
 
-        auto* Master = UCk_Utils_Usf_UE::Get_LookMasterMaterial(Def);
-        TestNotNull(*FString::Printf(TEXT("shipped master resolves for look [%s]"), *Name), Master);
+        const TWeakObjectPtr<UMaterial> Master = Cast<UMaterial>(UCk_Utils_Usf_UE::Get_LookMasterMaterial(Def.Get()));
+        if (TestNotNull(*FString::Printf(TEXT("shipped master resolves for look [%s]"), *Name), Master.Get()))
+        {
+            TestEqual(*FString::Printf(TEXT("shipped Nanite usage matches look [%s]"), *Name),
+                Master->bUsedWithNanite != 0, Def->_UsedWithNanite);
+        }
 
-        auto* MID = UCk_Utils_Usf_UE::Create_MID_ForLook(Def, GetTransientPackage());
-        TestNotNull(*FString::Printf(TEXT("MID created for look [%s]"), *Name), MID);
+        const TWeakObjectPtr<UMaterialInstanceDynamic> MID =
+            UCk_Utils_Usf_UE::Create_MID_ForLook(Def.Get(), GetTransientPackage());
+        TestNotNull(*FString::Printf(TEXT("MID created for look [%s]"), *Name), MID.Get());
 
         if (ck_test_usf::Delete_TestGeneratedMaster(LookName) == false)
         {
