@@ -41,6 +41,7 @@ public class CkTests : CkModuleRules
             "CkCrowd",
             "CkCue",
             "CkCVar",
+            "CkDebugScene",
             "CkDynamic",
             "CkEcs",
             "CkEcsExt",
