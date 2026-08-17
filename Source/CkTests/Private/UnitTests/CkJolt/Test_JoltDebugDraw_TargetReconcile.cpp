@@ -625,6 +625,20 @@ bool FCkTest_JoltDebugDraw_TargetReconcile_StaticPassIsIdempotent::RunTest(const
 
         auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
         auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+        const auto AssertMirrorParity = [this, &Target](const TCHAR* InStage) -> void
+        {
+            const auto Parity = Target->Get_DebugSceneParity();
+            TestEqual(*FString::Printf(TEXT("%s: mirrored item count"), InStage),
+                Parity._MirrorItems, Parity._LegacyItems);
+            TestEqual(*FString::Printf(TEXT("%s: mirrored instance count"), InStage),
+                Parity._MirrorInstances, Parity._LegacyInstances);
+            TestEqual(*FString::Printf(TEXT("%s: mirrored bucket count"), InStage),
+                Parity._MirrorBuckets, Parity._LegacyBuckets);
+            TestTrue(*FString::Printf(TEXT("%s: generic target is the visible retained scene"), InStage),
+                Parity._MirrorRenderVisible);
+            TestTrue(*FString::Printf(TEXT("%s: mirrored aggregate bounds"), InStage),
+                Parity._MirrorBounds.Equals(Parity._LegacyBounds, 0.1));
+        };
 
         constexpr uint64 StaticSceneRevision = 1;
         Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
@@ -635,6 +649,7 @@ bool FCkTest_JoltDebugDraw_TargetReconcile_StaticPassIsIdempotent::RunTest(const
         TestEqual(TEXT("both static bodies added an instance"), FirstStats._InstancesAdded, 2);
         TestEqual(TEXT("two same-geometry same-class bodies share one bucket"), Target->Get_NumBuckets(), 1);
         TestEqual(TEXT("the bucket holds one instance per body"), Target->Get_NumInstances(), 2);
+        AssertMirrorParity(TEXT("initial capture"));
 
         Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
@@ -645,6 +660,7 @@ bool FCkTest_JoltDebugDraw_TargetReconcile_StaticPassIsIdempotent::RunTest(const
         TestEqual(TEXT("the second capture updates nothing"), SecondStats._InstancesUpdated, 0);
         TestEqual(TEXT("the second capture removes nothing"), SecondStats._InstancesRemoved, 0);
         TestEqual(TEXT("the retained instances survive the no-op capture"), Target->Get_NumInstances(), 2);
+        AssertMirrorParity(TEXT("unchanged capture"));
 
         Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision + 1), FCk_Handle{});
 
@@ -678,6 +694,7 @@ bool FCkTest_JoltDebugDraw_TargetReconcile_StaticPassIsIdempotent::RunTest(const
         const auto MovedBounds = Target->Get_ContentBounds();
         TestTrue(TEXT("the drawn content followed the moved body"),
             MovedBounds.IsInsideOrOn(FVector{MovedBodyX, 0.0, 0.0}));
+        AssertMirrorParity(TEXT("moved capture"));
     }
 
     World->DestroyWorld(false);
