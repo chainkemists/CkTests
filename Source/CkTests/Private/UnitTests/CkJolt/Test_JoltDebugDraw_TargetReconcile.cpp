@@ -20,11 +20,13 @@
 #include "CkJolt/World/CkJoltWorld_Processor.h"
 
 #include <Components/InstancedStaticMeshComponent.h>
+#include <Engine/StaticMesh.h>
 #include <Engine/World.h>
 #include <GameFramework/PlayerState.h>
 #include <GameFramework/WorldSettings.h>
 #include <Materials/Material.h>
 #include <Materials/MaterialInstanceDynamic.h>
+#include <StaticMeshResources.h>
 
 #include <Jolt/Core/JobSystemSingleThreaded.h>
 #include <Jolt/Core/TempAllocator.h>
@@ -35,6 +37,8 @@
 #include <Jolt/Physics/Collision/ContactListener.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 #include <Jolt/Physics/Constraints/ContactConstraintManager.h>
 
 #include <limits>
@@ -55,7 +59,8 @@ namespace ck_test_jolt_debugdraw
     constexpr JPH::uint MaxBodies = 256;
     constexpr auto BoxHalfExtent = 50.0f;
 
-    const auto SolidMaterialPath = FString{TEXT("/Engine/EngineDebugMaterials/M_SimpleUnlitTranslucent.M_SimpleUnlitTranslucent")};
+    const auto SolidMaterialPath = FString{TEXT("/Engine/EngineDebugMaterials/M_SimpleOpaque.M_SimpleOpaque")};
+    const auto OverlayMaterialPath = FString{TEXT("/Engine/EngineDebugMaterials/M_SimpleTranslucent.M_SimpleTranslucent")};
     const auto WireframeMaterialPath = FString{TEXT("/Engine/EngineDebugMaterials/WireframeMaterial.WireframeMaterial")};
 
     // Everything CkJolt's subsystem builds around a PhysicsSystem, minus the world/ECS/threading: the layer table
@@ -78,6 +83,7 @@ namespace ck_test_jolt_debugdraw
                 *_BroadPhaseLayerInterface, *_ObjectVsBroadPhaseFilter, *_ObjectVsObjectFilter);
 
             _SharedBox = new JPH::BoxShape{JPH::Vec3{BoxHalfExtent, BoxHalfExtent, BoxHalfExtent}};
+            _ScaledBox = new JPH::ScaledShape{_SharedBox.GetPtr(), JPH::Vec3{2.0f, 0.5f, 1.5f}};
 
             auto HullPoints = JPH::Array<JPH::Vec3>{};
             for (const auto SignX : {-1.0f, 1.0f})
@@ -100,7 +106,9 @@ namespace ck_test_jolt_debugdraw
 
             _BodyIds.Reset();
             _SharedBox = nullptr;
+            _ScaledBox = nullptr;
             _SharedHull = nullptr;
+            _PickOccluderMesh = nullptr;
             _JobSystem.Reset();
             _TempAllocator.Reset();
             _PhysicsSystem.Reset();
@@ -336,6 +344,73 @@ namespace ck_test_jolt_debugdraw
             return Body->GetID();
         }
 
+        /// Builds two disconnected high triangles whose combined bounds cover the origin without either triangle
+        /// crossing it. A downward ray through the origin therefore enters this mesh's bounds before a lower box,
+        /// but does not touch the rendered mesh itself.
+        auto
+        Add_PickOccluderMesh() -> JPH::BodyID
+        {
+            auto Vertices = JPH::VertexList{};
+            Vertices.reserve(6);
+            Vertices.push_back(JPH::Float3{-150.0f, -50.0f, 900.0f});
+            Vertices.push_back(JPH::Float3{-50.0f, -50.0f, 900.0f});
+            Vertices.push_back(JPH::Float3{-100.0f, 50.0f, 900.0f});
+            Vertices.push_back(JPH::Float3{50.0f, -50.0f, 700.0f});
+            Vertices.push_back(JPH::Float3{150.0f, -50.0f, 700.0f});
+            Vertices.push_back(JPH::Float3{100.0f, 50.0f, 700.0f});
+
+            auto Triangles = JPH::IndexedTriangleList{};
+            Triangles.reserve(2);
+            Triangles.push_back(JPH::IndexedTriangle{0, 1, 2});
+            Triangles.push_back(JPH::IndexedTriangle{3, 4, 5});
+
+            const auto ShapeResult = JPH::MeshShapeSettings{Vertices, Triangles}.Create();
+            if (NOT ShapeResult.IsValid())
+            { return JPH::BodyID{}; }
+
+            _PickOccluderMesh = ShapeResult.Get();
+
+            auto Settings = JPH::BodyCreationSettings{
+                _PickOccluderMesh.GetPtr(),
+                JPH::RVec3::sZero(),
+                JPH::Quat::sIdentity(),
+                JPH::EMotionType::Static,
+                Get_Layer(ECk_Jolt_BodyDomain::Static)};
+
+            auto& BodyInterface = _PhysicsSystem->GetBodyInterface();
+            auto* Body = BodyInterface.CreateBody(Settings);
+
+            if (Body == nullptr)
+            { return JPH::BodyID{}; }
+
+            BodyInterface.AddBody(Body->GetID(), JPH::EActivation::DontActivate);
+            _BodyIds.Emplace(Body->GetID());
+            return Body->GetID();
+        }
+
+        auto
+        Add_TransformedScaledBox(
+            JPH::RVec3Arg InLocation,
+            JPH::QuatArg InRotation) -> JPH::BodyID
+        {
+            auto Settings = JPH::BodyCreationSettings{
+                _ScaledBox.GetPtr(),
+                InLocation,
+                InRotation,
+                JPH::EMotionType::Static,
+                Get_Layer(ECk_Jolt_BodyDomain::Static)};
+
+            auto& BodyInterface = _PhysicsSystem->GetBodyInterface();
+            auto* Body = BodyInterface.CreateBody(Settings);
+
+            if (Body == nullptr)
+            { return JPH::BodyID{}; }
+
+            BodyInterface.AddBody(Body->GetID(), JPH::EActivation::DontActivate);
+            _BodyIds.Emplace(Body->GetID());
+            return Body->GetID();
+        }
+
         /// Runs the real step, contact recording and all. The reconcile cases deliberately do not step — a
         /// deterministic pose is easier to assert against — but contacts exist ONLY during Update, so the
         /// contact case has no other way to produce one.
@@ -375,7 +450,9 @@ namespace ck_test_jolt_debugdraw
         // cases drive a real FJoltWorld over this fixture's world.
         TSharedPtr<JPH::PhysicsSystem> _PhysicsSystem;
         JPH::Ref<JPH::Shape> _SharedBox;
+        JPH::Ref<JPH::Shape> _ScaledBox;
         JPH::Ref<JPH::Shape> _SharedHull;
+        JPH::Ref<JPH::Shape> _PickOccluderMesh;
         TArray<JPH::BodyID> _BodyIds;
     };
 
@@ -494,6 +571,31 @@ namespace ck_test_jolt_debugdraw
         { return nullptr; }
 
         return Mid->Parent;
+    }
+
+    auto
+        Get_BucketOverlayMaterialParent(
+            const UInstancedStaticMeshComponent& InIsm)
+        -> UMaterialInterface*
+    {
+        auto* Mid = Cast<UMaterialInstanceDynamic>(InIsm.GetOverlayMaterial());
+
+        if (ck::Is_NOT_Valid(Mid))
+        { return nullptr; }
+
+        return Mid->Parent;
+    }
+
+    auto
+        TryGet_BucketVectorParameter(
+            const UInstancedStaticMeshComponent& InIsm,
+            FName InParameterName,
+            FLinearColor& OutValue)
+        -> bool
+    {
+        auto* Mid = Cast<UMaterialInstanceDynamic>(InIsm.GetMaterial(0));
+        return ck::IsValid(Mid) &&
+               Mid->GetVectorParameterValue(FHashedMaterialParameterInfo{InParameterName}, OutValue);
     }
 }
 
@@ -643,6 +745,102 @@ bool FCkTest_JoltDebugDraw_SleepTransitionRecolors::RunTest(const FString& Param
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_SingleTriangleBuild,
+    "Ck.Jolt.DebugDraw.SingleTriangleBuild",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_SingleTriangleBuild::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    auto Passed = true;
+
+    {
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        const auto Triangle = JPH::DebugRenderer::Triangle{
+            JPH::Vec3{0.0f, 0.0f, 0.0f},
+            JPH::Vec3{80.0f, 0.0f, 0.0f},
+            JPH::Vec3{0.0f, 30.0f, 20.0f},
+            JPH::Color::sWhite};
+        const auto Batch = Renderer.CreateTriangleBatch(&Triangle, 1);
+
+        Passed &= TestTrue(TEXT("the renderer creates the single-triangle batch"), Batch.GetPtr() != nullptr);
+
+        if (Passed)
+        {
+            const auto Bounds = JPH::AABox{
+                JPH::Vec3{0.0f, 0.0f, 0.0f},
+                JPH::Vec3{80.0f, 30.0f, 20.0f}};
+            const auto Geometry = JPH::DebugRenderer::GeometryRef{new JPH::DebugRenderer::Geometry{Batch, Bounds}};
+            auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+            Renderer.BeginCapture(*Target);
+            Renderer.BeginBody(1, ck::jolt::debug_draw::Get_ClassIndex(ECk_Jolt_DebugDraw_ColorClass::Static), false);
+            Renderer.DrawGeometry(JPH::RMat44::sIdentity(), Bounds, 1.0f, JPH::Color::sWhite, Geometry,
+                JPH::DebugRenderer::ECullMode::CullBackFace, JPH::DebugRenderer::ECastShadow::Off,
+                JPH::DebugRenderer::EDrawMode::Solid);
+            Renderer.EndBody();
+            Renderer.EndCapture();
+
+            const auto Isms = Target->Get_Isms();
+            Passed &= TestEqual(TEXT("one source batch creates one bucket component"), Isms.Num(), 1);
+
+            if (Passed)
+            {
+                auto* Mesh = Isms[0]->GetStaticMesh().Get();
+                Passed &= TestNotNull(TEXT("the bucket owns a built transient static mesh"), Mesh);
+
+                if (Passed)
+                {
+                    // One JPH source triangle must produce one rendered triangle. Opposite-wound duplicate polygons are
+                    // coplanar overdraw, not a valid way to request two-sided rendering.
+                    Passed &= TestEqual(TEXT("one source triangle builds exactly one rendered triangle"),
+                        Mesh->GetNumTriangles(0), 1);
+
+                    const auto* RenderData = Mesh->GetRenderData();
+                    Passed &= TestNotNull(TEXT("the transient mesh owns render data"), RenderData);
+
+                    if (RenderData != nullptr && NOT RenderData->LODResources.IsEmpty())
+                    {
+                        const auto& VertexBuffer =
+                            RenderData->LODResources[0].VertexBuffers.StaticMeshVertexBuffer;
+
+                        const auto ExpectedExteriorNormal = FVector3f::CrossProduct(
+                            FVector3f{80.0f, 0.0f, 0.0f},
+                            FVector3f{0.0f, 30.0f, 20.0f}).GetSafeNormal();
+
+                        Passed &= TestEqual(TEXT("the triangle render buffer keeps its three corners"),
+                            static_cast<int32>(VertexBuffer.GetNumVertices()), 3);
+
+                        for (auto VertexIndex = 0u; VertexIndex < VertexBuffer.GetNumVertices(); ++VertexIndex)
+                        {
+                            const auto TangentZ = VertexBuffer.VertexTangentZ(VertexIndex);
+                            const auto Normal = FVector3f{TangentZ.X, TangentZ.Y, TangentZ.Z};
+
+                            Passed &= TestFalse(TEXT("the lit triangle normal is finite"), Normal.ContainsNaN());
+                            Passed &= TestTrue(TEXT("the lit triangle normal is nonzero and normalized"),
+                                FMath::IsNearlyEqual(Normal.SizeSquared(), 1.0f, 0.01f));
+                            Passed &= TestTrue(TEXT("the UE winding preserves Jolt's exterior normal"),
+                                FVector3f::DotProduct(Normal, ExpectedExteriorNormal) > 0.99f);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    World->DestroyWorld(false);
+    return Passed;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_JoltDebugDraw_MaterialSwap,
     "Ck.Jolt.DebugDraw.MaterialSwap",
     ck_test_jolt_debugdraw::TestFlags)
@@ -687,8 +885,12 @@ bool FCkTest_JoltDebugDraw_MaterialSwap::RunTest(const FString& Parameters)
 
         for (const auto* Ism : Isms)
         {
-            TestTrue(TEXT("solid mode drives the unlit translucent material"),
+            TestTrue(TEXT("solid mode drives the opaque lit material"),
                 Get_BucketMaterialParent(*Ism) == SolidMaterial);
+
+            auto Color = FLinearColor{};
+            TestTrue(TEXT("solid mode tints the opaque material through Color"),
+                TryGet_BucketVectorParameter(*Ism, TEXT("Color"), Color));
         }
 
         Target->Set_RenderMode(ECk_Jolt_DebugDraw_RenderMode::Wireframe);
@@ -705,11 +907,499 @@ bool FCkTest_JoltDebugDraw_MaterialSwap::RunTest(const FString& Parameters)
 
         for (const auto* Ism : Isms)
         {
-            TestTrue(TEXT("swapping back restores the unlit translucent material"),
+            TestTrue(TEXT("swapping back restores the opaque lit material"),
                 Get_BucketMaterialParent(*Ism) == SolidMaterial);
         }
 
         TestEqual(TEXT("swapping back rebuilds no geometry"), Target->Get_NumInstances(), InstanceCountBefore);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_OverlayMaterial,
+    "Ck.Jolt.DebugDraw.OverlayMaterial",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_OverlayMaterial::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* SolidMaterial = LoadObject<UMaterial>(nullptr, *SolidMaterialPath);
+    auto* OverlayMaterial = LoadObject<UMaterial>(nullptr, *OverlayMaterialPath);
+
+    if (NOT TestNotNull(TEXT("the opaque lit material loads"), SolidMaterial) ||
+        NOT TestNotNull(TEXT("the translucent overlay material loads"), OverlayMaterial))
+    { return false; }
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsNotSensor = false;
+        constexpr auto Activate = true;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto BodyId = JoltWorld.Add_Box(JPH::EMotionType::Dynamic, 0.0f, IsNotSensor, Activate);
+        const auto BodyKey = Get_BodyKey(BodyId);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(
+            *Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        Target->Set_HighlightedBody(BodyKey);
+        Target->Set_HoveredBody(BodyKey);
+        Renderer.Capture_JoltWorld(
+            *Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        auto NumOpaqueBodies = 0;
+        auto NumTranslucentOverlays = 0;
+        auto NumHalfOpacityOverlays = 0;
+        auto NumFullOpacityOverlays = 0;
+
+        for (const auto* Ism : Target->Get_Isms())
+        {
+            const auto* Parent = Get_BucketMaterialParent(*Ism);
+
+            if (Parent == SolidMaterial)
+            {
+                ++NumOpaqueBodies;
+                auto Color = FLinearColor{};
+                TestTrue(TEXT("the normal body uses the opaque material's Color parameter"),
+                    TryGet_BucketVectorParameter(*Ism, TEXT("Color"), Color));
+                continue;
+            }
+
+            if (Parent == OverlayMaterial)
+            {
+                ++NumTranslucentOverlays;
+                auto OverlayColor = FLinearColor{};
+
+                if (TestTrue(TEXT("an overlay uses the translucent material's Color parameter"),
+                    TryGet_BucketVectorParameter(*Ism, TEXT("Color"), OverlayColor)))
+                {
+                    NumHalfOpacityOverlays += FMath::IsNearlyEqual(OverlayColor.A, 0.5f) ? 1 : 0;
+                    NumFullOpacityOverlays += FMath::IsNearlyEqual(OverlayColor.A, 1.0f) ? 1 : 0;
+                }
+            }
+        }
+
+        TestEqual(TEXT("the body remains one opaque lit instance"), NumOpaqueBodies, 1);
+        TestEqual(TEXT("hover and highlight use two translucent overlay buckets"), NumTranslucentOverlays, 2);
+        TestEqual(TEXT("hover remains half transparent"), NumHalfOpacityOverlays, 1);
+        TestEqual(TEXT("highlight remains fully opaque"), NumFullOpacityOverlays, 1);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_SensorMaterialsAcrossColorModes,
+    "Ck.Jolt.DebugDraw.SensorMaterialsAcrossColorModes",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_SensorMaterialsAcrossColorModes::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* SolidMaterial = LoadObject<UMaterial>(nullptr, *SolidMaterialPath);
+    auto* TranslucentMaterial = LoadObject<UMaterial>(nullptr, *OverlayMaterialPath);
+    auto* WireframeMaterial = LoadObject<UMaterial>(nullptr, *WireframeMaterialPath);
+
+    if (NOT TestNotNull(TEXT("the opaque lit material loads"), SolidMaterial) ||
+        NOT TestNotNull(TEXT("the translucent material loads"), TranslucentMaterial) ||
+        NOT TestNotNull(TEXT("the wireframe material loads"), WireframeMaterial))
+    { return false; }
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsSensor = true;
+        constexpr auto IsNotSensor = false;
+        constexpr auto DoNotActivate = false;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        JoltWorld.Add_Box(JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        const auto SensorBodyId = JoltWorld.Add_Box(
+            JPH::EMotionType::Static, 500.0f, IsSensor, DoNotActivate);
+        const auto SensorKey = Get_BodyKey(SensorBodyId);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("wireframe-off starts with one sensor and one nonsensor instance"),
+            Target->Get_NumInstances(), 2);
+
+        for (const auto* Ism : Target->Get_Isms())
+        {
+            if (Ism->GetInstanceCount() == 0)
+            { continue; }
+
+            TestNull(TEXT("wireframe-off leaves every fill without an overlay"), Ism->GetOverlayMaterial());
+        }
+
+        Target->Set_RenderMode(ECk_Jolt_DebugDraw_RenderMode::SensorWireframe);
+        TestEqual(TEXT("sensor-only wireframe rebuilds no geometry"), Target->Get_NumInstances(), 2);
+
+        for (const auto ColorMode : {ECk_Jolt_DebugDrawColorMode::BodyClass,
+                                     ECk_Jolt_DebugDrawColorMode::SleepState,
+                                     ECk_Jolt_DebugDrawColorMode::ObjectLayer,
+                                     ECk_Jolt_DebugDrawColorMode::ShapeType})
+        {
+            Target->Set_ColorMode(ColorMode);
+            Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+                Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+            TestEqual(TEXT("a sensor and a nonsensor retain one instance each"), Target->Get_NumInstances(), 2);
+
+            auto NumOpaqueNonsensorBuckets = 0;
+            auto NumTranslucentSensorBuckets = 0;
+            auto NumSensorWireOverlays = 0;
+            auto NumLiveIsms = 0;
+
+            for (const auto* Ism : Target->Get_Isms())
+            {
+                if (Ism->GetInstanceCount() == 0)
+                { continue; }
+
+                ++NumLiveIsms;
+                const auto* Parent = Get_BucketMaterialParent(*Ism);
+                auto Color = FLinearColor{};
+
+                TestTrue(TEXT("every normal bucket uses the Color parameter"),
+                    TryGet_BucketVectorParameter(*Ism, TEXT("Color"), Color));
+
+                if (Parent == SolidMaterial)
+                {
+                    ++NumOpaqueNonsensorBuckets;
+                    TestNull(TEXT("a nonsensor has no wireframe overlay material"), Ism->GetOverlayMaterial());
+                    continue;
+                }
+
+                if (Parent == TranslucentMaterial)
+                {
+                    ++NumTranslucentSensorBuckets;
+                    TestTrue(TEXT("a sensor fill stays genuinely transparent"), Color.A > 0.0f && Color.A < 1.0f);
+                    NumSensorWireOverlays += Get_BucketOverlayMaterialParent(*Ism) == WireframeMaterial ? 1 : 0;
+                }
+            }
+
+            TestEqual(TEXT("one nonsensor keeps the opaque material"), NumOpaqueNonsensorBuckets, 1);
+            TestEqual(TEXT("one sensor keeps the translucent material independent of colour mode"),
+                NumTranslucentSensorBuckets, 1);
+            TestEqual(TEXT("sensor metadata splits the existing two components without creating extra geometry"),
+                NumLiveIsms, 2);
+            TestEqual(TEXT("the sensor's wire overlay reuses its one ISM rather than adding geometry"),
+                NumSensorWireOverlays, 1);
+        }
+
+        Target->Set_HighlightedBody(SensorKey);
+        Target->Set_HoveredBody(SensorKey);
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("sensor highlight and hover add only their two persistent overlay instances"),
+            Target->Get_NumInstances(), 4);
+
+        auto NumSensorWireOverlays = 0;
+        auto NumTransparentSensorMaterials = 0;
+        auto NumTransparentSensorSelectionMaterials = 0;
+        auto NumLiveIsms = 0;
+
+        for (const auto* Ism : Target->Get_Isms())
+        {
+            if (Ism->GetInstanceCount() == 0)
+            { continue; }
+
+            ++NumLiveIsms;
+
+            if (Get_BucketMaterialParent(*Ism) != TranslucentMaterial)
+            { continue; }
+
+            auto Color = FLinearColor{};
+            TestTrue(TEXT("every sensor-related translucent bucket exposes Color"),
+                TryGet_BucketVectorParameter(*Ism, TEXT("Color"), Color));
+            NumTransparentSensorMaterials += Color.A > 0.0f && Color.A < 1.0f ? 1 : 0;
+
+            if (Get_BucketOverlayMaterialParent(*Ism) == WireframeMaterial)
+            { ++NumSensorWireOverlays; }
+            else
+            {
+                TestNull(TEXT("sensor highlight and hover clear the normal sensor wireframe overlay"),
+                    Ism->GetOverlayMaterial());
+                NumTransparentSensorSelectionMaterials += Color.A > 0.0f && Color.A < 1.0f ? 1 : 0;
+            }
+        }
+
+        TestEqual(TEXT("only the normal sensor fill receives the wireframe overlay"), NumSensorWireOverlays, 1);
+        TestEqual(TEXT("sensor fill plus hover and highlight use four total live components"), NumLiveIsms, 4);
+        TestEqual(TEXT("sensor fill, hover and highlight all remain transparent"), NumTransparentSensorMaterials, 3);
+        TestEqual(TEXT("sensor hover and highlight remain transparent rather than becoming opaque"),
+            NumTransparentSensorSelectionMaterials, 2);
+
+        Target->Set_RenderMode(ECk_Jolt_DebugDraw_RenderMode::Wireframe);
+
+        for (const auto* Ism : Target->Get_Isms())
+        {
+            if (Ism->GetInstanceCount() == 0)
+            { continue; }
+
+            TestTrue(TEXT("global wireframe replaces every primary material"),
+                Get_BucketMaterialParent(*Ism) == WireframeMaterial);
+            TestNull(TEXT("global wireframe clears the sensor-only overlay pass"), Ism->GetOverlayMaterial());
+        }
+
+        TestEqual(TEXT("global wireframe adds no duplicate sensor instances"), Target->Get_NumInstances(), 4);
+
+        Target->Set_RenderMode(ECk_Jolt_DebugDraw_RenderMode::Solid);
+
+        for (const auto* Ism : Target->Get_Isms())
+        {
+            if (Ism->GetInstanceCount() == 0)
+            { continue; }
+
+            TestTrue(TEXT("turning wireframe off restores a solid or translucent primary material"),
+                Get_BucketMaterialParent(*Ism) == SolidMaterial ||
+                Get_BucketMaterialParent(*Ism) == TranslucentMaterial);
+            TestNull(TEXT("turning wireframe off clears every wire overlay"), Ism->GetOverlayMaterial());
+        }
+
+        TestEqual(TEXT("turning wireframe off rebuilds no geometry"), Target->Get_NumInstances(), 4);
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_SensorContactAccounting,
+    "Ck.Jolt.DebugDraw.SensorContactAccounting",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_SensorContactAccounting::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    constexpr auto IsSensor = true;
+    constexpr auto IsNotSensor = false;
+    constexpr auto DoNotActivate = false;
+
+    auto Fixture = FScopedJoltWorld{};
+    const auto SensorA = Fixture.Add_Box(JPH::EMotionType::Static, 0.0f, IsSensor, DoNotActivate);
+    const auto SensorB = Fixture.Add_Box(JPH::EMotionType::Static, 500.0f, IsSensor, DoNotActivate);
+    const auto NormalA = Fixture.Add_Box(JPH::EMotionType::Static, 1000.0f, IsNotSensor, DoNotActivate);
+    const auto NormalB = Fixture.Add_Box(JPH::EMotionType::Static, 1500.0f, IsNotSensor, DoNotActivate);
+
+    auto PendingEvents = TArray<FCk_Jolt_ContactEvent>{};
+
+    auto Params = ck::FJoltWorld::FInitParams{};
+    Params.PhysicsSystem = Fixture.Get_PhysicsSystemShared();
+    Params.LayerTable = &Fixture.Get_LayerTable();
+    Params.DrainQueueFn = [&PendingEvents](TArray<FCk_Jolt_ContactEvent>& OutEvents) -> void
+    {
+        OutEvents = MoveTemp(PendingEvents);
+        PendingEvents.Reset();
+    };
+
+    auto World = ck::FJoltWorld{Params};
+
+    const auto& Queue = [&PendingEvents](
+        FCk_Jolt_ContactEvent::EType InType,
+        const JPH::BodyID& InBody1,
+        bool InIsSensor1,
+        const JPH::BodyID& InBody2,
+        bool InIsSensor2) -> void
+    {
+        auto Event = FCk_Jolt_ContactEvent{};
+        Event.Type = InType;
+        Event.Body1IndexAndSeq = InBody1.GetIndexAndSequenceNumber();
+        Event.Body2IndexAndSeq = InBody2.GetIndexAndSequenceNumber();
+        Event.IsSensor1 = InIsSensor1;
+        Event.IsSensor2 = InIsSensor2;
+        PendingEvents.Emplace(MoveTemp(Event));
+    };
+
+    Queue(FCk_Jolt_ContactEvent::EType::Persisted, SensorA, IsSensor, NormalA, IsNotSensor);
+    World.DrainEventsAndRoute();
+    TestTrue(TEXT("persisted events cannot invent an active sensor contact"),
+        World.Get_SensorContactBodyKeys().IsEmpty());
+
+    Queue(FCk_Jolt_ContactEvent::EType::Added, SensorA, IsSensor, NormalA, IsNotSensor);
+    Queue(FCk_Jolt_ContactEvent::EType::Added, SensorA, IsSensor, NormalB, IsNotSensor);
+    World.DrainEventsAndRoute();
+    TestEqual(TEXT("two pairs light one sensor once"), World.Get_SensorContactBodyKeys().Num(), 1);
+    TestTrue(TEXT("the lit key is the sensor BodyID key"),
+        World.Get_SensorContactBodyKeys().Contains(Get_BodyKey(SensorA)));
+
+    Queue(FCk_Jolt_ContactEvent::EType::Removed, SensorA, IsSensor, NormalA, IsNotSensor);
+    World.DrainEventsAndRoute();
+    TestTrue(TEXT("removing one of two pairs keeps the sensor lit"),
+        World.Get_SensorContactBodyKeys().Contains(Get_BodyKey(SensorA)));
+
+    Queue(FCk_Jolt_ContactEvent::EType::Removed, SensorA, IsSensor, NormalB, IsNotSensor);
+    World.DrainEventsAndRoute();
+    TestTrue(TEXT("removing the final pair clears the sensor"), World.Get_SensorContactBodyKeys().IsEmpty());
+
+    Queue(FCk_Jolt_ContactEvent::EType::Added, SensorA, IsSensor, SensorB, IsSensor);
+    World.DrainEventsAndRoute();
+    TestEqual(TEXT("a sensor-sensor pair lights both bodies independently"),
+        World.Get_SensorContactBodyKeys().Num(), 2);
+
+    Queue(FCk_Jolt_ContactEvent::EType::Removed, SensorA, IsSensor, SensorB, IsSensor);
+    Queue(FCk_Jolt_ContactEvent::EType::Removed, SensorA, IsSensor, SensorB, IsSensor);
+    World.DrainEventsAndRoute();
+    TestTrue(TEXT("duplicate removal cannot underflow or leave stale state"),
+        World.Get_SensorContactBodyKeys().IsEmpty());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_SensorContactOverlay,
+    "Ck.Jolt.DebugDraw.SensorContactOverlay",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_SensorContactOverlay::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* SolidMaterial = LoadObject<UMaterial>(nullptr, *SolidMaterialPath);
+    auto* TranslucentMaterial = LoadObject<UMaterial>(nullptr, *OverlayMaterialPath);
+
+    if (NOT TestNotNull(TEXT("the opaque material loads"), SolidMaterial) ||
+        NOT TestNotNull(TEXT("the translucent overlay material loads"), TranslucentMaterial))
+    { return false; }
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto IsSensor = true;
+        constexpr auto IsNotSensor = false;
+        constexpr auto DoNotActivate = false;
+        constexpr uint64 StaticSceneRevision = 1;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto NormalBodyId = JoltWorld.Add_Box(
+            JPH::EMotionType::Static, 0.0f, IsNotSensor, DoNotActivate);
+        const auto SensorBodyId = JoltWorld.Add_Box(
+            JPH::EMotionType::Static, 500.0f, IsSensor, DoNotActivate);
+        const auto NormalKey = Get_BodyKey(NormalBodyId);
+        const auto SensorKey = Get_BodyKey(SensorBodyId);
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+        const auto& Capture = [&]() -> void
+        {
+            Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+                Make_Revisions(StaticSceneRevision), FCk_Handle{});
+        };
+
+        Capture();
+        TestEqual(TEXT("baseline has exactly the normal body and sensor fill"), Target->Get_NumInstances(), 2);
+
+        Target->Set_SensorContactBodyKeys({SensorKey});
+        Capture();
+
+        TestEqual(TEXT("contact adds one expanded overlay without replacing either base body"),
+            Target->Get_NumInstances(), 3);
+        TestTrue(TEXT("the contact overlay has its own live mode-independent class"),
+            Target->Get_BucketColorClasses().Contains(ck::jolt::debug_draw::SensorContactClassIndex));
+        TestTrue(TEXT("the target publishes the exact active sensor key"),
+            Target->Get_SensorContactBodyKeys().Contains(SensorKey));
+
+        auto NumOpaqueNormalBodies = 0;
+        auto NumTransparentSensorPasses = 0;
+        auto NumContactColoredPasses = 0;
+        const auto ContactColor = Target->Get_Palette().Get_Color(
+            ECk_Jolt_DebugDrawColorMode::BodyClass, ck::jolt::debug_draw::SensorContactClassIndex);
+
+        for (const auto* Ism : Target->Get_Isms())
+        {
+            if (Ism->GetInstanceCount() == 0)
+            { continue; }
+
+            const auto* Parent = Get_BucketMaterialParent(*Ism);
+            auto Color = FLinearColor{};
+            TestTrue(TEXT("every live bucket exposes its Color parameter"),
+                TryGet_BucketVectorParameter(*Ism, TEXT("Color"), Color));
+
+            if (Parent == SolidMaterial)
+            {
+                ++NumOpaqueNormalBodies;
+                continue;
+            }
+
+            if (Parent == TranslucentMaterial)
+            {
+                NumTransparentSensorPasses += Color.A > 0.0f && Color.A < 1.0f ? 1 : 0;
+                NumContactColoredPasses += FLinearColor{Color.R, Color.G, Color.B, 1.0f}.Equals(ContactColor, 0.01f)
+                    ? 1 : 0;
+            }
+        }
+
+        TestEqual(TEXT("the normal body remains on the opaque material"), NumOpaqueNormalBodies, 1);
+        TestEqual(TEXT("sensor base and contact glow both stay transparent"), NumTransparentSensorPasses, 2);
+        TestEqual(TEXT("exactly one transparent pass carries the contact colour"), NumContactColoredPasses, 1);
+
+        for (const auto Mode : {ECk_Jolt_DebugDrawColorMode::BodyClass,
+                                ECk_Jolt_DebugDrawColorMode::SleepState,
+                                ECk_Jolt_DebugDrawColorMode::ObjectLayer,
+                                ECk_Jolt_DebugDrawColorMode::ShapeType})
+        {
+            TestTrue(TEXT("every colour mode explains the sensor-contact overlay"),
+                Get_LegendNames(*Target, Mode).Contains(TEXT("Sensor contact")));
+        }
+
+        Target->Set_ClassVisibility(ck::jolt::debug_draw::SensorContactClassIndex, false);
+        TestTrue(TEXT("the active-contact overlay cannot be hidden"),
+            Target->Get_IsClassVisible(ck::jolt::debug_draw::SensorContactClassIndex));
+
+        Target->Set_ClassVisibility(Idx(ECk_Jolt_DebugDraw_ColorClass::Sensor), false);
+        TestFalse(TEXT("the visible overlay alone cannot win a pick"),
+            Target->TryPick_Body(FVector{500.0, 0.0, 500.0}, FVector{0.0, 0.0, -1.0}).IsSet());
+        Target->Set_ClassVisibility(Idx(ECk_Jolt_DebugDraw_ColorClass::Sensor), true);
+
+        Target->Set_SensorContactBodyKeys({});
+        TestEqual(TEXT("ending contact releases the retained overlay immediately"), Target->Get_NumInstances(), 2);
+        Capture();
+        TestFalse(TEXT("the cleared overlay class stays absent after an unchanged inactive capture"),
+            Target->Get_BucketColorClasses().Contains(ck::jolt::debug_draw::SensorContactClassIndex));
+
+        Target->Set_SensorContactBodyKeys({SensorKey});
+        Capture();
+        TestEqual(TEXT("a static sensor lights again without moving or changing scene revision"),
+            Target->Get_NumInstances(), 3);
+
+        Target->Set_SensorContactBodyKeys({NormalKey});
+        Capture();
+        TestEqual(TEXT("defensive sensor gating never overlays a normal body even if a bad key is published"),
+            Target->Get_NumInstances(), 2);
     }
 
     World->DestroyWorld(false);
@@ -1338,6 +2028,126 @@ bool FCkTest_JoltDebugDraw_SelectionSampleIsCaptureOwned::RunTest(const FString&
 
         TestFalse(TEXT("clearing the selection forgets the sample immediately"),
             Target->Get_BodySample().IsSet());
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_PickUsesVisibleTrianglesNotMeshBounds,
+    "Ck.Jolt.DebugDraw.PickUsesVisibleTrianglesNotMeshBounds",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_PickUsesVisibleTrianglesNotMeshBounds::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto OccluderBodyId = JoltWorld.Add_PickOccluderMesh();
+        const auto BoxBodyId = JoltWorld.Add_BoxAt(
+            JPH::EMotionType::Static, JPH::RVec3{0.0f, 0.0f, 500.0f}, false);
+
+        TestFalse(TEXT("the terrain-like mesh body was created"), OccluderBodyId.IsInvalid());
+        TestFalse(TEXT("the lower box body was created"), BoxBodyId.IsInvalid());
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(
+            *Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestEqual(TEXT("the terrain-like mesh and box both drew"), Target->Get_NumInstances(), 2);
+
+        const auto RayOrigin = FVector{0.0, 0.0, 2000.0};
+        const auto RayDirection = FVector{0.0, 0.0, -1.0};
+        const auto BoxKey = Get_BodyKey(BoxBodyId);
+
+        TestTrue(TEXT("the visible-triangle pick ignores empty space inside the higher mesh bounds"),
+            Target->TryPick_Body(RayOrigin, RayDirection) == TOptional<uint64>{BoxKey});
+
+        auto HitKey = uint64{0};
+        auto HitPoint = FVector::ZeroVector;
+        auto HitDistance = 0.0f;
+
+        if (TestTrue(TEXT("the detailed pick reaches the lower visible box"),
+            Target->TryPick_BodyHit(RayOrigin, RayDirection, HitKey, HitPoint, HitDistance)))
+        {
+            TestTrue(TEXT("the detailed pick returns the box rather than the mesh bounds"), HitKey == BoxKey);
+            TestTrue(TEXT("the hit point is on the box's top face"),
+                FMath::Abs(HitPoint.Z - (500.0 + BoxHalfExtent)) <= 1.0);
+            TestTrue(TEXT("the hit distance is measured in world space"),
+                FMath::Abs(HitDistance - static_cast<float>((HitPoint - RayOrigin).Size())) <= 1.0f);
+        }
+    }
+
+    World->DestroyWorld(false);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltDebugDraw_PickRespectsInstanceTransform,
+    "Ck.Jolt.DebugDraw.PickRespectsInstanceTransform",
+    ck_test_jolt_debugdraw::TestFlags)
+
+bool FCkTest_JoltDebugDraw_PickRespectsInstanceTransform::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_jolt_debugdraw;
+
+    auto* World = UWorld::CreateWorld(EWorldType::Game, false);
+
+    if (NOT TestNotNull(TEXT("transient world exists"), World))
+    { return false; }
+
+    {
+        constexpr auto BodyX = 400.0f;
+        constexpr auto BodyY = -300.0f;
+        constexpr auto BodyZ = 600.0f;
+        constexpr auto ScaleZ = 1.5f;
+
+        auto JoltWorld = FScopedJoltWorld{};
+        const auto BodyId = JoltWorld.Add_TransformedScaledBox(
+            JPH::RVec3{BodyX, BodyY, BodyZ},
+            JPH::Quat::sRotation(JPH::Vec3::sAxisZ(), 0.65f));
+
+        TestFalse(TEXT("the rotated non-uniformly scaled box was created"), BodyId.IsInvalid());
+
+        auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
+        auto Target = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
+
+        constexpr uint64 StaticSceneRevision = 1;
+        Renderer.Capture_JoltWorld(
+            *Target, JoltWorld.Get_PhysicsSystem(), Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        const auto RayOrigin = FVector{BodyX, BodyY, BodyZ + 500.0};
+        const auto UnnormalizedRayDirection = FVector{0.0, 0.0, -4.0};
+        const auto ExpectedHitZ = BodyZ + BoxHalfExtent * ScaleZ;
+        const auto ExpectedDistance = static_cast<float>(RayOrigin.Z - ExpectedHitZ);
+        auto HitKey = uint64{0};
+        auto HitPoint = FVector::ZeroVector;
+        auto HitDistance = 0.0f;
+
+        if (TestTrue(TEXT("the transformed exact picker hits the visible box surface"),
+            Target->TryPick_BodyHit(
+                RayOrigin, UnnormalizedRayDirection, HitKey, HitPoint, HitDistance)))
+        {
+            TestTrue(TEXT("the transformed exact picker returns the body key"), HitKey == Get_BodyKey(BodyId));
+            TestTrue(TEXT("translation, rotation and non-uniform scale preserve the world hit point"),
+                HitPoint.Equals(FVector{BodyX, BodyY, ExpectedHitZ}, 1.0));
+            TestTrue(TEXT("an unnormalized ray still reports world-space distance"),
+                FMath::Abs(HitDistance - ExpectedDistance) <= 1.0f);
+        }
     }
 
     World->DestroyWorld(false);
@@ -2388,6 +3198,28 @@ bool FCkTest_JoltDebugDraw_SelectionContacts::RunTest(const FString& Parameters)
         TestTrue(TEXT("the entry names the body the selection is touching"), NamesTheOtherBody);
         TestFalse(TEXT("and never the selection itself - the body filter excludes it"), NamesItself);
         TestTrue(TEXT("every entry carries the contact points it counts"), CarriesPoints);
+
+        auto NumContactPoints = 0;
+        for (const auto& Entry : Contacts)
+        { NumContactPoints += Entry.Get_NumContactPoints(); }
+
+        TestTrue(TEXT("direction glyph scale defaults to one"),
+            FMath::IsNearlyEqual(Target->Get_DirectionGlyphScale(), 1.0f));
+        Target->Set_DirectionGlyphScale(2.0f);
+        Target->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape | ECk_Jolt_DebugDrawFlags::ContactNormals);
+        Renderer.Capture_JoltWorld(*Target, JoltWorld.Get_PhysicsSystem(),
+            Make_Revisions(StaticSceneRevision), FCk_Handle{});
+
+        TestTrue(TEXT("each contact normal has more than its shaft line, proving an arrow head was emitted"),
+            Target->Get_NumLines() > NumContactPoints);
+        TestTrue(TEXT("the selected size reaches the capture target"),
+            FMath::IsNearlyEqual(Target->Get_DirectionGlyphScale(), 2.0f));
+        Target->Set_DirectionGlyphScale(0.0f);
+        TestTrue(TEXT("direction glyph size clamps at the lower bound"),
+            FMath::IsNearlyEqual(Target->Get_DirectionGlyphScale(), 0.25f));
+        Target->Set_DirectionGlyphScale(100.0f);
+        TestTrue(TEXT("direction glyph size clamps at the upper bound"),
+            FMath::IsNearlyEqual(Target->Get_DirectionGlyphScale(), 4.0f));
 
         // Separating them past the query's own separation distance must empty the list.
         constexpr auto FarX = 5000.0f;
