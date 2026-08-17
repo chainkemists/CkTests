@@ -231,7 +231,8 @@ bool
 // --------------------------------------------------------------------------------------------------------------------
 
 // The count prefix is read before any allocation, so a corrupt stream must set the archive's error flag
-// rather than hand a negative length to SetNumUninitialized.
+// rather than hand a bad length to SetNum/SetNumUninitialized: negative, or claiming more data than the
+// archive still holds (which would otherwise allocate gigabytes before running dry).
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCk_Snapshot_V3_TableSerializerCorruptStream_Test,
     "Ck.Snapshot.V3.TableSerializer.CorruptStreamFailsClosed",
@@ -242,17 +243,26 @@ bool
     RunTest(
         const FString& /*InParameters*/)
 {
-    auto Corrupt = TArray<uint8>{};
-    auto Writer = FMemoryWriter{Corrupt, /*bIsPersistent=*/true};
-    auto NegativeCount = int32{-1};
-    Writer << NegativeCount;
+    const auto DeserializeCorrupt = [](int32 InClaimedCount, FCk_Snapshot_V3_Tables& OutRestored) -> bool
+    {
+        auto Corrupt = TArray<uint8>{};
+        auto Writer = FMemoryWriter{Corrupt, /*bIsPersistent=*/true};
+        Writer << InClaimedCount;
 
-    auto Restored = FCk_Snapshot_V3_Tables{};
-    auto Reader = FMemoryReader{Corrupt, /*bIsPersistent=*/true};
-    FCk_Snapshot_V3_Tables::StaticStruct()->SerializeItem(Reader, &Restored, /*Defaults=*/nullptr);
+        auto Reader = FMemoryReader{Corrupt, /*bIsPersistent=*/true};
+        FCk_Snapshot_V3_Tables::StaticStruct()->SerializeItem(Reader, &OutRestored, /*Defaults=*/nullptr);
+        return Reader.IsError();
+    };
 
-    TestTrue(TEXT("a negative entry count sets the archive error flag"), Reader.IsError());
-    TestEqual(TEXT("no entities were allocated"), Restored.Get_Entities().Num(), 0);
+    auto RestoredFromNegative = FCk_Snapshot_V3_Tables{};
+    TestTrue(TEXT("a negative entry count sets the archive error flag"),
+        DeserializeCorrupt(-1, RestoredFromNegative));
+    TestEqual(TEXT("no entities were allocated"), RestoredFromNegative.Get_Entities().Num(), 0);
+
+    auto RestoredFromHuge = FCk_Snapshot_V3_Tables{};
+    TestTrue(TEXT("a count claiming more entries than the stream holds sets the archive error flag"),
+        DeserializeCorrupt(int32{0x7FFFFFFF}, RestoredFromHuge));
+    TestEqual(TEXT("no entities were allocated for the oversized claim"), RestoredFromHuge.Get_Entities().Num(), 0);
 
     return true;
 }
