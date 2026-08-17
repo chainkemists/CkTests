@@ -426,6 +426,71 @@ bool
     return true;
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
+// Payload serialization fans out over worker threads (fork-join from the game thread); the parallel path must
+// write the byte-identical stream the serial path writes — slot-per-pending-payload keeps the order, this gate
+// keeps it honest.
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_V3_ParallelSerializeParity_Test,
+    "Ck.Snapshot.V3.ParallelSerializeParity",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_V3_ParallelSerializeParity_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& CkRegistry = EcsWorld.Get_Registry();
+    const auto RegistryHandle = CkRegistry.Get_RegistryHandle();
+
+    auto* RawRegistry = ck::registry_table::TryResolve(RegistryHandle);
+    if (NOT TestNotNull(TEXT("Resolved raw entt registry"), RawRegistry))
+    { return false; }
+
+    // Enough payload-bearing entities that the ParallelFor genuinely fans out.
+    constexpr auto PayloadEntityCount = 32;
+    for (auto Index = 0; Index < PayloadEntityCount; ++Index)
+    {
+        auto Entity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+        Entity.Add<FFragment_SaveKey>(FGuid::NewGuid());
+        UCk_Utils_Velocity_UE::Add(Entity,
+            FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::World, FVector{static_cast<double>(Index), 0.0, 0.0}},
+            ECk_Replication::DoesNotReplicate);
+    }
+
+    auto* SnapshotSettings = GetMutableDefault<UCk_Snapshot_Settings>();
+    const auto RestoreMode = SnapshotSettings->Get_ParallelPayloadSerialization();
+    ON_SCOPE_EXIT { SnapshotSettings->TestOnly_Set_ParallelPayloadSerialization(RestoreMode); };
+
+    const auto Capture = [&](ECk_EnableDisable InMode, TArray<uint8>& OutBytes) -> bool
+    {
+        SnapshotSettings->TestOnly_Set_ParallelPayloadSerialization(InMode);
+        auto ByteWriter = FBufferArchive{};
+        auto Header = FCk_Snapshot_HeaderV3{};
+        const auto Result = ck::snapshot::Run_CaptureV3_Registry(
+            *RawRegistry, RegistryHandle, /*World=*/nullptr, ByteWriter, Header);
+        OutBytes = MoveTemp(static_cast<TArray<uint8>&>(ByteWriter));
+        return Result == ECk_SnapshotResult::Success && Header.Get_PayloadCount() == PayloadEntityCount;
+    };
+
+    auto ParallelBytes = TArray<uint8>{};
+    auto SerialBytes = TArray<uint8>{};
+    if (NOT TestTrue(TEXT("parallel capture succeeded with every payload"),
+        Capture(ECk_EnableDisable::Enable, ParallelBytes)))
+    { return false; }
+    if (NOT TestTrue(TEXT("serial capture succeeded with every payload"),
+        Capture(ECk_EnableDisable::Disable, SerialBytes)))
+    { return false; }
+
+    TestTrue(TEXT("captures are non-empty"), ParallelBytes.Num() > 0);
+    TestTrue(TEXT("parallel and serial captures are byte-identical"), ParallelBytes == SerialBytes);
+
+    return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
 
 // --------------------------------------------------------------------------------------------------------------------
