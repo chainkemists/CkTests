@@ -5,6 +5,7 @@
 
 #include "CkSnapshot/Snapshot/CkSnapshot_CaptureV3.h"
 #include "CkSnapshot/SaveGame/CkSnapshot_Header.h"
+#include "CkSnapshot/Settings/CkSnapshot_Settings.h"
 #include "CkEcs/Snapshot/CkSaveKey_Fragment.h"
 
 #include "CkEcs/World/CkEcsWorld.h"
@@ -26,6 +27,7 @@
 
 #include "CkCore/Macros/CkMacros.h"
 
+#include "Misc/ScopeExit.h"
 #include "NativeGameplayTags.h"
 #include "Serialization/BufferArchive.h"
 #include "Serialization/MemoryReader.h"
@@ -143,6 +145,13 @@ bool
         Holder->Populate(UCk_EntityScript_UE::StaticClass(), FInstancedStruct{});
         KeyedRuntimeEntity.Add<ck::FFragment_SpawnRecipe>(TStrongObjectPtr<UCk_EntityScript_SpawnRecipe_UE>{Holder});
     }
+
+    // This gate asserts the dropped-payload audit, whose probe CaptureAuditMode gates — a project shipping
+    // Disabled would otherwise make the assertion unreachable rather than failing honestly.
+    auto* SnapshotSettings = GetMutableDefault<UCk_Snapshot_Settings>();
+    const auto RestoreAuditMode = SnapshotSettings->Get_CaptureAuditMode();
+    SnapshotSettings->TestOnly_Set_CaptureAuditMode(ECk_Snapshot_CaptureAuditMode::Summary);
+    ON_SCOPE_EXIT { SnapshotSettings->TestOnly_Set_CaptureAuditMode(RestoreAuditMode); };
 
     auto ByteWriter = FBufferArchive{};
     auto Header = FCk_Snapshot_HeaderV3{};
