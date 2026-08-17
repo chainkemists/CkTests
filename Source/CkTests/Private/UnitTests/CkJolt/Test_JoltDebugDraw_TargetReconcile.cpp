@@ -2800,6 +2800,14 @@ bool FCkTest_JoltDebugDraw_ContactRecordingReplays::RunTest(const FString& Param
 
         auto& Renderer = FCk_Jolt_DebugRenderer::Get_OrCreate();
 
+        // A debugger window or an in-world target may already be asking Jolt for contacts. Those switches are
+        // process-wide, so this test owns only the DELTA introduced by its local targets and must restore the
+        // ambient union exactly rather than assuming an otherwise-empty editor process.
+        const auto AmbientContactDemand = ck::jolt::debug_draw::Get_IsAnyTargetDemandingContacts();
+        const auto AmbientContactPoints = JPH::ContactConstraintManager::sDrawContactPoint;
+        const auto AmbientContactNormals = JPH::ContactConstraintManager::sDrawContactManifolds;
+        const auto AmbientSupportingFaces = JPH::ContactConstraintManager::sDrawSupportingFaces;
+
         auto DemandingTarget = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
         auto QuietTarget = MakeShared<FCk_Jolt_DebugDrawTarget>(World);
 
@@ -2807,12 +2815,19 @@ bool FCkTest_JoltDebugDraw_ContactRecordingReplays::RunTest(const FString& Param
 
         constexpr uint64 StaticSceneRevision = 1;
 
-        // ---- Nothing demands contacts ----
+        // ---- Local defaults preserve the ambient union ----
 
-        TestFalse(TEXT("no target demands contacts by default"),
-            ck::jolt::debug_draw::Get_IsAnyTargetDemandingContacts());
-        TestFalse(TEXT("and Jolt's process-wide contact draw is off"),
-            JPH::ContactConstraintManager::sDrawContactPoint);
+        TestEqual(TEXT("the ambient aggregate agrees with Jolt's process-wide switches"),
+            AmbientContactDemand,
+            AmbientContactPoints || AmbientContactNormals || AmbientSupportingFaces);
+        TestEqual(TEXT("default local targets preserve the ambient aggregate contact demand"),
+            ck::jolt::debug_draw::Get_IsAnyTargetDemandingContacts(), AmbientContactDemand);
+        TestEqual(TEXT("default local targets preserve the ambient contact-point switch"),
+            JPH::ContactConstraintManager::sDrawContactPoint, AmbientContactPoints);
+        TestEqual(TEXT("default local targets preserve the ambient contact-normal switch"),
+            JPH::ContactConstraintManager::sDrawContactManifolds, AmbientContactNormals);
+        TestEqual(TEXT("default local targets preserve the ambient supporting-faces switch"),
+            JPH::ContactConstraintManager::sDrawSupportingFaces, AmbientSupportingFaces);
 
         JoltWorld.Step();
         ck::jolt::debug_draw::Replay_RecordedContacts(&JoltWorld.Get_PhysicsSystem(), Targets);
@@ -2820,7 +2835,7 @@ bool FCkTest_JoltDebugDraw_ContactRecordingReplays::RunTest(const FString& Param
         Renderer.Capture_JoltWorld(*DemandingTarget, JoltWorld.Get_PhysicsSystem(),
             Make_Revisions(StaticSceneRevision), FCk_Handle{});
 
-        TestEqual(TEXT("a step with nothing demanding contacts records none"),
+        TestEqual(TEXT("a local target that did not demand contacts receives none"),
             DemandingTarget->Get_NumContactLines(), 0);
 
         // ---- One target demands them ----
@@ -2831,8 +2846,10 @@ bool FCkTest_JoltDebugDraw_ContactRecordingReplays::RunTest(const FString& Param
             ck::jolt::debug_draw::Get_IsAnyTargetDemandingContacts());
         TestTrue(TEXT("and the union is written into Jolt's own contact-point static"),
             JPH::ContactConstraintManager::sDrawContactPoint);
-        TestFalse(TEXT("while the flags nobody asked for stay off"),
-            JPH::ContactConstraintManager::sDrawSupportingFaces);
+        TestEqual(TEXT("while the local target leaves the ambient contact-normal switch untouched"),
+            JPH::ContactConstraintManager::sDrawContactManifolds, AmbientContactNormals);
+        TestEqual(TEXT("and leaves the ambient supporting-faces switch untouched"),
+            JPH::ContactConstraintManager::sDrawSupportingFaces, AmbientSupportingFaces);
 
         JoltWorld.Step();
         ck::jolt::debug_draw::Replay_RecordedContacts(&JoltWorld.Get_PhysicsSystem(), Targets);
@@ -2854,17 +2871,22 @@ bool FCkTest_JoltDebugDraw_ContactRecordingReplays::RunTest(const FString& Param
         TestTrue(TEXT("the union is over ALL live targets, not just the first"),
             JPH::ContactConstraintManager::sDrawContactPoint &&
             JPH::ContactConstraintManager::sDrawSupportingFaces);
+        TestEqual(TEXT("adding supporting faces still leaves the ambient contact-normal switch untouched"),
+            JPH::ContactConstraintManager::sDrawContactManifolds, AmbientContactNormals);
 
-        // ---- Demand dropped everywhere ----
+        // ---- Local demand dropped; ambient demand restored ----
 
         DemandingTarget->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape);
         QuietTarget->Set_DrawFlags(ECk_Jolt_DebugDrawFlags::Shape);
 
-        TestFalse(TEXT("dropping the last contact flag disarms the demand"),
-            ck::jolt::debug_draw::Get_IsAnyTargetDemandingContacts());
-        TestFalse(TEXT("and clears Jolt's statics — the toggle is process-wide"),
-            JPH::ContactConstraintManager::sDrawContactPoint ||
-            JPH::ContactConstraintManager::sDrawSupportingFaces);
+        TestEqual(TEXT("dropping the local contact flags restores the ambient aggregate demand"),
+            ck::jolt::debug_draw::Get_IsAnyTargetDemandingContacts(), AmbientContactDemand);
+        TestEqual(TEXT("and restores the ambient contact-point switch"),
+            JPH::ContactConstraintManager::sDrawContactPoint, AmbientContactPoints);
+        TestEqual(TEXT("and restores the ambient contact-normal switch"),
+            JPH::ContactConstraintManager::sDrawContactManifolds, AmbientContactNormals);
+        TestEqual(TEXT("and restores the ambient supporting-faces switch"),
+            JPH::ContactConstraintManager::sDrawSupportingFaces, AmbientSupportingFaces);
 
         JoltWorld.Step();
         ck::jolt::debug_draw::Replay_RecordedContacts(&JoltWorld.Get_PhysicsSystem(), Targets);
