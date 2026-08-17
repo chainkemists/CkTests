@@ -1,9 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "CkDynamic/CkDynamic_Fragment_Data.h"
 
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/Handle/CkHandle_TypeSafe.h"
+#include "CkEcs/Request/CkRequest_Data.h"
+#include "CkEcs/Snapshot/CkSnapshot_Posture.h"
 
 #include <StructUtils/InstancedStruct.h>
 #include "UObject/Object.h"
@@ -248,4 +250,194 @@ USTRUCT()
 struct FCk_Test_UntracedOpaqueEmpty
 {
     GENERATED_BODY()
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+// Snapshot-posture fixtures (Test_Snapshot_FragmentPosture.cpp). Each one exists to pin ONE resolution rule; the markers
+// are carried as FIELDS rather than by derivation because that is the AngelScript spelling every production
+// fragment uses (script structs cannot inherit) and it is the branch a top-level-only check would miss.
+// --------------------------------------------------------------------------------------------------------------------
+
+// T-C1-2 — a Durable declaration over a top-level delegate. The delegate DERIVATION wins: a fragment whose content
+// names objects from the torn-down world cannot round-trip, whatever it declares.
+USTRUCT()
+struct FCk_Test_Posture_DurableWithDelegate
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_Snapshot_Durable Posture;
+
+    UPROPERTY(SaveGame)
+    int32 DurableMarker = 0;
+
+    UPROPERTY()
+    FCk_Test_DynFrag_OnSignal OnSignal;
+};
+
+// A delegate one array + one struct level down. C++ reflection rejects a container OF delegates, so the deep case is
+// spelled the way BB's FBb_Fragment_StoreInventory_Watches reaches it — through an array of carriers. Strictly
+// deeper than a TArray of delegates, and the same walk regression it guards against.
+USTRUCT()
+struct FCk_Test_Posture_DelegateCarrier
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_Test_DynFrag_OnSignal OnSignal;
+};
+
+USTRUCT()
+struct FCk_Test_Posture_DurableWithNestedDelegate
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_Snapshot_Durable Posture;
+
+    UPROPERTY()
+    TArray<FCk_Test_Posture_DelegateCarrier> Carriers;
+};
+
+// T-C1-3 — the AngelScript arm: the fragment name ends in "Requests" and every field is a request payload, itself
+// recognised by the AS naming convention (FBb_Request_* -> reflected Bb_Request_*), NOT by inheritance, because no
+// AngelScript struct inherits anything.
+USTRUCT()
+struct FCk_Test_Posture_Request_Probe
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    int32 Amount = 0;
+};
+
+USTRUCT()
+struct FCk_Test_Posture_ProbeRequests
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    TArray<FCk_Test_Posture_Request_Probe> Pending;
+};
+
+// T-C1-3 — the C++ arm: no "Requests" suffix, so only the FCk_Request_Base type test can classify it.
+USTRUCT()
+struct FCk_Test_Posture_DerivedRequest : public FCk_Request_Base
+{
+    GENERATED_BODY()
+
+    CK_GENERATED_BODY(FCk_Test_Posture_DerivedRequest);
+
+    UPROPERTY()
+    int32 Amount = 0;
+};
+
+USTRUCT()
+struct FCk_Test_Posture_CppQueue
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    TArray<FCk_Test_Posture_DerivedRequest> Pending;
+};
+
+// T-C1-5 — both markers. Neither wins.
+USTRUCT()
+struct FCk_Test_Posture_Contradiction
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_Snapshot_Durable DurablePosture;
+
+    UPROPERTY()
+    FCk_Snapshot_Session SessionPosture;
+
+    UPROPERTY(SaveGame)
+    int32 DurableMarker = 0;
+};
+
+// T-C1-6 — a Durable declaration plus the retired field-level opt-out.
+USTRUCT()
+struct FCk_Test_Posture_DurableWithTransientField
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_Snapshot_Durable Posture;
+
+    UPROPERTY(SaveGame)
+    int32 DurableMarker = 0;
+
+    UPROPERTY(Transient)
+    int32 RuntimeMarker = 0;
+};
+
+// T-C1-9 — derived-Session shapes that ALSO carry durable value fields. Their real-world instances are
+// int32 SwingWhiffs (FBb_Fragment_WhackAGull_Requests) and int32 MaxCapacityDelta
+// (FBb_Fragment_Occupancy_Requests): accumulators a silent derive would have deleted.
+USTRUCT()
+struct FCk_Test_Posture_MixedRequests
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    TArray<FCk_Test_Posture_Request_Probe> Pending;
+
+    UPROPERTY(SaveGame)
+    int32 Accumulator = 0;
+};
+
+USTRUCT()
+struct FCk_Test_Posture_MixedDelegate
+{
+    GENERATED_BODY()
+
+    UPROPERTY(SaveGame)
+    int32 Accumulator = 0;
+
+    UPROPERTY()
+    FCk_Test_DynFrag_OnSignal OnSignal;
+};
+
+// The clean poles, so the tests above are read against something that is NOT red.
+USTRUCT()
+struct FCk_Test_Posture_PlainDurable
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_Snapshot_Durable Posture;
+
+    UPROPERTY(SaveGame)
+    int32 DurableMarker = 0;
+
+    UPROPERTY(SaveGame)
+    FCk_Handle Target;
+};
+
+USTRUCT()
+struct FCk_Test_Posture_PlainSession
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_Snapshot_Session Posture;
+
+    UPROPERTY(SaveGame)
+    int32 RuntimeMarker = 0;
+};
+
+// The DEPRECATED spelling in its AngelScript form (a marker FIELD, not derivation) — the shape 172 BB fragments
+// carry. It must keep resolving Session while those sites exist, or recognising the new markers is a behaviour change.
+USTRUCT()
+struct FCk_Test_Posture_LegacyMarkerField
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_DynamicFragment_SnapshotTransient Transient;
+
+    UPROPERTY(SaveGame)
+    int32 RuntimeMarker = 0;
 };
