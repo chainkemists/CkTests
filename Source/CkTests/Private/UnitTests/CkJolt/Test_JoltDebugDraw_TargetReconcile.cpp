@@ -6,6 +6,8 @@
 
 #include "CkCore/Format/CkFormat_Defaults.h"
 
+#include "CkDebugScene/CkDebugScene_Materials.h"
+
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/Registry/CkRegistry.h"
 #include "CkEcs/World/CkEcsWorld.h"
@@ -58,10 +60,6 @@ namespace ck_test_jolt_debugdraw
 
     constexpr JPH::uint MaxBodies = 256;
     constexpr auto BoxHalfExtent = 50.0f;
-
-    const auto SolidMaterialPath = FString{TEXT("/Engine/EngineDebugMaterials/M_SimpleOpaque.M_SimpleOpaque")};
-    const auto OverlayMaterialPath = FString{TEXT("/Engine/EngineDebugMaterials/M_SimpleTranslucent.M_SimpleTranslucent")};
-    const auto WireframeMaterialPath = FString{TEXT("/Engine/EngineDebugMaterials/WireframeMaterial.WireframeMaterial")};
 
     // Everything CkJolt's subsystem builds around a PhysicsSystem, minus the world/ECS/threading: the layer table
     // and its three filters must outlive the PhysicsSystem that holds references to them.
@@ -866,8 +864,8 @@ bool FCkTest_JoltDebugDraw_MaterialSwap::RunTest(const FString& Parameters)
 {
     using namespace ck_test_jolt_debugdraw;
 
-    auto* SolidMaterial = LoadObject<UMaterial>(nullptr, *SolidMaterialPath);
-    auto* WireframeMaterial = LoadObject<UMaterial>(nullptr, *WireframeMaterialPath);
+    auto* SolidMaterial = ck::debug_scene::materials::TryGet_Opaque();
+    auto* WireframeMaterial = ck::debug_scene::materials::TryGet_Wireframe();
 
     if (NOT TestNotNull(TEXT("the engine solid debug material loads"), SolidMaterial) ||
         NOT TestNotNull(TEXT("the engine wireframe debug material loads"), WireframeMaterial))
@@ -946,8 +944,8 @@ bool FCkTest_JoltDebugDraw_OverlayMaterial::RunTest(const FString& Parameters)
 {
     using namespace ck_test_jolt_debugdraw;
 
-    auto* SolidMaterial = LoadObject<UMaterial>(nullptr, *SolidMaterialPath);
-    auto* OverlayMaterial = LoadObject<UMaterial>(nullptr, *OverlayMaterialPath);
+    auto* SolidMaterial = ck::debug_scene::materials::TryGet_Opaque();
+    auto* OverlayMaterial = ck::debug_scene::materials::TryGet_Translucent();
 
     if (NOT TestNotNull(TEXT("the opaque lit material loads"), SolidMaterial) ||
         NOT TestNotNull(TEXT("the translucent overlay material loads"), OverlayMaterial))
@@ -1031,9 +1029,9 @@ bool FCkTest_JoltDebugDraw_SensorMaterialsAcrossColorModes::RunTest(const FStrin
 {
     using namespace ck_test_jolt_debugdraw;
 
-    auto* SolidMaterial = LoadObject<UMaterial>(nullptr, *SolidMaterialPath);
-    auto* TranslucentMaterial = LoadObject<UMaterial>(nullptr, *OverlayMaterialPath);
-    auto* WireframeMaterial = LoadObject<UMaterial>(nullptr, *WireframeMaterialPath);
+    auto* SolidMaterial = ck::debug_scene::materials::TryGet_Opaque();
+    auto* TranslucentMaterial = ck::debug_scene::materials::TryGet_Translucent();
+    auto* WireframeMaterial = ck::debug_scene::materials::TryGet_Wireframe();
 
     if (NOT TestNotNull(TEXT("the opaque lit material loads"), SolidMaterial) ||
         NOT TestNotNull(TEXT("the translucent material loads"), TranslucentMaterial) ||
@@ -1141,6 +1139,8 @@ bool FCkTest_JoltDebugDraw_SensorMaterialsAcrossColorModes::RunTest(const FStrin
         auto NumSensorWireOverlays = 0;
         auto NumTransparentSensorMaterials = 0;
         auto NumTransparentSensorSelectionMaterials = 0;
+        auto NumBaseSensorSortPriority = 0;
+        auto NumSelectionSortPriority = 0;
         auto NumLiveIsms = 0;
 
         for (const auto* Ism : Target->Get_Isms())
@@ -1157,6 +1157,8 @@ bool FCkTest_JoltDebugDraw_SensorMaterialsAcrossColorModes::RunTest(const FStrin
             TestTrue(TEXT("every sensor-related translucent bucket exposes Color"),
                 TryGet_BucketVectorParameter(*Ism, TEXT("Color"), Color));
             NumTransparentSensorMaterials += Color.A > 0.0f && Color.A < 1.0f ? 1 : 0;
+            NumBaseSensorSortPriority += Ism->TranslucencySortPriority == 0 ? 1 : 0;
+            NumSelectionSortPriority += Ism->TranslucencySortPriority == 2 ? 1 : 0;
 
             if (Get_BucketOverlayMaterialParent(*Ism) == WireframeMaterial)
             { ++NumSensorWireOverlays; }
@@ -1173,6 +1175,10 @@ bool FCkTest_JoltDebugDraw_SensorMaterialsAcrossColorModes::RunTest(const FStrin
         TestEqual(TEXT("sensor fill, hover and highlight all remain transparent"), NumTransparentSensorMaterials, 3);
         TestEqual(TEXT("sensor hover and highlight remain transparent rather than becoming opaque"),
             NumTransparentSensorSelectionMaterials, 2);
+        TestEqual(TEXT("the base sensor fill stays behind its overlays in translucent sort order"),
+            NumBaseSensorSortPriority, 1);
+        TestEqual(TEXT("sensor hover and highlight share the final translucent sort priority"),
+            NumSelectionSortPriority, 2);
 
         Target->Set_RenderMode(ECk_Jolt_DebugDraw_RenderMode::Wireframe);
 
@@ -1304,8 +1310,8 @@ bool FCkTest_JoltDebugDraw_SensorContactOverlay::RunTest(const FString& Paramete
 {
     using namespace ck_test_jolt_debugdraw;
 
-    auto* SolidMaterial = LoadObject<UMaterial>(nullptr, *SolidMaterialPath);
-    auto* TranslucentMaterial = LoadObject<UMaterial>(nullptr, *OverlayMaterialPath);
+    auto* SolidMaterial = ck::debug_scene::materials::TryGet_Opaque();
+    auto* TranslucentMaterial = ck::debug_scene::materials::TryGet_Translucent();
 
     if (NOT TestNotNull(TEXT("the opaque material loads"), SolidMaterial) ||
         NOT TestNotNull(TEXT("the translucent overlay material loads"), TranslucentMaterial))
@@ -1353,6 +1359,8 @@ bool FCkTest_JoltDebugDraw_SensorContactOverlay::RunTest(const FString& Paramete
         auto NumOpaqueNormalBodies = 0;
         auto NumTransparentSensorPasses = 0;
         auto NumContactColoredPasses = 0;
+        auto NumBaseSensorSortPriority = 0;
+        auto NumContactSortPriority = 0;
         const auto ContactColor = Target->Get_Palette().Get_Color(
             ECk_Jolt_DebugDrawColorMode::BodyClass, ck::jolt::debug_draw::SensorContactClassIndex);
 
@@ -1377,12 +1385,16 @@ bool FCkTest_JoltDebugDraw_SensorContactOverlay::RunTest(const FString& Paramete
                 NumTransparentSensorPasses += Color.A > 0.0f && Color.A < 1.0f ? 1 : 0;
                 NumContactColoredPasses += FLinearColor{Color.R, Color.G, Color.B, 1.0f}.Equals(ContactColor, 0.01f)
                     ? 1 : 0;
+                NumBaseSensorSortPriority += Ism->TranslucencySortPriority == 0 ? 1 : 0;
+                NumContactSortPriority += Ism->TranslucencySortPriority == 1 ? 1 : 0;
             }
         }
 
         TestEqual(TEXT("the normal body remains on the opaque material"), NumOpaqueNormalBodies, 1);
         TestEqual(TEXT("sensor base and contact glow both stay transparent"), NumTransparentSensorPasses, 2);
         TestEqual(TEXT("exactly one transparent pass carries the contact colour"), NumContactColoredPasses, 1);
+        TestEqual(TEXT("the sensor fill starts the translucent sort stack"), NumBaseSensorSortPriority, 1);
+        TestEqual(TEXT("the contact glow draws after the sensor fill"), NumContactSortPriority, 1);
 
         for (const auto Mode : {ECk_Jolt_DebugDrawColorMode::BodyClass,
                                 ECk_Jolt_DebugDrawColorMode::SleepState,
