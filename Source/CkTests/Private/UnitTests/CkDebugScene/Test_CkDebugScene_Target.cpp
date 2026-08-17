@@ -3,8 +3,10 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "CkDebugScene/CkDebugScene_Mesh.h"
+#include "CkDebugScene/CkDebugScene_Materials.h"
 #include "CkDebugScene/CkDebugScene_Target.h"
 
+#include <Components/InstancedStaticMeshComponent.h>
 #include <Engine/World.h>
 #include <Materials/Material.h>
 
@@ -26,9 +28,8 @@ struct FScopedDebugScene
     {
         _World = UWorld::CreateWorld(
             EWorldType::Game, InformEngineOfWorld, FName{TEXT("CkDebugSceneContract")});
-        _Opaque = LoadObject<UMaterial>(nullptr, TEXT("/Engine/EngineDebugMaterials/M_SimpleOpaque.M_SimpleOpaque"));
-        _Transparent = LoadObject<UMaterial>(
-            nullptr, TEXT("/Engine/EngineDebugMaterials/M_SimpleTranslucent.M_SimpleTranslucent"));
+        _Opaque = ck::debug_scene::materials::TryGet_Opaque();
+        _Transparent = ck::debug_scene::materials::TryGet_Translucent();
 
         _Triangle = FCk_DebugScene_Mesh::Create_FromTriangles({FCk_DebugScene_Triangle{
             FVector{0.0f, 0.0f, 0.0f}, FVector{100.0f, 0.0f, 0.0f}, FVector{0.0f, 100.0f, 0.0f}}});
@@ -60,6 +61,15 @@ struct FScopedDebugScene
     }
 
     auto
+    MakeAppearanceWithMaterial(UMaterialInterface* InMaterial) const -> FCk_DebugScene_Appearance
+    {
+        return FCk_DebugScene_Appearance{}
+            .Set_BaseMaterial(InMaterial)
+            .Set_RenderClass(ECk_DebugScene_RenderClass::Opaque)
+            .Set_Color(FLinearColor::White);
+    }
+
+    auto
     MakeInstance(uint64 InPickIdentity, const FTransform& InTransform = FTransform::Identity,
                  const FCk_DebugScene_Appearance& InAppearance = FCk_DebugScene_Appearance{}) const
         -> FCk_DebugScene_Instance
@@ -72,8 +82,8 @@ struct FScopedDebugScene
     }
 
     UWorld* _World = nullptr;
-    UMaterial* _Opaque = nullptr;
-    UMaterial* _Transparent = nullptr;
+    UMaterialInterface* _Opaque = nullptr;
+    UMaterialInterface* _Transparent = nullptr;
     TSharedPtr<FCk_DebugScene_Mesh> _Triangle;
     TSharedPtr<FCk_DebugScene_Target> _Target;
 };
@@ -93,6 +103,92 @@ AssertStatsEqual(FAutomationTestBase& InTest, const FCk_DebugScene_Stats& InStat
     InTest.TestEqual(TEXT("unchanged"), InStats.Get_InstancesUnchanged(), InUnchanged);
 }
 } // namespace ck_test_debug_scene
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkTest_DebugScene_SharedMaterialsResolveAndDriveIsm,
+                                 "Ck.DebugScene.Target.SharedMaterialsResolveAndDriveIsm",
+                                 ck_test_debug_scene::TestFlags)
+
+auto
+    FCkTest_DebugScene_SharedMaterialsResolveAndDriveIsm::
+    RunTest(const FString& Parameters)
+    -> bool
+{
+    auto* Opaque = ck::debug_scene::materials::TryGet_Opaque();
+    auto* Translucent = ck::debug_scene::materials::TryGet_Translucent();
+    auto* Wireframe = ck::debug_scene::materials::TryGet_Wireframe();
+    TestNotNull(TEXT("plugin opaque material resolves"), Opaque);
+    TestNotNull(TEXT("plugin translucent material resolves"), Translucent);
+    TestNotNull(TEXT("engine wireframe material resolves"), Wireframe);
+    if (Opaque == nullptr || Translucent == nullptr)
+    { return false; }
+
+    const auto* OpaqueBase = Opaque->GetMaterial();
+    const auto* TranslucentBase = Translucent->GetMaterial();
+    TestNotNull(TEXT("opaque material exposes a base material"), OpaqueBase);
+    TestNotNull(TEXT("translucent material exposes a base material"), TranslucentBase);
+    if (OpaqueBase != nullptr && TranslucentBase != nullptr)
+    {
+        TestEqual(TEXT("opaque debug material blend"), OpaqueBase->GetBlendMode(), BLEND_Opaque);
+        TestEqual(TEXT("translucent debug material blend"), TranslucentBase->GetBlendMode(), BLEND_Translucent);
+        TestTrue(TEXT("opaque debug material is default lit"),
+                 OpaqueBase->GetShadingModels().HasShadingModel(MSM_DefaultLit));
+        TestTrue(TEXT("translucent debug material is unlit"),
+                 TranslucentBase->GetShadingModels().HasShadingModel(MSM_Unlit));
+        TestTrue(TEXT("opaque material has an ISM shader contract"),
+                 ck::debug_scene::materials::Is_IsmCompatible(Opaque));
+        TestTrue(TEXT("translucent material has an ISM shader contract"),
+                 ck::debug_scene::materials::Is_IsmCompatible(Translucent));
+    }
+
+    auto Fixture = ck_test_debug_scene::FScopedDebugScene{};
+    Fixture._Target->Reconcile_One(
+        ck_test_debug_scene::ItemA,
+        {Fixture.MakeInstance(ck_test_debug_scene::PickA, FTransform::Identity, Fixture.MakeAppearanceWithMaterial(Opaque))});
+    const auto Components = Fixture._Target->Get_Components();
+    TestEqual(TEXT("shared opaque material creates one retained ISM"), Components.Num(), 1);
+    if (Components.Num() == 1)
+    { TestNotNull(TEXT("retained ISM has a dynamic material"), Components[0]->GetMaterial(0)); }
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkTest_DebugScene_RenderPolicyRebucketsAndApplies,
+                                 "Ck.DebugScene.Target.RenderPolicyRebucketsAndApplies",
+                                 ck_test_debug_scene::TestFlags)
+
+auto
+    FCkTest_DebugScene_RenderPolicyRebucketsAndApplies::
+    RunTest(const FString& Parameters)
+    -> bool
+{
+    auto Fixture = ck_test_debug_scene::FScopedDebugScene{};
+    const auto World = Fixture.MakeAppearance().Set_DepthPriority(ECk_DebugScene_DepthPriority::World)
+                           .Set_TranslucencySortPriority(3);
+    const auto Foreground = Fixture.MakeAppearance().Set_DepthPriority(ECk_DebugScene_DepthPriority::Foreground)
+                                .Set_TranslucencySortPriority(11);
+    Fixture._Target->Reconcile_One(ck_test_debug_scene::ItemA,
+                                   {Fixture.MakeInstance(ck_test_debug_scene::PickA, FTransform::Identity, World)});
+    Fixture._Target->Reconcile_One(ck_test_debug_scene::ItemB,
+                                   {Fixture.MakeInstance(ck_test_debug_scene::PickB, FTransform::Identity, Foreground)});
+    const auto Components = Fixture._Target->Get_Components();
+    TestEqual(TEXT("depth and sort policies form separate ISM buckets"), Components.Num(), 2);
+    auto FoundWorld = false;
+    auto FoundForeground = false;
+    for (const auto* Component : Components)
+    {
+        if (Component == nullptr)
+        { continue; }
+        FoundWorld |= Component->DepthPriorityGroup == SDPG_World && Component->TranslucencySortPriority == 3;
+        FoundForeground |= Component->DepthPriorityGroup == SDPG_Foreground &&
+                           Component->TranslucencySortPriority == 11;
+    }
+    TestTrue(TEXT("world policy reaches its ISM"), FoundWorld);
+    TestTrue(TEXT("foreground policy reaches its ISM"), FoundForeground);
+    const auto Instances = Fixture._Target->Get_ItemInstances(ck_test_debug_scene::ItemB);
+    TestTrue(TEXT("submission retains foreground policy"), Instances.Num() == 1 &&
+                 Instances[0].Get_Appearance().Get_DepthPriority() == ECk_DebugScene_DepthPriority::Foreground &&
+                 Instances[0].Get_Appearance().Get_TranslucencySortPriority() == 11);
+    return true;
+}
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCkTest_DebugScene_OneItemManyInstances, "Ck.DebugScene.Target.OneItemManyInstances",
                                  ck_test_debug_scene::TestFlags)
