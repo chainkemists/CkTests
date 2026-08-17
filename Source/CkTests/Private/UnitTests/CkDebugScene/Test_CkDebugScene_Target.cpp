@@ -141,6 +141,8 @@ auto
     }
 
     auto Fixture = ck_test_debug_scene::FScopedDebugScene{};
+    TestEqual(TEXT("shared mesh exposes the material slot consumed by component overrides"),
+              Fixture._Triangle->Get_StaticMesh()->GetStaticMaterials().Num(), 1);
     Fixture._Target->Reconcile_One(
         ck_test_debug_scene::ItemA,
         {Fixture.MakeInstance(ck_test_debug_scene::PickA, FTransform::Identity, Fixture.MakeAppearanceWithMaterial(Opaque))});
