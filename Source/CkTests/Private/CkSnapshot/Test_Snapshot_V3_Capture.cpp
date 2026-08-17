@@ -339,7 +339,8 @@ namespace ck_test_snapshot_v3
     auto SerializeBlob_Save(const FInstancedStruct& InStruct) -> TArray<uint8>
     {
         auto Blob = TArray<uint8>{};
-        if (InStruct.GetScriptStruct() == nullptr) { return Blob; }
+        if (ck::Is_NOT_Valid(InStruct.GetScriptStruct()))
+        { return Blob; }
         auto Writer = FMemoryWriter{Blob, /*bIsPersistent=*/true};
         constexpr auto LoadIfFindFails = true;
         auto Proxy = FObjectAndNameAsStringProxyArchive{Writer, LoadIfFindFails};
