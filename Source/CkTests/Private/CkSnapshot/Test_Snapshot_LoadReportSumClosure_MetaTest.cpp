@@ -78,6 +78,25 @@ bool
         TestTrue(TEXT("A default-constructed report closes (all buckets zero)"), Report.Get_IsAccountingClosed());
     }
 
+    // Get_DidLoadComplete answers "did the load complete", which is a different question from "was every payload
+    // applied" — consumers branch on it precisely so a completed-with-losses load is not mistaken for a failure.
+    {
+        const auto Report = Make_ClosedReport();
+        TestTrue(TEXT("a Success report reads as completed"), Report.Get_DidLoadComplete());
+    }
+
+    {
+        // The fail-closed default: a report nobody filled in has NOT completed.
+        const auto Report = FCk_Snapshot_LoadReport{};
+        TestFalse(TEXT("a default-constructed report has not completed"), Report.Get_DidLoadComplete());
+    }
+
+    {
+        auto Report = Make_ClosedReport();
+        Report.Set_Result(ECk_SnapshotResult::Failed_Corrupt);
+        TestFalse(TEXT("a failed load has not completed"), Report.Get_DidLoadComplete());
+    }
+
     {
         auto Report = Make_ClosedReport();
         Report.Set_EntitiesSkipped(Report.Get_EntitiesSkipped() - 1);
