@@ -182,6 +182,14 @@ namespace ck_autotest_snapshot_ordering
     const auto StartingVelocity = FVector{1.0, 0.0, 0.0};
     const auto SavedVelocity    = FVector{3.0, 4.0, 5.0};
 
+    // The LOCAL-coordinate probe. Its saved values are deliberately EQUAL to its starting params: that is the
+    // one case a "has the value moved off the seed?" test cannot distinguish from an untouched construct seed,
+    // so it is the case that decides whether the conversion debt is tracked or guessed at. Under the 90-degree
+    // yaw below, a second conversion is loudly visible — {1,0,0} becomes {0,1,0} rather than staying put.
+    const auto LocalProbeYaw                 = 90.0;
+    const auto LocalProbeStartingVelocity    = FVector{1.0, 0.0, 0.0};
+    const auto LocalProbeStartingAcceleration = FVector{2.0, 0.0, 0.0};
+
     constexpr auto FogCellSize      = 500.0f;
     constexpr auto FogHalfExtent    = 2000.0;
 
@@ -479,6 +487,32 @@ class CKTESTS_API UCk_AutoTest_Snapshot_PhysicsFogProbe_EntityScript_UE final : 
 
 public:
     UCk_AutoTest_Snapshot_PhysicsFogProbe_EntityScript_UE();
+
+public:
+    auto
+    Construct(
+        FCk_Handle& InHandle,
+        const FInstancedStruct& InSpawnParams) -> ECk_EntityScript_ConstructionFlow override;
+
+protected:
+    auto
+    Get_IsSnapshotRespawnable() const -> bool override;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Composes Velocity and Acceleration in LOCAL coordinates under a rotated Transform. Both features defer their
+// local->world conversion to Setup because the Transform may not exist at Add time; under the ordering contract
+// Setup runs AFTER hydration, so it must be able to tell "this entity still owes a conversion" from "this value
+// was restored and is already world-space". A restored value that happens to equal the starting param is the
+// case where those two look identical from the value alone.
+UCLASS(BlueprintType)
+class CKTESTS_API UCk_AutoTest_Snapshot_PhysicsLocalProbe_EntityScript_UE final : public UCk_EntityScript_UE
+{
+    GENERATED_BODY()
+
+public:
+    UCk_AutoTest_Snapshot_PhysicsLocalProbe_EntityScript_UE();
 
 public:
     auto
