@@ -73,6 +73,8 @@ bool FCk_Snapshot_QuarantineAlwaysLiftsAtFinish_Gate::RunTest(const FString& /*P
         EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
     AddExpectedError(TEXT("hydration quarantine FORCED off"),
         EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
+    AddExpectedError(TEXT("the load COMPLETED WITH LOSS"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
 
     auto Spec = ck::auto_test::snapshot::FCk_SnapshotRoundTrip_Spec{};
     Spec.SlotName = QuarantineEscape_SlotName;
@@ -167,6 +169,15 @@ bool FCk_Snapshot_QuarantineAlwaysLiftsAtFinish_Gate::RunTest(const FString& /*P
         AllGood &= TestEqual(
             TEXT("Promise_OnHydrated STILL fired for the forced entity, exactly once"),
             ck_autotest_snapshot_quarantine::Get_OnHydratedFireCount(), 1);
+
+        // (d) A forced release IS a loss, so the load's own verdict has to say so. An escape that fired while the
+        // report still read Success would leave consumers branching on a result that contradicts the records
+        // sitting right beside it — and the promise above would deliver them to a world they think is intact.
+        AllGood &= TestTrue(TEXT("the load reports that it completed WITH LOSS"),
+            Report.Get_Result() == ECk_SnapshotResult::Succeeded_WithLoss);
+
+        AllGood &= TestTrue(TEXT("...and still reads as completed — the world came back playable"),
+            Report.Get_DidLoadComplete());
 
         return AllGood;
     });
