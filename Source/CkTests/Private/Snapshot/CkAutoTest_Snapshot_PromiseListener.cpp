@@ -14,8 +14,10 @@ void
 
     ++_ArmCount;
 
-    UCk_Utils_Snapshot_UE::Promise_OnLoadComplete(InHandle,
-        FCk_Delegate_Snapshot_OnLoadComplete::CreateUFunction(this, TEXT("OnLoadComplete")));
+    auto Delegate = FCk_Delegate_Snapshot_OnLoadComplete{};
+    Delegate.BindUFunction(this, TEXT("OnLoadComplete"));
+
+    UCk_Utils_Snapshot_UE::Promise_OnLoadComplete(InHandle, Delegate);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -33,8 +35,10 @@ void
     if (NOT _ReArmInsideCallback)
     { return; }
 
-    const auto ReArm = UCk_Utils_Snapshot_UE::Promise_OnLoadComplete(InHandle,
-        FCk_Delegate_Snapshot_OnLoadComplete::CreateUFunction(this, TEXT("OnReArmedFire")));
+    auto ReArmDelegate = FCk_Delegate_Snapshot_OnLoadComplete{};
+    ReArmDelegate.BindUFunction(this, TEXT("OnReArmedFire"));
+
+    const auto ReArm = UCk_Utils_Snapshot_UE::Promise_OnLoadComplete(InHandle, ReArmDelegate);
 
     _ReArmReturnedNoLoadInProgress = ReArm == ECk_Snapshot_PromiseResult::NoLoadInProgress;
 }

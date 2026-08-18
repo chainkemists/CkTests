@@ -82,8 +82,10 @@ auto
     if (ck::Is_NOT_Valid(Self))
     { return; }
 
-    UCk_Utils_Snapshot_UE::Promise_OnHydrated(Self,
-        FCk_Delegate_Hydration_OnHydrated::CreateUFunction(this, TEXT("OnHydrated")));
+    auto Delegate = FCk_Delegate_Hydration_OnHydrated{};
+    Delegate.BindUFunction(this, TEXT("OnHydrated"));
+
+    UCk_Utils_Snapshot_UE::Promise_OnHydrated(Self, Delegate);
 }
 
 void

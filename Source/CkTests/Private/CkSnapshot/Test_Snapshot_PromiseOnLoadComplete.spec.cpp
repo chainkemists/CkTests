@@ -54,7 +54,8 @@ namespace ck_test_promise_onloadcomplete
         // OnPreLoad fires from INSIDE Request_Load, after the load has latched and before the teardown/travel —
         // the one moment a pre-travel arm is both possible and meaningful. Under the old world-scoped bind this
         // is precisely the promise that was lost.
-        auto Delegate = FCk_Delegate_Snapshot_OnPreLoad::CreateUFunction(InListener, TEXT("OnPreLoad"));
+        auto Delegate = FCk_Delegate_Snapshot_OnPreLoad{};
+        Delegate.BindUFunction(InListener, TEXT("OnPreLoad"));
         CK_SIGNAL_BIND(ck::UUtils_Signal_Snapshot_OnPreLoad, Source, Delegate,
             ECk_Signal_BindingPolicy::IgnorePayloadInFlight,
             ECk_Signal_PostFireBehavior::DoNothing);
@@ -149,8 +150,11 @@ bool FCk_Snapshot_PromiseNoLoadInProgress_Gate::RunTest(const FString& /*Paramet
             auto AllGood = TestFalse(TEXT("premise: no load is in progress"), Subsystem->Get_IsLoadInProgress());
 
             auto Source = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(Server);
-            const auto Result = UCk_Utils_Snapshot_UE::Promise_OnLoadComplete(Source,
-                FCk_Delegate_Snapshot_OnLoadComplete::CreateUFunction(Listener, TEXT("OnLoadComplete")));
+
+            auto Delegate = FCk_Delegate_Snapshot_OnLoadComplete{};
+            Delegate.BindUFunction(Listener, TEXT("OnLoadComplete"));
+
+            const auto Result = UCk_Utils_Snapshot_UE::Promise_OnLoadComplete(Source, Delegate);
 
             // Synchronously, inside the call — a consumer that binds "converge now or when the load lands" gets
             // the now case immediately, which is what makes the single call shape usable at all.
