@@ -8,15 +8,27 @@
 // The two named real-world instances behind the third rule are int32 SwingWhiffs
 // (FBb_Fragment_WhackAGull_Requests) and int32 MaxCapacityDelta (FBb_Fragment_Occupancy_Requests): both live
 // inside fragments whose name matches the request-queue shape, and a silent derive would have deleted them.
+//
+// T-C1-4 is the exception and drives the real handler: a resolution alone would not prove that the tag derivation
+// reaches capture, which is the whole point of the rule.
 
 #include "CkCore/Ensure/CkEnsure_Utils.h" // Get_EnsureCount — the enforceable "it ensured" assertion
 #include "CkCore/Macros/CkMacros.h"
 
+#include "CkDynamic/CkDynamic_Fragment_Data.h" // FCk_SaveData_DynamicFragments
+#include "CkDynamic/CkDynamic_Utils.h"         // UCk_Utils_DynamicFragment_UE + ECk_Replication (transitive)
+
+#include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
+#include "CkEcs/Net/ReplicatedFragmentContainer/CkReplicatedFragmentContainer.h" // ECk_Persistence_ApplyResult
+#include "CkEcs/Persistence/CkPersistenceHandlerRegistry.h"
 #include "CkEcs/Snapshot/CkSnapshot_Posture.h"
+#include "CkEcs/World/CkEcsWorld.h"
 
 #include "Test_Snapshot_DynamicFragment_Fixtures.h"
 
 #include "Misc/AutomationTest.h"
+
+#include <StructUtils/InstancedStruct.h>
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -236,6 +248,110 @@ bool
 
     Expect_Posture(*this, FCk_Test_Posture_DelegateCarrier::StaticStruct(),
         ECk_Snapshot_Posture::Session, TEXT("the same delegate shape with no value field"));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+// T-C1-4
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_Posture_TagStructDerivesSession_Test,
+    "Ck.Snapshot.Posture.TagStructDerivesSession",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_Posture_TagStructDerivesSession_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    using namespace ck_fragment_posture_test;
+
+    Expect_Posture(*this, FCk_Test_Posture_BareTag::StaticStruct(),
+        ECk_Snapshot_Posture::Session, TEXT("a field-less fragment carrying no marker"));
+
+    // The capture half runs on a SCRIPT-declared tag: a native zero-reflection struct cannot enter dynamic storage
+    // at all (the schema gate fails closed on it), so a script tag is not a convenience here — it is the only shape
+    // a tag ever has in a real world, and the one the rule was measured against.
+    const auto* TagType = FindObject<UScriptStruct>(
+        nullptr, TEXT("/Script/Angelscript.Ck_Fragment_DynamicTest_TagPayload"));
+
+    if (NOT TestNotNull(TEXT("the script-declared tag fixture is loaded"), TagType))
+    { return false; }
+
+    Expect_Posture(*this, TagType, ECk_Snapshot_Posture::Session, TEXT("a script-declared field-less tag"));
+
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& CkRegistry = EcsWorld.Get_Registry();
+
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+
+    // A durable neighbour on the same entity, so "Produce emitted nothing at all" cannot masquerade as
+    // "Produce omitted the tag".
+    auto PureData = FCk_Test_DynFrag_PureData{};
+    PureData.Count = 3;
+    UCk_Utils_DynamicFragment_UE::Add_Fragment(
+        Owner, FInstancedStruct::Make(PureData), ECk_Replication::DoesNotReplicate);
+
+    UCk_Utils_DynamicFragment_UE::Add_Fragment(
+        Owner, FInstancedStruct{TagType}, ECk_Replication::DoesNotReplicate);
+
+    if (NOT TestTrue(TEXT("the tag is composed on the entity before the capture"),
+        UCk_Utils_DynamicFragment_UE::Has_Fragment(Owner, TagType)))
+    { return false; }
+
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
+    if (NOT TestNotNull(TEXT("the dynamic-fragments handler is registered"), Handler))
+    { return false; }
+
+    const auto Produced = Handler->Produce(Owner);
+    if (NOT TestTrue(TEXT("Produce emitted a payload for the owner"), Produced.IsSet()))
+    { return false; }
+
+    const auto& SaveData = Produced.GetValue().Get<FCk_SaveData_DynamicFragments>();
+
+    const auto Contains = [&SaveData](const UScriptStruct* InType) -> bool
+    {
+        return SaveData.Get_Fragments().ContainsByPredicate([InType](const FInstancedStruct& InEntry) -> bool
+        { return InEntry.GetScriptStruct() == InType; });
+    };
+
+    TestFalse(TEXT("Produce omitted the derived-Session tag — a tag marks processing state, and a saved one comes "
+        "back to re-drive whatever already consumed it"), Contains(TagType));
+
+    TestTrue(TEXT("...while the durable neighbour on the same entity WAS captured"),
+        Contains(FCk_Test_DynFrag_PureData::StaticStruct()));
+
+    // Hydration must not re-add one either. The payload is hand-built with the tag entry present, because a capture
+    // that correctly omits it can no longer exercise the apply-side skip.
+    auto TaggedPayload = FCk_SaveData_DynamicFragments{};
+    {
+        auto Entries = SaveData.Get_Fragments();
+        Entries.Add(FInstancedStruct{TagType});
+        TaggedPayload.Set_Fragments(MoveTemp(Entries));
+    }
+
+    auto Rebuilt = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    UCk_Utils_DynamicFragment_UE::Add_Fragment(
+        Rebuilt, FInstancedStruct{TagType}, ECk_Replication::DoesNotReplicate);
+
+    auto RebuiltRef = Rebuilt;
+    const auto ApplyResult = Handler->HydrationApply(RebuiltRef, FInstancedStruct::Make(TaggedPayload), {});
+    TestEqual(TEXT("hydration applied"),
+        static_cast<int32>(ApplyResult), static_cast<int32>(ECk_Persistence_ApplyResult::Applied));
+
+    TestTrue(TEXT("the construct-stamped tag is still present after hydration"),
+        UCk_Utils_DynamicFragment_UE::Has_Fragment(Rebuilt, TagType));
+
+    // ...and it is not COMPOSED onto an entity whose construction did not stamp it, which is the half a
+    // rebuilt-entity-already-carries-it assertion cannot see.
+    auto Bare = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    auto BareRef = Bare;
+    Handler->HydrationApply(BareRef, FInstancedStruct::Make(TaggedPayload), {});
+
+    TestFalse(TEXT("hydration did not compose the derived-Session tag onto an entity that lacked it"),
+        UCk_Utils_DynamicFragment_UE::Has_Fragment(Bare, TagType));
 
     return true;
 }
