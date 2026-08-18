@@ -42,6 +42,12 @@ namespace ck_test_quarantine_fence
             {TEXT("CkCompass/Public/CkCompass/CkCompass_Processor.cpp"), 1},
             {TEXT("CkCrowd/Public/CkCrowd/Agent/CkCrowdAgent_PathRefresh_Processor.cpp"), 4},
             {TEXT("CkEcs/Public/CkEcs/EntityLifetime/CkEntityLifetime_Processor.cpp"), 1},
+            // KERNEL entry, permanent. The hydration apply processor is the one this whole fence exists to
+            // protect, and it is exempt by construction; the line reaches a registry CONTEXT (the apply-outcome
+            // accumulator) and constructs no view over entities, so it cannot observe a quarantined one. Spelled
+            // Get_RegistryView because that is what its two sibling context reads in CkEntityLifetime_Utils.cpp
+            // spell — renaming it to dodge a text scan would leave the fence silent on the construct it lists.
+            {TEXT("CkEcs/Public/CkEcs/Persistence/CkPersistenceHydration_Processor.cpp"), 1},
             {TEXT("CkEcsExt/Public/CkEcsExt/Transform/CkTransform_Processor.cpp"), 2},
             {TEXT("CkGraphics/Public/CkGraphics/RenderStatus/CkRenderStatus_Processor.cpp"), 4},
             {TEXT("CkInput/Public/CkInput/CkInputLayer_Processor.cpp"), 2},
@@ -65,7 +71,10 @@ namespace ck_test_quarantine_fence
         return AllowList;
     }
 
-    constexpr auto ViewConstructionCeiling = 43;
+    // Sum of the allow-list. The monotonic-decreasing rule governs the NON-KERNEL remainder: a feature processor
+    // that starts building its own views must drive this number down, never up. Kernel entries are permanent, so
+    // adding one moves the ceiling with it — 43 -> 44 for the hydration apply processor's context read.
+    constexpr auto ViewConstructionCeiling = 44;
 
     // ----------------------------------------------------------------------------------------------------------------
     // (ii) Single-entity id resolution, over the same files PLUS the two contact routers — which are subsystem
