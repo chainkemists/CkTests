@@ -155,7 +155,9 @@ bool
 
     auto ByteWriter = FBufferArchive{};
     auto Header = FCk_Snapshot_HeaderV3{};
-    const auto Result = ck::snapshot::Run_CaptureV3_Registry(*RawRegistry, RegistryHandle, /*World=*/nullptr, ByteWriter, Header);
+    auto SaveReport = FCk_Snapshot_SaveReport{};
+    const auto Result = ck::snapshot::Run_CaptureV3_Registry(*RawRegistry, RegistryHandle, /*World=*/nullptr,
+        ByteWriter, Header, SaveReport);
 
     TestEqual(TEXT("v3 capture succeeded"), static_cast<int32>(Result), static_cast<int32>(ECk_SnapshotResult::Success));
 
@@ -246,7 +248,9 @@ bool
 
     auto ByteWriter = FBufferArchive{};
     auto Header = FCk_Snapshot_HeaderV3{};
-    const auto Result = ck::snapshot::Run_CaptureV3_Registry(*RawRegistry, RegistryHandle, /*World=*/nullptr, ByteWriter, Header);
+    auto SaveReport = FCk_Snapshot_SaveReport{};
+    const auto Result = ck::snapshot::Run_CaptureV3_Registry(*RawRegistry, RegistryHandle, /*World=*/nullptr,
+        ByteWriter, Header, SaveReport);
 
     TestEqual(TEXT("v3 capture succeeded"), static_cast<int32>(Result), static_cast<int32>(ECk_SnapshotResult::Success));
     TestEqual(TEXT("Ancestor-excluded subtrees produced no rows"), Header.Get_EntityCount(), 0);
@@ -294,7 +298,9 @@ bool
 
     auto ByteWriter = FBufferArchive{};
     auto Header = FCk_Snapshot_HeaderV3{};
-    const auto Result = ck::snapshot::Run_CaptureV3_Registry(*RawRegistry, RegistryHandle, /*World=*/nullptr, ByteWriter, Header);
+    auto SaveReport = FCk_Snapshot_SaveReport{};
+    const auto Result = ck::snapshot::Run_CaptureV3_Registry(*RawRegistry, RegistryHandle, /*World=*/nullptr,
+        ByteWriter, Header, SaveReport);
     if (NOT TestEqual(TEXT("v3 capture succeeded"),
         static_cast<int32>(Result), static_cast<int32>(ECk_SnapshotResult::Success)))
     { return false; }
