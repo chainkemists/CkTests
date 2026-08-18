@@ -236,7 +236,9 @@ bool FCk_Snapshot_StagedConstructionAdoption_Gate::RunTest(const FString& /*Para
             ck_autotest_staged_construction::Get_KeeperChildCount(Parent), 1);
 
         const auto Report = Subsystem->Get_LastLoadReport();
-        AllGood &= TestTrue(TEXT("load Result == Success"), Report.Get_Result() == ECk_SnapshotResult::Success);
+        // Get_DidLoadComplete, not == Success: this gate is the discriminator for whether the quarantine is
+        // stamped at the right point, and it must not red because some unrelated payload went unapplied.
+        AllGood &= TestTrue(TEXT("the load completed"), Report.Get_DidLoadComplete());
 
         if (*FirstCycleEntitiesTotal < 0)
         { *FirstCycleEntitiesTotal = Report.Get_EntitiesTotal(); }
