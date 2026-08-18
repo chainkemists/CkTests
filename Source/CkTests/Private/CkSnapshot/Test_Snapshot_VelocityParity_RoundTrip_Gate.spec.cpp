@@ -3,6 +3,10 @@
 // the restored value landed last and won. Under the contract Setup runs AFTER hydration, and a Setup that
 // re-derives a Durable fragment silently overwrites what the load just restored — the value comes back as
 // the starting one, with no error anywhere. This pins the value, not the mechanism.
+//
+// Its probe is WORLD-coordinate, so it says nothing about the local->world conversion Setup also owns. The
+// case where a restored value equals the starting param — the one a value comparison cannot classify — is
+// Ck.Snapshot.Parity.LocalCoordinateConversion_RoundTrip.
 // Surface in Session Frontend: Ck.Snapshot.Parity.Velocity_RoundTrip
 
 #include "Misc/AutomationTest.h"
