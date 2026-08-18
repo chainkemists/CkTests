@@ -351,8 +351,10 @@ auto
     GObservations.BeginPlayRan = true;
     GObservations.BeginPlayObservedA = Self.Get<ck::FFragment_AutoTest_Ordering_State>()._ValueA;
 
-    UCk_Utils_Snapshot_UE::Promise_OnHydrated(Self,
-        FCk_Delegate_Hydration_OnHydrated::CreateUFunction(this, TEXT("OnHydrated")));
+    auto Delegate = FCk_Delegate_Hydration_OnHydrated{};
+    Delegate.BindUFunction(this, TEXT("OnHydrated"));
+
+    UCk_Utils_Snapshot_UE::Promise_OnHydrated(Self, Delegate);
 }
 
 void

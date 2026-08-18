@@ -150,8 +150,11 @@ bool FCk_Snapshot_Ordering_OnHydratedFiresAfterAllPayloads::RunTest(const FStrin
         Witness->AddToRoot();
 
         const auto LateBindsBefore = Obs.LateBindFireCount;
-        UCk_Utils_Snapshot_UE::Promise_OnHydrated(ProbeA,
-            FCk_Delegate_Hydration_OnHydrated::CreateUFunction(Witness, TEXT("OnLateBind")));
+
+        auto LateBindDelegate = FCk_Delegate_Hydration_OnHydrated{};
+        LateBindDelegate.BindUFunction(Witness, TEXT("OnLateBind"));
+
+        UCk_Utils_Snapshot_UE::Promise_OnHydrated(ProbeA, LateBindDelegate);
 
         AllGood &= TestEqual(
             TEXT("a bind made AFTER the lift fired immediately — the entity is hydrated, so there is nothing "
@@ -166,8 +169,11 @@ bool FCk_Snapshot_Ordering_OnHydratedFiresAfterAllPayloads::RunTest(const FStrin
         auto FreshEntity = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
 
         const auto FreshBindsBefore = Obs.FreshBindFireCount;
-        UCk_Utils_Snapshot_UE::Promise_OnHydrated(FreshEntity,
-            FCk_Delegate_Hydration_OnHydrated::CreateUFunction(Witness, TEXT("OnFreshBind")));
+
+        auto FreshBindDelegate = FCk_Delegate_Hydration_OnHydrated{};
+        FreshBindDelegate.BindUFunction(Witness, TEXT("OnFreshBind"));
+
+        UCk_Utils_Snapshot_UE::Promise_OnHydrated(FreshEntity, FreshBindDelegate);
 
         AllGood &= TestEqual(
             TEXT("a bind on an entity no load ever mapped fired immediately too — 'nothing was restored' and "
