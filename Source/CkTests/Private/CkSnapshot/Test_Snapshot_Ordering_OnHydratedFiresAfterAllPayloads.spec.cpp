@@ -72,6 +72,13 @@ bool FCk_Snapshot_Ordering_OnHydratedFiresAfterAllPayloads::RunTest(const FStrin
     auto Spec = ck::auto_test::snapshot::FCk_SnapshotRoundTrip_Spec{};
     Spec.SlotName = SlotName;
 
+    // ONE cycle, deliberately. Promise_OnHydrated fires once per LOAD, and the observation counters are reset in
+    // Mutate — which the harness runs once, before the cycle loop — so under the default two cycles the exactly-
+    // once assertion below reads 2 for a framework that is behaving correctly. Resetting inside Assert is not the
+    // fix: Assert is a polled predicate, re-run every tick until it passes. Once-ness ACROSS loads is pinned by
+    // Ck.Snapshot.Ordering.QuarantineAlwaysLiftsAtFinish clause (c), which is where it belongs.
+    Spec.NumCycles = 1;
+
     Spec.Spawn = FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld* InServer) -> void
     {
         if (auto* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("net.AllowPIESeamlessTravel")))
