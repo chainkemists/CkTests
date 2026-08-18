@@ -12,7 +12,9 @@ asset TestArchetype_Crate of UCk_ArchetypeDefinition
     DisplayName = FText::FromString("Crate (authoring validation)");
     FeatureIds.Add(n"Transform");
     FeatureIds.Add(n"Label");
-    IconSvgPath = "Icons/Cube.svg";
+    // Resolved through FCkIconStyle's dynamic lane: the basename matches a generated
+    // ECk_Icon semantic ("Entity"), or a game registers its own SVG via Register_DynamicIcon.
+    IconSvgPath = "Icons/Entity.svg";
     Color       = FLinearColor(0.85f, 0.65f, 0.28f);
     Priority    = 1;
 }
