@@ -8,6 +8,7 @@
 #include "CkEcs/Processor/CkParallelProcessor.h"
 #include "CkEcs/Processor/CkProcessor.h"
 #include "CkEcs/Scheduler/CkProcessorGroups.h"
+#include "CkEcs/Snapshot/CkSnapshot_Posture.h" // FCk_Snapshot_Session
 #include "CkEcs/Tag/CkTag.h"
 #include "CkEcs/Tag/CkTag_HydrationQuarantine.h"
 
@@ -49,6 +50,9 @@ namespace ck
 
     // The probe destroyed from inside its own hydration.
     CK_DEFINE_ECS_TAG(FTag_AutoTest_Ordering_DestroyProbe);
+
+    // The handle-rich subtree's owner.
+    CK_DEFINE_ECS_TAG(FTag_AutoTest_HandleGraph_Probe);
 
     // Stamped by that probe's own hydration, immediately before it asks to be destroyed, and required by the
     // EndPlay witness. Without it the witness would also fire for the ordinary teardown of the pre-save world
@@ -218,6 +222,31 @@ namespace ck_autotest_snapshot_ordering
         int32 ClearProbe_RequestsDrained = 0;
 
         bool DestroyProbe_EndPlayRan = false;
+
+        // What DoBeginPlay was handed. The contract says the construct default, so a restored value showing up
+        // here means something started holding BeginPlay for the load.
+        bool  BeginPlayRan      = false;
+        int32 BeginPlayObservedA = 0;
+
+        // The Promise_OnHydrated bound from that same DoBeginPlay: the other half of the contract. Fired once,
+        // with the RESTORED value, and with the stalling sibling's value already applied too — that last part
+        // is what makes it an edge about the whole mapped set rather than about one entity.
+        int32 OnHydratedFireCount        = 0;
+        int32 OnHydratedObservedA        = 0;
+        int32 OnHydratedObservedSiblingB = 0;
+        bool  OnHydratedSiblingResolved  = false;
+
+        // A bind made AFTER the lift, and one made on an entity no load ever mapped. Both must fire, because
+        // "nothing is pending" is an answer, not a reason to stay silent.
+        int32 LateBindFireCount   = 0;
+        int32 LateBindObservedA   = 0;
+        int32 FreshBindFireCount  = 0;
+
+        // The handle-graph probe's Construct-created child, recorded on BOTH sides of the load. The load must
+        // produce a DIFFERENT entity id: a Session handle that survives with the SAME id is a saved value that
+        // got remapped, which is the aliasing case a validity check alone reports as healthy.
+        int32 HandleGraph_PreSaveChildId  = 0;
+        int32 HandleGraph_PostLoadChildId = 0;
     };
 
     CKTESTS_API auto Get_Observations() -> FObservations&;
@@ -432,9 +461,20 @@ public:
         FCk_Handle& InHandle,
         const FInstancedStruct& InSpawnParams) -> ECk_EntityScript_ConstructionFlow override;
 
+    // Records what construction observes, then binds the promise that delivers the restored value — the two
+    // halves of the ordering contract, written where an author would naturally write them.
+    auto
+    BeginPlay() -> void override;
+
 protected:
     auto
     Get_IsSnapshotRespawnable() const -> bool override;
+
+private:
+    UFUNCTION()
+    void
+    OnHydrated(
+        FCk_Handle InHandle);
 };
 
 // Probe B: the sibling whose payload stalls.
@@ -487,6 +527,71 @@ class CKTESTS_API UCk_AutoTest_Snapshot_PhysicsFogProbe_EntityScript_UE final : 
 
 public:
     UCk_AutoTest_Snapshot_PhysicsFogProbe_EntityScript_UE();
+
+public:
+    auto
+    Construct(
+        FCk_Handle& InHandle,
+        const FInstancedStruct& InSpawnParams) -> ECk_EntityScript_ConstructionFlow override;
+
+protected:
+    auto
+    Get_IsSnapshotRespawnable() const -> bool override;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A Session dynamic fragment holding a handle to a child its owner's Construct creates — the single most common
+// shape in a real feature (a probe node, a SceneNode, a spawned sub-entity), and the one the posture rules exist
+// to keep out of the save. The child is an unlabeled ConstructSpawned entity, so it can never round-trip; the
+// only correct outcome is that the rebuild makes a NEW one and this handle names it.
+USTRUCT()
+struct CKTESTS_API FCk_Test_Session_ChildRef
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_Snapshot_Session Posture;
+
+    UPROPERTY(SaveGame)
+    FCk_Handle Child;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A bindable target for the two Promise_OnHydrated cases that have no entity script to hang off: a bind made
+// after the lift, and a bind on an entity no load ever mapped. Both must fire immediately — the promise answers
+// "is anything still pending for this handle", and "no" is an answer.
+UCLASS()
+class CKTESTS_API UCk_AutoTest_Snapshot_OnHydratedWitness_UE final : public UObject
+{
+    GENERATED_BODY()
+
+public:
+    UFUNCTION()
+    void
+    OnLateBind(
+        FCk_Handle InHandle);
+
+    UFUNCTION()
+    void
+    OnFreshBind(
+        FCk_Handle InHandle);
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// A handle-rich subtree: a persisted owner, a LABELED child (which the load rebuilds and re-identifies), and an
+// UNLABELED ConstructSpawned child (which it cannot, and must not try to). The owner carries a Session fragment
+// naming the unlabeled one. Two things are asked of it after a load — that no stored handle in the structural
+// backbone dangles, and that the Session handle names a NEW child rather than a remapped old id.
+UCLASS(BlueprintType)
+class CKTESTS_API UCk_AutoTest_Snapshot_HandleGraphProbe_EntityScript_UE final : public UCk_EntityScript_UE
+{
+    GENERATED_BODY()
+
+public:
+    UCk_AutoTest_Snapshot_HandleGraphProbe_EntityScript_UE();
 
 public:
     auto

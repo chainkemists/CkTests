@@ -4,6 +4,7 @@
 
 #include "CkEcs/Handle/CkHandle.h"
 #include "CkEcs/Handle/CkHandle_TypeSafe.h"
+#include "CkEcs/Persistence/CkPersistenceHydration.h" // FCk_Hydration_TypeInfo
 #include "CkEcs/Request/CkRequest_Data.h"
 #include "CkEcs/Snapshot/CkSnapshot_Posture.h"
 
@@ -450,4 +451,66 @@ USTRUCT()
 struct FCk_Test_Posture_BareTag
 {
     GENERATED_BODY()
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Two Durable dynamic fragments, distinct types, both carried by one entity. The per-type hydration edge has to
+// fire once for each, so a single-type fixture could not tell "one edge per type" from "one edge per entity".
+USTRUCT()
+struct FCk_Test_TypeHydrated_Alpha
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_Snapshot_Durable Posture;
+
+    UPROPERTY(SaveGame)
+    int32 Marker = 0;
+};
+
+USTRUCT()
+struct FCk_Test_TypeHydrated_Beta
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FCk_Snapshot_Durable Posture;
+
+    UPROPERTY(SaveGame)
+    int32 Marker = 0;
+};
+
+// Counts both edges a hydrating dynamic fragment could raise. The OnRepNotify count is the load-bearing one: it
+// must stay at zero, because the load path naming itself as replication is the defect the split fixed, and a
+// regression there is silent — every subscriber keeps working, they just start hearing about the wrong event.
+UCLASS()
+class UCk_Test_TypeHydrated_Witness : public UObject
+{
+    GENERATED_BODY()
+
+public:
+    UFUNCTION()
+    void
+    HandleTypeHydrated(
+        FCk_Handle InHandle,
+        FCk_Hydration_TypeInfo InInfo)
+    {
+        ++_TypeHydratedCount;
+        _TypeHydratedTypes.Add(InInfo.HydratedType);
+    }
+
+    UFUNCTION()
+    void
+    HandleRepNotify(
+        FCk_Handle InHandle,
+        FCk_DynamicFragment_RepNotifyInfo InInfo)
+    {
+        ++_RepNotifyCount;
+    }
+
+public:
+    int32 _TypeHydratedCount = 0;
+    int32 _RepNotifyCount = 0;
+    TSet<TObjectPtr<UScriptStruct>> _TypeHydratedTypes;
 };

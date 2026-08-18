@@ -6,7 +6,15 @@
 #include "CkEcs/Scheduler/CkProcessorRegistration.h"
 #include "CkEcs/Snapshot/CkSnapshot_Posture.h"
 
+#include "CkDynamic/CkDynamic_Utils.h"
+
 #include "CkEcsExt/Transform/CkTransform_Utils.h"
+
+#include "CkLabel/CkLabel_Utils.h"
+
+#include "CkSnapshot/CkSnapshot_Utils.h" // Promise_OnHydrated
+
+#include <NativeGameplayTags.h>
 
 #include "CkMinimap/CkFogOfWar_Utils.h"
 #include "CkPhysics/Acceleration/CkAcceleration_Utils.h"
@@ -26,6 +34,10 @@ CK_REGISTER_PROCESSOR(ck::FProcessor_AutoTest_Ordering_DestroyProbe_EndPlay);
 
 namespace ck_autotest_snapshot_ordering
 {
+    // The handle-graph probe's labeled child. A label is the ONLY identity a ConstructSpawned child has in the
+    // save, so this is what separates the child the load re-identifies from the one it cannot.
+    UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_AutoTest_HandleGraph_Child, TEXT("Ck.AutoTest.HandleGraph.Child"));
+
     // Process-wide because the observations have to survive the load's map travel, which every entity does not.
     // Each test resets them in its own Mutate stage, immediately before the save.
     FObservations GObservations{};
@@ -325,6 +337,50 @@ auto
 
 auto
     UCk_AutoTest_Snapshot_OrderingProbe_EntityScript_UE::
+    BeginPlay()
+    -> void
+{
+    using namespace ck_autotest_snapshot_ordering;
+
+    Super::BeginPlay();
+
+    auto Self = Get_AssociatedEntity();
+    if (ck::Is_NOT_Valid(Self) || NOT Self.Has<ck::FFragment_AutoTest_Ordering_State>())
+    { return; }
+
+    GObservations.BeginPlayRan = true;
+    GObservations.BeginPlayObservedA = Self.Get<ck::FFragment_AutoTest_Ordering_State>()._ValueA;
+
+    UCk_Utils_Snapshot_UE::Promise_OnHydrated(Self,
+        FCk_Delegate_Hydration_OnHydrated::CreateUFunction(this, TEXT("OnHydrated")));
+}
+
+void
+    UCk_AutoTest_Snapshot_OrderingProbe_EntityScript_UE::
+    OnHydrated(
+        FCk_Handle InHandle)
+{
+    using namespace ck_autotest_snapshot_ordering;
+
+    ++GObservations.OnHydratedFireCount;
+
+    if (ck::Is_NOT_Valid(InHandle) || NOT InHandle.Has<ck::FFragment_AutoTest_Ordering_State>())
+    { return; }
+
+    GObservations.OnHydratedObservedA = InHandle.Get<ck::FFragment_AutoTest_Ordering_State>()._ValueA;
+
+    // The sibling read is the point: the edge fires on the GLOBAL lift, so probe B — whose payload stalled
+    // long after A's applied — must already be hydrated when this runs.
+    InHandle.View<ck::FTag_AutoTest_Ordering_ProbeB, ck::FFragment_AutoTest_Ordering_State>().ForEach(
+    [](FCk_Entity /*InEntity*/, const ck::FFragment_AutoTest_Ordering_State& InSiblingState) -> void
+    {
+        GObservations.OnHydratedSiblingResolved = true;
+        GObservations.OnHydratedObservedSiblingB = InSiblingState._ValueB;
+    });
+}
+
+auto
+    UCk_AutoTest_Snapshot_OrderingProbe_EntityScript_UE::
     Get_IsSnapshotRespawnable() const
     -> bool
 {
@@ -466,6 +522,75 @@ auto
     -> bool
 {
     return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+UCk_AutoTest_Snapshot_HandleGraphProbe_EntityScript_UE::
+    UCk_AutoTest_Snapshot_HandleGraphProbe_EntityScript_UE()
+{
+    _Replication = ECk_Replication::DoesNotReplicate;
+    _InstancingPolicy = ECk_EntityScript_InstancingPolicy::InstancedPerEntity;
+}
+
+auto
+    UCk_AutoTest_Snapshot_HandleGraphProbe_EntityScript_UE::
+    Construct(
+        FCk_Handle& InHandle,
+        const FInstancedStruct&)
+    -> ECk_EntityScript_ConstructionFlow
+{
+    using namespace ck_autotest_snapshot_ordering;
+
+    InHandle.AddOrGet<ck::FTag_AutoTest_HandleGraph_Probe>();
+
+    // Labeled: capture rule 3 classifies it ConstructSpawned and the load re-identifies it by label.
+    auto LabeledChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(InHandle);
+    UCk_Utils_GameplayLabel_UE::Add(LabeledChild, TAG_AutoTest_HandleGraph_Child);
+
+    // Unlabeled: no label means no identity the save can express, so it is save-transient by construction. A
+    // handle to it can never round-trip — which is precisely why the fragment naming it is Session.
+    auto UnlabeledChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(InHandle);
+
+    auto ChildRef = FCk_Test_Session_ChildRef{};
+    ChildRef.Child = UnlabeledChild;
+    UCk_Utils_DynamicFragment_UE::Add_Fragment(
+        InHandle, FInstancedStruct::Make(ChildRef), ECk_Replication::DoesNotReplicate);
+
+    return ECk_EntityScript_ConstructionFlow::Finished;
+}
+
+auto
+    UCk_AutoTest_Snapshot_HandleGraphProbe_EntityScript_UE::
+    Get_IsSnapshotRespawnable() const
+    -> bool
+{
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+void
+    UCk_AutoTest_Snapshot_OnHydratedWitness_UE::
+    OnLateBind(
+        FCk_Handle InHandle)
+{
+    using namespace ck_autotest_snapshot_ordering;
+
+    ++GObservations.LateBindFireCount;
+
+    if (ck::Is_NOT_Valid(InHandle) || NOT InHandle.Has<ck::FFragment_AutoTest_Ordering_State>())
+    { return; }
+
+    GObservations.LateBindObservedA = InHandle.Get<ck::FFragment_AutoTest_Ordering_State>()._ValueA;
+}
+
+void
+    UCk_AutoTest_Snapshot_OnHydratedWitness_UE::
+    OnFreshBind(
+        FCk_Handle /*InHandle*/)
+{
+    ++ck_autotest_snapshot_ordering::GObservations.FreshBindFireCount;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
