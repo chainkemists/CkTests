@@ -95,6 +95,13 @@ bool FCk_Snapshot_QuarantineAlwaysLiftsAtFinish_Gate::RunTest(const FString& /*P
             Transient, UCk_AutoTest_Snapshot_QuarantineProbe_EntityScript_UE::StaticClass(), FInstancedStruct{}, {});
     });
 
+    Spec.Mutate = FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld* /*InServer*/) -> void
+    {
+        // Zeroed immediately before the save, so the count below describes the LOAD's delivery rather than the
+        // pre-save world's — the probe binds its promise from BeginPlay in both.
+        ck_autotest_snapshot_quarantine::Get_OnHydratedFireCount() = 0;
+    });
+
     Spec.SubjectReady = FCk_NetAutoTest_Assertion::CreateLambda([]() -> bool
     {
         return ck::IsValid(QuarantineEscape_ResolveProbe(ck::auto_test::snapshot::Get_PostTravelServerWorld()));
@@ -151,6 +158,15 @@ bool FCk_Snapshot_QuarantineAlwaysLiftsAtFinish_Gate::RunTest(const FString& /*P
                     ProbeRecord->Get_PayloadsOutstanding()),
                 ProbeRecord->Get_PayloadsOutstanding() >= 1);
         }
+
+        // Releasing the entity is not enough on its own. The probe bound Promise_OnHydrated from BeginPlay, long
+        // before any lift could have happened, and an escape that quietly skipped its broadcast would leave that
+        // consumer waiting for an edge that is never coming — the fail-closed wedge moved from the entity to the
+        // people watching it. The loss is already in the report by the time this fires, so a consumer reacting to
+        // the promise reads the truth about what came back.
+        AllGood &= TestEqual(
+            TEXT("Promise_OnHydrated STILL fired for the forced entity, exactly once"),
+            ck_autotest_snapshot_quarantine::Get_OnHydratedFireCount(), 1);
 
         return AllGood;
     });

@@ -2,7 +2,10 @@
 
 #include "CkEcs/Persistence/CkPersistenceHandlerRegistry.h"
 #include "CkEcs/Persistence/CkPersistenceHandlerRegistry.inl.h" // Register_* entry-point bodies
+#include "CkEcs/Persistence/CkPersistenceHydration.h"
 #include "CkEcs/Snapshot/CkSnapshot_Posture.h"
+
+#include "CkSnapshot/CkSnapshot_Utils.h" // Promise_OnHydrated
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -39,6 +42,13 @@ namespace ck_autotest_snapshot_quarantine
     };
 
     const FRegistrar GRegistrar{};
+
+    int32 GOnHydratedFireCount = 0;
+
+    auto Get_OnHydratedFireCount() -> int32&
+    {
+        return GOnHydratedFireCount;
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -59,6 +69,29 @@ auto
 {
     InHandle.AddOrGet<ck::FTag_AutoTest_Quarantine_Probe>();
     return ECk_EntityScript_ConstructionFlow::Finished;
+}
+
+auto
+    UCk_AutoTest_Snapshot_QuarantineProbe_EntityScript_UE::
+    BeginPlay()
+    -> void
+{
+    Super::BeginPlay();
+
+    auto Self = Get_AssociatedEntity();
+    if (ck::Is_NOT_Valid(Self))
+    { return; }
+
+    UCk_Utils_Snapshot_UE::Promise_OnHydrated(Self,
+        FCk_Delegate_Hydration_OnHydrated::CreateUFunction(this, TEXT("OnHydrated")));
+}
+
+void
+    UCk_AutoTest_Snapshot_QuarantineProbe_EntityScript_UE::
+    OnHydrated(
+        FCk_Handle /*InHandle*/)
+{
+    ++ck_autotest_snapshot_quarantine::GOnHydratedFireCount;
 }
 
 auto
