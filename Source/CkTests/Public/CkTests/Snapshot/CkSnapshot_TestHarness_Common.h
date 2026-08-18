@@ -41,6 +41,10 @@ namespace ck::auto_test::snapshot
         float   ReloadTimeoutSeconds = 60.0f;
         int32   SettleFrames = 60;
         int32   NumCycles = 2;
+        // false = save ONCE, before the first load, then load the same slot every cycle. That is a different
+        // question from the default: repeated loads of one save must be identical to each other, whereas
+        // save->load->save->load also asks whether a load leaves a world that captures the same way.
+        bool    SaveEveryCycle = true;
 
         FCk_NetAutoTest_ServerAction Spawn;               // REQUIRED: spawn/compose the subject
         FCk_NetAutoTest_Assertion    SubjectReady;        // optional poll gate before Mutate (unset = skip)

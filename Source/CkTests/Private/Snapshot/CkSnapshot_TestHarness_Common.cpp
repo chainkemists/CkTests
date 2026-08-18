@@ -131,6 +131,7 @@ namespace ck::auto_test::snapshot
 
         ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(InSpec.SettleFrames));
 
+        const auto SaveEveryCycle       = InSpec.SaveEveryCycle;
         const auto SlotName             = InSpec.SlotName;
         const auto MapPath              = InSpec.MapPath;
         const auto SettleFrames         = InSpec.SettleFrames;
@@ -142,26 +143,46 @@ namespace ck::auto_test::snapshot
         {
             const auto CycleNum = Cycle + 1;
 
+            // The pre-reload server world is stashed on EVERY cycle — the reload predicate's "world changed" check
+            // needs it whether or not this cycle saved.
+            if (NOT SaveEveryCycle && Cycle > 0)
+            {
+                ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(InTest,
+                    FCk_NetAutoTest_Assertion::CreateLambda([InTest, State]() -> bool
+                    {
+                        auto* Server = Get_PostTravelServerWorld();
+                        if (Server == nullptr)
+                        { InTest->AddError(TEXT("SnapshotRoundTrip: no server world before Load")); return true; }
+
+                        State->PreReloadServerWorld = Server;
+                        return true;
+                    }),
+                    TEXT("SnapshotRoundTrip: reload baseline stashed (no save this cycle)")));
+            }
+
             // Save on the server; stash the pre-reload server world for the reload predicate's "world changed" check.
             // NOT FCk_Latent_RunOnServer: a single-world OpenLevel load demotes the world to NM_Standalone, so from
             // cycle 2 on it finds no server and DROPS its action — save and load never fire while Assert still
             // re-runs against the prior cycle's world, reporting two identical passes for one cycle of work.
-            ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(InTest,
-                FCk_NetAutoTest_Assertion::CreateLambda([InTest, State, SlotName]() -> bool
-                {
-                    auto* Server = Get_PostTravelServerWorld();
-                    if (Server == nullptr)
-                    { InTest->AddError(TEXT("SnapshotRoundTrip: no server world at Save")); return true; }
+            if (SaveEveryCycle || Cycle == 0)
+            {
+                ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(InTest,
+                    FCk_NetAutoTest_Assertion::CreateLambda([InTest, State, SlotName]() -> bool
+                    {
+                        auto* Server = Get_PostTravelServerWorld();
+                        if (Server == nullptr)
+                        { InTest->AddError(TEXT("SnapshotRoundTrip: no server world at Save")); return true; }
 
-                    State->PreReloadServerWorld = Server;
-                    auto* Sub = Get_SnapshotSubsystem(Server);
-                    if (Sub == nullptr)
-                    { InTest->AddError(TEXT("SnapshotRoundTrip: no snapshot subsystem at Save")); return true; }
-                    Sub->Request_Save(SlotName, FCk_Delegate_OnSaveComplete{});
-                    return true;
-                }),
-                TEXT("SnapshotRoundTrip: save issued")));
-            ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(SettleFrames));
+                        State->PreReloadServerWorld = Server;
+                        auto* Sub = Get_SnapshotSubsystem(Server);
+                        if (Sub == nullptr)
+                        { InTest->AddError(TEXT("SnapshotRoundTrip: no snapshot subsystem at Save")); return true; }
+                        Sub->Request_Save(SlotName, FCk_Delegate_OnSaveComplete{});
+                        return true;
+                    }),
+                    TEXT("SnapshotRoundTrip: save issued")));
+                ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(SettleFrames));
+            }
 
             // Fire async Load; assert non-blocking (completion is inferred by the wait predicate — house convention,
             // empty delegate).
