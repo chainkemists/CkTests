@@ -73,6 +73,7 @@ namespace ck_test_dynfrag_roundtrip
         ck::snapshot::RemapHandles(Out.GetScriptStruct(), Out.GetMutableMemory(), Proxy, Ctx);
         return Out;
     }
+
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -619,6 +620,96 @@ bool
         Hydrated.TargetArray.Num(), 2);
     TestFalse(TEXT("backstop stood down, so the unresolved saved handle survives (documented limit)"),
         ck::IsValid(Hydrated.TargetHandle));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_V3_DynamicFragment_UnresolvedHandleBackstopWarns_Test,
+    "Ck.Snapshot.V3.DynamicFragment.UnresolvedHandleBackstopWarns",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool
+    FCk_Snapshot_V3_DynamicFragment_UnresolvedHandleBackstopWarns_Test::
+    RunTest(
+        const FString& /*InParameters*/)
+{
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& CkRegistry = EcsWorld.Get_Registry();
+
+    const auto* Handler = FCk_PersistenceHandlerRegistry::Find(FCk_SaveData_DynamicFragments::StaticStruct());
+    if (NOT TestNotNull(TEXT("G2 dynamic-fragments handler is registered"), Handler))
+    { return false; }
+
+    // Occurrences 0 means "at least one, however many" -- and it is the ASSERTION as much as the suppression:
+    // HasMetExpectedErrors() below is false unless each pattern actually arrived. Only Warning-or-worse enters
+    // the expected-error machinery at all, so a silent regression to Verbose reds this test rather than passing
+    // it quietly, which a plain suppression could not do.
+    AddExpectedError(TEXT("keeping the construction-fresh handle"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
+    AddExpectedError(TEXT("skipping the unresolved-handle backstop"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
+
+    // The child a replayed construction writes fresh. Its saved counterpart cannot resolve, which is the shape the
+    // backstop exists for: an unlabeled construct-spawned child is never persisted, so its saved id is a tombstone.
+    auto FreshChild = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(CkRegistry);
+    {
+        auto Live = FCk_Test_DynFrag_WithHandle{};
+        Live.Marker       = 1;
+        Live.TargetHandle = FreshChild;
+        Live.TargetArray  = {FreshChild};
+        UCk_Utils_DynamicFragment_UE::Add_Fragment(
+            Owner, FInstancedStruct::Make(Live), ECk_Replication::DoesNotReplicate);
+    }
+
+    const auto MakePayload = [](const FCk_Test_DynFrag_WithHandle& InSaved) -> FInstancedStruct
+    {
+        auto SaveData = FCk_SaveData_DynamicFragments{};
+        SaveData.Set_Fragments({FInstancedStruct::Make(InSaved)});
+        return FInstancedStruct::Make(SaveData);
+    };
+
+    // Matching layouts, so the backstop runs: every saved handle arrives invalid and keeps the fresh value instead.
+    {
+        auto Saved = FCk_Test_DynFrag_WithHandle{};
+        Saved.Marker      = 99;
+        Saved.TargetArray = {FCk_Handle{}};
+
+        auto OwnerRef = Owner;
+        const auto ApplyResult = Handler->HydrationApply(OwnerRef, MakePayload(Saved), {});
+        TestEqual(TEXT("HydrationApply returned Applied"),
+            static_cast<int32>(ApplyResult), static_cast<int32>(ECk_Persistence_ApplyResult::Applied));
+
+        const auto& Hydrated = UCk_Utils_DynamicFragment_UE::Get_Fragment_TypeUnsafe(
+            Owner, FCk_Test_DynFrag_WithHandle::StaticStruct()).Get<FCk_Test_DynFrag_WithHandle>();
+
+        TestEqual(TEXT("the durable field still hydrated from the save"), Hydrated.Marker, 99);
+        TestTrue(TEXT("the kept handle is live, not the tombstone the save carried"),
+            ck::IsValid(Hydrated.TargetHandle));
+
+        TestEqual(TEXT("the construction-fresh handle was kept where the saved one did not resolve"),
+            static_cast<int64>(Hydrated.TargetHandle.Get_Entity().Get_ID()),
+            static_cast<int64>(FreshChild.Get_Entity().Get_ID()));
+    }
+
+    // A saved array of a different length shifts every later slot, so positional correspondence is gone and the
+    // backstop stands down -- the branch that leaves a dead handle in place, which is the louder of the two.
+    {
+        auto Saved = FCk_Test_DynFrag_WithHandle{};
+        Saved.Marker      = 7;
+        Saved.TargetArray = {FCk_Handle{}, FCk_Handle{}};
+
+        auto OwnerRef = Owner;
+        Handler->HydrationApply(OwnerRef, MakePayload(Saved), {});
+    }
+
+    // Both branches of the backstop reported, at a verbosity a reader is actually shown. A firing is a fragment
+    // whose posture nobody declared, so silence here is the defect this promotion exists to remove.
+    TestTrue(TEXT("both backstop diagnostics were emitted at Warning-or-worse"), HasMetExpectedErrors());
 
     return true;
 }
