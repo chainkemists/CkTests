@@ -64,9 +64,30 @@ public:
         FCk_Handle& InHandle,
         const FInstancedStruct& InSpawnParams) -> ECk_EntityScript_ConstructionFlow override;
 
+    // Binds Promise_OnHydrated before the load could possibly have lifted, so the escape has a waiting consumer
+    // to strand. Tenet 10: a terminal outcome has to reach somebody, and "the payload never applied" is still a
+    // terminal outcome.
+    auto
+    BeginPlay() -> void override;
+
 protected:
     auto
     Get_IsSnapshotRespawnable() const -> bool override;
+
+private:
+    UFUNCTION()
+    void
+    OnHydrated(
+        FCk_Handle InHandle);
 };
+
+// --------------------------------------------------------------------------------------------------------------------
+
+namespace ck_autotest_snapshot_quarantine
+{
+    // How many times the probe's promise was delivered. Process-wide: the bind is made in the pre-save world and
+    // the delivery happens in the post-load one, so nothing entity-scoped survives to carry it.
+    CKTESTS_API auto Get_OnHydratedFireCount() -> int32&;
+}
 
 // --------------------------------------------------------------------------------------------------------------------
