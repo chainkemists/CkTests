@@ -6,7 +6,10 @@
 #include "CkEcs/Scheduler/CkProcessorRegistration.h"
 #include "CkEcs/Snapshot/CkSnapshot_Posture.h"
 
+#include "CkEcsExt/Transform/CkTransform_Utils.h"
+
 #include "CkMinimap/CkFogOfWar_Utils.h"
+#include "CkPhysics/Acceleration/CkAcceleration_Utils.h"
 #include "CkPhysics/Velocity/CkVelocity_Utils.h"
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -459,6 +462,48 @@ auto
 
 auto
     UCk_AutoTest_Snapshot_PhysicsFogProbe_EntityScript_UE::
+    Get_IsSnapshotRespawnable() const
+    -> bool
+{
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+UCk_AutoTest_Snapshot_PhysicsLocalProbe_EntityScript_UE::
+    UCk_AutoTest_Snapshot_PhysicsLocalProbe_EntityScript_UE()
+{
+    _Replication = ECk_Replication::DoesNotReplicate;
+    _InstancingPolicy = ECk_EntityScript_InstancingPolicy::InstancedPerEntity;
+}
+
+auto
+    UCk_AutoTest_Snapshot_PhysicsLocalProbe_EntityScript_UE::
+    Construct(
+        FCk_Handle& InHandle,
+        const FInstancedStruct&)
+    -> ECk_EntityScript_ConstructionFlow
+{
+    using namespace ck_autotest_snapshot_ordering;
+
+    // The Transform comes first: both features resolve their rotation from it, and adding it here (rather than
+    // leaving it to a later pass) is what makes the conversion Setup performs deterministic.
+    UCk_Utils_Transform_UE::Add(InHandle,
+        FTransform{FRotator{0.0, LocalProbeYaw, 0.0}}, ECk_Replication::DoesNotReplicate);
+
+    UCk_Utils_Velocity_UE::Add(InHandle,
+        FCk_Fragment_Velocity_ParamsData{ECk_LocalWorld::Local, LocalProbeStartingVelocity},
+        ECk_Replication::DoesNotReplicate);
+
+    UCk_Utils_Acceleration_UE::Add(InHandle,
+        FCk_Fragment_Acceleration_ParamsData{ECk_LocalWorld::Local, LocalProbeStartingAcceleration},
+        ECk_Replication::DoesNotReplicate);
+
+    return ECk_EntityScript_ConstructionFlow::Finished;
+}
+
+auto
+    UCk_AutoTest_Snapshot_PhysicsLocalProbe_EntityScript_UE::
     Get_IsSnapshotRespawnable() const
     -> bool
 {
