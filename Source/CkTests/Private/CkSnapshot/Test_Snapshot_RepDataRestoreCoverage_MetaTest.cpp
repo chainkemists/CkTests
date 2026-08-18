@@ -23,6 +23,7 @@
 #include "CkCore/Macros/CkMacros.h"
 
 #include "CkEcs/Persistence/CkPersistenceHandlerRegistry.h"
+#include "CkEcs/Snapshot/CkSnapshot_Posture.h"
 
 #include "Misc/AutomationTest.h"
 
@@ -171,6 +172,28 @@ bool
     AddInfo(FString::Printf(
         TEXT("RepData restore-coverage: discovered=[%d] covered=[%d] deferred=[%d] saveonly=[%d]"),
         Discovered.Num(), CoveredCount, DeferredCount, SaveOnlyCount));
+
+    // T-C1-7 — every registration's DECLARED posture must agree with what its lambda set actually does. The two
+    // are independent statements about the same registration: the declaration is what an author claims, the lambda
+    // set is what the runtime will do, and a reader is entitled to trust either one. The named registration shapes
+    // enforce this at compile/registration time; asserting it here is what catches a registration that went in
+    // through the raw primitives, which take a plain aggregate and cannot be compile-enforced.
+    for (const auto* Registered : FCk_PersistenceHandlerRegistry::Get_RegisteredTypes())
+    {
+        const auto* Handler = FCk_PersistenceHandlerRegistry::Find(Registered);
+        if (Handler == nullptr)
+        { continue; }
+
+        const auto ParticipatesInSave = static_cast<bool>(Handler->Produce) && static_cast<bool>(Handler->HydrationApply);
+        const auto Expected = ParticipatesInSave ? ECk_Snapshot_Posture::Durable : ECk_Snapshot_Posture::Session;
+
+        TestEqual(
+            FString::Printf(TEXT("registered payload [%s] declares the posture its lambda set implies (Produce=[%d] ")
+                TEXT("HydrationApply=[%d] NetApply=[%d])"),
+                *Registered->GetName(), static_cast<bool>(Handler->Produce) ? 1 : 0,
+                static_cast<bool>(Handler->HydrationApply) ? 1 : 0, static_cast<bool>(Handler->NetApply) ? 1 : 0),
+            static_cast<int32>(Handler->Posture), static_cast<int32>(Expected));
+    }
 
     // Sanity: we expect a non-trivial number of replicated containers to exist; 0 means the match/enumeration broke.
     TestTrue(TEXT("Discovered at least the 3 covered attribute containers"), Discovered.Num() >= 3);
