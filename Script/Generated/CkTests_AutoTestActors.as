@@ -7085,6 +7085,32 @@ class ACk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff_Actor : ACk_Aut
     }
 }
 
+class ACk_AutoTest_RenderTarget_SoftBorderSixTexturesOneBatch_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_RenderTarget_SoftBorderSixTexturesOneBatch");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_RenderTarget_SoftTextureDrawAppliesAndSurvivesGC_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_RenderTarget_SoftTextureDrawAppliesAndSurvivesGC");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Resolver_Cascade_ConcurrentBundlesStayIndependent_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 8.0f;
