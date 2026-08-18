@@ -441,3 +441,13 @@ struct FCk_Test_Posture_LegacyMarkerField
     UPROPERTY(SaveGame)
     int32 RuntimeMarker = 0;
 };
+
+// A field-less fragment declaring NO posture — the tag derivation. It can only be RESOLVED, never added to an
+// entity: a NATIVE zero-reflection struct fails the dynamic-fragment schema gate closed
+// (ck::Analyze_UntracedStructSafety's UnprovenOpaque branch), so the only tags that ever reach dynamic storage
+// are script-declared ones. The capture half of the tag test therefore drives a script tag instead.
+USTRUCT()
+struct FCk_Test_Posture_BareTag
+{
+    GENERATED_BODY()
+};
