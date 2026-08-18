@@ -72,6 +72,7 @@ public class CkTests : CkModuleRules
             // gate would silently skip forever.
             "CkParticles",
             "CkPathNetwork",
+            "CkMinimap",
             "CkPerception",
             "CkPixelArtRenderer",
             "CkPmg",
