@@ -1,12 +1,17 @@
 // Meta-test for the FCk_Snapshot_LoadReport accounting invariant.
 //
 // A v3 load report is only trustworthy if it accounts for 100% of what the save contained: every saved entity is
-// EITHER restored, deliberately skipped, or orphaned; every saved payload is EITHER enqueued, attributed to a
-// skipped/orphaned/unresolved owner, or dropped at deserialize. Get_IsAccountingClosed is the assertable form of
-// that, and the BB gates assert it on real loads.
+// EITHER restored, deliberately skipped, or orphaned; every saved payload ended in exactly one TERMINAL outcome —
+// applied, rejected, dropped for want of a handler or at the apply timeout, destroyed with its entity, still
+// unapplied when the load finished, or never enqueued at all (skipped/orphaned/unresolved owner, or a failed
+// deserialize). Get_IsAccountingClosed is the assertable form of that, and the BB gates assert it on real loads.
+//
+// Enqueued is deliberately NOT a term: it says a row reached the apply queue, not what became of it, so a report
+// that balanced on it balanced just as happily on loads that dropped everything they enqueued.
 //
 // This test pins the arithmetic itself: pure struct math, no world, no load. It exists so a future field addition
-// that forgets to join a sum is caught here rather than by a silently-lenient gate.
+// that forgets to join a sum is caught here rather than by a silently-lenient gate. Its real-load sibling is
+// Ck.Snapshot.Meta.LoadReportClosesOnApply.
 
 #include "CkCore/Macros/CkMacros.h"
 
@@ -29,7 +34,16 @@ namespace ck_loadreport_sumclosure_test
         Report.Set_EntitiesOrphaned(1);
 
         Report.Set_PayloadsTotal(20);
+
+        // 12 rows reached the queue and each ended somewhere; 8 never got there.
         Report.Set_PayloadsEnqueued(12);
+        Report.Set_PayloadsApplied(6);
+        Report.Set_PayloadsRejected(1);
+        Report.Set_PayloadsDroppedNoHandler(1);
+        Report.Set_PayloadsDroppedTimeout(1);
+        Report.Set_PayloadsDestroyedWithEntries(2);
+        Report.Set_PayloadsUnappliedAtFinish(1);
+
         Report.Set_PayloadsOnSkippedEntities(4);
         Report.Set_PayloadsOnOrphanedEntities(2);
         Report.Set_PayloadsOnUnresolvedOwner(1);
@@ -81,9 +95,48 @@ bool
     // One case per payload bucket: every bucket must participate in the sum, so dropping a unit from any of them
     // must break closure. That is exactly the failure a future field addition would introduce.
     {
+        // The polarity that flipped: enqueued is a diagnostic, so moving it must NOT disturb the closure. A report
+        // whose closure still keys on it would fail here.
         auto Report = Make_ClosedReport();
         Report.Set_PayloadsEnqueued(Report.Get_PayloadsEnqueued() - 1);
-        TestFalse(TEXT("PayloadsEnqueued participates in the sum"), Report.Get_IsPayloadAccountingClosed());
+        TestTrue(TEXT("PayloadsEnqueued is a diagnostic, not a closure term"),
+            Report.Get_IsPayloadAccountingClosed());
+    }
+
+    {
+        auto Report = Make_ClosedReport();
+        Report.Set_PayloadsApplied(Report.Get_PayloadsApplied() - 1);
+        TestFalse(TEXT("PayloadsApplied participates in the sum"), Report.Get_IsPayloadAccountingClosed());
+    }
+
+    {
+        auto Report = Make_ClosedReport();
+        Report.Set_PayloadsRejected(Report.Get_PayloadsRejected() - 1);
+        TestFalse(TEXT("PayloadsRejected participates in the sum"), Report.Get_IsPayloadAccountingClosed());
+    }
+
+    {
+        auto Report = Make_ClosedReport();
+        Report.Set_PayloadsDroppedNoHandler(Report.Get_PayloadsDroppedNoHandler() - 1);
+        TestFalse(TEXT("PayloadsDroppedNoHandler participates in the sum"), Report.Get_IsPayloadAccountingClosed());
+    }
+
+    {
+        auto Report = Make_ClosedReport();
+        Report.Set_PayloadsDroppedTimeout(Report.Get_PayloadsDroppedTimeout() - 1);
+        TestFalse(TEXT("PayloadsDroppedTimeout participates in the sum"), Report.Get_IsPayloadAccountingClosed());
+    }
+
+    {
+        auto Report = Make_ClosedReport();
+        Report.Set_PayloadsDestroyedWithEntries(Report.Get_PayloadsDestroyedWithEntries() - 1);
+        TestFalse(TEXT("PayloadsDestroyedWithEntries participates in the sum"), Report.Get_IsPayloadAccountingClosed());
+    }
+
+    {
+        auto Report = Make_ClosedReport();
+        Report.Set_PayloadsUnappliedAtFinish(Report.Get_PayloadsUnappliedAtFinish() - 1);
+        TestFalse(TEXT("PayloadsUnappliedAtFinish participates in the sum"), Report.Get_IsPayloadAccountingClosed());
     }
 
     {
