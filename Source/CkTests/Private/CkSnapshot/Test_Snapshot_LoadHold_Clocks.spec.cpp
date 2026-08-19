@@ -87,6 +87,14 @@ namespace ck_test_loadhold_clocks
         CK_SIGNAL_BIND(ck::UUtils_Signal_Snapshot_OnPreLoad, Source, Delegate,
             ECk_Signal_BindingPolicy::IgnorePayloadInFlight,
             ECk_Signal_PostFireBehavior::DoNothing);
+
+        // The at-SAVE reading. It is the only "before" a load can be measured against: every point inside the load
+        // is one where some feature's restore has landed and another's has not.
+        auto SaveDelegate = FCk_Delegate_Snapshot_OnPreSave{};
+        SaveDelegate.BindUFunction(InWitness, TEXT("OnPreSave"));
+        CK_SIGNAL_BIND(ck::UUtils_Signal_Snapshot_OnPreSave, Source, SaveDelegate,
+            ECk_Signal_BindingPolicy::IgnorePayloadInFlight,
+            ECk_Signal_PostFireBehavior::DoNothing);
     }
 
     auto Spawn_ClockProbe(UWorld* InServer) -> void
@@ -217,28 +225,30 @@ bool FCk_Snapshot_LoadHold_NoTimerAdvanceDuringHold::RunTest(const FString& /*Pa
 
         // Two positive controls, because the whole assertion is a subtraction: both ends of it have to be real
         // readings taken from a timer that was really there.
-        auto AllGood = TestEqual(TEXT("the probe's Promise_OnHydrated fired exactly once — the restored value is final"),
-            Observations.OnHydratedFireCount, 1);
+        auto AllGood = TestEqual(TEXT("the promise fired exactly once"), Observations.FireCount, 1);
 
-        AllGood &= TestEqual(TEXT("the promise fired exactly once"), Observations.FireCount, 1);
-
-        AllGood &= TestTrue(TEXT("the restored timer resolved at the hydration edge"),
-            Observations.AtHydrated.TimerResolved);
+        AllGood &= TestTrue(TEXT("the timer resolved at the SAVE edge"),
+            Observations.AtSave.TimerResolved);
         AllGood &= TestTrue(TEXT("...and still resolved at the ready-to-resume edge"),
             Observations.AtLoadComplete.TimerResolved);
 
-        if (NOT Observations.AtHydrated.TimerResolved || NOT Observations.AtLoadComplete.TimerResolved)
+        if (NOT Observations.AtSave.TimerResolved || NOT Observations.AtLoadComplete.TimerResolved)
         { return false; }
 
-        // The window between "this timer's value is final" and "the world is yours again" is precisely the part
-        // of the hold a restored feature is alive through. A Running timer that ticks there comes back to the
-        // player already ahead of the state it was saved in.
+        // SAVE to ready-to-resume, and deliberately NOT hydration to ready-to-resume. "Applied" does not mean
+        // "written": CkTimer's HydrationApply issues DEFERRED requests and returns Applied immediately
+        // (CkTimer_Fragment.cpp:52-79), and the chrono is actually written later by
+        // FProcessor_Timer_HandleRequests — a non-kernel processor that only runs once the scope widens in
+        // Draining/Converging. So the hydration edge reads the CONSTRUCT DEFAULT for any feature built to the
+        // G1-D38 shape, and a delta measured from there reports the restore ARRIVING as though it were time
+        // passing. The save is the only "before" that means what it says.
         const auto AdvancedSeconds =
-            Observations.AtLoadComplete.TimerElapsedSeconds - Observations.AtHydrated.TimerElapsedSeconds;
+            Observations.AtLoadComplete.TimerElapsedSeconds - Observations.AtSave.TimerElapsedSeconds;
 
         AllGood &= TestTrue(
-            FString::Printf(TEXT("a Running restored timer does not advance between hydration and ready-to-resume "
-                                 "(advanced %.6fs, bound %.4fs)"), AdvancedSeconds, FrozenGameSecondsTolerance),
+            FString::Printf(TEXT("a Running restored timer comes back exactly where it was SAVED — no advance "
+                                 "across the load (advanced %.6fs, bound %.4fs)"),
+                AdvancedSeconds, FrozenGameSecondsTolerance),
             FMath::Abs(AdvancedSeconds) <= FrozenGameSecondsTolerance);
 
         return AllGood;

@@ -136,6 +136,10 @@ namespace ck_autotest_snapshot_loadhold
 
     struct CKTESTS_API FLoadHoldObservations
     {
+        // Taken from inside OnPreSave. This is the reading the whole timer question turns on: a load promises the
+        // world comes back exactly as it was SAVED, so "did it advance" is measured from the save, never from any
+        // point inside the load.
+        FLoadHoldSample AtSave;
         // Taken from inside OnPreLoad — the last moment the pre-travel world exists.
         FLoadHoldSample PreLoad;
         // Taken at the global quarantine lift, i.e. the moment the probe's restored values are final. Everything
@@ -301,6 +305,11 @@ class CKTESTS_API UCk_AutoTest_Snapshot_LoadHoldWitness_UE final : public UObjec
     GENERATED_BODY()
 
 public:
+    UFUNCTION()
+    void
+    OnPreSave(
+        FCk_Handle InHandle);
+
     UFUNCTION()
     void
     OnPreLoad(
