@@ -12,7 +12,11 @@
 //     "never rides a replicated container" (the Register_SaveOnly contract), so there are no client-visible
 //     replicated values to restore — restore-replication is N/A by construction, and the registration itself
 //     IS the documented decision. The exemption self-revokes: if the registration ever gains net participation
-//     (e.g. FogOfWar's staged co-op upgrade), the probe stops matching and this ratchet re-arms for that type.
+//     (e.g. FogOfWar's staged co-op upgrade), the probe stops matching and this ratchet re-arms for that type, or
+//   - registered NET-ONLY (Register_NetOnly): the symmetric case, and it needs its own arm rather than falling
+//     through to the save-only one. Such a type never ENTERS a snapshot at all — nothing is captured, so nothing
+//     can fail to reach a client afterwards. The exemption self-revokes the same way: the moment the registration
+//     gains a Produce/HydrationApply pair it stops matching and the ratchet re-arms.
 //
 // A NEW FCk_RepData_* type that matches none of these fails this test — forcing an explicit decision
 // (cover it, or document why it is exempt) instead of silently shipping a feature whose replicated
@@ -105,6 +109,7 @@ bool
     auto CoveredCount  = 0;
     auto DeferredCount = 0;
     auto SaveOnlyCount = 0;
+    auto NetOnlyCount  = 0;
 
     for (TObjectIterator<UScriptStruct> It; It; ++It)
     {
@@ -149,13 +154,33 @@ bool
             continue;
         }
 
+        // The symmetric arm. Restore-replication is a question about values a load PUT BACK, and a net-only type
+        // never enters a snapshot in the first place — nothing is captured, so nothing can fail to reach a client
+        // afterwards. Registry-verified for the same reason as above: the registration IS the decision, and the
+        // exemption self-revokes the instant the type gains save participation.
+        const auto IsRegisteredNetOnly = Handler != nullptr &&
+            static_cast<bool>(Handler->NetApply) &&
+            NOT static_cast<bool>(Handler->Produce) &&
+            NOT static_cast<bool>(Handler->HydrationApply);
+
+        if (IsRegisteredNetOnly)
+        {
+            ++NetOnlyCount;
+            AddInfo(FString::Printf(
+                TEXT("NET-ONLY RepData [%s]: never enters a snapshot (registry-verified) — ")
+                TEXT("restore-replication N/A; ratchet re-arms if it gains save participation"),
+                *Suffix));
+            continue;
+        }
+
         // The ratchet: a new replicated container with NO coverage decision.
         AddError(FString::Printf(
             TEXT("Replicated container [%s] (reflected [%s]) has NO restore-replication coverage decision. ")
             TEXT("After a server snapshot load + seamless travel its replicated VALUES will silently fail to reach ")
             TEXT("clients. Either add a ReplicateOnRestore handler (then add its suffix to kCovered in this test), ")
             TEXT("or document why it is exempt (add it to kDeferred with a reason). If the type genuinely never ")
-            TEXT("replicates, register it via Register_SaveOnly — this test detects that from the registry. See ")
+            TEXT("replicates, register it via Register_SaveOnly; if it genuinely never enters a snapshot, register ")
+            TEXT("it via Register_NetOnly — this test detects either from the registry. See ")
             TEXT("HARDENING_RepDataRestoreCoverage.md."),
             *Suffix, *Name));
     }
@@ -170,8 +195,8 @@ bool
     }
 
     AddInfo(FString::Printf(
-        TEXT("RepData restore-coverage: discovered=[%d] covered=[%d] deferred=[%d] saveonly=[%d]"),
-        Discovered.Num(), CoveredCount, DeferredCount, SaveOnlyCount));
+        TEXT("RepData restore-coverage: discovered=[%d] covered=[%d] deferred=[%d] saveonly=[%d] netonly=[%d]"),
+        Discovered.Num(), CoveredCount, DeferredCount, SaveOnlyCount, NetOnlyCount));
 
     // T-C1-7 — every registration's DECLARED posture must agree with what its lambda set actually does. The two
     // are independent statements about the same registration: the declaration is what an author claims, the lambda
