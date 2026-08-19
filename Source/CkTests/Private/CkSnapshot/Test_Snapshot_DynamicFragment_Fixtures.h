@@ -166,11 +166,12 @@ struct FCk_Test_DynFrag_SnapshotTransient : public FCk_DynamicFragment_SnapshotT
     int32 RequestCount = 0;
 };
 
-// A fragment mixing durable and CPF_Transient fields — the FBb_Fragment_Shelf_State shape. Transient fields hold
-// LIVE-SESSION values (freshly constructed child handles, in-flight bookkeeping) that the persistent archive never
-// writes; hydration must PRESERVE the destination's live values instead of stomping them with deserialized defaults.
+// A fragment mixing durable and CPF_Transient fields, DECLARED Durable — the un-split FBb_Fragment_Shelf_State
+// shape. The Transient fields hold live-session values (a freshly constructed child handle, in-flight
+// bookkeeping) the persistent archive never writes, and there is no longer any guard that rescues them: the
+// resolver reds the declaration and demands the split below, and hydration assigns the whole saved payload.
 USTRUCT()
-struct FCk_Test_DynFrag_MixedTransient
+struct FCk_Test_DynFrag_MixedTransient : public FCk_Snapshot_Durable
 {
     GENERATED_BODY()
 
@@ -184,14 +185,39 @@ struct FCk_Test_DynFrag_MixedTransient
     FCk_Handle RuntimeChild;
 };
 
+// The SPLIT of the fixture above — the shape BusterBlock's Shelf/ClawMachine/EmployeeManager fragments took. The
+// durable half is captured and assigned whole; the session half is skipped on both sides, which is what makes the
+// live child handle survive. The declaration is the preservation mechanism.
+USTRUCT()
+struct FCk_Test_DynFrag_SplitDurable : public FCk_Snapshot_Durable
+{
+    GENERATED_BODY()
+
+    UPROPERTY(SaveGame)
+    int32 DurableMarker = 0;
+};
+
+USTRUCT()
+struct FCk_Test_DynFrag_SplitSession : public FCk_Snapshot_Session
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    int32 RuntimeMarker = 0;
+
+    UPROPERTY()
+    FCk_Handle RuntimeChild;
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCk_Test_DynFrag_OnSignal, int32, InValue);
 
-// The shape of every AngelScript "<Feature>_Signals" fragment: durable data alongside a multicast delegate whose
-// subscribers bound during the REBUILT world's construction. The saved delegate is stale or empty by construction
-// (it named objects belonging to the torn-down world), so hydration must overwrite the durable field and PRESERVE
-// the live subscriber list. Stomping it leaves the feature holding correct state that never notifies again.
+// The shape of every AngelScript "<Feature>_Signals" fragment, DECLARED Durable: durable data alongside a
+// multicast delegate whose subscribers bound during the REBUILT world's construction. The saved delegate is stale
+// or empty by construction (it named objects belonging to the torn-down world), and hydration now assigns it
+// wholesale — the feature keeps correct state and never notifies again. The resolver reds the declaration for
+// exactly that reason; a delegate carrier is Session, or is split so the delegate lives in a Session half.
 USTRUCT()
-struct FCk_Test_DynFrag_WithDelegate
+struct FCk_Test_DynFrag_WithDelegate : public FCk_Snapshot_Durable
 {
     GENERATED_BODY()
 
