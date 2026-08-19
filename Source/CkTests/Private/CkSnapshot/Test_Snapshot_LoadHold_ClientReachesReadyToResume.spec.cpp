@@ -189,7 +189,9 @@ bool FCk_Snapshot_LoadHold_ClientReachesReadyToResume::RunTest(const FString& /*
         // back either way, and the fact is present either way. Without this the test would report the bounded
         // escape as a working client contract, which is the one outcome it exists to rule out.
         // Read off the CLIENT's own subsystem: each PIE instance has its own GameInstance, and the client hold
-        // lives on the one that armed it.
+        // lives on the one that armed it. Note the client never ACQUIRES a relay channel of its own: the pool is
+        // per side, so the entity it would acquire is not the one the server's fact replicates onto — it
+        // recognises the fact wherever it lands instead, which is what makes this assertion meaningful.
         auto* ClientSubsystem = ck::auto_test::snapshot::Get_SnapshotSubsystem(Client);
         if (NOT TestTrue(TEXT("the client has its own snapshot subsystem"), ClientSubsystem != nullptr))
         { return false; }
