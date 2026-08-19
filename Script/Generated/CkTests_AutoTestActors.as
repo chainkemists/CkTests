@@ -1830,6 +1830,45 @@ class ACk_AutoTest_Crowd_Separation_SpatialOrbitSearch_Actor : ACk_AutoTestRunne
     }
 }
 
+class ACk_AutoTest_Crowd_Stop_CancelsQueuedNavQuery_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_Stop_CancelsQueuedNavQuery");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Crowd_Stop_ReleasesSidewalkRoute_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_Stop_ReleasesSidewalkRoute");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Crowd_Stop_TerminatesPendingPathEpisode_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_Stop_TerminatesPendingPathEpisode");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Cue_AfterOneFrame_DestroyedQuickly_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
