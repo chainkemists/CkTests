@@ -6,8 +6,8 @@
 // Before postures existed, its owner's fragment WAS captured, and hydration wrote the saved handle over the one
 // construction had just built — remapping it to a tombstone, because the child it named was never persisted.
 // The feature came back structurally present and functionally dead, which is the ChangeablePoster / presented-
-// hand / dead-HUD class in one sentence. Restore_UnresolvedHandles is the backstop that has been catching this,
-// and a backstop is not a contract.
+// hand / dead-HUD class in one sentence. A positional backstop used to catch it; it was deleted with the last
+// undeclared fragment, because a backstop is not a contract.
 //
 // Declaring the fragment Session removes the whole exchange: capture skips it, hydration skips it, and the
 // handle Construct wrote is simply left alone. The assertions are therefore about what the REBUILD produced —
