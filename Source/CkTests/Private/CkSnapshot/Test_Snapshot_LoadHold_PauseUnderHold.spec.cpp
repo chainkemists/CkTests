@@ -35,6 +35,7 @@
 
 #include "Containers/Ticker.h"
 #include "Engine/World.h"
+#include "GameFramework/WorldSettings.h" // GetPauserPlayerState — the loader's own pause predicate
 #include "HAL/IConsoleManager.h" // net.AllowPIESeamlessTravel
 #include "Kismet/GameplayStatics.h"
 #include "StructUtils/InstancedStruct.h"
@@ -53,7 +54,12 @@ namespace ck_test_loadhold_pause
     };
 
     // Long enough that a healthy observation (the loader's very next ticker callback) always wins, short enough
-    // that a broken one fails as itself rather than as the harness's 60 s reload timeout.
+    // that a broken one fails as itself rather than as the harness's 60 s reload timeout. It bounds the PAUSE,
+    // not the arm: the driver is armed from Mutate, which the harness runs a 60-tick settle and a whole-world
+    // save before the load even latches, and on a lane running three or four concurrent editors that is more
+    // than ten seconds of wall clock. Started from the arm, the deadline fired before the world was ever paused
+    // and the test reported "an unpausable world" — pointing the reader at the pause machinery instead of at its
+    // own clock.
     constexpr auto PauseCeilingSeconds = 10.0;
 
     // Pauses the world the instant a load latches, and lets go the instant the loader says it noticed. Driven
@@ -65,47 +71,65 @@ namespace ck_test_loadhold_pause
         auto WeakSubsystem = TWeakObjectPtr<UCk_Snapshot_Subsystem_UE>{
             ck::auto_test::snapshot::Get_SnapshotSubsystem(InServer)};
 
-        auto ArmedAtSeconds = FPlatformTime::Seconds();
         auto Paused = MakeShared<bool>(false);
+        auto PausedAtSeconds = MakeShared<double>(0.0);
 
         FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
-        [WeakWorld, WeakSubsystem, InRun, Paused, ArmedAtSeconds](float) -> bool
+        [WeakWorld, WeakSubsystem, InRun, Paused, PausedAtSeconds](float) -> bool
         {
             auto* World = WeakWorld.Get();
             auto* Subsystem = WeakSubsystem.Get();
 
-            if (World == nullptr || Subsystem == nullptr)
-            { return false; }
-
-            const auto Release = [&]() -> void
+            const auto Release = [](UWorld* InWorld) -> void
             {
-                UGameplayStatics::SetGamePaused(World, false);
+                if (InWorld != nullptr)
+                { UGameplayStatics::SetGamePaused(InWorld, false); }
             };
 
-            if (FPlatformTime::Seconds() - ArmedAtSeconds > PauseCeilingSeconds)
+            // The world this driver paused is dying, so the pause is dying with it — but say so by RELEASING
+            // rather than by relying on that, so "unpaused on every exit" is a property of the code and not of
+            // the travel's timing.
+            if (World == nullptr || Subsystem == nullptr)
             {
-                InRun->ReleasedByDeadline = *Paused;
-                Release();
+                Release(World);
                 return false;
             }
 
             if (NOT *Paused)
             {
+                // Unbounded on purpose, and it still self-terminates: the harness's own 60 s reload timeout ends
+                // the round trip, EndPIE destroys this world, and the weak-world branch above unregisters the
+                // ticker. Bounding it HERE is what made the deadline fire before the world was ever paused.
                 if (NOT Subsystem->Get_IsLoadInProgress())
                 { return true; }
 
                 UGameplayStatics::SetGamePaused(World, true);
                 *Paused = true;
-                InRun->PauseTook = World->IsPaused();
+                *PausedAtSeconds = FPlatformTime::Seconds();
+
+                // The loader's own predicate, so the test and the code under test cannot disagree about what a
+                // pause is: IsPaused() is also true for three things that are not a game pause.
+                const auto* Settings = World->GetWorldSettings();
+                InRun->PauseTook = World->IsPaused()
+                    && Settings != nullptr && Settings->GetPauserPlayerState() != nullptr;
                 return true;
             }
 
-            if (NOT Subsystem->TestOnly_Get_PauseObservedUnderHold())
-            { return true; }
+            if (Subsystem->TestOnly_Get_PauseObservedUnderHold())
+            {
+                InRun->ObservationLanded = true;
+                Release(World);
+                return false;
+            }
 
-            InRun->ObservationLanded = true;
-            Release();
-            return false;
+            if (FPlatformTime::Seconds() - *PausedAtSeconds > PauseCeilingSeconds)
+            {
+                InRun->ReleasedByDeadline = true;
+                Release(World);
+                return false;
+            }
+
+            return true;
         }));
     }
 }
