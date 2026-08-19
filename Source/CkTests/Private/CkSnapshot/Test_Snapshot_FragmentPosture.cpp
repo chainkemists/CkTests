@@ -78,8 +78,8 @@ bool
     Expect_Posture(*this, FCk_Test_Posture_DurableWithDelegate::StaticStruct(),
         ECk_Snapshot_Posture::Undeclared, TEXT("Durable + a top-level delegate"));
 
-    // The recursive walk is the point: a top-level-only check — which is exactly what the live hydration guard
-    // Get_IsLiveSessionField documents itself as being — would pass this one and lose the delegate on load.
+    // The recursive walk is the point: a top-level-only check — which is what the deleted hydration guard was —
+    // would pass this one and lose the delegate on load.
     Expect_Posture(*this, FCk_Test_Posture_DurableWithNestedDelegate::StaticStruct(),
         ECk_Snapshot_Posture::Undeclared, TEXT("Durable + a delegate inside an array of carriers"));
 
@@ -199,10 +199,10 @@ bool
 
     TestTrue(TEXT("...and the resolution is flagged as needing a split"), Resolution.RequiresSplit);
 
-    // Transient fields on a fragment that declares NOTHING keep working exactly as before: field-level opt-out is
-    // retired as an author mechanism, not deleted underneath the 56 BB fragments that still rely on it.
-    Expect_Posture(*this, FCk_Test_DynFrag_MixedTransient::StaticStruct(),
-        ECk_Snapshot_Posture::Undeclared, TEXT("an undeclared fragment mixing durable and Transient fields"));
+    // Rule 5 is still reachable and still resolves Undeclared rather than guessing: a fragment that declares
+    // nothing and matches no derivation is captured whole, so no data is dropped while the ratchet reds it.
+    Expect_Posture(*this, FCk_Test_DynFrag_WithHandle::StaticStruct(),
+        ECk_Snapshot_Posture::Undeclared, TEXT("a fragment declaring no posture and matching no derivation"));
 
     return true;
 }
