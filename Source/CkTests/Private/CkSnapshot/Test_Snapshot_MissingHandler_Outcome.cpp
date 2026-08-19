@@ -52,13 +52,12 @@ bool
     const auto EnsureCountBefore = UCk_Utils_Ensure_UE::Get_EnsureCount();
 
     auto NoEntity = FCk_Handle{};
-    auto PendingForSeconds = 0.0f;
+    auto PendingSinceRealTime = 0.0;
     const auto Outcome = ck::persistence_apply::ApplyOne(
         NoEntity,
         FInstancedStruct::Make(FCk_Test_DynFrag_PureData{}),
         TOptional<FInstancedStruct>{},
-        PendingForSeconds,
-        FCk_Time{});
+        PendingSinceRealTime);
 
     TestTrue(TEXT("a payload with no load path reports DroppedNoHandler, not DroppedTimeout"),
         Outcome == ck::persistence_apply::EApplyOutcome::DroppedNoHandler);
@@ -66,8 +65,9 @@ bool
     TestEqual(TEXT("...and it ensured exactly once — this outcome is data loss, never silent"),
         UCk_Utils_Ensure_UE::Get_EnsureCount(), EnsureCountBefore + 1);
 
-    // Terminal on the first call: nothing waited, so nothing may accumulate toward the retry timeout either.
-    TestEqual(TEXT("the no-handler drop accumulates no pending time"), PendingForSeconds, 0.0f);
+    // Terminal on the first call: nothing waited, so the wall-clock pending stamp must stay unwritten — a stamped
+    // value would start the DroppedTimeout watchdog for an entry that will never be retried.
+    TestEqual(TEXT("the no-handler drop stamps no pending wall-clock time"), PendingSinceRealTime, 0.0);
 
     return true;
 }
