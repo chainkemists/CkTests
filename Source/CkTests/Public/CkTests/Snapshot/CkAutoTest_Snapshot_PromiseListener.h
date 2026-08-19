@@ -47,6 +47,15 @@ public:
     ECk_SnapshotResult _LastResult = ECk_SnapshotResult::Failed_IO;
     bool _LastHandleWasValid = false;
 
+    // What was true of the load AT THE INSTANT it delivered. All four are unrecoverable a frame later, and each
+    // one is a separate claim the fire point makes: the world is the player's again (ready), the load has let go
+    // of it (not in progress), every payload is accounted for (closed), and the report already carries whatever
+    // convergence it gave up on.
+    bool _ReadyToResumeAtFire = false;
+    bool _LoadInProgressAtFire = false;
+    bool _AccountingClosedAtFire = false;
+    int32 _ConvergenceUnmetAtFire = 0;
+
     // Re-arm behaviour for the one-shot gate.
     bool _ReArmInsideCallback = false;
     int32 _ReArmFireCount = 0;
