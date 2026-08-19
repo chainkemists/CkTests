@@ -289,6 +289,15 @@ namespace ck
     {
         TProcessor::DoTick(InDeltaT);
 
+        // SCOPED to the one test that wants the traffic. A custom DoTick is never empty-view-skipped, so without
+        // this guard the pulse below would keep re-dirtying a marker every frame in EVERY world for the rest of
+        // the process — permanent churn injected into every later test in the shared editor. That is exactly what
+        // it did: it turned Ck.Snapshot.Report.UnappliedPayloadDowngradesResult (which races a wall-clock apply
+        // timeout against a frame cap) from green to red in the full pattern while it still passed in isolation.
+        auto Registry = _TransientEntity.Get_RegistryView();
+        if (NOT Registry.Has_AnyLiveEntityWith<FTag_AutoTest_LoadHold_SteadyWork>())
+        { return; }
+
         // Re-mark the dirty pulse so the scheduler keeps finding this processor pump-eligible, frame after frame,
         // at a CONSTANT amount of work. On the TRANSIENT entity, never on anything the view above iterates: the
         // point is steady traffic, not a mutation of the storage being walked.
@@ -486,6 +495,19 @@ auto
 }
 
 // --------------------------------------------------------------------------------------------------------------------
+
+void
+    UCk_AutoTest_Snapshot_LoadHoldWitness_UE::
+    OnPreSave(
+        FCk_Handle InHandle)
+{
+    auto* World = UCk_Utils_EntityLifetime_UE::Get_WorldForEntity(InHandle);
+    if (ck::Is_NOT_Valid(World))
+    { return; }
+
+    ck_autotest_snapshot_loadhold::Get_Observations().AtSave =
+        ck_autotest_snapshot_loadhold::Take_Sample(World);
+}
 
 void
     UCk_AutoTest_Snapshot_LoadHoldWitness_UE::
