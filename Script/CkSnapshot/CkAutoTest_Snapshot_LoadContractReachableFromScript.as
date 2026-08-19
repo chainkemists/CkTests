@@ -47,11 +47,11 @@ class UCk_AutoTest_Snapshot_LoadContractReachableFromScript : UCk_AutoTest_Base
         auto Self = InHandle;
 
         Assert_False(utils_snapshot::Get_IsRebuildInProgress(Self),
-            "No load is rebuilding this world, so the producer predicate a construction-time seeder asks must "
+            "No load is rebuilding this world, so the producer predicate a construction-time seeder asks must " +
             "answer false — a true here would suppress seeding forever");
 
         Assert_True(utils_snapshot::Get_IsReadyToResume(),
-            "A world no load ever held IS the player's, so the poll form answers true — the never-loaded world "
+            "A world no load ever held IS the player's, so the poll form answers true — the never-loaded world " +
             "is resolved by the contract, not by every consumer special-casing it");
 
         _InsidePromiseCall = true;
@@ -60,10 +60,10 @@ class UCk_AutoTest_Snapshot_LoadContractReachableFromScript : UCk_AutoTest_Base
         _InsidePromiseCall = false;
 
         Assert_Equals_Int(_HydratedFireCount, 1,
-            "Promise_OnHydrated fires exactly once for an entity with nothing pending — a promise that stayed "
+            "Promise_OnHydrated fires exactly once for an entity with nothing pending — a promise that stayed " +
             "silent there would put every consumer back to polling a marker");
         Assert_True(_HydratedFiredSynchronously,
-            "...and fires SYNCHRONOUSLY, from inside the call, because hydration is already as complete as it "
+            "...and fires SYNCHRONOUSLY, from inside the call, because hydration is already as complete as it " +
             "will ever be for this entity");
 
         _InsidePromiseCall = true;
@@ -72,7 +72,7 @@ class UCk_AutoTest_Snapshot_LoadContractReachableFromScript : UCk_AutoTest_Base
         _InsidePromiseCall = false;
 
         Assert_True(PromiseResult == ECk_Snapshot_PromiseResult::NoLoadInProgress,
-            "The call RETURNS what it did, so a caller can branch without asking a second question — there was "
+            "The call RETURNS what it did, so a caller can branch without asking a second question — there was " +
             "no load to wait for");
 
         Assert_Equals_Int(_LoadCompleteFireCount, 1,
@@ -81,8 +81,8 @@ class UCk_AutoTest_Snapshot_LoadContractReachableFromScript : UCk_AutoTest_Base
             "...synchronously, from inside the call");
 
         Assert_False(_DidLoadCompleteAtFire,
-            "Get_DidLoadComplete is reachable from script AND answers FALSE for a NoLoadInProgress report: no "
-            "load ran, so no load completed. It is the predicate a consumer branches on instead of comparing "
+            "Get_DidLoadComplete is reachable from script AND answers FALSE for a NoLoadInProgress report: no " +
+            "load ran, so no load completed. It is the predicate a consumer branches on instead of comparing " +
             "the result to Success");
 
         FinishSuccess();
