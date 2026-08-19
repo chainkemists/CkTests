@@ -27,6 +27,22 @@
 // TParallelProcessor. The fourth surface — the AngelScript script-query join, hand-rolled over the storages
 // rather than built through a view — is fenced at source level by Ck.Snapshot.Meta.NoProcessorBypassesQuarantine
 // instead of observed here.
+//
+// An AngelScript-side observer, mirroring these three from script, is NOT EXPRESSIBLE and the two reasons are
+// structural rather than missing effort:
+//   1. AngelScript cannot ask the question. The quarantine tag is CK_DEFINE_ECS_TAG (CkTag_HydrationQuarantine.h),
+//      so it is a bare struct with no UScriptStruct — there is nothing to pass to a script query's Exclude slot
+//      (which resolves dynamic-fragment storages only) and no reflected predicate to read it with. Without that,
+//      a script observer cannot tell a held visit from a released one, and cannot build the positive control that
+//      keeps the zero honest.
+//   2. An AngelScript autotest cannot CREATE a quarantine. Request_Load travels the world, and every autotest in
+//      the map shares one PIE world; the C++ path here only manages it because EnqueueRoundTrip owns a private
+//      StartPIE...EndPIE chain, which is a latent-command construct an entity script running inside PIE cannot
+//      reach.
+// Closing this would need a reflected quarantine predicate on UCk_Utils_Snapshot_UE plus either an in-place load
+// or a test-only synthetic-quarantine hook — the second of which mutates a kernel invariant for a test's benefit.
+// The cheap alternative, if runtime proof of the join's exclusion is ever wanted, is a C++ observer added here
+// that drives a test-only AS processor and records its visits, reusing the harness that already works.
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace ck
