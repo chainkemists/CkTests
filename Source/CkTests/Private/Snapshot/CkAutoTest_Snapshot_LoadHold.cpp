@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 CK_REGISTER_PROCESSOR(ck::FProcessor_AutoTest_LoadHold_TimeAccum);
+CK_REGISTER_PROCESSOR(ck::FProcessor_AutoTest_LoadHold_SteadyWork);
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -279,6 +280,30 @@ namespace ck
         -> void
     {
     }
+
+    auto
+        FProcessor_AutoTest_LoadHold_SteadyWork::
+        DoTick(
+            TimeType InDeltaT)
+        -> void
+    {
+        TProcessor::DoTick(InDeltaT);
+
+        // Re-mark the dirty pulse so the scheduler keeps finding this processor pump-eligible, frame after frame,
+        // at a CONSTANT amount of work. On the TRANSIENT entity, never on anything the view above iterates: the
+        // point is steady traffic, not a mutation of the storage being walked.
+        _TransientEntity.Try_Remove<FTag_AutoTest_LoadHold_SteadyPulse>();
+        _TransientEntity.AddOrGet<FTag_AutoTest_LoadHold_SteadyPulse>();
+    }
+
+    auto
+        FProcessor_AutoTest_LoadHold_SteadyWork::
+        ForEachEntity(
+            TimeType InDeltaT,
+            HandleType InHandle)
+        -> void
+    {
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -354,6 +379,34 @@ void
 
 auto
     UCk_AutoTest_Snapshot_LoadHoldProbe_EntityScript_UE::
+    Get_IsSnapshotRespawnable() const
+    -> bool
+{
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+UCk_AutoTest_Snapshot_LoadHoldSteadyWork_EntityScript_UE::
+    UCk_AutoTest_Snapshot_LoadHoldSteadyWork_EntityScript_UE()
+{
+    _Replication = ECk_Replication::DoesNotReplicate;
+    _InstancingPolicy = ECk_EntityScript_InstancingPolicy::InstancedPerEntity;
+}
+
+auto
+    UCk_AutoTest_Snapshot_LoadHoldSteadyWork_EntityScript_UE::
+    Construct(
+        FCk_Handle& InHandle,
+        const FInstancedStruct& InSpawnParams)
+    -> ECk_EntityScript_ConstructionFlow
+{
+    InHandle.AddOrGet<ck::FTag_AutoTest_LoadHold_SteadyWork>();
+    return ECk_EntityScript_ConstructionFlow::Finished;
+}
+
+auto
+    UCk_AutoTest_Snapshot_LoadHoldSteadyWork_EntityScript_UE::
     Get_IsSnapshotRespawnable() const
     -> bool
 {

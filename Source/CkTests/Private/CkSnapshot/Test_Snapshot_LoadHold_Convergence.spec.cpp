@@ -43,6 +43,12 @@ namespace ck_test_loadhold_convergence
 {
     const auto Escape_SlotName        = FName{TEXT("CkSnapshot_LoadHoldConvergenceEscape_GateSlot")};
     const auto NotApplicable_SlotName = FName{TEXT("CkSnapshot_LoadHoldNotApplicable_GateSlot")};
+    const auto SteadyState_SlotName   = FName{TEXT("CkSnapshot_LoadHoldSteadyState_GateSlot")};
+
+    // Generous against a steady-state convergence (the stability threshold plus the loop's own quiescent frames,
+    // plus room for the physics grant) and far below the shipping 180 — so a load that reverted to waiting for
+    // SILENCE reaches this and names the row instead of passing slowly.
+    constexpr auto SteadyStateCap = 12;
 
     const auto SchedulerQuiescentRowName = FName{TEXT("Ecs.SchedulerQuiescent")};
 
@@ -240,6 +246,73 @@ bool FCk_Snapshot_LoadHold_NotApplicableNeverBecomesALoss::RunTest(const FString
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCk_Snapshot_LoadHold_SteadyStateCountsAsQuiescent,
+    "Ck.Snapshot.LoadHold.SteadyStateCountsAsQuiescent",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
+
+bool FCk_Snapshot_LoadHold_SteadyStateCountsAsQuiescent::RunTest(const FString& /*Parameters*/)
+{
+    using namespace ck_test_loadhold_convergence;
+
+    auto Spec = ck::auto_test::snapshot::FCk_SnapshotRoundTrip_Spec{};
+    Spec.SlotName = SteadyState_SlotName;
+    Spec.NumPIEClients = 1;
+    Spec.NumCycles = 1;
+
+    Spec.Spawn = FCk_NetAutoTest_ServerAction::CreateLambda([](UWorld* InServer) -> void
+    {
+        Spawn_Probe(InServer);
+
+        // The world under test never falls silent: this probe's processor keeps the pump finding the same amount
+        // of work every frame, which is the shape a real content world has (state machines re-evaluating, request
+        // queues refilling) and the shape an absolute-silence predicate can never satisfy.
+        auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
+        UCk_Utils_EntityScript_UE::Request_SpawnEntity(
+            Transient, UCk_AutoTest_Snapshot_LoadHoldSteadyWork_EntityScript_UE::StaticClass(),
+            FInstancedStruct{}, {});
+
+        // The instrument. A cap this tight cannot be reached by a load that converges on steady state, and IS
+        // reached by one waiting for silence — so the assertions below fail loudly rather than slowly.
+        Set_ConvergenceCapOverride(InServer, SteadyStateCap);
+    });
+
+    Spec.SubjectReady = FCk_NetAutoTest_Assertion::CreateLambda([]() -> bool { return ProbeReady(); });
+
+    Spec.Assert = FCk_NetAutoTest_Assertion::CreateLambda([this]() -> bool
+    {
+        auto* Server = ck::auto_test::snapshot::Get_PostTravelServerWorld();
+        auto* Subsystem = ck::auto_test::snapshot::Get_SnapshotSubsystem(Server);
+        if (NOT TestTrue(TEXT("snapshot subsystem present post-reload"), Subsystem != nullptr))
+        { return false; }
+
+        Subsystem->TestOnly_Set_ConvergenceFrameCapOverride(0);
+
+        auto AllGood = TestTrue(TEXT("the probe was restored (the load ran)"), ProbeReady());
+
+        const auto Report = Subsystem->Get_LastLoadReport();
+
+        // The whole point: a world doing constant work still converges, and does it quickly.
+        AllGood &= TestEqual(
+            FString::Printf(TEXT("a world in STEADY STATE converges — no unmet facts (found %d)"),
+                Report.Get_ConvergenceUnmet().Num()),
+            Report.Get_ConvergenceUnmet().Num(), 0);
+
+        AllGood &= TestTrue(
+            TEXT("...and reports Success, not Succeeded_WithLoss — steady per-frame traffic is not a loss"),
+            Report.Get_Result() == ECk_SnapshotResult::Success);
+
+        AllGood &= TestTrue(TEXT("...and the world was handed back"), Subsystem->Get_IsReadyToResume());
+
+        return AllGood;
+    });
+
+    ck::auto_test::snapshot::EnqueueRoundTrip(this, Spec);
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCk_Snapshot_LoadHold_SkippedTickGroupReportsPending,
     "Ck.Snapshot.LoadHold.SkippedTickGroupReportsPending",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ClientContext | EAutomationTestFlags::ProductFilter)
@@ -300,6 +373,39 @@ bool FCk_Snapshot_LoadHold_SkippedTickGroupReportsPending::RunTest(const FString
     }
     AllGood &= TestTrue(
         TEXT("a frame whose pump still had passes to run reports Pending"),
+        Get_IsQuiescentRowPending());
+
+    // (e) STEADY STATE. A content world never goes silent — state machines re-evaluate, request queues refill,
+    // and some processors report a pass as work having visited nothing — so a flat non-zero series has to read as
+    // converged or the row is unsatisfiable on exactly the worlds it exists for. Below the threshold it is still
+    // Pending: one frame of sameness is a coincidence.
+    {
+        auto& Context = Registry.SetContext<ck::FCtx_LoadConvergence>();
+        Context._FramesConverging = 1;
+        Context._PumpCountLastFrame = 3;
+        Context._PumpSkippedGroupsLastFrame = 0;
+        Context._PumpCountStableFrames = ck::kLoad_ConvergenceStableFrames - 1;
+    }
+    AllGood &= TestTrue(
+        TEXT("a steady pump count BELOW the stability threshold is still Pending"),
+        Get_IsQuiescentRowPending());
+
+    {
+        auto& Context = Registry.SetContext<ck::FCtx_LoadConvergence>();
+        Context._PumpCountStableFrames = ck::kLoad_ConvergenceStableFrames;
+    }
+    AllGood &= TestFalse(
+        TEXT("a pump count that has held steady for the full threshold reports Satisfied — the world has stopped "
+             "CHANGING, which is what the hold waits for, and is not the same as having gone silent"),
+        Get_IsQuiescentRowPending());
+
+    // ...and a skipped group still vetoes it, so steady state cannot launder an unmeasured tick group.
+    {
+        auto& Context = Registry.SetContext<ck::FCtx_LoadConvergence>();
+        Context._PumpSkippedGroupsLastFrame = 1;
+    }
+    AllGood &= TestTrue(
+        TEXT("a SKIPPED tick group still blocks even at a steady pump count"),
         Get_IsQuiescentRowPending());
 
     return AllGood;
