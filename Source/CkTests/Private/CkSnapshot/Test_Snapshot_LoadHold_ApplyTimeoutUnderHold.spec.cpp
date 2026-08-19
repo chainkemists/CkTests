@@ -68,6 +68,10 @@ bool FCk_Snapshot_LoadHold_ApplyTimeoutStillFiresUnderTheHold::RunTest(const FSt
         EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
     AddExpectedError(TEXT("the load COMPLETED WITH LOSS"),
         EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
+    // The loss RECORD the drop produces. Declared for the same reason as the ensure above: this test exists to
+    // make the timeout fire, so the line naming what it cost is expected output, not an unexplained error.
+    AddExpectedError(TEXT("LOST payload"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
 
     auto Spec = ck::auto_test::snapshot::FCk_SnapshotRoundTrip_Spec{};
     Spec.SlotName = ApplyTimeout_SlotName;
