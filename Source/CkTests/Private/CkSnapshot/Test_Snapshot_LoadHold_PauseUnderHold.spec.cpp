@@ -23,7 +23,6 @@
 #if WITH_EDITOR && WITH_DEV_AUTOMATION_TESTS
 
 #include "CkCore/Macros/CkMacros.h"
-#include "CkCore/Validation/CkIsValid.h"
 
 #include "CkEcs/EntityScript/CkEntityScript_Utils.h"
 #include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"

@@ -19,8 +19,6 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "CkCore/Macros/CkMacros.h"
-
 #include "CkSnapshot/Subsystem/CkSnapshot_Subsystem.h"
 
 namespace ck_test_loadhold_epoch
