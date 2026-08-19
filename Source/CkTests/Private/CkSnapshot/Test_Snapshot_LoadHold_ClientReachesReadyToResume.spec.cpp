@@ -149,6 +149,17 @@ bool FCk_Snapshot_LoadHold_ClientReachesReadyToResume::RunTest(const FString& /*
             FString::Printf(TEXT("the server ran a load (epoch %d)"), ServerEpoch),
             ServerEpoch > 0);
 
+        // The epoch carries a session-unique salt in its high bits, and this is where that is observable end to
+        // end rather than only in the composition's own unit test: a bare per-instance load COUNT fits in the
+        // low 16 bits, so a value above them is the salt actually riding the wire. It is the difference between
+        // "load number one" and "THIS load" — a client that has itself hosted one load must not read a host's
+        // first load as its own and decline to arm.
+        constexpr auto HighestUnsaltedEpoch = 0xFFFF;
+        AllGood &= TestTrue(
+            FString::Printf(TEXT("...and its epoch identifies the LOAD rather than its ordinal (epoch %d)"),
+                ServerEpoch),
+            ServerEpoch > HighestUnsaltedEpoch);
+
         // ---- ARM: the option rode the travel and is still readable on the client's own world. ------------------
         AllGood &= TestTrue(
             TEXT("the client's world URL carries ?CkLoad — the arm signal a client can read at world begin play, "
