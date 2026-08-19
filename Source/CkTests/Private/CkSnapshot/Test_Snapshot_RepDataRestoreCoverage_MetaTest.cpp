@@ -75,6 +75,8 @@ namespace ck_repdata_coverage_test
             { TEXT("Scale"),                    TEXT("audit complete 2026-06-10: same as Location — actor-backed re-derives (M2b2b gate); pure-ECS SceneNode rep deferred until a real use") },
             { TEXT("GeometryCollectionOwner"),  TEXT("Lead decision 2026-06-10: ephemeral destruction state, does NOT persist — permanently deferred") },
             { TEXT("Container"),                TEXT("generic template base (TFragment_ContainerEntryRef<>), not a concrete replicated feature — N/A if it reflects at all") },
+            { TEXT("VoiceChat_ChannelEntry"),   TEXT("not a container — the element type of FCk_RepData_VoiceChat::_Channels, name-matched only because it inherits its owner's RepData_ prefix. The owning container is Register_NetOnly (CkVoiceChat_Replication.cpp), so there is no snapshot to restore from; and it never sits on an entity, so a NetApply registration to silence this would be fiction") },
+            { TEXT("VoiceChat_Member"),         TEXT("not a container — a value type nested in a ChannelEntry's _Members array; same case as VoiceChat_ChannelEntry. Voice is runtime net state and is never saved (CkVoiceChat_RepData.h)") },
         };
         return Deferred;
     }
