@@ -34,7 +34,7 @@
 #include "CkEcs/Registry/CkRegistry_SlotTable.h"
 #include "CkEcs/Subsystem/CkEcsWorld_Subsystem.h"
 
-#include "CkSnapshot/Snapshot/CkSnapshot_LoadState.h"
+#include "CkSnapshot/Subsystem/CkSnapshot_LoadState.h"
 #include "CkSnapshot/Subsystem/CkSnapshot_Subsystem.h"
 
 #include "CkTests/Net/CkNetAutomation_Common.h"
