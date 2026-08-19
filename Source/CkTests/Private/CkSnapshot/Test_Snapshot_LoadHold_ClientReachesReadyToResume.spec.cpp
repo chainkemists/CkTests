@@ -184,6 +184,20 @@ bool FCk_Snapshot_LoadHold_ClientReachesReadyToResume::RunTest(const FString& /*
         AllGood &= TestTrue(TEXT("the client's hold is released"),
             ClientEcs->Get_LoadHold() == ECk_EcsWorld_LoadHold::None);
 
+        // ...and released for the DESIGNED reason. Every assertion above is equally true of a client that gave up
+        // at its 600-frame cap and then received the fact afterwards — the hold is off either way, the dilation is
+        // back either way, and the fact is present either way. Without this the test would report the bounded
+        // escape as a working client contract, which is the one outcome it exists to rule out.
+        // Read off the CLIENT's own subsystem: each PIE instance has its own GameInstance, and the client hold
+        // lives on the one that armed it.
+        auto* ClientSubsystem = ck::auto_test::snapshot::Get_SnapshotSubsystem(Client);
+        if (NOT TestTrue(TEXT("the client has its own snapshot subsystem"), ClientSubsystem != nullptr))
+        { return false; }
+
+        AllGood &= TestFalse(
+            TEXT("the client released because the fact arrived, NOT because its bounded escape fired"),
+            ClientSubsystem->TestOnly_Get_ClientHoldReleasedByCap());
+
         // The dilation owner is the server and the value is replicated, so the client's own clock coming back is
         // the observable half of the freeze reaching it at all.
         const auto* ClientSettings = Client->GetWorldSettings();
