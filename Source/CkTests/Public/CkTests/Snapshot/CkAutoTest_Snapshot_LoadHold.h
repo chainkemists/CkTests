@@ -41,6 +41,40 @@ namespace ck
 
 namespace ck
 {
+    // The steady-state fixture. A content world never goes silent during a load — state machines re-evaluate,
+    // request queues refill, and processors with a custom DoTick report a pass as work regardless of what they
+    // visited — so the convergence rows have to treat "unchanged" as converged. Reproducing that here needs a
+    // processor that keeps the pump finding the SAME amount of work every frame, forever.
+    CK_DEFINE_ECS_TAG(FTag_AutoTest_LoadHold_SteadyWork);
+    CK_DEFINE_ECS_TAG(FTag_AutoTest_LoadHold_SteadyPulse);
+
+    // Custom DoTick on purpose: that is what makes it report a pass as work by contract (the VisitedCount == -1
+    // family), and it re-marks its own dirty pulse on the TRANSIENT entity — never on anything the view iterates,
+    // so it cannot mutate the storage it is walking.
+    class CKTESTS_API FProcessor_AutoTest_LoadHold_SteadyWork : public ck_exp::TProcessor<
+        FProcessor_AutoTest_LoadHold_SteadyWork,
+        FCk_Handle,
+        FTag_AutoTest_LoadHold_SteadyWork,
+        CK_IGNORE_PENDING_KILL>
+    {
+    public:
+        using Group = FGroup_Gameplay;
+        using MarkedDirtyBy = FTag_AutoTest_LoadHold_SteadyPulse;
+
+    public:
+        using TProcessor::TProcessor;
+
+    public:
+        auto
+        DoTick(
+            TimeType InDeltaT) -> void;
+
+        static auto
+        ForEachEntity(
+            TimeType InDeltaT,
+            HandleType InHandle) -> void;
+    };
+
     // Integrated game time, as the ECS handed it out, for the WORLD rather than for an entity. Registry-scoped on
     // purpose: an entity-scoped counter can only start once the load has respawned that entity and released it
     // from the quarantine, which is the tail of the very window under test.
@@ -143,6 +177,29 @@ namespace ck_autotest_snapshot_loadhold
     CKTESTS_API auto Install_NotApplicableRow() -> void;
     CKTESTS_API auto Remove_TestConvergenceRows() -> void;
 }
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Carries the steady-work tag, so the world it is restored into never falls silent during the load's convergence
+// phase. Persisted like every other probe here, so the traffic exists on BOTH sides of the load.
+UCLASS(BlueprintType)
+class CKTESTS_API UCk_AutoTest_Snapshot_LoadHoldSteadyWork_EntityScript_UE final : public UCk_EntityScript_UE
+{
+    GENERATED_BODY()
+
+public:
+    UCk_AutoTest_Snapshot_LoadHoldSteadyWork_EntityScript_UE();
+
+public:
+    auto
+    Construct(
+        FCk_Handle& InHandle,
+        const FInstancedStruct& InSpawnParams) -> ECk_EntityScript_ConstructionFlow override;
+
+protected:
+    auto
+    Get_IsSnapshotRespawnable() const -> bool override;
+};
 
 // --------------------------------------------------------------------------------------------------------------------
 
