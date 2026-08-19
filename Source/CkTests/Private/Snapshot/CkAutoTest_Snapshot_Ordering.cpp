@@ -29,7 +29,6 @@ CK_REGISTER_PROCESSOR(ck::FProcessor_AutoTest_Ordering_Setup);
 CK_REGISTER_PROCESSOR(ck::FProcessor_AutoTest_Ordering_ClearProbe_Setup);
 CK_REGISTER_PROCESSOR(ck::FProcessor_AutoTest_Ordering_ClearProbe_HandleRequests);
 CK_REGISTER_PROCESSOR(ck::FProcessor_AutoTest_Ordering_DestroyProbe_EndPlay);
-CK_REGISTER_PROCESSOR(ck::FProcessor_AutoTest_Ordering_EscalationChild_Labeler);
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -38,10 +37,6 @@ namespace ck_autotest_snapshot_ordering
     // The handle-graph probe's labeled child. A label is the ONLY identity a ConstructSpawned child has in the
     // save, so this is what separates the child the load re-identifies from the one it cannot.
     UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_AutoTest_HandleGraph_Child, TEXT("Ck.AutoTest.HandleGraph.Child"));
-
-    // The escalation staller's child. Stamped by a GAME processor, never by construction — that gap is what makes
-    // the child's saved row unresolvable under the kernel scope and forces the loader to escalate.
-    UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_AutoTest_Escalation_Child, TEXT("Ck.AutoTest.Escalation.Child"));
 
     // Process-wide because the observations have to survive the load's map travel, which every entity does not.
     // Each test resets them in its own Mutate stage, immediately before the save.
@@ -314,19 +309,6 @@ namespace ck
     {
         ck_autotest_snapshot_ordering::Get_Observations().DestroyProbe_EndPlayRan = true;
     }
-
-    // --------------------------------------------------------------------------------------------------------------------
-
-    auto
-        FProcessor_AutoTest_Ordering_EscalationChild_Labeler::
-        ForEachEntity(
-            TimeType,
-            HandleType InHandle)
-        -> void
-    {
-        InHandle.Remove<MarkedDirtyBy>();
-        UCk_Utils_GameplayLabel_UE::Add(InHandle, ck_autotest_snapshot_ordering::TAG_AutoTest_Escalation_Child);
-    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -503,39 +485,6 @@ auto
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-
-UCk_AutoTest_Snapshot_EscalationStaller_EntityScript_UE::
-    UCk_AutoTest_Snapshot_EscalationStaller_EntityScript_UE()
-{
-    _Replication = ECk_Replication::DoesNotReplicate;
-    _InstancingPolicy = ECk_EntityScript_InstancingPolicy::InstancedPerEntity;
-}
-
-auto
-    UCk_AutoTest_Snapshot_EscalationStaller_EntityScript_UE::
-    Construct(
-        FCk_Handle& InHandle,
-        const FInstancedStruct&)
-    -> ECk_EntityScript_ConstructionFlow
-{
-    InHandle.AddOrGet<ck::FTag_AutoTest_Ordering_EscalationStaller>();
-
-    // Created here, labeled later and elsewhere. Construction is the load KERNEL's job and finishes during the
-    // rebuild; the label is a GAME processor's, and the rebuild's kernel scope never runs it. So the saved row
-    // for this child cannot be resolved by the (owner, label) adopt scan until the loader escalates.
-    auto Child = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(InHandle);
-    Child.AddOrGet<ck::FTag_AutoTest_Ordering_EscalationChild_NeedsLabel>();
-
-    return ECk_EntityScript_ConstructionFlow::Finished;
-}
-
-auto
-    UCk_AutoTest_Snapshot_EscalationStaller_EntityScript_UE::
-    Get_IsSnapshotRespawnable() const
-    -> bool
-{
-    return true;
-}
 
 // --------------------------------------------------------------------------------------------------------------------
 

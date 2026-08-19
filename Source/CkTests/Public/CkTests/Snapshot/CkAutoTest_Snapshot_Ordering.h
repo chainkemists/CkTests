@@ -51,12 +51,6 @@ namespace ck
     // The probe destroyed from inside its own hydration.
     CK_DEFINE_ECS_TAG(FTag_AutoTest_Ordering_DestroyProbe);
 
-    // The escalation staller and the child whose identity only a GAME processor can stamp. Together they are the
-    // gondola-shelf shape reduced to a fixture: the rebuild kernel cannot produce the label the child's saved row
-    // is resolved by, so the kernel quiesces with that row unresolved and the loader escalates to full-scope ticks.
-    CK_DEFINE_ECS_TAG(FTag_AutoTest_Ordering_EscalationStaller);
-    CK_DEFINE_ECS_TAG(FTag_AutoTest_Ordering_EscalationChild_NeedsLabel);
-
     // The handle-rich subtree's owner.
     CK_DEFINE_ECS_TAG(FTag_AutoTest_HandleGraph_Probe);
 
@@ -429,32 +423,6 @@ namespace ck
 
     // --------------------------------------------------------------------------------------------------------------------
 
-    // Stamps the escalation child's label. A GAME processor on purpose: under the rebuild's LoadKernel scope it
-    // does not tick at all, so the child's saved row cannot resolve and the loader has to escalate; under the
-    // escalated FULL scope it ticks and the row resolves. That is the only thing in this fixture that forces
-    // escalation, and it forces it deterministically.
-    class CKTESTS_API FProcessor_AutoTest_Ordering_EscalationChild_Labeler : public ck_exp::TProcessor<
-        FProcessor_AutoTest_Ordering_EscalationChild_Labeler,
-        FCk_Handle,
-        FTag_AutoTest_Ordering_EscalationChild_NeedsLabel,
-        CK_IGNORE_PENDING_KILL>
-    {
-    public:
-        using Group = FGroup_Gameplay_Script;
-        using MarkedDirtyBy = FTag_AutoTest_Ordering_EscalationChild_NeedsLabel;
-
-    public:
-        using TProcessor::TProcessor;
-
-    public:
-        static auto
-        ForEachEntity(
-            TimeType InDeltaT,
-            HandleType InHandle) -> void;
-    };
-
-    // --------------------------------------------------------------------------------------------------------------------
-
     // The teardown tripwire's witness: a real FGroup_EndPlay body on the probe destroyed mid-load.
     class CKTESTS_API FProcessor_AutoTest_Ordering_DestroyProbe_EndPlay : public TProcessor<
         FProcessor_AutoTest_Ordering_DestroyProbe_EndPlay,
@@ -650,32 +618,6 @@ class CKTESTS_API UCk_AutoTest_Snapshot_PhysicsLocalProbe_EntityScript_UE final 
 
 public:
     UCk_AutoTest_Snapshot_PhysicsLocalProbe_EntityScript_UE();
-
-public:
-    auto
-    Construct(
-        FCk_Handle& InHandle,
-        const FInstancedStruct& InSpawnParams) -> ECk_EntityScript_ConstructionFlow override;
-
-protected:
-    auto
-    Get_IsSnapshotRespawnable() const -> bool override;
-};
-
-// --------------------------------------------------------------------------------------------------------------------
-
-// Forces the loader down the ESCALATED rebuild path. Its Construct creates a ConstructSpawned child and leaves
-// it unlabeled; a GAME processor stamps the label a tick later. The save therefore captures a labeled child row,
-// and on load that row is unresolvable for as long as the rebuild ticks the kernel scope alone — which is exactly
-// the condition the loader escalates on. It carries no payload of its own: what it exists to do is change WHICH
-// tick scope the rest of the world's mapped entities are exposed to while their payloads are still un-enqueued.
-UCLASS(BlueprintType)
-class CKTESTS_API UCk_AutoTest_Snapshot_EscalationStaller_EntityScript_UE final : public UCk_EntityScript_UE
-{
-    GENERATED_BODY()
-
-public:
-    UCk_AutoTest_Snapshot_EscalationStaller_EntityScript_UE();
 
 public:
     auto
