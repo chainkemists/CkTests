@@ -24,6 +24,7 @@
 
 #include "CkSnapshot/Subsystem/CkSnapshot_Subsystem.h"
 
+#include "Engine/GameInstance.h"  // the subsystem's ClassWithin — see FScopedWorlds
 #include "Engine/World.h"
 #include "GameFramework/WorldSettings.h"
 
@@ -43,6 +44,7 @@ namespace ck_test_loadhold_freezescope
     {
         UWorld* A = nullptr;
         UWorld* B = nullptr;
+        UGameInstance* SubsystemOuter = nullptr;
         UCk_Snapshot_Subsystem_UE* Subsystem = nullptr;
 
         FScopedWorlds()
@@ -50,15 +52,24 @@ namespace ck_test_loadhold_freezescope
             A = UWorld::CreateWorld(EWorldType::Game, /*bInformEngineOfWorld=*/false);
             B = UWorld::CreateWorld(EWorldType::Game, /*bInformEngineOfWorld=*/false);
 
-            // The subsystem is exercised as a plain object here: DoApply_TimeFreeze reads nothing but the world
-            // it is handed and its own members, so a GameInstance would add a PIE world and prove nothing extra.
-            Subsystem = NewObject<UCk_Snapshot_Subsystem_UE>(GetTransientPackage());
+            // The subsystem is exercised as a plain object: the freeze pair reads nothing but the world it is
+            // handed and its own members, so standing up a PIE GameInstance would prove nothing extra. But it is
+            // a UGameInstanceSubsystem, so its ClassWithin IS UGameInstance and NewObject into the transient
+            // PACKAGE trips StaticAllocateObjectErrorTests' ensure (UObjectGlobals.cpp) — which the automation
+            // framework scores as a failure. That ensure is one-shot per call site, so with two tests sharing
+            // this fixture only the FIRST one reds and the second passes on the suppressed repeat: a green there
+            // was luck, not evidence. A throwaway instance satisfies the constraint and owns nothing.
+            SubsystemOuter = NewObject<UGameInstance>(GetTransientPackage());
+            SubsystemOuter->AddToRoot();
+
+            Subsystem = NewObject<UCk_Snapshot_Subsystem_UE>(SubsystemOuter);
             Subsystem->AddToRoot();
         }
 
         ~FScopedWorlds()
         {
             Subsystem->RemoveFromRoot();
+            SubsystemOuter->RemoveFromRoot();
 
             if (B != nullptr)
             { B->DestroyWorld(/*bInformEngineOfWorld=*/false); }
