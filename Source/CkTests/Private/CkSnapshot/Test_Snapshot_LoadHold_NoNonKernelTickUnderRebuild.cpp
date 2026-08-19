@@ -52,7 +52,6 @@ namespace ck_test_loadhold_scope
     public:
         using Super = ck::TProcessor<FProcessor_LoadHoldScopeTest_Gameplay, ck::FTag_LoadHoldScopeTest_Marker>;
         using Super::Super;
-        using Group = ck::FGroup_Gameplay;
 
         static inline int32 Count = 0;
         static auto Reset() -> void { Count = 0; }
@@ -83,7 +82,6 @@ namespace ck_test_loadhold_scope
     public:
         using Super = ck::TProcessor<FProcessor_LoadHoldScopeTest_Kernel, ck::FTag_LoadHoldScopeTest_Marker>;
         using Super::Super;
-        using Group = ck::FGroup_Gameplay;
         static constexpr auto LoadPolicy = ECk_ProcessorLoadPolicy::RunsDuringLoad;
 
         static inline int32 Count = 0;
@@ -104,6 +102,12 @@ namespace ck_test_loadhold_scope
             const auto TransientHandle = UCk_Utils_EntityLifetime_UE::Get_TransientEntity(World.Get_Registry());
 
             auto Descriptors = TArray<ck::FProcessorDescriptor>{};
+
+            // The group a processor names has to be REGISTERED, or the builder ensures and drops the edge — which
+            // is what collapsed this fixture to a single partition. Only FGroup_Overlap is named here (the
+            // pre-physics pair joins no group, exactly as the original load-gate fixture does), and it declares no
+            // Group and no RunAfter of its own, so registering it pulls in no further chain.
+            Descriptors.Add(ck::BuildGroupDescriptor<ck::FGroup_Overlap>());
             Descriptors.Add(ck::BuildDescriptor<FProcessor_LoadHoldScopeTest_Gameplay>(
                 [](const FCk_Registry& InRegistry) -> ck::concepts::FTickableType
                 { return FProcessor_LoadHoldScopeTest_Gameplay{InRegistry}; }));

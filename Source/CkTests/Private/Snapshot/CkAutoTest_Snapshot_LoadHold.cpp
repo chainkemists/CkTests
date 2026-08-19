@@ -320,10 +320,21 @@ auto
     if (ck::Is_NOT_Valid(Self))
     { return; }
 
+    // Bound on the TIMER, not on this probe. UCk_Utils_Timer_UE::Add puts the timer on a CHILD entity connected
+    // through RecordOfTimers, so it carries its own payload and its own hydration — and this probe's OnHydrated
+    // fires when THIS entity's payloads are final, which says nothing about the child's. Sampling the timer at
+    // the owner's edge reads the fresh-construct value and then attributes the restored value's arrival to the
+    // hold, which is a measurement artefact rather than time passing.
+    auto Timer = UCk_Utils_Timer_UE::TryGet_Timer(Self,
+        ck_autotest_snapshot_loadhold::TAG_AutoTest_LoadHold_Timer.GetTag());
+
+    if (ck::Is_NOT_Valid(Timer))
+    { return; }
+
     auto Delegate = FCk_Delegate_Hydration_OnHydrated{};
     Delegate.BindUFunction(this, TEXT("OnHydrated"));
 
-    UCk_Utils_Snapshot_UE::Promise_OnHydrated(Self, Delegate);
+    UCk_Utils_Snapshot_UE::Promise_OnHydrated(Timer, Delegate);
 }
 
 void
