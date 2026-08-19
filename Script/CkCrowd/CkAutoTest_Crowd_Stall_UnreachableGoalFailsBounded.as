@@ -47,6 +47,7 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
 
     private const float SpawnX = -700.0;
     private const float GoalX = 700.0;
+    private const int32 RecoveryCorrelation = 909;
 
     // |y| <= 1400 against a nav volume that reaches |y| = 1000: the wall runs off
     // both ends of the mesh, so no route survives.
@@ -111,6 +112,20 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
 
     private int32 _BlockedCount = 0;
     private bool _BlockedReasonWasNoProgress = false;
+    private bool _SameGoalSpamIssued = false;
+    private bool _SameGoalCompletionSeen = false;
+    private ECk_Request_OperationResult _SameGoalCompletionResult =
+        ECk_Request_OperationResult::Failed_Cancelled;
+    private float _SameGoalSpamAtSec = -1.0;
+    private int32 _HeldMoveEpisode = 0;
+    private int32 _HeldPathRevision = 0;
+    private FVector _HeldPosition;
+    private FRotator _HeldRotation;
+    private bool _RecoveryIssued = false;
+    private float _RecoveryIssuedAtSec = -1.0;
+    private FCk_Handle_CrowdAgent _OverlapNeighbor;
+    private bool _OverlapStarted = false;
+    private float _OverlapStartedAtSec = -1.0;
 
     private float _ElapsedSec = 0.0;
 
@@ -215,6 +230,32 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
             if (_FailedAtSec >= 0.0 && _ElapsedSec < _FailedAtSec + SettleAfterFailSec)
             { return; }
 
+            if (_RecoveryIssued)
+            {
+                const auto RecoveryEpisode = utils_crowd_agent::Get_ActiveMoveEpisode(_Agent);
+                if (RecoveryEpisode == _HeldMoveEpisode)
+                {
+                    if (_ElapsedSec >= _RecoveryIssuedAtSec + 1.0)
+                    {
+                        Begin_Teardown(false,
+                            "a genuinely new correlated goal did not wake the failed-goal hold within 1s");
+                    }
+                    return;
+                }
+
+                Assert_Equals_Int(RecoveryEpisode, _HeldMoveEpisode + 1,
+                    "a new correlated goal starts exactly one fresh movement episode");
+                Assert_True(utils_nav::Get_PathResult(_Agent).Get_RequestRevision() != _HeldPathRevision,
+                    "a new correlated goal issues exactly one fresh path request after the hold");
+                Assert_Equals_Int(utils_crowd_agent::Get_ActiveMoveCorrelationId(_Agent), RecoveryCorrelation,
+                    "the recovery episode is owned by the new caller correlation");
+                Assert_False(utils_crowd_agent::Get_IsGoalFailedHold(_Agent),
+                    "accepting a genuinely new goal clears the failed-goal hold");
+
+                Begin_Teardown(true, "");
+                return;
+            }
+
             Assert_Equals_Int(_FailedCount, 1,
                 "the blocked move reported OnGoalFailed exactly once — a terminal signal that repeats is not terminal, and a caller that re-dispatches on it would loop");
 
@@ -224,6 +265,43 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
 
             Assert_False(utils_crowd_agent::Get_IsGoalBlocked(_Agent),
                 "the GoalBlocked hold was released when the move failed — a failed move is terminal, so leaving the agent flagged as blocked would have BlockedRecheck keep re-planning an episode nobody owns any more.");
+            Assert_True(utils_crowd_agent::Get_IsGoalFailedHold(_Agent),
+                "the unreachable goal remains in the stable failed-goal hold");
+
+            if (_SameGoalSpamIssued == false)
+            {
+                _SameGoalSpamIssued = true;
+                _SameGoalSpamAtSec = _ElapsedSec;
+                _HeldMoveEpisode = utils_crowd_agent::Get_ActiveMoveEpisode(_Agent);
+                _HeldPathRevision = utils_nav::Get_PathResult(_Agent).Get_RequestRevision();
+                _HeldPosition = utils_transform::Get_EntityCurrentLocation(
+                    utils_transform::DoCastChecked(FCk_Handle(_Agent)));
+                _HeldRotation = utils_transform::Get_EntityCurrentRotation(
+                    utils_transform::DoCastChecked(FCk_Handle(_Agent)));
+                utils_crowd_agent::Request_MoveTo(
+                    _Agent,
+                    FCk_Request_CrowdAgent_MoveTo(utils_crowd_agent::Get_ActiveGoal(_Agent)),
+                    FCk_Delegate_Request_OnCompleted(this, n"OnSameHeldGoalCompleted"));
+                return;
+            }
+
+            if (_ElapsedSec < _SameGoalSpamAtSec + 0.75)
+            { return; }
+
+            Assert_Equals_Int(utils_crowd_agent::Get_ActiveMoveEpisode(_Agent), _HeldMoveEpisode,
+                "an identical non-forced MoveTo does not start a new failed movement episode");
+            Assert_Equals_Int(utils_nav::Get_PathResult(_Agent).Get_RequestRevision(), _HeldPathRevision,
+                "an identical non-forced MoveTo does not issue a new path query while held");
+            Assert_True(_SameGoalCompletionSeen,
+                "the suppressed held same-goal request completes its caller instead of hanging");
+            Assert_True(_SameGoalCompletionResult == ECk_Request_OperationResult::Failed,
+                f"the drained-but-undispatched held same-goal request reports Failed, not a misleading success (got {_SameGoalCompletionResult})");
+            Assert_True(utils_crowd_agent::Get_MovementState(_Agent) == ECk_CrowdAgent_MovementState::Idle,
+                "same-goal spam leaves the failed agent Idle instead of toggling PathPending");
+            const auto HeldNow = utils_transform::Get_EntityCurrentLocation(
+                utils_transform::DoCastChecked(FCk_Handle(_Agent)));
+            Assert_True((HeldNow - _HeldPosition).Size2D() <= 5.0,
+                "same-goal spam produces no visible motion while held");
 
             // The geometric detector names an AGENT blocker; nothing here is an agent.
             // A GoalOccupied verdict would mean the wrong detector answered.
@@ -235,7 +313,38 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
                     "OnGoalBlocked fired once per blocked EPISODE, not once per re-check");
             }
 
-            Begin_Teardown(true, "");
+            if (_OverlapStarted == false)
+            {
+                _OverlapStarted = true;
+                _OverlapStartedAtSec = _ElapsedSec;
+                _HeldPosition = HeldNow;
+                auto ScriptEntity = DoGet_ScriptEntity();
+                _OverlapNeighbor = SpawnIdleAgent(ScriptEntity, HeldNow);
+                return;
+            }
+
+            if (_ElapsedSec < _OverlapStartedAtSec + 0.75)
+            { return; }
+
+            const auto HeldAfterPush = utils_transform::Get_EntityCurrentLocation(
+                utils_transform::DoCastChecked(FCk_Handle(_Agent)));
+            const auto NeighborAfterPush = utils_transform::Get_EntityCurrentLocation(
+                utils_transform::DoCastChecked(FCk_Handle(_OverlapNeighbor)));
+            Assert_True((HeldAfterPush - _HeldPosition).Size2D() <= 2.0,
+                "a failed-held agent yields zero displacement to dense PushApart overlap");
+            Assert_True((HeldAfterPush - NeighborAfterPush).Size2D() >= 75.0,
+                "the non-held neighbor absorbs the overlap correction from a failed-held anchor");
+            const auto HeldRotationAfterPush = utils_transform::Get_EntityCurrentRotation(
+                utils_transform::DoCastChecked(FCk_Handle(_Agent)));
+            Assert_True(Math::Abs(Math::FindDeltaAngleDegrees(_HeldRotation.Yaw, HeldRotationAfterPush.Yaw)) <= 0.5f,
+                "a failed-held agent keeps its facing stable through repeated held ticks and dense overlap");
+
+            _RecoveryIssued = true;
+            _RecoveryIssuedAtSec = _ElapsedSec;
+            auto Recovery = FCk_Request_CrowdAgent_MoveTo(
+                FVector(SpawnX, 0.0, _FloorZ));
+            Recovery.Set_CorrelationId(RecoveryCorrelation);
+            utils_crowd_agent::Request_MoveTo(_Agent, Recovery);
             return;
         }
 
@@ -268,6 +377,15 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
 
         _Failed = true;
         _FailedAtSec = _ElapsedSec;
+    }
+
+    UFUNCTION()
+    private void OnSameHeldGoalCompleted(
+        FCk_Handle InRequestOwner,
+        ECk_Request_OperationResult InResult)
+    {
+        _SameGoalCompletionSeen = true;
+        _SameGoalCompletionResult = InResult;
     }
 
     UFUNCTION()
@@ -324,6 +442,27 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
             ECk_Signal_PostFireBehavior::DoNothing);
 
         utils_crowd_agent::Request_MoveTo(_Agent, FCk_Request_CrowdAgent_MoveTo(Goal));
+    }
+
+    private FCk_Handle_CrowdAgent SpawnIdleAgent(FCk_Handle& InOwner, FVector InSpawn)
+    {
+        auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
+        auto AgentTransform = utils_transform::Add(
+            AgentEntity,
+            FTransform(FRotator::ZeroRotator, InSpawn, FVector::OneVector),
+            ECk_Replication::DoesNotReplicate);
+        auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
+        utils_velocity::Add(
+            AgentEntity,
+            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            ECk_Replication::DoesNotReplicate);
+        utils_acceleration::Add(
+            AgentEntity,
+            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            ECk_Replication::DoesNotReplicate);
+        utils_euler_integrator::Request_Start(AgentEntity);
+        return Agent;
     }
 
     private void Paint_Wall(FCk_Handle& InOwner)
