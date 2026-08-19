@@ -155,10 +155,11 @@ struct FCk_Test_HydrationPayloadWithObject
     TObjectPtr<UObject> Object;
 };
 
-// Explicit runtime-only dynamic state. The runtime marker must omit it at capture and ignore legacy payloads in
-// targets where USTRUCT metadata is stripped.
+// Explicit runtime-only dynamic state, declared by DERIVATION — the C++ half of the marker contract (the
+// AngelScript half carries it as a field, since script structs cannot inherit). Capture must omit it, and
+// hydration must ignore a legacy payload that still carries one.
 USTRUCT()
-struct FCk_Test_DynFrag_SnapshotTransient : public FCk_DynamicFragment_SnapshotTransient
+struct FCk_Test_DynFrag_SessionMarker : public FCk_Snapshot_Session
 {
     GENERATED_BODY()
 
@@ -450,20 +451,6 @@ struct FCk_Test_Posture_PlainSession
 
     UPROPERTY()
     FCk_Snapshot_Session Posture;
-
-    UPROPERTY(SaveGame)
-    int32 RuntimeMarker = 0;
-};
-
-// The DEPRECATED spelling in its AngelScript form (a marker FIELD, not derivation) — the shape 172 BB fragments
-// carry. It must keep resolving Session while those sites exist, or recognising the new markers is a behaviour change.
-USTRUCT()
-struct FCk_Test_Posture_LegacyMarkerField
-{
-    GENERATED_BODY()
-
-    UPROPERTY()
-    FCk_DynamicFragment_SnapshotTransient Transient;
 
     UPROPERTY(SaveGame)
     int32 RuntimeMarker = 0;

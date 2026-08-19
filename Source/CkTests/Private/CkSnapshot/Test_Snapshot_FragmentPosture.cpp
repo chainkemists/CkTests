@@ -154,14 +154,10 @@ bool
     Expect_Posture(*this, FCk_Test_Posture_PlainSession::StaticStruct(),
         ECk_Snapshot_Posture::Session, TEXT("a lone Session declaration"));
 
-    // The DEPRECATED spelling, both ways it appears in production: derived (C++) and carried as a field
-    // (AngelScript). ~188 script sites still use it, so a resolver that stopped recognising it would silently start
-    // capturing every fragment that opted out through the old spelling.
-    Expect_Posture(*this, FCk_Test_Posture_LegacyMarkerField::StaticStruct(),
-        ECk_Snapshot_Posture::Session, TEXT("the legacy SnapshotTransient marker as a field"));
-
-    Expect_Posture(*this, FCk_Test_DynFrag_SnapshotTransient::StaticStruct(),
-        ECk_Snapshot_Posture::Session, TEXT("the legacy SnapshotTransient marker by derivation"));
+    // The other half of the declaration contract: C++ structs DERIVE the marker where AngelScript carries it as
+    // a field, and the resolver must accept both or one whole language's opt-outs start being captured.
+    Expect_Posture(*this, FCk_Test_DynFrag_SessionMarker::StaticStruct(),
+        ECk_Snapshot_Posture::Session, TEXT("a Session declaration by derivation"));
 
     return true;
 }
