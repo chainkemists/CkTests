@@ -12,15 +12,25 @@
 //   (iii) a persistence handler that waits on the feature's own Setup marker. That one is not a bypass but its
 //         mirror image: the handler waits for a processor the load is holding the entity away from, so the wait
 //         cannot end and the payload is dropped at the apply timeout instead. Setup runs AFTER hydration by
-//         design; a handler that inverts that is a contract violation, and this clause has NO allow-list.
+//         design; a handler that inverts that is a contract violation.
 //         Its scope is every file that CALLS FCk_PersistenceHandlerRegistry::Register (plus the Persistence
 //         headers that hold the templated bodies), never a filename pattern: registration is an ordinary
-//         function call and five registrars today live outside the _Fragment.cpp the house rule names, so a
-//         name-derived scope left the one clause with no allow-list holding the only blind spot.
+//         function call and six registrars today live outside the _Fragment.cpp the house rule names, so a
+//         name-derived scope left this clause holding the only blind spot.
 //
-// (i) and (ii) are ratchets, not prohibitions: the counts below are what the code has today, they may only ever
-// go down, and a new site in a listed file reds just as loudly as a new file. A regeneration artifact is written
-// next to the posture ratchet's so lowering a ceiling is a copy rather than a hand count.
+//         This clause used to say it had NO allow-list. It now says something narrower and true: NAMED
+//         EXEMPTIONS WITH REASONS, MONOTONIC. Widening the scope to the registration call brought in a file
+//         where the marker read is on the live-REPLICATION path, deciding what to do because Setup has not run,
+//         while the hydration path in the same handler correctly does not read it at all. The predicate is a
+//         line scanner and cannot tell those two apart; a parser could, at the cost of the reviewability this
+//         whole fence trades on. So the exemption is written down next to its reason and ratcheted like (i) and
+//         (ii). Zero is still the target: an exemption says the SCANNER cannot see the difference, never that
+//         the defect would be tolerable.
+//
+// All three are ratchets, not prohibitions: the counts below are what the code has today, they may only ever go
+// down, and a new site in a listed file reds just as loudly as a new file. (iii)'s ceiling is 1 and the other two
+// are what they were; a regeneration artifact is written next to the posture ratchet's so lowering a ceiling is a
+// copy rather than a hand count.
 // Surface in Session Frontend: Ck.Snapshot.Meta.NoProcessorBypassesQuarantine
 
 #include "Misc/AutomationTest.h"
@@ -160,12 +170,36 @@ namespace ck_test_quarantine_fence
     }
 
     // Where a persistence handler LIVES. The house rule says the feature's _Fragment.cpp and most obey it, but
-    // registration is a plain function call and nothing enforces the filename — today five registrars sit in a
+    // registration is a plain function call and nothing enforces the filename — today SIX registrars sit in a
     // _Replication.cpp, a _Module.cpp or a subsystem .cpp. A scope derived from the FILENAME therefore has a
-    // blind spot, and clause (iii) is the one clause with no allow-list and no ceiling, so it is precisely the
-    // one that must not have one. The scope is the REGISTRATION CALL instead: whatever file makes it is a
-    // handler file, wherever it is named.
+    // blind spot, in the one clause whose whole value is that it has no allow-list to absorb one. The scope is
+    // the REGISTRATION CALL instead: whatever file makes it is a handler file, wherever it is named.
     const auto HandlerRegistrarCall = FString{TEXT("FCk_PersistenceHandlerRegistry::Register")};
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // (iii) exemptions. The predicate is a LINE scanner with no notion of which lambda a line sits in, so it
+    // cannot distinguish a handler blocking on Setup (the defect) from a live-replication path deciding what to
+    // do BECAUSE Setup has not run (correct, and a different code path entirely). One file is in that position
+    // today. It is named here with its reason rather than dodged by narrowing the predicate — a parser would buy
+    // precision at the cost of the property this fence trades on, that a reviewer can diff it.
+    //
+    //   CkRenderTarget_Replication.cpp:21 — `RenderTarget_ShouldStash` reads FTag_RenderTarget_NeedsSetup, and
+    //   it is reached ONLY from the handler's .NetApply lambda: a replicated repaint arriving before the target
+    //   exists is stashed rather than dropped. The .HydrationApply lambda deliberately does NOT read the marker
+    //   — it parks into FFragment_RenderTarget_HydrationReplay and lets FProcessor_RenderTarget_HydrationReplay
+    //   do the repaint afterwards, which is exactly the shape this clause's own failure text recommends.
+    auto Get_SetupWaitExemptionAllowList() -> const TMap<FString, int32>&
+    {
+        static const TMap<FString, int32> AllowList =
+        {
+            {TEXT("CkRenderTarget/Public/CkRenderTarget/Net/CkRenderTarget_Replication.cpp"), 1},
+        };
+        return AllowList;
+    }
+
+    // Sum of the exemptions, and a ratchet like (i) and (ii): it may only ever fall. Zero remains the target —
+    // an exemption is a statement that the SCANNER cannot see the difference, never that the defect is tolerable.
+    constexpr auto SetupWaitCeiling = 1;
 
     // A Setup marker read. Both spellings the codebase uses, and both Has shapes.
     auto Get_IsSetupMarkerReadLine(const FString& InLine) -> bool
@@ -409,16 +443,21 @@ bool FCk_Snapshot_NoProcessorBypassesQuarantine_MetaTest::RunTest(const FString&
     }
 
     // ----------------------------------------------------------------------------------------------------------------
-    // (iii) persistence handlers waiting on Setup — no allow-list, no ceiling, zero is the only passing number.
+    // (iii) persistence handlers waiting on Setup — named exemptions with reasons, and a ratchet that only falls.
 
     auto HandlerFiles = RegistrarFiles;
     for (const auto& Header : PersistenceHeaders)
     { HandlerFiles.AddUnique(Header); }
 
     const auto SetupWaitHits = Scan(SourceRoot, HandlerFiles, &Get_IsSetupMarkerReadLine);
+    const auto SetupWaitCounts = Get_CountsByFile(SetupWaitHits);
+    const auto& SetupWaitExemptions = Get_SetupWaitExemptionAllowList();
 
     for (const auto& Hit : SetupWaitHits)
     {
+        if (SetupWaitExemptions.Contains(Hit.RelativePath))
+        { continue; }
+
         AllGood &= TestTrue(
             FString::Printf(
                 TEXT("(iii) [%s:%d] a persistence handler reads a Setup marker: %s\n")
@@ -427,13 +466,46 @@ bool FCk_Snapshot_NoProcessorBypassesQuarantine_MetaTest::RunTest(const FString&
                 TEXT("payload is dropped at the apply timeout. Apply the Durable state unconditionally; Setup runs ")
                 TEXT("afterwards and reads it as its input. If the restore needs Setup's OUTPUT, enqueue the ")
                 TEXT("feature's own deferred request or park the payload in a fragment a post-Setup processor ")
-                TEXT("consumes."),
+                TEXT("consumes.\n")
+                TEXT("A new exemption is not a local decision: this clause's ceiling only ever falls, so if the ")
+                TEXT("read is genuinely on the live-replication path rather than the hydration one, get that ")
+                TEXT("ruled and raise Get_SetupWaitExemptionAllowList with the reason written beside it."),
                 *Hit.RelativePath, Hit.Line, *Hit.Text),
             false);
     }
 
-    AllGood &= TestEqual(
-        TEXT("(iii) no persistence handler waits on a Setup marker"), SetupWaitHits.Num(), 0);
+    // The ratchet. Exempt hits are counted, never ignored: a second read appearing in an exempted FILE has to
+    // move this number, or the exemption would quietly become a per-file amnesty.
+    AllGood &= TestTrue(
+        FString::Printf(
+            TEXT("(iii) Setup-marker reads in handler files are at or below the ceiling (found %d, ceiling %d) — ")
+            TEXT("every one of them named in Get_SetupWaitExemptionAllowList with its reason"),
+            SetupWaitHits.Num(), SetupWaitCeiling),
+        SetupWaitHits.Num() <= SetupWaitCeiling);
+
+    // ...and the exemptions are still EARNED. A named file that no longer contains the pattern means the shape
+    // was fixed or moved, and the entry has to go with it — an allow-list that outlives its subject is how a
+    // ceiling stops being a ratchet.
+    for (const auto& Entry : SetupWaitExemptions)
+    {
+        const auto* Found = SetupWaitCounts.Find(Entry.Key);
+
+        AllGood &= TestTrue(
+            FString::Printf(
+                TEXT("(iii) the exemption for [%s] is still earned — no Setup-marker read found there, so delete ")
+                TEXT("the entry and lower the ceiling"),
+                *Entry.Key),
+            Found != nullptr);
+
+        if (Found == nullptr)
+        { continue; }
+
+        AllGood &= TestTrue(
+            FString::Printf(TEXT("(iii) [%s] gained Setup-marker reads (%d, was %d) — the exemption names one ")
+                            TEXT("known line, not the file"),
+                *Entry.Key, *Found, Entry.Value),
+            *Found <= Entry.Value);
+    }
 
     Write_Artifact(ViewHits, IdHits);
 
