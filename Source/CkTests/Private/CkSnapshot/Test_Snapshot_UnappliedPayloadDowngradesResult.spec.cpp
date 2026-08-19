@@ -31,6 +31,23 @@ namespace ck_test_unapplied_downgrades
     const auto Timeout_SlotName   = FName{TEXT("CkSnapshot_UnappliedDowngradesResult_GateSlot")};
     const auto NoHandler_SlotName = FName{TEXT("CkSnapshot_NoHandlerPayloadNamed_GateSlot")};
 
+    // The timeout gate has TWO terminal watchdogs racing for the same payload, and only one of them is its
+    // subject. The 5 s wall-clock apply timeout empties the queue and lets the NORMAL release fire; the
+    // 600-frame hydrate cap FORCES the quarantine off, which is the sibling QuarantineEscape gate's exit.
+    // Whichever fires first claims the payload and decides the bucket.
+    //
+    // 600 frames vs 5 s wall makes the tipping point exactly 120 fps, and the drain phase runs at whatever the
+    // lane allows. Measured on a leaf run of this test alone: drain started 12:35:50.504, the cap fired
+    // 12:35:55.657 — 600 frames in 5.153 s, ~116 fps, the two watchdogs finishing 153 ms apart. Under 120 fps
+    // the timeout wins and this gate passes; over it the cap wins and the gate reds on a path it does not own.
+    // That is why it passed on every busy record lane and reds when run by itself.
+    //
+    // So the race is PINNED rather than tolerated: this gate lengthens the frame cap far past any frame rate a
+    // PIE world load reaches, leaving the wall-clock watchdog as the only exit that can fire. It costs nothing
+    // in the healthy case — the timeout still ends the load at ~5 s, and the cap is never approached. 3000
+    // frames tolerates 600 fps, a 5x margin on the measured rate.
+    constexpr auto LengthenedFrameCap = 3000;
+
     auto ResolveStallProbe(UWorld* InWorld) -> FCk_Handle
     {
         if (InWorld == nullptr)
@@ -56,6 +73,20 @@ namespace ck_test_unapplied_downgrades
         InTest.AddExpectedError(TEXT("LOST payload"),
             EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
     }
+
+    // The frame-cap escape's two lines, declared as IGNORED (-1) rather than expected (0). They must not occur —
+    // LengthenedFrameCap exists to make sure of it — and they are not this gate's subject. Declaring them at 0
+    // would REQUIRE them; leaving them undeclared would bury a lost race under an undeclared-error cascade that
+    // says nothing about which watchdog won. Ignored, a lost race fails on the one assertion that names it: the
+    // payload is counted in DroppedTimeout, and it would not be.
+    auto Ignore_FrameCapEscapeDiagnostics(FAutomationTestBase& InTest) -> void
+    {
+        constexpr auto SilentlyIgnored = -1;
+        InTest.AddExpectedError(TEXT("hydration quarantine"),
+            EAutomationExpectedErrorFlags::Contains, SilentlyIgnored);
+        InTest.AddExpectedError(TEXT("settle hit the"),
+            EAutomationExpectedErrorFlags::Contains, SilentlyIgnored);
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -70,6 +101,7 @@ bool FCk_Snapshot_UnappliedPayloadDowngradesResult_Gate::RunTest(const FString& 
     using namespace ck_test_unapplied_downgrades;
 
     Expect_LossDiagnostics(*this);
+    Ignore_FrameCapEscapeDiagnostics(*this);
     AddExpectedError(TEXT("was never applied"), EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
 
     auto Spec = ck::auto_test::snapshot::FCk_SnapshotRoundTrip_Spec{};
@@ -83,9 +115,15 @@ bool FCk_Snapshot_UnappliedPayloadDowngradesResult_Gate::RunTest(const FString& 
         if (auto* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("net.AllowPIESeamlessTravel")))
         { CVar->Set(1, ECVF_SetByCode); }
 
-        // Deliberately NO frame-cap override, unlike the quarantine-escape gate: the exit under test here is the
-        // 5s apply timeout, which empties the queue and lets the NORMAL release fire. The distinction matters —
-        // this is a load that ended on its own terms and still lost a payload.
+        // The exit under test is the 5 s apply timeout, which empties the queue and lets the NORMAL release
+        // fire. The distinction from the quarantine-escape gate matters — this is a load that ended on its own
+        // terms and still lost a payload, not one forced open by a cap. This gate used to set NO override and
+        // relied on the timeout simply being quicker; at 600 frames vs 5 s that holds only under 120 fps. The
+        // cap is LENGTHENED instead, so the watchdog under test is the only one that can claim the payload.
+        // (The sibling gate SHORTENS the same cap, for the opposite reason.)
+        if (auto* Subsystem = ck::auto_test::snapshot::Get_SnapshotSubsystem(InServer))
+        { Subsystem->TestOnly_Set_HydrateFrameCapOverride(LengthenedFrameCap); }
+
         auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
         UCk_Utils_EntityScript_UE::Request_SpawnEntity(
             Transient, UCk_AutoTest_Snapshot_QuarantineProbe_EntityScript_UE::StaticClass(), FInstancedStruct{}, {});
