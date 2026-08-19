@@ -13,6 +13,10 @@
 //         mirror image: the handler waits for a processor the load is holding the entity away from, so the wait
 //         cannot end and the payload is dropped at the apply timeout instead. Setup runs AFTER hydration by
 //         design; a handler that inverts that is a contract violation, and this clause has NO allow-list.
+//         Its scope is every file that CALLS FCk_PersistenceHandlerRegistry::Register (plus the Persistence
+//         headers that hold the templated bodies), never a filename pattern: registration is an ordinary
+//         function call and five registrars today live outside the _Fragment.cpp the house rule names, so a
+//         name-derived scope left the one clause with no allow-list holding the only blind spot.
 //
 // (i) and (ii) are ratchets, not prohibitions: the counts below are what the code has today, they may only ever
 // go down, and a new site in a listed file reds just as loudly as a new file. A regeneration artifact is written
@@ -155,6 +159,17 @@ namespace ck_test_quarantine_fence
         return InLine.Contains(TEXT("Get_ValidHandle("));
     }
 
+    // Where a persistence handler LIVES. The house rule says the feature's _Fragment.cpp and most obey it, but
+    // registration is a plain function call and nothing enforces the filename — today five registrars sit in a
+    // _Replication.cpp, a _Module.cpp or a subsystem .cpp. A scope derived from the FILENAME therefore has a
+    // blind spot, and clause (iii) is the one clause with no allow-list and no ceiling, so it is precisely the
+    // one that must not have one. The scope is the REGISTRATION CALL instead: whatever file makes it is a
+    // handler file, wherever it is named.
+    auto Get_IsHandlerRegistrarLine(const FString& InLine) -> bool
+    {
+        return InLine.Contains(TEXT("FCk_PersistenceHandlerRegistry::Register"));
+    }
+
     // A Setup marker read. Both spellings the codebase uses, and both Has shapes.
     auto Get_IsSetupMarkerReadLine(const FString& InLine) -> bool
     {
@@ -190,6 +205,27 @@ namespace ck_test_quarantine_fence
         }
 
         return Hits;
+    }
+
+    // The file-level twin of Scan: which files carry a matching line at all, keyed by the absolute path they
+    // came in as, so the result can be unioned with another file list without two spellings of one path.
+    auto Collect_FilesWithLine(
+        const TArray<FString>& InAbsoluteFiles,
+        TFunctionRef<bool(const FString&)> InLinePredicate) -> TArray<FString>
+    {
+        auto Matching = TArray<FString>{};
+
+        for (const auto& AbsolutePath : InAbsoluteFiles)
+        {
+            auto Lines = TArray<FString>{};
+            if (NOT FFileHelper::LoadFileToStringArray(Lines, *AbsolutePath))
+            { continue; }
+
+            if (Lines.ContainsByPredicate(InLinePredicate))
+            { Matching.Emplace(AbsolutePath); }
+        }
+
+        return Matching;
     }
 
     auto Get_CountsByFile(const TArray<FScanHit>& InHits) -> TMap<FString, int32>
@@ -252,7 +288,7 @@ bool FCk_Snapshot_NoProcessorBypassesQuarantine_MetaTest::RunTest(const FString&
     { return false; }
 
     auto ProcessorFiles = TArray<FString>{};
-    auto FragmentFiles = TArray<FString>{};
+    auto TranslationUnits = TArray<FString>{};
     auto PersistenceHeaders = TArray<FString>{};
 
     for (const auto& AbsolutePath : AllFiles)
@@ -260,21 +296,40 @@ bool FCk_Snapshot_NoProcessorBypassesQuarantine_MetaTest::RunTest(const FString&
         if (Get_IsProcessorFile(AbsolutePath))
         { ProcessorFiles.Emplace(AbsolutePath); }
 
-        if (AbsolutePath.EndsWith(TEXT("_Fragment.cpp")))
-        { FragmentFiles.Emplace(AbsolutePath); }
+        if (AbsolutePath.EndsWith(TEXT(".cpp")) || AbsolutePath.EndsWith(TEXT(".h")))
+        { TranslationUnits.Emplace(AbsolutePath); }
 
         if (AbsolutePath.EndsWith(TEXT(".h")) && FPaths::GetCleanFilename(AbsolutePath).Contains(TEXT("Persistence")))
         { PersistenceHeaders.Emplace(AbsolutePath); }
     }
+
+    // Every file that registers a handler, found by the CALL rather than by its name — see
+    // Get_IsHandlerRegistrarLine. The templated handler BODIES live in the Persistence headers above, which
+    // carry no registration call of their own, so both sets are in (iii)'s scope.
+    const auto RegistrarFiles = Collect_FilesWithLine(TranslationUnits, &Get_IsHandlerRegistrarLine);
 
     auto AllGood = TestTrue(
         FString::Printf(TEXT("the scan found processor files to fence (found %d)"), ProcessorFiles.Num()),
         ProcessorFiles.Num() > 100);
 
     AllGood &= TestTrue(
-        FString::Printf(TEXT("the scan found persistence-handler files to fence (found %d fragment files)"),
-            FragmentFiles.Num()),
-        FragmentFiles.Num() > 20);
+        FString::Printf(TEXT("the scan found persistence-handler registrars to fence (found %d)"),
+            RegistrarFiles.Num()),
+        RegistrarFiles.Num() > 20);
+
+    // The positive control for the WIDENING, and the reason this clause no longer keys on a filename. If every
+    // registrar the scan finds is a _Fragment.cpp, the scope is indistinguishable from the filename-derived one
+    // it replaced — and the escapes that motivated the change (a registrar in a _Replication.cpp, a _Module.cpp,
+    // a subsystem .cpp) would be back outside the fence with nothing saying so.
+    const auto NonFragmentRegistrars = RegistrarFiles.FilterByPredicate(
+        [](const FString& InPath) { return NOT InPath.EndsWith(TEXT("_Fragment.cpp")); });
+
+    AllGood &= TestTrue(
+        FString::Printf(
+            TEXT("(iii) the handler scope reaches registrars that are NOT named _Fragment.cpp (found %d) — a ")
+            TEXT("scope that found none would be the filename-derived one this clause replaced"),
+            NonFragmentRegistrars.Num()),
+        NonFragmentRegistrars.Num() > 0);
 
     // ----------------------------------------------------------------------------------------------------------------
     // (i) view construction
@@ -356,8 +411,9 @@ bool FCk_Snapshot_NoProcessorBypassesQuarantine_MetaTest::RunTest(const FString&
     // ----------------------------------------------------------------------------------------------------------------
     // (iii) persistence handlers waiting on Setup — no allow-list, no ceiling, zero is the only passing number.
 
-    auto HandlerFiles = FragmentFiles;
-    HandlerFiles.Append(PersistenceHeaders);
+    auto HandlerFiles = RegistrarFiles;
+    for (const auto& Header : PersistenceHeaders)
+    { HandlerFiles.AddUnique(Header); }
 
     const auto SetupWaitHits = Scan(SourceRoot, HandlerFiles, &Get_IsSetupMarkerReadLine);
 
