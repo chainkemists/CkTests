@@ -165,10 +165,7 @@ namespace ck_test_quarantine_fence
     // blind spot, and clause (iii) is the one clause with no allow-list and no ceiling, so it is precisely the
     // one that must not have one. The scope is the REGISTRATION CALL instead: whatever file makes it is a
     // handler file, wherever it is named.
-    auto Get_IsHandlerRegistrarLine(const FString& InLine) -> bool
-    {
-        return InLine.Contains(TEXT("FCk_PersistenceHandlerRegistry::Register"));
-    }
+    const auto HandlerRegistrarCall = FString{TEXT("FCk_PersistenceHandlerRegistry::Register")};
 
     // A Setup marker read. Both spellings the codebase uses, and both Has shapes.
     auto Get_IsSetupMarkerReadLine(const FString& InLine) -> bool
@@ -207,21 +204,24 @@ namespace ck_test_quarantine_fence
         return Hits;
     }
 
-    // The file-level twin of Scan: which files carry a matching line at all, keyed by the absolute path they
-    // came in as, so the result can be unioned with another file list without two spellings of one path.
-    auto Collect_FilesWithLine(
+    // Which files contain a string at all, returned under the absolute path they came in as so the result can
+    // be unioned with another file list without two spellings of one path. Whole-file rather than per-line
+    // (unlike Scan) because the question is about the FILE and this one runs over every translation unit in the
+    // plugin — splitting 60 MB into per-line FStrings to answer a yes/no is the difference between a meta test
+    // that costs a second and one that costs a coffee break.
+    auto Collect_FilesContaining(
         const TArray<FString>& InAbsoluteFiles,
-        TFunctionRef<bool(const FString&)> InLinePredicate) -> TArray<FString>
+        const FString& InNeedle) -> TArray<FString>
     {
         auto Matching = TArray<FString>{};
 
         for (const auto& AbsolutePath : InAbsoluteFiles)
         {
-            auto Lines = TArray<FString>{};
-            if (NOT FFileHelper::LoadFileToStringArray(Lines, *AbsolutePath))
+            auto Contents = FString{};
+            if (NOT FFileHelper::LoadFileToString(Contents, *AbsolutePath))
             { continue; }
 
-            if (Lines.ContainsByPredicate(InLinePredicate))
+            if (Contents.Contains(InNeedle))
             { Matching.Emplace(AbsolutePath); }
         }
 
@@ -304,9 +304,9 @@ bool FCk_Snapshot_NoProcessorBypassesQuarantine_MetaTest::RunTest(const FString&
     }
 
     // Every file that registers a handler, found by the CALL rather than by its name — see
-    // Get_IsHandlerRegistrarLine. The templated handler BODIES live in the Persistence headers above, which
-    // carry no registration call of their own, so both sets are in (iii)'s scope.
-    const auto RegistrarFiles = Collect_FilesWithLine(TranslationUnits, &Get_IsHandlerRegistrarLine);
+    // HandlerRegistrarCall. The templated handler BODIES live in the Persistence headers above, which carry no
+    // registration call of their own, so both sets are in (iii)'s scope.
+    const auto RegistrarFiles = Collect_FilesContaining(TranslationUnits, HandlerRegistrarCall);
 
     auto AllGood = TestTrue(
         FString::Printf(TEXT("the scan found processor files to fence (found %d)"), ProcessorFiles.Num()),
