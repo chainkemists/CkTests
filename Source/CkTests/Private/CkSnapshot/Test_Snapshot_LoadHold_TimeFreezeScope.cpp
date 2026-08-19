@@ -95,7 +95,7 @@ bool FCk_Snapshot_LoadHold_TimeFreezeRefusesASecondLiveWorld::RunTest(const FStr
     auto AllGood = TestEqual(TEXT("world A starts undilated"), Get_Dilation(Scoped.A), 1.0, 1.0e-3);
     AllGood &= TestEqual(TEXT("world B starts undilated"), Get_Dilation(Scoped.B), 1.0, 1.0e-3);
 
-    Scoped.Subsystem->DoApply_TimeFreeze(*Scoped.A);
+    Scoped.Subsystem->TestOnly_Apply_TimeFreeze(*Scoped.A);
 
     AllGood &= TestTrue(
         FString::Printf(TEXT("world A is frozen after the first apply (dilation %.6f)"), Get_Dilation(Scoped.A)),
@@ -110,7 +110,7 @@ bool FCk_Snapshot_LoadHold_TimeFreezeRefusesASecondLiveWorld::RunTest(const FStr
         EAutomationExpectedErrorFlags::Contains,
         AtLeastOnce);
 
-    Scoped.Subsystem->DoApply_TimeFreeze(*Scoped.B);
+    Scoped.Subsystem->TestOnly_Apply_TimeFreeze(*Scoped.B);
 
     AllGood &= TestTrue(
         FString::Printf(TEXT("world B was NOT frozen — the second apply is refused, not served (dilation %.6f)"),
@@ -124,7 +124,7 @@ bool FCk_Snapshot_LoadHold_TimeFreezeRefusesASecondLiveWorld::RunTest(const FStr
 
     // The point of refusing: A's prior value survived, so A can still be given back. Had the second apply been
     // served, this restore would have handed A whatever B happened to be sitting at.
-    Scoped.Subsystem->DoRestore_TimeFreeze(*Scoped.A);
+    Scoped.Subsystem->TestOnly_Restore_TimeFreeze(*Scoped.A);
 
     AllGood &= TestEqual(
         TEXT("world A is restored to exactly the dilation it had before the freeze"),
@@ -150,7 +150,7 @@ bool FCk_Snapshot_LoadHold_TimeFreezeRearmsOverATearingDownWorld::RunTest(const 
         Scoped.A != nullptr && Scoped.B != nullptr && Scoped.Subsystem != nullptr))
     { return false; }
 
-    Scoped.Subsystem->DoApply_TimeFreeze(*Scoped.A);
+    Scoped.Subsystem->TestOnly_Apply_TimeFreeze(*Scoped.A);
 
     // Exactly what a load's own travel does to the world it leaves, and the reason the refusal above must not
     // be a blanket "one freeze per subsystem": EVERY load freezes twice, and the second one has to take. The
@@ -158,14 +158,14 @@ bool FCk_Snapshot_LoadHold_TimeFreezeRearmsOverATearingDownWorld::RunTest(const 
     // delegate, and a bare transient world this test owns has no business firing world-teardown listeners.
     Scoped.A->bIsTearingDown = true;
 
-    Scoped.Subsystem->DoApply_TimeFreeze(*Scoped.B);
+    Scoped.Subsystem->TestOnly_Apply_TimeFreeze(*Scoped.B);
 
     auto AllGood = TestTrue(
         FString::Printf(TEXT("the post-travel world IS frozen — a world that has begun tearing down is not a "
                              "world the freeze still owes anything to (dilation %.6f)"), Get_Dilation(Scoped.B)),
         Get_Dilation(Scoped.B) <= FrozenCeiling);
 
-    Scoped.Subsystem->DoRestore_TimeFreeze(*Scoped.B);
+    Scoped.Subsystem->TestOnly_Restore_TimeFreeze(*Scoped.B);
 
     AllGood &= TestEqual(
         TEXT("...and it is restored on the way out"),
