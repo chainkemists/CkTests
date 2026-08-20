@@ -73,6 +73,7 @@ public class CkTests : CkModuleRules
             "CkParticles",
             "CkPathNetwork",
             "CkPerception",
+            "CkPixelArtRender",
             "CkPmg",
             "CkPhysics",
             "CkProfile",
