@@ -47,6 +47,7 @@ class ACk_PixelArtGym_JudgeScene : AActor
         Build_Ramp();
         Build_ThinRail();
         Build_Rotator();
+        Build_CaptureTripwire();
     }
 
     UFUNCTION(BlueprintOverride)
@@ -150,5 +151,28 @@ class ACk_PixelArtGym_JudgeScene : AActor
     {
         _Rotator = Spawn_Shape("/Engine/BasicShapes/Cone.Cone", FVector(350.0f, 0.0f, 200.0f),
             FVector(1.5f, 1.5f, 2.0f), FRotator::ZeroRotator, FLinearColor(0.72f, 0.30f, 0.34f, 1.0f));
+    }
+
+    // A per-frame scene capture, kept deliberately: its view family renders BETWEEN the game viewport's
+    // SetupViewFamily and BeginRenderViewFamily hooks, which is exactly the interleave that once dropped the
+    // upscaler for any world holding a minimap-style capture. With the capture alive, a regression of that
+    // guard is unmissable — the whole gym goes soft and mis-framed — where without one the defect is invisible
+    // in every station. 128x128 keeps its cost negligible.
+    private void Build_CaptureTripwire()
+    {
+        auto Capture = USceneCaptureComponent2D::Create(this);
+        Capture.TextureTarget = Rendering::CreateRenderTarget2D(128, 128);
+        Capture.bCaptureEveryFrame = true;
+        Capture.SetRelativeLocation(FVector(0.0f, 0.0f, 2000.0f));
+        Capture.SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
+
+        // Loud either way: an inert tripwire is worse than none, because it reads as coverage.
+        if (ck::Is_NOT_Valid(Capture.TextureTarget))
+        {
+            ck::Error("❌ Pixel Art Gym: the capture tripwire has NO render target - it captures nothing and the capture-interleave path is not being exercised");
+            return;
+        }
+
+        ck::Trace("🟪 Capture tripwire alive: a 128x128 scene capture renders every frame beside the gym");
     }
 }
