@@ -2452,6 +2452,19 @@ class ACk_AutoTest_EntityTag_AddIsCounted_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_EntityTag_AnyEntity_FilterSharesLiveTagName_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 6.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_EntityTag_AnyEntity_FilterSharesLiveTagName");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_EntityTag_AnyEntity_FiresOnAdd_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 6.0f;
