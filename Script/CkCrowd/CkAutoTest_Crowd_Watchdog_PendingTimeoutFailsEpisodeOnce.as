@@ -101,7 +101,7 @@ class UCk_AutoTest_Crowd_Watchdog_PendingTimeoutFailsEpisodeOnce : UCk_AutoTest_
     }
 
     UFUNCTION()
-    private void OnGoalFailed(FCk_Handle_CrowdAgent InAgent)
+    private void OnGoalFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         _GoalFailedCount += 1;
     }
