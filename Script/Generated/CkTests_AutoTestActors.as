@@ -1095,6 +1095,19 @@ class ACk_AutoTest_BallisticMotion_ImpactStopsProjectile_Actor : ACk_AutoTestRun
     }
 }
 
+class ACk_AutoTest_Camera_OrthoProjection_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 10.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Camera_OrthoProjection");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_CameraShake_Add_CreatesEntry_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 4.0f;
