@@ -26,8 +26,10 @@
 //   Ck_GymPixelArt_CycleStation   — next station without walking
 //   Ck_GymPixelArt_TogglePan      — start/stop the 0.2 texel/frame diagonal drift
 //   Ck_GymPixelArt_ToggleLook     — the look on its own, independent of the renderer
+//   Ck_GymPixelArt_ToggleOKLab    — flip the active station into OKLab banding + the warm ramp
 //
-// Keys: 1-9/0 select a station, P flips orthographic <-> perspective, Tab opens the cycler menu.
+// Keys: 1-9/0 select a station, P flips orthographic <-> perspective, O flips the OKLab treatment,
+// Tab opens the cycler menu.
 //
 // Needs the PixelArt master on disk for the LOOK stations: on a fresh checkout run
 // "Ck_Usf_GenerateLooks PixelArt" once in the editor console. The RENDERER stations work regardless — and
@@ -35,6 +37,12 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 const float k_PixelArtGym_ViewingClearance = 600.0f;
+
+// Where the pawn is PLACED at gym start, above the first station's viewing point. The shared map's
+// PlayerStart can sit UNDER the judge scene's ground plane, and the pawn's collision then traps it there
+// with the camera looking at the underside of the world. High enough to clear the ground and the pawn's
+// own collision sphere; the floating pawn movement has no gravity, so it stays where it is put.
+const float k_PixelArtGym_SpawnHeight = 400.0f;
 
 class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
 {
@@ -44,6 +52,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
     private TArray<FString> _StationLabels;
     private int32 _ActiveStation = -1;
     private bool _LookOverride = false;
+    private bool _OKLabOverride = false;
 
     // Set when a station is chosen by KEY rather than by walking. Cleared once the pawn has moved far enough
     // that walking is plainly what the player is now doing.
@@ -123,6 +132,11 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartGym() override
     {
         Request_RebuildGym();
+
+        auto Pawn = GetControlledPawn();
+
+        if (System::IsValid(Pawn) && _StationLocations.Num() > 0)
+        { Pawn.SetActorLocation(_StationLocations[0] + FVector(0.0f, 0.0f, k_PixelArtGym_SpawnHeight)); }
 
         ck::Trace("🟪 Pixel Art Gym - walk to a station to apply its configuration");
         ck::Trace("   Ck_GymPixelArt_TogglePan starts the 0.2 texel/frame drift the creep verdicts need");
@@ -306,6 +320,17 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         if (_LookOverride)
         { Params.Set_ApplyLook(ECk_EnableDisable::Enable); }
 
+        // Same station, OKLab treatment: perceptual band spacing, OKLab palette matching, the reference
+        // warm ramp. Forces the look on, because a colour-space verdict with no look rendering is inert.
+        if (_OKLabOverride)
+        {
+            auto Look = Params.Get_Look();
+            Look.Set_ColorSpace(ECk_PixelArt_ColorSpace::OKLab);
+            Look.Set_WarmShift(0.05);
+            Params.Set_Look(Look);
+            Params.Set_ApplyLook(ECk_EnableDisable::Enable);
+        }
+
         Subsystem.Request_SetSettings(Params);
         Subsystem.Request_SetEnabled(Enabled);
 
@@ -412,6 +437,26 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
+    bool Get_OKLabOverride() const
+    {
+        return _OKLabOverride;
+    }
+
+    void Request_ToggleOKLab()
+    {
+        _OKLabOverride = !_OKLabOverride;
+
+        auto State = _OKLabOverride ? "ON" : "OFF";
+        ck::Trace(f"🟪 Pixel Art Gym: OKLab treatment {State}");
+
+        if (_StationTags.IsValidIndex(_ActiveStation))
+        {
+            auto Index = _ActiveStation;
+            _ActiveStation = -1;
+            Request_ApplyStation(Index);
+        }
+    }
+
     UFUNCTION(Exec, DisplayName="Pixel Art Gym - Restart")
     void Ck_GymPixelArt_RestartAll()
     {
@@ -450,5 +495,11 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymPixelArt_ToggleLook()
     {
         Request_ToggleLook();
+    }
+
+    UFUNCTION(Exec, DisplayName="Pixel Art Gym - Toggle OKLab")
+    void Ck_GymPixelArt_ToggleOKLab()
+    {
+        Request_ToggleOKLab();
     }
 }
