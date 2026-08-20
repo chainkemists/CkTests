@@ -12,6 +12,11 @@
 //   STUTTER  (snap on, comp off)     -> motion advances in whole texels
 //   SMOOTH   (snap on, comp on)      -> smooth motion, grid-aligned. The finished result.
 //
+// There are TWO ways to pick a station and they take turns rather than fighting: walking to one selects it,
+// and pressing its number key selects it and SUSPENDS the walking selection until you move away again.
+// Without that suspension the number keys would be useless — the next proximity tick would snap straight
+// back to whichever station you happen to be standing next to.
+//
 // Tab opens the gym cycler menu; search "Pixel". Console:
 //   Ck_GymPixelArt_RestartAll     — respawn the judge scene and re-apply the first station
 //   Ck_GymPixelArt_CycleStation   — next station without walking
@@ -30,8 +35,18 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
     private TArray<FName> _StationTags;
     private TArray<FVector> _StationLocations;
     private AActor _JudgeScene;
+    private TArray<FString> _StationLabels;
     private int32 _ActiveStation = -1;
     private bool _LookOverride = false;
+
+    // Set when a station is chosen by KEY rather than by walking. Cleared once the pawn has moved far enough
+    // that walking is plainly what the player is now doing.
+    private bool _ManualSelection = false;
+    private FVector _ManualSelectionOrigin = FVector::ZeroVector;
+
+    // Comfortably more than a step and comfortably less than the 1200uu station spacing, so a key choice
+    // survives shuffling on the spot but yields the moment the player walks to another station.
+    private const float ManualSelectionReleaseDistance = 400.0f;
 
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
@@ -134,23 +149,34 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         { ck::Error("❌ Pixel Art Gym: failed to spawn the judge scene"); }
 
         _StationTags.Empty();
+        _StationLabels.Empty();
         _StationLocations.Empty();
-        _StationTags.Add(n"Gym.PixelArt.Off");
-        _StationTags.Add(n"Gym.PixelArt.RendererOnly");
-        _StationTags.Add(n"Gym.PixelArt.Height180");
-        _StationTags.Add(n"Gym.PixelArt.Height540");
-        _StationTags.Add(n"Gym.PixelArt.Creep");
-        _StationTags.Add(n"Gym.PixelArt.Stutter");
-        _StationTags.Add(n"Gym.PixelArt.Smooth");
-        _StationTags.Add(n"Gym.PixelArt.Crisp16");
-        _StationTags.Add(n"Gym.PixelArt.SoftRamp");
-        _StationTags.Add(n"Gym.PixelArt.Nearest");
+
+        // Short labels for the on-screen panel. Kept beside the tags rather than derived from the station
+        // placards, because a placard is three lines of prose and a key row has to fit on one.
+        Register_Station(n"Gym.PixelArt.Off",          "OFF (native)");
+        Register_Station(n"Gym.PixelArt.RendererOnly", "Renderer only, 360p");
+        Register_Station(n"Gym.PixelArt.Height180",    "Internal height 180");
+        Register_Station(n"Gym.PixelArt.Height540",    "Internal height 540");
+        Register_Station(n"Gym.PixelArt.Creep",        "A/B 1 - CREEP (snap off)");
+        Register_Station(n"Gym.PixelArt.Stutter",      "A/B 2 - STUTTER (no comp)");
+        Register_Station(n"Gym.PixelArt.Smooth",       "A/B 3 - SMOOTH (result)");
+        Register_Station(n"Gym.PixelArt.Crisp16",      "Preset: Crisp 16");
+        Register_Station(n"Gym.PixelArt.SoftRamp",     "Preset: Soft Ramp");
+        Register_Station(n"Gym.PixelArt.Nearest",      "Filter: Nearest");
 
         for (auto Tag : _StationTags)
         { _StationLocations.Add(Get_StationViewingPoint(Tag)); }
 
         _ActiveStation = -1;
+        _ManualSelection = false;
         Request_ApplyStation(0);
+    }
+
+    private void Register_Station(FName InTag, FString InLabel)
+    {
+        _StationTags.Add(InTag);
+        _StationLabels.Add(InLabel);
     }
 
     private FVector Get_StationViewingPoint(FName InTag)
@@ -171,6 +197,15 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         { return; }
 
         auto PawnLocation = Pawn.GetActorLocation();
+
+        if (_ManualSelection)
+        {
+            if ((PawnLocation - _ManualSelectionOrigin).Size() < ManualSelectionReleaseDistance)
+            { return; }
+
+            _ManualSelection = false;
+        }
+
         auto Nearest = 0;
         auto NearestDistanceSq = (_StationLocations[0] - PawnLocation).SizeSquared();
 
@@ -275,6 +310,52 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         }
 
         _ActiveStation = InIndex;
+    }
+
+    // Chosen by key rather than by walking. Records where the player was standing so Tick knows when they
+    // have moved on and proximity should take over again.
+    void Request_SelectStation_Manual(int32 InIndex)
+    {
+        if (!_StationTags.IsValidIndex(InIndex))
+        { return; }
+
+        Request_ApplyStation(InIndex);
+
+        // Only latch if the apply actually took: a station the subsystem refused must not also suspend the
+        // walking selection, or the gym goes inert with nothing on screen saying why.
+        if (_ActiveStation != InIndex)
+        { return; }
+
+        _ManualSelection = true;
+
+        auto Pawn = GetControlledPawn();
+
+        _ManualSelectionOrigin = System::IsValid(Pawn) ? Pawn.GetActorLocation() : FVector::ZeroVector;
+    }
+
+    int32 Get_StationCount() const
+    {
+        return _StationLabels.Num();
+    }
+
+    FString Get_StationLabel(int32 InIndex) const
+    {
+        return _StationLabels.IsValidIndex(InIndex) ? _StationLabels[InIndex] : "";
+    }
+
+    int32 Get_ActiveStation() const
+    {
+        return _ActiveStation;
+    }
+
+    bool Get_SelectionIsManual() const
+    {
+        return _ManualSelection;
+    }
+
+    bool Get_LookOverride() const
+    {
+        return _LookOverride;
     }
 
     void Request_CycleStation()

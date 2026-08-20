@@ -7,4 +7,7 @@ class ACk_PixelArtGym_GameMode : ACkTests_Gym_Base_GameMode
 {
     default PlayerControllerClass = ACk_PixelArtGym_PlayerController;
     default DefaultPawnClass = ACk_Gym_Base_Pawn;
+
+    // Subclasses the shared cycler HUD rather than replacing it, so Tab still opens the gym menu.
+    default HUDClass = ACk_PixelArtGym_HUD;
 }

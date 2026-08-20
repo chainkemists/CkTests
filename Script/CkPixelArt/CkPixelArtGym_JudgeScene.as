@@ -17,6 +17,11 @@
 //                         where the renderer either holds a stable line or shimmers.
 //   - slow rotator      : the motion subject. Camera snapping does nothing for a moving OBJECT, so this is
 //                         the documented limit made visible rather than hidden.
+//   - key + fill light  : its OWN lighting rather than the map's. Every banding and crease verdict here is
+//                         a verdict about lighting, so a scene that inherited whatever the shared gym map
+//                         happened to have would not be comparable between runs. The key sits at a low
+//                         angle on purpose: it throws a long shadow across the ground plane, which is what
+//                         gives the grazing-angle test something to be wrong about.
 //
 // The scene is deliberately built from engine basic shapes: a pixel-art verdict must not depend on content
 // that could itself be the reason something looks wrong.
@@ -35,6 +40,7 @@ class ACk_PixelArtGym_JudgeScene : AActor
     {
         auto _CkPerfScope = ck::ScopedStat();
 
+        Build_Lighting();
         Build_Ground();
         Build_CubeStack();
         Build_Sphere();
@@ -83,6 +89,25 @@ class ACk_PixelArtGym_JudgeScene : AActor
         }
 
         return Component;
+    }
+
+    // Shadows are cast, which under this project means VIRTUAL shadow maps (`r.Shadow.Virtual.Enable=1`,
+    // Config/DefaultEngine.ini:57). That matters to a pixel-art verdict: a hard shadow-map edge flickers at
+    // 360p, and VSM's filtered edge is what holds the shadow boundary still between frames. If a run ever
+    // shows a crawling shadow edge, check that CVar before suspecting the camera snap.
+    private void Build_Lighting()
+    {
+        auto KeyLight = UDirectionalLightComponent::Create(this);
+        KeyLight.SetRelativeRotation(FRotator(-38.0f, 145.0f, 0.0f));
+        KeyLight.SetIntensity(6.0f);
+        KeyLight.SetLightColor(FLinearColor(1.0f, 0.96f, 0.88f, 1.0f));
+        KeyLight.SetCastShadows(true);
+
+        // Without a fill, everything facing away from the key collapses into one band and the band COUNT
+        // becomes unjudgeable on exactly the surfaces the crease test needs.
+        auto Fill = USkyLightComponent::Create(this);
+        Fill.SetIntensity(1.0f);
+        Fill.SetLightColor(FLinearColor(0.55f, 0.62f, 0.80f, 1.0f));
     }
 
     private void Build_Ground()
