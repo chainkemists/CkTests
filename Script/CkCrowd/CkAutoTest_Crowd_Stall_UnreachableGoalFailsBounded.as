@@ -368,7 +368,7 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnGoalFailed(FCk_Handle_CrowdAgent InAgent)
+    private void OnGoalFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
 

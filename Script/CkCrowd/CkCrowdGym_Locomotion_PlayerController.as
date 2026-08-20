@@ -161,7 +161,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     UFUNCTION()
-    void OnAgentGoalFailed(FCk_Handle_CrowdAgent InAgent)
+    void OnAgentGoalFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         ck::crowd::Warning(f"Locomotion gym: OnGoalFailed fired — path could not be resolved");
     }

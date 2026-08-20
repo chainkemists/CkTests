@@ -413,7 +413,7 @@ class UCk_AutoTest_Crowd_PathNetworkStationaryDetour : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnUnexpectedGoalFailed(FCk_Handle_CrowdAgent InAgent)
+    private void OnUnexpectedGoalFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
         FinishFailure("walker goal failed before a local stationary-markup detour installed");

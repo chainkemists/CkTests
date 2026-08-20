@@ -390,14 +390,14 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnSouthFailed(FCk_Handle_CrowdAgent InAgent)
+    private void OnSouthFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
         FinishFailure("agent SOUTH reported OnGoalFailed — the route never resolved. That is NOT the standoff under test; the corridor failed to install.");
     }
 
     UFUNCTION()
-    private void OnNorthFailed(FCk_Handle_CrowdAgent InAgent)
+    private void OnNorthFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
         FinishFailure("agent NORTH reported OnGoalFailed — the route never resolved. That is NOT the standoff under test; the corridor failed to install.");

@@ -19,7 +19,11 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
 {
     private FCk_Handle _PcEntity;
     private FCk_Handle _StationHandle;
+    private FCk_Handle _NavProbeEntity;
     private TArray<FCk_Handle_CrowdAgent> _Agents;
+    private bool _AutoSpawned = false;
+
+    private const int32 AutoSpawnCount = 20;
 
     // Station-LOCAL +X is "in front of the alcove" (toward the player camera) after the cycler's
     // 180 degree rotation, so a local +X offset always lands in the visible play area.
@@ -43,7 +47,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
             Station.AutoSize = true;
             Station.Title = FText::FromString("CROWD BUNCH-UP (shared goal)");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("15 agents on a 600cm ring, ALL commanded to the same centre point."));
+            Description.Add(FText::FromString("20 agents auto-spawn on two rings, ALL commanded to the same centre point."));
             Description.Add(FText::FromString("Expected: one agent reaches it, the rest settle into a packed ring and stop."));
             Description.Add(FText::FromString("Defect: agents fidget against the pile forever, never learning the goal is taken."));
             Description.Add(FText::FromString("Console: Ck_GymCrowd_BunchUp_Spawn / _Reset / _Digest"));
@@ -81,7 +85,43 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
         // station transforms it anchors to only exist once the stations have settled.
         utils_nav::Request_NavigationRebuild_ForTesting(_PcEntity);
 
-        ck::crowd::Log("BunchUp gym started. Run Ck_GymCrowd_BunchUp_Spawn to dispatch the crowd.");
+        // Auto-spawn gate: a probe path from a real ring point through the centre proves the bake
+        // finished (the same readiness pattern the BunchUp autotest uses); spawning on a timer
+        // instead would race the async tile build and every MoveTo would fail.
+        const auto Centre = Get_Centre();
+        const auto ProbeStart = Centre + FVector(RingRadius, 0.0, 0.0);
+        _NavProbeEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
+        utils_transform::Add(_NavProbeEntity,
+            FTransform(FRotator::ZeroRotator, ProbeStart, FVector::OneVector),
+            ECk_Replication::DoesNotReplicate);
+
+        utils_nav::BindTo_OnPathReady(_NavProbeEntity,
+            FCk_Delegate_Nav_OnPathReady(this, n"OnNavProbeReady"),
+            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
+            ECk_Signal_PostFireBehavior::DoNothing);
+        utils_nav::BindTo_OnPathFailed(_NavProbeEntity,
+            FCk_Delegate_Nav_OnPathFailed(this, n"OnNavProbeFailed"),
+            ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
+            ECk_Signal_PostFireBehavior::DoNothing);
+        utils_nav::Request_FindPath(_NavProbeEntity, FCk_Request_Nav_FindPath(Centre));
+
+        ck::crowd::Log(f"BunchUp gym started — auto-spawning {AutoSpawnCount} agents once the navmesh probe resolves. Ck_GymCrowd_BunchUp_Spawn re-runs manually.");
+    }
+
+    UFUNCTION()
+    private void OnNavProbeReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
+    {
+        if (_AutoSpawned || _Agents.Num() > 0)
+        { return; }
+
+        _AutoSpawned = true;
+        Ck_GymCrowd_BunchUp_Spawn(AutoSpawnCount);
+    }
+
+    UFUNCTION()
+    private void OnNavProbeFailed(FCk_Handle InHandle)
+    {
+        ck::crowd::Log("BunchUp gym: navmesh probe failed — auto-spawn skipped; run Ck_GymCrowd_BunchUp_Spawn manually once the navmesh is visible.");
     }
 
     private void SpawnFloor()

@@ -267,7 +267,7 @@ class UCk_AutoTest_PathNetworkFollower_TuningReplansSameGoal : UCk_AutoTest_Base
 
     UFUNCTION()
     private void OnUnexpectedGoalFailed(
-        FCk_Handle_CrowdAgent InAgent)
+        FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
         FinishFailure("CrowdAgent goal failed while verifying live route replacement");

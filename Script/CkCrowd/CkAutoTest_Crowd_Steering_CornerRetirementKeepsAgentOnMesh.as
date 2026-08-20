@@ -377,7 +377,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     }
 
     UFUNCTION()
-    private void OnGoalFailed(FCk_Handle_CrowdAgent InAgent)
+    private void OnGoalFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
         _UnexpectedFailure = true;

@@ -219,7 +219,7 @@ class UCk_AutoTest_Crowd_NavQueryFilter_ForceReplan : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnUnexpectedGoalFailed(FCk_Handle_CrowdAgent InAgent)
+    private void OnUnexpectedGoalFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
         FinishFailure("policy replacement emitted an unexpected OnGoalFailed terminal callback");

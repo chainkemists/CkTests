@@ -240,7 +240,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     UFUNCTION()
-    void OnAgentGoalFailed(FCk_Handle_CrowdAgent InAgent)
+    void OnAgentGoalFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         FCk_Handle Generic = InAgent;
         ck::crowd::Warning(f"Separation gym: agent {Generic} failed to reach goal");
