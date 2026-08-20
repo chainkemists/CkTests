@@ -20,9 +20,11 @@
 //
 // A NEW FCk_RepData_* type that matches none of these fails this test — forcing an explicit decision
 // (cover it, or document why it is exempt) instead of silently shipping a feature whose replicated
-// values vanish on the client after an MP reload. See HARDENING_RepDataRestoreCoverage.md.
+// values vanish on the client after an MP reload. The registration shapes this test probes
+// (Register_SaveOnly / Register_NetOnly and their net-and-save siblings) are documented in
+// CkFoundation/Source/CkSnapshot/Claude.md, "Authoring a persistence handler".
 //
-// When you add restore coverage for a feature, MOVE its suffix from kDeferred to kCovered here.
+// When you add restore coverage for a feature, MOVE its suffix from Get_Deferred() to Get_Covered().
 
 #include "CkCore/Macros/CkMacros.h"
 
@@ -65,6 +67,12 @@ namespace ck_repdata_coverage_test
     }
 
     // suffix -> reason. Every uncovered FCk_RepData_* MUST appear here with a documented reason.
+    //
+    // Rows are drift-guarded below: a suffix here must still resolve to a live reflected type. The
+    // first thing that guard caught was a "Container" row whose own reason hedged "N/A if it
+    // reflects at all" — it never did. TFragment_ContainerEntryRef<T> is a fragment template alias,
+    // not a RepData payload, so there was never an FCk_RepData_Container to defer. It sat here
+    // documenting a decision about nothing, and the covered-only guard could not see it.
     static auto Get_Deferred() -> const TMap<FString, FString>&
     {
         static const TMap<FString, FString> Deferred = {
@@ -74,7 +82,6 @@ namespace ck_repdata_coverage_test
             { TEXT("Rotation"),                 TEXT("audit complete 2026-06-10: same as Location — actor-backed re-derives (M2b2b gate); pure-ECS SceneNode rep deferred until a real use") },
             { TEXT("Scale"),                    TEXT("audit complete 2026-06-10: same as Location — actor-backed re-derives (M2b2b gate); pure-ECS SceneNode rep deferred until a real use") },
             { TEXT("GeometryCollectionOwner"),  TEXT("Lead decision 2026-06-10: ephemeral destruction state, does NOT persist — permanently deferred") },
-            { TEXT("Container"),                TEXT("generic template base (TFragment_ContainerEntryRef<>), not a concrete replicated feature — N/A if it reflects at all") },
             { TEXT("VoiceChat_ChannelEntry"),   TEXT("not a container — the element type of FCk_RepData_VoiceChat::_Channels, name-matched only because it inherits its owner's RepData_ prefix. The owning container is Register_NetOnly (CkVoiceChat_Replication.cpp), so there is no snapshot to restore from; and it never sits on an entity, so a NetApply registration to silence this would be fiction") },
             { TEXT("VoiceChat_Member"),         TEXT("not a container — a value type nested in a ChannelEntry's _Members array; same case as VoiceChat_ChannelEntry. Voice is runtime net state and is never saved (CkVoiceChat_RepData.h)") },
         };
@@ -179,11 +186,12 @@ bool
         AddError(FString::Printf(
             TEXT("Replicated container [%s] (reflected [%s]) has NO restore-replication coverage decision. ")
             TEXT("After a server snapshot load + seamless travel its replicated VALUES will silently fail to reach ")
-            TEXT("clients. Either add a ReplicateOnRestore handler (then add its suffix to kCovered in this test), ")
-            TEXT("or document why it is exempt (add it to kDeferred with a reason). If the type genuinely never ")
-            TEXT("replicates, register it via Register_SaveOnly; if it genuinely never enters a snapshot, register ")
-            TEXT("it via Register_NetOnly — this test detects either from the registry. See ")
-            TEXT("HARDENING_RepDataRestoreCoverage.md."),
+            TEXT("clients. Either add a ReplicateOnRestore handler (then add its suffix to Get_Covered() in this ")
+            TEXT("test), or document why it is exempt (add it to Get_Deferred() with a reason). If the type ")
+            TEXT("genuinely never replicates, register it via Register_SaveOnly; if it genuinely never enters a ")
+            TEXT("snapshot, register it via Register_NetOnly — this test detects either from the registry. The ")
+            TEXT("registration shapes are documented in CkFoundation/Source/CkSnapshot/Claude.md, \"Authoring a ")
+            TEXT("persistence handler\"."),
             *Suffix, *Name));
     }
 
@@ -194,6 +202,30 @@ bool
         TestTrue(
             FString::Printf(TEXT("Covered RepData [%s] still exists (not renamed/removed)"), *CoveredSuffix),
             Discovered.Contains(CoveredSuffix));
+    }
+
+    // The same guard on the DEFERRED half, which it was missing. Walking only Get_Covered() left the debt
+    // list unpoliced: a deferred type that is renamed or deleted stops matching, its row is never consulted
+    // again, and the map keeps a documented "reason" for a type that no longer exists — a ratchet that
+    // silently accumulates fiction is worse than no ratchet, because the reason text still reads as a live
+    // decision. Mirrors the FragmentPostureCoverage ratchet's allow-list guard.
+    for (const auto& DeferredEntry : Deferred)
+    {
+        TestTrue(
+            FString::Printf(TEXT("Deferred RepData [%s] still exists (not renamed/removed) — drop the row and its ")
+                TEXT("reason if the type is gone, or repoint it at the new name"), *DeferredEntry.Key),
+            Discovered.Contains(DeferredEntry.Key));
+    }
+
+    // The two row sets must stay disjoint. A suffix in BOTH resolves as Covered (the Covered arm returns
+    // first), so its Deferred row — and the reason a reader would act on — rots unreachable: exactly the
+    // "debt already paid, list never updated" state the drift guards exist to prevent.
+    for (const auto& DeferredEntry : Deferred)
+    {
+        TestFalse(
+            FString::Printf(TEXT("Deferred RepData [%s] is not ALSO in Get_Covered() — a covered type's deferral ")
+                TEXT("reason is unreachable and stale; delete the Get_Deferred() row"), *DeferredEntry.Key),
+            Covered.Contains(DeferredEntry.Key));
     }
 
     AddInfo(FString::Printf(
