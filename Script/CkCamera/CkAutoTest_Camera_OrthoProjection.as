@@ -162,7 +162,7 @@ class UCk_AutoTest_Camera_OrthoProjection : UCk_AutoTest_Base
         if (Math::Abs(ComposedSensor.Get_OrthoWidth() - BaseOrthoWidth) < 0.5f)
         {
             Assert_True(true, "Composed OrthoWidth returned to the 1024 base after the layer was removed");
-            FinishSuccess();
+            DoCheck_ProjectionModeRequest();
             return;
         }
 
@@ -170,5 +170,89 @@ class UCk_AutoTest_Camera_OrthoProjection : UCk_AutoTest_Base
         { FinishFailure(f"OrthoWidth never returned to {BaseOrthoWidth} after removal (got {ComposedSensor.Get_OrthoWidth()})"); return; }
 
         WaitOneFrame(n"OnFrame");
+    }
+
+    // The runtime mode switch is a SEPARATE mechanism from the profile: everything above reaches ortho by
+    // authoring it into the camera's params, which is the path a designer takes. Request_SetProjectionMode is
+    // the path gameplay takes, and without this it had no coverage in any of the three environments — the
+    // camera could have shipped able to start orthographic but not to become it.
+    //
+    // Every assertion here settles a frame first, and that is the CONTRACT rather than a workaround: the
+    // request mutates the Current fragment immediately, but Get_ComposedProfile returns the snapshot the
+    // lifecycle processor refreshes once per frame. Reading it on the calling stack reports the OLD mode —
+    // which is exactly what the first version of this test did, and what it failed on.
+    private void DoCheck_ProjectionModeRequest()
+    {
+        auto Request = FCk_Request_Camera_SetProjectionMode(ECk_Camera_ProjectionMode::Perspective);
+        _Camera.Request_SetProjectionMode(Request);
+
+        _Frames = 0;
+        WaitOneFrame(n"OnPerspectiveApplied");
+    }
+
+    UFUNCTION()
+    private void OnPerspectiveApplied(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        _Frames += 1;
+
+        if (_Camera.Get_ComposedProfile().Get_Sensor().Get_ProjectionMode() != ECk_Camera_ProjectionMode::Perspective)
+        {
+            if (_Frames > 5)
+            { FinishFailure("Request_SetProjectionMode did not switch the composed profile to Perspective"); return; }
+
+            WaitOneFrame(n"OnPerspectiveApplied");
+            return;
+        }
+
+        Assert_True(true, "Request_SetProjectionMode switched the composed profile to Perspective");
+
+        // Back to orthographic, this time carrying explicit planes in the same request — the reason the planes
+        // ride WITH the mode is that an orthographic view with a perspective camera's near/far clips the scene
+        // at the wrong distances, so there is no moment where a caller wants one without the other.
+        auto BackToOrtho = FCk_Request_Camera_SetProjectionMode(ECk_Camera_ProjectionMode::Orthographic);
+        BackToOrtho.Set_OrthoNearClipPlane(NearPlane * 2.0f);
+        BackToOrtho.Set_OrthoFarClipPlane(FarPlane * 0.5f);
+        _Camera.Request_SetProjectionMode(BackToOrtho);
+
+        _Frames = 0;
+        WaitOneFrame(n"OnOrthoRestored");
+    }
+
+    UFUNCTION()
+    private void OnOrthoRestored(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (IsFinished()) { return; }
+
+        _Frames += 1;
+
+        auto Sensor = _Camera.Get_ComposedProfile().Get_Sensor();
+        auto ViewInfo = _Camera.Get_ViewInfo();
+
+        const bool ModeIsBack = Sensor.Get_ProjectionMode() == ECk_Camera_ProjectionMode::Orthographic &&
+                                ViewInfo.ProjectionMode == ECameraProjectionMode::Orthographic;
+
+        if (!ModeIsBack)
+        {
+            if (_Frames > 5)
+            { FinishFailure("Request_SetProjectionMode did not switch back to Orthographic"); return; }
+
+            WaitOneFrame(n"OnOrthoRestored");
+            return;
+        }
+
+        if (Math::Abs(Sensor.Get_OrthoNearClipPlane() - NearPlane * 2.0f) > 0.5f ||
+            Math::Abs(Sensor.Get_OrthoFarClipPlane() - FarPlane * 0.5f) > 0.5f)
+        {
+            FinishFailure(f"Request-carried clip planes did not take: {Sensor.Get_OrthoNearClipPlane()}/{Sensor.Get_OrthoFarClipPlane()}");
+            return;
+        }
+
+        if (Math::Abs(ViewInfo.OrthoNearClipPlane - NearPlane * 2.0f) > 0.5f)
+        { FinishFailure(f"ViewInfo near plane is {ViewInfo.OrthoNearClipPlane}, expected {NearPlane * 2.0f}"); return; }
+
+        Assert_True(true, "The requested mode and its clip planes reach both the composed profile and ViewInfo");
+        FinishSuccess();
     }
 }
