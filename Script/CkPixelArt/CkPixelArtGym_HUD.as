@@ -49,10 +49,11 @@ class ACk_PixelArtGym_HUD : ACkGym_MenuHUD
 
         auto PC = Cast<ACk_PixelArtGym_PlayerController>(GetOwningPlayerController());
 
-        if (!ck::IsValid(PC) || PC.Get_StationCount() == 0)
+        if (ck::Is_NOT_Valid(PC) || PC.Get_StationCount() == 0)
         { return; }
 
         Tick_StationKeys(PC);
+        Tick_ProjectionKey(PC);
         Draw_StationPanel(PC);
     }
 
@@ -69,6 +70,17 @@ class ACk_PixelArtGym_HUD : ACkGym_MenuHUD
             InPC.Request_SelectStation_Manual(Index);
             return;
         }
+    }
+
+    // P flips the camera between orthographic and perspective. It sits beside the station keys rather than in
+    // the console because the perspective image is the ONE failure this gym cannot otherwise show: the snap is
+    // skipped on a perspective view, so the result looks like permanent creep on every station at once.
+    private void Tick_ProjectionKey(ACk_PixelArtGym_PlayerController InPC)
+    {
+        if (!InPC.WasInputKeyJustPressed(EKeys::P))
+        { return; }
+
+        InPC.Request_ToggleProjection();
     }
 
     private bool Get_StationKeyPressed(ACk_PixelArtGym_PlayerController InPC, int32 InIndex)
@@ -104,8 +116,8 @@ class ACk_PixelArtGym_HUD : ACkGym_MenuHUD
         const int32 StationCount = InPC.Get_StationCount();
         const int32 Active = InPC.Get_ActiveStation();
 
-        // Title row, station rows, then two footer rows.
-        const float PanelHeight = (StationCount + 3) * RowHeight + PanelPadding * 2.0f;
+        // Title row, station rows, then three footer rows.
+        const float PanelHeight = (StationCount + 4) * RowHeight + PanelPadding * 2.0f;
 
         DrawRect(FLinearColor(0.02f, 0.02f, 0.05f, 0.82f),
             PanelX, PanelTopY, PanelWidth, PanelHeight);
@@ -150,6 +162,22 @@ class ACk_PixelArtGym_HUD : ACkGym_MenuHUD
 
         DrawText(f"Ck_GymPixelArt_TogglePan for the creep test  |  {LookText}",
             FLinearColor(0.55f, 0.60f, 0.68f, 1.0f),
+            PanelX + PanelPadding, RowY, nullptr, 0.85f, false);
+        RowY += RowHeight;
+
+        // Drawn in warning colour on perspective, because a perspective view silently disables the camera snap:
+        // the image still pixelates, so nothing looks broken, and every creep verdict taken there is wrong.
+        const bool IsOrtho = InPC.Get_ProjectionIsOrthographic();
+
+        auto ProjectionText = IsOrtho
+            ? "[P] projection: ORTHOGRAPHIC  (snap live)"
+            : "[P] projection: PERSPECTIVE  -  SNAP DISABLED, verdicts invalid";
+
+        auto ProjectionColor = IsOrtho
+            ? FLinearColor(0.55f, 0.60f, 0.68f, 1.0f)
+            : FLinearColor(1.0f, 0.55f, 0.25f, 1.0f);
+
+        DrawText(ProjectionText, ProjectionColor,
             PanelX + PanelPadding, RowY, nullptr, 0.85f, false);
     }
 }

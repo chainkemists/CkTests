@@ -12,6 +12,10 @@
 //   STUTTER  (snap on, comp off)     -> motion advances in whole texels
 //   SMOOTH   (snap on, comp on)      -> smooth motion, grid-aligned. The finished result.
 //
+// The gym runs on its own pawn (ACk_PixelArtGym_Pawn) carrying a fixed ORTHOGRAPHIC CkCamera, because the
+// camera snap is skipped on a perspective view - on the shared gym pawn every station would render unsnapped
+// and the three A/B stations would be the same image. [P] flips the projection so that is watchable.
+//
 // There are TWO ways to pick a station and they take turns rather than fighting: walking to one selects it,
 // and pressing its number key selects it and SUSPENDS the walking selection until you move away again.
 // Without that suspension the number keys would be useless — the next proximity tick would snap straight
@@ -22,6 +26,8 @@
 //   Ck_GymPixelArt_CycleStation   — next station without walking
 //   Ck_GymPixelArt_TogglePan      — start/stop the 0.2 texel/frame diagonal drift
 //   Ck_GymPixelArt_ToggleLook     — the look on its own, independent of the renderer
+//
+// Keys: 1-9/0 select a station, P flips orthographic <-> perspective, Tab opens the cycler menu.
 //
 // Needs the PixelArt master on disk for the LOOK stations: on a fresh checkout run
 // "Ck_Usf_GenerateLooks PixelArt" once in the editor console. The RENDERER stations work regardless — and
@@ -41,6 +47,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
 
     // Set when a station is chosen by KEY rather than by walking. Cleared once the pawn has moved far enough
     // that walking is plainly what the player is now doing.
+    private bool _PanRunning = false;
     private bool _ManualSelection = false;
     private FVector _ManualSelectionOrigin = FVector::ZeroVector;
 
@@ -134,7 +141,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         ck::Trace("⚠ IF THIS IS PIE, IT IS A PREVIEW. Above 100% OS DPI the engine adds a second upscale");
         ck::Trace("   after this renderer's, so the image is softer than standalone. Check the log for a");
-        ck::Trace("   `LogCkPixelArt: Secondary view fraction is <1` line - that line IS the condition.");
+        ck::Trace("   `CkPixelArtRenderer: Secondary view fraction is <1` line - that line IS the condition.");
         ck::Trace("   Take sharpness, creep and margin verdicts from a standalone -game run.");
     }
 
@@ -170,6 +177,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
 
         _ActiveStation = -1;
         _ManualSelection = false;
+        _PanRunning = false;
         Request_ApplyStation(0);
     }
 
@@ -358,6 +366,29 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         return _LookOverride;
     }
 
+    // Read off the pawn rather than mirrored here. A copy would be a second source of truth for a value the
+    // camera already owns, and the one moment it matters is the moment it would be stale.
+    private ACk_PixelArtGym_Pawn Get_GymPawn() const
+    {
+        return Cast<ACk_PixelArtGym_Pawn>(GetControlledPawn());
+    }
+
+    bool Get_ProjectionIsOrthographic() const
+    {
+        auto Pawn = Get_GymPawn();
+        return System::IsValid(Pawn) ? Pawn.Get_IsOrthographic() : false;
+    }
+
+    void Request_ToggleProjection()
+    {
+        auto Pawn = Get_GymPawn();
+
+        if (!System::IsValid(Pawn))
+        { return; }
+
+        Pawn.Request_ToggleProjection();
+    }
+
     void Request_CycleStation()
     {
         if (_StationTags.Num() == 0)
@@ -395,10 +426,24 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
 
     // Delegates to the renderer's own pan rather than moving the camera here: the drift has to be measured
     // in TEXELS, and only the renderer knows how big one is at the current resolution and ortho width.
+    //
+    // The underlying command treats an argument-bearing call as RESTART and only a bare one as stop, so a
+    // toggle has to track which it means. Passing the speed every time made this "start the pan" with no way
+    // to stop it, which is a trap in the middle of a creep capture.
     UFUNCTION(Exec, DisplayName="Pixel Art Gym - Toggle Camera Pan")
     void Ck_GymPixelArt_TogglePan()
     {
-        System::ExecuteConsoleCommand("Ck_PixelArt_DebugPan 0.2");
+        if (_PanRunning)
+        {
+            System::ExecuteConsoleCommand("ck.PixelArt.Debug.Pan");
+            _PanRunning = false;
+            ck::Trace("🟪 Pixel Art Gym: pan stopped");
+            return;
+        }
+
+        System::ExecuteConsoleCommand("ck.PixelArt.Debug.Pan 0.2");
+        _PanRunning = true;
+        ck::Trace("🟪 Pixel Art Gym: pan running at 0.2 texels/frame");
     }
 
     UFUNCTION(Exec, DisplayName="Pixel Art Gym - Toggle Look")
