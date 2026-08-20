@@ -157,7 +157,7 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
     }
 
     UFUNCTION()
-    private void OnUnexpectedGoalFailed(FCk_Handle_CrowdAgent InAgent)
+    private void OnUnexpectedGoalFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
 

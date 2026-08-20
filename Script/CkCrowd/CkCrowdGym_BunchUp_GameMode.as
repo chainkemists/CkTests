@@ -1,9 +1,10 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Crowd Bunch-Up Gym
 //
-// N agents (default 15) on a ring, every one of them commanded to the SAME exact point. Only one
-// can stand there; the rest have to learn the goal is taken and hold. Watch for the failure this
-// gym exists to show: agents that never learn it, and fidget against the pile indefinitely.
+// N agents (20 auto-spawn on gym start, once the navmesh probe resolves) on a ring, every one of
+// them commanded to the SAME exact point. Only one can stand there; the rest have to learn the
+// goal is taken and hold. Watch for the failure this gym exists to show: agents that never learn
+// it, and fidget against the pile indefinitely.
 //
 // Console:
 //   Ck_GymCrowd_BunchUp_Spawn <count>   spawn <count> agents (default 15) and send them all to the centre

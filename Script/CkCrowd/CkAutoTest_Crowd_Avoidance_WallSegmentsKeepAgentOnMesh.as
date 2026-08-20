@@ -344,7 +344,7 @@ class UCk_AutoTest_Crowd_Avoidance_WallSegmentsKeepAgentOnMesh : UCk_AutoTest_Ba
     }
 
     UFUNCTION()
-    private void OnGoalFailed(FCk_Handle_CrowdAgent InAgent)
+    private void OnGoalFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
         _Failed = true;
