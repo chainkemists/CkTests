@@ -7,9 +7,20 @@
 //   - Wall line perpendicular to the approach at local X = WallLineOffset, split by a GapWidth
 //     opening at local Y = 0. Wall boxes carve the navmesh (ACk_CrowdPathingGym_NavBox — nav-only,
 //     player walks through).
-//   - Walkers spawn in two staggered rows before the wall; each goal is the mirrored point past
+//   - Walkers spawn in staggered rows before the wall; each goal is the mirrored point past
 //     the wall at the same Y, so every route's shortest form crosses the gap.
 //   - Optional flank caps extend the wall line past the floor edge so no detour exists.
+//
+// Two map constraints size everything below — both were learned from a PIE session where the
+// default state had NO route at all (every path Partial, the whole crowd piled at the wall):
+//   - The wall boxes are PHYSICAL rasterized obstacles, so Recast erodes the walkable surface
+//     around them by the nav agent radius (~35cm per side). GapWidth is the PHYSICAL gap; the
+//     navmesh corridor through it is ~70cm narrower, and under ~150cm physical the gap bakes
+//     shut entirely. (The headless autotests carve with nav-area markup instead, which does not
+//     erode — their 110cm figure does not transfer here.)
+//   - The cycler map's NavMeshBoundsVolume is origin-centred and does not reach much past
+//     ~1000cm, so every spawn, goal, and wall END (the SpawnBlocked detour route) must stay
+//     inside that envelope or the detour silently doesn't exist.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
@@ -17,18 +28,20 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
     private FCk_Handle _PcEntity;
     private FCk_Handle _StationHandle;
     private FCk_Handle _NavProbeEntity;
+    private FVector _ProbeGoal;
     private TArray<FCk_Handle_CrowdAgent> _Agents;
     private TArray<AActor> _FlankWalls;
     private bool _AutoSpawned = false;
 
     private const float SpawnZ          = 100.0;
-    private const float WallLineOffset  = 800.0;
-    private const float GapWidth        = 110.0;
-    private const float WallSpanY       = 1000.0;   // each wall: from GapWidth/2 out to GapWidth/2 + WallSpanY
+    private const float WallLineOffset  = 600.0;
+    private const float GapWidth        = 170.0;    // physical; ~100cm on the navmesh after obstacle erosion
+    private const float WallSpanY       = 600.0;    // each wall: from GapWidth/2 out to GapWidth/2 + WallSpanY
     private const float WallThickness   = 100.0;
     private const float WallHeight      = 200.0;
-    private const float ApproachOffset  = 700.0;    // spawn/goal distance before/past the wall line
+    private const float ApproachOffset  = 400.0;    // spawn/goal distance before/past the wall line
     private const float RowSpacingY     = 100.0;
+    private const int32 SpawnRows       = 4;
     private const int32 DefaultCount    = 20;
     private const int32 AutoSpawnCount  = 20;
 
@@ -43,9 +56,9 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Crowd.NarrowGap");
             Station.AutoSize = true;
-            Station.Title = FText::FromString("CROWD NARROW GAP (110cm pinch)");
+            Station.Title = FText::FromString("CROWD NARROW GAP (170cm pinch)");
             auto Description = TArray<FText>();
-            Description.Add(FText::FromString("20 walkers auto-spawn and funnel through a 110cm gap between nav walls."));
+            Description.Add(FText::FromString("20 walkers auto-spawn and funnel through a 170cm gap (~100cm of navmesh) between nav walls."));
             Description.Add(FText::FromString("Expected: clean single-file traversal — no oscillation inside the pinch."));
             Description.Add(FText::FromString("SpawnBlocked parks one agent IN the gap: walkers must detour around the wall ends."));
             Description.Add(FText::FromString("Flank 1 closes the detour: expect a calm hold / clean goal-failed, never a perpetual press."));
@@ -85,6 +98,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         // (including the wall carve) finished; a timer would race the async tile build.
         const auto ProbeStart = Local_To_World(FVector(WallLineOffset - ApproachOffset, 0.0, SpawnZ));
         const auto ProbeGoal  = Local_To_World(FVector(WallLineOffset + ApproachOffset, 0.0, SpawnZ));
+        _ProbeGoal = ProbeGoal;
         _NavProbeEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         utils_transform::Add(_NavProbeEntity,
             FTransform(FRotator::ZeroRotator, ProbeStart, FVector::OneVector),
@@ -108,6 +122,21 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (_AutoSpawned || _Agents.Num() > 0)
         { return; }
+
+        // A "Ready" path to a goal the end-projection pulled back onto the near side looks exactly
+        // like success — the one PIE symptom this gym ever shipped with. Require the path to
+        // actually reach the far side before trusting the bake.
+        auto Waypoints = InResult.Get_Waypoints();
+        if (Waypoints.Num() > 0)
+        {
+            auto EndDelta = Waypoints[Waypoints.Num() - 1] - _ProbeGoal;
+            EndDelta.Z = 0.0;
+            if (EndDelta.Size() > 200.0)
+            {
+                ck::crowd::Warning(f"NarrowGap gym: probe path stops {EndDelta.Size()}cm short of the far side — the gap failed to bake or the map's NavMeshBoundsVolume doesn't cover the layout. Auto-spawn skipped.");
+                return;
+            }
+        }
 
         _AutoSpawned = true;
         Ck_GymCrowd_NarrowGap_Spawn(AutoSpawnCount);
@@ -259,11 +288,13 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
 
     private void SpawnWalkers(int32 InCount, int32 InColorIndexBase)
     {
-        // Two staggered rows before the wall, spanning less than the wall span so the gap is every
-        // walker's shortest route. Goals mirror each spawn across the wall line at the same Y.
+        // Staggered rows before the wall, kept narrow (~±200 at 20 walkers) so the gap is every
+        // walker's shortest route — a wide line puts the rim walkers closer to the wall ENDS than
+        // to the gap and half the crowd legitimately detours instead of funnelling. Goals mirror
+        // each spawn across the wall line at the same Y.
         const auto SpawnX = WallLineOffset - ApproachOffset;
         const auto GoalX  = WallLineOffset + ApproachOffset;
-        const auto PerRow = Math::IntegerDivisionTrunc(InCount + 1, 2);
+        const auto PerRow = Math::IntegerDivisionTrunc(InCount + SpawnRows - 1, SpawnRows);
 
         for (int32 i = 0; i < InCount; ++i)
         {
@@ -271,7 +302,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
             const auto Slot    = i - (Row * PerRow);
             const auto RowX    = SpawnX - (float(Row) * 120.0);
             const auto SpanY   = float(PerRow - 1) * RowSpacingY;
-            const auto SlotY   = (float(Slot) * RowSpacingY) - (SpanY * 0.5) + (float(Row) * (RowSpacingY * 0.5));
+            const auto SlotY   = (float(Slot) * RowSpacingY) - (SpanY * 0.5) + (float(Row % 2) * (RowSpacingY * 0.5));
 
             const auto SpawnLoc = Local_To_World(FVector(RowX, SlotY, SpawnZ));
             const auto GoalLoc  = Local_To_World(FVector(GoalX, SlotY, SpawnZ));
@@ -290,11 +321,18 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         AgentEntity.Set_DebugName(InDebugName);
 
+        // Grounding is displacement-driven (ConstrainToNavmesh only moves an agent that moves), so
+        // a parked agent spawned above the floor hovers there forever. Snap every spawn to the mesh.
+        auto GroundedSpawn = InSpawnLoc;
+        FVector Snapped;
+        if (utils_nav::Try_ProjectOntoNavmesh(_PcEntity, InSpawnLoc, 200.0, Snapped, 300.0))
+        { GroundedSpawn = Snapped; }
+
         const auto LookDir   = InTargetLoc - InSpawnLoc;
         const auto PlanarDir = FVector(LookDir.X, LookDir.Y, 0.0);
         const auto Rot       = PlanarDir.Size() < 1.0 ? FRotator::ZeroRotator : PlanarDir.GetSafeNormal().Rotation();
 
-        auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(Rot, InSpawnLoc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+        auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(Rot, GroundedSpawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
         utils_crowd_agent::Set_DebugColor(Agent, InColor);

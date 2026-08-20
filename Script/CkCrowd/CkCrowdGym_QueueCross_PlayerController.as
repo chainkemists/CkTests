@@ -265,11 +265,19 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         AgentEntity.Set_DebugName(InDebugName);
 
+        // Grounding is displacement-driven (ConstrainToNavmesh only moves an agent that moves), so
+        // a parked line member spawned above the floor hovers there forever. Snap every spawn to
+        // the mesh.
+        auto GroundedSpawn = InSpawnLoc;
+        FVector Snapped;
+        if (utils_nav::Try_ProjectOntoNavmesh(_PcEntity, InSpawnLoc, 200.0, Snapped, 300.0))
+        { GroundedSpawn = Snapped; }
+
         const auto LookDir   = InTargetLoc - InSpawnLoc;
         const auto PlanarDir = FVector(LookDir.X, LookDir.Y, 0.0);
         const auto Rot       = PlanarDir.Size() < 1.0 ? FRotator::ZeroRotator : PlanarDir.GetSafeNormal().Rotation();
 
-        auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(Rot, InSpawnLoc, FVector::OneVector), ECk_Replication::DoesNotReplicate);
+        auto AgentTransform = utils_transform::Add(AgentEntity, FTransform(Rot, GroundedSpawn, FVector::OneVector), ECk_Replication::DoesNotReplicate);
         auto Agent = utils_crowd_agent::Add(AgentTransform, Params);
 
         utils_crowd_agent::Set_DebugColor(Agent, InColor);
