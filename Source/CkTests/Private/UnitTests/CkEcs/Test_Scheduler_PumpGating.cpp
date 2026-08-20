@@ -34,6 +34,9 @@
 namespace ck
 {
     CK_DEFINE_ECS_TAG(FTag_SchedulerPumpTest_Marker);
+    CK_DEFINE_ECS_TAG(FTag_SchedulerLocalSettleTest_Trigger);
+    CK_DEFINE_ECS_TAG(FTag_SchedulerLocalSettleTest_StickyReplay);
+    CK_DEFINE_ECS_TAG(FTag_SchedulerLocalSettleTest_Produce);
 }
 
 namespace ck_test_scheduler_pump
@@ -114,6 +117,164 @@ namespace ck_test_scheduler_pump
 
             auto Descriptors = TArray<ck::FProcessorDescriptor>{};
             Descriptors.Add(MoveTemp(Descriptor));
+
+            auto Builder = ck::FProcessorGraphBuilder{};
+            auto Graph = Builder.Build(Descriptors, World.Get_Registry(), TransientHandle);
+
+            for (auto& Kvp : Graph._Partitions)
+            {
+                if (Kvp.Value._Nodes.Num() > 0)
+                {
+                    Scheduler = MakeUnique<ck::FProcessorScheduler>(MoveTemp(Kvp.Value));
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        auto
+        Tick() -> void
+        {
+            Scheduler->Tick(FCk_Time{1.0f / 60.0f}, World.Get_Registry());
+        }
+
+        auto
+        CreateEntity() -> FCk_Handle
+        {
+            return UCk_Utils_EntityLifetime_UE::Request_CreateEntity(World.Get_Registry());
+        }
+    };
+
+    // ---------------------------------------------------------------------------------------------------------------
+    // Local-settle activation is intentionally separate from replay membership. The sticky replay participant below
+    // has its own MarkedDirtyBy and remains safe at DeltaT=0, but only the consumed trigger participant may activate
+    // the barrier.
+
+    struct FGroup_LocalSettleTest_Main { };
+    struct FGroup_LocalSettleTest_Produce
+    {
+        using RunAfter = ck::TDepList<FGroup_LocalSettleTest_Main>;
+    };
+    struct FGroup_LocalSettleTest_Cleanup
+    {
+        using RunAfter = ck::TDepList<FGroup_LocalSettleTest_Produce>;
+    };
+
+    class FProcessor_LocalSettleTest_Trigger
+        : public ck::TProcessor<FProcessor_LocalSettleTest_Trigger, ck::FTag_SchedulerLocalSettleTest_Trigger>
+    {
+    public:
+        using Super = ck::TProcessor<FProcessor_LocalSettleTest_Trigger, ck::FTag_SchedulerLocalSettleTest_Trigger>;
+        using Super::Super;
+        using Group = FGroup_LocalSettleTest_Main;
+        using LocalSettleAfter = FGroup_LocalSettleTest_Produce;
+        static constexpr auto LocalSettleTrigger = true;
+        using MarkedDirtyBy = ck::FTag_SchedulerLocalSettleTest_Trigger;
+
+        static inline int32 TickCount = 0;
+
+        auto
+        ForEachEntity(
+            TimeType InDeltaT,
+            HandleType InHandle)
+            -> void
+        {
+            ++TickCount;
+            InHandle.Remove<ck::FTag_SchedulerLocalSettleTest_Trigger>();
+        }
+    };
+
+    class FProcessor_LocalSettleTest_StickyReplay
+        : public ck::TProcessor<FProcessor_LocalSettleTest_StickyReplay, ck::FTag_SchedulerLocalSettleTest_StickyReplay>
+    {
+    public:
+        using Super = ck::TProcessor<FProcessor_LocalSettleTest_StickyReplay,
+            ck::FTag_SchedulerLocalSettleTest_StickyReplay>;
+        using Super::Super;
+        using Group = FGroup_LocalSettleTest_Main;
+        using RunAfter = ck::TDepList<FProcessor_LocalSettleTest_Trigger>;
+        using LocalSettleAfter = FGroup_LocalSettleTest_Produce;
+        using MarkedDirtyBy = ck::FTag_SchedulerLocalSettleTest_StickyReplay;
+
+        static inline int32 TickCount = 0;
+
+        auto
+        ForEachEntity(
+            TimeType InDeltaT,
+            HandleType InHandle)
+            -> void
+        {
+            ++TickCount;
+        }
+    };
+
+    class FProcessor_LocalSettleTest_Produce
+        : public ck::TProcessor<FProcessor_LocalSettleTest_Produce, ck::FTag_SchedulerLocalSettleTest_Produce>
+    {
+    public:
+        using Super = ck::TProcessor<FProcessor_LocalSettleTest_Produce, ck::FTag_SchedulerLocalSettleTest_Produce>;
+        using Super::Super;
+        using Group = FGroup_LocalSettleTest_Produce;
+
+        static inline FCk_Handle Target;
+
+        auto
+        ForEachEntity(
+            TimeType InDeltaT,
+            HandleType InHandle)
+            -> void
+        {
+            Target.Add<ck::FTag_SchedulerLocalSettleTest_Trigger>();
+            InHandle.Remove<ck::FTag_SchedulerLocalSettleTest_Produce>();
+        }
+    };
+
+    class FProcessor_LocalSettleTest_Cleanup
+        : public ck::TProcessor<FProcessor_LocalSettleTest_Cleanup, ck::FTag_SchedulerLocalSettleTest_StickyReplay>
+    {
+    public:
+        using Super = ck::TProcessor<FProcessor_LocalSettleTest_Cleanup,
+            ck::FTag_SchedulerLocalSettleTest_StickyReplay>;
+        using Super::Super;
+        using Group = FGroup_LocalSettleTest_Cleanup;
+
+        auto
+        ForEachEntity(
+            TimeType InDeltaT,
+            HandleType InHandle)
+            -> void
+        {
+            InHandle.Remove<ck::FTag_SchedulerLocalSettleTest_StickyReplay>();
+        }
+    };
+
+    struct FLocalSettleTestFixture
+    {
+        ck::FEcsWorld World;
+        TUniquePtr<ck::FProcessorScheduler> Scheduler;
+
+        auto
+        Build() -> bool
+        {
+            const auto TransientHandle = UCk_Utils_EntityLifetime_UE::Get_TransientEntity(World.Get_Registry());
+
+            auto Descriptors = TArray<ck::FProcessorDescriptor>{};
+            Descriptors.Add(ck::BuildGroupDescriptor<FGroup_LocalSettleTest_Main>());
+            Descriptors.Add(ck::BuildGroupDescriptor<FGroup_LocalSettleTest_Produce>());
+            Descriptors.Add(ck::BuildGroupDescriptor<FGroup_LocalSettleTest_Cleanup>());
+            Descriptors.Add(ck::BuildDescriptor<FProcessor_LocalSettleTest_Trigger>(
+                [](const FCk_Registry& InRegistry) -> ck::concepts::FTickableType
+                { return FProcessor_LocalSettleTest_Trigger{InRegistry}; }));
+            Descriptors.Add(ck::BuildDescriptor<FProcessor_LocalSettleTest_StickyReplay>(
+                [](const FCk_Registry& InRegistry) -> ck::concepts::FTickableType
+                { return FProcessor_LocalSettleTest_StickyReplay{InRegistry}; }));
+            Descriptors.Add(ck::BuildDescriptor<FProcessor_LocalSettleTest_Produce>(
+                [](const FCk_Registry& InRegistry) -> ck::concepts::FTickableType
+                { return FProcessor_LocalSettleTest_Produce{InRegistry}; }));
+            Descriptors.Add(ck::BuildDescriptor<FProcessor_LocalSettleTest_Cleanup>(
+                [](const FCk_Registry& InRegistry) -> ck::concepts::FTickableType
+                { return FProcessor_LocalSettleTest_Cleanup{InRegistry}; }));
 
             auto Builder = ck::FProcessorGraphBuilder{};
             auto Graph = Builder.Build(Descriptors, World.Get_Registry(), TransientHandle);
@@ -260,6 +421,58 @@ bool FCkTest_Scheduler_Pump_MidFrameEnqueueDrainsSameTick::RunTest(const FString
     // Cleanup of static handle state (entities die with the fixture's world).
     FProcessor_PumpTest_Consume::Reset();
 
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_Scheduler_LocalSettle_OnlyExplicitTriggerActivatesReplay,
+    "CkTests.UnitTests.CkEcs.Scheduler.LocalSettle_OnlyExplicitTriggerActivatesReplay",
+    ck_test_scheduler_pump::kSchedulerPumpTestFlags)
+
+bool FCkTest_Scheduler_LocalSettle_OnlyExplicitTriggerActivatesReplay::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_scheduler_pump;
+
+    auto Fixture = FLocalSettleTestFixture{};
+    if (NOT TestTrue(TEXT("fixture built a scheduler"), Fixture.Build()))
+    { return false; }
+
+    auto Work = Fixture.CreateEntity();
+    auto Producer = Fixture.CreateEntity();
+
+    // Negative invariant: the sticky replay marker is live at the barrier, but replay membership alone must not
+    // activate it. The cleanup group removes the marker before the ordinary scheduler tail pump.
+    FProcessor_LocalSettleTest_Trigger::TickCount = 0;
+    FProcessor_LocalSettleTest_StickyReplay::TickCount = 0;
+    Work.Add<ck::FTag_SchedulerLocalSettleTest_StickyReplay>();
+    Fixture.Tick();
+
+    TestEqual(TEXT("replay-only sticky marker ran only in the main pass"),
+        FProcessor_LocalSettleTest_StickyReplay::TickCount, 1);
+    TestEqual(TEXT("no explicit trigger was dispatched"),
+        FProcessor_LocalSettleTest_Trigger::TickCount, 0);
+    TestEqual(TEXT("replay-only marker consumed no local-settle budget"),
+        Fixture.Scheduler->Get_LastFramePumpCount(), 0);
+
+    // Positive invariant: the producer queues the explicit consumed trigger inside the barrier group. The canonical
+    // trigger and sticky replay participant must then run once more, in order, before cleanup.
+    FProcessor_LocalSettleTest_Trigger::TickCount = 0;
+    FProcessor_LocalSettleTest_StickyReplay::TickCount = 0;
+    FProcessor_LocalSettleTest_Produce::Target = Work;
+    Work.Add<ck::FTag_SchedulerLocalSettleTest_StickyReplay>();
+    Producer.Add<ck::FTag_SchedulerLocalSettleTest_Produce>();
+    Fixture.Tick();
+
+    TestEqual(TEXT("explicit trigger drained in the local settle pass"),
+        FProcessor_LocalSettleTest_Trigger::TickCount, 1);
+    TestEqual(TEXT("sticky participant replayed only when the explicit trigger activated the barrier"),
+        FProcessor_LocalSettleTest_StickyReplay::TickCount, 2);
+    TestEqual(TEXT("one local-settle pass consumed one shared pump-budget slot"),
+        Fixture.Scheduler->Get_LastFramePumpCount(), 1);
+
+    FProcessor_LocalSettleTest_Produce::Target = {};
     return true;
 }
 
