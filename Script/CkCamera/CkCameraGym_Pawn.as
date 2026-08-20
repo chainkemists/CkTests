@@ -7,8 +7,8 @@
 // A flyable pawn (ADefaultPawn movement) carrying the GameplayCamera director, plus a visible subject so the
 // driven camera has something to frame. On ready it:
 //   - adds the camera director on the pawn entity (whose actor-synced transform is the camera anchor, so the
-//     boom follows the pawn; auto-creates a UCk_CameraComponent on this pawn; the default
-//     PlayerCameraManager reads it via GetCameraView),
+//     boom follows the pawn) and hands it this pawn's UCk_CameraComponent, which the default
+//     PlayerCameraManager reads via GetCameraView,
 //   - spawns reference geometry centered on the pawn (floor + a ring of pillars for orbit parallax and camera
 //     collision push-in) and a bright beacon as the lock-on target, and
 //   - pushes the first camera mode.
@@ -32,6 +32,12 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
     // mouse). Instead the mouse only orbits the camera, and movement is polled in Tick (enabled in Request_OnPawnReady)
     // and applied on the horizontal plane relative to the camera's view yaw.
     default bAddDefaultMovementBindings = false;
+
+    // The director does NOT create this. _OutputComponent is the single essential constructor parameter of
+    // FCk_Fragment_Camera_ParamsData and is get-only, so the component has to exist on the actor before Add
+    // is called — Add ensures on it and returns an invalid handle otherwise.
+    UPROPERTY(DefaultComponent)
+    UCk_CameraComponent CameraComponent;
 
     // Visible subject — ADefaultPawn shows nothing in-game, so the third-person / top-down / lock-on cameras
     // would frame empty space. Body sphere + forward nose cube make position and facing readable.
@@ -85,9 +91,8 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
         // The pawn entity (a WithActor entity script) already carries an actor-synced transform — that IS the camera
         // anchor, and the POV reads it each frame, so the boom follows the pawn with no extra transform to add.
 
-        // Camera director — DriveCameraComponent (default) auto-creates a UCk_CameraComponent on this pawn.
         auto PawnTransform = _PawnEntity.As_Transform();
-        _Camera = utils_camera::Add(PawnTransform, FCk_Fragment_Camera_ParamsData());
+        _Camera = utils_camera::Add(PawnTransform, FCk_Fragment_Camera_ParamsData(CameraComponent));
 
         Request_SpawnReferenceGeometry();
 
