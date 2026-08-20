@@ -160,8 +160,9 @@ class UCk_AutoTest_PixelArt_SubsystemContract : UCk_AutoTest_Base
             return false;
         }
 
-        // The restore puts back what the test itself forced, not the project's value — so the last word has to
-        // be the test's, or every automation test that runs after this one inherits temporal anti-aliasing.
+        // KNOWN LIMITATION: this restores a literal 0, not the project's prior value, because UCk_Utils_CVar_UE
+        // exposes no value getter to AngelScript. A deterministic last word beats leaving TSR forced on for every
+        // test that follows, but a project whose default is not 0 does inherit this one.
         System::ExecuteConsoleCommand("r.AntiAliasingMethod 0");
 
         return true;
