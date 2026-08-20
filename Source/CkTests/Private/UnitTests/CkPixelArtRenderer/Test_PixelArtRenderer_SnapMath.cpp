@@ -1,4 +1,4 @@
-// C++ unit tests for the pixel-art renderer's camera snap arithmetic (CkPixelArtRender).
+// C++ unit tests for the pixel-art renderer's camera snap arithmetic (CkPixelArtRenderer).
 //
 // Snapping the camera onto the texel lattice is what stops pixels crawling along edges; re-applying the sub-texel
 // remainder as a UV shift is what stops the snap turning smooth motion into whole-texel stepping. The two only
@@ -6,12 +6,14 @@
 // — an error there produces a picture that looks almost right and drifts, which is the failure mode hardest to
 // spot by eye and cheapest to catch here.
 //
-// Surface in Session Frontend: CkTests.UnitTests.CkPixelArtRender.Snap.<scenario>
+// Surface in Session Frontend: CkTests.UnitTests.CkPixelArtRenderer.Snap.<scenario>
 
 #include "Misc/AutomationTest.h"
 
-#include "CkPixelArtRender/CkPixelArtRender_SnapMath.h"
-#include "CkPixelArtRender/CkPixelArtRender_Utils.h"
+#include "CkCore/Macros/CkMacros.h"
+
+#include "CkPixelArtRenderer/CkPixelArtRenderer_SnapMath.h"
+#include "CkPixelArtRenderer/CkPixelArtRenderer_Utils.h"
 
 #include "../CkUnitTest_Common.h"
 
@@ -77,11 +79,11 @@ namespace ck_test_pixel_art_snap
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_PixelArtRender_SnapBasisMatchesCameraAxes,
-    "CkTests.UnitTests.CkPixelArtRender.Snap.BasisMatchesCameraAxes",
+    FCkTest_PixelArtRenderer_SnapBasisMatchesCameraAxes,
+    "CkTests.UnitTests.CkPixelArtRenderer.Snap.BasisMatchesCameraAxes",
     kCkUnitTestFlags)
 
-bool FCkTest_PixelArtRender_SnapBasisMatchesCameraAxes::RunTest(const FString& Parameters)
+bool FCkTest_PixelArtRenderer_SnapBasisMatchesCameraAxes::RunTest(const FString& Parameters)
 {
     // The one step of this whole technique that is silently transposable: reading the view axes out of a
     // world-to-view matrix. Pinned against the rotation the matrix was built from, using rotations that make a
@@ -116,11 +118,11 @@ bool FCkTest_PixelArtRender_SnapBasisMatchesCameraAxes::RunTest(const FString& P
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_PixelArtRender_SnapIsIdempotent,
-    "CkTests.UnitTests.CkPixelArtRender.Snap.IsIdempotent",
+    FCkTest_PixelArtRenderer_SnapIsIdempotent,
+    "CkTests.UnitTests.CkPixelArtRenderer.Snap.IsIdempotent",
     kCkUnitTestFlags)
 
-bool FCkTest_PixelArtRender_SnapIsIdempotent::RunTest(const FString& Parameters)
+bool FCkTest_PixelArtRenderer_SnapIsIdempotent::RunTest(const FString& Parameters)
 {
     auto Stream = FRandomStream{ck_test_pixel_art_snap::Seed};
 
@@ -140,11 +142,11 @@ bool FCkTest_PixelArtRender_SnapIsIdempotent::RunTest(const FString& Parameters)
         // a fixed absolute epsilon would be vacuous for large texels and unachievable for small ones.
         const auto Tolerance = Sample.TexelWorldSize * 1e-3;
 
-        if (!TestTrue(*FString::Printf(TEXT("sample %d: snapping a snapped origin is identity"), SampleIndex),
+        if (NOT TestTrue(*FString::Printf(TEXT("sample %d: snapping a snapped origin is identity"), SampleIndex),
             SnappedTwice.Equals(Snapped, Tolerance)))
         { return false; }
 
-        if (!TestTrue(*FString::Printf(TEXT("sample %d: a snapped origin has no remainder"), SampleIndex),
+        if (NOT TestTrue(*FString::Printf(TEXT("sample %d: a snapped origin has no remainder"), SampleIndex),
             SecondRemainder.IsNearlyZero(1e-3f)))
         { return false; }
     }
@@ -155,11 +157,11 @@ bool FCkTest_PixelArtRender_SnapIsIdempotent::RunTest(const FString& Parameters)
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_PixelArtRender_SnapRemainderIsBounded,
-    "CkTests.UnitTests.CkPixelArtRender.Snap.RemainderIsBounded",
+    FCkTest_PixelArtRenderer_SnapRemainderIsBounded,
+    "CkTests.UnitTests.CkPixelArtRenderer.Snap.RemainderIsBounded",
     kCkUnitTestFlags)
 
-bool FCkTest_PixelArtRender_SnapRemainderIsBounded::RunTest(const FString& Parameters)
+bool FCkTest_PixelArtRenderer_SnapRemainderIsBounded::RunTest(const FString& Parameters)
 {
     auto Stream = FRandomStream{ck_test_pixel_art_snap::Seed};
 
@@ -175,7 +177,7 @@ bool FCkTest_PixelArtRender_SnapRemainderIsBounded::RunTest(const FString& Param
         // sampling window reads texels that were never rendered.
         constexpr auto Bound = 0.5f + KINDA_SMALL_NUMBER;
 
-        if (!TestTrue(*FString::Printf(TEXT("sample %d: remainder %s is within half a texel"),
+        if (NOT TestTrue(*FString::Printf(TEXT("sample %d: remainder %s is within half a texel"),
                 SampleIndex, *Remainder.ToString()),
             FMath::Abs(Remainder.X) <= Bound && FMath::Abs(Remainder.Y) <= Bound))
         { return false; }
@@ -187,11 +189,11 @@ bool FCkTest_PixelArtRender_SnapRemainderIsBounded::RunTest(const FString& Param
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_PixelArtRender_SnapRemainderReconstructsOrigin,
-    "CkTests.UnitTests.CkPixelArtRender.Snap.RemainderReconstructsOrigin",
+    FCkTest_PixelArtRenderer_SnapRemainderReconstructsOrigin,
+    "CkTests.UnitTests.CkPixelArtRenderer.Snap.RemainderReconstructsOrigin",
     kCkUnitTestFlags)
 
-bool FCkTest_PixelArtRender_SnapRemainderReconstructsOrigin::RunTest(const FString& Parameters)
+bool FCkTest_PixelArtRenderer_SnapRemainderReconstructsOrigin::RunTest(const FString& Parameters)
 {
     auto Stream = FRandomStream{ck_test_pixel_art_snap::Seed};
 
@@ -211,7 +213,7 @@ bool FCkTest_PixelArtRender_SnapRemainderReconstructsOrigin::RunTest(const FStri
             + (Remainder.X * Sample.TexelWorldSize) * Basis.Right
             + (Remainder.Y * Sample.TexelWorldSize) * Basis.Up;
 
-        if (!TestTrue(*FString::Printf(TEXT("sample %d: remainder reconstructs the origin"), SampleIndex),
+        if (NOT TestTrue(*FString::Printf(TEXT("sample %d: remainder reconstructs the origin"), SampleIndex),
             Reconstructed.Equals(Sample.Origin, 1e-3)))
         { return false; }
     }
@@ -222,11 +224,11 @@ bool FCkTest_PixelArtRender_SnapRemainderReconstructsOrigin::RunTest(const FStri
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_PixelArtRender_SnapPreservesForward,
-    "CkTests.UnitTests.CkPixelArtRender.Snap.PreservesForward",
+    FCkTest_PixelArtRenderer_SnapPreservesForward,
+    "CkTests.UnitTests.CkPixelArtRenderer.Snap.PreservesForward",
     kCkUnitTestFlags)
 
-bool FCkTest_PixelArtRender_SnapPreservesForward::RunTest(const FString& Parameters)
+bool FCkTest_PixelArtRenderer_SnapPreservesForward::RunTest(const FString& Parameters)
 {
     auto Stream = FRandomStream{ck_test_pixel_art_snap::Seed};
 
@@ -244,7 +246,7 @@ bool FCkTest_PixelArtRender_SnapPreservesForward::RunTest(const FString& Paramet
         // about clipping, so the snap must never touch it.
         const auto AlongForward = FVector::DotProduct(Snapped - Sample.Origin, Basis.Forward);
 
-        if (!TestTrue(*FString::Printf(TEXT("sample %d: snap moved %f along view forward"),
+        if (NOT TestTrue(*FString::Printf(TEXT("sample %d: snap moved %f along view forward"),
                 SampleIndex, AlongForward),
             FMath::Abs(AlongForward) <= 1e-3))
         { return false; }
@@ -256,11 +258,11 @@ bool FCkTest_PixelArtRender_SnapPreservesForward::RunTest(const FString& Paramet
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_PixelArtRender_SnapRejectsDegenerateTexel,
-    "CkTests.UnitTests.CkPixelArtRender.Snap.RejectsDegenerateTexel",
+    FCkTest_PixelArtRenderer_SnapRejectsDegenerateTexel,
+    "CkTests.UnitTests.CkPixelArtRenderer.Snap.RejectsDegenerateTexel",
     kCkUnitTestFlags)
 
-bool FCkTest_PixelArtRender_SnapRejectsDegenerateTexel::RunTest(const FString& Parameters)
+bool FCkTest_PixelArtRenderer_SnapRejectsDegenerateTexel::RunTest(const FString& Parameters)
 {
     const auto ViewRotationMatrix = ck_test_pixel_art_snap::Get_ViewRotationMatrix(FRotator{-30.0f, 45.0f, 0.0f});
     const auto Origin = FVector{123.4, -567.8, 90.1};
@@ -281,11 +283,11 @@ bool FCkTest_PixelArtRender_SnapRejectsDegenerateTexel::RunTest(const FString& P
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_PixelArtRender_OrthoWidthExtraction,
-    "CkTests.UnitTests.CkPixelArtRender.Snap.OrthoWidthExtraction",
+    FCkTest_PixelArtRenderer_OrthoWidthExtraction,
+    "CkTests.UnitTests.CkPixelArtRenderer.Snap.OrthoWidthExtraction",
     kCkUnitTestFlags)
 
-bool FCkTest_PixelArtRender_OrthoWidthExtraction::RunTest(const FString& Parameters)
+bool FCkTest_PixelArtRenderer_OrthoWidthExtraction::RunTest(const FString& Parameters)
 {
     const double OrthoWidths[] = {128.0, 1024.0, 4000.0, 51200.0};
     constexpr auto Aspect = 16.0 / 9.0;
@@ -320,11 +322,11 @@ bool FCkTest_PixelArtRender_OrthoWidthExtraction::RunTest(const FString& Paramet
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FCkTest_PixelArtRender_MarginFoldPreservesTexelSize,
-    "CkTests.UnitTests.CkPixelArtRender.Snap.MarginFoldPreservesTexelSize",
+    FCkTest_PixelArtRenderer_MarginFoldPreservesTexelSize,
+    "CkTests.UnitTests.CkPixelArtRenderer.Snap.MarginFoldPreservesTexelSize",
     kCkUnitTestFlags)
 
-bool FCkTest_PixelArtRender_MarginFoldPreservesTexelSize::RunTest(const FString& Parameters)
+bool FCkTest_PixelArtRenderer_MarginFoldPreservesTexelSize::RunTest(const FString& Parameters)
 {
     // The render margin widens the projection so the extra texels are rendered rather than squeezed in. The
     // property that makes it invisible is that a texel is the same size in world units before and after the fold
@@ -349,13 +351,13 @@ bool FCkTest_PixelArtRender_MarginFoldPreservesTexelSize::RunTest(const FString&
                     InnerWidth, InternalHeight, RequestedMargin, Aspect);
 
                 const int32 RenderedWidth = InnerWidth + 2 * MarginX;
-                const auto Fraction = UCk_Utils_PixelArtRender_UE::Get_ExactFraction(RenderedWidth, ViewportSize.X);
+                const auto Fraction = UCk_Utils_PixelArtRenderer_UE::Get_ExactFraction(RenderedWidth, ViewportSize.X);
                 const int32 RenderedHeight = FMath::CeilToInt32(ViewportSize.Y * Fraction);
 
                 const auto Label = FString::Printf(TEXT("%dx%d at %dp margin %d"),
                     ViewportSize.X, ViewportSize.Y, InternalHeight, RequestedMargin);
 
-                if (!TestEqual(*FString::Printf(TEXT("%s: width lands exactly"), *Label),
+                if (NOT TestEqual(*FString::Printf(TEXT("%s: width lands exactly"), *Label),
                     FMath::CeilToInt32(ViewportSize.X * Fraction), RenderedWidth))
                 { return false; }
 
@@ -365,31 +367,60 @@ bool FCkTest_PixelArtRender_MarginFoldPreservesTexelSize::RunTest(const FString&
                 const auto TopInset = ExtraRows / 2;
                 const auto BottomInset = ExtraRows - TopInset;
 
-                if (!TestTrue(*FString::Printf(TEXT("%s: insets %d/%d reach the requested %d"),
+                if (NOT TestTrue(*FString::Printf(TEXT("%s: insets %d/%d reach the requested %d"),
                         *Label, TopInset, BottomInset, RequestedMargin),
                     TopInset >= RequestedMargin && BottomInset >= RequestedMargin))
                 { return false; }
 
-                // The fold itself: scale the horizontal projection term by Inner/Rendered so the wider render
-                // covers proportionally more world, then derive the vertical term from the RENDERED aspect so a
-                // texel stays square in spite of the engine's CeilToInt on height.
+                // Drives the REAL fold rather than restating its algebra. An earlier version of this block
+                // recomputed the fold inline and compared the result against itself, which is an identity:
+                // it passed whether or not the implementation existed.
                 constexpr auto AuthoredOrthoWidth = 2048.0;
-                const auto TexelBeforeFold = AuthoredOrthoWidth / InnerWidth;
 
-                const auto FoldedOrthoWidth = AuthoredOrthoWidth * RenderedWidth / InnerWidth;
-                const auto TexelAfterFold = FoldedOrthoWidth / RenderedWidth;
+                // A projection framed for the DISPLAYED window, exactly as the camera would hand it over.
+                constexpr auto NearPlane = 10.0f;
+                constexpr auto FarPlane = 10000.0f;
+                constexpr auto ZScale = 1.0f / (FarPlane - NearPlane);
 
-                if (!TestTrue(*FString::Printf(TEXT("%s: texel size survives the fold (%f vs %f)"),
+                const auto InnerAspect = static_cast<double>(InnerWidth) / static_cast<double>(InternalHeight);
+
+                auto Projection = FMatrix{FReversedZOrthoMatrix{
+                    static_cast<float>(AuthoredOrthoWidth / 2.0),
+                    static_cast<float>(AuthoredOrthoWidth / 2.0 / InnerAspect),
+                    ZScale,
+                    -NearPlane}};
+
+                const auto TexelBeforeFold =
+                    ck::pixel_art::Get_OrthoWidthFromProjection(Projection) / InnerWidth;
+
+                ck::pixel_art::Apply_MarginFold(Projection,
+                    FIntPoint{InnerWidth, InternalHeight}, FIntPoint{RenderedWidth, RenderedHeight});
+
+                // A texel must be the same size in world units after the fold as before it, or the displayed
+                // window silently zooms whenever the margin changes.
+                const auto TexelAfterFold =
+                    ck::pixel_art::Get_OrthoWidthFromProjection(Projection) / RenderedWidth;
+
+                if (NOT TestTrue(*FString::Printf(TEXT("%s: texel size survives the fold (%f vs %f)"),
                         *Label, TexelBeforeFold, TexelAfterFold),
-                    FMath::IsNearlyEqual(TexelBeforeFold, TexelAfterFold, 1e-9)))
+                    FMath::IsNearlyEqual(TexelBeforeFold, TexelAfterFold, 1e-6)))
                 { return false; }
 
-                const auto FoldedOrthoHeight = FoldedOrthoWidth * RenderedHeight / RenderedWidth;
-                const auto VerticalTexel = FoldedOrthoHeight / RenderedHeight;
+                // Read back off the folded matrix, not recomputed: M[1][1] is 1/half-height, so the vertical
+                // world span is 2/M[1][1] and a square texel means span/count matches on both axes.
+                const auto VerticalTexel = (2.0 / Projection.M[1][1]) / RenderedHeight;
 
-                if (!TestTrue(*FString::Printf(TEXT("%s: texels are square (%f vs %f)"),
+                if (NOT TestTrue(*FString::Printf(TEXT("%s: texels are square (%f vs %f)"),
                         *Label, TexelAfterFold, VerticalTexel),
-                    FMath::IsNearlyEqual(TexelAfterFold, VerticalTexel, 1e-9)))
+                    FMath::IsNearlyEqual(TexelAfterFold, VerticalTexel, 1e-6)))
+                { return false; }
+
+                // The fold must refuse degenerate geometry rather than producing an infinite projection.
+                auto Untouched = Projection;
+                ck::pixel_art::Apply_MarginFold(Untouched, FIntPoint::ZeroValue, FIntPoint{RenderedWidth, RenderedHeight});
+
+                if (NOT TestTrue(*FString::Printf(TEXT("%s: a zero inner size leaves the projection alone"), *Label),
+                    FMath::IsNearlyEqual(Untouched.M[0][0], Projection.M[0][0], 1e-9)))
                 { return false; }
             }
         }
