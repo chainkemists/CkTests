@@ -1,9 +1,10 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Crowd Narrow-Gap Gym
 //
-// A 110cm gap between two nav-carving walls — walkable for a 42cm agent, too tight to also keep an
-// avoidance margin from both sides. 20 walkers auto-spawn on one side (once the navmesh probe
-// resolves) with mirrored goals on the other, so the whole crowd funnels through the pinch.
+// A 170cm physical gap between two nav-carving walls — ~100cm of navmesh after Recast erodes the
+// agent radius off both wall faces: walkable for a 42cm agent, too tight to also keep an avoidance
+// margin from both sides. 20 walkers auto-spawn on one side (once the navmesh probe resolves) with
+// mirrored goals on the other, so the whole crowd funnels through the pinch.
 //
 // What to watch:
 //   Solo mode      — pre-fix: agents jitter/oscillate inside the gap; post-fix (corridor
