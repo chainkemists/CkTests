@@ -33,6 +33,7 @@ class ACk_PixelArtGym_JudgeScene : AActor
     USceneComponent Root;
 
     private UStaticMeshComponent _Rotator;
+    private TArray<USceneComponent> _SuppressedMapLights;
     private float _Elapsed = 0.0f;
 
     UFUNCTION(BlueprintOverride)
@@ -40,6 +41,7 @@ class ACk_PixelArtGym_JudgeScene : AActor
     {
         auto _CkPerfScope = ck::ScopedStat();
 
+        Suppress_MapLighting();
         Build_Lighting();
         Build_Ground();
         Build_CubeStack();
@@ -48,6 +50,57 @@ class ACk_PixelArtGym_JudgeScene : AActor
         Build_ThinRail();
         Build_Rotator();
         Build_CaptureTripwire();
+    }
+
+    UFUNCTION(BlueprintOverride)
+    void EndPlay(EEndPlayReason EndPlayReason)
+    {
+        for (auto Component : _SuppressedMapLights)
+        {
+            if (ck::IsValid(Component))
+            { Component.SetVisibility(true); }
+        }
+
+        _SuppressedMapLights.Empty();
+    }
+
+    // "Its OWN lighting rather than the map's" has to mean the map's is OFF, not merely outshone: a second
+    // directional doubles every shadow — two overlapping penumbrae that read as jitter on thin features —
+    // and makes the engine's forward-light selection unstable (the on-screen ForwardShadingPriority
+    // warning). Suppressed rather than destroyed, and restored on EndPlay, so every other gym keeps the
+    // shared map's lighting exactly as it was.
+    private void Suppress_MapLighting()
+    {
+        auto Directionals = TArray<ADirectionalLight>();
+        GetAllActorsOfClass(ADirectionalLight, Directionals);
+
+        for (auto Light : Directionals)
+        {
+            auto Component = Light.LightComponent;
+
+            if (ck::IsValid(Component) && Component.IsVisible())
+            {
+                Component.SetVisibility(false);
+                _SuppressedMapLights.Add(Component);
+            }
+        }
+
+        auto SkyLights = TArray<ASkyLight>();
+        GetAllActorsOfClass(ASkyLight, SkyLights);
+
+        for (auto Sky : SkyLights)
+        {
+            auto Component = Sky.LightComponent;
+
+            if (ck::IsValid(Component) && Component.IsVisible())
+            {
+                Component.SetVisibility(false);
+                _SuppressedMapLights.Add(Component);
+            }
+        }
+
+        if (_SuppressedMapLights.Num() > 0)
+        { ck::Trace(f"🟪 Pixel Art Gym: suppressed {_SuppressedMapLights.Num()} map light(s) - the judge scene owns the lighting while it is alive"); }
     }
 
     UFUNCTION(BlueprintOverride)
@@ -103,6 +156,10 @@ class ACk_PixelArtGym_JudgeScene : AActor
         KeyLight.SetIntensity(6.0f);
         KeyLight.SetLightColor(FLinearColor(1.0f, 0.96f, 0.88f, 1.0f));
         KeyLight.SetCastShadows(true);
+
+        // Belt over the suppression above: whatever else exists, THIS light wins the forward-shading slot,
+        // so the selection can never flip mid-run.
+        KeyLight.SetForwardShadingPriority(100);
 
         // Without a fill, everything facing away from the key collapses into one band and the band COUNT
         // becomes unjudgeable on exactly the surfaces the crease test needs.
