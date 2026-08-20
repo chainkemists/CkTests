@@ -161,6 +161,12 @@ class ACk_PixelArtGym_JudgeScene : AActor
         // so the selection can never flip mid-run.
         KeyLight.SetForwardShadingPriority(100);
 
+        // A HARD sun, deliberately: the default 0.54-degree source angle grows a penumbra several texels
+        // wide at this scene's depths, and virtual shadow maps sample penumbrae stochastically per frame
+        // expecting temporal AA to clean the noise — which this renderer requires OFF. A zero source angle
+        // collapses the penumbra to the crisp texel-snapped edge the style wants anyway.
+        KeyLight.SetLightSourceAngle(0.0f);
+
         // Without a fill, everything facing away from the key collapses into one band and the band COUNT
         // becomes unjudgeable on exactly the surfaces the crease test needs.
         auto Fill = USkyLightComponent::Create(this);
