@@ -25,6 +25,9 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 
+#include "CkCore/Macros/CkMacros.h"
+#include "CkCore/Validation/CkIsValid.h"
+
 #include "CkUsf/LookDefinition/CkUsf_LookDefinition.h"
 
 #include "../CkUnitTest_Common.h"
@@ -52,7 +55,7 @@ namespace ck_test_usf_pixel_art_contract
         {
             auto* Definition = Cast<UCkUsf_LookDefinition>(Asset.GetAsset());
 
-            if (Definition != nullptr && Definition->_LookName == FName{kLookName})
+            if (ck::IsValid(Definition) && Definition->_LookName == FName{kLookName})
             { return Definition; }
         }
 
@@ -66,7 +69,7 @@ namespace ck_test_usf_pixel_art_contract
     {
         const auto Plugin = IPluginManager::Get().FindPlugin(TEXT("CkFoundation"));
 
-        if (!Plugin.IsValid())
+        if (NOT Plugin.IsValid())
         { return false; }
 
         const auto FullPath = FPaths::Combine(Plugin->GetBaseDir(), kUshRelativePath);
@@ -140,7 +143,7 @@ bool FCkTest_Usf_PixelArtLookContract::RunTest(const FString& Parameters)
 {
     auto* Definition = ck_test_usf_pixel_art_contract::TryFind_LookDefinition();
 
-    if (!TestNotNull(TEXT("the PixelArt LookDefinition asset exists"), Definition))
+    if (NOT TestNotNull(TEXT("the PixelArt LookDefinition asset exists"), Definition))
     { return false; }
 
     TestEqual(TEXT("entry point"), Definition->_UshFunctionName,
@@ -164,13 +167,13 @@ bool FCkTest_Usf_PixelArtLookContract::RunTest(const FString& Parameters)
 
     auto Source = FString{};
 
-    if (!TestTrue(TEXT("PixelArt.ush is readable from the plugin directory"),
+    if (NOT TestTrue(TEXT("PixelArt.ush is readable from the plugin directory"),
         ck_test_usf_pixel_art_contract::TryRead_UshSource(Source)))
     { return false; }
 
     const auto EntryNames = ck_test_usf_pixel_art_contract::Get_EntryParameterNames(Source);
 
-    if (!TestEqual(TEXT("the asset declares one parameter per shader argument"),
+    if (NOT TestEqual(TEXT("the asset declares one parameter per shader argument"),
         Definition->_Parameters.Num(), EntryNames.Num()))
     { return false; }
 
