@@ -54,6 +54,7 @@ class ACk_PixelArtGym_HUD : ACkGym_MenuHUD
 
         Tick_StationKeys(PC);
         Tick_ProjectionKey(PC);
+        Tick_OKLabKey(PC);
         Draw_StationPanel(PC);
     }
 
@@ -81,6 +82,17 @@ class ACk_PixelArtGym_HUD : ACkGym_MenuHUD
         { return; }
 
         InPC.Request_ToggleProjection();
+    }
+
+    // O flips the active station into the OKLab treatment (perceptual band spacing, OKLab palette match,
+    // warm ramp). An in-place flip rather than an eleventh station: the A/B only means anything read on
+    // the SAME station, and the ten number keys are already spoken for.
+    private void Tick_OKLabKey(ACk_PixelArtGym_PlayerController InPC)
+    {
+        if (!InPC.WasInputKeyJustPressed(EKeys::O))
+        { return; }
+
+        InPC.Request_ToggleOKLab();
     }
 
     private bool Get_StationKeyPressed(ACk_PixelArtGym_PlayerController InPC, int32 InIndex)
@@ -159,8 +171,9 @@ class ACk_PixelArtGym_HUD : ACkGym_MenuHUD
         RowY += RowHeight;
 
         auto LookText = InPC.Get_LookOverride() ? "look FORCED ON" : "look per-station";
+        auto OKLabText = InPC.Get_OKLabOverride() ? "[O] OKLab ON" : "[O] OKLab off";
 
-        DrawText(f"Ck_GymPixelArt_TogglePan for the creep test  |  {LookText}",
+        DrawText(f"Ck_GymPixelArt_TogglePan for the creep test  |  {LookText}  |  {OKLabText}",
             FLinearColor(0.55f, 0.60f, 0.68f, 1.0f),
             PanelX + PanelPadding, RowY, nullptr, 0.85f, false);
         RowY += RowHeight;
