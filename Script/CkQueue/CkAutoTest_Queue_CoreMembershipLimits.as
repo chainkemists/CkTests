@@ -12,9 +12,11 @@ class UCk_AutoTest_Queue_CoreMembershipLimits : UCk_AutoTest_Base
     private FCk_Handle       _MemberD;
     private FCk_Handle       _RefreshedMover;
     private int32            _JoinDCompletionCount = 0;
-    private ECk_Request_OperationResult _JoinDResult = ECk_Request_OperationResult::Succeeded;
+    private ECk_Request_OperationResult _InitialJoinDResult = ECk_Request_OperationResult::Succeeded;
+    private ECk_Request_OperationResult _RetryJoinDResult = ECk_Request_OperationResult::Failed;
     private int64            _TicketB = 0;
     private int64            _TicketC = 0;
+    private int64            _TicketD = 0;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -40,8 +42,11 @@ class UCk_AutoTest_Queue_CoreMembershipLimits : UCk_AutoTest_Base
         Add_Step_WaitUntil("all join completions settle", n"Check_JoinsSettled");
         Add_Step("assert FIFO tickets and hard-limit refusal", n"Step_AssertInitialMembership");
         Add_Step("leave A, refresh B's mover, and suppress B", n"Step_RequestMutationBatch");
-        Add_Step_WaitUntil("leave, rejoin, and suppression settle", n"Check_MutationBatchSettled");
-        Add_Step("assert stable tickets, compaction, mover refresh, and suppression", n"Step_AssertFinalMembership");
+        Add_Step_WaitUntil("capacity opens without re-admitting the rejected member", n"Check_MutationBatchSettled");
+        Add_Step("assert terminal rejection, compaction, mover refresh, and suppression", n"Step_AssertFinalMembership");
+        Add_Step("explicitly retry the previously rejected member", n"Step_RequestExplicitRetry");
+        Add_Step_WaitUntil("explicit retry is admitted into opened capacity", n"Check_ExplicitRetrySettled");
+        Add_Step("assert planner-controlled retry receives a fresh ticket", n"Step_AssertExplicitRetry");
         Run_Steps(InHandle);
     }
 
@@ -66,7 +71,8 @@ class UCk_AutoTest_Queue_CoreMembershipLimits : UCk_AutoTest_Base
     private void OnJoinDCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
     {
         _JoinDCompletionCount += 1;
-        _JoinDResult = InResult;
+        if (_JoinDCompletionCount == 1) { _InitialJoinDResult = InResult; }
+        else { _RetryJoinDResult = InResult; }
     }
 
     UFUNCTION()
@@ -93,7 +99,7 @@ class UCk_AutoTest_Queue_CoreMembershipLimits : UCk_AutoTest_Base
         Assert_True(_Queue.Get_Pressure().Get_IsSoftLimited(),
             "soft limit reports pressure without refusing C");
         Assert_Equals_Int(_JoinDCompletionCount, 1, "hard-limit loser completes exactly once");
-        Assert_True(_JoinDResult == ECk_Request_OperationResult::Failed,
+        Assert_True(_InitialJoinDResult == ECk_Request_OperationResult::Failed,
             "hard-limit loser receives explicit Failed completion");
         Assert_False(_Queue.Get_IsMember(_MemberD), "hard-limit loser never becomes a member");
         _TicketB = Members[1].Get_Ticket();
@@ -121,7 +127,9 @@ class UCk_AutoTest_Queue_CoreMembershipLimits : UCk_AutoTest_Base
         auto Result = OutResult;
         Result.Set(HasB && _Queue.Get_MemberCount() == 2
             && Snapshot.Get_Mover() == _RefreshedMover
-            && Snapshot.Get_MovementSuppressed());
+            && Snapshot.Get_MovementSuppressed()
+            && _JoinDCompletionCount == 1
+            && _Queue.Get_IsMember(_MemberD) == false);
     }
 
     UFUNCTION()
@@ -141,5 +149,39 @@ class UCk_AutoTest_Queue_CoreMembershipLimits : UCk_AutoTest_Base
             "member-scoped suppression retains B's queue membership");
         Assert_False(Members[1].Get_MovementSuppressed(),
             "suppression does not leak to C");
+        Assert_Equals_Int(_JoinDCompletionCount, 1,
+            "opening capacity does not silently retry a hard-limit rejection");
+        Assert_False(_Queue.Get_IsMember(_MemberD),
+            "the rejected member remains outside the queue until its planner retries admission");
+    }
+
+    UFUNCTION()
+    private void Step_RequestExplicitRetry(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        _Queue.Request_Join(FCk_Request_Queue_Join(_MemberD),
+            FCk_Delegate_Request_OnCompleted(this, n"OnJoinDCompleted"));
+    }
+
+    UFUNCTION()
+    private void Check_ExplicitRetrySettled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Snapshot;
+        const bool HasD = _Queue.TryGet_MemberSnapshot(_MemberD, Snapshot);
+        if (HasD) { _TicketD = Snapshot.Get_Ticket(); }
+        auto Result = OutResult;
+        Result.Set(_JoinDCompletionCount == 2
+            && _RetryJoinDResult == ECk_Request_OperationResult::Succeeded
+            && _Queue.Get_MemberCount() == 3 && HasD);
+    }
+
+    UFUNCTION()
+    private void Step_AssertExplicitRetry(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        Assert_True(_RetryJoinDResult == ECk_Request_OperationResult::Succeeded,
+            "a planner's explicit retry is admitted after capacity opens");
+        Assert_True(_TicketD > _TicketC,
+            "a previously rejected member receives a fresh monotonic ticket only when explicitly admitted");
+        Assert_True(_Queue.Get_IsMember(_MemberD),
+            "explicit retry publishes D as a real queue member");
     }
 }

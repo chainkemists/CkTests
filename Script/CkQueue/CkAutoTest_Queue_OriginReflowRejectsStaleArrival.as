@@ -6,45 +6,51 @@ class UCk_AutoTest_Queue_OriginReflowRejectsStaleArrival : UCk_AutoTest_Base
 
     private FCk_Handle       _Owner;
     private FCk_Handle_Queue _Queue;
-    private FCk_Handle       _Member;
-    private int32            _OldAssignmentRevision = 0;
-    private int32            _NewAssignmentRevision = 0;
-    private int32            _SlotReachedEvents = 0;
+    private FCk_Handle       _FailedFront;
+    private FCk_Handle       _LaterMember;
+    private int32            _PreReflowAssignmentRevision = 0;
+    private int32            _FailedFrontAssignmentRevision = 0;
+    private int32            _LaterAssignmentRevision = 0;
     private int32            _StaleCompletionCount = 0;
-    private int32            _FreshCompletionCount = 0;
+    private int32            _LaterReachedCompletionCount = 0;
+    private int32            _SlotReachedEvents = 0;
     private ECk_Request_OperationResult _StaleResult = ECk_Request_OperationResult::Failed;
-    private ECk_Request_OperationResult _FreshResult = ECk_Request_OperationResult::Failed;
+    private ECk_Request_OperationResult _LaterReachedResult = ECk_Request_OperationResult::Failed;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        _Queue = CreateQueue(_Owner, FTransform(FVector(200.0f, 0.0f, 0.0f)));
+        _Queue = CreateQueue(_Owner);
         _Queue.BindTo_OnQueueMemberStateChanged(
             FCk_Delegate_Queue_OnMemberStateChanged(this, n"OnMemberStateChanged"));
-        _Member = utils_entity_lifetime::Request_CreateEntity(InHandle);
+        _FailedFront = utils_entity_lifetime::Request_CreateEntity(InHandle);
+        _LaterMember = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         utils_nav::Request_NavigationRebuild_ForTesting(InHandle);
 
         Add_Step_WaitUntil("queue setup completes", n"Check_QueueReady");
-        Add_Step("join one member", n"Step_RequestJoin");
-        Add_Step_WaitUntil("initial formation assigns a revision", n"Check_InitialAssignment");
-        Add_Step("change the origin transform", n"Step_RequestOriginReflow");
-        Add_Step_WaitUntil("origin reflow publishes a newer assignment", n"Check_ReflowedAssignment");
-        Add_Step("report the old assignment as reached", n"Step_ReportStaleReached");
-        Add_Step_WaitUntil("stale arrival is processed without changing queue state", n"Check_StaleArrivalIgnored");
-        Add_Step("report the current assignment as reached", n"Step_ReportFreshReached");
-        Add_Step_WaitUntil("current arrival reaches the front", n"Check_FreshArrivalApplied");
-        Add_Step("assert revision-safe arrival reporting", n"Step_AssertRevisionSafety");
+        Add_Step("join an initially reserved front and a later viable member", n"Step_RequestJoins");
+        Add_Step_WaitUntil("reserve-on-formation assigns the initial front", n"Check_InitialFrontAssignment");
+        Add_Step("move the origin to force a fresh reservation revision", n"Step_RequestOriginReflow");
+        Add_Step_WaitUntil("origin reflow publishes a newer front reservation", n"Check_ReflowedFrontAssignment");
+        Add_Step("report the pre-reflow reservation as reached", n"Step_ReportPreReflowStaleArrival");
+        Add_Step_WaitUntil("pre-reflow arrival is ignored without changing the current reservation", n"Check_PreReflowStaleArrivalIgnored");
+        Add_Step("report movement failure for the reserved front", n"Step_ReportFrontFailure");
+        Add_Step_WaitUntil("failed front yields rank zero to the later viable member", n"Check_FailurePromotesLaterMember");
+        Add_Step("report the failed front's stale old arrival", n"Step_ReportStaleFailedFrontArrival");
+        Add_Step_WaitUntil("stale failed-front arrival is ignored", n"Check_StaleArrivalIgnored");
+        Add_Step("report the promoted member reaching the front", n"Step_ReportPromotedMemberReached");
+        Add_Step_WaitUntil("promoted member reaches the queue front", n"Check_PromotedMemberReached");
+        Add_Step("assert failure handoff and revision safety", n"Step_AssertFailureHandoff");
         Run_Steps(InHandle);
     }
 
     UFUNCTION()
     private void OnMemberStateChanged(FCk_Handle_Queue InQueue, FCk_Queue_MemberEvent InEvent)
     {
-        if (InQueue == _Queue && InEvent.Get_Member().Get_Member() == _Member
-            && InEvent.Get_Reason() == ECk_Queue_EventReason::SlotReached)
+        if (InQueue == _Queue && InEvent.Get_Reason() == ECk_Queue_EventReason::SlotReached)
         { _SlotReachedEvents += 1; }
     }
 
@@ -56,10 +62,10 @@ class UCk_AutoTest_Queue_OriginReflowRejectsStaleArrival : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void OnFreshCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    private void OnLaterReachedCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
     {
-        _FreshCompletionCount += 1;
-        _FreshResult = InResult;
+        _LaterReachedCompletionCount += 1;
+        _LaterReachedResult = InResult;
     }
 
     UFUNCTION()
@@ -70,104 +76,157 @@ class UCk_AutoTest_Queue_OriginReflowRejectsStaleArrival : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void Step_RequestJoin(FCk_Handle InHandle, FInstancedStruct InPayload)
+    private void Step_RequestJoins(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        _Queue.Request_Join(FCk_Request_Queue_Join(_Member));
+        _Queue.Request_Join(FCk_Request_Queue_Join(_FailedFront));
+        _Queue.Request_Join(FCk_Request_Queue_Join(_LaterMember));
     }
 
     UFUNCTION()
-    private void Check_InitialAssignment(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    private void Check_InitialFrontAssignment(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FCk_Queue_MemberSnapshot Snapshot;
-        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(_Member, Snapshot);
+        FCk_Queue_MemberSnapshot FailedFront;
+        FCk_Queue_MemberSnapshot Later;
+        const bool HasFailedFront = _Queue.TryGet_MemberSnapshot(_FailedFront, FailedFront);
+        const bool HasLater = _Queue.TryGet_MemberSnapshot(_LaterMember, Later);
+        if (HasFailedFront) { _PreReflowAssignmentRevision = FailedFront.Get_AssignmentRevision(); }
         auto Result = OutResult;
-        Result.Set(HasSnapshot && Snapshot.Get_AssignmentRevision() > 0
-            && Snapshot.Get_State() == ECk_Queue_MemberState::Assigned);
+        Result.Set(HasFailedFront && HasLater && _PreReflowAssignmentRevision > 0
+            && FailedFront.Get_Rank() == 0
+            && (FailedFront.Get_State() == ECk_Queue_MemberState::Assigned
+                || FailedFront.Get_State() == ECk_Queue_MemberState::MovingToSlot));
     }
 
     UFUNCTION()
     private void Step_RequestOriginReflow(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        FCk_Queue_MemberSnapshot Snapshot;
-        Assert_True(_Queue.TryGet_MemberSnapshot(_Member, Snapshot),
-            "member has an initial assigned snapshot before reflow");
-        _OldAssignmentRevision = Snapshot.Get_AssignmentRevision();
-
         auto Origins = TArray<FCk_Queue_Origin>();
         Origins.Add(FCk_Queue_Origin(FTransform(FVector(360.0f, 0.0f, 0.0f))));
         _Queue.Request_SetOrigins(FCk_Request_Queue_SetOrigins(Origins));
     }
 
     UFUNCTION()
-    private void Check_ReflowedAssignment(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    private void Check_ReflowedFrontAssignment(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FCk_Queue_MemberSnapshot Snapshot;
-        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(_Member, Snapshot);
+        FCk_Queue_MemberSnapshot FailedFront;
+        const bool HasFailedFront = _Queue.TryGet_MemberSnapshot(_FailedFront, FailedFront);
+        if (HasFailedFront) { _FailedFrontAssignmentRevision = FailedFront.Get_AssignmentRevision(); }
         auto Result = OutResult;
-        Result.Set(HasSnapshot && Snapshot.Get_AssignmentRevision() > _OldAssignmentRevision
-            && Snapshot.Get_State() == ECk_Queue_MemberState::Assigned);
+        Result.Set(HasFailedFront && _FailedFrontAssignmentRevision > _PreReflowAssignmentRevision
+            && FailedFront.Get_Rank() == 0
+            && (FailedFront.Get_State() == ECk_Queue_MemberState::Assigned
+                || FailedFront.Get_State() == ECk_Queue_MemberState::MovingToSlot));
     }
 
     UFUNCTION()
-    private void Step_ReportStaleReached(FCk_Handle InHandle, FInstancedStruct InPayload)
+    private void Step_ReportPreReflowStaleArrival(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        FCk_Queue_MemberSnapshot Snapshot;
-        Assert_True(_Queue.TryGet_MemberSnapshot(_Member, Snapshot),
-            "member remains present after origin reflow");
-        _NewAssignmentRevision = Snapshot.Get_AssignmentRevision();
         _Queue.Request_ReportMovementOutcome(
             FCk_Request_Queue_ReportMovementOutcome(
-                _Member, _OldAssignmentRevision, ECk_Queue_MovementOutcome::Reached),
+                _FailedFront, _PreReflowAssignmentRevision, ECk_Queue_MovementOutcome::Reached),
+            FCk_Delegate_Request_OnCompleted(this, n"OnStaleCompleted"));
+    }
+
+    UFUNCTION()
+    private void Check_PreReflowStaleArrivalIgnored(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot FailedFront;
+        const bool HasFailedFront = _Queue.TryGet_MemberSnapshot(_FailedFront, FailedFront);
+        auto Result = OutResult;
+        Result.Set(_StaleCompletionCount == 1 && HasFailedFront
+            && FailedFront.Get_AssignmentRevision() == _FailedFrontAssignmentRevision
+            && (FailedFront.Get_State() == ECk_Queue_MemberState::Assigned
+                || FailedFront.Get_State() == ECk_Queue_MemberState::MovingToSlot)
+            && _SlotReachedEvents == 0);
+    }
+
+    UFUNCTION()
+    private void Step_ReportFrontFailure(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        _Queue.Request_ReportMovementOutcome(
+            FCk_Request_Queue_ReportMovementOutcome(
+                _FailedFront, _FailedFrontAssignmentRevision, ECk_Queue_MovementOutcome::Failed));
+    }
+
+    UFUNCTION()
+    private void Check_FailurePromotesLaterMember(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot FailedFront;
+        FCk_Queue_MemberSnapshot Later;
+        const bool HasFailedFront = _Queue.TryGet_MemberSnapshot(_FailedFront, FailedFront);
+        const bool HasLater = _Queue.TryGet_MemberSnapshot(_LaterMember, Later);
+        if (HasLater) { _LaterAssignmentRevision = Later.Get_AssignmentRevision(); }
+        auto Result = OutResult;
+        Result.Set(HasFailedFront && HasLater
+            && FailedFront.Get_State() == ECk_Queue_MemberState::WaitingForNavigationChange
+            && FailedFront.Get_AssignmentRevision() == 0
+            && Later.Get_Rank() == 0 && _LaterAssignmentRevision > _FailedFrontAssignmentRevision
+            && (Later.Get_State() == ECk_Queue_MemberState::Assigned
+                || Later.Get_State() == ECk_Queue_MemberState::MovingToSlot));
+    }
+
+    UFUNCTION()
+    private void Step_ReportStaleFailedFrontArrival(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        _Queue.Request_ReportMovementOutcome(
+            FCk_Request_Queue_ReportMovementOutcome(
+                _FailedFront, _FailedFrontAssignmentRevision, ECk_Queue_MovementOutcome::Reached),
             FCk_Delegate_Request_OnCompleted(this, n"OnStaleCompleted"));
     }
 
     UFUNCTION()
     private void Check_StaleArrivalIgnored(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FCk_Queue_MemberSnapshot Snapshot;
-        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(_Member, Snapshot);
+        FCk_Queue_MemberSnapshot FailedFront;
+        FCk_Queue_MemberSnapshot Later;
+        const bool HasFailedFront = _Queue.TryGet_MemberSnapshot(_FailedFront, FailedFront);
+        const bool HasLater = _Queue.TryGet_MemberSnapshot(_LaterMember, Later);
         auto Result = OutResult;
-        Result.Set(_StaleCompletionCount == 1 && HasSnapshot
-            && Snapshot.Get_AssignmentRevision() == _NewAssignmentRevision
-            && Snapshot.Get_State() == ECk_Queue_MemberState::Assigned
+        Result.Set(_StaleCompletionCount == 2 && HasFailedFront && HasLater
+            && FailedFront.Get_State() == ECk_Queue_MemberState::WaitingForNavigationChange
+            && FailedFront.Get_AssignmentRevision() == 0
+            && Later.Get_Rank() == 0 && Later.Get_AssignmentRevision() == _LaterAssignmentRevision
             && _SlotReachedEvents == 0);
     }
 
     UFUNCTION()
-    private void Step_ReportFreshReached(FCk_Handle InHandle, FInstancedStruct InPayload)
+    private void Step_ReportPromotedMemberReached(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         _Queue.Request_ReportMovementOutcome(
             FCk_Request_Queue_ReportMovementOutcome(
-                _Member, _NewAssignmentRevision, ECk_Queue_MovementOutcome::Reached),
-            FCk_Delegate_Request_OnCompleted(this, n"OnFreshCompleted"));
+                _LaterMember, _LaterAssignmentRevision, ECk_Queue_MovementOutcome::Reached),
+            FCk_Delegate_Request_OnCompleted(this, n"OnLaterReachedCompleted"));
     }
 
     UFUNCTION()
-    private void Check_FreshArrivalApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    private void Check_PromotedMemberReached(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FCk_Queue_MemberSnapshot Snapshot;
-        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(_Member, Snapshot);
+        FCk_Queue_MemberSnapshot Later;
+        const bool HasLater = _Queue.TryGet_MemberSnapshot(_LaterMember, Later);
         auto Result = OutResult;
-        Result.Set(_FreshCompletionCount == 1 && HasSnapshot
-            && Snapshot.Get_State() == ECk_Queue_MemberState::AtFront
-            && _SlotReachedEvents == 1);
+        Result.Set(_LaterReachedCompletionCount == 1 && HasLater
+            && Later.Get_State() == ECk_Queue_MemberState::AtFront && _SlotReachedEvents == 1);
     }
 
     UFUNCTION()
-    private void Step_AssertRevisionSafety(FCk_Handle InHandle, FInstancedStruct InPayload)
+    private void Step_AssertFailureHandoff(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_True(_StaleResult == ECk_Request_OperationResult::Succeeded,
-            "stale outcome drains as an idempotent no-op rather than failing the caller");
-        Assert_True(_FreshResult == ECk_Request_OperationResult::Succeeded,
-            "current outcome succeeds after the reflowed assignment is published");
+            "both pre-reflow and failed-reservation stale arrivals drain as revision-safe no-ops");
+        Assert_Equals_Int(_StaleCompletionCount, 2,
+            "the pre-reflow and failed-reservation stale arrivals each complete exactly once");
+        Assert_True(_LaterReachedResult == ECk_Request_OperationResult::Succeeded,
+            "the later viable member may report reaching its promoted front reservation");
         Assert_Equals_Int(_SlotReachedEvents, 1,
-            "only the current assignment revision may mark the member arrived");
+            "only the promoted member reaches the front after the initial reservation fails");
     }
 
-    private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner, FTransform InOriginTransform)
+    private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner)
     {
         auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(InOriginTransform));
-        return utils_queue::Add(InOwner, FCk_Fragment_Queue_ParamsData(Origins));
+        Origins.Add(FCk_Queue_Origin(FTransform(FVector(200.0f, 0.0f, 0.0f))));
+        auto Params = FCk_Fragment_Queue_ParamsData(Origins);
+        Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);
+        return utils_queue::Add(InOwner, Params);
     }
 }

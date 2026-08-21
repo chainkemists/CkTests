@@ -21,10 +21,17 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     private int32                      _SuppressCompletions = 0;
     private int32                      _ResumeCompletions = 0;
     private int32                      _SlotReachedEvents = 0;
+    private int32                      _ServingAdvancedEvents = 0;
     private int32                      _MemberDestroyedEvents = 0;
+    private int32                      _AdvanceCompletions = 0;
+    private int32                      _ExitEpisodeBeforeRequest = 0;
+    private FVector                    _CapturedQueueSlot;
+    private FVector                    _ExitGoal;
+    private bool                       _ExitReachedCleanly = false;
     private ECk_Request_OperationResult _JoinResult = ECk_Request_OperationResult::Failed;
     private ECk_Request_OperationResult _SuppressResult = ECk_Request_OperationResult::Failed;
     private ECk_Request_OperationResult _ResumeResult = ECk_Request_OperationResult::Failed;
+    private ECk_Request_OperationResult _AdvanceResult = ECk_Request_OperationResult::Failed;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -45,6 +52,14 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         Add_Step("resume movement with an origin reflow", n"Step_RequestResumeAndReflow");
         Add_Step_WaitUntil("adapter owns a fresh reflowed move episode", n"Check_ResumedMoveIssued");
         Add_Step_WaitUntil("the resumed Crowd move reaches the queue front", n"Check_ResumedArrival");
+        Add_Step("advance the arrived member out of the queue", n"Step_RequestAdvance");
+        Add_Step_WaitUntil("advance succeeds and removes the served member", n"Check_AdvancedOutOfQueue");
+        Add_Step("issue a consumer-owned forced exit MoveTo", n"Step_RequestExitMove");
+        // This is real Crowd navigation, not a request-drain condition. Give the 400uu lateral
+        // clearance move an explicit frame budget while continuing to poll the full outcome contract.
+        Add_Step_WaitUntil("served CrowdAgent cleanly clears the queue slot", n"Check_ServedAgentExited", 1200);
+        Add_Step("rejoin the exited agent before existing destruction coverage", n"Step_RejoinAfterExit");
+        Add_Step_WaitUntil("rejoined agent is again represented by the queue", n"Check_RejoinedAfterExit");
         Add_Step("destroy the CrowdAgent without leaving", n"Step_DestroyAgent");
         Add_Step_WaitUntil("queue reconciles the destroyed CrowdAgent", n"Check_DestroyedAgentReconciled");
         Add_Step("assert the complete adapter lifecycle", n"Step_AssertAdapterLifecycle");
@@ -73,12 +88,22 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     }
 
     UFUNCTION()
+    private void OnAdvanceCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    {
+        _AdvanceCompletions += 1;
+        _AdvanceResult = InResult;
+    }
+
+    UFUNCTION()
     private void OnMemberStateChanged(FCk_Handle_Queue InQueue, FCk_Queue_MemberEvent InEvent)
     {
         if (InQueue != _Queue || InEvent.Get_Member().Get_Member() != FCk_Handle(_Agent))
         { return; }
         if (InEvent.Get_Reason() == ECk_Queue_EventReason::SlotReached)
         { _SlotReachedEvents += 1; }
+        else if (InEvent.Get_Reason() == ECk_Queue_EventReason::Advanced
+            && InEvent.Get_Member().Get_State() == ECk_Queue_MemberState::Serving)
+        { _ServingAdvancedEvents += 1; }
         else if (InEvent.Get_Reason() == ECk_Queue_EventReason::MemberDestroyed)
         { _MemberDestroyedEvents += 1; }
     }
@@ -119,7 +144,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
             FTransform(FRotator::ZeroRotator, _Spawn, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
         auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
-        AgentParams.Set_MaxSpeed(150.0f);
+        AgentParams.Set_MaxSpeed(600.0f);
         _Agent = utils_crowd_agent::Add(AgentTransform, AgentParams);
         utils_velocity::Add(_AgentEntity,
             FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
@@ -258,6 +283,66 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     }
 
     UFUNCTION()
+    private void Step_RequestAdvance(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Snapshot;
+        Assert_True(_Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot),
+            "arrived agent remains a queue member immediately before service advance");
+        _CapturedQueueSlot = Snapshot.Get_TargetWorldTransform().GetLocation();
+        _Queue.Request_AdvanceOrigin(FCk_Request_Queue_AdvanceOrigin(0),
+            FCk_Delegate_Request_OnCompleted(this, n"OnAdvanceCompleted"));
+    }
+
+    UFUNCTION()
+    private void Check_AdvancedOutOfQueue(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Result = OutResult;
+        Result.Set(_AdvanceCompletions == 1 && _AdvanceResult == ECk_Request_OperationResult::Succeeded
+            && _ServingAdvancedEvents == 1 && _Queue.Get_IsMember(FCk_Handle(_Agent)) == false);
+    }
+
+    UFUNCTION()
+    private void Step_RequestExitMove(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        _ExitGoal = _CapturedQueueSlot + FVector(0.0f, 400.0f, 0.0f);
+        _ExitEpisodeBeforeRequest = _Agent.Get_ActiveMoveEpisode();
+        auto ExitRequest = FCk_Request_CrowdAgent_MoveTo(_ExitGoal);
+        ExitRequest.Set_CorrelationId(909);
+        ExitRequest.Set_ForceRepath(true);
+        _Agent.Request_MoveTo(ExitRequest);
+    }
+
+    UFUNCTION()
+    private void Check_ServedAgentExited(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        const auto CurrentPosition = utils_transform::Get_EntityCurrentLocation(_Agent.As_Transform());
+        const bool ExitedCleanly = _Queue.Get_IsMember(FCk_Handle(_Agent)) == false
+            && _Agent.Get_ActiveGoal().Equals(_ExitGoal, 1.0f)
+            && _Agent.Get_HasReachedActiveGoal()
+            && _Agent.Get_IsGoalFailedHold() == false
+            && _Agent.Get_ActiveMoveCorrelationId() == 909
+            && _Agent.Get_ActiveMoveEpisode() > _ExitEpisodeBeforeRequest
+            && float((CurrentPosition - _CapturedQueueSlot).Size()) > 300.0f;
+        if (ExitedCleanly) { _ExitReachedCleanly = true; }
+        auto Result = OutResult;
+        Result.Set(ExitedCleanly);
+    }
+
+    UFUNCTION()
+    private void Step_RejoinAfterExit(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        _Agent.Request_JoinQueue(_Queue, FCk_Delegate_Request_OnCompleted(this, n"OnJoinCompleted"));
+    }
+
+    UFUNCTION()
+    private void Check_RejoinedAfterExit(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        auto Result = OutResult;
+        Result.Set(_Queue.Get_IsMember(FCk_Handle(_Agent)) && _JoinCompletions == 2
+            && _JoinResult == ECk_Request_OperationResult::Succeeded);
+    }
+
+    UFUNCTION()
     private void Step_DestroyAgent(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         utils_entity_lifetime::Request_DestroyEntity(_AgentEntity);
@@ -284,6 +369,10 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         Assert_True(_InitialCorrelation > 0 && _ResumedCorrelation > 0
             && _InitialCorrelation != _ResumedCorrelation,
             "resumed queue assignment owns a distinct nonzero Crowd correlation");
+        Assert_True(_AdvanceResult == ECk_Request_OperationResult::Succeeded && _ServingAdvancedEvents == 1,
+            "arrived adapter member advances exactly once before consumer-owned exit");
+        Assert_True(_ExitReachedCleanly,
+            "served agent reaches its consumer-owned exit instead of failing held near the queue");
         Assert_Equals_Int(_Queue.Get_MemberCount(), 0,
             "destroyed CrowdAgent is reconciled out of queue membership without Leave");
         Assert_Equals_Int(_MemberDestroyedEvents, 1,
