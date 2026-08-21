@@ -112,7 +112,9 @@ in `Request_ControlActivated()`; the HUD does all drawing and key polling, so ev
 it looks and behaves the same. Rows are rebuilt each frame, so a Toggle's value column is live
 state — read it back from whatever owns it, and mirror it in a member only where there is genuinely
 no readback (say so in a comment when you do). Row builders: `Header`, `Status`, `Action`,
-`Toggle`, `ToggleNamed`, `Cycle`, `Choice`, `Numbered` (1-9 then 0, number row + numpad).
+`Toggle`, `ToggleNamed`, `Cycle`, `Choice`, `Numbered` (1-9 then 0, number row + numpad). Keyed
+rows accept an optional enabled flag; disabled rows remain visible and muted but never dispatch,
+so scenario readiness can change without reordering the panel or its activation indices.
 Reserved keys a row must never bind: **Tab** (cycler menu) and **H** (hide/show the panel — hiding
 does not disable it, the keys keep firing). Declaring no rows draws no panel, which is why this
 costs nothing to gyms that have not adopted it. Deliberately NOT adopted: `CkInput`'s KeyBinding
