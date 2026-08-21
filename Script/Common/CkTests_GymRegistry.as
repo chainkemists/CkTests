@@ -32,6 +32,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("Crowd BunchUp",      ACk_CrowdGym_BunchUp_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd NarrowGap",    ACk_CrowdGym_NarrowGap_GameMode);
         CkGym_Cycler::RegisterProjectGym("Crowd QueueCross",   ACk_CrowdGym_QueueCross_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Queue",              ACk_QueueGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Cue",                ACk_CueGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Dialog",             ACk_DialogGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Entity Lifecycle",   ACk_EntityLifecycleGym_GameMode);
