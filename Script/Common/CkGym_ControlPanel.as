@@ -107,6 +107,11 @@ struct FCkGym_ControlRow
     // suppressed effect, a mode the gym cannot produce a verdict in. Not for mere emphasis.
     UPROPERTY()
     bool Warn = false;
+
+    // Disabled rows remain visible as an explanation of the unavailable action, but never dispatch.
+    // This lets a gym keep stable row indices while readiness or authority changes frame to frame.
+    UPROPERTY()
+    bool Enabled = true;
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -167,20 +172,21 @@ namespace CkGym_Control
         return Row;
     }
 
-    FCkGym_ControlRow Action(FKey InKey, FString InKeyLabel, FString InLabel)
+    FCkGym_ControlRow Action(FKey InKey, FString InKeyLabel, FString InLabel, bool InEnabled = true)
     {
         auto Row = FCkGym_ControlRow();
         Row.Kind = ECkGym_ControlKind::Action;
         Row.Key = InKey;
         Row.KeyLabel = InKeyLabel;
         Row.Label = InLabel;
+        Row.Enabled = InEnabled;
         return Row;
     }
 
     // Steps through a list of more than two values — a debug view, a preset ring. It is an Action with a
     // value column, because the thing a viewer needs is not "this key cycles something" but WHICH of the
     // five views they are currently looking at.
-    FCkGym_ControlRow Cycle(FKey InKey, FString InKeyLabel, FString InLabel, FString InCurrentValue, bool InWarn = false)
+    FCkGym_ControlRow Cycle(FKey InKey, FString InKeyLabel, FString InLabel, FString InCurrentValue, bool InWarn = false, bool InEnabled = true)
     {
         auto Row = FCkGym_ControlRow();
         Row.Kind = ECkGym_ControlKind::Action;
@@ -189,10 +195,11 @@ namespace CkGym_Control
         Row.Label = InLabel;
         Row.Value = InCurrentValue;
         Row.Warn = InWarn;
+        Row.Enabled = InEnabled;
         return Row;
     }
 
-    FCkGym_ControlRow Toggle(FKey InKey, FString InKeyLabel, FString InLabel, bool InIsOn, bool InWarnWhenOff = false)
+    FCkGym_ControlRow Toggle(FKey InKey, FString InKeyLabel, FString InLabel, bool InIsOn, bool InWarnWhenOff = false, bool InEnabled = true)
     {
         auto Row = FCkGym_ControlRow();
         Row.Kind = ECkGym_ControlKind::Toggle;
@@ -202,12 +209,13 @@ namespace CkGym_Control
         Row.Active = InIsOn;
         Row.Value = InIsOn ? "ON" : "off";
         Row.Warn = InWarnWhenOff && InIsOn == false;
+        Row.Enabled = InEnabled;
         return Row;
     }
 
     // A toggle whose two states both deserve a name, because "off" says nothing useful — an
     // orthographic/perspective flip, a nearest/box filter, a walk/key selection mode.
-    FCkGym_ControlRow ToggleNamed(FKey InKey, FString InKeyLabel, FString InLabel, bool InIsOn, FString InOnText, FString InOffText, bool InWarnWhenOff = false)
+    FCkGym_ControlRow ToggleNamed(FKey InKey, FString InKeyLabel, FString InLabel, bool InIsOn, FString InOnText, FString InOffText, bool InWarnWhenOff = false, bool InEnabled = true)
     {
         auto Row = FCkGym_ControlRow();
         Row.Kind = ECkGym_ControlKind::Toggle;
@@ -217,10 +225,11 @@ namespace CkGym_Control
         Row.Active = InIsOn;
         Row.Value = InIsOn ? InOnText : InOffText;
         Row.Warn = InWarnWhenOff && InIsOn == false;
+        Row.Enabled = InEnabled;
         return Row;
     }
 
-    FCkGym_ControlRow Choice(FKey InKey, FString InKeyLabel, FString InLabel, bool InIsActive)
+    FCkGym_ControlRow Choice(FKey InKey, FString InKeyLabel, FString InLabel, bool InIsActive, bool InEnabled = true)
     {
         auto Row = FCkGym_ControlRow();
         Row.Kind = ECkGym_ControlKind::Choice;
@@ -228,6 +237,7 @@ namespace CkGym_Control
         Row.KeyLabel = InKeyLabel;
         Row.Label = InLabel;
         Row.Active = InIsActive;
+        Row.Enabled = InEnabled;
         return Row;
     }
 
@@ -235,12 +245,13 @@ namespace CkGym_Control
     // ordinary way a ten-item list is keyed. Both the number row and the numpad fire it.
     // Indices past the tenth get no key — they still draw, and the gym can still reach them by
     // whatever means it already had.
-    FCkGym_ControlRow Numbered(int32 InIndex, FString InLabel, bool InIsActive)
+    FCkGym_ControlRow Numbered(int32 InIndex, FString InLabel, bool InIsActive, bool InEnabled = true)
     {
         auto Row = FCkGym_ControlRow();
         Row.Kind = ECkGym_ControlKind::Choice;
         Row.Label = InLabel;
         Row.Active = InIsActive;
+        Row.Enabled = InEnabled;
 
         if (InIndex < 0 || InIndex > 9)
         { return Row; }
@@ -316,7 +327,7 @@ namespace CkGym_ControlPanel
         {
             auto Row = InRows[Index];
 
-            if (Row.Kind == ECkGym_ControlKind::Header || Row.Kind == ECkGym_ControlKind::Status)
+            if (Row.Kind == ECkGym_ControlKind::Header || Row.Kind == ECkGym_ControlKind::Status || Row.Enabled == false)
             { continue; }
 
             if (Row.KeyLabel.Len() == 0)
@@ -376,28 +387,29 @@ namespace CkGym_ControlPanel
 
         // A Choice marks the live one by highlighting the whole row; a Toggle says ON in its value
         // column and does not, or a panel of six toggles would be a wall of highlight bars.
-        const bool DrawHighlight = InRow.Kind == ECkGym_ControlKind::Choice && InRow.Active;
+        const bool DrawHighlight = InRow.Enabled && InRow.Kind == ECkGym_ControlKind::Choice && InRow.Active;
 
         if (DrawHighlight)
         {
             InHUD.DrawRect(Colour_Highlight, InStyle.X + 4.0f, InRowY - 3.0f, InStyle.Width - 8.0f, InStyle.RowHeight);
         }
 
-        FLinearColor LabelColour = InRow.Warn
-            ? Colour_Warn
-            : (DrawHighlight ? Colour_RowActive : Colour_Row);
+        FLinearColor LabelColour = InRow.Enabled == false
+            ? Colour_Muted
+            : InRow.Warn ? Colour_Warn : (DrawHighlight ? Colour_RowActive : Colour_Row);
 
         auto KeyText = InRow.KeyLabel.Len() > 0 ? f"[{InRow.KeyLabel}]" : "   ";
         InHUD.DrawText(KeyText, LabelColour, InTextX, InRowY, nullptr, 1.0f, false);
         InHUD.DrawText(InRow.Label, LabelColour, InTextX + InStyle.LabelColumn, InRowY, nullptr, 1.0f, false);
 
-        if (InRow.Value.Len() == 0)
+        const auto DisplayValue = InRow.Enabled ? InRow.Value : "disabled";
+        if (DisplayValue.Len() == 0)
         { return; }
 
-        FLinearColor ValueColour = InRow.Warn
-            ? Colour_Warn
-            : (InRow.Active ? Colour_On : Colour_Off);
+        FLinearColor ValueColour = InRow.Enabled == false
+            ? Colour_Muted
+            : InRow.Warn ? Colour_Warn : (InRow.Active ? Colour_On : Colour_Off);
 
-        InHUD.DrawText(InRow.Value, ValueColour, InStyle.X + InStyle.ValueColumn, InRowY, nullptr, 1.0f, false);
+        InHUD.DrawText(DisplayValue, ValueColour, InStyle.X + InStyle.ValueColumn, InRowY, nullptr, 1.0f, false);
     }
 }
