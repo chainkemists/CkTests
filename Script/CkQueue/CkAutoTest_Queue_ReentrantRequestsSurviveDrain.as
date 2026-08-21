@@ -10,8 +10,10 @@ class UCk_AutoTest_Queue_ReentrantRequestsSurviveDrain : UCk_AutoTest_Base
     private FCk_Handle       _Next;
     private int32            _SlotReachedEvents = 0;
     private int32            _AdvancedEvents = 0;
+    private int32            _EarlyAdvanceCompletions = 0;
     private int32            _AdvanceCompletions = 0;
     private int32            _SuppressCompletions = 0;
+    private ECk_Request_OperationResult _EarlyAdvanceResult = ECk_Request_OperationResult::Succeeded;
     private ECk_Request_OperationResult _AdvanceResult = ECk_Request_OperationResult::Failed;
     private ECk_Request_OperationResult _SuppressResult = ECk_Request_OperationResult::Failed;
 
@@ -31,6 +33,8 @@ class UCk_AutoTest_Queue_ReentrantRequestsSurviveDrain : UCk_AutoTest_Base
         Add_Step_WaitUntil("queue setup completes", n"Check_QueueReady");
         Add_Step("join two members", n"Step_RequestJoins");
         Add_Step_WaitUntil("both members are admitted", n"Check_BothMembersPresent");
+        Add_Step("request advance before the front reports arrival", n"Step_RequestEarlyAdvance");
+        Add_Step_WaitUntil("early advance fails without removing the unarrived front", n"Check_EarlyAdvanceRejected");
         Add_Step("report the first slot reached", n"Step_ReportFirstReached");
         Add_Step_WaitUntil("reentrant advance and suppression settle", n"Check_ReentrantRequestsSettled");
         Add_Step("assert each reentrant request landed once", n"Step_AssertReentrantResult");
@@ -63,6 +67,13 @@ class UCk_AutoTest_Queue_ReentrantRequestsSurviveDrain : UCk_AutoTest_Base
     {
         _AdvanceCompletions += 1;
         _AdvanceResult = InResult;
+    }
+
+    UFUNCTION()
+    private void OnEarlyAdvanceCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    {
+        _EarlyAdvanceCompletions += 1;
+        _EarlyAdvanceResult = InResult;
     }
 
     UFUNCTION()
@@ -108,6 +119,25 @@ class UCk_AutoTest_Queue_ReentrantRequestsSurviveDrain : UCk_AutoTest_Base
     }
 
     UFUNCTION()
+    private void Step_RequestEarlyAdvance(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        _Queue.Request_AdvanceOrigin(FCk_Request_Queue_AdvanceOrigin(0),
+            FCk_Delegate_Request_OnCompleted(this, n"OnEarlyAdvanceCompleted"));
+    }
+
+    UFUNCTION()
+    private void Check_EarlyAdvanceRejected(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot First;
+        const bool HasFirst = _Queue.TryGet_MemberSnapshot(_First, First);
+        auto Result = OutResult;
+        Result.Set(_EarlyAdvanceCompletions == 1
+            && _EarlyAdvanceResult == ECk_Request_OperationResult::Failed
+            && _Queue.Get_MemberCount() == 2 && HasFirst
+            && First.Get_State() == ECk_Queue_MemberState::Assigned);
+    }
+
+    UFUNCTION()
     private void Check_ReentrantRequestsSettled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         FCk_Queue_MemberSnapshot Next;
@@ -125,6 +155,9 @@ class UCk_AutoTest_Queue_ReentrantRequestsSurviveDrain : UCk_AutoTest_Base
     private void Step_AssertReentrantResult(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_SlotReachedEvents, 1, "first member reached its slot exactly once");
+        Assert_Equals_Int(_EarlyAdvanceCompletions, 1, "advance before AtFront completes exactly once");
+        Assert_True(_EarlyAdvanceResult == ECk_Request_OperationResult::Failed,
+            "advance before AtFront is rejected without serving or removing the front");
         Assert_Equals_Int(_AdvancedEvents, 1, "next member advanced exactly once");
         Assert_Equals_Int(_AdvanceCompletions, 1, "SlotReached callback's advance completes exactly once");
         Assert_Equals_Int(_SuppressCompletions, 1, "Advanced callback's suppression completes exactly once");
