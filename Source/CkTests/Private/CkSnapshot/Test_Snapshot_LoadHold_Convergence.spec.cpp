@@ -100,6 +100,11 @@ bool FCk_Snapshot_LoadHold_ConvergenceEscapeFiresAndNames::RunTest(const FString
         EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
     AddExpectedError(TEXT("the load COMPLETED WITH LOSS"),
         EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
+    // The escape NAMES the row it gave up on, and naming it is the other half of what this test pins —
+    // so the line that does the naming is expected output, not an unexplained error. Undeclared, the
+    // harness escalated it and this test failed on its own subject.
+    AddExpectedError(TEXT("UNMET convergence"),
+        EAutomationExpectedErrorFlags::Contains, /*Occurrences=*/0);
 
     auto Spec = ck::auto_test::snapshot::FCk_SnapshotRoundTrip_Spec{};
     Spec.SlotName = Escape_SlotName;
