@@ -40,6 +40,13 @@
 
 namespace ck_autotest_map_populator
 {
+    static TAutoConsoleVariable<int32> GCleanupUnloadableWrappers(
+        TEXT("Ck.AutoTest.Populator.CleanupUnloadableWrappers"),
+        0,
+        TEXT("Opt in to deleting unloadable stale AutoTest external-actor packages discovered by the map populator. ")
+        TEXT("Default is preview-only because these packages can be tracked binary assets."),
+        ECVF_Default);
+
     static FAutoConsoleCommand GSyncCommand(
         TEXT("Ck.SyncAutoTestMaps"),
         TEXT("Force a sync of every UCkAutoTestMapConfig against the currently-open editor world."),
@@ -519,6 +526,7 @@ auto
     // null after the actor is gone. Non-OFPA actors leave the list empty (the call
     // no-ops), preserving the original behavior for that path.
     auto OrphanedExternalPackages = TArray<UPackage*>{};
+    auto ExternalPackagesQueuedForDeletion = TSet<FName>{};
     for (const auto& Pair : CurrentByClass)
     {
         if (WantedSet.Contains(Pair.Key))
@@ -533,6 +541,7 @@ auto
                 ck::IsValid(ExternalPackage, ck::IsValid_Policy_NullptrOnly{}))
             {
                 OrphanedExternalPackages.AddUnique(ExternalPackage);
+                ExternalPackagesQueuedForDeletion.Add(ExternalPackage->GetFName());
             }
 
             CurrentWorld->DestroyActor(Actor);
@@ -555,30 +564,26 @@ auto
         }
     }
 
-    // ---- Post-sync stranded-external scan (OFPA only) ------------------------------
+    // ---- Unloadable wrapper cleanup (OFPA only) ------------------------------------
     //
-    // The orphan-remove pass above only captures external packages from actors that
-    // are still in CurrentByClass at scan time. It misses two stranded-file sources:
-    //   (1) Duplicate-remove path in the spawn loop. When ExistingActors->Num() > 1,
-    //       the loop destroys the duplicates but doesn't capture their external
-    //       packages — the cleanup helper above only collects from the orphan-remove
-    //       loop. Result: every duplicate-remove leaves an external .uasset stranded.
-    //   (2) Pre-existing strands from prior buggy runs / interrupted saves / manual
-    //       editor deletions. Files on disk whose actors aren't in the level for any
-    //       reason.
+    // A deleted AS wrapper cannot be represented by an AActor, so the normal orphan
+    // pass above never sees it. Do NOT treat every unassociated external package as a
+    // test orphan: maps may legitimately contain arbitrary external actors that failed
+    // to load for unrelated reasons. Instead, use the Asset Registry's saved class
+    // path and ActorLabel as durable package evidence. A package is eligible only when
+    // all of the following hold:
+    //   1. it lives below this exact target map's canonical external-actor root;
+    //   2. its saved ActorMetaDataClass is exactly ACk_AutoTestRunner;
+    //   3. its saved class name follows the generated AutoTest wrapper convention;
+    //   4. its saved ActorLabel is exactly the label this populator assigns that class;
+    //   5. that wrapper class is not in this config's desired live-wrapper set; and
+    //   6. no live actor currently owns the package.
     //
-    // After the level mutations complete, walk the level's still-associated external
-    // packages and find ones with no matching actor in Level->Actors. Those are
-    // strands. Batch-delete them via FPackageSourceControlHelper, same canonical
-    // path the orphan-remove uses.
-    //
-    // Bounded cost: GetExternalPackages() returns in-memory packages only; the set
-    // is roughly the size of the level's actor count, even after destroys (destroyed
-    // actors' packages survive until GC). Membership check is O(n) hash lookup. Safe
-    // to run on every OFPA sync; the typical no-strands case is cheap.
+    // The conjunction is intentionally conservative. In particular, an unreadable
+    // external package with no usable Asset Registry metadata remains untouched.
     if (bIsOFPA)
     {
-        auto LivePackages = TSet<const UPackage*>{};
+        auto LiveExternalPackageNames = TSet<FName>{};
         if (auto* Level = CurrentWorld->PersistentLevel.Get();
             ck::IsValid(Level, ck::IsValid_Policy_NullptrOnly{}))
         {
@@ -588,42 +593,126 @@ auto
                 { continue; }
                 if (auto* ExtPkg = Actor->GetExternalPackage();
                     ck::IsValid(ExtPkg, ck::IsValid_Policy_NullptrOnly{}))
-                { LivePackages.Add(ExtPkg); }
+                { LiveExternalPackageNames.Add(ExtPkg->GetFName()); }
             }
         }
 
+        auto DesiredWrapperClassPaths = TSet<FTopLevelAssetPath>{};
+        for (const UClass* Class : WantedClasses)
+        {
+            if (ck::IsValid(Class, ck::IsValid_Policy_NullptrOnly{}))
+            { DesiredWrapperClassPaths.Add(Class->GetClassPathName()); }
+        }
+
+        const auto ExternalActorRoot = ULevel::GetExternalActorsPath(Package->GetName());
+        if (NOT ExternalActorRoot.IsEmpty())
+        {
+            auto& AssetRegistry = FAssetRegistryModule::GetRegistry();
+            AssetRegistry.ScanSynchronous({ExternalActorRoot}, {});
+
+            auto ExternalActorAssets = TArray<FAssetData>{};
+            AssetRegistry.GetAssetsByPath(*ExternalActorRoot, ExternalActorAssets,
+                /*bRecursive=*/true, /*bIncludeOnlyOnDiskAssets=*/true);
+
+            auto UnloadableWrapperPackages = TArray<FString>{};
+            const auto RootPrefix = ExternalActorRoot + TEXT("/");
+            const auto AutoTestRunnerNativeClassPath = ACk_AutoTestRunner::StaticClass()->GetPathName();
+            for (const FAssetData& Asset : ExternalActorAssets)
+            {
+                const auto PackageName = Asset.PackageName.ToString();
+                if (NOT PackageName.StartsWith(RootPrefix, ESearchCase::CaseSensitive) ||
+                    LiveExternalPackageNames.Contains(Asset.PackageName) ||
+                    ExternalPackagesQueuedForDeletion.Contains(Asset.PackageName))
+                { continue; }
+
+                auto SavedActorMetaDataClass = FString{};
+                if (NOT Asset.GetTagValue(TEXT("ActorMetaDataClass"), SavedActorMetaDataClass) ||
+                    SavedActorMetaDataClass != AutoTestRunnerNativeClassPath)
+                { continue; }
+
+                const auto WrapperClassName = Asset.AssetClassPath.GetAssetName().ToString();
+                if (NOT WrapperClassName.Contains(TEXT("_AutoTest_"), ESearchCase::CaseSensitive) ||
+                    NOT WrapperClassName.EndsWith(TEXT("_Actor"), ESearchCase::CaseSensitive) ||
+                    DesiredWrapperClassPaths.Contains(Asset.AssetClassPath))
+                { continue; }
+
+                auto ExpectedLabel = WrapperClassName;
+                ExpectedLabel.LeftChopInline(FString(TEXT("_Actor")).Len(), EAllowShrinking::No);
+
+                auto SavedActorLabel = FString{};
+                if (NOT Asset.GetTagValue(TEXT("ActorLabel"), SavedActorLabel) ||
+                    SavedActorLabel != ExpectedLabel)
+                { continue; }
+
+                UnloadableWrapperPackages.AddUnique(PackageName);
+            }
+
+            if (NOT UnloadableWrapperPackages.IsEmpty())
+            {
+                const auto CleanupIsExplicitlyEnabled =
+                    ck_autotest_map_populator::GCleanupUnloadableWrappers.GetValueOnGameThread() != 0;
+                if (NOT CleanupIsExplicitlyEnabled)
+                {
+                    ck::tests_editor::Warning(
+                        TEXT("[CkAutoTest Populator] [{}] Preview: identified {} unloadable stale AutoTest wrapper packages under '{}'. ")
+                        TEXT("No files were deleted. Explicitly set Ck.AutoTest.Populator.CleanupUnloadableWrappers=1 and rerun ")
+                        TEXT("Ck.SyncAutoTestMaps to authorize cleanup."),
+                        InConfig->Get_DisplayName(), UnloadableWrapperPackages.Num(), ExternalActorRoot);
+                }
+                else
+                {
+                    ck::tests_editor::Log(
+                        TEXT("[CkAutoTest Populator] [{}] Explicit cleanup enabled for {} unloadable stale AutoTest wrapper packages under '{}'."),
+                        InConfig->Get_DisplayName(), UnloadableWrapperPackages.Num(), ExternalActorRoot);
+
+                    auto SccHelper = FPackageSourceControlHelper{};
+                    if (NOT SccHelper.Delete(UnloadableWrapperPackages))
+                    {
+                        ck::tests_editor::Notify_Error(
+                            TEXT("[CkAutoTest Populator] [{}] Identified {} stale AutoTest wrapper packages but could not delete them. ")
+                            TEXT("The map remains consistent; check the Output Log for source-control failure details."),
+                            InConfig->Get_DisplayName(), UnloadableWrapperPackages.Num());
+                    }
+                    else
+                    {
+                        for (const auto& DeletedPackage : UnloadableWrapperPackages)
+                        { ExternalPackagesQueuedForDeletion.Add(FName{DeletedPackage}); }
+                        Result.Removed += UnloadableWrapperPackages.Num();
+                    }
+                }
+            }
+        }
+
+        // Preserve the established cleanup for packages that UE did load but that
+        // no longer have a live actor. This is deliberately separate from the scan
+        // above: GetExternalPackages() cannot identify a wrapper whose deleted class
+        // prevented the package from loading in the first place.
         auto StrandedExternals = TArray<UPackage*>{};
         for (auto* ExtPkg : Package->GetExternalPackages())
         {
             if (ck::IsValid(ExtPkg, ck::IsValid_Policy_NullptrOnly{}) &&
-                NOT LivePackages.Contains(ExtPkg))
+                NOT LiveExternalPackageNames.Contains(ExtPkg->GetFName()) &&
+                NOT ExternalPackagesQueuedForDeletion.Contains(ExtPkg->GetFName()))
             { StrandedExternals.AddUnique(ExtPkg); }
         }
 
         if (NOT StrandedExternals.IsEmpty())
         {
             ck::tests_editor::Log(
-                TEXT("[CkAutoTest Populator] [{}] Cleaning {} stranded external actor files (no matching actor in level)."),
+                TEXT("[CkAutoTest Populator] [{}] Cleaning {} stranded loaded external actor files (no matching actor in level)."),
                 InConfig->Get_DisplayName(), StrandedExternals.Num());
 
             auto SccHelper = FPackageSourceControlHelper{};
             if (NOT SccHelper.Delete(StrandedExternals))
             {
                 ck::tests_editor::Notify_Error(
-                    TEXT("[CkAutoTest Populator] [{}] Found {} stranded external .uasset files but ")
+                    TEXT("[CkAutoTest Populator] [{}] Found {} stranded loaded external .uasset files but ")
                     TEXT("could not clean up all of them. Manual cleanup may be needed for the ")
                     TEXT("remaining ones; check the Output Log for per-file failure reasons."),
                     InConfig->Get_DisplayName(), StrandedExternals.Num());
             }
             else
             {
-                // Increment Result.Removed for diagnostic reporting (the per-config log
-                // line shows the strand-cleanup count). Under OFPA this does NOT promote
-                // a .umap save: the level's external-package set is reconstructed from
-                // the AssetRegistry's filesystem scan of __ExternalActors__/<MapName>/
-                // on every load, so there's nothing about strand cleanup that needs to
-                // be persisted into the .umap header. The on-disk Delete done above is
-                // the entirety of the persistent change.
                 Result.Removed += StrandedExternals.Num();
             }
         }
