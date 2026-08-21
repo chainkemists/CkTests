@@ -9,7 +9,4 @@ class ACk_PixelArtGym_GameMode : ACkTests_Gym_Base_GameMode
     // NOT the shared gym pawn: that one is perspective, and the camera snap does not run on a perspective
     // view, so every station would render unsnapped and the A/B rig would compare three identical images.
     default DefaultPawnClass = ACk_PixelArtGym_Pawn;
-
-    // Subclasses the shared cycler HUD rather than replacing it, so Tab still opens the gym menu.
-    default HUDClass = ACk_PixelArtGym_HUD;
 }

@@ -68,6 +68,48 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log(f"Locomotion gym: floor spawned at {FloorLocation} scale={FloorScale}");
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Locomotion is watched WHILE it happens, so issuing a move and cancelling it mid-stride are the
+    // two controls that matter - and typing a console command mid-stride is not something anyone can do.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CROWD: LOCOMOTION";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("AGENT"));
+        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn the agent"));
+        Rows.Add(CkGym_Control::Action(EKeys::M, "M", "Move to -X 800cm"));
+        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Cancel the active move"));
+        Rows.Add(CkGym_Control::Action(EKeys::X, "X", "Destroy the agent"));
+
+        Rows.Add(CkGym_Control::Header("PRINT TO LOG"));
+        Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Position"));
+        Rows.Add(CkGym_Control::Action(EKeys::V, "V", "Desired velocity"));
+        Rows.Add(CkGym_Control::Action(EKeys::Y, "Y", "Yaw, current vs target"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Rows 0 and 5 are headers, which hold no key and never arrive here.
+        if (InRowIndex == 1) { Ck_GymCrowd_Loco_Spawn(); }
+        else if (InRowIndex == 2) { Ck_GymCrowd_Loco_RequestPath(); }
+        else if (InRowIndex == 3) { Ck_GymCrowd_Loco_RequestStop(); }
+        else if (InRowIndex == 4) { Ck_GymCrowd_Loco_Stop(); }
+        else if (InRowIndex == 6) { Ck_GymCrowd_Loco_PrintPos(); }
+        else if (InRowIndex == 7) { Ck_GymCrowd_Loco_PrintDesired(); }
+        else if (InRowIndex == 8) { Ck_GymCrowd_Loco_PrintYaw(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Spawn Agent")
     void Ck_GymCrowd_Loco_Spawn()
     {

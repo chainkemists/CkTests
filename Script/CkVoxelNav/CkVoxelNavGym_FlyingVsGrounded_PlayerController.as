@@ -355,6 +355,32 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
 
     // ---- Console ---------------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // The comparison this gym exists for only happens WHILE the agents are moving, so re-running it and
+    // sending them back are the two controls that matter — and both were console-only.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "VOXELNAV: FLYING vs GROUNDED";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart both agents"));
+        Rows.Add(CkGym_Control::Action(EKeys::T, "T", "Send them back (return trip)"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymVoxelNav_Restart(); }
+        else if (InRowIndex == 1) { Ck_GymVoxelNav_ReturnTrip(); }
+    }
+
     UFUNCTION(Exec, DisplayName="VoxelNav Flying vs Grounded - Restart Agents")
     void Ck_GymVoxelNav_Restart()
     {

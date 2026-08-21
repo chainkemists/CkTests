@@ -206,6 +206,31 @@ class ACk_EntityScriptGym_Spawn_PlayerController : ACk_Gym_Base_PlayerController
     // CONSOLE COMMANDS
     //------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A spawn is over the instant it completes, so both stations have to be RE-RUN to be watched.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "ENTITY SCRIPT SPAWN";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Numbered(0, "Re-run spawn test", false));
+        Rows.Add(CkGym_Control::Numbered(1, "Re-run replicated spawn test", false));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymEntityScript_RestartSpawnTest(); }
+        else if (InRowIndex == 1) { Ck_GymEntityScript_RestartReplicatedSpawnTest(); }
+    }
+
     UFUNCTION(Exec, DisplayName="EntityScript Gym - Restart Spawn Test")
     void Ck_GymEntityScript_RestartSpawnTest()
     {

@@ -113,6 +113,30 @@ class ACk_SceneNodeGym_PlayerController : ACk_Gym_Base_PlayerController
 		);
 	}
 
+	//--------------------------------------------------------------------------------------------------------------------------
+	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+	//
+	// One row. Everything here plays once and is then over, so re-running it IS the gym - and the console
+	// command's name was the only documentation that the control existed at all.
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	FString Get_ControlPanelTitle() override
+	{
+		return "SCENE NODE";
+	}
+
+	TArray<FCkGym_ControlRow> Get_ControlRows() override
+	{
+		auto Rows = TArray<FCkGym_ControlRow>();
+		Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Re-run every station"));
+		return Rows;
+	}
+
+	void Request_ControlActivated(int32 InRowIndex) override
+	{
+		if (InRowIndex == 0) { Ck_GymSceneNode_RestartAll(); }
+	}
+
 	UFUNCTION(Exec, DisplayName="Scene Node Gym - Restart All")
 	void Ck_GymSceneNode_RestartAll()
 	{

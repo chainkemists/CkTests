@@ -3,7 +3,9 @@ class ACk_Gym_Base_GameMode : ACk_GameMode_UE
     // Override these in derived gym classes
     default PlayerControllerClass = ACk_Gym_Base_PlayerController;
     default DefaultPawnClass = ACk_Gym_Base_Pawn;
-    default HUDClass = ACkGym_MenuHUD;
+    // The cycler HUD plus the shared gym control panel. Subclasses ACkGym_MenuHUD, so Tab still
+    // opens the gym menu; a gym that declares no control rows renders exactly as it did before.
+    default HUDClass = ACkGym_ControlPanelHUD;
 
     // Resolves the user's startup-gym preference (Editor Preferences ->
     // Ck Tests -> Gym Cycler) and ServerTravels there if a target is set

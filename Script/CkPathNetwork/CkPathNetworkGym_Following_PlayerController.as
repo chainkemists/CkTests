@@ -266,6 +266,34 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
 
     // ---- Console ---------------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Lane-swap behaviour is watched during a run that ends, so restarting and rebuilding are how the
+    // gym is used at all - and both were console-only.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "PATH NETWORK";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart every follower"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Rebuild the lane swap"));
+        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymPathNet_RestartAll(); }
+        else if (InRowIndex == 1) { Ck_GymPathNet_Rebuild(); }
+        else if (InRowIndex == 2) { Ck_GymPathNet_Clear(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Path Network - Restart All")
     void Ck_GymPathNet_RestartAll()
     {

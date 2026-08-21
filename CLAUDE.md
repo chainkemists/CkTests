@@ -102,8 +102,22 @@ if-else dispatch is the superseded shape, retained while stations migrate one at
 `Script/Common/CkTests_GymRegistry.as` — **43** `RegisterProjectGym` calls (verified 2026-07-02).
 Gym scripts are co-located per feature in `Script/<FeatureModule>/` — there is **no**
 `Script/CkGyms/` directory (stale spec claim). Level: `Content/TestGyms/TestGyms_CkTests_Level.umap`.
-In-PIE exec commands (`Script/Common/CkGym_Base_PlayerController.as:255-287`): `Ck_Gym_Restart`,
+In-PIE exec commands (`Script/Common/CkGym_Base_PlayerController.as`): `Ck_Gym_Restart`,
 `Ck_Gym_Next`, `Ck_Gym_Prev`, `Ck_Gym_GoTo <index>`, `Ck_Gym_List`.
+
+**Control panel** (`Script/Common/CkGym_ControlPanel.as` + `CkGym_ControlPanelHUD.as`, the base
+GameMode's default `HUDClass`): the shared on-screen widget that makes a gym's exec commands
+findable. A gym declares rows from `Get_ControlRows()` on its PlayerController and acts on an index
+in `Request_ControlActivated()`; the HUD does all drawing and key polling, so every gym that adopts
+it looks and behaves the same. Rows are rebuilt each frame, so a Toggle's value column is live
+state — read it back from whatever owns it, and mirror it in a member only where there is genuinely
+no readback (say so in a comment when you do). Row builders: `Header`, `Status`, `Action`,
+`Toggle`, `ToggleNamed`, `Cycle`, `Choice`, `Numbered` (1-9 then 0, number row + numpad).
+Reserved keys a row must never bind: **Tab** (cycler menu) and **H** (hide/show the panel — hiding
+does not disable it, the keys keep firing). Declaring no rows draws no panel, which is why this
+costs nothing to gyms that have not adopted it. Deliberately NOT adopted: `CkInput`'s KeyBinding
+and Playground gyms and `CkVoiceChat` — the panel polls raw keys, which collides with a gym whose
+subject is pressing arbitrary keys or holding one down.
 
 ## Authoring rules (plugin-specific)
 

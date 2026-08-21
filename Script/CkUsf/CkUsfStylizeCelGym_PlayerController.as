@@ -299,6 +299,69 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
         return "Final";
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Conditional rows go LAST so a row that appears in only one state cannot shift the index of a keyed
+    // row above it.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    // Row 0 is the presets header; the presets follow it.
+    private const int32 FirstPresetRow = 1;
+
+    private int32 Get_FirstControlRow() const
+    {
+        return FirstPresetRow + _StationTags.Num();
+    }
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CEL SHADE";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("PRESETS  -  press a number, or walk to one"));
+
+        for (int32 Index = 0; Index < _StationTags.Num(); Index++)
+        { Rows.Add(CkGym_Control::Numbered(Index, Get_PresetNameAt(Index), Index == _ActiveStation)); }
+
+        Rows.Add(CkGym_Control::Header("VIEW"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::D, "D", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
+
+        // An Action rather than a Toggle: each subject owns its own pattern state, so there is no single
+        // value to report and a two-state row here would be guessing at one.
+        Rows.Add(CkGym_Control::Action(EKeys::E, "E", "Flip entity patterns"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::C, "C", "Stack ScreenDither over", _StackedOther));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Rebuild judge scene"));
+
+        // A debug view is not the effect. Someone who left one on and walked away would otherwise judge
+        // an intermediate buffer as though it were the finished frame.
+        if (_DebugIndex != 0)
+        { Rows.Add(CkGym_Control::Status("Showing a DEBUG buffer, not the final image", "", true)); }
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex >= FirstPresetRow && InRowIndex < Get_FirstControlRow())
+        {
+            Request_ApplyStation(InRowIndex - FirstPresetRow);
+            return;
+        }
+
+        // Offset 0 is the VIEW header, which holds no key and never arrives here.
+        auto Control = InRowIndex - Get_FirstControlRow();
+
+        if (Control == 1) { Ck_GymStylizeCel_CycleDebug(); }
+        else if (Control == 2) { Ck_GymStylizeCel_ToggleEntity(); }
+        else if (Control == 3) { Ck_GymStylizeCel_ToggleDitherStack(); }
+        else if (Control == 4) { Request_RebuildGym(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Stylize Cel Gym - Restart")
     void Ck_GymStylizeCel_RestartAll()
     {

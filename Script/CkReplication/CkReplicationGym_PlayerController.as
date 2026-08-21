@@ -80,6 +80,39 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
     // Console commands
     //------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // The keyed rows send each setter's DEFAULT value, which is the one the gym's own placards talk about.
+    // Any other value still needs the console, and the panel says so.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "REPLICATION";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Action(EKeys::A, "A", "Set actor value to 100"));
+        Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Set pawn value to 50"));
+        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Respawn replicated actor"));
+        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Dump replication state"));
+        Rows.Add(CkGym_Control::Status("Any other value: console only"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymReplication_SetActorValue(100); }
+        else if (InRowIndex == 1) { Ck_GymReplication_SetPawnValue(50); }
+        else if (InRowIndex == 2) { Ck_GymReplication_RespawnActor(); }
+        else if (InRowIndex == 3) { Ck_GymReplication_DumpRep(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Replication Gym - Set Actor Value")
     void Ck_GymReplication_SetActorValue(int32 InValue = 100)
     {

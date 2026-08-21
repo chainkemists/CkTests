@@ -59,6 +59,10 @@ class ACk_VatGym_PlayerController : ACk_Gym_Base_PlayerController
         return StationTags;
     }
 
+    // The last play rate broadcast to the clip-cycle station, panel or console. Not a mirror of station
+    // state — the stations have no readback — so it is named for what it honestly is.
+    private float32 _LastRateSent = 1.0f;
+
     //------------------------------------------------------------------------
     // Console commands
     //------------------------------------------------------------------------
@@ -101,6 +105,10 @@ class ACk_VatGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Vat Gym - Set Play Rate")
     void Ck_GymVat_SetRate(float32 InRate = 1.0f)
     {
+        // Every send goes through here, panel and console alike, so the panel's readout can never
+        // disagree with the rate the stations were actually told to run at.
+        _LastRateSent = InRate;
+
         auto Msg = FCk_Message_VatGym_SetRate(InRate);
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_VatGym_ClipCycle");
         for (auto Entity : Entities) { utils_messaging::Broadcast(Entity, Msg); }
@@ -155,6 +163,57 @@ class ACk_VatGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Msg = FCk_Message_Gym_AutoSet(true);
         auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_VatGym_CrowdField");
         for (auto Entity : Entities) { utils_messaging::Broadcast(Entity, Msg); }
+    }
+
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Only the zero-argument controls are keyed. Setting a collection path, naming a clip or choosing a
+    // crowd count all need a value typed at them and stay console-only — the panel says so rather than
+    // leaving a reader to conclude the gym cannot do it.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    private void Request_StepRate()
+    {
+        if (_LastRateSent < 0.4f)      { Ck_GymVat_SetRate(0.5f); }
+        else if (_LastRateSent < 0.9f) { Ck_GymVat_SetRate(1.0f); }
+        else if (_LastRateSent < 1.9f) { Ck_GymVat_SetRate(2.0f); }
+        else                           { Ck_GymVat_SetRate(0.25f); }
+    }
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "VERTEX ANIMATION TEXTURES";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("CLIP CYCLE"));
+        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Stop (freeze on frame)"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::T, "T", "Play rate", f"{_LastRateSent :.2}x"));
+        Rows.Add(CkGym_Control::Action(EKeys::A, "A", "Auto-drive clip cycle"));
+
+        Rows.Add(CkGym_Control::Header("EVERY STATION"));
+        Rows.Add(CkGym_Control::Action(EKeys::F, "F", "Auto-drive crowd field"));
+        Rows.Add(CkGym_Control::Action(EKeys::E, "E", "Auto-drive everything"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart all stations"));
+
+        Rows.Add(CkGym_Control::Status("Clip name, collection and counts: console only"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Rows 0 and 4 are headers, which hold no key and never arrive here.
+        if (InRowIndex == 1) { Ck_GymVat_Stop(); }
+        else if (InRowIndex == 2) { Request_StepRate(); }
+        else if (InRowIndex == 3) { Ck_GymVat_AutoClipCycle(); }
+        else if (InRowIndex == 5) { Ck_GymVat_AutoCrowdField(); }
+        else if (InRowIndex == 6) { Ck_GymVat_Auto(1); }
+        else if (InRowIndex == 7) { Ck_GymVat_RestartAll(); }
     }
 
     UFUNCTION(Exec, DisplayName="Vat Gym - Restart All")

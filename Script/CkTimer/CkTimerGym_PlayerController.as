@@ -134,6 +134,45 @@ class ACk_TimerGym_PlayerController : ACk_Gym_Base_PlayerController
 	// CONSOLE COMMANDS
 	//------------------------------------------------------------------------
 
+	//--------------------------------------------------------------------------------------------------------------------------
+	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+	//
+	// Every station in this gym has to be RE-RUN to be watched — a timer that already finished shows
+	// nothing. Restarting was console-only, which made the gym look inert to anyone who arrived after the
+	// first pass had completed.
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	FString Get_ControlPanelTitle() override
+	{
+		return "TIMER";
+	}
+
+	TArray<FCkGym_ControlRow> Get_ControlRows() override
+	{
+		auto Rows = TArray<FCkGym_ControlRow>();
+
+		Rows.Add(CkGym_Control::Header("RE-RUN A STATION"));
+		Rows.Add(CkGym_Control::Numbered(0, "Basics", false));
+		Rows.Add(CkGym_Control::Numbered(1, "Behaviors", false));
+		Rows.Add(CkGym_Control::Numbered(2, "Signals", false));
+		Rows.Add(CkGym_Control::Numbered(3, "Control", false));
+		Rows.Add(CkGym_Control::Numbered(4, "Countdown", false));
+		Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Re-run every station"));
+
+		return Rows;
+	}
+
+	void Request_ControlActivated(int32 InRowIndex) override
+	{
+		// Row 0 is the header, which holds no key and never arrives here.
+		if (InRowIndex == 1) { Ck_GymTimer_RestartBasics(); }
+		else if (InRowIndex == 2) { Ck_GymTimer_RestartBehaviors(); }
+		else if (InRowIndex == 3) { Ck_GymTimer_RestartSignals(); }
+		else if (InRowIndex == 4) { Ck_GymTimer_RestartControl(); }
+		else if (InRowIndex == 5) { Ck_GymTimer_RestartCountdown(); }
+		else if (InRowIndex == 6) { Ck_GymTimer_ResetAll(); }
+	}
+
 	UFUNCTION(Exec, DisplayName="Timer Gym - Restart Basics")
 	void Ck_GymTimer_RestartBasics()
 	{

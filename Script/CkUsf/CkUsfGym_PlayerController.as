@@ -170,6 +170,30 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // One row, and it earns its place: respawning is how you re-run every look after regenerating the
+    // masters, and until this panel existed the only way to learn the command existed was to read this file.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "USF MATERIALS";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Respawn every look"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Request_SpawnAllLooks(); }
+    }
+
     UFUNCTION(Exec, DisplayName="USF Materials Gym - Restart All Looks")
     void Ck_GymUsf_RestartAll()
     {

@@ -134,6 +134,44 @@ class ACk_DialogGym_PlayerController : ACk_Gym_Base_PlayerController
 	// CONSOLE COMMANDS
 	//------------------------------------------------------------------------
 
+	//--------------------------------------------------------------------------------------------------------------------------
+	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+	//
+	// Cooldowns and chains only show their behaviour on a RE-RUN — the first pass is over by the time you
+	// have walked to the station — and re-running was console-only.
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	FString Get_ControlPanelTitle() override
+	{
+		return "DIALOG";
+	}
+
+	TArray<FCkGym_ControlRow> Get_ControlRows() override
+	{
+		auto Rows = TArray<FCkGym_ControlRow>();
+
+		Rows.Add(CkGym_Control::Header("RE-RUN A STATION"));
+		Rows.Add(CkGym_Control::Numbered(0, "Basics", false));
+		Rows.Add(CkGym_Control::Numbered(1, "Filters", false));
+		Rows.Add(CkGym_Control::Numbered(2, "Cooldowns", false));
+		Rows.Add(CkGym_Control::Numbered(3, "Chains", false));
+		Rows.Add(CkGym_Control::Numbered(4, "Graph", false));
+		Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Re-run every station"));
+
+		return Rows;
+	}
+
+	void Request_ControlActivated(int32 InRowIndex) override
+	{
+		// Row 0 is the header, which holds no key and never arrives here.
+		if (InRowIndex == 1) { Ck_GymDialog_RestartBasics(); }
+		else if (InRowIndex == 2) { Ck_GymDialog_RestartFilters(); }
+		else if (InRowIndex == 3) { Ck_GymDialog_RestartCooldowns(); }
+		else if (InRowIndex == 4) { Ck_GymDialog_RestartChains(); }
+		else if (InRowIndex == 5) { Ck_GymDialog_RestartGraph(); }
+		else if (InRowIndex == 6) { Ck_GymDialog_ResetAll(); }
+	}
+
 	UFUNCTION(Exec, DisplayName="Dialog Gym - Restart Basics")
 	void Ck_GymDialog_RestartBasics()
 	{

@@ -242,6 +242,51 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
     // CONSOLE COMMANDS
     // ========================================================================
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A state machine that has already settled shows nothing, so every station has to be RE-RUN to be
+    // watched — and re-running was console-only. The divergence and racing stations especially: their whole
+    // point is the transition that happens once.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "STATE MACHINE";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("RE-RUN A STATION"));
+        Rows.Add(CkGym_Control::Numbered(0, "Auto cycle", false));
+        Rows.Add(CkGym_Control::Numbered(1, "Pause / resume", false));
+        Rows.Add(CkGym_Control::Numbered(2, "Complex", false));
+        Rows.Add(CkGym_Control::Numbered(3, "Hierarchical", false));
+        Rows.Add(CkGym_Control::Numbered(4, "GraphWalk regression", false));
+        Rows.Add(CkGym_Control::Numbered(5, "Divergence: first branch", false));
+        Rows.Add(CkGym_Control::Numbered(6, "Divergence: timed", false));
+        Rows.Add(CkGym_Control::Numbered(7, "Racing: event-driven", false));
+        Rows.Add(CkGym_Control::Numbered(8, "Event-driven multi-cond", false));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Row 0 is the header, which holds no key and never arrives here.
+        if (InRowIndex == 1) { Ck_GymSm_RestartAutoCycle(); }
+        else if (InRowIndex == 2) { Ck_GymSm_RestartPauseResume(); }
+        else if (InRowIndex == 3) { Ck_GymSm_RestartComplex(); }
+        else if (InRowIndex == 4) { Ck_GymSm_RestartHierarchical(); }
+        else if (InRowIndex == 5) { Ck_GymSm_RestartGraphWalkRegression(); }
+        else if (InRowIndex == 6) { Ck_GymSm_RestartDivergenceFirstBranch(); }
+        else if (InRowIndex == 7) { Ck_GymSm_RestartDivergenceTimed(); }
+        else if (InRowIndex == 8) { Ck_GymSm_RestartRacingEventDriven(); }
+        else if (InRowIndex == 9) { Ck_GymSm_RestartEventDrivenMultiCondition(); }
+    }
+
     UFUNCTION(Exec, DisplayName="SM Gym - Restart Auto Cycle")
     void Ck_GymSm_RestartAutoCycle()
     {

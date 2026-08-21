@@ -272,6 +272,32 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
     // CONSOLE COMMANDS
     //------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // The burst is the measurement this gym exists for — a pool only proves anything under a spike — and
+    // it was reachable only by a console command whose name you had to already know.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "OBJECT POOLING";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Burst 100 acquires"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart the gym"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymObjectPooling_Burst(); }
+        else if (InRowIndex == 1) { Ck_GymObjectPooling_Restart(); }
+    }
+
     UFUNCTION(Exec, DisplayName="ObjectPooling Gym - Restart")
     void Ck_GymObjectPooling_Restart()
     {

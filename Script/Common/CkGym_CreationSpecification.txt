@@ -229,6 +229,57 @@ class ACk_[GymName]Gym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // Add more console commands as needed for individual feature testing
+
+    //------------------------------------------------------------------------
+    // CONTROL PANEL  (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Put those commands ON SCREEN. A console command nobody can see is a
+    // control nobody will use: the panel lists each one with the key that
+    // fires it and its live value, and ACkGym_ControlPanelHUD - the base
+    // GameMode's default HUDClass - does the drawing and the key polling.
+    //
+    // Rows are rebuilt every frame, so the value column reports live state.
+    // Return no rows and no panel is drawn.
+    //
+    // Reserved keys a row must NOT use: Tab (gym cycler) and H (hide panel).
+    // Row builders: Header / Status / Action / Toggle / ToggleNamed / Cycle /
+    // Choice / Numbered (1-9 then 0, number row and numpad both).
+    //------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "[GYMNAME]";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("RE-RUN A STATION"));
+        Rows.Add(CkGym_Control::Numbered(0, "[Feature1]", false));
+        Rows.Add(CkGym_Control::Numbered(1, "[Feature2]", false));
+
+        // Toggle / ToggleNamed report a value, so pass the REAL state - read it
+        // back from whatever owns it. Mirror it in a member only when there is
+        // no readback at all, and say so in a comment when you do.
+        Rows.Add(CkGym_Control::Toggle(EKeys::E, "E", "[SomeToggle]", Get_[SomeToggle]()));
+
+        // A control that needs an argument typed at it stays console-only. Say
+        // so, rather than leaving a reader to conclude the gym cannot do it.
+        Rows.Add(CkGym_Control::Status("[Something] with another value: console only"));
+
+        return Rows;
+    }
+
+    // InRowIndex indexes the array Get_ControlRows() returned this frame.
+    // Header and Status rows never arrive here, but they DO occupy an index -
+    // keep conditional rows LAST so they cannot shift a keyed row's index.
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 1) { Ck_Gym[GymName]_Restart[Feature1](); }
+        else if (InRowIndex == 2) { Ck_Gym[GymName]_Restart[Feature2](); }
+        else if (InRowIndex == 3) { Request_Toggle[SomeToggle](); }
+    }
 }
 
 //============================================================================
@@ -301,6 +352,13 @@ class ACk_[GymName]Gym_Pawn : ACk_Gym_Base_Pawn
 // Ck_Gym_ShowInfo - Display gym name, description, and required stations
 // Ck_Gym_ValidateStations - Validate all required stations exist in level
 // Ck_Gym_Restart - Restart the entire gym
+
+// Standard KEYS available in ALL gyms (ACkGym_ControlPanelHUD, the base
+// GameMode's default HUDClass):
+// Tab - open the gym cycler menu (type to search, Enter to travel)
+// H   - hide / show this gym's control panel. Hiding does NOT disable it:
+//       the keys keep firing, so the image underneath can be watched clean.
+// A gym's own rows must not bind either of those two.
 
 //============================================================================
 // 10. LOGGING STANDARDS
@@ -428,6 +486,7 @@ BEFORE IMPLEMENTATION:
 [ ] Plan required stations and their FName tags
 [ ] Plan station titles and descriptions
 [ ] Define console commands for testing
+[ ] Decide which of them belong on the control panel, and on which keys
 
 DURING IMPLEMENTATION:
 [ ] Create GameMode inheriting from your PROJECT's base game mode:
@@ -437,6 +496,8 @@ DURING IMPLEMENTATION:
 [ ] Override Get_RequiredStations() to define all stations with titles/descriptions
 [ ] Implement Request_StartGym() with gym-specific startup logic
 [ ] Add console commands for individual feature testing
+[ ] Override Get_ControlRows() / Request_ControlActivated() so those commands
+    are reachable from a key and visible on screen (CkGym_ControlPanel.as)
 [ ] Use Get_StationTransform() utility for station positioning
 [ ] Add proper error handling and logging
 [ ] Register the gym in your project's registry namespace:
@@ -448,6 +509,8 @@ AFTER IMPLEMENTATION:
 [ ] Test stations spawn correctly in default grid layout
 [ ] Verify station titles and descriptions display properly
 [ ] Verify all console commands function
+[ ] Verify every control-panel row fires the right command and reports the
+    right value, and that no row collides with Tab or H
 [ ] Test manual station override (place BP_DemoDisplay with matching tag)
 [ ] Test in both single-player and multiplayer
 [ ] Verify client-server compatibility (no GameMode dependencies in logic)

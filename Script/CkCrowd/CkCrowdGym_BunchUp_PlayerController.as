@@ -161,6 +161,35 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
 
     // ---- Console commands --------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A crowd gym with no agents in it is an empty floor. Spawning, resetting and dumping the digest
+    // are the whole loop, and all three were console-only.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CROWD: BUNCH-UP";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn 15 on a shared goal"));
+        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Reset - destroy agents"));
+        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Emit per-agent digest"));
+        Rows.Add(CkGym_Control::Status("Another agent count: console only"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymCrowd_BunchUp_Spawn(15); }
+        else if (InRowIndex == 1) { Ck_GymCrowd_BunchUp_Reset(); }
+        else if (InRowIndex == 2) { Ck_GymCrowd_BunchUp_Digest(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Crowd BunchUp - Spawn Agents On Shared Goal")
     void Ck_GymCrowd_BunchUp_Spawn(int32 InCount = 15)
     {

@@ -376,6 +376,104 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
         return "Final";
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Normal space and alignment are read back off the subsystem rather than mirrored in a flag here: they
+    // are settings the subsystem genuinely owns, and a mirror would be a second source of truth for the
+    // exact value this gym exists to A/B. The two STACK flags are mirrored, and cannot be read back —
+    // an untouched subsystem reports Enabled while rendering nothing.
+    //
+    // Conditional rows go LAST so a row that appears in only one state cannot shift the index of a keyed
+    // row above it.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    // Row 0 is the stations header; the stations follow it.
+    private const int32 FirstStationRow = 1;
+
+    private int32 Get_FirstControlRow() const
+    {
+        return FirstStationRow + _StationTags.Num();
+    }
+
+    private bool Get_UsesWorldSpaceNormals()
+    {
+        auto Subsystem = UCkUsf_CrossHatchSubsystem::Get_CrossHatchSubsystem();
+
+        if (Subsystem == nullptr)
+        { return false; }
+
+        auto Settings = Subsystem.Get_Settings();
+        return Settings.Get_UseWorldSpaceNormals() == ECk_EnableDisable::Enable;
+    }
+
+    private bool Get_NormalsFollowForm()
+    {
+        auto Subsystem = UCkUsf_CrossHatchSubsystem::Get_CrossHatchSubsystem();
+
+        if (Subsystem == nullptr)
+        { return false; }
+
+        auto Settings = Subsystem.Get_Settings();
+        return Settings.Get_NormalAlignment() > 0.5f;
+    }
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CROSS-HATCH";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("STATIONS  -  press a number, or walk to one"));
+
+        for (int32 Index = 0; Index < _StationTags.Num(); Index++)
+        { Rows.Add(CkGym_Control::Numbered(Index, Get_StationNameAt(Index), Index == _ActiveStation)); }
+
+        Rows.Add(CkGym_Control::Header("THE A/B"));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::N, "N", "Normal space", Get_UsesWorldSpaceNormals(), "WORLD", "VIEW"));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::A, "A", "Alignment", Get_NormalsFollowForm(), "follows form", "fixed angle"));
+
+        Rows.Add(CkGym_Control::Header("VIEW"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::D, "D", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
+
+        // An Action rather than a Toggle: each subject owns its own mask state, so there is no single
+        // value to report and a two-state row here would be guessing at one.
+        Rows.Add(CkGym_Control::Action(EKeys::E, "E", "Flip entity masks"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::X, "X", "Stack Hand-Drawn over", _HandDrawnStacked));
+        Rows.Add(CkGym_Control::Toggle(EKeys::C, "C", "Stack ScreenDither over", _DitherStacked));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Rebuild judge scene"));
+
+        // A debug view is not the effect. Someone who left one on and walked away would otherwise judge
+        // an intermediate buffer as though it were the finished frame.
+        if (_DebugIndex != 0)
+        { Rows.Add(CkGym_Control::Status("Showing a DEBUG buffer, not the final image", "", true)); }
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex >= FirstStationRow && InRowIndex < Get_FirstControlRow())
+        {
+            Request_ApplyStation(InRowIndex - FirstStationRow);
+            return;
+        }
+
+        // Offsets 0 and 3 are the two headers, which hold no key and never arrive here.
+        auto Control = InRowIndex - Get_FirstControlRow();
+
+        if (Control == 1) { Ck_GymStylizeCrossHatch_ToggleNormalSpace(); }
+        else if (Control == 2) { Ck_GymStylizeCrossHatch_ToggleAlignment(); }
+        else if (Control == 4) { Ck_GymStylizeCrossHatch_CycleDebug(); }
+        else if (Control == 5) { Ck_GymStylizeCrossHatch_ToggleEntityMask(); }
+        else if (Control == 6) { Ck_GymStylizeCrossHatch_ToggleHandDrawnStack(); }
+        else if (Control == 7) { Ck_GymStylizeCrossHatch_ToggleDitherStack(); }
+        else if (Control == 8) { Request_RebuildGym(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Restart")
     void Ck_GymStylizeCrossHatch_RestartAll()
     {

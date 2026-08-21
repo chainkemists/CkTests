@@ -180,6 +180,76 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
     // DATA-ONLY UNBOUNDED COMMANDS
     //------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Twenty-five console commands. The curated set below is keyed, at each command's own default
+    // count or coordinate - the values the gym's placards talk about. Anything that needs a different
+    // number keeps to the console, and the panel says so rather than implying it is gone.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "INVENTORY";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("ITEMS"));
+        Rows.Add(CkGym_Control::Numbered(0, "Add a potion", false));
+        Rows.Add(CkGym_Control::Numbered(1, "Add an arrow", false));
+        Rows.Add(CkGym_Control::Numbered(2, "Add a sword", false));
+        Rows.Add(CkGym_Control::Numbered(3, "Add a shield at 0,0", false));
+        Rows.Add(CkGym_Control::Numbered(4, "Remove the first item", false));
+        Rows.Add(CkGym_Control::Numbered(5, "Stack the potions", false));
+        Rows.Add(CkGym_Control::Numbered(6, "Split one off a stack", false));
+        Rows.Add(CkGym_Control::Numbered(7, "Sort everything", false));
+        Rows.Add(CkGym_Control::Numbered(8, "Fill the bounded inventory", false));
+
+        Rows.Add(CkGym_Control::Header("TAGS"));
+        Rows.Add(CkGym_Control::Action(EKeys::T, "T", "Add the RARE tag"));
+        Rows.Add(CkGym_Control::Action(EKeys::Y, "Y", "Remove the RARE tag"));
+
+        Rows.Add(CkGym_Control::Header("SHELF"));
+        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Stock"));
+        Rows.Add(CkGym_Control::Action(EKeys::L, "L", "Loot"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Start"));
+        Rows.Add(CkGym_Control::Action(EKeys::X, "X", "Stop"));
+        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Reset"));
+
+        Rows.Add(CkGym_Control::Header("RUN"));
+        Rows.Add(CkGym_Control::Action(EKeys::A, "A", "Auto-drive every station"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart everything"));
+        Rows.Add(CkGym_Control::Status("Other counts, bounds and coordinates: console only"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Rows 0, 10, 13 and 19 are headers, which hold no key and never arrive here.
+        if (InRowIndex == 1) { Ck_GymInventory_AddPotion(1); }
+        else if (InRowIndex == 2) { Ck_GymInventory_AddArrow(1); }
+        else if (InRowIndex == 3) { Ck_GymInventory_AddSword(); }
+        else if (InRowIndex == 4) { Ck_GymInventory_AddShieldAt(0, 0); }
+        else if (InRowIndex == 5) { Ck_GymInventory_RemoveFirst(); }
+        else if (InRowIndex == 6) { Ck_GymInventory_StackPotions(); }
+        else if (InRowIndex == 7) { Ck_GymInventory_SplitStack(1); }
+        else if (InRowIndex == 8) { Ck_GymInventory_SortAll(); }
+        else if (InRowIndex == 9) { Ck_GymInventory_FillBounded(); }
+        else if (InRowIndex == 11) { Ck_GymInventory_AddRareTag(); }
+        else if (InRowIndex == 12) { Ck_GymInventory_RemoveRareTag(); }
+        else if (InRowIndex == 14) { Ck_GymInventory_ShelfStock(); }
+        else if (InRowIndex == 15) { Ck_GymInventory_ShelfLoot(); }
+        else if (InRowIndex == 16) { Ck_GymInventory_ShelfStart(); }
+        else if (InRowIndex == 17) { Ck_GymInventory_ShelfStop(); }
+        else if (InRowIndex == 18) { Ck_GymInventory_ShelfReset(); }
+        else if (InRowIndex == 20) { Ck_GymInventory_Auto(1); }
+        else if (InRowIndex == 21) { Ck_GymInventory_RestartAll(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Inventory Gym - Add Potion")
     void Ck_GymInventory_AddPotion(int32 InCount = 1)
     {

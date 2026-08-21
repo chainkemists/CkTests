@@ -227,6 +227,31 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
 
     // ---- Console ---------------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // The run is over in seconds, so re-running it is the gym.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CROWD: PATHING";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart every agent"));
+        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymPathing_RestartAll(); }
+        else if (InRowIndex == 1) { Ck_GymPathing_Clear(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Crowd Pathing - Restart All")
     void Ck_GymPathing_RestartAll()
     {
