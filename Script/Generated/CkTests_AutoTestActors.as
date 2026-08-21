@@ -6714,6 +6714,19 @@ class ACk_AutoTest_Queue_CoreMembershipLimits_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_Queue_CrowdAdapterFacesOrigin_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 30.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Queue_CrowdAdapterFacesOrigin");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Queue_CrowdAdapterMovesAndResumes_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 30.0f;

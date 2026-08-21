@@ -44,6 +44,9 @@ auto FCkTest_Queue_Layout_SnakeTurns::RunTest(const FString&) -> bool
         const auto Delta = Result.Placements[Index].TargetWorldTransform.GetLocation() - Result.Placements[Index - 1].TargetWorldTransform.GetLocation();
         TestTrue(TEXT("every snake edge is exact spacing"), FMath::IsNearlyEqual(Delta.Size(), 100.0f));
         TestTrue(TEXT("every snake edge is axis aligned"), FMath::IsNearlyZero(Delta.X) || FMath::IsNearlyZero(Delta.Y));
+        const auto ToOrigin = -Result.Placements[Index].TargetWorldTransform.GetLocation().GetSafeNormal2D();
+        const auto SlotForward = Result.Placements[Index].TargetWorldTransform.GetUnitAxis(EAxis::X).GetSafeNormal2D();
+        TestTrue(TEXT("every non-front snake slot faces its queue origin"), FVector::DotProduct(ToOrigin, SlotForward) > 0.999f);
     }
     return true;
 }

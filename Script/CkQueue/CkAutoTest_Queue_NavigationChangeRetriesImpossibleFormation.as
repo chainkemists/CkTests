@@ -95,12 +95,15 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
     UFUNCTION()
     private void Check_FrontBlocked(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FVector Projected;
+        FVector FrontProjected;
+        FVector ApproachProjected;
         auto Context = InHandle;
-        const bool Projects = utils_nav::Try_ProjectOntoNavmesh(
-            Context, _FrontWorld, 20.0f, Projected, 300.0f);
+        const bool FrontProjects = utils_nav::Try_ProjectOntoNavmesh(
+            Context, _FrontWorld, 20.0f, FrontProjected, 300.0f);
+        const bool ApproachProjects = utils_nav::Try_ProjectOntoNavmesh(
+            Context, _FrontWorld + FVector(-500.0f, 0.0f, 0.0f), 20.0f, ApproachProjected, 300.0f);
         auto Result = OutResult;
-        Result.Set(ck::IsValid(_Markup) && Projects == false);
+        Result.Set(ck::IsValid(_Markup) && FrontProjects == false && ApproachProjects);
     }
 
     UFUNCTION()
@@ -132,6 +135,11 @@ class UCk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation : UCk_AutoTe
             "impossible formation publishes no target assignment revision");
         Assert_True(Snapshot.Get_State() == ECk_Queue_MemberState::PendingAdmission,
             "member remains pending rather than falsely arriving on blocked topology");
+        FVector ApproachProjected;
+        auto Context = InHandle;
+        Assert_True(utils_nav::Try_ProjectOntoNavmesh(
+                Context, _FrontWorld + FVector(-500.0f, 0.0f, 0.0f), 20.0f, ApproachProjected, 300.0f),
+            "target-only null markup preserves the queue approach navigation area");
     }
 
     UFUNCTION()
