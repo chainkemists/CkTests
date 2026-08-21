@@ -11,6 +11,7 @@ class UCk_AutoTest_Queue_CrowdAdapterFacesOrigin : UCk_AutoTest_Base
     private FGameplayTag          _Category;
     private FVector               _Spawn;
     private const float32 ExpectedYaw = 90.0f;
+    private const float32 ExpectedSlotSpacingUu = 180.0f;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -59,7 +60,9 @@ class UCk_AutoTest_Queue_CrowdAdapterFacesOrigin : UCk_AutoTest_Base
         auto QueueParams = FCk_Fragment_Queue_ParamsData(Origins);
         _Category = utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.AutoTestFacing");
         QueueParams.Set_Category(_Category);
-        QueueParams.Set_SlotSpacingUu(120.0f);
+        QueueParams.Set_SlotSpacingUu(ExpectedSlotSpacingUu);
+        QueueParams.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
+        QueueParams.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);
         _Queue = utils_queue::Add(_QueueOwner, QueueParams);
 
         _AgentEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
@@ -81,17 +84,30 @@ class UCk_AutoTest_Queue_CrowdAdapterFacesOrigin : UCk_AutoTest_Base
     UFUNCTION()
     private void Check_QueueReady(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        bool DebugSnapshotCarriesCategory = false;
+        FCk_Queue_DebugSnapshot DebugSnapshot;
+        bool HasDebugSnapshot = false;
         for (const auto& Snapshot : utils_queue::Get_DebugSnapshots(InHandle))
         {
             if (Snapshot.Get_Category() == _Category)
-            { DebugSnapshotCarriesCategory = true; break; }
+            {
+                DebugSnapshot = Snapshot;
+                HasDebugSnapshot = true;
+                break;
+            }
         }
+        const auto FormationState = DebugSnapshot.Get_FormationState();
         auto Result = OutResult;
         Result.Set(ck::IsValid(_Queue)
             && _Queue.Get_State() == ECk_Queue_State::Ready
             && _Queue.Get_Category() == _Category
-            && DebugSnapshotCarriesCategory);
+            && HasDebugSnapshot
+            && DebugSnapshot.Get_LayoutAlgorithm() == ECk_Queue_LayoutAlgorithm::Linear
+            && DebugSnapshot.Get_SlotSpacingUu() == ExpectedSlotSpacingUu
+            && DebugSnapshot.Get_SlotClaimPolicy() == ECk_Queue_SlotClaimPolicy::ReserveOnFormation
+            && FormationState.Get_State() == DebugSnapshot.Get_State()
+            && FormationState.Get_Reason() == ECk_Queue_EventReason::None
+            && FormationState.Get_QueueRevision() == DebugSnapshot.Get_Revision()
+            && FormationState.Get_RetryEpisode() == DebugSnapshot.Get_RetryEpisode());
     }
 
     UFUNCTION()
