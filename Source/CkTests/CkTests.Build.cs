@@ -79,6 +79,7 @@ public class CkTests : CkModuleRules
             "CkProfile",
             "CkProjectile",
             "CkProvider",
+            "CkQueue",
             "CkRecord",
             "CkRelationship",
             "CkRenderTarget",
