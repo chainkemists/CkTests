@@ -76,6 +76,34 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         return TArray<FCkGym_Station_SpawnParams_Payload>();
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // Control panel — the on-screen list of this gym's controls
+    //
+    // Declared here rather than per-gym so ACkGym_ControlPanelHUD (the default HUDClass) can drive ANY
+    // gym without knowing what it is. A gym's console commands are invisible until they appear here.
+    // Authoring guide and row builders: Script/Common/CkGym_ControlPanel.as.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    // Rebuilt every frame, so the value column reports live state rather than a snapshot. Returning an
+    // empty list — the default — draws no panel at all, which is why this costs nothing to the gyms that
+    // have not adopted it.
+    TArray<FCkGym_ControlRow> Get_ControlRows()
+    {
+        return TArray<FCkGym_ControlRow>();
+    }
+
+    // InRowIndex indexes the array Get_ControlRows() returned this frame. Header and Status rows hold no
+    // key and never arrive here, but they DO occupy an index — build the list in one place and branch on
+    // the index there, rather than counting rows by hand in two places that then drift apart.
+    void Request_ControlActivated(int32 InRowIndex)
+    {
+    }
+
+    FString Get_ControlPanelTitle()
+    {
+        return "GYM CONTROLS";
+    }
+
     void Request_EnsureStationsExist()
     {
         auto RequiredStations = Get_RequiredStations();

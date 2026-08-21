@@ -138,6 +138,34 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
 
     // ---- Console commands ----------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A queue that has already dispersed shows nothing, so re-spawning it is how this gym is watched
+    // more than once.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CROWD: QUEUE CROSS";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn the line + crossers"));
+        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Reset - destroy agents"));
+        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Emit per-agent digest"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymCrowd_QueueCross_Spawn(); }
+        else if (InRowIndex == 1) { Ck_GymCrowd_QueueCross_Reset(); }
+        else if (InRowIndex == 2) { Ck_GymCrowd_QueueCross_Digest(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Crowd QueueCross - Spawn Line + Crossers")
     void Ck_GymCrowd_QueueCross_Spawn()
     {

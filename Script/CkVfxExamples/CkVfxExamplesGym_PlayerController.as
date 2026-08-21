@@ -626,6 +626,38 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     // Name kept from the all-pairs era: every cookbook recipe's §12 walk cites it, and its
     // job — re-fire both sides of what you are looking at in sync — is unchanged; only the
     // set of live pairs shrank to one.
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // The hands-on-viewport shortcuts, which used to be polled loose in the HUD and advertised as one line
+    // of text. They live here now so there is ONE place that says which keys this gym takes. V stays in the
+    // HUD because it opens a HUD-owned menu that returns before the panel is ever reached.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "VFX PAIRS";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Action(EKeys::PageDown, "PgDn", "Next pair"));
+        Rows.Add(CkGym_Control::Action(EKeys::PageUp, "PgUp", "Previous pair"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart both sides in sync"));
+        Rows.Add(CkGym_Control::Status("V opens the searchable pair list"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Request_ActivatePair(Get_ActivePairIndex() + 1); }
+        else if (InRowIndex == 1) { Request_ActivatePair(Get_ActivePairIndex() - 1); }
+        else if (InRowIndex == 2) { Ck_GymVfxExamples_RestartAll(); }
+    }
+
     UFUNCTION(Exec, DisplayName="VfxExamples Gym - Restart Active Pair")
     void Ck_GymVfxExamples_RestartAll()
     {

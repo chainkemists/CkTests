@@ -198,6 +198,42 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
 
     // ---- Console commands ----------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // The flank row reports whether the walls actually EXIST rather than mirroring the last command
+    // sent: the walls ARE the state, and a mirror would be a second answer to a question the world
+    // already answers.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CROWD: NARROW GAP";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn 20 walkers"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Spawn blocker + 20 walkers"));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::F, "F", "Flank caps", _FlankWalls.Num() > 0, "CLOSED", "OPEN"));
+        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Reset - destroy agents"));
+        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Emit per-agent digest"));
+        Rows.Add(CkGym_Control::Status("Another agent count: console only"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymCrowd_NarrowGap_Spawn(20); }
+        else if (InRowIndex == 1) { Ck_GymCrowd_NarrowGap_SpawnBlocked(20); }
+        else if (InRowIndex == 2) { Ck_GymCrowd_NarrowGap_Flank(_FlankWalls.Num() > 0 ? 0 : 1); }
+        else if (InRowIndex == 3) { Ck_GymCrowd_NarrowGap_Reset(); }
+        else if (InRowIndex == 4) { Ck_GymCrowd_NarrowGap_Digest(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Crowd NarrowGap - Spawn Walkers Through The Gap")
     void Ck_GymCrowd_NarrowGap_Spawn(int32 InCount = 20)
     {

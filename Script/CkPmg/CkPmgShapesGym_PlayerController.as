@@ -810,6 +810,35 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     // CONSOLE COMMANDS
     //------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Only the zero-argument controls are keyed. Grid spacing and shape size take a number and stay
+    // console-only — the panel says so rather than leaving a reader to conclude the gym cannot do it.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "PROCEDURAL MESH SHAPES";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Regenerate every shape"));
+        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear every shape"));
+        Rows.Add(CkGym_Control::Status("Grid spacing and shape size: console only"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymPmg_RegenerateAll(); }
+        else if (InRowIndex == 1) { Ck_GymPmg_ClearAll(); }
+    }
+
     UFUNCTION(Exec, DisplayName="PMG Gym - Regenerate All Shapes")
     void Ck_GymPmg_RegenerateAll()
     {

@@ -48,6 +48,36 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log("Crowd Foundation Gym - Started. Use Ck_GymCrowd_Spawn from the console.");
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A crowd gym with no agents in it is an empty floor, and every way to put agents in it was
+    // console-only.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CROWD: FOUNDATION";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn one agent"));
+        Rows.Add(CkGym_Control::Action(EKeys::T, "T", "Spawn ten agents"));
+        Rows.Add(CkGym_Control::Action(EKeys::X, "X", "Remove the last agent"));
+        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear every agent"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymCrowd_Spawn(); }
+        else if (InRowIndex == 1) { Ck_GymCrowd_Spawn10(); }
+        else if (InRowIndex == 2) { Ck_GymCrowd_RemoveLast(); }
+        else if (InRowIndex == 3) { Ck_GymCrowd_Clear(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Crowd Foundation - Spawn Agent")
     void Ck_GymCrowd_Spawn()
     {

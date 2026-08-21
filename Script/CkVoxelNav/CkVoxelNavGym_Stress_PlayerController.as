@@ -311,6 +311,32 @@ class ACk_VoxelNavGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         { ++_FailedCount; }
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A stress run is over in seconds. Re-running it, and reversing it to re-path the whole field in one
+    // frame, are the two things this gym is FOR — and both were console-only.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "VOXELNAV STRESS";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart the 400-agent run"));
+        Rows.Add(CkGym_Control::Action(EKeys::V, "V", "Reverse every agent"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymVoxelNavStress_Restart(); }
+        else if (InRowIndex == 1) { Ck_GymVoxelNavStress_Reverse(); }
+    }
+
     UFUNCTION(Exec, DisplayName="VoxelNav Stress - Restart Flying 400")
     void Ck_GymVoxelNavStress_Restart()
     {

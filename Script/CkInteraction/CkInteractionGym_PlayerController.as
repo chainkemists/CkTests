@@ -230,6 +230,73 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
     // STATION 1: INSTANT
     //------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Twenty-one console commands, and a manual interaction that has to be ENDED while it is still
+    // running - which is not something you can type. The curated set below is keyed; the per-station
+    // auto-drive commands keep to the console, and the panel says so rather than implying they are gone.
+    // 
+    // The two flips are Actions rather than Toggles: they broadcast a message with no readback, so
+    // there is no state to report and a two-state row would be inventing one.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "INTERACTION";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("RUN AN INTERACTION"));
+        Rows.Add(CkGym_Control::Numbered(0, "Instant", false));
+        Rows.Add(CkGym_Control::Numbered(1, "Timed", false));
+        Rows.Add(CkGym_Control::Numbered(2, "Manual: start", false));
+        Rows.Add(CkGym_Control::Numbered(3, "Manual: end SUCCESS", false));
+        Rows.Add(CkGym_Control::Numbered(4, "Manual: end FAIL", false));
+        Rows.Add(CkGym_Control::Numbered(5, "Manual: cancel", false));
+        Rows.Add(CkGym_Control::Numbered(6, "Validation attempt", false));
+
+        Rows.Add(CkGym_Control::Header("VALIDATION"));
+        Rows.Add(CkGym_Control::Action(EKeys::E, "E", "Flip enabled"));
+        Rows.Add(CkGym_Control::Action(EKeys::V, "V", "Flip custom validation"));
+
+        Rows.Add(CkGym_Control::Header("INTENT AND TARGETS"));
+        Rows.Add(CkGym_Control::Action(EKeys::I, "I", "Start intent"));
+        Rows.Add(CkGym_Control::Action(EKeys::O, "O", "Stop intent"));
+        Rows.Add(CkGym_Control::Action(EKeys::T, "T", "Add a target"));
+        Rows.Add(CkGym_Control::Action(EKeys::Y, "Y", "Remove a target"));
+        Rows.Add(CkGym_Control::Action(EKeys::U, "U", "Initiate resolution"));
+
+        Rows.Add(CkGym_Control::Header("RUN"));
+        Rows.Add(CkGym_Control::Action(EKeys::A, "A", "Auto-drive every station"));
+        Rows.Add(CkGym_Control::Status("Per-station auto-drive: console only"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Rows 0, 8, 11 and 17 are headers, which hold no key and never arrive here.
+        if (InRowIndex == 1) { Ck_GymInteraction_TriggerInstant(); }
+        else if (InRowIndex == 2) { Ck_GymInteraction_StartTimed(); }
+        else if (InRowIndex == 3) { Ck_GymInteraction_StartManual(); }
+        else if (InRowIndex == 4) { Ck_GymInteraction_EndManualSuccess(); }
+        else if (InRowIndex == 5) { Ck_GymInteraction_EndManualFail(); }
+        else if (InRowIndex == 6) { Ck_GymInteraction_CancelManual(); }
+        else if (InRowIndex == 7) { Ck_GymInteraction_AttemptValidation(); }
+        else if (InRowIndex == 9) { Ck_GymInteraction_ToggleEnabled(); }
+        else if (InRowIndex == 10) { Ck_GymInteraction_ToggleCustomValidation(); }
+        else if (InRowIndex == 12) { Ck_GymInteraction_StartIntent(); }
+        else if (InRowIndex == 13) { Ck_GymInteraction_StopIntent(); }
+        else if (InRowIndex == 14) { Ck_GymInteraction_AddTarget(); }
+        else if (InRowIndex == 15) { Ck_GymInteraction_RemoveTarget(); }
+        else if (InRowIndex == 16) { Ck_GymInteraction_InitiateResolution(); }
+        else if (InRowIndex == 18) { Ck_GymInteraction_Auto(1); }
+    }
+
     UFUNCTION(Exec, DisplayName="Interaction Gym - Trigger Instant")
     void Ck_GymInteraction_TriggerInstant()
     {

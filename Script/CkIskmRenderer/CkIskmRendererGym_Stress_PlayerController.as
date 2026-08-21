@@ -56,6 +56,30 @@ class ACk_IskmRendererGym_StressStatic_PlayerController : ACk_Gym_Base_PlayerCon
             FInstancedStruct::Make(Params));
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A stress field is spawned once. Re-spawning it is how the cost of the spawn itself gets measured,
+    // and it was reachable only by a console command whose name you had to already know.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "ISKM STRESS: STATIC 500";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Respawn the 500-instance field"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymIskmRendererStressStatic_Restart(); }
+    }
+
     UFUNCTION(Exec, DisplayName="IskmRenderer Stress (Static 500) - Restart")
     void Ck_GymIskmRendererStressStatic_Restart()
     {
@@ -106,6 +130,30 @@ class ACk_IskmRendererGym_StressMoving_PlayerController : ACk_Gym_Base_PlayerCon
             Get_StationHandle("Gym.Iskm.StressArmy"),
             UCk_EntityScript_IskmRendererGym_StressArmy,
             FInstancedStruct::Make(Params));
+    }
+
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A stress field is spawned once. Re-spawning it is how the cost of the spawn itself gets measured,
+    // and it was reachable only by a console command whose name you had to already know.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "ISKM STRESS: MOVING 500";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Respawn the 500-instance field"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymIskmRendererStressMoving_Restart(); }
     }
 
     UFUNCTION(Exec, DisplayName="IskmRenderer Stress (Moving 500) - Restart")

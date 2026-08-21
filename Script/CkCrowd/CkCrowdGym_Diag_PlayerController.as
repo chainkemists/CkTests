@@ -361,6 +361,38 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
     // ---- Console commands ----------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Pausing the auto-cycle is what lets a scenario be READ instead of watched going past, and it was
+    // console-only. The pause row reports the real flag rather than a mirror of it.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CROWD: DIAGNOSTICS";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::P, "P", "Auto-cycling", _AutoCycleEnabled, "running", "PAUSED"));
+        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Dump cycle digest now"));
+        Rows.Add(CkGym_Control::Action(EKeys::O, "O", "Spawn an overlap wave now"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0)
+        {
+            if (_AutoCycleEnabled) { Ck_GymCrowd_Diag_Pause(); }
+            else                   { Ck_GymCrowd_Diag_Resume(); }
+        }
+        else if (InRowIndex == 1) { Ck_GymCrowd_Diag_DumpNow(); }
+        else if (InRowIndex == 2) { Ck_GymCrowd_Diag_SpawnOverlapNow(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Crowd Diag - Pause Auto-Cycling")
     void Ck_GymCrowd_Diag_Pause()
     {

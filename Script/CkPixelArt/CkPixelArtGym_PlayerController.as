@@ -28,8 +28,10 @@
 //   Ck_GymPixelArt_ToggleLook     — the look on its own, independent of the renderer
 //   Ck_GymPixelArt_ToggleOKLab    — flip the active station into OKLab banding + the warm ramp
 //
-// Keys: 1-9/0 select a station, P flips orthographic <-> perspective, O flips the OKLab treatment,
-// Tab opens the cycler menu.
+// Every one of those is also a KEY on the shared gym control panel (Script/Common/CkGym_ControlPanel.as),
+// which is where the live state is read off: 1-9/0 select a station, P flips orthographic <-> perspective,
+// O flips the OKLab treatment, L forces the look, M runs the creep pan, R rebuilds the judge scene.
+// H hides the panel without disabling it; Tab opens the cycler menu.
 //
 // Needs the PixelArt master on disk for the LOOK stations: on a fresh checkout run
 // "Ck_Usf_GenerateLooks PixelArt" once in the editor console. The RENDERER stations work regardless — and
@@ -457,6 +459,84 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Two jobs, and the second one is the reason it is drawn rather than merely useful:
+    //
+    //   1. Selection without walking. 1-9 and 0 pick a station directly; the panel says which is live.
+    //   2. It IS the native-resolution UI subject. The renderer upscales the SCENE and composites UI
+    //      after, so crisp text sitting directly on top of a chunky frame is the whole criterion — and a
+    //      panel that is always there judges it continuously instead of only at one station.
+    //
+    // Conditional rows go LAST so a row that appears only in one state cannot shift the index of a keyed
+    // row above it.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    // Row 0 is the stations header; the stations follow it.
+    private const int32 FirstStationRow = 1;
+
+    // Both Get_ControlRows and Request_ControlActivated derive their offsets from this, so a station
+    // added to the list cannot desynchronise the two.
+    private int32 Get_FirstControlRow() const
+    {
+        return FirstStationRow + _StationLabels.Num();
+    }
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "PIXEL ART";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("STATIONS  -  press a number, or walk to one"));
+
+        for (int32 Index = 0; Index < _StationLabels.Num(); Index++)
+        { Rows.Add(CkGym_Control::Numbered(Index, _StationLabels[Index], Index == _ActiveStation)); }
+
+        const bool IsOrtho = Get_ProjectionIsOrthographic();
+
+        Rows.Add(CkGym_Control::Header("VIEW"));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::P, "P", "Projection", IsOrtho, "ORTHO", "PERSP", true));
+        Rows.Add(CkGym_Control::Toggle(EKeys::O, "O", "OKLab treatment", _OKLabOverride));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::L, "L", "Look", _LookOverride, "FORCED", "per-station"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::M, "M", "Camera pan (creep test)", _PanRunning));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Rebuild judge scene"));
+
+        // Which selection mode is live. Without this the panel looks broken when a key choice is silently
+        // overridden by walking, which is exactly when someone needs to be told what is happening.
+        auto ModeText = _ManualSelection ? "key-selected, walk away to resume" : "proximity";
+        Rows.Add(CkGym_Control::Status("Selection", ModeText));
+
+        // A perspective view silently disables the camera snap: the image still pixelates, so nothing
+        // looks broken, and every creep verdict taken there is wrong. Said loudly, and only when true.
+        if (IsOrtho == false)
+        { Rows.Add(CkGym_Control::Status("SNAP DISABLED on a perspective view - creep verdicts invalid", "", true)); }
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex >= FirstStationRow && InRowIndex < Get_FirstControlRow())
+        {
+            Request_SelectStation_Manual(InRowIndex - FirstStationRow);
+            return;
+        }
+
+        // Offset 0 is the VIEW header, which holds no key and never arrives here.
+        auto Control = InRowIndex - Get_FirstControlRow();
+
+        if (Control == 1) { Request_ToggleProjection(); }
+        else if (Control == 2) { Request_ToggleOKLab(); }
+        else if (Control == 3) { Request_ToggleLook(); }
+        else if (Control == 4) { Request_TogglePan(); }
+        else if (Control == 5) { Request_RebuildGym(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Pixel Art Gym - Restart")
     void Ck_GymPixelArt_RestartAll()
     {
@@ -477,6 +557,16 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
     // to stop it, which is a trap in the middle of a creep capture.
     UFUNCTION(Exec, DisplayName="Pixel Art Gym - Toggle Camera Pan")
     void Ck_GymPixelArt_TogglePan()
+    {
+        Request_TogglePan();
+    }
+
+    bool Get_PanRunning() const
+    {
+        return _PanRunning;
+    }
+
+    void Request_TogglePan()
     {
         if (_PanRunning)
         {

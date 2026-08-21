@@ -168,6 +168,46 @@ class ACk_CueGym_PlayerController : ACk_Gym_Base_PlayerController
 	// CONSOLE COMMANDS
 	//------------------------------------------------------------------------
 
+	//--------------------------------------------------------------------------------------------------------------------------
+	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+	//
+	// Every station in this gym is a one-shot that has to be RE-FIRED to be watched. Restarting was
+	// console-only, which made the gym look inert to anyone who arrived after the first pass had run.
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	FString Get_ControlPanelTitle() override
+	{
+		return "CUE";
+	}
+
+	TArray<FCkGym_ControlRow> Get_ControlRows() override
+	{
+		auto Rows = TArray<FCkGym_ControlRow>();
+
+		Rows.Add(CkGym_Control::Header("RE-FIRE A STATION"));
+		Rows.Add(CkGym_Control::Numbered(0, "Lifetime", false));
+		Rows.Add(CkGym_Control::Numbered(1, "Concurrency", false));
+		Rows.Add(CkGym_Control::Numbered(2, "Owner validation", false));
+		Rows.Add(CkGym_Control::Numbered(3, "Restart", false));
+		Rows.Add(CkGym_Control::Numbered(4, "Transient", false));
+		Rows.Add(CkGym_Control::Numbered(5, "Owner destruction", false));
+		Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Re-fire every station"));
+
+		return Rows;
+	}
+
+	void Request_ControlActivated(int32 InRowIndex) override
+	{
+		// Row 0 is the header, which holds no key and never arrives here.
+		if (InRowIndex == 1) { Ck_GymCue_RestartLifetime(); }
+		else if (InRowIndex == 2) { Ck_GymCue_RestartConcurrency(); }
+		else if (InRowIndex == 3) { Ck_GymCue_RestartOwnerValidation(); }
+		else if (InRowIndex == 4) { Ck_GymCue_RestartRestart(); }
+		else if (InRowIndex == 5) { Ck_GymCue_RestartTransient(); }
+		else if (InRowIndex == 6) { Ck_GymCue_RestartOwnerDestruction(); }
+		else if (InRowIndex == 7) { Ck_GymCue_ResetAll(); }
+	}
+
 	UFUNCTION(Exec, DisplayName="Cue Gym - Restart Lifetime")
 	void Ck_GymCue_RestartLifetime()
 	{

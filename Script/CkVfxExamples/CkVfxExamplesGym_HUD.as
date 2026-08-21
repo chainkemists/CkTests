@@ -14,13 +14,23 @@
 // cycler menu serves every gym and has no automated coverage to catch a
 // regression.
 //
-// Hands-on-viewport shortcuts while BOTH menus are closed:
-//   PgUp/PgDn — previous/next pair    R — restart the active pair in sync
+// Hands-on-viewport shortcuts while BOTH menus are closed — PgUp/PgDn for previous/next pair and R to
+// restart the active pair in sync — are declared as control-panel rows on the PlayerController and drawn
+// by ACkGym_ControlPanelHUD, which this now derives from. The panel is pushed below the pair readout.
 //
 //============================================================================
 
-class ACk_VfxExamplesGym_HUD : ACkGym_MenuHUD
+class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
 {
+    // Clear of the pair readout, the credit line, and the tune / compile / setup banners that stack under
+    // it — the panel must not land on top of the thing it is annotating.
+    FCkGym_ControlPanel_Style Get_ControlPanelStyle() override
+    {
+        auto Style = ControlPanelStyle;
+        Style.Y = 140.0f;
+        return Style;
+    }
+
     //--------------------------------------------------------------------------------------------------------------------------
     // State
     //--------------------------------------------------------------------------------------------------------------------------
@@ -124,14 +134,8 @@ class ACk_VfxExamplesGym_HUD : ACkGym_MenuHUD
                 return;
             }
 
-            auto VfxPC = Get_VfxPC();
-            if (ck::IsValid(VfxPC))
-            {
-                if (PC.WasInputKeyJustPressed(EKeys::PageDown)) { VfxPC.Request_ActivatePair(VfxPC.Get_ActivePairIndex() + 1); }
-                if (PC.WasInputKeyJustPressed(EKeys::PageUp))   { VfxPC.Request_ActivatePair(VfxPC.Get_ActivePairIndex() - 1); }
-                if (PC.WasInputKeyJustPressed(EKeys::R))        { VfxPC.Ck_GymVfxExamples_RestartAll(); }
-            }
-
+            // PgUp / PgDn / R are declared as control-panel rows on the PlayerController and dispatched
+            // by ACkGym_ControlPanelHUD, so they are deliberately NOT polled here — one key, one path.
             Draw_ActivePairReadout();
         }
 
@@ -584,7 +588,6 @@ class ACk_VfxExamplesGym_HUD : ACkGym_MenuHUD
         auto Pair = VfxCachedPairs[ActiveIndex];
         DrawText(f"VFX PAIR [{ActiveIndex}/{VfxCachedPairs.Num() - 1}]  {Pair.DisplayName}", FLinearColor(0.4f, 1.0f, 0.4f, 0.9f), 24.0f, 20.0f, nullptr, 1.2f, false);
         DrawText(Pair.Credit, FLinearColor(0.6f, 0.6f, 0.4f, 0.8f), 24.0f, 44.0f, nullptr, 0.8f, false);
-        DrawText("V: pair list  |  PgUp/PgDn: cycle  |  R: restart pair", FLinearColor(0.5f, 0.5f, 0.5f, 0.7f), 24.0f, 62.0f, nullptr, 0.8f, false);
 
         // Only while the exec overlay is in force: an unannounced multiplier on the recreation half
         // would read as a fidelity gap against the original beside it. Identity values with the

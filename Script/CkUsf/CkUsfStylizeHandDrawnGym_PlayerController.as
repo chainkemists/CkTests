@@ -304,6 +304,81 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
         return "FinalImage";
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Stroke space is read back off the subsystem rather than mirrored here — it is a setting the
+    // subsystem genuinely owns, and this gym exists to A/B it. The STACK flag is mirrored and cannot be
+    // read back: an untouched subsystem reports Enabled while rendering nothing.
+    //
+    // Conditional rows go LAST so a row that appears in only one state cannot shift the index of a keyed
+    // row above it.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    // Row 0 is the stations header; the stations follow it.
+    private const int32 FirstStationRow = 1;
+
+    private int32 Get_FirstControlRow() const
+    {
+        return FirstStationRow + _StationTags.Num();
+    }
+
+    private bool Get_StrokesAreWorldAttached()
+    {
+        auto Subsystem = UCkUsf_HandDrawnSubsystem::Get_HandDrawnSubsystem();
+
+        if (Subsystem == nullptr)
+        { return false; }
+
+        auto Settings = Subsystem.Get_Settings();
+        return Settings.Get_StrokeSpace() == ECk_Usf_HandDrawnStrokeSpace::WorldAttached;
+    }
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "HAND-DRAWN";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("STATIONS  -  press a number, or walk to one"));
+
+        for (int32 Index = 0; Index < _StationTags.Num(); Index++)
+        { Rows.Add(CkGym_Control::Numbered(Index, Get_StationNameAt(Index), Index == _ActiveStation)); }
+
+        Rows.Add(CkGym_Control::Header("VIEW"));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::S, "S", "Stroke space", Get_StrokesAreWorldAttached(), "world", "screen"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::D, "D", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
+        Rows.Add(CkGym_Control::Toggle(EKeys::C, "C", "Stack ScreenDither over", _StackedOther));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Rebuild judge scene"));
+
+        // A debug view is not the effect. Someone who left one on and walked away would otherwise judge
+        // an intermediate buffer as though it were the finished frame.
+        if (_DebugIndex != 0)
+        { Rows.Add(CkGym_Control::Status("Showing a DEBUG buffer, not the final image", "", true)); }
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex >= FirstStationRow && InRowIndex < Get_FirstControlRow())
+        {
+            Request_ApplyStation(InRowIndex - FirstStationRow);
+            return;
+        }
+
+        // Offset 0 is the VIEW header, which holds no key and never arrives here.
+        auto Control = InRowIndex - Get_FirstControlRow();
+
+        if (Control == 1) { Ck_GymStylizeHandDrawn_ToggleStrokeSpace(); }
+        else if (Control == 2) { Ck_GymStylizeHandDrawn_CycleDebug(); }
+        else if (Control == 3) { Ck_GymStylizeHandDrawn_ToggleDitherStack(); }
+        else if (Control == 4) { Request_RebuildGym(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Stylize Hand-Drawn Gym - Restart")
     void Ck_GymStylizeHandDrawn_RestartAll()
     {

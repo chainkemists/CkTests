@@ -157,6 +157,36 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         CkGym_Common::Update_StationDisplay(_StationHandle, "PATHFINDING", Description, "");
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // The good/bad path pair is an A/B, and an A/B is only worth anything when the two halves can be
+    // flipped between quickly. Two keys do that; two console commands do not.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CROWD: PATHFINDING";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Numbered(0, "Issue a GOOD path", false));
+        Rows.Add(CkGym_Control::Numbered(1, "Issue a BAD path", false));
+        Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Print status"));
+        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Print diagnostics"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymCrowd_Path_IssueGood(); }
+        else if (InRowIndex == 1) { Ck_GymCrowd_Path_IssueBad(); }
+        else if (InRowIndex == 2) { Ck_GymCrowd_Path_Status(); }
+        else if (InRowIndex == 3) { Ck_GymCrowd_Path_Diag(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Crowd Pathfinding - Issue Good Path")
     void Ck_GymCrowd_Path_IssueGood()
     {

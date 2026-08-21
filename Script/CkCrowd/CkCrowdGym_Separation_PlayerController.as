@@ -92,6 +92,42 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
 
     // ---- Console commands ----------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Four scenarios that each run once and are then over. Comparing them means firing one after
+    // another quickly, which four console commands do not allow.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "CROWD: SEPARATION";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("RUN A SCENARIO"));
+        Rows.Add(CkGym_Control::Numbered(0, "Head-on, north / south", false));
+        Rows.Add(CkGym_Control::Numbered(1, "Head-on, east / west", false));
+        Rows.Add(CkGym_Control::Numbered(2, "All four cardinals", false));
+        Rows.Add(CkGym_Control::Numbered(3, "Cluster of 5 to centre", false));
+        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear every agent"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Row 0 is the header, which holds no key and never arrives here.
+        if (InRowIndex == 1) { Ck_GymCrowd_Sep_HeadOnNS(); }
+        else if (InRowIndex == 2) { Ck_GymCrowd_Sep_HeadOnEW(); }
+        else if (InRowIndex == 3) { Ck_GymCrowd_Sep_All4(); }
+        else if (InRowIndex == 4) { Ck_GymCrowd_Sep_Cluster5(); }
+        else if (InRowIndex == 5) { Ck_GymCrowd_Sep_Clear(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Crowd Separation - Head-On N↔S")
     void Ck_GymCrowd_Sep_HeadOnNS()
     {

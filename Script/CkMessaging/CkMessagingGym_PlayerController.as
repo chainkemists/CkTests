@@ -198,6 +198,55 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
     // STATION 1: BASIC BROADCAST COMMANDS
     //------------------------------------------------------------------------
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A message gym shows nothing until a message is SENT, so every station here is dead on arrival until
+    // someone types a console command. The sends are Actions rather than Toggles: broadcasting has no
+    // readback, so there is no state to report and a two-state row would be inventing one.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "MESSAGING";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        Rows.Add(CkGym_Control::Header("SEND"));
+        Rows.Add(CkGym_Control::Numbered(0, "Ping", false));
+        Rows.Add(CkGym_Control::Numbered(1, "Fan-out ping", false));
+        Rows.Add(CkGym_Control::Numbered(2, "One-shot", false));
+        Rows.Add(CkGym_Control::Numbered(3, "Ping to dynamic", false));
+        Rows.Add(CkGym_Control::Numbered(4, "Pong", false));
+        Rows.Add(CkGym_Control::Numbered(5, "Alert, priority 5", false));
+        Rows.Add(CkGym_Control::Numbered(6, "All types at once", false));
+
+        Rows.Add(CkGym_Control::Header("BINDINGS"));
+        Rows.Add(CkGym_Control::Action(EKeys::B, "B", "Flip the dynamic bind"));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Reset every station"));
+
+        Rows.Add(CkGym_Control::Status("Alert at another priority: console only"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        // Rows 0 and 8 are headers, which hold no key and never arrive here.
+        if (InRowIndex == 1) { Ck_GymMessaging_SendPing(); }
+        else if (InRowIndex == 2) { Ck_GymMessaging_FanOutPing(); }
+        else if (InRowIndex == 3) { Ck_GymMessaging_FireOneShot(); }
+        else if (InRowIndex == 4) { Ck_GymMessaging_SendPingToDynamic(); }
+        else if (InRowIndex == 5) { Ck_GymMessaging_SendPong(); }
+        else if (InRowIndex == 6) { Ck_GymMessaging_SendAlert(5); }
+        else if (InRowIndex == 7) { Ck_GymMessaging_SendAllTypes(); }
+        else if (InRowIndex == 9) { Ck_GymMessaging_ToggleBind(); }
+        else if (InRowIndex == 10) { Ck_GymMessaging_ResetAll(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Messaging Gym - Send Ping")
     void Ck_GymMessaging_SendPing()
     {

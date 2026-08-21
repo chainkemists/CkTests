@@ -178,6 +178,49 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 	// CONSOLE COMMANDS
 	//------------------------------------------------------------------------
 
+	//--------------------------------------------------------------------------------------------------------------------------
+	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+	//
+	// Every station here demonstrates something that HAPPENS and is then over — a destroy callback, a
+	// deferred setup, a bridge teardown. Re-running one was console-only, which made the gym look inert to
+	// anyone who arrived after the first pass.
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	FString Get_ControlPanelTitle() override
+	{
+		return "ENTITY LIFECYCLE";
+	}
+
+	TArray<FCkGym_ControlRow> Get_ControlRows() override
+	{
+		auto Rows = TArray<FCkGym_ControlRow>();
+
+		Rows.Add(CkGym_Control::Header("RE-RUN A STATION"));
+		Rows.Add(CkGym_Control::Numbered(0, "Handle & entity", false));
+		Rows.Add(CkGym_Control::Numbered(1, "Ownership tree", false));
+		Rows.Add(CkGym_Control::Numbered(2, "Destroy callbacks", false));
+		Rows.Add(CkGym_Control::Numbered(3, "Actor bridge", false));
+		Rows.Add(CkGym_Control::Numbered(4, "Tag system", false));
+		Rows.Add(CkGym_Control::Numbered(5, "Deferred setup", false));
+		Rows.Add(CkGym_Control::Numbered(6, "Script spawn cast", false));
+		Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Re-run every station"));
+
+		return Rows;
+	}
+
+	void Request_ControlActivated(int32 InRowIndex) override
+	{
+		// Row 0 is the header, which holds no key and never arrives here.
+		if (InRowIndex == 1) { Ck_GymEntityLifecycle_RestartHandleAndEntity(); }
+		else if (InRowIndex == 2) { Ck_GymEntityLifecycle_RestartOwnershipTree(); }
+		else if (InRowIndex == 3) { Ck_GymEntityLifecycle_RestartDestroyCallbacks(); }
+		else if (InRowIndex == 4) { Ck_GymEntityLifecycle_RestartActorBridge(); }
+		else if (InRowIndex == 5) { Ck_GymEntityLifecycle_RestartTagSystem(); }
+		else if (InRowIndex == 6) { Ck_GymEntityLifecycle_RestartDeferredSetup(); }
+		else if (InRowIndex == 7) { Ck_GymEntityLifecycle_RestartScriptSpawnCast(); }
+		else if (InRowIndex == 8) { Ck_GymEntityLifecycle_ResetAll(); }
+	}
+
 	UFUNCTION(Exec, DisplayName="EntityLifecycle Gym - Restart Handle & Entity")
 	void Ck_GymEntityLifecycle_RestartHandleAndEntity()
 	{

@@ -92,6 +92,32 @@ class ACk_GameSettingsGym_PlayerController : ACk_Gym_Base_PlayerController
         _SettingsScreen.ActivateWidget();
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // Closing the settings screen leaves an empty gym with no way back into it that is visible from
+    // inside the gym. These two rows are that way back.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "GAME SETTINGS";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Reopen the settings screen"));
+        Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Open the key-binding page"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymGameSettings_ReopenScreen(); }
+        else if (InRowIndex == 1) { Ck_GymGameSettings_OpenKeyBindingPage(); }
+    }
+
     UFUNCTION(Exec, DisplayName = "GameSettings Gym - Reopen Settings Screen")
     void Ck_GymGameSettings_ReopenScreen()
     {

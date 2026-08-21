@@ -35,6 +35,32 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("🔊 Spatial audio cue executed at demo display location");
     }
 
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A one-shot spatial cue has to be FIRED to be heard, and the music has to be restarted to be heard
+    // from the top. Both were console-only, which made a working audio gym sound like a silent one.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
+    {
+        return "AUDIO";
+    }
+
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
+    {
+        auto Rows = TArray<FCkGym_ControlRow>();
+        Rows.Add(CkGym_Control::Action(EKeys::M, "M", "Restart background music"));
+        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Fire the spatial cue"));
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex == 0) { Ck_GymAudioSimple_RestartBackgroundMusic(); }
+        else if (InRowIndex == 1) { Ck_GymAudioSimple_TriggerSpatialAudio(); }
+    }
+
     UFUNCTION(Exec, DisplayName="Simple AudioGym - Restart Background Music")
     void Ck_GymAudioSimple_RestartBackgroundMusic()
     {
