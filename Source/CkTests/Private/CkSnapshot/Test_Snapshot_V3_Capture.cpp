@@ -477,8 +477,9 @@ bool
         SnapshotSettings->TestOnly_Set_ParallelPayloadSerialization(InMode);
         auto ByteWriter = FBufferArchive{};
         auto Header = FCk_Snapshot_HeaderV3{};
+        auto SaveReport = FCk_Snapshot_SaveReport{};
         const auto Result = ck::snapshot::Run_CaptureV3_Registry(
-            *RawRegistry, RegistryHandle, /*World=*/nullptr, ByteWriter, Header);
+            *RawRegistry, RegistryHandle, /*World=*/nullptr, ByteWriter, Header, SaveReport);
         OutBytes = MoveTemp(static_cast<TArray<uint8>&>(ByteWriter));
         return Result == ECk_SnapshotResult::Success && Header.Get_PayloadCount() == PayloadEntityCount;
     };
