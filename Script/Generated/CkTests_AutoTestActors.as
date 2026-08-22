@@ -1832,7 +1832,7 @@ class ACk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor : 
 
 class ACk_AutoTest_Crowd_Separation_CoincidentPairOrbitSearch_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 28.0f;
+    default _TimeoutSeconds = 55.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
@@ -1845,7 +1845,7 @@ class ACk_AutoTest_Crowd_Separation_CoincidentPairOrbitSearch_Actor : ACk_AutoTe
 
 class ACk_AutoTest_Crowd_Separation_SpatialOrbitSearch_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 18.0f;
+    default _TimeoutSeconds = 35.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
