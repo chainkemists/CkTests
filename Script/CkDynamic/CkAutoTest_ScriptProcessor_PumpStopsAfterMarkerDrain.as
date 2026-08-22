@@ -111,8 +111,16 @@ class UCk_AutoTest_ScriptProcessor_PumpStopsAfterMarkerDrain : UCk_AutoTest_Base
         const int32 QuietFramePumpIterations = UCk_Utils_EcsWorld_Subsystem_UE::Get_Debug_FramePumpIterationCount(
             this, _SeedFrame - 1);
 
+        // Group-local settle shares the pump BUDGET with the global loop but is reported separately, so a
+        // frame whose global count looks wrong can be read against what settle spent on the same frame.
+        const int32 SeedLocalSettlePasses = UCk_Utils_EcsWorld_Subsystem_UE::Get_Debug_FrameLocalSettlePassCount(
+            this, _SeedFrame);
+
+        const int32 QuietLocalSettlePasses = UCk_Utils_EcsWorld_Subsystem_UE::Get_Debug_FrameLocalSettlePassCount(
+            this, _SeedFrame - 1);
+
         Assert_Equals_Int(FramePumpIterations, QuietFramePumpIterations + 2,
-            f"the seed frame must cost exactly two more pump passes than the quiet frame before it (the two real cascade passes) — got [{FramePumpIterations}] vs quiet [{QuietFramePumpIterations}]; a larger delta means a phantom pass still keeps the whole pump loop alive");
+            f"the seed frame must cost exactly two more pump passes than the quiet frame before it (the two real cascade passes) — got [{FramePumpIterations}] vs quiet [{QuietFramePumpIterations}]; a larger delta means a phantom pass still keeps the whole pump loop alive. Local-settle passes that frame: seed [{SeedLocalSettlePasses}] quiet [{QuietLocalSettlePasses}] — those share the pump budget but are deliberately NOT part of the counts above");
 
         FinishSuccess();
     }
