@@ -27,6 +27,12 @@
 //         (ii). Zero is still the target: an exemption says the SCANNER cannot see the difference, never that
 //         the defect would be tolerable.
 //
+// A ratchet is only as good as its predicate, and clause (i)'s was over-broad: it counted every Get_RegistryView(),
+// including the spelling that reaches a registry CONTEXT rather than an entity view. Thirteen such lines were on the
+// list. Narrowing the predicate (not raising the ceiling) took clause (i) from 46/44 to 33/33 and dropped five files
+// that never held an entity view at all. The rule that produced that choice is worth keeping: when a fence reds on
+// code that is provably not the hazard, the fence is what is wrong, and re-baselining it hides the next real one.
+//
 // All three are ratchets, not prohibitions: the counts below are what the code has today, they may only ever go
 // down, and a new site in a listed file reds just as loudly as a new file. (iii)'s ceiling is 1 and the other two
 // are what they were; a regeneration artifact is written next to the posture ratchet's so lowering a ceiling is a
@@ -61,17 +67,25 @@ namespace ck_test_quarantine_fence
             // accumulator) and constructs no view over entities, so it cannot observe a quarantined one. Spelled
             // Get_RegistryView because that is what its two sibling context reads in CkEntityLifetime_Utils.cpp
             // spell — renaming it to dodge a text scan would leave the fence silent on the construct it lists.
+            // It survives the TryGetContext narrowing below only because it is written in TWO steps (bind the
+            // registry to a local, then read the context off it), which no line predicate can follow.
             {TEXT("CkEcs/Public/CkEcs/Persistence/CkPersistenceHydration_Processor.cpp"), 1},
             {TEXT("CkEcsExt/Public/CkEcsExt/Transform/CkTransform_Processor.cpp"), 2},
+            // Two-step context read, same shape as the KERNEL entry above: the registry is bound to a local and
+            // then asked only for DIRTY-MARKER VERSIONS (Get_DirtyMarkerVersion) so the query can skip a pass
+            // whose inputs have not moved. It enumerates no entities and holds no view, so a quarantined entity
+            // is not reachable from it. dev's, arrived with the tag-version debounce.
+            {TEXT("CkEntityTag/Public/CkEntityTag/Query/CkEntityTagQuery_Processor.cpp"), 1},
             {TEXT("CkGraphics/Public/CkGraphics/RenderStatus/CkRenderStatus_Processor.cpp"), 4},
             {TEXT("CkInput/Public/CkInput/CkInputLayer_Processor.cpp"), 2},
             {TEXT("CkIntent/Public/CkIntent/CkIntentMatcher_Processor.cpp"), 1},
-            {TEXT("CkJolt/Public/CkJolt/Body/CkJoltBody_Processor.cpp"), 4},
-            {TEXT("CkJolt/Public/CkJolt/Character/CkJoltCharacter_Processor.cpp"), 3},
-            {TEXT("CkJolt/Public/CkJolt/Constraint/CkJoltConstraint_Processor.cpp"), 2},
-            {TEXT("CkJolt/Public/CkJolt/StaticWorld/CkJoltStaticActor_Processor.cpp"), 1},
-            {TEXT("CkJolt/Public/CkJolt/Subsystem/CkJoltDebugDraw_Processor.cpp"), 1},
-            {TEXT("CkJolt/Public/CkJolt/World/CkJoltWorld_Processor.cpp"), 1},
+            // Two-step again, and the one entry here whose loop DOES reach entities — by id, out of the Jolt
+            // activation-event drain. The registry local is used only for a LIVENESS test (RegView.IsValid) on a
+            // queued id that a load may have killed. The write that follows is clause (ii)'s territory, and it is
+            // handled there correctly: the loop tests ck::FTag_Hydration_Quarantine and skips, with a comment
+            // naming the exact hazard. Listed rather than excluded because a liveness read is indistinguishable
+            // from a view construction to any line scanner.
+            {TEXT("CkJolt/Public/CkJolt/Body/CkJoltBody_Processor.cpp"), 1},
             {TEXT("CkLagCompensation/Public/CkLagCompensation/LagCompProjectile/CkLagCompProjectile_Processor.cpp"), 1},
             {TEXT("CkMinimap/Public/CkMinimap/CkMinimap_Processor.cpp"), 1},
             {TEXT("CkOverlapBody/Public/CkOverlapBody/Marker/CkMarker_Processor.cpp"), 1},
@@ -79,7 +93,7 @@ namespace ck_test_quarantine_fence
             {TEXT("CkPhysics/Public/CkPhysics/Acceleration/CkAcceleration_Processor.cpp"), 2},
             {TEXT("CkPhysics/Public/CkPhysics/Velocity/CkVelocity_Processor.cpp"), 2},
             {TEXT("CkRelationship/Public/CkRelationship/Team/CkTeam_Processor.cpp"), 4},
-            {TEXT("CkSpatialQuery/Public/CkSpatialQuery/Probe/CkProbe_Processor.cpp"), 2},
+            {TEXT("CkSpatialQuery/Public/CkSpatialQuery/Probe/CkProbe_Processor.cpp"), 1},
             {TEXT("CkVoxelNav/Public/CkVoxelNav/Occluder/CkVoxelNavOccluder_Processor.cpp"), 1},
         };
         return AllowList;
@@ -88,7 +102,12 @@ namespace ck_test_quarantine_fence
     // Sum of the allow-list. The monotonic-decreasing rule governs the NON-KERNEL remainder: a feature processor
     // that starts building its own views must drive this number down, never up. Kernel entries are permanent, so
     // adding one moves the ceiling with it — 43 -> 44 for the hydration apply processor's context read.
-    constexpr auto ViewConstructionCeiling = 44;
+    //
+    // 44 -> 33 when the predicate stopped counting single-line `Get_RegistryView().TryGetContext<` (see
+    // Get_IsViewConstructionLine). That removed THIRTEEN lines, five whole files' worth, none of which could ever
+    // have been a bypass. Sharpening the detector rather than raising the bar was the deliberate choice: a ceiling
+    // padded with things that are not the hazard is a ceiling that hides the next thing that is.
+    constexpr auto ViewConstructionCeiling = 33;
 
     // ----------------------------------------------------------------------------------------------------------------
     // (ii) Single-entity id resolution, over the same files PLUS the two contact routers — which are subsystem
@@ -155,8 +174,25 @@ namespace ck_test_quarantine_fence
 
     // Lines carrying a view/storage construction that did not come from the helper. Deliberately literal: the
     // point is a reviewable diff, not a parser.
+    //
+    // ONE narrowing, and it is about what the hazard actually is. Get_RegistryView() is the door to the entity
+    // database, and it opens onto two different rooms: an ENTITY view (the thing the quarantine filters, and the
+    // thing this fence exists to find) and a registry CONTEXT — one shared object hanging off the registry, with
+    // no entities in it at all. `Get_RegistryView().TryGetContext<T>()` is unambiguously the second: it reaches a
+    // context and cannot enumerate, hold, or observe a single entity, quarantined or otherwise. The KERNEL entry
+    // in the allow-list above already says exactly this about its own line; it was simply never true of only that
+    // line. Thirteen such lines across five Jolt files plus CkProbe were being counted as potential bypasses, so
+    // the ceiling was carrying eleven-and-change of pure noise, and the next REAL bypass would have had to clear
+    // that noise before anyone looked at it.
+    //
+    // Only the single-line spelling is narrowed. A two-step read (bind the registry to a local, then ask it for a
+    // context) still counts, because no line predicate can follow the local — those stay on the allow-list with
+    // their reason written next to them, which is the honest place for "the scanner cannot see the difference".
     auto Get_IsViewConstructionLine(const FString& InLine) -> bool
     {
+        if (InLine.Contains(TEXT("Get_RegistryView().TryGetContext<")))
+        { return false; }
+
         return InLine.Contains(TEXT(".View<"))
             || InLine.Contains(TEXT("template View<"))
             || InLine.Contains(TEXT("Get_RegistryView()"))
