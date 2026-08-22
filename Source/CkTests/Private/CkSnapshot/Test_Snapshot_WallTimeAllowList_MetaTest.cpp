@@ -51,22 +51,26 @@ namespace ck_test_walltime_fence
             // ---- The loading screen. It is what the player looks at WHILE the game is frozen, so freezing it
             // would be the one thing that could turn a long load into a hang. -----------------------------------
             {TEXT("CkLoadingScreen/Public/CkLoadingScreen/LoadingProcess/CkLoadingProcess_Task.cpp"), 2},
-            {TEXT("CkLoadingScreen/Public/CkLoadingScreen/Subsystem/CkLoadingScreen_Subsystem.cpp"), 3},
+            {TEXT("CkLoadingScreen/Public/CkLoadingScreen/Subsystem/CkLoadingScreen_Subsystem.cpp"), 4},
 
             // ---- Profiling and diagnostics. Measuring how long something took is a wall-clock question by
             // definition, and none of it paces gameplay. -------------------------------------------------------
-            {TEXT("CkEcs/Public/CkEcs/Scheduler/CkProcessorScheduler.cpp"), 7},
+            {TEXT("CkEcs/Public/CkEcs/Scheduler/CkProcessorScheduler.cpp"), 9},
             {TEXT("CkEcs/Public/CkEcs/Scheduler/CkProcessorGraph.cpp"), 2},
             {TEXT("CkJolt/Public/CkJolt/World/CkJoltWorld_Processor.cpp"), 2},
             {TEXT("CkProfile/Public/CkProfile/Stats/CkStats_Utils.cpp"), 2},
             {TEXT("CkWatermark/Public/CkWatermark/CkWatermark_Panel_Widget.cpp"), 2},
             {TEXT("CkWatermark/Public/CkWatermark/Stats/CkWatermarkStat_Time_Widget.cpp"), 1},
-            {TEXT("CkNavigation/Public/CkNavigation/Nav/CkNav_Algorithm.cpp"), 2},
+            {TEXT("CkNavigation/Public/CkNavigation/Nav/CkNav_Algorithm.cpp"), 3},
             {TEXT("CkStateMachine/Public/CkStateMachine/Debug/CkStateMachine_Debug_Processor.cpp"), 3},
 
             // ---- Deferral and trouble-report stamps: "how long has this been stuck", which is a question about
             // the process rather than about the simulation. ----------------------------------------------------
             {TEXT("CkNavigation/Public/CkNavigation/Nav/CkNav_Processor.cpp"), 3},
+            // "How long has this path request been pending" — a watchdog, and wall time is what makes it able to
+            // fire at all: a path pending ACROSS a load is exactly the case game time cannot measure. Same claim
+            // as the load's own watchdogs at the top of this list, made by a different subsystem.
+            {TEXT("CkCrowd/Public/CkCrowd/Agent/CkCrowdAgent_PathPendingWatchdog_Processor.cpp"), 1},
             {TEXT("CkCrowd/Public/CkCrowd/Agent/CkCrowdAgent_DrawNavStatus_Processor.cpp"), 1},
             {TEXT("CkCrowd/Public/CkCrowd/Agent/CkCrowdAgent_OnPathResolved_Processor.cpp"), 1},
             {TEXT("CkCrowd/Public/CkCrowd/Agent/CkCrowdAgent_OnRouteResolved_Processor.cpp"), 1},
@@ -86,6 +90,10 @@ namespace ck_test_walltime_fence
 
             // ---- Wall time by intent, at the API boundary: the one place a caller ASKS for the real clock. ----
             {TEXT("CkCore/Public/CkCore/Time/CkTime_Utils.cpp"), 1},
+            // The scoped stopwatch's own start stamp and elapsed accumulate. "How long did this take" is a
+            // wall-clock question by definition, and a stopwatch that froze with the game would report 0ms for
+            // every load — measuring the one window anybody profiling a load actually cares about.
+            {TEXT("CkCore/Public/CkCore/Time/CkTime.cpp"), 2},
             {TEXT("CkCore/Public/CkCore/Engine/CkPlayerState.cpp"), 1},
 
             // ---- Editor and tooling. None of it runs inside a load, or inside a game at all. ------------------
@@ -104,7 +112,14 @@ namespace ck_test_walltime_fence
     // Sum of the allow-list. Monotonically non-increasing: a new wall-time read anywhere must drive this number
     // down, never up. Raising it is a deliberate act that says a new piece of code has to keep running while the
     // game is frozen.
-    constexpr auto WallTimeCeiling = 89;
+    //
+    // 89 -> 96, and the deliberate act is recorded here rather than left to a diff. All seven are dev's, none is
+    // gameplay pacing, and each was read before it was listed: the scheduler's profiling stamps (7 -> 9), the
+    // loading screen's own timing (3 -> 4), CkNav's pending-since stamp (2 -> 3), the scoped stopwatch (new, 2),
+    // and the crowd path-pending watchdog (new, 1). An EIGHTH apparent read was not one at all — a doc-comment
+    // line in CkProcessorScheduler.h — and it was removed by fixing Get_IsWallTimeReadLine rather than by
+    // allow-listing prose as if it were code.
+    constexpr auto WallTimeCeiling = 96;
 
     // (ii) The four watchdogs the C6 design MOVED onto the wall clock, with the minimum each must keep. This is
     // the half a ratchet cannot express: silently reverting one of these LOWERS a count.
@@ -154,7 +169,15 @@ namespace ck_test_walltime_fence
         // Neither a comment nor an include is a READ. Excluding them keeps a doc block that explains WHY a
         // watchdog is wall-clocked — and the include that watchdog needs — from standing in for the read itself,
         // which would let the required-watchdog half below pass on a file whose actual read was reverted.
-        if (Trimmed.StartsWith(TEXT("//")) || Trimmed.StartsWith(TEXT("#include")))
+        //
+        // The `*` arm is the same rule finishing its own sentence. This skipped `//` only, so a /* */ block —
+        // where every continuation line begins `*` — was still counted, and CkProcessorScheduler.h:143 ("Collection
+        // costs two FPlatformTime::Seconds calls plus a record call per processor per...") was being scored as a
+        // wall-time READ. That is precisely the case the paragraph above says must not move a number, so the
+        // omission was a defect in the predicate rather than a missing allow-list row. A line that is only a `*`
+        // continuation cannot be code: C++ has no statement that starts with a bare asterisk except a dereference,
+        // which is not a wall-time read in any spelling this fence recognises.
+        if (Trimmed.StartsWith(TEXT("//")) || Trimmed.StartsWith(TEXT("*")) || Trimmed.StartsWith(TEXT("#include")))
         { return false; }
 
         if (InLine.Contains(TEXT("FPlatformTime::Seconds"))
