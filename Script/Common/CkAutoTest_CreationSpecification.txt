@@ -508,8 +508,115 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 // one kills ActorRelay for the rest of the PIE session — every test after yours.
 // Track what you spawned UNDER the channel, never the channel.
 //
-// Caveat: an engine TimeLimit timeout bypasses this AS-side cleanup, so a
-// timed-out test still leaks. Fix the timeout.
+// Timeouts no longer bypass this. The engine's TimeLimit reports a timeout WITHOUT running the
+// AS finish path, which used to mean a timed-out test leaked everything it had tracked. The base
+// now arms its own deadline at 0.9x _TimeoutSeconds — lazily, on your FIRST Track_ForCleanup, so
+// a test that tracks nothing pays no timer — and fails through Finalize instead, which cleans up
+// and reports how many owners were still outstanding. A test that trips it is still a bug: fix
+// the timeout. It just no longer takes the rest of the lane down with it.
+
+// Environment restoration — the OTHER half of isolation:
+//
+//   protected void Set_CVarForTest(FName InName, const FString& InValue);
+//   protected void Snapshot_CVarForTest(FName InName);
+//
+// Track_ForCleanup covers ECS entities. It does NOT cover process-global state,
+// and NOTHING else in the harness does either. A lane is one editor process and
+// one map load, so every console variable, subsystem flag, registry entry and
+// on-disk config a test moves is still moved when the next test starts.
+//
+// This produces the single most expensive failure shape in this corpus: a test
+// that is green on its own and red in the suite. The red lands on an innocent
+// downstream test, so the signal points at the victim and never at the culprit,
+// and the "fix" that makes the victim green again is usually a tolerance bump
+// that hides the leak instead of removing it.
+//
+// CONSOLE VARIABLES — use Set_CVarForTest, never ExecuteConsoleCommand:
+//
+//   Set_CVarForTest(n"t.MaxFPS", "0");   // prior value captured; restored at finish
+//
+//   // WRONG — leaks into every later test in this lane:
+//   System::ExecuteConsoleCommand("t.MaxFPS 0");
+//
+//   // ALSO WRONG — "restoring" to a literal imposes YOUR guess of the default
+//   // on every later test, which on any project whose default differs is
+//   // indistinguishable from not restoring at all:
+//   System::ExecuteConsoleCommand("t.MaxFPS 0");
+//   ...
+//   System::ExecuteConsoleCommand("t.MaxFPS 120");
+//
+// The base restores every override at finish, on the success AND failure paths,
+// so an early FinishFailure cannot skip it. Timing CVars (t.MaxFPS, r.VSync)
+// deserve particular care: leaving them moved changes the frame budget of every
+// later test in the lane, which surfaces as unrelated wait predicates timing out.
+//
+// Restoring a CVar means restoring its VALUE **and its SetBy priority**. Writing the old value
+// back with a second console command leaves the variable pinned at console priority, so the next
+// legitimate lower-priority write (scalability, device profile, project setting) is silently
+// ignored for the rest of the process. Set_CVarForTest captures and restores both; that is also
+// what makes a properly-scoped override drop back out of the drift report below.
+//
+// When something OTHER than your test moves a variable on your behalf — HighResShot rewrites
+// r.SceneColorFormat / r.PostProcessingColorFormat / r.ForceLOD, and some production paths write
+// their own tuning CVars — use Snapshot_CVarForTest(n"name") to capture it without changing it.
+//
+// Console COMMANDS (viewmode, stat) have no value to capture — if you issue one that changes
+// persistent state, put it back yourself, explicitly.
+//
+// NEVER ASSERT ON INHERITED STATE. An assertion that some global is at its
+// default at test start is not testing your feature, it is testing the suite,
+// and it fails whenever an unrelated predecessor is imperfect:
+//
+//   // WRONG — this test fails because some OTHER test left the flag on:
+//   if (Subsystem.Get_IsEnabled() != ECk_EnableDisable::Disable)
+//   { FinishFailure("the renderer was enabled before anything asked for it"); return; }
+//
+//   // RIGHT — force the precondition you need, then assert what you own:
+//   Subsystem.Request_SetEnabled(ECk_EnableDisable::Disable);
+//   Assert_True(Subsystem.Get_IsEnabled() == ECk_EnableDisable::Disable, "starts disabled");
+//
+// REGISTRIES AND SUBSYSTEM FLAGS have no generic helper — they are per-feature,
+// so restore them per-feature. If your test registers a setting, a dialog line, a
+// cost provider or a physical button, unregister it (or Track_ForCleanup the
+// handle when the registration hands one back). If it flips a subsystem on, flip
+// it back. If it writes to disk, it is leaking across RUNS, not just tests — say
+// so in review.
+//
+// THE HARNESS WILL TELL YOU WHEN YOU LEAK A CVAR. ACk_AutoTestRunner fingerprints
+// every console variable at a runtime-set priority before your body runs, diffs at
+// FinishTest, and logs the delta against YOUR test's name:
+//
+//   LogCkAutoTest_EnvDrift: Display: [Foo_Actor] left console variables moved
+//   after it finished: t.MaxFPS [120] -> [0]. ...
+//
+// It is advisory (Display, not Warning — a captured Warning would fail the test
+// through the opaque log-capture path, see GOTCHA 1). Set
+// `ck.AutoTest.StrictEnvironmentDrift 1` to promote drift to a real failure once
+// a full-suite run confirms the stream is free of engine-internal churn. Scope:
+// ECVF_SetByCode and above only. Everything else on this list is still yours.
+
+// A WALL-CLOCK WAIT IS A SHARED-ENVIRONMENT DEPENDENCY TOO.
+//
+// A full-suite run spreads tests over N concurrent editors, so a fixed number of
+// SECONDS buys markedly fewer FRAMES than the same wait bought when the test ran
+// alone — and CkFoundation requests are drained per processor pass, not per second.
+// That is why a test can be reliably green solo and red in the suite without any
+// other test having leaked a thing.
+//
+// `ScheduleSettle(2.0f, n"OnX")` — a hand-rolled wall-clock timer copy-pasted into
+// 261 test files across ~799 call sites — is the corpus's main exposure here. It is
+// not a harness API; each file defines its own. Prefer the base's WaitUntil, which
+// converges as soon as the condition holds and names the condition when it never
+// does:
+//
+//   // load-sensitive: 2 seconds is however many frames the machine felt like
+//   ScheduleSettle(2.0f, n"OnManned");
+//
+//   // states what it is waiting for, and is immune to how busy the box is
+//   WaitUntil(n"Check_Manned", n"OnManned");
+//
+// Converting all 799 is a campaign, not a drive-by. Convert the ones you touch, and
+// never add a new one.
 
 //============================================================================
 // 7. COMMON PATTERNS
@@ -901,6 +1008,40 @@ class U<Prefix>_AutoTest_<Feature>_<Scenario> : UCk_AutoTest_Base
 //   path (single modifier per operation type). `Add_Revocable` creates a
 //   distinct modifier entity per call but ALSO doesn't help here, because
 //   the modifier processor batches dirty-flagged recomputes per tick.
+
+// GOTCHA 14 — Green alone, red in the suite: read this before "fixing" the
+//             test that went red.
+//   A lane is ONE editor process running its tests back to back, so a test
+//   inherits whatever its predecessors left behind, and the predecessor set
+//   CHANGES with the filter: --test-pattern X does not merely run fewer tests,
+//   it gives your test different neighbours (or none). Lane width is sized to
+//   the machine, so it is not even stable between two full runs on different
+//   hardware. "Green in isolation" therefore proves less than it looks like.
+//
+//   Four different mechanisms produce this shape. Tell them apart BEFORE
+//   changing anything, because only the first is the red test's own fault to
+//   fix — and the usual mistake is to widen a tolerance in the victim:
+//
+//   1. STATE LEAKAGE — a predecessor left a console variable, subsystem flag,
+//      registry entry or entity behind. Grep the run log for LogCkAutoTest_
+//      EnvDrift lines (they name the culprit) and for the leak list in section
+//      6. FIX THE CULPRIT, not the victim.
+//   2. LOAD / TIMING — N concurrent editors at ~6 GB each shrink the per-test
+//      frame budget, so a wait predicate that converges comfortably alone runs
+//      out of polls. Tell-tale: "condition never became true within N polls"
+//      with a wall time near the budget. Re-run the test alone AND re-run it
+//      under a full suite before deciding; do not just raise the budget.
+//   3. CAPTURED-LOG NOISE — an Error from any subsystem fails whatever test is
+//      running (GOTCHA 13), and which test that is depends on timing. A stale
+//      external-actor package is the usual source. Symptom: a failure with zero
+//      failed assertions.
+//   4. ORDER-DEPENDENT ASSERTIONS — the test asserts on inherited state (see
+//      section 6). It is fragile by construction, independent of any leak.
+//
+//   The A/B that actually settles it: run the red test alone (expect green),
+//   then run it with the family that precedes it in the lane (expect red). If
+//   the family reproduces it, bisect the family. If it does not, you are looking
+//   at 2 or 3, not 1.
 
 //============================================================================
 // 9. ONE-TIME PER-PROJECT SETUP
