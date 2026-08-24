@@ -45,8 +45,8 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
 
         // Uncap so deltas measure work, not vsync.
-        System::ExecuteConsoleCommand("t.MaxFPS 0");
-        System::ExecuteConsoleCommand("r.VSync 0");
+        Set_CVarForTest(n"t.MaxFPS", "0");
+        Set_CVarForTest(n"r.VSync", "0");
 
         const auto ProbeStart = Centre + FVector(InnerRadius, 0.0, 0.0);
         const auto ProbeTarget = FVector(-ProbeStart.X, -ProbeStart.Y, ProbeStart.Z);

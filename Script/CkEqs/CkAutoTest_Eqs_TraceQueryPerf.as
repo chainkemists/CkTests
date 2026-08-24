@@ -47,8 +47,8 @@ class UCk_AutoTest_Eqs_TraceQueryPerf : UCk_AutoTest_Base
     {
         _SelfEntity = InHandle;
 
-        System::ExecuteConsoleCommand("t.MaxFPS 0");
-        System::ExecuteConsoleCommand("r.VSync 0");
+        Set_CVarForTest(n"t.MaxFPS", "0");
+        Set_CVarForTest(n"r.VSync", "0");
 
         // Querier needs a transform — Generate validates this.
         utils_transform::Add(_SelfEntity, FTransform::Identity, ECk_Replication::DoesNotReplicate);

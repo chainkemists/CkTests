@@ -151,7 +151,7 @@ class UCk_AutoTest_Intent_ScanDiagnosticsRecordOnlyWhenEnabled : UCk_AutoTest_Ba
     UFUNCTION()
     private void Step_EnableDiagnostics(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        System::ExecuteConsoleCommand("ck.Intent.RecordScanDiagnostics 1");
+        Set_CVarForTest(n"ck.Intent.RecordScanDiagnostics", "1");
     }
 
     UFUNCTION()
@@ -225,7 +225,7 @@ class UCk_AutoTest_Intent_ScanDiagnosticsRecordOnlyWhenEnabled : UCk_AutoTest_Ba
     UFUNCTION()
     private void Step_AssertMatch(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        System::ExecuteConsoleCommand("ck.Intent.RecordScanDiagnostics 0");
+        Set_CVarForTest(n"ck.Intent.RecordScanDiagnostics", "0");
 
         TArray<FCk_Intent_ScanDiagnostic> Entries = utils_intent_matcher::Get_ScanDiagnostics(_Matcher);
 

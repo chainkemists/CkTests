@@ -12,7 +12,7 @@ class UCk_AutoTest_GameSettings_DeferredCVarTimesOutLoudly : UCk_AutoTest_Base
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
     {
-        System::ExecuteConsoleCommand("ck.GameSettings.DeferredApplyTimeoutSecs 1");
+        Set_CVarForTest(n"ck.GameSettings.DeferredApplyTimeoutSecs", "1");
 
         auto Definition = FCk_GameSettings_SettingDefinition(n"astest.deferred.key", ECk_GameSettings_ValueType::Float, "0.25");
         Definition.Set_ApplyBindingType(ECk_GameSettings_ApplyBindingType::CVar);
@@ -39,7 +39,6 @@ class UCk_AutoTest_GameSettings_DeferredCVarTimesOutLoudly : UCk_AutoTest_Base
     UFUNCTION()
     private void OnTimeoutWindowElapsed(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        System::ExecuteConsoleCommand("ck.GameSettings.DeferredApplyTimeoutSecs 30");
 
         Assert_Equals_Float(utils_game_settings::Get_SettingValue_Float(n"astest.deferred.key", -1.0), 0.75, 0.001,
             "the value survives the deferred-apply timeout");
