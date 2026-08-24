@@ -10,10 +10,12 @@
 
 #include "CkCore/Settings/CkCore_Settings.h"
 
+#include <HAL/IConsoleManager.h>
 #include <Misc/AutomationTest.h>
 #include <StructUtils/InstancedStruct.h>
 
 DEFINE_LOG_CATEGORY_STATIC(LogCkAutoTest_Ensure, Log, All);
+DEFINE_LOG_CATEGORY_STATIC(LogCkAutoTest_EnvDrift, Display, All);
 
 // --------------------------------------------------------------------------------------------------------------------
 //
@@ -55,6 +57,47 @@ DEFINE_LOG_CATEGORY_STATIC(LogCkAutoTest_Ensure, Log, All);
 // both call Restore on the same actor).
 //
 // --------------------------------------------------------------------------------------------------------------------
+
+namespace ck::auto_test::env_drift
+{
+    static TAutoConsoleVariable<bool> CVar_Strict(
+        TEXT("ck.AutoTest.StrictEnvironmentDrift"),
+        false,
+        TEXT("When true, a test that leaves a console variable moved FAILS instead of merely warning. ")
+        TEXT("Off by default until a full-suite run confirms the warning stream is free of engine-internal churn."),
+        ECVF_Default);
+
+    // Only variables someone actually moved at runtime. A CVar still sitting at its
+    // constructor/ini/scalability priority was never touched by a test, so including it would
+    // cost thousands of GetString() calls per test to observe nothing.
+    static auto Capture_RuntimeSetCVars() -> TMap<FString, FString>
+    {
+        TMap<FString, FString> Out;
+
+        IConsoleManager::Get().ForEachConsoleObjectThatStartsWith(
+            FConsoleObjectVisitor::CreateLambda(
+                [&Out](const TCHAR* InName, IConsoleObject* InObject) -> void
+                {
+                    if (InObject == nullptr)
+                    { return; }
+
+                    auto* CVar = InObject->AsVariable();
+
+                    if (CVar == nullptr)
+                    { return; }
+
+                    const auto SetBy = static_cast<uint32>(CVar->GetFlags()) & static_cast<uint32>(ECVF_SetByMask);
+
+                    if (SetBy < static_cast<uint32>(ECVF_SetByCode))
+                    { return; }
+
+                    Out.Add(FString{InName}, CVar->GetString());
+                }),
+            TEXT(""));
+
+        return Out;
+    }
+}
 
 namespace ck::auto_test::ensure_override
 {
@@ -130,6 +173,9 @@ auto
     // editor still see the modal dialog if their settings ask for it.
     Install_EnsurePolicyOverride();
     Install_ExpectedLogErrors();
+
+    _EnvDriftChecked = false;
+    Capture_EnvironmentFingerprint();
 
     // Sync engine TimeLimit to the AS-author-configured _TimeoutSeconds.
     TimeLimit = FMath::Max(_TimeoutSeconds, 0.1f);
@@ -254,9 +300,96 @@ auto
     // entity and its child entities run on subsequent ticks, and any of
     // them may fire CK_ENSURE_IF_NOT. We need the LogOnly policy to remain
     // in force across that cleanup window. EndPlay owns the restore.
-    Super::FinishTest(TestResult, Message);
+    auto EffectiveResult  = TestResult;
+    auto EffectiveMessage = Message;
+
+    if (NOT _EnvDriftChecked)
+    {
+        _EnvDriftChecked = true;
+
+        const auto Drift = Get_EnvironmentDrift();
+
+        if (NOT Drift.IsEmpty())
+        {
+            const auto Joined = FString::Join(Drift, TEXT("; "));
+
+            // Display, deliberately NOT Warning: the automation framework escalates captured
+            // Warning/Error output to a failure on the running test (spec GOTCHA 1/13), which
+            // would make every drifting test fail through the opaque log-capture path instead of
+            // the explicit result below — the "Failed ... (0 assertions failed)" signature that is
+            // so hard to read. Failing is the strict CVar's job, and it fails with a message.
+            //
+            // Named on the CULPRIT's own log window. Without this the same information only ever
+            // reaches a human as an unexplained failure in some later, unrelated test.
+            UE_LOG(LogCkAutoTest_EnvDrift, Display,
+                TEXT("[%s] left console variables at a runtime-set priority after it finished: %s. ")
+                TEXT("Route them through UCk_AutoTest_Base::Set_CVarForTest (or Snapshot_CVarForTest ")
+                TEXT("for ones an engine path moves on your behalf) — that restores the prior VALUE ")
+                TEXT("and PRIORITY, which is what drops them back out of this report. Restoring only ")
+                TEXT("the value leaves the variable pinned at console priority for the rest of the ")
+                TEXT("process, so later legitimate writes at a lower priority are silently ignored."),
+                *GetName(), *Joined);
+
+            if (ck::auto_test::env_drift::CVar_Strict.GetValueOnGameThread())
+            {
+                EffectiveResult   = EFunctionalTestResult::Failed;
+                EffectiveMessage += FString::Printf(
+                    TEXT(" | environment drift: %s"), *Joined);
+            }
+        }
+    }
+
+    Super::FinishTest(EffectiveResult, EffectiveMessage);
 
     Destroy_RunnerEntity();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    Capture_EnvironmentFingerprint()
+    -> void
+{
+    _EnvFingerprint = ck::auto_test::env_drift::Capture_RuntimeSetCVars();
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+auto
+    ACk_AutoTestRunner::
+    Get_EnvironmentDrift() const
+    -> TArray<FString>
+{
+    TArray<FString> Drift;
+
+    const auto Now = ck::auto_test::env_drift::Capture_RuntimeSetCVars();
+
+    for (const auto& [Name, Value] : Now)
+    {
+        const auto* Before = _EnvFingerprint.Find(Name);
+
+        if (Before == nullptr)
+        {
+            Drift.Add(FString::Printf(TEXT("%s newly set to [%s]"), *Name, *Value));
+            continue;
+        }
+
+        if (*Before != Value)
+        { Drift.Add(FString::Printf(TEXT("%s [%s] -> [%s]"), *Name, **Before, *Value)); }
+    }
+
+    // A variable that was runtime-set before the test and has since fallen back to a lower
+    // priority is drift too — the next test no longer sees what this one inherited.
+    for (const auto& [Name, Value] : _EnvFingerprint)
+    {
+        if (NOT Now.Contains(Name))
+        { Drift.Add(FString::Printf(TEXT("%s [%s] -> unset"), *Name, *Value)); }
+    }
+
+    Drift.Sort();
+
+    return Drift;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
