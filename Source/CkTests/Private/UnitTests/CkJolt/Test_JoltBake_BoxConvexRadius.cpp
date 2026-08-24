@@ -21,8 +21,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_JoltBake_BoxConvexRadius_ThinBoxPreservesBounds::RunTest(const FString& Parameters)
 {
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto BodySetup = NewObject<UBodySetup>(GetTransientPackage());
     BodySetup->AggGeom.BoxElems.Emplace(100.0f, 80.0f, 0.08f);
@@ -74,8 +73,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkTest_JoltBake_BoxConvexRadius_InvalidBoxRejectsWholeBodySetup::RunTest(const FString& Parameters)
 {
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto BodySetup = NewObject<UBodySetup>(GetTransientPackage());
     BodySetup->AggGeom.BoxElems.Emplace(100.0f, 100.0f, 100.0f);

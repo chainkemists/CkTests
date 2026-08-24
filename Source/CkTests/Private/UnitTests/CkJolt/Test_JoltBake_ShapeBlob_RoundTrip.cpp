@@ -49,8 +49,7 @@ bool FCkTest_JoltBake_ShapeBlob_RoundTrip::RunTest(const FString& Parameters)
 {
     using namespace ck_test_jolt_shapeblob;
 
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     // ---- Build three representative shapes (primitive, axis-corrected wrap, heightfield) --------
 

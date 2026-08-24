@@ -151,8 +151,7 @@ bool FCkTest_JoltHeightField_Update_RegionEditRoundTrip::RunTest(const FString& 
     using namespace ck::jolt::bake;
     using namespace ck_test_jolt_heightfield_update;
 
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto TempAllocator = JPH::TempAllocatorImpl{4 * 1024 * 1024};
 
@@ -233,8 +232,7 @@ bool FCkTest_JoltHeightField_Update_HolePunchAndSurvival::RunTest(const FString&
     using namespace ck::jolt::bake;
     using namespace ck_test_jolt_heightfield_update;
 
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto TempAllocator = JPH::TempAllocatorImpl{4 * 1024 * 1024};
 
@@ -310,8 +308,7 @@ bool FCkTest_JoltHeightField_Update_EnvelopeExceededRejected::RunTest(const FStr
     using namespace ck::jolt::bake;
     using namespace ck_test_jolt_heightfield_update;
 
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto TempAllocator = JPH::TempAllocatorImpl{4 * 1024 * 1024};
 

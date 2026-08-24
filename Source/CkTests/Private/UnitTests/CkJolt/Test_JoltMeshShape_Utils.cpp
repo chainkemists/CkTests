@@ -60,8 +60,7 @@ bool FCkTest_JoltMeshShape_Utils::RunTest(const FString& Parameters)
     using namespace ck::jolt::bake;
     using namespace ck_test_jolt_mesh_shape_utils;
 
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     // ---- Path convention -----------------------------------------------------------------------------
     {
