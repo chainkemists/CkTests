@@ -30,7 +30,16 @@ class UCk_AutoTest_IskmRenderer_BatchedVisual : UCk_AutoTest_Base
             return;
         }
 
+        // HighResShot (below) rewrites these three behind our back and does not always put them
+        // back; snapshot them so the base does.
+        Snapshot_CVarForTest(n"r.ForceLOD");
+        Snapshot_CVarForTest(n"r.SceneColorFormat");
+        Snapshot_CVarForTest(n"r.PostProcessingColorFormat");
+
         // The barren AutoTests level has no lighting — capture in UNLIT so base color renders without lights.
+        // `viewmode` is a console COMMAND, not a variable, so there is no prior value for
+        // Set_CVarForTest to capture — this one has to be put back by hand (see OnTick). Leaving it
+        // unlit would hand every later test in this lane a viewport that renders nothing correctly.
         System::ExecuteConsoleCommand("viewmode unlit");
 
         // Place the crowd in front of the current view AND aim the controller at it, so the captures frame it.
@@ -81,6 +90,7 @@ class UCk_AutoTest_IskmRenderer_BatchedVisual : UCk_AutoTest_Base
 
         if (_Elapsed > 4.5f)
         {
+            System::ExecuteConsoleCommand("viewmode lit");
             FinishSuccess();
         }
     }

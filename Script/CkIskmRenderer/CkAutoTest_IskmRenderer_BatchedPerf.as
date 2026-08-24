@@ -39,8 +39,8 @@ class UCk_AutoTest_IskmRenderer_BatchedPerf : UCk_AutoTest_Base
         }
 
         // Uncap so deltas measure work, not vsync.
-        System::ExecuteConsoleCommand("t.MaxFPS 0");
-        System::ExecuteConsoleCommand("r.VSync 0");
+        Set_CVarForTest(n"t.MaxFPS", "0");
+        Set_CVarForTest(n"r.VSync", "0");
 
         // 600 moving batched members via the same parameterized station class the stress gym uses.
         auto Params = FCkIskmBatchedGym_CrowdSpawnParams();
@@ -110,8 +110,8 @@ class UCk_AutoTest_IskmRenderer_SkmcPerf : UCk_AutoTest_Base
             return;
         }
 
-        System::ExecuteConsoleCommand("t.MaxFPS 0");
-        System::ExecuteConsoleCommand("r.VSync 0");
+        Set_CVarForTest(n"t.MaxFPS", "0");
+        Set_CVarForTest(n"r.VSync", "0");
 
         // 150 per-SKMC moving proxies via the existing Plan-1 stress station class.
         auto Params = FCkIskmRenderer_GymStationSpawnParams();

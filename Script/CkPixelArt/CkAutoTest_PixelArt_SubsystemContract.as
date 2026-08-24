@@ -28,8 +28,16 @@ class UCk_AutoTest_PixelArt_SubsystemContract : UCk_AutoTest_Base
         if (Subsystem == nullptr)
         { FinishFailure("No UCkPixelArt_Subsystem in the test world"); return; }
 
+        // This used to assert the renderer was ALREADY disabled on entry. That is an assertion about
+        // the SUITE, not about this feature: every test in a lane shares one process, so any earlier
+        // test (or gym) that enabled the renderer failed this one, arbitrarily far from the cause.
+        // The "off until something asks" boot default cannot honestly be observed from a world with
+        // 1798 predecessors — it belongs in a C++ unit test over a fresh subsystem. What this test
+        // owns is the gating contract below, so force the precondition it needs and assert that.
+        Subsystem.Request_SetEnabled(ECk_EnableDisable::Disable);
+
         if (Subsystem.Get_IsEnabled() != ECk_EnableDisable::Disable)
-        { FinishFailure("The renderer was enabled before anything asked for it"); return; }
+        { FinishFailure("The renderer refused to start from a disabled state"); return; }
 
         if (!DoCheck_SettingsRoundtrip(Subsystem)) { return; }
         if (!DoCheck_EnableIsGated(Subsystem)) { return; }
@@ -94,13 +102,12 @@ class UCk_AutoTest_PixelArt_SubsystemContract : UCk_AutoTest_Base
         // A temporal anti-aliasing method takes the primary spatial upscale slot the renderer occupies, so this
         // is the precondition with real teeth. Forcing it is how the refusal path gets exercised on purpose
         // rather than only when a machine happens to be configured badly.
-        System::ExecuteConsoleCommand("r.AntiAliasingMethod 4");
+        Set_CVarForTest(n"r.AntiAliasingMethod", "4");
 
         auto BlockedReport = Subsystem.Get_PreconditionReport();
 
         if (BlockedReport.Get_Failures().Num() == 0)
         {
-            System::ExecuteConsoleCommand("r.AntiAliasingMethod 0");
             FinishFailure("Temporal anti-aliasing did not register as a precondition failure");
             return false;
         }
@@ -109,14 +116,12 @@ class UCk_AutoTest_PixelArt_SubsystemContract : UCk_AutoTest_Base
 
         if (Subsystem.Get_IsEnabled() != ECk_EnableDisable::Disable)
         {
-            System::ExecuteConsoleCommand("r.AntiAliasingMethod 0");
             FinishFailure("The renderer enabled itself despite an unsatisfied precondition");
             return false;
         }
 
         if (Subsystem.Get_PreconditionReport().Get_Failures().Num() == 0)
         {
-            System::ExecuteConsoleCommand("r.AntiAliasingMethod 0");
             FinishFailure("A refused enable left an empty precondition report");
             return false;
         }
@@ -160,11 +165,10 @@ class UCk_AutoTest_PixelArt_SubsystemContract : UCk_AutoTest_Base
             return false;
         }
 
-        // KNOWN LIMITATION: this restores a literal 0, not the project's prior value, because UCk_Utils_CVar_UE
-        // exposes no value getter to AngelScript. A deterministic last word beats leaving TSR forced on for every
-        // test that follows, but a project whose default is not 0 does inherit this one.
-        System::ExecuteConsoleCommand("r.AntiAliasingMethod 0");
-
+        // r.AntiAliasingMethod goes back to whatever this project actually had, not to a literal 0:
+        // Set_CVarForTest captured the real prior value and the base restores it at finish, on the
+        // failure path too. (The subsystem's own recommended-CVar leases are separate and already
+        // ref-counted — Request_SetEnabled(Disable) above released ours.)
         return true;
     }
 

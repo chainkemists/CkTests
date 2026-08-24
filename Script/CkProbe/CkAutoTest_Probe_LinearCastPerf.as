@@ -50,8 +50,8 @@ class UCk_AutoTest_Probe_LinearCastPerf : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         // Uncap so deltas measure work, not vsync.
-        System::ExecuteConsoleCommand("t.MaxFPS 0");
-        System::ExecuteConsoleCommand("r.VSync 0");
+        Set_CVarForTest(n"t.MaxFPS", "0");
+        Set_CVarForTest(n"r.VSync", "0");
 
         auto WallTag = utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.LinearCastPerf.Wall");
         auto MoverTag = utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Probe.LinearCastPerf.Mover");
