@@ -143,6 +143,13 @@ class UCk_AutoTest_SceneNode_ActorAttachedToActor : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto EntityA = FCk_Handle(InEntityScriptHandle);
+
+        // The helper actor anchors its entity to ck::TransientEntity(), which is OUTSIDE the
+        // runner's teardown subtree — untracked, both actors' entity graphs survive into every
+        // later test in this lane. Registered here, before the early-return below, so a failed
+        // cast cleans up too.
+        Track_ForCleanup(EntityA);
+
         A_Transform = EntityA.As_Transform();
 
         if (ck::Is_NOT_Valid(A_Transform))
@@ -180,6 +187,13 @@ class UCk_AutoTest_SceneNode_ActorAttachedToActor : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto EntityB = FCk_Handle(InEntityScriptHandle);
+
+        // The helper actor anchors its entity to ck::TransientEntity(), which is OUTSIDE the
+        // runner's teardown subtree — untracked, both actors' entity graphs survive into every
+        // later test in this lane. Registered here, before the early-return below, so a failed
+        // cast cleans up too.
+        Track_ForCleanup(EntityB);
+
         B_Transform = EntityB.As_Transform();
 
         if (ck::Is_NOT_Valid(B_Transform))

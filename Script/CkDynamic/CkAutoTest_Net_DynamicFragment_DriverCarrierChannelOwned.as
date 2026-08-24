@@ -74,6 +74,11 @@ class UCk_AutoTest_Net_DynamicFragment_DriverCarrierChannelOwned : UCk_AutoTest_
     {
         _PendingB = FCk_Handle_PendingEntityScript();
 
+        // B hangs off the ActorRelay CHANNEL, not off this runner, so the harness teardown never
+        // reaches it. Tracked before the early-returns below so a failed resolve still cleans up.
+        // (The channel entity itself is pooled and shared — never track that.)
+        Track_ForCleanup(FCk_Handle(InEntityScriptHandle));
+
         auto Subject = Get_SubjectEntity();
         if (ck::Is_NOT_Valid(Subject))
         { FinishFailure("server lost the subject before filling the carrier"); return; }
