@@ -130,6 +130,13 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // Out-of-subtree owners registered via Track_ForCleanup — destroyed at finish
     // so heavyweight tests can't leak into the next test in the shared PIE world.
     private TArray<FCk_Handle> _CleanupOwners;
+
+    // Console variables this test moved. The prior value AND priority of each live in C++
+    // (UCk_Utils_AutoTest_UE), because restoring a CVar means restoring both.
+    private TArray<FName> _CVarOverrideNames;
+
+    // Armed only once a test tracks an out-of-subtree owner — see Track_ForCleanup.
+    private FCk_Handle_Timer _CleanupWatchdogTimer;
     private ECk_AutoTest_Status _PendingStatus = ECk_AutoTest_Status::Running;
     private FString _PendingMessage;
 
@@ -237,10 +244,10 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     {
         if (_StepsRunning && _CurrentStep < _Steps.Num())
         {
-            auto Name = _Steps[_CurrentStep]._DisplayName;
+            auto StepName = _Steps[_CurrentStep]._DisplayName;
             auto Ordinal = _CurrentStep + 1;
             auto Total = _Steps.Num();
-            return f"step {Ordinal}/{Total} '{Name}'";
+            return f"step {Ordinal}/{Total} '{StepName}'";
         }
 
         if (_WaitRunning)
@@ -509,6 +516,55 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         return _Finished;
     }
 
+    // Move a console variable for the duration of THIS test. The value it held before is
+    // captured on the first override and put back at finish, on the success AND failure paths.
+    //
+    // Use this instead of System::ExecuteConsoleCommand. A lane is ONE editor process running its
+    // tests back to back, so a CVar left moved is inherited by every test after this one — and
+    // timing CVars (t.MaxFPS, r.VSync) change the frame budget of all of them, which surfaces as
+    // unrelated wait predicates running out of polls. "Restoring" by executing a second console
+    // command with a hardcoded literal is not restoring: it imposes the test author's guess of the
+    // default on the rest of the lane, which on any project whose default differs is
+    // indistinguishable from not restoring at all.
+    protected void Set_CVarForTest(FName InName, const FString& InValue)
+    {
+        if (Do_TrackCVarForRestore(InName) == false)
+        { return; }
+
+        UCk_Utils_AutoTest_UE::Request_PushCVarOverride(InName, InValue);
+    }
+
+    // For a variable this test does not set itself but that something it INVOKES will move on its
+    // behalf — HighResShot rewrites r.SceneColorFormat, r.PostProcessingColorFormat and r.ForceLOD,
+    // for instance. Captures the current value now so the base can put it back at finish.
+    protected void Snapshot_CVarForTest(FName InName)
+    {
+        if (Do_TrackCVarForRestore(InName) == false)
+        { return; }
+
+        UCk_Utils_AutoTest_UE::Request_PushCVarSnapshot(InName);
+    }
+
+    private bool Do_TrackCVarForRestore(FName InName)
+    {
+        if (UCk_Utils_AutoTest_UE::Get_CVarExists(InName) == false)
+        {
+            FinishFailure(f"no console variable named '{InName}' — check the spelling, or whether the module that registers it is loaded in a test boot");
+            return false;
+        }
+
+        _CVarOverrideNames.AddUnique(InName);
+        return true;
+    }
+
+    private void Restore_CVarOverrides()
+    {
+        for (auto CVarName : _CVarOverrideNames)
+        { UCk_Utils_AutoTest_UE::Request_PopCVarOverride(CVarName); }
+
+        _CVarOverrideNames.Empty();
+    }
+
     // Register an out-of-subtree entity ROOT to destroy when the test finishes: anything
     // you spawned UNDER an ActorRelay channel, anything owned by ck::TransientEntity(),
     // and the subordinates a driver spawns and exposes (e.g. Get_EmployeeManager()) —
@@ -535,6 +591,36 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         // cascades anyway). Destroying it would nuke the result before it is polled.
         if (InOwner == SelfEntity) { return; }
         _CleanupOwners.AddUnique(InOwner);
+        Arm_CleanupWatchdog();
+    }
+
+    // The engine's TimeLimit reports a timeout WITHOUT running this class's finish path, so a
+    // timed-out test never drains _CleanupOwners and every out-of-subtree entity it built survives
+    // into the rest of the lane. Fire our own deadline just inside the engine's so the failure
+    // routes through Finalize, which cleans up and names the test that wedged.
+    //
+    // Armed lazily, on the first Track_ForCleanup: a test that tracks nothing has nothing to leak
+    // on timeout, so the overwhelming majority of the corpus pays no timer for this at all.
+    private void Arm_CleanupWatchdog()
+    {
+        if (ck::IsValid(_CleanupWatchdogTimer)) { return; }
+
+        auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(_TimeoutSeconds * 0.9f));
+        Params.Set_StartingState(ECk_Timer_State::Running)
+              .Set_Behavior(ECk_Timer_Behavior::StopOnDone);
+
+        _CleanupWatchdogTimer = utils_timer::Add(SelfEntity, Params);
+        _CleanupWatchdogTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"INTERNAL__AutoTest_CleanupWatchdog"));
+    }
+
+    UFUNCTION()
+    private void INTERNAL__AutoTest_CleanupWatchdog(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
+    {
+        if (_Finished) { return; }
+
+        auto Where = Get_CurrentContextLabel();
+        auto Tracked = _CleanupOwners.Num();
+        FinishFailure(f"timed out with {Tracked} out-of-subtree owner(s) still tracked; failing here so they are destroyed rather than leaked into the rest of the lane (was at: {Where})");
     }
 
     void FinishSuccess()
@@ -581,6 +667,13 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // result fragment survives to be written in the settle callback).
     private void Finalize(ECk_AutoTest_Status InStatus, const FString& InMessage)
     {
+        // Both FinishSuccess and FinishFailure land here, so an early-out failure cannot skip
+        // the restore. Synchronous: a CVar write needs no settle frame.
+        Restore_CVarOverrides();
+
+        if (ck::IsValid(_CleanupWatchdogTimer))
+        { utils_timer::Request_Pause(_CleanupWatchdogTimer); }
+
         if (_CleanupOwners.IsEmpty())
         {
             WriteResult(InStatus, InMessage);

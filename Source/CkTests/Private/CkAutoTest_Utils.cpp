@@ -2,6 +2,7 @@
 
 #include "CkGoap/Planner/CkGoap_Planner_Fragment.h"
 
+#include <HAL/IConsoleManager.h>
 #include <Misc/ScopeExit.h>
 
 void
@@ -43,6 +44,101 @@ FCk_AutoTest_Result
     { return {}; }
 
     return InHandle.Get<FCk_AutoTest_Result>();
+}
+
+namespace ck::auto_test::cvar_scope
+{
+    struct FCapture
+    {
+        FString Value;
+        EConsoleVariableFlags Priority = ECVF_SetByConstructor;
+    };
+
+    static auto Get_Captures() -> TMap<FName, FCapture>&
+    {
+        static TMap<FName, FCapture> Captures;
+        return Captures;
+    }
+
+    static auto DoCapture(FName InName, IConsoleVariable* InCVar) -> void
+    {
+        auto& Captures = Get_Captures();
+
+        // First writer wins: a second push while an override is live must not record the
+        // overridden value as the "prior" — that is how a restore silently becomes a no-op.
+        if (Captures.Contains(InName))
+        { return; }
+
+        auto& Capture = Captures.Add(InName);
+        Capture.Value = InCVar->GetString();
+        Capture.Priority = static_cast<EConsoleVariableFlags>(InCVar->GetFlags() & ECVF_SetByMask);
+    }
+}
+
+bool
+    UCk_Utils_AutoTest_UE::
+    Get_CVarExists(
+        FName InName)
+{
+    return IConsoleManager::Get().FindConsoleVariable(*InName.ToString()) != nullptr;
+}
+
+void
+    UCk_Utils_AutoTest_UE::
+    Request_PushCVarOverride(
+        FName InName,
+        const FString& InValue)
+{
+    auto* CVar = IConsoleManager::Get().FindConsoleVariable(*InName.ToString());
+
+    if (CVar == nullptr)
+    { return; }
+
+    ck::auto_test::cvar_scope::DoCapture(InName, CVar);
+
+    CVar->Set(*InValue, ECVF_SetByConsole);
+}
+
+void
+    UCk_Utils_AutoTest_UE::
+    Request_PushCVarSnapshot(
+        FName InName)
+{
+    auto* CVar = IConsoleManager::Get().FindConsoleVariable(*InName.ToString());
+
+    if (CVar == nullptr)
+    { return; }
+
+    ck::auto_test::cvar_scope::DoCapture(InName, CVar);
+}
+
+void
+    UCk_Utils_AutoTest_UE::
+    Request_PopCVarOverride(
+        FName InName)
+{
+    auto& Captures = ck::auto_test::cvar_scope::Get_Captures();
+    const auto* Capture = Captures.Find(InName);
+
+    if (Capture == nullptr)
+    { return; }
+
+    auto* CVar = IConsoleManager::Get().FindConsoleVariable(*InName.ToString());
+
+    if (CVar != nullptr)
+    {
+        // Set at the priority the variable currently holds, otherwise a write "down" the priority
+        // ladder is rejected outright; then rewrite the SetBy bits back to what they were, so the
+        // variable ends up indistinguishable from never having been touched. Same two-step the
+        // pixel-art renderer's CVar leases use.
+        const auto CurrentPriority = static_cast<EConsoleVariableFlags>(CVar->GetFlags() & ECVF_SetByMask);
+
+        CVar->Set(*Capture->Value, CurrentPriority);
+        CVar->SetFlags(static_cast<EConsoleVariableFlags>(
+            (CVar->GetFlags() & ~ECVF_SetByMask) | Capture->Priority));
+    }
+
+    Captures.Remove(InName);
 }
 
 bool
