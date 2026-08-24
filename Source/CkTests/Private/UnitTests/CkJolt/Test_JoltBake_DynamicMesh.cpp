@@ -18,6 +18,7 @@
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -84,6 +85,29 @@ namespace ck_test_jolt_bake_dynamicmesh
         return Actor;
     }
 
+    // A ray that IGNORES BACK FACES — the only cast that can measure winding. Jolt's simple
+    // Shape::CastRay overload is double-sided for mesh triangles (measured: an inside-out quad
+    // answered it from both sides), so winding assertions must go through the RayCastSettings
+    // variant with an explicit back-face mode.
+    static auto CastRay_FrontFacesOnly(
+        const JPH::Shape& InShape,
+        JPH::Vec3 InStart,
+        JPH::Vec3 InDirection) -> TOptional<float>
+    {
+        const auto Ray = JPH::RayCast{InStart, InDirection};
+
+        auto Settings = JPH::RayCastSettings{};
+        Settings.SetBackFaceMode(JPH::EBackFaceMode::IgnoreBackFaces);
+
+        auto Collector = JPH::ClosestHitCollisionCollector<JPH::CastRayCollector>{};
+        InShape.CastRay(Ray, Settings, JPH::SubShapeIDCreator{}, Collector);
+
+        if (NOT Collector.HadHit())
+        { return {}; }
+
+        return Collector.mHit.mFraction;
+    }
+
     // Casts straight down in SHAPE space and returns the hit Z, or unset on miss. The actor sits at
     // the origin, so shape space and world space coincide here.
     static auto CastDownAt(const JPH::Shape& InShape, double InX, double InY) -> TOptional<double>
@@ -113,8 +137,7 @@ bool FCkTest_JoltBake_DynamicMesh_ComplexAsSimpleProducesBody::RunTest(const FSt
     using namespace ck::jolt::bake;
     using namespace ck_test_jolt_bake_dynamicmesh;
 
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto WorldWrapper = FTestWorldWrapper{};
     if (NOT TestTrue(TEXT("temporary editor world is created"), WorldWrapper.CreateTestWorld(EWorldType::Editor)))
@@ -168,6 +191,101 @@ bool FCkTest_JoltBake_DynamicMesh_ComplexAsSimpleProducesBody::RunTest(const FSt
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_JoltBake_DynamicMesh_MirroredScaleKeepsWindingOutward,
+    "Ck.Jolt.Bake.DynamicMesh.MirroredScaleKeepsWindingOutward",
+    ck_test_jolt_bake_dynamicmesh::kTestFlags)
+
+bool FCkTest_JoltBake_DynamicMesh_MirroredScaleKeepsWindingOutward::RunTest(const FString& Parameters)
+{
+    using namespace ck::jolt::bake;
+    using namespace ck_test_jolt_bake_dynamicmesh;
+
+    // A mirroring scale (negative determinant) flips the handedness of the vertices that
+    // Build_TriMeshShape bakes, which flips the winding a second time on top of the Chaos->Jolt
+    // b/c swap. Before the compensation, a mirrored ComplexAsSimple instance baked INSIDE-OUT:
+    // single-sided mesh collision and the CCD LinearCast (back-face-ignoring) both missed it from
+    // its visually-front side — level designers mirror wall pieces routinely, and a thrown item
+    // passed straight through exactly those instances. The down-ray pins the compensation; the
+    // up-ray pins that the mesh stayed SINGLE-sided (the fix flips winding, it does not
+    // double-side the mesh).
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
+
+    auto WorldWrapper = FTestWorldWrapper{};
+    if (NOT TestTrue(TEXT("temporary editor world is created"), WorldWrapper.CreateTestWorld(EWorldType::Editor)))
+    { return false; }
+
+    auto* World = WorldWrapper.GetTestWorld();
+
+    constexpr auto SynchronousCook = false;
+    auto* Actor = Spawn_QuadDynamicMeshActor(*World, SynchronousCook);
+    if (NOT TestNotNull(TEXT("dynamic mesh actor spawned"), Actor))
+    { return false; }
+
+    Actor->SetActorScale3D(FVector{-1.0, 1.0, 1.0});
+
+    auto* Component = Actor->GetDynamicMeshComponent();
+    if (NOT TestTrue(TEXT("dynamic mesh component is registered (extraction precondition)"),
+        Component->IsRegistered()))
+    { return false; }
+
+    if (NOT TestTrue(TEXT("the component transform carries the mirroring scale (test precondition)"),
+        Component->GetComponentTransform().GetScale3D().X < 0.0))
+    { return false; }
+
+    auto Cache = FCk_Jolt_ShapeCache{};
+    auto Bodies = TArray<FCk_Jolt_ExtractedBody>{};
+
+    const auto NumExtracted = ExtractComponent(*Component, Cache, Bodies, {},
+        ECk_Jolt_ExtractionPolicy::ExplicitActor);
+
+    if (NOT TestEqual(TEXT("mirrored dynamic mesh extracts exactly one body"), NumExtracted, 1))
+    { return false; }
+
+    if (NOT TestNotNull(TEXT("extracted body carries a shape"), Bodies[0]._Shape.GetPtr()))
+    { return false; }
+
+    // X is negated by the baked scale, so the quad now spans [-QuadExtent, 0] in X.
+    const auto MirroredCenterX = -QuadExtent * 0.5;
+    const auto CenterY = QuadExtent * 0.5;
+
+    // Both probes go through the back-face-CULLING cast — the simple CastRay overload is
+    // double-sided for mesh triangles and cannot see winding at all (measured: it failed this
+    // test's first authoring by answering from below too).
+    //
+    // Winding compensation: the +Z face must answer a culled down-ray...
+    {
+        const auto DownStart = JPH::Vec3{
+            static_cast<float>(MirroredCenterX), static_cast<float>(CenterY), 1000.0f};
+        const auto DownFraction = CastRay_FrontFacesOnly(
+            *Bodies[0]._Shape, DownStart, JPH::Vec3{0.0f, 0.0f, -2000.0f});
+
+        if (TestTrue(TEXT("culled down-ray at the mirrored quad center hits (winding compensated for the mirroring scale)"),
+            DownFraction.IsSet()))
+        {
+            const auto HitZ = 1000.0 - 2000.0 * *DownFraction;
+            TestTrue(ck::Format_UE(TEXT("hit height is ~{} (got {})"), QuadZ, HitZ),
+                FMath::Abs(HitZ - QuadZ) <= 1.0);
+        }
+    }
+
+    // ...and the SAME culled cast from below must miss: the fix flips winding, it does not
+    // double-side the mesh.
+    {
+        const auto UpStart = JPH::Vec3{
+            static_cast<float>(MirroredCenterX), static_cast<float>(CenterY), -1000.0f};
+        const auto UpFraction = CastRay_FrontFacesOnly(
+            *Bodies[0]._Shape, UpStart, JPH::Vec3{0.0f, 0.0f, 2000.0f});
+
+        TestFalse(TEXT("culled up-ray from below misses (single-sided, facing +Z)"),
+            UpFraction.IsSet());
+    }
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_JoltBake_DynamicMesh_AsyncCookInFlightFailsLoudly,
     "Ck.Jolt.Bake.DynamicMesh.AsyncCookInFlightFailsLoudly",
     ck_test_jolt_bake_dynamicmesh::kTestFlags)
@@ -206,8 +324,7 @@ bool FCkTest_JoltBake_DynamicMesh_AsyncCookInFlightFailsLoudly::RunTest(const FS
     AllowEditorAsyncCook->Set(true);
     ON_SCOPE_EXIT { AllowEditorAsyncCook->Set(RestoreAsyncCook); };
 
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto WorldWrapper = FTestWorldWrapper{};
     if (NOT TestTrue(TEXT("temporary editor world is created"), WorldWrapper.CreateTestWorld(EWorldType::Editor)))
@@ -275,8 +392,7 @@ bool FCkTest_JoltBake_DynamicMesh_UnknownClassExtractsNothingQuietly::RunTest(co
     // content — a shape component riding a baked entity — for every map that has one. Callers that
     // declared complete collision (BakeOnSetup) own the loud zero-body diagnosis instead. If this test
     // starts failing on an unexpected error, that layering has been broken again.
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto WorldWrapper = FTestWorldWrapper{};
     if (NOT TestTrue(TEXT("temporary editor world is created"), WorldWrapper.CreateTestWorld(EWorldType::Editor)))

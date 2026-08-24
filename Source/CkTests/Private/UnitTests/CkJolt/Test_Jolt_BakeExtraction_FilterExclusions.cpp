@@ -76,8 +76,7 @@ bool FCkTest_Jolt_BakeExtraction_FilterExclusions::RunTest(const FString& Parame
     using namespace ck::jolt::bake;
     using namespace ck_test_jolt_bake_filter;
 
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto WorldWrapper = FTestWorldWrapper{};
     if (NOT TestTrue(TEXT("temporary editor world is created"), WorldWrapper.CreateTestWorld(EWorldType::Editor)))

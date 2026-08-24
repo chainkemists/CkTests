@@ -81,8 +81,7 @@ bool FCkTest_Jolt_BakeExtraction_MobilityPolicy::RunTest(const FString& Paramete
     // Shape building creates real JPH shapes, and this test runs in a bare editor world with no
     // Jolt subsystem — per CkJolt_Utils.h, worldless tests must ref the global Jolt init
     // themselves or JPH::Factory is null and shape creation access-violates.
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto WorldWrapper = FTestWorldWrapper{};
     if (NOT TestTrue(TEXT("temporary editor world is created"), WorldWrapper.CreateTestWorld(EWorldType::Editor)))

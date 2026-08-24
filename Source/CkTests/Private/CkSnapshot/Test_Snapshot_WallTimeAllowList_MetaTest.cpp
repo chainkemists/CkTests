@@ -58,7 +58,9 @@ namespace ck_test_walltime_fence
             {TEXT("CkEcs/Public/CkEcs/Scheduler/CkProcessorScheduler.cpp"), 9},
             {TEXT("CkEcs/Public/CkEcs/Scheduler/CkProcessorGraph.cpp"), 2},
             {TEXT("CkJolt/Public/CkJolt/World/CkJoltWorld_Processor.cpp"), 2},
-            {TEXT("CkProfile/Public/CkProfile/Stats/CkStats_Utils.cpp"), 2},
+            // 2 -> 3: the stats sampler gained a wall-clock sampling stamp beside its thread-timing
+            // conversions. Measuring how long something took stays a wall-clock question.
+            {TEXT("CkProfile/Public/CkProfile/Stats/CkStats_Utils.cpp"), 3},
             {TEXT("CkWatermark/Public/CkWatermark/CkWatermark_Panel_Widget.cpp"), 2},
             {TEXT("CkWatermark/Public/CkWatermark/Stats/CkWatermarkStat_Time_Widget.cpp"), 1},
             {TEXT("CkNavigation/Public/CkNavigation/Nav/CkNav_Algorithm.cpp"), 3},
@@ -87,6 +89,12 @@ namespace ck_test_walltime_fence
             {TEXT("CkCue/Public/CkCue/CkCueExecutor_Subsystem.cpp"), 1},
             {TEXT("CkCue/Public/CkCue/CkCueSubsystem_Base.h"), 1},
             {TEXT("CkGameSettings/Public/CkGameSettings/Subsystem/CkGameSettings_Subsystem.cpp"), 4},
+            // The editor auto-cook's per-frame slice budgets (one SliceStart + elapsed pair per drain:
+            // the editor-subsystem drain, and the world cooker's cell/mesh/rehydrate sweeps). Editor
+            // save-hook work sliced behind a progress notification — it runs regardless of any game
+            // world's clock, and a slice budgeted in game time would never terminate on a frozen frame.
+            {TEXT("CkJoltEditor/Public/CkJoltEditor/Cook/CkJoltCook_EditorSubsystem.cpp"), 2},
+            {TEXT("CkJoltEditor/Public/CkJoltEditor/Cook/CkJoltCook_WorldCooker.cpp"), 6},
 
             // ---- Wall time by intent, at the API boundary: the one place a caller ASKS for the real clock. ----
             {TEXT("CkCore/Public/CkCore/Time/CkTime_Utils.cpp"), 1},
@@ -119,7 +127,12 @@ namespace ck_test_walltime_fence
     // and the crowd path-pending watchdog (new, 1). An EIGHTH apparent read was not one at all — a doc-comment
     // line in CkProcessorScheduler.h — and it was removed by fixing Get_IsWallTimeReadLine rather than by
     // allow-listing prose as if it were code.
-    constexpr auto WallTimeCeiling = 96;
+    //
+    // 96 -> 105 (2026-08-24): the jolt auto-cook landing's slice budgets (editor subsystem drain, new 2;
+    // world cooker's three sweep slices, new 6) and the stats sampler's sampling stamp (2 -> 3). All read
+    // before they were listed; the cook is editor-side save-hook work that runs regardless of any game
+    // world's clock, and the stats read is measurement, not pacing.
+    constexpr auto WallTimeCeiling = 105;
 
     // (ii) The four watchdogs the C6 design MOVED onto the wall clock, with the minimum each must keep. This is
     // the half a ratchet cannot express: silently reverting one of these LOWERS a count.

@@ -61,8 +61,7 @@ bool FCkTest_JoltBake_HeightField_KnownHeightsZUp::RunTest(const FString& Parame
 {
     using namespace ck_test_jolt_heightfield;
 
-    ck::jolt::Request_GlobalJoltInit();
-    ON_SCOPE_EXIT { ck::jolt::Request_GlobalJoltShutdown(); };
+    const ck::jolt::FCk_Jolt_ScopedGlobalInit ScopedJolt{};
 
     auto Heights = TArray<float>{};
     Heights.SetNumUninitialized(SampleCount * SampleCount);
