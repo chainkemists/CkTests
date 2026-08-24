@@ -130,6 +130,32 @@ private:
     void Install_EnsurePolicyOverride();
     void Restore_EnsurePolicyOverride();
 
+    // ----- Environment-drift detection -----
+    //
+    // Tests in a lane share one editor process and one map load, and this harness's teardown
+    // reaches ECS state only (Destroy_RunnerEntity + the AS base's Track_ForCleanup list).
+    // Anything PROCESS-global a test moves — console variables above all — survives into every
+    // test that runs after it in that lane. The failure then lands on an innocent downstream
+    // test, arbitrarily far away, which is why this class of bug is expensive: the signal points
+    // at the victim, never the culprit.
+    //
+    // So: fingerprint the console variables that sit at a runtime-set priority before the test
+    // body runs, diff at FinishTest, and name the test that moved them. Attribution is the whole
+    // point — a test that dirties the world gets told so, by name, in its own log window.
+    //
+    // Deliberately ADVISORY by default (a Display line, not a failure). The noise floor of engine-
+    // internal CVar churn during a test has never been measured on this corpus, and a detector
+    // that mass-fails a green suite on its first run would simply be turned off. Set
+    // `ck.AutoTest.StrictEnvironmentDrift 1` to promote drift to a test failure once a run
+    // shows the warnings are clean. Tracked as a follow-up, not a permanent state.
+    //
+    // Scope, stated plainly: only ECVF_SetByCode and above (i.e. ExecuteConsoleCommand and
+    // direct IConsoleVariable::Set) are watched. That covers every leak this was built for. It
+    // does NOT cover other process-global state — subsystem flags, settings registries, on-disk
+    // config — which still relies on the author restoring it.
+    void Capture_EnvironmentFingerprint();
+    auto Get_EnvironmentDrift() const -> TArray<FString>;
+
     // Registers expected-log-error patterns with the active automation test
     // so chatty third-party warnings (EOS RTC TickTracker, etc.) don't auto-
     // fail tests that don't care about them. Called once from PrepareTest.
@@ -144,4 +170,10 @@ private:
     // saved policy and refcount live in file-scope statics in the .cpp
     // (see ck::auto_test::ensure_override).
     bool _EnsurePolicyOverridden = false;
+
+    // name -> value, for console variables at a runtime-set priority when the test began.
+    TMap<FString, FString> _EnvFingerprint;
+
+    // FinishTest can be re-entered (engine timeout racing the tick poller); the diff runs once.
+    bool _EnvDriftChecked = false;
 };
