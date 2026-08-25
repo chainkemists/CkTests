@@ -11,6 +11,7 @@
 
 using ck::tests::kCkUnitTestFlags;
 using ck::ck_crowd_agent_constrain_to_navmesh_algorithm::Get_GroundingVerifyPhaseSeconds;
+using ck::ck_crowd_agent_constrain_to_navmesh_algorithm::Get_RecoveryExceedsStepUp;
 using ck::ck_crowd_agent_constrain_to_navmesh_algorithm::Get_ShouldVerifyGrounding;
 using ck::ck_crowd_agent_constrain_to_navmesh_algorithm::ResolveSurfaceOffset;
 using ck::ck_crowd_agent_constrain_to_navmesh_algorithm::ResolveVerticalDriftOffset;
@@ -207,6 +208,37 @@ bool FCkTest_Crowd_ConstrainToNavmesh_VerticalDriftOffset::RunTest(const FString
         DeadBand);
     TestTrue(TEXT("A non-finite feet location fails closed"),
         InvalidFeet.IsNearlyZero());
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_Crowd_ConstrainToNavmesh_RecoveryStepUp,
+    "CkTests.UnitTests.CkCrowd.ConstrainToNavmesh.RecoveryStepUp",
+    kCkUnitTestFlags)
+
+bool FCkTest_Crowd_ConstrainToNavmesh_RecoveryStepUp::RunTest(const FString& Parameters)
+{
+    constexpr auto MaxStepUpCm = 50.0f;
+
+    TestFalse(TEXT("A downward recovery is never limited — pulling a floater back to the surface"),
+        Get_RecoveryExceedsStepUp(-191.0f, MaxStepUpCm));
+    TestFalse(TEXT("A lift at exactly step height is walkable and accepted"),
+        Get_RecoveryExceedsStepUp(MaxStepUpCm, MaxStepUpCm));
+    TestFalse(TEXT("A small lift within step height is accepted"),
+        Get_RecoveryExceedsStepUp(35.0f, MaxStepUpCm));
+
+    TestTrue(TEXT("A lift just past step height is refused — the elevated-island ratchet's first rung"),
+        Get_RecoveryExceedsStepUp(MaxStepUpCm + 0.1f, MaxStepUpCm));
+    TestTrue(TEXT("The measured field ratchet rung (+190cm) is refused"),
+        Get_RecoveryExceedsStepUp(190.0f, MaxStepUpCm));
+
+    TestFalse(TEXT("A zero clamp disables the limit entirely (A/B escape), even for a huge lift"),
+        Get_RecoveryExceedsStepUp(190.0f, 0.0f));
+    TestFalse(TEXT("A negative clamp behaves as disabled, not as reject-everything"),
+        Get_RecoveryExceedsStepUp(190.0f, -1.0f));
 
     return true;
 }
