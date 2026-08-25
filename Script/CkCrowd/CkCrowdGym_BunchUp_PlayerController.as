@@ -28,6 +28,10 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
     // Station-LOCAL +X is "in front of the alcove" (toward the player camera) after the cycler's
     // 180 degree rotation, so a local +X offset always lands in the visible play area.
     private const float SpawnZ           = 100.0;
+    // Inside the 192cm agent body height, so the navmesh projection still finds the surface and the
+    // displacement reads as DRIFT — the case the grounding lease reconciles, rather than a
+    // deliberate elevation the lease is required to report and leave alone.
+    private const float ElevateCm        = 120.0;
     private const float StationFwdOffset = 800.0;
     private const float RingRadius       = 600.0;
     private const float InnerRingRadius  = 420.0;
@@ -179,6 +183,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn 15 on a shared goal"));
         Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Reset - destroy agents"));
         Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Emit per-agent digest"));
+        Rows.Add(CkGym_Control::Action(EKeys::E, "E", "Elevate a settled agent 120cm"));
         Rows.Add(CkGym_Control::Status("Another agent count: console only"));
         return Rows;
     }
@@ -188,6 +193,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
         if (InRowIndex == 0) { Ck_GymCrowd_BunchUp_Spawn(15); }
         else if (InRowIndex == 1) { Ck_GymCrowd_BunchUp_Reset(); }
         else if (InRowIndex == 2) { Ck_GymCrowd_BunchUp_Digest(); }
+        else if (InRowIndex == 3) { Ck_GymCrowd_BunchUp_Elevate(); }
     }
 
     UFUNCTION(Exec, DisplayName="Crowd BunchUp - Spawn Agents On Shared Goal")
@@ -244,6 +250,36 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
             utils_crowd_agent_diag::EmitDigest_ForAgent(_Agents[i], 0, "BunchUp", i);
         }
         ck::crowd::Log(f"BunchUp gym: emitted digest for {_Agents.Num()} agents — grep [CrowdDiag]");
+    }
+
+    // The grounding lease, made visible. A settled agent's Z has exactly one writer — the idle
+    // verify in ConstrainToNavmesh — so shoving one upward and watching it drop back within
+    // _GroundingVerifyIntervalSeconds is the only way to SEE the lease working. With the lease
+    // disabled the agent simply hangs there, which is what the floating-NPC regression looked like.
+    UFUNCTION(Exec, DisplayName="Crowd BunchUp - Elevate A Settled Agent")
+    void Ck_GymCrowd_BunchUp_Elevate()
+    {
+        if (HasAuthority() == false)
+        { return; }
+
+        for (int32 i = 0; i < _Agents.Num(); ++i)
+        {
+            if (ck::Is_NOT_Valid(_Agents[i])) { continue; }
+
+            FCk_Handle Generic = _Agents[i];
+            auto AgentTransform = utils_transform::DoCastChecked(Generic);
+            const auto Current = utils_transform::Get_EntityCurrentTransform(AgentTransform);
+            const auto Lifted = Current.GetLocation() + FVector(0.0, 0.0, ElevateCm);
+
+            utils_transform::Request_SetTransform(AgentTransform,
+                FCk_Request_Transform_SetTransform(
+                    FTransform(Current.GetRotation(), Lifted, Current.GetScale3D())));
+
+            ck::crowd::Log(f"BunchUp gym: elevated agent {i} by {ElevateCm}cm to {Lifted} — the grounding lease must drop it back within {utils_crowd_settings::Get_GroundingVerifyIntervalSeconds()}s");
+            return;
+        }
+
+        ck::crowd::Log("BunchUp gym: no agents to elevate — spawn some first (S)");
     }
 
     // ---- Agent factory ---------------------------------------------------------------------------
