@@ -11,14 +11,20 @@ class UCk_AutoTest_Queue_WeightedOriginsAdvanceIndependently : UCk_AutoTest_Base
     private FCk_Handle       _Origin1Front;
     private FCk_Handle       _Origin0Next;
     private FCk_Handle       _Origin1Next;
+    private FTransform       _Origin0InitialTarget;
     private FTransform       _Origin1FrontTarget;
+    private FTransform       _Origin1InitialTarget;
+    private FTransform       _Origin0NextTarget;
+    private FTransform       _Origin1NextTarget;
     private int32            _FirstClaimEvents = 0;
-    private int32            _SecondOfferEvents = 0;
+    private int32            _LoserRetargetEvents = 0;
     private int32            _ServingAdvancedEvents = 0;
     private int32            _Origin0ServingAdvancedEvents = 0;
     private int32            _AdvanceCompletions = 0;
     private int32            _Origin0FrontRevision = 0;
     private int32            _Origin1FrontRevision = 0;
+    private int32            _Origin0NextRevision = 0;
+    private int32            _Origin1NextRevision = 0;
     private ECk_Request_OperationResult _Advance0Result = ECk_Request_OperationResult::Failed;
     private ECk_Request_OperationResult _Advance0SpamOneResult = ECk_Request_OperationResult::Succeeded;
     private ECk_Request_OperationResult _Advance0SpamTwoResult = ECk_Request_OperationResult::Succeeded;
@@ -39,11 +45,11 @@ class UCk_AutoTest_Queue_WeightedOriginsAdvanceIndependently : UCk_AutoTest_Base
 
         Add_Step_WaitUntil("queue setup completes", n"Check_QueueReady");
         Add_Step("join six globally ticketed members", n"Step_RequestJoins");
-        Add_Step_WaitUntil("claim-first policy offers one rank-zero reservation per origin", n"Check_InitialOffers");
-        Add_Step("assert weighted membership and pending reservations", n"Step_AssertInitialOffers");
+        Add_Step_WaitUntil("claim-first policy assigns every member its origin's provisional rank-zero target", n"Check_InitialOffers");
+        Add_Step("assert weighted provisional assignments", n"Step_AssertInitialOffers");
         Add_Step("report both offered fronts reached", n"Step_ReportBothFrontsReached");
-        Add_Step_WaitUntil("each reached claim unlocks the next rank", n"Check_SecondOffers");
-        Add_Step("assert later members were not offered before their origin claim", n"Step_AssertSecondOffers");
+        Add_Step_WaitUntil("each reached claim retargets only that origin's losers to rank one", n"Check_LosersRetargeted");
+        Add_Step("assert weighted provisional losers retarget after their origin claim", n"Step_AssertLosersRetargeted");
         Add_Step("advance origin zero without touching origin one", n"Step_RequestOrigin0Advance");
         Add_Step_WaitUntil("origin zero advance preserves origin one's active claim", n"Check_Origin0AdvancePreservesOrigin1");
         Add_Step("advance origin one after its unchanged claim remains serviceable", n"Step_RequestOrigin1Advance");
@@ -61,7 +67,7 @@ class UCk_AutoTest_Queue_WeightedOriginsAdvanceIndependently : UCk_AutoTest_Base
             && (Member.Get_Member() == _Origin0Front || Member.Get_Member() == _Origin1Front))
         { _FirstClaimEvents += 1; }
         if (Member.Get_State() == ECk_Queue_MemberState::MovingToSlot && Member.Get_Rank() == 1)
-        { _SecondOfferEvents += 1; }
+        { _LoserRetargetEvents += 1; }
         if (InEvent.Get_Reason() == ECk_Queue_EventReason::Advanced
             && Member.Get_State() == ECk_Queue_MemberState::Serving)
         {
@@ -115,32 +121,51 @@ class UCk_AutoTest_Queue_WeightedOriginsAdvanceIndependently : UCk_AutoTest_Base
     UFUNCTION()
     private void Check_InitialOffers(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        auto Origin0Offers = 0;
-        auto Origin1Offers = 0;
-        auto Pending = 0;
+        auto Origin0Assignments = 0;
+        auto Origin1Assignments = 0;
+        auto HasMatchingOrigin0Assignments = true;
+        auto HasMatchingOrigin1Assignments = true;
         for (const auto& Member : _Queue.Get_Members())
         {
-            if (Member.Get_State() == ECk_Queue_MemberState::MovingToSlot)
+            if (Member.Get_State() != ECk_Queue_MemberState::MovingToSlot || Member.Get_Rank() != 0)
+            { continue; }
+            if (Member.Get_OriginIndex() == 0)
             {
-                if (Member.Get_OriginIndex() == 0 && Member.Get_Rank() == 0)
+                Origin0Assignments += 1;
+                if (ck::Is_NOT_Valid(_Origin0Front))
                 {
-                    Origin0Offers += 1;
                     _Origin0Front = Member.Get_Member();
                     _Origin0FrontRevision = Member.Get_AssignmentRevision();
+                    _Origin0InitialTarget = Member.Get_TargetWorldTransform();
                 }
-                else if (Member.Get_OriginIndex() == 1 && Member.Get_Rank() == 0)
+                else
                 {
-                    Origin1Offers += 1;
-                    _Origin1Front = Member.Get_Member();
-                    _Origin1FrontRevision = Member.Get_AssignmentRevision();
+                    HasMatchingOrigin0Assignments = HasMatchingOrigin0Assignments
+                        && Member.Get_AssignmentRevision() == _Origin0FrontRevision
+                        && Member.Get_TargetWorldTransform().Equals(_Origin0InitialTarget);
                 }
             }
-            else if (Member.Get_State() == ECk_Queue_MemberState::PendingAdmission)
-            { Pending += 1; }
+            else if (Member.Get_OriginIndex() == 1)
+            {
+                Origin1Assignments += 1;
+                if (ck::Is_NOT_Valid(_Origin1Front))
+                {
+                    _Origin1Front = Member.Get_Member();
+                    _Origin1FrontRevision = Member.Get_AssignmentRevision();
+                    _Origin1InitialTarget = Member.Get_TargetWorldTransform();
+                }
+                else
+                {
+                    HasMatchingOrigin1Assignments = HasMatchingOrigin1Assignments
+                        && Member.Get_AssignmentRevision() == _Origin1FrontRevision
+                        && Member.Get_TargetWorldTransform().Equals(_Origin1InitialTarget);
+                }
+            }
         }
         auto Result = OutResult;
         Result.Set(_Queue.Get_MemberCount() == 6
-            && Origin0Offers == 1 && Origin1Offers == 1 && Pending == 4
+            && Origin0Assignments == 2 && Origin1Assignments == 4
+            && HasMatchingOrigin0Assignments && HasMatchingOrigin1Assignments
             && _Origin0FrontRevision > 0 && _Origin1FrontRevision > 0);
     }
 
@@ -154,11 +179,11 @@ class UCk_AutoTest_Queue_WeightedOriginsAdvanceIndependently : UCk_AutoTest_Base
         }
         const auto Counts = _Queue.Get_Pressure().Get_OriginMemberCounts();
         Assert_Equals_Int(Counts[0], 2,
-            "planned weighted distribution assigns two members to origin zero before later offers exist");
+            "planned weighted distribution assigns two provisional contenders to origin zero");
         Assert_Equals_Int(Counts[1], 4,
-            "planned weighted distribution assigns four members to origin one before later offers exist");
-        Assert_Valid(_Origin0Front, "origin zero exposes exactly one offered front");
-        Assert_Valid(_Origin1Front, "origin one exposes exactly one offered front");
+            "planned weighted distribution assigns four provisional contenders to origin one");
+        Assert_Valid(_Origin0Front, "origin zero exposes provisional rank-zero movement");
+        Assert_Valid(_Origin1Front, "origin one exposes provisional rank-zero movement");
     }
 
     UFUNCTION()
@@ -171,50 +196,74 @@ class UCk_AutoTest_Queue_WeightedOriginsAdvanceIndependently : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void Check_SecondOffers(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    private void Check_LosersRetargeted(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         FCk_Queue_MemberSnapshot Origin0Front;
         FCk_Queue_MemberSnapshot Origin1Front;
         const bool HasOrigin0Front = _Queue.TryGet_MemberSnapshot(_Origin0Front, Origin0Front);
         const bool HasOrigin1Front = _Queue.TryGet_MemberSnapshot(_Origin1Front, Origin1Front);
         if (HasOrigin1Front) { _Origin1FrontTarget = Origin1Front.Get_TargetWorldTransform(); }
-        auto Origin0SecondOffers = 0;
-        auto Origin1SecondOffers = 0;
-        auto Pending = 0;
+        auto Origin0Losers = 0;
+        auto Origin1Losers = 0;
+        auto HasMatchingOrigin0Losers = true;
+        auto HasMatchingOrigin1Losers = true;
         for (const auto& Member : _Queue.Get_Members())
         {
             if (Member.Get_State() == ECk_Queue_MemberState::MovingToSlot && Member.Get_Rank() == 1)
             {
                 if (Member.Get_OriginIndex() == 0)
                 {
-                    Origin0SecondOffers += 1;
-                    _Origin0Next = Member.Get_Member();
+                    Origin0Losers += 1;
+                    if (ck::Is_NOT_Valid(_Origin0Next))
+                    {
+                        _Origin0Next = Member.Get_Member();
+                        _Origin0NextRevision = Member.Get_AssignmentRevision();
+                        _Origin0NextTarget = Member.Get_TargetWorldTransform();
+                    }
+                    else
+                    {
+                        HasMatchingOrigin0Losers = HasMatchingOrigin0Losers
+                            && Member.Get_AssignmentRevision() == _Origin0NextRevision
+                            && Member.Get_TargetWorldTransform().Equals(_Origin0NextTarget);
+                    }
                 }
                 else if (Member.Get_OriginIndex() == 1)
                 {
-                    Origin1SecondOffers += 1;
-                    _Origin1Next = Member.Get_Member();
+                    Origin1Losers += 1;
+                    if (ck::Is_NOT_Valid(_Origin1Next))
+                    {
+                        _Origin1Next = Member.Get_Member();
+                        _Origin1NextRevision = Member.Get_AssignmentRevision();
+                        _Origin1NextTarget = Member.Get_TargetWorldTransform();
+                    }
+                    else
+                    {
+                        HasMatchingOrigin1Losers = HasMatchingOrigin1Losers
+                            && Member.Get_AssignmentRevision() == _Origin1NextRevision
+                            && Member.Get_TargetWorldTransform().Equals(_Origin1NextTarget);
+                    }
                 }
             }
-            else if (Member.Get_State() == ECk_Queue_MemberState::PendingAdmission)
-            { Pending += 1; }
         }
         auto Result = OutResult;
         Result.Set(HasOrigin0Front && HasOrigin1Front
             && Origin0Front.Get_State() == ECk_Queue_MemberState::AtFront
             && Origin1Front.Get_State() == ECk_Queue_MemberState::AtFront
             && _FirstClaimEvents == 2
-            && Origin0SecondOffers == 1 && Origin1SecondOffers == 1 && Pending == 2);
+            && Origin0Losers == 1 && Origin1Losers == 3
+            && HasMatchingOrigin0Losers && HasMatchingOrigin1Losers
+            && _Origin0NextRevision > _Origin0FrontRevision
+            && _Origin1NextRevision > _Origin1FrontRevision);
     }
 
     UFUNCTION()
-    private void Step_AssertSecondOffers(FCk_Handle InHandle, FInstancedStruct InPayload)
+    private void Step_AssertLosersRetargeted(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        Assert_Valid(_Origin0Next, "origin zero reaches its next rank only after its first claim");
-        Assert_Valid(_Origin1Next, "origin one reaches its next rank only after its first claim");
+        Assert_Valid(_Origin0Next, "origin zero retargets its provisional loser only after its first claim");
+        Assert_Valid(_Origin1Next, "origin one retargets its provisional losers only after its first claim");
         Assert_Equals_Int(_FirstClaimEvents, 2, "one reached claim is observed independently for each origin");
-        Assert_Equals_Int(_SecondOfferEvents, 2,
-            "each reached claim emits exactly one newly offered MovingToSlot reservation");
+        Assert_Equals_Int(_LoserRetargetEvents, 4,
+            "each reached claim retargets every provisional loser for its own origin");
     }
 
     UFUNCTION()

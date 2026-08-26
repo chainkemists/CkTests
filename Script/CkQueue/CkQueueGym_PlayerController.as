@@ -26,6 +26,10 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     private int32 _EnvironmentMode = 0;
     private bool _Linear = false;
     private bool _ClaimSlotsOnReach = false;
+    // This is a complete authored scenario, not a configuration the normal controls happen to resemble.
+    // Reset intentionally keeps it true so the visual race is replayable.
+    private bool _ContestedSlotRacePreset = false;
+    private int64 _ContestedFirstWinnerTicket = 0;
     private bool _QueueVisualization = true;
     private bool _PreviousQueueVisualization = false;
     private bool _CapturedQueueVisualization = false;
@@ -67,7 +71,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         if (HasAuthority() == false) { return TArray<FCkGym_Station_SpawnParams_Payload>(); }
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
         AddStation(Stations, n"Gym.Queue.Live", "QUEUE: LIVE CROWD AGENTS",
-            "Use the numbered options panel for direct queue scenarios. Default: six agents, one target, orthogonal snake, reachable navigation, and visible diagnostics.");
+            "Use the numbered options panel for direct queue scenarios. Press R for the contested-slot race: later tickets start closer, so arrival claims each shared provisional slot. With visualization on, lines and labels are the visual oracle.");
         return Stations;
     }
 
@@ -85,6 +89,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(MakeNumberedControl(7, "Destroy first queued agent"));
         Rows.Add(MakeNumberedControl(8, "Destroy queue owner"));
         Rows.Add(MakeNumberedControl(9, "Slot claiming", GetSlotClaimingLabel()));
+        Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Run contested slot race"));
         return Rows;
     }
 
@@ -102,7 +107,8 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         if (InRowIndex == 6) { Ck_GymQueue_Advance(0); return; }
         if (InRowIndex == 7) { DestroyFirstQueuedAgent(); return; }
         if (InRowIndex == 8) { Ck_GymQueue_DestroyOwner(); return; }
-        if (InRowIndex == 9) { CycleSlotClaiming(); }
+        if (InRowIndex == 9) { CycleSlotClaiming(); return; }
+        if (InRowIndex == 10) { Ck_GymQueue_ContestedRace(); }
     }
 
     private FCkGym_ControlRow MakeNumberedControl(
@@ -224,13 +230,17 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         _PlannerRetryPending = false;
         _PlannerRetriesAwaiting = 0;
         _AdvancingAgent = FCk_Handle_CrowdAgent();
+        _ContestedFirstWinnerTicket = 0;
 
         const auto QueueOwnerTransform = Get_QueueOwnerTransform();
         _QueueOwner = utils_entity_lifetime::Request_CreateEntity(_PcEntity);
         utils_transform::Add(_QueueOwner, QueueOwnerTransform, ECk_Replication::DoesNotReplicate);
         auto Params = FCk_Fragment_Queue_ParamsData(GetConfiguredOrigins());
         Params.Set_Category(utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.Gym"));
-        Params.Set_SlotSpacingUu(120.0f);
+        Params.Set_SlotSpacingUu(GetConfiguredSlotSpacingUu());
+        Params.Set_SlotClaimRadiusUu(30.0f);
+        Params.Set_SlotSettleRadiusUu(10.0f);
+        Params.Set_SlotReacquireRadiusUu(20.0f);
         Params.Set_HardLimit(HardLimit);
         Params.Set_SoftLimit(4);
         Params.Set_AgentRadiusUu(AgentRadius);
@@ -256,6 +266,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymQueue_AddAgents(int32 InCount = 5)
     {
         if (InCount <= 0) { return; }
+        ClearContestedSlotRacePreset();
         _Population = Math::Min(32, _Population + InCount);
         Ck_GymQueue_Start();
     }
@@ -263,6 +274,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Queue - Move Origin (Reflow)")
     void Ck_GymQueue_MoveOrigin()
     {
+        const bool WasContestedSlotRace = ClearContestedSlotRacePreset();
         if (SelectOpenEnvironmentForOrigins())
         {
             _OriginMode = 1;
@@ -272,12 +284,18 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
         _OriginMode = 1;
+        if (WasContestedSlotRace)
+        {
+            Ck_GymQueue_Start();
+            return;
+        }
         ApplyOriginsLive();
     }
 
     UFUNCTION(Exec, DisplayName="Queue - Use Two Weighted Origins")
     void Ck_GymQueue_TwoOrigins()
     {
+        const bool WasContestedSlotRace = ClearContestedSlotRacePreset();
         if (SelectOpenEnvironmentForOrigins())
         {
             _OriginMode = 2;
@@ -287,6 +305,11 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
         _OriginMode = 2;
+        if (WasContestedSlotRace)
+        {
+            Ck_GymQueue_Start();
+            return;
+        }
         ApplyOriginsLive();
     }
 
@@ -311,13 +334,29 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymQueue_ToggleLayout() { CycleLayout(); }
 
     UFUNCTION(Exec, DisplayName="Queue - Make Target Unreachable")
-    void Ck_GymQueue_Impossible() { _EnvironmentMode = 1; Ck_GymQueue_Start(); }
+    void Ck_GymQueue_Impossible() { ClearContestedSlotRacePreset(); _EnvironmentMode = 1; Ck_GymQueue_Start(); }
 
     UFUNCTION(Exec, DisplayName="Queue - Restore Target Navigation")
-    void Ck_GymQueue_RestoreNav() { _EnvironmentMode = 0; Ck_GymQueue_Start(); }
+    void Ck_GymQueue_RestoreNav() { ClearContestedSlotRacePreset(); _EnvironmentMode = 0; Ck_GymQueue_Start(); }
 
     UFUNCTION(Exec, DisplayName="Queue - Overfill Hard Limit")
-    void Ck_GymQueue_Overfill() { _Population = 32; Ck_GymQueue_Start(); }
+    void Ck_GymQueue_Overfill() { ClearContestedSlotRacePreset(); _Population = 32; Ck_GymQueue_Start(); }
+
+    // The later tickets deliberately start closer. ClaimFirstAvailableOnReach therefore proves that
+    // physical arrival, not ticket order, owns each provisional slot.
+    UFUNCTION(Exec, DisplayName="Queue - Run Contested Slot Race")
+    void Ck_GymQueue_ContestedRace()
+    {
+        if (HasAuthority() == false || ck::Is_NOT_Valid(_LiveStation)) { return; }
+        _ContestedSlotRacePreset = true;
+        _Population = 6;
+        _OriginMode = 0;
+        _EnvironmentMode = 0;
+        _Linear = true;
+        _ClaimSlotsOnReach = true;
+        _QueueVisualization = true;
+        Ck_GymQueue_Start();
+    }
 
     UFUNCTION(Exec, DisplayName="Queue - Destroy Agent By Index")
     void Ck_GymQueue_DestroyAgent(int32 InIndex = 0)
@@ -407,6 +446,14 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         }
         if (InEvent.Get_Reason() == ECk_Queue_EventReason::Joined)
         { RestoreAdmittedAgentColor(Member.Get_Member()); }
+        if (_ContestedSlotRacePreset
+            && _ContestedFirstWinnerTicket == 0
+            && InEvent.Get_Reason() == ECk_Queue_EventReason::SlotReached
+            && Member.Get_State() == ECk_Queue_MemberState::AtFront)
+        {
+            _ContestedFirstWinnerTicket = Member.Get_Ticket();
+            AddTrace(f"RACE RESULT: ticket {_ContestedFirstWinnerTicket} claimed rank 0 first; ticket 1 was admitted first.");
+        }
         AddTrace(f"GOAP event: {InEvent.Get_Reason()} member={Member.Get_Member().ToString()} rank={Member.Get_Rank()} rev={InEvent.Get_QueueRevision()}");
         RefreshDisplays();
     }
@@ -435,6 +482,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void CyclePopulation()
     {
+        ClearContestedSlotRacePreset();
         if (_Population == 6) { _Population = 12; }
         else if (_Population == 12) { _Population = 24; }
         else if (_Population == 24) { _Population = 30; }
@@ -445,7 +493,13 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void CycleLayout()
     {
+        const bool WasContestedSlotRace = ClearContestedSlotRacePreset();
         _Linear = !_Linear;
+        if (WasContestedSlotRace)
+        {
+            Ck_GymQueue_Start();
+            return;
+        }
         if (ck::IsValid(_Queue))
         {
             const auto Layout = _Linear ? ECk_Queue_LayoutAlgorithm::Linear : ECk_Queue_LayoutAlgorithm::OrthogonalSnake;
@@ -457,6 +511,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void CycleSlotClaiming()
     {
+        ClearContestedSlotRacePreset();
         _ClaimSlotsOnReach = !_ClaimSlotsOnReach;
         AddTrace(f"OPTION: slot claiming changed to {GetSlotClaimingLabel()}; rebuilding selected scenario.");
         Ck_GymQueue_Start();
@@ -637,11 +692,12 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void CycleOrigins()
     {
+        const bool WasContestedSlotRace = ClearContestedSlotRacePreset();
         const bool ClearedEnvironment = SelectOpenEnvironmentForOrigins();
         _OriginMode = (_OriginMode + 1) % 3;
-        if (ClearedEnvironment)
+        if (ClearedEnvironment || WasContestedSlotRace)
         {
-            AddTrace("OPTION: Environment returned to Open before changing origins; resetting and topology-gating the fresh queue.");
+            AddTrace("OPTION: origins changed from a preset or non-open environment; resetting and topology-gating the fresh queue.");
             Ck_GymQueue_Start();
             return;
         }
@@ -650,6 +706,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void CycleEnvironment()
     {
+        ClearContestedSlotRacePreset();
         _EnvironmentMode = (_EnvironmentMode + 1) % 5;
         if (HasPhysicalEnvironment()) { _OriginMode = 0; }
         Ck_GymQueue_Start();
@@ -682,6 +739,19 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         }
         else { Origins.Add(FCk_Queue_Origin(FTransform::Identity)); }
         return Origins;
+    }
+
+    private bool ClearContestedSlotRacePreset()
+    {
+        const bool WasActive = _ContestedSlotRacePreset;
+        _ContestedSlotRacePreset = false;
+        _ContestedFirstWinnerTicket = 0;
+        return WasActive;
+    }
+
+    private float GetConfiguredSlotSpacingUu() const
+    {
+        return _ContestedSlotRacePreset ? 240.0f : 120.0f;
     }
 
     private void CancelEnvironmentTopologyProbe(bool InClearTopologyWitnesses = true)
@@ -978,6 +1048,45 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
                 utils_debug_draw::DrawDebugArrow(Location, Location + Target.Rotator().GetForwardVector() * 140.0f, 26.0f, Cyan, 0.0f, 3.0f);
                 utils_debug_draw::DrawDebugString(Location + FVector(0.0f, 0.0f, 70.0f), f"TARGET {OriginIndex}", Cyan, 0.0f);
             }
+
+            if (_ContestedSlotRacePreset)
+            {
+                for (const auto& Member : Snapshot.Get_Members())
+                {
+                    const auto State = Member.Get_State();
+                    const bool IsContender = State == ECk_Queue_MemberState::MovingToSlot;
+                    const bool IsClaimed = State == ECk_Queue_MemberState::AtFront
+                        || State == ECk_Queue_MemberState::AtSlot;
+                    if ((IsContender == false && IsClaimed == false)
+                        || Member.Get_AssignmentRevision() <= 0
+                        || Member.Get_TargetWorldTransform().ContainsNaN())
+                    { continue; }
+
+                    if (Member.Get_HasMoverWorldTransform() == false
+                        || Member.Get_MoverWorldTransform().ContainsNaN())
+                    { continue; }
+
+                    const auto Location = Member.Get_MoverWorldTransform().GetLocation();
+                    const auto TargetLocation = Member.Get_TargetWorldTransform().GetLocation();
+                    const auto DistanceToTarget = float((Location - TargetLocation).Size());
+                    const bool IsFirstWinner = IsClaimed
+                        && Member.Get_Ticket() == _ContestedFirstWinnerTicket;
+                    const auto Color = IsFirstWinner
+                        ? FLinearColor(0.15f, 1.0f, 0.25f, 1.0f)
+                        : IsClaimed
+                            ? FLinearColor(0.2f, 0.65f, 1.0f, 1.0f)
+                            : FLinearColor(1.0f, 0.75f, 0.05f, 1.0f);
+                    const bool IsSettled = IsClaimed && DistanceToTarget <= _Queue.Get_SlotSettleRadiusUu();
+                    const auto Label = IsFirstWinner
+                        ? IsSettled ? "FIRST WINNER / SETTLED" : "FIRST WINNER / SETTLING"
+                        : IsClaimed ? IsSettled ? "CLAIMED / SETTLED" : "CLAIMED / SETTLING"
+                        : "CONTENDER";
+                    if (IsClaimed == false || IsSettled == false)
+                    { utils_debug_draw::DrawDebugLine(Location, TargetLocation, Color, 0.0f, 4.0f); }
+                    utils_debug_draw::DrawDebugString(Location + FVector(0.0f, 0.0f, AgentHeight + 48.0f),
+                        f"{Label} ticket={Member.Get_Ticket()} rank={Member.Get_Rank()} assignment={Member.Get_AssignmentRevision()}", Color, 0.0f);
+                }
+            }
         }
 
         if (_EnvironmentMode == 1 && _TargetBlockers.Num() > 0 && ck::IsValid(_QueueOwner))
@@ -999,6 +1108,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     private FString GetPopulationLabel() const { return _Population == 32 ? "32 (30 admitted + 2 rejected)" : f"{_Population}"; }
+    private FString GetPresetLabel() const { return _ContestedSlotRacePreset ? "Contested slot race (R)" : "Custom"; }
     private FString GetLayoutLabel() const { return _Linear ? "Linear" : "Orthogonal snake"; }
     private FString GetSlotClaimingLabel() const { return _ClaimSlotsOnReach ? "Claim on reach" : "Reserve all"; }
     private FString GetOriginModeLabel() const { if (_OriginMode == 1) { return "Moved / rotated"; } if (_OriginMode == 2) { return "Two weighted"; } return "Single"; }
@@ -1054,11 +1164,23 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         for (int32 Added = 0; Added < InCount; ++Added)
         {
             const auto Index = _Agents.Num();
-            const auto RowOffset = float(Math::IntegerDivisionTrunc(Index, 6)) * 140.0f;
-            // Physical environments occupy the formation side (negative X). Spawn on the open side so agents
-            // enter the constrained queue instead of projecting out of walls or starting outside the corridor.
-            const auto X = HasPhysicalEnvironment() ? 300.0f + RowOffset : -500.0f + RowOffset;
-            const auto Y = (float(Index % 6) - 2.5f) * 130.0f;
+            float X;
+            float Y;
+            if (_ContestedSlotRacePreset)
+            {
+                // Join order is Index order. Reverse the physical distances so late tickets can win the shared
+                // provisional front target by arrival, then expose each live retarget with the visual oracle.
+                X = -1500.0f + float(Index) * 240.0f;
+                Y = (float(Index) - 2.5f) * 90.0f;
+            }
+            else
+            {
+                const auto RowOffset = float(Math::IntegerDivisionTrunc(Index, 6)) * 140.0f;
+                // Physical environments occupy the formation side (negative X). Spawn on the open side so agents
+                // enter the constrained queue instead of projecting out of walls or starting outside the corridor.
+                X = HasPhysicalEnvironment() ? 300.0f + RowOffset : -500.0f + RowOffset;
+                Y = (float(Index % 6) - 2.5f) * 130.0f;
+            }
             auto Agent = SpawnAgent(QueueOwnerTransform.TransformPosition(FVector(X, Y, SpawnZ)), Index);
             _Agents.Add(Agent);
             Agent.Request_JoinQueue(_Queue, FCk_Delegate_Request_OnCompleted(this, n"OnJoinCompleted"));
@@ -1099,12 +1221,18 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         if (ck::Is_NOT_Valid(_Queue)) { return; }
         const auto Pressure = _Queue.Get_Pressure();
         auto DisplayText = "GOAP-REACTIVE QUEUE\n";
-        DisplayText = f"{DisplayText}population={GetPopulationLabel()} members={Pressure.Get_MemberCount()} rejected={_RejectedAgents.Num()} soft={Pressure.Get_IsSoftLimited()} hard={Pressure.Get_IsHardLimited()}\n";
-        DisplayText = f"{DisplayText}layout={GetLayoutLabel()} claims={GetSlotClaimingLabel()} origins={GetOriginModeLabel()} environment={GetEnvironmentLabel()} visualization={_QueueVisualization}\n";
+        DisplayText = f"{DisplayText}preset={GetPresetLabel()} population={GetPopulationLabel()} members={Pressure.Get_MemberCount()} rejected={_RejectedAgents.Num()} soft={Pressure.Get_IsSoftLimited()} hard={Pressure.Get_IsHardLimited()}\n";
+        DisplayText = f"{DisplayText}layout={GetLayoutLabel()} claims={GetSlotClaimingLabel()} claim={_Queue.Get_SlotClaimRadiusUu()}uu settle={_Queue.Get_SlotSettleRadiusUu()}uu reacquire={_Queue.Get_SlotReacquireRadiusUu()}uu origins={GetOriginModeLabel()} environment={GetEnvironmentLabel()} visualization={_QueueVisualization}\n";
+        if (_ContestedSlotRacePreset)
+        {
+            DisplayText = f"{DisplayText}ORACLE: yellow CONTENDER lines begin at shared rank 0; claimed members show SETTLING until they are within settle radius, then lose the tether and show SETTLED. FIRST WINNER records its ticket; losers retarget with newer rank/revision.\n";
+            if (_ContestedFirstWinnerTicket > 0)
+            { DisplayText = f"{DisplayText}firstWinner=ticket {_ContestedFirstWinnerTicket}; ticket 1 was admitted first.\n"; }
+        }
         DisplayText = f"{DisplayText}revision={_Queue.Get_Revision()} joins={_JoinSucceeded}/{_JoinRejected} events={_EventCount}\n";
         for (auto Line : _Trace) { DisplayText = f"{DisplayText}{Line}\n"; }
         CkGym_Common::Update_StationDisplay(Get_StationHandle("Gym.Queue.Live"), "QUEUE: LIVE CROWD AGENTS", DisplayText,
-            "Options: 1 Reset | 2 Population | 3 Layout | 4 Origins | 5 Environment | 6 Visualization | 7 Advance | 8 Destroy agent | 9 Destroy owner | 0 Slot claiming | Ck_GymQueue_Digest snapshot");
+            "Options: 1 Reset | 2 Population | 3 Layout | 4 Origins | 5 Environment | 6 Visualization | 7 Advance | 8 Destroy agent | 9 Destroy owner | 0 Slot claiming | R Contested slot race: late tickets start closer; target lines and CLAIMED labels are the visual oracle | Ck_GymQueue_Digest snapshot");
     }
 
     private void AddStation(TArray<FCkGym_Station_SpawnParams_Payload>& InOutStations, FName InTag, FString InTitle, FString InDescription)

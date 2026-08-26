@@ -16,11 +16,37 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     private int32                      _InitialAssignmentRevision = 0;
     private int32                      _InitialEpisode = 0;
     private int32                      _InitialCorrelation = 0;
+    private int32                      _ContinuousReflowAssignmentRevision = 0;
+    private int32                      _ContinuousReflowEpisode = 0;
+    private int32                      _ContinuousReflowCorrelation = 0;
+    private int32                      _NavigationReflowAssignmentRevision = 0;
+    private int32                      _NavigationReflowEpisode = 0;
+    private int32                      _NavigationReflowCorrelation = 0;
     private int32                      _PostOverrideEpisode = 0;
     private int32                      _PostOverrideCorrelation = 0;
     private int32                      _ResumedAssignmentRevision = 0;
     private int32                      _ResumedEpisode = 0;
     private int32                      _ResumedCorrelation = 0;
+    private int32                      _ClaimedAssignmentRevision = 0;
+    private int32                      _ClaimedFollowerAssignmentRevision = 0;
+    private int32                      _ClaimedQueueRevision = 0;
+    private int32                      _ClaimedSlotReachedEvents = 0;
+    private int32                      _ClaimedFollowerSlotReachedEvents = 0;
+    private int32                      _ClaimedPrimaryEpisode = 0;
+    private int32                      _ClaimedPrimaryCorrelation = 0;
+    private int32                      _ClaimedFollowerEpisode = 0;
+    private int32                      _ClaimedFollowerCorrelation = 0;
+    private int32                      _ReacquireEpisodeBeforeDisplacement = 0;
+    private int32                      _ExternalDisplacementEpisode = 0;
+    private int32                      _ReacquiredEpisode = 0;
+    private int32                      _ReacquiredCorrelation = 0;
+    private bool                       _ExternalDisplacementEpisodeObserved = false;
+    private bool                       _WasDisplacedBeyondReacquireRadius = false;
+    private bool                       _ReacquirePreservedSingleArrival = false;
+    private bool                       _ContinuousReflowSampling = false;
+    private bool                       _ContinuousReflowHardStopObserved = false;
+    private bool                       _NavigationReflowSampling = false;
+    private bool                       _NavigationReflowHardStopObserved = false;
     private int32                      _JoinCompletions = 0;
     private int32                      _FollowerJoinCompletions = 0;
     private int32                      _FollowerLeaveCompletions = 0;
@@ -36,6 +62,8 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     private int32                      _AdvanceCompletions = 0;
     private int32                      _ExitEpisodeBeforeRequest = 0;
     private FVector                    _CapturedQueueSlot;
+    private FVector                    _DisplacedLocation;
+    private FVector                    _NavigationReflowTarget;
     private FVector                    _ExitGoal;
     private bool                       _ExitReachedCleanly = false;
     private ECk_Request_OperationResult _JoinResult = ECk_Request_OperationResult::Failed;
@@ -59,13 +87,26 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         Add_Step_WaitUntil("queue setup completes", n"Check_QueueReady");
         Add_Step("join through the Crowd queue adapter", n"Step_RequestJoin");
         Add_Step_WaitUntil("adapter owns the initial Crowd move episode", n"Check_InitialMoveIssued");
+        Add_Step_WaitUntil("initial adapter-owned movement reaches meaningful forward speed", n"Check_InitialMoveCruising");
+        Add_Step("reflow the live queue assignment along the active movement direction", n"Step_RequestContinuousReflow");
+        Add_Step_WaitUntil("live queue reflow retargets without a physical hard stop", n"Check_ContinuousReflowRetargeted");
+        Add_Step_WaitUntil("changed-origin queue movement remains fast before nav reflow", n"Check_NavigationReflowCruising");
+        Add_Step("rebuild navigation while the live queue slot target stays unchanged", n"Step_RequestNavigationReflow");
+        Add_Step_WaitUntil("navigation change republishes the live assignment without a physical hard stop", n"Check_NavigationReflowRetargeted");
         Add_Step("replace the owned episode with an external Crowd MoveTo", n"Step_RequestExternalMoveOverride");
         Add_Step_WaitUntil("adapter reclaims its unchanged queue assignment", n"Check_AdapterReclaimedMove");
         Add_Step("suppress movement while the agent is en route", n"Step_RequestSuppression");
         Add_Step_WaitUntil("suppression stops the adapter-owned move", n"Check_SuppressedAndIdle");
         Add_Step("resume movement with an origin reflow", n"Step_RequestResumeAndReflow");
         Add_Step_WaitUntil("adapter owns a fresh reflowed move episode", n"Check_ResumedMoveIssued");
-        Add_Step_WaitUntil("the resumed Crowd move reaches the queue front", n"Check_ResumedArrival");
+        Add_Step_WaitUntil("claimed front member continues closing to its settle radius", n"Check_ClaimedMoveStillClosing");
+        Add_Step_WaitUntil("claimed front member physically settles at its slot", n"Check_ClaimedAgentSettled");
+        Add_Step_WaitUntil("the resumed Crowd moves claim their queue slots", n"Check_ResumedArrival");
+        Add_Step("rebuild navigation after both members claim their reservations", n"Step_RequestClaimedNavigationRebuild");
+        Add_Step_WaitUntil("queue revalidates claimed members without restarting their movement", n"Check_ClaimedNavigationRevalidated");
+        Add_Step("move the settled claimed member beyond its reacquire radius from an external episode", n"Step_DisplaceSettledAgent");
+        Add_Step_WaitUntil("adapter reacquires the displaced claimed member with a fresh move", n"Check_DisplacedAgentReacquired");
+        Add_Step_WaitUntil("reacquired claimed member settles without another SlotReached", n"Check_ReacquiredAgentSettled");
         Add_Step("advance the arrived member out of the queue", n"Step_RequestAdvance");
         Add_Step_WaitUntil("advance succeeds and removes the served member", n"Check_AdvancedOutOfQueue");
         Add_Step_WaitUntil("the rank-one adapter reflows after service advance", n"Check_FollowerReflowed");
@@ -194,6 +235,9 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         Origins.Add(FCk_Queue_Origin(FTransform(FVector(1000.0f, 0.0f, 0.0f))));
         auto QueueParams = FCk_Fragment_Queue_ParamsData(Origins);
         QueueParams.Set_SlotSpacingUu(120.0f);
+        QueueParams.Set_SlotClaimRadiusUu(80.0f);
+        QueueParams.Set_SlotSettleRadiusUu(10.0f);
+        QueueParams.Set_SlotReacquireRadiusUu(30.0f);
         _Queue = utils_queue::Add(_QueueOwner, QueueParams);
         auto SecondOrigins = TArray<FCk_Queue_Origin>();
         SecondOrigins.Add(FCk_Queue_Origin(FTransform(FVector(400.0f, -250.0f, 0.0f))));
@@ -277,6 +321,121 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
             FCk_Delegate_Request_OnCompleted(this, n"OnSuppressCompleted"));
     }
 
+    private float Get_CurrentSpeed(FCk_Handle_CrowdAgent InAgent)
+    {
+        FCk_Handle Generic = InAgent;
+        return float(utils_velocity::Get_CurrentVelocity(utils_velocity::DoCastChecked(Generic)).Size());
+    }
+
+    UFUNCTION()
+    private void Check_InitialMoveCruising(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Handle Generic = _Agent;
+        const auto CurrentVelocity = utils_velocity::Get_CurrentVelocity(utils_velocity::DoCastChecked(Generic));
+        auto Result = OutResult;
+        Result.Set(CurrentVelocity.X > 120.0f && Get_CurrentSpeed(_Agent) > 120.0f);
+    }
+
+    UFUNCTION()
+    private void Step_RequestContinuousReflow(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        Assert_True(Get_CurrentSpeed(_Agent) > 120.0f,
+            "normal queue reflow begins while the primary adapter owns meaningful physical speed");
+        _ContinuousReflowSampling = true;
+        _ContinuousReflowHardStopObserved = false;
+        auto Origins = TArray<FCk_Queue_Origin>();
+        Origins.Add(FCk_Queue_Origin(FTransform(FVector(880.0f, 0.0f, 0.0f))));
+        _Queue.Request_SetOrigins(FCk_Request_Queue_SetOrigins(Origins));
+    }
+
+    UFUNCTION()
+    private void Check_ContinuousReflowRetargeted(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        if (_ContinuousReflowSampling && Get_CurrentSpeed(_Agent) <= 5.0f)
+        { _ContinuousReflowHardStopObserved = true; }
+
+        FCk_Queue_MemberSnapshot Snapshot;
+        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot);
+        const auto Episode = _Agent.Get_ActiveMoveEpisode();
+        const auto Correlation = _Agent.Get_ActiveMoveCorrelationId();
+        const bool ReflowedWithoutHardStop = HasSnapshot
+            && Snapshot.Get_AssignmentRevision() > _InitialAssignmentRevision
+            && Episode > _InitialEpisode
+            && Correlation > 0
+            && Correlation != _InitialCorrelation
+            && _Agent.Get_ActiveGoal().Equals(Snapshot.Get_TargetWorldTransform().GetLocation(), 1.0f)
+            && _ContinuousReflowHardStopObserved == false;
+        if (ReflowedWithoutHardStop)
+        {
+            _ContinuousReflowAssignmentRevision = Snapshot.Get_AssignmentRevision();
+            _ContinuousReflowEpisode = Episode;
+            _ContinuousReflowCorrelation = Correlation;
+            _ContinuousReflowSampling = false;
+        }
+        auto Result = OutResult;
+        Result.Set(ReflowedWithoutHardStop);
+    }
+
+    UFUNCTION()
+    private void Check_NavigationReflowCruising(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Snapshot;
+        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot);
+        auto Result = OutResult;
+        Result.Set(HasSnapshot
+            && Snapshot.Get_AssignmentRevision() == _ContinuousReflowAssignmentRevision
+            && _Agent.Get_ActiveMoveEpisode() == _ContinuousReflowEpisode
+            && _Agent.Get_ActiveMoveCorrelationId() == _ContinuousReflowCorrelation
+            && Get_CurrentSpeed(_Agent) > 120.0f);
+    }
+
+    UFUNCTION()
+    private void Step_RequestNavigationReflow(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Snapshot;
+        Assert_True(_Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot),
+            "navigation reflow captures the live primary queue assignment");
+        Assert_True(Snapshot.Get_AssignmentRevision() == _ContinuousReflowAssignmentRevision
+            && _Agent.Get_ActiveMoveEpisode() == _ContinuousReflowEpisode
+            && _Agent.Get_ActiveMoveCorrelationId() == _ContinuousReflowCorrelation,
+            "navigation reflow begins from the captured changed-origin assignment and Crowd episode");
+        Assert_True(Get_CurrentSpeed(_Agent) > 120.0f,
+            "navigation reflow begins while the primary adapter owns meaningful physical speed");
+        _NavigationReflowTarget = Snapshot.Get_TargetWorldTransform().GetLocation();
+        _NavigationReflowSampling = true;
+        _NavigationReflowHardStopObserved = false;
+        utils_nav::Request_NavigationRebuild_ForTesting(InHandle);
+    }
+
+    UFUNCTION()
+    private void Check_NavigationReflowRetargeted(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        if (_NavigationReflowSampling && Get_CurrentSpeed(_Agent) <= 5.0f)
+        { _NavigationReflowHardStopObserved = true; }
+
+        FCk_Queue_MemberSnapshot Snapshot;
+        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot);
+        const auto Episode = _Agent.Get_ActiveMoveEpisode();
+        const auto Correlation = _Agent.Get_ActiveMoveCorrelationId();
+        const bool ReflowedWithoutHardStop = HasSnapshot
+            && Snapshot.Get_AssignmentRevision() > _ContinuousReflowAssignmentRevision
+            && Snapshot.Get_TargetWorldTransform().GetLocation().Equals(_NavigationReflowTarget, 1.0f)
+            && Episode > _ContinuousReflowEpisode
+            && Correlation > 0
+            && Correlation != _ContinuousReflowCorrelation
+            && _Agent.Get_ActiveGoal().Equals(_NavigationReflowTarget, 1.0f)
+            && _NavigationReflowHardStopObserved == false;
+        if (ReflowedWithoutHardStop)
+        {
+            _NavigationReflowAssignmentRevision = Snapshot.Get_AssignmentRevision();
+            _NavigationReflowEpisode = Episode;
+            _NavigationReflowCorrelation = Correlation;
+            _NavigationReflowSampling = false;
+        }
+        auto Result = OutResult;
+        Result.Set(ReflowedWithoutHardStop);
+    }
+
     UFUNCTION()
     private void Step_RequestExternalMoveOverride(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
@@ -295,16 +454,16 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         const bool QueueGoalIsActive = HasSnapshot && _Agent.Get_ActiveGoal().Equals(
             Snapshot.Get_TargetWorldTransform().GetLocation(),
             1.0f);
-        if (HasSnapshot && Snapshot.Get_AssignmentRevision() == _InitialAssignmentRevision
-            && Episode > _InitialEpisode && Correlation > 0 && Correlation != 777
-            && Correlation != _InitialCorrelation && QueueGoalIsActive)
+        if (HasSnapshot && Snapshot.Get_AssignmentRevision() == _NavigationReflowAssignmentRevision
+            && Episode > _NavigationReflowEpisode && Correlation > 0 && Correlation != 777
+            && Correlation != _NavigationReflowCorrelation && QueueGoalIsActive)
         {
             _PostOverrideEpisode = Episode;
             _PostOverrideCorrelation = Correlation;
         }
 
         auto Result = OutResult;
-        Result.Set(_PostOverrideEpisode > _InitialEpisode
+        Result.Set(_PostOverrideEpisode > _NavigationReflowEpisode
             && _PostOverrideCorrelation > 0
             && QueueGoalIsActive);
     }
@@ -363,9 +522,167 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         const bool FollowerAtSlot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Follower), FollowerSnapshot)
             && FollowerSnapshot.Get_OriginIndex() == 0 && FollowerSnapshot.Get_Rank() == 1
             && FollowerSnapshot.Get_State() == ECk_Queue_MemberState::AtSlot;
-        Result.Set(HasSnapshot && Snapshot.Get_AssignmentRevision() == _ResumedAssignmentRevision
+        const bool BothAssignmentsAreClaimed = HasSnapshot
+            && Snapshot.Get_AssignmentRevision() == _ResumedAssignmentRevision
             && Snapshot.Get_State() == ECk_Queue_MemberState::AtFront
-            && _SlotReachedEvents == 1 && FollowerAtSlot && _FollowerSlotReachedEvents == 1);
+            && _SlotReachedEvents == 1 && FollowerAtSlot && _FollowerSlotReachedEvents == 1;
+        if (BothAssignmentsAreClaimed)
+        {
+            _ClaimedQueueRevision = _Queue.Get_Revision();
+            _ClaimedAssignmentRevision = Snapshot.Get_AssignmentRevision();
+            _ClaimedFollowerAssignmentRevision = FollowerSnapshot.Get_AssignmentRevision();
+            _ClaimedSlotReachedEvents = _SlotReachedEvents;
+            _ClaimedFollowerSlotReachedEvents = _FollowerSlotReachedEvents;
+            _ClaimedPrimaryEpisode = _Agent.Get_ActiveMoveEpisode();
+            _ClaimedPrimaryCorrelation = _Agent.Get_ActiveMoveCorrelationId();
+            _ClaimedFollowerEpisode = _Follower.Get_ActiveMoveEpisode();
+            _ClaimedFollowerCorrelation = _Follower.Get_ActiveMoveCorrelationId();
+        }
+        Result.Set(BothAssignmentsAreClaimed);
+    }
+
+    UFUNCTION()
+    private void Step_RequestClaimedNavigationRebuild(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        utils_nav::Request_NavigationRebuild_ForTesting(InHandle);
+    }
+
+    UFUNCTION()
+    private void Check_ClaimedNavigationRevalidated(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Primary;
+        FCk_Queue_MemberSnapshot Follower;
+        const bool HasPrimary = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Primary);
+        const bool HasFollower = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Follower), Follower);
+        const bool RevalidatedWithoutRestart = HasPrimary && HasFollower
+            && _Queue.Get_Revision() > _ClaimedQueueRevision
+            && Primary.Get_State() == ECk_Queue_MemberState::AtFront
+            && Follower.Get_State() == ECk_Queue_MemberState::AtSlot
+            && Primary.Get_AssignmentRevision() == _ClaimedAssignmentRevision
+            && Follower.Get_AssignmentRevision() == _ClaimedFollowerAssignmentRevision
+            && _Agent.Get_ActiveMoveEpisode() == _ClaimedPrimaryEpisode
+            && _Agent.Get_ActiveMoveCorrelationId() == _ClaimedPrimaryCorrelation
+            && _Follower.Get_ActiveMoveEpisode() == _ClaimedFollowerEpisode
+            && _Follower.Get_ActiveMoveCorrelationId() == _ClaimedFollowerCorrelation
+            && _SlotReachedEvents == _ClaimedSlotReachedEvents
+            && _FollowerSlotReachedEvents == _ClaimedFollowerSlotReachedEvents;
+        if (RevalidatedWithoutRestart)
+        { _ClaimedQueueRevision = _Queue.Get_Revision(); }
+        auto Result = OutResult;
+        Result.Set(RevalidatedWithoutRestart);
+    }
+
+    UFUNCTION()
+    private void Check_ClaimedMoveStillClosing(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Snapshot;
+        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot);
+        const auto SlotLocation = HasSnapshot ? Snapshot.Get_TargetWorldTransform().GetLocation() : FVector::ZeroVector;
+        const auto AgentLocation = utils_transform::Get_EntityCurrentLocation(_Agent.As_Transform());
+        const auto DistanceToSlot = float((AgentLocation - SlotLocation).Size());
+        const bool IsStillClosing = DistanceToSlot > _Queue.Get_SlotSettleRadiusUu()
+            || _Agent.Get_MovementState() != ECk_CrowdAgent_MovementState::Idle;
+        const bool ClaimedBeforeSettled = HasSnapshot
+            && Snapshot.Get_State() == ECk_Queue_MemberState::AtFront
+            && _SlotReachedEvents == 1
+            && IsStillClosing;
+        if (ClaimedBeforeSettled)
+        {
+            _ClaimedAssignmentRevision = Snapshot.Get_AssignmentRevision();
+            _ClaimedSlotReachedEvents = _SlotReachedEvents;
+            _CapturedQueueSlot = SlotLocation;
+        }
+        auto Result = OutResult;
+        Result.Set(ClaimedBeforeSettled);
+    }
+
+    UFUNCTION()
+    private void Check_ClaimedAgentSettled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Snapshot;
+        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot);
+        const auto SlotLocation = HasSnapshot ? Snapshot.Get_TargetWorldTransform().GetLocation() : FVector::ZeroVector;
+        const auto AgentLocation = utils_transform::Get_EntityCurrentLocation(_Agent.As_Transform());
+        auto Result = OutResult;
+        Result.Set(HasSnapshot
+            && Snapshot.Get_State() == ECk_Queue_MemberState::AtFront
+            && Snapshot.Get_AssignmentRevision() == _ClaimedAssignmentRevision
+            && _SlotReachedEvents == _ClaimedSlotReachedEvents
+            && float((AgentLocation - SlotLocation).Size()) <= _Queue.Get_SlotSettleRadiusUu());
+    }
+
+    UFUNCTION()
+    private void Step_DisplaceSettledAgent(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        FVector ProjectedLocation;
+        const bool IsNavigable = utils_nav::Try_ProjectOntoNavmesh(
+            InHandle, _CapturedQueueSlot + FVector(0.0f, 180.0f, 0.0f), 100.0f, ProjectedLocation, 300.0f);
+        Assert_True(IsNavigable, "settled front member displacement target projects onto navigable ground");
+        Assert_True(float((ProjectedLocation - _CapturedQueueSlot).Size()) > _Queue.Get_SlotReacquireRadiusUu(),
+            "settled front member is displaced beyond its queue reacquire radius");
+        _DisplacedLocation = ProjectedLocation;
+        _ReacquireEpisodeBeforeDisplacement = _Agent.Get_ActiveMoveEpisode();
+        auto ExternalMove = FCk_Request_CrowdAgent_MoveTo(_DisplacedLocation);
+        ExternalMove.Set_CorrelationId(707)
+            .Set_ForceRepath(true)
+            .Set_ArrivalRadiusOverrideMode(ECk_Override::Override)
+            .Set_ArrivalRadiusOverrideValue(5.0f);
+        _Agent.Request_MoveTo(ExternalMove);
+    }
+
+    UFUNCTION()
+    private void Check_DisplacedAgentReacquired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Snapshot;
+        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot);
+        const auto Episode = _Agent.Get_ActiveMoveEpisode();
+        const auto Correlation = _Agent.Get_ActiveMoveCorrelationId();
+        const auto AgentLocation = utils_transform::Get_EntityCurrentLocation(_Agent.As_Transform());
+        if (Correlation == 707 && Episode > _ReacquireEpisodeBeforeDisplacement)
+        {
+            _ExternalDisplacementEpisodeObserved = true;
+            _ExternalDisplacementEpisode = Episode;
+        }
+        const bool WasDisplaced = float((AgentLocation - _CapturedQueueSlot).Size()) > _Queue.Get_SlotReacquireRadiusUu();
+        if (WasDisplaced) { _WasDisplacedBeyondReacquireRadius = true; }
+        const bool Reacquired = HasSnapshot
+            && Snapshot.Get_State() == ECk_Queue_MemberState::AtFront
+            && Snapshot.Get_AssignmentRevision() == _ClaimedAssignmentRevision
+            && _Queue.Get_Revision() == _ClaimedQueueRevision
+            && _SlotReachedEvents == _ClaimedSlotReachedEvents
+            && _ExternalDisplacementEpisodeObserved
+            && Episode > _ExternalDisplacementEpisode
+            && Correlation > 0
+            && Correlation != 707;
+        if (Reacquired)
+        {
+            _ReacquiredEpisode = Episode;
+            _ReacquiredCorrelation = Correlation;
+        }
+        auto Result = OutResult;
+        Result.Set(_WasDisplacedBeyondReacquireRadius && Reacquired);
+    }
+
+    UFUNCTION()
+    private void Check_ReacquiredAgentSettled(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Snapshot;
+        const bool HasSnapshot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot);
+        const auto SlotLocation = HasSnapshot ? Snapshot.Get_TargetWorldTransform().GetLocation() : FVector::ZeroVector;
+        const auto AgentLocation = utils_transform::Get_EntityCurrentLocation(_Agent.As_Transform());
+        const auto DistanceToSlot = float((AgentLocation - SlotLocation).Size());
+        const bool ReacquiredAndSettled = HasSnapshot
+            && Snapshot.Get_State() == ECk_Queue_MemberState::AtFront
+            && Snapshot.Get_AssignmentRevision() == _ClaimedAssignmentRevision
+            && _Queue.Get_Revision() == _ClaimedQueueRevision
+            && _SlotReachedEvents == _ClaimedSlotReachedEvents
+            && _ReacquiredEpisode > _ReacquireEpisodeBeforeDisplacement
+            && _ReacquiredCorrelation > 0
+            && DistanceToSlot <= _Queue.Get_SlotSettleRadiusUu();
+        if (ReacquiredAndSettled)
+        { _ReacquirePreservedSingleArrival = true; }
+        auto Result = OutResult;
+        Result.Set(ReacquiredAndSettled);
     }
 
     UFUNCTION()
@@ -529,12 +846,32 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
             "origin reflow gives the adapter a strictly newer queue assignment revision");
         Assert_True(_InitialEpisode > 0 && _ResumedEpisode > _InitialEpisode,
             "each observed queue assignment owns a strictly newer Crowd move episode");
-        Assert_True(_PostOverrideEpisode > _InitialEpisode
-            && _PostOverrideCorrelation != _InitialCorrelation,
+        Assert_True(_ContinuousReflowAssignmentRevision > _InitialAssignmentRevision
+            && _ContinuousReflowEpisode > _InitialEpisode
+            && _ContinuousReflowCorrelation != _InitialCorrelation
+            && _ContinuousReflowHardStopObserved == false,
+            "normal queue assignment reflow keeps the primary agent physically moving through its new correlation");
+        Assert_True(_NavigationReflowAssignmentRevision > _ContinuousReflowAssignmentRevision
+            && _NavigationReflowEpisode > _ContinuousReflowEpisode
+            && _NavigationReflowCorrelation != _ContinuousReflowCorrelation
+            && _NavigationReflowHardStopObserved == false,
+            "navigation revalidation republishes the unchanged live slot through a fresh moving Crowd episode");
+        Assert_True(_PostOverrideEpisode > _NavigationReflowEpisode
+            && _PostOverrideCorrelation != _NavigationReflowCorrelation,
             "adapter reclaims an unchanged assignment after an external Crowd move replaces its episode");
         Assert_True(_InitialCorrelation > 0 && _ResumedCorrelation > 0
             && _InitialCorrelation != _ResumedCorrelation,
             "resumed queue assignment owns a distinct nonzero Crowd correlation");
+        Assert_True(_ClaimedAssignmentRevision == _ResumedAssignmentRevision
+            && _ClaimedQueueRevision > 0 && _ClaimedSlotReachedEvents == 1,
+            "claim at 80uu preserves the queue assignment and emits exactly one SlotReached before physical settling");
+        Assert_True(_WasDisplacedBeyondReacquireRadius
+            && _ExternalDisplacementEpisodeObserved
+            && _ExternalDisplacementEpisode > _ReacquireEpisodeBeforeDisplacement
+            && _ReacquiredEpisode > _ReacquireEpisodeBeforeDisplacement
+            && _ReacquiredCorrelation > 0
+            && _ReacquirePreservedSingleArrival,
+            "a claimed member displaced beyond 30uu reacquires with a fresh move without a second SlotReached");
         Assert_True(_AdvanceResult == ECk_Request_OperationResult::Succeeded && _ServingAdvancedEvents == 1,
             "arrived adapter member advances exactly once before consumer-owned exit");
         Assert_True(_FollowerJoinResult == ECk_Request_OperationResult::Succeeded
