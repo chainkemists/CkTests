@@ -6754,6 +6754,19 @@ class ACk_AutoTest_Projectile_Create_MakesDistinctChild_Actor : ACk_AutoTestRunn
     }
 }
 
+class ACk_AutoTest_Queue_ClaimFirstContestedSlots_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 20.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Queue_ClaimFirstContestedSlots");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Queue_CoreMembershipLimits_Actor : ACk_AutoTestRunner
 {
     UFUNCTION(BlueprintOverride)
