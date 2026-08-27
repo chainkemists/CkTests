@@ -90,14 +90,14 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         Add_Step_WaitUntil("initial adapter-owned movement reaches meaningful forward speed", n"Check_InitialMoveCruising");
         Add_Step("reflow the live queue assignment along the active movement direction", n"Step_RequestContinuousReflow");
         Add_Step_WaitUntil("live queue reflow retargets without a physical hard stop", n"Check_ContinuousReflowRetargeted");
-        Add_Step_WaitUntil("changed-origin queue movement remains fast before nav reflow", n"Check_NavigationReflowCruising");
+        Add_Step_WaitUntil("changed-owner-target queue movement remains fast before nav reflow", n"Check_NavigationReflowCruising");
         Add_Step("rebuild navigation while the live queue slot target stays unchanged", n"Step_RequestNavigationReflow");
         Add_Step_WaitUntil("navigation change republishes the live assignment without a physical hard stop", n"Check_NavigationReflowRetargeted");
         Add_Step("replace the owned episode with an external Crowd MoveTo", n"Step_RequestExternalMoveOverride");
         Add_Step_WaitUntil("adapter reclaims its unchanged queue assignment", n"Check_AdapterReclaimedMove");
         Add_Step("suppress movement while the agent is en route", n"Step_RequestSuppression");
         Add_Step_WaitUntil("suppression stops the adapter-owned move", n"Check_SuppressedAndIdle");
-        Add_Step("resume movement with an origin reflow", n"Step_RequestResumeAndReflow");
+        Add_Step("resume movement with an owner-target reflow", n"Step_RequestResumeAndReflow");
         Add_Step_WaitUntil("adapter owns a fresh reflowed move episode", n"Check_ResumedMoveIssued");
         Add_Step_WaitUntil("claimed front member continues closing to its settle radius", n"Check_ClaimedMoveStillClosing");
         Add_Step_WaitUntil("claimed front member physically settles at its slot", n"Check_ClaimedAgentSettled");
@@ -225,24 +225,20 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         _QueueOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         _SecondQueueOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_QueueOwner,
-            FTransform(FRotator::ZeroRotator, _Spawn, FVector::OneVector),
+            FTransform(FRotator::ZeroRotator, FVector(1000.0f, 0.0f, 0.0f), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
         utils_transform::Add(_SecondQueueOwner,
-            FTransform(FRotator::ZeroRotator, _Spawn, FVector::OneVector),
+            FTransform(FRotator::ZeroRotator, FVector(400.0f, -250.0f, 0.0f), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(FVector(1000.0f, 0.0f, 0.0f))));
-        auto QueueParams = FCk_Fragment_Queue_ParamsData(Origins);
+        auto QueueParams = FCk_Fragment_Queue_ParamsData();
         QueueParams.Set_SlotSpacingUu(120.0f);
         QueueParams.Set_SlotClaimRadiusUu(80.0f);
         QueueParams.Set_SlotSettleRadiusUu(10.0f);
         QueueParams.Set_SlotReacquireRadiusUu(30.0f);
         _Queue = utils_queue::Add(_QueueOwner, QueueParams);
-        auto SecondOrigins = TArray<FCk_Queue_Origin>();
-        SecondOrigins.Add(FCk_Queue_Origin(FTransform(FVector(400.0f, -250.0f, 0.0f))));
         _SecondQueue = utils_queue::Add(_SecondQueueOwner,
-            FCk_Fragment_Queue_ParamsData(SecondOrigins));
+            FCk_Fragment_Queue_ParamsData());
         _Queue.BindTo_OnQueueMemberStateChanged(
             FCk_Delegate_Queue_OnMemberStateChanged(this, n"OnMemberStateChanged"));
         _Queue.BindTo_OnQueueFormationStateChanged(
@@ -343,9 +339,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
             "normal queue reflow begins while the primary adapter owns meaningful physical speed");
         _ContinuousReflowSampling = true;
         _ContinuousReflowHardStopObserved = false;
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(FVector(880.0f, 0.0f, 0.0f))));
-        _Queue.Request_SetOrigins(FCk_Request_Queue_SetOrigins(Origins));
+        utils_transform::Request_SetLocation(_QueueOwner.As_Transform(), FVector(880.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
     }
 
     UFUNCTION()
@@ -398,7 +392,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         Assert_True(Snapshot.Get_AssignmentRevision() == _ContinuousReflowAssignmentRevision
             && _Agent.Get_ActiveMoveEpisode() == _ContinuousReflowEpisode
             && _Agent.Get_ActiveMoveCorrelationId() == _ContinuousReflowCorrelation,
-            "navigation reflow begins from the captured changed-origin assignment and Crowd episode");
+            "navigation reflow begins from the captured changed-owner-target assignment and Crowd episode");
         Assert_True(Get_CurrentSpeed(_Agent) > 120.0f,
             "navigation reflow begins while the primary adapter owns meaningful physical speed");
         _NavigationReflowTarget = Snapshot.Get_TargetWorldTransform().GetLocation();
@@ -485,9 +479,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         _Queue.Request_SetMovementSuppressed(
             FCk_Request_Queue_SetMovementSuppressed(FCk_Handle(_Agent), ECk_EnableDisable::Disable),
             FCk_Delegate_Request_OnCompleted(this, n"OnResumeCompleted"));
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(FVector(120.0f, 0.0f, 0.0f))));
-        _Queue.Request_SetOrigins(FCk_Request_Queue_SetOrigins(Origins));
+        utils_transform::Request_SetLocation(_QueueOwner.As_Transform(), FVector(120.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
     }
 
     UFUNCTION()
@@ -520,7 +512,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         auto Result = OutResult;
         FCk_Queue_MemberSnapshot FollowerSnapshot;
         const bool FollowerAtSlot = _Queue.TryGet_MemberSnapshot(FCk_Handle(_Follower), FollowerSnapshot)
-            && FollowerSnapshot.Get_OriginIndex() == 0 && FollowerSnapshot.Get_Rank() == 1
+            && FollowerSnapshot.Get_Rank() == 1
             && FollowerSnapshot.Get_State() == ECk_Queue_MemberState::AtSlot;
         const bool BothAssignmentsAreClaimed = HasSnapshot
             && Snapshot.Get_AssignmentRevision() == _ResumedAssignmentRevision
@@ -692,7 +684,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         Assert_True(_Queue.TryGet_MemberSnapshot(FCk_Handle(_Agent), Snapshot),
             "arrived agent remains a queue member immediately before service advance");
         _CapturedQueueSlot = Snapshot.Get_TargetWorldTransform().GetLocation();
-        _Queue.Request_AdvanceOrigin(FCk_Request_Queue_AdvanceOrigin(0),
+        _Queue.Request_Advance(FCk_Request_Queue_Advance(),
             FCk_Delegate_Request_OnCompleted(this, n"OnAdvanceCompleted"));
     }
 
@@ -710,7 +702,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         FCk_Queue_MemberSnapshot Snapshot;
         auto Result = OutResult;
         Result.Set(_Queue.TryGet_MemberSnapshot(FCk_Handle(_Follower), Snapshot)
-            && Snapshot.Get_OriginIndex() == 0 && Snapshot.Get_Rank() == 0
+            && Snapshot.Get_Rank() == 0
             && Snapshot.Get_AssignmentRevision() > 0
             && _Queue.Get_State() == ECk_Queue_State::Ready
             && _NavigationRetryExhaustedEvents == 0);
@@ -789,7 +781,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
         FCk_Queue_MemberSnapshot Snapshot;
         auto Result = OutResult;
         Result.Set(_Queue.TryGet_MemberSnapshot(FCk_Handle(_Follower), Snapshot)
-            && Snapshot.Get_OriginIndex() == 0 && Snapshot.Get_Rank() == 0
+            && Snapshot.Get_Rank() == 0
             && Snapshot.Get_State() == ECk_Queue_MemberState::AtFront
             && _FollowerSlotReachedEvents >= 2 && _NavigationRetryExhaustedEvents == 0);
     }
@@ -843,7 +835,7 @@ class UCk_AutoTest_Queue_CrowdAdapterMovesAndResumes : UCk_AutoTest_Base
     private void Step_AssertAdapterLifecycle(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_True(_InitialAssignmentRevision > 0 && _ResumedAssignmentRevision > _InitialAssignmentRevision,
-            "origin reflow gives the adapter a strictly newer queue assignment revision");
+            "owner-target reflow gives the adapter a strictly newer Queue assignment revision");
         Assert_True(_InitialEpisode > 0 && _ResumedEpisode > _InitialEpisode,
             "each observed queue assignment owns a strictly newer Crowd move episode");
         Assert_True(_ContinuousReflowAssignmentRevision > _InitialAssignmentRevision

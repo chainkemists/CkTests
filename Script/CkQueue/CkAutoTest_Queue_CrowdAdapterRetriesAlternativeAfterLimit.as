@@ -169,11 +169,10 @@ class UCk_AutoTest_Queue_CrowdAdapterRetriesAlternativeAfterLimit : UCk_AutoTest
             "the same CrowdAgent is admitted to the fallback queue");
     }
 
-    private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner, FVector InOrigin, int32 InHardLimit)
+    private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner, FVector InOwnerLocation, int32 InHardLimit)
     {
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(InOrigin)));
-        auto Params = FCk_Fragment_Queue_ParamsData(Origins);
+        utils_transform::Request_SetLocation(InOwner.As_Transform(), InOwnerLocation, ECk_LocalWorld::World);
+        auto Params = FCk_Fragment_Queue_ParamsData();
         Params.Set_SoftLimit(InHardLimit);
         Params.Set_HardLimit(InHardLimit);
         return utils_queue::Add(InOwner, Params);

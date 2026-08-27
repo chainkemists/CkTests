@@ -8,9 +8,7 @@ class UCk_AutoTest_Queue_InvalidSlotRadiiRejectAtomically : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform::Identity));
-        auto Params = FCk_Fragment_Queue_ParamsData(Origins);
+        auto Params = FCk_Fragment_Queue_ParamsData();
         Params.Set_SlotClaimRadiusUu(20.0f);
         Params.Set_SlotSettleRadiusUu(40.0f);
         Params.Set_SlotReacquireRadiusUu(30.0f);
@@ -27,7 +25,7 @@ class UCk_AutoTest_Queue_InvalidSlotRadiiRejectAtomically : UCk_AutoTest_Base
         float32 Infinity = 3.4e38f;
         Infinity *= 2.0f;
 
-        auto NonFiniteParams = FCk_Fragment_Queue_ParamsData(Origins);
+        auto NonFiniteParams = FCk_Fragment_Queue_ParamsData();
         NonFiniteParams.Set_SlotClaimRadiusUu(Infinity);
         NonFiniteParams.Set_SlotSettleRadiusUu(10.0f);
         NonFiniteParams.Set_SlotReacquireRadiusUu(20.0f);

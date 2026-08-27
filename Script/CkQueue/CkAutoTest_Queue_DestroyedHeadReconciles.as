@@ -249,16 +249,13 @@ class UCk_AutoTest_Queue_DestroyedHeadReconciles : UCk_AutoTest_Base
 
     private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner)
     {
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform::Identity));
-        return utils_queue::Add(InOwner, FCk_Fragment_Queue_ParamsData(Origins));
+        return utils_queue::Add(InOwner, FCk_Fragment_Queue_ParamsData());
     }
 
     private FCk_Handle_Queue CreateClaimQueue(FCk_Handle& InOwner)
     {
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(FVector(200.0f, 0.0f, 0.0f))));
-        auto Params = FCk_Fragment_Queue_ParamsData(Origins);
+        utils_transform::Request_SetLocation(InOwner.As_Transform(), FVector(200.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
+        auto Params = FCk_Fragment_Queue_ParamsData();
         Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ClaimFirstAvailableOnReach);
         return utils_queue::Add(InOwner, Params);
     }

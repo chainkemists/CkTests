@@ -18,13 +18,10 @@ class UCk_AutoTest_Queue_EightMemberLinearHardLimit : UCk_AutoTest_Base
     {
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_Owner,
-            FTransform(FVector(700.0f, 0.0f, 0.0f)),
+            FTransform(FRotator(0.0f, 180.0f, 0.0f), FVector(140.0f, 0.0f, 0.0f), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(
-            FRotator(0.0f, 180.0f, 0.0f), FVector(140.0f, 0.0f, 0.0f), FVector::OneVector)));
-        auto Params = FCk_Fragment_Queue_ParamsData(Origins);
+        auto Params = FCk_Fragment_Queue_ParamsData();
         Params.Set_HardLimit(8);
         Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
         Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);
@@ -77,15 +74,12 @@ class UCk_AutoTest_Queue_EightMemberLinearHardLimit : UCk_AutoTest_Base
     private void Check_EightMembersHardLimited(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         const auto Pressure = _Queue.Get_Pressure();
-        const auto OriginCounts = Pressure.Get_OriginMemberCounts();
-        const bool HasOneFullOrigin = OriginCounts.Num() == 1 && OriginCounts[0] == 8;
         auto Result = OutResult;
         Result.Set(_JoinCompletionCount == 8
             && _JoinSuccessCount == 8
             && _JoinFailureCount == 0
             && _Queue.Get_MemberCount() == 8
-            && Pressure.Get_IsHardLimited()
-            && HasOneFullOrigin);
+            && Pressure.Get_IsHardLimited());
     }
 
     UFUNCTION()
@@ -120,8 +114,8 @@ class UCk_AutoTest_Queue_EightMemberLinearHardLimit : UCk_AutoTest_Base
                 "each original member remains represented after the complete batch");
             Assert_True(Snapshot.Get_Member() == _Members[Index] && Snapshot.Get_Mover() == _Members[Index],
                 "each member retains its distinct transform-bearing mover");
-            Assert_True(Snapshot.Get_OriginIndex() == 0 && Snapshot.Get_Rank() == _Ranks[Index],
-                "the single origin retains each captured rank without a reflow mutation");
+            Assert_True(Snapshot.Get_Rank() == _Ranks[Index],
+                "the queue retains each captured rank without a reflow mutation");
             Assert_True(Snapshot.Get_Ticket() == _Tickets[Index],
                 "the settled public snapshot retains its captured ticket without mutation");
             Assert_Equals_Int(_Ranks[Index], Index,
@@ -137,7 +131,7 @@ class UCk_AutoTest_Queue_EightMemberLinearHardLimit : UCk_AutoTest_Base
                 Assert_True(_Tickets[Earlier] != _Tickets[Index],
                     "every member receives a unique admission ticket");
                 Assert_True(_Ranks[Earlier] != _Ranks[Index],
-                    "every member receives a unique rank at the single origin");
+                    "every member receives a unique rank in the Queue");
             }
         }
     }
