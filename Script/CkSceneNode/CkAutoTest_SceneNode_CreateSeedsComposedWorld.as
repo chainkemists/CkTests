@@ -4,23 +4,13 @@
 // CK SCENE NODE — AUTOMATION TEST: CREATE SEEDS THE COMPOSED WORLD
 //============================================================================
 //
-// Pins the SEED that utils_scene_node::Create writes, not the propagation
-// that corrects it afterwards. Create composes InLocalTransform into the new
-// node's Transform fragment up front, so the very first frame a consumer
-// reads that node it already sees InLocalTransform * ownerWorld.
+// Asserts SYNCHRONOUSLY, with no wait. Every other SceneNode and SceneNodeTween
+// test settles >= 0.25s or waits for tween completion first, so none of them can
+// distinguish a correct seed from a wrong seed that the layer-update processor
+// repairs a frame later. Adding a settle here silently guts the test.
 //
-// This must assert SYNCHRONOUSLY, with no wait. Every other SceneNode and
-// SceneNodeTween test settles for >= 0.25s or for tween completion first, so
-// none of them can distinguish a correct seed from a wrong seed that the
-// layer-update processor repairs a frame later. That gap shipped a real
-// defect: consumers which read the node's world during construction —
-// FProcessor_UnrealComponent_Setup pushes it straight onto a freshly created
-// SceneComponent — rendered one frame at the uncomposed pose.
-//
-// The local offset carries a non-uniform SCALE and a ROTATION because those
-// were the two observed symptoms (a sprite ~91x too large, a mesh 90 degrees
-// off). Parent scale stays uniform: a non-uniform parent scale under a
-// rotated child is shear, which FTransform composition does not model.
+// Parent scale stays uniform: a non-uniform parent scale under a rotated child
+// is shear, which FTransform composition does not model.
 //============================================================================
 
 class UCk_AutoTest_SceneNode_CreateSeedsComposedWorld : UCk_AutoTest_Base
@@ -70,7 +60,6 @@ class UCk_AutoTest_SceneNode_CreateSeedsComposedWorld : UCk_AutoTest_Base
             return;
         }
 
-        // No wait: this is the assertion the test exists for.
         AssertChildIsComposed("Immediately after Create (no wait)");
         if (IsFinished())
         { return; }
@@ -84,9 +73,7 @@ class UCk_AutoTest_SceneNode_CreateSeedsComposedWorld : UCk_AutoTest_Base
         if (IsFinished())
         { return; }
 
-        // Propagation must agree with the seed rather than move it — a seed that
-        // the layer-update processor then corrects would pass the check above and
-        // still pop on screen.
+        // Propagation must agree with the seed, not move it.
         AssertChildIsComposed("After settle (propagation must not move it)");
         if (IsFinished())
         { return; }
