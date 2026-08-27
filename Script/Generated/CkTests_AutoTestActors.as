@@ -6754,13 +6754,26 @@ class ACk_AutoTest_Projectile_Create_MakesDistinctChild_Actor : ACk_AutoTestRunn
     }
 }
 
-class ACk_AutoTest_Queue_ClaimFirstContestedSlots_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_Queue_ClaimFirstPostAdvanceCrowdProgress_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 20.0f;
+    default _TimeoutSeconds = 30.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Queue_ClaimFirstContestedSlots");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Queue_ClaimFirstPostAdvanceCrowdProgress");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_Queue_ClaimFirstTransformProximityReconciles_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 30.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Queue_ClaimFirstTransformProximityReconciles");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
@@ -6855,19 +6868,6 @@ class ACk_AutoTest_Queue_NavigationChangeRetriesImpossibleFormation_Actor : ACk_
     }
 }
 
-class ACk_AutoTest_Queue_OriginCapacityRejectsAtomically_Actor : ACk_AutoTestRunner
-{
-    default _TimeoutSeconds = 8.0f;
-    UFUNCTION(BlueprintOverride)
-    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
-    {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Queue_OriginCapacityRejectsAtomically");
-        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
-        ResolvedClass = Path.TryLoadClass();
-        return ResolvedClass;
-    }
-}
-
 class ACk_AutoTest_Queue_OriginReflowRejectsStaleArrival_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 20.0f;
@@ -6905,13 +6905,48 @@ class ACk_AutoTest_Queue_ReentrantRequestsSurviveDrain_Actor : ACk_AutoTestRunne
     }
 }
 
-class ACk_AutoTest_Queue_WeightedOriginsAdvanceIndependently_Actor : ACk_AutoTestRunner
+class ACk_AutoTest_QueueCoordinator_BurstDistributesAcrossTwoQueues_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 20.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
-        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Queue_WeightedOriginsAdvanceIndependently");
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_QueueCoordinator_BurstDistributesAcrossTwoQueues");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_QueueCoordinator_CapacityFallbackAndTenQueueDeterminism_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_QueueCoordinator_CapacityFallbackAndTenQueueDeterminism");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_QueueCoordinator_ExistingMembershipIsStickyAndInvalidQueuePruned_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_QueueCoordinator_ExistingMembershipIsStickyAndInvalidQueuePruned");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_QueueCoordinator_SingleQueueSelectionAndAdmission_Actor : ACk_AutoTestRunner
+{
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_QueueCoordinator_SingleQueueSelectionAndAdmission");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
