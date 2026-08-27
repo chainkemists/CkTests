@@ -21,11 +21,11 @@ class UCk_AutoTest_Queue_CrowdAdapterFacesOrigin : UCk_AutoTest_Base
         utils_nav::Request_NavigationRebuild_ForTesting(Context);
 
         Add_Step_WaitUntil("queue facing spawn and target are navigable", n"Check_NavigationReady");
-        Add_Step("compose a queue with a rotated origin and one CrowdAgent", n"Step_ComposeQueueAndAgent");
+        Add_Step("compose a queue with a rotated owner target and one CrowdAgent", n"Step_ComposeQueueAndAgent");
         Add_Step_WaitUntil("queue formation becomes ready", n"Check_QueueReady");
         Add_Step("join through the Crowd queue adapter", n"Step_RequestJoin");
         Add_Step_WaitUntil("Crowd reaches the assigned queue slot and becomes idle", n"Check_ArrivedAndIdle");
-        Add_Step_WaitUntil("adapter applies the assigned origin facing after arrival", n"Check_FacingApplied");
+        Add_Step_WaitUntil("adapter applies the assigned owner-target facing after arrival", n"Check_FacingApplied");
         Add_Step_WaitFrames("queue facing remains owned across later Crowd facing passes", 3);
         Add_Step("assert final queue-facing contract", n"Step_AssertFacing");
         Run_Steps(InHandle);
@@ -51,13 +51,10 @@ class UCk_AutoTest_Queue_CrowdAdapterFacesOrigin : UCk_AutoTest_Base
     {
         _QueueOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         utils_transform::Add(_QueueOwner,
-            FTransform(FRotator::ZeroRotator, _Spawn, FVector::OneVector),
+            FTransform(FRotator(0.0f, ExpectedYaw, 0.0f), FVector(120.0f, 0.0f, 0.0f), FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
 
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(
-            FRotator(0.0f, ExpectedYaw, 0.0f), FVector(120.0f, 0.0f, 0.0f), FVector::OneVector)));
-        auto QueueParams = FCk_Fragment_Queue_ParamsData(Origins);
+        auto QueueParams = FCk_Fragment_Queue_ParamsData();
         _Category = utils_gameplay_tag::ResolveGameplayTag(n"Queue.Category.AutoTestFacing");
         QueueParams.Set_Category(_Category);
         QueueParams.Set_SlotSpacingUu(ExpectedSlotSpacingUu);
@@ -140,6 +137,6 @@ class UCk_AutoTest_Queue_CrowdAdapterFacesOrigin : UCk_AutoTest_Base
     {
         const auto Rotation = utils_transform::Get_EntityCurrentRotation(_Agent.As_Transform());
         Assert_True(Math::Abs(Math::FindDeltaAngleDegrees(Rotation.Yaw, ExpectedYaw)) < 1.0f,
-            "Crowd queue adapter applies the assigned queue-origin yaw only after its movement episode reaches idle");
+            "Crowd queue adapter applies the assigned Queue owner-target yaw only after its movement episode reaches idle");
     }
 }

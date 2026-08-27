@@ -72,10 +72,8 @@ class UCk_AutoTest_Queue_RestoreJoinPreservesOrder : UCk_AutoTest_Base
     private void Step_Compose(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        utils_transform::Add(Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(FVector(300.0f, 0.0f, 0.0f))));
-        auto Params = FCk_Fragment_Queue_ParamsData(Origins);
+        utils_transform::Add(Owner, FTransform(FVector(300.0f, 0.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
+        auto Params = FCk_Fragment_Queue_ParamsData();
         Params.Set_SoftLimit(3);
         Params.Set_HardLimit(4);
         _Queue = utils_queue::Add(Owner, Params);

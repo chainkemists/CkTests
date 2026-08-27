@@ -21,7 +21,7 @@ class UCk_AutoTest_Queue_OriginReflowRejectsStaleArrival : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         _Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
-        utils_transform::Add(_Owner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
+        utils_transform::Add(_Owner, FTransform(FVector(200.0f, 0.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
         _Queue = CreateQueue(_Owner);
         _Queue.BindTo_OnQueueMemberStateChanged(
             FCk_Delegate_Queue_OnMemberStateChanged(this, n"OnMemberStateChanged"));
@@ -33,10 +33,10 @@ class UCk_AutoTest_Queue_OriginReflowRejectsStaleArrival : UCk_AutoTest_Base
         Add_Step_WaitUntil("queue setup completes", n"Check_QueueReady");
         Add_Step("join an initially reserved front and a later viable member", n"Step_RequestJoins");
         Add_Step_WaitUntil("reserve-on-formation assigns the initial front", n"Check_InitialFrontAssignment");
-        Add_Step("move the origin to force a fresh reservation revision", n"Step_RequestOriginReflow");
-        Add_Step_WaitUntil("origin reflow publishes a newer front reservation", n"Check_ReflowedFrontAssignment");
-        Add_Step("report the pre-reflow reservation as reached", n"Step_ReportPreReflowStaleArrival");
-        Add_Step_WaitUntil("pre-reflow arrival is ignored without changing the current reservation", n"Check_PreReflowStaleArrivalIgnored");
+        Add_Step("move the Queue owner target to force a fresh reservation revision", n"Step_RequestOwnerTransformReflow");
+        Add_Step_WaitUntil("owner-target reflow publishes a newer front reservation", n"Check_ReflowedFrontAssignment");
+        Add_Step("report the pre-owner-reflow reservation as reached", n"Step_ReportPreReflowStaleArrival");
+        Add_Step_WaitUntil("pre-owner-reflow arrival is ignored without changing the current reservation", n"Check_PreReflowStaleArrivalIgnored");
         Add_Step("report movement failure for the reserved front", n"Step_ReportFrontFailure");
         Add_Step_WaitUntil("failed front yields rank zero to the later viable member", n"Check_FailurePromotesLaterMember");
         Add_Step("report the failed front's stale old arrival", n"Step_ReportStaleFailedFrontArrival");
@@ -98,11 +98,9 @@ class UCk_AutoTest_Queue_OriginReflowRejectsStaleArrival : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void Step_RequestOriginReflow(FCk_Handle InHandle, FInstancedStruct InPayload)
+    private void Step_RequestOwnerTransformReflow(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(FVector(360.0f, 0.0f, 0.0f))));
-        _Queue.Request_SetOrigins(FCk_Request_Queue_SetOrigins(Origins));
+        utils_transform::Request_SetLocation(_Owner.As_Transform(), FVector(360.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
     }
 
     UFUNCTION()
@@ -212,9 +210,9 @@ class UCk_AutoTest_Queue_OriginReflowRejectsStaleArrival : UCk_AutoTest_Base
     private void Step_AssertFailureHandoff(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_True(_StaleResult == ECk_Request_OperationResult::Succeeded,
-            "both pre-reflow and failed-reservation stale arrivals drain as revision-safe no-ops");
+            "both pre-owner-reflow and failed-reservation stale arrivals drain as revision-safe no-ops");
         Assert_Equals_Int(_StaleCompletionCount, 2,
-            "the pre-reflow and failed-reservation stale arrivals each complete exactly once");
+            "the pre-owner-reflow and failed-reservation stale arrivals each complete exactly once");
         Assert_True(_LaterReachedResult == ECk_Request_OperationResult::Succeeded,
             "the later viable member may report reaching its promoted front reservation");
         Assert_Equals_Int(_SlotReachedEvents, 1,
@@ -223,9 +221,7 @@ class UCk_AutoTest_Queue_OriginReflowRejectsStaleArrival : UCk_AutoTest_Base
 
     private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner)
     {
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(FVector(200.0f, 0.0f, 0.0f))));
-        auto Params = FCk_Fragment_Queue_ParamsData(Origins);
+        auto Params = FCk_Fragment_Queue_ParamsData();
         Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);
         return utils_queue::Add(InOwner, Params);
     }

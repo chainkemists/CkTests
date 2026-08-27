@@ -50,7 +50,7 @@ class UCk_AutoTest_Queue_ReentrantRequestsSurviveDrain : UCk_AutoTest_Base
         if (InEvent.Get_Reason() == ECk_Queue_EventReason::SlotReached && Member == _First)
         {
             _SlotReachedEvents += 1;
-            _Queue.Request_AdvanceOrigin(FCk_Request_Queue_AdvanceOrigin(0),
+            _Queue.Request_Advance(FCk_Request_Queue_Advance(),
                 FCk_Delegate_Request_OnCompleted(this, n"OnAdvanceCompleted"));
         }
         else if (InEvent.Get_Reason() == ECk_Queue_EventReason::Advanced && Member == _First)
@@ -121,7 +121,7 @@ class UCk_AutoTest_Queue_ReentrantRequestsSurviveDrain : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_RequestEarlyAdvance(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        _Queue.Request_AdvanceOrigin(FCk_Request_Queue_AdvanceOrigin(0),
+        _Queue.Request_Advance(FCk_Request_Queue_Advance(),
             FCk_Delegate_Request_OnCompleted(this, n"OnEarlyAdvanceCompleted"));
     }
 
@@ -166,8 +166,7 @@ class UCk_AutoTest_Queue_ReentrantRequestsSurviveDrain : UCk_AutoTest_Base
 
     private FCk_Handle_Queue CreateQueue(FCk_Handle& InOwner)
     {
-        auto Origins = TArray<FCk_Queue_Origin>();
-        Origins.Add(FCk_Queue_Origin(FTransform(FVector(200.0f, 0.0f, 0.0f))));
-        return utils_queue::Add(InOwner, FCk_Fragment_Queue_ParamsData(Origins));
+        utils_transform::Request_SetLocation(InOwner.As_Transform(), FVector(200.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
+        return utils_queue::Add(InOwner, FCk_Fragment_Queue_ParamsData());
     }
 }
