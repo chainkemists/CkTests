@@ -87,6 +87,7 @@ namespace CkTests_Gyms
         CkGym_Cycler::RegisterProjectGym("USF Materials",      ACk_UsfGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Vat",                ACk_VatGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("VfxExamples",        ACk_VfxExamplesGym_GameMode);
+        CkGym_Cycler::RegisterProjectGym("Visual Lod",         ACk_VisualLodGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("Voice Chat",         ACk_VoiceChatGym_GameMode);
         CkGym_Cycler::RegisterProjectGym("VoxelNav Flying Vs Grounded", ACk_VoxelNavGym_FlyingVsGrounded_GameMode);
         CkGym_Cycler::RegisterProjectGym("VoxelNav Stress (Flying 400)", ACk_VoxelNavGym_Stress_GameMode);
