@@ -1,4 +1,4 @@
-// Auto-generated multi-client AutoTest C++ stubs — DO NOT EDIT.
+// Auto-generated multi-client AutoTest C++ stubs - DO NOT EDIT.
 // Regenerated on editor startup and after every AngelScript recompile.
 //
 // =====================================================================
@@ -8,13 +8,13 @@
 // Each block below is the C++ orchestration glue for one AS-authored net
 // test. The actual test body lives in the corresponding .as file under
 // `Plugins/<X>/Script/Ck<Feature>/CkAutoTest_Net_*.as`. AS authors write
-// one .as file — this generator produces the C++ stub from the AS class's
+// one .as file - this generator produces the C++ stub from the AS class's
 // CDO `_NetMode` default, choosing the Replicated- or Independent-mode
 // shape automatically.
 //
 // `Replicated`-mode stubs spawn an `ACk_AutoTest_NetSubject` on the server
 // then run the AS body on every world. `ServerAndClientsIndependent` stubs
-// skip the spawn — the AS body operates on each world's TransientEntity
+// skip the spawn - the AS body operates on each world's TransientEntity
 // without cross-world coordination.
 //
 // To author a new net test:
@@ -22,7 +22,7 @@
 //   2. Subclass `UCk_AutoTest_NetBase` (defaults to Replicated) or set
 //      `default _NetMode = ECk_AutoTest_NetMode::ServerAndClientsIndependent;`
 //      on a `UCk_AutoTest_Base` subclass.
-//   3. Recompile AS — the generator emits the matching stub here on the
+//   3. Recompile AS - the generator emits the matching stub here on the
 //      next PostCompile. No C++ edits required.
 // =====================================================================
 
@@ -38,7 +38,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_DynamicFragment_DataReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -102,7 +102,7 @@ bool FCkDynamicNet_AS_DynamicFragment_DataReplicates::RunTest(const FString& Par
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_DynamicFragment_DriverCarrierChannelOwned (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -166,7 +166,7 @@ bool FCkDynamicNet_AS_DynamicFragment_DriverCarrierChannelOwned::RunTest(const F
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_DynamicFragment_DriverCarrierOnNotify (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -230,7 +230,7 @@ bool FCkDynamicNet_AS_DynamicFragment_DriverCarrierOnNotify::RunTest(const FStri
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_DynamicFragment_DriverCarrierReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -294,7 +294,7 @@ bool FCkDynamicNet_AS_DynamicFragment_DriverCarrierReplicates::RunTest(const FSt
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_DynamicFragment_DynHandleOnNotify (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -358,7 +358,7 @@ bool FCkDynamicNet_AS_DynamicFragment_DynHandleOnNotify::RunTest(const FString& 
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_DynamicFragment_DynHandleReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -422,7 +422,7 @@ bool FCkDynamicNet_AS_DynamicFragment_DynHandleReplicates::RunTest(const FString
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_DynamicFragment_RawHandleReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -486,7 +486,7 @@ bool FCkDynamicNet_AS_DynamicFragment_RawHandleReplicates::RunTest(const FString
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_DynamicFragment_RepNotifyFires (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -550,7 +550,7 @@ bool FCkDynamicNet_AS_DynamicFragment_RepNotifyFires::RunTest(const FString& Par
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_DynamicFragment_UpdateReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
