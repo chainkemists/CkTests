@@ -1,4 +1,4 @@
-// Auto-generated multi-client AutoTest C++ stubs — DO NOT EDIT.
+// Auto-generated multi-client AutoTest C++ stubs - DO NOT EDIT.
 // Regenerated on editor startup and after every AngelScript recompile.
 //
 // =====================================================================
@@ -8,13 +8,13 @@
 // Each block below is the C++ orchestration glue for one AS-authored net
 // test. The actual test body lives in the corresponding .as file under
 // `Plugins/<X>/Script/Ck<Feature>/CkAutoTest_Net_*.as`. AS authors write
-// one .as file — this generator produces the C++ stub from the AS class's
+// one .as file - this generator produces the C++ stub from the AS class's
 // CDO `_NetMode` default, choosing the Replicated- or Independent-mode
 // shape automatically.
 //
 // `Replicated`-mode stubs spawn an `ACk_AutoTest_NetSubject` on the server
 // then run the AS body on every world. `ServerAndClientsIndependent` stubs
-// skip the spawn — the AS body operates on each world's TransientEntity
+// skip the spawn - the AS body operates on each world's TransientEntity
 // without cross-world coordination.
 //
 // To author a new net test:
@@ -22,7 +22,7 @@
 //   2. Subclass `UCk_AutoTest_NetBase` (defaults to Replicated) or set
 //      `default _NetMode = ECk_AutoTest_NetMode::ServerAndClientsIndependent;`
 //      on a `UCk_AutoTest_Base` subclass.
-//   3. Recompile AS — the generator emits the matching stub here on the
+//   3. Recompile AS - the generator emits the matching stub here on the
 //      next PostCompile. No C++ edits required.
 // =====================================================================
 
@@ -38,7 +38,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_Byte_AlternatingOverrideTracksOnClient (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -102,7 +102,7 @@ bool FCkAttributeNet_AS_Byte_AlternatingOverrideTracksOnClient::RunTest(const FS
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_Byte_ModifierAddReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -166,7 +166,7 @@ bool FCkAttributeNet_AS_Byte_ModifierAddReplicates::RunTest(const FString& Param
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_Byte_OverrideReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -230,7 +230,7 @@ bool FCkAttributeNet_AS_Byte_OverrideReplicates::RunTest(const FString& Paramete
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_Float_InitialValueReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -294,7 +294,7 @@ bool FCkAttributeNet_AS_Float_InitialValueReplicates::RunTest(const FString& Par
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_Float_Local_AddWorksOnBothWorlds (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -358,7 +358,7 @@ bool FCkAttributeNet_AS_Float_Local_AddWorksOnBothWorlds::RunTest(const FString&
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_Integer_ModifierAddReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -422,7 +422,7 @@ bool FCkAttributeNet_AS_Integer_ModifierAddReplicates::RunTest(const FString& Pa
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_Integer_OverrideReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -486,7 +486,7 @@ bool FCkAttributeNet_AS_Integer_OverrideReplicates::RunTest(const FString& Param
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_Integer_RefillReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -550,7 +550,7 @@ bool FCkAttributeNet_AS_Integer_RefillReplicates::RunTest(const FString& Paramet
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_Vector_ModifierAddReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
@@ -614,7 +614,7 @@ bool FCkAttributeNet_AS_Vector_ModifierAddReplicates::RunTest(const FString& Par
 // --------------------------------------------------------------------------------------------------------------------
 
 // Auto-generated from AS class Ck_AutoTest_Net_Vector_OverrideReplicates (Replicated-mode).
-// DO NOT EDIT — regenerated on editor startup and every successful AS recompile.
+// DO NOT EDIT - regenerated on editor startup and every successful AS recompile.
 
 namespace
 {
