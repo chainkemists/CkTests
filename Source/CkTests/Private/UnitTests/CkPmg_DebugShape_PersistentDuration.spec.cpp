@@ -5,6 +5,7 @@
 #include "CkEcs/World/CkEcsWorld.h"
 #include "CkPmg/CkPmg_Fragment.h"
 #include "CkPmg/CkPmg_Processor_DebugShapes.h"
+#include "CkPmg/CkPmg_Utils_DebugLines.h"
 #include "CkPmg/CkPmg_Utils_DebugShapes.h"
 #include "CkPmg/CkPmg_Utils_TextShapes.h"
 
@@ -99,5 +100,73 @@ bool FCkPmg_DebugShape_PersistentDuration_RequestUpdatesMembership::RunTest(cons
 
     TestTrue(TEXT("persistent duration removes shape from duration processing"),
         Entity.Has<ck::FTag_Pmg_DebugShape_PersistentDuration>());
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkPmg_DebugLineSet_ComposesRetainedShapeAndRebakesThickness,
+    "Ck.Pmg.DebugLineSet.BreadcrumbSupport.ComposesAndRebakesThickness",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkPmg_DebugLineSet_ComposesRetainedShapeAndRebakesThickness::RunTest(const FString& Parameters)
+{
+    AddExpectedError(
+        TEXT("Cannot create a retained PMG line set under invalid owner"),
+        EAutomationExpectedErrorFlags::Contains,
+        2);
+    auto InvalidOwner = FCk_Handle{};
+    const auto RejectedLineSet = ck::pmg::Create_DebugLineSet(
+        InvalidOwner,
+        FTransform::Identity,
+        FLinearColor::White,
+        2.0f);
+    TestFalse(TEXT("an invalid owner is rejected before line-set composition"),
+        ck::IsValid(RejectedLineSet));
+
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& Registry = EcsWorld.Get_Registry();
+    auto Root = FCk_Handle{Registry.Get_TransientEntity(), Registry.Get_RegistryHandle()};
+    auto Owner = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Root, {});
+
+    auto LineSet = ck::pmg::Create_DebugLineSet(
+        Owner,
+        FTransform::Identity,
+        FLinearColor::White,
+        2.0f);
+
+    TestTrue(TEXT("line set is a valid typed PMG shape"), ck::IsValid(LineSet));
+    TestTrue(TEXT("line set owns a PMG current fragment"),
+        LineSet.Has<ck::FFragment_Pmg_DebugShape_Current>());
+    TestTrue(TEXT("line set is routed to its dedicated setup processor"),
+        LineSet.Has<ck::FTag_Pmg_DebugShape_LineSet>() &&
+        LineSet.Has<ck::FTag_Pmg_DebugShape_NeedsSetup>());
+    TestTrue(TEXT("line set persists with its owning entity"),
+        LineSet.Has<ck::FTag_Pmg_DebugShape_PersistentDuration>());
+
+    ck::pmg::Append_DebugLine_World(
+        LineSet,
+        FVector::ZeroVector,
+        FVector{100.0f, 0.0f, 0.0f},
+        FLinearColor::White,
+        2.0f);
+    TestTrue(TEXT("append creates one cached line and arms one-shot baking"),
+        LineSet.Has<ck::FFragment_Pmg_DebugShape_Lines>() &&
+        LineSet.Get<ck::FFragment_Pmg_DebugShape_Lines>().Get_Lines().Num() == 1 &&
+        LineSet.Has<ck::FTag_Pmg_DebugShape_LinesNeedBaking>());
+
+    LineSet.Remove<ck::FTag_Pmg_DebugShape_NeedsSetup>();
+    UCk_Utils_Pmg_DebugShape_UE::Request_SetLineThickness(
+        LineSet,
+        FCk_Request_Pmg_DebugShape_SetLineThickness{5.0f},
+        {});
+    auto Processor = ck::FProcessor_Pmg_DebugShape_HandleRequests{Registry};
+    Processor.Tick(FCk_Time::ZeroSecond());
+
+    TestTrue(TEXT("thickness mutation updates cached geometry before rebaking"),
+        FMath::IsNearlyEqual(
+            LineSet.Get<ck::FFragment_Pmg_DebugShape_Lines>().Get_Lines()[0]._Thickness,
+            5.0f));
+    TestTrue(TEXT("thickness mutation re-arms one-shot line baking"),
+        LineSet.Has<ck::FTag_Pmg_DebugShape_LinesNeedBaking>());
     return true;
 }
