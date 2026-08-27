@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: OCCUPANCY RAW STAMP
+// CK GRID - AUTOMATION TEST: OCCUPANCY RAW STAMP
 //============================================================================
 //
 // Exercises the raw occupancy layer (no validation): adding a placement stamps

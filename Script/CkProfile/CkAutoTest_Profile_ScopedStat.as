@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROFILE — AUTOMATION TEST: ck::ScopedStat IS USABLE FROM ANGELSCRIPT
+// CK PROFILE - AUTOMATION TEST: ck::ScopedStat IS USABLE FROM ANGELSCRIPT
 //============================================================================
 //
 // Pins that the AngelScript scope-stat guard binds and runs end to end:
@@ -23,7 +23,7 @@ class UCk_AutoTest_Profile_ScopedStat : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
 
         // Auto-naming: the no-arg form derives "<Class>::<Method>" from the
-        // active script context — no string to type.
+        // active script context - no string to type.
         const auto AutoName = ck::Get_ActiveScriptScopeName();
         Assert_True(AutoName == "UCk_AutoTest_Profile_ScopedStat::DoBeginPlay",
             "auto-derived scope name should be <Class>::<Method>, got: " + AutoName);

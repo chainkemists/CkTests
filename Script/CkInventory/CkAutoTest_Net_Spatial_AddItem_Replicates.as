@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK AUTOMATION TEST — NETWORKED INVENTORY Spatial AddItem REPLICATION
+// CK AUTOMATION TEST - NETWORKED INVENTORY Spatial AddItem REPLICATION
 //============================================================================
 //
 // Server calls Request_AddItemByDefinition on its grid-backed (Spatial)
@@ -27,7 +27,7 @@ class UCk_AutoTest_Net_Spatial_AddItem_Replicates : UCk_AutoTest_NetBase
         auto _CkPerfScope = ck::ScopedStat();
         auto Subject = Get_SubjectEntity();
         if (ck::Is_NOT_Valid(Subject))
-        { FinishFailure("subject not found — harness misconfigured?"); return; }
+        { FinishFailure("subject not found - harness misconfigured?"); return; }
 
         auto SubjectActor = utils_owning_actor::Get_EntityOwningActor(Subject);
         auto InventoryActor = Cast<ACk_AutoTest_NetSubject_Inventory_UE>(SubjectActor);
@@ -40,7 +40,7 @@ class UCk_AutoTest_Net_Spatial_AddItem_Replicates : UCk_AutoTest_NetBase
 
         if (utils_net::Get_HasAuthority(Subject))
         {
-            // Shield is 1x1 with a Tags-only trait — it has the grid Dimensions a spatial
+            // Shield is 1x1 with a Tags-only trait - it has the grid Dimensions a spatial
             // placement needs and avoids the Stackable framework warning that Potion/Arrow fire
             // (warnings escalate to test failures). See CkAutoTest_Inventory_Spatial_*.
             auto ShieldDef = inv_gym_items::Shield();

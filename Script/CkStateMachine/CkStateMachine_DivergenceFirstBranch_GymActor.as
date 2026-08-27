@@ -1,17 +1,17 @@
 // ============================================================================
-// SM DIVERGENCE-FIRST-BRANCH DUPLICATE-TASK REGRESSION — GYM ACTOR
+// SM DIVERGENCE-FIRST-BRANCH DUPLICATE-TASK REGRESSION - GYM ACTOR
 // ============================================================================
 //
 // Driver actor for CkStateMachine_TestStates_DivergenceFirstBranch.as.
 //
 // Test plan:
 //   Pass A: AddOrderLeftFirst = true,  PaymentChoice = Left
-//           Run one cycle. Expect each task exactly 1×. With the bug,
+//           Run one cycle. Expect each task exactly 1x. With the bug,
 //           Counter_Left == 2 (Left is the first-added branch AND the
 //           chosen branch).
 //
 //   Pass B: AddOrderLeftFirst = false, PaymentChoice = Right
-//           Run one cycle. Expect each task exactly 1×. With the bug,
+//           Run one cycle. Expect each task exactly 1x. With the bug,
 //           Counter_Right == 2 (Right is the first-added branch AND the
 //           chosen branch).
 //
@@ -67,7 +67,7 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
     UPROPERTY(ExposeOnSpawn)
     float32 PerPassSettleSeconds = 1.5f;
 
-    // Station entity — receives the FCkGym_Station_TitleAndDescription
+    // Station entity - receives the FCkGym_Station_TitleAndDescription
     // fragment for the demo display panel.
     UPROPERTY(ExposeOnSpawn)
     FCk_Handle StationHandle;
@@ -133,7 +133,7 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
     }
 
     // ========================================================================
-    // PASS SNAPSHOTS — captured at the end of each pass so the second pass'
+    // PASS SNAPSHOTS - captured at the end of each pass so the second pass'
     // counters don't overwrite the first pass' verdict before the display
     // is updated.
     // ========================================================================
@@ -156,7 +156,7 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
     // ENTITIES
     // ========================================================================
 
-    // One spawn per pass — each Add() runs the graph walk + initial-state
+    // One spawn per pass - each Add() runs the graph walk + initial-state
     // entry once. The two passes share counter fields but snapshot before
     // resetting so we can compare.
     UPROPERTY() FCk_Handle PassAEntity;
@@ -200,8 +200,8 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
             Pending,
             FCk_Delegate_EntityScript_Constructed(this, n"OnPassAConstructed"));
 
-        // Settle timer is started in OnPassAConstructed — after the SM is actually
-        // added — so PerPassSettleSeconds measures the SM-chain duration only, not
+        // Settle timer is started in OnPassAConstructed - after the SM is actually
+        // added - so PerPassSettleSeconds measures the SM-chain duration only, not
         // the async entity-spawn overhead (~250ms under PIE load).
     }
 
@@ -250,7 +250,7 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
             Pending,
             FCk_Delegate_EntityScript_Constructed(this, n"OnPassBConstructed"));
 
-        // Settle timer started in OnPassBConstructed — see StartPassA comment.
+        // Settle timer started in OnPassBConstructed - see StartPassA comment.
     }
 
     UFUNCTION()
@@ -337,7 +337,7 @@ class ACk_SmTest_DivergenceFirstBranch_GymActor : AActor
 
         if (ck::IsValid(StationHandle))
         {
-            auto Title = f"DIVERGENCE FIRST-BRANCH — {StatusLabel}";
+            auto Title = f"DIVERGENCE FIRST-BRANCH - {StatusLabel}";
 
             auto Setup =
                 FString("Sub-SM: Enter -> Idle -> Branch -+-> Left  -> Finish\n")

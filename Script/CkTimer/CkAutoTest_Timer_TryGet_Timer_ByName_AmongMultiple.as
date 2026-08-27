@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: TRYGET_TIMER BY NAME AMONG MULTIPLE
+// CK TIMER - AUTOMATION TEST: TRYGET_TIMER BY NAME AMONG MULTIPLE
 //============================================================================
 //
 // Pins TryGet_Timer(owner, name) lookup on an owner hosting three named

@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RESOLVER — AUTOMATION TEST: ResolverSource Create_Transient
+// CK RESOLVER - AUTOMATION TEST: ResolverSource Create_Transient
 // The transient factory spawns a ResolverSource under the world's transient
 // owner. WorldContextObject is auto-supplied by the AS binding.
 

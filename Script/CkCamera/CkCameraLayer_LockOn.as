@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — EXAMPLE LAYER: LOCK-ON / AUTO-REORIENT
+// CK CAMERA - EXAMPLE LAYER: LOCK-ON / AUTO-REORIENT
 //============================================================================
 //
 // Input-free lock-on: auto-reorient drives the boom toward a look-at target (supplied via the AddLayer request's
 // _CameraTarget in LookAt mode, resolved as the dominant layer's look-at and fed into the POV pipeline).
-// Orientation control is off — the camera tracks the target, not the player's stick.
+// Orientation control is off - the camera tracks the target, not the player's stick.
 //============================================================================
 
 class UCk_CameraLayer_LockOn : UCk_CameraLayer_EntityScript

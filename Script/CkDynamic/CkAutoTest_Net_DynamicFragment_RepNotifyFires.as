@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — NET AUTOMATION TEST: OnRepNotify CALLBACK FIRES ON CLIENT
+// CK DYNAMIC - NET AUTOMATION TEST: OnRepNotify CALLBACK FIRES ON CLIENT
 //============================================================================
 //
 // Pins the BindTo_OnRepNotify contract specifically (the data-arrival tests

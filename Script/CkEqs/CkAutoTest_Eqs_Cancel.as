@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — AUTOMATION TEST: CANCEL MID-QUERY (Pass-3.1 E3)
+// CK EQS - AUTOMATION TEST: CANCEL MID-QUERY (Pass-3.1 E3)
 //============================================================================
 //
 // Verifies Request_CancelAllQueries flow:
 //   1. Build a deferred query with TWO tests on a 441-candidate grid.
 //      Two tests at 441 each (882 evaluations) exceeds the per-frame budget
-//      of 256, so the query yields between tests — guaranteed multi-frame.
+//      of 256, so the query yields between tests - guaranteed multi-frame.
 //   2. Bind OnComplete via the request's _OnComplete delegate.
 //   3. On every OnTick, attempt CancelAll until it succeeds. Frame N (the
 //      enqueue frame) returns 0 because HandleRequests hasn't spawned the
@@ -33,14 +33,14 @@ class UCk_AutoTest_Eqs_Cancel : UCk_AutoTest_Base
         _Self = LocalHandle;
         utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        // 21x21 = 441 candidates — large enough that a 2-test query exceeds
+        // 21x21 = 441 candidates - large enough that a 2-test query exceeds
         // the per-frame candidate budget (256) and yields at least once.
         auto Generator = FCk_Eqs_GeneratorParams();
         Generator.Set_GeneratorType(ECk_Eqs_GeneratorType::SimpleGrid);
         Generator.Set_SpaceBetween(50.0f);
         Generator.Set_GridHalfSize(500.0f);
 
-        // Two cheap score tests — Distance + Dot. The pipeline:
+        // Two cheap score tests - Distance + Dot. The pipeline:
         //   Frame N+1 OnTick: cancel issued
         //   Frame N+1 PostTransform: Test sees Cancelled, fails+broadcasts.
         // Without two tests, the budget anti-deadlock would run everything
@@ -75,7 +75,7 @@ class UCk_AutoTest_Eqs_Cancel : UCk_AutoTest_Base
 
         _TickCount++;
 
-        // Already cancelled — wait for OnComplete.
+        // Already cancelled - wait for OnComplete.
         if (_CancelCount > 0) { return; }
 
         // Try every tick. On the enqueue frame, HandleRequests hasn't run yet

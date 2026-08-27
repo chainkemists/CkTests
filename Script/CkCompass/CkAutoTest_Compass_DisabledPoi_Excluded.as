@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK COMPASS — AUTOMATION TEST: disabled POI is excluded, re-enable restores
+// CK COMPASS - AUTOMATION TEST: disabled POI is excluded, re-enable restores
 //============================================================================
 //
 // CkPoi v2: disable is the Poi.Disabled CkEntityTag. An in-range POI
 // disappears from entries after the tag is added (Add_UsingGameplayTag) and
-// returns after it is removed (Request_TryRemove_UsingGameplayTag) — the
+// returns after it is removed (Request_TryRemove_UsingGameplayTag) - the
 // projector skips entities carrying Poi.Disabled every update. Both mutations
 // are deferred, so each is followed by a wait on the membership actually
 // changing rather than on a fixed number of hops.

@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: STOP TERMINATES THE PENDING PATH EPISODE
+// CK CROWD - AUTOMATION TEST: STOP TERMINATES THE PENDING PATH EPISODE
 //============================================================================
 //
 // Regression pin for the orphaned nav-path slot.
@@ -9,7 +9,7 @@
 // SAME shared FFragment_Nav_PathResult at Pending via MarkPathPending. On the
 // PathNetwork and VoxelNav branches no CkNavigation request is ever enqueued,
 // so MarkPathPending is that slot's only writer, and the ONLY code that can
-// move it off Pending is FProcessor_CrowdAgent_OnRouteResolved — whose gate
+// move it off Pending is FProcessor_CrowdAgent_OnRouteResolved - whose gate
 // requires the agent to still hold PathPending or Walking.
 //
 // Request_Stop drops both of those tags. So a Stop landing while a sidewalk
@@ -23,7 +23,7 @@
 // genuinely parked at Pending, Stop, then let any late route result land. The
 // slot must NOT still read Pending.
 //
-// RED at the time of writing — it is the A/B proof that the defect is real.
+// RED at the time of writing - it is the A/B proof that the defect is real.
 //============================================================================
 
 class UCk_AutoTest_Crowd_Stop_TerminatesPendingPathEpisode : UCk_AutoTest_Base
@@ -91,7 +91,7 @@ class UCk_AutoTest_Crowd_Stop_TerminatesPendingPathEpisode : UCk_AutoTest_Base
         utils_euler_integrator::Request_Start(LocalHandle);
 
         // Composing the follower is what routes MoveTo down the PathNetwork
-        // branch of RequestPathForActiveGoal — the branch that enqueues no
+        // branch of RequestPathForActiveGoal - the branch that enqueues no
         // CkNavigation request and therefore cannot self-heal the slot.
         auto FollowerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
         FollowerParams.Set_Network(_Network);
@@ -119,7 +119,7 @@ class UCk_AutoTest_Crowd_Stop_TerminatesPendingPathEpisode : UCk_AutoTest_Base
         const auto Status = utils_nav::Get_PathStatus(_Agent);
 
         Assert_True(Status != ECk_Nav_PathStatus::Pending,
-            f"a stopped agent must not be left claiming a path query is in flight — the shared nav slot still reads {Status} {SettleFrames} frames after Request_Stop, so every Get_PathStatus consumer is told a query is pending forever");
+            f"a stopped agent must not be left claiming a path query is in flight - the shared nav slot still reads {Status} {SettleFrames} frames after Request_Stop, so every Get_PathStatus consumer is told a query is pending forever");
 
         Assert_False(utils_nav::Has_Path(_Agent),
             f"a stopped agent must not retain a usable path either (status {Status})");

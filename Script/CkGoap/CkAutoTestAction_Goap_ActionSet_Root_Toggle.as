@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: ROOT (Toggle test)
+// CK GOAP - AUTOMATION TEST ACTION: ROOT (Toggle test)
 //============================================================================
 //
 // Root action for the Toggle test.

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: ADD-BY-DEFINITION GRACEFUL NULL HANDLING
+// CK INVENTORY - AUTOMATION TEST: ADD-BY-DEFINITION GRACEFUL NULL HANDLING
 //============================================================================
 //
 // Verifies that Request_AddItemByDefinition with a null/missing
@@ -12,18 +12,18 @@
 //   2. Issue Request_AddItemByDefinition with Definition = nullptr, Amount = 1.
 //   3. Result delegate fires with Result == Failed_InvalidDefinition (or
 //      another Failed_* enum), AmountAdded == 0, ItemsCreated empty.
-//   4. Get_NumItems(Inventory) remains 0 — no partial state.
+//   4. Get_NumItems(Inventory) remains 0 - no partial state.
 //
 // Reference: CkInventory_Processor.cpp:441 sets the initial result to
 // Failed_InvalidDefinition; a valid definition then advances past that.
 //
 //============================================================================
-// EXPECTED HARNESS-LEVEL FAILURE — INTENTIONAL FRAMEWORK WARNING
+// EXPECTED HARNESS-LEVEL FAILURE - INTENTIONAL FRAMEWORK WARNING
 //============================================================================
 //
 // This test deliberately passes a null definition. CkInventory_Processor.cpp:462
 // logs `inventory::Warning(TEXT("AddItemByDefinition: Invalid definition"))`
-// when validation rejects the request — and per Gotcha #1 of the AutoTest
+// when validation rejects the request - and per Gotcha #1 of the AutoTest
 // framework spec, Warning-level log output during a Functional Test is
 // treated as a test failure regardless of assertion outcome.
 //
@@ -31,10 +31,10 @@
 // the row as "Failed" only because of the captured warning. To turn this
 // green at the harness level, the framework would need to either:
 //   - Downgrade `AddItemByDefinition: Invalid definition` to LogLevel::Log
-//     (it's an expected, handled rejection path — not an actionable warning), OR
+//     (it's an expected, handled rejection path - not an actionable warning), OR
 //   - Provide a per-test opt-out for expected-warning patterns.
 //
-// Test is left as-is so the inventory contract (null def → Failed_InvalidDefinition,
+// Test is left as-is so the inventory contract (null def -> Failed_InvalidDefinition,
 // no partial state, predicate path bypassed) remains pinned regardless
 // of how the framework log-level decision lands.
 //============================================================================
@@ -78,7 +78,7 @@ class UCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset : UCk_AutoTest_Bas
         Assert_Equals_Int(InAmountAdded, 0, "AmountAdded must be 0 for an invalid definition");
         Assert_Equals_Int(InItemsCreated.Num(), 0, "ItemsCreated must be empty for an invalid definition");
         Assert_Equals_Int(_Inventory.Get_NumItems(), 0,
-            "Inventory must remain empty after a rejected add — no partial-state leakage");
+            "Inventory must remain empty after a rejected add - no partial-state leakage");
 
         FinishSuccess();
     }
@@ -89,7 +89,7 @@ class ACk_AutoTest_Inventory_AddItemByDefinition_MissingAsset_Actor : ACk_AutoTe
     default _TestEntityScriptClass = UCk_AutoTest_Inventory_AddItemByDefinition_MissingAsset;
 
     // The test intentionally passes a null definition. CkInventory_Processor logs
-    // `AddItemByDefinition: Invalid definition` — a legitimate warning for production
+    // `AddItemByDefinition: Invalid definition` - a legitimate warning for production
     // callers (caller-side bug indicator), but this test exercises the path on purpose.
     // Suppress so the harness doesn't escalate the warning into a test failure.
     // The library keeps the Warning severity for everyone outside this test.

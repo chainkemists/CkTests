@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER CHAIN TRUNCATION
+// CK GOAP - AUTOMATION TEST: PLANNER CHAIN TRUNCATION
 //============================================================================
 //
-// Validates §9 row 3: "Plan[0] flips mid-life → chain truncates from new
+// Validates Sec.9 row 3: "Plan[0] flips mid-life -> chain truncates from new
 // diverge-point, OnPlannerDeactivated fires per removed Action."
 //
 // Setup:
@@ -16,16 +16,16 @@
 //     Composite: has Leaf_B as child.
 //
 // Phase 1 (initial plan):
-//   Root plans → picks Mid_A (lower cost). ChainUpdate extends chain to
+//   Root plans -> picks Mid_A (lower cost). ChainUpdate extends chain to
 //   [Root, Mid_A]. OnPlannerActivated fires on Mid_A. OnPlannerDeactivated
 //   is bound on Mid_A before ChainUpdate runs.
 //
-// Phase 2 (cost bump → replan → truncation):
-//   Request_SetReplanPolicy(Root, OnEitherDirty) — ensures cost changes
+// Phase 2 (cost bump -> replan -> truncation):
+//   Request_SetReplanPolicy(Root, OnEitherDirty) - ensures cost changes
 //   trigger automatic replan. Request_SetActionCost(Root, Mid_A_Class, 100)
-//   → Mid_A cost exceeds Mid_B's → Root replans → Plan[0]=Mid_B.
-//   ChainUpdate sees chain[1]=Mid_A ≠ Plan[0]=Mid_B → truncates [Mid_A]
-//   (OnPlannerDeactivated fires on Mid_A) → appends Mid_B (OnPlannerActivated
+//   -> Mid_A cost exceeds Mid_B's -> Root replans -> Plan[0]=Mid_B.
+//   ChainUpdate sees chain[1]=Mid_A != Plan[0]=Mid_B -> truncates [Mid_A]
+//   (OnPlannerDeactivated fires on Mid_A) -> appends Mid_B (OnPlannerActivated
 //   fires on Mid_B).
 //
 // Assertions:
@@ -54,7 +54,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
         auto Local = InHandle;
         utils_transform::Add(Local, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        // World state — AKey drives the goal. Start false so Root has work to do.
+        // World state - AKey drives the goal. Start false so Root has work to do.
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
             FCk_Fragment_Goap_WorldState_ParamsData());
@@ -82,10 +82,10 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         // PR-B.1b Stage 5: Mid_A and Mid_B are direct children of the Planner.
-        // No implicit-root Action — the legacy Root_ChainTruncation is dropped
+        // No implicit-root Action - the legacy Root_ChainTruncation is dropped
         // (it had effect AKey=true cost 1.0 which would tie with Mid_A).
 
-        // Mid_A: cost 1.0 — Planner picks this first.
+        // Mid_A: cost 1.0 - Planner picks this first.
         // Add Leaf_A as child to make Mid_A composite (chain extends to it).
         auto MidAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_MidA_ChainTruncation);
@@ -104,7 +104,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
         auto LeafAAction = utils_goap_planner::AddAction(MidAAsPlanner, LeafAParams);
         Assert_True(ck::IsValid(LeafAAction), "Leaf_A AddAction should succeed");
 
-        // Mid_B: child of Root. Cost 2.0 — Root picks this after Mid_A is bumped.
+        // Mid_B: child of Root. Cost 2.0 - Root picks this after Mid_A is bumped.
         // Add Leaf_B as child to make Mid_B composite (chain extends to it).
         auto MidBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_MidB_ChainTruncation);
@@ -121,7 +121,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
         auto LeafBAction = utils_goap_planner::AddAction(MidBAsPlanner, LeafBParams);
         Assert_True(ck::IsValid(LeafBAction), "Leaf_B AddAction should succeed");
 
-        // Bind OnPlannerDeactivated on Mid_A NOW — before ChainUpdate activates it —
+        // Bind OnPlannerDeactivated on Mid_A NOW - before ChainUpdate activates it
         // so we cannot miss the deactivation signal when truncation fires.
         // FireIfPayloadInFlightThisFrame (default) catches same-frame signals.
         utils_goap_planner::BindTo_OnPlannerDeactivated(_MidAAsPlanner,
@@ -186,7 +186,7 @@ class UCk_AutoTest_Goap_Planner_DeactivateOnStep0Change : UCk_AutoTest_Base
                 "Root Plan[0] should be Mid_B on second plan");
 
             // ChainUpdate runs after HandleResult in the same frame. Wait on the
-            // SETTLED state — Mid_B at chain slot 0 — not on "no longer Mid_A":
+            // SETTLED state - Mid_B at chain slot 0 - not on "no longer Mid_A":
             // the old poll sampled the chain the moment it stopped being Mid_A,
             // which could catch a transient empty chain mid-truncation and fail
             // spuriously with "should include Mid_B (got 0)".

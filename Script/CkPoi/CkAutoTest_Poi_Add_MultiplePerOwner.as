@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: one POI per entity
+// CK POI - AUTOMATION TEST: one POI per entity
 //============================================================================
 //
-// Poi Add composes DIRECTLY onto the passed entity — an entity hosts at most
+// Poi Add composes DIRECTLY onto the passed entity - an entity hosts at most
 // ONE POI. Multiple POIs mean multiple entities: two entities each take a POI
 // of a different category, the handles are distinct, and each category
 // round-trips independently (via Get_CategoryTags, asserted after the
 // EntityTag category materializes one pump later).
 //
 // NOTE: the class keeps its historical name (the AutoTests level has a placed
-// runner actor referencing it by class path — renaming requires an editor
+// runner actor referencing it by class path - renaming requires an editor
 // level edit).
 //
 // Isolated Y band: 52200.

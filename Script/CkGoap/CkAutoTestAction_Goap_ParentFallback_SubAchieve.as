@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: PARENT-FALLBACK SUB-ACHIEVE
+// CK GOAP - AUTOMATION TEST ACTION: PARENT-FALLBACK SUB-ACHIEVE
 //============================================================================
 //
 // Child of the promoted host in the PromotedHostRoleSplit test: achieves the

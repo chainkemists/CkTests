@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER ENABLE TOGGLE
+// CK GOAP - AUTOMATION TEST: PLANNER ENABLE TOGGLE
 //============================================================================
 //
-// Validates §9 row 11: "Disabled Planner skips ChainUpdate; re-enable
+// Validates Sec.9 row 11: "Disabled Planner skips ChainUpdate; re-enable
 // resumes."
 //
-// The disable toggle gates FProcessor_Goap_Planner_ChainUpdate only —
+// The disable toggle gates FProcessor_Goap_Planner_ChainUpdate only
 // individual Action planners still run. So Root will plan and select Mid,
 // but while disabled ChainUpdate never appends Mid to the active chain.
 // After re-enable, ChainUpdate runs and extends the chain to [Root, Mid].
@@ -64,7 +64,7 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
         _Planner = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        // Disable ChainUpdate immediately — before any actions are planned.
+        // Disable ChainUpdate immediately - before any actions are planned.
         utils_goap_planner::Request_SetEnableToggle(_Planner, ECk_EnableDisable::Disable);
         Assert_True(
             utils_goap_planner::Get_EnableToggle(_Planner) == ECk_EnableDisable::Disable,
@@ -84,7 +84,7 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
         auto MidAsPlanner = utils_goap_planner::PromoteActionToPlanner(MidAction, MidPlannerParams);
         Assert_True(ck::IsValid(MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
 
-        // Add LeafB as child of Mid — makes Mid composite so ChainUpdate
+        // Add LeafB as child of Mid - makes Mid composite so ChainUpdate
         // would extend the chain to [Root, Mid] once enabled.
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
@@ -100,7 +100,7 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
         WaitOneFrame(n"OnPollDisabledFrame");
     }
 
-    // Poll while disabled — chain must stay at length 1.
+    // Poll while disabled - chain must stay at length 1.
     UFUNCTION()
     private void OnPollDisabledFrame(
         FCk_Handle_Timer InTimer,
@@ -126,7 +126,7 @@ class UCk_AutoTest_Goap_Planner_EnableToggle : UCk_AutoTest_Base
             utils_goap_planner::Get_EnableToggle(_Planner) == ECk_EnableDisable::Enable,
             "Planner should be enabled after Request_SetEnableToggle(Enable)");
 
-        // Wait for the re-enabled planner to plan AND ChainUpdate to extend —
+        // Wait for the re-enabled planner to plan AND ChainUpdate to extend
         // the previous unbounded two-condition poll surfaced a broken re-enable
         // as an anonymous engine TimesUp naming neither condition.
         WaitUntil(n"Check_PlannedAndChainExtended", n"OnCheckChainExtended");

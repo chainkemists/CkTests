@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: TRIVIAL "DO IT" ACTION
+// CK GOAP - AUTOMATION TEST ACTION: TRIVIAL "DO IT" ACTION
 //============================================================================
 //
 // Single action used by the Planner smoke test:
@@ -10,7 +10,7 @@
 //   - Cost     : 1.0
 //
 // Identity tag is class-derived (UCk_GoapAction_EntityScript::
-// Get_ActionTagForClass) — no SetActionTag call needed in the unified model.
+// Get_ActionTagForClass) - no SetActionTag call needed in the unified model.
 //============================================================================
 
 class UCk_AutoTestAction_Goap_ActionSet_Simple : UCk_GoapAction_EntityScript

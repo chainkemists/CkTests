@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY SCRIPT — AUTOMATION TEST: BASIC SPAWN + PROMISE
+// CK ENTITY SCRIPT - AUTOMATION TEST: BASIC SPAWN + PROMISE
 //============================================================================
 //
 // Smoke test for the AS entity-script spawn flow:

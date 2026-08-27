@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK HOMING — AUTOMATION TEST: SET TARGET ENTITY CLOSES DISTANCE
+// CK HOMING - AUTOMATION TEST: SET TARGET ENTITY CLOSES DISTANCE
 //============================================================================
 //
 // A projectile flying along +X is told to home on a static entity placed off
 // to the side. The ProNav steering must bend the trajectory so the distance
-// to the target keeps shrinking — the test passes once the projectile covers
+// to the target keeps shrinking - the test passes once the projectile covers
 // half the initial separation.
 //============================================================================
 

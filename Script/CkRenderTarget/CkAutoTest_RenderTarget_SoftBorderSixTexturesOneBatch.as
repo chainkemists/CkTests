@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK RENDER TARGET — AUTOMATION TEST: soft border draws six textures as one batch
+// CK RENDER TARGET - AUTOMATION TEST: soft border draws six textures as one batch
 //============================================================================
 //
 // DrawBorder is the widest soft-ref conversion in the module: six texture
-// members riding ONE enqueue-time loader batch (with duplicate paths — the
+// members riding ONE enqueue-time loader batch (with duplicate paths - the
 // streamable manager must tolerate them), each resolved batch-first into the
 // DrawCmd's _Asset/_ExtraAssets. This test enqueues a border whose six slots
 // reuse two distinct engine textures and asserts the request normalizes into
 // a single applied cmd.
 //
-// No pixel asserts — the batch counts as applied even on machines that
+// No pixel asserts - the batch counts as applied even on machines that
 // cannot render (-nullrhi CI), same contract as the DrawSignal test.
 //============================================================================
 

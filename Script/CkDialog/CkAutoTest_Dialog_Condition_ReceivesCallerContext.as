@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK DIALOG — AUTOMATION TEST: CONDITION RECEIVES CALLER (EMITTER) CONTEXT
+// CK DIALOG - AUTOMATION TEST: CONDITION RECEIVES CALLER (EMITTER) CONTEXT
 //============================================================================
 // One line, gated by a condition that Passes only when the querying emitter
 // carries a required tag. Two emitters query it: the tagged one gets Passed,
 // the untagged one gets Fail_LineCondition. Proves the per-emitter purity
-// contract — the same line resolves differently per caller in the same frame.
+// contract - the same line resolves differently per caller in the same frame.
 //============================================================================
 
 class UCk_AutoTest_Dialog_Condition_ReceivesCallerContext : UCk_AutoTest_Base

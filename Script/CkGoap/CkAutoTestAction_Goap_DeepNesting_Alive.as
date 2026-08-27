@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: ALIVE (DeepNesting test) — implicit root
+// CK GOAP - AUTOMATION TEST ACTION: ALIVE (DeepNesting test) - implicit root
 //============================================================================
 //
 // Top-tier hosting Action for the DeepNesting test. Effect: EnemyDead=true.

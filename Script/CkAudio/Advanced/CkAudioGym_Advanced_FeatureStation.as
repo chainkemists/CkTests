@@ -392,12 +392,12 @@ class UCkAudioGym_Advanced_FeaturesStation : UCkAudioGym_Advanced_Base
     void DisplayAdvancedFeatures()
     {
         ck::Trace("ADVANCED AUDIODIRECTOR FEATURES ACTIVE:", NAME_None, 3.0f, FLinearColor(1.0f, 0.0f, 1.0f, 1.0f));
-        ck::Trace("• Dual AudioDirector orchestration", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• 16-track concurrent management", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Dynamic priority manipulation", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Real-time volume control", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Complex crossfading sequences", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Multi-layer orchestral arrangement", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Dual AudioDirector orchestration", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* 16-track concurrent management", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Dynamic priority manipulation", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Real-time volume control", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Complex crossfading sequences", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Multi-layer orchestral arrangement", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
     }
 
     // Orchestral director event handlers

@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE ANCHOR FOLLOWS THE HAND
+// CK INTENT - AUTOMATION TEST: THE ANCHOR FOLLOWS THE HAND
 //============================================================================
 //
-// A level state remembers ONE key — the anchor — because delivery is a
+// A level state remembers ONE key - the anchor - because delivery is a
 // per-key question and a modal masking the gamepad must not release a hold the
 // player is doing on the keyboard. CkAutoTest_Intent_LevelSurvivesPartialRelease
 // already proves the state outlives the anchor key coming up while a co-bound
@@ -21,17 +21,17 @@
 //
 // Both legs are load-bearing and they fail in opposite directions. An
 // implementation that never moves the anchor closes the state on the first
-// mask, because the key it is watching stopped being deliverable — for a key
+// mask, because the key it is watching stopped being deliverable - for a key
 // the player let go of a second ago, which no modal in the world was trying to
 // take away from them. An implementation that moved the anchor but kept
 // answering for the old one would survive the second mask too, and the state
 // would outlive every key the layer can still hear.
 //
-// The middle "still Active" is a settle, not a condition — it is already true
+// The middle "still Active" is a settle, not a condition - it is already true
 // on arrival. What makes the silence mean something is the deactivation on the
 // far side of it, proving masks are being read at all.
 //
-// CkTests_DualBound stays on its authored F8/F12 defaults — no key binding is
+// CkTests_DualBound stays on its authored F8/F12 defaults - no key binding is
 // mutated, so there is nothing to reset on teardown. The masker's captures live
 // on a layer this test owns and dies with.
 //============================================================================
@@ -67,7 +67,7 @@ class UCk_AutoTest_Intent_LevelReanchorsToRemainingHeldKey : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 
@@ -185,7 +185,7 @@ class UCk_AutoTest_Intent_LevelReanchorsToRemainingHeldKey : UCk_AutoTest_Base
     private void Step_AssertSurvivedPartialRelease(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         DoAssert_SameStateStillOpen(
-            "the button never came up — one of its keys is still down, so the state must still be on");
+            "the button never came up - one of its keys is still down, so the state must still be on");
     }
 
     UFUNCTION()
@@ -198,7 +198,7 @@ class UCk_AutoTest_Intent_LevelReanchorsToRemainingHeldKey : UCk_AutoTest_Base
     private void Step_AssertStillActive(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         DoAssert_SameStateStillOpen(
-            "the masked key is one the player LET GO of — the state re-anchored to the key still under a finger, and a state watching the original key would close here over input nobody was using");
+            "the masked key is one the player LET GO of - the state re-anchored to the key still under a finger, and a state watching the original key would close here over input nobody was using");
     }
 
     UFUNCTION()
@@ -292,7 +292,7 @@ class UCk_AutoTest_Intent_LevelReanchorsToRemainingHeldKey : UCk_AutoTest_Base
         Res.Set(DoFind_RoutedEdge(_OpeningKey, ECk_InputSource_EventType::Released));
     }
 
-    // Capture edits are DEFERRED, so every mask leg waits on the layer's own answer — asserting one
+    // Capture edits are DEFERRED, so every mask leg waits on the layer's own answer - asserting one
     // hop after the request would be asserting against an edit that has not landed.
     UFUNCTION()
     private void Check_OpeningMasked(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
@@ -350,7 +350,7 @@ class UCk_AutoTest_Intent_LevelReanchorsToRemainingHeldKey : UCk_AutoTest_Base
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_ActivationFrame_ByName(_Matcher, n"AS_Level_Reanchor"),
             _ActivationFrame,
-            "and it is the SAME state throughout — a re-anchor moves which key answers for the state, never when it started");
+            "and it is the SAME state throughout - a re-anchor moves which key answers for the state, never when it started");
     }
 
     private FCk_Intent_Definition DoParse(const FString& InNotation, FName InName, int32 InPriority)

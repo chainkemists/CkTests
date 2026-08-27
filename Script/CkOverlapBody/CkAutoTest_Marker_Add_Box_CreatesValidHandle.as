@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK OVERLAP BODY — AUTOMATION TEST: Marker Add (Box) creates valid handle
+// CK OVERLAP BODY - AUTOMATION TEST: Marker Add (Box) creates valid handle
 //============================================================================
 //
 // First-coverage seed for CkOverlapBody Marker. Pins the simplest creation

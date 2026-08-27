@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Path Network Gym — sidewalk-following showcase
+// Path Network Gym - sidewalk-following showcase
 //
 // Visual test bed for CkPathNetwork: crowd agents opted into the PathNetworkFollower feature route
 // their MoveTos along ribbon networks (sidewalks) instead of beelining, keep to the right so

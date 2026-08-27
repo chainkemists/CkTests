@@ -9,17 +9,17 @@
 // varied POIs surrounds the main station; a live readout traces the heading
 // and the nearest entries twice a second.
 //
-// Stations (content built toward -X from each anchor — house rule):
+// Stations (content built toward -X from each anchor - house rule):
 //   - Main:   POI ring (Quest/Shop/Danger/Info, varied priorities, one
 //             ClampToEdge waypoint that pins to the arc edge when behind you)
 //   - Stress: 500 standalone POIs on demand (Ck_GymCompass_Stress500)
 //
 // Exec commands:
-//   Ck_GymCompass_Ping            — TTL ping POI 1500uu ahead of the pawn
-//   Ck_GymCompass_ToggleQuestFilter — Quest-only category filter on/off
-//   Ck_GymCompass_Stress500       — spawn the stress field
-//   Ck_GymCompass_ClearStress     — destroy the stress field
-//   Ck_GymCompass_Readout         — dump all entries to the log
+//   Ck_GymCompass_Ping            - TTL ping POI 1500uu ahead of the pawn
+//   Ck_GymCompass_ToggleQuestFilter - Quest-only category filter on/off
+//   Ck_GymCompass_Stress500       - spawn the stress field
+//   Ck_GymCompass_ClearStress     - destroy the stress field
+//   Ck_GymCompass_Readout         - dump all entries to the log
 //============================================================================
 
 class ACk_CompassGym_GameMode : ACkTests_Gym_Base_GameMode
@@ -31,7 +31,7 @@ class ACk_CompassGym_GameMode : ACkTests_Gym_Base_GameMode
 class ACk_CompassGym_Pawn : ACk_Gym_Base_Pawn
 {
     // ADefaultPawn leaves the ACTOR un-yawed under mouse-look (only the control rotation moves).
-    // The compass' Auto heading falls back to the pawn ENTITY's actor-synced transform yaw — the
+    // The compass' Auto heading falls back to the pawn ENTITY's actor-synced transform yaw - the
     // actor must follow the controller yaw or the heading never sweeps.
     default bUseControllerRotationYaw = true;
 
@@ -99,7 +99,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         // Ring of POIs centered 800uu into -X from the main anchor (content faces -X).
         auto RingCenter = _MainOrigin + FVector(-800.0, 0.0, 100.0);
 
-        // 8 ring positions at 45-degree steps, radius 600 (precomputed — no trig dependency).
+        // 8 ring positions at 45-degree steps, radius 600 (precomputed - no trig dependency).
         DoAddRingPoi(RingCenter + FVector(600.0, 0.0, 0.0),      n"Poi.Category.Quest",  5);
         DoAddRingPoi(RingCenter + FVector(424.3, 424.3, 0.0),    n"Poi.Category.Shop",   3);
         DoAddRingPoi(RingCenter + FVector(0.0, 600.0, 0.0),      n"Poi.Category.Danger", 4);
@@ -109,7 +109,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         DoAddRingPoi(RingCenter + FVector(0.0, -600.0, 0.0),     n"Poi.Category.Danger", 3);
         DoAddRingPoi(RingCenter + FVector(424.3, -424.3, 0.0),   n"Poi.Category.Info",   2);
 
-        // One ClampToEdge waypoint far out — pins to the arc edge when behind the pawn.
+        // One ClampToEdge waypoint far out - pins to the arc edge when behind the pawn.
         auto Waypoint = DoCreateStandalonePoi(
             FTransform(FRotator::ZeroRotator, RingCenter + FVector(-2500.0, 0.0, 0.0)),
             FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint")));
@@ -119,7 +119,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
             FLinearColor(0.7, 0.35, 0.95), true, 2.0, ECk_Plane_Axis::XY, -1.0);
 
         SetActorTickEnabled(true);
-        ck::Trace("CompassGym: started — 8-POI ring + clamped waypoint built");
+        ck::Trace("CompassGym: started - 8-POI ring + clamped waypoint built");
     }
 
     private void DoAddRingPoi(FVector InLocation, FName InCategoryName, int32 InPriority)
@@ -197,7 +197,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Heading = utils_compass::Get_Heading(Compass);
         auto Entries = utils_compass::Get_Entries(Compass);
 
-        // Diagnostic split: if the heading sticks, this names the broken link — control yaw moves
+        // Diagnostic split: if the heading sticks, this names the broken link - control yaw moves
         // with the mouse; entity yaw only moves if the actor yaws AND the transform actor-syncs.
         auto ControlYaw = GetControlRotation().Yaw;
         FCk_Handle Generic = Compass;
@@ -209,7 +209,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // The compass itself, in world: a heading needle from the pawn plus North (white) and East
-    // (gray) reference ticks — redrawn every frame.
+    // (gray) reference ticks - redrawn every frame.
     private void DoDrawCompassOverlay(FCk_Handle_Compass InCompass)
     {
         if (ControlledPawn == nullptr)
@@ -283,7 +283,7 @@ class ACk_CompassGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (_StressPois.Num() > 0)
         {
-            ck::Trace("CompassGym: stress field already spawned — clear it first");
+            ck::Trace("CompassGym: stress field already spawned - clear it first");
             return;
         }
 

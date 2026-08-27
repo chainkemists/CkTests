@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: KINEMATIC PLATFORM CARRIES A DYNAMIC BOX
+// CK JOLT - AUTOMATION TEST: KINEMATIC PLATFORM CARRIES A DYNAMIC BOX
 //============================================================================
 //
 // A Kinematic JoltBody driven from its ECS transform must carry a resting
@@ -19,7 +19,7 @@
 // Placed at an isolated Y so it never touches other autotests' physics bodies.
 //
 // The drive clock accumulates the tick delta CLAMPED to 1/30. The Jolt pump is
-// fixed-timestep (60Hz, max 4 sub-steps/frame, excess DROPPED — ComputeStepPlan,
+// fixed-timestep (60Hz, max 4 sub-steps/frame, excess DROPPED - ComputeStepPlan,
 // CkJoltWorld.cpp), so under frame hitches sim time lags game time; a game-clock
 // ramp then moves the kinematic target faster in SIM time than authored and
 // friction drops the box (see the Chaos twin's header for the full mechanism).
@@ -119,7 +119,7 @@ class UCk_AutoTest_CkJolt_KinematicPlatformCarriesDynamicBox : UCk_AutoTest_Base
             return;
         }
 
-        // Phase 1 — drive the platform in +X, then hold.
+        // Phase 1 - drive the platform in +X, then hold.
         _DriveTime += SimDt;
 
         float TargetX = _MaxDriveX;

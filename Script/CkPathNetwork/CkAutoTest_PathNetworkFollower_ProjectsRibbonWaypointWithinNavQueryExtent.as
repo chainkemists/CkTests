@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: PROJECTS NEAR RIBBON WAYPOINT
+// CK PATH NETWORK - AUTOMATION TEST: PROJECTS NEAR RIBBON WAYPOINT
 //============================================================================
 //
 // The AutoTests navmesh's north edge supplies a deterministic Recast boundary.
@@ -153,7 +153,7 @@ class UCk_AutoTest_PathNetworkFollower_ProjectsRibbonWaypointWithinNavQueryExten
             ECk_Signal_PostFireBehavior::DoNothing);
 
         // The next hop FAILS the test when Get_IsBuilt is false ("did not build before
-        // routing") — that is a timing race with a failure message attached. Waiting on
+        // routing") - that is a timing race with a failure message attached. Waiting on
         // the build itself removes the failure mode rather than reporting it.
         WaitUntil(n"Check_NetworkBuilt", n"OnNetworkReadyToRoute");
     }

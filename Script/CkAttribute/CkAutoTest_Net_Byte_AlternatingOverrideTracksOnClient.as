@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — NET AUTOMATION TEST: ALTERNATING BYTE OVERRIDE TRACKS ON CLIENT
+// CK ATTRIBUTE - NET AUTOMATION TEST: ALTERNATING BYTE OVERRIDE TRACKS ON CLIENT
 //============================================================================
 //
 // Regression guard for the replicated-attribute modifier race. The server
@@ -12,7 +12,7 @@
 // The bug: ApplyReplicatedByteAttributeEntry calls Request_ClearAllModifiers
 // (which marks the prior EmptyTag Override modifier for DEFERRED destroy) then
 // Request_Override, whose Add_NotRevocable coalesces the new base into that same
-// doomed modifier — so the second override is silently lost and the client
+// doomed modifier - so the second override is silently lost and the client
 // sticks at the first value. The single-override test
 // (CkAutoTest_Net_Byte_OverrideReplicates) passes because the first override
 // creates a fresh modifier; only the SECOND edge trips the race. Fixed by
@@ -47,7 +47,7 @@ class UCk_AutoTest_Net_Byte_AlternatingOverrideTracksOnClient : UCk_AutoTest_Net
 
         auto Attribute = utils_byte_attribute::TryGet(Subject, utils_gameplay_tag::ResolveGameplayTag(_AttributeTagName));
         if (ck::Is_NOT_Valid(Attribute))
-        { FinishFailure("Byte attribute not found on subject — entity-script Construct didn't add it?"); return; }
+        { FinishFailure("Byte attribute not found on subject - entity-script Construct didn't add it?"); return; }
 
         if (utils_net::Get_HasAuthority(Subject))
         {
@@ -115,7 +115,7 @@ class UCk_AutoTest_Net_Byte_AlternatingOverrideTracksOnClient : UCk_AutoTest_Net
 
         _ClientWaitFrames += 1;
         if (_ClientWaitFrames > _StuckDeadline)
-        { FinishFailure(f"client stuck at [{_FirstValue}] — second Request_Override([{_SecondValue}]) never applied (replicated-attribute modifier race)"); return; }
+        { FinishFailure(f"client stuck at [{_FirstValue}] - second Request_Override([{_SecondValue}]) never applied (replicated-attribute modifier race)"); return; }
 
         WaitOneFrame(n"OnClientPoll");
     }

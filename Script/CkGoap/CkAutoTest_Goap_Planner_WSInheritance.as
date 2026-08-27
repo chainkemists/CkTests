@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER WS INHERITANCE (spec §9 row 6)
+// CK GOAP - AUTOMATION TEST: PLANNER WS INHERITANCE (spec Sec.9 row 6)
 //============================================================================
 //
 // Validates: a child Action without a WS override inherits the parent
@@ -10,12 +10,12 @@
 // Setup:
 //   - WS_Parent: single WorldState entity, pre-registers AKey=false.
 //   - Root Action: effect AKey=true. Planner _Goal = {AKey=true}.
-//     Planner._WorldStateSource = WS_Parent → first AddAction's implicit root
+//     Planner._WorldStateSource = WS_Parent -> first AddAction's implicit root
 //     resolves Root's WS = WS_Parent.
 //   - Mid Action: effect AKey=true, no _WorldStateSource_Override set.
-//     AddAction(Planner, MidParams) — Mid inherits the implicit root's WS.
+//     AddAction(Planner, MidParams) - Mid inherits the implicit root's WS.
 //
-// Assert (synchronous — WS resolution is eager at AddAction time):
+// Assert (synchronous - WS resolution is eager at AddAction time):
 //   Get_WorldStateSource(MidAction) == Get_WorldStateSource(RootAction)
 //   Both equal WS_Parent.
 //
@@ -66,10 +66,10 @@ class UCk_AutoTest_Goap_Planner_WSInheritance : UCk_AutoTest_Base
         auto RootAction = utils_goap_planner::AddAction(Planner, RootParams);
         Assert_True(ck::IsValid(RootAction), "AddAction (implicit-root) should return a valid handle");
 
-        // Mid Action: no WS override — should inherit Root's WS.
+        // Mid Action: no WS override - should inherit Root's WS.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_WSInheritance);
-        // NOTE: No Set_WorldStateSource_Override call — Mid must inherit.
+        // NOTE: No Set_WorldStateSource_Override call - Mid must inherit.
         auto MidAction = utils_goap_planner::AddAction(Planner, MidParams);
         Assert_True(ck::IsValid(MidAction), "AddAction should return a valid handle");
 
@@ -82,7 +82,7 @@ class UCk_AutoTest_Goap_Planner_WSInheritance : UCk_AutoTest_Base
         Assert_True(ck::IsValid(MidWS),
             "Mid's resolved WorldState source should be valid (inherited from Root)");
 
-        // Mid must have inherited Root's WS source — they must be the same entity.
+        // Mid must have inherited Root's WS source - they must be the same entity.
         Assert_True(RootWS == WS_Parent,
             "Root's resolved WS should equal WS_Parent");
         Assert_True(MidWS == WS_Parent,

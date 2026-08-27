@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: ROTATED GRID PIVOT WORLD ROTATION
+// CK GRID - AUTOMATION TEST: ROTATED GRID PIVOT WORLD ROTATION
 //============================================================================
 //
 // Pins that Request_UpdatePivot propagates rotation into the grid's pivot
@@ -11,7 +11,7 @@
 //   3x3 grid of 100x100 cells, identity pivot.
 //
 // Procedure:
-//   1. Capture Get_Pivot(World).Yaw — should be ~0.
+//   1. Capture Get_Pivot(World).Yaw - should be ~0.
 //   2. Request_UpdatePivot with FRotator(0, 90, 0) (90-degree yaw offset).
 //   3. Tick-poll until Get_Pivot(World).Yaw reflects the change.
 //   4. Assert that Get_Pivot(World).Yaw is now ~90deg, NOT ~0.

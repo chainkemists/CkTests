@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF CROSS HATCH GYM — ENTITY effect-mask subjects.
+// CK USF CROSS HATCH GYM - ENTITY effect-mask subjects.
 //
 // Demonstrates "put this ENTITY in the stylize effect mask" through the public
 // API instead of tagging a mesh's Custom Stencil by hand:

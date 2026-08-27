@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: TryGet_Entity_Team_InOwnershipChain with no team
+// CK RELATIONSHIP - AUTOMATION TEST: TryGet_Entity_Team_InOwnershipChain with no team
 // When no entity in the ownership chain has a Team fragment, the lookup
 // returns an invalid handle.
 

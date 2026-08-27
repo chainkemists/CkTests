@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK VAT GYM — stations
+// CK VAT GYM - stations
 //============================================================================
 //
 // Three stations exercising the CkVat playback surface on baked content:
 //   - ClipCycle:  single instance; auto-cycles every baked clip (crossfade),
 //                 then rate 2.0 / 0.5, freeze, resume. OnClipFinished counter.
-//   - Turntable:  single instance rotating in yaw while looping a clip —
+//   - Turntable:  single instance rotating in yaw while looping a clip
 //                 the VAT-normals check: lighting must stay consistent as it
 //                 turns (tangent-frame normals are instance-invariant).
 //   - CrowdField: N instances (default 100), RandomPerInstance phase offset,
@@ -20,7 +20,7 @@
 //============================================================================
 
 // ====================================================================================================================
-// Station 1 — ClipCycle
+// Station 1 - ClipCycle
 // ====================================================================================================================
 
 class UCk_EntityScript_VatGym_ClipCycle : UCk_GenericEntityScript_UE
@@ -258,7 +258,7 @@ class UCk_EntityScript_VatGym_ClipCycle : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station 2 — Turntable (the VAT-normals verify)
+// Station 2 - Turntable (the VAT-normals verify)
 // ====================================================================================================================
 
 class UCk_EntityScript_VatGym_Turntable : UCk_GenericEntityScript_UE
@@ -351,14 +351,14 @@ class UCk_EntityScript_VatGym_Turntable : UCk_GenericEntityScript_UE
         {
             DisplayText = "THE NORMALS CHECK (Vertex mode):\n";
             DisplayText = f"{DisplayText}Lighting must stay consistent while the\n";
-            DisplayText = f"{DisplayText}instance turns — tangent-frame normals\n";
+            DisplayText = f"{DisplayText}instance turns - tangent-frame normals\n";
             DisplayText = f"{DisplayText}are invariant under instance rotation.\n";
             DisplayText = f"{DisplayText}Watch mirrored UV islands for inverted\n";
             DisplayText = f"{DisplayText}shading (bake handedness suspect).\n";
             DisplayText = f"{DisplayText}Bone mode lights with bind-pose normals\n";
-            DisplayText = f"{DisplayText}(deferred — expect flat-ish shading).\n";
+            DisplayText = f"{DisplayText}(deferred - expect flat-ish shading).\n";
             DisplayText = f"{DisplayText}This station bakes WEIGHT-TEXTURE storage\n";
-            DisplayText = f"{DisplayText}(others: mesh channels) — must look identical.\n\n";
+            DisplayText = f"{DisplayText}(others: mesh channels) - must look identical.\n\n";
             DisplayText = f"{DisplayText}Yaw: {int32(_Yaw)} deg @ {_DegreesPerSecond} deg/s\n\n";
             DisplayText = f"{DisplayText}===== Commands =====\n";
             DisplayText = f"{DisplayText}Ck_GymVat_TurnRate [deg/s]\n";
@@ -388,7 +388,7 @@ class UCk_EntityScript_VatGym_Turntable : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station 3 — CrowdField
+// Station 3 - CrowdField
 // ====================================================================================================================
 
 class UCk_EntityScript_VatGym_CrowdField : UCk_GenericEntityScript_UE
@@ -429,7 +429,7 @@ class UCk_EntityScript_VatGym_CrowdField : UCk_GenericEntityScript_UE
         AutoTimer = gym_auto::Setup(InHandle, this, FCk_Time(4.0f));
 
         AutoConfig.TotalSteps = 1;
-        AutoConfig.Description = "Instanced crowd, RandomPerInstance phase\noffset — same clip, desynced playback.\nCustom data writes on clip change ONLY.";
+        AutoConfig.Description = "Instanced crowd, RandomPerInstance phase\noffset - same clip, desynced playback.\nCustom data writes on clip change ONLY.";
         AutoConfig.GlobalAutoCommand = "Ck_GymVat_Auto [0/1]";
         AutoConfig.PerStationAutoCommand = "Ck_GymVat_AutoCrowdField";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Switch whole field to next clip", 0, 0));
@@ -520,7 +520,7 @@ class UCk_EntityScript_VatGym_CrowdField : UCk_GenericEntityScript_UE
         {
             auto ActiveClip = _ClipNames.Num() > 0 ? f"{_ClipNames[_ActiveClipIndex]}" : "None";
             DisplayText = f"{DisplayText}Instances: {_Proxies.Num()}  Clip: {ActiveClip}\n";
-            DisplayText = f"{DisplayText}Phases are per-instance random — the\n";
+            DisplayText = f"{DisplayText}Phases are per-instance random - the\n";
             DisplayText = f"{DisplayText}field must NOT tick in lock-step.\n";
             DisplayText = DisplayText + gym_auto::FormatAutoAndCommands(AutoConfig, AutoStep, AutoRunning);
         }

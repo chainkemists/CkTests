@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: VECTOR BASIC (ADD + OVERRIDE)
+// CK ATTRIBUTE - AUTOMATION TEST: VECTOR BASIC (ADD + OVERRIDE)
 //============================================================================
 //
 // Vector-side parity with the Float/Integer/Byte Basic tests. Verifies that

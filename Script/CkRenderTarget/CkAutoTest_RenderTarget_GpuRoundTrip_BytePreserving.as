@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RENDER TARGET — AUTOMATION TEST: GPU ROUND TRIP IS BYTE-PRESERVING
+// CK RENDER TARGET - AUTOMATION TEST: GPU ROUND TRIP IS BYTE-PRESERVING
 //============================================================================
 //
 // The Debug_InjectCapturedPixels seam ends at CPU staging, so headless tests
@@ -23,7 +23,7 @@
 // Needs a real RHI: on processes that cannot render (-nullrhi CI) the capture
 // and redraw legs are dropped by the engine-side FApp::CanEverRender gate, so
 // this test checks the SAME gate (Get_CanRenderOnThisProcess) up front and
-// reports a skip-pass. (Checking Get_Target validity is NOT a substitute —
+// reports a skip-pass. (Checking Get_Target validity is NOT a substitute
 // Setup resolves the target object even on non-rendering processes so the
 // CPU-staging/replication paths have its identity.)
 //============================================================================
@@ -44,7 +44,7 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         if (!utils_render_target::Get_CanRenderOnThisProcess())
         {
-            ck::Trace("[GpuRoundTrip] this process cannot render (e.g. -nullrhi) — the capture/redraw legs would be dropped; skipping");
+            ck::Trace("[GpuRoundTrip] this process cannot render (e.g. -nullrhi) - the capture/redraw legs would be dropped; skipping");
             FinishSuccess();
             return;
         }
@@ -63,7 +63,7 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
         _RenderTarget.BindTo_OnPixelPayloadProduced(
             FCk_Delegate_RenderTarget_OnPixelPayloadProduced(this, n"OnPayloadProduced"));
 
-        // The drawable target exists one tick after Add (Setup processor) — poll for setup
+        // The drawable target exists one tick after Add (Setup processor) - poll for setup
         // timing. (Render capability was already gated above; a missing target here past the
         // window means Setup itself failed, which the bounded poll converts into a skip with
         // a trace rather than a 10s silent timeout.)
@@ -80,7 +80,7 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
             _SetupPolls++;
             if (_SetupPolls >= 10)
             {
-                ck::Trace("[GpuRoundTrip] no drawable target after 1s — cannot render on this process (e.g. -nullrhi); skipping");
+                ck::Trace("[GpuRoundTrip] no drawable target after 1s - cannot render on this process (e.g. -nullrhi); skipping");
                 FinishSuccess();
                 return;
             }
@@ -89,7 +89,7 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
         }
 
         // Mid-tone content: a grey clear plus a couple of mid-tone shapes. pow(0.45, 2.2)
-        // shifts the byte value by ~70 — any gamma mishandling produces a massive diff.
+        // shifts the byte value by ~70 - any gamma mishandling produces a massive diff.
         auto ClearRequest = FCk_Request_RenderTarget_Clear();
         ClearRequest.Set_ClearColor(FLinearColor(0.45, 0.45, 0.5, 1.0));
         _RenderTarget.Request_Clear(ClearRequest);
@@ -139,7 +139,7 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
 
         if (_Stage == 2)
         {
-            FinishFailure(f"GPU round trip altered pixels — the redraw-then-capture pass produced a {InKind} payload instead of zero-diffing. Suspect gamma/format handling on the upload texture.");
+            FinishFailure(f"GPU round trip altered pixels - the redraw-then-capture pass produced a {InKind} payload instead of zero-diffing. Suspect gamma/format handling on the upload texture.");
         }
     }
 
@@ -150,7 +150,7 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
 
         _RenderTarget.Request_SyncPixels(FCk_Request_RenderTarget_SyncPixels());
 
-        // Real capture + diff runs across several frames — generous settle window before
+        // Real capture + diff runs across several frames - generous settle window before
         // declaring the zero-diff drop happened.
         ScheduleTimer(1.5f, n"OnRoundTripSettled");
     }
@@ -161,7 +161,7 @@ class UCk_AutoTest_RenderTarget_GpuRoundTrip_BytePreserving : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         Assert_Equals_Int(_PayloadCount, 1,
-            "Capture after a snapshot redraw must zero-diff (no second payload) — the GPU round trip must be byte-preserving");
+            "Capture after a snapshot redraw must zero-diff (no second payload) - the GPU round trip must be byte-preserving");
         FinishSuccess();
     }
 

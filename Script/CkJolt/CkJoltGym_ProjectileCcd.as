@@ -1,20 +1,20 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — PROJECTILE CCD
+// CK JOLT GYM - PROJECTILE CCD
 //
 // Two lanes side by side, both firing a fast (12000uu/s) Dynamic sphere at a
 // thin Static wall:
-//   Lane A (CCD ON)  — MotionQuality LinearCast: stops dead at the wall.
-//   Lane B (CCD OFF) — MotionQuality Discrete: may tunnel straight through
-//                       (frame-timing dependent — that's the point of the demo).
+//   Lane A (CCD ON)  - MotionQuality LinearCast: stops dead at the wall.
+//   Lane B (CCD OFF) - MotionQuality Discrete: may tunnel straight through
+//                       (frame-timing dependent - that's the point of the demo).
 //
 // Auto-cycles every ~3.5s: reset both projectiles to the start line, fire,
 // then log each lane's post-flight speed (utils_jolt_body::Get_LinearVelocity)
 // so the CCD-caught-it vs CCD-missed-it outcome is visible in the log too.
 //
 // Content is built in world -X from the station anchor (house rule: stations
-// face -X) — projectiles start near the anchor and fire further into -X.
+// face -X) - projectiles start near the anchor and fire further into -X.
 //============================================================================
 
 class ACk_JoltGym_ProjectileCcd_GameMode : ACkTests_Gym_Base_GameMode
@@ -36,7 +36,7 @@ class ACk_JoltGym_ProjectileCcd_PlayerController : ACk_Gym_Base_PlayerController
     private float _WallLocalX = -500.0;
     private float _LaunchSpeed = 12000.0;
 
-    // Cycle timeline (seconds, accumulated tick delta — NEVER derived from a per-tick divide):
+    // Cycle timeline (seconds, accumulated tick delta - NEVER derived from a per-tick divide):
     //   0.00 -> teleport both back to the start line
     //   0.15 -> fire both at _LaunchSpeed toward -X
     //   0.85 -> log each lane's post-flight speed
@@ -76,7 +76,7 @@ class ACk_JoltGym_ProjectileCcd_PlayerController : ACk_Gym_Base_PlayerController
 
         utils_timer::Create_Tick(ck::ToEntity(this), FCk_Delegate_Timer(this, n"OnTick"));
 
-        ck::Trace("JoltProjectileCcdGym: started — auto-firing every ~3.5s");
+        ck::Trace("JoltProjectileCcdGym: started - auto-firing every ~3.5s");
     }
 
     private void DoAddWall(float InLaneY)
@@ -169,6 +169,6 @@ class ACk_JoltGym_ProjectileCcd_PlayerController : ACk_Gym_Base_PlayerController
         _DidReset = false;
         _DidFire = false;
         _DidLog = false;
-        ck::Trace("JoltProjectileCcdGym: manual fire requested — cycle restarting");
+        ck::Trace("JoltProjectileCcdGym: manual fire requested - cycle restarting");
     }
 }

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: NAMED BLOCKER TOGGLE
+// CK GRID - AUTOMATION TEST: NAMED BLOCKER TOGGLE
 //============================================================================
 //
 // Verifies a GameplayTag-named blocker is findable at runtime and can be

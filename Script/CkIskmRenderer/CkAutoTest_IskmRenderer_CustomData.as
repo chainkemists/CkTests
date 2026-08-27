@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE G PER-INSTANCE CUSTOM DATA
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE G PER-INSTANCE CUSTOM DATA
 //============================================================================
 //
 // Phase G test gate. Verifies the per-instance custom-data API surface added in

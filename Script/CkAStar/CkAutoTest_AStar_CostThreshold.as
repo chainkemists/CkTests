@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK A-STAR — AUTOMATION TEST: COST THRESHOLD TERMINATION
+// CK A-STAR - AUTOMATION TEST: COST THRESHOLD TERMINATION
 //============================================================================
 //
 // Verifies the cost-threshold early-termination path:
-//   1. Add a 10x10 search from (0,0) to (9,9) — natural path cost is
+//   1. Add a 10x10 search from (0,0) to (9,9) - natural path cost is
 //      roughly the Manhattan distance ~18 (depending on diagonal cost).
-//   2. Set_CostThreshold to 1.0f — any non-trivial path will exceed this.
+//   2. Set_CostThreshold to 1.0f - any non-trivial path will exceed this.
 //   3. Request_StartSearch.
 //   4. Poll until terminal.
 //   5. Status == CostThresholdReached.

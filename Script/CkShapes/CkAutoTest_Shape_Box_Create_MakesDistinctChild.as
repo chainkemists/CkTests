@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK SHAPES — AUTOMATION TEST: BOX CREATE MAKES A DISTINCT CHILD
+// CK SHAPES - AUTOMATION TEST: BOX CREATE MAKES A DISTINCT CHILD
 //============================================================================
 //
 // Covers the child-making Create verb (counterpart to the stamp-self Add).
 // Create(owner, params) spawns a NEW child entity carrying the ShapeBox
 // feature: the returned handle is valid, Has(child) is true, and Has(owner)
-// is FALSE — proving Create is child-making, not stamp-self like Add.
+// is FALSE - proving Create is child-making, not stamp-self like Add.
 //
 // The child is given a Transform so the Shapes setup processor (which reads
 // the entity transform) is satisfied on subsequent ticks.
@@ -34,7 +34,7 @@ class UCk_AutoTest_Shape_Box_Create_MakesDistinctChild : UCk_AutoTest_Base
         Assert_True(utils_shape_box::Has(ChildEntity),
             "The created child entity should carry the ShapeBox feature");
         Assert_True(!utils_shape_box::Has(Owner),
-            "The owner must NOT carry the feature — Create is child-making, not stamp-self");
+            "The owner must NOT carry the feature - Create is child-making, not stamp-self");
 
         auto Returned = utils_shape_box::Get_Dimensions(Child);
         auto HE = Returned.Get_HalfExtents();

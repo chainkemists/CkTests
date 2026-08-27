@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A LEVEL INTENT IS STILL ON THE TERMINAL
+// CK INTENT - AUTOMATION TEST: A LEVEL INTENT IS STILL ON THE TERMINAL
 //============================================================================
 //
 // Arbitration over one terminal has to be a strict total order or it is not
-// arbitration, only iteration luck — so two intents sharing a terminal button
+// arbitration, only iteration luck - so two intents sharing a terminal button
 // at the SAME priority reject the whole bake. The question a level intent
 // raises is whether it is IN that order at all.
 //
 // It is easy to believe it is not. A level row never enters an episode, never
 // defers, and is scanned in a pass of its own AFTER the edge scan, which makes
 // "level intents are outside arbitration" a natural thing to assume and a
-// cheap thing to implement — group only the edge indices, and the tie check
+// cheap thing to implement - group only the edge indices, and the tie check
 // stops seeing level rows. The set then compiles, and which of the two moves a
 // press produces becomes a function of iteration order, decided per build.
 //
@@ -59,7 +59,7 @@ class UCk_AutoTest_Intent_LevelEdgePriorityTieRejected : UCk_AutoTest_Base
         auto Baked = utils_intent_grammar::Bake(Definitions, DoMake_Rows(), 3);
 
         DoAssert_RejectedAsTie(Baked, n"AS_Tie_Level", n"AS_Tie_Edge",
-            "a level and an edge on one button at one priority leave the press ambiguous — the level pass runs separately, but the two intents still answer the same terminal");
+            "a level and an edge on one button at one priority leave the press ambiguous - the level pass runs separately, but the two intents still answer the same terminal");
     }
 
     //------------------------------------------------------------------------
@@ -73,7 +73,7 @@ class UCk_AutoTest_Intent_LevelEdgePriorityTieRejected : UCk_AutoTest_Base
         auto Baked = utils_intent_grammar::Bake(Definitions, DoMake_Rows(), 3);
 
         DoAssert_RejectedAsTie(Baked, n"AS_Tie_LevelA", n"AS_Tie_LevelB",
-            "two states on one button at one priority is the same undefined answer — which proves the grouping is over TERMINALS, not over the edge candidates that happen to defer");
+            "two states on one button at one priority is the same undefined answer - which proves the grouping is over TERMINALS, not over the edge candidates that happen to defer");
     }
 
     //------------------------------------------------------------------------
@@ -87,13 +87,13 @@ class UCk_AutoTest_Intent_LevelEdgePriorityTieRejected : UCk_AutoTest_Base
         auto Baked = utils_intent_grammar::Bake(Definitions, DoMake_Rows(), 3);
 
         Assert_True(Baked.Get_Outcome() == ECk_SucceededFailed::Succeeded,
-            "the SAME pair at distinct priorities compiles — it was the tie that was rejected, not the two kinds meeting on one button, which they are expected to do");
+            "the SAME pair at distinct priorities compiles - it was the tie that was rejected, not the two kinds meeting on one button, which they are expected to do");
 
         Assert_True(Baked.Get_Error() == ECk_Intent_BakeError::None,
             "and an accepted bake carries no reason, because there is nothing to give one for");
 
         Assert_Equals_Int(Baked.Get_CompiledSet().Get_Intents().Num(), 2,
-            "both intents survive into the compiled set — coexistence on one terminal is the ordinary case");
+            "both intents survive into the compiled set - coexistence on one terminal is the ordinary case");
     }
 
     //------------------------------------------------------------------------
@@ -108,7 +108,7 @@ class UCk_AutoTest_Intent_LevelEdgePriorityTieRejected : UCk_AutoTest_Base
             f"the bake must be rejected: {InWhy}");
 
         Assert_True(InBaked.Get_Error() == ECk_Intent_BakeError::PriorityTieOnSharedTerminal,
-            "and rejected for its OWN reason — an author shown a generic failure cannot tell that the fix is a priority edit");
+            "and rejected for its OWN reason - an author shown a generic failure cannot tell that the fix is a priority edit");
 
         // Asserted as an unordered PAIR: which of the two is named 'offending' is a function of the
         // order the definitions were handed in, and the contract is that BOTH are named, because the
@@ -125,7 +125,7 @@ class UCk_AutoTest_Intent_LevelEdgePriorityTieRejected : UCk_AutoTest_Base
             "and the button they are tied ON, which is the third thing an author needs to find the two rows");
 
         Assert_Equals_Int(InBaked.Get_CompiledSet().Get_Intents().Num(), 0,
-            "a rejected bake leaves nothing partially usable behind — one bad definition invalidates the whole set");
+            "a rejected bake leaves nothing partially usable behind - one bad definition invalidates the whole set");
     }
 
     //------------------------------------------------------------------------
@@ -135,7 +135,7 @@ class UCk_AutoTest_Intent_LevelEdgePriorityTieRejected : UCk_AutoTest_Base
         auto Result = utils_intent_grammar::Parse(InNotation, InName, InPriority, FGameplayTag());
 
         Assert_True(Result.Get_Outcome() == ECk_SucceededFailed::Succeeded,
-            f"'{InNotation}' must parse before the bake can mean anything — this test is about the BAKE");
+            f"'{InNotation}' must parse before the bake can mean anything - this test is about the BAKE");
 
         return Result.Get_Definition();
     }

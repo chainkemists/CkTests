@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK DIALOG — AUTOMATION TEST: TAG FILTER — EMITTER SEES ONLY MATCHING
+// CK DIALOG - AUTOMATION TEST: TAG FILTER - EMITTER SEES ONLY MATCHING
 //============================================================================
 // Two lines under one ENTER tag with disjoint filter tags. An emitter tagged
-// Townie sees only the Townie line — the Named line is excluded entirely
+// Townie sees only the Townie line - the Named line is excluded entirely
 // (not "failed").
 //============================================================================
 

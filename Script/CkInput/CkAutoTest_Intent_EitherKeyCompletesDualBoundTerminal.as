@@ -1,23 +1,23 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: EITHER BOUND KEY COMPLETES A DUAL-BOUND TERMINAL
+// CK INTENT - AUTOMATION TEST: EITHER BOUND KEY COMPLETES A DUAL-BOUND TERMINAL
 //============================================================================
 //
 // A terminal naming a Mapped button used to be completable from exactly one
-// key — the button's only association. Now a Mapped button can carry several,
+// key - the button's only association. Now a Mapped button can carry several,
 // and the matcher's swap registers a capture for EVERY one of them, so the
 // terminal must be completable from ANY of its bound slots.
 //
-// CkTests_DualBound is bound in two slots (F8 primary, F12 secondary — see
+// CkTests_DualBound is bound in two slots (F8 primary, F12 secondary - see
 // CkInput_Assets.as). This presses the NON-primary key first, on the theory
 // that an implementation which only wired up the primary/scalar association
 // would fail exactly there while still passing on the primary key; the
 // primary is pressed second, on a later frame, to prove the SAME terminal
 // answers to both rather than one replacing the other.
 //
-// No key binding is mutated — CkTests_DualBound stays on its authored F8/F12
-// defaults for the whole test — so there is nothing to reset on teardown.
+// No key binding is mutated - CkTests_DualBound stays on its authored F8/F12
+// defaults for the whole test - so there is nothing to reset on teardown.
 //============================================================================
 
 class UCk_AutoTest_Intent_EitherKeyCompletesDualBoundTerminal : UCk_AutoTest_Base
@@ -46,7 +46,7 @@ class UCk_AutoTest_Intent_EitherKeyCompletesDualBoundTerminal : UCk_AutoTest_Bas
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 
@@ -143,7 +143,7 @@ class UCk_AutoTest_Intent_EitherKeyCompletesDualBoundTerminal : UCk_AutoTest_Bas
         auto CompletionFrame = utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_DualBound_Fire");
 
         Assert_True(CompletionFrame > _FirstCompletionFrame,
-            "the PRIMARY key completes the SAME terminal on a later frame — both slots drive it, neither replaces the other");
+            "the PRIMARY key completes the SAME terminal on a later frame - both slots drive it, neither replaces the other");
 
         DoInject(_PrimaryKey, ECk_InputSource_EventType::Released);
     }

@@ -1,11 +1,11 @@
 // Language=angelscript
 //
-// CK OBJECT POOLING — AUTOMATION TEST: DestroyOnRelease pin survives GC, unpins on release
+// CK OBJECT POOLING - AUTOMATION TEST: DestroyOnRelease pin survives GC, unpins on release
 //
 // The core proof of the pin-everything ownership model. Acquire a DestroyOnRelease
 // object (the subsystem pins it; a holder would keep only a weak ptr). Force a full
 // GC: the object must survive purely on the subsystem pin. Release: the subsystem
-// unpins it — after the next GC it is no longer tracked. Uses the direct pooled API
+// unpins it - after the next GC it is no longer tracked. Uses the direct pooled API
 // so the test legitimately holds the pointer; no reach-into-EntityScript accessor.
 
 class UCk_AutoTest_ObjectPooling_PinnedSurvivesGCThenUnpins : UCk_AutoTest_Base
@@ -19,7 +19,7 @@ class UCk_AutoTest_ObjectPooling_PinnedSurvivesGCThenUnpins : UCk_AutoTest_Base
     {
         auto _CkPerfScope = ck::ScopedStat();
 
-        // AS: setters mutate, so they can't be chained on a temporary — declare then set
+        // AS: setters mutate, so they can't be chained on a temporary - declare then set
         auto PoolParams = FCk_ObjectPooling_PoolParams();
         PoolParams.Set_RecyclePolicy(ECk_ObjectPooling_RecyclePolicy::DestroyOnRelease);
 

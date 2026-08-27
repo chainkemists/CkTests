@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: PLACEMENT REJECTS DISABLED + OCCUPIED CELLS
+// CK GRID - AUTOMATION TEST: PLACEMENT REJECTS DISABLED + OCCUPIED CELLS
 //============================================================================
 //
 // Pins the validation half of the unifying placement layer (Get_CanPlace):

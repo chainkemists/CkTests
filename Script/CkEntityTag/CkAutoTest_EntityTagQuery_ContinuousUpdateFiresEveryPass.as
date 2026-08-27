@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: ON CONTINUOUS UPDATE FIRES ONLY ON CHANGE
+// CK ENTITY TAG QUERY - AUTOMATION TEST: ON CONTINUOUS UPDATE FIRES ONLY ON CHANGE
 //============================================================================
 //
 // NOTE ON NAME: the class/file retains its historical "FiresEveryPass" name so
 // renaming it does not churn the generated autotest wrapper + the placed actor in
 // AutoTests_CkTests_Level. Its CONTRACT changed: OnContinuousUpdate is now
-// change-gated — it broadcasts ONLY on a pump pass whose result set actually
+// change-gated - it broadcasts ONLY on a pump pass whose result set actually
 // changed (an entity entered or left a requirement), and stays SILENT on
 // no-change passes. (Broadcasting every pass cost a per-frame payload alloc +
 // broadcast + delegate call per bound query even when nothing changed; every
@@ -16,10 +16,10 @@
 //
 // Strategy: bind OnContinuousUpdate to a query whose requirement nothing satisfies
 // yet, prove it stays silent across idle passes, then add a matching entity and
-// prove exactly that change fires it — and that it goes silent again afterwards.
+// prove exactly that change fires it - and that it goes silent again afterwards.
 //
 // Most of this test asserts SILENCE, so most phases settle for a fixed number
-// of frames — a non-event has nothing to wait on. The one phase that expects a
+// of frames - a non-event has nothing to wait on. The one phase that expects a
 // fire waits on the counter rising above the idle baseline. The requirement
 // registering IS waited on, because a query that never started would be silent
 // for uninteresting reasons and the whole test would pass vacuously.

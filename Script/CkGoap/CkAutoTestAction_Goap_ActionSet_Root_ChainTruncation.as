@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: ROOT (ChainTruncation test)
+// CK GOAP - AUTOMATION TEST ACTION: ROOT (ChainTruncation test)
 //============================================================================
 //
 // Root action for the ChainTruncation test.

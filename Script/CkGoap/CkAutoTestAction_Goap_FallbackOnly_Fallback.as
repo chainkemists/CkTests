@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: FALLBACK-ONLY — FALLBACK
+// CK GOAP - AUTOMATION TEST ACTION: FALLBACK-ONLY - FALLBACK
 //============================================================================
 //
 // Always-valid-plan tenet fallback for the FallbackOnly test catalog. No

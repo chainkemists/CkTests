@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — NET AUTOMATION TEST: BYTE OVERRIDE REPLICATES
+// CK ATTRIBUTE - NET AUTOMATION TEST: BYTE OVERRIDE REPLICATES
 //============================================================================
 //
 // Byte attributes ride the same templated container-replication path as Float
-// (CkAttribute_Processor.inl.h → FCk_RepData_ByteAttributes). The default
+// (CkAttribute_Processor.inl.h -> FCk_RepData_ByteAttributes). The default
 // NetSubject's entity-script adds a ByteAttribute.Health on both worlds
 // (symmetric setup); the server Request_Override's it and the client polls for
 // the replicated value. Mirror of CkAutoTest_Net_Float_InitialValueReplicates.
@@ -27,7 +27,7 @@ class UCk_AutoTest_Net_Byte_OverrideReplicates : UCk_AutoTest_NetBase
         auto Tag = utils_gameplay_tag::ResolveGameplayTag(_AttributeTagName);
         auto Attribute = utils_byte_attribute::TryGet(Subject, Tag);
         if (ck::Is_NOT_Valid(Attribute))
-        { FinishFailure("Byte attribute not found on subject — entity-script Construct didn't add it?"); return; }
+        { FinishFailure("Byte attribute not found on subject - entity-script Construct didn't add it?"); return; }
 
         if (utils_net::Get_HasAuthority(Subject))
         {

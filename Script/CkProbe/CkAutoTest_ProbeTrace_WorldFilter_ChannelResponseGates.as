@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE TRACE — AUTOMATION TEST: WORLD FILTER HONORS CHANNEL RESPONSE
+// CK PROBE TRACE - AUTOMATION TEST: WORLD FILTER HONORS CHANNEL RESPONSE
 //============================================================================
 //
 // World-ness is decided per hit against the layer table, NOT by handing the

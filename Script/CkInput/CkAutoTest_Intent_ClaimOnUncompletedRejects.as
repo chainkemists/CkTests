@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THERE IS NOTHING TO CLAIM YET
+// CK INTENT - AUTOMATION TEST: THERE IS NOTHING TO CLAIM YET
 //============================================================================
 //
 // A claim takes ownership of a COMPLETION. Every other phase is a state in
-// which no completion exists, so a claim against one is refused — and the
+// which no completion exists, so a claim against one is refused - and the
 // refusal is what stops a consumer reserving a move it merely expects.
 //
 // `Pending` is the interesting case and the reason this test bakes a tap/hold
@@ -13,7 +13,7 @@
 // happened, the matcher really is working on it, and the answer still might
 // be this very move. An implementation that treated "an episode is running"
 // as good enough would hand out an option on a completion that may never
-// arrive — and would hand it out DURING the window where two consumers are
+// arrive - and would hand it out DURING the window where two consumers are
 // most likely to be racing.
 //
 // The unknown-name leg rides along because it shares the rejection path and
@@ -130,7 +130,7 @@ class UCk_AutoTest_Intent_ClaimOnUncompletedRejects : UCk_AutoTest_Base
     {
         DoClaim(n"AS_Reject_Quick");
         Assert_True(_LastResult == ECk_Request_OperationResult::Failed,
-            "a pending press might still answer this move or the other one — an option on a completion that may never arrive is exactly what the claim must not hand out");
+            "a pending press might still answer this move or the other one - an option on a completion that may never arrive is exactly what the claim must not hand out");
 
         Assert_False(utils_intent_matcher::Get_IsClaimed_ByName(_Matcher, n"AS_Reject_Quick"),
             "a refused claim leaves no owner behind");

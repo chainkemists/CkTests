@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE MASK LIFTING IS NOT AN INPUT
+// CK INTENT - AUTOMATION TEST: THE MASK LIFTING IS NOT AN INPUT
 //============================================================================
 //
 // The eight level tests around this one all drive the state with input, and
 // every one of them would still pass against an implementation that computed
 // `Active` as "is this button in the held union, and is it deliverable?". That
-// is the single most likely wrong implementation of a level row — it is
+// is the single most likely wrong implementation of a level row - it is
 // simpler, it needs no memory, and it agrees with the correct one on every
 // sequence made only of presses, releases and a mask that stays up.
 //
@@ -15,7 +15,7 @@
 // DOWN while the button is still physically held. A derived state comes back
 // on by itself, because both of its inputs are true again. A state that
 // remembers it was opened by a visible press EDGE stays off, because no edge
-// arrived — the player has not touched anything since the modal opened.
+// arrived - the player has not touched anything since the modal opened.
 //
 //   press           -> Active
 //   mask the key    -> Idle          (already covered by DeactivatesUnderModal)
@@ -23,7 +23,7 @@
 //   release, press  -> Active        (the re-press the policy demands)
 //
 // The last leg is not decoration. Without it, "still Idle" is satisfied by a
-// matcher that has stopped answering the button at all — a capture removal
+// matcher that has stopped answering the button at all - a capture removal
 // that dropped the row would look identical to the correct behaviour, and the
 // re-press is the only thing that tells them apart.
 //
@@ -93,7 +93,7 @@ class UCk_AutoTest_Intent_LevelRequiresPressEdgeAfterMaskLifts : UCk_AutoTest_Ba
         Add_Step_WaitUntil("the modal's capture is in force",                    n"Check_Masked");
         Add_Step_WaitUntil("the state closes",                                   n"Check_Idle");
 
-        // The whole test. The key is STILL DOWN across this removal — nothing about the player
+        // The whole test. The key is STILL DOWN across this removal - nothing about the player
         // changed, only about who may hear them.
         Add_Step(          "close the modal while the key is still down",        n"Step_Unmask");
         Add_Step_WaitUntil("the capture is really gone",                         n"Check_Unmasked");
@@ -101,11 +101,11 @@ class UCk_AutoTest_Intent_LevelRequiresPressEdgeAfterMaskLifts : UCk_AutoTest_Ba
         Add_Step(          "assert the lifted mask opened nothing",              n"Step_AssertNoSelfReactivation");
 
         // The two edges are separate steps, gated on the record between them, because a release and
-        // a press that collapse onto ONE row are the same-frame open-and-close case — a different
+        // a press that collapse onto ONE row are the same-frame open-and-close case - a different
         // contract, pinned by its own test, and it would close this state on the frame it opened.
         Add_Step(          "let go",                                             n"Step_Release");
         Add_Step_WaitUntil("the release reaches the record",                      n"Check_ReleaseRecorded");
-        Add_Step(          "press again — a real edge this time",                n"Step_Press");
+        Add_Step(          "press again - a real edge this time",                n"Step_Press");
         Add_Step_WaitUntil("the state opens again",                              n"Check_Active");
         Add_Step(          "assert the re-press is what opened it",              n"Step_AssertRepressReopened");
         Add_Step(          "let go",                                             n"Step_Release");
@@ -171,17 +171,17 @@ class UCk_AutoTest_Intent_LevelRequiresPressEdgeAfterMaskLifts : UCk_AutoTest_Ba
             "the premise of the whole test: the button is STILL DOWN, so a state derived from held-ness plus deliverability has both of its inputs back");
 
         Assert_False(utils_input_layer::Get_HasCaptureForKey(_Masker, ECk_InputLayer_CaptureMatch::Key, _DragKey),
-            "and delivery is really restored — a capture that outlived the removal would make the silence below prove nothing");
+            "and delivery is really restored - a capture that outlived the removal would make the silence below prove nothing");
 
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_Level_Edged") ==
                     ECk_Intent_Phase::Idle,
-            "the modal closing is not an input — only a fresh visible press edge opens a state, and the player has not touched anything since");
+            "the modal closing is not an input - only a fresh visible press edge opens a state, and the player has not touched anything since");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_ActivationFrame_ByName(_Matcher, n"AS_Level_Edged"), -1,
             "and it names no frame, because there is no state to have opened on one");
 
         Assert_Equals_Int(_FromPhases.Num(), 2,
-            "one open and one close so far — a third transition here is the row coming back on its own");
+            "one open and one close so far - a third transition here is the row coming back on its own");
     }
 
     UFUNCTION()
@@ -190,7 +190,7 @@ class UCk_AutoTest_Intent_LevelRequiresPressEdgeAfterMaskLifts : UCk_AutoTest_Ba
         auto SecondActivationFrame = utils_intent_matcher::TryGet_ActivationFrame_ByName(_Matcher, n"AS_Level_Edged");
 
         Assert_True(SecondActivationFrame > _FirstActivationFrame,
-            "the re-press opened a NEW state on its own frame — this is what separates 'stayed off because no edge arrived' from 'stayed off because the row stopped answering'");
+            "the re-press opened a NEW state on its own frame - this is what separates 'stayed off because no edge arrived' from 'stayed off because the row stopped answering'");
 
         Assert_Equals_Int(_FromPhases.Num(), 3,
             "open, close, open: exactly one transition per real edge, and none for the mask lifting");
@@ -248,7 +248,7 @@ class UCk_AutoTest_Intent_LevelRequiresPressEdgeAfterMaskLifts : UCk_AutoTest_Ba
     }
 
     // Both capture edits are DEFERRED, so both legs wait on the layer's own answer rather than on a
-    // hop count — asserting one hop after either request would be asserting against an edit that has
+    // hop count - asserting one hop after either request would be asserting against an edit that has
     // not landed.
     UFUNCTION()
     private void Check_Masked(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
@@ -265,7 +265,7 @@ class UCk_AutoTest_Intent_LevelRequiresPressEdgeAfterMaskLifts : UCk_AutoTest_Ba
     }
 
     // The first release of the whole test, so finding ANY release of this key in the ring is finding
-    // this one. The re-press must not land in the same batch as it — see the step list.
+    // this one. The re-press must not land in the same batch as it - see the step list.
     UFUNCTION()
     private void Check_ReleaseRecorded(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {

@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: THE ROUTE-QUERY BUDGET IS PER FRAME
+// CK PATH NETWORK - AUTOMATION TEST: THE ROUTE-QUERY BUDGET IS PER FRAME
 //============================================================================
 //
 // FProcessor_PathNetworkFollower_HandleRequests caps route plans at
 // _MaxRouteQueriesPerFrame. That cap is only meaningful if it is a per-FRAME
 // cap: the processor is pump-eligible (MarkedDirtyBy its own Requests
 // fragment) and Pump() calls Tick(0) -> DoTick, so a budget re-armed in
-// DoTick hands every pump pass a fresh allowance — up to budget x
+// DoTick hands every pump pass a fresh allowance - up to budget x
 // _MaxPumpIterations synchronous Recast queries in a single frame.
 //
 //   1. Build the L network (the RebuildReplansRoute fixture) and 3 x budget
@@ -20,7 +20,7 @@
 //      frame, inclusive). Anything above that is a re-armed budget.
 //   4. Within the watch window ALL of them must settle (the cap throttles, it
 //      must not starve).
-//   5. Every settled route is Ready — the throttle must not break the route.
+//   5. Every settled route is Ready - the throttle must not break the route.
 //
 // Why the invariant is expressed cumulatively rather than as a single
 // "count once, one frame later" reading: the test's callbacks ride a timer
@@ -169,7 +169,7 @@ class UCk_AutoTest_PathNetworkFollower_RouteBudgetIsPerFrame : UCk_AutoTest_Base
             f"the per-frame budget must throttle, not starve: every route must settle within the watch window (settled={Settled}, expected={Total}) [trace:{Trace}]");
 
         Assert_True(Ready == Settled,
-            f"every settled route must be Ready, not Failed — the same goal the fixture proves reachable (ready={Ready}, settled={Settled})");
+            f"every settled route must be Ready, not Failed - the same goal the fixture proves reachable (ready={Ready}, settled={Settled})");
 
         FinishSuccess();
     }

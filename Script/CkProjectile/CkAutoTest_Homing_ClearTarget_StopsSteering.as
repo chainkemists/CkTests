@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK HOMING — AUTOMATION TEST: CLEAR TARGET STOPS STEERING
+// CK HOMING - AUTOMATION TEST: CLEAR TARGET STOPS STEERING
 //============================================================================
 //
 // A projectile steers toward a lateral homing point (proving guidance bends
@@ -53,7 +53,7 @@ class UCk_AutoTest_Homing_ClearTarget_StopsSteering : UCk_AutoTest_Base
 
         auto Location = utils_transform::Get_EntityCurrentLocation(_ProjectileTransform);
 
-        // Phase 1 — wait until guidance has visibly bent the path, then clear the target
+        // Phase 1 - wait until guidance has visibly bent the path, then clear the target
         if (!_TargetCleared)
         {
             if (Location.Y > 50.0)
@@ -66,7 +66,7 @@ class UCk_AutoTest_Homing_ClearTarget_StopsSteering : UCk_AutoTest_Base
             return;
         }
 
-        // Phase 2 — let the clear request and the base-acceleration restore settle
+        // Phase 2 - let the clear request and the base-acceleration restore settle
         if (_SettleTicksAfterClear < 2)
         {
             _SettleTicksAfterClear++;
@@ -74,7 +74,7 @@ class UCk_AutoTest_Homing_ClearTarget_StopsSteering : UCk_AutoTest_Base
             return;
         }
 
-        // Phase 3 — direction must not change anymore
+        // Phase 3 - direction must not change anymore
         auto Delta = Location - _PreviousLocation;
         _PreviousLocation = Location;
 

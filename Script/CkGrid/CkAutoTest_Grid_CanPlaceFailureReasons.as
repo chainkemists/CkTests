@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: GET_CANPLACE FAILURE REASONS + OUT-OF-BOUNDS
+// CK GRID - AUTOMATION TEST: GET_CANPLACE FAILURE REASONS + OUT-OF-BOUNDS
 //============================================================================
 //
 // RejectsDisabledOccupied checks that disabled/occupied cells fail, but never

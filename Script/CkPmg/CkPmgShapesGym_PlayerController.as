@@ -126,7 +126,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartGym() override
     {
         Request_SpawnAllShapes();
-        ck::Trace("✅ PMG Shapes Gym - All shapes spawned");
+        ck::Trace("[OK] PMG Shapes Gym - All shapes spawned");
     }
 
     //------------------------------------------------------------------------
@@ -152,7 +152,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnShape_Checkmark_AllOrientations(FlatBaseLocation, FlatRow); ++FlatRow;
         SpawnShape_Diamond_AllOrientations(FlatBaseLocation, FlatRow); ++FlatRow;
 
-        ck::Trace("📐 Spawned " + FlatRow + " rows of flat shapes (3 orientations each)");
+        ck::Trace("* Spawned " + FlatRow + " rows of flat shapes (3 orientations each)");
 
         // Spawn basic 3D shapes station
         auto BasicStationTransform = Get_StationAnchorTransform("Gym.Pmg.BasicShapes", ECk_GymStation_Anchor::PanelCenter);
@@ -168,7 +168,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnShape_Hemisphere(BasicBaseLocation, BasicRow); ++BasicRow;
         SpawnShape_Torus(BasicBaseLocation, BasicRow); ++BasicRow;
 
-        ck::Trace("🔷 Spawned " + BasicRow + " basic 3D shapes");
+        ck::Trace("* Spawned " + BasicRow + " basic 3D shapes");
 
         // Spawn angular shapes station
         auto AngularStationTransform = Get_StationAnchorTransform("Gym.Pmg.AngularShapes", ECk_GymStation_Anchor::PanelCenter);
@@ -179,7 +179,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnShape_Arc_AllOrientations(AngularBaseLocation, AngularRow); ++AngularRow;
         SpawnShape_WedgeCone_AllOrientations(AngularBaseLocation, AngularRow); ++AngularRow;
 
-        ck::Trace("📐 Spawned " + AngularRow + " angular shapes");
+        ck::Trace("* Spawned " + AngularRow + " angular shapes");
 
         // Spawn directional shapes station
         auto DirectionalStationTransform = Get_StationAnchorTransform("Gym.Pmg.DirectionalShapes", ECk_GymStation_Anchor::PanelCenter);
@@ -190,7 +190,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnShape_Pivot_AllOrientations(DirectionalBaseLocation, DirectionalRow); ++DirectionalRow;
         SpawnShape_DashedLine_AllOrientations(DirectionalBaseLocation, DirectionalRow); ++DirectionalRow;
 
-        ck::Trace("➡️ Spawned " + DirectionalRow + " directional shapes");
+        ck::Trace("* Spawned " + DirectionalRow + " directional shapes");
 
         // Spawn icon shapes station
         auto IconStationTransform = Get_StationAnchorTransform("Gym.Pmg.IconShapes", ECk_GymStation_Anchor::PanelCenter);
@@ -202,7 +202,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnShape_NoEntry_AllOrientations(IconBaseLocation, IconRow); ++IconRow;
         SpawnShape_InfoCircle_AllOrientations(IconBaseLocation, IconRow); ++IconRow;
 
-        ck::Trace("⚠️ Spawned " + IconRow + " icon shapes");
+        ck::Trace("[WARN] Spawned " + IconRow + " icon shapes");
 
         // Spawn symbol shapes station
         auto SymbolStationTransform = Get_StationAnchorTransform("Gym.Pmg.SymbolShapes", ECk_GymStation_Anchor::PanelCenter);
@@ -215,7 +215,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnShape_Flag_AllOrientations(SymbolBaseLocation, SymbolRow); ++SymbolRow;
         SpawnShape_Pin_AllOrientations(SymbolBaseLocation, SymbolRow); ++SymbolRow;
 
-        ck::Trace("🔍 Spawned " + SymbolRow + " symbol shapes");
+        ck::Trace("* Spawned " + SymbolRow + " symbol shapes");
 
         // Spawn text shapes station
         auto TextStationTransform = Get_StationAnchorTransform("Gym.Pmg.TextShapes", ECk_GymStation_Anchor::PanelCenter);
@@ -236,8 +236,8 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         SpawnTextSymbols_GeometricMisc(TextBaseLocation, TextRow); ++TextRow;
         SpawnTextSymbols_Emoji(TextBaseLocation, TextRow); ++TextRow;
 
-        ck::Trace("🔣 Spawned 9 symbol/emoji rows (text+symbol font fallback)");
-        ck::Trace("🔤 Spawned " + TextRow + " text-shape rows");
+        ck::Trace("* Spawned 9 symbol/emoji rows (text+symbol font fallback)");
+        ck::Trace("* Spawned " + TextRow + " text-shape rows");
     }
 
     //------------------------------------------------------------------------
@@ -668,7 +668,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     void SpawnText_CJK(FVector InBase, int InRow)
     {
         auto Pos = GetGridPosition(InBase, InRow, 0);
-        // CJK renders as .notdef boxes until the bundled Noto CJK font is imported — intentional.
+        // CJK renders as .notdef boxes until the bundled Noto CJK font is imported - intentional.
         auto Handle = utils_pmg_text_shapes::DrawText(Pos, "CJK-needs-Noto", ShapeSize,
             FLinearColor(1.0f, 0.8f, 0.0f, 0.6f), true, true, 2.0f,
             ECk_Pmg_TextAlign::Left, ECk_Plane_Axis::YZ, nullptr, 500.0f);
@@ -676,12 +676,12 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // TEXT SHAPES — SYMBOL/EMOJI ROWS (font fallback: text font -> Noto Emoji -> Noto Sans Symbols 2)
+    // TEXT SHAPES - SYMBOL/EMOJI ROWS (font fallback: text font -> Noto Emoji -> Noto Sans Symbols 2)
     // All strings built ASCII-only via MakeText_FromHexCodepoints; no non-ASCII literals in source.
     //------------------------------------------------------------------------
 
     // 3-axis showcase for the font text/symbol feature: same mixed string in XY/XZ/YZ,
-    // coloured red/green/blue by rotation (face_viewer = false) so each axis is verifiable —
+    // coloured red/green/blue by rotation (face_viewer = false) so each axis is verifiable
     // matching how the non-font shape stations demonstrate their orientations.
     void SpawnTextSymbols_AllOrientations(FVector InBase, int InRow)
     {
@@ -814,7 +814,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
     // Only the zero-argument controls are keyed. Grid spacing and shape size take a number and stay
-    // console-only — the panel says so rather than leaving a reader to conclude the gym cannot do it.
+    // console-only - the panel says so rather than leaving a reader to conclude the gym cannot do it.
     //--------------------------------------------------------------------------------------------------------------------------
 
     FString Get_ControlPanelTitle() override
@@ -843,14 +843,14 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymPmg_RegenerateAll()
     {
         Request_SpawnAllShapes();
-        ck::Trace("✅ All PMG shapes regenerated");
+        ck::Trace("[OK] All PMG shapes regenerated");
     }
 
     UFUNCTION(Exec, DisplayName="PMG Gym - Clear All Shapes")
     void Ck_GymPmg_ClearAll()
     {
         Request_ClearAllShapes();
-        ck::Trace("🗑️ All PMG shapes cleared");
+        ck::Trace("* All PMG shapes cleared");
     }
 
     UFUNCTION(Exec, DisplayName="PMG Gym - Set Grid Spacing")
@@ -858,7 +858,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         GridSpacing = InSpacing;
         Request_SpawnAllShapes();
-        ck::Trace("📏 Grid spacing set to " + InSpacing + " and shapes regenerated");
+        ck::Trace("* Grid spacing set to " + InSpacing + " and shapes regenerated");
     }
 
     UFUNCTION(Exec, DisplayName="PMG Gym - Set Shape Size")
@@ -866,6 +866,6 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         ShapeSize = InSize;
         Request_SpawnAllShapes();
-        ck::Trace("📐 Shape size set to " + InSize + " and shapes regenerated");
+        ck::Trace("* Shape size set to " + InSize + " and shapes regenerated");
     }
 }

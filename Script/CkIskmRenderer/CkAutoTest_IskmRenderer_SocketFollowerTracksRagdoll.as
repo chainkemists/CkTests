@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: SOCKET-FOLLOWER TRACKS RAGDOLL
+// CK ISKM RENDERER - AUTOMATION TEST: SOCKET-FOLLOWER TRACKS RAGDOLL
 //============================================================================
 //
 // Regression guard for the NPC hair-detach-during-ragdoll bug. A cosmetic that
 // socket-follows an IskM proxy (e.g. NPC hair) must stay glued to the leader's
-// PHYSICS pose once the leader ragdolls — not fly off, anchored on the frozen
+// PHYSICS pose once the leader ragdolls - not fly off, anchored on the frozen
 // death-pose entity transform.
 //
 // The bug: FProcessor_IskmProxy_SocketFollower_SyncTransform normally composes
 //   Offset x Socket(Component) x LeaderEntityTransform.
 // During ragdoll physics owns the SKMC and FProcessor_IskmProxy_UpdateTransform
 // (TExclude<FTag_IskmProxy_Ragdolling>) stops pushing the entity transform onto
-// it, so the entity transform freezes at the death pose while the SKMC drifts —
+// it, so the entity transform freezes at the death pose while the SKMC drifts
 // the composition re-anchors the live component-space socket on a stale root and
 // the follower detaches. The fix branches on the leader's ragdoll tag and reads
 // the WORLD socket directly:  Offset x Socket(World), dropping the
@@ -24,11 +24,11 @@
 //      the leader a NON-ZERO _LocalLocationOffset so a wrongly-KEPT offset term is
 //      also caught.
 //   2. BeginRagdoll on the leader; LOUDLY require the pose flipped to Ragdoll (a stayed-
-//      Sequence would make the discriminator vacuous — the demo mesh SKM_Manny_Simple has
+//      Sequence would make the discriminator vacuous - the demo mesh SKM_Manny_Simple has
 //      PA_Mannequin bound in every host, so failing to engage is a real breakage, not a
 //      benign env skip). The genuine content-absent case is the RendererData null skip.
 //   3. Move the leader ENTITY transform by a huge delta. UpdateTransform excludes
-//      ragdolling proxies, so this NEVER reaches the SKMC — the world socket is
+//      ragdolling proxies, so this NEVER reaches the SKMC - the world socket is
 //      unmoved, but the BUGGY entity-root composition WOULD jump by the delta.
 //   4. Assert the follower still equals  Offset x Get_SocketTransform(Leader, World)
 //      (tracks physics, drops the offset) and did NOT drag with the entity move.
@@ -105,7 +105,7 @@ class UCk_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll : UCk_AutoTest_Base
         if (_SettleTicks < k_SettleFrames)
         { WaitOneFrame(n"Step_MoveLeader"); return; }
 
-        // Loudly guard that ragdoll actually engaged — otherwise the discriminator below
+        // Loudly guard that ragdoll actually engaged - otherwise the discriminator below
         // never runs and the test would pass vacuously. GetPhysicsAsset() != null is the
         // only precondition (independent of whether Chaos actually steps headlessly), and
         // the demo mesh SKM_Manny_Simple has PA_Mannequin bound in every host, so a stayed-
@@ -113,14 +113,14 @@ class UCk_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll : UCk_AutoTest_Base
         // (The genuine content-absent case is already handled by the RendererData null skip.)
         if (utils_iskm_proxy::Get_PoseSource(_Proxy) != ECk_IskmProxy_PoseSource::Ragdoll)
         {
-            FinishFailure("Ragdoll did not engage (PoseSource != Ragdoll) — SKM_Manny_Simple lost its PhysicsAsset binding; the fix's ragdoll branch was never exercised");
+            FinishFailure("Ragdoll did not engage (PoseSource != Ragdoll) - SKM_Manny_Simple lost its PhysicsAsset binding; the fix's ragdoll branch was never exercised");
             return;
         }
 
         _FollowerPreMove = utils_transform::Get_EntityCurrentTransform(_Follower).GetLocation();
 
         // Move the leader entity far along X. UpdateTransform excludes ragdolling
-        // proxies, so this NEVER reaches the SKMC — the world socket stays put.
+        // proxies, so this NEVER reaches the SKMC - the world socket stays put.
         utils_transform::Request_SetTransform(_Leader, FTransform(FVector(k_MoveDist, 0.0f, 0.0f)));
 
         _SettleTicks = 0;
@@ -156,9 +156,9 @@ class UCk_AutoTest_IskmRenderer_SocketFollowerTracksRagdoll : UCk_AutoTest_Base
         // Without the fix the follower rides the moved entity root -> off by ~k_MoveDist.
         // If the fix wrongly KEEPS the LocalLocationOffset -> off by ~1000 cm. Either fails.
         Assert_True(float32((FollowerNow - WorldSocket).Size()) < k_Tolerance,
-            f"Ragdoll follower did not track the world socket (delta {(FollowerNow - WorldSocket).Size()} cm > {k_Tolerance}) — SyncTransform ragdoll branch regression");
+            f"Ragdoll follower did not track the world socket (delta {(FollowerNow - WorldSocket).Size()} cm > {k_Tolerance}) - SyncTransform ragdoll branch regression");
 
-        // SECONDARY (lag-immune — two follower reads): the follower did NOT drag with the
+        // SECONDARY (lag-immune - two follower reads): the follower did NOT drag with the
         // stale entity move. The delta from its pre-move pose is only the physics fall, not
         // the 10000 cm entity translation the buggy entity-root composition would apply.
         Assert_True(float32((FollowerNow - _FollowerPreMove).Size()) < k_MoveDist * 0.2f,

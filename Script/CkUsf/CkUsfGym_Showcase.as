@@ -33,11 +33,11 @@ class ACk_UsfGym_Showcase : AActor
         {
             Mesh.SetMaterial(0, MID);
             auto LookName = InLook.Get_EffectiveLookName();
-            ck::Trace(f"✅ CkUsf gym: applied look [{LookName}]");
+            ck::Trace(f"[OK] CkUsf gym: applied look [{LookName}]");
         }
         else
         {
-            ck::Warning("❌ CkUsf gym: MID creation failed — run 'Generate Look Materials' first");
+            ck::Warning("[FAIL] CkUsf gym: MID creation failed - run 'Generate Look Materials' first");
         }
     }
 }

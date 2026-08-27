@@ -1,31 +1,31 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: STACKABLE TRAIT — CONSUME FROM STACK
+// CK INVENTORY - AUTOMATION TEST: STACKABLE TRAIT - CONSUME FROM STACK
 //============================================================================
 //
 // Request_ConsumeFromStack is the destroy-style counterpart to
 // Request_SplitStack (sell, eat, craft input). It exists because a split CANNOT
-// serve that purpose: a split mints a NEW entry, so it fails at an entry bound —
+// serve that purpose: a split mints a NEW entry, so it fails at an entry bound
 // see CkAutoTest_Inventory_DataOnly_SplitRespectsBound, which pins exactly that.
 //
 // This test therefore uses that test's setup DELIBERATELY: an inventory sitting
 // AT its entry bound, where a split is proven to fail with
 // Failed_NoSpaceForNewItem. Consuming in place must still succeed there. Keeping
-// the two setups identical is the point — if the bound is ever relaxed here the
+// the two setups identical is the point - if the bound is ever relaxed here the
 // test stops covering the case the API was added for.
 //
 //   1. BoundedByUniqueEntries(2) inventory.
-//   2. Add Potion x5 (PreferStacking → 1 entry, stack 5).
-//   3. Add Potion x1 (ForceNewItem → entry 2; now AT the entry bound).
-//   4. Request_ConsumeFromStack(stack5, 2) → true, stack reads 3, still 2 entries.
-//   5. Request_ConsumeFromStack(stack3, 1) → true, stack reads 2 — deltas compose
+//   2. Add Potion x5 (PreferStacking -> 1 entry, stack 5).
+//   3. Add Potion x1 (ForceNewItem -> entry 2; now AT the entry bound).
+//   4. Request_ConsumeFromStack(stack5, 2) -> true, stack reads 3, still 2 entries.
+//   5. Request_ConsumeFromStack(stack3, 1) -> true, stack reads 2 - deltas compose
 //      across calls (Add/Subtract modifiers), unlike an Override which would
 //      last-writer-win.
 //
 // The refusal paths (invalid item, non-stackable, consuming the WHOLE stack) are
 // caller contract violations and ENSURE rather than returning quietly, so they
-// cannot be asserted here — an ensure fails the test outright, and the autotest
+// cannot be asserted here - an ensure fails the test outright, and the autotest
 // base has no expected-ensure facility. They are documented on the function.
 //
 //============================================================================
@@ -94,7 +94,7 @@ class UCk_AutoTest_Inventory_StackableTrait_ConsumeFromStack : UCk_AutoTest_Base
         }
         _StackedItem = InItemsCreated[0];
 
-        // Fill the second (last) entry so the inventory sits AT its bound — the
+        // Fill the second (last) entry so the inventory sits AT its bound - the
         // state in which a split provably cannot mint its new entry.
         auto Request = FCk_Request_Inventory_AddItemByDefinition(inv_gym_items::Potion(), 1);
         Request.Set_Policy(ECk_Inventory_AddPolicy::ForceNewItem);
@@ -115,7 +115,7 @@ class UCk_AutoTest_Inventory_StackableTrait_ConsumeFromStack : UCk_AutoTest_Base
             f"ForceNewItem add should fill the second entry (got {InResult})");
         Assert_Equals_Int(_Inventory.Get_NumItems(), 2, "Inventory should be at its 2-entry bound");
 
-        // The stack count is a deferred attribute write — poll for it rather than
+        // The stack count is a deferred attribute write - poll for it rather than
         // assuming a fixed frame count (see SplitRespectsBound's note).
         WaitUntil(n"Check_StackIsFive", n"OnSettledBeforeConsume");
     }
@@ -130,7 +130,7 @@ class UCk_AutoTest_Inventory_StackableTrait_ConsumeFromStack : UCk_AutoTest_Base
 
         const auto Consumed = utils_item_trait_stackable::Request_ConsumeFromStack(_StackedItem, 2);
         Assert_True(Consumed,
-            "ConsumeFromStack(2) must succeed at the entry bound — the case Request_SplitStack cannot serve");
+            "ConsumeFromStack(2) must succeed at the entry bound - the case Request_SplitStack cannot serve");
 
         if (Consumed == false)
         { FinishFailure("ConsumeFromStack refused a valid partial consume"); return; }
@@ -148,7 +148,7 @@ class UCk_AutoTest_Inventory_StackableTrait_ConsumeFromStack : UCk_AutoTest_Base
 
         // The structural property that separates this from a split: no new entry.
         Assert_Equals_Int(_Inventory.Get_NumItems(), 2,
-            "Consuming in place must not mint an entry — the inventory stays at its bound");
+            "Consuming in place must not mint an entry - the inventory stays at its bound");
 
         // Deltas compose across calls (Add/Subtract modifiers), unlike Override.
         const auto Consumed = utils_item_trait_stackable::Request_ConsumeFromStack(_StackedItem, 1);

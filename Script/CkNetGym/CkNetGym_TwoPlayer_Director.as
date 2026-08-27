@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// TWO-PLAYER NET GYM — CADENCE DIRECTOR
+// TWO-PLAYER NET GYM - CADENCE DIRECTOR
 //============================================================================
 // Server-only. Spawned once by the GameMode on authority (the GameMode is
 // server-only, so no extra authority gate is needed). Holds the single shared
@@ -15,7 +15,7 @@
 //
 // Why a server-only orchestrator rather than each pawn binding to a replicated
 // beat: a transient entity has no owning actor, so its attributes don't
-// replicate — there is no client-visible shared clock to bind to. Instead the
+// replicate - there is no client-visible shared clock to bind to. Instead the
 // single server clock drives everything and respects each authority:
 //   - State is owning-client-authoritative, so the director triggers the owning
 //     client via a Client RPC on the pawn (Client_AdvanceState), which issues
@@ -32,7 +32,7 @@
 
 class UCk_NetGym_TwoPlayer_Director : UCk_GenericEntityScript_UE
 {
-    // Server-only orchestrator — never replicated (it has no owning actor anyway).
+    // Server-only orchestrator - never replicated (it has no owning actor anyway).
     default _Replication = ECk_Replication::DoesNotReplicate;
 
     private int _Beat = 0;

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER GYM — stations
+// CK ISKM RENDERER GYM - stations
 //============================================================================
 //
 // Five demo stations exercising the public CkIskmRenderer API surface:
@@ -12,7 +12,7 @@
 //   - CustomData:   single proxy, sin-wave custom data slot
 //
 // Content discovery: each station references the AS-authored
-// `Asset_RendererData_Demo` (defined in CkIskmRenderer_Assets.as) directly —
+// `Asset_RendererData_Demo` (defined in CkIskmRenderer_Assets.as) directly
 // no path-based LoadAssetByName, no editor-only `.uasset` to keep in sync.
 // The wrapper itself pulls migrated UE Mannequin content via the generated
 // `assets::` namespace at script-load time. If the asset somehow resolves
@@ -28,14 +28,14 @@ UCk_IskmRenderer_Data IskmGym_LoadRendererData()
 
 void IskmGym_PrintMissingContent(FString InStationName)
 {
-    Print(f"[IskmRenderer Gym/{InStationName}] iskm_assets::RendererData_Demo() invalid — registry may need regeneration.", 10.0f);
+    Print(f"[IskmRenderer Gym/{InStationName}] iskm_assets::RendererData_Demo() invalid - registry may need regeneration.", 10.0f);
 }
 
 // Opts a proxy into ABP_Unarmed so the mesh idles via the BlendSpace
 // (visual gym demo). The wrapper Renderer PDA leaves _DefaultAnimInstanceClass
 // unset because ABP_Unarmed isn't a UCk_IskmNotify_AnimInstance subclass and
 // the AutoTest harness escalates the framework warning to a test failure.
-// In gym PIE the warning is harmless — montages play through DefaultSlot,
+// In gym PIE the warning is harmless - montages play through DefaultSlot,
 // just OnAnimationNotify won't fire (acceptable for a visual demo).
 void IskmGym_OptIn_AnimBP(FCk_Handle_IskmProxy InProxy)
 {
@@ -57,7 +57,7 @@ struct FCkIskmRenderer_GymStationSpawnParams
 }
 
 // ====================================================================================================================
-// Station 1 — SpawnArmy: 5x5 grid of sub-entities, each with its own IskmProxy.
+// Station 1 - SpawnArmy: 5x5 grid of sub-entities, each with its own IskmProxy.
 // ====================================================================================================================
 
 class UCk_EntityScript_IskmRendererGym_SpawnArmy : UCk_GenericEntityScript_UE
@@ -130,7 +130,7 @@ class UCk_EntityScript_IskmRendererGym_SpawnArmy : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station 2 — OutfitSwap: single proxy, periodic submesh attach/detach.
+// Station 2 - OutfitSwap: single proxy, periodic submesh attach/detach.
 // ====================================================================================================================
 
 class UCk_EntityScript_IskmRendererGym_OutfitSwap : UCk_GenericEntityScript_UE
@@ -191,7 +191,7 @@ class UCk_EntityScript_IskmRendererGym_OutfitSwap : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station 3 — MontageBurst: single proxy, periodic montage trigger.
+// Station 3 - MontageBurst: single proxy, periodic montage trigger.
 // ====================================================================================================================
 
 class UCk_EntityScript_IskmRendererGym_MontageBurst : UCk_GenericEntityScript_UE
@@ -251,7 +251,7 @@ class UCk_EntityScript_IskmRendererGym_MontageBurst : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station 4 — RagdollDemo: single proxy, alternating Begin/End ragdoll.
+// Station 4 - RagdollDemo: single proxy, alternating Begin/End ragdoll.
 // ====================================================================================================================
 
 class UCk_EntityScript_IskmRendererGym_RagdollDemo : UCk_GenericEntityScript_UE
@@ -314,7 +314,7 @@ class UCk_EntityScript_IskmRendererGym_RagdollDemo : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station 6 — TransitionCycle: single proxy, alternates loop ↔ non-loop sequences.
+// Station 6 - TransitionCycle: single proxy, alternates loop <-> non-loop sequences.
 // Demonstrates the Replaced (interrupting a loop) + Completed (non-looping ends naturally)
 // paths in OnAnimationFinished.
 // ====================================================================================================================
@@ -329,7 +329,7 @@ class UCk_EntityScript_IskmRendererGym_TransitionCycle : UCk_GenericEntityScript
     private FCk_Handle_IskmProxy _Proxy;
 
     // STEP A: re-add the member fields. NOT referenced from OnTick yet
-    // (no OnTick at all in this step) — only assigned in DoConstruct after
+    // (no OnTick at all in this step) - only assigned in DoConstruct after
     // the kickoff PlayAnimation. If this still animates, fields-and-assignment
     // aren't the cause and we proceed to Step B (timer + empty OnTick).
     private UAnimSequenceBase _SeqLoop;
@@ -404,13 +404,13 @@ class UCk_EntityScript_IskmRendererGym_TransitionCycle : UCk_GenericEntityScript
 }
 
 // ====================================================================================================================
-// Station 7 — AnimBPDemo: side-by-side AnimBP-driven vs Sequence-driven proxies.
+// Station 7 - AnimBPDemo: side-by-side AnimBP-driven vs Sequence-driven proxies.
 //
 // Left proxy: lets Setup apply the Renderer PDA's _DefaultAnimInstanceClass,
 //             which Asset_RendererData_Demo wires to ABP_Unarmed via
 //             assets::ABP_Unarmed_Class(). With nothing set, the proxy
 //             stays in the fallback UCk_IskmNotify_AnimInstance (sequence
-//             mode by default) — looks like the right proxy.
+//             mode by default) - looks like the right proxy.
 // Right proxy: explicitly forced to Sequence mode via Request_SetAnimInstanceClass(null)
 //              + a looping MM_Idle so it doesn't sit in T-pose.
 // ====================================================================================================================
@@ -477,7 +477,7 @@ class UCk_EntityScript_IskmRendererGym_AnimBPDemo : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station 5 — CustomData: single proxy, sin-wave custom data slot.
+// Station 5 - CustomData: single proxy, sin-wave custom data slot.
 // ====================================================================================================================
 
 class UCk_EntityScript_IskmRendererGym_CustomData : UCk_GenericEntityScript_UE

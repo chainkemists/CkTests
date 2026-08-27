@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MINIMAP — AUTOMATION TEST: in-range POI projects into an entry
+// CK MINIMAP - AUTOMATION TEST: in-range POI projects into an entry
 //============================================================================
 //
 // A POI 1000uu due East of the observer with ViewExtent 5000 must appear as

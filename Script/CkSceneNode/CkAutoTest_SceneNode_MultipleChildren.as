@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE — AUTOMATION TEST: MULTIPLE CHILDREN
+// CK SCENE NODE - AUTOMATION TEST: MULTIPLE CHILDREN
 //============================================================================
 //
 // Headless equivalent of the MultipleChildren gym behavior. Four child
 // SceneNodes share the same bare ECS parent at cardinal local offsets.
 // Rotates the parent and asserts every child's world transform composes
-// correctly (ChildLocal * ParentWorld) — i.e. parent motion fans out to all
+// correctly (ChildLocal * ParentWorld) - i.e. parent motion fans out to all
 // siblings in a single tick.
 //
 // If a child reports its spawn-pose location instead of the rotated one, the

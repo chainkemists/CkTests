@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: LEAF_B (GoalIsEffects test)
+// CK GOAP - AUTOMATION TEST ACTION: LEAF_B (GoalIsEffects test)
 //============================================================================
 //
 // Correct leaf for the GoalIsEffects test. Effect: BKey=true.

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROJECTILE — AUTOMATION TEST: ADD ATTACHES VELOCITY + ACCELERATION
+// CK PROJECTILE - AUTOMATION TEST: ADD ATTACHES VELOCITY + ACCELERATION
 //============================================================================
 //
 // First-coverage seed for CkProjectile. Projectile Add is a compound

@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — AUTOMATION TEST: Add_Fragment → Has_Fragment returns true
+// CK DYNAMIC - AUTOMATION TEST: Add_Fragment -> Has_Fragment returns true
 //============================================================================
 //
 // First-coverage seed for CkDynamic. Verifies the round-trip of the
 // type-erased dynamic-fragment surface:
 //
 //   Handle.Add_Fragment(Payload)            (mixin form, AS-only)
-//   → Handle.Has_Fragment(StructType) == true
+//   -> Handle.Has_Fragment(StructType) == true
 //
 // Uses the test-local FCk_Fragment_DynamicTest_Payload USTRUCT
 // (shared across CkDynamic AutoTests) as the dynamic payload.

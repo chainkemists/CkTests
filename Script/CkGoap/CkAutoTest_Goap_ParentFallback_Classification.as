@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PARENT-FALLBACK RESIDENCY CLASSIFICATION
+// CK GOAP - AUTOMATION TEST: PARENT-FALLBACK RESIDENCY CLASSIFICATION
 //============================================================================
 //
-// Validates the import-aliasing residency split (WsParentFallback design §3.2):
+// Validates the import-aliasing residency split (WsParentFallback design Sec.3.2):
 // an action on a sub-WS references one parent-resident key (Key.Shared,
 // pre-registered on the parent at composition) and one brand-new key
 // (Key.Local). Setup must classify Shared as an IMPORT alias (locally
-// registered, truth in the parent) and Local as sub-resident — and Local must
+// registered, truth in the parent) and Local as sub-resident - and Local must
 // never leak into the parent registry.
 //============================================================================
 
@@ -47,7 +47,7 @@ class UCk_AutoTest_Goap_ParentFallback_Classification : UCk_AutoTest_Base
             ParentParams);
         Assert_True(ck::IsValid(_Parent), "parent WS should be a valid handle");
 
-        // Pre-registration is synchronous at composition — resident immediately, no settle.
+        // Pre-registration is synchronous at composition - resident immediately, no settle.
         Assert_True(utils_goap_world_state::Has_Key(_Parent, SharedKey()),
             "pre-registered Key.Shared must be resident on the parent the moment Create returns");
 

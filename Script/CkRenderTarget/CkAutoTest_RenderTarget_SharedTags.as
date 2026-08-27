@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RENDER TARGET — AUTOMATION TEST: SHARED GAMEPLAY TAGS
+// CK RENDER TARGET - AUTOMATION TEST: SHARED GAMEPLAY TAGS
 //============================================================================
 //
 // Sync-name tags consumed by the CkAutoTest_RenderTarget_* suite. The root

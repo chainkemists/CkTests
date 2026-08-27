@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: ALWAYS-TRUE CONDITION PASSES
+// CK STATE MACHINE - AUTOMATION TEST: ALWAYS-TRUE CONDITION PASSES
 //============================================================================
 //
 // Pins the documented Super::BeginPlay-then-MarkSatisfied ordering for
-// UCk_SmCondition_AlwaysTrue (see CkStateMachine/CLAUDE.md "Event-driven
+// UCk_SmCondition_AlwaysTrue (see the CkStateMachine docs "Event-driven
 // condition resting state -> Trade-offs"). The contract is:
 //
 //   AlwaysTrue::BeginPlay calls Super::BeginPlay() first (so the
@@ -25,7 +25,7 @@ class UCk_SmTest_AlwaysTrue_State_Finish : UCk_SmState_EntityScript
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        // terminal — no transitions
+        // terminal - no transitions
     }
 };
 
@@ -73,7 +73,7 @@ class UCk_AutoTest_StateMachine_AlwaysTrueCondition_PassesImmediately : UCk_Auto
 
         _FinishObserved = true;
         Assert_True(InPayload.Get_PreviousStateClass() == UCk_SmTest_AlwaysTrue_State_Idle,
-            "AlwaysTrue-guarded transition should fire from Idle to Finish — Get_PreviousStateClass must be Idle");
+            "AlwaysTrue-guarded transition should fire from Idle to Finish - Get_PreviousStateClass must be Idle");
         FinishSuccess();
     }
 }

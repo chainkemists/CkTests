@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE TAG-KEYED READS, WHILE NOTHING MINTS A TAG
+// CK INTENT - AUTOMATION TEST: THE TAG-KEYED READS, WHILE NOTHING MINTS A TAG
 //============================================================================
 //
 // `Get_IntentPhase` is the RULED primary read and it is keyed by the
 // definition's `_IntentTag`. The `Intent.*` namespace is still an open
 // question, nothing mints a tag, and the grammar carries whatever it is handed
-// — so every set baked today carries an EMPTY tag, and the four tag-keyed
+// - so every set baked today carries an EMPTY tag, and the four tag-keyed
 // reads answer nothing for every caller. `_ByName` is what a v1 consumer and
 // every other test in this battery actually calls.
 //
@@ -22,7 +22,7 @@
 // and only one of them survives the namespace landing: an EMPTY tag is
 // rejected before the set is ever consulted, while a real, registered tag the
 // set does not carry walks the intents and finds no row. A future change that
-// mints tags at bake time turns the first leg red — which is the point. This
+// mints tags at bake time turns the first leg red - which is the point. This
 // file is where "the tag surface answers nothing yet" is written down, so that
 // day shows up as a deliberate, located red rather than as four reads quietly
 // starting to work with nobody having decided they should.
@@ -32,7 +32,7 @@
 // set, a move that really completed, and a claim really taken on it. The
 // `_ByName` forms are asserted FIRST and report all of that. So the tag forms
 // are not answering `Idle`/`INDEX_NONE`/`false`/invalid because there is
-// nothing to report — they are answering it while the row beside them reports
+// nothing to report - they are answering it while the row beside them reports
 // everything.
 //============================================================================
 
@@ -153,7 +153,7 @@ class UCk_AutoTest_Intent_TagKeyedReadsAnswerEmptyOnUnmintedTag : UCk_AutoTest_B
 
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_TagRead_Move") ==
                     ECk_Intent_Phase::Completed,
-            "the row is Completed — the tag-keyed phase read below answers Idle beside a row that is anything but");
+            "the row is Completed - the tag-keyed phase read below answers Idle beside a row that is anything but");
 
         Assert_True(utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_TagRead_Move") >= 0,
             "the row carries a real completion frame, so the INDEX_NONE below is a lookup miss rather than an absent completion");
@@ -177,7 +177,7 @@ class UCk_AutoTest_Intent_TagKeyedReadsAnswerEmptyOnUnmintedTag : UCk_AutoTest_B
             "an empty tag is rejected before the set is consulted at all");
 
         // A real, registered tag from another feature's namespace. It reaches the set and finds no row, which is the
-        // OTHER way a tag-keyed read misses — and the way that survives whatever the Intent.* namespace turns out to be.
+        // OTHER way a tag-keyed read misses - and the way that survives whatever the Intent.* namespace turns out to be.
         auto UnrelatedTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Cue.AfterOneFrame");
 
         Assert_True(UnrelatedTag.IsValid(),
@@ -231,7 +231,7 @@ class UCk_AutoTest_Intent_TagKeyedReadsAnswerEmptyOnUnmintedTag : UCk_AutoTest_B
             f"the tag-keyed phase read answers Idle: {InWhy}");
 
         // INDEX_NONE. A phase enum has no Unknown value and the frame read has no found-flag, so a miss and a row
-        // that is simply not Completed answer identically — deliberately, since a consumer acts the same on both.
+        // that is simply not Completed answer identically - deliberately, since a consumer acts the same on both.
         Assert_Equals_Int(utils_intent_matcher::TryGet_CompletionFrame(_Matcher, InTag), -1,
             f"the tag-keyed completion frame answers INDEX_NONE: {InWhy}");
 

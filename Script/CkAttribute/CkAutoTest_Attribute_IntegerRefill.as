@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: INTEGER REFILL
+// CK ATTRIBUTE - AUTOMATION TEST: INTEGER REFILL
 //============================================================================
 //
 // Integer-side parity with CkAutoTest_Attribute_FloatRefill. Verifies the

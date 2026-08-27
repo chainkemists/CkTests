@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: SPATIAL RELOCATE ITEM — SUCCESS
+// CK INVENTORY - AUTOMATION TEST: SPATIAL RELOCATE ITEM - SUCCESS
 //============================================================================
 //
 // Pins the happy-path Request_RelocateItem contract on a spatial inventory:

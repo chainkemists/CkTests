@@ -1,11 +1,11 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: SEPARATION PROBE ISOTROPY
+// CK CROWD - AUTOMATION TEST: SEPARATION PROBE ISOTROPY
 //
 // REGRESSION TEST for the Jolt Y-axis probe-cylinder defect (2026-07-13).
 //
 // Jolt's CylinderShape is Y-AXIS ALIGNED by convention ("one top at
-// (0,-HalfHeight,0), the other at (0,+HalfHeight,0)" — Jolt CylinderShape.h),
+// (0,-HalfHeight,0), the other at (0,+HalfHeight,0)" - Jolt CylinderShape.h),
 // while CkSpatialQuery runs Jolt in Unreal's Z-up frame with an axis-passthrough
 // Conv(). Nobody applied the Y->Z correction, so every crowd agent's
 // neighbor-detection probe lay ON ITS SIDE. Neighbor detection was ANISOTROPIC
@@ -14,17 +14,17 @@
 //
 // Not one of the 771 automated tests noticed. The three behavioral
 // Crowd_Separation_* tests passed with the broken sideways probe AND with the
-// fixed upright one — they assert on emergent walking behavior, which is far too
+// fixed upright one - they assert on emergent walking behavior, which is far too
 // slack to feel a distorted query volume. It took a human squinting at a debug
 // draw in PIE. THIS test closes that hole by asserting on the probe's GEOMETRY.
 //
 //----------------------------------------------------------------------------
-// THE GEOMETRY — derived from source, not assumed
+// THE GEOMETRY - derived from source, not assumed
 //
 // An agent's probe is its ONLY shape (CkCrowdAgent_Processor.cpp:74-87): a
 // cylinder of Radius = _Radius + _SeparationLookahead and HalfHeight = _Height/2,
 // SceneNode-parented at agent + (0,0,HalfHeight). Its Probe filter AND name are
-// both TAG_Crowd_Agent, so probes overlap EACH OTHER — the neighbor cache maps
+// both TAG_Crowd_Agent, so probes overlap EACH OTHER - the neighbor cache maps
 // each overlap back through the other PROBE CHILD to its agent
 // (CkCrowdAgent_Neighbors_Processor.cpp:76-83).
 //
@@ -40,13 +40,13 @@
 //
 // So a neighbor placed at GapCm from its subject is seen in every bearing by the
 // fixed probe, but the broken probe goes BLIND to it once |dY| exceeds 192.
-// GapCm = 330 sits 138cm clear of that cutoff and 154cm inside the fixed reach —
+// GapCm = 330 sits 138cm clear of that cutoff and 154cm inside the fixed reach
 // deliberately not a knife-edge at either end.
 //
 // The subject is one of a RING of bearings. Under the broken probe the six
 // bearings within 35.6deg of +/-Y (i.e. |330*sin(theta)| > 192) go undetected and
 // report zero force; the 0deg / 180deg pair stays visible and doubles as the
-// "the probe pipeline is alive at all" control — if THOSE fail, nothing is being
+// "the probe pipeline is alive at all" control - if THOSE fail, nothing is being
 // detected anywhere and the isotropy claim was never testable.
 //
 //----------------------------------------------------------------------------
@@ -61,7 +61,7 @@
 //     two geometrically identical pairs legitimately disagree on |F| by up to
 //     12cm/s. Asserting |F_a| == |F_b| to a tight tolerance FAILS ON CORRECT CODE.
 //  2. Even without the jitter, once a neighbor IS detected its force depends only
-//     on distance and _SeparationRadius — both identical across bearings by
+//     on distance and _SeparationRadius - both identical across bearings by
 //     construction. Comparing magnitudes re-measures our own spawn geometry and
 //     says nothing whatsoever about the probe's shape.
 //
@@ -71,7 +71,7 @@
 // and an undetected one yields exactly zero (the processor early-outs on an empty
 // cache). Expected projection is
 //     (1 - 330/600)^2 * 0.5 * 240 = 24.3 cm/s,
-// worst-cased by the jitter to >= 18.3 — far above MinDetectableForce, and
+// worst-cased by the jitter to >= 18.3 - far above MinDetectableForce, and
 // infinitely above the 0.0 the broken probe produces.
 //
 // NOTE the agents are deliberately IDLE (no MoveTo). NeighborSync and Separation
@@ -165,7 +165,7 @@ class UCk_AutoTest_Crowd_Separation_ProbeIsotropy : UCk_AutoTest_Base
             const auto AngleDeg = _BearingsDeg[Bearing];
 
             // THE REGRESSION ASSERTION. Zero here means the probe never detected a neighbor
-            // sitting GapCm away on this bearing — i.e. the query volume is not rotationally
+            // sitting GapCm away on this bearing - i.e. the query volume is not rotationally
             // symmetric about Z. Under the Y-aligned cylinder this fires for every bearing whose
             // |dY| exceeds 2*ProbeHalfHeight (192cm): 45/90/135/225/270/315 degrees all go blind.
             Assert_True(AwayForce >= MinDetectableForce,
@@ -175,7 +175,7 @@ class UCk_AutoTest_Crowd_Separation_ProbeIsotropy : UCk_AutoTest_Base
         FinishSuccess();
     }
 
-    // Idle on purpose — NO MoveTo, and no euler-integrator start. Steering requires
+    // Idle on purpose - NO MoveTo, and no euler-integrator start. Steering requires
     // FTag_CrowdAgent_Walking, so an idle agent never gets a desired velocity and never moves;
     // Separation has no such requirement, so it still publishes a force. Velocity/Acceleration are
     // composed anyway because the VelocityBridge processor runs on every non-asleep agent and

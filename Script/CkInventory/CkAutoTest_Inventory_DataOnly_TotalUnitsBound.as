@@ -1,21 +1,21 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: BOUNDED BY TOTAL UNITS
+// CK INVENTORY - AUTOMATION TEST: BOUNDED BY TOTAL UNITS
 //============================================================================
 //
 // Verifies the BoundedByTotalUnits metric: the limit counts the SUM of stack
 // counts, not unique entries.
 //   1. Create a BoundedByTotalUnits(6) inventory.
-//   2. Add Potion x4 (PreferStacking) → Success_AllAdded; 1 entry, 4 units.
-//   3. Add Potion x4 again → Success_PartiallyAdded with AmountAdded=2
+//   2. Add Potion x4 (PreferStacking) -> Success_AllAdded; 1 entry, 4 units.
+//   3. Add Potion x4 again -> Success_PartiallyAdded with AmountAdded=2
 //      (only 2 units of room remain); still 1 entry, 6 units.
-//   4. Add Potion x1 → Failed_NoSpaceAvailable; RemainingCapacity is 0.
+//   4. Add Potion x1 -> Failed_NoSpaceAvailable; RemainingCapacity is 0.
 //
 // The two unit-count settles were hand-rolled retry loops bounded by a
 // try counter. On exhausting the budget they FELL THROUGH into the
 // assertions anyway, so a genuine hang reported as "Inventory should hold 4
-// units" — a data-integrity failure pointing at the inventory system when the
+// units" - a data-integrity failure pointing at the inventory system when the
 // real cause was that the wait gave up. WaitUntil names the condition it was
 // waiting on and is bounded by the test timeout instead.
 //============================================================================
@@ -59,7 +59,7 @@ class UCk_AutoTest_Inventory_DataOnly_TotalUnitsBound : UCk_AutoTest_Base
             f"Add(Potion x4) into units(6) should fully succeed (got {InResult})");
         Assert_Equals_Int(InAmountAdded, 4, "First add should report 4 units added");
 
-        // Stack writes settle via deferred attribute modifiers — wait before the next
+        // Stack writes settle via deferred attribute modifiers - wait before the next
         // capacity-sensitive operation reads TotalUnits.
         WaitUntil(n"Check_FourUnits", n"OnFirstAddSettled");
     }

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE E PROXY ADD
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE E PROXY ADD
 //============================================================================
 //
 // Phase E test gate. Verifies the proxy public API surface added in E4

@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PARENT-FALLBACK PARENT TEARDOWN
+// CK GOAP - AUTOMATION TEST: PARENT-FALLBACK PARENT TEARDOWN
 //============================================================================
 //
-// Validates the dead-parent contract (WsParentFallback design §3.9): when the
+// Validates the dead-parent contract (WsParentFallback design Sec.3.9): when the
 // parent WS is destroyed before the sub-WS, imported keys degrade to MISS
-// semantics — reads return false (never the stale alias slot), forwarded
-// writes are dropped — and nothing crashes or ensures.
+// semantics - reads return false (never the stale alias slot), forwarded
+// writes are dropped - and nothing crashes or ensures.
 //============================================================================
 
 class UCk_AutoTest_Goap_ParentFallback_ParentTeardown : UCk_AutoTest_Base

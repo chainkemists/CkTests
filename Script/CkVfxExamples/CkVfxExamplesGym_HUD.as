@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK VFX EXAMPLES GYM — HUD: the pair selector
+// CK VFX EXAMPLES GYM - HUD: the pair selector
 //============================================================================
 //
 // Adds a SECOND menu on top of the gym cycler (which stays on Tab, untouched):
 // V opens a searchable list of the A/B pairs (F-keys are taken by the editor's
-// rendering debug modes); Enter activates the selection —
+// rendering debug modes); Enter activates the selection
 // one pair is live at a time (see the PlayerController for why). The menu's
 // mechanics deliberately mirror ACkGym_MenuHUD's cycler menu (arrows with
 // key-repeat, type-to-search, Enter/Esc) so the two feel like one tool; the
@@ -14,8 +14,8 @@
 // cycler menu serves every gym and has no automated coverage to catch a
 // regression.
 //
-// Hands-on-viewport shortcuts while BOTH menus are closed — PgUp/PgDn for previous/next pair and R to
-// restart the active pair in sync — are declared as control-panel rows on the PlayerController and drawn
+// Hands-on-viewport shortcuts while BOTH menus are closed - PgUp/PgDn for previous/next pair and R to
+// restart the active pair in sync - are declared as control-panel rows on the PlayerController and drawn
 // by ACkGym_ControlPanelHUD, which this now derives from. The panel is pushed below the pair readout.
 //
 //============================================================================
@@ -23,7 +23,7 @@
 class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
 {
     // Clear of the pair readout, the credit line, and the tune / compile / setup banners that stack under
-    // it — the panel must not land on top of the thing it is annotating.
+    // it - the panel must not land on top of the thing it is annotating.
     FCkGym_ControlPanel_Style Get_ControlPanelStyle() override
     {
         auto Style = ControlPanelStyle;
@@ -95,7 +95,7 @@ class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
     {
         auto _CkPerfScope = ck::ScopedStat();
 
-        // Mirror the base's startup suppression — the base check runs inside Super,
+        // Mirror the base's startup suppression - the base check runs inside Super,
         // which the VFX-menu branch below never reaches.
         auto CyclerSubsystem = UCkGym_CyclerSubsystem::Get();
         if (ck::IsValid(CyclerSubsystem) && CyclerSubsystem.SuppressHUDDuringStartup)
@@ -135,7 +135,7 @@ class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
             }
 
             // PgUp / PgDn / R are declared as control-panel rows on the PlayerController and dispatched
-            // by ACkGym_ControlPanelHUD, so they are deliberately NOT polled here — one key, one path.
+            // by ACkGym_ControlPanelHUD, so they are deliberately NOT polled here - one key, one path.
             Draw_ActivePairReadout();
         }
 
@@ -565,7 +565,7 @@ class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
     }
 
     // Persistent top-left readout while no menu is open: which pair is live, and the
-    // keys that drive the harness — the gym is unusable without knowing these.
+    // keys that drive the harness - the gym is unusable without knowing these.
     private void Draw_ActivePairReadout()
     {
         auto PC = Get_VfxPC();
@@ -591,7 +591,7 @@ class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
 
         // Only while the exec overlay is in force: an unannounced multiplier on the recreation half
         // would read as a fidelity gap against the original beside it. Identity values with the
-        // overlay ON are still worth announcing — they are overriding the asset.
+        // overlay ON are still worth announcing - they are overriding the asset.
         if (PC.Get_IsTuneOverlayActive())
         {
             DrawText(PC.Get_TuningReadout(), FLinearColor(0.9f, 0.7f, 0.3f, 0.85f), 24.0f, 80.0f, nullptr, 0.8f, false);
@@ -602,13 +602,13 @@ class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
         if (PC.Get_IsWaitingForCompile())
         {
             DrawText(
-                f"COMPILING {PC.Get_CompileWaitText()} — first run after a regen; editor stays live, effect appears when ready",
+                f"COMPILING {PC.Get_CompileWaitText()} - first run after a regen; editor stays live, effect appears when ready",
                 FLinearColor(1.0f, 0.6f, 0.2f, 0.9f), 24.0f, 98.0f, nullptr, 0.8f, false);
         }
 
         // The freeze warning, and the ONLY thing on screen for the duration of the block it warns about:
         // the PC sets the text a frame BEFORE it spawns, so this paints while the game thread is still
-        // alive and then stays frozen on screen — which is exactly the feedback the block otherwise eats.
+        // alive and then stays frozen on screen - which is exactly the feedback the block otherwise eats.
         // Drawn larger and hotter than the compile line because it announces a stall, not a wait.
         auto SetupBanner = PC.Get_SetupBannerText();
         if (SetupBanner.Len() > 0)

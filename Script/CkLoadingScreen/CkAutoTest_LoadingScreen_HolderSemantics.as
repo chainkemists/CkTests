@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK LOADINGSCREEN — AUTOMATION TEST: HOLDER SEMANTICS
+// CK LOADINGSCREEN - AUTOMATION TEST: HOLDER SEMANTICS
 //============================================================================
 //
 // Verifies the CkLoadingScreen holder bookkeeping headlessly. Presentation is
 // suppressed in -unattended/null-RHI runs by design, but the holder state
-// machine still runs — this test asserts exactly that contract:
+// machine still runs - this test asserts exactly that contract:
 //
 //   1. The subsystem exists in PIE.
 //   2. Creating a UCk_LoadingProcess_Task_UE flips Get_NeedsLoadingScreen()
 //      to true with the task's reason surfaced in Get_DebugReason().
 //   3. Request_SetReason updates the surfaced reason.
 //   4. A generous watchdog timeout does not mis-trip while legitimately held.
-//   5. Request_Unregister releases the hold — Get_NeedsLoadingScreen()
+//   5. Request_Unregister releases the hold - Get_NeedsLoadingScreen()
 //      returns to its pre-test value and the reason no longer mentions us.
 //   6. Presentation never engages headless (Get_IsLoadingScreenShowing()
 //      stays false throughout).

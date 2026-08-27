@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE WHOLE LIFECYCLE, TWICE ROUND
+// CK INTENT - AUTOMATION TEST: THE WHOLE LIFECYCLE, TWICE ROUND
 //============================================================================
 //
 // Each earlier test pins one edge. This one drives the loop, because the
-// failure that matters most is not any single edge being wrong — it is state
+// failure that matters most is not any single edge being wrong - it is state
 // left behind by one pass that poisons the next:
 //
 //   press -> complete -> claim          the first ownership is granted
@@ -15,8 +15,8 @@
 //   claim again                          granted, by the same consumer
 //
 // The refusal in the middle is the load-bearing step. A row that decayed but
-// kept its claimant would answer that claim Succeeded — idempotently, since
-// the claimant matches — and a consumer would act on a move that expired.
+// kept its claimant would answer that claim Succeeded - idempotently, since
+// the claimant matches - and a consumer would act on a move that expired.
 // A row that cleared the claimant but not the phase would answer it
 // Succeeded too. Only a row that cleared BOTH refuses, which is why the
 // refusal is what proves the decay was complete rather than cosmetic.
@@ -148,7 +148,7 @@ class UCk_AutoTest_Intent_ClaimDecayRecompleteLoop : UCk_AutoTest_Base
         DoClaim();
 
         Assert_True(_LastResult == ECk_Request_OperationResult::Failed,
-            "the SAME consumer is refused now — a row that kept either half of its old state would answer Succeeded and let it act on a move that expired");
+            "the SAME consumer is refused now - a row that kept either half of its old state would answer Succeeded and let it act on a move that expired");
 
         Assert_True(ck::Is_NOT_Valid(utils_intent_matcher::TryGet_ClaimedBy_ByName(_Matcher, n"AS_Loop_Move")),
             "and a refused claim leaves no owner behind on an already-empty row");

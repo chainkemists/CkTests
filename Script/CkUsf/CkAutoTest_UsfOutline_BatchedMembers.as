@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF ENTITY OUTLINE — AUTOTEST: batched (Plan-2) member outline bookkeeping
+// CK USF ENTITY OUTLINE - AUTOTEST: batched (Plan-2) member outline bookkeeping
 //============================================================================
 //
-// Batched crowd members are (crowd, index) pairs, not entities — the outline
+// Batched crowd members are (crowd, index) pairs, not entities - the outline
 // rides the member API. Asserts the highlight-cluster instance counts across
 // set / hide / show / clear. All member APIs are synchronous.
 //

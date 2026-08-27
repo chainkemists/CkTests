@@ -1,10 +1,10 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Diagnostic Gym — PlayerController
+// Crowd Diagnostic Gym - PlayerController
 //
 // Auto-cycling driver. See CkCrowdGym_Diag_GameMode.as for the cycle timeline.
 //
 // Layout: TWO stations (HeadOn + Cluster) registered via Get_RequiredStations and placed by
-// the cycler grid layout — so they appear in the same place every other gym's stations do
+// the cycler grid layout - so they appear in the same place every other gym's stations do
 // (relative to player spawn). Agents and floor are anchored to the actual station transforms
 // via Get_StationAnchorTransform + TransformPosition, so wherever the cycler puts the stations,
 // the content follows.
@@ -29,7 +29,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
     private int32 _CycleNumber = 0;
     private float _CycleElapsedSec = 0.0;
 
-    // 100ms phase tracker — coarse on purpose. The C++ recorder samples at ck.Crowd.DiagSampleHz
+    // 100ms phase tracker - coarse on purpose. The C++ recorder samples at ck.Crowd.DiagSampleHz
     // independently so visual cycling and data sampling decouple.
     private const float TickIntervalSec   = 0.1;
     private const float OverlapWaveAtSec  = 4.5;   // originals have converged near goal; spawn 2nd wave on top
@@ -38,12 +38,12 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
     // ---- Per-station spawn offsets (in station-LOCAL space) ------------------------------------
 
-    // After the cycler's 180° rotation, station-local +X maps to "in front of the alcove" (toward
+    // After the cycler's 180 deg rotation, station-local +X maps to "in front of the alcove" (toward
     // the player camera). Putting agents at +X local means they spawn in front of their station
     // and are visible from the default player viewpoint. Y splits agents side-to-side.
     private const float SpawnZ           = 100.0;
     private const float HeadOnFwdOffset  = 600.0;   // 600cm in front of HeadOn station
-    private const float HeadOnHalfSpan   = 750.0;   // ±750cm sideways → 1500cm head-on apart
+    private const float HeadOnHalfSpan   = 750.0;   // +/-750cm sideways -> 1500cm head-on apart
     private const float ClusterFwdOffset = 800.0;  // 800cm in front of Cluster station
     private const float ClusterRadius    = 600.0;
     private const int32 ClusterCount     = 5;
@@ -53,10 +53,10 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
         if (HasAuthority() == false)
         { return TArray<FCkGym_Station_SpawnParams_Payload>(); }
 
-        // Default grid layout would place these 800cm apart in Y — too close: HeadOn agents fan
-        // out ±750cm and Cluster has a 600cm radius, so the regions would touch the moment they
+        // Default grid layout would place these 800cm apart in Y - too close: HeadOn agents fan
+        // out +/-750cm and Cluster has a 600cm radius, so the regions would touch the moment they
         // spawn. Set explicit transforms with 3000cm Y spacing so the regions are well clear of
-        // each other (≥4× the head-on agents' goal distance of 750cm). X=500 + Yaw=180 mirrors
+        // each other (>=4x the head-on agents' goal distance of 750cm). X=500 + Yaw=180 mirrors
         // what Request_ApplyDefaultGridLayout would set if we didn't override.
         const auto StationX     = 500.0;
         const auto StationYHalf = 1500.0;
@@ -122,11 +122,11 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
     private void SpawnFloor()
     {
-        // Single big floor at world origin — the cycler map's NavMeshBoundsVolume is centred
+        // Single big floor at world origin - the cycler map's NavMeshBoundsVolume is centred
         // at origin, so a floor at origin lands fully inside it. 7500x7500x50cm covers both
-        // stations (placed at X=500, Y=±1500) plus their spawn radii with margin.
+        // stations (placed at X=500, Y=+/-1500) plus their spawn radii with margin.
         //
-        // Z SCALE MUST BE >= 0.5 — anything thinner and the navmesh bake silently produces
+        // Z SCALE MUST BE >= 0.5 - anything thinner and the navmesh bake silently produces
         // no walkable tiles on the surface (grey floor in the navmesh viewer). Recast's tile
         // generator filters out geometry below a height threshold relative to the agent's
         // CellHeight; 50cm slabs sit comfortably above it.
@@ -149,7 +149,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
     // Project a station-LOCAL offset into world space using the station's actual placed transform.
     // Station-local +X maps to "in front of station's alcove" (toward the player camera) after the
-    // cycler's 180° rotation. So local +X offsets always land in the visible play area regardless
+    // cycler's 180 deg rotation. So local +X offsets always land in the visible play area regardless
     // of where the grid layout positioned the station.
     private FVector StationLocal_To_World(FString InStationTag, FVector InLocalOffset)
     {
@@ -238,7 +238,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // Spawn a second wave AT the current world positions of every existing agent. The fresh
-    // agent and the original instantly occupy the same XY (and Z) — push-apart engages on the
+    // agent and the original instantly occupy the same XY (and Z) - push-apart engages on the
     // same frame. This is the canonical repro for the Z-offset / floor-clip bug: under enough
     // overlap pressure, push-apart is observed to shove one capsule downward through the floor.
     //
@@ -268,7 +268,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
             const auto OrigAgent = _ClusterAgents[i];
             if (ck::Is_NOT_Valid(OrigAgent)) { continue; }
             const auto CurLoc = utils_transform::Get_EntityCurrentLocation(utils_transform::DoCastChecked(FCk_Handle(OrigAgent)));
-            // Hue-shift wave-1 cluster colours by +30° so they're distinguishable from wave-0's
+            // Hue-shift wave-1 cluster colours by +30 deg so they're distinguishable from wave-0's
             // even-spaced ring colours.
             const auto HueDeg = (360.0 / float(OrigClusterCount)) * float(i) + 30.0;
             const auto Color = FLinearColor::MakeFromHSV8(uint8(HueDeg * 255.0 / 360.0), 200, 220);
@@ -302,9 +302,9 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
 
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         AgentEntity.Set_DebugName(InDebugName);
-        // Project the look direction to planar — crowd agents are yaw-only (capsule walks on the
-        // navmesh). Without this, overlap-wave agents whose spawn Z ≠ target Z spawn pitched
-        // (~30-45° tilt) since FaceAngle's per-tick yaw lerp can't correct pitch.
+        // Project the look direction to planar - crowd agents are yaw-only (capsule walks on the
+        // navmesh). Without this, overlap-wave agents whose spawn Z != target Z spawn pitched
+        // (~30-45 deg tilt) since FaceAngle's per-tick yaw lerp can't correct pitch.
         const auto LookDir   = TargetLoc - SpawnLoc;
         const auto PlanarDir = FVector(LookDir.X, LookDir.Y, 0.0);
         const auto Rot       = PlanarDir.GetSafeNormal().Rotation();
@@ -411,7 +411,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymCrowd_Diag_DumpNow()
     {
         EmitDigest();
-        ck::crowd::Log("Diag gym: forced digest dump — cycle continues");
+        ck::crowd::Log("Diag gym: forced digest dump - cycle continues");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Diag - Spawn Overlap Wave Now")

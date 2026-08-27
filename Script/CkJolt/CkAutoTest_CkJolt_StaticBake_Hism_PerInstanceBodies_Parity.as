@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: STATIC BAKE, SPARSE HISM -> PER-INSTANCE BODIES
+// CK JOLT - AUTOMATION TEST: STATIC BAKE, SPARSE HISM -> PER-INSTANCE BODIES
 //============================================================================
 //
 // Below the compound threshold (default 32), instanced meshes bake one Jolt
@@ -33,7 +33,7 @@ class UCk_AutoTest_CkJolt_StaticBake_Hism_PerInstanceBodies_Parity : UCk_AutoTes
         _HismActor = SpawnActor(AActor, _Origin);
 
         auto Hism = UHierarchicalInstancedStaticMeshComponent::Create(_HismActor);
-        // A plain AActor has no root component — place the created component explicitly.
+        // A plain AActor has no root component - place the created component explicitly.
         Hism.SetWorldLocation(_Origin);
         Hism.SetStaticMesh(Cube);
         Hism.SetCollisionProfileName(n"BlockAll");

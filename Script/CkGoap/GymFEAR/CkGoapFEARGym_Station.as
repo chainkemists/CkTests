@@ -1,49 +1,49 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapFEAR_Gym — single-station F.E.A.R. combat AI
+// CkGoapFEAR_Gym - single-station F.E.A.R. combat AI
 //
 // Canonical "this is what GOAP is for" demo. Adapted from Jeff Orkin's
 // F.E.A.R. AI paper. One top-level Planner (FEAR_Combatant) with a
 // sub-Planner promoted at AttackEnemy.
 //
-// PR-B.1b Stage 5: the implicit-root model is gone — every Tier-1 Action is
+// PR-B.1b Stage 5: the implicit-root model is gone - every Tier-1 Action is
 // a direct child of FEAR_Combatant.
 //
 // Construction sequence:
 //   1. utils_goap_world_state::Create(InHandle, "Gym.GoapFEAR.WS.Combatant", ...)
-//        → WS entity. All keys reset by Reset_WS().
+//        -> WS entity. All keys reset by Reset_WS().
 //   2. utils_goap_planner::Add(InHandle, CombatantPlannerParams)
-//        → top-level FEAR_Combatant Planner (goal: EnemyNeutralized=true)
+//        -> top-level FEAR_Combatant Planner (goal: EnemyNeutralized=true)
 //   3. utils_goap_planner::AddAction(_Combatant, AttackEnemyParams)
-//        → AttackEnemy as a tier-1 Action.
+//        -> AttackEnemy as a tier-1 Action.
 //   4. utils_goap_planner::AddAction(_Combatant, ...)
-//        → Flank, TakeCover, Reload, Investigate, Patrol siblings.
+//        -> Flank, TakeCover, Reload, Investigate, Patrol siblings.
 //   5. utils_goap_planner::PromoteActionToPlanner(_AttackEnemy, ...)
-//        → AttackEnemy gains the Planner role with sub-goal EnemyNeutralized.
+//        -> AttackEnemy gains the Planner role with sub-goal EnemyNeutralized.
 //   6. utils_goap_planner::AddAction(_AttackEnemy_AsPlanner, ...)
-//        → AttackFromCover, AttackFromFlank, AttackOpen leaves.
+//        -> AttackFromCover, AttackFromFlank, AttackOpen leaves.
 //
 // Scenarios (toggle WS keys via Goap.FEAR.* console commands):
 //
 //   Default reset                                  [WaitForEnemy]                   cost 999  (fallback)
 //   EnemyVisible=true                              [AttackEnemy -> AttackOpen]      cost 2.0
 //   EnemyVisible=true, AtCover=true                [AttackEnemy -> AttackFromCover] cost 1.0
-//   EnemyVisible=true, BehindEnemy=true            [AttackEnemy -> AttackFromFlank] cost 0.5  ← iconic
+//   EnemyVisible=true, BehindEnemy=true            [AttackEnemy -> AttackFromFlank] cost 0.5  <- iconic
 //   HeardSound=true, EnemyVisible=false            [Investigate -> AttackEnemy -> AttackOpen]
 //   HasAmmo=false, HasAmmoReserve=true, Visible    [Reload -> AttackEnemy -> AttackOpen]
-//   HasAmmo=false, Reserve=false, Visible          [WaitForEnemy] cost 999  (can't attack, can't reload — fall back)
+//   HasAmmo=false, Reserve=false, Visible          [WaitForEnemy] cost 999  (can't attack, can't reload - fall back)
 //
 // The WaitForEnemy fallback (no preconditions, cost 999, effect EnemyNeutralized)
 // guarantees the top planner always returns a valid plan. "No plan" should
-// always indicate a misconfigured Action catalog — never a normal operational
+// always indicate a misconfigured Action catalog - never a normal operational
 // state.
 //
 // The AttackEnemy SUB-Planner has its own fallback (AttackEnemy_Standby, cost
 // 999) for the same reason: AttackFromCover/Flank/Open all carry HasAmmo +
 // EnemyVisible preconditions, so without an unconditional sub-leaf the sub-
 // Planner would hit PlanFailed whenever no concrete attack is viable. Both
-// fallbacks comply with CkGoap/CLAUDE.md § "Design tenets / Every Planner
+// fallbacks comply with the CkGoap docs Sec. "Design tenets / Every Planner
 // must always produce a valid plan".
 //============================================================================
 
@@ -87,7 +87,7 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
         // ------------------------------------------------------------------
-        // WorldState — see Reset_WS() for initial values.
+        // WorldState - see Reset_WS() for initial values.
         // ------------------------------------------------------------------
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.WS.Combatant"),
@@ -160,8 +160,8 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackFromFlank));
         utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackOpen));
-        // Always-valid-plan tenet fallback for AttackEnemy sub-Planner — see
-        // CkGoap/CLAUDE.md § "Design tenets".
+        // Always-valid-plan tenet fallback for AttackEnemy sub-Planner - see
+        // the CkGoap docs Sec. "Design tenets".
         utils_goap_planner::AddAction(_AttackEnemy_AsPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapFEARGym_AttackEnemy_Standby));
 
@@ -254,7 +254,7 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
                 _KnownClasses_Attack, _KnownLabels_Attack);
         }
 
-        auto Body = "A canonical GOAP enemy AI — adapted from Jeff Orkin's F.E.A.R.\n"
+        auto Body = "A canonical GOAP enemy AI - adapted from Jeff Orkin's F.E.A.R.\n"
             + "paper. Toggle WS keys via the Console list below to see how\n"
             + "the planner adapts. Or click WS keys directly in the\n"
             + "debugger's WORLDSTATE panel.\n\n"
@@ -286,6 +286,6 @@ class UCk_EntityScript_GoapFEARGym_Combatant_Station : UCk_GenericEntityScript_U
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "STATION 1 / F.E.A.R. COMBATANT", Body,
-            "Canonical GOAP demo — F.E.A.R.-style enemy AI.\nToggle WS keys to see the planner adapt.");
+            "Canonical GOAP demo - F.E.A.R.-style enemy AI.\nToggle WS keys to see the planner adapt.");
     }
 }

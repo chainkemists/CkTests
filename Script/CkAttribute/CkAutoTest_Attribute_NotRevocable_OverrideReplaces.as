@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: NOT-REVOCABLE OVERRIDE REPLACES
+// CK ATTRIBUTE - AUTOMATION TEST: NOT-REVOCABLE OVERRIDE REPLACES
 //============================================================================
 //
-// Pins the Override coalescing contract from CkAttribute/CLAUDE.md:
+// Pins the Override coalescing contract from the CkAttribute docs:
 //
-//   | Override | Replace — latest value wins |
+//   | Override | Replace - latest value wins |
 //
 // `Add_NotRevocable` with `ECk_AttributeModifier_Operation::Override` is
 // expected to find the existing non-revocable Override modifier on the
-// attribute and REPLACE its delta — not stack, not sum, not compose.
+// attribute and REPLACE its delta - not stack, not sum, not compose.
 //
 // On Base=10:
 //   Step 1: Add_NotRevocable(Override, 50) -> Final = 50

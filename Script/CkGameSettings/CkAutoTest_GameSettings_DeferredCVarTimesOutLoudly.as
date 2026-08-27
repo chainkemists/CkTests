@@ -2,7 +2,7 @@
 
 // Verifies the deferred-apply queue's LOUD timeout: a setting bound to a CVar that never
 // registers must fire an ensure naming the key once the (shortened) timeout elapses, and the
-// stored value must survive — timeout drops the queue entry, never the value.
+// stored value must survive - timeout drops the queue entry, never the value.
 class UCk_AutoTest_GameSettings_DeferredCVarTimesOutLoudly : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 10.0;
@@ -64,7 +64,7 @@ class ACk_AutoTest_GameSettings_DeferredCVarTimesOutLoudly_Actor : ACk_AutoTestR
 {
     default _TestEntityScriptClass = UCk_AutoTest_GameSettings_DeferredCVarTimesOutLoudly;
 
-    // The timeout ensure is this test's expected observation — suppress it so the automation
+    // The timeout ensure is this test's expected observation - suppress it so the automation
     // framework doesn't auto-fail the test on its own deliberate output. Plain substring match.
     UFUNCTION(BlueprintOverride)
     TArray<FString> Get_ExpectedLogErrors() const

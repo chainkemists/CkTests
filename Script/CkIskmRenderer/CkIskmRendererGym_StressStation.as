@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER STRESS GYM — one-station EntityScript
+// CK ISKM RENDERER STRESS GYM - one-station EntityScript
 //============================================================================
 //
 // Shared by `IskmRenderer Stress (Static 500)` and `IskmRenderer Stress
 // (Moving 500)`. The two stress gyms differ only in the `Moving` spawn-param
-// they pass — Static skips the OnTick entirely, Moving drives each proxy on
+// they pass - Static skips the OnTick entirely, Moving drives each proxy on
 // a small per-proxy circular orbit via entity-transform updates.
 //
 // Animation: all proxies are in Sequence mode (no ABP_Unarmed opt-in). Each
 // proxy plays a random looping sequence drawn from the AnimCollection,
-// jittered ±15% on PlayRate so the herd never visually syncs.
+// jittered +/-15% on PlayRate so the herd never visually syncs.
 //
 // Moving variant: per-proxy { Center, Radius, Period, Phase } is sampled at
 // construction and never mutated. OnTick computes one full FTransform per
@@ -30,7 +30,7 @@ UCk_IskmRenderer_Data IskmGymStress_LoadRendererData()
 
 void IskmGymStress_PrintMissingContent(FString InStationName)
 {
-    Print(f"[IskmRenderer Gym/{InStationName}] iskm_assets::RendererData_Demo() invalid — registry may need regeneration.", 10.0f);
+    Print(f"[IskmRenderer Gym/{InStationName}] iskm_assets::RendererData_Demo() invalid - registry may need regeneration.", 10.0f);
 }
 
 USTRUCT()
@@ -183,7 +183,7 @@ class UCk_EntityScript_IskmRendererGym_StressArmy : UCk_GenericEntityScript_UE
 
             // Tangent direction: derivative of (cos, sin) is (-sin, cos). Yaw faces along motion.
             // Math::Atan2 may return radians; convert via Math::RadiansToDegrees if available, else
-            // fall back to a fixed yaw (no facing rotation) — purely cosmetic per the design spec.
+            // fall back to a fixed yaw (no facing rotation) - purely cosmetic per the design spec.
             FRotator Rot = FRotator::ZeroRotator;
             const float YawRad = float(Math::Atan2(CosT, -SinT));
             Rot.Yaw = YawRad * (180.0f / float(Math::PI));

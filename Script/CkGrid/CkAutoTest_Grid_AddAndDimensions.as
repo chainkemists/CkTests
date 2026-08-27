@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: ADD AND CELL COUNT
+// CK GRID - AUTOMATION TEST: ADD AND CELL COUNT
 //============================================================================
 //
 // Smoke test for the 2D grid system add path:
@@ -9,7 +9,7 @@
 //   2. Add a 4x3 grid (12 cells, 100x100 each).
 //   3. ForEach_Cell with NoFilter returns 12 cells.
 //   4. Each returned cell responds to Get_Coordinate with an in-range value
-//      (functional check that doesn't require Cell.H() — which needs a
+//      (functional check that doesn't require Cell.H() - which needs a
 //      mutable cell ref the for-loop's `auto Cell` doesn't provide).
 //
 // All operations resolve in DoBeginPlay.

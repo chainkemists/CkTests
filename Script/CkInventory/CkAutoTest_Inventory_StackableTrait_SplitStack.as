@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: STACKABLE TRAIT — SPLIT STACK
+// CK INVENTORY - AUTOMATION TEST: STACKABLE TRAIT - SPLIT STACK
 //============================================================================
 //
 // Verifies Request_SplitStack carves N items off an existing stack into a
 // new stack:
-//   1. Add Potion x3 (default policy → single stack of count 3 by virtue
+//   1. Add Potion x3 (default policy -> single stack of count 3 by virtue
 //      of the Stackable trait).
-//   2. Request_SplitStack(stack, 1) — split 1 off.
+//   2. Request_SplitStack(stack, 1) - split 1 off.
 //   3. OnSplitResult fires with Result=Success.
 //   4. Inventory now holds 2 items: original (count 2) and new (count 1).
 //
@@ -115,7 +115,7 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack : UCk_AutoTest_Base
         _SplitSource = InSource;
         _SplitNewItem = InNewItem;
 
-        // SplitStack's count adjustments are also deferred — wait one tick.
+        // SplitStack's count adjustments are also deferred - wait one tick.
         WaitUntil(n"Check_SplitCountsApplied", n"OnPostSplitSettled");
     }
 

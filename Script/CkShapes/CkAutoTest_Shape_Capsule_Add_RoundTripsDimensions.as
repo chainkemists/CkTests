@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SHAPES — AUTOMATION TEST: CAPSULE ADD ROUND-TRIPS DIMENSIONS
+// CK SHAPES - AUTOMATION TEST: CAPSULE ADD ROUND-TRIPS DIMENSIONS
 //============================================================================
 //
 // Capsule variant. Capsule has two parameters (half-height + radius);

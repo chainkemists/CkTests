@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST (P0): a target is forgotten after its forget duration
+// CK AGGRO - AUTOMATION TEST (P0): a target is forgotten after its forget duration
 // With a short ForgetDuration and no fresh threat/perception, a tracked target times out and is dropped
 // (tracked count returns to 0).
 

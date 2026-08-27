@@ -26,7 +26,7 @@ struct FCkGym_Entry
 }
 
 //--------------------------------------------------------------------------------------------------------------------------
-// Gym Registry (framework — no hardcoded gyms)
+// Gym Registry (framework - no hardcoded gyms)
 //
 // The cycler is a pure registry. Consumers (CkTests, BusterBlock, etc.) register
 // their own gyms via RegisterProjectGym, typically from a base GameMode's

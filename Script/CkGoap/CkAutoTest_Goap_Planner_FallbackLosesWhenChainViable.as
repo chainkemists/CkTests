@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: FALLBACK LOSES WHEN A VIABLE CHAIN EXISTS
+// CK GOAP - AUTOMATION TEST: FALLBACK LOSES WHEN A VIABLE CHAIN EXISTS
 //============================================================================
 //
 // Pins the always-valid-plan tenet's cost-ordering guarantee documented in
-// CkGoap/CLAUDE.md § "Design tenets": "Fallback cost picks itself. Any cost
+// the CkGoap docs Sec. "Design tenets": "Fallback cost picks itself. Any cost
 // much higher than the cheapest real Action wins automatically when no other
 // plan is viable."
 //
-// Catalog (flat — no sub-Planners, deliberately minimal):
+// Catalog (flat - no sub-Planners, deliberately minimal):
 //   Setup     [Action only]   eff:  MidStep=true            cost 1
 //   Finalize  [Action only]   pre:  MidStep=true
 //                             eff:  Goal=true               cost 1
@@ -20,13 +20,13 @@
 //   - PlanStatus == PlanFound
 //   - Plan.Num() == 2
 //   - Plan[0] == Setup, Plan[1] == Finalize
-// The Fallback (cost 999) must NOT appear in the plan — that's the regression
+// The Fallback (cost 999) must NOT appear in the plan - that's the regression
 // guard for "fallback would win a goal-satisfier race despite higher cost".
 //
 // This test exists because the gym-audit work surfaced a question: do
 // gym-shape tests need _AllowPlanFailed=true plus no fallback in catalog, or
 // can they include the fallback and trust A* min-cost? The answer is "trust
-// A*" — but only when this test passes. If this test fails, the framework's
+// A*" - but only when this test passes. If this test fails, the framework's
 // A* / GOAP integration has a min-cost ordering bug that needs a fix.
 //============================================================================
 
@@ -91,7 +91,7 @@ class UCk_AutoTest_Goap_Planner_FallbackLosesWhenChainViable : UCk_AutoTest_Base
             "PlanStatus should be PlanFound");
 
         Assert_True(Plan.Num() == 2,
-            f"Plan should be the [Setup, Finalize] chain (2 entries). Got {Plan.Num()} entries — Fallback may have won despite higher cost.");
+            f"Plan should be the [Setup, Finalize] chain (2 entries). Got {Plan.Num()} entries - Fallback may have won despite higher cost.");
 
         if (Plan.Num() == 2)
         {

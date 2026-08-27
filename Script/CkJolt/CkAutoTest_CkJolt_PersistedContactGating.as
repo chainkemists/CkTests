@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: PERSISTED-CONTACT INTEREST GATING
+// CK JOLT - AUTOMATION TEST: PERSISTED-CONTACT INTEREST GATING
 //============================================================================
 //
 // Persisted contact events are generated per manifold per physics sub-step on
@@ -9,12 +9,12 @@
 // unless some entity carries FTag_Probe_PersistContacts /
 // FTag_JoltBody_PersistContacts. This pins the interest gate:
 //
-//   Stage A — two overlapping probes, nobody opted in     -> zero Persisted events
-//   Stage B — BindTo_OnOverlapUpdated (implicit opt-in)   -> events flow, signal fires
-//   Stage C — UnbindFrom_OnOverlapUpdated (opt-out)       -> back to zero
+//   Stage A - two overlapping probes, nobody opted in     -> zero Persisted events
+//   Stage B - BindTo_OnOverlapUpdated (implicit opt-in)   -> events flow, signal fires
+//   Stage C - UnbindFrom_OnOverlapUpdated (opt-out)       -> back to zero
 //
-// Every stage reads FJoltWorld::_Debug_NumPersistedContactEventsTotal — a CUMULATIVE
-// counter — at both ends of its settle window and asserts on the DELTA. A single-frame
+// Every stage reads FJoltWorld::_Debug_NumPersistedContactEventsTotal - a CUMULATIVE
+// counter - at both ends of its settle window and asserts on the DELTA. A single-frame
 // reading is not an observable here: the fixed-step pump may not sub-step between two
 // drains, so the last drain can legitimately have consumed nothing while generation is
 // wide open (that false red is exactly what a loaded co-tenanted lane produced).
@@ -97,7 +97,7 @@ class UCk_AutoTest_CkJolt_PersistedContactGating : UCk_AutoTest_Base
         utils_probe::Add_Sphere(_MoverTransform, _ProbeRadius, MoverParams, FCk_Probe_DebugInfo());
 
         // Keeps the pair awake for the whole test. NOT bound to OnOverlapUpdated yet, and
-        // Set_PersistContacts is never called — Stage A must observe zero interest.
+        // Set_PersistContacts is never called - Stage A must observe zero interest.
         utils_timer::Create_Tick(_SelfHandle, FCk_Delegate_Timer(this, n"OnNudge"));
 
         _WindowStartTotal = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsTotal(_SelfHandle);
@@ -123,7 +123,7 @@ class UCk_AutoTest_CkJolt_PersistedContactGating : UCk_AutoTest_Base
 
         int64 Delta = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsTotal(_SelfHandle) - _WindowStartTotal;
         Assert_True(Delta == 0,
-            f"persisted events generated with zero interest — gate missing/broken (delta={Delta})");
+            f"persisted events generated with zero interest - gate missing/broken (delta={Delta})");
 
         // Implicit opt-in: BindTo_OnOverlapUpdated adds FTag_Probe_PersistContacts.
         _AnchorProbe = utils_probe::BindTo_OnOverlapUpdated(_AnchorProbe,
@@ -141,7 +141,7 @@ class UCk_AutoTest_CkJolt_PersistedContactGating : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         Assert_True(_OverlapUpdatedCount > 0,
-            f"OnOverlapUpdated never fired after opting in — the probes are not overlapping (updates={_OverlapUpdatedCount})");
+            f"OnOverlapUpdated never fired after opting in - the probes are not overlapping (updates={_OverlapUpdatedCount})");
 
         int64 Delta = UCk_Utils_Jolt_UE::Get_Debug_NumPersistedContactEventsTotal(_SelfHandle) - _WindowStartTotal;
         Assert_True(Delta > 0,

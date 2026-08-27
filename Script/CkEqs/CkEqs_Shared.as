@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — SHARED GAMEPLAY TAGS
+// CK EQS - SHARED GAMEPLAY TAGS
 //============================================================================
 //
 // Tags for gym station discovery. Pattern from CkAStar_Shared.as.

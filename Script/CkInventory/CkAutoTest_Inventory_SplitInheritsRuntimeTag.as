@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: SPLIT INHERITS A RUNTIME-ADDED TAG
+// CK INVENTORY - AUTOMATION TEST: SPLIT INHERITS A RUNTIME-ADDED TAG
 //============================================================================
 //
 // Deterministic regression guard for the "split into a runtime-tag-gated
@@ -14,13 +14,13 @@
 // EVERY time (only the inbox-style runtime-tag gate is affected; a plain shelf
 // accepts the tagless split fine).
 //
-// Repro shape — fails deterministically without the fix, passes with it:
-//   1. Source (DataOnly, unbounded) holds Potion x5 — one stack.
+// Repro shape - fails deterministically without the fix, passes with it:
+//   1. Source (DataOnly, unbounded) holds Potion x5 - one stack.
 //   2. A RUNTIME tag (NOT part of the Potion definition, so the split copy is
 //      born without it) is added to that stack and allowed to commit.
 //   3. Target (DataOnly, unbounded) has a CustomCanAcceptItem requiring that
 //      runtime tag.
-//   4. Transfer COUNT 1 (< stack count) → forces a SPLIT, not a whole-item move.
+//   4. Transfer COUNT 1 (< stack count) -> forces a SPLIT, not a whole-item move.
 //   5. Assert the transfer SUCCEEDS, the target holds the split unit, and the
 //      split unit ends up carrying the runtime tag.
 //
@@ -130,7 +130,7 @@ class UCk_AutoTest_Inventory_SplitInheritsRuntimeTag : UCk_AutoTest_Base
         Assert_Equals_Int(utils_item_trait_stackable::Get_StackCount(_SourceItem), 5,
             "Source stack should hold 5 units before the split");
 
-        // COUNT 1 of a 5-stack → forces the split branch (not an entity-preserving whole move).
+        // COUNT 1 of a 5-stack -> forces the split branch (not an entity-preserving whole move).
         auto Request = FCk_Request_Inventory_TransferItem_ToDataOnly(_SourceItem, _Target);
         Request.Set_Count(1);
         _Source.Request_TransferItem_ToDataOnly(Request,
@@ -148,7 +148,7 @@ class UCk_AutoTest_Inventory_SplitInheritsRuntimeTag : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // THE REGRESSION ASSERT — without the fix this is Failed_RejectedByCustomAcceptanceLogic.
+        // THE REGRESSION ASSERT - without the fix this is Failed_RejectedByCustomAcceptanceLogic.
         Assert_True(InResult == ECk_Inventory_OperationResult_Transfer::Success,
             f"Split into a runtime-tag-gated target should SUCCEED (got {InResult})");
         Assert_Equals_Int(InCountTransferred, 1, "Exactly 1 unit should transfer");

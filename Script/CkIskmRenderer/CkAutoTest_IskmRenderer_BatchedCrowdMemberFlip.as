@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PLAN-2 PHASE 5 MEMBER VISIBILITY (FLIP CORE)
+// CK ISKM RENDERER - AUTOMATION TEST: PLAN-2 PHASE 5 MEMBER VISIBILITY (FLIP CORE)
 //============================================================================
 //
 // Exercises the C++ core of the distance-LOD flip: hiding a crowd member removes it
@@ -11,7 +11,7 @@
 //
 // Verifies the game-thread bookkeeping (rendered instance count tracks visibility).
 // NOT covered (needs a human in the gym): that a per-SKMC proxy actually stands in and
-// can ragdoll/montage — that path needs a player pawn + RHI.
+// can ragdoll/montage - that path needs a player pawn + RHI.
 //============================================================================
 
 class UCk_AutoTest_IskmRenderer_BatchedCrowdMemberFlip : UCk_AutoTest_Base
@@ -22,7 +22,7 @@ class UCk_AutoTest_IskmRenderer_BatchedCrowdMemberFlip : UCk_AutoTest_Base
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            FinishFailure("iskm_assets::AnimCollection_Demo() invalid — registry may need regeneration.");
+            FinishFailure("iskm_assets::AnimCollection_Demo() invalid - registry may need regeneration.");
             return;
         }
         UCk_Utils_IskmAnimCollection_UE::Build_BakedPoseData(Collection);

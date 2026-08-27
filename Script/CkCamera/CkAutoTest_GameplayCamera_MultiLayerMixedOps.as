@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: MULTI-LAYER STACK, MIXED OPS, MIDDLE ADD/REMOVE
+// CK CAMERA - AUTOMATION TEST: MULTI-LAYER STACK, MIXED OPS, MIDDLE ADD/REMOVE
 //============================================================================
 //
 // The headline modifier-stack test. Three coexisting (Additive-stacking) layers at distinct priorities contribute
@@ -90,7 +90,7 @@ class UCk_AutoTest_GameplayCamera_MultiLayerMixedOps : UCk_AutoTest_Base
         }
         else if (_Phase == 1)
         {
-            // Middle Override fully removed (blended out + pruned) → its -20 is gone and the two additive
+            // Middle Override fully removed (blended out + pruned) -> its -20 is gone and the two additive
             // contributions are untouched: 90 +30 +5 = 125. Gate on the prune (not just the value) so we don't read
             // a transient frame where the weight has nearly settled but the entity isn't pruned yet.
             if (_Camera.Has_Layer(UCk_AutoTest_CameraLayer_FovOverride70) == false)
@@ -109,7 +109,7 @@ class UCk_AutoTest_GameplayCamera_MultiLayerMixedOps : UCk_AutoTest_Base
         }
         else // _Phase == 2
         {
-            // Re-added middle Override → back to 90 +30 -20 +5 = 105, three layers live again.
+            // Re-added middle Override -> back to 90 +30 -20 +5 = 105, three layers live again.
             if (Near(Fov, 105.0f))
             {
                 Assert_Equals_Int(_Camera.Get_LayerCount(), 3, "three layers live again after re-adding the middle layer");

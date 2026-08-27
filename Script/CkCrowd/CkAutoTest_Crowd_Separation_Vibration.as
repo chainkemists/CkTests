@@ -1,9 +1,9 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: SEPARATION VIBRATION
+// CK CROWD - AUTOMATION TEST: SEPARATION VIBRATION
 //
 // 2 agents head-on. Samples agent A's _DesiredVelocity direction every 50ms
-// for 3s. Asserts max angular delta between consecutive samples < 30°.
+// for 3s. Asserts max angular delta between consecutive samples < 30 deg.
 // Catches re-introduction of the Phase 1 vibration bug (force/path-follow
 // fighting at full strength).
 //============================================================================
@@ -21,7 +21,7 @@ class UCk_AutoTest_Crowd_Separation_Vibration : UCk_AutoTest_Base
     private const float SampleIntervalSec = 0.05;
     private const float TestDurationSec = 3.0;
     private const float MaxAllowedDeltaDeg = 30.0;
-    private const int32 MinMotionSamples = 20;  // ~1s @ 50ms — must observe real motion
+    private const int32 MinMotionSamples = 20;  // ~1s @ 50ms - must observe real motion
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -34,7 +34,7 @@ class UCk_AutoTest_Crowd_Separation_Vibration : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
 
         // Kick the navmesh: AutoTests_CkTests_Level has the fixture but the bake is lazy.
-        // Each spawned agent issues a MoveTo → FindPath; the deferred-request queue holds
+        // Each spawned agent issues a MoveTo -> FindPath; the deferred-request queue holds
         // those until the rebuild completes (~10ms in practice).
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
 
@@ -76,11 +76,11 @@ class UCk_AutoTest_Crowd_Separation_Vibration : UCk_AutoTest_Base
         if (_ElapsedSec > TestDurationSec)
         {
             // Guard against the false-positive where pathing fails silently and no
-            // velocity is ever sampled — _MaxDeltaDeg stays 0 and would "pass".
+            // velocity is ever sampled - _MaxDeltaDeg stays 0 and would "pass".
             Assert_True(_SamplesWithMotion >= MinMotionSamples,
-                f"only {_SamplesWithMotion} samples saw non-zero velocity (need ≥ {MinMotionSamples}) — agents never moved, test would have falsely passed");
+                f"only {_SamplesWithMotion} samples saw non-zero velocity (need >= {MinMotionSamples}) - agents never moved, test would have falsely passed");
             Assert_True(_MaxDeltaDeg <= MaxAllowedDeltaDeg,
-                f"max angular delta {_MaxDeltaDeg}° exceeds {MaxAllowedDeltaDeg}° — vibration regression");
+                f"max angular delta {_MaxDeltaDeg} deg exceeds {MaxAllowedDeltaDeg} deg - vibration regression");
             FinishSuccess();
         }
     }

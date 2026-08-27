@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: InteractionResolver CREATE MAKES A DISTINCT CHILD
+// CK INTERACTION - AUTOMATION TEST: InteractionResolver CREATE MAKES A DISTINCT CHILD
 //============================================================================
 //
 // Verifies the child-making Create verb (counterpart to the stamp-self Add):
-// Create(owner, ...) spawns a NEW child entity carrying the feature — the
+// Create(owner, ...) spawns a NEW child entity carrying the feature - the
 // returned handle is valid, Has(child) is true, and Has(owner) is FALSE
 // (proving Create is child-making, not stamp-self like Add).
 //============================================================================
@@ -44,7 +44,7 @@ class UCk_AutoTest_InteractionResolver_Create_MakesDistinctChild : UCk_AutoTest_
         Assert_True(utils_interaction_resolver::Has(ChildEntity),
             "The created child entity should carry the InteractionResolver feature");
         Assert_True(!utils_interaction_resolver::Has(Owner),
-            "The owner must NOT carry the feature — Create is child-making, not stamp-self");
+            "The owner must NOT carry the feature - Create is child-making, not stamp-self");
 
         FinishSuccess();
     }

@@ -1,5 +1,5 @@
 //============================================================================
-// PROBE GYM — PHYSICAL STATION
+// PROBE GYM - PHYSICAL STATION
 //
 // Visual demo of raw Probe overlap: a visible box detector volume with three
 // balls staggered-kicked on yoyo tweens that pass through it from different
@@ -9,10 +9,10 @@
 // Desync diagnostic (catches stuck-Jolt-body bugs): per ball, compare
 // "is the ball's center geometrically inside the detector AABB?" (AS math)
 // against "does the detector report overlap with this ball?" (probe query).
-// Disagreement → YELLOW ball. Brief boundary flicker is OK; persistent
+// Disagreement -> YELLOW ball. Brief boundary flicker is OK; persistent
 // yellow == stuck Jolt body.
 //
-// Pawn also carries the same Marker probe — walk through and you'll register
+// Pawn also carries the same Marker probe - walk through and you'll register
 // as the 4th entity.
 //============================================================================
 
@@ -43,7 +43,7 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
 
     int32 DesyncCount = 0;
 
-    // Persistent debug shapes — created once with infinite lifetime.
+    // Persistent debug shapes - created once with infinite lifetime.
     // Detector box position is fixed; only respawned on color change.
     // Each ball has its own persistent sphere whose position is updated each
     // frame via Request_SetLocation, and is only destroyed + respawned when
@@ -154,7 +154,7 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
         utils_probe::BindTo_OnEndOverlap(ProbeHandle,
             FCk_Delegate_Probe_OnEndOverlap(this, n"OnProbeEndOverlap"));
 
-        // No BallInitialDelay gate — kick off immediately. The previous Probe
+        // No BallInitialDelay gate - kick off immediately. The previous Probe
         // Setup FTag_Transform_Updated exclusion is being removed feature-side
         // (see BusterBlock commit b4c6ed72d), so there's no need to wait
         // before any ball's transform starts moving.
@@ -358,7 +358,7 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
             && Math::Abs(Delta.Z) <= ProbeHalfExtents.Z;
     }
 
-    // Math::PI not exposed — hardcode 2π.
+    // Math::PI not exposed - hardcode 2pi.
     FVector GetBallAxisDirection(int32 InBallIndex)
     {
         auto Angle = 6.28318530718f * float(InBallIndex) / float(BallCount);
@@ -418,7 +418,7 @@ class UCk_EntityScript_ProbeGym_PhysicalStation : UCk_GenericEntityScript_UE
 }
 
 //============================================================================
-// PROBE GYM — PHYSICAL STATION (SINGLE-BALL VARIANT)
+// PROBE GYM - PHYSICAL STATION (SINGLE-BALL VARIANT)
 //
 // Thin subclass of the multi-ball physical station with BallCount=1 so the
 // simplest case (one entity passes through the detector) is isolated from

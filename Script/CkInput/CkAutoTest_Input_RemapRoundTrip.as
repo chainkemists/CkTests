@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT — AUTOMATION TEST: REMAP THEN RESET RETURNS THE AUTHORED KEY
+// CK INPUT - AUTOMATION TEST: REMAP THEN RESET RETURNS THE AUTHORED KEY
 //============================================================================
 //
 // The smallest complete rebinding cycle on the shipped surface: read the
@@ -11,7 +11,7 @@
 //
 // K is chosen because no CkTests mapping is authored to it, so the remap
 // cannot be a disguised conflict resolution. The remap lands on the EXISTING
-// slot-First row rather than creating a second one — every mapping this IMC
+// slot-First row rather than creating a second one - every mapping this IMC
 // registers gets slot First (EnhancedInputUserSettings.cpp:1708 does
 // FindOrAdd on a per-name slot counter, and EPlayerMappableKeySlot::First is
 // 0), and MapPlayerKey's FindKeyMapping matches on slot (:1150, :630-633). The
@@ -20,7 +20,7 @@
 //
 // TEARDOWN IS UNCONDITIONAL. All autotests share one PIE session and profile
 // rows outlive the test that touched them, so the reset runs whether or not
-// the assertions above held — a failed assertion must not also leak a rebind
+// the assertions above held - a failed assertion must not also leak a rebind
 // into every later test and into the next baseline capture.
 //============================================================================
 
@@ -32,7 +32,7 @@ class UCk_AutoTest_Input_RemapRoundTrip : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the key profile lives on the local player");
+            FinishFailure("no local PlayerController - the key profile lives on the local player");
             return;
         }
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAG SET — AUTOMATION TEST: REQUEST ADD AND REMOVE TAGS
+// CK TAG SET - AUTOMATION TEST: REQUEST ADD AND REMOVE TAGS
 //============================================================================
 //
 // Verifies the runtime mutation API on a TagSet:
@@ -12,7 +12,7 @@
 //   5. Poll until Get_NumTags == 2 and HasTag(Heavy) == false; Flammable
 //      and Sticky remain.
 //
-// Pins down the deferred mutation contract — both operations are
+// Pins down the deferred mutation contract - both operations are
 // authority-only request structures.
 //============================================================================
 

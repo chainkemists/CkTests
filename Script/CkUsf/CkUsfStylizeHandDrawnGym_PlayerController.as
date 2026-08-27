@@ -2,22 +2,22 @@
 // Hand-Drawn gym ("Stylize: Hand-Drawn" in the cycler).
 //
 // HandDrawn is a VIEW-WIDE post-process, so the stations cannot each own a subject the way the Solid
-// Outline gym's do — there is only ever one frame. They are PRESET SELECTORS instead: walk up to a
+// Outline gym's do - there is only ever one frame. They are PRESET SELECTORS instead: walk up to a
 // station and its preset is applied to the whole view. Everything is judged against the single shared
 // judge scene (ACk_UsfGym_StylizeHandDrawnJudgeScene), which is what makes two presets comparable at all.
 //
 // Two rows, each centred on its own count:
-//   front row (6) — the authored presets
-//   back row  (3) — StorybookInk with one debug mask forced on, because a mask is the only way to tell
+//   front row (6) - the authored presets
+//   back row  (3) - StorybookInk with one debug mask forced on, because a mask is the only way to tell
 //                   "the detector found nothing" from "the detector found everything and the opacity is
 //                   low". Walking back to the front row restores the ordinary image.
 //
 // Tab opens the gym cycler menu; search "Stylize". Console:
-//   Ck_GymStylizeHandDrawn_RestartAll        — respawn the judge scene and re-apply StorybookInk
-//   Ck_GymStylizeHandDrawn_CyclePreset       — next preset without walking
-//   Ck_GymStylizeHandDrawn_CycleDebug        — next debug view of the CURRENT settings
-//   Ck_GymStylizeHandDrawn_ToggleDitherStack — stack ScreenDither on top, for the cross-effect A/B
-//   Ck_GymStylizeHandDrawn_ToggleStrokeSpace — flip ScreenStable <-> WorldAttached, changing NOTHING
+//   Ck_GymStylizeHandDrawn_RestartAll        - respawn the judge scene and re-apply StorybookInk
+//   Ck_GymStylizeHandDrawn_CyclePreset       - next preset without walking
+//   Ck_GymStylizeHandDrawn_CycleDebug        - next debug view of the CURRENT settings
+//   Ck_GymStylizeHandDrawn_ToggleDitherStack - stack ScreenDither on top, for the cross-effect A/B
+//   Ck_GymStylizeHandDrawn_ToggleStrokeSpace - flip ScreenStable <-> WorldAttached, changing NOTHING
 //                                              else. This is the A/B for the world-attached
 //                                              verdict: orbit the architecture and only one of the two
 //                                              may stay glued to it.
@@ -48,23 +48,23 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
 
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnStorybookInk", "HAND-DRAWN: STORYBOOK INK",
             "Five colour regions, a wandering contour, screen-stable pencil hatching, warm grainy paper.",
-            "Contours + hatching + grain all readable at once. The hatching must hold still on the MOVER — this is the screen-stable control."));
+            "Contours + hatching + grain all readable at once. The hatching must hold still on the MOVER - this is the screen-stable control."));
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnSoftPainted", "HAND-DRAWN: SOFT PAINTED",
             "Eight soft-edged regions, ink almost off, no hatching, heavy paper.",
             "Should read as watercolour: region EDGES, not drawn lines. Any hard contour left means the ink opacity is not reaching the shader."));
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnBoldAnimation", "HAND-DRAWN: BOLD ANIMATION",
             "Three hard regions, a thick line with zero wander, no hatching, no paper.",
-            "Flat cel. The line must be perfectly steady — visible wobble here means LineVariation is not actually 0."));
+            "Flat cel. The line must be perfectly steady - visible wobble here means LineVariation is not actually 0."));
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnDarkGothic", "HAND-DRAWN: DARK GOTHIC",
             "Two regions, heavy ragged line, dense WORLD-ATTACHED crosshatch reaching into the midtones.",
-            "Orbit the architecture: the crosshatch must stay glued to the walls. On the mover it will slide — that is documented, not a defect."));
+            "Orbit the architecture: the crosshatch must stay glued to the walls. On the mover it will slide - that is documented, not a defect."));
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnPencilWash", "HAND-DRAWN: PENCIL WASH",
             "Near-monochrome, light line, loose WORLD-ATTACHED scribble, strong paper.",
             "Graphite on a sheet. The scribble must follow the pillars' faces around their corners without smearing across the edge."));
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnOff", "HAND-DRAWN: OFF",
-            "The A/B reference — the subsystem's blendable disabled.",
+            "The A/B reference - the subsystem's blendable disabled.",
             "The frame must come back completely clean. Any residue here means disable is not actually disabling.",
-            "STACKING: Ck_GymStylizeHandDrawn_ToggleDitherStack puts ScreenDither on top — legal, and the paper grain must survive quantization. Hand-drawn + cel is unsupported but harmless: both restyle the whole frame at the same chain location, so the ink ends up drawn over already-banded light."));
+            "STACKING: Ck_GymStylizeHandDrawn_ToggleDitherStack puts ScreenDither on top - legal, and the paper grain must survive quantization. Hand-drawn + cel is unsupported but harmless: both restyle the whole frame at the same chain location, so the ink ends up drawn over already-banded light."));
 
         Stations.Add(Make_Station(n"Gym.Stylize.HandDrawnDebugInk", "DEBUG: INK MASK",
             "StorybookInk with the ink mask forced on (white = inked).",
@@ -76,11 +76,11 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
             "StorybookInk with the paper pattern forced on (mid grey = no deviation).",
             "Uniform speckle plus a directional fibre, ignoring the scene entirely. Anything scene-shaped here means paper is sampling the wrong space."));
 
-        // Two explicit rows, each centred on its OWN count — a single global index would leave the short
+        // Two explicit rows, each centred on its OWN count - a single global index would leave the short
         // back row hanging off one end of the long front one.
         //
         // Both rows sit BEHIND their judging line, alcoves opening toward the judge scene. Selection is
-        // measured at Get_StationViewingPoint — one clearance in front of each mouth — so the player
+        // measured at Get_StationViewingPoint - one clearance in front of each mouth - so the player
         // judges from outside the alcove with the whole scene ahead of them, and only turns around to
         // read a panel. The judging lines land back at X=1800 / X=3000, the framing the presets were
         // tuned at.
@@ -123,7 +123,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
     void Request_StartGym() override
     {
         Request_RebuildGym();
-        ck::Trace("🟫 Stylize Hand-Drawn Gym - walk to a station to apply its preset");
+        ck::Trace("* Stylize Hand-Drawn Gym - walk to a station to apply its preset");
     }
 
     private void Request_RebuildGym()
@@ -133,7 +133,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
 
         _JudgeScene = SpawnActor(ACk_UsfGym_StylizeHandDrawnJudgeScene, FVector(0.0f, 0.0f, 0.0f), FRotator::ZeroRotator);
         if (_JudgeScene == nullptr)
-        { ck::Error("❌ Stylize Hand-Drawn Gym: failed to spawn the judge scene"); }
+        { ck::Error("[FAIL] Stylize Hand-Drawn Gym: failed to spawn the judge scene"); }
 
         _StationTags.Empty();
         _StationLocations.Empty();
@@ -158,7 +158,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
     // Where a player stands to judge from: one clearance out of the alcove mouth, on the judge-scene
     // side. The mouth is along the station's own forward axis, so this follows the row's rotation
     // instead of assuming an axis. Selecting on the station's OWN location would put the player inside
-    // the alcove facing its back wall, with the judge scene behind them — you cannot look at the
+    // the alcove facing its back wall, with the judge scene behind them - you cannot look at the
     // content while choosing the preset that restyles it.
     private FVector Get_StationViewingPoint(FName InTag)
     {
@@ -269,7 +269,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
     }
 
     // const because PrintToScreen is a development-only call and AngelScript rejects non-const members
-    // inside one — the compiler cannot prove the call is side-effect-free in a shipping build otherwise.
+    // inside one - the compiler cannot prove the call is side-effect-free in a shipping build otherwise.
     private FString Get_StationNameAt(int32 InIndex) const
     {
         if (InIndex == 0) { return "StorybookInk"; }
@@ -307,7 +307,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
-    // Stroke space is read back off the subsystem rather than mirrored here — it is a setting the
+    // Stroke space is read back off the subsystem rather than mirrored here - it is a setting the
     // subsystem genuinely owns, and this gym exists to A/B it. The STACK flag is mirrored and cannot be
     // read back: an untouched subsystem reports Enabled while rendering nothing.
     //
@@ -394,7 +394,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
     }
 
     // Debug views are a property of the CURRENT settings, so this edits them in place rather than
-    // re-applying a preset — walking to another station resets it, which is the intended behaviour.
+    // re-applying a preset - walking to another station resets it, which is the intended behaviour.
     UFUNCTION(Exec, DisplayName="Stylize Hand-Drawn Gym - Cycle Debug Mode")
     void Ck_GymStylizeHandDrawn_CycleDebug()
     {
@@ -435,7 +435,7 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
     // Cross-effect stacking A/B. ScreenDither is the legal partner: hand-drawn restyles before
     // tonemapping and dither reduces the palette after it, so the paper grain reaches the quantizer
     // rather than being replaced by it. The toggle owns its own flag rather than reading Get_IsEnabled(),
-    // because a subsystem nothing has touched yet reports Enabled while rendering nothing — reading it
+    // because a subsystem nothing has touched yet reports Enabled while rendering nothing - reading it
     // would make the first press a silent no-op.
     UFUNCTION(Exec, DisplayName="Stylize Hand-Drawn Gym - Toggle ScreenDither Stack")
     void Ck_GymStylizeHandDrawn_ToggleDitherStack()

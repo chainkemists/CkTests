@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: SHARED GAMEPLAY TAGS
+// CK ENTITY TAG - AUTOMATION TEST: SHARED GAMEPLAY TAGS
 //============================================================================
 //
 // Tag declarations consumed by the CkAutoTest_EntityTag_* suite. Names use

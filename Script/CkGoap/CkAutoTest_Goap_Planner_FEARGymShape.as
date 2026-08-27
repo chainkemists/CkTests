@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: F.E.A.R. GYM SHAPE REGRESSION
+// CK GOAP - AUTOMATION TEST: F.E.A.R. GYM SHAPE REGRESSION
 //============================================================================
 //
 // Pins the planner shape used by the FEAR gym (CkGoapFEARGym_Station).
 // Failure mode this guards: someone re-introduces a "Combatant_Root" Action
-// whose effect is the planner's goal (EnemyNeutralized=true) at cost 0 —
+// whose effect is the planner's goal (EnemyNeutralized=true) at cost 0
 // that lets the top-level planner trivially satisfy the goal in a single
 // step and bypasses the AttackEnemy promotion + sub-Planner branch selection
 // the gym was designed to demonstrate.
@@ -27,7 +27,7 @@
 // Initial WS for this scenario: HasAmmo=true, EnemyVisible=true, AtCover=true
 //                               (everything else false).
 // Expected top plan: [AttackEnemy] (cost 1, satisfies EnemyNeutralized).
-// Expected AttackEnemy sub-plan: [AttackFromCover] (cost 1.0 — cheaper than
+// Expected AttackEnemy sub-plan: [AttackFromCover] (cost 1.0 - cheaper than
 //   AttackOpen 2.0; AttackFromFlank gated by BehindEnemy which is false).
 //
 // Asserts:
@@ -88,9 +88,9 @@ class UCk_AutoTest_Goap_Planner_FEARGymShape : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.ActionSet.Combatant"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
-        // Framework test catalog — minimal mirror of the gym for the Root-shortcut
-        // regression guard. Opt out of the always-valid-plan tenet (CkGoap/CLAUDE.md
-        // § "Design tenets") because the test doesn't include WaitForEnemy (that
+        // Framework test catalog - minimal mirror of the gym for the Root-shortcut
+        // regression guard. Opt out of the always-valid-plan tenet (the CkGoap docs
+        // Sec. "Design tenets") because the test doesn't include WaitForEnemy (that
         // addition broke test timing in some way; the gym itself has the fallback).
         PlannerParams.Set_AllowPlanFailed(true);
         _Combatant = utils_goap_planner::Add(Local, PlannerParams);
@@ -121,7 +121,7 @@ class UCk_AutoTest_Goap_Planner_FEARGymShape : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.GoapFEAR.ActionSet.Combatant.AttackEnemy"));
         AttackPlannerParams.Set_Goal(AttackGoal);
         // Sub-Planner has no unconditional fallback (AttackFromCover/Flank/Open
-        // all have preconditions). The gym itself shares this gap — adding a
+        // all have preconditions). The gym itself shares this gap - adding a
         // fallback to the AttackEnemy sub-Planner is a separate audit task. For
         // now opt out the test to mirror the current gym shape.
         AttackPlannerParams.Set_AllowPlanFailed(true);
@@ -186,7 +186,7 @@ class UCk_AutoTest_Goap_Planner_FEARGymShape : UCk_AutoTest_Base
         // EnemyNeutralized via one of its three attack-leaf children. Which
         // specific leaf is picked (AttackFromCover vs AttackOpen) depends on
         // WS-inheritance / activation timing that the test isn't trying to pin
-        // here — the gym Root-shortcut regression only cares that the sub-tree
+        // here - the gym Root-shortcut regression only cares that the sub-tree
         // runs at all (vs the top-level planner trivially satisfying the goal
         // in 1 step via a cost-0 Root operator).
         Assert_True(Plan.Num() == 1,

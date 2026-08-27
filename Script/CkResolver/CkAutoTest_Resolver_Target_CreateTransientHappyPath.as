@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RESOLVER — AUTOMATION TEST: ResolverTarget Create_Transient
+// CK RESOLVER - AUTOMATION TEST: ResolverTarget Create_Transient
 
 class UCk_AutoTest_Resolver_Target_CreateTransientHappyPath : UCk_AutoTest_Base
 {

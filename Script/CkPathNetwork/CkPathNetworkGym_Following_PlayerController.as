@@ -7,7 +7,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
     private bool _RebuildLaneIsDogLeg = false;
 
     // Stations sit at X=k_StationX facing -X; scenarios play out in front (lower X), one lane per
-    // station. Agents generally move -X, away from the station body. Floor covers ±1500.
+    // station. Agents generally move -X, away from the station body. Floor covers +/-1500.
     private const float k_StationX = 800.0;
     private const float k_SpawnX = 500.0;
     private const float k_AgentZ = 0.0;
@@ -72,7 +72,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         System::ExecuteConsoleCommand("ck.Crowd.DrawPlannedPaths 1");
         System::ExecuteConsoleCommand("ck.Crowd.DrawBreadcrumbs 1");
 
-        ck::pathnetwork::Log(f"PathNetwork gym: StartGym DONE — {_Agents.Num()} agents spawned");
+        ck::pathnetwork::Log(f"PathNetwork gym: StartGym DONE - {_Agents.Num()} agents spawned");
     }
 
     private void SpawnFloor()
@@ -157,7 +157,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
         // OPPOSING STREAMS lane.
         Ribbons.Add(MakeRibbon2(FVector(400.0, -750.0, 0.0), FVector(-1100.0, -750.0, 0.0)));
 
-        // L CORNER lane: runs -X then turns +Y; ends at (-400, 1100) — 300cm short of the goal.
+        // L CORNER lane: runs -X then turns +Y; ends at (-400, 1100) - 300cm short of the goal.
         {
             TArray<FCk_PathNetwork_RibbonPoint> Points;
             Points.Add(FCk_PathNetwork_RibbonPoint(FVector(400.0, 750.0, 0.0), k_HalfWidth));
@@ -166,7 +166,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
             Ribbons.Add(FCk_PathNetwork_Ribbon(Points));
         }
 
-        // T JUNCTION lane: stem endpoint lands on the branch ribbon's interior → T-split.
+        // T JUNCTION lane: stem endpoint lands on the branch ribbon's interior -> T-split.
         Ribbons.Add(MakeRibbon2(FVector(450.0, 1250.0, 0.0), FVector(-200.0, 1250.0, 0.0)));
         Ribbons.Add(MakeRibbon2(FVector(-200.0, 1050.0, 0.0), FVector(-200.0, 1450.0, 0.0)));
 
@@ -224,7 +224,7 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
 
         // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
         // onto the handle it is given and permits one agent per entity, so passing the transient
-        // directly put every follower on the same entity — the first won and the rest were no-ops,
+        // directly put every follower on the same entity - the first won and the rest were no-ops,
         // leaving one follower no matter how many this spawns.
         auto GenericAgent = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         GenericAgent.Set_DebugName(InDebugName);
@@ -313,12 +313,12 @@ class ACk_PathNetworkGym_Following_PlayerController : ACk_Gym_Base_PlayerControl
 
         if (ck::Is_NOT_Valid(_RebuildNetwork))
         {
-            ck::pathnetwork::Warning("PathNetwork gym: rebuild lane network not alive — restart the gym first");
+            ck::pathnetwork::Warning("PathNetwork gym: rebuild lane network not alive - restart the gym first");
             return;
         }
 
         // Swap straight <-> dog-leg. Walking corridors on this network invalidate (epoch bump)
-        // and replan mid-walk — the visible proof of the rebuild pipeline.
+        // and replan mid-walk - the visible proof of the rebuild pipeline.
         BuildRebuildNetwork(_RebuildLaneIsDogLeg == false);
         ck::pathnetwork::Log(f"PathNetwork gym: rebuild lane swapped (dog-leg={_RebuildLaneIsDogLeg})");
     }

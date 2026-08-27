@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: U11.3 PROMOTE ACTION TO PLANNER
+// CK GOAP - AUTOMATION TEST: U11.3 PROMOTE ACTION TO PLANNER
 //============================================================================
 //
-// Validates U11.3 — the PromoteActionToPlanner API:
+// Validates U11.3 - the PromoteActionToPlanner API:
 //
 //   utils_goap_planner::PromoteActionToPlanner(InAction, InParams)
 //     - Augments an existing Action entity with the Planner-role identity
@@ -22,18 +22,18 @@
 // PromoteActionToPlanner params instead of a separate Request_SetGoal call):
 //
 //   - Root planner goal: {BKey=true} (set via top-level PlannerParams._Goal)
-//   - Mid CDO effect:    BKey=true   (Mid satisfies Root's goal → Root plan = [Mid])
+//   - Mid CDO effect:    BKey=true   (Mid satisfies Root's goal -> Root plan = [Mid])
 //   - Mid PROMOTED with planner goal {AKey=true}
 //     (independent of Mid's effects; set via PromoteActionToPlanner)
 //   - Mid children: Leaf_A (effect AKey=true), Leaf_B (effect BKey=true)
 //
 // Expected:
 //   * Root picks Mid (Mid's effect BKey=true satisfies Root's goal).
-//   * Mid's promoted planner plans toward {AKey=true} → picks Leaf_A.
+//   * Mid's promoted planner plans toward {AKey=true} -> picks Leaf_A.
 //
 // If PromoteActionToPlanner failed to update _GoalAuthored on Mid:
-//   * Mid would plan with the previously-empty _GoalAuthored → empty plan,
-//     never picks Leaf_A → assertion fails.
+//   * Mid would plan with the previously-empty _GoalAuthored -> empty plan,
+//     never picks Leaf_A -> assertion fails.
 //============================================================================
 
 class UCk_AutoTest_Goap_Planner_PromoteActionToPlanner : UCk_AutoTest_Base
@@ -86,7 +86,7 @@ class UCk_AutoTest_Goap_Planner_PromoteActionToPlanner : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_MidAction), "Mid AddAction should succeed");
 
         // ---------------------------------------------------------------
-        // U11.3 CORE — Promote Mid to a Planner with goal {AKey=true}.
+        // U11.3 CORE - Promote Mid to a Planner with goal {AKey=true}.
         // Independent of Mid's CDO effect (BKey=true).
         // ---------------------------------------------------------------
         auto MidGoal = TArray<FCk_GoapWS_Condition_Authored>();
@@ -102,7 +102,7 @@ class UCk_AutoTest_Goap_Planner_PromoteActionToPlanner : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_MidAsPlanner),
             "PromoteActionToPlanner should return a valid Planner-cast handle");
 
-        // Mid's children — Leaf_A (effect AKey=true) and Leaf_B (effect BKey=true).
+        // Mid's children - Leaf_A (effect AKey=true) and Leaf_B (effect BKey=true).
         // Under PR-A, every child must be registered under the planner host that
         // owns it. Mid is now a promoted Planner, so AddAction(MidAsPlanner, ...)
         // wires Leaf_A/Leaf_B as direct tree children of Mid.
@@ -117,15 +117,15 @@ class UCk_AutoTest_Goap_Planner_PromoteActionToPlanner : UCk_AutoTest_Base
         Assert_True(ck::IsValid(LeafBAction), "Leaf_B AddAction should succeed");
 
         // ---------------------------------------------------------------
-        // U11.3 — Both casts must succeed on the promoted entity.
+        // U11.3 - Both casts must succeed on the promoted entity.
         // ---------------------------------------------------------------
         auto MidAsGenericFromAction = FCk_Handle(_MidAction);
         auto MidAsGenericFromPlanner = FCk_Handle(_MidAsPlanner);
 
         Assert_True(utils_goap_action::Has(MidAsGenericFromAction),
-            "Promoted entity should still satisfy Goap Action Has() — Action role preserved");
+            "Promoted entity should still satisfy Goap Action Has() - Action role preserved");
         Assert_True(utils_goap_planner::Has(MidAsGenericFromPlanner),
-            "Promoted entity should satisfy Goap Planner Has() — Planner role stamped");
+            "Promoted entity should satisfy Goap Planner Has() - Planner role stamped");
 
         // Bind to Root's OnPlanComplete to drive the test forward.
         utils_goap_planner::BindTo_OnPlanComplete(_RootPlanner,
@@ -160,7 +160,7 @@ class UCk_AutoTest_Goap_Planner_PromoteActionToPlanner : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         // Mid may receive empty-plan PlanComplete fires before activation re-
-        // resolves its goal. Skip those — we want the post-activation plan
+        // resolves its goal. Skip those - we want the post-activation plan
         // driven by Mid's promoted planner goal {AKey=true}.
         auto MidPlan = utils_goap_action::Get_Plan(_MidAction);
         if (MidPlan.Num() == 0) { return; }
@@ -173,7 +173,7 @@ class UCk_AutoTest_Goap_Planner_PromoteActionToPlanner : UCk_AutoTest_Base
         Assert_True(MidPlan.Num() == 1,
             f"Mid plan should have exactly 1 entry (got {MidPlan.Num()})");
         Assert_True(MidPlan.Num() > 0 && MidPlan[0] == UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects,
-            "Mid Plan[0] should be Leaf_A (AKey=true) — goal set by PromoteActionToPlanner");
+            "Mid Plan[0] should be Leaf_A (AKey=true) - goal set by PromoteActionToPlanner");
 
         FinishSuccess();
     }

@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: FLOAT MODIFIER REMOVE
+// CK ATTRIBUTE - AUTOMATION TEST: FLOAT MODIFIER REMOVE
 //============================================================================
 //
 // Verifies that removing a previously-added revocable modifier restores
 // the attribute's FinalValue to the base value (with BonusValue=0).
 //
 // This is a high-value regression test because "modifier added" passing
-// doesn't imply "modifier removed cleanly" — the failure mode where
+// doesn't imply "modifier removed cleanly" - the failure mode where
 // a removed modifier still contributes to the value is silent and easy
 // to introduce.
 //

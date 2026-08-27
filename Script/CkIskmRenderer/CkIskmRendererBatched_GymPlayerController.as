@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — BATCHED GYM (Plan-2 dedicated)
+// CK ISKM RENDERER - BATCHED GYM (Plan-2 dedicated)
 //============================================================================
 //
 // A dedicated, uncluttered gym for the batched GPU-skinned crowd renderer, so it
-// can be exercised in isolation — occlusion, per-instance culling, A/B perf, and
-// the GPU<->per-SKMC distance-LOD flip — without the 8-station IskmRenderer gym
+// can be exercised in isolation - occlusion, per-instance culling, A/B perf, and
+// the GPU<->per-SKMC distance-LOD flip - without the 8-station IskmRenderer gym
 // crowding the view.
 //
 // Stations:
 //   - Crowd: a large batched GPU-skinned crowd (GPUScene cluster proxies, per-instance
 //            looping animation + per-instance occlusion culling).
 //   - Flip:  the instances closest to the player flip from batched-GPU rendering to a
-//            real per-SKMC proxy (Plan-1) for ragdoll/montage, then back — distance-LOD
+//            real per-SKMC proxy (Plan-1) for ragdoll/montage, then back - distance-LOD
 //            routing (Phase 5).
 //============================================================================
 

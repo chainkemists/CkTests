@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PLAN-2 PHASE 0 BATCHED BAKE (CPU)
+// CK ISKM RENDERER - AUTOMATION TEST: PLAN-2 PHASE 0 BATCHED BAKE (CPU)
 //============================================================================
 //
 // Plan-2 Phase 0 gate. Verifies the CPU bone-matrix bake
 // (UCk_Utils_IskmAnimCollection_UE::Build_BakedPoseData) produces a correctly
 // shaped flat buffer + per-sequence offset table. Every assertion is
-// CPU-verifiable and runs headlessly under -nullrhi — the GPU SRV upload and
+// CPU-verifiable and runs headlessly under -nullrhi - the GPU SRV upload and
 // skinning are separate Phase-1+ steps NOT exercised here.
 //
 // Asserts:
@@ -29,7 +29,7 @@ class UCk_AutoTest_IskmRenderer_BatchedBake : UCk_AutoTest_Base
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            FinishFailure("iskm_assets::AnimCollection_Demo() resolved invalid — registry may need regeneration.");
+            FinishFailure("iskm_assets::AnimCollection_Demo() resolved invalid - registry may need regeneration.");
             return;
         }
 

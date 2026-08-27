@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: STATIC BAKE, SIMPLE BOX, RAYCAST PARITY
+// CK JOLT - AUTOMATION TEST: STATIC BAKE, SIMPLE BOX, RAYCAST PARITY
 //============================================================================
 //
 // Seed of the geometry-parity harness: a static-mesh cube (engine basic shape,
@@ -19,7 +19,7 @@ class UCk_AutoTest_CkJolt_StaticBake_SimpleBox_RaycastMatchesChaos : UCk_AutoTes
     default _TimeoutSeconds = 8.0f;
 
     private AStaticMeshActor _CubeActor;
-    // Unique parking spot (Y=9000) — shared-session discipline: content at the world origin outlives
+    // Unique parking spot (Y=9000) - shared-session discipline: content at the world origin outlives
     // its test if cleanup is missed and corrupts unrelated tests' traces (bit RaySense once).
     private FVector _CubeCenter = FVector(0.0, 9000.0, 300.0);
 

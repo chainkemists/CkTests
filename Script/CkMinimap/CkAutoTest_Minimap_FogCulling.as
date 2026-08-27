@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MINIMAP — AUTOMATION TEST: fog-linked minimap culls unexplored POIs
+// CK MINIMAP - AUTOMATION TEST: fog-linked minimap culls unexplored POIs
 //============================================================================
 //
 // A minimap linked to a fog grid (Request_SetFogOfWar) must exclude a POI
@@ -14,8 +14,8 @@
 // POSITIVE wait (the entry appearing) can only succeed if the projector
 // gathers and the fog link works end-to-end, so a dead projector fails the
 // reveal wait rather than passing the culled assertion vacuously. The culled
-// phase itself waits on the fog grid composing — proving the pipeline's inputs
-// are live — then settles for a gather pass before asserting.
+// phase itself waits on the fog grid composing - proving the pipeline's inputs
+// are live - then settles for a gather pass before asserting.
 //
 // Isolated Y band: 54300.
 //============================================================================

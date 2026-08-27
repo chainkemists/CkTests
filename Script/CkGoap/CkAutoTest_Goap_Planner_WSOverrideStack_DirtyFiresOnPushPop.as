@@ -1,27 +1,27 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: WORLDSTATE OVERRIDE STACK — DIRTY SIGNAL
+// CK GOAP - AUTOMATION TEST: WORLDSTATE OVERRIDE STACK - DIRTY SIGNAL
 //============================================================================
 //
 // Validates that Push_Override / Pop_Override fire the dirty signal so the
-// planner replans — but only when the effective view actually changes.
+// planner replans - but only when the effective view actually changes.
 // Idempotent re-push of the same values is a quiet no-op (no spurious replan).
 //
 // Setup:
 //   - WS: KeyA=true, KeyB=false, Goal=false.
 //   - Planner goal {Goal=true}.
-//   - OpA (precondition KeyA=true → Goal=true).
-//   - OpB (precondition KeyB=true → Goal=true).
+//   - OpA (precondition KeyA=true -> Goal=true).
+//   - OpB (precondition KeyB=true -> Goal=true).
 //
-// Sequence — OnPlanComplete fire counter:
-//   1. Initial plan completes (KeyA=true → OpA picked).             count = 1
-//   2. Push_Override("test", {KeyA=false, KeyB=true}) — effective
-//      view flips. Dirty signal fires → planner replans (Plan=[OpB]). count = 2
-//   3. Push_Override("test", same values) — idempotent re-push.
-//      Effective view unchanged → no dirty fire, no replan.          count = 2
-//   4. Pop_Override_ByName("test") — effective view flips back.
-//      Dirty signal fires → planner replans (Plan=[OpA]).            count = 3
+// Sequence - OnPlanComplete fire counter:
+//   1. Initial plan completes (KeyA=true -> OpA picked).             count = 1
+//   2. Push_Override("test", {KeyA=false, KeyB=true}) - effective
+//      view flips. Dirty signal fires -> planner replans (Plan=[OpB]). count = 2
+//   3. Push_Override("test", same values) - idempotent re-push.
+//      Effective view unchanged -> no dirty fire, no replan.          count = 2
+//   4. Pop_Override_ByName("test") - effective view flips back.
+//      Dirty signal fires -> planner replans (Plan=[OpA]).            count = 3
 //
 // We use a settle-frame wait after the idempotent re-push to be sure no
 // spurious replan fires before declaring success.
@@ -66,8 +66,8 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop : UCk_AutoTe
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.Planner"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(_WS);
-        // Framework test catalog — opt out of always-valid-plan tenet enforcement
-        // (CkGoap/CLAUDE.md § "Design tenets"). Game-content must never opt out.
+        // Framework test catalog - opt out of always-valid-plan tenet enforcement
+        // (the CkGoap docs Sec. "Design tenets"). Game-content must never opt out.
         PlannerParams.Set_AllowPlanFailed(true);
         _Planner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
@@ -100,7 +100,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop : UCk_AutoTe
 
         if (_PlansReceived == 1)
         {
-            // Initial plan completed. Push overrides → dirty should fire → replan.
+            // Initial plan completed. Push overrides -> dirty should fire -> replan.
             utils_goap_world_state::Push_Override_SingleKey(_WS, n"test",
                 utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.KeyA"),
                 false);
@@ -113,7 +113,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop : UCk_AutoTe
         if (_PlansReceived == 2)
         {
             // Push caused replan (count = 2 as expected). Now idempotent
-            // re-push with SAME values — must NOT trigger a replan.
+            // re-push with SAME values - must NOT trigger a replan.
             utils_goap_world_state::Push_Override_SingleKey(_WS, n"test",
                 utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.KeyA"),
                 false);
@@ -129,7 +129,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop : UCk_AutoTe
         }
 
         // If a third plan completes BEFORE the idempotent settle window ends,
-        // the re-push leaked a dirty signal — fail.
+        // the re-push leaked a dirty signal - fail.
         if (_PlansReceived == 3 && _IdempotentRePushDone && !_PopDone)
         {
             Assert_True(false,
@@ -161,7 +161,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_DirtyFiresOnPushPop : UCk_AutoTe
         }
 
         // No spurious replan fired during the settle window. _PlansReceived
-        // must still be 2 — assert and then perform the pop.
+        // must still be 2 - assert and then perform the pop.
         Assert_True(_PlansReceived == 2,
             f"Plans should still be 2 after idempotent re-push (got {_PlansReceived})");
 

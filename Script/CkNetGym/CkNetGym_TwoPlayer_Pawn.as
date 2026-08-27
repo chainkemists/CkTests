@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// TWO-PLAYER NET GYM — PAWN
+// TWO-PLAYER NET GYM - PAWN
 //============================================================================
 // Possessable, replicated DefaultPawn. Inherits ADefaultPawn directly (mirroring
 // ACk_Gym_Base_Pawn) rather than the gym base pawn, so that exactly ONE

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK COMPASS — AUTOMATION TEST: MaxEntries truncates by priority
+// CK COMPASS - AUTOMATION TEST: MaxEntries truncates by priority
 //============================================================================
 //
 // MaxEntries 3 with five in-arc POIs of priorities 1..5: exactly the three
@@ -89,7 +89,7 @@ class UCk_AutoTest_Compass_MaxEntries_PriorityTruncation : UCk_AutoTest_Base
             { MinPriority = Entry.Get_Priority(); }
         }
         Assert_Equals_Int(MinPriority, 3,
-            "Truncation must keep the highest priorities (5,4,3) — lowest surviving priority should be 3");
+            "Truncation must keep the highest priorities (5,4,3) - lowest surviving priority should be 3");
 
         FinishSuccess();
     }

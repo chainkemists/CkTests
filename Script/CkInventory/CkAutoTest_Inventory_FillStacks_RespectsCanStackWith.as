@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: FILL-STACKS RESPECTS CanStackWith
+// CK INVENTORY - AUTOMATION TEST: FILL-STACKS RESPECTS CanStackWith
 //============================================================================
 //
 // Regression guard (sibling to CkAutoTest_Inventory_FillStacks_RespectsCustom-
@@ -10,20 +10,20 @@
 // Request_FillExistingStacks matched existing stacks by DEFINITION only and
 // skipped the trait-level CanStackWith() gate that the explicit StackItems path
 // applies via Get_CanStackItems. So two same-definition items that a trait
-// distinguishes by runtime state (the Tags trait — e.g. a rewound vs unrewound
+// distinguishes by runtime state (the Tags trait - e.g. a rewound vs unrewound
 // VHS tape in BusterBlock) silently MERGED on the transfer/AddByDefinition
 // pre-fill, even though StackItems would refuse them.
 //
-// Repro — fails without the fix, passes with it:
+// Repro - fails without the fix, passes with it:
 //   1. Target (DataOnly, unbounded) holds Potion x1, UNTAGGED.
 //   2. Source (DataOnly, unbounded) holds Potion x1, carrying a RUNTIME tag
 //      (NOT part of the Potion definition, so it differs from the target's).
 //   3. Transfer the tagged source Potion into the target with PreferStacking
-//      (the default — the pickup/loot policy that pre-fills existing stacks).
+//      (the default - the pickup/loot policy that pre-fills existing stacks).
 //   4. The pre-fill must SKIP the untagged stack (CanStackWith == false) and the
-//      unit must land as its OWN entry → 2 entries, 1 unit each.
+//      unit must land as its OWN entry -> 2 entries, 1 unit each.
 //
-// Without the fix the tagged unit merges into the untagged stack → 1 entry of
+// Without the fix the tagged unit merges into the untagged stack -> 1 entry of
 // count 2 (the tag silently laundered away).
 //============================================================================
 
@@ -156,7 +156,7 @@ class UCk_AutoTest_Inventory_FillStacks_RespectsCanStackWith : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // THE REGRESSION ASSERT — without the fix the tagged unit merges into the
+        // THE REGRESSION ASSERT - without the fix the tagged unit merges into the
         // untagged stack and the target holds a single entry of count 2.
         Assert_Equals_Int(_Target.Get_NumItems(), 2,
             "Differing-tag same-definition Potions must NOT merge (two separate entries)");

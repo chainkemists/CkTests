@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: CONCURRENT ADDS RESPECT THE UNIT BOUND
+// CK INVENTORY - AUTOMATION TEST: CONCURRENT ADDS RESPECT THE UNIT BOUND
 //============================================================================
 //
 // Characterization of the cross-request stale-data hazard. Stack counts are
@@ -65,7 +65,7 @@ class UCk_AutoTest_Inventory_StaleData_ConcurrentAddsRespectBound : UCk_AutoTest
     {
         if (IsFinished()) { return; }
 
-        // Deferred stack write can fold a frame later — poll until the seed has settled.
+        // Deferred stack write can fold a frame later - poll until the seed has settled.
         if (_Target.Get_TotalUnits() != 4 && _SeedTries < 40)
         {
             _SeedTries += 1;

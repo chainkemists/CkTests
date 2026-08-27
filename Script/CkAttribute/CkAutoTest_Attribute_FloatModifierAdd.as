@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: FLOAT MODIFIER ADD
+// CK ATTRIBUTE - AUTOMATION TEST: FLOAT MODIFIER ADD
 //============================================================================
 //
 // Verifies that adding a revocable additive modifier:

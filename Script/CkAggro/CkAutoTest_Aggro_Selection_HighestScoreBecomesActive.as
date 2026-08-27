@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST (P0): the highest-score target becomes active
+// CK AGGRO - AUTOMATION TEST (P0): the highest-score target becomes active
 // Two co-located targets seeded at threat 10 and 5. After an evaluation pass the higher-threat one
 // (equal distance -> score tracks threat) is selected as the active target.
 
@@ -45,7 +45,7 @@ class UCk_AutoTest_Aggro_Selection_HighestScoreBecomesActive : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto Active = _Aggro.Get_ActiveTarget();
-        if (ck::Is_NOT_Valid(Active)) { return; }   // not selected yet — keep polling
+        if (ck::Is_NOT_Valid(Active)) { return; }   // not selected yet - keep polling
 
         Assert_True(Active.Get_TrackedEntity() == _TrackedHigh,
             "The higher-threat target should be selected as the active target");

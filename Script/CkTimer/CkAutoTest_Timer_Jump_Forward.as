@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: JUMP FORWARD
+// CK TIMER - AUTOMATION TEST: JUMP FORWARD
 //============================================================================
 //
 // Pins Request_Jump on a CountUp timer:
@@ -17,7 +17,7 @@
 // Note: only forward jumps are covered here. The backward variant requires
 // either a negative FCk_Time or a separate JumpDirection field; the audit
 // gap "Jump_ForwardAndBackward" deserves a second test once we confirm the
-// API shape (FCk_Time sign vs. enum direction) — splitting them keeps each
+// API shape (FCk_Time sign vs. enum direction) - splitting them keeps each
 // test focused on a single semantic.
 //============================================================================
 

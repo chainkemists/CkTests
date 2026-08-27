@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: MULTIPLE CONDITIONS ARE ANDed
+// CK STATE MACHINE - AUTOMATION TEST: MULTIPLE CONDITIONS ARE ANDed
 //============================================================================
 //
 // Pins the AND semantics of multiple conditions on a single transition: a
-// transition with two polled conditions (one true, one false) must NOT fire —
+// transition with two polled conditions (one true, one false) must NOT fire
 // every condition must Pass for the transition to be taken.
 //
 // Topology: A -> B gated by [PolledTrue, PolledFalse]. Across a settle window
@@ -45,7 +45,7 @@ UCLASS()
 class UCk_SmMultiCondTest_State_B : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle) { /* sink — should not be reached */ }
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle) { /* sink - should not be reached */ }
 };
 
 class UCk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks : UCk_AutoTest_Base
@@ -82,7 +82,7 @@ class UCk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks : UCk_AutoTest
         if (InPayload.Get_NewStateClass() != UCk_SmMultiCondTest_State_B) { return; }
 
         _ReachedB = true;
-        FinishFailure("Transition fired with a false condition present — multiple conditions must all Pass (AND)");
+        FinishFailure("Transition fired with a false condition present - multiple conditions must all Pass (AND)");
     }
 
     UFUNCTION()
@@ -90,7 +90,7 @@ class UCk_AutoTest_StateMachine_MultipleConditions_OneFalseBlocks : UCk_AutoTest
     {
         if (IsFinished()) { return; }
         Assert_True(_ReachedB == false,
-            "A transition with a failing condition must stay suppressed — SM remains in A");
+            "A transition with a failing condition must stay suppressed - SM remains in A");
         FinishSuccess();
     }
 }

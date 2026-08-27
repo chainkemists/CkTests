@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CHRONO — AUTOMATION TEST: TICK / RESET / COMPLETE
+// CK CHRONO - AUTOMATION TEST: TICK / RESET / COMPLETE
 //============================================================================
 //
 // Smoke test for FCk_Chrono direct manipulation (no entity required).
@@ -10,12 +10,12 @@
 //
 //   1. Construct FCk_Chrono with goal 1.0s.
 //   2. Get_IsDone returns false at construction (elapsed=0).
-//   3. Tick by 0.5s → still not done; Get_TimeElapsed reflects 0.5.
-//   4. Tick by 0.6s → now done (elapsed clamped to goal).
-//   5. Reset → Get_IsDone false again, Get_TimeElapsed back to 0.
-//   6. Complete → Get_IsDone true, Get_TimeElapsed equals goal.
+//   3. Tick by 0.5s -> still not done; Get_TimeElapsed reflects 0.5.
+//   4. Tick by 0.6s -> now done (elapsed clamped to goal).
+//   5. Reset -> Get_IsDone false again, Get_TimeElapsed back to 0.
+//   6. Complete -> Get_IsDone true, Get_TimeElapsed equals goal.
 //
-// All operations resolve synchronously in DoBeginPlay — chrono is a
+// All operations resolve synchronously in DoBeginPlay - chrono is a
 // plain value, no processor/world involvement.
 //============================================================================
 
@@ -27,7 +27,7 @@ class UCk_AutoTest_Chrono_TickAndComplete : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto Tol = 0.001f;
 
-        // FCk_Chrono's explicit FCk_Time constructor isn't exposed to AS —
+        // FCk_Chrono's explicit FCk_Time constructor isn't exposed to AS
         // only the default and copy constructors are. Default-construct
         // and set the goal via the BlueprintReadWrite _GoalValue field.
         auto Chrono = FCk_Chrono();

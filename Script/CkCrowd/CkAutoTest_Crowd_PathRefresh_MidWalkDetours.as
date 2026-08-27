@@ -1,14 +1,14 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: MID-WALK PATH REFRESHES AROUND A FORMING CROWD
+// CK CROWD - AUTOMATION TEST: MID-WALK PATH REFRESHES AROUND A FORMING CROWD
 //
 // The path-refresh tier (FProcessor_CrowdAgent_PathRefresh): stationary-markup
 // cost discs only bend paths computed AFTER they paint. An agent already
-// walking on a path computed BEFORE a crowd formed must be re-pathed — not
+// walking on a path computed BEFORE a crowd formed must be re-pathed - not
 // left pressing into the crowd on its frozen straight polyline.
 //
 // Shape: a walker is issued a MoveTo across x=0 in the SAME frame a picket
-// line of 5 idle agents spawns there — the pickets' discs cannot exist yet
+// line of 5 idle agents spawns there - the pickets' discs cannot exist yet
 // (stationary delay), so the walker's first path is guaranteed straight
 // through the line. Once the discs paint + settle, PathRefresh must notice the
 // walker's remaining path crosses fresh markup and re-path it; the walker's
@@ -70,7 +70,7 @@ class UCk_AutoTest_Crowd_PathRefresh_MidWalkDetours : UCk_AutoTest_Base
             // Gate on the WHOLE corridor being baked, not just the origin: the walker's FindPath
             // must resolve immediately (CkNav defers a request whose start tile isn't baked yet,
             // and a deferred first path would resolve AFTER the discs paint and detour on its
-            // own — no stale path, nothing for PathRefresh to prove).
+            // own - no stale path, nothing for PathRefresh to prove).
             FVector Projected;
             if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector::ZeroVector, 100.0f, Projected, 300.0f) == false)
             { return; }   // bake not done yet
@@ -84,7 +84,7 @@ class UCk_AutoTest_Crowd_PathRefresh_MidWalkDetours : UCk_AutoTest_Base
 
             // Same frame: pickets spawn AND the walker's MoveTo is issued. The pickets' discs
             // need 1.5s of idle before they paint, so the walker's FIRST path is computed
-            // against an empty mesh — straight through the line. Only PathRefresh can fix it.
+            // against an empty mesh - straight through the line. Only PathRefresh can fix it.
             SpawnPicketLine(SelfHandle);
             SpawnWalker(SelfHandle);
             return;
@@ -105,7 +105,7 @@ class UCk_AutoTest_Crowd_PathRefresh_MidWalkDetours : UCk_AutoTest_Base
                 _FirstPathDump = Dump_Polyline(Result.Get_Waypoints());
                 if (WorstClearance >= MinClearanceUu)
                 {
-                    FinishFailure(f"INCONCLUSIVE SCENARIO: the walker's FIRST path already detours (clearance {WorstClearance}uu) — the discs painted before the walker planned, so the test never created a stale path for PathRefresh to fix. Check the corridor-bake gate. wps={_FirstPathDump}");
+                    FinishFailure(f"INCONCLUSIVE SCENARIO: the walker's FIRST path already detours (clearance {WorstClearance}uu) - the discs painted before the walker planned, so the test never created a stale path for PathRefresh to fix. Check the corridor-bake gate. wps={_FirstPathDump}");
                     return;
                 }
             }
@@ -119,12 +119,12 @@ class UCk_AutoTest_Crowd_PathRefresh_MidWalkDetours : UCk_AutoTest_Base
         _Attempts += 1;
         if (_Attempts > MaxAttempts)
         {
-            FinishFailure(f"walker's installed path never detoured around the crowd that formed mid-walk after {MaxAttempts} polls — worst clearance {_LastWorstClearance}uu (need {MinClearanceUu}uu). PathRefresh is not re-pathing stale paths.");
+            FinishFailure(f"walker's installed path never detoured around the crowd that formed mid-walk after {MaxAttempts} polls - worst clearance {_LastWorstClearance}uu (need {MinClearanceUu}uu). PathRefresh is not re-pathing stale paths.");
         }
     }
 
     // Min distance from any picket agent to the walker's path polyline (planar). The extracted
-    // waypoints strip the path start; prepend the walker's CURRENT location — after a mid-walk
+    // waypoints strip the path start; prepend the walker's CURRENT location - after a mid-walk
     // re-path the first segment runs from wherever the walker was when it re-planned.
     private float Compute_WorstClearance(const TArray<FVector>& InWaypoints)
     {
@@ -196,7 +196,7 @@ class UCk_AutoTest_Crowd_PathRefresh_MidWalkDetours : UCk_AutoTest_Base
         Params.Set_MaxSpeed(WalkerMaxSpeed);
         // FailMove is what makes the Disabled run genuinely red: with the default HoldAndRetry,
         // a walker that reaches the line and stalls is eventually block-detected, and
-        // BlockedRecheck's resume FULLY RE-PATHS — producing the detour through the OTHER
+        // BlockedRecheck's resume FULLY RE-PATHS - producing the detour through the OTHER
         // mechanism (this happened; see [CQ-D11] in the checkout-queue campaign log). FailMove
         // ends the move instead, so the installed path can only change via PathRefresh.
         Params.Set_BlockedPolicy(ECk_CrowdAgent_BlockedPolicy::FailMove);

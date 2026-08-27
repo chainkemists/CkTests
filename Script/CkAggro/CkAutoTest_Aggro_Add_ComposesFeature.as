@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST (P0): Add composes the Aggro feature
+// CK AGGRO - AUTOMATION TEST (P0): Add composes the Aggro feature
 // Adding Aggro onto an entity that has a Transform returns a valid typed handle,
 // reports the feature as enabled, and starts with zero tracked targets.
 

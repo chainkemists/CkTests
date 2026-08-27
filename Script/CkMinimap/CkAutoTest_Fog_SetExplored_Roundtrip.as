@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK FOG OF WAR — AUTOMATION TEST: SetExplored round-trips captured data
+// CK FOG OF WAR - AUTOMATION TEST: SetExplored round-trips captured data
 //============================================================================
 //
 // Proves the hydration vehicle without a save file: reveal a patch, capture
 // Get_ExploredData, Reset the grid, then Request_SetExplored with the
-// captured payload — the explored fraction and the revealed patch must be
+// captured payload - the explored fraction and the revealed patch must be
 // restored exactly (this is the same request the persistence HydrationApply
 // enqueues on load).
 //

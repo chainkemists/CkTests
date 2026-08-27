@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: Add creates valid handle
+// CK POI - AUTOMATION TEST: Add creates valid handle
 //============================================================================
 //
 // First-coverage seed for the CkPoi v2 meta-feature. Adding a Poi to an
 // entity that has the Transform feature returns a valid FCk_Handle_Poi,
 // Has(owner) reports true, and the category round-trips through
-// Get_CategoryTags (a CkEntityTag-backed FGameplayTagContainer — the category
+// Get_CategoryTags (a CkEntityTag-backed FGameplayTagContainer - the category
 // materializes one pump after Add, so it is asserted after a settle frame).
 // A freshly added POI carries no Poi.Disabled EntityTag (starts enabled).
 //

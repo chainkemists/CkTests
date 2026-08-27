@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY TAG — AUTOMATION TEST: Add(FName) round-trip
+// CK ENTITY TAG - AUTOMATION TEST: Add(FName) round-trip
 // Add an FName tag; Has reports true; Get_AllTags lists it.
 
 class UCk_AutoTest_EntityTag_AddFNameHappyPath : UCk_AutoTest_Base

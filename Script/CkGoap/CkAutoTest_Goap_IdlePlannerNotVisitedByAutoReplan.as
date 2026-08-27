@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: an idle, settled planner leaves the per-frame views
+// CK GOAP - AUTOMATION TEST: an idle, settled planner leaves the per-frame views
 //============================================================================
 //
 // FProcessor_Goap_Planner_AutoReplan and FProcessor_Goap_Planner_UpdateActivation
@@ -15,7 +15,7 @@
 // three frames, then read the scheduler's per-frame MAIN-PASS entity count for
 // both nodes: zero means the candidate / activation-dirty tags took the planner
 // out of the view. The final leg dirties the WS once and proves the gate lets a
-// dirty planner back in — a gate that never re-opened would also read zero.
+// dirty planner back in - a gate that never re-opened would also read zero.
 //============================================================================
 
 class UCk_AutoTest_Goap_IdlePlannerNotVisitedByAutoReplan : UCk_AutoTest_Base

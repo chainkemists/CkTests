@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: GET_CURRENTINTERACTIONS DURING IN-FLIGHT
+// CK INTERACTION - AUTOMATION TEST: GET_CURRENTINTERACTIONS DURING IN-FLIGHT
 //============================================================================
 //
-// Pins the `Get_CurrentInteractions(target)` query contract — the array
+// Pins the `Get_CurrentInteractions(target)` query contract - the array
 // of currently-in-flight interaction handles on a Target:
 //   - Before any interaction: empty.
 //   - While a Manual interaction is in flight: contains exactly one entry
 //     matching the OnNewInteraction handle.
 //   - After end: empty again.
 //
-// Complements TryGet_Interaction_ReturnsActive — TryGet looks up by source,
+// Complements TryGet_Interaction_ReturnsActive - TryGet looks up by source,
 // Get_CurrentInteractions enumerates all active interactions on the target.
 //============================================================================
 
@@ -40,7 +40,7 @@ class UCk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight : UCk_Auto
         TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::ManuallyCompleted);
         _Target = utils_interact_target::Add(LocalHandle, TargetParams);
 
-        // Pre-start check — no in-flight interactions.
+        // Pre-start check - no in-flight interactions.
         auto BeforeStart = utils_interact_target::Get_CurrentInteractions(_Target);
         Assert_Equals_Int(BeforeStart.Num(), 0,
             "Before any Request_StartInteraction, Get_CurrentInteractions must be empty");
@@ -69,7 +69,7 @@ class UCk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight : UCk_Auto
         _Active = InInteraction;
 
         // Get_CurrentInteractions reads from a record that is populated by a
-        // deferred processor pass — at OnNewInteraction-fire time the entry
+        // deferred processor pass - at OnNewInteraction-fire time the entry
         // isn't yet visible (DoBeginPlay asserted the record empty before the
         // start, so this is decisively false here). Wait for the entry to appear
         // rather than for a frame; the exact COUNT stays an assertion so a
@@ -87,7 +87,7 @@ class UCk_AutoTest_Interaction_Get_CurrentInteractions_DuringInFlight : UCk_Auto
     }
 
     // Waiting for empty is only meaningful because the mid-flight hop already
-    // asserted the record held exactly 1 — that positive is what stops "empty"
+    // asserted the record held exactly 1 - that positive is what stops "empty"
     // from passing on a record that was never populated.
     UFUNCTION()
     private void Check_InteractionsCleared(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)

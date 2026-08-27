@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK CROWD — PERF READOUT AUTOTEST (steering pipeline under convergence)
+// CK CROWD - PERF READOUT AUTOTEST (steering pipeline under convergence)
 //============================================================================
 //
 // Measured (not estimated) frame-time readout for the per-frame steering
 // loop: 240 agents in concentric rings, each targeting its ANTIPODE through
-// the shared centre — every path crosses (0,0) so the sample window covers a
+// the shared centre - every path crosses (0,0) so the sample window covers a
 // sustained maximum-density crossing (probe overlap storm, NeighborSync
-// mapping, separation, and — with the project defaults of threshold=1 /
-// stride=1 — dtCrowd-style avoidance sampling on every neighbored agent
+// mapping, separation, and - with the project defaults of threshold=1 /
+// stride=1 - dtCrowd-style avoidance sampling on every neighbored agent
 // every frame).
 //
 // Iskm-pattern harness: 3s warmup, 6s sampling, avg/max frame ms + FPS
-// logged; no pass/fail timing threshold (machine-dependent) — compare logs
+// logged; no pass/fail timing threshold (machine-dependent) - compare logs
 // from the same machine across implementation changes.
 //============================================================================
 
@@ -175,7 +175,7 @@ class UCk_AutoTest_Crowd_SteeringPerf : UCk_AutoTest_Base
             {
                 const auto Angle = AngleOffset + AngleStep * float(i);
                 const auto Spawn = Centre + FVector(Radius * Math::Cos(Angle), Radius * Math::Sin(Angle), 0.0);
-                // Antipode through the centre — every agent's path crosses (0,0).
+                // Antipode through the centre - every agent's path crosses (0,0).
                 const auto Target = FVector(-Spawn.X, -Spawn.Y, Spawn.Z);
                 _Agents.Add(SpawnAgent(InOwner, Spawn, Target));
             }

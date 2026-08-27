@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: ANY-ENTITY WILDCARD + PAY-FOR-WHAT-YOU-USE
+// CK ENTITY TAG - AUTOMATION TEST: ANY-ENTITY WILDCARD + PAY-FOR-WHAT-YOU-USE
 //============================================================================
 //
-// Verifies J2 — two related guarantees in one test:
+// Verifies J2 - two related guarantees in one test:
 //   1) A wildcard listener (NAME_None filter) catches every tag added on any
 //      entity, regardless of name.
-//   2) After UnbindFrom_OnTagUpdated_AnyEntity, the listener is silent — the
+//   2) After UnbindFrom_OnTagUpdated_AnyEntity, the listener is silent - the
 //      fan-out cost is paid only by entities with a live subscription marker.
 //
 // The post-unbind phase asserts a NON-event, so it waits on a WITNESS: the
@@ -31,7 +31,7 @@ class UCk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         _Listener = InHandle;
 
-        // NAME_None is the wildcard filter — fire on any tag.
+        // NAME_None is the wildcard filter - fire on any tag.
         utils_entity_tag::BindTo_OnTagUpdated_AnyEntity(_Listener,
             NAME_None,
             ECk_Signal_BindingPolicy::FireIfPayloadInFlight,
@@ -58,7 +58,7 @@ class UCk_AutoTest_EntityTag_AnyEntity_WildcardAndPayForUse : UCk_AutoTest_Base
     private void Step_AssertUnbindAndAdd(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_AddedFireCount, 2,
-            "Wildcard listener must catch every tag add — expected 2 fires for 2 distinct tags");
+            "Wildcard listener must catch every tag add - expected 2 fires for 2 distinct tags");
 
         utils_entity_tag::UnbindFrom_OnTagUpdated_AnyEntity(_Listener,
             NAME_None,

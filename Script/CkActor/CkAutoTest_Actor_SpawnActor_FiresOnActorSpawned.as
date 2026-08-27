@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK ACTOR — AUTOMATION TEST: Request_SpawnActor FIRES OnActorSpawned
+// CK ACTOR - AUTOMATION TEST: Request_SpawnActor FIRES OnActorSpawned
 //============================================================================
 //
-// Pins the Request_SpawnActor → OnActorSpawned delegate contract:
+// Pins the Request_SpawnActor -> OnActorSpawned delegate contract:
 //   1. Build a SpawnActor_Params for AActor in the test world (the helper
 //      actor is used as the UObject world-context).
 //   2. Dispatch Request_SpawnActor with a OnActorSpawned delegate bound.
@@ -55,7 +55,7 @@ class UCk_AutoTest_Actor_SpawnActor_FiresOnActorSpawned : UCk_AutoTest_Base
         // owning actor to have RemoteRole != ROLE_None (i.e. be replicated).
         // Our helper actor uses bReplicates=false so that path silently
         // early-returns. SpawnOnServer instead only needs the world to NOT
-        // be a NetMode_Client — true under standalone PIE — so the spawn
+        // be a NetMode_Client - true under standalone PIE - so the spawn
         // proceeds and the OnActorSpawned signal broadcasts.
         Req.Set_SpawnPolicy(ECk_SpawnActor_SpawnPolicy::SpawnOnServer);
 

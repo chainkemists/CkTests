@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CkProjectileGym — LagComp Compensated Shot station
+// CkProjectileGym - LagComp Compensated Shot station
 //
 // The full MWO-style loop, continuously: a hitbox-recorded target strafes
 // while a fixed shooter post "suffers" 250ms of lag. Every cycle the shooter
-// aims at where the target WAS 250ms ago (its rewound pose — what a laggy
+// aims at where the target WAS 250ms ago (its rewound pose - what a laggy
 // client would have seen) and fires via Request_LaunchCompensated with that
 // window. The rewind validation confirms the hit against the past pose even
 // though the target has long since strafed away.

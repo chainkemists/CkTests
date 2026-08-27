@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK MINIMAP — AUTOMATION TEST: SetViewExtent rescales positions immediately
+// CK MINIMAP - AUTOMATION TEST: SetViewExtent rescales positions immediately
 //============================================================================
 //
 // Zoom is a projection input: a POI 1000uu East at ViewExtent 5000 sits at
 // frame X = 1000/5000 = 0.2; after Request_SetViewExtent to 10000 the same POI
-// must sit at 0.1 on the NEXT settle — the request bypasses any update
+// must sit at 0.1 on the NEXT settle - the request bypasses any update
 // throttle by design (projection-input requests force a reprojection).
 //
 // Isolated Y band: 53700.

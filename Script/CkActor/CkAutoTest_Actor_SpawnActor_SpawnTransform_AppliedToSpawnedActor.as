@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK ACTOR — AUTOMATION TEST: SpawnActor SpawnTransform APPLIED TO SPAWNED ACTOR
+// CK ACTOR - AUTOMATION TEST: SpawnActor SpawnTransform APPLIED TO SPAWNED ACTOR
 //============================================================================
 //
 // Pins the contract that FCk_Utils_Actor_SpawnActor_Params::_SpawnTransform
 // is applied to the resulting actor's world transform when
 // Request_SpawnActor runs.
 //
-// Implementation note — actor class choice:
+// Implementation note - actor class choice:
 //   Spawning a bare `AActor` for this test fails not because the transform
 //   doesn't propagate, but because AActor has no root component. UE's
 //   World->SpawnActor calls SetActorTransform under the hood, which silently
@@ -17,7 +17,7 @@
 //   regardless of what SpawnTransform was set. The companion diagnostic
 //   `CkAutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic` proves
 //   the AS-side propagation (Set / Get / Request ctor copy) is correct in
-//   isolation — the loss only happens for rootless spawn targets.
+//   isolation - the loss only happens for rootless spawn targets.
 //
 //   This test uses a local AActor subclass with a USceneComponent root, so
 //   the spawn-time transform survives all the way to GetActorLocation().

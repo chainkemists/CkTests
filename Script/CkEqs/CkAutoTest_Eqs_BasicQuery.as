@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — AUTOMATION TEST: BASIC SIMPLEGRID + DISTANCE
+// CK EQS - AUTOMATION TEST: BASIC SIMPLEGRID + DISTANCE
 //============================================================================
 //
 // Smoke test for the deferred query pipeline:
 //   1. Create the test entity with a transform.
 //   2. Build a SimpleGrid + Distance(InverseLinear) query.
 //   3. Bind OnComplete via the request's _OnComplete delegate.
-//   4. Issue Request_RunQuery — HandleRequests spawns the query entity next
+//   4. Issue Request_RunQuery - HandleRequests spawns the query entity next
 //      tick, Generate runs that frame, Test runs that frame, Finalize fires.
 //   5. OnComplete callback verifies HasResults == true, Candidates non-empty,
 //      and BestLocation distance from querier is a min of the candidate set.
@@ -30,7 +30,7 @@ class UCk_AutoTest_Eqs_BasicQuery : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
         _SelfEntity = LocalHandle;
 
-        // Querier needs a transform — Generate validates this.
+        // Querier needs a transform - Generate validates this.
         utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
         auto Generator = FCk_Eqs_GeneratorParams();
@@ -81,7 +81,7 @@ class UCk_AutoTest_Eqs_BasicQuery : UCk_AutoTest_Base
                 f"BestLocation should equal Candidates[0].Location (best={Best}, c0={FromCandidate})");
         }
 
-        // Querier was at origin — best candidate must be the closest grid point (one of
+        // Querier was at origin - best candidate must be the closest grid point (one of
         // the 4 corners of the 100uu spacing nearest origin or origin itself if grid contains it).
         // We only assert that the best is *within* the grid extent.
         auto Best = InResults.Get_BestLocation();

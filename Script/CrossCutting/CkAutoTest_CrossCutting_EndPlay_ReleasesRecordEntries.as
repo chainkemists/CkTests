@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK CROSS-CUTTING — AUTOMATION TEST: ENDPLAY RELEASES RECORD ENTRIES
+// CK CROSS-CUTTING - AUTOMATION TEST: ENDPLAY RELEASES RECORD ENTRIES
 //============================================================================
 //
 // Pins the Record-of-Entities prune contract: when a member entity is
 // released through its module's proper API (e.g. Request_RemoveItem), the
 // owning Record's valid-entry count must drop on the next processor tick.
-// Every feature-module's Record-of-X pattern depends on this — Inventory is
+// Every feature-module's Record-of-X pattern depends on this - Inventory is
 // the load-bearing canonical user.
 //
 // Note: the framework rejects direct Request_DestroyEntity on Record-owned
@@ -81,7 +81,7 @@ class UCk_AutoTest_CrossCutting_EndPlay_ReleasesRecordEntries : UCk_AutoTest_Bas
     }
 
     // _Inventory is this test's own component, so its item count cannot be
-    // occupied by another test — no shared-surface ambiguity here.
+    // occupied by another test - no shared-surface ambiguity here.
     UFUNCTION()
     private void Check_BothItemsPresent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {

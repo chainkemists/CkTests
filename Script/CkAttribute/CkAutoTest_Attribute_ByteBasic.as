@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: BYTE BASIC
+// CK ATTRIBUTE - AUTOMATION TEST: BYTE BASIC
 //============================================================================
 //
 // Byte-attribute equivalent of CkAutoTest_Attribute_FloatBasic. Verifies
 // the byte attribute API end-to-end:
 //   1. Add an Armor attribute (range 0-255, starting at 150).
 //   2. Override the value to 42.
-//   3. Bind OnValueChanged → expect signal with new=42.
+//   3. Bind OnValueChanged -> expect signal with new=42.
 //   4. Assert Get_FinalValue == 42.
-//   5. Override to 200 → expect Get_FinalValue == 200 (within byte range).
+//   5. Override to 200 -> expect Get_FinalValue == 200 (within byte range).
 //
 // Skipped earlier in the session due to signed-vs-unsigned concerns
 // (overriding to a negative value on a uint8 backing has undefined enum

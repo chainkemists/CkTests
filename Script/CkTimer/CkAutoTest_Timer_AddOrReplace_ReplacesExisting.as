@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: AddOrReplace replaces existing same-name timer
+// CK TIMER - AUTOMATION TEST: AddOrReplace replaces existing same-name timer
 //============================================================================
 //
 // Pins the AddOrReplace contract (CkTimer_Utils.cpp:84): when a timer

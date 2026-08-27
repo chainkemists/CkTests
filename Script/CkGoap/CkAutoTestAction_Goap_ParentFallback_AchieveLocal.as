@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: PARENT-FALLBACK ACHIEVE-LOCAL
+// CK GOAP - AUTOMATION TEST ACTION: PARENT-FALLBACK ACHIEVE-LOCAL
 //============================================================================
 //
 // Shared by the ParentFallback tests. Its keys straddle the residency split:

@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: multiple state tags coexist and remove independently
+// CK POI - AUTOMATION TEST: multiple state tags coexist and remove independently
 //============================================================================
 //
 // Renamed from Poi_SetStateTags_ReplacesAll: CkPoi v2 has no composite
-// "replace-all" state verb — state tags are plain CkEntityTag gameplay tags,
+// "replace-all" state verb - state tags are plain CkEntityTag gameplay tags,
 // which have no replace-all mutation exposed to AS (the composite RestoreSet
 // is private hydration plumbing). This test preserves the surviving intent:
 // several distinct state tags coexist on one POI entity and each removes

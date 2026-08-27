@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK PARTICLES — AUTOMATION TEST: TUNING CONTRACT
+// CK PARTICLES - AUTOMATION TEST: TUNING CONTRACT
 //============================================================================
 //
 // A PLUMBING test for the per-instance tuning float4 (User.CkTuning), not a
 // visual one: the picture it produces is checked by the CPU-mirror unit tests
 // and by eye in the gym. What is asserted here is that the runtime API is
-// total — a spawn with NO explicit tuning still returns a live component (a
+// total - a spawn with NO explicit tuning still returns a live component (a
 // null one falls through to the behavior's convention tuning asset, or to the
 // identity when none is on disk; it is not an error), and retuning that live
 // component through the raw-value entry point leaves it alive.
@@ -53,7 +53,7 @@ class UCk_AutoTest_Particles_TuningContract : UCk_AutoTest_Base
         // spawn returns null. Skip rather than assert something unachievable here.
         if (!utils_render_target::Get_CanRenderOnThisProcess())
         {
-            Print("[Particles] this process cannot render (e.g. -nullrhi) — Niagara drops every spawn; skipping");
+            Print("[Particles] this process cannot render (e.g. -nullrhi) - Niagara drops every spawn; skipping");
             FinishSuccess();
             return;
         }
@@ -87,7 +87,7 @@ class UCk_AutoTest_Particles_TuningContract : UCk_AutoTest_Base
     }
 
     // The parameter name mirrors ck::particles::Get_TuningParameterName(), which has no
-    // Blueprint/AngelScript surface — a mismatch surfaces as the not-declared branch below.
+    // Blueprint/AngelScript surface - a mismatch surfaces as the not-declared branch below.
     private void Assert_TuningReadback(UNiagaraComponent InComponent)
     {
         bool ParameterIsDeclared = false;
@@ -95,7 +95,7 @@ class UCk_AutoTest_Particles_TuningContract : UCk_AutoTest_Base
 
         if (!ParameterIsDeclared)
         {
-            Print("[Particles] User.CkTuning is not declared on this template — regenerate the templates to cover the readback");
+            Print("[Particles] User.CkTuning is not declared on this template - regenerate the templates to cover the readback");
             return;
         }
 

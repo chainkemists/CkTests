@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BUTTON MAP — AUTOMATION TEST: ONE KEY, EVERY BUTTON IT PRODUCES
+// CK INPUT BUTTON MAP - AUTOMATION TEST: ONE KEY, EVERY BUTTON IT PRODUCES
 //============================================================================
 //
 // Key -> button is ONE-TO-MANY by design. Two mappings in different categories
 // legitimately share a key, and duplicate bindings turn up in real profiles, so
-// a reverse lookup that answered with "the" button would have to pick one — and
+// a reverse lookup that answered with "the" button would have to pick one - and
 // whichever it picked, some consumer would silently stop receiving its input.
 //
 // Crouch (Movement) and Interact (Interaction) are batch-remapped onto the same
@@ -17,7 +17,7 @@
 // The assertion is membership, never a count: the shared PIE world's profile may
 // hold other suites' mappings, and any of them could legitimately be on F2 too.
 //
-// TEARDOWN IS UNCONDITIONAL within its step — both rows are reset whether or not
+// TEARDOWN IS UNCONDITIONAL within its step - both rows are reset whether or not
 // the assertions above them held, because a leaked rebind poisons every later
 // test that reads this profile.
 //============================================================================
@@ -36,7 +36,7 @@ class UCk_AutoTest_InputButtonMap_SharedKeyReturnsAllHolders : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 
@@ -98,7 +98,7 @@ class UCk_AutoTest_InputButtonMap_SharedKeyReturnsAllHolders : UCk_AutoTest_Base
         Assert_True(DoContainsMapped(Holders, n"CkTests_Crouch"),
             "the shared key names Crouch");
         Assert_True(DoContainsMapped(Holders, n"CkTests_Interact"),
-            "the shared key names Interact too — a reverse lookup that picked one would drop the other");
+            "the shared key names Interact too - a reverse lookup that picked one would drop the other");
 
         auto CrouchKey = utils_input_button_map::TryGet_KeyForButton(
             _Map, FCk_Input_ButtonId(ECk_Input_ButtonTier::Mapped, n"CkTests_Crouch"));

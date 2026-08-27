@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE Q2 MONTAGE NOTIFY
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE Q2 MONTAGE NOTIFY
 //============================================================================
 //
 // Plays a montage on a proxy, asserts both OnAnimationNotify and
 // OnMontageFinished fire within timeout.
 //
 // Pulls iskm_assets::RendererData_Demo() (AS-authored) and assets::load::AM_NotifyTest()
-// (registry-generated). Either invalid → FinishSuccess()-skip.
+// (registry-generated). Either invalid -> FinishSuccess()-skip.
 //
 //============================================================================
 

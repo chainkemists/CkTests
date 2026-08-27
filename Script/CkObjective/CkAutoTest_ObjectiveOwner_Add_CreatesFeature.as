@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK OBJECTIVE — AUTOMATION TEST: OBJECTIVE OWNER ADD CREATES FEATURE
+// CK OBJECTIVE - AUTOMATION TEST: OBJECTIVE OWNER ADD CREATES FEATURE
 //============================================================================
 //
 // First-coverage seed for CkObjective. Adding an ObjectiveOwner feature

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: INTEGER OnClamped fires only at boundary
+// CK ATTRIBUTE - AUTOMATION TEST: INTEGER OnClamped fires only at boundary
 //============================================================================
 //
 // Integer-side parity with CkAutoTest_Attribute_FloatOnClamped_NoFireWhenInBand.

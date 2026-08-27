@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAGSET — NET AUTOMATION TEST: ADD TAG REPLICATES
+// CK TAGSET - NET AUTOMATION TEST: ADD TAG REPLICATES
 //============================================================================
 //
 // The default NetSubject's entity-script adds a Replicates TagSet (empty
@@ -32,13 +32,13 @@ class UCk_AutoTest_Net_AddTag_Replicates : UCk_AutoTest_NetBase
 
         auto TagSet = NetSubject._TestTagSet;
         if (ck::Is_NOT_Valid(TagSet))
-        { FinishFailure("DIAG-C: TagSet handle null — entity-script Construct didn't stash it?"); return; }
+        { FinishFailure("DIAG-C: TagSet handle null - entity-script Construct didn't stash it?"); return; }
 
         if (utils_net::Get_HasAuthority(Subject))
         {
             auto Tag = utils_gameplay_tag::ResolveGameplayTag(_TagName);
             utils_tag_set::Request_AddTag(TagSet, Tag);
-            // Verify the add lands server-side (poll our own TagSet) before declaring success —
+            // Verify the add lands server-side (poll our own TagSet) before declaring success
             // distinguishes "add failed on server" from "replication failed to client".
             WaitOneFrame(n"OnServerVerify");
             return;

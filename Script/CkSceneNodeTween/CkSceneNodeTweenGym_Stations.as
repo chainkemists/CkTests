@@ -1,5 +1,5 @@
 //============================================================================
-// SCENE NODE + TWEEN GYM — STATIONS
+// SCENE NODE + TWEEN GYM - STATIONS
 //
 // Three entity-script stations, each a scene-node parent chain of increasing
 // depth with a Tween on the root. Compare AS-composed expected leaf positions
@@ -52,7 +52,7 @@ namespace CkSceneNodeTweenGym_Vis
 }
 
 //============================================================================
-// STATION 1 — SIMPLE (1 parent -> 1 child)
+// STATION 1 - SIMPLE (1 parent -> 1 child)
 //============================================================================
 
 class UCk_EntityScript_SceneNodeTweenGym_SimpleStation : UCk_GenericEntityScript_UE
@@ -163,7 +163,7 @@ class UCk_EntityScript_SceneNodeTweenGym_SimpleStation : UCk_GenericEntityScript
         if (ck::Is_NOT_Valid(RootShape)) { return; }
 
         // Use the FULL root world transform (including rotation) for AS-side
-        // composition — vector-add of offsets ignores rotation and produces
+        // composition - vector-add of offsets ignores rotation and produces
         // false DESYNCs when the station has a non-zero yaw.
         auto RootXform = utils_transform::Get_EntityCurrentTransform(RootTH);
         auto ChildLocal = FTransform(FRotator::ZeroRotator, ChildOffset, FVector(1,1,1));
@@ -226,7 +226,7 @@ class UCk_EntityScript_SceneNodeTweenGym_SimpleStation : UCk_GenericEntityScript
 }
 
 //============================================================================
-// STATION 2 — CHAIN (root -> A -> B)
+// STATION 2 - CHAIN (root -> A -> B)
 //============================================================================
 
 class UCk_EntityScript_SceneNodeTweenGym_ChainStation : UCk_GenericEntityScript_UE
@@ -412,7 +412,7 @@ class UCk_EntityScript_SceneNodeTweenGym_ChainStation : UCk_GenericEntityScript_
 }
 
 //============================================================================
-// STATION 3 — DEEP (root -> L0 -> L1 -> L2 -> L3 -> leaf)
+// STATION 3 - DEEP (root -> L0 -> L1 -> L2 -> L3 -> leaf)
 //============================================================================
 
 class UCk_EntityScript_SceneNodeTweenGym_DeepStation : UCk_GenericEntityScript_UE
@@ -499,7 +499,7 @@ class UCk_EntityScript_SceneNodeTweenGym_DeepStation : UCk_GenericEntityScript_U
 
         RootShape = utils_pmg_basic_shapes::DrawFilledBox(RootStart, FVector(30,30,30), CkSceneNodeTweenGym_Vis::RootColor(), true, 2.0f, ECk_Plane_Axis::XY, -1.0f);
 
-        // Skip last — it gets the sphere-leaf treatment below.
+        // Skip last - it gets the sphere-leaf treatment below.
         for (int32 i = 0; i < Positions.Num() - 1; ++i)
         {
             auto Size = Math::Max(8.0f, 22.0f - float(i) * 3.0f);

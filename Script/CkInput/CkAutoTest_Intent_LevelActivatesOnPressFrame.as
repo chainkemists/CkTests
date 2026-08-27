@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A STATE OPENS ON THE PRESS ROW ITSELF
+// CK INTENT - AUTOMATION TEST: A STATE OPENS ON THE PRESS ROW ITSELF
 //============================================================================
 //
 // An edge intent answers a press with a completion; a level intent answers it
-// by BEING ON, and the moment it turns on is the same moment — the frame the
+// by BEING ON, and the moment it turns on is the same moment - the frame the
 // press was recorded on, not the frame the matcher happened to notice it.
 // This is the level primitive's cheapest and most load-bearing promise: a
 // consumer polling the activation frame is reading a fact about the input,
@@ -66,7 +66,7 @@ class UCk_AutoTest_Intent_LevelActivatesOnPressFrame : UCk_AutoTest_Base
 
         _Layer   = utils_input_layer::Create(_Owner, FCk_Fragment_InputLayer_ParamsData(_Source, 50));
 
-        // A level intent never completes, so the decay window governs nothing here — it is set long
+        // A level intent never completes, so the decay window governs nothing here - it is set long
         // anyway so a failure can never be read as "the latch expired mid-assertion".
         auto MatcherParams = FCk_Fragment_IntentMatcher_ParamsData();
         MatcherParams.Set_LatchDecayFrames(200);
@@ -146,10 +146,10 @@ class UCk_AutoTest_Intent_LevelActivatesOnPressFrame : UCk_AutoTest_Base
             "the state opens on the frame the press was RECORDED on, not on whichever later pass the matcher scanned");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Level_Drag"), -1,
-            "a level intent has no completion at all — a frame here would mean level rows are still being run through the edge arbiter");
+            "a level intent has no completion at all - a frame here would mean level rows are still being run through the edge arbiter");
 
         Assert_Equals_Int(_FromPhases.Num(), 1,
-            "opening a state is ONE transition — a writer that re-fired while the phase merely stayed Active would retrigger whatever a consumer drives off it");
+            "opening a state is ONE transition - a writer that re-fired while the phase merely stayed Active would retrigger whatever a consumer drives off it");
 
         if (_FromPhases.Num() != 1)
         { return; }

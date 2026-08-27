@@ -1,20 +1,20 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — DEBUG DRAW OVERLAY
+// CK JOLT GYM - DEBUG DRAW OVERLAY
 //
 // One body of every JoltBody motion type, built so the CkJolt debug-draw CVars
 // have something to draw:
-//   Static   — floor.
-//   Kinematic— a box sliding back and forth (Request_SetLocation each tick;
+//   Static   - floor.
+//   Kinematic- a box sliding back and forth (Request_SetLocation each tick;
 //              KinematicPush is what drives the physics body to match).
-//   Dynamic  — a "sleeper" box dropped once and left alone (settles -> sleeps).
-//   Dynamic  — a "bouncer" sphere periodically re-impulsed so it never sleeps,
+//   Dynamic  - a "sleeper" box dropped once and left alone (settles -> sleeps).
+//   Dynamic  - a "bouncer" sphere periodically re-impulsed so it never sleeps,
 //              giving a permanent awake/asleep color contrast.
 //
 // The station sign explains the CVars for the user to toggle from console:
-//   ck.Jolt.DebugDraw.Enabled 1        — draw ALL bodies, colored by motion type.
-//   ck.Jolt.DebugDraw.SleepColoring 1  — awake dynamics = yellow, asleep = red.
+//   ck.Jolt.DebugDraw.Enabled 1        - draw ALL bodies, colored by motion type.
+//   ck.Jolt.DebugDraw.SleepColoring 1  - awake dynamics = yellow, asleep = red.
 //
 // Content is built in world -X from the station anchor (house rule: stations
 // face -X).
@@ -72,7 +72,7 @@ class ACk_JoltGym_DebugDrawOverlay_PlayerController : ACk_Gym_Base_PlayerControl
 
         utils_timer::Create_Tick(ck::ToEntity(this), FCk_Delegate_Timer(this, n"OnTick"));
 
-        ck::Trace("JoltDebugDrawOverlayGym: started — enable ck.Jolt.DebugDraw.Enabled to see every motion type");
+        ck::Trace("JoltDebugDrawOverlayGym: started - enable ck.Jolt.DebugDraw.Enabled to see every motion type");
     }
 
     private void DoAddStaticFloor()
@@ -190,6 +190,6 @@ class ACk_JoltGym_DebugDrawOverlay_PlayerController : ACk_Gym_Base_PlayerControl
     {
         utils_jolt_body::Request_SetSleepState(_SleeperBody, FCk_Request_JoltBody_SetSleepState(ECk_Jolt_SleepState::Awake));
         utils_jolt_body::Request_AddImpulse(_SleeperBody, FCk_Request_JoltBody_AddImpulse(FVector(0.0, 0.0, 3500.0)));
-        ck::Trace("JoltDebugDrawOverlayGym: sleeper nudged awake — watch it settle and sleep again");
+        ck::Trace("JoltDebugDrawOverlayGym: sleeper nudged awake - watch it settle and sleep again");
     }
 }

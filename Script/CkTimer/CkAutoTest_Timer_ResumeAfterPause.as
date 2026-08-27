@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: RESUME AFTER PAUSE
+// CK TIMER - AUTOMATION TEST: RESUME AFTER PAUSE
 //============================================================================
 //
 // Verifies that Request_Resume restarts chrono accumulation after a pause:

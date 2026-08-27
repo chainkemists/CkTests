@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAG SET — AUTOMATION TEST: Two TagSets on different entities don't cross-fire
+// CK TAG SET - AUTOMATION TEST: Two TagSets on different entities don't cross-fire
 //============================================================================
 //
 // Pins the per-entity isolation of OnTagsChanged: two FCk_Handle_TagSet
@@ -10,7 +10,7 @@
 //
 // Each TagSet's signal binding is per-source-entity (the TagSet's own
 // entity). The processor broadcasts via the TagSet entity's handle as
-// the signal source. Two TagSets on two entities ⇒ two independent
+// the signal source. Two TagSets on two entities => two independent
 // signal channels.
 //
 // Flow:
@@ -92,7 +92,7 @@ class UCk_AutoTest_TagSet_MultipleConcurrent_SignalsIndependent : UCk_AutoTest_B
         Assert_Equals_Int(_FireCountA, 1,
             "TagSet A's OnTagsChanged should fire exactly once (we added one tag)");
         Assert_Equals_Int(_FireCountB, 0,
-            "TagSet B's OnTagsChanged should NOT fire — no mutations on B");
+            "TagSet B's OnTagsChanged should NOT fire - no mutations on B");
 
         FinishSuccess();
     }

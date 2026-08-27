@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT — AUTOMATION TEST: CONFLICT SCOPE FILTERS BY DISPLAY CATEGORY
+// CK INPUT - AUTOMATION TEST: CONFLICT SCOPE FILTERS BY DISPLAY CATEGORY
 //============================================================================
 //
 // Get_HasKeyConflicts answers "who else already holds this key", and its
@@ -10,8 +10,8 @@
 // This pins that difference against the two authored categories.
 //
 // Asking on behalf of CkTests_Jump (category Movement):
-//   key C — held by CkTests_Crouch, also Movement  -> conflict under BOTH scopes
-//   key E — held by CkTests_Interact, Interaction  -> conflict under All only
+//   key C - held by CkTests_Crouch, also Movement  -> conflict under BOTH scopes
+//   key E - held by CkTests_Interact, Interaction  -> conflict under All only
 //
 // The scope filter compares the holder's DisplayCategory against the category
 // of the FIRST excluded mapping name (CkKeyBinding_Utils.cpp:407-418, :437-439),
@@ -22,7 +22,7 @@
 // every autotest shares one PIE session and one key profile, so another
 // registration's rows can legitimately appear alongside ours. For the same
 // reason the SameCategory/E case asserts the ABSENCE of CkTests_Interact
-// rather than a false return value — a foreign Movement mapping parked on E
+// rather than a false return value - a foreign Movement mapping parked on E
 // would make the bool true without saying anything about the filter.
 //
 // This test performs no remap, so the profile it leaves behind is the profile
@@ -38,7 +38,7 @@ class UCk_AutoTest_Input_ConflictDetection_ScopeMatters : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the key profile lives on the local player");
+            FinishFailure("no local PlayerController - the key profile lives on the local player");
             return;
         }
 
@@ -78,7 +78,7 @@ class UCk_AutoTest_Input_ConflictDetection_ScopeMatters : UCk_AutoTest_Base
         Assert_True(HasConflictsOnC_All,
             "giving CkTests_Jump the key C reports a conflict under scope All");
         Assert_True(DoConflictsContain(ConflictsOnC_All, n"CkTests_Crouch"),
-            f"scope All names CkTests_Crouch as the holder of C — conflicts:{ConflictsOnC_AllDump}");
+            f"scope All names CkTests_Crouch as the holder of C - conflicts:{ConflictsOnC_AllDump}");
         Assert_True(DoConflictKeyMatches(ConflictsOnC_All, n"CkTests_Crouch", EKeys::C),
             "the reported CkTests_Crouch conflict carries C as its current key");
 
@@ -88,9 +88,9 @@ class UCk_AutoTest_Input_ConflictDetection_ScopeMatters : UCk_AutoTest_Base
 
         auto ConflictsOnC_SameCategoryDump = DoDescribeConflicts(ConflictsOnC_SameCategory);
         Assert_True(HasConflictsOnC_SameCategory,
-            "giving CkTests_Jump the key C reports a conflict under scope SameCategory — both are Movement");
+            "giving CkTests_Jump the key C reports a conflict under scope SameCategory - both are Movement");
         Assert_True(DoConflictsContain(ConflictsOnC_SameCategory, n"CkTests_Crouch"),
-            f"scope SameCategory names CkTests_Crouch as the holder of C — conflicts:{ConflictsOnC_SameCategoryDump}");
+            f"scope SameCategory names CkTests_Crouch as the holder of C - conflicts:{ConflictsOnC_SameCategoryDump}");
 
         // --- Different category (Movement vs Interaction): a conflict under All only ---
 
@@ -102,7 +102,7 @@ class UCk_AutoTest_Input_ConflictDetection_ScopeMatters : UCk_AutoTest_Base
         Assert_True(HasConflictsOnE_All,
             "giving CkTests_Jump the key E reports a conflict under scope All");
         Assert_True(DoConflictsContain(ConflictsOnE_All, n"CkTests_Interact"),
-            f"scope All names CkTests_Interact as the holder of E — conflicts:{ConflictsOnE_AllDump}");
+            f"scope All names CkTests_Interact as the holder of E - conflicts:{ConflictsOnE_AllDump}");
 
         // The return value is deliberately unread here: it is merely "the list is
         // non-empty", which a foreign Movement mapping parked on E would make true
@@ -113,7 +113,7 @@ class UCk_AutoTest_Input_ConflictDetection_ScopeMatters : UCk_AutoTest_Base
 
         auto ConflictsOnE_SameCategoryDump = DoDescribeConflicts(ConflictsOnE_SameCategory);
         Assert_False(DoConflictsContain(ConflictsOnE_SameCategory, n"CkTests_Interact"),
-            f"scope SameCategory filters out CkTests_Interact — Interaction does not match Jump's Movement — conflicts:{ConflictsOnE_SameCategoryDump}");
+            f"scope SameCategory filters out CkTests_Interact - Interaction does not match Jump's Movement - conflicts:{ConflictsOnE_SameCategoryDump}");
 
         FinishSuccess();
     }

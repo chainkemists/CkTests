@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SNAPSHOT — AUTOMATION TEST: THE LOAD CONTRACT IS REACHABLE FROM SCRIPT
+// CK SNAPSHOT - AUTOMATION TEST: THE LOAD CONTRACT IS REACHABLE FROM SCRIPT
 //============================================================================
 //
 // Every public API must work in C++, Blueprint AND AngelScript, and the
@@ -9,19 +9,19 @@
 // were either unreflected or simply never called from any .as in the tree, so
 // nothing would have noticed if a binding stopped resolving.
 //
-//   Get_IsRebuildInProgress   the PRODUCER predicate — "may I seed?"
+//   Get_IsRebuildInProgress   the PRODUCER predicate - "may I seed?"
 //   Get_IsReadyToResume       the poll form of "is this world the player's?"
-//   Promise_OnHydrated        the per-entity push form — "my restored values are final"
+//   Promise_OnHydrated        the per-entity push form - "my restored values are final"
 //   Get_DidLoadComplete       the report predicate a consumer branches on
 //
 // This test deliberately runs OUTSIDE a load and pins the no-load-in-progress
 // half of each contract, which is the half every consumer hits on a world that
-// never loaded. It does not — and must not — drive a real load: a load travels
+// never loaded. It does not - and must not - drive a real load: a load travels
 // the world, and every autotest in this map shares one PIE world.
 //
 // The load-bearing assertion is the last one. Get_DidLoadComplete is FALSE for
 // a NoLoadInProgress report, so a consumer written against it cannot mistake
-// "there was no load" for "the load completed" — which is exactly the class of
+// "there was no load" for "the load completed" - which is exactly the class of
 // bug a bare `Result == Success` comparison produces the other way round once a
 // completed load is allowed to report losses.
 //============================================================================
@@ -48,10 +48,10 @@ class UCk_AutoTest_Snapshot_LoadContractReachableFromScript : UCk_AutoTest_Base
 
         Assert_False(utils_snapshot::Get_IsRebuildInProgress(Self),
             "No load is rebuilding this world, so the producer predicate a construction-time seeder asks must " +
-            "answer false — a true here would suppress seeding forever");
+            "answer false - a true here would suppress seeding forever");
 
         Assert_True(utils_snapshot::Get_IsReadyToResume(),
-            "A world no load ever held IS the player's, so the poll form answers true — the never-loaded world " +
+            "A world no load ever held IS the player's, so the poll form answers true - the never-loaded world " +
             "is resolved by the contract, not by every consumer special-casing it");
 
         _InsidePromiseCall = true;
@@ -60,7 +60,7 @@ class UCk_AutoTest_Snapshot_LoadContractReachableFromScript : UCk_AutoTest_Base
         _InsidePromiseCall = false;
 
         Assert_Equals_Int(_HydratedFireCount, 1,
-            "Promise_OnHydrated fires exactly once for an entity with nothing pending — a promise that stayed " +
+            "Promise_OnHydrated fires exactly once for an entity with nothing pending - a promise that stayed " +
             "silent there would put every consumer back to polling a marker");
         Assert_True(_HydratedFiredSynchronously,
             "...and fires SYNCHRONOUSLY, from inside the call, because hydration is already as complete as it " +
@@ -72,7 +72,7 @@ class UCk_AutoTest_Snapshot_LoadContractReachableFromScript : UCk_AutoTest_Base
         _InsidePromiseCall = false;
 
         Assert_True(PromiseResult == ECk_Snapshot_PromiseResult::NoLoadInProgress,
-            "The call RETURNS what it did, so a caller can branch without asking a second question — there was " +
+            "The call RETURNS what it did, so a caller can branch without asking a second question - there was " +
             "no load to wait for");
 
         Assert_Equals_Int(_LoadCompleteFireCount, 1,

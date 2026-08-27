@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: DEFAULT (BASE) LAYER RESTING INVARIANTS
+// CK CAMERA - AUTOMATION TEST: DEFAULT (BASE) LAYER RESTING INVARIANTS
 //============================================================================
 //
 // utils_camera::Add creates a persistent internal "default layer" that holds the resting profile. This test pins
 // down its invariants using only observable state (layer count + composed profile):
 //
-//   * It is NOT counted as a gameplay layer  → Get_LayerCount() == 0 right after Add (and again after every feature
+//   * It is NOT counted as a gameplay layer  -> Get_LayerCount() == 0 right after Add (and again after every feature
 //     layer is removed).
-//   * The resting profile is live with no feature layers → composed FOV == base (90) at rest.
-//   * Adding a feature layer changes the composed value; removing it blends straight back to the base — proving the
+//   * The resting profile is live with no feature layers -> composed FOV == base (90) at rest.
+//   * Adding a feature layer changes the composed value; removing it blends straight back to the base - proving the
 //     default layer is never evicted/pruned and is the fallback the stack rests on.
 //============================================================================
 
@@ -92,7 +92,7 @@ class UCk_AutoTest_GameplayCamera_DefaultLayerResting : UCk_AutoTest_Base
         }
         else // _Phase == 2
         {
-            // Feature layer gone → composed profile rests back on the (never-pruned) default layer's base.
+            // Feature layer gone -> composed profile rests back on the (never-pruned) default layer's base.
             if (Near(Fov, 90.0f))
             {
                 Assert_Equals_Int(_Camera.Get_LayerCount(), 0, "back to zero gameplay layers; default layer persists");

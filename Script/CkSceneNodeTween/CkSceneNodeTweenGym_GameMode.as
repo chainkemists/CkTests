@@ -1,21 +1,21 @@
 //============================================================================
-// SCENE NODE + TWEEN GYM — GAME MODE & PLAYER CONTROLLER
+// SCENE NODE + TWEEN GYM - GAME MODE & PLAYER CONTROLLER
 //
 // Stations progress from simple to complex, each driving a scene-node parent
 // chain with a Tween on the root. Exercises the interaction between the Tween
 // ApplyToTransform processor, the Transform HandleRequests processor, and the
-// layered SceneNode Update processors — a dependency gap between these leaves
+// layered SceneNode Update processors - a dependency gap between these leaves
 // descendants stuck at initial world positions while the tweened root moves.
 //
 // STATIONS:
-//   1. SIMPLE — Tweened root + single scene-node child (1 hop).
-//   2. CHAIN  — Tweened root + 3-level chain (root -> A -> B).
-//   3. DEEP   — Tweened root + 5-level chain, stress-tests propagation depth.
+//   1. SIMPLE - Tweened root + single scene-node child (1 hop).
+//   2. CHAIN  - Tweened root + 3-level chain (root -> A -> B).
+//   3. DEEP   - Tweened root + 5-level chain, stress-tests propagation depth.
 //
 // Each station draws filled shapes at every node and a dashed line between
 // each parent/child pair (redrawn every frame). DESYNC status flips to true
 // when the ECS-reported leaf world drifts from the AS-composed expected world
-// by more than 5 units — the signature of broken propagation.
+// by more than 5 units - the signature of broken propagation.
 //============================================================================
 
 namespace Ck

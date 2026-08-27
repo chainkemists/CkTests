@@ -1,11 +1,11 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: STOP CANCELS A QUEUED NAV QUERY
+// CK CROWD - AUTOMATION TEST: STOP CANCELS A QUEUED NAV QUERY
 //============================================================================
 //
 // The CkNavigation branch differs from the sidewalk/voxel ones: its processor
 // writes the result slot independently of the crowd's tags, so a stopped agent
-// there does not strand at Pending — it strands at a stale Ready instead, for
+// there does not strand at Pending - it strands at a stale Ready instead, for
 // a goal it has abandoned.
 //
 // Releasing the episode therefore has to do two things the Stop handler alone
@@ -14,7 +14,7 @@
 // already in the deferral queue is recognised as superseded when it lands).
 //
 // The fixture makes that deterministic instead of racy: MoveTo and Stop are
-// issued in the SAME batch, so they drain in one pass — the dispatch enqueues
+// issued in the SAME batch, so they drain in one pass - the dispatch enqueues
 // a FindPath and the release must cancel it before the nav processor ever sees
 // it. If the release does not, the slot comes back Ready and this reds.
 //============================================================================
@@ -92,7 +92,7 @@ class UCk_AutoTest_Crowd_Stop_CancelsQueuedNavQuery : UCk_AutoTest_Base
         const auto Status = utils_nav::Get_PathStatus(_Agent);
 
         Assert_True(Status == ECk_Nav_PathStatus::None,
-            f"a released episode must leave no answer behind — the slot reads {Status}, so the query the release should have cancelled was drained and answered for a goal the agent already abandoned");
+            f"a released episode must leave no answer behind - the slot reads {Status}, so the query the release should have cancelled was drained and answered for a goal the agent already abandoned");
 
         Assert_False(utils_nav::Has_Path(_Agent),
             "a released episode must not leave a usable path behind");

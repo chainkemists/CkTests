@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAG SET — AUTOMATION TEST: OnTagsChanged dual-payload (add + remove same tick)
+// CK TAG SET - AUTOMATION TEST: OnTagsChanged dual-payload (add + remove same tick)
 //============================================================================
 //
 // Pins the coalesce contract on FProcessor_TagSet_HandleRequests
-// (CkTagSet_Processor.cpp:27–48): when Request_AddTags AND Request_RemoveTags
+// (CkTagSet_Processor.cpp:27-48): when Request_AddTags AND Request_RemoveTags
 // land in the same frame, the processor accumulates both into a single
 // OnTagsChanged broadcast carrying:
-//   - InTagsAdded — the union of newly-added tags.
-//   - InTagsRemoved — the union of newly-removed tags.
+//   - InTagsAdded - the union of newly-added tags.
+//   - InTagsRemoved - the union of newly-removed tags.
 //
 // Closes two audit gaps in one test:
-//   - "OnTagsChanged dual-payload" — both payload sides populated in one fire.
-//   - "AddRemove same-tick" — same-frame requests coalesce.
+//   - "OnTagsChanged dual-payload" - both payload sides populated in one fire.
+//   - "AddRemove same-tick" - same-frame requests coalesce.
 //
 // Flow:
 //   1. Add a TagSet pre-populated with tag A.
@@ -52,7 +52,7 @@ class UCk_AutoTest_TagSet_OnTagsChanged_DualPayload_SameTick : UCk_AutoTest_Base
             _TagSet,
             FCk_Delegate_TagSet_OnTagsChanged(this, n"OnTagsChanged"));
 
-        // Same-frame add B + remove A — the processor coalesces these into
+        // Same-frame add B + remove A - the processor coalesces these into
         // one broadcast with both payload sides populated.
         auto AddContainer = FGameplayTagContainer();
         AddContainer.AddTag(_TagB);

@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: POINT CONSTRAINT PENDULUM HANGS BELOW ITS ANCHOR
+// CK JOLT - AUTOMATION TEST: POINT CONSTRAINT PENDULUM HANGS BELOW ITS ANCHOR
 //============================================================================
 //
 // A Dynamic sphere is pinned to a WORLD point 50uu above its center (a Point
-// constraint — the rope/chain link primitive). A sideways impulse swings it;
+// constraint - the rope/chain link primitive). A sideways impulse swings it;
 // damping settles it. At rest the center must hang straight below the anchor
-// at the creation separation — the pendulum length is preserved and rotation
+// at the creation separation - the pendulum length is preserved and rotation
 // stayed free.
 //
 // Placed at an isolated Y so it never touches other autotests' physics bodies.

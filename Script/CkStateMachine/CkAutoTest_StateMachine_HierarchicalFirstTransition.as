@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: HIERARCHICAL SM FIRST TRANSITION
+// CK STATE MACHINE - AUTOMATION TEST: HIERARCHICAL SM FIRST TRANSITION
 //============================================================================
 //
 // Verifies a state machine with hierarchical (sub-state-machine) parent
@@ -43,7 +43,7 @@ class UCk_AutoTest_StateMachine_HierarchicalFirstTransition : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // OnStateChanged fires for the initial Spawn entry too — skip that
+        // OnStateChanged fires for the initial Spawn entry too - skip that
         // and wait for the real Spawn->Approach transition.
         if (InPayload.Get_NewStateClass() != UCk_SmTest_Hier_Parent_Approach) { return; }
 

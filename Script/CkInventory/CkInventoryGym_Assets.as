@@ -6,7 +6,7 @@
 //
 // Item definitions declared inline using the Angelscript `asset` keyword.
 // Each becomes a real UObject in /Script/AngelscriptAssets at module load,
-// discoverable by the asset registry — no .uasset files needed.
+// discoverable by the asset registry - no .uasset files needed.
 //
 //============================================================================
 

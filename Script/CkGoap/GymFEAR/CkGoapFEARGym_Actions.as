@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapFEAR_Gym — F.E.A.R. combat-AI Actions
+// CkGoapFEAR_Gym - F.E.A.R. combat-AI Actions
 //
 // Adapted from Jeff Orkin's F.E.A.R. AI paper. One top-level Planner
 // (FEAR_Combatant) with a sub-Planner promoted at AttackEnemy.
@@ -28,16 +28,16 @@
 //     Patrol                   [Action]   pre: (none)
 //                                          eff: Patrolling         cost 3.0
 //
-// PR-B.1b Stage 5: the implicit-root model is gone — every action above is
+// PR-B.1b Stage 5: the implicit-root model is gone - every action above is
 // a direct child of FEAR_Combatant.
 //
 // Scenarios (see CkGoapFEARGym_Station.as header for the full table):
-//   Default reset           → PLAN FAILED (no EnemyVisible)
-//   EnemyVisible            → [AttackEnemy -> AttackOpen]    cost 2.0
-//   EnemyVisible + AtCover  → [AttackEnemy -> AttackFromCover] cost 1.0
-//   EnemyVisible + BehindEnemy → [AttackEnemy -> AttackFromFlank] cost 0.5  ← iconic
-//   HeardSound (no Visible) → [Investigate -> AttackEnemy -> AttackOpen]
-//   HasAmmo=false + Reserve → [Reload -> AttackEnemy -> AttackOpen]
+//   Default reset           -> PLAN FAILED (no EnemyVisible)
+//   EnemyVisible            -> [AttackEnemy -> AttackOpen]    cost 2.0
+//   EnemyVisible + AtCover  -> [AttackEnemy -> AttackFromCover] cost 1.0
+//   EnemyVisible + BehindEnemy -> [AttackEnemy -> AttackFromFlank] cost 0.5  <- iconic
+//   HeardSound (no Visible) -> [Investigate -> AttackEnemy -> AttackOpen]
+//   HasAmmo=false + Reserve -> [Reload -> AttackEnemy -> AttackOpen]
 //============================================================================
 
 // ---- Tier-1 children under FEAR_Combatant ----
@@ -135,13 +135,13 @@ class UCk_GoapFEARGym_Patrol : UCk_GoapAction_EntityScript
 }
 
 // WaitForEnemy: last-resort fallback so the planner ALWAYS produces a valid
-// plan. No preconditions — always selectable. Effect = EnemyNeutralized so
+// plan. No preconditions - always selectable. Effect = EnemyNeutralized so
 // it directly satisfies the goal. Very high cost (999.0) so it only wins
 // when no other operator (Attack chain via AttackEnemy, Investigate chain,
 // Reload chain) is viable.
 //
 // Design rationale: in a real game, "no plan" should signal a misconfigured
-// Action catalog — a gameplay bug to surface, not a normal idle state. Every
+// Action catalog - a gameplay bug to surface, not a normal idle state. Every
 // planner should be able to produce a fallback "do nothing useful, but keep
 // the agent alive" plan. Semantically WaitForEnemy is the AI standing in
 // place watching for the enemy to come into view; the enemy is "neutralized"
@@ -179,7 +179,7 @@ class UCk_GoapFEARGym_AttackFromCover : UCk_GoapAction_EntityScript
     }
 }
 
-// AttackFromFlank: the iconic F.E.A.R. moment — ambush from behind, cheapest
+// AttackFromFlank: the iconic F.E.A.R. moment - ambush from behind, cheapest
 // option (0.5). Requires the agent to be BehindEnemy already.
 class UCk_GoapFEARGym_AttackFromFlank : UCk_GoapAction_EntityScript
 {
@@ -219,7 +219,7 @@ class UCk_GoapFEARGym_AttackOpen : UCk_GoapAction_EntityScript
 }
 
 // AttackEnemy_Standby: always-valid-plan tenet fallback for the AttackEnemy
-// SUB-PLANNER (CkGoap/CLAUDE.md § "Design tenets"). All three attack leaves
+// SUB-PLANNER (the CkGoap docs Sec. "Design tenets"). All three attack leaves
 // (AttackFromCover, AttackFromFlank, AttackOpen) carry hard preconditions
 // (HasAmmo + EnemyVisible at minimum), so the sub-Planner has no
 // unconditional path to EnemyNeutralized without this fallback. The top

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: composed TTL ping expires
+// CK POI - AUTOMATION TEST: composed TTL ping expires
 //============================================================================
 //
 // The ping pattern (utils_poi::Create with TTL was removed): compose the POI
@@ -10,7 +10,7 @@
 // composition and become invalid within the timeout after the TTL elapses.
 //
 // NOTE: the class keeps its historical Create name (the AutoTests level has a
-// placed runner actor referencing it by class path — renaming requires an
+// placed runner actor referencing it by class path - renaming requires an
 // editor level edit).
 //
 // Isolated Y band: 52600.

@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Cross River station entity
+// CkGoapGym - Cross River station entity
 //
 // Branching plan with cost sensitivity.
 //
 // Initial WS: BridgeIsOpen=true, HasCoin=true, Crossed=false.
-// Plan: [UseBridge] (cost 2 — lowest).
+// Plan: [UseBridge] (cost 2 - lowest).
 //
 // Player commands:
-//   Goap.River.ToggleBridge — Bridge becomes blocked → plan flips to UseFerry.
-//   Goap.River.SpendCoin    — coin gone too → plan flips to SwimAcross.
-//   Goap.River.Reset        — restore both, plan returns to UseBridge.
+//   Goap.River.ToggleBridge - Bridge becomes blocked -> plan flips to UseFerry.
+//   Goap.River.SpendCoin    - coin gone too -> plan flips to SwimAcross.
+//   Goap.River.Reset        - restore both, plan returns to UseBridge.
 //============================================================================
 
 USTRUCT()

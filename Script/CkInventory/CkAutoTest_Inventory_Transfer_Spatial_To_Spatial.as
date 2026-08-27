@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: TRANSFER SPATIAL -> SPATIAL
+// CK INVENTORY - AUTOMATION TEST: TRANSFER SPATIAL -> SPATIAL
 //============================================================================
 //
 // Exercises the Spatial -> Spatial template instantiation of

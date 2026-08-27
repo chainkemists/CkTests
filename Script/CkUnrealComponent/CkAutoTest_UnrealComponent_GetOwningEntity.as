@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK UNREAL COMPONENT — AUTOMATION TEST: Get_OwningEntity round-trip
+// CK UNREAL COMPONENT - AUTOMATION TEST: Get_OwningEntity round-trip
 // Get_OwningEntity should return the entity that hosted the Add call.
 
 class UCk_AutoTest_UnrealComponent_GetOwningEntity : UCk_AutoTest_Base

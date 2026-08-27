@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RESOLVER — PHASE-CASCADE AUTOTEST SCAFFOLDING
+// CK RESOLVER - PHASE-CASCADE AUTOTEST SCAFFOLDING
 //============================================================================
 //
 // Shared arrange for the Resolver_Cascade_* tests, which are the first tests in
@@ -77,7 +77,7 @@ namespace autotest_resolver_cascade
     FGameplayTag Phase_Two()  { return utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Resolver.Cascade.Phase.Two"); }
     FGameplayTag Phase_Three(){ return utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Resolver.Cascade.Phase.Three"); }
 
-    // Three phases so ordering and per-phase binding are observable — two would
+    // Three phases so ordering and per-phase binding are observable - two would
     // let a swapped pair still look sorted, and one would not exercise a cascade
     // at all.
     TArray<FCk_Fragment_ResolverDataBundle_PhaseInfo> Make_ThreePhases()

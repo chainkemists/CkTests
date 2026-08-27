@@ -2,7 +2,7 @@
 // Cel Shade gym ("Stylize: Cel Shade" in the cycler).
 //
 // CelShade is a VIEW-WIDE post-process, so the stations cannot each own a subject the way the Solid
-// Outline gym's do — there is only ever one frame. They are PRESET SELECTORS instead: walk up to a
+// Outline gym's do - there is only ever one frame. They are PRESET SELECTORS instead: walk up to a
 // station and its preset is applied to the whole view. Everything is judged against the single shared
 // judge scene (ACk_UsfGym_StylizeCelJudgeScene), which is what makes two presets comparable at all.
 //
@@ -11,11 +11,11 @@
 // they reach the same Custom-Stencil contract through different front doors.
 //
 // Tab opens the gym cycler menu; search "Stylize". Console:
-//   Ck_GymStylizeCel_RestartAll      — respawn the judge scene and re-apply Balanced
-//   Ck_GymStylizeCel_CyclePreset     — next preset without walking
-//   Ck_GymStylizeCel_CycleDebug      — next debug view of the CURRENT preset
-//   Ck_GymStylizeCel_ToggleEntity    — clear/re-apply the ENTITY row's patterns
-//   Ck_GymStylizeCel_ToggleDitherStack — stack ScreenDither on top, for the cross-effect A/B
+//   Ck_GymStylizeCel_RestartAll      - respawn the judge scene and re-apply Balanced
+//   Ck_GymStylizeCel_CyclePreset     - next preset without walking
+//   Ck_GymStylizeCel_CycleDebug      - next debug view of the CURRENT preset
+//   Ck_GymStylizeCel_ToggleEntity    - clear/re-apply the ENTITY row's patterns
+//   Ck_GymStylizeCel_ToggleDitherStack - stack ScreenDither on top, for the cross-effect A/B
 //
 // Needs the CelShade master on disk: on a fresh checkout run "Ck_Usf_GenerateLooks CelShade" once in
 // the editor console, or the subsystem warns and the view is untouched.
@@ -53,17 +53,17 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
             "Hatch density should step visibly between bands. Uniform hatching everywhere means the transition is not reading the band fraction."));
         Stations.Add(Make_Station(n"Gym.Stylize.CelSoftToon", "CEL: SOFT TOON",
             "Six soft bands, pattern off, no ink line, a strong rim.",
-            "Reads as simplified shading, not as posterization — and the backlit figure must show a clear rim."));
+            "Reads as simplified shading, not as posterization - and the backlit figure must show a clear rim."));
         Stations.Add(Make_Station(n"Gym.Stylize.CelOff", "CEL: OFF",
-            "The A/B reference — the subsystem's blendable disabled.",
+            "The A/B reference - the subsystem's blendable disabled.",
             "The frame must come back completely clean. Any residue here means disable is not actually disabling.",
-            "STACKING: Ck_GymStylizeCel_ToggleDitherStack puts ScreenDither on top — the classic combo; cel bands must survive the palette reduction. Cel + hand-drawn is NOT a supported pair: both restyle the whole frame at the same chain location, so the second one paints over the first's output rather than composing with it."));
+            "STACKING: Ck_GymStylizeCel_ToggleDitherStack puts ScreenDither on top - the classic combo; cel bands must survive the palette reduction. Cel + hand-drawn is NOT a supported pair: both restyle the whole frame at the same chain location, so the second one paints over the first's output rather than composing with it."));
 
         // Explicit single row, wider than the 800uu default: the judge scene sits in front of these and
         // the player has to be able to walk the row without leaving it.
         //
         // The row sits BEHIND the judging line, alcoves opening toward the judge scene. Selection is
-        // measured at Get_StationViewingPoint — one clearance in front of each mouth — so the player
+        // measured at Get_StationViewingPoint - one clearance in front of each mouth - so the player
         // judges from outside the alcove with the whole scene ahead of them, and only turns around to
         // read a panel. The judging line lands back at X=1800, the framing the presets were tuned at.
         const float StationSpacing = 1200.0f;
@@ -102,7 +102,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
         System::ExecuteConsoleCommand("r.CustomDepth 3");
 
         Request_RebuildGym();
-        ck::Trace("🟪 Stylize Cel Shade Gym - walk to a station to apply its preset");
+        ck::Trace("* Stylize Cel Shade Gym - walk to a station to apply its preset");
     }
 
     private void Request_RebuildGym()
@@ -120,7 +120,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
         _JudgeScene = Cast<ACk_UsfGym_StylizeCelJudgeScene>(
             SpawnActor(ACk_UsfGym_StylizeCelJudgeScene, FVector(0.0f, 0.0f, 0.0f), FRotator::ZeroRotator));
         if (_JudgeScene == nullptr)
-        { ck::Error("❌ Stylize Cel Gym: failed to spawn the judge scene"); }
+        { ck::Error("[FAIL] Stylize Cel Gym: failed to spawn the judge scene"); }
 
         // Y-ALIGNED with the judge scene's hand-tagged stencil row, whose cubes sit at
         // -300 control / 0 suppress / 300 RoundDots / 600 DiagonalLines. Each entity subject therefore
@@ -149,7 +149,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
     // Where a player stands to judge from: one clearance out of the alcove mouth, on the judge-scene
     // side. The mouth is along the station's own forward axis, so this follows the row's rotation
     // instead of assuming an axis. Selecting on the station's OWN location would put the player inside
-    // the alcove facing its back wall, with the judge scene behind them — you cannot look at the
+    // the alcove facing its back wall, with the judge scene behind them - you cannot look at the
     // content while choosing the preset that restyles it.
     private FVector Get_StationViewingPoint(FName InTag)
     {
@@ -169,7 +169,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
         Subject.Pattern = InPattern;
 
         // Re-apply explicitly rather than trusting BeginPlay's entity construction to land after this
-        // assignment — the spawn already ran BeginPlay, and Request_ApplyPattern is a no-op until the
+        // assignment - the spawn already ran BeginPlay, and Request_ApplyPattern is a no-op until the
         // entity exists, so this is what actually guarantees the subject uses the pattern asked for.
         Subject.Request_ApplyPattern();
 
@@ -240,7 +240,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
         Subsystem.Apply_Preset(Preset);
 
         // A preset may move the stencil base, and the hand-tagged cubes hold whatever value was written
-        // when they were built — re-resolving keeps the row honest instead of quietly stale.
+        // when they were built - re-resolving keeps the row honest instead of quietly stale.
         if (ck::IsValid(_JudgeScene))
         { _JudgeScene.Request_RefreshStencilRow(); }
 
@@ -259,7 +259,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // const because PrintToScreen is a development-only call and AngelScript rejects non-const members
-    // inside one — the compiler cannot prove the call is side-effect-free in a shipping build otherwise.
+    // inside one - the compiler cannot prove the call is side-effect-free in a shipping build otherwise.
     private FString Get_PresetNameAt(int32 InIndex) const
     {
         if (InIndex == 0) { return "Balanced"; }
@@ -375,7 +375,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // Debug views are a property of the CURRENT preset, so this edits the live settings rather than
-    // re-applying a preset — walking to another station resets it, which is the intended behaviour.
+    // re-applying a preset - walking to another station resets it, which is the intended behaviour.
     UFUNCTION(Exec, DisplayName="Stylize Cel Gym - Cycle Debug Mode")
     void Ck_GymStylizeCel_CycleDebug()
     {
@@ -409,7 +409,7 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
     // Cross-effect stacking A/B. ScreenDither is the classic partner: cel bands the LIGHT before
     // tonemapping while dither reduces the PALETTE after it, so the two compose rather than compete. The
     // toggle owns its own flag rather than reading Get_IsEnabled(), because a subsystem nothing has
-    // touched yet reports Enabled while rendering nothing — reading it would make the first press a
+    // touched yet reports Enabled while rendering nothing - reading it would make the first press a
     // silent no-op.
     UFUNCTION(Exec, DisplayName="Stylize Cel Gym - Toggle ScreenDither Stack")
     void Ck_GymStylizeCel_ToggleDitherStack()

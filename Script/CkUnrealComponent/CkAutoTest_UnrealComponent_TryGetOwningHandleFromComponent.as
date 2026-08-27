@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK UNREAL COMPONENT — AUTOMATION TEST: TryGet_OwningHandle_FromComponent reverse lookup
+// CK UNREAL COMPONENT - AUTOMATION TEST: TryGet_OwningHandle_FromComponent reverse lookup
 // Given a raw UActorComponent pointer (recovered via Get_Component after the
 // Setup tick), the reverse lookup yields the original FCk_Handle_UnrealComponent.
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: VALIDATION REJECTS DISABLED TARGET
+// CK INTERACTION - AUTOMATION TEST: VALIDATION REJECTS DISABLED TARGET
 //============================================================================
 //
 // Verifies the TargetDisabled rejection path:

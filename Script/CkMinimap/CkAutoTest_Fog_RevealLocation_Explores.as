@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK FOG OF WAR — AUTOMATION TEST: scripted reveal explores around the point
+// CK FOG OF WAR - AUTOMATION TEST: scripted reveal explores around the point
 //============================================================================
 //
 // Request_RevealLocation at the bounds center (reveal radius 300 via params)

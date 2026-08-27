@@ -50,8 +50,8 @@ class ACk_IskmRendererGym_PlayerController : ACk_Gym_Base_PlayerController
 
     // Spawns a generic collidable floor under the gym so RagdollDemo characters
     // don't fall through the world. Reuses ACk_Gym_Floor (CkTests/Script/Common/
-    // CkGym_Floor.as) — same pattern as the CkCrowd gyms. 4000×4000cm covers
-    // all 7 station anchors and the SpawnArmy 5×5 grid (~600cm footprint).
+    // CkGym_Floor.as) - same pattern as the CkCrowd gyms. 4000x4000cm covers
+    // all 7 station anchors and the SpawnArmy 5x5 grid (~600cm footprint).
     private void SpawnFloor()
     {
         const auto FloorLocation = FVector::ZeroVector;

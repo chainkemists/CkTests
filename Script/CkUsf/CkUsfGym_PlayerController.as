@@ -1,7 +1,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // CkUsf gym PlayerController ("USF Materials"): one station per USF-authored look, each
 // with a sphere rendering that look via a runtime MID. Showcases what text-only USF
-// material authoring can do — from a simple hologram to per-pixel fractal math.
+// material authoring can do - from a simple hologram to per-pixel fractal math.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
@@ -13,7 +13,7 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
         Stations.Add(Make_Station(n"Gym.Rendering.UsfHologram", "HOLOGRAM",
-            "Emissive scanlines from sin(UV, Time).", "Lightest look — a few sines."));
+            "Emissive scanlines from sin(UV, Time).", "Lightest look - a few sines."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfPlasma", "PLASMA",
             "Animated sum-of-sines colour field.", "Two-colour blend over a sine plasma."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfVoronoi", "VORONOI",
@@ -21,7 +21,7 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         Stations.Add(Make_Station(n"Gym.Rendering.UsfJulia", "JULIA FRACTAL",
             "Per-pixel escape-time fractal.", "96 iterations, orbiting constant."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfFbmWarp", "FBM DOMAIN WARP",
-            "Domain-warped fractal noise.", "fbm(fbm(fbm)) — 5 octaves each."));
+            "Domain-warped fractal noise.", "fbm(fbm(fbm)) - 5 octaves each."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfSeascape", "SEASCAPE (TDM)",
             "Raymarched procedural ocean.", "32-step heightfield trace, ported from GLSL."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfAiekick", "DISPLACEMENT (AIEKICK)",
@@ -49,7 +49,7 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         Stations.Add(Make_Station(n"Gym.Rendering.UsfPainterlyRuins", "PAINTERLY RUINS",
             "Concept-art landscape: arch ruin on a lake.", "SDF fills + fbm brush edges; mirrored reflection."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfPerInstance", "PER-INSTANCE HUE (ISM)",
-            "One material, N instances, distinct colours.", "Per-instance custom data slot 0 → hue."));
+            "One material, N instances, distinct colours.", "Per-instance custom data slot 0 -> hue."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfFeedback", "RENDER-TO-TEXTURE",
             "Multi-pass feedback buffer (ping-pong RT).", "BufferA reads itself; Image colorizes."));
         Stations.Add(Make_Station(n"Gym.Rendering.UsfPostProcess", "POST-PROCESS (EDGE OUTLINE)",
@@ -74,7 +74,7 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartGym() override
     {
         Request_SpawnAllLooks();
-        ck::Trace("🟦 USF Materials Gym - all looks started");
+        ck::Trace("* USF Materials Gym - all looks started");
     }
 
     void Request_SpawnAllLooks()
@@ -118,7 +118,7 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             Actor.SetActorScale3D(FVector(2.0, 2.0, 2.0));
             _Showcases.Add(Actor);
-            ck::Trace("✅ Render-to-texture feedback showcase spawned");
+            ck::Trace("[OK] Render-to-texture feedback showcase spawned");
         }
     }
 
@@ -136,7 +136,7 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         }
         else
         {
-            ck::Error("❌ Failed to spawn USF per-instance showcase actor");
+            ck::Error("[FAIL] Failed to spawn USF per-instance showcase actor");
         }
     }
 
@@ -147,7 +147,7 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         if (Actor != nullptr)
         {
             _Showcases.Add(Actor);
-            ck::Trace("✅ Post-process edge-outline showcase spawned");
+            ck::Trace("[OK] Post-process edge-outline showcase spawned");
         }
     }
 
@@ -166,7 +166,7 @@ class ACk_UsfGym_PlayerController : ACk_Gym_Base_PlayerController
         }
         else
         {
-            ck::Error("❌ Failed to spawn USF showcase actor");
+            ck::Error("[FAIL] Failed to spawn USF showcase actor");
         }
     }
 

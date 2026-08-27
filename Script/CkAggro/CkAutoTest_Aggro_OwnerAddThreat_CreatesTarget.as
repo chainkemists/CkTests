@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST: owner-level AddThreat creates the target on demand
+// CK AGGRO - AUTOMATION TEST: owner-level AddThreat creates the target on demand
 // The DamageResolution one-liner: Request_AddThreat on the owner with CreateIfMissing (default) for an untracked
 // entity creates the tracked target and routes the threat onto it.
 
@@ -33,7 +33,7 @@ class UCk_AutoTest_Aggro_OwnerAddThreat_CreatesTarget : UCk_AutoTest_Base
     // 7.0 arrives on a later pass. Gating on existence alone reads 1.0 and fails
     // the > 5.0 contract. Safe to wait on the value because _ThreatDecayRate
     // defaults to 0 and this test uses default params, so threat is monotonic
-    // here — it cannot rise past the threshold and fall back.
+    // here - it cannot rise past the threshold and fall back.
     UFUNCTION()
     private void Check_ThreatRouted(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {

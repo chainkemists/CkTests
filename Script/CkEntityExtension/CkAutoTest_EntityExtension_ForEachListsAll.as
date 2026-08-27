@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY EXTENSION — AUTOMATION TEST: ForEach lists all attached extensions
+// CK ENTITY EXTENSION - AUTOMATION TEST: ForEach lists all attached extensions
 // Attach three extensions to an owner; ForEach_EntityExtension with an unbound
 // delegate returns a 3-element array containing all of them.
 

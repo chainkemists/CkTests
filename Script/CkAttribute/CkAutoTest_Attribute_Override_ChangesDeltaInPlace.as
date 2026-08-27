@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: MODIFIER OVERRIDE CHANGES DELTA IN PLACE
+// CK ATTRIBUTE - AUTOMATION TEST: MODIFIER OVERRIDE CHANGES DELTA IN PLACE
 //============================================================================
 //
 // Pins the `utils_*_attribute_modifier::Override(modHandle, newDelta)`

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT KEY-BINDING GYM — CHANGE SIGNAL STATION
+// CK INPUT KEY-BINDING GYM - CHANGE SIGNAL STATION
 //
 // The two ways to notice a rebind, side by side on one panel:
 //   - PUSH: BindTo_OnMappingKeyChanged, one listener per row, each reporting
@@ -10,11 +10,11 @@
 //
 // ONE LISTENER PER ROW IS LOAD-BEARING, NOT TIDINESS. UnbindFrom_MappingKeyChanged
 // matches on (MappingName, Slot) alone and removes EVERY listener on that pair
-// (CkInput/CLAUDE.md anti-pattern 3), so a second listener on a row this station
+// (the CkInput docs anti-pattern 3), so a second listener on a row this station
 // already watches would be silently killed by this station's own teardown.
 //
 // WHAT THIS PANEL ASSERTS: every watched row's listener has fired at least once.
-// Nothing on this station synchronises with the demo's cycle — a row is either
+// Nothing on this station synchronises with the demo's cycle - a row is either
 // known to have fired or it is not, and that answer survives whatever the demo
 // is doing at the moment you look. The demo on the Remap + Conflict station
 // moves all four rows within one lap, so the header goes green on its own.
@@ -187,10 +187,10 @@ class UCk_EntityScript_InputGym_ChangeSignal : UCk_GenericEntityScript_UE
             auto CurrentKey = utils_key_binding::Get_KeyForMapping(
                 InPlayerController, Watched[Index], EPlayerMappableKeySlot::First);
 
-            auto RowText = f"  {Watched[Index]} on {input_gym::Format_Key(CurrentKey)} — fired {FireCount} times";
+            auto RowText = f"  {Watched[Index]} on {input_gym::Format_Key(CurrentKey)} - fired {FireCount} times";
             if (FireCount == 0)
             {
-                RowText = f"  {Watched[Index]} on {input_gym::Format_Key(CurrentKey)} — never fired";
+                RowText = f"  {Watched[Index]} on {input_gym::Format_Key(CurrentKey)} - never fired";
             }
 
             input_gym::Add_Line(OutLines, RowText, input_gym::Get_VerdictColour(FireCount > 0));
@@ -208,11 +208,11 @@ class UCk_EntityScript_InputGym_ChangeSignal : UCk_GenericEntityScript_UE
 
         input_gym::Add_Spacer(OutLines, gym_palette::White);
         input_gym::Add_Line(OutLines, "  Both columns should move together. Drive them from the", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Remap + Conflict station — its demo moves every row each lap.", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  Remap + Conflict station - its demo moves every row each lap.", gym_palette::Cyan);
     }
 
     // Get_DidMappingKeyChange compares against a key the CALLER cached, so the
-    // cache has to be advanced on every detected change — otherwise the same
+    // cache has to be advanced on every detected change - otherwise the same
     // change re-reports forever and the counter measures ticks, not rebinds.
     private void Request_PollForChanges(APlayerController InPlayerController)
     {

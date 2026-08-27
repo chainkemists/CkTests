@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK VAT — AUTOMATION TEST: API SURFACE
+// CK VAT - AUTOMATION TEST: API SURFACE
 //============================================================================
 //
 // Verifies the CkVat public surface that is testable WITHOUT editor-authored
@@ -9,13 +9,13 @@
 //   1. utils_vat_proxy::Has() on a fresh entity returns false.
 //   2. A default-constructed FCk_Handle_VatProxy is invalid.
 //   3. Getters and Request_* on an invalid handle are guarded no-ops (no
-//      ensures, no crashes) — the AS mixin surface links and dispatches.
+//      ensures, no crashes) - the AS mixin surface links and dispatches.
 //   4. The three Vat processors registered via CK_REGISTER_PROCESSOR
 //      (verified transitively by the module loading).
 //
 // What this test does NOT cover (Gate 4, needs committed baked content):
 //   - Add() success + Setup side effects: requires a BAKED collection
-//     (Setup fires CK_ENSURE on unbaked ones — deliberately not triggered
+//     (Setup fires CK_ENSURE on unbaked ones - deliberately not triggered
 //     here for deterministic harness behaviour) and the generated look
 //     masters resolving a render state.
 //   - PlayClip/Stop/SetPlayRate state transitions + the 12-float pushes.

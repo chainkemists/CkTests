@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK LAG COMP PROJECTILE — AUTOMATION TEST: COMPENSATED LAUNCH HITS PAST POSE
+// CK LAG COMP PROJECTILE - AUTOMATION TEST: COMPENSATED LAUNCH HITS PAST POSE
 //============================================================================
 //
 // The full MWO scenario, single-world:
 //   1. Target (Body sphere, RewindHistory) sits at A while the server records.
 //   2. Target strafes to B (perpendicular to the shot axis).
 //   3. A 'late' fire request arrives: Request_LaunchCompensated with a window
-//      reaching back into the A era — exactly what a laggy shooter saw.
+//      reaching back into the A era - exactly what a laggy shooter saw.
 //   4. The rewind validation must confirm the hit on the PAST pose (target is
 //      long gone from A at fire time) and report it via OnRewindHit /
 //      OnLaunchCompensated with the analytic hit time inside the A era.
@@ -77,8 +77,8 @@ class UCk_AutoTest_LagCompProjectile_CompensatedLaunchHitsPastPose : UCk_AutoTes
         if (IsFinished()) { return; }
 
         // The 'late' shot: fired (in the shooter's reality) while the target was still at A.
-        // Window reaches back to T_A − 0.04; the fudge factor pushes it slightly further.
-        // 10000 cm/s from X=-400 crosses the sphere surface ~3.5ms after launch — inside the
+        // Window reaches back to T_A - 0.04; the fudge factor pushes it slightly further.
+        // 10000 cm/s from X=-400 crosses the sphere surface ~3.5ms after launch - inside the
         // catch-up window and inside the A era of the recorded history
         auto NowApprox = _TargetHistory.Get_NewestFrameTime().Get_Seconds();
         auto Window = NowApprox - (_TimeAtA - 0.04);
@@ -133,12 +133,12 @@ class UCk_AutoTest_LagCompProjectile_CompensatedLaunchHitsPastPose : UCk_AutoTes
             Assert_True(Hit.Get_HitWorldTime().Get_Seconds() < _TimeAtA + 0.01,
                 f"Hit time should fall inside the A era (hit={Hit.Get_HitWorldTime().Get_Seconds()}, T_A={_TimeAtA})");
 
-            // Entry point of the shot into the (50+5)-inflated sphere at A is x≈-55
+            // Entry point of the shot into the (50+5)-inflated sphere at A is x~-55
             Assert_True((Hit.Get_HitLocation() - FVector(-55.0, 0.0, 0.0)).Size() < 25.0,
                 f"Hit location should be at the sphere entry point (got {Hit.Get_HitLocation()})");
         }
 
-        // The target is at B NOW — the hit was only possible through the rewound history
+        // The target is at B NOW - the hit was only possible through the rewound history
         auto TargetNow = utils_transform::Get_EntityCurrentLocation(_TargetTransform);
         Assert_True((TargetNow - _PoseB).Size() < 5.0,
             "Target must already be at B when the compensated shot is validated");

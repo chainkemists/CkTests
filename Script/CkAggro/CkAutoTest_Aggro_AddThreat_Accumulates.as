@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST (P0): threat accumulates across AddThreat requests
+// CK AGGRO - AUTOMATION TEST (P0): threat accumulates across AddThreat requests
 // A target seeded at 0 threat, given +5 then +3, settles at 8 (default decay rate is 0).
 
 class UCk_AutoTest_Aggro_AddThreat_Accumulates : UCk_AutoTest_Base

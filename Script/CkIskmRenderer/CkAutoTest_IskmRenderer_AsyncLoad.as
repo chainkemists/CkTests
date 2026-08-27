@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE Q6 LOAD ACTIVATION
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE Q6 LOAD ACTIVATION
 //============================================================================
 //
-// Demonstrates the post-load contract documented in CkIskmRenderer Claude.md:
+// Demonstrates the post-load contract documented in the CkIskmRenderer docs:
 // once a renderer asset is resident, Add(...) on the resolved pointer creates
-// a working proxy. This test exercises the post-load Add → Has flow.
+// a working proxy. This test exercises the post-load Add -> Has flow.
 //
 // Pulls iskm_assets::RendererData_Demo(). Real async-load wiring (FStreamableManager
-// + lambda callback) is C++-side and not exposed cleanly to AS — this Plan-1
+// + lambda callback) is C++-side and not exposed cleanly to AS - this Plan-1
 // test covers the post-load activation that any caller eventually hits.
 //
 //============================================================================

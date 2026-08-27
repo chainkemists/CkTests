@@ -1,10 +1,10 @@
 // Language=angelscript
 //
-// CK FX — AUTOMATION TEST: a play on an unset-system vfx completes Failed and diagnoses loudly
+// CK FX - AUTOMATION TEST: a play on an unset-system vfx completes Failed and diagnoses loudly
 //
 // Pins the Vfx quartet's deferral + null contract end-to-end: an unset particle system is a legal
-// inert composition (no ensure at Add/Setup — mirrors Sfx's unset-cue semantics); the PLAY path is
-// where it gets loud — the deferred drain fires the resolve ensure and the request-completion
+// inert composition (no ensure at Add/Setup - mirrors Sfx's unset-cue semantics); the PLAY path is
+// where it gets loud - the deferred drain fires the resolve ensure and the request-completion
 // delegate reports Failed exactly once. (The pre-quartet synchronous spawn failed silently.)
 
 class UCk_AutoTest_Vfx_UnsetSystemPlayCompletesFailedLoudly : UCk_AutoTest_Base
@@ -26,7 +26,7 @@ class UCk_AutoTest_Vfx_UnsetSystemPlayCompletesFailedLoudly : UCk_AutoTest_Base
         Assert_True(ck::IsValid(VfxHandle), "utils_vfx::Add should return a valid FCk_Handle_Vfx");
         if (IsFinished()) { return; }
 
-        // Requested BEFORE setup completes — must queue behind NeedsSetup (which composes inert for
+        // Requested BEFORE setup completes - must queue behind NeedsSetup (which composes inert for
         // an unset system), then the drain resolves null, ensures, and completes Failed.
         auto PlayRequest = FCk_Request_Vfx_PlayAtLocation();
         PlayRequest._Outer = this;
@@ -50,7 +50,7 @@ class UCk_AutoTest_Vfx_UnsetSystemPlayCompletesFailedLoudly : UCk_AutoTest_Base
 }
 
 //============================================================================
-// HAND-AUTHORED WRAPPER ACTOR — registers the deliberate-ensure log pattern.
+// HAND-AUTHORED WRAPPER ACTOR - registers the deliberate-ensure log pattern.
 //============================================================================
 
 class ACk_AutoTest_Vfx_UnsetSystemPlayCompletesFailedLoudly_Actor : ACk_AutoTestRunner

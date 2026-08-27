@@ -1,9 +1,9 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Patrol Route station Actions  (U11.6 multi-tier rewrite)
+// CkGoapGym - Patrol Route station Actions  (U11.6 multi-tier rewrite)
 //
-// Demonstrates spec §2.2's multi-tier Planner hierarchy.  Each node below
+// Demonstrates spec Sec.2.2's multi-tier Planner hierarchy.  Each node below
 // that has children is BOTH an Action (visible to its parent's planner) AND
 // a Planner (runs its own A* over its children with an independent goal).
 //
@@ -11,12 +11,12 @@
 //
 //   Patrol_Planner          [Planner only]     goal: AreaPatrolled=true
 //     GoToWaypoint          [Action+Planner]   eff: AtWaypoint=true      cost 1
-//       ├── Run             [Action only]      eff: AtWaypoint=true      cost 1
-//       └── Walk            [Action only]      eff: AtWaypoint=true      cost 2
+//       +-- Run             [Action only]      eff: AtWaypoint=true      cost 1
+//       +-- Walk            [Action only]      eff: AtWaypoint=true      cost 2
 //     Observe               [Action+Planner]   pre: AtWaypoint=true
 //                                              eff: AreaScanned=true     cost 1
-//       ├── LookAround      [Action only]      eff: AreaScanned=true     cost 1
-//       └── WaitAtPost      [Action only]      eff: AreaScanned=true     cost 3
+//       +-- LookAround      [Action only]      eff: AreaScanned=true     cost 1
+//       +-- WaitAtPost      [Action only]      eff: AreaScanned=true     cost 3
 //     MarkDone              [Action only]      pre: AtWaypoint=true
 //                                                   AreaScanned=true
 //                                              eff: AreaPatrolled=true   cost 1
@@ -29,20 +29,20 @@
 // only candidate whose effect satisfies AreaPatrolled.
 //
 // Expected runtime flow:
-//   1. Planner plans → [GoToWaypoint, Observe, MarkDone].
+//   1. Planner plans -> [GoToWaypoint, Observe, MarkDone].
 //                      Chain = [GoToWaypoint].
 //   2. GoToWaypoint (promoted Planner) plans with goal AtWaypoint=true.
 //                      Picks Run (cost 1 < Walk's cost 2).
 //                      Chain = [GoToWaypoint, Run].
 //   3. Player sets AtWaypoint=true (Goap.Patrol.SetAtWaypoint).
-//                      GoToWaypoint's goal satisfied → top Planner replans.
-//   4. Plan now starts at Observe → [Observe, MarkDone].
+//                      GoToWaypoint's goal satisfied -> top Planner replans.
+//   4. Plan now starts at Observe -> [Observe, MarkDone].
 //                      Chain = [Observe].
 //   5. Observe (promoted Planner) plans with goal AreaScanned=true.
 //                      Picks LookAround (cost 1).
 //                      Chain = [Observe, LookAround].
 //   6. Player sets AreaScanned=true (Goap.Patrol.SetAreaScanned).
-//                      Observe satisfied → top Planner replans.
+//                      Observe satisfied -> top Planner replans.
 //   7. Plan picks MarkDone (atomic leaf, no sub-plan).
 //                      Chain = [MarkDone].
 //   8. Player sets AreaPatrolled=true (Goap.Patrol.Complete) or let
@@ -50,15 +50,15 @@
 //                    applies effects (gym-only: player sets manually).
 //
 // Buttons:
-//   Goap.Patrol.SetAtWaypoint   — AtWaypoint=true
-//   Goap.Patrol.SetAreaScanned  — AreaScanned=true
-//   Goap.Patrol.Complete        — AreaPatrolled=true
-//   Goap.Patrol.Reset           — all keys back to false
+//   Goap.Patrol.SetAtWaypoint   - AtWaypoint=true
+//   Goap.Patrol.SetAreaScanned  - AreaScanned=true
+//   Goap.Patrol.Complete        - AreaPatrolled=true
+//   Goap.Patrol.Reset           - all keys back to false
 //============================================================================
 
 // ---- Tier 1 composites (each promoted to Planner in the station) ----
 
-// GoToWaypoint: action effect = AtWaypoint=true. No preconditions — always
+// GoToWaypoint: action effect = AtWaypoint=true. No preconditions - always
 // available as a candidate. The Observe composite requires AtWaypoint as a
 // precondition, so the backchain naturally selects GoToWaypoint first.
 class UCk_GoapGym_Patrol_GoToWaypoint : UCk_GoapAction_EntityScript
@@ -168,7 +168,7 @@ class UCk_GoapGym_Patrol_WaitAtPost : UCk_GoapAction_EntityScript
 // ---- Top-level fallback ----
 
 // StandWatch: always-valid-plan tenet fallback for the TOP Patrol Planner
-// (CkGoap/CLAUDE.md § "Design tenets"). No preconditions, effect = goal
+// (the CkGoap docs Sec. "Design tenets"). No preconditions, effect = goal
 // (AreaPatrolled=true), very high cost. Semantically: "hold position;
 // AreaPatrolled satisfied by attrition / time-out". MarkDone (the real
 // completion path) carries hard preconditions (AtWaypoint + AreaScanned),

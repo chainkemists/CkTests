@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: BINDING LATE, AND WHAT THAT COSTS
+// CK INTENT - AUTOMATION TEST: BINDING LATE, AND WHAT THAT COSTS
 //============================================================================
 //
 // A consumer that spawns a few frames after the input that concerns it is
-// ordinary — an ability actor created in response to a move, a widget opened
+// ordinary - an ability actor created in response to a move, a widget opened
 // on the same press. The binding policy is what decides whether it hears
 // about a completion that already happened, and this test pins BOTH sides of
 // that choice against the same standing completion:
@@ -16,14 +16,14 @@
 // The second is the API default, deliberately: it is the only policy that
 // cannot make the signal contradict the poll, since a latch cannot decay
 // inside the frame it was stamped on. Replay across frames is opt-in, and the
-// caveat is the reason it is opt-in — the payload a late binder receives is
+// caveat is the reason it is opt-in - the payload a late binder receives is
 // the LAST one, with no history behind it, and it may name a completion the
 // poll surface has already decayed away. This test keeps the decay window
 // long so the completion is genuinely still standing when the binders arrive,
 // which is the only situation where the replay is safe to act on.
 //
 // Both binders arrive on the same frame, several frames after the press, so
-// the difference between them cannot be timing — it is the policy alone.
+// the difference between them cannot be timing - it is the policy alone.
 //============================================================================
 
 class UCk_AutoTest_Intent_LateBinderReceivesLastPayload : UCk_AutoTest_Base
@@ -162,13 +162,13 @@ class UCk_AutoTest_Intent_LateBinderReceivesLastPayload : UCk_AutoTest_Base
             "a binder that asked for the last payload from any frame receives it exactly once");
 
         Assert_True(_ReplayName == n"AS_LateBind_Move",
-            "the replayed payload is the real one, identity and all — not a synthesised notification");
+            "the replayed payload is the real one, identity and all - not a synthesised notification");
 
         Assert_Equals_Int(_ReplayFrame, _CompletionFrame,
             "and it still names the frame the move actually landed on, which is what a late consumer needs to decide whether it is too late to act");
 
         Assert_Equals_Int(_ThisFrameOnlyFires, 0,
-            "the default policy replays only within the frame, so a binder arriving later hears nothing — that is what makes it the policy that can never contradict the poll surface");
+            "the default policy replays only within the frame, so a binder arriving later hears nothing - that is what makes it the policy that can never contradict the poll surface");
     }
 
     //------------------------------------------------------------------------

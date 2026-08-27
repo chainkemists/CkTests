@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PARENT-FALLBACK PLAN FLIP
+// CK GOAP - AUTOMATION TEST: PARENT-FALLBACK PLAN FLIP
 //============================================================================
 //
-// Validates the plan-snapshot import merge (WsParentFallback design §3.5):
+// Validates the plan-snapshot import merge (WsParentFallback design Sec.3.5):
 // a sub-planner whose only action is gated on a parent-resident key plans
 // PlanFailed while the parent holds false, and PlanFound [AchieveLocal] after
-// the parent value flips — the A* snapshot must read the PARENT's truth
+// the parent value flips - the A* snapshot must read the PARENT's truth
 // through the local import alias. Afterwards, the alias slot must not leak:
 // a later parent-side flip is still what the sub handle reads.
 //============================================================================

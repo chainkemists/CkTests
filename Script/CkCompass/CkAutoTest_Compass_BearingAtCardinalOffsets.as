@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK COMPASS — AUTOMATION TEST: bearings at the four cardinal offsets
+// CK COMPASS - AUTOMATION TEST: bearings at the four cardinal offsets
 //============================================================================
 //
 // Observer at band origin, Manual heading 0. Four POIs placed 1000uu along
-// +X / +Y / -X / -Y must project at bearings 0 / +90 / ±180 / -90 (UE yaw
+// +X / +Y / -X / -Y must project at bearings 0 / +90 / +/-180 / -90 (UE yaw
 // convention: +X = yaw 0, +Y = yaw 90).
 //
 // Isolated Y band: 56400.
@@ -124,7 +124,7 @@ class UCk_AutoTest_Compass_BearingAtCardinalOffsets : UCk_AutoTest_Base
         auto SouthBearing = DoFindBearing(Entries, _South, Found);
         Assert_True(Found, "South (-X) POI should be present");
         Assert_True(Math::Abs(Math::Abs(SouthBearing) - 180.0) < 0.5,
-            f"-X POI should project at bearing ~±180 (got {SouthBearing})");
+            f"-X POI should project at bearing ~+/-180 (got {SouthBearing})");
 
         auto WestBearing = DoFindBearing(Entries, _West, Found);
         Assert_True(Found, "West (-Y) POI should be present");

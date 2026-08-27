@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE — PERF READOUT AUTOTEST (LinearCast sweep fleet)
+// CK PROBE - PERF READOUT AUTOTEST (LinearCast sweep fleet)
 //============================================================================
 //
 // Measured (not estimated) frame-time readout for the LinearCast pipeline:
 // 200 LinearCast kinematic sphere probes ping-pong along X in separate
-// Y-lanes, crossing a line of static wall probes every cycle — so every
+// Y-lanes, crossing a line of static wall probes every cycle - so every
 // frame pays 200 shape casts plus periodic begin/update/end overlap churn.
 //
 // Warms up (WarmupSeconds), samples per-tick delta for SampleSeconds, then
 // logs avg / max frame ms + effective FPS. Under -nullrhi this measures the
-// game-thread cost — exactly where FProcessor_Probe_UpdateTransform_LinearCast
+// game-thread cost - exactly where FProcessor_Probe_UpdateTransform_LinearCast
 // runs. Numbers are RELATIVE (same harness, same machine): compare logs from
 // before/after a change to the LinearCast processor.
 //
@@ -38,7 +38,7 @@ class UCk_AutoTest_Probe_LinearCastPerf : UCk_AutoTest_Base
     private int32 _SampleCount = 0;
 
     // Sized to SATURATE the headless 120fps frame budget (~8.33 ms) in the serial
-    // implementation — below saturation, frame deltas measure the frame cap, not the work.
+    // implementation - below saturation, frame deltas measure the frame cap, not the work.
     const int32 MoverCount = 800;
     const int32 WallEvery = 4;          // every 4th lane gets a static wall at X=500
     const float StepPerTick = 40.0f;
@@ -102,7 +102,7 @@ class UCk_AutoTest_Probe_LinearCastPerf : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // Drive every mover every tick (constant across A/B — the same request volume is
+        // Drive every mover every tick (constant across A/B - the same request volume is
         // issued whichever processor implementation is under test).
         for (int32 i = 0; i < _Movers.Num(); i++)
         {

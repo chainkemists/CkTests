@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: AN OFF-MESH WALKER HOLDS INSTEAD OF GLIDING
+// CK CROWD - AUTOMATION TEST: AN OFF-MESH WALKER HOLDS INSTEAD OF GLIDING
 //============================================================================
 //
 // *** THIS TEST IS RED ON THE CURRENT BUILD BY DESIGN. ***
@@ -31,7 +31,7 @@
 //     (CkCrowdAgent_ConstrainToNavmesh_Processor.cpp, the both-fail branch).
 //
 // That third branch is the hole. A crowd agent has no gravity and no floor
-// collision — nothing else in the pipeline will pull it down — so an agent that
+// collision - nothing else in the pipeline will pull it down - so an agent that
 // gets beyond the recovery extent keeps travelling on whatever the solver last
 // staged, at CONSTANT Z, through open air. It does not fall, it does not stop,
 // it GLIDES. Measured in the field: an agent marched 800+uu at Z=1.00 over a
@@ -39,8 +39,8 @@
 // hoverer, every path it asked for afterwards dying as NoRouteFound.
 //
 // The grounding lease (FFragment_CrowdAgent_Grounding, Get_IsOffNavmesh,
-// Get_SecondsOffNavmesh) REPORTS this — it is why the failure text below can
-// quote a dwell time — but reporting is all it does past +/-Height. Recovery
+// Get_SecondsOffNavmesh) REPORTS this - it is why the failure text below can
+// quote a dwell time - but reporting is all it does past +/-Height. Recovery
 // and reporting are deliberately different jobs (see
 // Crowd_Grounding_StationaryAgentReGrounds phase D, which pins the recovery
 // extent from the other side). The missing half is what the agent is allowed to
@@ -53,7 +53,7 @@
 // The field shape is "a walking agent leaves the mesh and keeps going". The
 // smallest honest manufacture of that is a walking agent that is MOVED off the
 // mesh mid-stride, because what makes the defect observable is not HOW the
-// agent got out there — it is that a nonzero staged displacement survives the
+// agent got out there - it is that a nonzero staged displacement survives the
 // both-fail branch.
 //
 //   1. Find the navmesh's +X edge by probing, the way
@@ -65,10 +65,10 @@
 //   3. Displace it to EdgeX + 2500uu at the SAME Y and the SAME Z. Horizontal
 //      only, so the constant-Z glide the field showed is the thing measured;
 //      2500uu is ~15x the 4x-radius recovery extent, so both projections fail
-//      on distance and the agent is genuinely beyond recovery — that is the
+//      on distance and the agent is genuinely beyond recovery - that is the
 //      positive control that this run reached the branch under test at all.
 //   4. From the FIRST frame Get_IsOffNavmesh reports true, accumulate the
-//      agent's PATH LENGTH in XY (not its endpoint distance — an out-and-back
+//      agent's PATH LENGTH in XY (not its endpoint distance - an out-and-back
 //      glide is still a glide) until it comes to rest or the window closes.
 //
 // THE CONTRACT: an agent that is off the navmesh beyond recovery must not
@@ -82,7 +82,7 @@
 // on the 0.5s block-detection cadence) DOES notice and re-paths; that re-path
 // fails from 2500uu off-mesh, steering zeroes the desired velocity, and
 // AccelClamp ramps the agent down over ~0.5s at the default 480cm/s^2. So the
-// glide this fixture can produce is BOUNDED — roughly one block-detect cadence
+// glide this fixture can produce is BOUNDED - roughly one block-detect cadence
 // plus one deceleration at the default 240cm/s, on the order of 100-200uu, not
 // 700uu. 50uu sits an order of magnitude above the held agent's exact zero and
 // still well under the shortest glide the bound allows. It is deliberately not
@@ -98,7 +98,7 @@
 // reports INCONCLUSIVE rather than passing if it never got above the cruise
 // floor. That control is safe against the fix that is actually wanted:
 // ConstrainToNavmesh's query is Transform / Params / PendingDisplacement /
-// Grounding — it has no write access to the Velocity feature, so a fix inside
+// Grounding - it has no write access to the Velocity feature, so a fix inside
 // it cannot zero the agent's speed. A fix that ALSO stops the agent from
 // somewhere else would trip this control, and the right response then is to
 // relax the control, not to widen the travel limit.
@@ -143,7 +143,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
 
     // ---- Thresholds ----
 
-    // THE CONTRACT. A held agent travels exactly 0 — ConstrainToNavmesh is the
+    // THE CONTRACT. A held agent travels exactly 0 - ConstrainToNavmesh is the
     // only writer of its transform. See the header for why this is 50 and not
     // the ~700uu of the field report.
     private const float MaxOffMeshTravelCm = 50.0;
@@ -250,14 +250,14 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         // test would be reporting a project setting rather than a defect.
         if (utils_crowd_settings::Get_NavmeshConstraintMode() == ECk_CrowdNavmeshConstraintMode::Disabled)
         {
-            FinishFailure("the navmesh constraint is DISABLED for this run (_NavmeshConstraintMode = Disabled). Every displacement is passed straight through in that mode, so an off-mesh walker gliding says nothing about the both-projections-fail branch this test exists for — failing here instead, naming the setting.");
+            FinishFailure("the navmesh constraint is DISABLED for this run (_NavmeshConstraintMode = Disabled). Every displacement is passed straight through in that mode, so an off-mesh walker gliding says nothing about the both-projections-fail branch this test exists for - failing here instead, naming the setting.");
             return;
         }
 
         _VerifyIntervalSec = utils_crowd_settings::Get_GroundingVerifyIntervalSeconds();
         if (_VerifyIntervalSec <= 0.0f)
         {
-            FinishFailure(f"the grounding lease is DISABLED for this run (_GroundingVerifyIntervalSeconds = {_VerifyIntervalSec}). Get_IsOffNavmesh is how this test knows it reached the branch under test, and Get_SecondsOffNavmesh is the dwell time its failure text quotes — with the lease off both are dead and a green here would be vacuous.");
+            FinishFailure(f"the grounding lease is DISABLED for this run (_GroundingVerifyIntervalSeconds = {_VerifyIntervalSec}). Get_IsOffNavmesh is how this test knows it reached the branch under test, and Get_SecondsOffNavmesh is the dwell time its failure text quotes - with the lease off both are dead and a green here would be vacuous.");
             return;
         }
 
@@ -288,7 +288,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
             ECk_Signal_PostFireBehavior::DoNothing);
 
         // AutoTests_CkTests_Level carries the fixture but the bake is lazy, and
-        // the edge probe below is a SYNCHRONOUS projection — it needs a live mesh
+        // the edge probe below is a SYNCHRONOUS projection - it needs a live mesh
         // or it reports the origin itself as the edge.
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
         utils_nav::Request_FindPath(LocalHandle,
@@ -336,14 +336,14 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         if (utils_nav::Try_ProjectOntoNavmesh(LocalHandle, FVector::ZeroVector, 100.0f,
                 OriginOnMesh, ProbeVerticalExtentUu) == false)
         {
-            FinishFailure("the navmesh answered a path query but the origin does not project — the test level's mesh is not where this fixture expects it");
+            FinishFailure("the navmesh answered a path query but the origin does not project - the test level's mesh is not where this fixture expects it");
             return;
         }
         _FloorZ = float(OriginOnMesh.Z);
 
         if (DoFind_MeshEdgeX(LocalHandle) == false)
         {
-            FinishFailure(f"navmesh +X edge not found within {MaxProbeUu}uu of the origin — test level changed?");
+            FinishFailure(f"navmesh +X edge not found within {MaxProbeUu}uu of the origin - test level changed?");
             return;
         }
 
@@ -368,7 +368,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         if (utils_nav::Try_ProjectOntoNavmesh(LocalHandle, _SpawnLocation, 100.0f,
                 SpawnOnMesh, ProbeVerticalExtentUu) == false)
         {
-            FinishFailure(f"INCONCLUSIVE FIXTURE: the walker's spawn {_SpawnLocation} is not on the navmesh (edge X={_EdgeX}) — the run would be measuring an agent that never walked.");
+            FinishFailure(f"INCONCLUSIVE FIXTURE: the walker's spawn {_SpawnLocation} is not on the navmesh (edge X={_EdgeX}) - the run would be measuring an agent that never walked.");
             return;
         }
 
@@ -376,7 +376,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         if (utils_nav::Try_ProjectOntoNavmesh(LocalHandle, _GoalLocation, 100.0f,
                 GoalOnMesh, ProbeVerticalExtentUu) == false)
         {
-            FinishFailure(f"INCONCLUSIVE FIXTURE: the walker's goal {_GoalLocation} is not on the navmesh (edge X={_EdgeX}) — no path, so no cruise, so nothing to displace.");
+            FinishFailure(f"INCONCLUSIVE FIXTURE: the walker's goal {_GoalLocation} is not on the navmesh (edge X={_EdgeX}) - no path, so no cruise, so nothing to displace.");
             return;
         }
 
@@ -384,7 +384,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
     }
 
     // Coarse sweep then a fine refine, the same shape
-    // Crowd_PushApart_AgentStaysOnNavmesh uses — a hardcoded edge silently stops
+    // Crowd_PushApart_AgentStaysOnNavmesh uses - a hardcoded edge silently stops
     // being the edge the first time the test level is re-authored.
     private bool DoFind_MeshEdgeX(FCk_Handle& InSelf)
     {
@@ -445,7 +445,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         utils_euler_integrator::Request_Start(AgentEntity);
 
         // Bound for DIAGNOSTICS only. A goal failure after the displacement is
-        // the EXPECTED outcome (the re-path cannot plan from 2500uu off-mesh) —
+        // the EXPECTED outcome (the re-path cannot plan from 2500uu off-mesh)
         // what this test judges is what the agent did while that was resolving,
         // so the reason is recorded and folded into whatever verdict follows.
         utils_crowd_agent::BindTo_OnGoalFailed(_Agent,
@@ -502,7 +502,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         // Deliberately NOT preceded by Request_Stop, and deliberately absolute:
         // the agent must keep the move it was given, because a cancelled move
         // stages no displacement and the branch under test never runs. This is
-        // how every real source of the defect arrives — the world moves the
+        // how every real source of the defect arrives - the world moves the
         // agent, the agent's own commanded motion carries on.
         utils_transform::Request_SetTransform(_AgentTransform,
             FCk_Request_Transform_SetTransform(
@@ -532,7 +532,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         if (_OffMeshWaitPolls >= OffMeshWaitBudgetPolls)
         {
             const auto Pos = DoGet_Position();
-            FinishFailure(f"INCONCLUSIVE: {OffMeshWaitBudgetPolls} polls (many multiples of the {_VerifyIntervalSec}s grounding lease) after being displaced to {_DisplacedTo}, the agent at {Pos} still does not report Get_IsOffNavmesh. Either the mesh reaches further than the edge probe found (edgeX={_EdgeX}) or the reporting half of the lease is dead — either way this run never reached the both-projections-fail branch, so it can neither confirm nor refute the glide.");
+            FinishFailure(f"INCONCLUSIVE: {OffMeshWaitBudgetPolls} polls (many multiples of the {_VerifyIntervalSec}s grounding lease) after being displaced to {_DisplacedTo}, the agent at {Pos} still does not report Get_IsOffNavmesh. Either the mesh reaches further than the edge probe found (edgeX={_EdgeX}) or the reporting half of the lease is dead - either way this run never reached the both-projections-fail branch, so it can neither confirm nor refute the glide.");
         }
     }
 
@@ -540,12 +540,12 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
     // teleport lands ~2500uu off the PATH as well as off the mesh, BlockDetect's
     // off-path heal re-paths within one cadence, the re-path brakes the agent, and
     // steering zeroes the desired velocity of a path that cannot resolve from an
-    // off-mesh start — so the off-mesh agent carried no displacement and the contract
+    // off-mesh start - so the off-mesh agent carried no displacement and the contract
     // held vacuously. Stop the movement episode entirely (an Idle agent is outside
     // BlockDetect's view, so nothing re-paths or brakes it) and drive the displacement
     // at the layer the field sources drive it: raw physics. The acceleration
     // integrates into velocity, the integrator stages displacement every frame, and
-    // the both-projections-fail branch of ConstrainToNavmesh decides what happens —
+    // the both-projections-fail branch of ConstrainToNavmesh decides what happens
     // which is exactly, and only, what this test exists to pin.
     UFUNCTION()
     private void Step_DriveOffMeshward(FCk_Handle InHandle, FInstancedStruct InPayload)
@@ -557,7 +557,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
             utils_acceleration::DoCastChecked(Generic),
             FVector(DriveAccelCm, 0.0, 0.0));
 
-        ck::crowd::Log(f"[OFFMESH-HOLD] stopped the episode and applied {DriveAccelCm}cm/s2 of +X acceleration — displacement now comes from raw physics, beyond steering's reach");
+        ck::crowd::Log(f"[OFFMESH-HOLD] stopped the episode and applied {DriveAccelCm}cm/s2 of +X acceleration - displacement now comes from raw physics, beyond steering's reach");
     }
 
     UFUNCTION()
@@ -608,7 +608,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         if (utils_crowd_agent::Get_IsOffNavmesh(_Agent) == false)
         {
             // Getting back onto the mesh from here means covering the whole
-            // OffMeshMarginUu, so this cannot happen without travel — but if it
+            // OffMeshMarginUu, so this cannot happen without travel - but if it
             // somehow does, say so rather than accepting it as a hold.
             DoFail_Glide(Pos, f"and then re-grounded, which from {OffMeshMarginUu}uu past the edge is only reachable by travelling");
             return;
@@ -625,7 +625,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         }
 
         // The window closing with the travel still under the limit is the
-        // contract being met the slow way — the agent is held but has not fully
+        // contract being met the slow way - the agent is held but has not fully
         // bled its velocity off. Accept it; Step_ReportHold still has to clear
         // the positive control.
         _HoldPolls += 1;
@@ -639,7 +639,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         const auto DwellSec = utils_crowd_agent::Get_SecondsOffNavmesh(_Agent);
         const auto EndpointCm = DoGet_Dist2D(InEndPos, _OffMeshEnterPos);
 
-        FinishFailure(f"GLIDE: off-mesh agent travelled {_OffMeshTravelCm}uu at constant Z ({_OffMeshMinZ}) — the constraint passed displacement through instead of holding. It went off-mesh at {_OffMeshEnterPos} and reached {InEndPos} {InWhat} (limit {MaxOffMeshTravelCm}uu, endpoint delta {EndpointCm}uu, Z spread over the whole window {ZSpreadCm}uu, mesh edge X={_EdgeX}, off-navmesh for {DwellSec}s, peak speed while off-mesh {_OffMeshMaxSpeedCm}cm/s, speed when displaced {_SpeedAtDisplacement}cm/s, goalFailed={_GoalFailed} [{_GoalFailReason}]). A crowd agent has no gravity and no floor collision, so a displacement that survives the both-projections-fail branch of FProcessor_CrowdAgent_ConstrainToNavmesh carries the body through open air at whatever height it left the mesh at — that flat Z IS the signature. The agent that is beyond the recovery extent must be HELD, not merely reported.");
+        FinishFailure(f"GLIDE: off-mesh agent travelled {_OffMeshTravelCm}uu at constant Z ({_OffMeshMinZ}) - the constraint passed displacement through instead of holding. It went off-mesh at {_OffMeshEnterPos} and reached {InEndPos} {InWhat} (limit {MaxOffMeshTravelCm}uu, endpoint delta {EndpointCm}uu, Z spread over the whole window {ZSpreadCm}uu, mesh edge X={_EdgeX}, off-navmesh for {DwellSec}s, peak speed while off-mesh {_OffMeshMaxSpeedCm}cm/s, speed when displaced {_SpeedAtDisplacement}cm/s, goalFailed={_GoalFailed} [{_GoalFailReason}]). A crowd agent has no gravity and no floor collision, so a displacement that survives the both-projections-fail branch of FProcessor_CrowdAgent_ConstrainToNavmesh carries the body through open air at whatever height it left the mesh at - that flat Z IS the signature. The agent that is beyond the recovery extent must be HELD, not merely reported.");
     }
 
     UFUNCTION()
@@ -652,7 +652,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
         // commanded motion to suppress. ConstrainToNavmesh cannot write the
         // Velocity feature (its query is Transform / Params /
         // PendingDisplacement / Grounding), so the fix this test gates cannot
-        // trip this — but a fix that stops the agent from elsewhere would, and
+        // trip this - but a fix that stops the agent from elsewhere would, and
         // the answer then is to relax THIS line, never the travel limit.
         Assert_True(_OffMeshMaxSpeedCm >= MinCruiseSpeedCm,
             f"INCONCLUSIVE: the agent's peak speed while off the navmesh was only {_OffMeshMaxSpeedCm}cm/s (floor {MinCruiseSpeedCm}cm/s, it was doing {_SpeedAtDisplacement}cm/s when displaced). With no commanded motion the pipeline stages no displacement, the both-projections-fail branch has nothing to pass through, and a travel of {_OffMeshTravelCm}uu proves nothing about the hold.");
@@ -669,7 +669,7 @@ class UCk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds : UCk_AutoTest_Base
     {
         if (ck::Is_NOT_Valid(_Agent))
         {
-            FinishFailure("the walker went invalid mid-run — possible early destroy / lifetime issue");
+            FinishFailure("the walker went invalid mid-run - possible early destroy / lifetime issue");
             return false;
         }
         return true;
@@ -706,14 +706,14 @@ class ACk_AutoTest_Crowd_Grounding_OffMeshWalkerHolds_Actor : ACk_AutoTestRunner
     // warns about it. The automation framework escalates any Warning to a test
     // failure, so the test's own deliberate output would fail it before its own
     // assertions ever ran. Registered as plain substrings (AddExpectedErrorPlain
-    // — Contains, suppress-all); a pattern that never fires is not reported as
+    // - Contains, suppress-all); a pattern that never fires is not reported as
     // missing, so the hedges below cost nothing even at their current
     // verbosity.
     UFUNCTION(BlueprintOverride)
     TArray<FString> Get_ExpectedLogErrors() const
     {
         TArray<FString> Out;
-        // CkNav_Algorithm.cpp — "FindPathSync: [Start] projection FAILED. ..."
+        // CkNav_Algorithm.cpp - "FindPathSync: [Start] projection FAILED. ..."
         // (and the [End] form, if the goal is ever the one that misses).
         Out.Add("projection FAILED");
         // FProcessor_CrowdAgent_OnPathResolved, Failed branch:

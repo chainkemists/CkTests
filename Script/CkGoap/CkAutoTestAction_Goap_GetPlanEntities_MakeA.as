@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: MAKE-A (GetPlanEntities test)
+// CK GOAP - AUTOMATION TEST ACTION: MAKE-A (GetPlanEntities test)
 //============================================================================
 //
-// First step of the 2-step chain. Effect: AKey=true. No preconditions —
+// First step of the 2-step chain. Effect: AKey=true. No preconditions
 // always eligible. Cost 1.0. Combined with MakeB (precondition AKey=true,
 // effect BKey=true), this produces a 2-step plan when the goal is BKey=true.
 //============================================================================

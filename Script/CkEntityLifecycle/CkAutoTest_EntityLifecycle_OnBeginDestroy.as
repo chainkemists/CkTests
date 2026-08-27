@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: ON BEGIN DESTROY CALLBACK
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: ON BEGIN DESTROY CALLBACK
 //============================================================================
 //
 // Verifies that OnBeginDestroy fires when an entity is destroyed via

@@ -1,5 +1,5 @@
 // ============================================================================
-// SM DIVERGENCE-FIRST-BRANCH (TIMED) — GYM ACTOR
+// SM DIVERGENCE-FIRST-BRANCH (TIMED) - GYM ACTOR
 // ============================================================================
 //
 // Driver actor for CkStateMachine_TestStates_DivergenceFirstBranchTimed.as.
@@ -24,7 +24,7 @@
 //
 // Both passes must read 1 across every counter for the gym to report PASS.
 // The two-pass design proves the doubling tracks add-order, not state
-// class or branch direction — flipping the order flips which branch
+// class or branch direction - flipping the order flips which branch
 // doubles, eliminating "maybe Left has a quirk" as a confounder.
 //
 // Settle window per pass: 1.5s. The sub-SM cycle is ~0.25s with the 0.05s
@@ -76,7 +76,7 @@ class ACk_SmTest_DivergenceTimed_GymActor : AActor
     // CONFIGURATION
     // ========================================================================
 
-    // Per-pass settle window. Sub-SM cycle is ~0.25s (5 hops × 0.05s),
+    // Per-pass settle window. Sub-SM cycle is ~0.25s (5 hops x 0.05s),
     // 1.5s gives lots of headroom and would catch any duplicate-driven
     // extra hops too.
     UPROPERTY(ExposeOnSpawn)
@@ -319,7 +319,7 @@ class ACk_SmTest_DivergenceTimed_GymActor : AActor
             auto LabelA = OkA ? "OK" : "FAIL";
             auto LabelB = OkB ? "OK" : "FAIL";
 
-            auto Title = f"DIVERGENCE FIRST-BRANCH (TIMED) — {StatusLabel}";
+            auto Title = f"DIVERGENCE FIRST-BRANCH (TIMED) - {StatusLabel}";
 
             auto Setup =
                 FString("Sub-SM with a divergence-point state (two outgoing\n")

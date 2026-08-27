@@ -1,11 +1,11 @@
 // Language=angelscript
 //
-// CK OBJECT POOLING — AUTOMATION TEST: poolable EntityScript policy recycles
+// CK OBJECT POOLING - AUTOMATION TEST: poolable EntityScript policy recycles
 //
 // Proves the policy WIRING through the public pool-stats surface only (no reach
 // into the script instance). Spawn a poolable EntityScript, destroy the entity
 // (EndPlay releases the script to its pool), spawn the same class again. The
-// second spawn must be a pool HIT reusing the parked instance — NumHits == 1,
+// second spawn must be a pool HIT reusing the parked instance - NumHits == 1,
 // NumLiveInstances == 1.
 
 class UCk_AutoTest_ObjectPooling_PoolableScriptPolicyRecycles : UCk_AutoTest_Base
@@ -70,7 +70,7 @@ class UCk_AutoTest_ObjectPooling_PoolableScriptPolicyRecycles : UCk_AutoTest_Bas
         auto Stats = utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_PoolableScript, nullptr);
         Assert_Equals_Int(Stats.Get_NumHits(), 1, "spawn #2: must recycle the parked instance (1 hit)");
         Assert_Equals_Int(Stats.Get_NumLiveInstances(), 1,
-            "spawn #2: exactly 1 live instance total — the pool reused, not re-created");
+            "spawn #2: exactly 1 live instance total - the pool reused, not re-created");
 
         FinishSuccess();
     }

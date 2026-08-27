@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: DEFERRED ENTITY COMPLETE CALLBACKS
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: DEFERRED ENTITY COMPLETE CALLBACKS
 //============================================================================
 //
 // Verifies the deferred-entity completion contract:
@@ -11,7 +11,7 @@
 //   4. Both callbacks fire.
 //
 // Pattern: bind both delegates, issue Request_CompleteSetup, finish only
-// when BOTH callbacks have been observed — single-callback fire could
+// when BOTH callbacks have been observed - single-callback fire could
 // indicate one of the two signals regressed silently.
 //
 // Mirrors phases 1-2 of CkEntityLifecycleGym_DeferredSetup.

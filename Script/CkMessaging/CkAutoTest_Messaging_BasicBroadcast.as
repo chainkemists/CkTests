@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MESSAGING — AUTOMATION TEST: BASIC BROADCAST
+// CK MESSAGING - AUTOMATION TEST: BASIC BROADCAST
 //============================================================================
 //
 // Smoke test for the messaging API:
@@ -9,7 +9,7 @@
 //   2. Broadcast a Ping with sender="AutoTest" and seq=42.
 //   3. The delegate fires with a payload that round-trips both fields.
 //
-// Reuses the gym's Ping struct from CkMessagingGym_Messages.as — no need
+// Reuses the gym's Ping struct from CkMessagingGym_Messages.as - no need
 // to declare test-only message structs.
 //============================================================================
 

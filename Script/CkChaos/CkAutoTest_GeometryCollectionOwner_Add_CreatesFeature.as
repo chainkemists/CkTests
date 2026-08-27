@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CHAOS — AUTOMATION TEST: GEOMETRY COLLECTION OWNER ADD
+// CK CHAOS - AUTOMATION TEST: GEOMETRY COLLECTION OWNER ADD
 //============================================================================
 //
 // First-coverage seed for CkChaos. GeometryCollectionOwner Add ensures

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — TEST-ONLY REPLICATED SUBORDINATE ENTITY SCRIPT (B)
+// CK DYNAMIC - TEST-ONLY REPLICATED SUBORDINATE ENTITY SCRIPT (B)
 //============================================================================
 //
 // Minimal REPLICATED entity script used by the StoreDriver-shaped dynamic-handle repro
@@ -11,7 +11,7 @@
 // FCk_Handle_TESTONLY_Subordinate validates on the client.
 //
 // Spawned by the test UNDER the (actor-bridged) subject so it inherits an owning-actor
-// chain — required for its handle to net-translate through the driver's replicated carrier
+// chain - required for its handle to net-translate through the driver's replicated carrier
 // (the production StoreDriver spawns subordinates under the driver for exactly this reason).
 //============================================================================
 

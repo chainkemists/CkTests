@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: BATCH DESTROY
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: BATCH DESTROY
 //============================================================================
 //
 // Verifies Request_DestroyEntities (the batch variant): given an array of

@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK UNREAL COMPONENT — AUTOMATION TEST: Get_AllComponents resolves to live UActorComponents
+// CK UNREAL COMPONENT - AUTOMATION TEST: Get_AllComponents resolves to live UActorComponents
 // After the Setup processor ticks, Get_AllComponents returns one entry per
 // Add and every entry is a live UActorComponent.
 

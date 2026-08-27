@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — NET AUTOMATION TEST: COMBINED Location + Rotation Replicates
+// CK TRANSFORM - NET AUTOMATION TEST: COMBINED Location + Rotation Replicates
 //============================================================================
 //
 // Server issues a single Request_SetLocationAndRotation; the processor sets

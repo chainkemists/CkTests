@@ -3,7 +3,7 @@
 // Voice-chat gym PC: composes a loopback VoiceTalker on the player pawn and drives
 // push-to-talk off the V key (poll + edge-detect - the gym framework carries no input
 // bindings of its own). Each transmit edge flashes on screen: the machine-visible half of
-// the roger-beep recipe (module Claude.md, "Consumer recipes") - a consumer binds a cue to
+// the roger-beep recipe (the module docs, "Consumer recipes") - a consumer binds a cue to
 // exactly these edges. Requires [Voice] bEnabled=true in the host project's DefaultEngine.ini
 // or the capture source never opens (the standing P2 prerequisite).
 class ACk_VoiceChatGym_PlayerController : ACk_Gym_Base_PlayerController
@@ -20,7 +20,7 @@ class ACk_VoiceChatGym_PlayerController : ACk_Gym_Base_PlayerController
         Station.Title = FText::FromString("VOICE CHAT — MIC LOOPBACK + TRANSMIT EDGES");
         auto Description = TArray<FText>();
         Description.Add(FText::FromString("HOLD V to talk. Your microphone loops back through the full capture -> VAD -> encode -> jitter -> decode -> synth pipeline: you hear yourself."));
-        Description.Add(FText::FromString("Each transmit edge flashes on screen - bind a cue to those signals for a roger beep (recipe: Source/CkVoiceChat/Claude.md, Consumer recipes)."));
+        Description.Add(FText::FromString("Each transmit edge flashes on screen - bind a cue to those signals for a roger beep (recipe: Source/the CkVoiceChat docs, Consumer recipes)."));
         Description.Add(FText::FromString("Prerequisite: [Voice] bEnabled=true in DefaultEngine.ini. Silence with the flash working means the capture source never opened - check that line first."));
         Description.Add(FText::FromString("Spatialization / per-channel attenuation / HybridRadio need a second machine or PIE client - steps live in the campaign's Gate_4.md [EDITOR-VERIFY] block."));
         Station.Description = Description;
@@ -85,13 +85,13 @@ class ACk_VoiceChatGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     private void OnTransmitStarted(FCk_Handle_VoiceTalker InTalker)
     {
-        PrintToScreen("TX START — a roger-beep cue binds HERE", 1.5, FLinearColor::Green);
+        PrintToScreen("TX START - a roger-beep cue binds HERE", 1.5, FLinearColor::Green);
     }
 
     UFUNCTION()
     private void OnTransmitStopped(FCk_Handle_VoiceTalker InTalker)
     {
-        PrintToScreen("TX END — squelch-close beep binds HERE", 1.5, FLinearColor::Yellow);
+        PrintToScreen("TX END - squelch-close beep binds HERE", 1.5, FLinearColor::Yellow);
     }
 
     // Console fallbacks for machines where the key poll misbehaves (gym spec convention).

@@ -1,11 +1,11 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: A NEVER-ANSWERED EPISODE TIMES OUT, ONCE
+// CK CROWD - AUTOMATION TEST: A NEVER-ANSWERED EPISODE TIMES OUT, ONCE
 //============================================================================
 //
 // Pending had no bound anywhere before this. CkNavigation force-fails its own
 // deferral queue at ck.Nav.MaxDeferralSeconds, but that only covers queries
-// that reached ITS queue — the PathNetwork and VoxelNav branches never enqueue
+// that reached ITS queue - the PathNetwork and VoxelNav branches never enqueue
 // one, and neither module carries a timeout. A provider that simply never
 // answered left the agent waiting forever with nothing in the system able to
 // report it.
@@ -13,19 +13,19 @@
 // The fixture holds a genuinely un-answerable episode (a navmesh rebuild in
 // flight makes the start point unbakeable, so the FindPath defers) and then
 // backdates only the CLOCK. The episode, the tags, the revision and the real
-// threshold are all production state — nothing about the failure path is faked.
+// threshold are all production state - nothing about the failure path is faked.
 //
 // "Once" is half the assertion: the watchdog writes the status and leaves the
 // transition to OnPathResolved precisely so the terminal cannot double-fire.
 //
 // Known narrow race: the state this fixture holds is a DEFERRED CkNavigation
 // query, which production independently force-fails with NoNavData at
-// ck.Nav.MaxDeferralSeconds (5s) — under the watchdog's 10s threshold. Normal
+// ck.Nav.MaxDeferralSeconds (5s) - under the watchdog's 10s threshold. Normal
 // margin is a few frames, but a >5s hitch between parking and the watchdog tick
 // would let NoNavData win and red the reason assert. It fails loud rather than
 // silently asserting the wrong thing. The watchdog's production-relevant
 // branches (a sidewalk or voxel provider that never answers) carry no bound of
-// their own and cannot be stalled on demand at all — which is precisely why the
+// their own and cannot be stalled on demand at all - which is precisely why the
 // seams exist.
 //============================================================================
 
@@ -111,14 +111,14 @@ class UCk_AutoTest_Crowd_Watchdog_PendingTimeoutFailsEpisodeOnce : UCk_AutoTest_
     {
         const auto Status = utils_nav::Get_PathStatus(_Agent);
         Assert_True(Status == ECk_Nav_PathStatus::Failed,
-            f"an episode no provider answered must end as a reportable failure, not stay Pending — slot reads {Status}");
+            f"an episode no provider answered must end as a reportable failure, not stay Pending - slot reads {Status}");
 
         const auto Reason = utils_nav::Get_PathResult(_Agent).Get_Diagnostics().Get_LastFailReason();
         Assert_True(Reason == ECk_Nav_PathFailReason::PendingTimeout,
-            f"the failure must name the timeout as its cause, not inherit an unrelated reason — got {Reason}");
+            f"the failure must name the timeout as its cause, not inherit an unrelated reason - got {Reason}");
 
         Assert_True(_GoalFailedCount == 1,
-            f"the terminal must reach the caller exactly once — OnGoalFailed fired {_GoalFailedCount} times (0 = reported to nobody, >1 = the watchdog duplicated a transition OnPathResolved already owns)");
+            f"the terminal must reach the caller exactly once - OnGoalFailed fired {_GoalFailedCount} times (0 = reported to nobody, >1 = the watchdog duplicated a transition OnPathResolved already owns)");
     }
 }
 

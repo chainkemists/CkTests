@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY SCRIPT — AUTOMATION TEST: SPAWNED ENTITY HAS TAG
+// CK ENTITY SCRIPT - AUTOMATION TEST: SPAWNED ENTITY HAS TAG
 //============================================================================
 //
 // Verifies that fragments added by the spawned entity-script's DoConstruct
@@ -9,7 +9,7 @@
 //   1. Spawn the gym entity script (its DoConstruct calls
 //      utils_entity_tag::Add(InHandle, n"TAG_EntityScriptGym_Spawn")).
 //   2. After construction AND a one-frame wait (so the EntityTag request pump
-//      drains the deferred Add — see CkEntityTag/Claude.md "Timing"), looking
+//      drains the deferred Add - see the CkEntityTag docs "Timing"), looking
 //      up children by that tag from the test entity finds the spawned one.
 //
 // This catches regressions where DoConstruct fragments don't actually
@@ -47,7 +47,7 @@ class UCk_AutoTest_EntityScript_SpawnedEntityHasTag : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // DoConstruct's utils_entity_tag::Add is deferred — wait one pump pass before reading.
+        // DoConstruct's utils_entity_tag::Add is deferred - wait one pump pass before reading.
         WaitOneFrame(n"AfterPumpDrain");
     }
 

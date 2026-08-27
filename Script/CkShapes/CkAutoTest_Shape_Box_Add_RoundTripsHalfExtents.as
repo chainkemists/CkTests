@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SHAPES — AUTOMATION TEST: BOX ADD ROUND-TRIPS HALF-EXTENTS
+// CK SHAPES - AUTOMATION TEST: BOX ADD ROUND-TRIPS HALF-EXTENTS
 //============================================================================
 //
 // First-coverage seed for CkShapes. Adding a ShapeBox feature with

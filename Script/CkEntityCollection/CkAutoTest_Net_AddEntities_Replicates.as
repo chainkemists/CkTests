@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY COLLECTION — NET AUTOMATION TEST: Add Entities Replicates
+// CK ENTITY COLLECTION - NET AUTOMATION TEST: Add Entities Replicates
 //============================================================================
 //
 // Server adds the subject's own entity handle to a Replicates EntityCollection
@@ -12,7 +12,7 @@
 //
 // Each world independently asserts NumEntities>=1 and FinishSuccess's on its
 // own poll. Server-side polling is needed because Request_AddSingleEntity has
-// no completion-delegate API — without polling, the server-side test never
+// no completion-delegate API - without polling, the server-side test never
 // finishes and the harness times out.
 //============================================================================
 
@@ -21,7 +21,7 @@ class UCk_AutoTest_Net_AddEntities_Replicates : UCk_AutoTest_NetBase
     default _NetSubjectClass = ACk_AutoTest_NetSubject_EntityCollection_UE;
 
     private int _PollCount = 0;
-    private const int kPollBudget = 400;  // 400 * 0.05s ≈ 20s — within the 30s harness timeout
+    private const int kPollBudget = 400;  // 400 * 0.05s ~ 20s - within the 30s harness timeout
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -38,7 +38,7 @@ class UCk_AutoTest_Net_AddEntities_Replicates : UCk_AutoTest_NetBase
 
         auto Collection = CollectionActor._TestCollection;
         if (ck::Is_NOT_Valid(Collection))
-        { FinishFailure("DIAG-C: collection handle null — entity-script Construct didn't stash it?"); return; }
+        { FinishFailure("DIAG-C: collection handle null - entity-script Construct didn't stash it?"); return; }
 
         if (utils_net::Get_HasAuthority(Subject))
         {

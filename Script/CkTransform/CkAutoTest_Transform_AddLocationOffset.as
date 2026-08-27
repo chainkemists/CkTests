@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — AUTOMATION TEST: ADD LOCATION OFFSET
+// CK TRANSFORM - AUTOMATION TEST: ADD LOCATION OFFSET
 //============================================================================
 //
 // Verifies Request_AddLocationOffset accumulates onto the current location:
 //   1. Add transform at (100, 0, 0).
 //   2. Apply offset (+50, 0, 0).
-//   3. Poll until Get_EntityCurrentLocation reports (150, 0, 0) — proving
+//   3. Poll until Get_EntityCurrentLocation reports (150, 0, 0) - proving
 //      the offset was added rather than replacing the location.
 //============================================================================
 

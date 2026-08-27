@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK FOG OF WAR — AUTOMATION TEST: registered revealer explores as it stands
+// CK FOG OF WAR - AUTOMATION TEST: registered revealer explores as it stands
 //============================================================================
 //
 // AddRevealer registers an entity whose Transform position is sampled by the

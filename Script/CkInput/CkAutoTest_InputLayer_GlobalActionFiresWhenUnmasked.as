@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT LAYER — AUTOMATION TEST: GLOBAL ACTIONS AT THE BOTTOM OF THE STACK
+// CK INPUT LAYER - AUTOMATION TEST: GLOBAL ACTIONS AT THE BOTTOM OF THE STACK
 //============================================================================
 //
 // A global action is a raw key bound with no binding profile, no intent
-// definition and no bake — the prototyping and debug-key surface. It lives on
+// definition and no bake - the prototyping and debug-key surface. It lives on
 // a reserved layer pinned to the bottom of its source's stack, so it is
 // arbitrated by the same walk as everything else rather than by a side door.
 //
@@ -13,7 +13,7 @@
 //
 //   1. A key nobody above claimed reaches the global action.
 //   2. A key an ordinary layer DOES claim reaches that layer and leaves the
-//      global-action layer silent — which also proves leg 1 was not just the
+//      global-action layer silent - which also proves leg 1 was not just the
 //      global layer answering everything.
 //============================================================================
 

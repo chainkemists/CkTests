@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THREE NOTCHES IN ONE FRAME ARE THREE NOTCHES
+// CK INTENT - AUTOMATION TEST: THREE NOTCHES IN ONE FRAME ARE THREE NOTCHES
 //============================================================================
 //
 // A wheel spun quickly delivers several notches inside one frame's worth of
@@ -12,7 +12,7 @@
 //
 // Folding the batch into one row cannot say it. Held-ness is a set, so three
 // presses of one key collapse to one entry, the edges collapse with them, and
-// the matcher — which reads EDGES — sees one notch. The player's other two
+// the matcher - which reads EDGES - sees one notch. The player's other two
 // vanish. Nothing reports it: the completion that did happen looks perfectly
 // healthy, and scroll-to-cycle simply moves one step instead of three under
 // exactly the input that makes a wheel feel bad to use.
@@ -26,7 +26,7 @@
 //   the MATCHER completes three times, on three distinct frames
 //
 // The frames being distinct is what makes the second reading mean "three
-// events" rather than "one event announced three times" — a re-completion
+// events" rather than "one event announced three times" - a re-completion
 // stamped on the frame the previous one used would be the same row answering
 // twice.
 //
@@ -119,7 +119,7 @@ class UCk_AutoTest_Intent_WheelMultiNotchSameBatchAllComplete : UCk_AutoTest_Bas
             FCk_Request_IntentMatcher_SwapSet(Baked.Get_CompiledSet()));
     }
 
-    // Every edge in ONE step, which is what puts all six of them in one batch — the shape a fast
+    // Every edge in ONE step, which is what puts all six of them in one batch - the shape a fast
     // wheel spin produces, and the whole point of the test.
     UFUNCTION()
     private void Step_ThreeNotches(FCk_Handle InHandle, FInstancedStruct InPayload)
@@ -135,10 +135,10 @@ class UCk_AutoTest_Intent_WheelMultiNotchSameBatchAllComplete : UCk_AutoTest_Bas
     private void Step_AssertAllThree(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(DoCount_RowsCarryingBothEdges(), _NotchCount,
-            "the record carries one row per notch — a batch folded into a single row loses every repeat, because held-ness is a SET and three presses of one key collapse into one entry");
+            "the record carries one row per notch - a batch folded into a single row loses every repeat, because held-ness is a SET and three presses of one key collapse into one entry");
 
         Assert_Equals_Int(_CompletionFrames.Num(), _NotchCount,
-            "and the matcher answered every one of them — it reads EDGES, so a collapsed batch would complete once and the player's other two notches would simply not exist");
+            "and the matcher answered every one of them - it reads EDGES, so a collapsed batch would complete once and the player's other two notches would simply not exist");
 
         if (_CompletionFrames.Num() != _NotchCount)
         { return; }
@@ -149,11 +149,11 @@ class UCk_AutoTest_Intent_WheelMultiNotchSameBatchAllComplete : UCk_AutoTest_Bas
         for (auto Index = 1; Index < _CompletionFrames.Num(); Index++)
         {
             Assert_True(_CompletionFrames[Index] > _CompletionFrames[Index - 1],
-                f"completion {Index} must name a LATER frame than the one before it — three fires on one frame is one row answering three times, not three notches");
+                f"completion {Index} must name a LATER frame than the one before it - three fires on one frame is one row answering three times, not three notches");
         }
 
         Assert_False(DoContainsNotchButton(utils_intent_sampler::Get_LatestFrame(_Sampler).Get_Held()),
-            "and the burst left nothing held — a split that kept the last press without its release would wedge the key down for the rest of the session");
+            "and the burst left nothing held - a split that kept the last press without its release would wedge the key down for the rest of the session");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_MultiNotch_Cycle"),
             _CompletionFrames[_CompletionFrames.Num() - 1],

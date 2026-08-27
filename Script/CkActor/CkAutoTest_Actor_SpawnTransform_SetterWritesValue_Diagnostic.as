@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ACTOR — DIAGNOSTIC: Set_SpawnTransform writes value into AS-built params
+// CK ACTOR - DIAGNOSTIC: Set_SpawnTransform writes value into AS-built params
 //============================================================================
 //
 // Isolates whether the SpawnTransform write itself fails in AS. The full
@@ -10,10 +10,10 @@
 // picture and asks whether the AS-side setter even mutates the struct.
 //
 // If Get_SpawnTransform returns the just-set value:
-//   → AS setter works; the propagation loss is downstream (request copy
+//   -> AS setter works; the propagation loss is downstream (request copy
 //     / processor read / deferred spawn).
 // If Get_SpawnTransform returns Identity:
-//   → AS setter is the problem (either binding isn't generated for
+//   -> AS setter is the problem (either binding isn't generated for
 //     FTransform-valued CK_PROPERTY setters, or AS's by-value-struct
 //     semantics drop the local mutation).
 //============================================================================
@@ -46,7 +46,7 @@ class UCk_AutoTest_Actor_SpawnTransform_SetterWritesValue_Diagnostic : UCk_AutoT
         Assert_True(AfterXform.GetRotation().Rotator().Equals(ExpectedRotation, RotationToleranceDeg),
             f"After Set_SpawnTransform, Get_SpawnTransform rotation | expected {ExpectedRotation}, got {AfterXform.GetRotation().Rotator()}");
 
-        // Also test propagation through the Request struct constructor —
+        // Also test propagation through the Request struct constructor
         // if SpawnParams holds the value but the request's _SpawnParams
         // copy drops it, the failure is in the request-side struct copy
         // (CK_DEFINE_CONSTRUCTOR / std::move chain).

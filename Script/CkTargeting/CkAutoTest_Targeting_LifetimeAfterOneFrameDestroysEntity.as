@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK TARGETING — AUTOMATION TEST: ECk_Lifetime::AfterOneFrame destroys entity
+// CK TARGETING - AUTOMATION TEST: ECk_Lifetime::AfterOneFrame destroys entity
 // Create with AfterOneFrame queues immediate destruction; after one frame the
 // returned handle is no longer valid.
 

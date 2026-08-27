@@ -1,5 +1,5 @@
 //============================================================================
-// PROBE GYM — SHARED CONSOLE→STATION MESSAGES + GAMEPLAY TAGS
+// PROBE GYM - SHARED CONSOLE->STATION MESSAGES + GAMEPLAY TAGS
 //
 // Generic CkFoundation Probe feature gym. Mirrors the BB Trigger gym's shape
 // (debug + physical stations driving the raw Probe API directly) and adds a
@@ -8,10 +8,10 @@
 // Jolt body.
 //
 // Tags declared here so no Config/DefaultGameplayTags.ini editing is needed:
-//   CkTests.Probe.Gym.Marker   — detectable identity (balls, pawn, chained
+//   CkTests.Probe.Gym.Marker   - detectable identity (balls, pawn, chained
 //                                 probe at end of scene-node chain)
-//   CkTests.Probe.Gym.Detector — detector identity (static sensor probes)
-//   CkTests.Probe.Gym.TraceTarget — the trace station's target probe
+//   CkTests.Probe.Gym.Detector - detector identity (static sensor probes)
+//   CkTests.Probe.Gym.TraceTarget - the trace station's target probe
 //============================================================================
 
 namespace Ck
@@ -25,7 +25,7 @@ namespace Ck
 }
 
 //============================================================================
-// Console-command → station messages. Each PlayerController Exec finds
+// Console-command -> station messages. Each PlayerController Exec finds
 // station entities by tag and broadcasts one of these structs.
 //============================================================================
 

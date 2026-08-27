@@ -1,22 +1,22 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PARENT-FALLBACK PROMOTED HOST ROLE SPLIT
+// CK GOAP - AUTOMATION TEST: PARENT-FALLBACK PROMOTED HOST ROLE SPLIT
 //============================================================================
 //
 // Pins the candidate-role / planner-role split (WsParentFallback design
-// §3.10), the exact shape of the BB sub-planner migration: a host action is
+// Sec.3.10), the exact shape of the BB sub-planner migration: a host action is
 // BOTH a candidate in the top-level planner's search AND (promoted, carrying
 // _WorldStateSource_Override) the planner for a sub-WS catalog.
 //
 //   - Candidate role: the host's precond (Key.Shared) / effect (Key.New)
-//     register in the PARENT WS's index space — never the sub's.
+//     register in the PARENT WS's index space - never the sub's.
 //   - Planner role: the host's goal (Key.Local) and children register in the
 //     SUB WS.
 //
 // The two registries are seeded with DIFFERENT key orders (parent pre-regs
 // Shared+New; sub pre-regs Probe first), so any cross-registry leak would
-// misalign indices and corrupt the parent's search — the silent failure this
+// misalign indices and corrupt the parent's search - the silent failure this
 // split exists to prevent.
 //============================================================================
 

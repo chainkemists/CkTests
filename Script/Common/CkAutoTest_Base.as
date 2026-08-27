@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK AUTOMATION TEST — BASE CLASS
+// CK AUTOMATION TEST - BASE CLASS
 //============================================================================
 //
 // Headless test runner that sits on a transient entity. Authors subclass
@@ -22,7 +22,7 @@
 // script; the wrapper generator propagates it to the generated wrapper CDO.
 //
 //----------------------------------------------------------------------------
-// WRITING A TEST — the step sequencer
+// WRITING A TEST - the step sequencer
 //----------------------------------------------------------------------------
 //
 // Declare the test as a list of named steps, then run them. Each step is
@@ -39,20 +39,20 @@
 //       Run_Steps(InHandle);
 //   }
 //
-//   // ACTION — signature is FCk_Lambda_InHandle. InHandle is this test entity.
+//   // ACTION - signature is FCk_Lambda_InHandle. InHandle is this test entity.
 //   UFUNCTION()
 //   private void Step_Hide(FCk_Handle InHandle, FInstancedStruct InPayload)
 //   { utils_visible_range::Request_SetVisibility(_Vr, ECk_VisibleRange_ShowHide::Hide); }
 //
-//   // WAIT — signature is FCk_Predicate_InHandle_OutResult.
+//   // WAIT - signature is FCk_Predicate_InHandle_OutResult.
 //   UFUNCTION()
 //   private void Check_InNeither(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
 //   {
-//       auto Res = OutResult;   // NOT OutResult.Set(...) directly — see below
+//       auto Res = OutResult;   // NOT OutResult.Set(...) directly - see below
 //       Res.Set(DoCompassHasPoi() == false && DoMinimapHasPoi() == false);
 //   }
 //
-// When the last step completes the test finishes successfully on its own — no
+// When the last step completes the test finishes successfully on its own - no
 // trailing FinishSuccess() is needed. Assertions inside a step are tagged with
 // that step's name automatically, so a failure names where it came from.
 //
@@ -63,7 +63,7 @@
 // of hops encodes a guess about that ordering into the test, so the test
 // breaks when the ordering changes and silently depends on frame rate in the
 // meantime. A predicate states what the test is actually waiting for,
-// converges as soon as it holds, and — when it never holds — reports which
+// converges as soon as it holds, and - when it never holds - reports which
 // named condition was still false instead of a bare engine timeout.
 //
 //============================================================================
@@ -102,7 +102,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // reads the CDO at emit time, propagating it to the generated wrapper's
     // own _TimeoutSeconds (which the C++ runner applies to the engine
     // TimeLimit in PrepareTest). Default 5.0f matches ACk_AutoTestRunner's
-    // compile-time default — leave it alone unless your test needs a tighter
+    // compile-time default - leave it alone unless your test needs a tighter
     // or looser bound.
     UPROPERTY()
     float _TimeoutSeconds = 5.0f;
@@ -127,7 +127,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     private int32 _AssertionsFailed = 0;
     private FString _FirstFailureMessage;
 
-    // Out-of-subtree owners registered via Track_ForCleanup — destroyed at finish
+    // Out-of-subtree owners registered via Track_ForCleanup - destroyed at finish
     // so heavyweight tests can't leak into the next test in the shared PIE world.
     private TArray<FCk_Handle> _CleanupOwners;
 
@@ -135,7 +135,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // (UCk_Utils_AutoTest_UE), because restoring a CVar means restoring both.
     private TArray<FName> _CVarOverrideNames;
 
-    // Armed only once a test tracks an out-of-subtree owner — see Track_ForCleanup.
+    // Armed only once a test tracks an out-of-subtree owner - see Track_ForCleanup.
     private FCk_Handle_Timer _CleanupWatchdogTimer;
     private ECk_AutoTest_Status _PendingStatus = ECk_AutoTest_Status::Running;
     private FString _PendingMessage;
@@ -177,14 +177,14 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     //------------------------------------------------------------------------
-    // Step sequencer — declaration
+    // Step sequencer - declaration
     //------------------------------------------------------------------------
 
     // An action step. InFuncName must name a UFUNCTION on this class with the
     // FCk_Lambda_InHandle signature:
     //   UFUNCTION() private void Name(FCk_Handle InHandle, FInstancedStruct InPayload)
     // The action runs once and the sequence advances on the FOLLOWING tick, so
-    // an action and the wait after it never share a tick — the wait's first
+    // an action and the wait after it never share a tick - the wait's first
     // poll always observes at least one processor pass.
     protected void Add_Step(const FString& InDisplayName, FName InFuncName)
     {
@@ -200,7 +200,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     //   Res.Set(...);
     // AngelScript treats a by-value struct parameter as read-only and rejects
     // `OutResult.Set(...)` with "Non-const method call on read-only object
-    // reference" (Script/CLAUDE.md 9.1). The copy is not a workaround that
+    // reference" (Script/ARCHITECTURE.md 9.1). The copy is not a workaround that
     // loses the write: FCk_SharedBool holds a shared cell, so the copy and the
     // parameter address the same bool.
     protected void Add_Step_WaitUntil(const FString& InDisplayName, FName InPredicateName, int32 InFrameBudget = 0)
@@ -210,7 +210,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     // A wait step that settles for a fixed number of frames. Prefer
-    // Add_Step_WaitUntil — reach for this only when there is genuinely no
+    // Add_Step_WaitUntil - reach for this only when there is genuinely no
     // observable condition, e.g. asserting that something does NOT happen.
     protected void Add_Step_WaitFrames(const FString& InDisplayName, int32 InFrames)
     {
@@ -224,7 +224,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
 
         if (_Steps.IsEmpty())
         {
-            FinishFailure("Run_Steps called with no steps declared — use Add_Step / Add_Step_WaitUntil first");
+            FinishFailure("Run_Steps called with no steps declared - use Add_Step / Add_Step_WaitUntil first");
             return;
         }
 
@@ -236,7 +236,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         _StepTickTimer = Do_MakePerFrameTimer(n"INTERNAL__AutoTest_StepTick");
     }
 
-    // Where the test currently is, for diagnostics — the active sequencer step
+    // Where the test currently is, for diagnostics - the active sequencer step
     // or the active standalone wait. Empty when neither is running. Every
     // failure path routes its location through here rather than embedding it,
     // so a message is prefixed exactly once no matter who raises it.
@@ -265,7 +265,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     //------------------------------------------------------------------------
-    // Step sequencer — execution
+    // Step sequencer - execution
     //------------------------------------------------------------------------
 
     UFUNCTION()
@@ -288,7 +288,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         if (_StepsElapsedSeconds > _TimeoutSeconds * 0.9f)
         {
             auto Elapsed = _StepsElapsedSeconds;
-            FinishFailure(f"timed out after {Elapsed :.2}s — raise `default _TimeoutSeconds` if the test is merely slow");
+            FinishFailure(f"timed out after {Elapsed :.2}s - raise `default _TimeoutSeconds` if the test is merely slow");
             return;
         }
 
@@ -337,14 +337,14 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         if (Action.IsBound() == false)
         {
             auto Fn = InStep._FuncName;
-            FinishFailure(f"no UFUNCTION named '{Fn}' on this test — an action step needs `UFUNCTION() private void {Fn}(FCk_Handle InHandle, FInstancedStruct InPayload)`");
+            FinishFailure(f"no UFUNCTION named '{Fn}' on this test - an action step needs `UFUNCTION() private void {Fn}(FCk_Handle InHandle, FInstancedStruct InPayload)`");
             return;
         }
         Action.ExecuteIfBound(SelfEntity, FInstancedStruct());
     }
 
     // Shared by the sequencer and the standalone WaitUntil. Returns false and
-    // fails the test when the name does not resolve — distinguishing an
+    // fails the test when the name does not resolve - distinguishing an
     // unbound name from a forever-false condition is the difference between a
     // one-line fix and an afternoon.
     private bool Do_EvaluatePredicate(FName InPredicateName)
@@ -352,7 +352,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         auto Predicate = FCk_Predicate_InHandle_OutResult(this, InPredicateName);
         if (Predicate.IsBound() == false)
         {
-            FinishFailure(f"no UFUNCTION named '{InPredicateName}' on this test — a wait predicate needs `UFUNCTION() private void {InPredicateName}(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)`");
+            FinishFailure(f"no UFUNCTION named '{InPredicateName}' on this test - a wait predicate needs `UFUNCTION() private void {InPredicateName}(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)`");
             return false;
         }
 
@@ -362,7 +362,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     // A zero-duration ResetOnDone timer bound to OnUpdate is the per-frame hook
-    // for an entity script. OnUpdate — not OnDone — is what fires once per
+    // for an entity script. OnUpdate - not OnDone - is what fires once per
     // processor pass; a zero-duration OnDone can re-fire within the pass that
     // added it.
     private FCk_Handle_Timer Do_MakePerFrameTimer(FName InCallbackName)
@@ -376,7 +376,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     //------------------------------------------------------------------------
-    // Standalone WaitUntil — for tests that drive their own callback chain
+    // Standalone WaitUntil - for tests that drive their own callback chain
     // rather than declaring a step list. This is the drop-in replacement for a
     // chain of WaitOneFrame hops.
     //------------------------------------------------------------------------
@@ -390,7 +390,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     {
         if (_WaitRunning)
         {
-            FinishFailure(f"WaitUntil('{InPredicateName}') called while already waiting on '{_WaitPredicateName}' — one standalone wait at a time");
+            FinishFailure(f"WaitUntil('{InPredicateName}') called while already waiting on '{_WaitPredicateName}' - one standalone wait at a time");
             return;
         }
 
@@ -412,7 +412,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     // Yields a fixed number of frames, then calls InContinuationName. Reach for
-    // this ONLY when there is no observable condition to wait on — the canonical
+    // this ONLY when there is no observable condition to wait on - the canonical
     // case is asserting that something does NOT happen, where the whole point is
     // that no state changes. Everywhere else use WaitUntil: a frame count cannot
     // state what it is waiting for, and cannot report anything useful when the
@@ -421,7 +421,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     {
         if (_WaitRunning)
         {
-            FinishFailure(f"WaitFrames called while already waiting on '{_WaitPredicateName}' — one standalone wait at a time");
+            FinishFailure(f"WaitFrames called while already waiting on '{_WaitPredicateName}' - one standalone wait at a time");
             return;
         }
 
@@ -451,7 +451,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         if (_WaitElapsedSeconds > _TimeoutSeconds * 0.9f)
         {
             auto Elapsed = _WaitElapsedSeconds;
-            FinishFailure(f"timed out after {Elapsed :.2}s — raise `default _TimeoutSeconds` if the test is merely slow");
+            FinishFailure(f"timed out after {Elapsed :.2}s - raise `default _TimeoutSeconds` if the test is merely slow");
             return;
         }
 
@@ -490,7 +490,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
         if (Continuation.IsBound() == false)
         {
             auto Fn = _WaitContinuationName;
-            FinishFailure(f"no UFUNCTION named '{Fn}' to continue to — needs `UFUNCTION() private void {Fn}(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)`");
+            FinishFailure(f"no UFUNCTION named '{Fn}' to continue to - needs `UFUNCTION() private void {Fn}(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)`");
             return;
         }
 
@@ -520,7 +520,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     // captured on the first override and put back at finish, on the success AND failure paths.
     //
     // Use this instead of System::ExecuteConsoleCommand. A lane is ONE editor process running its
-    // tests back to back, so a CVar left moved is inherited by every test after this one — and
+    // tests back to back, so a CVar left moved is inherited by every test after this one - and
     // timing CVars (t.MaxFPS, r.VSync) change the frame budget of all of them, which surfaces as
     // unrelated wait predicates running out of polls. "Restoring" by executing a second console
     // command with a hardcoded literal is not restoring: it imposes the test author's guess of the
@@ -535,7 +535,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     // For a variable this test does not set itself but that something it INVOKES will move on its
-    // behalf — HighResShot rewrites r.SceneColorFormat, r.PostProcessingColorFormat and r.ForceLOD,
+    // behalf - HighResShot rewrites r.SceneColorFormat, r.PostProcessingColorFormat and r.ForceLOD,
     // for instance. Captures the current value now so the base can put it back at finish.
     protected void Snapshot_CVarForTest(FName InName)
     {
@@ -549,7 +549,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     {
         if (UCk_Utils_AutoTest_UE::Get_CVarExists(InName) == false)
         {
-            FinishFailure(f"no console variable named '{InName}' — check the spelling, or whether the module that registers it is loaded in a test boot");
+            FinishFailure(f"no console variable named '{InName}' - check the spelling, or whether the module that registers it is loaded in a test boot");
             return false;
         }
 
@@ -567,7 +567,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
 
     // Register an out-of-subtree entity ROOT to destroy when the test finishes: anything
     // you spawned UNDER an ActorRelay channel, anything owned by ck::TransientEntity(),
-    // and the subordinates a driver spawns and exposes (e.g. Get_EmployeeManager()) —
+    // and the subordinates a driver spawns and exposes (e.g. Get_EmployeeManager())
     // in short, anything NOT parented to this runner entity. The harness's own per-test
     // teardown (ACk_AutoTestRunner::Destroy_RunnerEntity) cascades ONLY the runner's
     // lifetime subtree, so these escape it and leak into every later test in the shared
@@ -579,15 +579,15 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     //
     // NEVER register the ActorRelay CHANNEL entity itself (InResult.Get_ChannelEntity()).
     // Channels are POOLED and SHARED with live production subsystems, the API is
-    // acquire-only by design (acquisition is stateless pool selection — there is no
+    // acquire-only by design (acquisition is stateless pool selection - there is no
     // checkout to return), and for Generic groups the pool NEVER regrows. Destroying one
-    // kills ActorRelay for the remainder of the PIE session — i.e. for every test after
+    // kills ActorRelay for the remainder of the PIE session - i.e. for every test after
     // yours. Register what you spawned UNDER the channel, never the channel.
     protected void Track_ForCleanup(FCk_Handle InOwner)
     {
         if (ck::Is_NOT_Valid(InOwner)) { return; }
         // Never the runner: its entity holds the FCk_AutoTest_Result fragment (and any
-        // feature composed onto it — e.g. a Mark_AsGlobal DayCycle — which the harness
+        // feature composed onto it - e.g. a Mark_AsGlobal DayCycle - which the harness
         // cascades anyway). Destroying it would nuke the result before it is polled.
         if (InOwner == SelfEntity) { return; }
         _CleanupOwners.AddUnique(InOwner);
@@ -660,7 +660,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     // Writes the terminal result, releasing any tracked out-of-subtree owners first.
-    // Untracked tests (the overwhelming majority) write synchronously — behaviour is
+    // Untracked tests (the overwhelming majority) write synchronously - behaviour is
     // identical to the classic path. Tracked tests queue the deferred destroys, then
     // write the result one frame later so the destroys are registered before the
     // poller next reads the result (the destroys never touch this runner, so its
@@ -698,7 +698,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     //------------------------------------------------------------------------
-    // Assertions — increment counters, stash the first failure, but do NOT
+    // Assertions - increment counters, stash the first failure, but do NOT
     // auto-finish the test. Subclasses decide when to call FinishSuccess.
     //------------------------------------------------------------------------
 
@@ -717,7 +717,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
             }
             // Failures are surfaced via the result fragment; the C++ runner
             // turns them into FinishTest(Failed, ...) messages. Avoid ck::Trace
-            // here — UE's automation framework treats Warning-level log output
+            // here - UE's automation framework treats Warning-level log output
             // during a functional test as a test failure.
         }
     }
@@ -756,7 +756,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     //------------------------------------------------------------------------
-    // WaitOneFrame — legacy settle helper.
+    // WaitOneFrame - legacy settle helper.
     //
     // Schedules InCallbackName via a 0.05s CkTimer. Note what that does and
     // does not guarantee: it yields AT LEAST one frame, but the number of
@@ -787,7 +787,7 @@ class UCk_AutoTest_Base : UCk_GenericEntityScript_UE
     }
 
     //------------------------------------------------------------------------
-    // Result fragment write — single source of truth for the C++ poller.
+    // Result fragment write - single source of truth for the C++ poller.
     //------------------------------------------------------------------------
 
     private void WriteResult(ECk_AutoTest_Status InStatus, const FString& InMessage)

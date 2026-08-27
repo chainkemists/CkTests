@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER DEFER ONE FRAME
+// CK GOAP - AUTOMATION TEST: PLANNER DEFER ONE FRAME
 //============================================================================
 //
-// Validates §9 row 13: "Newly-appended Action does NOT plan in activation
+// Validates Sec.9 row 13: "Newly-appended Action does NOT plan in activation
 // frame; plans in frame+1."
 //
 // ChainUpdate appends Mid to the chain and adds FTag_Goap_Action_RequiresInitialPlan.
@@ -31,12 +31,12 @@
 //
 // Phase 2: In OnRootPlan, retrieve Mid via Find_ActionByClass. ChainUpdate has
 //   NOT yet run for this frame (HandleResult fires OnPlanComplete before
-//   ChainUpdate processes). Mid's PlanStatus must be Idle — the parent-plan
+//   ChainUpdate processes). Mid's PlanStatus must be Idle - the parent-plan
 //   gate held Mid's Plan request deferred while Root was Planning, so Mid
 //   never transitioned out of Idle.
 //
 // Phase 3: Wait one frame (ChainUpdate runs, appends Mid to chain, adds
-//   RequiresInitialPlan). Then poll until Mid has PlanFound — with Root now
+//   RequiresInitialPlan). Then poll until Mid has PlanFound - with Root now
 //   in PlanFound, Mid's deferred Plan request drains on the next HandleRequests
 //   pass and Mid's search completes.
 //
@@ -70,7 +70,7 @@ class UCk_AutoTest_Goap_Planner_DeferOneFrame : UCk_AutoTest_Base
             false);
 
         // Root goal: {BKey=true}. Root CDO effect: AKey=true (distinct intentionally).
-        // Mid's CDO effect: BKey=true → Root's planner picks Mid.
+        // Mid's CDO effect: BKey=true -> Root's planner picks Mid.
         // U11.1: goal authored on PlannerParams.
         auto InitialGoal = TArray<FCk_GoapWS_Condition_Authored>();
         InitialGoal.Add(FCk_GoapWS_Condition_Authored(

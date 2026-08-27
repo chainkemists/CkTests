@@ -1,10 +1,10 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Locomotion Gym — Gate 2
+// Crowd Locomotion Gym - Gate 2
 //
-// Smoke-tests Sub-task 2A — FProcessor_CrowdAgent_ApplyOffset.
+// Smoke-tests Sub-task 2A - FProcessor_CrowdAgent_ApplyOffset.
 // The chain under test:
-//   FFragment_Velocity_Current → FProcessor_EulerIntegrator_Update → FFragment_EulerIntegrator_Current::_DistanceOffset
-//   → FProcessor_CrowdAgent_ApplyOffset → Request_AddLocationOffset → FProcessor_Transform_HandleRequests → SceneNode
+//   FFragment_Velocity_Current -> FProcessor_EulerIntegrator_Update -> FFragment_EulerIntegrator_Current::_DistanceOffset
+//   -> FProcessor_CrowdAgent_ApplyOffset -> Request_AddLocationOffset -> FProcessor_Transform_HandleRequests -> SceneNode
 //
 // The gym spawns one CrowdAgent with a Transform feature, a Velocity feature initialized to (100, 0, 0) cm/s
 // in world space, and a zero Acceleration feature. EulerIntegrator is started so the integrator processor

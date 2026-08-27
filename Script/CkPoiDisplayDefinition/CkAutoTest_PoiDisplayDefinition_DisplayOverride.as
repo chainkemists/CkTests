@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI DISPLAY DEFINITION — AUTOMATION TEST: per-instance display override
+// CK POI DISPLAY DEFINITION - AUTOMATION TEST: per-instance display override
 //============================================================================
 //
 // Tint / SizeHint are authored on Params as a SEED and copied into Current by Add;
@@ -51,7 +51,7 @@ class UCk_AutoTest_PoiDisplayDefinition_DisplayOverride : UCk_AutoTest_Base
 
         Assert_True(ck::IsValid(_Def), "Add should return a valid PoiDisplayDefinition handle");
 
-        // Add seeds Current synchronously — no settle needed for the seed assertions.
+        // Add seeds Current synchronously - no settle needed for the seed assertions.
         Assert_True(utils_poi_display_definition::Get_Tint(_Def).Equals(_SeedTint),
             "Get_Tint should echo the Params seed immediately after Add");
         Assert_True(utils_poi_display_definition::Get_SizeHint(_Def).Equals(_SeedSize),
@@ -72,7 +72,7 @@ class UCk_AutoTest_PoiDisplayDefinition_DisplayOverride : UCk_AutoTest_Base
     UFUNCTION()
     private void Predicate_DisplayChanged(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        // Value params are read-only in AS — copy before mutating.
+        // Value params are read-only in AS - copy before mutating.
         auto Res = OutResult;
         Res.Set(_ChangedCount > 0);
     }

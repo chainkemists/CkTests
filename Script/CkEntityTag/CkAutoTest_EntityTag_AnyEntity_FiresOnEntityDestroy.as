@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: ANY-ENTITY LISTENER FIRES ON ENTITY DESTROY
+// CK ENTITY TAG - AUTOMATION TEST: ANY-ENTITY LISTENER FIRES ON ENTITY DESTROY
 //============================================================================
 //
-// Verifies J2 — the FProcessor_EntityTag_BroadcastOnDestroy fan-out fires
+// Verifies J2 - the FProcessor_EntityTag_BroadcastOnDestroy fan-out fires
 // Removed for every tag a dying entity carried, so listeners observe a clean
-// 1→0 transition without having to poll for entity validity.
+// 1->0 transition without having to poll for entity validity.
 //
 // Entity destruction is deferred, so the second phase waits on the fan-out
 // arriving; that it arrives exactly once stays an assertion.

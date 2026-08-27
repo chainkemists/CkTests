@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: SPHERE ROLLS DOWN A RAMP AND SETTLES AT THE BOTTOM
+// CK JOLT - AUTOMATION TEST: SPHERE ROLLS DOWN A RAMP AND SETTLES AT THE BOTTOM
 //============================================================================
 //
 // Gravity + friction on an inclined Static surface: a Dynamic sphere placed on the

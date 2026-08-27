@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Solid Outline gym GameMode (minimal — all logic lives in the PlayerController).
+// Solid Outline gym GameMode (minimal - all logic lives in the PlayerController).
 // Registered with the gym cycler in CkTests_GymRegistry.as as "Solid Outline".
 // --------------------------------------------------------------------------------------------------------------------
 

@@ -7,8 +7,8 @@
 // station owns the SM; the step states own what each step DOES.
 //
 // The Ck_GymInteger_AutoModifiers console command still arrives as an
-// FCk_Message_Gym_AutoSet broadcast — that transport is shared with every
-// not-yet-migrated station — it just routes to an SM pause/resume now.
+// FCk_Message_Gym_AutoSet broadcast - that transport is shared with every
+// not-yet-migrated station - it just routes to an SM pause/resume now.
 //============================================================================
 
 class UCk_EntityScript_IntegerGym_Modifiers : UCk_GenericEntityScript_UE
@@ -136,7 +136,7 @@ class UCk_EntityScript_IntegerGym_Modifiers : UCk_GenericEntityScript_UE
 		DisplayText = f"{DisplayText}[{DamageBar}]\n\n";
 
 		// Count from the live modifier list rather than a parallel bookkeeping
-		// array — the old ActiveModifiers count and this loop's count could
+		// array - the old ActiveModifiers count and this loop's count could
 		// disagree after a clear that only one of them saw.
 		auto ModifierLines = "";
 		auto ModifierCount = 0;

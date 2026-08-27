@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: ROOT (InvalidGoal test)
+// CK GOAP - AUTOMATION TEST ACTION: ROOT (InvalidGoal test)
 //============================================================================
 //
 // Root action for the InvalidGoal test. Effect: Ready=true. Used purely as

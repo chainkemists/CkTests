@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A PRESS AND ITS RELEASE REACH THE FRAME RECORD
+// CK INTENT - AUTOMATION TEST: A PRESS AND ITS RELEASE REACH THE FRAME RECORD
 //============================================================================
 //
 // The record's reason to exist: a press must be readable back AS A BUTTON, on a
 // row, after the frame it happened on. Three things are pinned:
 //
 //   1. The press appears as a Pressed edge carrying the ButtonId the source's
-//      map mints for that key — not the key, and not an identity the sampler
+//      map mints for that key - not the key, and not an identity the sampler
 //      invented for itself.
 //   2. The same row reports the button HELD. Edges and held-ness are separate
 //      questions and a record that only answered the first could not tell
@@ -43,7 +43,7 @@ class UCk_AutoTest_Intent_SamplerRecordsButtonEdgeOnInjectFrame : UCk_AutoTest_B
         _Owner  = utils_entity_lifetime::Request_CreateEntity(InHandle);
         _Source = utils_input_source::Add(_Owner, FCk_Fragment_InputSource_ParamsData(0));
 
-        // A tier-2 button's identity IS its key's name, so the expectation is derived rather than spelled —
+        // A tier-2 button's identity IS its key's name, so the expectation is derived rather than spelled
         // a literal would silently stop matching if the key's name ever changed.
         _SubjectKey = EKeys::K;
         _SubjectButtonName = _SubjectKey.GetKeyName();

@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK CROWD — AUTOMATION TEST: PATHFINDING SUCCESS
+// CK CROWD - AUTOMATION TEST: PATHFINDING SUCCESS
 //============================================================================
 //
 // Verifies the CkNavigation API end-to-end on a known-good map:
 //   1. Add a Transform feature anchored at world origin.
-//   2. Bind OnPathReady → expect signal with status Ready and >= 1 waypoint.
-//   3. Issue Request_FindPath to (200, 0, 0) — short reachable target.
+//   2. Bind OnPathReady -> expect signal with status Ready and >= 1 waypoint.
+//   3. Issue Request_FindPath to (200, 0, 0) - short reachable target.
 //   4. Assert the OnPathReady handler fires with Status == Ready and that
 //      waypoint extraction yielded at least one point.
 //
@@ -18,7 +18,7 @@
 //
 // If the navmesh is missing in the test map, the test fails with the
 // NoNavData fail reason in the assertion message rather than EndProject /
-// StartProject — that's the giveaway that the test fixture isn't set up.
+// StartProject - that's the giveaway that the test fixture isn't set up.
 //============================================================================
 
 class UCk_AutoTest_Crowd_Pathfinding_Success : UCk_AutoTest_Base

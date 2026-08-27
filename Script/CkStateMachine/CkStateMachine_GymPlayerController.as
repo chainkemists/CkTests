@@ -246,7 +246,7 @@ class ACk_SmTest_GymPlayerController : ACk_Gym_Base_PlayerController
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
     // A state machine that has already settled shows nothing, so every station has to be RE-RUN to be
-    // watched — and re-running was console-only. The divergence and racing stations especially: their whole
+    // watched - and re-running was console-only. The divergence and racing stations especially: their whole
     // point is the transition that happens once.
     //--------------------------------------------------------------------------------------------------------------------------
 

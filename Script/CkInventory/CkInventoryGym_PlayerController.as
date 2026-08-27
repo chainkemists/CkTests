@@ -97,7 +97,7 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_StartStation_StackableTrait();
         Request_StartStation_TagsTrait();
         Request_StartStation_ShelfDesync();
-        ck::Trace("✅ Inventory Gym - All stations started");
+        ck::Trace("[OK] Inventory Gym - All stations started");
     }
 
     //------------------------------------------------------------------------
@@ -112,8 +112,8 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
             Get_StationHandle("Gym.Inventory.DataOnlyUnbounded"),
             UCk_EntityScript_InvGym_DataOnlyUnbounded,
             FInstancedStruct::Make(SpawnParams));
-        if (ck::IsValid(Req)) { ck::Trace("✅ DataOnly Unbounded started"); }
-        else { ck::Error("❌ Failed to spawn DataOnly Unbounded entity"); }
+        if (ck::IsValid(Req)) { ck::Trace("[OK] DataOnly Unbounded started"); }
+        else { ck::Error("[FAIL] Failed to spawn DataOnly Unbounded entity"); }
     }
 
     void Request_StartStation_DataOnlyBounded()
@@ -124,8 +124,8 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
             Get_StationHandle("Gym.Inventory.DataOnlyBounded"),
             UCk_EntityScript_InvGym_DataOnlyBounded,
             FInstancedStruct::Make(SpawnParams));
-        if (ck::IsValid(Req)) { ck::Trace("✅ DataOnly Bounded started"); }
-        else { ck::Error("❌ Failed to spawn DataOnly Bounded entity"); }
+        if (ck::IsValid(Req)) { ck::Trace("[OK] DataOnly Bounded started"); }
+        else { ck::Error("[FAIL] Failed to spawn DataOnly Bounded entity"); }
     }
 
     void Request_StartStation_Spatial()
@@ -136,8 +136,8 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
             Get_StationHandle("Gym.Inventory.Spatial"),
             UCk_EntityScript_InvGym_Spatial,
             FInstancedStruct::Make(SpawnParams));
-        if (ck::IsValid(Req)) { ck::Trace("✅ Spatial started"); }
-        else { ck::Error("❌ Failed to spawn Spatial entity"); }
+        if (ck::IsValid(Req)) { ck::Trace("[OK] Spatial started"); }
+        else { ck::Error("[FAIL] Failed to spawn Spatial entity"); }
     }
 
     void Request_StartStation_StackableTrait()
@@ -148,8 +148,8 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
             Get_StationHandle("Gym.Inventory.StackableTrait"),
             UCk_EntityScript_InvGym_StackableTrait,
             FInstancedStruct::Make(SpawnParams));
-        if (ck::IsValid(Req)) { ck::Trace("✅ Stackable Trait started"); }
-        else { ck::Error("❌ Failed to spawn Stackable Trait entity"); }
+        if (ck::IsValid(Req)) { ck::Trace("[OK] Stackable Trait started"); }
+        else { ck::Error("[FAIL] Failed to spawn Stackable Trait entity"); }
     }
 
     void Request_StartStation_TagsTrait()
@@ -160,8 +160,8 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
             Get_StationHandle("Gym.Inventory.TagsTrait"),
             UCk_EntityScript_InvGym_TagsTrait,
             FInstancedStruct::Make(SpawnParams));
-        if (ck::IsValid(Req)) { ck::Trace("✅ Tags Trait started"); }
-        else { ck::Error("❌ Failed to spawn Tags Trait entity"); }
+        if (ck::IsValid(Req)) { ck::Trace("[OK] Tags Trait started"); }
+        else { ck::Error("[FAIL] Failed to spawn Tags Trait entity"); }
     }
 
     void Request_StartStation_ShelfDesync()
@@ -172,8 +172,8 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
             Get_StationHandle("Gym.Inventory.ShelfDesync"),
             UCk_EntityScript_InvGym_ShelfDesync,
             FInstancedStruct::Make(SpawnParams));
-        if (ck::IsValid(Req)) { ck::Trace("✅ Shelf Desync started"); }
-        else { ck::Error("❌ Failed to spawn Shelf Desync entity"); }
+        if (ck::IsValid(Req)) { ck::Trace("[OK] Shelf Desync started"); }
+        else { ck::Error("[FAIL] Failed to spawn Shelf Desync entity"); }
     }
 
     //------------------------------------------------------------------------

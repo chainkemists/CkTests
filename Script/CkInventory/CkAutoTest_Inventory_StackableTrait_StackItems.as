@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: STACKABLE TRAIT — STACK ITEMS
+// CK INVENTORY - AUTOMATION TEST: STACKABLE TRAIT - STACK ITEMS
 //============================================================================
 //
 // Verifies Request_StackItems merges two existing stacks of the same
 // stackable definition:
-//   1. Add Potion x1 with ForceNewItem → stack #1, count=1.
-//   2. Add Potion x1 with ForceNewItem → stack #2, count=1.
+//   1. Add Potion x1 with ForceNewItem -> stack #1, count=1.
+//   2. Add Potion x1 with ForceNewItem -> stack #2, count=1.
 //   3. Request_StackItems(stack#1, stack#2).
 //   4. OnStackResult fires with Result=Success.
 //   5. The surviving target stack reports stack count = 2.

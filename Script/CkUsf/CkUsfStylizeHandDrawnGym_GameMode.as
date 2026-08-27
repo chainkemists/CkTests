@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Hand-Drawn gym GameMode (minimal — all logic lives in the PlayerController).
+// Hand-Drawn gym GameMode (minimal - all logic lives in the PlayerController).
 // Registered with the gym cycler in CkTests_GymRegistry.as as "Stylize: Hand-Drawn".
 // --------------------------------------------------------------------------------------------------------------------
 

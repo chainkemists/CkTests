@@ -269,9 +269,9 @@ class UCkAudioGym_Advanced_ConcurrencyStation : UCkAudioGym_Advanced_Base
         ck::Trace(f"Maximum concurrent tracks: {MaxConcurrentTracks}", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
         ck::Trace("Priority-based track management enabled", NAME_None, 2.0f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
         ck::Trace("Multiple override behaviors tested:", NAME_None, 2.0f, FLinearColor(0.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Thunder: Queue behavior", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Interface: Interrupt behavior", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Ambient/Music: Crossfade behavior", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Thunder: Queue behavior", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Interface: Interrupt behavior", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Ambient/Music: Crossfade behavior", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
     }
 
     void DisplayConcurrencyStats()

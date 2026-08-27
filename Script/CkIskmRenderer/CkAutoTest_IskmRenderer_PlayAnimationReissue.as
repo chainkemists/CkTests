@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — REGRESSION TEST: PlayAnimation re-issue preserves AnimInstance
+// CK ISKM RENDERER - REGRESSION TEST: PlayAnimation re-issue preserves AnimInstance
 //============================================================================
 //
 // Guards against a subtle render-proxy desync where re-issuing
 // Request_PlayAnimation on a sequence-mode proxy tore down the freshly-created
 // UAnimSingleNodeInstance because the handler unconditionally called
-// SKMC->SetAnimInstanceClass(nullptr) — even when AnimClass was already null.
+// SKMC->SetAnimInstanceClass(nullptr) - even when AnimClass was already null.
 // Game-thread state remained consistent (signals fired correctly) but the
 // render proxy never resynced, leaving the visible mesh in ref pose ("A-pose").
 //
@@ -17,7 +17,7 @@
 // re-issues. Without it, the pointer changes.
 //
 // The fix lives in FProcessor_IskmProxy_HandleRequests::DoHandleRequest for
-// FCk_Request_IskmProxy_PlayAnimation — see CkIskmProxy_Processor.cpp where
+// FCk_Request_IskmProxy_PlayAnimation - see CkIskmProxy_Processor.cpp where
 // the SetAnimInstanceClass(nullptr) call is guarded by AnimClass != nullptr.
 //
 //============================================================================
@@ -86,13 +86,13 @@ class UCk_AutoTest_IskmRenderer_PlayAnimationReissue : UCk_AutoTest_Base
             auto AnimInstanceAfterReissue = _Proxy.Get_AnimInstance();
 
             Assert_True(ck::IsValid(_AnimInstanceBeforeReissue),
-                "AnimInstance should be valid after the first PlayAnimation — proxy Setup wired up the SingleNodeInstance");
+                "AnimInstance should be valid after the first PlayAnimation - proxy Setup wired up the SingleNodeInstance");
 
             Assert_True(ck::IsValid(AnimInstanceAfterReissue),
                 "AnimInstance should still be valid after PlayAnimation re-issue");
 
             Assert_True(_AnimInstanceBeforeReissue == AnimInstanceAfterReissue,
-                "Re-issuing PlayAnimation must NOT recreate the UAnimSingleNodeInstance — pointer identity must be preserved. If this fails, the SetAnimInstanceClass(nullptr) guard in the handler regressed and visible meshes will snap to ref pose on re-issue.");
+                "Re-issuing PlayAnimation must NOT recreate the UAnimSingleNodeInstance - pointer identity must be preserved. If this fails, the SetAnimInstanceClass(nullptr) guard in the handler regressed and visible meshes will snap to ref pose on re-issue.");
 
             FinishSuccess();
         }

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BIAS — AUTOMATION TEST: AN OUT-OF-RANGE DECLARATION CHANGES NOTHING
+// CK INPUT BIAS - AUTOMATION TEST: AN OUT-OF-RANGE DECLARATION CHANGES NOTHING
 //============================================================================
 //
 // Every conditioning parameter has a range whose violation is silent rather
@@ -14,11 +14,11 @@
 // anything is written. This asserts the three things that make that claim
 // mean something:
 //
-//   1. The caller is told, and told the right thing — Failed_NotEnqueued, on
+//   1. The caller is told, and told the right thing - Failed_NotEnqueued, on
 //      the calling stack, because nothing was ever queued.
 //   2. Nothing partial survives. The conditioning table is still empty after
 //      five rejected retunes, and an entity whose composition was rejected
-//      can still be composed cleanly afterwards — which it could not if a
+//      can still be composed cleanly afterwards - which it could not if a
 //      fragment had been left on it.
 //   3. Nothing lands late. The settle at the end exists so a request that was
 //      wrongly enqueued has a chance to drain and be caught.
@@ -61,8 +61,8 @@ class UCk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically : UCk_AutoTest
         Assert_Equals_Int(utils_input_bias::Get_AxisBiases(_Bias).Num(), 0,
             "five rejected retunes must leave the conditioning table exactly as they found it");
 
-        // MUST stay a settle: every assertion in OnSettled is a NEGATIVE — that nothing drained, nothing
-        // completed a second time — and each is already true here. The window exists to give a wrongly
+        // MUST stay a settle: every assertion in OnSettled is a NEGATIVE - that nothing drained, nothing
+        // completed a second time - and each is already true here. The window exists to give a wrongly
         // enqueued request a drain pass in which to be caught.
         WaitOneFrame(n"OnSettled");
     }
@@ -75,7 +75,7 @@ class UCk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically : UCk_AutoTest
         Assert_Equals_Int(utils_input_bias::Get_AxisBiases(_Bias).Num(), 0,
             "no rejected retune may reach the drain and land a row a frame later");
         Assert_Equals_Int(_RejectFires, 5,
-            "a rejected retune completes exactly once — never again from a drain");
+            "a rejected retune completes exactly once - never again from a drain");
         Assert_Equals_Float(utils_input_bias::Get_ConditionedAxisValue(_Bias, EKeys::Gamepad_LeftX), 0.0f, 0.0001f,
             "a rejected declaration must not have produced a conditioned reading out of nothing");
 
@@ -102,7 +102,7 @@ class UCk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically : UCk_AutoTest
         SensitivityNegative.Set_Sensitivity(-1.0f);
         DoRequestRetune(SensitivityNegative);
 
-        // A default-constructed row names no key at all — a bias that could never match an event.
+        // A default-constructed row names no key at all - a bias that could never match an event.
         auto NoAxisKey = FCk_InputBias_AxisBias();
         DoRequestRetune(NoAxisKey);
     }
@@ -141,7 +141,7 @@ class UCk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically : UCk_AutoTest
         auto Accepted = utils_input_bias::Add(_OtherOwner, FCk_Fragment_InputBias_ParamsData(GoodRows));
 
         Assert_True(ck::IsValid(Accepted),
-            "the entity must still be composable — a rejected composition that left a fragment behind would be refused here");
+            "the entity must still be composable - a rejected composition that left a fragment behind would be refused here");
         Assert_Equals_Int(utils_input_bias::Get_AxisBiases(Accepted).Num(), 1,
             "the accepted table holds only its own row, none from the two rejected declarations");
     }
@@ -165,7 +165,7 @@ class UCk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically : UCk_AutoTest
 }
 
 //============================================================================
-// HAND-AUTHORED WRAPPER ACTOR — registers the deliberate-ensure log pattern.
+// HAND-AUTHORED WRAPPER ACTOR - registers the deliberate-ensure log pattern.
 //============================================================================
 
 class ACk_AutoTest_InputBias_InvalidDeclarationRejectedAtomically_Actor : ACk_AutoTestRunner

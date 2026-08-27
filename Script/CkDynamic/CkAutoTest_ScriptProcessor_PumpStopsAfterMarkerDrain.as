@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — AUTOMATION TEST: pump stops once the marker pool is drained
+// CK DYNAMIC - AUTOMATION TEST: pump stops once the marker pool is drained
 //============================================================================
 //
 // Sibling of CkAutoTest_ScriptProcessor_PumpDrainsSameFrame. That test pins
@@ -12,7 +12,7 @@
 // marker leaves a tombstone and Has_AnyEntityWith (storage->empty()) reports
 // the pool as non-empty forever after. The pump's dirty checker used that
 // predicate, so the version bump from the final removal forced one more
-// dispatch on a provably empty live view — a phantom pass, per node, per
+// dispatch on a provably empty live view - a phantom pass, per node, per
 // cascade. The tombstone-aware Has_AnyLiveEntityWith removes it.
 //
 // Shape: seed a throwaway entity with RemainingCascades = 0 so the fixture
@@ -59,7 +59,7 @@ class UCk_AutoTest_ScriptProcessor_PumpStopsAfterMarkerDrain : UCk_AutoTest_Base
         auto& SeedResults = Seed.Get_Fragment(FCk_Fragment_DynamicTest_PumpCascadeResults);
 
         Assert_Equals_Int(SeedResults.ConsumedFrames.Num(), 1,
-            "the tombstone seeder's marker must have been consumed (and removed) before the cascade is seeded — without that removal the pool carries no hole and the phantom pass cannot be observed");
+            "the tombstone seeder's marker must have been consumed (and removed) before the cascade is seeded - without that removal the pool carries no hole and the phantom pass cannot be observed");
 
         auto Cascade = utils_entity_lifetime::Request_CreateEntity(_SelfEntity);
         _CascadeEntity = Cascade;
@@ -97,7 +97,7 @@ class UCk_AutoTest_ScriptProcessor_PumpStopsAfterMarkerDrain : UCk_AutoTest_Base
         }
 
         Assert_True(AllInSeedFrame,
-            f"all three cascade generations must drain in the SEED frame [{_SeedFrame}] — otherwise the pump-count reading below is taken against the wrong frame");
+            f"all three cascade generations must drain in the SEED frame [{_SeedFrame}] - otherwise the pump-count reading below is taken against the wrong frame");
 
         const int32 PumpCount = UCk_Utils_EcsWorld_Subsystem_UE::Get_Debug_ProcessorPumpCountForFrame(
             this, FixtureNodeName, _SeedFrame);
@@ -120,7 +120,7 @@ class UCk_AutoTest_ScriptProcessor_PumpStopsAfterMarkerDrain : UCk_AutoTest_Base
             this, _SeedFrame - 1);
 
         Assert_Equals_Int(FramePumpIterations, QuietFramePumpIterations + 2,
-            f"the seed frame must cost exactly two more pump passes than the quiet frame before it (the two real cascade passes) — got [{FramePumpIterations}] vs quiet [{QuietFramePumpIterations}]; a larger delta means a phantom pass still keeps the whole pump loop alive. Local-settle passes that frame: seed [{SeedLocalSettlePasses}] quiet [{QuietLocalSettlePasses}] — those share the pump budget but are deliberately NOT part of the counts above");
+            f"the seed frame must cost exactly two more pump passes than the quiet frame before it (the two real cascade passes) - got [{FramePumpIterations}] vs quiet [{QuietFramePumpIterations}]; a larger delta means a phantom pass still keeps the whole pump loop alive. Local-settle passes that frame: seed [{SeedLocalSettlePasses}] quiet [{QuietLocalSettlePasses}] - those share the pump budget but are deliberately NOT part of the counts above");
 
         FinishSuccess();
     }

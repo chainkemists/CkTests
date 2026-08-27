@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: FLOAT MODIFIER STACKING
+// CK ATTRIBUTE - AUTOMATION TEST: FLOAT MODIFIER STACKING
 //============================================================================
 //
 // Verifies that two simultaneously-active additive modifiers stack:
@@ -12,11 +12,11 @@
 //   isolates the "two distinct modifiers contribute additively" guarantee.
 //   A regression where the second modifier silently overwrites the first
 //   (rather than stacking) would not be caught by ModifierAdd or
-//   ModifierRemove individually — both would still pass.
+//   ModifierRemove individually - both would still pass.
 //
-// NOTE — GAP IN GYM COVERAGE (potential gym additions):
+// NOTE - GAP IN GYM COVERAGE (potential gym additions):
 //   The Float_Modifiers gym only exercises ECk_AttributeModifier_Operation::Add.
-//   The Multiply operation isn't tested anywhere — neither here nor in the
+//   The Multiply operation isn't tested anywhere - neither here nor in the
 //   gym, neither in C++ nor in AngelScript. Worth a follow-up gym
 //   step + paired AutoTest once we know the multiplier semantics
 //   (delta as multiplier vs. delta as percentage). Same gap likely

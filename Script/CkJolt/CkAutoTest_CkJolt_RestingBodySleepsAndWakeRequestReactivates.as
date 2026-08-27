@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: RESTING BODY SLEEPS, WAKE REQUEST REACTIVATES
+// CK JOLT - AUTOMATION TEST: RESTING BODY SLEEPS, WAKE REQUEST REACTIVATES
 //============================================================================
 //
 // Jolt puts a settled dynamic body to sleep; CkJolt must raise
@@ -117,7 +117,7 @@ class UCk_AutoTest_CkJolt_RestingBodySleepsAndWakeRequestReactivates : UCk_AutoT
             return;
         }
 
-        // Phase 1 — the wake request must raise an Awake signal and reactivate the body.
+        // Phase 1 - the wake request must raise an Awake signal and reactivate the body.
         _ElapsedSinceWake += float(InDeltaT.Get_Seconds());
 
         if (_AwakeSignalAfterWake)

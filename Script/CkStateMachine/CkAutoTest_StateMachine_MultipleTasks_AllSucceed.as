@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: MULTIPLE TASKS, ALL SUCCEED
+// CK STATE MACHINE - AUTOMATION TEST: MULTIPLE TASKS, ALL SUCCEED
 //============================================================================
 //
 // Pins the multi-task aggregate contract: a state with TWO Tick-mode tasks both

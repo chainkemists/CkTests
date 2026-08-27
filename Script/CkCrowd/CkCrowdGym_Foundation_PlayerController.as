@@ -1,7 +1,7 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Foundation Gym — PlayerController
+// Crowd Foundation Gym - PlayerController
 //
-// Gate 0 commands (run from the console — Tab to open the gym menu HUD if it's not already up):
+// Gate 0 commands (run from the console - Tab to open the gym menu HUD if it's not already up):
 //   Ck_GymCrowd_Spawn         spawn one agent
 //   Ck_GymCrowd_Spawn10       spawn 10 agents
 //   Ck_GymCrowd_RemoveLast    remove the most recently spawned agent
@@ -87,12 +87,12 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         auto StationHandle = Get_StationHandle("Gym.Crowd.Foundation");
         if (ck::Is_NOT_Valid(StationHandle))
         {
-            ck::crowd::Warning("CrowdGym: station handle invalid — has the gym finished spawning stations?");
+            ck::crowd::Warning("CrowdGym: station handle invalid - has the gym finished spawning stations?");
             return;
         }
 
         // Agents are standalone top-level entities (lifetime-owned by the registry transient),
-        // not sub-entities of the station — Clear/RemoveLast destroy them explicitly.
+        // not sub-entities of the station - Clear/RemoveLast destroy them explicitly.
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
 
@@ -102,7 +102,7 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
         // without needing a navmesh.
         // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
         // onto the handle it is given and permits one agent per entity, so passing the transient
-        // directly put every agent on the same entity — the jitter below could not separate them
+        // directly put every agent on the same entity - the jitter below could not separate them
         // because there was only ever one agent, and the probe/neighbor cache had nothing to see.
         auto GenericAgent = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         GenericAgent.Set_DebugName(FName(f"FoundationAgent_{_Agents.Num()}"));
@@ -120,7 +120,7 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
 
         _Agents.Add(Agent);
 
-        ck::crowd::Log(f"CrowdGym: spawned agent at {SpawnXform.GetLocation()} — total now {_Agents.Num()}");
+        ck::crowd::Log(f"CrowdGym: spawned agent at {SpawnXform.GetLocation()} - total now {_Agents.Num()}");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Foundation - Spawn 10 Agents")
@@ -148,7 +148,7 @@ class ACk_CrowdGym_Foundation_PlayerController : ACk_Gym_Base_PlayerController
 
         utils_entity_lifetime::Request_DestroyEntity(Last);
 
-        ck::crowd::Log(f"CrowdGym: removed last agent — {_Agents.Num()} remaining");
+        ck::crowd::Log(f"CrowdGym: removed last agent - {_Agents.Num()} remaining");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Foundation - Clear All Agents")

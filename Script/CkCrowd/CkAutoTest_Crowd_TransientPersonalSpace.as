@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: TRANSIENT PERSONAL SPACE
+// CK CROWD - AUTOMATION TEST: TRANSIENT PERSONAL SPACE
 //============================================================================
 
 class UCk_AutoTest_Crowd_TransientPersonalSpace : UCk_AutoTest_Base

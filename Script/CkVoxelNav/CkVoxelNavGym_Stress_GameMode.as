@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// VoxelNav Stress Gym — a dense, flying-agent 3-D pathing and avoidance exercise.
+// VoxelNav Stress Gym - a dense, flying-agent 3-D pathing and avoidance exercise.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_VoxelNavGym_Stress_GameMode : ACkTests_Gym_Base_GameMode

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: BYTE MIN/MAX COMPONENT ROUTING
+// CK ATTRIBUTE - AUTOMATION TEST: BYTE MIN/MAX COMPONENT ROUTING
 //============================================================================
 //
 // Byte-side parity with CkAutoTest_Attribute_FloatMinMaxComponents. Verifies a

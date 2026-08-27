@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: RE-TARGET TAKES THE FRESH PATH (stale-result race)
+// CK CROWD - AUTOMATION TEST: RE-TARGET TAKES THE FRESH PATH (stale-result race)
 //============================================================================
 //
 // Regression pin for the stale-path-install race: a MoveTo issued while the
@@ -10,14 +10,14 @@
 // FProcessor_CrowdAgent_OnPathResolved deliberately runs after HandleRequests
 // (same frame, explicit RunAfter). Without HandleRequests parking the nav slot
 // at Pending before enqueueing the new FindPath (FCk_Nav_Algorithm::
-// MarkPathPending — the guard the follower branch always had), OnPathResolved
+// MarkPathPending - the guard the follower branch always had), OnPathResolved
 // sees PathPending + the old Ready result and installs the OLD corridor: the
 // agent walks back to the PREVIOUS goal, "arrives", and the fresh result is
 // never consumed (the agent is no longer PathPending).
 //
 // Shape: walk to goal A, arrive, then re-target to goal B on the opposite
 // side. With the race, the agent re-installs the A-corridor, instantly
-// re-arrives at A, and never walks to B — OnGoalReached fires with the agent
+// re-arrives at A, and never walks to B - OnGoalReached fires with the agent
 // standing at A. The assertion is therefore POSITIONAL: on the second arrival
 // the agent must stand near B, not near A.
 //============================================================================
@@ -172,10 +172,10 @@ class UCk_AutoTest_Crowd_MoveTo_RetargetTakesFreshPath : UCk_AutoTest_Base
         }
 
         // Second arrival: with the stale-result race, the agent "re-arrives" on the
-        // old A-corridor while standing at A — 600cm from B.
+        // old A-corridor while standing at A - 600cm from B.
         const auto DistToB = float((Pos - GoalB).Size2D());
         Assert_True(DistToB <= NearDistanceCm,
-            f"STALE PATH: second arrival must be at goal B, but the agent stands {DistToB}cm from B — the re-target consumed the previous move's Ready path and walked the OLD corridor.");
+            f"STALE PATH: second arrival must be at goal B, but the agent stands {DistToB}cm from B - the re-target consumed the previous move's Ready path and walked the OLD corridor.");
         Assert_True(utils_crowd_agent::Get_HasReachedActiveGoal(InAgent),
             "goal B callback observes retained successful completion");
         Assert_True(utils_crowd_agent::Get_ActiveMoveEpisode(InAgent) > _EpisodeBeforeB,

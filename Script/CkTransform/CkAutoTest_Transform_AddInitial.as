@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — AUTOMATION TEST: ADD WITH INITIAL TRANSFORM
+// CK TRANSFORM - AUTOMATION TEST: ADD WITH INITIAL TRANSFORM
 //============================================================================
 //
 // Smoke test for the transform fragment Add path:

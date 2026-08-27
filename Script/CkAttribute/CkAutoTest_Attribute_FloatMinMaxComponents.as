@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: FLOAT MIN/MAX COMPONENT ROUTING
+// CK ATTRIBUTE - AUTOMATION TEST: FLOAT MIN/MAX COMPONENT ROUTING
 //============================================================================
 //
 // Verifies that an attribute configured with MinMax bounds exposes three
@@ -9,8 +9,8 @@
 // targeted at a specific component fire only that component's signal:
 //   1. Add an attribute with Min=10, Max=200, Current=100.
 //   2. Bind OnValueChanged on Min, Max, Current independently.
-//   3. Override Min to 25.5 → Min handler fires, Max/Current do not.
-//   4. Override Max to 175.75 → Max handler fires, Min/Current do not.
+//   3. Override Min to 25.5 -> Min handler fires, Max/Current do not.
+//   4. Override Max to 175.75 -> Max handler fires, Min/Current do not.
 //
 // Mirrors CkAttributeGym_Float_MinMaxCurrent.
 //============================================================================

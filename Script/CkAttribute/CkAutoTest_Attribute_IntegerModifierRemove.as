@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: INTEGER MODIFIER REMOVE
+// CK ATTRIBUTE - AUTOMATION TEST: INTEGER MODIFIER REMOVE
 //============================================================================
 //
 // Integer-side parity with CkAutoTest_Attribute_FloatModifierRemove.

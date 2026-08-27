@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: BATCHED CROWD MEMBER MOVEMENT
+// CK ISKM RENDERER - AUTOMATION TEST: BATCHED CROWD MEMBER MOVEMENT
 //============================================================================
 //
 // Exercises the production movement API (BusterBlock NPCs move): in-tile moves, cross-tile migration
 // (member leaves one tile cluster and joins/creates another, rendered count conserved), and the
 // sequence/rate switch (idle -> walk when an NPC starts moving).
 //
-// NOT covered (needs a human with RHI): that moving instances render smoothly (motion vectors) — see the
+// NOT covered (needs a human with RHI): that moving instances render smoothly (motion vectors) - see the
 // Moving Crowd gym station.
 //============================================================================
 
@@ -20,7 +20,7 @@ class UCk_AutoTest_IskmRenderer_BatchedCrowdMovement : UCk_AutoTest_Base
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            FinishFailure("iskm_assets::AnimCollection_Demo() invalid — registry may need regeneration.");
+            FinishFailure("iskm_assets::AnimCollection_Demo() invalid - registry may need regeneration.");
             return;
         }
         UCk_Utils_IskmAnimCollection_UE::Build_BakedPoseData(Collection);
@@ -44,7 +44,7 @@ class UCk_AutoTest_IskmRenderer_BatchedCrowdMovement : UCk_AutoTest_Base
         const auto MovedLoc = UCk_Utils_IskmBatched_UE::Get_CrowdMemberTransform(Crowd, 0).GetTranslation();
         Assert_True((MovedLoc - FarXf.GetTranslation()).Size() < 0.1f, "member world transform tracks the move");
 
-        // In-tile move: small nudge — no new tile, count conserved.
+        // In-tile move: small nudge - no new tile, count conserved.
         auto NudgedXf = FTransform(FVector(25100.0f, 25000.0f, 0.0f));
         UCk_Utils_IskmBatched_UE::Set_CrowdMemberTransform(Crowd, 0, NudgedXf);
         Assert_Equals_Int(UCk_Utils_IskmBatched_UE::Get_CrowdTileCount(Crowd), InitialTiles + 1,

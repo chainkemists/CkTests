@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: FILL-STACKS RESPECTS CUSTOM STACK VALIDATION
+// CK INVENTORY - AUTOMATION TEST: FILL-STACKS RESPECTS CUSTOM STACK VALIDATION
 //============================================================================
 //
 // Regression guard: Request_FillExistingStacks used to skip the inventory's
@@ -9,9 +9,9 @@
 // was enforced on direct StackItems requests but silently bypassed by
 // AddByDefinition's PreferStacking pre-fill.
 //   1. Inventory whose CustomCanStackItems always rejects.
-//   2. Add Potion x1 → entry 1.
-//   3. Add Potion x1 (PreferStacking) → pre-fill must SKIP the existing stack
-//      → a second entry is created (2 entries, 1 unit each).
+//   2. Add Potion x1 -> entry 1.
+//   3. Add Potion x1 (PreferStacking) -> pre-fill must SKIP the existing stack
+//      -> a second entry is created (2 entries, 1 unit each).
 //
 //============================================================================
 
@@ -62,8 +62,8 @@ class UCk_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation : UCk_Auto
 
         // Both settles in this file stay as settles: the entry is already visible here
         // (asserted above), so what the window actually guards is unclear, and every
-        // candidate predicate is either already true on arrival — which would delete the
-        // settle outright — or a guess about the Potion's stacking semantics that could
+        // candidate predicate is either already true on arrival - which would delete the
+        // settle outright - or a guess about the Potion's stacking semantics that could
         // turn a green test red for the wrong reason. Convert only with a condition you
         // can name.
         WaitOneFrame(n"OnFirstAddSettled");
@@ -74,7 +74,7 @@ class UCk_AutoTest_Inventory_FillStacks_RespectsCustomStackValidation : UCk_Auto
     {
         if (IsFinished()) { return; }
 
-        // PreferStacking on purpose — the custom rejection must defeat the pre-fill.
+        // PreferStacking on purpose - the custom rejection must defeat the pre-fill.
         auto Request = FCk_Request_Inventory_AddItemByDefinition(inv_gym_items::Potion(), 1);
         _Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnSecondAdd"));

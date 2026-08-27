@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: BYTE MODIFIER STACKING
+// CK ATTRIBUTE - AUTOMATION TEST: BYTE MODIFIER STACKING
 //============================================================================
 //
 // Byte-side parity with CkAutoTest_Attribute_IntegerModifierStacking. Verifies

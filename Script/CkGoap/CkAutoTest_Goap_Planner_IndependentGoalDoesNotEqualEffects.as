@@ -1,30 +1,30 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER INDEPENDENT GOAL (goal != effects)
+// CK GOAP - AUTOMATION TEST: PLANNER INDEPENDENT GOAL (goal != effects)
 //============================================================================
 //
 // Validates U11.1: a Planner's goal is independent of any Action-role effects
 // the same entity carries. The old "composite Action's goal = its effects"
-// hardwiring is REMOVED — a composite Action's effects describe what it
+// hardwiring is REMOVED - a composite Action's effects describe what it
 // accomplishes for its PARENT's planner (the candidate-operator interface),
 // while the Action's own planner-role goal is whatever was authored (here:
 // set via utils_goap_planner::Request_SetGoal after construction).
 //
 // Discrimination mechanism (inverted from U10):
 //   - Root planner goal: {BKey=true} (set via PlannerParams._Goal)
-//   - Mid CDO effect:    BKey=true   (Mid satisfies Root's goal → Root plan = [Mid])
-//   - Mid planner goal:  {AKey=true} (set via PromoteActionToPlanner params —
+//   - Mid CDO effect:    BKey=true   (Mid satisfies Root's goal -> Root plan = [Mid])
+//   - Mid planner goal:  {AKey=true} (set via PromoteActionToPlanner params
 //                                     different from Mid's effects)
 //   - Mid children: Leaf_B (effect BKey=true), Leaf_A (effect AKey=true)
 //
 // If U11.1 is implemented correctly:
 //   * Root picks Mid (Mid's effect BKey=true satisfies Root's goal).
-//   * Mid plans toward {AKey=true} (its INDEPENDENT goal) → picks Leaf_A.
+//   * Mid plans toward {AKey=true} (its INDEPENDENT goal) -> picks Leaf_A.
 //
 // If the goal=effects coupling were still present (U10 regression):
 //   * Mid's goal would have been auto-injected as {BKey=true} from its own
-//     effects → Mid would pick Leaf_B.
+//     effects -> Mid would pick Leaf_B.
 //
 // Assertion inversion: we now check Mid's Plan[0] == Leaf_A (goal independence)
 // where the U10 test checked == Leaf_B (goal coupled to effects).
@@ -84,7 +84,7 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         _MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
         Assert_True(ck::IsValid(_MidAction), "Mid AddAction should succeed");
 
-        // U11.1 INVERSION — promote Mid to a Planner with goal {AKey=true}
+        // U11.1 INVERSION - promote Mid to a Planner with goal {AKey=true}
         // EXPLICITLY, diverging from Mid's own CDO effect ({BKey=true}). The U10
         // implicit "Mid's goal = Mid's effects" rule is gone. With independent
         // goals, Mid plans toward AKey and picks Leaf_A. PromoteActionToPlanner
@@ -153,7 +153,7 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         // Mid receives an initial empty-plan PlanComplete BEFORE chain activation
         // (its _Goal is empty until ChainUpdate runs DoInjectGoalSynchronous,
         // which re-resolves Mid's authored goal). Skip those early empty-plan
-        // fires — we're validating the AFTER-activation plan driven by Mid's
+        // fires - we're validating the AFTER-activation plan driven by Mid's
         // EXPLICITLY-SET independent goal {AKey=true}.
         auto MidPlan = utils_goap_action::Get_Plan(_MidAction);
         if (MidPlan.Num() == 0) { return; }
@@ -167,7 +167,7 @@ class UCk_AutoTest_Goap_Planner_IndependentGoalDoesNotEqualEffects : UCk_AutoTes
         Assert_True(MidPlan.Num() == 1,
             f"Mid plan should have exactly 1 entry (got {MidPlan.Num()})");
         Assert_True(MidPlan.Num() > 0 && MidPlan[0] == UCk_AutoTestAction_Goap_ActionSet_LeafA_GoalIsEffects,
-            "Mid Plan[0] should be Leaf_A (AKey=true) — Mid's independent planner goal, NOT its effects (which still equal BKey=true for Root's benefit)");
+            "Mid Plan[0] should be Leaf_A (AKey=true) - Mid's independent planner goal, NOT its effects (which still equal BKey=true for Root's benefit)");
 
         FinishSuccess();
     }

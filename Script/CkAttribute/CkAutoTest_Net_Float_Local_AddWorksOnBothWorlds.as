@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — NET AUTOMATION TEST: LOCAL FLOAT ADD WORKS ON BOTH WORLDS
+// CK ATTRIBUTE - NET AUTOMATION TEST: LOCAL FLOAT ADD WORKS ON BOTH WORLDS
 //============================================================================
 //
 // First test of the `ServerAndClientsIndependent` netmode. The harness sets
 // up multi-PIE just like the Replicated tests do, but this test exercises a
-// feature that doesn't *use* replication — a `DoesNotReplicate` Float
+// feature that doesn't *use* replication - a `DoesNotReplicate` Float
 // attribute added locally to each world's TransientEntity.
 //
 // What this proves: the same code path that works on a server-side world
 // must also work on a client-side world. Lots of CkFoundation behaviour is
 // purely local (UI, transient state, non-replicated values). It can break in
-// subtle ways under NetMode_Client — e.g. processors gated to authority,
-// validators that skip on client worlds, etc. — that single-PIE Standalone
+// subtle ways under NetMode_Client - e.g. processors gated to authority,
+// validators that skip on client worlds, etc. - that single-PIE Standalone
 // tests can't catch. Running the same body on both worlds in parallel
 // catches that class of regression.
 //
@@ -24,7 +24,7 @@
 
 class UCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds : UCk_AutoTest_NetBase
 {
-    // Independent mode — no cross-world coordination expected. Each PIE world runs DoBeginPlay
+    // Independent mode - no cross-world coordination expected. Each PIE world runs DoBeginPlay
     // independently against its own ECS state.
     // default _NetMode = ECk_AutoTest_NetMode::ServerAndClientsIndependent;
 
@@ -48,13 +48,13 @@ class UCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds : UCk_AutoTest_NetBase
         Params.Set_MinValue(0.0f);
         Params.Set_MaxValue(100.0f);
 
-        // DoesNotReplicate is the whole point — exercise the non-replicated path on a world
+        // DoesNotReplicate is the whole point - exercise the non-replicated path on a world
         // that may not be authority. If a "client-side never runs this" regression sneaks in,
         // this assertion catches it on the client PIE world before Standalone ever does.
         _Attribute = utils_float_attribute::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
         if (ck::Is_NOT_Valid(_Attribute))
         {
-            FinishFailure("local Add returned invalid — non-replicated attribute setup broken on this world");
+            FinishFailure("local Add returned invalid - non-replicated attribute setup broken on this world");
             return;
         }
 
@@ -62,7 +62,7 @@ class UCk_AutoTest_Net_Float_Local_AddWorksOnBothWorlds : UCk_AutoTest_NetBase
         Assert_True(InitialReadback == _InitialValue,
             f"initial FinalValue should match (expected {_InitialValue}, got {InitialReadback})");
 
-        // Signal-driven wait — fires exactly when the attribute's value changes, no race with
+        // Signal-driven wait - fires exactly when the attribute's value changes, no race with
         // tick scheduling. Mirrors the pattern used by the standalone CkAutoTest_Attribute_FloatBasic
         // test. A WaitOneFrame timer (0.05s) can race the override-application processor under
         // PIE's faster-than-20fps tick rate and read the stale value.

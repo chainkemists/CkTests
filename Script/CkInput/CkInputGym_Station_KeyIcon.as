@@ -1,25 +1,25 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT KEY-BINDING GYM — KEY ICON STATION
+// CK INPUT KEY-BINDING GYM - KEY ICON STATION
 //
 // Glyph resolution for every bound row, through Get_BrushForKey and
 // Get_BrushForInputAction. Both are re-resolved on the display tick and NOTHING
 // is stored: both read the live CommonUI device state at call time, so a cached
 // FSlateBrush goes stale the moment the player switches keyboard <-> gamepad
-// (CkInput/CLAUDE.md anti-pattern 4). Re-resolving every tick is strictly
+// (the CkInput docs anti-pattern 4). Re-resolving every tick is strictly
 // stronger than re-resolving on the device-change event and needs no listener.
 //
 // WHAT THIS PANEL ASSERTS: every row resolves to a real glyph, when there is an
 // art set to resolve against. Green says the brush came back with a resource;
 // red says the active device has no artwork for that key while other rows do
-// have some — that difference is the finding worth showing. When EVERY lookup
+// have some - that difference is the finding worth showing. When EVERY lookup
 // in the pass misses, the panel says so once in amber and drops the per-row
 // verdicts: this host configures no CommonUI controller data at all, so four
 // reds would read as four defects rather than an empty art set.
 //
 // Get_ActiveControllerData is deliberately NOT called here. It ENSUREs when no
-// controller data matches the current device — a legitimate miss, not an error —
+// controller data matches the current device - a legitimate miss, not an error
 // so a device-agnostic panel that polls it every tick would fire ensures at the
 // viewer instead of showing them the glyph state. That is also why the panel
 // cannot name the device it is currently resolving against: the only query that
@@ -87,7 +87,7 @@ class UCk_EntityScript_InputGym_KeyIcon : UCk_GenericEntityScript_UE
     private void Add_LastCommand(TArray<FCkGym_ColoredLine>& OutLines)
     {
         input_gym::Add_Spacer(OutLines, gym_palette::White);
-        input_gym::Add_Line(OutLines, f"LAST COMMAND — {input_gym_pc::Get_GlyphReportLabel()}", gym_palette::White);
+        input_gym::Add_Line(OutLines, f"LAST COMMAND - {input_gym_pc::Get_GlyphReportLabel()}", gym_palette::White);
 
         auto Report = input_gym_pc::Get_GlyphReportLines();
         input_gym::Add_Lines(OutLines, Report);

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: FOLLOW SPLINE
+// CK TWEEN - AUTOMATION TEST: FOLLOW SPLINE
 //============================================================================
 //
 // Verifies the CkSpline feature and the CkTween spline-follow tween together:
@@ -86,7 +86,7 @@ class UCk_AutoTest_Tween_FollowSpline : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // The completion snap enqueues a deferred transform request — wait a
+        // The completion snap enqueues a deferred transform request - wait a
         // frame for it to apply before reading the follower's location.
         WaitOneFrame(n"OnFollowerSettled");
     }

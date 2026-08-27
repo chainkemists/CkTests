@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: LIGHT1 (DeepNesting test) — tier 4 atomic
+// CK GOAP - AUTOMATION TEST ACTION: LIGHT1 (DeepNesting test) - tier 4 atomic
 //============================================================================
 //
 // Atomic leaf under LightAttacks' promoted planner. Effect: EnemyHit=true.
-// Cost 1.0 — cheaper than Light2 (cost 2.0). LightAttacks' regressive
+// Cost 1.0 - cheaper than Light2 (cost 2.0). LightAttacks' regressive
 // planner picks this leaf when both are present.
 //============================================================================
 

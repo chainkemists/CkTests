@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A LATCH EXPIRES, AND TAKES ITS CLAIM WITH IT
+// CK INTENT - AUTOMATION TEST: A LATCH EXPIRES, AND TAKES ITS CLAIM WITH IT
 //============================================================================
 //
 // Without decay, a completion stands forever. That reads harmless until you
@@ -16,7 +16,7 @@
 //
 //   the row returns to Idle
 //   it does so EXACTLY the decay window after the completion frame
-//   the claim goes with it — unclaimed, and naming nobody
+//   the claim goes with it - unclaimed, and naming nobody
 //
 // The decay frame is read off the PhaseChanged payload rather than off the
 // poll surface, because a decayed row deliberately carries no frame at all:
@@ -157,7 +157,7 @@ class UCk_AutoTest_Intent_LatchDecayClearsClaim : UCk_AutoTest_Base
             "the poll surface agrees: there is no standing completion any more");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Decay_Move"), -1,
-            "a decayed row names no completion frame — the move did not happen recently enough to still be one");
+            "a decayed row names no completion frame - the move did not happen recently enough to still be one");
 
         Assert_False(utils_intent_matcher::Get_IsClaimed_ByName(_Matcher, n"AS_Decay_Move"),
             "the claim decayed with the completion it belonged to");

@@ -43,11 +43,11 @@ class ACk_UsfGym_MultiPassShowcase : AActor
                 BlitMID.SetTextureParameterValue(n"iChannel0", RT);
             }
             Mesh.SetMaterial(0, BlitMID);
-            ck::Trace("✅ CkUsf gym: multi-pass feedback showcase live");
+            ck::Trace("[OK] CkUsf gym: multi-pass feedback showcase live");
         }
         else
         {
-            ck::Warning("❌ CkUsf gym: Blit MID failed — run 'Generate Look Materials' first");
+            ck::Warning("[FAIL] CkUsf gym: Blit MID failed - run 'Generate Look Materials' first");
         }
     }
 }

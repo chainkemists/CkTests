@@ -1,22 +1,22 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI DISPLAY DEFINITION — AUTOMATION TEST: parent-hidden cascade
+// CK POI DISPLAY DEFINITION - AUTOMATION TEST: parent-hidden cascade
 //============================================================================
 //
-// The owner composes CkVisibleRange (MaxRange 500, UpdateInterval 0 → evaluate
+// The owner composes CkVisibleRange (MaxRange 500, UpdateInterval 0 -> evaluate
 // every tick). Two display-definition children are created under it; ONE of the
 // two ALSO composes its OWN VisibleRange kept deliberately IN range. Driving the
 // OWNER out of range must cascade FTag_PoiDisplayDefinition_ParentHidden onto
-// BOTH children — including the one whose own range says "visible". That is the
+// BOTH children - including the one whose own range says "visible". That is the
 // PARENT-WINS proof (PROMPT success criterion #3): the child's own in-range vote
 // cannot keep it visible while its parent is hidden.
 //
 // VERIFIED:
-//   - Owner out of range  → BOTH children Get_IsParentHidden == true.
+//   - Owner out of range  -> BOTH children Get_IsParentHidden == true.
 //   - The child WITHOUT its own VisibleRange has Get_IsEffectivelyHidden mirror
 //     Get_IsParentHidden (folds the parent cascade).
-//   - Owner back in range → BOTH children Get_IsParentHidden == false.
+//   - Owner back in range -> BOTH children Get_IsParentHidden == false.
 //
 // Each transition waits on the cascaded state ITSELF rather than on a frame
 // budget: the VisibleRange processor flips FTag_VisibleRange_Hidden and
@@ -63,14 +63,14 @@ class UCk_AutoTest_PoiDisplayDefinition_ParentHiddenCascades : UCk_AutoTest_Base
         _ChildWithOwnRange = utils_poi_display_definition::Create(_Owner, ParamsOwnRange);
 
         // Second child ALSO composes its OWN VisibleRange, kept IN range (distance 100 <
-        // MaxRange 500). Its own vote therefore says "visible" — the parent-wins discriminator.
+        // MaxRange 500). Its own vote therefore says "visible" - the parent-wins discriminator.
         // (FCk_Handle_PoiDisplayDefinition implicitly converts to FCk_Handle for Add's owner param.)
         auto ChildVRParams = FCk_Fragment_VisibleRange_ParamsData(500.0f);
         ChildVRParams.Set_UpdateInterval(FCk_Time(0.0));
         auto ChildVR = utils_visible_range::Add(_ChildWithOwnRange, ChildVRParams);
         utils_visible_range::Update_Distance(ChildVR, 100.0f);
 
-        // Drive the OWNER out of range → the cascade should hide BOTH children.
+        // Drive the OWNER out of range -> the cascade should hide BOTH children.
         utils_visible_range::Update_Distance(_OwnerVR, 1000.0f);
         WaitUntil(n"Check_BothChildrenParentHidden", n"OnOwnerHidden");
     }
@@ -106,12 +106,12 @@ class UCk_AutoTest_PoiDisplayDefinition_ParentHiddenCascades : UCk_AutoTest_Base
             "Parent-wins: child WITH its own in-range VisibleRange must STILL be ParentHidden");
 
         // For the child without its own VisibleRange, IsEffectivelyHidden folds to the
-        // parent cascade alone — and it checks ParentHidden FIRST (Utils.cpp:181), so
+        // parent cascade alone - and it checks ParentHidden FIRST (Utils.cpp:181), so
         // the wait above already covers it; it needs no settle of its own.
         Assert_True(utils_poi_display_definition::Get_IsEffectivelyHidden(_ChildPlain),
             "Get_IsEffectivelyHidden should mirror Get_IsParentHidden for the child with no own VisibleRange");
 
-        // Drive the owner back in range → the cascade should clear both children.
+        // Drive the owner back in range -> the cascade should clear both children.
         utils_visible_range::Update_Distance(_OwnerVR, 100.0f);
         WaitUntil(n"Check_BothChildrenParentShown", n"OnOwnerShown");
     }

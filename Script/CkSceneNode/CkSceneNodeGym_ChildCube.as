@@ -1,7 +1,7 @@
 //============================================================================
 // SCENE NODE GYM - CHILD CUBE
 // Simple visual-only actor representing a scene node child.
-// No entity bridge — position driven by parent cube each frame.
+// No entity bridge - position driven by parent cube each frame.
 //============================================================================
 
 UCLASS(Blueprintable)

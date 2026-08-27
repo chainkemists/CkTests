@@ -1,9 +1,9 @@
 // Language=angelscript
 //
-// CK OBJECT POOLING — AUTOMATION TEST: amortized prewarm + grow-batch top-up
+// CK OBJECT POOLING - AUTOMATION TEST: amortized prewarm + grow-batch top-up
 //
 // Prewarm: pool creation schedules PrewarmCount instances, spawned PrewarmBudgetPerTick per
-// subsystem tick — never synchronously. GrowBatch: a demand miss returns exactly one instance
+// subsystem tick - never synchronously. GrowBatch: a demand miss returns exactly one instance
 // synchronously and queues (GrowBatchCount - 1) extras through the same amortized tick.
 
 class UCk_AutoTest_ObjectPooling_PrewarmAndGrowBatchProvision : UCk_AutoTest_Base
@@ -23,7 +23,7 @@ class UCk_AutoTest_ObjectPooling_PrewarmAndGrowBatchProvision : UCk_AutoTest_Bas
         _GrowArchetype = Cast<UCk_ObjectPoolingTest_PlainObject>(
             NewObject(this, UCk_ObjectPoolingTest_PlainObject));
 
-        // pool creation happens on first acquire — that acquire is the demand miss that also
+        // pool creation happens on first acquire - that acquire is the demand miss that also
         // kicks off the prewarm schedule
         auto PrewarmParams = FCk_ObjectPooling_PoolParams();
         PrewarmParams.Set_PrewarmCount(3);
@@ -34,7 +34,7 @@ class UCk_AutoTest_ObjectPooling_PrewarmAndGrowBatchProvision : UCk_AutoTest_Bas
         Assert_True(ck::IsValid(PrewarmFirst), "prewarm pool: the creating acquire returns an instance");
 
         auto PrewarmStats = utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_PlainObject, _PrewarmArchetype);
-        Assert_Equals_Int(PrewarmStats.Get_NumFree(), 0, "prewarm is amortized — nothing is spawned synchronously");
+        Assert_Equals_Int(PrewarmStats.Get_NumFree(), 0, "prewarm is amortized - nothing is spawned synchronously");
         Assert_Equals_Int(PrewarmStats.Get_NumPrewarmRemaining(), 3, "3 prewarm spawns are scheduled");
         if (IsFinished()) { return; }
 

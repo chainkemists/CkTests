@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK HOMING — AUTOMATION TEST: MISSED TARGET FIRES SIGNAL
+// CK HOMING - AUTOMATION TEST: MISSED TARGET FIRES SIGNAL
 //============================================================================
 //
 // A projectile with NO steering budget (MaxAcceleration = 0) flies straight
 // past a homing point sitting 200 units off its path. The moment it stops
 // closing and starts receding inside the miss-notify threshold,
-// OnTargetMissed must fire — with the closest-approach distance in the
+// OnTargetMissed must fire - with the closest-approach distance in the
 // payload.
 //============================================================================
 

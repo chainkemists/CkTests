@@ -1,27 +1,27 @@
 // Language=angelscript
 
 //============================================================================
-// GYM CONTROL PANEL — the shared on-screen control widget
+// GYM CONTROL PANEL - the shared on-screen control widget
 //============================================================================
 //
 // Gyms are driven by console commands, which means the controls are invisible: the only way to learn
 // that Ck_GymUsfDither_ToggleBanding exists is to read the PlayerController. This is the widget that
-// puts them on screen — an always-on panel listing each control, the key that fires it, and its live
+// puts them on screen - an always-on panel listing each control, the key that fires it, and its live
 // value.
 //
 // It is DECLARATIVE. A gym never draws anything and never reads a key: it returns a list of rows from
 // Get_ControlRows() and acts on an index in Request_ControlActivated(). The panel owns the rendering,
 // the key polling, and the ordering rules, so every gym that adopts it looks and behaves identically
-// and a gym adopts it in about thirty lines. That split is the whole point — the pixel-art gym's
+// and a gym adopts it in about thirty lines. That split is the whole point - the pixel-art gym's
 // bespoke panel is what this generalizes, and it is now one caller among many rather than the only one.
 //
-// Rows are rebuilt every frame rather than cached, because the second column is LIVE state — a toggle
+// Rows are rebuilt every frame rather than cached, because the second column is LIVE state - a toggle
 // that reports its value one frame late is worse than one that reports nothing. The cost is a handful
 // of struct constructions per frame on a HUD that already formats strings per frame.
 //
 // Reserved keys the panel itself owns, which a gym must therefore NOT bind in a row:
-//   Tab — the gym cycler menu (ACkGym_MenuHUD)
-//   H   — hide/show this panel
+//   Tab - the gym cycler menu (ACkGym_MenuHUD)
+//   H   - hide/show this panel
 //
 // Adopting it, in full:
 //
@@ -47,7 +47,7 @@
 UENUM()
 enum ECkGym_ControlKind
 {
-    // A section label. No key, no value — it groups the rows under it.
+    // A section label. No key, no value - it groups the rows under it.
     Header,
 
     // Fires once and does something. No value column.
@@ -59,7 +59,7 @@ enum ECkGym_ControlKind
     // One of a mutually exclusive set. Exactly one is Active, and that one is highlighted.
     Choice,
 
-    // No key at all — a readout the gym wants on screen beside its controls.
+    // No key at all - a readout the gym wants on screen beside its controls.
     Status
 }
 
@@ -80,7 +80,7 @@ struct FCkGym_ControlRow
     UPROPERTY()
     FKey Key;
 
-    // A second key that fires the same row — the numpad twin of a number key. A laptop has no numpad
+    // A second key that fires the same row - the numpad twin of a number key. A laptop has no numpad
     // and a desk keyboard's number row is already under the fingers; binding one and not the other
     // makes the control depend on the hardware.
     UPROPERTY()
@@ -103,7 +103,7 @@ struct FCkGym_ControlRow
     UPROPERTY()
     bool Active = false;
 
-    // Draw hot. For the state that INVALIDATES what the viewer is looking at — a disabled snap, a
+    // Draw hot. For the state that INVALIDATES what the viewer is looking at - a disabled snap, a
     // suppressed effect, a mode the gym cannot produce a verdict in. Not for mere emphasis.
     UPROPERTY()
     bool Warn = false;
@@ -137,7 +137,7 @@ struct FCkGym_ControlPanel_Style
     UPROPERTY()
     float Padding = 10.0f;
 
-    // Where the label starts, measured from the panel's left padding — the key box lives to its left.
+    // Where the label starts, measured from the panel's left padding - the key box lives to its left.
     UPROPERTY()
     float LabelColumn = 44.0f;
 
@@ -160,7 +160,7 @@ namespace CkGym_Control
         return Row;
     }
 
-    // A readout. InWarn draws it hot — use it when the state being reported makes the gym's own
+    // A readout. InWarn draws it hot - use it when the state being reported makes the gym's own
     // verdicts invalid, so the reader is told BEFORE they judge the image rather than after.
     FCkGym_ControlRow Status(FString InLabel, FString InValue = "", bool InWarn = false)
     {
@@ -183,7 +183,7 @@ namespace CkGym_Control
         return Row;
     }
 
-    // Steps through a list of more than two values — a debug view, a preset ring. It is an Action with a
+    // Steps through a list of more than two values - a debug view, a preset ring. It is an Action with a
     // value column, because the thing a viewer needs is not "this key cycles something" but WHICH of the
     // five views they are currently looking at.
     FCkGym_ControlRow Cycle(FKey InKey, FString InKeyLabel, FString InLabel, FString InCurrentValue, bool InWarn = false, bool InEnabled = true)
@@ -213,7 +213,7 @@ namespace CkGym_Control
         return Row;
     }
 
-    // A toggle whose two states both deserve a name, because "off" says nothing useful — an
+    // A toggle whose two states both deserve a name, because "off" says nothing useful - an
     // orthographic/perspective flip, a nearest/box filter, a walk/key selection mode.
     FCkGym_ControlRow ToggleNamed(FKey InKey, FString InKeyLabel, FString InLabel, bool InIsOn, FString InOnText, FString InOffText, bool InWarnWhenOff = false, bool InEnabled = true)
     {
@@ -243,7 +243,7 @@ namespace CkGym_Control
 
     // The nth entry of a keyed list: 1-9 pick the first nine and 0 picks the tenth, which is the
     // ordinary way a ten-item list is keyed. Both the number row and the numpad fire it.
-    // Indices past the tenth get no key — they still draw, and the gym can still reach them by
+    // Indices past the tenth get no key - they still draw, and the gym can still reach them by
     // whatever means it already had.
     FCkGym_ControlRow Numbered(int32 InIndex, FString InLabel, bool InIsActive, bool InEnabled = true)
     {

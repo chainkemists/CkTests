@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: SPATIAL RELOCATE ITEM — BLOCKED BY OTHER
+// CK INVENTORY - AUTOMATION TEST: SPATIAL RELOCATE ITEM - BLOCKED BY OTHER
 //============================================================================
 //
 // Pins the rejection contract for Request_RelocateItem when the destination
 // coordinate is already occupied by a different item:
 //   1. Build a 4x4 spatial inventory.
-//   2. Add Shield A and Shield B (both 1x1) — auto-placed into two distinct
+//   2. Add Shield A and Shield B (both 1x1) - auto-placed into two distinct
 //      cells (CoordA and CoordB).
 //   3. Attempt to relocate Shield A to CoordB.
 //   4. Assert: ECk_Inventory_OperationResult_Relocate is NOT Success, and
@@ -78,7 +78,7 @@ class UCk_AutoTest_Inventory_Spatial_RelocateItem_BlockedByOther : UCk_AutoTest_
 
         if (_CoordA == _CoordB)
         {
-            FinishFailure("Setup: both shields landed in the same cell — auto-place expected to choose distinct cells");
+            FinishFailure("Setup: both shields landed in the same cell - auto-place expected to choose distinct cells");
             return;
         }
 

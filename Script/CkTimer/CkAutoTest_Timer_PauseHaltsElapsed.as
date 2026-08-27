@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: PAUSE HALTS ELAPSED
+// CK TIMER - AUTOMATION TEST: PAUSE HALTS ELAPSED
 //============================================================================
 //
 // Verifies that Request_Pause stops chrono accumulation:

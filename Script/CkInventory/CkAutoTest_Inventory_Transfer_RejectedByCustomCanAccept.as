@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: TRANSFER REJECTED BY CUSTOM CAN-ACCEPT
+// CK INVENTORY - AUTOMATION TEST: TRANSFER REJECTED BY CUSTOM CAN-ACCEPT
 //============================================================================
 //
 // Pins the rejection path of Request_TransferItem when the *target's*
@@ -13,7 +13,7 @@
 // Procedure:
 //   1. Create a permissive source inventory and a *rejecting* target
 //      inventory (target's CustomCanAcceptItem returns false).
-//   2. Seed the source with a Sword (Tags+Dimensions, no Stackable —
+//   2. Seed the source with a Sword (Tags+Dimensions, no Stackable
 //      sidesteps the Stackable+Tags trait double-apply framework bug).
 //   3. Request_TransferItem_ToDataOnly(SourceItem, TargetInventory).
 //   4. Assert: result enum is `Failed_RejectedByCustomAcceptanceLogic`,
@@ -133,7 +133,7 @@ class ACk_AutoTest_Inventory_Transfer_RejectedByCustomCanAccept_Actor : ACk_Auto
     default _TimeoutSeconds = 4.0f;
 
     // The test asserts the rejection-with-rollback contract: target's CustomCanAcceptItem
-    // returns false → AddItem fails internally → transfer rolls back the source remove.
+    // returns false -> AddItem fails internally -> transfer rolls back the source remove.
     // The library correctly logs both the AddItem rejection and the rollback as Warnings
     // for any production caller; the test deliberately exercises this path. Suppress both
     // lines so the harness doesn't escalate them into a test failure. The library keeps

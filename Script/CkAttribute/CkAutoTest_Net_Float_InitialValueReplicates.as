@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — NET AUTOMATION TEST: FLOAT INITIAL-VALUE REPLICATES
+// CK ATTRIBUTE - NET AUTOMATION TEST: FLOAT INITIAL-VALUE REPLICATES
 //============================================================================
 //
 // AS-authored equivalent of the C++ spec `Ck.Attribute.Net.Float_InitialValue_Replicates`.
@@ -10,7 +10,7 @@
 // instance polls for the replicated value and FinishSuccess's once seen.
 //
 // The subject's entity-script (UCk_AutoTest_NetSubject_EntityScript_UE) adds the Health
-// attribute on both worlds with initial value 42.5 — symmetric setup is mandatory for
+// attribute on both worlds with initial value 42.5 - symmetric setup is mandatory for
 // CkAttribute's container-fragment replication to deliver value updates (see the
 // "CkAttribute replication is symmetric" memory note).
 //============================================================================
@@ -27,7 +27,7 @@ class UCk_AutoTest_Net_Float_InitialValueReplicates : UCk_AutoTest_NetBase
         auto Subject = Get_SubjectEntity();
         if (ck::Is_NOT_Valid(Subject))
         {
-            FinishFailure("subject entity not found — harness's NetSubject actor missing on this world");
+            FinishFailure("subject entity not found - harness's NetSubject actor missing on this world");
             return;
         }
 
@@ -35,7 +35,7 @@ class UCk_AutoTest_Net_Float_InitialValueReplicates : UCk_AutoTest_NetBase
         auto Attribute = utils_float_attribute::TryGet(Subject, Tag);
         if (ck::Is_NOT_Valid(Attribute))
         {
-            FinishFailure("Health attribute not found on subject — entity-script Construct didn't add it on this world?");
+            FinishFailure("Health attribute not found on subject - entity-script Construct didn't add it on this world?");
             return;
         }
 
@@ -82,7 +82,7 @@ class UCk_AutoTest_Net_Float_InitialValueReplicates : UCk_AutoTest_NetBase
             return;
         }
 
-        // Value hasn't arrived yet — try again next frame. The harness's per-test timeout
+        // Value hasn't arrived yet - try again next frame. The harness's per-test timeout
         // bounds this loop (see _TimeoutSeconds in the C++ spec stub); if the value never
         // arrives, the harness AddError's a timeout and the test fails.
         WaitOneFrame(n"OnPollValue");

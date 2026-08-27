@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY COLLECTION — AUTOMATION TEST: Add happy path
+// CK ENTITY COLLECTION - AUTOMATION TEST: Add happy path
 // Add a named collection; Has_Any reports true; TryGet returns the handle;
 // a fresh collection has 0 entities.
 

@@ -16,7 +16,7 @@ namespace CkGym_Attribute
         );
     }
 
-    // Create clamping status suffix — only shows info when clamping actually occurred
+    // Create clamping status suffix - only shows info when clamping actually occurred
     FString Get_ClampingSuffix(float32 InCurrentValue, float32 InInputValue)
     {
         if (InCurrentValue != InInputValue)

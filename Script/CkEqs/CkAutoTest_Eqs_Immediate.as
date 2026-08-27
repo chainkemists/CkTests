@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — AUTOMATION TEST: IMMEDIATE PATH (SYNCHRONOUS)
+// CK EQS - AUTOMATION TEST: IMMEDIATE PATH (SYNCHRONOUS)
 //============================================================================
 //
 // Verifies Request_RunQuery_Immediate:
 //   1. Setup querier with transform.
 //   2. Build a small SimpleGrid query.
-//   3. Call Request_RunQuery_Immediate — returns valid handle synchronously.
+//   3. Call Request_RunQuery_Immediate - returns valid handle synchronously.
 //   4. Read accessors directly (no delegate bind, no broadcast per P3-E5).
 //   5. Assert IsComplete + HasResults + Candidates.Num()==1.
 //
@@ -42,7 +42,7 @@ class UCk_AutoTest_Eqs_Immediate : UCk_AutoTest_Base
         auto Params = FCk_Eqs_QueryParams(LocalHandle, Generator, Tests);
         Params.Set_RunMode(ECk_Eqs_RunMode::SingleBest);
 
-        // Immediate — synchronous, returns the typed query handle with results
+        // Immediate - synchronous, returns the typed query handle with results
         // already written. P3-E5: does NOT broadcast OnComplete.
         auto QueryHandle = utils_eqs::Request_RunQuery_Immediate(LocalHandle, Params);
 

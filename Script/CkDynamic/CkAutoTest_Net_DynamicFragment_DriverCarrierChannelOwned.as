@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — NET AUTOMATION TEST: CHANNEL-OWNED SUBORDINATE (LEVER PROBE)
+// CK DYNAMIC - NET AUTOMATION TEST: CHANNEL-OWNED SUBORDINATE (LEVER PROBE)
 //============================================================================
 //
 // Same as DriverCarrierOnNotify EXCEPT B is spawned under the ActorRelay CHANNEL entity
@@ -15,7 +15,7 @@
 //
 // So this test asserts the SAME correct behavior (handle resolves at notify time). If the
 // owning-actor chain is the lever, channel-owned B fails to net-translate and this test goes
-// RED — proving the dynamic-handle type is a red herring and the chain is the real cause.
+// RED - proving the dynamic-handle type is a red herring and the chain is the real cause.
 //
 // Surface: Ck.Dynamic.Net.AS_DynamicFragment_DriverCarrierChannelOwned
 //============================================================================
@@ -76,7 +76,7 @@ class UCk_AutoTest_Net_DynamicFragment_DriverCarrierChannelOwned : UCk_AutoTest_
 
         // B hangs off the ActorRelay CHANNEL, not off this runner, so the harness teardown never
         // reaches it. Tracked before the early-returns below so a failed resolve still cleans up.
-        // (The channel entity itself is pooled and shared — never track that.)
+        // (The channel entity itself is pooled and shared - never track that.)
         Track_ForCleanup(FCk_Handle(InEntityScriptHandle));
 
         auto Subject = Get_SubjectEntity();

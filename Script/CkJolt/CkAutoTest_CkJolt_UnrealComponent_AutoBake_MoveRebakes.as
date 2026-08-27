@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: UNREALCOMPONENT AUTOMATIC BAKE + MOVE RE-BAKE
+// CK JOLT - AUTOMATION TEST: UNREALCOMPONENT AUTOMATIC BAKE + MOVE RE-BAKE
 //============================================================================
 //
 // The DEFAULT path every collision-bearing hosted component now takes:
 //   1. Archetype-complete static mesh, NO policy set -> Automatic bakes it at
 //      setup and the static-world ray hits.
-//   2. Moving the owning entity re-bakes the bodies at the new pose — the old
+//   2. Moving the owning entity re-bakes the bodies at the new pose - the old
 //      location misses, the new one hits (teleports and store rearrangement
 //      stay query-correct without any caller involvement).
 //   3. Destroying the owner removes the bodies.
@@ -42,7 +42,7 @@ class UCk_AutoTest_CkJolt_UnrealComponent_AutoBake_MoveRebakes : UCk_AutoTest_Ba
         Archetype.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
         Archetype.SetCollisionProfileName(n"BlockAll");
 
-        // Deliberately NO Set_StaticWorldBakePolicy — Automatic is the default under test.
+        // Deliberately NO Set_StaticWorldBakePolicy - Automatic is the default under test.
         auto Params = utils_unreal_component::Make_Params_FromArchetype(
             Archetype, ECk_UnrealComponent_TickPolicy::DoNotTick, n"AutoTest_AutoBakedMesh");
         _CompHandle = utils_unreal_component::Add(_Owner, Params);
@@ -70,7 +70,7 @@ class UCk_AutoTest_CkJolt_UnrealComponent_AutoBake_MoveRebakes : UCk_AutoTest_Ba
         if (IsFinished()) { return; }
 
         Assert_True(Do_RayOver(_Origin).Get_HasHit(),
-            "Automatic (the default, no policy set) baked the collision-bearing mesh — the ray hits");
+            "Automatic (the default, no policy set) baked the collision-bearing mesh - the ray hits");
 
         utils_transform::Request_SetTransform(_Owner.As_Transform(),
             FTransform(FRotator::ZeroRotator, _MovedTo));
@@ -84,9 +84,9 @@ class UCk_AutoTest_CkJolt_UnrealComponent_AutoBake_MoveRebakes : UCk_AutoTest_Ba
         if (IsFinished()) { return; }
 
         Assert_True(Do_RayOver(_Origin).Get_HasHit() == false,
-            "moving the owner re-baked the bodies — the OLD location misses (no stale blocker)");
+            "moving the owner re-baked the bodies - the OLD location misses (no stale blocker)");
         Assert_True(Do_RayOver(_MovedTo).Get_HasHit(),
-            "moving the owner re-baked the bodies — the NEW location hits");
+            "moving the owner re-baked the bodies - the NEW location hits");
 
         utils_entity_lifetime::Request_DestroyEntity(_Owner);
         WaitOneFrame(n"OnTornDown");

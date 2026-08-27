@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: ORTHOGRAPHIC PROJECTION (profile -> ViewInfo, and the blendable ortho width)
+// CK CAMERA - AUTOMATION TEST: ORTHOGRAPHIC PROJECTION (profile -> ViewInfo, and the blendable ortho width)
 //============================================================================
 //
 // Orthographic support splits across the two mechanisms the camera already has, and this test is what keeps them
@@ -12,7 +12,7 @@
 //     half-orthographic camera and no meaningful way to interpolate one.
 //
 // It also pins the planes as EXPLICIT. The engine can derive them from the view rect instead, which silently
-// makes the scene's depth range a function of the rendering resolution — the exact failure that would only show
+// makes the scene's depth range a function of the rendering resolution - the exact failure that would only show
 // up much later, in something that renders at a different internal size.
 //============================================================================
 
@@ -174,12 +174,12 @@ class UCk_AutoTest_Camera_OrthoProjection : UCk_AutoTest_Base
 
     // The runtime mode switch is a SEPARATE mechanism from the profile: everything above reaches ortho by
     // authoring it into the camera's params, which is the path a designer takes. Request_SetProjectionMode is
-    // the path gameplay takes, and without this it had no coverage in any of the three environments — the
+    // the path gameplay takes, and without this it had no coverage in any of the three environments - the
     // camera could have shipped able to start orthographic but not to become it.
     //
     // Every assertion here settles a frame first, and that is the CONTRACT rather than a workaround: the
     // request mutates the Current fragment immediately, but Get_ComposedProfile returns the snapshot the
-    // lifecycle processor refreshes once per frame. Reading it on the calling stack reports the OLD mode —
+    // lifecycle processor refreshes once per frame. Reading it on the calling stack reports the OLD mode
     // which is exactly what the first version of this test did, and what it failed on.
     private void DoCheck_ProjectionModeRequest()
     {
@@ -208,7 +208,7 @@ class UCk_AutoTest_Camera_OrthoProjection : UCk_AutoTest_Base
 
         Assert_True(true, "Request_SetProjectionMode switched the composed profile to Perspective");
 
-        // Back to orthographic, this time carrying explicit planes in the same request — the reason the planes
+        // Back to orthographic, this time carrying explicit planes in the same request - the reason the planes
         // ride WITH the mode is that an orthographic view with a perspective camera's near/far clips the scene
         // at the wrong distances, so there is no moment where a caller wants one without the other.
         auto BackToOrtho = FCk_Request_Camera_SetProjectionMode(ECk_Camera_ProjectionMode::Orthographic);
