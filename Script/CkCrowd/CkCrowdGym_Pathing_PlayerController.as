@@ -20,6 +20,13 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
     private bool _RetargetToB = false;
     private const float k_RetargetSwitchDist = 90.0;
 
+    // A close, behind-and-lateral replacement goal applied while this agent is already moving.
+    // K rebuilds the scenario with the generic Crowd close-goal strafe parameter toggled.
+    private FCk_Handle_CrowdAgent _CloseGoalStrafeAgent;
+    private bool _CloseGoalStrafeRetargetPending = false;
+    private bool _CloseGoalStrafeEnabled = true;
+    private FVector _CloseGoalStrafeGoal = FVector::ZeroVector;
+
     // Arrival ring (params default _ArrivalRadius) and the predicted single-point orbit radius
     // (MaxSpeed 240 / MaxTurnRate 4.0 = 60cm). An agent that settles on the red ring and never
     // enters the green ring is exhibiting the AccelClamp turn-radius orbit.
@@ -55,6 +62,8 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
             "Stop deep inside a 3-sided pocket.");
         Add_Station(Stations, n"Gym.Crowd.Pathing.FlushBox", 1250.0, "FLUSH BOX",
             "Goal flush vs box. Orbit on red ring?");
+        Add_Station(Stations, n"Gym.Crowd.Pathing.CloseGoalStrafe", -1750.0, "CLOSE-GOAL STRAFE",
+            "K toggles the close-goal angular bypass, then retargets a moving agent to a nearby behind/lateral goal.");
 
         return Stations;
     }
@@ -141,6 +150,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         // The re-target agent needs no obstacles; spawn it after the nav rebuild and start its
         // ping-pong. A single per-frame tick on the PC entity drives the re-targeting.
         SpawnRetargetAgent(-250.0);
+        SpawnCloseGoalStrafeAgent(-1750.0);
         if (_TickCreated == false)
         {
             utils_timer::Create_Tick(_OwnerHandle, FCk_Delegate_Timer(this, n"OnGymTick"));
@@ -243,6 +253,8 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         auto Rows = TArray<FCkGym_ControlRow>();
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart every agent"));
         Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear"));
+        Rows.Add(CkGym_Control::Action(EKeys::K, "K",
+            _CloseGoalStrafeEnabled ? "Close-goal strafe: Enabled (60 uu)" : "Close-goal strafe: Disabled"));
         return Rows;
     }
 
@@ -250,6 +262,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (InRowIndex == 0) { Ck_GymPathing_RestartAll(); }
         else if (InRowIndex == 1) { Ck_GymPathing_Clear(); }
+        else if (InRowIndex == 2) { Ck_GymPathing_ToggleCloseGoalStrafe(); }
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Pathing - Restart All")
@@ -273,9 +286,22 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         ck::crowd::Log("Pathing gym: cleared");
     }
 
+    UFUNCTION(Exec, DisplayName="Crowd Pathing - Toggle Close Goal Strafe")
+    void Ck_GymPathing_ToggleCloseGoalStrafe()
+    {
+        if (HasAuthority() == false)
+        { return; }
+
+        _CloseGoalStrafeEnabled = !_CloseGoalStrafeEnabled;
+        Ck_GymPathing_RestartAll();
+        ck::crowd::Log(f"Pathing gym: close-goal strafe {GetCloseGoalStrafeModeLabel()}; oracle is the close behind/lateral retarget lane");
+    }
+
     private void ClearAll()
     {
         _RetargetValid = false;
+        _CloseGoalStrafeRetargetPending = false;
+        _CloseGoalStrafeAgent = FCk_Handle_CrowdAgent();
 
         for (auto Agent : _Agents)
         {
@@ -314,13 +340,19 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         _Obstacles.Add(Box);
     }
 
-    private FCk_Handle_CrowdAgent SpawnAgentAndMove(FVector InSpawn, FVector InGoal, FLinearColor InColor, FName InDebugName)
+    private FCk_Handle_CrowdAgent SpawnAgentAndMove(FVector InSpawn, FVector InGoal, FLinearColor InColor, FName InDebugName,
+        bool InUseCloseGoalStrafe = false)
     {
         // Agents are standalone top-level entities (lifetime-owned by the registry transient),
         // NOT sub-entities of the PlayerController — they represent free-standing NPCs.
         // ClearAll destroys them explicitly, so no owner-cascade is needed.
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
+        if (InUseCloseGoalStrafe)
+        {
+            Params.Set_CloseGoalStrafe(_CloseGoalStrafeEnabled ? ECk_EnableDisable::Enable : ECk_EnableDisable::Disable);
+            Params.Set_CloseGoalStrafeDistanceUu(60.0f);
+        }
 
         // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
         // onto the handle it is given and permits one agent per entity, so passing the transient
@@ -375,18 +407,57 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         _RetargetValid = true;
     }
 
+    private void SpawnCloseGoalStrafeAgent(float InLaneY)
+    {
+        // Run rightward from the open lane, then replace the final goal at X~300 with a target
+        // behind and laterally offset but still inside the 60uu strafe band. With strafe enabled it
+        // may immediately redirect; disabled mode remains subject to the normal turn-rate cap.
+        const auto InitialGoal = FVector(500.0, InLaneY, k_AgentZ);
+        _CloseGoalStrafeGoal = FVector(265.0, InLaneY + 35.0, k_AgentZ);
+        DrawRingsAt(_CloseGoalStrafeGoal);
+        _CloseGoalStrafeAgent = SpawnAgentAndMove(FVector(-1200.0, InLaneY, k_AgentZ), InitialGoal,
+            _CloseGoalStrafeEnabled ? FLinearColor(0.95, 0.7, 0.15, 1.0) : FLinearColor(0.55, 0.55, 0.55, 1.0),
+            n"PathingAgent_CloseGoalStrafe", true);
+        _CloseGoalStrafeRetargetPending = ck::IsValid(_CloseGoalStrafeAgent);
+        ck::crowd::Log(f"Pathing gym: close-goal strafe oracle armed ({GetCloseGoalStrafeModeLabel()}, radius=60uu)");
+    }
+
     UFUNCTION()
     void OnGymTick(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        if (_RetargetValid == false || ck::Is_NOT_Valid(_RetargetAgent))
+        if (_RetargetValid && ck::IsValid(_RetargetAgent))
+        {
+            // Re-issue MoveTo to the SAME point every frame — reproduces the live NPC's re-issue churn
+            // (a noisy state machine re-firing MoveTo many times a second). Without the fix this resets
+            // the waypoint cursor every frame and the agent orbits the point; with the same-goal no-op
+            // (B) + the turn-radius arrival cap (A) it should ignore the churn and settle cleanly.
+            const auto Request = FCk_Request_CrowdAgent_MoveTo(_RetargetT1);
+            utils_crowd_agent::Request_MoveTo(_RetargetAgent, Request);
+        }
+
+        if (_CloseGoalStrafeRetargetPending == false || ck::Is_NOT_Valid(_CloseGoalStrafeAgent))
         { return; }
 
-        // Re-issue MoveTo to the SAME point every frame — reproduces the live NPC's re-issue churn
-        // (a noisy state machine re-firing MoveTo many times a second). Without the fix this resets
-        // the waypoint cursor every frame and the agent orbits the point; with the same-goal no-op
-        // (B) + the turn-radius arrival cap (A) it should ignore the churn and settle cleanly.
-        const auto Request = FCk_Request_CrowdAgent_MoveTo(_RetargetT1);
-        utils_crowd_agent::Request_MoveTo(_RetargetAgent, Request);
+        const auto Location = utils_transform::Get_EntityCurrentLocation(_CloseGoalStrafeAgent.As_Transform());
+        if (Location.X < 300.0)
+        { return; }
+
+        auto Request = FCk_Request_CrowdAgent_MoveTo(_CloseGoalStrafeGoal);
+        Request.Set_CorrelationId(73);
+        Request.Set_ForceRepath(true);
+        utils_crowd_agent::Request_MoveTo(_CloseGoalStrafeAgent, Request);
+        _CloseGoalStrafeRetargetPending = false;
+        ck::crowd::Log(f"Pathing gym: close-goal strafe oracle retargeted to {_CloseGoalStrafeGoal}; expected mode={GetCloseGoalStrafeOracleLabel()}");
+    }
+
+    private FString GetCloseGoalStrafeModeLabel() const
+    {
+        return _CloseGoalStrafeEnabled ? "ENABLED" : "DISABLED";
+    }
+
+    private FString GetCloseGoalStrafeOracleLabel() const
+    {
+        return _CloseGoalStrafeEnabled ? "immediate direction" : "turn limited";
     }
 
     private void DrawRingsAt(FVector InGoal)
