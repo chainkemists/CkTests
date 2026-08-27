@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: IskmRenderer CREATE MAKES A DISTINCT CHILD
+// CK ISKM RENDERER - AUTOMATION TEST: IskmRenderer CREATE MAKES A DISTINCT CHILD
 //============================================================================
 //
 // Verifies the child-making Create verb (counterpart to the stamp-self Add):
-// Create(owner, ...) spawns a NEW child entity carrying the feature — the
+// Create(owner, ...) spawns a NEW child entity carrying the feature - the
 // returned handle is valid, Has(child) is true, and Has(owner) is FALSE
 // (proving Create is child-making, not stamp-self like Add).
 //
 // Params come from the AS-authored iskm_assets::RendererData_Demo(). If the
-// asset registry hasn't been generated the demo asset is invalid — skip via
+// asset registry hasn't been generated the demo asset is invalid - skip via
 // FinishSuccess() (mirrors every other IskmRenderer Add-success test) so the
 // CK_ENSURE_IF_NOT inside Add() never fires under the AutoTest harness.
 //============================================================================
@@ -37,7 +37,7 @@ class UCk_AutoTest_IskmRenderer_Create_MakesDistinctChild : UCk_AutoTest_Base
         Assert_True(utils_iskm_renderer::Has(ChildEntity),
             "The created child entity should carry the IskmRenderer feature");
         Assert_True(!utils_iskm_renderer::Has(Owner),
-            "The owner must NOT carry the feature — Create is child-making, not stamp-self");
+            "The owner must NOT carry the feature - Create is child-making, not stamp-self");
 
         FinishSuccess();
     }

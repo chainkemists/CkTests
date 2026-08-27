@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — NET AUTOMATION TEST: LOCATION REPLICATES
+// CK TRANSFORM - NET AUTOMATION TEST: LOCATION REPLICATES
 //============================================================================
 //
 // Server issues Request_SetLocation on the subject's Transform fragment;
@@ -12,10 +12,10 @@
 // Symmetric setup: both worlds get the Transform fragment auto-added via
 // UCk_EntityScript_WithActor_UE::Construct (the NetSubject actor now carries
 // a USceneComponent root with Movable mobility). No custom NetSubject subclass
-// needed — the default one is sufficient because the FCk_RepData_Location
+// needed - the default one is sufficient because the FCk_RepData_Location
 // container handler delivers the post-mutation snapshot.
 //
-// Single mutation → no settle-between-mutations needed (snapshot-not-deltas
+// Single mutation -> no settle-between-mutations needed (snapshot-not-deltas
 // only matters for back-to-back changes within one rep cycle).
 //============================================================================
 
@@ -33,7 +33,7 @@ class UCk_AutoTest_Net_Location_Replicates : UCk_AutoTest_NetBase
         { FinishFailure("DIAG-A: subject entity not found"); return; }
 
         if (!utils_transform::Has(Subject))
-        { FinishFailure("DIAG-B: subject has no Transform fragment — WithActor::Construct guard tripped?"); return; }
+        { FinishFailure("DIAG-B: subject has no Transform fragment - WithActor::Construct guard tripped?"); return; }
 
         if (utils_net::Get_HasAuthority(Subject))
         {

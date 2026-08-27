@@ -1,17 +1,17 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: SEPARATION CONVERGENCE
+// CK CROWD - AUTOMATION TEST: SEPARATION CONVERGENCE
 //
-// 5 agents around a 600cm circle, all targeting the SAME point — an
+// 5 agents around a 600cm circle, all targeting the SAME point - an
 // unsatisfiable goal (five 42cm agents in contact form a ring of radius
 // ~71cm, so NOBODY can stand within the 30cm arrival radius). They therefore
 // press inward forever. Two phases, two DISTINCT invariants:
 //
-// Phase 1 (t=6s) — LIVENESS under crowding (the freeze-bug regression guard):
+// Phase 1 (t=6s) - LIVENESS under crowding (the freeze-bug regression guard):
 // all agents within 200cm of the target, still pressing, and no pair piled
 // up: PairSep >= 61cm. That floor is DERIVED, not tuned. PushApart resolves
 // >= 0.7 x penetration per pair per frame (each agent displaces 0.5*0.7*P
-// along the pair axis in iteration 1 alone — CkCrowdAgent_PushApart_Processor
+// along the pair axis in iteration 1 alone - CkCrowdAgent_PushApart_Processor
 // .cpp), while the integrator can re-close a pair by at most 2*MaxSpeed*dt.
 // Worst case at 30fps: 2*240*(1/30) / 0.7 ~= 23cm of equilibrium overlap
 // -> floor = 84 - 23 = 61cm.
@@ -22,18 +22,18 @@
 // physics capsules). The residual is an EQUILIBRIUM, not a transient: it
 // scales with press-speed x frame-time, so no fixed floor mid-press is
 // derivable and no resolver tuning makes one robust. Asserting 84cm here
-// demands a guarantee the algorithm never made — and it only ever held
+// demands a guarantee the algorithm never made - and it only ever held
 // because Steering used to DAMP path-follow as neighbours pressed, i.e.
 // agents gave up when crowded. That "giving up" WAS the freeze bug.
 //
-// Phase 2 (t=7s, after Request_Stop at t=6s) — NON-PENETRATION AT REST: the
+// Phase 2 (t=7s, after Request_Stop at t=6s) - NON-PENETRATION AT REST: the
 // safety invariant players actually see (idle NPCs must not clip through
 // each other). With the inward drive gone, PushApart converges geometrically
 // (>= 70% of remaining pair overlap per frame, and it runs on idle agents
-// too — no Walking requirement), so a ~1.5cm residual is gone within a
+// too - no Walking requirement), so a ~1.5cm residual is gone within a
 // handful of frames; 1s of settling is orders of magnitude more than needed.
-// All 10 pairs must then satisfy PairSep >= _Radius * 2 (= 84cm) — the
-// Gate_03_Separation_Addendum.md §8 "final positions" criterion, asserted
+// All 10 pairs must then satisfy PairSep >= _Radius * 2 (= 84cm) - the
+// Gate_03_Separation_Addendum.md Sec.8 "final positions" criterion, asserted
 // where the resolver actually guarantees it.
 //
 // If a SETTLED pair ever reads below 84cm, that is a real resolver defect.
@@ -48,16 +48,16 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
     private const float TimeoutSec = 6.0;
     private const float SettleSec = 7.0;                // TimeoutSec + 1s of drive-free settling
     private const float ArrivalWindow = 200.0;
-    private const float MinPairwiseSep = 84.0;          // _Radius * 2 — zero overlap, asserted AT REST
+    private const float MinPairwiseSep = 84.0;          // _Radius * 2 - zero overlap, asserted AT REST
     private const float MinPairwiseSepPressing = 61.0;  // 84 - 23cm derived press equilibrium (see banner)
 
     // PushApart's fixed point IS the contact distance, approached from BELOW and never overshot: it
     // only pushes while Dist < CombinedRadius, and its resolve factor is 0.7 (< 1), so a settled pair
     // converges to exactly 84.0 asymptotically. A strict `>= 84.0` on a float is therefore an
-    // unsatisfiable comparison against that asymptote — a settled pair reads 83.999827, i.e. 1.7
+    // unsatisfiable comparison against that asymptote - a settled pair reads 83.999827, i.e. 1.7
     // MICRONS short. This tolerance admits the asymptote and nothing else: it is a thousandth of the
-    // 23cm press-equilibrium bound and one part in 84,000 of a body. Any real interpenetration — a
-    // disabled or regressed PushApart, agents genuinely clipping — is orders of magnitude larger and
+    // 23cm press-equilibrium bound and one part in 84,000 of a body. Any real interpenetration - a
+    // disabled or regressed PushApart, agents genuinely clipping - is orders of magnitude larger and
     // still fails hard. This is NOT slack to make a red test green; it is the difference between
     // "touching" and "overlapping".
     private const float ContactToleranceCm = 0.1;
@@ -74,7 +74,7 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
 
         // Kick the navmesh: AutoTests_CkTests_Level has the fixture but the bake is lazy.
-        // Each spawned agent issues a MoveTo → FindPath; the deferred-request queue holds
+        // Each spawned agent issues a MoveTo -> FindPath; the deferred-request queue holds
         // those until the rebuild completes (~10ms in practice).
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
 
@@ -115,13 +115,13 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
         {
             const auto DistToCentre = float((Loc - Centre).Size());
             Assert_True(DistToCentre <= ArrivalWindow,
-                f"agent failed to reach within {ArrivalWindow}cm of centre — final {DistToCentre}cm");
+                f"agent failed to reach within {ArrivalWindow}cm of centre - final {DistToCentre}cm");
         }
         DoAssertPairwiseSeparation(Finals, MinPairwiseSepPressing, "while pressing");
 
         // Cut the inward drive: Walking -> Idle, desired velocity zeroed. The VelocityBridge has no
-        // Walking requirement, so it ships that zero and the agents actually halt. PushApart — which
-        // also runs on idle agents — now owns the cluster and de-penetrates it geometrically.
+        // Walking requirement, so it ships that zero and the agents actually halt. PushApart - which
+        // also runs on idle agents - now owns the cluster and de-penetrates it geometrically.
         for (auto Agent : _Agents)
         {
             utils_crowd_agent::Request_Stop(Agent);
@@ -140,7 +140,7 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
         {
             const auto DistToCentre = float((Loc - Centre).Size());
             Assert_True(DistToCentre <= ArrivalWindow,
-                f"agent drifted outside {ArrivalWindow}cm of centre after Stop — final {DistToCentre}cm");
+                f"agent drifted outside {ArrivalWindow}cm of centre after Stop - final {DistToCentre}cm");
         }
         DoAssertPairwiseSeparation(Finals, MinPairwiseSep, "at rest");
 
@@ -154,7 +154,7 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
         {
             if (ck::Is_NOT_Valid(Agent))
             {
-                FinishFailure("an agent went invalid before timeout — possible early destroy / replication issue");
+                FinishFailure("an agent went invalid before timeout - possible early destroy / replication issue");
                 return Positions;
             }
             Positions.Add(utils_transform::Get_EntityCurrentLocation(utils_transform::DoCastChecked(FCk_Handle(Agent))));
@@ -170,7 +170,7 @@ class UCk_AutoTest_Crowd_Separation_Convergence : UCk_AutoTest_Base
             {
                 const auto PairSep = float((InFinals[i] - InFinals[j]).Size());
                 Assert_True(PairSep >= InFloor - ContactToleranceCm,
-                    f"agents {i} and {j} ended within {InFloor}cm ({InPhase}) — pile-up at goal ({PairSep}cm)");
+                    f"agents {i} and {j} ended within {InFloor}cm ({InPhase}) - pile-up at goal ({PairSep}cm)");
             }
         }
     }

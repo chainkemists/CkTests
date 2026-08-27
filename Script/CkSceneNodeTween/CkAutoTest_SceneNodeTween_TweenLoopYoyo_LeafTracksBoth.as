@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE + TWEEN — AUTOMATION TEST: YOYO LOOP, LEAF TRACKS BOTH WAYS
+// CK SCENE NODE + TWEEN - AUTOMATION TEST: YOYO LOOP, LEAF TRACKS BOTH WAYS
 //============================================================================
 //
 // Yoyo-loop variant of the propagation test: a root tween yoyos once
@@ -134,9 +134,9 @@ class UCk_AutoTest_SceneNodeTween_TweenLoopYoyo_LeafTracksBoth : UCk_AutoTest_Ba
     {
         Assert_True(_TweenComplete, "Tween OnComplete must fire before final assert");
         Assert_True(_MaxRootX > SweepProofCm,
-            f"Yoyo forward leg should sweep root X past {SweepProofCm}cm (max observed: {_MaxRootX}cm) — without this, the test can't prove the yoyo went forward");
+            f"Yoyo forward leg should sweep root X past {SweepProofCm}cm (max observed: {_MaxRootX}cm) - without this, the test can't prove the yoyo went forward");
         Assert_True(_MinRootX < SweepProofCm,
-            f"Yoyo reverse leg should sweep root X back below {SweepProofCm}cm (min observed: {_MinRootX}cm) — without this, the test can't prove the yoyo reversed");
+            f"Yoyo reverse leg should sweep root X back below {SweepProofCm}cm (min observed: {_MinRootX}cm) - without this, the test can't prove the yoyo reversed");
         Assert_True(_MaxDrift < DriftToleranceCm,
             f"Leaf must track yoyo-tweened root within {DriftToleranceCm}cm on BOTH legs (max drift observed: {_MaxDrift}cm)");
 

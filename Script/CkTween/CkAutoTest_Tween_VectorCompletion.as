@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: VECTOR COMPLETION
+// CK TWEEN - AUTOMATION TEST: VECTOR COMPLETION
 //============================================================================
 //
 // Verifies the vector-tween API:
-//   1. Create a Linear vector tween (0,0,0) → (10,20,30) over 0.25s.
+//   1. Create a Linear vector tween (0,0,0) -> (10,20,30) over 0.25s.
 //   2. Bind OnComplete.
 //   3. Callback fires with FinalValue == (10,20,30).
 //   4. TweenValue_IsVector reports true on the payload value.

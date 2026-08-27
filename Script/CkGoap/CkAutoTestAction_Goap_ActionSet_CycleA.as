@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: CycleA (DependencyCycleDetection test)
+// CK GOAP - AUTOMATION TEST ACTION: CycleA (DependencyCycleDetection test)
 //============================================================================
 //
 // Sibling Action used by the DependencyCycleDetection test to construct a

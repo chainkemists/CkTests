@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: GET_ALL_TAGS_AS_CONTAINER IS EXPLICIT
+// CK ENTITY TAG - AUTOMATION TEST: GET_ALL_TAGS_AS_CONTAINER IS EXPLICIT
 //============================================================================
 //
 // Adding two gameplay tags A.B.C and X.Y registers parent FNames internally,
 // but Get_AllTagsAsContainer must return ONLY the explicitly-added tags
-// (A.B.C and X.Y) — not their parent-flattened ancestors.
+// (A.B.C and X.Y) - not their parent-flattened ancestors.
 //============================================================================
 
 class UCk_AutoTest_EntityTag_GetAllTagsAsContainerIsExplicit : UCk_AutoTest_Base

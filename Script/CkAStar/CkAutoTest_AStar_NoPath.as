@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK A-STAR — AUTOMATION TEST: NO PATH (GOAL FULLY BLOCKED)
+// CK A-STAR - AUTOMATION TEST: NO PATH (GOAL FULLY BLOCKED)
 //============================================================================
 //
 // Verifies the failure path:
 //   1. Add a 5x5 search from (0,0) to (4,4).
 //   2. Block every cell adjacent to the goal so no approach is possible:
-//      (3,4), (4,3), (3,3) — three blockers wall off the (4,4) corner.
+//      (3,4), (4,3), (3,3) - three blockers wall off the (4,4) corner.
 //   3. Request_StartSearch.
 //   4. Poll until terminal.
 //   5. Status == Failed; Get_Path is empty.

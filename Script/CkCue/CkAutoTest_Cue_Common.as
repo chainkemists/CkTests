@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CUE — AUTOMATION TEST: SHARED CUE SUBCLASSES + TAGS
+// CK CUE - AUTOMATION TEST: SHARED CUE SUBCLASSES + TAGS
 //============================================================================
 //
 // Minimal cue subclasses for the CkCue first-coverage seed. Each subclass
@@ -14,7 +14,7 @@
 // AutoTest level loads after that window, so tag-to-class resolution
 // is complete by the time tests fire.
 //
-// These cue subclasses are NOT shared with the gym set — separate tags
+// These cue subclasses are NOT shared with the gym set - separate tags
 // avoid coupling test outcomes to gym evolution.
 //============================================================================
 
@@ -39,7 +39,7 @@ struct FCk_AutoTestCue_SpawnParams
 }
 
 //----------------------------------------------------------------------------
-// AfterOneFrame — destroyed after one frame.
+// AfterOneFrame - destroyed after one frame.
 //----------------------------------------------------------------------------
 
 class UCk_AutoTestCue_AfterOneFrame : UCk_GenericCue_EntityScript
@@ -68,7 +68,7 @@ class UCk_AutoTestCue_AfterOneFrame : UCk_GenericCue_EntityScript
 }
 
 //----------------------------------------------------------------------------
-// Persistent — stays alive indefinitely.
+// Persistent - stays alive indefinitely.
 //----------------------------------------------------------------------------
 
 class UCk_AutoTestCue_Persistent : UCk_GenericCue_EntityScript
@@ -97,7 +97,7 @@ class UCk_AutoTestCue_Persistent : UCk_GenericCue_EntityScript
 }
 
 //----------------------------------------------------------------------------
-// Timed — auto-destroys after _LifetimeDuration seconds.
+// Timed - auto-destroys after _LifetimeDuration seconds.
 //----------------------------------------------------------------------------
 
 class UCk_AutoTestCue_Timed : UCk_GenericCue_EntityScript

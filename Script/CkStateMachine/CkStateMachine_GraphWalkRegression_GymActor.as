@@ -1,5 +1,5 @@
 // ============================================================================
-// SM GRAPH-WALK GHOST-TASK REGRESSION — GYM ACTOR
+// SM GRAPH-WALK GHOST-TASK REGRESSION - GYM ACTOR
 // ============================================================================
 //
 // Driver actor for CkStateMachine_TestStates_GraphWalkRegression.as. On
@@ -59,12 +59,12 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
     UPROPERTY(ExposeOnSpawn)
     float32 FirstVerifyDelay = 0.2f;
 
-    // Second Verify pass — confirms the polled-false conditions actually
+    // Second Verify pass - confirms the polled-false conditions actually
     // block transitions across frames (not just trivially zero on frame 0).
     UPROPERTY(ExposeOnSpawn)
     float32 SecondVerifyDelay = 0.8f;
 
-    // Station entity handle — the BP_DemoDisplay reads the
+    // Station entity handle - the BP_DemoDisplay reads the
     // FCkGym_Station_TitleAndDescription fragment off this entity. Set by
     // the PlayerController's Request_StartGraphWalkRegression before
     // FinishSpawningActor so the actor can push PASS/FAIL straight to the
@@ -97,7 +97,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
 
     // Per-label counters incremented by each state's EnterExitOnly task via
     // SmGraphWalk_Regression::Increment. Individual fields rather than a
-    // TMap — AS TMap ergonomics are limited, and there are only ten labels
+    // TMap - AS TMap ergonomics are limited, and there are only ten labels
     // (5 top + 5 sub, of which each terminal is a Request_Stop channel).
     UPROPERTY() int32 Counter_TopA = 0;
     UPROPERTY() int32 Counter_TopB = 0;
@@ -171,7 +171,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
         if (HasAuthority() == false)
         { return; }
 
-        // Reset counters BEFORE constructing the SMs — graph-walk runs
+        // Reset counters BEFORE constructing the SMs - graph-walk runs
         // synchronously inside Add(), so any late reset would zero out the
         // very signal we're trying to observe.
         Reset_Counters();
@@ -211,7 +211,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
         TopEntity = FCk_Handle(InEntityScriptHandle);
         TopEntity.Set_DebugName(n"TopEntity");
 
-        // Top-level linear SM — exercises the non-hierarchical graph-walk
+        // Top-level linear SM - exercises the non-hierarchical graph-walk
         // path. The walk runs synchronously inside Add() and instantiates
         // temp entities for every reachable state/condition/task before
         // this call returns.
@@ -229,7 +229,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
         SubEntity = FCk_Handle(InEntityScriptHandle);
         SubEntity.Set_DebugName(n"SubEntity");
 
-        // Sub-SM variant — parent wrapper state holds UCk_SmTask_SubStateMachine
+        // Sub-SM variant - parent wrapper state holds UCk_SmTask_SubStateMachine
         // pointing at Sub_State_A. Exercises the hierarchical code path in the
         // graph-walk processor independently from the top-level case.
         SubSmParentHandle = UCk_Utils_StateMachine_UE::Add(
@@ -257,7 +257,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
         auto Pass = EvaluatePass();
 
         // A second-pass failure after a first-pass success would indicate
-        // the polled-false conditions didn't truly block transitions — a
+        // the polled-false conditions didn't truly block transitions - a
         // different bug than the ghost-walk regression, but still worth
         // surfacing.
         if (FirstVerifyFailed)
@@ -319,7 +319,7 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
         auto TraceColor = InPass ? FLinearColor::Green : FLinearColor::Red;
         auto TraceDuration = InPass ? 5.0f : 10.0f;
 
-        // In-world cube indicator — quick glance while walking the gym.
+        // In-world cube indicator - quick glance while walking the gym.
         ResultText.SetText(ck::Text(f"{StatusLabel} ({InPassLabel})"));
         ResultText.SetTextRenderColor(StatusColor);
         DetailText.SetText(ck::Text(InReport));
@@ -328,14 +328,14 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
         ck::Trace(f"[SmGraphWalkRegression] {StatusLabel} {InPassLabel}: {InReport}",
             n"SmRegression", TraceDuration, TraceColor);
 
-        // BP_DemoDisplay panel — write the FCkGym_Station_TitleAndDescription
+        // BP_DemoDisplay panel - write the FCkGym_Station_TitleAndDescription
         // fragment directly onto the station entity. (Can't use
         // CkGym_Common::Update_StationDisplay since that expects an entity
-        // whose LIFETIME OWNER is the station — we only have the station
+        // whose LIFETIME OWNER is the station - we only have the station
         // handle itself.)
         if (ck::IsValid(StationHandle))
         {
-            // Nested quotes don't interpolate inside f"" — build the report
+            // Nested quotes don't interpolate inside f"" - build the report
             // in a local first so FName lookups stay outside the f-string.
             auto TopA_ = Get_Counter(n"TopA");
             auto TopB_ = Get_Counter(n"TopB");
@@ -350,12 +350,12 @@ class ACk_SmTest_GraphWalkRegression_GymActor : AActor
             auto TopSm_ = Get_SmStatus(TopSmHandle);
             auto SubSm_ = Get_SmStatus(SubSmParentHandle);
 
-            auto Title = f"GRAPH-WALK REGRESSION — {StatusLabel} ({InPassLabel})";
+            auto Title = f"GRAPH-WALK REGRESSION - {StatusLabel} ({InPassLabel})";
 
             // Setup summary (shown every pass): two 5-state linear SMs A->E
             // whose transitions are all gated by a polled-false condition.
             // The real SMs should never advance past A. State E's task
-            // calls Request_Stop on its owning SM — so if the framework
+            // calls Request_Stop on its owning SM - so if the framework
             // mistakenly fires task enter-bodies during SM construction,
             // the real SMs get stopped immediately.
             auto Setup =

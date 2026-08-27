@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK UNREAL COMPONENT — AUTOMATION TEST: TryGet_HandleByType returns invalid for missing type
+// CK UNREAL COMPONENT - AUTOMATION TEST: TryGet_HandleByType returns invalid for missing type
 // Adding a UStaticMeshComponent does not satisfy a TryGet for UPointLightComponent.
 
 class UCk_AutoTest_UnrealComponent_TryGetHandleByTypeNotFound : UCk_AutoTest_Base

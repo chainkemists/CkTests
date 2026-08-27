@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: RE-ENTRANT PLACE DURING OnObjectPlaced BROADCAST
+// CK GRID - AUTOMATION TEST: RE-ENTRANT PLACE DURING OnObjectPlaced BROADCAST
 //============================================================================
 //
 // Lifecycle/ordering hardening: calling Request_Place re-entrantly from inside
@@ -12,7 +12,7 @@
 //   2. The handler fires synchronously for A. The FIRST time it fires, it
 //      re-entrantly Request_Place object B (1x1) at (6,5), and asserts that
 //      INSIDE the handler Get_OccupantAt(grid,(6,5)) is NOT yet B (occupancy is
-//      deferred — the re-entrant placement's cell isn't stamped synchronously).
+//      deferred - the re-entrant placement's cell isn't stamped synchronously).
 //   3. On a later tick, assert BOTH A@(5,5) and B@(6,5) are occupied.
 //      FinishSuccess.
 //============================================================================

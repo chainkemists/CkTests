@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: A BLOCKED GAP IS DETOURED, NOT PRESSED
+// CK CROWD - AUTOMATION TEST: A BLOCKED GAP IS DETOURED, NOT PRESSED
 //
 // Two-phase planning (_PlanAroundStandingCrowds): a stationary agent parked in
 // a 110cm gap paints markup that the STRICT phase treats as impassable, so a
@@ -20,7 +20,7 @@ class UCk_AutoTest_Crowd_NarrowGap_BlockedDetours : UCk_AutoTest_Base
 
     private const float GapHalfWidthUu = 55.0;
     private const float WallHalfX = 50.0;
-    private const float WallHalfY = 300.0;      // slab ends at |y| = 655 — the detour route
+    private const float WallHalfY = 300.0;      // slab ends at |y| = 655 - the detour route
     private const float WallHalfZ = 200.0;
     private const float ApproachX = 500.0;
     private const float MaxBlockerDriftUu = 15.0;
@@ -95,7 +95,7 @@ class UCk_AutoTest_Crowd_NarrowGap_BlockedDetours : UCk_AutoTest_Base
 
         if (_WalkerDispatched == false)
         {
-            // The blocker's disc must actually be ON the rebuilt mesh before the walker plans —
+            // The blocker's disc must actually be ON the rebuilt mesh before the walker plans
             // an unpainted blocker is invisible to the strict phase and the test measures nothing.
             if (utils_crowd_agent::Get_IsStationaryMarkupConfirmed(_Blocker) == false)
             { return; }
@@ -137,7 +137,7 @@ class UCk_AutoTest_Crowd_NarrowGap_BlockedDetours : UCk_AutoTest_Base
         FinishSuccess();
     }
 
-    // Tests share one PIE world and run seconds apart — GC teardown is far too late for a navmesh
+    // Tests share one PIE world and run seconds apart - GC teardown is far too late for a navmesh
     // carve, so the slabs come down on every exit path including the engine TimeLimit one.
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)

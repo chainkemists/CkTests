@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: DISJOINT GRIDS HAVE NO INTERSECTIONS
+// CK GRID - AUTOMATION TEST: DISJOINT GRIDS HAVE NO INTERSECTIONS
 //============================================================================
 //
 // Verifies that two grids placed far apart return zero intersecting cells:
@@ -10,7 +10,7 @@
 //   3. Get_IntersectingCells(A, B) returns an empty array.
 //
 // Catches the regression where the spatial query returns false-positive
-// intersections — game code that drives placement off this query (e.g.
+// intersections - game code that drives placement off this query (e.g.
 // inventory snap, tile-based placement validation) would otherwise let
 // disjoint grids look like they overlap.
 //

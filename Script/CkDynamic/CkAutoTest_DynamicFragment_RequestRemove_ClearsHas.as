@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — AUTOMATION TEST: Request_Remove clears Has_Fragment
+// CK DYNAMIC - AUTOMATION TEST: Request_Remove clears Has_Fragment
 //============================================================================
 //
 // Pins the remove side of the dynamic-fragment lifecycle: after Add then

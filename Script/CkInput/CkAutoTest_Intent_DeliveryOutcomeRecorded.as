@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE ROW SAYS WHAT THE ROUTER DID
+// CK INTENT - AUTOMATION TEST: THE ROW SAYS WHAT THE ROUTER DID
 //============================================================================
 //
 // A record of presses without their fate is ambiguous in exactly the way that
@@ -11,7 +11,7 @@
 // against the SAME source in the SAME session:
 //
 //   - a key a layer captures with Consume is recorded ConsumedByLayer, and the
-//     row names THAT layer — not merely "someone consumed it";
+//     row names THAT layer - not merely "someone consumed it";
 //   - a key no layer captures walks off the bottom and is recorded
 //     PassedThrough.
 //

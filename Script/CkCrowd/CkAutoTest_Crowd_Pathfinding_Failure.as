@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK CROWD — AUTOMATION TEST: PATHFINDING FAILURE
+// CK CROWD - AUTOMATION TEST: PATHFINDING FAILURE
 //============================================================================
 //
 // Verifies the CkNavigation API correctly surfaces a failed path query:
 //   1. Add a Transform feature so the processor can resolve start location.
-//   2. Bind OnPathFailed → expect signal with reason EndProjectFailed.
-//   3. Issue Request_FindPath to (99999, 99999, 99999) — guaranteed off-mesh.
+//   2. Bind OnPathFailed -> expect signal with reason EndProjectFailed.
+//   3. Issue Request_FindPath to (99999, 99999, 99999) - guaranteed off-mesh.
 //   4. Assert the OnPathFailed handler fires with the expected reason.
 //
 // Robust to test-map setup: failure path doesn't depend on the navmesh having
@@ -87,7 +87,7 @@ class ACk_AutoTest_Crowd_Pathfinding_Failure_Actor : ACk_AutoTestRunner
     TArray<FString> Get_ExpectedLogErrors() const
     {
         TArray<FString> Out;
-        // Plain substring match (AddExpectedErrorPlain), not regex — the harness
+        // Plain substring match (AddExpectedErrorPlain), not regex - the harness
         // checks Contains on each pattern. The actual warning is:
         //   "FindPathSync: [End] projection FAILED. ..."
         Out.Add("FindPathSync: [End] projection FAILED");

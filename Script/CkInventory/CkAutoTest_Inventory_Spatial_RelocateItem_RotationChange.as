@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: SPATIAL RELOCATE ITEM — ROTATION CHANGE
+// CK INVENTORY - AUTOMATION TEST: SPATIAL RELOCATE ITEM - ROTATION CHANGE
 //============================================================================
 //
 // Pins that Request_RelocateItem updates an item's rotation when the new
@@ -13,12 +13,12 @@
 //   1. Add Sword via Request_AddItemByDefinition (3x1, auto-placed at the
 //      first available cell with the default rotation).
 //   2. Capture its starting rotation.
-//   3. Relocate to (0,0) with ECk_CardinalRotation::Quarter (90°). A 3x1
-//      sword rotated 90° occupies 3 vertical cells at (0,0)-(0,2); fits
+//   3. Relocate to (0,0) with ECk_CardinalRotation::Quarter (90 deg). A 3x1
+//      sword rotated 90 deg occupies 3 vertical cells at (0,0)-(0,2); fits
 //      in a 5x5 grid.
 //   4. Assert Result::Success and that Get_ItemPlacementRotation == Quarter.
 //
-// Uses Sword (Dimensions=3x1, Tags-only) — non-Stackable, sidesteps the
+// Uses Sword (Dimensions=3x1, Tags-only) - non-Stackable, sidesteps the
 // Stackable framework warning.
 //============================================================================
 

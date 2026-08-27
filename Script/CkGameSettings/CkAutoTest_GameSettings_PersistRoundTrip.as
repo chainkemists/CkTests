@@ -20,7 +20,7 @@ class UCk_AutoTest_GameSettings_PersistRoundTrip : UCk_AutoTest_Base
         auto LiveProvider = Cast<UCk_GameSettings_IniStorageProvider_UE>(utils_game_settings::Get_StorageProvider());
         if (LiveProvider == nullptr)
         {
-            FinishFailure("The subsystem's storage provider is not the ini provider — this test asserts the ini file round trip");
+            FinishFailure("The subsystem's storage provider is not the ini provider - this test asserts the ini file round trip");
             return;
         }
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: CLEAR THEN PLACE SAME TICK
+// CK GRID - AUTOMATION TEST: CLEAR THEN PLACE SAME TICK
 //============================================================================
 //
 // Lifecycle/ordering hardening: a same-tick Request_Remove(A) + Request_Place(B)

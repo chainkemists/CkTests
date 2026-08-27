@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE TRACE — AUTOMATION TEST: REPORTED INTERLEAVES WITHOUT TRUNCATING
+// CK PROBE TRACE - AUTOMATION TEST: REPORTED INTERLEAVES WITHOUT TRUNCATING
 //============================================================================
 //
 // Same layout as the Blocking test (probe A -> baked cube -> probe B) under the
@@ -9,7 +9,7 @@
 // AND still cuts the enemy standing behind it.
 //
 //   1. Three results, ordered by fraction: A(Probe), cube(World), B(Probe).
-//   2. Nothing is hidden — probe B is present AND received its overlap ping,
+//   2. Nothing is hidden - probe B is present AND received its overlap ping,
 //      which is exactly what Blocking suppresses.
 //============================================================================
 
@@ -116,7 +116,7 @@ class UCk_AutoTest_ProbeTrace_Reported_WorldAndProbesInterleaveUntruncated : UCk
 
         auto Hits = utils_probe_trace::Request_MultiLineTrace(_SelfHandle, Settings);
 
-        Assert_Equals_Int(Hits.Num(), 3, "Reported should return both probes AND the wall — nothing truncated");
+        Assert_Equals_Int(Hits.Num(), 3, "Reported should return both probes AND the wall - nothing truncated");
 
         if (Hits.Num() == 3)
         {
@@ -150,7 +150,7 @@ class UCk_AutoTest_ProbeTrace_Reported_WorldAndProbesInterleaveUntruncated : UCk
 
         Assert_Equals_Int(_NearBeginCount, 1, "The near probe receives exactly one BeginOverlap");
         Assert_Equals_Int(_FarBeginCount, 1,
-            "The probe behind the wall STILL receives its ping under Reported — this is what Blocking suppresses");
+            "The probe behind the wall STILL receives its ping under Reported - this is what Blocking suppresses");
 
         Do_Cleanup();
         FinishSuccess();

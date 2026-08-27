@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: REQUIRE-CONNECTED POSITIVE / TRIVIAL EDGES
+// CK GRID - AUTOMATION TEST: REQUIRE-CONNECTED POSITIVE / TRIVIAL EDGES
 //============================================================================
 //
 // CkAutoTest_Grid_RequireConnectedFootprint already pins the NEGATIVE branch:

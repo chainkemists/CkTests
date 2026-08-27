@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: CONSTRAINT REAPS ITSELF WHEN THE OTHER BODY DIES
+// CK JOLT - AUTOMATION TEST: CONSTRAINT REAPS ITSELF WHEN THE OTHER BODY DIES
 //============================================================================
 //
 // A JPH constraint referencing a freed body is undefined behavior, so the
 // liveness reaper must remove the constraint the same frame either referenced
-// body begins destruction — and then destroy the now-inert constraint entity.
+// body begins destruction - and then destroy the now-inert constraint entity.
 // Here two Dynamic balls are linked by a Distance constraint hosted on ball A;
 // destroying ball B's ENTITY must (a) not crash the step, and (b) leave the
 // constraint handle invalid within a few frames. Ball A must survive.
@@ -60,7 +60,7 @@ class UCk_AutoTest_CkJolt_Constraint_ReapsWhenOtherBodyDies : UCk_AutoTest_Base
         auto Params = FCk_Fragment_JoltBody_ParamsData(ECk_JoltBody_ShapeSource::ExplicitShape);
         Params.Set_ShapeDimensions(Shape);
         Params.Set_MotionType(ECk_MotionType::Dynamic);
-        Params.Set_GravityFactor(0.0);   // free-floating pair — the test is lifecycle, not dynamics
+        Params.Set_GravityFactor(0.0);   // free-floating pair - the test is lifecycle, not dynamics
         utils_jolt_body::Add(Entity, Params);
 
         return Entity;
@@ -94,7 +94,7 @@ class UCk_AutoTest_CkJolt_Constraint_ReapsWhenOtherBodyDies : UCk_AutoTest_Base
 
         if (_FramesAfterKill > 10)
         {
-            FinishFailure("Constraint entity still alive 10 frames after its other body died — the liveness reap did not fire");
+            FinishFailure("Constraint entity still alive 10 frames after its other body died - the liveness reap did not fire");
         }
     }
 }

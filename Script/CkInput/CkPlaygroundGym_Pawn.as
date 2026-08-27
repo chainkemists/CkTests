@@ -1,23 +1,23 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT PLAYGROUND GYM — PAWN
+// CK INPUT PLAYGROUND GYM - PAWN
 //============================================================================
 //
 // The drivable body of the playground, controlled Diablo-style: a fixed top-down
 // camera that only follows the pawn, WASD movement in screen space, and the mouse
-// cursor as the aim pointer — the character always faces it. The camera never
+// cursor as the aim pointer - the character always faces it. The camera never
 // takes mouse or stick input.
 //
 // On ready it adds the camera director on the pawn entity (whose actor-synced
 // transform is the camera anchor, so the framing follows the pawn; the view sink
-// is this pawn's UCk_CameraComponent — the framework does not create one), pushes
+// is this pawn's UCk_CameraComponent - the framework does not create one), pushes
 // the top-down layer as the one and only view, spawns the floor, spawns the
 // dummy, raises the combat kit's readouts, and emits the binding self-check
 // below.
 //
 // ADefaultPawn has no in-game mesh, so the body is assembled here: a cylinder trunk between two sphere caps
-// (a ~90cm capsule silhouette) plus a forward nose cube for facing. Visual only — no collision.
+// (a ~90cm capsule silhouette) plus a forward nose cube for facing. Visual only - no collision.
 //
 // BINDING SELF-CHECK. Two shapes are emitted on spawn and are expected to behave on a fixed schedule: an
 // immediate-mode DebugDraw sphere that expires on its own after 5s, and a persistent PMG child entity that
@@ -29,19 +29,19 @@
 //----------------------------------------------------------------------------
 //
 // Everything below the aim update is a CONSUMER of CkIntent, not an extension of
-// it. The matcher grades exactly eight things — a light tap, a light charge, the
-// same pair on the heavy button, and four combos — and every chain, buffer,
+// it. The matcher grades exactly eight things - a light tap, a light charge, the
+// same pair on the heavy button, and four combos - and every chain, buffer,
 // charge and special a viewer watches happen is game state owned by this file,
 // driven by polling those completions. That is the shape a real consumer has and
 // the shape the module's doc prescribes: poll the completion FRAME, act once,
-// never branch on a latched phase (CkIntent/CLAUDE.md anti-pattern 15).
+// never branch on a latched phase (the CkIntent docs anti-pattern 15).
 //
 // ONE MACHINE, FIFTEEN STATES. Idle, three light steps, three heavy steps, two
 // charges, two specials and four combos all live in one `_State`. A second flag
 // mirroring "am I attacking" would be a second answer to a question that has one.
 //
 // THE ATTACK LENGTHS ARE THIS FILE'S OWN NUMBERS. No notation quotes them, the
-// matcher never sees them, and nothing is graded against them — they are how long
+// matcher never sees them, and nothing is graded against them - they are how long
 // this kit's swings last. They are UNEQUAL on purpose: a chain whose third hit
 // visibly outlives its first reads as three moves rather than one repeated.
 //
@@ -52,20 +52,20 @@
 // and the swings are never tracked. The CHAIN WINDOW is everything after the
 // wind-up, the buffer answers the PRESS row rather than the completion, and a
 // step that expires unbuffered leaves a short grace window where a late tap
-// still chains (the wind-up/attack/wind-down model). Four persistent shapes have no such clock — the charge
-// accumulator, the buffered marker, the block plate, and the two readout lines —
+// still chains (the wind-up/attack/wind-down model). Four persistent shapes have no such clock - the charge
+// accumulator, the buffered marker, the block plate, and the two readout lines
 // and those are the ones this file owns and destroys.
 //
 // COMBOS ARE PHASE-EXEMPT, LIKE THE SPECIALS, AND FOR THE SAME REASON: the
 // sequence the player already produced WAS the wind-up, so the strike comes out
 // on the frame the completion is read. A combo also SUPERSEDES whatever the
-// machine was doing — it clears the chain step, its buffer and its grace window
-// — because a combo is what the player meant by the presses a chain would
+// machine was doing - it clears the chain step, its buffer and its grace window
+// - because a combo is what the player meant by the presses a chain would
 // otherwise have read one at a time.
 //
 // THE CHARGE ACCUMULATOR IS DISPLAY, AND THE CODE SAYS SO WHERE IT READS IT. It
-// is driven by the RECORD's held rows — the physical fact, which keeps counting
-// through anything — and it never grades an outcome. The matcher's accumulator is
+// is driven by the RECORD's held rows - the physical fact, which keeps counting
+// through anything - and it never grades an outcome. The matcher's accumulator is
 // the policy-applied count, it is not readable, and a consumer that graded from
 // its own timer would agree with the module right up until the frame it mattered
 // (anti-pattern 23). The RELEASE that fires a special is read the same way: the
@@ -73,7 +73,7 @@
 //
 // PMG HAS NO SIZE MUTATION, so a shape that grows or follows the pawn is a
 // persistent entity re-transformed every tick through its own Transform fragment
-// (CkPmg/Claude.md, "Pattern: live-tracking overlay").
+// (the CkPmg docs, "Pattern: live-tracking overlay").
 //
 // THE MOUSE BUTTONS ARE UNPROVEN THROUGH THIS STACK. Nothing upstream has ever
 // carried a real LeftMouseButton event to a matcher, so the readouts render with
@@ -89,14 +89,14 @@
 // spawn point (UCk_EntityScript_PlaygroundGym_Enemy) and tests every swing
 // against it. THE DRAWN SHAPE IS THE HITBOX: the swing arms a hit window at the
 // shape's own world position for the shape's own lifetime, tested every tick as
-// a planar distance from that centre — its extent plus a hand's-width of padding
-// — and it lands at most once. A shape the player can watch standing over the
+// a planar distance from that centre - its extent plus a hand's-width of padding
+// - and it lands at most once. A shape the player can watch standing over the
 // dummy MUST connect, however late in the step the two came together; the old
 // at-spawn-only test missed exactly that, and an arc test is not needed at all
 // once the test is centred on the shape rather than on the pawn.
 //
 // BLOCK IS A HELD SET, NOT A MOVE, AND THAT IS THE WHOLE POINT. Q is minted into
-// the button map so the record carries a row for it, and no move table names it —
+// the button map so the record carries a row for it, and no move table names it
 // so the block is read off the newest row's held set rather than graded by the
 // matcher. Eight moves that are notation compiled into a set, beside one state
 // that is a fact about a row: the contrast is the exercise, and the deleted sekiro
@@ -110,7 +110,7 @@
 // held read look like a move with priority rules.
 //
 // THE PAWN HAS NO HEALTH. A projectile that reaches the pawn is answered with
-// STRUCK, BLOCKED or PARRIED and nothing else — no damage, no state change, no
+// STRUCK, BLOCKED or PARRIED and nothing else - no damage, no state change, no
 // stagger. The dummy renders nothing at the point of resolution; the verdict is
 // a fact about this pawn's input, it is drawn on this pawn, and the dummy only
 // ACTS on the answer handed back (a parried shot flies home).
@@ -155,7 +155,7 @@ namespace playground_gym_kit
     //------------------------------------------------------------------------
     //
     // Two speeds, polled every tick off Shift: the sprint is a real locomotion
-    // state, not a flag the combos invent — the sprint attacks exist only while
+    // state, not a flag the combos invent - the sprint attacks exist only while
     // both W and Shift are down, and a sprint that did not MOVE faster would
     // make that condition invisible. Walk is half of ADefaultPawn's stock 1200,
     // which read as a sprint at this framing.
@@ -197,13 +197,13 @@ namespace playground_gym_kit
     // no strike, and the hit lands when the strike is visible rather than on the
     // press. The wind-up is ANIMATION, not an input gate: the chain window is the
     // whole step from its entry row, because a double-click's second press lands
-    // ~50-100ms after the first click's release — inside any wind-up measured
-    // from the entry the release caused — and the maintainer's ruling is that it
+    // ~50-100ms after the first click's release - inside any wind-up measured
+    // from the entry the release caused - and the maintainer's ruling is that it
     // chains. A press completing just after the step expired still chains through
     // the grace window instead of resetting to step 1: "almost chained" has to
     // read as a chain, not as a fresh opener.
     //
-    // Specials have no wind-up — the charge the player just sat through WAS the
+    // Specials have no wind-up - the charge the player just sat through WAS the
     // wind-up. Neither do combos: the sequence was.
 
     const float32 k_Phase_WindUpFraction = 0.20f;
@@ -239,7 +239,7 @@ namespace playground_gym_kit
 
     // The sprint attacks are AREA moves: a flat ring around the pawn rather than
     // a box along the aim, because an attack thrown at a run has no aim to speak
-    // of — the commitment is the sprint, and the payoff is everything nearby.
+    // of - the commitment is the sprint, and the payoff is everything nearby.
     const float32 k_Extent_SprintAoE = 300.0f;
 
     //------------------------------------------------------------------------
@@ -278,7 +278,7 @@ namespace playground_gym_kit
     const int32   k_ChargeRings    = 16;
     const float32 k_ChargeHeight   = 50.0f;
 
-    // How long a charge takes to LOOK full — display only, and deliberately a
+    // How long a charge takes to LOOK full - display only, and deliberately a
     // different number from the move table's hold=10 verdict point: the verdict
     // says "this press is a hold", this says "the hold has ripened". The counter
     // quotes it and the sphere saturates at it; nothing grades against it.
@@ -288,7 +288,7 @@ namespace playground_gym_kit
     // The block plate
     //------------------------------------------------------------------------
     //
-    // A translucent plate held out along the ACTOR FORWARD — the cursor aim, so
+    // A translucent plate held out along the ACTOR FORWARD - the cursor aim, so
     // the block covers the direction the player is looking at, exactly like the
     // swings do. A YZ plane's normal runs along the shape's own forward, so the
     // actor rotation is what turns the plate to face outward.
@@ -319,7 +319,7 @@ namespace playground_gym_kit
     const float32 k_BeatHeight    = 30.0f;
 
     // A projectile resolving is the same kind of "right now", drawn with the same
-    // primitive on the same schedule — at the PLATE when it was blocked or
+    // primitive on the same schedule - at the PLATE when it was blocked or
     // parried, on the pawn's own body when it was not.
     const int32   k_ProjectileBeatTicks  = 12;
     const float32 k_ProjectileBeatRadius = 42.0f;
@@ -328,7 +328,7 @@ namespace playground_gym_kit
     // long Q has been down, and a run inside this window is a read of the
     // incoming shot rather than a wall the player was already hiding behind. Q
     // stays verdict-free in the grammar (no move terminates on it), so the press
-    // registers the row it lands — the window is judged at IMPACT, adding zero
+    // registers the row it lands - the window is judged at IMPACT, adding zero
     // latency to the block itself. ~133ms; the number to steer for parry feel.
     const int32 k_ParryWindowFrames = 8;
 
@@ -342,7 +342,7 @@ namespace playground_gym_kit
     // The buffered marker
     //------------------------------------------------------------------------
     //
-    // The queued input, made visible while it waits — the sekiro station's
+    // The queued input, made visible while it waits - the sekiro station's
     // precedent, shrunk to a hint over the pawn's head. Small and dim on purpose:
     // it is a promise about the next attack, not an attack.
 
@@ -362,9 +362,9 @@ namespace playground_gym_kit
     // The block is steel blue and belongs to neither family, because it is not a
     // move: a plate in either family's colour would read as a third attack.
     //
-    // The four combos are OFF both family ramps for the same reason — a combo is
+    // The four combos are OFF both family ramps for the same reason - a combo is
     // not a louder light or a louder heavy, it is the third thing the kit can be
-    // asked for — and they are three different hues rather than three alphas of
+    // asked for - and they are three different hues rather than three alphas of
     // one, because which combo landed is the whole question a viewer has about
     // them.
 
@@ -400,17 +400,17 @@ namespace playground_gym_kit
     //------------------------------------------------------------------------
     //
     // Two lines lying FLAT ON THE FLOOR behind the character (the camera side),
-    // re-anchored every tick — PMG has no parenting, so a shape that follows
-    // something is a persistent entity whose transform is driven (CkPmg/Claude.md,
+    // re-anchored every tick - PMG has no parenting, so a shape that follows
+    // something is a persistent entity whose transform is driven (the CkPmg docs,
     // "Pattern: live-tracking overlay").
     //
     // Floor text is the right surface for this camera: at -65 a ground plate is
     // viewed nearly face-on, where an upright plate pays the whole view angle and
     // flat XY-authored text reads from BELOW only (wireframe glyphs are visible
-    // from both sides but readable from exactly one — the other side is the mirror
+    // from both sides but readable from exactly one - the other side is the mirror
     // the first two attempts hit). The transform is therefore derived, not
     // authored: take the YZ plate orientation that reads correctly facing the
-    // camera, then tip its top edge away from the viewer until it lies flat — the
+    // camera, then tip its top edge away from the viewer until it lies flat - the
     // readable side stays the visible side through the whole tilt, so no flip can
     // occur. That composes to FRotator(-90, CameraYaw, 0) on a YZ plate. Derived
     // off the CAMERA, never the pawn: the pawn spins with the cursor, and a label
@@ -420,7 +420,7 @@ namespace playground_gym_kit
     // because the two mouse buttons are unproven through this stack: it quotes
     // both buttons' last press frame and held run whether or not anything has ever
     // landed, so "the kit is broken" and "the button never arrived" are two
-    // different pictures. Q's held run is on the same line for the same reason —
+    // different pictures. Q's held run is on the same line for the same reason
     // a block that never rises has to be diagnosable as a dead key rather than as
     // a dead plate.
 
@@ -443,7 +443,7 @@ namespace playground_gym_kit
     const FLinearColor k_Colour_Label_Input   = FLinearColor(0.70f, 0.75f, 0.80f, 0.95f);
 
     // One colour for all four combos, because the LINE already names which one
-    // landed — the colour only has to say "this was a combo, not a chain step".
+    // landed - the colour only has to say "this was a combo, not a chain step".
     const FLinearColor k_Colour_Label_Combo   = FLinearColor(0.85f, 0.55f, 1.00f, 1.00f);
 
     const FString k_LabelText_Idle = "IDLE";
@@ -490,7 +490,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
     // The kit's own input layer and the matcher composed on it. The layer is what
     // decides which events the set is even allowed to see, so it is created here
-    // rather than inherited from anything (CkIntent/CLAUDE.md anti-pattern 16).
+    // rather than inherited from anything (the CkIntent docs anti-pattern 16).
     private FCk_Handle_InputLayer     _Layer;
     private FCk_Handle_IntentMatcher  _Matcher;
     private bool                      _SwapRequested = false;
@@ -518,10 +518,10 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
     // The current chain step's phase bookkeeping: total length (elapsed is derived
     // from it and the remaining), the record frame the step was entered on (the
-    // frame a chain press has to beat — only the step's OWN initiating press
+    // frame a chain press has to beat - only the step's OWN initiating press
     // predates it), and the swing stashed until the wind-up has been served. A
     // charge landing mid-wind-up leaves _SwingSpawned false and the strike never
-    // comes out — a cancelled attack costs no shape.
+    // comes out - a cancelled attack costs no shape.
     private float32 _StateTotalSeconds = 0.0f;
     private int32   _StepEntryFrame    = -1;
     private bool    _SwingSpawned      = true;
@@ -530,7 +530,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     private float32      _PendingSwing_Extent = 0.0f;
     private FLinearColor _PendingSwing_Colour;
 
-    // The live hit window — the drawn shape's centre and reach, counting down the
+    // The live hit window - the drawn shape's centre and reach, counting down the
     // shape's own lifetime. One at a time: a new swing replaces whatever window
     // was still open, exactly as its state replaced the old state.
     private float32 _Hitbox_SecondsRemaining = 0.0f;
@@ -571,7 +571,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         auto Cube     = Cast<UStaticMesh>(LoadObject(this, "/Engine/BasicShapes/Cube.Cube"));
         auto Mat      = Cast<UMaterialInterface>(LoadObject(this, "/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 
-        // 40cm-wide trunk 50cm tall between two 40cm caps at +/-25 → a 90cm capsule centered on the pawn origin.
+        // 40cm-wide trunk 50cm tall between two 40cm caps at +/-25 -> a 90cm capsule centered on the pawn origin.
         if (Cylinder != nullptr) { BodyMesh.SetStaticMesh(Cylinder); }
         if (Mat      != nullptr) { BodyMesh.SetMaterial(0, Mat); }
         BodyMesh.SetRelativeScale3D(FVector(0.4f, 0.4f, 0.5f));
@@ -607,7 +607,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         if (ck::Is_NOT_Valid(_PawnEntity))
         { return; }
 
-        // The pawn entity (a WithActor entity script) already carries an actor-synced transform — that IS the camera
+        // The pawn entity (a WithActor entity script) already carries an actor-synced transform - that IS the camera
         // anchor, and the POV reads it each frame, so the framing follows the pawn with no extra transform to add.
         auto PawnTransform = _PawnEntity.As_Transform();
         _Camera = utils_camera::Add(PawnTransform, FCk_Fragment_Camera_ParamsData(CameraComponent));
@@ -740,7 +740,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     }
 
     // Diablo-style facing: project the cursor ray onto the pawn's ground plane and yaw the whole actor at the
-    // hit point. The actor rotation is the aim — attacks and blocks will read the same facing the player sees.
+    // hit point. The actor rotation is the aim - attacks and blocks will read the same facing the player sees.
     private void DoAdvance_CursorAim(APlayerController InPlayerController)
     {
         FVector CursorOrigin;
@@ -811,10 +811,10 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         _Enemy = InEnemy;
     }
 
-    // No health, no state change, no interruption of the attack machine — the
+    // No health, no state change, no interruption of the attack machine - the
     // whole outcome is a beat, a line, and the VERDICT handed back. Blocked-
-    // versus-parried-versus-hit is a fact about this pawn's input — specifically
-    // how LONG the block key has been down when the shot lands — which is why the
+    // versus-parried-versus-hit is a fact about this pawn's input - specifically
+    // how LONG the block key has been down when the shot lands - which is why the
     // dummy renders nothing at resolution and asks here instead. The dummy acts
     // on the answer (a parried shot flies home), but it never re-derives it.
     int32 Request_ResolveProjectileImpact()
@@ -863,7 +863,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // same frame if a row landed between two of them.
     //
     // The step order below is the design:
-    //   1. the chain-press read, FIRST — the buffer answers the button-down the
+    //   1. the chain-press read, FIRST - the buffer answers the button-down the
     //      moment its row lands, and a charge landing later this same tick gets
     //      the last word by clearing it;
     //   2. combos and charges, so a completed sequence or hold interrupts whatever
@@ -872,10 +872,10 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     //   3. taps, the back-stop for the press read and the grace-window consumer;
     //   4. the release check, which turns a charge into its special on the frame
     //      the button actually left the record's held set;
-    //   5. the countdown — it serves the wind-up (spawning the stashed swing
+    //   5. the countdown - it serves the wind-up (spawning the stashed swing
     //      where the wind-up ends and the press's verdict is in), expires the
     //      state, and arms the grace window when nothing was buffered;
-    //   6. the hit window, LAST — it tests the live swing's own region against
+    //   6. the hit window, LAST - it tests the live swing's own region against
     //      the dummy, after the countdown so the swing a spawn just armed is
     //      tested on the tick it appeared.
     //
@@ -918,7 +918,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // Everything here is idempotent and retried from the tick: the source does not
     // exist until the local player has a controller, the button map is EMPTY on
     // the calling stack of its own Add, and a swap is deferred two groups ahead of
-    // the scan (CkIntent/CLAUDE.md anti-patterns 18 and 21).
+    // the scan (the CkIntent docs anti-patterns 18 and 21).
 
     private void DoTryCompose()
     {
@@ -958,7 +958,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         if (ck::Is_NOT_Valid(_Matcher) || _SwapRequested)
         { return; }
 
-        // A swap is atomic — one unresolved terminal rejects the whole set — so it
+        // A swap is atomic - one unresolved terminal rejects the whole set - so it
         // waits for ALL FOUR terminal keys to be minted rather than being rejected
         // for keys that only look unresolvable. Forward and sprint are two of
         // them: a chord terminal contributes EVERY button in it, so W and Shift
@@ -1067,11 +1067,11 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // see would be graded against a frame two completions old. That is also why
     // nothing below short-circuits when the kit has decided to ignore the press:
     // the module delivered it, the record carries it, and this file declines to
-    // act on it — three different statements, and only the last one is the kit's.
+    // act on it - three different statements, and only the last one is the kit's.
     //
     // The combos are handled FIRST because they supersede: only one intent can
     // complete per button per row, so two of these can only ever land together on
-    // two different buttons — and a combo is the more specific reading of the
+    // two different buttons - and a combo is the more specific reading of the
     // presses that produced it.
 
     private void DoTryRecordAttempts(FCk_Handle_IntentSampler InSampler)
@@ -1139,8 +1139,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     //------------------------------------------------------------------------
 
     // The chain intent is the PRESS, read off the record the moment its row lands
-    // — the candidate-lifecycle read played game-side: act on button-down, let the verdict re-resolve
-    // it. ANY press after the step's entry row buffers the next step immediately —
+    // - the candidate-lifecycle read played game-side: act on button-down, let the verdict re-resolve
+    // it. ANY press after the step's entry row buffers the next step immediately
     // the wind-up is animation, not an input gate ([P10-D6]'s wind-up rejection
     // swallowed the second click of a natural double-click, which lands inside
     // the wind-up the first click's release started). If the matcher later grades
@@ -1169,7 +1169,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // A combo supersedes whatever was running, exactly as a charge does, and for a
     // stronger reason: the presses a chain was reading one at a time are the same
     // presses the matcher just read as one move, so continuing the chain would be
-    // answering the same input twice. The chain bookkeeping goes with it — step,
+    // answering the same input twice. The chain bookkeeping goes with it - step,
     // buffer and grace window all belong to a chain that is no longer running.
     //
     // Phase-exempt: the sequence WAS the wind-up, so the strike is spawned on this
@@ -1186,8 +1186,8 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         _StateSecondsRemaining = playground_gym_kit::k_Duration_Combo;
 
         // The ordered combos are aimed moves and come out as a box along the aim
-        // like everything else; the sprint attacks are AREA moves — a ring around
-        // the pawn, hit-tested from the pawn — because an attack thrown at a run
+        // like everything else; the sprint attacks are AREA moves - a ring around
+        // the pawn, hit-tested from the pawn - because an attack thrown at a run
         // has no aim to speak of.
         if (InComboState == playground_gym_kit::k_State_Combo_WL ||
             InComboState == playground_gym_kit::k_State_Combo_WH)
@@ -1224,11 +1224,11 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         DoFlashBeat(true);
     }
 
-    // Idle starts a chain — or CONTINUES one, when the tap lands inside the grace
+    // Idle starts a chain - or CONTINUES one, when the tap lands inside the grace
     // window a just-expired step left behind. A completion during a step is the
     // back-stop for the press-intent read (its press has to clear the same
-    // entry-row gate). Anything else — the other family mid-chain, a press during
-    // a charge, a press during a special, a press during a combo — is delivered,
+    // entry-row gate). Anything else - the other family mid-chain, a press during
+    // a charge, a press during a special, a press during a combo - is delivered,
     // recorded and deliberately not acted on.
     private void DoOnTapLanded(int32 InFamily)
     {
@@ -1265,9 +1265,9 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         DoFlashBeat(false);
     }
 
-    // The release frame — the beat the charge exists to reach. The record no longer
+    // The release frame - the beat the charge exists to reach. The record no longer
     // reports the button held, which is a fact about THIS frame rather than a timer
-    // this file kept (CkIntent/CLAUDE.md anti-pattern 23).
+    // this file kept (the CkIntent docs anti-pattern 23).
     private void DoAdvance_ChargeRelease(int32 InLightRun, int32 InHeavyRun)
     {
         if (_State == playground_gym_kit::k_State_Charging_Light && InLightRun <= 0)
@@ -1280,7 +1280,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         { DoEnterSpecial(playground_gym_kit::k_Family_Heavy); }
     }
 
-    // A charge has no countdown of its own — it lasts as long as the player holds —
+    // A charge has no countdown of its own - it lasts as long as the player holds
     // so a zero remaining while charging is the normal state and not an expiry.
     private void DoAdvance_Countdown(float32 InDeltaSeconds, int32 InLightRun, int32 InHeavyRun)
     {
@@ -1307,7 +1307,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
         // Expiring unbuffered arms the grace window: a same-family tap landing in
         // Idle within it CONTINUES the chain rather than opening a new one. Step 3
-        // arms nothing — there is no fourth hit to be late for, and neither a
+        // arms nothing - there is no fourth hit to be late for, and neither a
         // special nor a combo arms one, because neither is a chain step.
         if (Step >= 1 && Step <= 2)
         {
@@ -1326,7 +1326,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // spawn ran, and the hit-test runs at the strike rather than at the press.
     //
     // AND ONLY ONCE THE STEP'S PRESS HAS A VERDICT. A press still down under the
-    // verdict point may yet be graded a hold, and a hold's cancel must stay free —
+    // verdict point may yet be graded a hold, and a hold's cancel must stay free
     // so the strike waits out the run rather than spawning under a press that
     // might retract it. A tap resolves at its release and the swing comes out a
     // beat late; a hold's charge supersedes the state in the completions read,
@@ -1358,7 +1358,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
             _StateSecondsRemaining);
     }
 
-    // Entering a step does NOT spawn its swing — the strike is stashed and comes
+    // Entering a step does NOT spawn its swing - the strike is stashed and comes
     // out when the wind-up has been served (DoTrySpawnPendingSwing), which is also
     // what lets a mid-wind-up charge cancel it for free.
     private void DoEnterChainStep(int32 InFamily, int32 InStep)
@@ -1461,7 +1461,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
         return playground_gym_kit::k_LabelText_Combo_WL;
     }
 
-    // Specials spawn their swing IMMEDIATELY — the charge the player sat through
+    // Specials spawn their swing IMMEDIATELY - the charge the player sat through
     // was the wind-up.
     private void DoEnterSpecial(int32 InFamily)
     {
@@ -1608,7 +1608,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // PLANAR distance from the drawn shape's own centre, every tick the shape is
     // up, landing at most once: the dummy stands on the same floor the pawn does,
     // so a height difference between two things on one slab is not a reason to
-    // miss — and a dummy walked into a standing swing is a hit, however late the
+    // miss - and a dummy walked into a standing swing is a hit, however late the
     // two came together.
     private void DoAdvance_Hitbox(float32 InDeltaSeconds)
     {
@@ -1633,7 +1633,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // The accumulator is DISPLAY ONLY: it counts the rows the RECORD reports the
     // button down for, which is the physical fact, and it never decides that
     // anything came out. It is up while the button is held from the frame the
-    // charge state was entered, and it goes down the frame the button does — which
+    // charge state was entered, and it goes down the frame the button does - which
     // is the same frame the special replaces it.
     private void DoRefresh_ChargeShape(int32 InLightRun, int32 InHeavyRun)
     {
@@ -1748,7 +1748,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
 
     // A completion arriving is a "right now", so it is the single-frame primitive
     // re-issued for a fifth of a second rather than an entity with a lifetime. The
-    // dim variant is a completion the kit deliberately did not act on — the module
+    // dim variant is a completion the kit deliberately did not act on - the module
     // delivered it and the debugger's timeline will show it, and this says so.
     private void DoFlashBeat(bool InWasActedOn)
     {
@@ -1817,7 +1817,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     //
     // PMG has no size mutation and no parenting, so a shape that grows or follows
     // the pawn is the entity's own Transform fragment driven through the ordinary
-    // deferred request (CkPmg/Claude.md, "Pattern: live-tracking overlay").
+    // deferred request (the CkPmg docs, "Pattern: live-tracking overlay").
 
     private void DoSetShapeTransform(FCk_Handle_Pmg_DebugShape InShape, FTransform InTransform)
     {
@@ -1833,7 +1833,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     }
 
     // Takes the member by reference and clears it, because a persistent shape and
-    // the handle naming it have to stop existing together — a stale handle would
+    // the handle naming it have to stop existing together - a stale handle would
     // read as "the accumulator is already up" and the next charge would grow a
     // shape that is not there.
     private void DoDestroyShape(FCk_Handle_Pmg_DebugShape& InOutShape)
@@ -2024,7 +2024,7 @@ class ACk_PlaygroundGym_Pawn : ACk_Gym_Base_Pawn
     // The line that has to render with ZERO input. Both mouse buttons' last press
     // frame and current held run come straight off the record, so a mouse button
     // that never reaches the Slate writer reads as a press frame stuck at -1 while
-    // the record's own frame counter keeps climbing — which is a different picture
+    // the record's own frame counter keeps climbing - which is a different picture
     // from a kit that is not armed. Q carries only its held run, because a held run
     // IS the whole of what the block reads: a block that never rises has to be
     // separable into "the key never arrived" and "the plate never drew".

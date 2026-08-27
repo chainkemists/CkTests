@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PARENT-FALLBACK NEW KEY REGISTERS LOCAL
+// CK GOAP - AUTOMATION TEST: PARENT-FALLBACK NEW KEY REGISTERS LOCAL
 //============================================================================
 //
 // Validates decision 3 of the WsParentFallback design: a Set for a key that
-// is resident NOWHERE in the chain keeps today's contract — it registers on
+// is resident NOWHERE in the chain keeps today's contract - it registers on
 // the written (sub) WS, and never touches the parent.
 //============================================================================
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: MASS TRANSFER — PARTIAL
+// CK INVENTORY - AUTOMATION TEST: MASS TRANSFER - PARTIAL
 //============================================================================
 //
 // 5 items in one source, a single candidate bounded to 3 entries. The churn

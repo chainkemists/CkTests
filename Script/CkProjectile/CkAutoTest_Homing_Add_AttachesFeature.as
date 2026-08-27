@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK HOMING — AUTOMATION TEST: ADD ATTACHES FEATURE
+// CK HOMING - AUTOMATION TEST: ADD ATTACHES FEATURE
 //============================================================================
 //
 // Verifies utils_homing::Add on a projectile-equipped entity:
 //   1. Has is false before Add and true after.
-//   2. Homing starts dormant — no target, not active.
+//   2. Homing starts dormant - no target, not active.
 //   3. The typed handle round-trips through the getters.
 //============================================================================
 

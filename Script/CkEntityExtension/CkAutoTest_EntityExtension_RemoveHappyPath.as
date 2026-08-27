@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY EXTENSION — AUTOMATION TEST: Remove happy path
+// CK ENTITY EXTENSION - AUTOMATION TEST: Remove happy path
 // Add then Remove an extension; after one frame the owner's ForEach list
 // no longer includes the removed extension.
 

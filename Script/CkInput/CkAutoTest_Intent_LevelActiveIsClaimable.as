@@ -1,26 +1,26 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: ONE OPEN STATE, ONE OWNER
+// CK INTENT - AUTOMATION TEST: ONE OPEN STATE, ONE OWNER
 //============================================================================
 //
-// A level intent has the same exclusivity problem an episodic one has — two
-// consumers can both poll `Active` and both act on it — and it gets the same
+// A level intent has the same exclusivity problem an episodic one has - two
+// consumers can both poll `Active` and both act on it - and it gets the same
 // answer rather than a second mechanism beside it: `Active` is CLAIMABLE, on
 // the same call, with the same outcomes.
 // CkAutoTest_Intent_ClaimExcludesSecondClaimant pins that shape over a
 // `Completed` latch. This is the same shape over a state, and the difference
 // is not the taking but the LETTING GO:
 //
-//   a completion's claim is bounded by the latch decay — time runs out
-//   a state's claim is bounded by the player letting go — input runs out
+//   a completion's claim is bounded by the latch decay - time runs out
+//   a state's claim is bounded by the player letting go - input runs out
 //
 // So the deactivation leg is the half this test exists for, and it is asserted
 // three ways, because "reads unclaimed" alone is worth very little: an Idle row
 // answers `false` to `Get_IsClaimed` whether the claim was released or is still
 // sitting in the row unread. A claim attempted while Idle must FAIL (there is
 // nothing to own), and a claim on the state opened by the NEXT press must
-// SUCCEED for a different claimant — which no stale ownership could allow.
+// SUCCEED for a different claimant - which no stale ownership could allow.
 //
 // All three claims of the first round happen in ONE step, on one call stack,
 // for the reason the mechanism is an immediate mutator at all: a deferred claim
@@ -78,9 +78,9 @@ class UCk_AutoTest_Intent_LevelActiveIsClaimable : UCk_AutoTest_Base
 
         Add_Step(          "open the state",                                     n"Step_Press");
         Add_Step_WaitUntil("the state is open",                                  n"Check_Active");
-        Add_Step(          "claim it from A, then B, then A again — one frame",  n"Step_ClaimTwice");
+        Add_Step(          "claim it from A, then B, then A again - one frame",  n"Step_ClaimTwice");
 
-        Add_Step(          "let go — the state's claim is bounded by input",     n"Step_Release");
+        Add_Step(          "let go - the state's claim is bounded by input",     n"Step_Release");
         Add_Step_WaitUntil("the state closes",                                    n"Check_Idle");
         Add_Step(          "assert the close released the claim",                n"Step_AssertClaimReleased");
 
@@ -126,7 +126,7 @@ class UCk_AutoTest_Intent_LevelActiveIsClaimable : UCk_AutoTest_Base
     private void Step_ClaimTwice(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_False(utils_intent_matcher::Get_IsClaimed_ByName(_Matcher, n"AS_Level_Claimed"),
-            "a freshly opened state is unclaimed — an activation carries no owner of its own");
+            "a freshly opened state is unclaimed - an activation carries no owner of its own");
 
         DoClaim(_ClaimantA);
         Assert_True(_LastResult == ECk_Request_OperationResult::Succeeded,
@@ -136,13 +136,13 @@ class UCk_AutoTest_Intent_LevelActiveIsClaimable : UCk_AutoTest_Base
 
         DoClaim(_ClaimantB);
         Assert_True(_LastResult == ECk_Request_OperationResult::Failed,
-            "a second consumer on the same open state is excluded — that IS the mechanism, not a malfunction");
+            "a second consumer on the same open state is excluded - that IS the mechanism, not a malfunction");
         Assert_True(utils_intent_matcher::TryGet_ClaimedBy_ByName(_Matcher, n"AS_Level_Claimed") == _ClaimantA,
             "a rejected claim leaves the holder untouched");
 
         DoClaim(_ClaimantA);
         Assert_True(_LastResult == ECk_Request_OperationResult::Succeeded,
-            "the holder re-asserting its own ownership is idempotent — the caller's intent already holds");
+            "the holder re-asserting its own ownership is idempotent - the caller's intent already holds");
         Assert_True(utils_intent_matcher::TryGet_ClaimedBy_ByName(_Matcher, n"AS_Level_Claimed") == _ClaimantA,
             "and the holder is still A");
 
@@ -163,11 +163,11 @@ class UCk_AutoTest_Intent_LevelActiveIsClaimable : UCk_AutoTest_Base
             "every phase transition clears the claim as it is written, so the Active -> Idle the release wrote dropped it with the state");
 
         Assert_Invalid(utils_intent_matcher::TryGet_ClaimedBy_ByName(_Matcher, n"AS_Level_Claimed"),
-            "and nobody is named — there is nothing for a consumer to release and nothing that outlives the input it was taken against");
+            "and nobody is named - there is nothing for a consumer to release and nothing that outlives the input it was taken against");
 
         DoClaim(_ClaimantA);
         Assert_True(_LastResult == ECk_Request_OperationResult::Failed,
-            "an Idle row is not claimable even by the entity that held it a frame ago — there is nothing to take ownership of");
+            "an Idle row is not claimable even by the entity that held it a frame ago - there is nothing to take ownership of");
     }
 
     UFUNCTION()
@@ -180,7 +180,7 @@ class UCk_AutoTest_Intent_LevelActiveIsClaimable : UCk_AutoTest_Base
         // released. Only the claimant that LOST the first round can distinguish the two.
         DoClaim(_ClaimantB);
         Assert_True(_LastResult == ECk_Request_OperationResult::Succeeded,
-            "the consumer excluded from the first state takes the second one — which no surviving claim could have allowed");
+            "the consumer excluded from the first state takes the second one - which no surviving claim could have allowed");
         Assert_True(utils_intent_matcher::TryGet_ClaimedBy_ByName(_Matcher, n"AS_Level_Claimed") == _ClaimantB,
             "and the row names B, so the ownership really moved rather than being reported loosely");
     }
@@ -242,7 +242,7 @@ class UCk_AutoTest_Intent_LevelActiveIsClaimable : UCk_AutoTest_Base
             FCk_Delegate_Request_OnCompleted(this, n"OnClaimCompleted"));
 
         Assert_True(_LastResult != ECk_Request_OperationResult::Failed_Cancelled,
-            "the claim's completion must fire on the calling stack — a deferred claim cannot exclude anybody");
+            "the claim's completion must fire on the calling stack - a deferred claim cannot exclude anybody");
     }
 
     private FCk_Intent_Definition DoParse(const FString& InNotation, FName InName, int32 InPriority)

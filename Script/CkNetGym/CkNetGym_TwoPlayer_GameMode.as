@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// TWO-PLAYER NET GYM — GAME MODE
+// TWO-PLAYER NET GYM - GAME MODE
 //============================================================================
 
 class ACk_NetGym_TwoPlayer_GameMode : ACkTests_Gym_Base_GameMode

@@ -1,26 +1,26 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Patrol Route station entity  (multi-tier demo)
+// CkGoapGym - Patrol Route station entity  (multi-tier demo)
 //
-// Multi-tier Planner example demonstrating spec §2.2.
+// Multi-tier Planner example demonstrating spec Sec.2.2.
 //
 // PR-B.1b Stage 5: the implicit-root model is gone. AddAction registers
 // direct candidates on the Planner; the backchain orders them by precondition
 // chain.
 //
 // Construction pattern:
-//   1. utils_goap_planner::Add                → top-level Planner
+//   1. utils_goap_planner::Add                -> top-level Planner
 //                                                (Set_WorldStateSource + Set_Goal
 //                                                 on PlannerParams)
-//   2. utils_goap_planner::AddAction          → direct child candidates of the
+//   2. utils_goap_planner::AddAction          -> direct child candidates of the
 //                                                Planner (GoToWaypoint / Observe /
 //                                                MarkDone)
 //   3. utils_goap_planner::PromoteActionToPlanner(GoToWaypoint, subParams)
-//        → GoToWaypoint is now ALSO a Planner with goal AtWaypoint=true
+//        -> GoToWaypoint is now ALSO a Planner with goal AtWaypoint=true
 //   4. utils_goap_planner::AddAction(GoToWaypoint_AsPlanner, RunParams)
 //      utils_goap_planner::AddAction(GoToWaypoint_AsPlanner, WalkParams)
-//        → Tier-2 leaves: direct tree children of the promoted GoToWaypoint
+//        -> Tier-2 leaves: direct tree children of the promoted GoToWaypoint
 //   5. Repeat for Observe composite (goal AreaScanned=true)
 //
 // Entity hierarchy after construction:
@@ -35,18 +35,18 @@
 //       MarkDone                  [Action]           eff: AreaPatrolled=true
 //       StandWatch                [Action]           eff: AreaPatrolled=true (cost 999, fallback)
 //
-// Always-valid-plan tenet (CkGoap/CLAUDE.md § "Design tenets"):
+// Always-valid-plan tenet (the CkGoap docs Sec. "Design tenets"):
 //   StandWatch is the top-Planner fallback (no preconditions, effect = goal).
 //   Sub-Planners GoToWaypoint (Run/Walk leaves) and Observe (LookAround/
 //   WaitAtPost leaves) already comply via their precondition-less children.
-//   Default reset → MarkDone gated by AtWaypoint+AreaScanned; planner still
+//   Default reset -> MarkDone gated by AtWaypoint+AreaScanned; planner still
 //   produces a valid plan because StandWatch (cost 999) is always selectable.
 //
 // Player commands:
-//   Goap.Patrol.SetAtWaypoint    — set AtWaypoint=true
-//   Goap.Patrol.SetAreaScanned   — set AreaScanned=true
-//   Goap.Patrol.Complete         — set AreaPatrolled=true
-//   Goap.Patrol.Reset            — all back to false
+//   Goap.Patrol.SetAtWaypoint    - set AtWaypoint=true
+//   Goap.Patrol.SetAreaScanned   - set AreaScanned=true
+//   Goap.Patrol.Complete         - set AreaPatrolled=true
+//   Goap.Patrol.Reset            - all back to false
 //============================================================================
 
 USTRUCT()
@@ -90,7 +90,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
         // ------------------------------------------------------------------
-        // WorldState — all keys start false.
+        // WorldState - all keys start false.
         // ------------------------------------------------------------------
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol"),
@@ -113,7 +113,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         _TopPlanner = utils_goap_planner::Add(InHandle, PlannerParams);
 
         // ------------------------------------------------------------------
-        // Tier 1a — GoToWaypoint composite.
+        // Tier 1a - GoToWaypoint composite.
         // Step 1: AddAction registers GoToWaypoint as a direct child of the
         //         top-level Planner (PR-B.1b Stage 5: no implicit root).
         // Step 2: Promote to Planner with its own independent goal (AtWaypoint=true).
@@ -143,7 +143,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_Walk));
 
         // ------------------------------------------------------------------
-        // Tier 1b — Observe composite (same promotion pattern).
+        // Tier 1b - Observe composite (same promotion pattern).
         // ------------------------------------------------------------------
         auto ObserveActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_Patrol_Observe);
@@ -166,12 +166,12 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_WaitAtPost));
 
         // ------------------------------------------------------------------
-        // Tier 1c — MarkDone atomic leaf (no Planner promotion needed).
+        // Tier 1c - MarkDone atomic leaf (no Planner promotion needed).
         // ------------------------------------------------------------------
         utils_goap_planner::AddAction(_TopPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_MarkDone));
 
-        // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
+        // Always-valid-plan tenet fallback - see the CkGoap docs Sec. "Design tenets".
         utils_goap_planner::AddAction(_TopPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Patrol_StandWatch));
 
@@ -228,7 +228,7 @@ class UCk_EntityScript_GoapGym_Patrol_Station : UCk_GenericEntityScript_UE
         auto TopStatus = utils_goap_planner::Get_PlanStatus(_TopPlanner);
         auto TopPlan = utils_goap_planner::Get_PlanClasses(_TopPlanner);
 
-        // GoToWaypoint sub-planner — only meaningful once it's the active step.
+        // GoToWaypoint sub-planner - only meaningful once it's the active step.
         auto GoToStatus = "(not yet active)";
         auto GotoPlan = "(waiting)";
         if (ChainLen >= 1 && ck::IsValid(_GoToWaypoint_AsAction))

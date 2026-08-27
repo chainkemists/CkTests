@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: GRID DESTRUCTION WITH ACTIVE PLACEMENTS
+// CK GRID - AUTOMATION TEST: GRID DESTRUCTION WITH ACTIVE PLACEMENTS
 //============================================================================
 //
 // Lifecycle/ordering hardening: destroying the grid (its owner entity) while it

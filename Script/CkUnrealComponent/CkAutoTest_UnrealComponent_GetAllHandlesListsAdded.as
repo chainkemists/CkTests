@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK UNREAL COMPONENT — AUTOMATION TEST: Get_AllHandles lists every added component
+// CK UNREAL COMPONENT - AUTOMATION TEST: Get_AllHandles lists every added component
 // Two Add calls populate Get_AllHandles with N=2 entries.
 
 class UCk_AutoTest_UnrealComponent_GetAllHandlesListsAdded : UCk_AutoTest_Base

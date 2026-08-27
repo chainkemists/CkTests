@@ -17,7 +17,7 @@ class ACk_UsfGym_OutlineShowcase : AActor
     default Mesh.Mobility = EComponentMobility::Movable;
     default Mesh.RelativeScale3D = FVector(2.0, 2.0, 2.0);
 
-    // Opaque occluder between the player (world -X) and the sphere — demonstrates configurable occlusion.
+    // Opaque occluder between the player (world -X) and the sphere - demonstrates configurable occlusion.
     UPROPERTY(DefaultComponent)
     UStaticMeshComponent Occluder;
     default Occluder.Mobility = EComponentMobility::Movable;

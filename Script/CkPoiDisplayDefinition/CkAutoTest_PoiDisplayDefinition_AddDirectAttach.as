@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI DISPLAY DEFINITION — AUTOMATION TEST: direct-attach Add
+// CK POI DISPLAY DEFINITION - AUTOMATION TEST: direct-attach Add
 //============================================================================
 //
 // Add composes ONE display definition DIRECTLY onto the test entity (no child
@@ -9,12 +9,12 @@
 //   - Add returns a valid FCk_Handle_PoiDisplayDefinition.
 //   - Get_Consumer / Get_Priority / Get_OffscreenPolicy echo the params.
 //   - TryGet_PoiDisplayDefinition_ByConsumer(entity, thatConsumer) resolves to
-//     the entity itself (the AS-visible proxy for "Has is true" — the C++
+//     the entity itself (the AS-visible proxy for "Has is true" - the C++
 //     Has() is not a UFUNCTION, so it has no generated AS binding).
 //   - TryGet with an UNUSED consumer tag returns an INVALID handle.
 //
 // Direct-attach Add is synchronous (immediate fragment add), so no settle
-// frames are needed — everything is asserted inline in DoBeginPlay.
+// frames are needed - everything is asserted inline in DoBeginPlay.
 //
 // The owner is a POI: Add/Create/TryGet take FCk_Handle_Poi, so the owner needs
 // the Transform + Poi composition even though nothing here projects.

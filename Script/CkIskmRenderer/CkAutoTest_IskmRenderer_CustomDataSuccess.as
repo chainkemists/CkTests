@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE Q5 CUSTOM-DATA SUCCESS PATH
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE Q5 CUSTOM-DATA SUCCESS PATH
 //============================================================================
 //
 // Requests SetCustomDataFloat_Late(slot=0, value=0.5), asserts that the

@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: MASS TRANSFER — NOTHING TO TRANSFER
+// CK INVENTORY - AUTOMATION TEST: MASS TRANSFER - NOTHING TO TRANSFER
 //============================================================================
 //
 // A valid-but-empty source with an ample candidate. The gather produces zero
 // items, so the op resolves to Failed_NothingToTransfer (NOT a synchronous
-// Failed_NotEnqueued — an empty-but-valid source is observed on the async
+// Failed_NotEnqueued - an empty-but-valid source is observed on the async
 // channel). Nothing moves anywhere.
 //============================================================================
 

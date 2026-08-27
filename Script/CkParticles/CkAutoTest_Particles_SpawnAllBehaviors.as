@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PARTICLES — AUTOMATION TEST: SPAWN ALL BEHAVIORS
+// CK PARTICLES - AUTOMATION TEST: SPAWN ALL BEHAVIORS
 //============================================================================
 //
 // Every registered BehaviorId (the whole roster, incl. the marketplace
@@ -13,8 +13,8 @@
 //
 // Spawn_BehaviorAtLocation spawns with bAutoDestroy=false and every template
 // loops, so a component left alone keeps simulating for the rest of the PIE
-// session. The roster size is Get_NumBehaviors() — never restate it. The moment the walk spans more than one
-// frame, every later frame ticks the whole accumulated set — and a headless
+// session. The roster size is Get_NumBehaviors() - never restate it. The moment the walk spans more than one
+// frame, every later frame ticks the whole accumulated set - and a headless
 // real-RHI frame carrying a few dozen of these costs minutes, not milliseconds.
 // That cost, not the spawn path this test claims to cover, becomes what the
 // test measures, and it drags the run long enough for unrelated background
@@ -22,14 +22,14 @@
 // window, where the harness escalates them into a failure.
 //
 // What is asserted is what the spawn call RETURNED, recorded at the moment of
-// the spawn — so destroying immediately costs the assertion nothing. The
+// the spawn - so destroying immediately costs the assertion nothing. The
 // sibling VfxExamples pair-station test destroys on the same grounds.
 //
 // ---- Why the spawns are staggered across frames ---------------------------
 //
 // Spawning the roster in one frame pays first-render PSO creation and any cold
 // static-mesh build for every template at once, with the game thread producing
-// no log output while it grinds — and a harness idle-watchdog cannot tell a
+// no log output while it grinds - and a harness idle-watchdog cannot tell a
 // frozen editor from a busy one. A few ids per frame returns to the engine
 // between batches so the process keeps ticking and logging while it works.
 //============================================================================
@@ -46,7 +46,7 @@ class UCk_AutoTest_Particles_SpawnAllBehaviors : UCk_AutoTest_Base
     private int32 _NextBehaviorId = 0;
 
     // Whether Spawn_BehaviorAtLocation handed back a live component, recorded AT THE
-    // MOMENT OF THE SPAWN — before this test destroys it again. The assertions run at
+    // MOMENT OF THE SPAWN - before this test destroys it again. The assertions run at
     // the end over the whole roster, against these records rather than against the
     // components, which no longer exist by then.
     private TArray<bool> _SpawnedLive;
@@ -63,7 +63,7 @@ class UCk_AutoTest_Particles_SpawnAllBehaviors : UCk_AutoTest_Base
         // Run this lane with --no-nullrhi to actually exercise the spawns.
         if (!utils_render_target::Get_CanRenderOnThisProcess())
         {
-            ck::Trace("[Particles] this process cannot render (e.g. -nullrhi) — Niagara drops every spawn; skipping");
+            ck::Trace("[Particles] this process cannot render (e.g. -nullrhi) - Niagara drops every spawn; skipping");
             FinishSuccess();
             return;
         }

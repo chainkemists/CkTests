@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: RESOLVER RE-RESOLVES ON TARGET CHANGE
+// CK INTERACTION - AUTOMATION TEST: RESOLVER RE-RESOLVES ON TARGET CHANGE
 //============================================================================
 //
 // The resolver's cached best-target set must be LIVE while an intent is held:
@@ -22,12 +22,12 @@
 //      edge's stamp is already SPENT when the add lands.
 //   c) A no-op add (already present) and a remove of a non-member broadcast
 //      NOTHING. (Runs before A is disturbed, while phase a's real broadcast is
-//      the fresh positive proof that the signal machinery is live — wait-rule
+//      the fresh positive proof that the signal machinery is live - wait-rule
 //      1.) NOTE the honest limit: with the set unchanged, even a spurious
 //      dirty stamp would resolve to an identical set and stay silent
 //      (CkInteractionResolver_Processor.cpp:293-325 broadcasts only on
-//      change), so what this pins is the consumer-visible contract — no
-//      signal spam on no-op churn — not the internal stamp placement.
+//      change), so what this pins is the consumer-visible contract - no
+//      signal spam on no-op churn - not the internal stamp placement.
 //   d) THE PIN: with a live Timed interaction on far A, a NEARER same-channel
 //      B appears mid-hold -> A stays the picked target, no broadcast, and A's
 //      interaction is not cancelled. This is the test that stops the R1
@@ -43,15 +43,15 @@
 //      vacuous there (no re-resolve on add = no displacement to pin against).
 //
 // On the PRE-FIX code this file goes red at phase a ("resolver notices A
-// while the intent is held" never becomes true — AddInteractTarget stamped
+// while the intent is held" never becomes true - AddInteractTarget stamped
 // nothing), and phase b's wait would fail the same way. On the halfway state
-// (dirty stamp without the pin — the R1 regression) phase d fails: best
+// (dirty stamp without the pin - the R1 regression) phase d fails: best
 // flips to [B] and the eviction broadcast bumps the count.
 //
 // API provenance (every call verified against a green usage or landed source):
 //   - child entity + Request_OverrideToSelf + utils_transform::Add:
 //     CkAutoTest_Compass_RangeCull.as:32-35,51-54 (OverrideToSelf makes each
-//     entity its own context root so DoSortByDistance reads ITS transform —
+//     entity its own context root so DoSortByDistance reads ITS transform
 //     CkInteractionResolver_Utils.cpp:308,321-322 resolves locations via
 //     Get_ContextOwner).
 //   - resolver mapping/params/Add/BindTo_OnBestTargetsChanged/Request_*:
@@ -75,7 +75,7 @@
 //   - gym tag helpers: CkInteractionGym_Shared.as:134-150.
 //
 // Every entity here is a child of the runner entity, so the harness teardown
-// cascade covers cleanup — no Track_ForCleanup needed.
+// cascade covers cleanup - no Track_ForCleanup needed.
 //============================================================================
 
 class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_Base
@@ -90,8 +90,8 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
     private FCk_Handle _ResolverOwner;
     private FCk_Handle_InteractionResolver _Resolver;
     private FCk_Handle_InteractTarget _TargetA;   // far  (+300uu)
-    private FCk_Handle_InteractTarget _TargetB;   // near (+100uu) — the would-be evictor
-    private FCk_Handle_InteractTarget _TargetD;   // valid but NEVER added — the no-op remove subject
+    private FCk_Handle_InteractTarget _TargetB;   // near (+100uu) - the would-be evictor
+    private FCk_Handle_InteractTarget _TargetD;   // valid but NEVER added - the no-op remove subject
 
     private bool _IntentStartCompleted = false;
     private bool _AInteractionFinished = false;
@@ -112,7 +112,7 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
         _SelfHandle = InHandle;
 
         // Resolver owner: transform for the distance sort, NO InteractSource
-        // (see header — the pin must work for exactly this consumer class).
+        // (see header - the pin must work for exactly this consumer class).
         _ResolverOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         _ResolverOwner.Request_OverrideToSelf();
         utils_transform::Add(_ResolverOwner, FTransform(FRotator::ZeroRotator, k_Base),
@@ -248,7 +248,7 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
     }
 
     //------------------------------------------------------------------------
-    // Phase a — intent first, target second
+    // Phase a - intent first, target second
     //------------------------------------------------------------------------
 
     UFUNCTION()
@@ -297,7 +297,7 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
     }
 
     //------------------------------------------------------------------------
-    // Phase c — no-op churn is silent
+    // Phase c - no-op churn is silent
     //------------------------------------------------------------------------
 
     UFUNCTION()
@@ -305,12 +305,12 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
     {
         _CountAtChurn = _BroadcastCount;
 
-        // Already a member — the handler's early return at
+        // Already a member - the handler's early return at
         // CkInteractionResolver_Processor.cpp:150-154.
         utils_interaction_resolver::Request_AddInteractTarget(_Resolver,
             FCk_Request_InteractionResolver_AddInteractTarget(_TargetA));
 
-        // Valid target, never added — the early return at :173-177.
+        // Valid target, never added - the early return at :173-177.
         utils_interaction_resolver::Request_RemoveInteractTarget(_Resolver,
             FCk_Request_InteractionResolver_RemoveInteractTarget(_TargetD));
     }
@@ -327,7 +327,7 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
     }
 
     //------------------------------------------------------------------------
-    // Phase d — the pin
+    // Phase d - the pin
     //------------------------------------------------------------------------
 
     UFUNCTION()
@@ -370,7 +370,7 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
     {
         auto Best = DoGet_Best();
         Assert_True(Best.Num() == 1 && Best[0] == _TargetA,
-            "A with the live interaction is still the picked target — nearer B must not evict it");
+            "A with the live interaction is still the picked target - nearer B must not evict it");
         Assert_Equals_Int(_BroadcastCount, _CountAtAddB,
             "no eviction broadcast when the nearer B appeared");
         Assert_True(ck::IsValid(DoGet_LiveInteractionOnA()),
@@ -380,7 +380,7 @@ class UCk_AutoTest_InteractionResolver_ReResolvesOnTargetChange : UCk_AutoTest_B
     }
 
     //------------------------------------------------------------------------
-    // Phase b — removing the picked target mid-hold falls back to next-best
+    // Phase b - removing the picked target mid-hold falls back to next-best
     //------------------------------------------------------------------------
 
     UFUNCTION()

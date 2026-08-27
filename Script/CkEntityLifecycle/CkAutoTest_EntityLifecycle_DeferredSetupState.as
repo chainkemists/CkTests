@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: DEFERRED ENTITY CREATE STATE
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: DEFERRED ENTITY CREATE STATE
 //============================================================================
 //
 // Bundled smoke test for the synchronous query surface on a freshly-created
@@ -11,7 +11,7 @@
 //   3. Has(deferred-as-handle) returns true.
 //   4. DoCast on the underlying handle returns a populated optional.
 //
-// All operations resolve in the same DoBeginPlay frame — no callbacks
+// All operations resolve in the same DoBeginPlay frame - no callbacks
 // involved. The deferred-completion side (OnSetupComplete / OnFullyComplete
 // after Request_CompleteSetup) lives in DeferredSetupCompleteCallbacks.
 //

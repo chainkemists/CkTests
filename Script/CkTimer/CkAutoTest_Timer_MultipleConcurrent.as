@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: MULTIPLE CONCURRENT TIMERS
+// CK TIMER - AUTOMATION TEST: MULTIPLE CONCURRENT TIMERS
 //============================================================================
 //
 // Verifies that multiple timers on the same entity tick independently and

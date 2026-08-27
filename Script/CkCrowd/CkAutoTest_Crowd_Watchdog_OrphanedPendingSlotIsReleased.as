@@ -1,11 +1,11 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: AN ORPHANED PENDING SLOT IS RECONCILED
+// CK CROWD - AUTOMATION TEST: AN ORPHANED PENDING SLOT IS RECONCILED
 //============================================================================
 //
 // The pending watchdog is keyed on the SLOT, not on FTag_CrowdAgent_PathPending,
 // and this test is why. A tag-keyed reconciler cannot see the state the original
-// defect produced — slot Pending, tags gone — because losing the tag is exactly
+// defect produced - slot Pending, tags gone - because losing the tag is exactly
 // what ending an episode does. Keying on the slot is what lets it converge from
 // arbitrary state instead of only from states the API can still reach.
 //
@@ -13,7 +13,7 @@
 // terminal releases its episode, an orphan cannot be produced through the public
 // API at all. So the fixture runs a REAL episode and a REAL Stop first, then
 // re-parks the slot behind the agent's back to synthesise the exact corpse the
-// bug used to leave — and requires the reconciler to clean it up.
+// bug used to leave - and requires the reconciler to clean it up.
 //============================================================================
 
 class UCk_AutoTest_Crowd_Watchdog_OrphanedPendingSlotIsReleased : UCk_AutoTest_Base
@@ -86,7 +86,7 @@ class UCk_AutoTest_Crowd_Watchdog_OrphanedPendingSlotIsReleased : UCk_AutoTest_B
     {
         const auto Status = utils_nav::Get_PathStatus(_Agent);
         Assert_True(Status != ECk_Nav_PathStatus::Pending,
-            f"the reconciler must release a Pending slot that no live episode owns — it still reads {Status}, which is the wedge the watchdog exists to prevent");
+            f"the reconciler must release a Pending slot that no live episode owns - it still reads {Status}, which is the wedge the watchdog exists to prevent");
     }
 }
 
@@ -95,7 +95,7 @@ class ACk_AutoTest_Crowd_Watchdog_OrphanedPendingSlotIsReleased_Actor : ACk_Auto
     default _TimeoutSeconds = 20.0f;
     default _TestEntityScriptClass = UCk_AutoTest_Crowd_Watchdog_OrphanedPendingSlotIsReleased;
 
-    // The reconciler is SUPPOSED to ensure on an orphaned slot — firing loudly is the behaviour
+    // The reconciler is SUPPOSED to ensure on an orphaned slot - firing loudly is the behaviour
     // under test, so declare it rather than let the harness auto-fail on the test's own
     // deliberate output. Plain substring match, not regex.
     UFUNCTION(BlueprintOverride)

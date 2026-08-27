@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: REQUEST_CLEARALLMODIFIERS
+// CK ATTRIBUTE - AUTOMATION TEST: REQUEST_CLEARALLMODIFIERS
 //============================================================================
 //
 // Pins the `Request_ClearAllModifiers` contract: a single Clear call drops
@@ -16,7 +16,7 @@
 //   Step 3: Add_Revocable(+9)       -> Final = 10 + 21 = 31
 //   Step 4: Add_NotRevocable(+4)    -> Final = 14 + 21 = 35
 //   Step 5: Add_NotRevocable(Mul,2) -> Final = 14*2 + 21 = 49
-//   Step 6: Request_ClearAllModifiers — revocables are dropped; NotRev Add(+4)
+//   Step 6: Request_ClearAllModifiers - revocables are dropped; NotRev Add(+4)
 //                                       and NotRev Mul(*2) remain on the Base
 //                                       layer. Final = (10+4)*2 + 0 = 28.
 //                                       BonusValue (from revocables) = 0.
@@ -25,9 +25,9 @@
 // dropped modifier) by resetting a counter immediately before the call and
 // asserting it == 1 after the processor settles.
 //
-// NOTE: The audit `docs/superpowers/specs/test-coverage-backfill.md` documents
+// NOTE: The audit `the test-coverage backfill spec` documents
 // the expected behavior as "Final drops back to BaseValue" (i.e. all modifier
-// types cleared). The framework today only clears Revocables — if that is
+// types cleared). The framework today only clears Revocables - if that is
 // changed to also clear NotRev modifiers, update the post-Clear Final to 10.
 //============================================================================
 

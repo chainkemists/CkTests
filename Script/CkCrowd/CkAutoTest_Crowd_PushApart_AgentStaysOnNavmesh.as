@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: PUSH-APART AGENT STAYS ON NAVMESH
+// CK CROWD - AUTOMATION TEST: PUSH-APART AGENT STAYS ON NAVMESH
 //
 // The invariant restored by FProcessor_CrowdAgent_ConstrainToNavmesh (dtCrowd's
 // corridor movePosition, which the original port dropped): no force may displace
@@ -8,7 +8,7 @@
 //
 // Shape: locate the navmesh's +X edge by probing, park an idle agent A right at
 // it, spawn a second idle agent B overlapping A from the inland side. Push-apart
-// must resolve the overlap — but the shove that lands on A points OFF the mesh.
+// must resolve the overlap - but the shove that lands on A points OFF the mesh.
 // With the constraint, A holds the edge and B absorbs the correction inland;
 // without it (ECk_CrowdNavmeshConstraintMode::Disabled), A is displaced ~30cm+
 // past the mesh boundary and the on-mesh assertion fails. Red-green proven by
@@ -47,7 +47,7 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
         // Kick the navmesh: AutoTests_CkTests_Level has the fixture but the bake is lazy.
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
 
-        // Poll until the bake lands — the edge probe below is synchronous and needs a live mesh.
+        // Poll until the bake lands - the edge probe below is synchronous and needs a live mesh.
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.25));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
@@ -64,14 +64,14 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
 
         FVector OriginOnMesh;
         if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector::ZeroVector, 100.0f, OriginOnMesh, ProbeVerticalExtentUu) == false)
-        { return; }   // bake not done yet — keep polling
+        { return; }   // bake not done yet - keep polling
 
         _MeshFound = true;
         _FloorZ = float(OriginOnMesh.Z);
 
         if (FindMeshEdge(SelfHandle) == false)
         {
-            FinishFailure(f"navmesh +X edge not found within {MaxProbeUu}uu of origin — test level changed?");
+            FinishFailure(f"navmesh +X edge not found within {MaxProbeUu}uu of origin - test level changed?");
             return;
         }
 
@@ -100,7 +100,7 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
         PlanarSep.Z = 0.0;
         const auto FinalSeparation = float(PlanarSep.Size());
         Assert_True(FinalSeparation >= MinFinalSeparationUu,
-            f"push-apart never resolved the overlap (separation {FinalSeparation}uu < {MinFinalSeparationUu}uu) — the shove this test guards against did not happen");
+            f"push-apart never resolved the overlap (separation {FinalSeparation}uu < {MinFinalSeparationUu}uu) - the shove this test guards against did not happen");
 
         AssertOnMesh(SelfHandle, EdgeLoc, "edge agent");
         AssertOnMesh(SelfHandle, InlandLoc, "inland agent");
@@ -116,7 +116,7 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
 
         const auto AgentX = float(InAgentLoc.X);
         Assert_True(Projected,
-            f"{InWho} ended OFF the navmesh at X={AgentX} (mesh edge X={_EdgeX}) — displacement was not constrained to the mesh");
+            f"{InWho} ended OFF the navmesh at X={AgentX} (mesh edge X={_EdgeX}) - displacement was not constrained to the mesh");
 
         if (Projected == false) { return; }
 
@@ -128,7 +128,7 @@ class UCk_AutoTest_Crowd_PushApart_AgentStaysOnNavmesh : UCk_AutoTest_Base
 
         const auto VerticalDrift = Math::Abs(float(InAgentLoc.Z - OnMesh.Z));
         Assert_True(VerticalDrift <= 2.0f,
-            f"{InWho}'s feet ended {VerticalDrift}uu above/below the navmesh surface — constrained movement passed free-space Z through");
+            f"{InWho}'s feet ended {VerticalDrift}uu above/below the navmesh surface - constrained movement passed free-space Z through");
     }
 
     private bool FindMeshEdge(FCk_Handle& InSelfHandle)

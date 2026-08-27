@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PER-PROXY MORPH TARGETS
+// CK ISKM RENDERER - AUTOMATION TEST: PER-PROXY MORPH TARGETS
 //============================================================================
 //
 // Verifies the per-proxy morph-target capability (Phase 1b of the
@@ -12,10 +12,10 @@
 //   3. POOL HYGIENE (load-bearing): with a morph still set, destroying the
 //      proxy entity returns its SKMC to the renderer pool (LIFO). A second
 //      proxy created against the same renderer borrows the SAME SKMC and must
-//      see a zero morph curve — no leak across borrowers.
+//      see a zero morph curve - no leak across borrowers.
 //
 // Morph name: queried from the test mesh at runtime (GetAllMorphTargetNames).
-// If the mesh has no morph targets, a synthetic name is used — the engine
+// If the mesh has no morph targets, a synthetic name is used - the engine
 // stores morph curves by name without validating against the mesh
 // (MorphTargetCurves map), so the request/state/pool path is fully exercised
 // either way; only the visual deformation needs a real morph.
@@ -105,7 +105,7 @@ class UCk_AutoTest_IskmRenderer_MorphTargets : UCk_AutoTest_Base
             Assert_True(utils_iskm_proxy::Get_MorphTargetWeight(_ProxyA, _MorphName) == 0.0f,
                 "Get_MorphTargetWeight should return 0 after Request_ClearMorphTargets");
 
-            // Re-set so a live curve exists when the proxy is destroyed — the
+            // Re-set so a live curve exists when the proxy is destroyed - the
             // pool round-trip below must NOT carry it to the next borrower.
             utils_iskm_proxy::Request_SetMorphTarget(_ProxyA, _MorphName, 1.0f);
             _Phase = 3;

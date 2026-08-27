@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: DISTANCE-SPRING CONSTRAINT SETTLES AT REST LENGTH
+// CK JOLT - AUTOMATION TEST: DISTANCE-SPRING CONSTRAINT SETTLES AT REST LENGTH
 //============================================================================
 //
 // A Dynamic sphere hangs from a WORLD anchor on a Distance constraint with

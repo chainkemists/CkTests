@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A STATE THAT OPENS AND CLOSES ON ONE FRAME
+// CK INTENT - AUTOMATION TEST: A STATE THAT OPENS AND CLOSES ON ONE FRAME
 //============================================================================
 //
 // A hitch, a wheel notch, or simply a tap short enough to fit inside one
 // logic frame puts a press and its release into the SAME sampler row. The
-// level lifecycle answers that with two transitions stamped on one frame —
-// `Active` then `Idle` — and the ordering is deliberate: activation is
+// level lifecycle answers that with two transitions stamped on one frame
+// `Active` then `Idle` - and the ordering is deliberate: activation is
 // evaluated ahead of the release precisely so that a tap under a hitch is
 // seen to have HAPPENED rather than never entered at all.
 //
@@ -18,18 +18,18 @@
 //   fell inside a bad frame
 //
 //   an implementation that opened the state and left the release for the next
-//   row would leave a door held open by a button nobody is holding — the
+//   row would leave a door held open by a button nobody is holding - the
 //   record says the key came up on that very frame
 //
 // So the poll AFTERWARDS reads `Idle` and the SIGNALS are what carry the fact
 // that anything happened. That is the two-surface rule at its sharpest: the
 // poll is the authority on state, the signals are the account of the
 // transitions, and here the two disagree about whether the frame was
-// eventful — correctly.
+// eventful - correctly.
 //
 // The collapse itself is asserted rather than assumed. Both edges are injected
 // in one step, which is what puts them in one batch, but "one batch" becomes
-// "one row" only if the sampler does not split it — so the row carrying BOTH
+// "one row" only if the sampler does not split it - so the row carrying BOTH
 // edges is looked up by hand. Without that, a sampler that split the pair
 // would still pass every phase assertion below for the wrong reason.
 //============================================================================
@@ -112,7 +112,7 @@ class UCk_AutoTest_Intent_LevelCollapsedPressReleaseOneRow : UCk_AutoTest_Base
             FCk_Request_IntentMatcher_SwapSet(Baked.Get_CompiledSet()));
     }
 
-    // Both edges in one step, which is what puts them in one batch — the shape a hitch or a
+    // Both edges in one step, which is what puts them in one batch - the shape a hitch or a
     // sub-frame tap produces.
     UFUNCTION()
     private void Step_CollapsedTap(FCk_Handle InHandle, FInstancedStruct InPayload)
@@ -127,10 +127,10 @@ class UCk_AutoTest_Intent_LevelCollapsedPressReleaseOneRow : UCk_AutoTest_Base
         auto CollapsedFrame = DoFind_FrameCarryingBothEdges();
 
         Assert_True(CollapsedFrame >= 0,
-            "the premise: ONE row carries both the press and the release — a sampler that split the batch would satisfy every phase assertion below for a reason this test is not about");
+            "the premise: ONE row carries both the press and the release - a sampler that split the batch would satisfy every phase assertion below for a reason this test is not about");
 
         Assert_Equals_Int(_FromPhases.Num(), 2,
-            "a collapsed pair is TWO transitions, not one — an implementation that evaluated the release first would open nothing, and one that deferred the release would leave this at one");
+            "a collapsed pair is TWO transitions, not one - an implementation that evaluated the release first would open nothing, and one that deferred the release would leave this at one");
 
         if (_FromPhases.Num() != 2)
         { return; }
@@ -139,20 +139,20 @@ class UCk_AutoTest_Intent_LevelCollapsedPressReleaseOneRow : UCk_AutoTest_Base
             "activation is evaluated ahead of the release, so the tap is seen to have happened rather than never entered");
 
         Assert_True(_FromPhases[1] == ECk_Intent_Phase::Active && _ToPhases[1] == ECk_Intent_Phase::Idle,
-            "and the release on that same row closes it — the record says the key came up, so nothing may still be holding the door");
+            "and the release on that same row closes it - the record says the key came up, so nothing may still be holding the door");
 
         Assert_Equals_Int(_Frames[0], CollapsedFrame,
             "the open names the row the press landed on");
 
         Assert_Equals_Int(_Frames[1], _Frames[0],
-            "both edges are ONE frame's worth of history, so both transitions name that frame — a close stamped a frame later would tell a consumer the state had a duration it never had");
+            "both edges are ONE frame's worth of history, so both transitions name that frame - a close stamped a frame later would tell a consumer the state had a duration it never had");
 
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_Level_Collapsed") ==
                     ECk_Intent_Phase::Idle,
             "a poll afterwards reads Idle: the poll is the authority on STATE, and the state is over");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_ActivationFrame_ByName(_Matcher, n"AS_Level_Collapsed"), -1,
-            "and it names no activation frame, because there is no open state to have one — the two payloads are the only account of the frame");
+            "and it names no activation frame, because there is no open state to have one - the two payloads are the only account of the frame");
     }
 
     //------------------------------------------------------------------------
@@ -176,7 +176,7 @@ class UCk_AutoTest_Intent_LevelCollapsedPressReleaseOneRow : UCk_AutoTest_Base
     }
 
     // A POSITIVE condition: the two transitions have to arrive for anything below to be readable. The
-    // "and no third one" half cannot be a condition — it is already true on arrival — so it rides the
+    // "and no third one" half cannot be a condition - it is already true on arrival - so it rides the
     // settle behind this wait instead.
     UFUNCTION()
     private void Check_BothTransitions(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
@@ -236,7 +236,7 @@ class UCk_AutoTest_Intent_LevelCollapsedPressReleaseOneRow : UCk_AutoTest_Base
     }
 
     // The frame index of the row whose Pressed AND Released both name this button, or -1 when no row
-    // carries both — which is the collapse not having happened.
+    // carries both - which is the collapse not having happened.
     private int32 DoFind_FrameCarryingBothEdges()
     {
         auto Count = utils_intent_sampler::Get_FrameCount(_Sampler);

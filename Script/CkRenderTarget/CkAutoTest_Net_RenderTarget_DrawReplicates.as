@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK RENDER TARGET — NET AUTOMATION TEST: SERVER DRAW REPLICATES
+// CK RENDER TARGET - NET AUTOMATION TEST: SERVER DRAW REPLICATES
 //============================================================================
 //
 // Multi-world test on the RenderTarget net subject (Replicates / InstructionsOnly,
-// sync name "RenderTarget.AutoTest.Net" — composed symmetrically by
+// sync name "RenderTarget.AutoTest.Net" - composed symmetrically by
 // UCk_AutoTest_NetSubject_RenderTargetEntityScript_UE).
 //
 //   Server world: waits for its sync child, draws a 2-cmd batch, finishes when
 //                 its local applied seq reaches 1.
-//   Client world: waits for the replayed batch — OnInstructionsApplied fires
+//   Client world: waits for the replayed batch - OnInstructionsApplied fires
 //                 with the wire seq and the watermark advances to 1.
 //
 // Both worlds poll via a tick timer because subject composition order vs the

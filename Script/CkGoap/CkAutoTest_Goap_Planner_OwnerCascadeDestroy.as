@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER OWNER CASCADE DESTROY
+// CK GOAP - AUTOMATION TEST: PLANNER OWNER CASCADE DESTROY
 //============================================================================
 //
-// Validates spec §9 row 12: "Destroying owner cleans up GoapRoot →
-// Planners → Actions without leaks."
+// Validates spec Sec.9 row 12: "Destroying owner cleans up GoapRoot ->
+// Planners -> Actions without leaks."
 //
 // Strategy:
 //   - The test entity itself stays alive throughout.
@@ -17,7 +17,7 @@
 //   - Assert: SubOwner handle invalid, Goap handle invalid, Planner handle
 //     invalid, root Action handle invalid (cascade destroyed with owner).
 //
-// No new action classes needed — the Simple action (Ready WS) is reused
+// No new action classes needed - the Simple action (Ready WS) is reused
 // to keep the setup minimal. The goal of this test is handle invalidation
 // correctness after destroy, not plan execution.
 //============================================================================
@@ -46,7 +46,7 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
         // Add Transform (required by Goap setup).
         utils_transform::Add(_SubOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        // WorldState — hosted on SubOwner so it is cascade-destroyed too.
+        // WorldState - hosted on SubOwner so it is cascade-destroyed too.
         auto WS = utils_goap_world_state::Create(_SubOwner,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
             FCk_Fragment_Goap_WorldState_ParamsData());
@@ -59,7 +59,7 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
         // SubOwner itself, collapsing the owner and the Planner into one entity
         // and defeating the point of this test (cascade from an owner to a
         // SEPARATE Planner child). Create keeps them distinct so the destroy
-        // genuinely exercises the SubOwner → Planner-child → Action chain.
+        // genuinely exercises the SubOwner -> Planner-child -> Action chain.
         auto ActionSetParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParams.Set_Goal(TArray<FCk_GoapWS_Condition_Authored>());
@@ -87,7 +87,7 @@ class UCk_AutoTest_Goap_Planner_OwnerCascadeDestroy : UCk_AutoTest_Base
             "Pre-destroy: RootAction handle should be valid");
 
         // Destroy SubOwner. The ECS ownership chain guarantees cascade:
-        // SubOwner → Goap entity → Planner entity → Action entities.
+        // SubOwner -> Goap entity -> Planner entity -> Action entities.
         utils_entity_lifetime::Request_DestroyEntity(_SubOwner);
 
         // Wait one frame for the destruction to settle.

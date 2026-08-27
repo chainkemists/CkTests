@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK OVERLAP BODY — AUTOMATION TEST: Marker Add (Capsule) creates valid handle
+// CK OVERLAP BODY - AUTOMATION TEST: Marker Add (Capsule) creates valid handle
 //============================================================================
 //
 // Capsule variant of the Box / Sphere seed. Pins that ECk_ShapeType::Capsule
 // + FCk_CapsuleSize(radius, halfheight) produces a valid FCk_Handle_Marker
 // through utils_marker::Add.
 //
-// 25 cm radius + 50 cm half-height — typical character-collision-sized
+// 25 cm radius + 50 cm half-height - typical character-collision-sized
 // capsule.
 //============================================================================
 

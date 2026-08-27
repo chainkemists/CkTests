@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: INVALID LIVE TUNING FAILS CLOSED
+// CK PATH NETWORK - AUTOMATION TEST: INVALID LIVE TUNING FAILS CLOSED
 //============================================================================
 //
 // An invalid tuning request must diagnose and return before enqueueing any
@@ -102,7 +102,7 @@ class UCk_AutoTest_PathNetworkFollower_InvalidTuningRejectsWithoutReplan
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
-        // Request_FindRoute below needs a built network to route through — wait on that
+        // Request_FindRoute below needs a built network to route through - wait on that
         // rather than on a frame.
         WaitUntil(n"Check_NetworkBuilt", n"OnNetworkReady");
     }

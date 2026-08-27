@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE RING WRAPS INSTEAD OF GROWING
+// CK INTENT - AUTOMATION TEST: THE RING WRAPS INSTEAD OF GROWING
 //============================================================================
 //
 // A frame record that grew without bound would be a memory leak with a nice
@@ -12,7 +12,7 @@
 //   1. Before it fills, the count tracks the frames written.
 //   2. Once full it STOPS at capacity and never moves again, however long the
 //      sampler runs.
-//   3. Offsets still address the whole retained window after wrapping —
+//   3. Offsets still address the whole retained window after wrapping
 //      offset capacity-1 answers a real row, not the slot the writer is about
 //      to overwrite.
 //   4. The retained window is CONTIGUOUS and ordered: walking offsets 0..N-1
@@ -94,7 +94,7 @@ class UCk_AutoTest_Intent_RingWrapsAtCapacity : UCk_AutoTest_Base
             "the last offset inside the window must answer with a real row after wrapping");
 
         Assert_Equals_Int(Newest.Get_FrameIndex() - Oldest.Get_FrameIndex(), _Capacity - 1,
-            "the retained window spans exactly capacity consecutive frames — nothing skipped, nothing kept twice");
+            "the retained window spans exactly capacity consecutive frames - nothing skipped, nothing kept twice");
 
         Assert_True(Oldest.Get_FrameIndex() > _NewestAtFill - _Capacity,
             "the frames that fell out of the window are gone, not still addressable");

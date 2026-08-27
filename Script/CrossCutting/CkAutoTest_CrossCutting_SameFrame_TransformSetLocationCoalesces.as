@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CROSS-CUTTING — AUTOMATION TEST: SAME-FRAME SetLocation COALESCES
+// CK CROSS-CUTTING - AUTOMATION TEST: SAME-FRAME SetLocation COALESCES
 //============================================================================
 //
 // Pins the documented same-frame coalescing contract for Transform:
@@ -47,7 +47,7 @@ class UCk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces : UCk_Au
         utils_transform::BindTo_OnUpdate(_Transform,
             FCk_Delegate_Transform_OnUpdate(this, n"OnTransformUpdate"));
 
-        // Two writes in one frame — the processor's coalesce contract says
+        // Two writes in one frame - the processor's coalesce contract says
         // exactly one OnUpdate fires, carrying LocationB.
         utils_transform::Request_SetLocation(_Transform, LocationA, ECk_LocalWorld::World);
         utils_transform::Request_SetLocation(_Transform, LocationB, ECk_LocalWorld::World);

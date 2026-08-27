@@ -1,21 +1,21 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: ENSURE-BOUND FIRES WHEN EXCEEDED
+// CK ENTITY TAG QUERY - AUTOMATION TEST: ENSURE-BOUND FIRES WHEN EXCEEDED
 //============================================================================
 //
-// Make_Requirement_Of_WithEnsure(n"X", 2, 4) — Count=2 with MaxAllowedEnsure=4.
+// Make_Requirement_Of_WithEnsure(n"X", 2, 4) - Count=2 with MaxAllowedEnsure=4.
 // Tag 5 entities. The processor's CK_ENSURE_IF_NOT(GlobalCount <= MaxAllowed)
 // must trip when the 5th tag is processed (global count 5 > MaxAllowed 4).
 //
-// The ensure does NOT halt evaluation — it merely surfaces a diagnostic.
+// The ensure does NOT halt evaluation - it merely surfaces a diagnostic.
 // We assert the test reaches the end normally, while the wrapper actor
 // registers the expected "exceeded MaxAllowed" log text so the automation
 // framework doesn't auto-fail the test on its own deliberate diagnostic.
 //
 // The wait is on ALL FIVE tags being present, deliberately NOT on
 // Get_IsSatisfied. Satisfaction is reached at the SECOND entity (Count is 2),
-// so a wait on it could release while entities 3-5 were still pending — and
+// so a wait on it could release while entities 3-5 were still pending - and
 // the ensure this test exists to provoke only trips on the fifth.
 //============================================================================
 
@@ -45,7 +45,7 @@ class UCk_AutoTest_EntityTagQuery_EnsureBoundFires : UCk_AutoTest_Base
         utils_entity_tag_query::Request_AddRequirement(_Query,
             FCk_Request_EntityTagQuery_AddRequirement(Req));
 
-        // Tag 5 entities — strictly more than the MaxAllowed of 4.
+        // Tag 5 entities - strictly more than the MaxAllowed of 4.
         _E1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E1, _Tag);
 
@@ -74,7 +74,7 @@ class UCk_AutoTest_EntityTagQuery_EnsureBoundFires : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_AssertStillSatisfied(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        // Diagnostic-only ensure — query evaluation continues, so this step is
+        // Diagnostic-only ensure - query evaluation continues, so this step is
         // reached normally. The wrapper actor declares the expected log message
         // so the framework doesn't escalate the ensure to a test failure.
         Assert_True(utils_entity_tag_query::Get_IsSatisfied(_Query),
@@ -98,7 +98,7 @@ class UCk_AutoTest_EntityTagQuery_EnsureBoundFires : UCk_AutoTest_Base
 }
 
 //============================================================================
-// HAND-AUTHORED WRAPPER ACTOR — registers the deliberate-ensure log pattern.
+// HAND-AUTHORED WRAPPER ACTOR - registers the deliberate-ensure log pattern.
 //============================================================================
 
 class ACk_AutoTest_EntityTagQuery_EnsureBoundFires_Actor : ACk_AutoTestRunner

@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: RESET ACTIVE CHAIN ENDING IN AN ATOMIC LEAF
+// CK GOAP - AUTOMATION TEST: RESET ACTIVE CHAIN ENDING IN AN ATOMIC LEAF
 //============================================================================
 //
 // Regression gate for the atomic-leaf guard in Request_ResetActiveChain:
 // Get_ActiveChain includes an atomic leaf Action (no Planner role, no
 // Activation fragment) as a chain step, but the reset loop used to call
-// DoDeactivatePlanner on every node — tripping a CkEnsure on the leaf (the
+// DoDeactivatePlanner on every node - tripping a CkEnsure on the leaf (the
 // harness escalates that to a failure, which is this test's red condition
 // without the guard).
 //
 // The minimal shape IS the shape that hit production: a top-level planner
-// whose OWN Plan[0] is an atomic action — the chain is then [leaf] with no
+// whose OWN Plan[0] is an atomic action - the chain is then [leaf] with no
 // composite anywhere (BusterBlock's tourist Intent chain [Roam]). Sibling
 // DeactivateChildren never covers this: its only chain node is a promoted
 // composite, and a goal-less composite never extends the chain further.
@@ -21,11 +21,11 @@
 // planner's only child. Plan = [LeafB] -> chain = [LeafB].
 //
 // Pinned contract for resetting that chain:
-//   - no ensure fires (implicit — harness-enforced)
+//   - no ensure fires (implicit - harness-enforced)
 //   - the completion delegate reports Succeeded
 //   - the chain still reports [LeafB] afterwards: an atomic Plan[0] is
 //     included unconditionally by the walk, and a reset does not clear the
-//     planner's own plan — reset means "deactivate", and an atomic leaf has
+//     planner's own plan - reset means "deactivate", and an atomic leaf has
 //     nothing to deactivate
 //============================================================================
 
@@ -61,7 +61,7 @@ class UCk_AutoTest_Goap_Planner_ResetChainWithAtomicLeaf : UCk_AutoTest_Base
         _Planner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        // The planner's ONLY child is atomic — Plan[0] lands directly on it.
+        // The planner's ONLY child is atomic - Plan[0] lands directly on it.
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
         auto LeafBAction = utils_goap_planner::AddAction(_Planner, LeafBParams);
@@ -99,11 +99,11 @@ class UCk_AutoTest_Goap_Planner_ResetChainWithAtomicLeaf : UCk_AutoTest_Base
             FCk_Delegate_Request_OnCompleted(this, n"OnResetCompleted"));
 
         Assert_True(_ResetHandled && _ResetSucceeded,
-            "Request_ResetActiveChain is an immediate mutator — completion fires Succeeded synchronously");
+            "Request_ResetActiveChain is an immediate mutator - completion fires Succeeded synchronously");
 
         auto ChainAfter = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(ChainAfter.Num() == 1,
-            f"atomic Plan[0] is included unconditionally and a reset does not clear the plan — chain still [leaf] (got {ChainAfter.Num()})");
+            f"atomic Plan[0] is included unconditionally and a reset does not clear the plan - chain still [leaf] (got {ChainAfter.Num()})");
 
         FinishSuccess();
     }

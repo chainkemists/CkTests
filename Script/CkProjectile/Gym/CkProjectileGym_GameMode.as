@@ -1,22 +1,22 @@
 // Language=angelscript
 
 //============================================================================
-// CkProjectile_Gym — Main Gym GameMode + PlayerController
+// CkProjectile_Gym - Main Gym GameMode + PlayerController
 //
 // Five stations covering the projectile guidance + lag-compensation stack:
-//   1. Homing / Pursuit          — ProNav chase of an orbiting target,
+//   1. Homing / Pursuit          - ProNav chase of an orbiting target,
 //                                  auto-relaunching interceptor.
-//   2. Homing / Point-on-Target  — chases a weak spot captured in the
+//   2. Homing / Point-on-Target  - chases a weak spot captured in the
 //                                  target's local space while it rotates.
-//   3. Homing / Proximity Miss   — zero-budget projectile flies past;
+//   3. Homing / Proximity Miss   - zero-budget projectile flies past;
 //                                  OnTargetMissed proximity detonation hook.
-//   4. LagComp / Rewind History  — strafing hitbox recorder; draws the pose
+//   4. LagComp / Rewind History  - strafing hitbox recorder; draws the pose
 //                                  the server would rewind to (300ms ago).
-//   5. LagComp / Compensated Shot— auto-fires "laggy" shots aimed at the
+//   5. LagComp / Compensated Shot- auto-fires "laggy" shots aimed at the
 //                                  target's PAST pose; rewind validation
 //                                  confirms the hits.
 //
-// All stations run autonomously — walk up and watch; the debug-draw shapes
+// All stations run autonomously - walk up and watch; the debug-draw shapes
 // are the projectiles/targets.
 //============================================================================
 
@@ -36,16 +36,16 @@ class ACk_ProjectileGym_PlayerController : ACk_Gym_Base_PlayerController
             "ProNav chase of an orbiting target.\nInterceptor relaunches after every hit."));
 
         Stations.Add(MakeStationPayload(n"Gym.Projectile.Station.HomingPointOnTarget", "STATION 2 / POINT ON TARGET",
-            "Homes on a weak spot captured in the\ntarget's local space — it rotates with it."));
+            "Homes on a weak spot captured in the\ntarget's local space - it rotates with it."));
 
         Stations.Add(MakeStationPayload(n"Gym.Projectile.Station.HomingProximityMiss", "STATION 3 / PROXIMITY MISS",
-            "Zero steering budget — flies straight past.\nOnTargetMissed = proximity detonation hook."));
+            "Zero steering budget - flies straight past.\nOnTargetMissed = proximity detonation hook."));
 
         Stations.Add(MakeStationPayload(n"Gym.Projectile.Station.LagCompRewindHistory", "STATION 4 / REWIND HISTORY",
             "Strafing hitbox recorder.\nBlack ghost = pose 300ms in the past."));
 
         Stations.Add(MakeStationPayload(n"Gym.Projectile.Station.LagCompCompensatedShot", "STATION 5 / COMPENSATED SHOT",
-            "Auto-fires at the target's PAST pose\n(250ms window) — MWO-style rewind hits."));
+            "Auto-fires at the target's PAST pose\n(250ms window) - MWO-style rewind hits."));
 
         return Stations;
     }

@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: NEGATED EVENT-DRIVEN CONDITION
+// CK STATE MACHINE - AUTOMATION TEST: NEGATED EVENT-DRIVEN CONDITION
 //============================================================================
 //
-// Pins the negate-of-event-driven contract from CkStateMachine/CLAUDE.md
+// Pins the negate-of-event-driven contract from the CkStateMachine docs
 // (Event-driven condition resting state -> Trade-offs):
 //
 //   Negation (`_NegateResult = true`) of an event-driven condition keeps its
 //   prior "never fires" semantic. The Fail resting state is set via
-//   Request_UpdateConditionResult directly, not via MarkUnsatisfied — so the
+//   Request_UpdateConditionResult directly, not via MarkUnsatisfied - so the
 //   resting value isn't inverted. After the event fires, MarkSatisfied with
 //   negate still maps to Fail, so the transition still doesn't fire.
 //
@@ -17,13 +17,13 @@
 //   Idle -> Finish, condition = NegatedAfterDelay (delay 0.1s, negate=true).
 //
 //   At t=0:    Condition resting state = Fail.        Transition not taken.
-//   At t=0.1:  MarkSatisfied with _NegateResult=true → Fail.  Still no take.
+//   At t=0.1:  MarkSatisfied with _NegateResult=true -> Fail.  Still no take.
 //   At t=Settle (0.5s): SM should still be in Idle. NEVER transitioned.
 //
 // PASS criterion: OnStateChanged was NEVER fired during the settle window.
 //   (Gym-style settle-timer poll, Pattern B.)
 //
-// FAIL: SM transitioned to Finish (negate semantic broken — MarkSatisfied
+// FAIL: SM transitioned to Finish (negate semantic broken - MarkSatisfied
 //   under negate is mapping to Pass instead of Fail).
 //============================================================================
 
@@ -88,7 +88,7 @@ class UCk_AutoTest_StateMachine_NegatedEventDrivenCondition : UCk_AutoTest_Base
         Delegate.BindUFunction(this, n"OnStateChanged");
         _SmHandle.BindTo_OnStateChanged(Delegate);
 
-        // Settle window of 0.5s — well past the 0.1s timer that fires
+        // Settle window of 0.5s - well past the 0.1s timer that fires
         // MarkSatisfied. If negation maps Pass back to Fail correctly, the
         // transition will never fire, OnStateChanged will never run, and
         // we'll FinishSuccess on settle. If negate semantic is broken,
@@ -115,7 +115,7 @@ class UCk_AutoTest_StateMachine_NegatedEventDrivenCondition : UCk_AutoTest_Base
         if (InPayload.Get_NewStateClass() != UCk_SmTest_Negated_State_Finish) { return; }
 
         _StateChangeObserved = true;
-        FinishFailure("SM transitioned to Finish despite negated event-driven condition — negate Pass→Fail mapping is broken. Transition fired when it should never fire.");
+        FinishFailure("SM transitioned to Finish despite negated event-driven condition - negate Pass->Fail mapping is broken. Transition fired when it should never fire.");
     }
 
     UFUNCTION()
@@ -123,7 +123,7 @@ class UCk_AutoTest_StateMachine_NegatedEventDrivenCondition : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
         Assert_True(_StateChangeObserved == false,
-            "Negated event-driven condition must keep transition suppressed — OnStateChanged should NEVER have fired.");
+            "Negated event-driven condition must keep transition suppressed - OnStateChanged should NEVER have fired.");
         FinishSuccess();
     }
 }

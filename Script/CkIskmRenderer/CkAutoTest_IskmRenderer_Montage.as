@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE J MONTAGES
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE J MONTAGES
 //============================================================================
 //
 // Phase J test gate. Verifies the montage API surface added in J1:

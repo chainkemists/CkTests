@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: CHARACTER PUSH POLICY GOVERNS BOX DISPLACEMENT
+// CK JOLT - AUTOMATION TEST: CHARACTER PUSH POLICY GOVERNS BOX DISPLACEMENT
 //============================================================================
 //
 // A JoltCharacter's PushPolicy decides whether it can shove dynamic bodies. Two
@@ -17,7 +17,7 @@
 //
 // Phases are TIME-based (accumulated tick delta), never frame-counted: the automation
 // PIE runs uncapped (~170fps observed), so "180 frames" is ~1s of walking, not the 3s
-// a 60fps assumption gives — the characters never reached their boxes and every
+// a 60fps assumption gives - the characters never reached their boxes and every
 // assertion passed or failed vacuously.
 //
 // Placed at isolated Ys so neither pair touches other autotests' physics bodies.
@@ -29,12 +29,12 @@ class UCk_AutoTest_CkJolt_JoltCharacter_PushPolicyGovernsBoxDisplacement : UCk_A
 
     private FCk_Handle _SelfHandle;
 
-    // Pair A — PushAndBePushed
+    // Pair A - PushAndBePushed
     private FCk_Handle_JoltCharacter _CharA;
     private FCk_Handle_Transform _BoxATransform;
     private float _BoxAStartX = 0.0;
 
-    // Pair B — Neither
+    // Pair B - Neither
     private FCk_Handle_JoltCharacter _CharB;
     private FCk_Handle_Transform _CharBTransform;
     private FCk_Handle_Transform _BoxBTransform;

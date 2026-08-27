@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: NEGATED POLLED CONDITION INVERTS
+// CK STATE MACHINE - AUTOMATION TEST: NEGATED POLLED CONDITION INVERTS
 //============================================================================
 //
 // Complements NegatedEventDrivenCondition (which pins that negating an

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — AUTOMATION TEST: REQUEST SET SCALE
+// CK TRANSFORM - AUTOMATION TEST: REQUEST SET SCALE
 //============================================================================
 //
 // Verifies Request_SetScale deferred update:

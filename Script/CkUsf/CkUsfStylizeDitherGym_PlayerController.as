@@ -2,15 +2,15 @@
 // Screen Dither gym ("Stylize: Screen Dither" in the cycler).
 //
 // ScreenDither is a VIEW-WIDE post-process, so the stations cannot each own a subject the way the Solid
-// Outline gym's do — there is only ever one frame. They are PRESET SELECTORS instead: walk up to a
+// Outline gym's do - there is only ever one frame. They are PRESET SELECTORS instead: walk up to a
 // station and its preset is applied to the whole view. Everything is judged against the single shared
 // judge scene (ACk_UsfGym_StylizeDitherJudgeScene), which is what makes two presets comparable at all.
 //
 // Tab opens the gym cycler menu; search "Stylize". Console:
-//   Ck_GymStylizeDither_RestartAll     — respawn the judge scene and re-apply Balanced
-//   Ck_GymStylizeDither_CyclePreset    — next preset without walking
-//   Ck_GymStylizeDither_CycleDebug     — next debug view of the CURRENT preset
-//   Ck_GymStylizeDither_ToggleCelStack — stack CelShade underneath, for the cross-effect A/B
+//   Ck_GymStylizeDither_RestartAll     - respawn the judge scene and re-apply Balanced
+//   Ck_GymStylizeDither_CyclePreset    - next preset without walking
+//   Ck_GymStylizeDither_CycleDebug     - next debug view of the CURRENT preset
+//   Ck_GymStylizeDither_ToggleCelStack - stack CelShade underneath, for the cross-effect A/B
 //
 // Needs the ScreenDither master on disk: on a fresh checkout run "Ck_Usf_GenerateLooks ScreenDither"
 // once in the editor console, or the subsystem warns and the view is untouched.
@@ -37,30 +37,30 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
             "Bayer 4x4 over 8 steps per channel, full resolution.",
             "The gradient wall should gain a fine print-like texture, NOT visible bands."));
         Stations.Add(Make_Station(n"Gym.Stylize.DitherSubtleColor", "DITHER: SUBTLE COLOUR",
-            "16 steps, soft threshold, half weight — banding cleanup rather than a style.",
+            "16 steps, soft threshold, half weight - banding cleanup rather than a style.",
             "Colours stay the scene's own; only the gradient wall should read as changed."));
         Stations.Add(Make_Station(n"Gym.Stylize.DitherRetroPixel", "DITHER: RETRO PIXEL",
             "4px blocks, 5 steps, box-filtered downsample.",
-            "Whole frame pixelated and palette-reduced. The mover must not smear — if it does, TAA is eating the pattern."));
+            "Whole frame pixelated and palette-reduced. The mover must not smear - if it does, TAA is eating the pattern."));
         Stations.Add(Make_Station(n"Gym.Stylize.DitherFourColor", "DITHER: 4-COLOUR HANDHELD",
             "Custom 4-entry green palette, 3px blocks, Bayer 2x2.",
-            "EXACTLY four colours on screen, with visible ordered dither between them — banding without dither means the threshold is applied after quantization."));
+            "EXACTLY four colours on screen, with visible ordered dither between them - banding without dither means the threshold is applied after quantization."));
         Stations.Add(Make_Station(n"Gym.Stylize.DitherScreenPrint", "DITHER: SCREEN PRINT",
-            "Five steps on the LUMINANCE only — Balanced's pattern, scale and strength, quantizing tone instead of channels.",
+            "Five steps on the LUMINANCE only - Balanced's pattern, scale and strength, quantizing tone instead of channels.",
             "Saturated surfaces must keep their hue and only jump in brightness. A hue that shifts at a band edge means the luminance path fell through to per-channel quantization."));
         Stations.Add(Make_Station(n"Gym.Stylize.DitherAnimatedGrain", "DITHER: ANIMATED GRAIN",
             "Blue-noise threshold re-rolled 20x a second, 10 steps, full resolution.",
             "Should read as film grain in motion. Blotchy clumping means the blue-noise approximation degenerated to white noise."));
         Stations.Add(Make_Station(n"Gym.Stylize.DitherOff", "DITHER: OFF",
-            "The A/B reference — the subsystem's blendable disabled.",
+            "The A/B reference - the subsystem's blendable disabled.",
             "The frame must come back completely clean. Any residue here means disable is not actually disabling.",
-            "STACKING: Ck_GymStylizeDither_ToggleCelStack puts CelShade underneath. The two sit at different chain locations (cel pre-TAA, dither post-tonemap), so cel bands the light and dither quantizes the result — the classic combo, and neither reads the other's parameters."));
+            "STACKING: Ck_GymStylizeDither_ToggleCelStack puts CelShade underneath. The two sit at different chain locations (cel pre-TAA, dither post-tonemap), so cel bands the light and dither quantizes the result - the classic combo, and neither reads the other's parameters."));
 
         // Explicit single row, wider than the 800uu default: the judge scene sits in front of these and
         // the player has to be able to walk the row without leaving it.
         //
         // The row sits BEHIND the judging line, alcoves opening toward the judge scene. Selection is
-        // measured at Get_StationViewingPoint — one clearance in front of each mouth — so the player
+        // measured at Get_StationViewingPoint - one clearance in front of each mouth - so the player
         // judges from outside the alcove with the whole scene ahead of them, and only turns around to
         // read a panel. The judging line lands back at X=1800, the framing the presets were tuned at.
         const float StationSpacing = 1200.0f;
@@ -95,7 +95,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartGym() override
     {
         Request_RebuildGym();
-        ck::Trace("🟪 Stylize Screen Dither Gym - walk to a station to apply its preset");
+        ck::Trace("* Stylize Screen Dither Gym - walk to a station to apply its preset");
     }
 
     private void Request_RebuildGym()
@@ -105,7 +105,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
 
         _JudgeScene = SpawnActor(ACk_UsfGym_StylizeDitherJudgeScene, FVector(0.0f, 0.0f, 0.0f), FRotator::ZeroRotator);
         if (_JudgeScene == nullptr)
-        { ck::Error("❌ Stylize Dither Gym: failed to spawn the judge scene"); }
+        { ck::Error("[FAIL] Stylize Dither Gym: failed to spawn the judge scene"); }
 
         _StationTags.Empty();
         _StationLocations.Empty();
@@ -128,7 +128,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
     // Where a player stands to judge from: one clearance out of the alcove mouth, on the judge-scene
     // side. The mouth is along the station's own forward axis, so this follows the row's rotation
     // instead of assuming an axis. Selecting on the station's OWN location would put the player inside
-    // the alcove facing its back wall, with the judge scene behind them — you cannot look at the
+    // the alcove facing its back wall, with the judge scene behind them - you cannot look at the
     // content while choosing the preset that restyles it.
     private FVector Get_StationViewingPoint(FName InTag)
     {
@@ -214,7 +214,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // const because PrintToScreen is a development-only call and AngelScript rejects non-const members
-    // inside one — the compiler cannot prove the call is side-effect-free in a shipping build otherwise.
+    // inside one - the compiler cannot prove the call is side-effect-free in a shipping build otherwise.
     private FString Get_PresetNameAt(int32 InIndex) const
     {
         if (InIndex == 0) { return "Balanced"; }
@@ -317,7 +317,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // Debug views are a property of the CURRENT preset, so this edits the live settings rather than
-    // re-applying a preset — walking to another station resets it, which is the intended behaviour.
+    // re-applying a preset - walking to another station resets it, which is the intended behaviour.
     UFUNCTION(Exec, DisplayName="Stylize Dither Gym - Cycle Debug Mode")
     void Ck_GymStylizeDither_CycleDebug()
     {
@@ -337,7 +337,7 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
     // Cross-effect stacking A/B. CelShade is the classic partner: it bands the LIGHT before tonemapping
     // while dither reduces the PALETTE after it, so the two compose rather than compete. The toggle owns
     // its own flag rather than reading Get_IsEnabled(), because a subsystem nothing has touched yet
-    // reports Enabled while rendering nothing — reading it would make the first press a silent no-op.
+    // reports Enabled while rendering nothing - reading it would make the first press a silent no-op.
     UFUNCTION(Exec, DisplayName="Stylize Dither Gym - Toggle CelShade Stack")
     void Ck_GymStylizeDither_ToggleCelStack()
     {

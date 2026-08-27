@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK AUTOMATION TEST — NETWORKED BASE
+// CK AUTOMATION TEST - NETWORKED BASE
 //============================================================================
 //
 // Base class for multi-client AutoTests authored in AngelScript. Extends
-// UCk_AutoTest_Base with one helper — Get_SubjectEntity() — that resolves the
+// UCk_AutoTest_Base with one helper - Get_SubjectEntity() - that resolves the
 // per-world subject entity from the harness's ACk_AutoTest_NetSubject actor.
 //
 // AUTHORING PATTERN
@@ -20,7 +20,7 @@
 //           auto Subject = Get_SubjectEntity();
 //           if (ck::Is_NOT_Valid(Subject))
 //           {
-//               FinishFailure("subject not found — harness misconfigured?");
+//               FinishFailure("subject not found - harness misconfigured?");
 //               return;
 //           }
 //
@@ -55,14 +55,14 @@
 
 class UCk_AutoTest_NetBase : UCk_AutoTest_Base
 {
-    // NetBase defaults to Replicated — the most common shape for tests that derive from
+    // NetBase defaults to Replicated - the most common shape for tests that derive from
     // it (cross-world coordination via Get_SubjectEntity). Authors writing
     // ServerAndClientsIndependent tests override this back on their own subclass via
     // `default _NetMode = ECk_AutoTest_NetMode::ServerAndClientsIndependent;`.
     default _NetMode = ECk_AutoTest_NetMode::Replicated;
 
     // The subject actor class the harness spawns on the server for this test. When unset
-    // (nullptr), the generator falls back to `ACk_AutoTest_NetSubject` — the default subject
+    // (nullptr), the generator falls back to `ACk_AutoTest_NetSubject` - the default subject
     // whose entity-script adds a single Float attribute (`FloatAttribute.Health`). Tests that
     // need different per-entity setup (Player + Team child entities for CkRelationship,
     // inventory containers for CkInventory, etc.) author a subclass of `ACk_AutoTest_NetSubject`
@@ -78,7 +78,7 @@ class UCk_AutoTest_NetBase : UCk_AutoTest_Base
     private FCk_Handle _TestEntity;
 
     //------------------------------------------------------------------------
-    // Lifecycle — capture the test entity handle for Get_SubjectEntity()'s
+    // Lifecycle - capture the test entity handle for Get_SubjectEntity()'s
     // world resolution. Super:: still sets the result fragment to Running.
     //------------------------------------------------------------------------
 
@@ -93,7 +93,7 @@ class UCk_AutoTest_NetBase : UCk_AutoTest_Base
     //------------------------------------------------------------------------
     // Resolves the harness-spawned ACk_AutoTest_NetSubject actor in this
     // world and returns its bridged entity. Returns an invalid handle if the
-    // subject isn't found or its bridge hasn't been established yet — callers
+    // subject isn't found or its bridge hasn't been established yet - callers
     // should ck::Is_NOT_Valid-check before using.
     //
     // The subject's WithActor entity script (UCk_AutoTest_NetSubject_EntityScript

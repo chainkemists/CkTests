@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST: the pipeline holds at scale
+// CK AGGRO - AUTOMATION TEST: the pipeline holds at scale
 // 30 owners x 5 spatially-distributed targets (150 tracked targets) run the full pacer -> evaluate -> select
 // pipeline for several seconds; the sample owner ends with a selected active target and its targets intact.
 // (Scale/no-crash validation of the SERIAL Evaluate; the FPS/Insights perf pass is a separate manual step.)

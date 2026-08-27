@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: CUSTOM ABSORBABLE-UNITS QUOTA
+// CK INVENTORY - AUTOMATION TEST: CUSTOM ABSORBABLE-UNITS QUOTA
 //============================================================================
 //
 // Verifies the quantitative acceptance quota (weight-style custom rule):
 // a dynamic CustomGetAbsorbableUnits hook that allows at most 5 total units
 // composes by min() with the built-in capacity and gates every add path.
 //   1. Unbounded inventory + quota hook "5 - TotalUnits".
-//   2. Add Potion x4 → Success_AllAdded (quota room 5).
-//   3. Add Potion x4 → Success_PartiallyAdded, AmountAdded=1 (quota room 1).
-//   4. Add Potion x1 → Failed_NoSpaceAvailable (quota room 0).
+//   2. Add Potion x4 -> Success_AllAdded (quota room 5).
+//   3. Add Potion x4 -> Success_PartiallyAdded, AmountAdded=1 (quota room 1).
+//   4. Add Potion x1 -> Failed_NoSpaceAvailable (quota room 0).
 //
 //============================================================================
 

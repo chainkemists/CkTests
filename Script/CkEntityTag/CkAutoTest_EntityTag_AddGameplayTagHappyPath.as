@@ -1,10 +1,10 @@
 // Language=angelscript
 //
-// CK ENTITY TAG — AUTOMATION TEST: Add_UsingGameplayTag round-trip
+// CK ENTITY TAG - AUTOMATION TEST: Add_UsingGameplayTag round-trip
 // Mirror of the FName test but using FGameplayTag and the typed overloads.
 //
 // Both the Add and the Remove are deferred through the request pump
-// (CkEntityTag/Claude.md § Timing), so each is followed by a wait on the
+// (the CkEntityTag docs Sec. Timing), so each is followed by a wait on the
 // presence actually flipping rather than on a fixed slice of wall-clock.
 
 class UCk_AutoTest_EntityTag_AddGameplayTagHappyPath : UCk_AutoTest_Base

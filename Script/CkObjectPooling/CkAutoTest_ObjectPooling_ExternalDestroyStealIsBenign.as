@@ -1,9 +1,9 @@
 // Language=angelscript
 //
-// CK OBJECT POOLING — AUTOMATION TEST: external destroy ("steal") stays benign end-to-end
+// CK OBJECT POOLING - AUTOMATION TEST: external destroy ("steal") stays benign end-to-end
 //
 // "Dev does not care whether the object is pooled" means teardown code may destroy a tracked
-// instance directly (never releasing it), or destroy it and release afterwards — nothing may
+// instance directly (never releasing it), or destroy it and release afterwards - nothing may
 // ensure, crash, or corrupt the pool. Uses a pooled UActorComponent subject because
 // DestroyComponent is the one AS-reachable external-destroy path. Covers: destroy-then-release
 // is a quiet Failed; a stolen parked instance is swept and the next acquire creates fresh; live
@@ -42,7 +42,7 @@ class UCk_AutoTest_ObjectPooling_ExternalDestroyStealIsBenign : UCk_AutoTest_Bas
 
         _InUse.DestroyComponent();
 
-        // destroy-then-release ordering must be a QUIET no-op (no ensure) — teardown code is
+        // destroy-then-release ordering must be a QUIET no-op (no ensure) - teardown code is
         // allowed to not care whether the object was already gone
         auto LateRelease = utils_object::TryReleaseToPool(_InUse);
         Assert_True(LateRelease == ECk_SucceededFailed::Failed,

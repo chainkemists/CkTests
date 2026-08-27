@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: LEFT AND RIGHT TOGETHER IS NEITHER
+// CK INTENT - AUTOMATION TEST: LEFT AND RIGHT TOGETHER IS NEITHER
 //============================================================================
 //
 // A keyboard can ask a question a gated stick cannot: both ends of one axis at
@@ -105,7 +105,7 @@ class UCk_AutoTest_Intent_SocdNeutralCancelsOpposingHeld : UCk_AutoTest_Base
         auto Row = utils_intent_sampler::Get_LatestFrame(_Sampler);
 
         Assert_True(Row.Get_CleanedHorizontal() == ECk_Intent_CleanedAxis::Negative,
-            "one end of an axis held alone is simply that end — cleaning only has work to do when both are down");
+            "one end of an axis held alone is simply that end - cleaning only has work to do when both are down");
 
         Assert_True(Row.Get_CleanedVertical() == ECk_Intent_CleanedAxis::Neutral,
             "nothing on the vertical pair was pressed, so its reading must not move with the horizontal one");
@@ -136,7 +136,7 @@ class UCk_AutoTest_Intent_SocdNeutralCancelsOpposingHeld : UCk_AutoTest_Base
         auto Row = utils_intent_sampler::Get_LatestFrame(_Sampler);
 
         Assert_True(Row.Get_CleanedHorizontal() == ECk_Intent_CleanedAxis::Positive,
-            "releasing one end hands the axis to the survivor — cancelling suppresses a reading, it does not end one");
+            "releasing one end hands the axis to the survivor - cancelling suppresses a reading, it does not end one");
 
         Assert_False(DoContainsPhysical(Row.Get_Held(), _LeftKey),
             "the released end must have left the held set, or the survivor won for the wrong reason");

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: MASS TRANSFER — NO CANDIDATE ACCEPTS
+// CK INVENTORY - AUTOMATION TEST: MASS TRANSFER - NO CANDIDATE ACCEPTS
 //============================================================================
 //
 // Items exist but every candidate categorically rejects them (CustomCanAcceptItem

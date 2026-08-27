@@ -51,7 +51,7 @@ struct FCkGym_Station_SpawnParams_Payload
     UPROPERTY()
     bool AutoSize = false;
 
-    // Diagnostic overlays — translucent wireframe PMG boxes drawn at each
+    // Diagnostic overlays - translucent wireframe PMG boxes drawn at each
     // piece's expected world transform. Useful for spotting misaligned pieces.
     UPROPERTY()
     bool ShowDebugOverlays = false;
@@ -94,8 +94,8 @@ struct FCkGym_Station_TitleAndDescription
 // replacing it: a station that writes the plain fragment keeps rendering through
 // the single description component exactly as it always did.
 //
-// Active is the in-use flag. Mere fragment presence cannot be one — the station
-// AddOrGet's it every tick — and a station that legitimately renders zero body
+// Active is the in-use flag. Mere fragment presence cannot be one - the station
+// AddOrGet's it every tick - and a station that legitimately renders zero body
 // lines would otherwise be indistinguishable from one that never opted in.
 //--------------------------------------------------------------------------------------------------------------------------
 
@@ -183,7 +183,7 @@ namespace CkGym_Common
     // The entity is tagged with all of InPayload.Tags so the base PC's
     // Get_StationHandle / Get_StationTransform can look it up later.
     //
-    // Returns the pending handle so the caller can await OnConstructed —
+    // Returns the pending handle so the caller can await OnConstructed
     // the base PC uses this to count outstanding stations and only call
     // Request_StartGym once they're all up.
     FCk_Handle_PendingEntityScript
@@ -267,7 +267,7 @@ namespace CkGym_Common
 
     // Update station display text with one colour per body line. Same title and
     // instruction channels as Update_StationDisplay above; only the body differs,
-    // and it renders through its own components — a station picks one path or the
+    // and it renders through its own components - a station picks one path or the
     // other and the plain path is unchanged for every station that keeps it.
     void Update_StationDisplay_Colored(FCk_Handle InEntity, FString InTitle, const TArray<FCkGym_ColoredLine>&in InBodyLines, FString InInstructions)
     {

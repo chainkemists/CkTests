@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PARENT-FALLBACK PARENT-DIRTY REPLANS
+// CK GOAP - AUTOMATION TEST: PARENT-FALLBACK PARENT-DIRTY REPLANS
 //============================================================================
 //
-// Validates chain-aware dirty propagation (WsParentFallback design §3.6): a
+// Validates chain-aware dirty propagation (WsParentFallback design Sec.3.6): a
 // planner sourced from a sub-WS subscribes to the WHOLE parent chain, so a
-// value change on the PARENT dirties it and AutoReplan fires — no explicit
+// value change on the PARENT dirties it and AutoReplan fires - no explicit
 // plan request. This is the mechanism that preserves within-trip re-routing
 // for shared gates like IsStuck after the BB key migration.
 //============================================================================

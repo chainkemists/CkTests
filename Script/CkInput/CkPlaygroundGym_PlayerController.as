@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT PLAYGROUND GYM — PlayerController
+// CK INPUT PLAYGROUND GYM - PlayerController
 //============================================================================
 //
 // Deliberately thin: the pawn owns movement and cursor aim (see
-// ACk_PlaygroundGym_Pawn::Tick), so the PC's jobs are showing the mouse cursor —
-// it IS the aim pointer — composing the player's input source, and hosting the
+// ACk_PlaygroundGym_Pawn::Tick), so the PC's jobs are showing the mouse cursor
+// it IS the aim pointer - composing the player's input source, and hosting the
 // diagnostics execs.
 //
 // PER-FRAME WORK RUNS OFF A TIMER TICK ON THE PC's OWN ENTITY
@@ -24,7 +24,7 @@ class ACk_PlaygroundGym_PlayerController : ACk_Gym_Base_PlayerController
         auto _CkPerfScope = ck::ScopedStat();
         Super::BeginPlay();
 
-        // The cursor is the aim pointer — it stays visible for the whole session.
+        // The cursor is the aim pointer - it stays visible for the whole session.
         bShowMouseCursor = true;
     }
 
@@ -39,7 +39,7 @@ class ACk_PlaygroundGym_PlayerController : ACk_Gym_Base_PlayerController
         utils_timer::Create_Tick(_PlaygroundEntity, FCk_Delegate_Timer(this, n"OnPlaygroundTick"));
     }
 
-    // Skip the base gym-selector menu — the playground is drivable from the first frame (Tab still toggles the menu).
+    // Skip the base gym-selector menu - the playground is drivable from the first frame (Tab still toggles the menu).
     void Request_StartGym() override
     {
         Print("Input Playground | WASD: move, SHIFT: sprint | mouse: aim | LMB: light chain x3 (hold = light special) | RMB: heavy chain x3 (hold = heavy special) | LMB then RMB: combo L-H | RMB then LMB: combo H-L | sprint (W+SHIFT) + LMB/RMB: sprint AoE attack | Q: block (hold; press just before the hit = PARRY, which returns the shot) | the dummy shoots every 3s inside 1600cm - walk out of it, block it, or parry it back | Tab: gym menu", 12.0f);

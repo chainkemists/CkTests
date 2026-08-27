@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK TARGETING — AUTOMATION TEST: Create_FromLocationAndRotation round-trip
+// CK TARGETING - AUTOMATION TEST: Create_FromLocationAndRotation round-trip
 // Both the location and the rotation should be preserved on the spawned
 // TargetPoint entity.
 

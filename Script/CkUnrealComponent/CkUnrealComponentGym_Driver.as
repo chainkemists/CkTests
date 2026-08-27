@@ -36,7 +36,7 @@ class ACk_UnrealComponentGym_Driver : AActor
 	default bReplicateUsingRegisteredSubObjectList = true;
 	default bAlwaysRelevant = true;
 
-	// The driver itself has no visible representation — the attached component
+	// The driver itself has no visible representation - the attached component
 	// is the visual. We keep a SceneRoot so the actor has a transform.
 	UPROPERTY(DefaultComponent, RootComponent)
 	USceneComponent SceneRoot;
@@ -85,7 +85,7 @@ class ACk_UnrealComponentGym_Driver : AActor
 		EcsEntity = InEntity;
 
 		// UCk_EntityScript_WithActor_UE already adds the Transform fragment
-		// (linked to the owning actor's RootComponent) — do not re-add.
+		// (linked to the owning actor's RootComponent) - do not re-add.
 
 		auto ComponentClass = Get_ComponentClass();
 		if (ck::IsValid(ComponentClass) == false)
@@ -167,7 +167,7 @@ class ACk_UnrealComponentGym_Driver : AActor
 				Arrow.ArrowSize = 5.0f;
 				Arrow.ArrowLength = 100.0f;
 				Arrow.bIsScreenSizeScaled = false;
-				// UArrowComponent is editor-only by default — opt in to game rendering.
+				// UArrowComponent is editor-only by default - opt in to game rendering.
 				Arrow.bIsEditorOnly = false;
 				Arrow.SetHiddenInGame(false);
 			}
@@ -214,7 +214,7 @@ class ACk_UnrealComponentGym_Driver : AActor
 		ElapsedTime = ElapsedTime + DeltaSeconds;
 
 		// Capture the spawn origin once. The driver actor's transform is bound
-		// to the entity, so each Request_SetLocation moves the driver itself —
+		// to the entity, so each Request_SetLocation moves the driver itself
 		// we cannot use GetActorTransform() as a stable orbit center.
 		if (OrbitOriginCaptured == false)
 		{

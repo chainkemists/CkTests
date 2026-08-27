@@ -24,11 +24,11 @@ class ACk_UsfGym_PostProcessShowcase : AActor
         auto MID = UCk_Utils_Usf_UE::Apply_PostProcess_ToComponent(PostProcess, Look);
         if (MID != nullptr)
         {
-            ck::Trace("✅ CkUsf gym: post-process edge-outline applied to view");
+            ck::Trace("[OK] CkUsf gym: post-process edge-outline applied to view");
         }
         else
         {
-            ck::Warning("❌ CkUsf gym: PostProcess MID failed — run 'Generate Look Materials' first");
+            ck::Warning("[FAIL] CkUsf gym: PostProcess MID failed - run 'Generate Look Materials' first");
         }
     }
 }

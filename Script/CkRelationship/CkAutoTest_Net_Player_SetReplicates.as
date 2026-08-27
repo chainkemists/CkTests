@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK AUTOMATION TEST — NETWORKED PLAYER ID REPLICATION
+// CK AUTOMATION TEST - NETWORKED PLAYER ID REPLICATION
 //============================================================================
 //
 // Verifies that calling Assign on the server propagates the new Player ID to
@@ -28,11 +28,11 @@ class UCk_AutoTest_Net_Player_SetReplicates : UCk_AutoTest_NetBase
         auto _CkPerfScope = ck::ScopedStat();
         auto Subject = Get_SubjectEntity();
         if (ck::Is_NOT_Valid(Subject))
-        { FinishFailure("subject not found — harness misconfigured?"); return; }
+        { FinishFailure("subject not found - harness misconfigured?"); return; }
 
         auto Player = utils_player::TryGet_Entity_Player_InOwnershipChain(Subject);
         if (ck::Is_NOT_Valid(Player))
-        { FinishFailure("Player child entity missing — entity-script Add failed?"); return; }
+        { FinishFailure("Player child entity missing - entity-script Add failed?"); return; }
 
         if (utils_net::Get_HasAuthority(Subject))
         {

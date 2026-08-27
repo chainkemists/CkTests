@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RESOLVER — AUTOMATION TEST: ResolverSource ForEach_ResolverDataBundle empty by default
+// CK RESOLVER - AUTOMATION TEST: ResolverSource ForEach_ResolverDataBundle empty by default
 // A freshly added ResolverSource has no DataBundles attached; ForEach returns
 // an empty array.
 

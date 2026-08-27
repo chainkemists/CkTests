@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — NET AUTOMATION TEST: INTEGER MODIFIER-ADD REPLICATES
+// CK ATTRIBUTE - NET AUTOMATION TEST: INTEGER MODIFIER-ADD REPLICATES
 //============================================================================
 //
 // Integer parity with the C++ Float_ModifierAdd_Replicates spec. The modifier

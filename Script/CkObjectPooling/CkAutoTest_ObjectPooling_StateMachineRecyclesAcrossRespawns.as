@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK OBJECT POOLING — AUTOMATION TEST: StateMachine scripts recycle across respawns
+// CK OBJECT POOLING - AUTOMATION TEST: StateMachine scripts recycle across respawns
 //============================================================================
 //
 // SM states/conditions ARE EntityScripts and pool by default, so every SM
@@ -58,7 +58,7 @@ class UCk_PoolSmTest_State_Pong : UCk_SmState_EntityScript
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        // sink — each cycle finishes here
+        // sink - each cycle finishes here
     }
 };
 
@@ -100,7 +100,7 @@ class UCk_AutoTest_ObjectPooling_StateMachineRecyclesAcrossRespawns : UCk_AutoTe
         if (IsFinished()) { return; }
         if (InPayload.Get_NewStateClass() != UCk_PoolSmTest_State_Pong) { return; }
 
-        // this incarnation transitioned correctly — tear it down and go again
+        // this incarnation transitioned correctly - tear it down and go again
         _CyclesCompleted++;
         utils_entity_lifetime::Request_DestroyEntity(_SmOwnerEntity);
         WaitOneFrame(n"OnCycleTornDown");
@@ -117,7 +117,7 @@ class UCk_AutoTest_ObjectPooling_StateMachineRecyclesAcrossRespawns : UCk_AutoTe
             return;
         }
 
-        // behavioral invariants only — the SM may legitimately acquire a state script more than
+        // behavioral invariants only - the SM may legitimately acquire a state script more than
         // once per cycle (e.g. a definition pass), so exact hit counts would encode SM internals.
         // What pooling must guarantee: recycling HAPPENS (hits grow with cycles), and instances
         // do NOT grow with cycles (fresh creates and survivors stay bounded regardless of churn)
@@ -131,7 +131,7 @@ class UCk_AutoTest_ObjectPooling_StateMachineRecyclesAcrossRespawns : UCk_AutoTe
 
         auto CondStats = utils_object::Get_ObjectPoolStats(this, UCk_PoolSmTest_Condition_ShortDelay, nullptr);
         Assert_True(CondStats.Get_NumHits() >= kNumCycles - 1,
-            f"condition script must recycle across cycles — its re-armed timer fired correctly each incarnation (hits {CondStats.Get_NumHits()} >= {kNumCycles - 1})");
+            f"condition script must recycle across cycles - its re-armed timer fired correctly each incarnation (hits {CondStats.Get_NumHits()} >= {kNumCycles - 1})");
         Assert_True(CondStats.Get_NumMisses() <= 2,
             f"condition fresh creates must stay bounded (misses {CondStats.Get_NumMisses()} <= 2)");
         Assert_True(CondStats.Get_NumLiveInstances() <= 2,

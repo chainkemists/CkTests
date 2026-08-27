@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — PERF READOUT AUTOTESTS (batched crowd vs per-SKMC)
+// CK ISKM RENDERER - PERF READOUT AUTOTESTS (batched crowd vs per-SKMC)
 //============================================================================
 //
 // Measured (not estimated) frame-time readouts, logged for A/B comparison:
 //   - BatchedPerf: 600 batched GPU-skinned members, ALL moving every tick (the worst-case production write
-//     path — per-frame member transform writes + tile migrations), driven by the same
+//     path - per-frame member transform writes + tile migrations), driven by the same
 //     UCk_EntityScript_IskmRendererBatched_MovingCrowd class the gyms use.
 //   - SkmcPerf:    150 per-SKMC Plan-1 proxies, moving (UCk_EntityScript_IskmRendererGym_StressArmy).
 //
 // Each warms up (WarmupSeconds), then samples per-tick delta time for SampleSeconds and logs
 // avg / max frame ms + effective FPS. Under --no-nullrhi this includes real render submission; under
 // -nullrhi it still measures the game-thread crowd-driver cost. The numbers are RELATIVE (same harness,
-// same machine) — compare the two tests' logs, and normalize per instance (600 vs 150).
+// same machine) - compare the two tests' logs, and normalize per instance (600 vs 150).
 //
 // No pass/fail threshold on timing (machine-dependent); the tests fail only on setup failure.
 //============================================================================
@@ -34,7 +34,7 @@ class UCk_AutoTest_IskmRenderer_BatchedPerf : UCk_AutoTest_Base
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            FinishFailure("iskm_assets::AnimCollection_Demo() invalid — registry may need regeneration.");
+            FinishFailure("iskm_assets::AnimCollection_Demo() invalid - registry may need regeneration.");
             return;
         }
 
@@ -106,7 +106,7 @@ class UCk_AutoTest_IskmRenderer_SkmcPerf : UCk_AutoTest_Base
         auto RendererData = iskm_assets::RendererData_Demo();
         if (ck::Is_NOT_Valid(RendererData))
         {
-            FinishFailure("iskm_assets::RendererData_Demo() invalid — registry may need regeneration.");
+            FinishFailure("iskm_assets::RendererData_Demo() invalid - registry may need regeneration.");
             return;
         }
 

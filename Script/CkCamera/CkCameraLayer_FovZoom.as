@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — EXAMPLE LAYER: FOV ZOOM (multiplicative)
+// CK CAMERA - EXAMPLE LAYER: FOV ZOOM (multiplicative)
 //============================================================================
 //
 // A field-level FOV multiplier layered on top of whatever mode layer is active. Acquires a Multiplicative FOV
-// modifier whose target is ZoomFactor; the framework eases the effective multiplier from 1.0 → ZoomFactor by this
+// modifier whose target is ZoomFactor; the framework eases the effective multiplier from 1.0 -> ZoomFactor by this
 // layer's blend alpha, so it blends in/out smoothly with the request's BlendIn/Out time and composes
 // multiplicatively with the active mode's FOV (and any other FOV layers).
 //============================================================================

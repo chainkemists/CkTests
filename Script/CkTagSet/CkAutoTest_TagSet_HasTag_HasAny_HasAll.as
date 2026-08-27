@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAG SET — AUTOMATION TEST: HASTAG / HASANY / HASALL
+// CK TAG SET - AUTOMATION TEST: HASTAG / HASANY / HASALL
 //============================================================================
 //
 // Pins the three core query verbs on a TagSet seeded with {A, B, C}:
@@ -36,37 +36,37 @@ class UCk_AutoTest_TagSet_HasTag_HasAny_HasAll : UCk_AutoTest_Base
 
         // ---- HasTag ----
         Assert_True(utils_tag_set::HasTag(_TagSet, TagA),
-            "HasTag(A) should be true — A is in the set");
+            "HasTag(A) should be true - A is in the set");
         Assert_True(utils_tag_set::HasTag(_TagSet, TagB),
-            "HasTag(B) should be true — B is in the set");
+            "HasTag(B) should be true - B is in the set");
         Assert_True(utils_tag_set::HasTag(_TagSet, TagX) == false,
-            "HasTag(X) should be false — X is NOT in the set");
+            "HasTag(X) should be false - X is NOT in the set");
 
         // ---- HasAny ----
         auto AnyAX = FGameplayTagContainer();
         AnyAX.AddTag(TagA);
         AnyAX.AddTag(TagX);
         Assert_True(utils_tag_set::HasAny(_TagSet, AnyAX),
-            "HasAny({A, X}) should be true — A matches");
+            "HasAny({A, X}) should be true - A matches");
 
         auto AnyXY = FGameplayTagContainer();
         AnyXY.AddTag(TagX);
         AnyXY.AddTag(TagY);
         Assert_True(utils_tag_set::HasAny(_TagSet, AnyXY) == false,
-            "HasAny({X, Y}) should be false — neither in the set");
+            "HasAny({X, Y}) should be false - neither in the set");
 
         // ---- HasAll ----
         auto AllAB = FGameplayTagContainer();
         AllAB.AddTag(TagA);
         AllAB.AddTag(TagB);
         Assert_True(utils_tag_set::HasAll(_TagSet, AllAB),
-            "HasAll({A, B}) should be true — both in the set");
+            "HasAll({A, B}) should be true - both in the set");
 
         auto AllAX = FGameplayTagContainer();
         AllAX.AddTag(TagA);
         AllAX.AddTag(TagX);
         Assert_True(utils_tag_set::HasAll(_TagSet, AllAX) == false,
-            "HasAll({A, X}) should be false — X is missing");
+            "HasAll({A, X}) should be false - X is missing");
 
         FinishSuccess();
     }

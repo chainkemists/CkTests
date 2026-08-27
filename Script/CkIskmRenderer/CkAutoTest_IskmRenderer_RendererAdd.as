@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE D RENDERER ADD
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE D RENDERER ADD
 //============================================================================
 //
 // Phase D test gate. Verifies the public Renderer API
@@ -16,7 +16,7 @@
 //   4. The C++ types compile and link as expected: FCk_Handle_IskmRenderer
 //      default-constructs as invalid; UCk_Utils_IskmRenderer_UE statics are
 //      callable from AS.
-//   5. The Setup processor is registered (CK_REGISTER_PROCESSOR) — verified
+//   5. The Setup processor is registered (CK_REGISTER_PROCESSOR) - verified
 //      transitively by the build succeeding.
 //
 // What this test does NOT cover (deferred to Phase Q with real .uasset

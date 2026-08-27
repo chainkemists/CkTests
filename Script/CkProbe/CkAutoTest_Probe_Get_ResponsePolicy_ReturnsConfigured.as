@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE — AUTOMATION TEST: GET_RESPONSE_POLICY ROUND-TRIPS
+// CK PROBE - AUTOMATION TEST: GET_RESPONSE_POLICY ROUND-TRIPS
 //============================================================================
 //
 // Pins the parameter round-trip for FCk_Fragment_Probe_ParamsData
@@ -21,7 +21,7 @@ class UCk_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured : UCk_AutoTest_Bas
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        // Probe A — explicit Silent.
+        // Probe A - explicit Silent.
         auto ParentA = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto TransformA = utils_transform::Add(ParentA, FTransform::Identity, ECk_Replication::DoesNotReplicate);
         auto ParamsA = FCk_Fragment_Probe_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Probe.ResponsePolicy.Silent"));
@@ -31,7 +31,7 @@ class UCk_AutoTest_Probe_Get_ResponsePolicy_ReturnsConfigured : UCk_AutoTest_Bas
         Assert_True(utils_probe::Get_ResponsePolicy(ProbeA) == ECk_ProbeResponse_Policy::Silent,
             "Probe configured with Set_ResponsePolicy(Silent) should report Silent");
 
-        // Probe B — default (Notify per the params struct default).
+        // Probe B - default (Notify per the params struct default).
         auto ParentB = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto TransformB = utils_transform::Add(ParentB, FTransform::Identity, ECk_Replication::DoesNotReplicate);
         auto ParamsB = FCk_Fragment_Probe_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Probe.ResponsePolicy.Notify"));

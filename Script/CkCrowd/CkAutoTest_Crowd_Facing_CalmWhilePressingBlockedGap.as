@@ -1,13 +1,13 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: A PRESSING AGENT'S BODY STAYS CALM
+// CK CROWD - AUTOMATION TEST: A PRESSING AGENT'S BODY STAYS CALM
 //
 // FProcessor_CrowdAgent_FaceAngle turns the body toward the DESIRED-VELOCITY
 // heading at _MaxTurnRate (4.0 rad/s = 229 deg/s), with no speed floor beyond
 // KINDA_SMALL_NUMBER and no rejection of transient heading flips. That is fine
 // for an agent that is actually travelling: its desired velocity points where
-// it is going. It is wrong for an agent that is PRESSING — jammed against
-// something it cannot pass, moving barely at all — because there the desired
+// it is going. It is wrong for an agent that is PRESSING - jammed against
+// something it cannot pass, moving barely at all - because there the desired
 // velocity is the avoidance sampler's per-frame choice among candidates that
 // the navmesh clamp then eats, and it swings wildly frame to frame. The body
 // faithfully chases every swing and the agent whips on the spot at up to the
@@ -20,13 +20,13 @@
 // does not sweep a large total arc while standing still.
 //
 // WHAT THIS DOES *NOT* PIN. The desired-velocity oscillation itself is not
-// under test and is not being fixed here — only the body's TRACKING of it. The
+// under test and is not being fixed here - only the body's TRACKING of it. The
 // target yaw is therefore read and LOGGED every sample as an attribution
 // channel (is the input still oscillating? did the body stop following it?) and
 // deliberately never hard-asserted: an assertion on it would fail for a reason
 // this test does not own.
 //
-// FIXTURE — a sustained press through a plugged gap, which is the shape the
+// FIXTURE - a sustained press through a plugged gap, which is the shape the
 // defect was actually observed in.
 //   * Two UNavArea_Null slabs span the navmesh in Y with a 150cm gap at the
 //     centre. Their outer ends are derived from a runtime probe for the mesh's
@@ -36,11 +36,11 @@
 //     inside it rather than in open mesh (see WallHalfX).
 //   * One crowd agent stands parked in the gap centre and is NEVER commanded
 //     anywhere. Radius 42 in a 150 gap leaves ~33cm of clear lane per side
-//     against the walker's 84cm diameter — geometrically impassable. The
+//     against the walker's 84cm diameter - geometrically impassable. The
 //     stationary markup it paints is a COST, not a hole, so the planner keeps
 //     routing through the gap and the walker keeps trying.
 //   * The walker starts 500cm short of the stranger and is sent to a point
-//     250cm past it — near enough to keep pressing, far enough to stay out of
+//     250cm past it - near enough to keep pressing, far enough to stay out of
 //     the cluster detector's goal region (see GoalX).
 //
 // SHARED-WORLD HYGIENE: a leftover nav-null slab would split the navmesh for
@@ -70,7 +70,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     // thickness is load-bearing rather than cosmetic: it makes the gap a 300cm
     // CORRIDOR, and contact happens INSIDE it. The walker latches contact at
     // 104cm from the stranger, i.e. at x = -104, which sits 46cm past the mouth
-    // at x = -150 — so both walls are beside it while it presses and its lateral
+    // at x = -150 - so both walls are beside it while it presses and its lateral
     // room is +/-33cm (75 gap half-width minus its own 42 radius). That matters
     // because a press in OPEN mesh is not a press: the avoidance sampler's
     // lateral candidates would become a real wall-face SLIDE at full speed, and
@@ -99,7 +99,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     private const float MaxProbeUu = 20000.0;
 
     // ---- sampling / deadlines --------------------------------------------
-    // Accumulated by the constant interval, never from InDeltaT — the timer's delta can read 0.0.
+    // Accumulated by the constant interval, never from InDeltaT - the timer's delta can read 0.0.
     private const float SampleIntervalSec = 0.1;
 
     // Bounds the pre-measurement stretch (bake, edge probes, slab paint, async
@@ -107,7 +107,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     // names what it was waiting on instead of dying as an anonymous TimesUp.
     private const float PrepDeadlineSec = 12.0;
 
-    // Approach is ~400cm at 240cm/s plus the accel ramp — under 2s. 12 covers a
+    // Approach is ~400cm at 240cm/s plus the accel ramp - under 2s. 12 covers a
     // loaded 4-lane run without ever masking a walker that simply never arrives.
     private const float ContactDeadlineSec = 12.0;
 
@@ -120,7 +120,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     private const float NonTrivialDeltaDeg = 3.0;
 
     // A clean press may adjust once or twice as the contact resolves. The whip
-    // alternates continuously — pre-fix runs are expected well above ten.
+    // alternates continuously - pre-fix runs are expected well above ten.
     private const int32 ReversalCeiling = 2;
 
     // PEAK PER-SAMPLE DELTA IS NOT ASSERTABLE HERE, on purpose. _MaxTurnRate is
@@ -130,7 +130,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     // not the defect. The discriminating quantity is the TOTAL arc swept over
     // the whole window: an agent standing still has no reason to sweep more
     // than a quarter turn in total, while a saturated whip accumulates hundreds
-    // of degrees. Peak is still recorded and reported — for diagnosis, not as a
+    // of degrees. Peak is still recorded and reported - for diagnosis, not as a
     // gate.
     private const float TotalYawTravelCeilingDeg = 90.0;
 
@@ -242,7 +242,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
 
         if (_Measuring == false && _ElapsedSec >= PrepDeadlineSec)
         {
-            Begin_Teardown(false, f"SETUP NEVER COMPLETED within {PrepDeadlineSec}s: meshFound={_MeshFound} slabsPainted={_SlabsPainted} slabsSealed={_SlabsSealed} gapOpen={_GapOpen} agentsSpawned={_AgentsSpawned}. Either the bake never landed, the nav-null slabs never reached the mesh, the 150cm gap did not survive the bake, or the walker's path never resolved — nothing this test exists to measure ever ran.");
+            Begin_Teardown(false, f"SETUP NEVER COMPLETED within {PrepDeadlineSec}s: meshFound={_MeshFound} slabsPainted={_SlabsPainted} slabsSealed={_SlabsSealed} gapOpen={_GapOpen} agentsSpawned={_AgentsSpawned}. Either the bake never landed, the nav-null slabs never reached the mesh, the 150cm gap did not survive the bake, or the walker's path never resolved - nothing this test exists to measure ever ran.");
             return;
         }
 
@@ -274,7 +274,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
 
         if (ck::Is_NOT_Valid(_Walker) || ck::Is_NOT_Valid(_Stranger))
         {
-            Begin_Teardown(false, "an agent went invalid mid-run — possible early destroy / lifetime issue");
+            Begin_Teardown(false, "an agent went invalid mid-run - possible early destroy / lifetime issue");
             return;
         }
 
@@ -306,7 +306,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     {
         FVector Projected;
         if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector::ZeroVector, 100.0f, Projected, ProbeVerticalExtentUu) == false)
-        { return; }   // bake not done yet — keep polling
+        { return; }   // bake not done yet - keep polling
 
         _FloorZ = float(Projected.Z);
 
@@ -320,14 +320,14 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
         // measured rather than one the level is assumed to have.
         if (DoFind_MeshEdgeAlongY(InSelf, 1.0) == false)
         {
-            Begin_Teardown(false, f"navmesh +Y edge not found within {MaxProbeUu}uu of the origin — the slabs cannot be sized to foreclose a detour, so this run could not test a plugged gap at all. Test level changed?");
+            Begin_Teardown(false, f"navmesh +Y edge not found within {MaxProbeUu}uu of the origin - the slabs cannot be sized to foreclose a detour, so this run could not test a plugged gap at all. Test level changed?");
             return;
         }
         _EdgeAbsYPos = _ProbedEdgeAbsY;
 
         if (DoFind_MeshEdgeAlongY(InSelf, -1.0) == false)
         {
-            Begin_Teardown(false, f"navmesh -Y edge not found within {MaxProbeUu}uu of the origin — the slabs cannot be sized to foreclose a detour, so this run could not test a plugged gap at all. Test level changed?");
+            Begin_Teardown(false, f"navmesh -Y edge not found within {MaxProbeUu}uu of the origin - the slabs cannot be sized to foreclose a detour, so this run could not test a plugged gap at all. Test level changed?");
             return;
         }
         _EdgeAbsYNeg = _ProbedEdgeAbsY;
@@ -383,7 +383,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     private void Spawn_Agents(FCk_Handle& InOwner)
     {
         // The stranger goes down FIRST so the walker's very first path is planned
-        // with it already standing in the gap. It is NEVER commanded anywhere —
+        // with it already standing in the gap. It is NEVER commanded anywhere
         // that is what makes it an obstruction rather than a participant.
         _Stranger = Spawn_Agent(InOwner, FVector(0.0, 0.0, _FloorZ + 100.0),
             FRotator::ZeroRotator, n"BlockedGap_Stranger");
@@ -428,7 +428,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
         if (Status == ECk_Nav_PathStatus::Failed || Status == ECk_Nav_PathStatus::Partial)
         {
             const auto Result = utils_nav::Get_PathResult(WalkerEntity);
-            Begin_Teardown(false, f"the walker's path to the far side came back status={Status} (reason={Result.Get_Diagnostics().Get_LastFailReason()}). The 150cm gap is supposed to stay WALKABLE — the stranger standing in it paints a cost disc, not a hole. A non-Ready path means the slabs closed the gap outright, so this run never staged a press.");
+            Begin_Teardown(false, f"the walker's path to the far side came back status={Status} (reason={Result.Get_Diagnostics().Get_LastFailReason()}). The 150cm gap is supposed to stay WALKABLE - the stranger standing in it paints a cost disc, not a hole. A non-Ready path means the slabs closed the gap outright, so this run never staged a press.");
             return;
         }
 
@@ -445,7 +445,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
     // Counted on EVERY poll from the one after the MoveTo is issued until contact latches, which
     // is why it lives at the top of OnSample and not inside Tick_Approach. Tick_Approach runs only
     // once the path-ready gate has opened, and only on polls that reach the bottom of the phase
-    // machine — a strictly smaller window than "the walker was on its way", and small enough that
+    // machine - a strictly smaller window than "the walker was on its way", and small enough that
     // a ~400cm / ~1.9s approach which should show 15+ moving samples measured 4. The guard was
     // therefore one short of its own floor for a reason that had nothing to do with the walker's
     // motion, and would have false-failed a legitimately calm post-fix run.
@@ -482,7 +482,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
         _PressElapsedSec += SampleIntervalSec;
         _PressSamples += 1;
 
-        // BODY yaw — the quantity under test. Wrapped delta, never raw
+        // BODY yaw - the quantity under test. Wrapped delta, never raw
         // subtraction: a 179 -> -179 crossing is a 2-degree turn, not 358.
         const auto BodyYaw = DoGet_BodyYaw();
         const auto BodyDelta = Math::FindDeltaAngleDegrees(_PrevBodyYaw, BodyYaw);
@@ -501,7 +501,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
             _HasPrevBodySign = true;
         }
 
-        // TARGET yaw — attribution only. Reported, never gated on: the desired
+        // TARGET yaw - attribution only. Reported, never gated on: the desired
         // velocity's own oscillation is a separate defect this test does not own.
         const auto TargetYaw = utils_crowd_agent::Get_TargetYawDegrees(_Walker);
         const auto TargetDelta = Math::FindDeltaAngleDegrees(_PrevTargetYaw, TargetYaw);
@@ -541,7 +541,7 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
         }
 
         const auto Diagnostic = DoBuild_Diagnostic();
-        Begin_Teardown(false, f"PRESS ENDED TOO EARLY: the walker held contact for only {_PressElapsedSec}s / {_PressSamples} samples (need {MinPressSec}s / {MinPressSamples}) before goalBlocked={Blocked} goalFailedHold={FailedHold} reachedGoal={Reached}. {Diagnostic}. A press that short cannot show whether the body stays calm — and a REACHED goal means the plug did not hold, i.e. the stranger was shoved clear of the gap and the fixture stopped testing what it exists for.");
+        Begin_Teardown(false, f"PRESS ENDED TOO EARLY: the walker held contact for only {_PressElapsedSec}s / {_PressSamples} samples (need {MinPressSec}s / {MinPressSamples}) before goalBlocked={Blocked} goalFailedHold={FailedHold} reachedGoal={Reached}. {Diagnostic}. A press that short cannot show whether the body stays calm - and a REACHED goal means the plug did not hold, i.e. the stranger was shoved clear of the gap and the fixture stopped testing what it exists for.");
     }
 
     private void Report()
@@ -550,19 +550,19 @@ class UCk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap : UCk_AutoTest_Base
 
         // Log, never Warning: the automation harness escalates any Warning into
         // a test failure, which would fail this test on its own attribution output.
-        ck::crowd::Log(f"[CROWD-FACING] press window closed — {Diagnostic}");
+        ck::crowd::Log(f"[CROWD-FACING] press window closed - {Diagnostic}");
 
         Assert_True(_PressSamples >= MinPressSamples,
-            f"only {_PressSamples} press samples were taken (need >= {MinPressSamples}) — the press was too short to say anything about facing stability. {Diagnostic}");
+            f"only {_PressSamples} press samples were taken (need >= {MinPressSamples}) - the press was too short to say anything about facing stability. {Diagnostic}");
 
         Assert_True(_ApproachMovingSamples >= MinApproachMovingSamples,
-            f"only {_ApproachMovingSamples} approach samples saw the walker above {MovingSpeedCm}cm/s (need >= {MinApproachMovingSamples}) — it never really walked to the gap, so every calmness assertion here would pass vacuously. {Diagnostic}");
+            f"only {_ApproachMovingSamples} approach samples saw the walker above {MovingSpeedCm}cm/s (need >= {MinApproachMovingSamples}) - it never really walked to the gap, so every calmness assertion here would pass vacuously. {Diagnostic}");
 
         Assert_True(_BodyReversalCount <= ReversalCeiling,
             f"WHIP: the walker's body yaw changed direction {_BodyReversalCount} times while pressing (ceiling {ReversalCeiling}). A pressing agent may settle its facing once or twice; alternating repeatedly means the body is chasing the per-frame desired-velocity heading instead of holding still. {Diagnostic}");
 
         Assert_True(_TotalYawTravelDeg <= TotalYawTravelCeilingDeg,
-            f"WHIP: the walker's body swept {_TotalYawTravelDeg} degrees of total yaw travel while pressing (ceiling {TotalYawTravelCeilingDeg}). It is jammed against a body it cannot pass and is going nowhere — there is no heading it legitimately needs to sweep a quarter turn to find. {Diagnostic}");
+            f"WHIP: the walker's body swept {_TotalYawTravelDeg} degrees of total yaw travel while pressing (ceiling {TotalYawTravelCeilingDeg}). It is jammed against a body it cannot pass and is going nowhere - there is no heading it legitimately needs to sweep a quarter turn to find. {Diagnostic}");
 
         Begin_Teardown(true, "");
     }
@@ -692,20 +692,20 @@ class ACk_AutoTest_Crowd_Facing_CalmWhilePressingBlockedGap_Actor : ACk_AutoTest
     // the terminal routes out of it are warning-level by design. The automation
     // framework escalates any Warning to a test failure, so the fixture's own
     // deliberate output would fail it. Same hedge, and the same three plain
-    // substrings, Crowd_Stall_UnreachableGoalFailsBounded registers — a
+    // substrings, Crowd_Stall_UnreachableGoalFailsBounded registers - a
     // suppress-all pattern that never fires is not reported as missing, so
     // listing all three costs nothing.
     UFUNCTION(BlueprintOverride)
     TArray<FString> Get_ExpectedLogErrors() const
     {
         TArray<FString> Out;
-        // FProcessor_CrowdAgent_BlockedRecheck::DoFailMove — the bounded
+        // FProcessor_CrowdAgent_BlockedRecheck::DoFailMove - the bounded
         // NoProgress ladder running out of re-checks.
         Out.Add("made no progress toward");
-        // FProcessor_CrowdAgent_OnPathResolved, Failed branch — a re-path issued
+        // FProcessor_CrowdAgent_OnPathResolved, Failed branch - a re-path issued
         // by the stall ladder that Recast answers with no path at all.
         Out.Add("(path failed:");
-        // FCk_Nav_Algorithm::FindPathSync — start projection can fail on the
+        // FCk_Nav_Algorithm::FindPathSync - start projection can fail on the
         // frame the tiles under the pressed agent are mid-rebuild.
         Out.Add("projection FAILED");
         return Out;

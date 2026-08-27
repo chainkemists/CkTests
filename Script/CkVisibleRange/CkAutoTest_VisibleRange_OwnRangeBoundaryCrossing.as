@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK VISIBLE RANGE — AUTOMATION TEST: own-range boundary crossing
+// CK VISIBLE RANGE - AUTOMATION TEST: own-range boundary crossing
 //============================================================================
 //
 // Composes VisibleRange with UpdateInterval = 0 (every tick, no cadence
-// complexity here — see CkAutoTest_VisibleRange_CadenceGatesUpdates for
+// complexity here - see CkAutoTest_VisibleRange_CadenceGatesUpdates for
 // that). Moves the caller-supplied distance across the MaxRange boundary
 // and asserts FTag_VisibleRange_Hidden tracks it both ways.
 //============================================================================

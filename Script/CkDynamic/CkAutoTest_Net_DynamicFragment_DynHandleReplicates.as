@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — NET AUTOMATION TEST: DYNAMIC-HANDLE PROPERTY IN A REPLICATED DYN FRAGMENT
+// CK DYNAMIC - NET AUTOMATION TEST: DYNAMIC-HANDLE PROPERTY IN A REPLICATED DYN FRAGMENT
 //============================================================================
 //
 // REPRODUCTION of the reported bug: a replicated dynamic fragment whose payload
 // carries a DYNAMIC handle (FCk_Handle_TESTONLY_NetSubject) instead of a raw
-// FCk_Handle. Identical flow to the RawHandle control test — handle points at the
-// subject entity itself — so any divergence is attributable to the handle TYPE.
+// FCk_Handle. Identical flow to the RawHandle control test - handle points at the
+// subject entity itself - so any divergence is attributable to the handle TYPE.
 //
 // The client binds OnRepNotify before the server authors, then asserts:
 //   (1) OnRepNotify fired,
@@ -39,7 +39,7 @@ class UCk_AutoTest_Net_DynamicFragment_DynHandleReplicates : UCk_AutoTest_NetBas
         if (ck::Is_NOT_Valid(Subject))
         { FinishFailure("subject entity not found"); return; }
 
-        // FCk_Handle_TESTONLY_NetSubject requires Ck_Fragment_TESTONLY_HandleMarker — its validated
+        // FCk_Handle_TESTONLY_NetSubject requires Ck_Fragment_TESTONLY_HandleMarker - its validated
         // IsValid()/As_X() only succeed when the entity holds that fragment. Compose it on THIS world's
         // subject (DoesNotReplicate, so each machine composes it locally, mirroring a per-machine feature
         // marker) so the client's validated read below has the required fragment present.
@@ -88,7 +88,7 @@ class UCk_AutoTest_Net_DynamicFragment_DynHandleReplicates : UCk_AutoTest_NetBas
             Assert_Equals_Int(Data.Value, 5151,
                 "the value must be readable (and correct) by the time OnRepNotify fires");
 
-            // Use the dynamic handle's VALIDATED IsValid() (the method) — it checks the handle's
+            // Use the dynamic handle's VALIDATED IsValid() (the method) - it checks the handle's
             // RequiredFragments, unlike ck::IsValid() which only checks entity validity. This is the
             // path where a dynamic handle behaves differently from a raw FCk_Handle.
             Assert_True(Data.TheHandle.IsValid(),

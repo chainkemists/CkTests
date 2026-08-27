@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PMG — AUTOMATION TEST: DRAW FILLED BOX RETURNS VALID HANDLE
+// CK PMG - AUTOMATION TEST: DRAW FILLED BOX RETURNS VALID HANDLE
 //============================================================================
 //
 // Box variant of the DrawFilledSphere seed. utils_pmg_basic_shapes::DrawFilledBox

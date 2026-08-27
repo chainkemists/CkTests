@@ -26,7 +26,7 @@ struct FInventoryGymSpawnParams
 }
 
 //============================================================================
-// MESSAGES — PlayerController → Station entities
+// MESSAGES - PlayerController -> Station entities
 //============================================================================
 
 USTRUCT()

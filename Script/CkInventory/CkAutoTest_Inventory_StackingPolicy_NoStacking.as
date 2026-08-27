@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: STACKING POLICY — NO STACKING
+// CK INVENTORY - AUTOMATION TEST: STACKING POLICY - NO STACKING
 //============================================================================
 //
 // Verifies ECk_Inventory_StackingPolicy::NoStacking caps every stack in the
 // inventory at 1 unit, regardless of the item definition's max stack (Potion
 // defines max 10):
 //   1. Create an unbounded inventory with NoStacking.
-//   2. Add Potion x3 (PreferStacking) → 3 separate entries, 1 unit each.
-//   3. Request_StackItems(entry0 → entry1) → Failed_TargetStackFull.
+//   2. Add Potion x3 (PreferStacking) -> 3 separate entries, 1 unit each.
+//   3. Request_StackItems(entry0 -> entry1) -> Failed_TargetStackFull.
 //
 // Combined with Make_Params_Bounded this is the "N unique items, no stacks"
 // container ("6 unique items, stack <= 1 each").
@@ -34,7 +34,7 @@ class UCk_AutoTest_Inventory_StackingPolicy_NoStacking : UCk_AutoTest_Base
 
         _Inventory = utils_inventory_data_only::Add(LocalHandle, Params, ECk_Replication::DoesNotReplicate);
 
-        // PreferStacking on purpose — the policy must defeat it.
+        // PreferStacking on purpose - the policy must defeat it.
         auto Request = FCk_Request_Inventory_AddItemByDefinition(inv_gym_items::Potion(), 3);
         _Inventory.Request_AddItemByDefinition(Request,
             FCk_Delegate_Inventory_OnOperationResult_AddByDefinition(this, n"OnAddResult"));

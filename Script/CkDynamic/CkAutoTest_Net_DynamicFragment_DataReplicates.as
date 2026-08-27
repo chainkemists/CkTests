@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — NET AUTOMATION TEST: REPLICATED DYNAMIC FRAGMENT DATA ARRIVES
+// CK DYNAMIC - NET AUTOMATION TEST: REPLICATED DYNAMIC FRAGMENT DATA ARRIVES
 //============================================================================
 //
 // Server adds a dynamic fragment with ECk_Replication::Replicates on the
 // NetSubject and stamps a known value. The client polls until the fragment
 // exists on its replicated subject and Get_Fragment observes the server's
-// value — proving the runtime push (SetFragmentData_Runtime) + fallback
+// value - proving the runtime push (SetFragmentData_Runtime) + fallback
 // handler + SyncReplication processor pipeline round-trips the payload.
 //
 // Surface: Ck.Dynamic.Net.AS_DynamicFragment_DataReplicates

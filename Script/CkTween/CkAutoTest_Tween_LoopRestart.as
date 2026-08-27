@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: RESTART LOOP
+// CK TWEEN - AUTOMATION TEST: RESTART LOOP
 //============================================================================
 //
 // Verifies LoopType::Restart with a finite loop count:
-//   1. Create a 0 → 100 tween with LoopType::Restart and LoopCount=2.
+//   1. Create a 0 -> 100 tween with LoopType::Restart and LoopCount=2.
 //   2. Bind OnLoop and OnComplete.
 //   3. OnLoop should fire some N >= 1 times before OnComplete (one per
 //      restart, depending on whether the framework counts the initial

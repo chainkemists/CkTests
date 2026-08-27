@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: A TELEPORTED AGENT RE-PATHS INSTEAD OF WALKING BACK
+// CK CROWD - AUTOMATION TEST: A TELEPORTED AGENT RE-PATHS INSTEAD OF WALKING BACK
 //
 // The off-path tier of FProcessor_CrowdAgent_BlockDetect: an agent more than
 // _BlockDetectionOffPathRepathThresholdCm (300cm, XY) from the segment it is
@@ -8,7 +8,7 @@
 //
 // Without it, nothing in the pipeline notices that the agent no longer stands
 // near the corridor it is walking. Steering keeps aiming at the waypoint the
-// installed polyline says is next — so a teleport, a save restore or an
+// installed polyline says is next - so a teleport, a save restore or an
 // external shove leaves the agent walking BACK to a corridor it has no reason
 // to be on, all the way around, before it finally heads for the goal. A
 // displacement spends ONE rung of the shared re-path ladder
@@ -16,7 +16,7 @@
 // drifts exactly once, so a single heal must never escalate to a block.
 //
 // Shape: the scenario needs a MULTI-WAYPOINT path, otherwise the stale-corridor
-// bug is unobservable — a one-segment path aims straight at the goal, and an
+// bug is unobservable - a one-segment path aims straight at the goal, and an
 // agent teleported anywhere still walks straight at the goal, passing the test
 // for the wrong reason. So a nav-null wall is painted FIRST, before the MoveTo,
 // spanning y in [-1200, +300] at x=0 (past the south edge of the mesh), leaving a
@@ -24,11 +24,11 @@
 // (+600, -600); Recast has to route it north through the gap, giving corners near
 // (+/-95, ~+395).
 //
-// Once it is steering at one of those gap corners it is teleported to (350, -800) —
+// Once it is steering at one of those gap corners it is teleported to (350, -800)
 // already PAST the wall, on the goal side, far off its corridor:
 //   * re-pathed: a straight ~320uu run to the goal, ~1.5s;
 //   * stale corridor: back to the north-west corner (~1300uu), through the gap,
-//     then down to the goal — ~2600uu, ~11s.
+//     then down to the goal - ~2600uu, ~11s.
 // The arrival deadline is set between the two, and the navigation REQUEST
 // REVISION is required to advance right after the teleport so the test names
 // the mechanism rather than merely timing the outcome.
@@ -75,7 +75,7 @@ class UCk_AutoTest_Crowd_OffPath_TeleportRepaths : UCk_AutoTest_Base
     // North of the wall's +300 top edge with margin: a waypoint above this can only be
     // a gap corner, and the goal (y=-600) can never be mistaken for one.
     private const float GapMinY = 200.0;
-    // Middle of the open gap (y in [300, 1000]) — where the mesh must still be walkable.
+    // Middle of the open gap (y in [300, 1000]) - where the mesh must still be walkable.
     private const float GapProbeY = 650.0;
     private const float32 WallProbeHalfExtentUu = 20.0f;
     private const float SampleIntervalSec = 0.1;
@@ -319,14 +319,14 @@ class UCk_AutoTest_Crowd_OffPath_TeleportRepaths : UCk_AutoTest_Base
 
         // THE precondition this scenario rests on: the corridor the agent is CURRENTLY
         // steering along must lead somewhere OTHER than the goal, so that following it
-        // after the displacement is visibly wrong. Concretely — the waypoint it is
+        // after the displacement is visibly wrong. Concretely - the waypoint it is
         // aiming at right now has to be a gap corner north of the wall, while the goal
         // is south of it.
         //
         // This is a WAIT, not an assertion, and deliberately not a check on waypoint
         // INDEX. Both CkNav FindPathSync call sites pass
         // `/*InAgentRadiusForFirstSkip*/ 0.0f` (CkNav_Processor.cpp:382 and :400), which
-        // disables ExtractWaypoints' skip-first pass entirely — so Waypoints[0] is always
+        // disables ExtractWaypoints' skip-first pass entirely - so Waypoints[0] is always
         // the agent's own PROJECTED START, not a corner, and Steering retires it within a
         // frame or two of the agent moving. Index 0 therefore holds only for the first
         // instant of any walk; an earlier revision of this test asserted it and failed
@@ -340,7 +340,7 @@ class UCk_AutoTest_Crowd_OffPath_TeleportRepaths : UCk_AutoTest_Base
             if (_ElapsedSec >= WalkStartDeadlineSec)
             {
                 const auto Dump = Dump_Polyline(Waypoints);
-                Begin_Teardown(false, f"INCONCLUSIVE SCENARIO: the walker never steered at a gap corner — after {_ElapsedSec}s it is aiming at waypoint {TargetIndex} ({TargetWaypoint}), which is south of the wall like the goal is. Displacing it there would leave a stale corridor that happens to point AT the goal, so the test could not tell a re-path from blindly following the old polyline.");
+                Begin_Teardown(false, f"INCONCLUSIVE SCENARIO: the walker never steered at a gap corner - after {_ElapsedSec}s it is aiming at waypoint {TargetIndex} ({TargetWaypoint}), which is south of the wall like the goal is. Displacing it there would leave a stale corridor that happens to point AT the goal, so the test could not tell a re-path from blindly following the old polyline.");
             }
             return;
         }
@@ -356,7 +356,7 @@ class UCk_AutoTest_Crowd_OffPath_TeleportRepaths : UCk_AutoTest_Base
         auto Destination = FVector(TeleportX, TeleportY, _FloorZ + 100.0);
 
         // Snap to the mesh so the displacement lands somewhere the agent could
-        // legitimately have been shoved to — an off-mesh drop would be testing
+        // legitimately have been shoved to - an off-mesh drop would be testing
         // recovery from a different fault.
         FVector Snapped;
         if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector(TeleportX, TeleportY, _FloorZ), 100.0f, Snapped, 300.0f))
@@ -365,7 +365,7 @@ class UCk_AutoTest_Crowd_OffPath_TeleportRepaths : UCk_AutoTest_Base
         const auto Current = utils_transform::Get_EntityCurrentTransform(_AgentTransform);
 
         // Deliberately NOT preceded by Request_Stop: the agent must keep the move
-        // it was given. Cancelling it first would hide the defect — the point is
+        // it was given. Cancelling it first would hide the defect - the point is
         // that an ACTIVE move survives displacement by re-planning, not by being
         // re-issued from outside.
         utils_transform::Request_SetTransform(_AgentTransform,
@@ -398,7 +398,7 @@ class UCk_AutoTest_Crowd_OffPath_TeleportRepaths : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // Nothing obstructs this agent — the route from its teleport destination to
+        // Nothing obstructs this agent - the route from its teleport destination to
         // the goal is open floor. A block here means the displacement was mistaken
         // for a stall, which is exactly the distinction the off-path branch draws.
         Assert_True(false,

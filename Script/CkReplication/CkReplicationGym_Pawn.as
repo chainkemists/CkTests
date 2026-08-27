@@ -1,9 +1,9 @@
 //============================================================================
-// REPLICATION GYM — PAWN (Scenario B driver)
+// REPLICATION GYM - PAWN (Scenario B driver)
 //============================================================================
 // Extends the gym base pawn. After the base pawn's own WithActor entity has
 // been constructed, we attach a SECOND WithActor entity script using
-// ck::TransientEntity() as the lifetime owner — mirroring the
+// ck::TransientEntity() as the lifetime owner - mirroring the
 // BB_PlayerCharacter shape where the ensure was hit after re-ordering.
 //============================================================================
 

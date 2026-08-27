@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BIAS — AUTOMATION TEST: THE DEADZONE BOUNDARY, FROM BOTH SIDES
+// CK INPUT BIAS - AUTOMATION TEST: THE DEADZONE BOUNDARY, FROM BOTH SIDES
 //============================================================================
 //
 // A deadzone is only correct at its edge. Three samples straddle the
-// threshold — below it, exactly on it, and one hundredth above it — because
+// threshold - below it, exactly on it, and one hundredth above it - because
 // the two implementations that get this wrong both look right in the middle
 // of the range: a naive "zero it out" leaves a step at the threshold (the
 // first live value jumps to the threshold value instead of leaving zero
@@ -15,7 +15,7 @@
 // the threshold maps to 0 and full deflection still maps to 1.
 //
 // The negative sample is here because every stage after inversion works on
-// the magnitude — if the rescale were applied to the signed value instead,
+// the magnitude - if the rescale were applied to the signed value instead,
 // this is the assertion that catches it.
 //============================================================================
 
@@ -113,7 +113,7 @@ class UCk_AutoTest_InputBias_DeadzoneRescalesOutsideThreshold : UCk_AutoTest_Bas
         float Expected = (0.26f - 0.25f) / (1.0f - 0.25f);
 
         Assert_Equals_Float(utils_input_bias::Get_ConditionedAxisValue(_Bias, EKeys::Gamepad_LeftX), Expected, 0.0001f,
-            "the band above the deadzone must be rescaled so the threshold maps to zero — an unrescaled implementation reads 0.26 here");
+            "the band above the deadzone must be rescaled so the threshold maps to zero - an unrescaled implementation reads 0.26 here");
     }
 
     UFUNCTION()
@@ -179,7 +179,7 @@ class UCk_AutoTest_InputBias_DeadzoneRescalesOutsideThreshold : UCk_AutoTest_Bas
     }
 
     // Each sample overwrites the previous one on the same axis, so "the raw half now reads X" names the exact
-    // write the following assertions read — and no two samples in this test share a value.
+    // write the following assertions read - and no two samples in this test share a value.
     private bool DoGet_RawIs(float InExpectedRaw)
     {
         return Math::IsNearlyEqual(

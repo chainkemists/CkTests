@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK CHRONO — AUTOMATION TEST: GET_TIMEELAPSED NORMALIZED LINEAR
+// CK CHRONO - AUTOMATION TEST: GET_TIMEELAPSED NORMALIZED LINEAR
 //============================================================================
 //
 // Pins the [0, 1] normalization contract: Get_TimeElapsed with
 // ECk_NormalizationPolicy::ZeroToOne returns 0 at start, 0.5 at half,
 // 1.0 at completion (within float epsilon).
 //
-// This is the "alpha" accessor — what consumers use to drive interpolation
+// This is the "alpha" accessor - what consumers use to drive interpolation
 // against a chrono-driven timer/tween. Pinning it linear at the three
 // boundary points catches any future change that breaks the contract.
 //============================================================================

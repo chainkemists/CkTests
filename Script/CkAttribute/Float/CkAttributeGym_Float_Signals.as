@@ -186,7 +186,7 @@ class UCk_EntityScript_AttributeGym_FloatSignals : UCk_GenericEntityScript_UE
 			DisplayText = f"{DisplayText}  Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={LastOverflow}\n";
 		}
 
-		// Live polling via utility accessors — updates every frame.
+		// Live polling via utility accessors - updates every frame.
 		auto LivePre = utils_float_attribute::Get_PreClampFinalValue(TestAttribute);
 		auto LiveOvr = utils_float_attribute::Get_ClampOverflow(TestAttribute);
 		DisplayText = f"{DisplayText}  Live Poll:  pre={LivePre}  overflow={LiveOvr}\n";

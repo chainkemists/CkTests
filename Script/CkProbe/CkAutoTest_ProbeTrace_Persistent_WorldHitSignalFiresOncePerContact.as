@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE TRACE — AUTOMATION TEST: PERSISTENT WORLD-HIT SIGNAL DEDUPS
+// CK PROBE TRACE - AUTOMATION TEST: PERSISTENT WORLD-HIT SIGNAL DEDUPS
 //============================================================================
 //
 // The melee clang. A persistent shape trace sweeps into a baked cube and back
@@ -9,7 +9,7 @@
 //
 //   1. No contact -> no signal.
 //   2. Entering contact fires EXACTLY once, and keeps firing nothing while the
-//      same body stays hit (the per-episode dedup — a per-tick re-fire would
+//      same body stays hit (the per-episode dedup - a per-tick re-fire would
 //      make it useless for a one-shot impact cue).
 //   3. Leaving and re-entering fires exactly once more. There is deliberately
 //      no end signal.
@@ -90,7 +90,7 @@ class UCk_AutoTest_ProbeTrace_Persistent_WorldHitSignalFiresOncePerContact : UCk
         utils_probe_trace::BindTo_OnBeginOverlap(_Trace,
             FCk_Delegate_ProbeTrace_OnBeginOverlap(this, n"OnProbeBeginOverlap"));
 
-        // Nothing to wait FOR here — the assertion is that nothing happens.
+        // Nothing to wait FOR here - the assertion is that nothing happens.
         WaitFrames(5, n"OnBeforeContact");
     }
 
@@ -129,7 +129,7 @@ class UCk_AutoTest_ProbeTrace_Persistent_WorldHitSignalFiresOncePerContact : UCk
         if (IsFinished()) { return; }
 
         Assert_Equals_Int(_WorldHitCount, 1,
-            "Holding the same contact must NOT re-fire — the signal is begin-equivalent, not per-tick");
+            "Holding the same contact must NOT re-fire - the signal is begin-equivalent, not per-tick");
 
         Do_MoveStart(-_ApproachOffset);
         WaitFrames(6, n"OnContactLost");
@@ -140,7 +140,7 @@ class UCk_AutoTest_ProbeTrace_Persistent_WorldHitSignalFiresOncePerContact : UCk
     {
         if (IsFinished()) { return; }
 
-        Assert_Equals_Int(_WorldHitCount, 1, "Losing contact fires nothing — there is no end signal by design");
+        Assert_Equals_Int(_WorldHitCount, 1, "Losing contact fires nothing - there is no end signal by design");
 
         Do_MoveStart(_ApproachOffset);
         WaitUntil(n"Check_WorldHitFiredTwice", n"OnSecondContact");

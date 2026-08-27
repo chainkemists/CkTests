@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF OUTLINE GYM/TESTS — shared ISM renderer data
+// CK USF OUTLINE GYM/TESTS - shared ISM renderer data
 //============================================================================
 //
 // The entity-outline gym stations and autotests render IsmProxy entities through a TRANSIENT
 // renderer (engine cube + a generated CkUsf look master as the slot-0 override). Generated
 // surface looks bake 'bUsedWithInstancedStaticMeshes' at generation time (CkUsf_Generator), so
 // this dodges the usage-flag ensure that engine materials (WorldGridMaterial, AnimSharing*)
-// trip on first ISM setup. Everything loads at call time — not asset-literal init — so headless
+// trip on first ISM setup. Everything loads at call time - not asset-literal init - so headless
 // runs are safe (the /Engine registry scan hasn't finished when literals initialize).
 //============================================================================
 

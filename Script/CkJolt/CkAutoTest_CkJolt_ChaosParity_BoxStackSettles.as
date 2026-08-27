@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — CHAOS PARITY TWIN: FIVE-BOX STACK SETTLES AND STAYS STACKED
+// CK JOLT - CHAOS PARITY TWIN: FIVE-BOX STACK SETTLES AND STAYS STACKED
 //============================================================================
 //
 // Chaos-engine twin of CkAutoTest_CkJolt_BoxStackOfFiveSettlesAndStays: the
 // SAME scenario and qualitative assertions, but driven by stock UE/Chaos
-// physics (AStaticMeshActor + SetSimulatePhysics) instead of the Jolt world —
+// physics (AStaticMeshActor + SetSimulatePhysics) instead of the Jolt world
 // no JoltBody fragments at all. It exists to show Chaos agrees qualitatively
 // with the Jolt result already pinned.
 //
@@ -17,7 +17,7 @@
 //   3. Assert bottom-to-top order preserved and consecutive spacing ~100uu.
 //   4. Hold 1s; the stack must not drift or collapse.
 //
-// Windows are TIME-based (accumulated tick delta), never frame-counted — the
+// Windows are TIME-based (accumulated tick delta), never frame-counted - the
 // automation PIE runs uncapped. Placed at an isolated Y (75000); all spawned
 // actors are destroyed before finish (shared-map leak hygiene).
 //============================================================================
@@ -119,7 +119,7 @@ class UCk_AutoTest_CkJolt_ChaosParity_BoxStackSettles : UCk_AutoTest_Base
 
         if (_Phase == 0)
         {
-            // "At rest" and "has not started falling yet" are the SAME reading — every delta is
+            // "At rest" and "has not started falling yet" are the SAME reading - every delta is
             // exactly 0 until Chaos first steps these bodies. Latch real motion before the
             // stability window may count, or the window completes at the SPAWN positions and the
             // spacing assertion measures the 200uu spawn gap instead of the 100uu settled one.
@@ -162,7 +162,7 @@ class UCk_AutoTest_CkJolt_ChaosParity_BoxStackSettles : UCk_AutoTest_Base
             return;
         }
 
-        // Phase 1 — hold: the settled column must not drift or reorder.
+        // Phase 1 - hold: the settled column must not drift or reorder.
         _HoldTime += float(InDeltaT.Get_Seconds());
 
         for (int Index = 0; Index < _BoxCount; Index++)

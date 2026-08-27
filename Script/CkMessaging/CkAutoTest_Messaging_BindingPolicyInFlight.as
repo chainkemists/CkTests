@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MESSAGING — AUTOMATION TEST: BINDING POLICY (IN-FLIGHT PAYLOAD)
+// CK MESSAGING - AUTOMATION TEST: BINDING POLICY (IN-FLIGHT PAYLOAD)
 //============================================================================
 //
 // Verifies the BindingPolicy contract for messaging signals:
@@ -9,11 +9,11 @@
 //   2. Bind a listener with FireIfPayloadInFlightThisFrame. Expect it
 //      to fire immediately with the in-flight payload (count goes to 1).
 //   3. Bind a second listener with IgnorePayloadInFlight. Expect it to
-//      NOT fire — it should only respond to future broadcasts.
+//      NOT fire - it should only respond to future broadcasts.
 //   4. Wait several ticks; ignore-listener stays at 0; in-flight at 1.
 //
 // Pins down the policy distinction documented in CkSignal_Fragment_Data.h
-// — gameplay code that needs to "react to events that already happened
+// - gameplay code that needs to "react to events that already happened
 // before I bound" relies on FireIfPayloadInFlight; code that explicitly
 // wants to skip past events relies on IgnorePayloadInFlight.
 //============================================================================
@@ -36,7 +36,7 @@ class UCk_AutoTest_Messaging_BindingPolicyInFlight : UCk_AutoTest_Base
         utils_messaging::Broadcast(_SelfHandle,
             FCk_Message_MessagingGym_Ping("AutoTest", 1));
 
-        // Step 2: bind with FireIfPayloadInFlightThisFrame — should fire
+        // Step 2: bind with FireIfPayloadInFlightThisFrame - should fire
         // immediately on bind because a payload is in flight this frame.
         utils_messaging::BindTo_OnBroadcast(
             _SelfHandle,
@@ -45,7 +45,7 @@ class UCk_AutoTest_Messaging_BindingPolicyInFlight : UCk_AutoTest_Base
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
-        // Step 3: bind with IgnorePayloadInFlight — should NOT fire on bind
+        // Step 3: bind with IgnorePayloadInFlight - should NOT fire on bind
         // for the in-flight payload, only on future broadcasts.
         utils_messaging::BindTo_OnBroadcast(
             _SelfHandle,

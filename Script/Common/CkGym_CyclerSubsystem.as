@@ -19,7 +19,7 @@ class UCkGym_CyclerSubsystem : UScriptGameInstanceSubsystem
     // auto-travel to a startup gym; cleared when the destination level loads
     // (and on no-travel code paths). The cycler HUD reads this and skips
     // drawing while it's true, so the user doesn't briefly see the menu /
-    // tab-hint during the launcher → destination transition.
+    // tab-hint during the launcher -> destination transition.
     UPROPERTY()
     bool SuppressHUDDuringStartup = false;
 }

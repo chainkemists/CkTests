@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK COMPASS — AUTOMATION TEST: elevation delta sign (above/below arrows)
+// CK COMPASS - AUTOMATION TEST: elevation delta sign (above/below arrows)
 //============================================================================
 //
 // Two POIs 1000uu ahead: one 500uu ABOVE the observer, one 500uu BELOW.
 // Entry _ElevationDelta must be ~+500 and ~-500 respectively (PoiZ minus
-// ObserverZ) — the data UI uses for above/below indicators.
+// ObserverZ) - the data UI uses for above/below indicators.
 //
 // Isolated Y band: 60000.
 //============================================================================

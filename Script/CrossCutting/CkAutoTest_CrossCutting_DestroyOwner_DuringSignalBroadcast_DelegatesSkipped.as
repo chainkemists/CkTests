@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CROSS-CUTTING — AUTOMATION TEST: SELF-DESTRUCT DURING SIGNAL BROADCAST
+// CK CROSS-CUTTING - AUTOMATION TEST: SELF-DESTRUCT DURING SIGNAL BROADCAST
 //============================================================================
 //
 // Pins the contract that destroying an entity from inside one of its own
@@ -13,7 +13,7 @@
 // NOTE on broadcast targeting: broadcasting on a destroyed entity is an
 // ensure-fail in the framework (the entity's signal-fragment storage is
 // torn down with the entity). This test does NOT attempt a follow-up
-// broadcast on the dead entity — that would be an illegal call. Instead
+// broadcast on the dead entity - that would be an illegal call. Instead
 // it verifies the GA-flow contract: the handler fires exactly once for
 // the legitimate broadcast, the entity is invalid afterward, and no
 // internal callbacks reentrant on the dying entity fire.
@@ -50,7 +50,7 @@ class UCk_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkip
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
-        // Broadcast — handler will self-destruct the child entity.
+        // Broadcast - handler will self-destruct the child entity.
         utils_messaging::Broadcast(_Child,
             FCk_Message_MessagingGym_Ping("Trigger", 1));
 
@@ -68,7 +68,7 @@ class UCk_AutoTest_CrossCutting_DestroyOwner_DuringSignalBroadcast_DelegatesSkip
     private void OnPingHandler(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
         _PingCount++;
-        // Self-destruct from inside the broadcast handler — must not crash.
+        // Self-destruct from inside the broadcast handler - must not crash.
         utils_entity_lifetime::Request_DestroyEntity(_Child);
     }
 

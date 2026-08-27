@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: BLOCKER <-> PLACEMENT + SHAPE/BLOCKER REFCOUNT
+// CK GRID - AUTOMATION TEST: BLOCKER <-> PLACEMENT + SHAPE/BLOCKER REFCOUNT
 //============================================================================
 //
 // BlockerLifecycle/NamedToggle drive a blocker's state machine against the
 // cell's IsDisabled flag, but never cross-check the PLACEMENT layer, and never
 // stack a blocker on top of a shape-disabled cell. This pins both:
 //
-//   Part A — blocker gates placement, and toggling re-opens it:
+//   Part A - blocker gates placement, and toggling re-opens it:
 //     Grid 10x10, DefaultCellState=Enable, ExceptionCoordinates={(2,2)} (a
 //     shape-disabled cell). A blocker covers (5,5).
 //       - poll until (5,5) disabled: CanPlace(1x1 @ (5,5)) == false (Disabled).
@@ -19,10 +19,10 @@
 //         (placement was removed below before re-blocking so the re-block is
 //          observable on a freed cell.)
 //
-//   Part B — shape-disable + blocker-disable share ONE counted Disabled tag:
+//   Part B - shape-disable + blocker-disable share ONE counted Disabled tag:
 //     A second blocker covers the shape-disabled (2,2). The shape contributed a
 //     counted Disabled stamp at construction; the blocker adds a second. When
-//     that blocker deactivates it releases ITS stamp only — (2,2) STAYS disabled
+//     that blocker deactivates it releases ITS stamp only - (2,2) STAYS disabled
 //     because the shape's stamp still holds. This pins that the two sources hit
 //     the same refcounted tag and the blocker release does not underflow it.
 //============================================================================
@@ -185,7 +185,7 @@ class UCk_AutoTest_Grid_BlockerPlacementInteraction : UCk_AutoTest_Base
         {
             // Sync on the blocker's OPEN cell (2,3): once it re-enables, the
             // deactivation has been processed. The shape-disabled (2,2) shared the
-            // same blocker stamp but must STAY disabled — the ExceptionCoordinate's
+            // same blocker stamp but must STAY disabled - the ExceptionCoordinate's
             // counted Disabled tag still holds it (one refcounted tag, no underflow).
             if (!IsCellDisabled(FIntPoint(2, 3)))
             {

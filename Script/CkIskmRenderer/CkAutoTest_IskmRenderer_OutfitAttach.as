@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE Q3 OUTFIT ATTACH
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE Q3 OUTFIT ATTACH
 //============================================================================
 //
 // Adds a proxy, requests AttachSubmesh by name "Hat", and after one tick
 // asserts Get_NumAttachedSubmeshes incremented.
 //
 // Pulls iskm_assets::RendererData_Demo() (AS-authored). Its _Submeshes array must
-// contain at least one entry whose Name matches "Hat" — otherwise the
+// contain at least one entry whose Name matches "Hat" - otherwise the
 // handler's Find_SubmeshIndex_ByName returns INDEX_NONE and the attach is a
 // no-op (treated as a skip).
 //

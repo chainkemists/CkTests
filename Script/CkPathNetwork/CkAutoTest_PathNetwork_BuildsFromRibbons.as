@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: BUILDS FROM RIBBONS
+// CK PATH NETWORK - AUTOMATION TEST: BUILDS FROM RIBBONS
 //============================================================================
 //
 // Verifies the network build pipeline end-to-end through the public API:
 //   1. Add a path network (two authored ribbons forming an L, sharing an
 //      endpoint) as a child of the test entity.
-//   2. Wait one frame — FProcessor_PathNetwork_Setup consumes the NeedsBuild
+//   2. Wait one frame - FProcessor_PathNetwork_Setup consumes the NeedsBuild
 //      tag on its next tick.
 //   3. Assert the graph built: endpoint fusion produced 3 nodes / 2 edges,
 //      the build epoch advanced, and closest-point projection lands on the
 //      centerline.
 //
-// No navmesh required — building never consults navigation.
+// No navmesh required - building never consults navigation.
 //============================================================================
 
 class UCk_AutoTest_PathNetwork_BuildsFromRibbons : UCk_AutoTest_Base

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE K RAGDOLL
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE K RAGDOLL
 //============================================================================
 //
 // Phase K test gate. Verifies the ragdoll API surface added in K1:

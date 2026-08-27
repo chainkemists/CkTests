@@ -1,20 +1,20 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: REVOCABLE PER-CALL HANDLE UNIQUENESS
+// CK ATTRIBUTE - AUTOMATION TEST: REVOCABLE PER-CALL HANDLE UNIQUENESS
 //============================================================================
 //
-// Pins the Revocable-modifier contract from CkAttribute/CLAUDE.md:
+// Pins the Revocable-modifier contract from the CkAttribute docs:
 //
 //   `Add_Revocable` always creates a *new* modifier entity per call. Use
 //   for stackable equipment buffs, temporary status effects.
 //
 // On Base=10, three Add_Revocable(Add, ...) calls with distinct deltas
-// (5, 7, 9) must produce three INDEPENDENT modifiers — verified by:
+// (5, 7, 9) must produce three INDEPENDENT modifiers - verified by:
 //   1. The three returned modifier handles each carry their own delta
 //      (Get_Delta returns 5, 7, 9 respectively).
 //   2. FinalValue stacks all three: 10 + 5 + 7 + 9 = 31.
-//   3. Removing the middle modifier leaves the other two intact —
+//   3. Removing the middle modifier leaves the other two intact
 //      FinalValue drops to 10 + 5 + 9 = 24, and the surviving modifier
 //      handles still pass Has() checks.
 //

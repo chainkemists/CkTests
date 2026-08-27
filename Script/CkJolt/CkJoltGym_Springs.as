@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — SPRINGS
+// CK JOLT GYM - SPRINGS
 //
 // Three Dynamic plates hang from a gantry on Distance constraints with SOFT
-// (spring) limits at different frequencies — floppy (1 Hz), medium (3 Hz),
-// stiff (8 Hz) — plus a bungee ball on a long low-frequency spring. Poke them
+// (spring) limits at different frequencies - floppy (1 Hz), medium (3 Hz),
+// stiff (8 Hz) - plus a bungee ball on a long low-frequency spring. Poke them
 // and compare the oscillation. Enable ck.Jolt.DebugDraw.Enabled 1 to see the
 // bodies and constraint anchors (ck.Jolt.DebugDraw.Constraints).
 //
@@ -52,7 +52,7 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
 
         DoBuildContent();
 
-        ck::Trace("JoltSpringsGym: started — poke the plates with Ck_GymJoltSprings_Poke");
+        ck::Trace("JoltSpringsGym: started - poke the plates with Ck_GymJoltSprings_Poke");
     }
 
     private void DoBuildContent()
@@ -169,7 +169,7 @@ class ACk_JoltGym_Springs_PlayerController : ACk_Gym_Base_PlayerController
             { continue; }
 
             auto Body = utils_jolt_body::DoCastChecked(_Plates[i]);
-            // FromShape masses are ~e8 units at these dimensions — impulses must scale to match.
+            // FromShape masses are ~e8 units at these dimensions - impulses must scale to match.
             utils_jolt_body::Request_AddImpulse(Body, FCk_Request_JoltBody_AddImpulse(FVector(0.0, 0.0, -100000000000.0)));
         }
 

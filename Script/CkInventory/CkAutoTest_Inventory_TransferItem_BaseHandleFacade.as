@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: TRANSFER VIA BASE-HANDLE FACADE
+// CK INVENTORY - AUTOMATION TEST: TRANSFER VIA BASE-HANDLE FACADE
 //============================================================================
 //
 // Pins the Tier C base-handle facade introduced by the inventory refactor:
@@ -9,15 +9,15 @@
 // directly via mixin propagation, with a single runtime shape-branch at the
 // public Utils boundary that dispatches to the correct typed Utils.
 //
-// This test exercises the Spatial→DataOnly direction *via the base handle*:
+// This test exercises the Spatial->DataOnly direction *via the base handle*:
 //   1. Create a Spatial(3x3) source and a DataOnly(5) target on the test entity.
-//      (3x3 large enough for the 3x1 Sword — see CkAutoTest_Inventory_SpatialPlacementRejection
+//      (3x3 large enough for the 3x1 Sword - see CkAutoTest_Inventory_SpatialPlacementRejection
 //      which uses the same staging dimensions.)
 //   2. Seed the source with one Sword.
 //   3. Transfer via the base handle:
 //        utils_inventory::Request_TransferItem_ToDataOnly(SourceAsBase, ...)
 //      where SourceAsBase is implicitly converted from FCk_Handle_Inventory_Spatial
-//      to FCk_Handle_Inventory (this is the call shape the brief asked for —
+//      to FCk_Handle_Inventory (this is the call shape the brief asked for
 //      callers stop having to know the source's shape).
 //   4. Assert Success (or Success_Partial), source.NumItems == 0,
 //      target.NumItems == 1.

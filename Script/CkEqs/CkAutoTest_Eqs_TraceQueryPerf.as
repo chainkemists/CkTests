@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — PERF READOUT AUTOTEST (grid + trace-test query throughput)
+// CK EQS - PERF READOUT AUTOTEST (grid + trace-test query throughput)
 //============================================================================
 //
 // Measured (not estimated) readout for the EQS trace-test hot loop:
@@ -9,7 +9,7 @@
 // queries against a blocker probe, each re-issued the moment it completes.
 // The per-frame budget (default 256) plus the anti-deadlock clause means
 // each query's trace test runs its full 2601 Jolt raycasts inside a single
-// tick — exactly the loop DoRunTest_Trace owns.
+// tick - exactly the loop DoRunTest_Trace owns.
 //
 // Warms up, samples per-tick delta for SampleSeconds, then logs avg / max
 // frame ms + FPS + completed query count. Numbers are RELATIVE (same
@@ -50,7 +50,7 @@ class UCk_AutoTest_Eqs_TraceQueryPerf : UCk_AutoTest_Base
         Set_CVarForTest(n"t.MaxFPS", "0");
         Set_CVarForTest(n"r.VSync", "0");
 
-        // Querier needs a transform — Generate validates this.
+        // Querier needs a transform - Generate validates this.
         utils_transform::Add(_SelfEntity, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
         // Blocker: big static box probe wall so roughly half the grid's LOS rays hit something.
@@ -67,7 +67,7 @@ class UCk_AutoTest_Eqs_TraceQueryPerf : UCk_AutoTest_Base
 
         utils_timer::Create_Tick(_SelfEntity, FCk_Delegate_Timer(this, n"OnTick"));
 
-        // Four outstanding queries, each re-issued on completion — sized to SATURATE the
+        // Four outstanding queries, each re-issued on completion - sized to SATURATE the
         // headless 120fps frame budget (~8.33 ms) in the serial implementation, so frame
         // deltas measure the trace-loop work rather than the frame cap.
         DoIssueQuery();
@@ -149,7 +149,7 @@ class UCk_AutoTest_Eqs_TraceQueryPerf : UCk_AutoTest_Base
 
         if (_QueriesCompleted == 0)
         {
-            FinishFailure("no EQS queries completed — pipeline stalled");
+            FinishFailure("no EQS queries completed - pipeline stalled");
             return;
         }
 

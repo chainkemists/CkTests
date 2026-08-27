@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RESOLVER — AUTOMATION TEST: ResolverSource Add happy path
+// CK RESOLVER - AUTOMATION TEST: ResolverSource Add happy path
 // Add the ResolverSource feature with an empty resolution-phase list; the
 // returned handle is valid.
 

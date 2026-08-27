@@ -273,7 +273,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
                 Request_SetAllValues(95.0f, 245, FVector(200.0f, 100.0f, 50.0f));
                 break;
 
-            case 2: // TestBoundaries — push past max
+            case 2: // TestBoundaries - push past max
                 Request_TestBoundariesMax();
                 break;
 
@@ -281,7 +281,7 @@ class UCk_EntityScript_AttributeGym_BasicAttributes : UCk_GenericEntityScript_UE
                 Request_SetAllValues(10.0f, 20, FVector(50.0f, 25.0f, -25.0f));
                 break;
 
-            case 4: // Push past min — SetHealth -10 (clamps to 0), SetArmor 0
+            case 4: // Push past min - SetHealth -10 (clamps to 0), SetArmor 0
                 Request_SetAllValues(-10.0f, 0, FVector(-50.0f, -25.0f, -50.0f));
                 break;
 
@@ -414,7 +414,7 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartGym() override
     {
         Request_StartBasicAttributes();
-        ck::Trace("✅ Attribute System Testing Gym - Basic Attributes started");
+        ck::Trace("[OK] Attribute System Testing Gym - Basic Attributes started");
     }
 
     void Request_StartBasicAttributes()
@@ -430,11 +430,11 @@ class ACk_AttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 
         if (ck::IsValid(SpawnRequest))
         {
-            ck::Trace("✅ Basic Attributes station started");
+            ck::Trace("[OK] Basic Attributes station started");
         }
         else
         {
-            ck::Error("❌ Failed to spawn Basic Attributes entity");
+            ck::Error("[FAIL] Failed to spawn Basic Attributes entity");
         }
     }
 

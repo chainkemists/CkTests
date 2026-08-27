@@ -1,19 +1,19 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: NO ROUTE AT ALL MUST FAIL CLEANLY AND BOUNDEDLY
+// CK CROWD - AUTOMATION TEST: NO ROUTE AT ALL MUST FAIL CLEANLY AND BOUNDEDLY
 //
-// The no-progress ladder's crowd-regime contract — and its dedicated test
+// The no-progress ladder's crowd-regime contract - and its dedicated test
 // instrument (the BunchUp budget cannot contain approach + window + block, so
 // the ladder needs a scenario where it is the ONLY rescue).
 //
 // Shape: full-width UNavArea_Null slabs leave a single 110cm gap, a parked
-// agent plugs it, and the flanks are closed — there is NO route the walker can
+// agent plugs it, and the flanks are closed - there is NO route the walker can
 // physically take. Strict planning fails honestly (no crowd-free route);
 // the permissive toll path goes through a body that will never move.
 //
 // Contract: within the budget the walker reports OnGoalFailed carrying
-// NoCrowdFreeRouteExisted=true — the clear message a queue manager or planner
-// acts on — and it does NOT press against the blocker for the whole budget.
+// NoCrowdFreeRouteExisted=true - the clear message a queue manager or planner
+// acts on - and it does NOT press against the blocker for the whole budget.
 // An agent that is still Walking when the budget expires is the ladder-
 // starvation defect this instrument exists to expose.
 //============================================================================
@@ -24,7 +24,7 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
 
     private const float GapHalfWidthUu = 55.0;
     private const float WallHalfX = 50.0;
-    private const float WallHalfY = 2000.0;     // spans the whole play space — no detour exists
+    private const float WallHalfY = 2000.0;     // spans the whole play space - no detour exists
     private const float WallHalfZ = 200.0;
     private const float ApproachX = 500.0;
     private const float FailDeadlineSec = 35.0;
@@ -123,7 +123,7 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
         if (_PressElapsedSec >= FailDeadlineSec)
         {
             const auto BlockedHold = utils_crowd_agent::Get_IsGoalBlocked(_Walker);
-            FinishFailure(f"UNBOUNDED: {FailDeadlineSec}s elapsed with no OnGoalFailed (goalBlockedHold={BlockedHold}). An agent with NO physically walkable route must terminate boundedly — this is the no-progress ladder failing to escalate against a crowd plug.");
+            FinishFailure(f"UNBOUNDED: {FailDeadlineSec}s elapsed with no OnGoalFailed (goalBlockedHold={BlockedHold}). An agent with NO physically walkable route must terminate boundedly - this is the no-progress ladder failing to escalate against a crowd plug.");
         }
     }
 
@@ -143,7 +143,7 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
         return Agent;
     }
 
-    // Tests share one PIE world and run seconds apart — GC teardown is far too late for a navmesh
+    // Tests share one PIE world and run seconds apart - GC teardown is far too late for a navmesh
     // carve, and THESE slabs span the whole play space. They come down on every exit path,
     // including the engine TimeLimit one.
     UFUNCTION(BlueprintOverride)
@@ -157,7 +157,7 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
     private void OnWalkerReached(FCk_Handle_CrowdAgent InAgent)
     {
         if (IsFinished()) { return; }
-        FinishFailure("the walker REACHED a goal that is physically unreachable — it walked through the parked blocker's body");
+        FinishFailure("the walker REACHED a goal that is physically unreachable - it walked through the parked blocker's body");
     }
 
     UFUNCTION()
@@ -166,7 +166,7 @@ class UCk_AutoTest_Crowd_NarrowGap_NoRouteFailsClean : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         Assert_True(InInfo.Get_NoCrowdFreeRouteExisted(),
-            "MESSAGE: OnGoalFailed fired but NoCrowdFreeRouteExisted was false — gameplay cannot tell 'blocked by standing bodies' from 'no route at all', which is the clear-message contract this payload exists for.");
+            "MESSAGE: OnGoalFailed fired but NoCrowdFreeRouteExisted was false - gameplay cannot tell 'blocked by standing bodies' from 'no route at all', which is the clear-message contract this payload exists for.");
 
         const auto Recorder = utils_crowd_agent_diag::Get_RecorderData(_Walker);
         Assert_True(Recorder.Get_DirReversalCount() <= MaxReversalsWhilePressing,

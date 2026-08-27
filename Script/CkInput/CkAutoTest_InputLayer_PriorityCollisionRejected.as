@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT LAYER — AUTOMATION TEST: A PRIORITY COLLISION IS REJECTED LOUDLY
+// CK INPUT LAYER - AUTOMATION TEST: A PRIORITY COLLISION IS REJECTED LOUDLY
 //============================================================================
 //
 // Entities have no inherent order, so a layer's place in its stack is an
 // explicit priority. Two layers sharing one on the same source would make
-// arbitration order undefined — which is precisely the defect already sitting
+// arbitration order undefined - which is precisely the defect already sitting
 // in the Slate preprocessor list, where two registrations at index 0 quietly
 // tie-break by luck.
 //
 // So the second registration is REJECTED: it ensures, returns an invalid
-// handle, and composes nothing. Atomicity is what the last three legs check —
+// handle, and composes nothing. Atomicity is what the last three legs check
 // the incumbent still holds the slot, the same priority is free on a DIFFERENT
 // source (the collision is per-stack, not global), and a different priority on
 // the same source is still accepted.
@@ -66,7 +66,7 @@ class UCk_AutoTest_InputLayer_PriorityCollisionRejected : UCk_AutoTest_Base
 }
 
 //============================================================================
-// HAND-AUTHORED WRAPPER ACTOR — registers the deliberate-ensure log pattern.
+// HAND-AUTHORED WRAPPER ACTOR - registers the deliberate-ensure log pattern.
 //============================================================================
 
 class ACk_AutoTest_InputLayer_PriorityCollisionRejected_Actor : ACk_AutoTestRunner

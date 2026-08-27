@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: CROWD AGENT WALKS A CORRIDOR
+// CK PATH NETWORK - AUTOMATION TEST: CROWD AGENT WALKS A CORRIDOR
 //============================================================================
 //
 // Full-stack integration of the CkCrowd seam: a crowd agent that carries the
@@ -10,7 +10,7 @@
 // FCk_Nav_Algorithm::InstallExternalPath (the OnRouteResolved bridge), and
 // the unchanged steering machinery walks the compiled waypoints to arrival.
 //
-//   network:  (100,0) ──► (450,0)      agent (0,0,0)   goal (480,0,0)
+//   network:  (100,0) --> (450,0)      agent (0,0,0)   goal (480,0,0)
 //
 //   1. Compose a full crowd agent (transform/velocity/accel/integrator) as
 //      a child of the test entity, plus the follower feature.
@@ -20,7 +20,7 @@
 //      steering machinery consumed it) with the agent's transform near the
 //      goal.
 //
-// Geometry sits inside the AutoTests level's baked navmesh (±500cm) so the
+// Geometry sits inside the AutoTests level's baked navmesh (+/-500cm) so the
 // plan-time ramps validate honestly. Walking itself needs no navmesh.
 //============================================================================
 
@@ -56,7 +56,7 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
 
         _Network = utils_path_network::Add(LocalHandle, FCk_Fragment_PathNetwork_ParamsData(Ribbons));
 
-        // Full crowd-agent composition — this entity IS the agent (mirrors the CkCrowd tests).
+        // Full crowd-agent composition - this entity IS the agent (mirrors the CkCrowd tests).
         auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
         _Agent = utils_crowd_agent::Add(AgentTransform, AgentParams);
         utils_velocity::Add(LocalHandle,
@@ -67,7 +67,7 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(LocalHandle);
 
-        // Opt the AGENT into network following — this is the activation switch the
+        // Opt the AGENT into network following - this is the activation switch the
         // MoveTo branch keys on.
         auto FollowerParams = FCk_Fragment_PathNetworkFollower_ParamsData();
         FollowerParams.Set_Network(_Network);
@@ -114,7 +114,7 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
     {
         if (IsFinished()) { return; }
 
-        // Fires ONLY when the MoveTo was routed through the network — plain CkNavigation
+        // Fires ONLY when the MoveTo was routed through the network - plain CkNavigation
         // paths never touch the follower corridor.
         _RouteBecameReady = true;
 
@@ -145,7 +145,7 @@ class UCk_AutoTest_PathNetworkFollower_CrowdAgentWalksCorridor : UCk_AutoTest_Ba
         if (IsFinished()) { return; }
 
         Assert_True(_RouteBecameReady,
-            "OnGoalReached fired but OnRouteReady never did — the MoveTo bypassed the path network");
+            "OnGoalReached fired but OnRouteReady never did - the MoveTo bypassed the path network");
 
         const auto AgentLocation = utils_transform::Get_EntityCurrentLocation(
             utils_transform::DoCastChecked(FCk_Handle(_Agent)));

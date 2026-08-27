@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK VFX EXAMPLES GYM — pair registry + station tags
+// CK VFX EXAMPLES GYM - pair registry + station tags
 //============================================================================
 //
 // One entry per Vefects effect that CkParticles ports FAITHFULLY (not the
@@ -37,7 +37,7 @@ struct FCk_VfxExamples_Pair
     FName TextureName = NAME_None;
 
     // PACKAGE paths, tried in order. The asset registry keys on "<package>.<leaf>",
-    // so the leaf is carried separately rather than parsed back out of the string —
+    // so the leaf is carried separately rather than parsed back out of the string
     // repackaging Vefects as a content plugin is then a one-line data edit here.
     UPROPERTY()
     TArray<FString> OriginalCandidatePackagePaths;
@@ -69,7 +69,7 @@ namespace CkVfxExamples
             Pair.BehaviorId = 7;
             // 7's five looks ride the Slash cadence row's own renderers, which bind
             // them explicitly. An explicit texture here would only reach the SHARED
-            // sprite renderers, which this behavior never tags — inert, but it would
+            // sprite renderers, which this behavior never tags - inert, but it would
             // read as meaningful.
             Pair.TextureName = NAME_None;
             Pair.OriginalCandidatePackagePaths.Add("/Game/Vefects/Anime_VFX/Shared/Skills/NS_BasicAttack");
@@ -408,7 +408,7 @@ namespace CkVfxExamples
             Pair.OriginalCandidatePackagePaths.Add("/Vefects/Anime_VFX/Shared/Skills/NS_FireBall_Cast");
             Pair.OriginalAssetName = "NS_FireBall_Cast";
             Pair.Credit = "Original: Vefects NS_FireBall_Cast";
-            // Half a second of gathering glow up to 1300 units wide, then a discharge — it wants the most room
+            // Half a second of gathering glow up to 1300 units wide, then a discharge - it wants the most room
             // of any pair in the gym, and its wind tube travels 230 units down local -X afterwards.
             Pair.SpawnOffset = FVector(0, 0, 120);
             Pair.Scale = 1.0;
@@ -465,7 +465,7 @@ namespace CkVfxExamples
             Pair.Credit = "Original: Vefects NS_Bomb_Projectile";
             // A bomb hanging inside three coincident 300-unit glow shells for 2.5 s, flashing at the end.
             // NEITHER side draws its trail here: the source spawns trail points per unit of TRAVEL and the
-            // pedestal does not move (recipe NS_Bomb_Projectile.md §13).
+            // pedestal does not move (recipe NS_Bomb_Projectile.md Sec.13).
             Pair.SpawnOffset = FVector(0, 0, 120);
             Pair.Scale = 1.0;
             Pairs.Add(Pair);
@@ -540,7 +540,7 @@ namespace CkVfxExamples
             Pair.OriginalAssetName = "NS_ExplosionIceGround";
             Pair.Credit = "Original: Vefects NS_ExplosionIceGround";
             // The same blast recoloured. Its only structural differences from behavior 40 are colour
-            // tables, so the two Ck pedestals should read as ONE effect in two palettes — if they do
+            // tables, so the two Ck pedestals should read as ONE effect in two palettes - if they do
             // not, the palette twins are not sharing their layer math.
             Pair.SpawnOffset = FVector(0, 0, 20);
             Pair.Scale = 1.0;
@@ -596,7 +596,7 @@ namespace CkVfxExamples
             Pair.OriginalAssetName = "NS_Bomb_Explosion";
             Pair.Credit = "Original: Vefects NS_Bomb_Explosion";
             // The batch's giant: 162 particles over 23 emitters, all of it over inside half a second.
-            // Its five shells are CAMERA-FACING meshes, so the read changes as you orbit the station —
+            // Its five shells are CAMERA-FACING meshes, so the read changes as you orbit the station
             // walk around it rather than judging from one angle.
             Pair.SpawnOffset = FVector(0, 0, 60);
             Pair.Scale = 1.0;
@@ -615,7 +615,7 @@ namespace CkVfxExamples
             Pair.OriginalAssetName = "NS_Lightning_Hit";
             Pair.Credit = "Original: Vefects NS_Lightning_Hit";
             // The everything-effect: 22 emitters through every renderer class the pipeline has. It is a
-            // GROUND impact, so judge it from the two flat decals up — and note that seven of its layers
+            // GROUND impact, so judge it from the two flat decals up - and note that seven of its layers
             // are WORLD-space in the source and LOCAL here, which is invisible at a stationary pedestal.
             Pair.SpawnOffset = FVector(0, 0, 20);
             Pair.Scale = 1.0;

@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: STATIC BAKE ADD/REMOVE LIFECYCLE
+// CK JOLT - AUTOMATION TEST: STATIC BAKE ADD/REMOVE LIFECYCLE
 //============================================================================
 //
 // Pins the add/remove lockstep the level-streaming path relies on (streaming a
-// real sublevel needs authored content — this runtime proxy exercises the same
+// real sublevel needs authored content - this runtime proxy exercises the same
 // body-container bookkeeping):
 //   1. Bake a cube -> body count rises, down-ray hits.
 //   2. Request_RemoveActor -> body count returns to baseline, down-ray misses.

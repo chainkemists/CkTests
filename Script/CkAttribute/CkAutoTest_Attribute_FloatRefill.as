@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: FLOAT REFILL
+// CK ATTRIBUTE - AUTOMATION TEST: FLOAT REFILL
 //============================================================================
 //
 // Verifies the refill mixin restores a drained attribute over time:
@@ -9,7 +9,7 @@
 //   2. Configure refill at 200 units/sec, StartingState=Running.
 //   3. Override Current to 50 (drain).
 //   4. After several ticks, the value should have refilled past the
-//      drain point — i.e. > 50 and trending toward 100.
+//      drain point - i.e. > 50 and trending toward 100.
 //   5. We finish when value reaches 100 (clamped to Max).
 //
 // We use a fast refill rate (200/s) so the test completes well within

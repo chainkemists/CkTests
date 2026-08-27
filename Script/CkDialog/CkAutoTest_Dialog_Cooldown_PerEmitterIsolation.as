@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DIALOG — AUTOMATION TEST: COOLDOWN PER-EMITTER ISOLATION
+// CK DIALOG - AUTOMATION TEST: COOLDOWN PER-EMITTER ISOLATION
 //============================================================================
 // One line, two emitters. Emitter 1 starts a cooldown on the line; a query
 // from emitter 1 reports Fail_EmitterCondition while a query from emitter 2
@@ -104,7 +104,7 @@ class UCk_AutoTest_Dialog_Cooldown_PerEmitterIsolation : UCk_AutoTest_Base
         Assert_True(_Result1 == ECk_DialogLine_QueryResult::Fail_EmitterCondition,
             "Emitter 1 (cooled) reports Fail_EmitterCondition");
         Assert_True(_Result2 == ECk_DialogLine_QueryResult::Passed,
-            "Emitter 2 (not cooled) still Passes — cooldowns are per-emitter");
+            "Emitter 2 (not cooled) still Passes - cooldowns are per-emitter");
 
         FinishSuccess();
     }

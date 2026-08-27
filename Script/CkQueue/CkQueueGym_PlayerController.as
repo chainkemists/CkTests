@@ -1,6 +1,6 @@
 // Language=angelscript
 // --------------------------------------------------------------------------------------------------------------------
-// QUEUE GYM — state-driven CrowdAgent adapter demo. Gym options exercise the public queue boundary and the
+// QUEUE GYM - state-driven CrowdAgent adapter demo. Gym options exercise the public queue boundary and the
 // resulting events are deliberately the same surface that a GOAP planner would consume.
 // --------------------------------------------------------------------------------------------------------------------
 

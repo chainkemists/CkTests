@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: ENTITY-SCRIPT CAST QUERIES
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: ENTITY-SCRIPT CAST QUERIES
 //============================================================================
 //
 // Bundled coverage for the entity-script handle query/cast utility surface
 // against a freshly-spawned entity script. EntityScript_BasicSpawn /
-// EntityScript_SpawnParamsRoundTrip already cover the spawn flow itself —
+// EntityScript_SpawnParamsRoundTrip already cover the spawn flow itself
 // this test focuses on the after-spawn introspection APIs:
 //
-//   - utils_entity_script::Has — does this entity carry an entity script?
-//   - utils_entity_script::Get_ScriptClass — returns its class
-//   - utils_entity_script::DoCast — handle-to-script-handle cast (optional)
-//   - utils_entity_script::DoCastChecked — non-optional cast
-//   - utils_entity_script::TryGet_Entity_EntityScript_InOwnershipChain —
+//   - utils_entity_script::Has - does this entity carry an entity script?
+//   - utils_entity_script::Get_ScriptClass - returns its class
+//   - utils_entity_script::DoCast - handle-to-script-handle cast (optional)
+//   - utils_entity_script::DoCastChecked - non-optional cast
+//   - utils_entity_script::TryGet_Entity_EntityScript_InOwnershipChain
 //     walks ownership chain from any entity up to the nearest entity-script
 //
 // Spawns the gym's UCk_EntityScript_EntityLifecycleGym_SpawnTarget (a

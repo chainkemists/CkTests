@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: TRANSITION EXIT BEFORE ENTER
+// CK STATE MACHINE - AUTOMATION TEST: TRANSITION EXIT BEFORE ENTER
 //============================================================================
 //
 // Verifies the framework invariant: on a transition, the OLD state's
@@ -10,7 +10,7 @@
 // Without this guarantee, any consumer that uses task lifecycle to manage
 // a shared resource (refcount, exclusive lock, audio handle, etc.) sees
 // stale state interleaved with fresh state. The shelf outline in
-// BusterBlock hit this exact issue — an old task's Hide ran AFTER the new
+// BusterBlock hit this exact issue - an old task's Hide ran AFTER the new
 // task's Show, dropping the shared source out of the Set on every click.
 //
 // The test:
@@ -55,7 +55,7 @@ class UCk_AutoTest_StateMachine_TransitionExitBeforeEnter : UCk_AutoTest_Base
         if (InPayload.Get_NewStateClass() != UCk_SmTest_Ordering_State_B)
         { return; }
 
-        // Allow a brief settling window so all pump passes drain — the OLD
+        // Allow a brief settling window so all pump passes drain - the OLD
         // state's task exit and the NEW state's task enter must both have
         // landed in the Events array before we read it.
         System::SetTimer(this, n"VerifyOrdering", 0.5f, false);
@@ -69,7 +69,7 @@ class UCk_AutoTest_StateMachine_TransitionExitBeforeEnter : UCk_AutoTest_Base
 
         if (_TestEntity.Has_Fragment(FCk_Fragment_SmTest_TransitionOrdering) == false)
         {
-            FinishFailure("Ordering log fragment missing — test states never recorded any events");
+            FinishFailure("Ordering log fragment missing - test states never recorded any events");
             return;
         }
 
@@ -92,9 +92,9 @@ class UCk_AutoTest_StateMachine_TransitionExitBeforeEnter : UCk_AutoTest_Base
         }
 
         Assert_True(ExitA_Idx >= 0,
-            f"ExitTask_A was never recorded — events: [{EventsDump}]");
+            f"ExitTask_A was never recorded - events: [{EventsDump}]");
         Assert_True(EnterB_Idx >= 0,
-            f"EnterTask_B was never recorded — events: [{EventsDump}]");
+            f"EnterTask_B was never recorded - events: [{EventsDump}]");
 
         if (ExitA_Idx >= 0 && EnterB_Idx >= 0)
         {

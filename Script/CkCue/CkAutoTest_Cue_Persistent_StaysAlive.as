@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CUE — AUTOMATION TEST: PERSISTENT LIFETIME STAYS ALIVE
+// CK CUE - AUTOMATION TEST: PERSISTENT LIFETIME STAYS ALIVE
 //============================================================================
 //
 // Pins the Persistent lifetime contract: a cue fired with
@@ -9,7 +9,7 @@
 // explicitly destroyed). After a 0.5s settle, the cue entity is still
 // observable via its marker tag.
 //
-// Companion to Cue_AfterOneFrame_DestroyedQuickly — these two tests
+// Companion to Cue_AfterOneFrame_DestroyedQuickly - these two tests
 // together pin the two lifetime endpoints (immediate destroy vs. no
 // auto-destroy). Timed is covered separately.
 //============================================================================
@@ -46,7 +46,7 @@ class UCk_AutoTest_Cue_Persistent_StaysAlive : UCk_AutoTest_Base
 
         auto LiveCues = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AutoTestCue_Persistent");
         Assert_Equals_Int(LiveCues.Num(), 1,
-            "Persistent cue should still be alive 0.5s after firing — exactly one tagged entity should remain");
+            "Persistent cue should still be alive 0.5s after firing - exactly one tagged entity should remain");
 
         FinishSuccess();
     }

@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: SPLIT RESPECTS ENTRY BOUND
+// CK INVENTORY - AUTOMATION TEST: SPLIT RESPECTS ENTRY BOUND
 //============================================================================
 //
 // A split mints a NEW entry, so the entry bound must gate it (regression
 // guard: DataOnly TSplitStack used to skip the bounds check entirely and
 // could overflow a Bounded inventory).
 //   1. Create a BoundedByUniqueEntries(2) inventory.
-//   2. Add Potion x3 (PreferStacking → 1 entry, stack 3).
-//   3. Add Potion x1 (ForceNewItem → entry 2; at entry capacity).
-//   4. Request_SplitStack(stack3, 1) → Failed_NoSpaceForNewItem; still 2 entries.
+//   2. Add Potion x3 (PreferStacking -> 1 entry, stack 3).
+//   3. Add Potion x1 (ForceNewItem -> entry 2; at entry capacity).
+//   4. Request_SplitStack(stack3, 1) -> Failed_NoSpaceForNewItem; still 2 entries.
 //
 //============================================================================
 
@@ -91,7 +91,7 @@ class UCk_AutoTest_Inventory_DataOnly_SplitRespectsBound : UCk_AutoTest_Base
 
         // Let the deferred stack-count Override settle before splitting. A write made in the late
         // pump passes of frame N can fold mid-frame N+1 (after the inventory drain), so a fixed
-        // one-frame wait is not enough — poll until the count actually reads back.
+        // one-frame wait is not enough - poll until the count actually reads back.
         WaitUntil(n"Check_StackIsThree", n"OnSettledBeforeSplit");
     }
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: MAKE-B (GetPlanEntities test)
+// CK GOAP - AUTOMATION TEST ACTION: MAKE-B (GetPlanEntities test)
 //============================================================================
 //
 // Second step of the 2-step chain. Precondition: AKey=true. Effect: BKey=true.

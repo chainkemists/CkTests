@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: FLOAT COMPLETION
+// CK TWEEN - AUTOMATION TEST: FLOAT COMPLETION
 //============================================================================
 //
 // Smoke test for the float-tween API:
-//   1. Create a Linear float tween 0 → 100 over 0.25s.
+//   1. Create a Linear float tween 0 -> 100 over 0.25s.
 //   2. Bind OnComplete.
 //   3. The callback fires with FinalValue == 100.
 //   4. Get_CurrentValue == 100 and Get_Progress == 1.0 at completion.

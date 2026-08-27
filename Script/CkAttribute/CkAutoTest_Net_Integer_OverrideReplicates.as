@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — NET AUTOMATION TEST: INTEGER OVERRIDE REPLICATES
+// CK ATTRIBUTE - NET AUTOMATION TEST: INTEGER OVERRIDE REPLICATES
 //============================================================================
 //
 // Integer attributes ride the same templated container-replication path as

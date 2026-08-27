@@ -2,7 +2,7 @@
 
 // Verifies the resolution confirm-window primitive: the new resolution is live during the window,
 // and expiry without Request_ConfirmResolution reverts to the prior resolution (which also leaves
-// the dev's GameUserSettings restored — the revert path saves the ORIGINAL values).
+// the dev's GameUserSettings restored - the revert path saves the ORIGINAL values).
 class UCk_AutoTest_GameSettings_ResolutionConfirmWindow_RevertsOnExpiry : UCk_AutoTest_Base
 {
     default _TimeoutSeconds = 12.0;

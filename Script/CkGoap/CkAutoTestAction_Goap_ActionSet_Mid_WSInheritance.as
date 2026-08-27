@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: MID (WSInheritance / WSOverride tests)
+// CK GOAP - AUTOMATION TEST ACTION: MID (WSInheritance / WSOverride tests)
 //============================================================================
 //
 // Child action used in the WSInheritance and WSOverride tests.
 //
-// CDO effects: AKey=true — satisfies Root's _InitialGoal_RootOnly={AKey=true}
+// CDO effects: AKey=true - satisfies Root's _InitialGoal_RootOnly={AKey=true}
 // so Root's planner selects Mid as Plan[0].
 //
-// No children added in either test — Mid is treated as atomic for the
+// No children added in either test - Mid is treated as atomic for the
 // purposes of these WS-resolution tests.
 //============================================================================
 

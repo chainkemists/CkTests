@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — COMPONENT TRANSFER USES DISCONNECTED ISLANDS
+// CK PATH NETWORK - COMPONENT TRANSFER USES DISCONNECTED ISLANDS
 //============================================================================
 //
 // Two sidewalk ribbons are deliberately farther apart than the build snap

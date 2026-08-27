@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: 2dGridBlocker CREATE MAKES A DISTINCT CHILD
+// CK GRID - AUTOMATION TEST: 2dGridBlocker CREATE MAKES A DISTINCT CHILD
 //============================================================================
 //
 // Verifies the child-making Create verb (counterpart to the stamp-self Add):
-// Create(owner, ...) spawns a NEW child entity carrying the feature — the
+// Create(owner, ...) spawns a NEW child entity carrying the feature - the
 // returned handle is valid, Has(child) is true, and Has(owner) is FALSE
 // (proving Create is child-making, not stamp-self like Add).
 //============================================================================
@@ -21,7 +21,7 @@ class UCk_AutoTest_2dGridBlocker_Create_MakesDistinctChild : UCk_AutoTest_Base
         auto Owner = utils_entity_lifetime::Request_CreateEntity(InHandle);
 
         // The blocker params reference a live grid; build one exactly as the
-        // Add test does (grid owner needs a Transform — the grid is spatial).
+        // Add test does (grid owner needs a Transform - the grid is spatial).
         auto GridOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
         auto GridOwnerT = utils_transform::Add(
             GridOwner, FTransform::Identity, ECk_Replication::DoesNotReplicate);
@@ -39,7 +39,7 @@ class UCk_AutoTest_2dGridBlocker_Create_MakesDistinctChild : UCk_AutoTest_Base
         Assert_True(utils_2d_grid_blocker::Has(ChildEntity),
             "The created child entity should carry the 2dGridBlocker feature");
         Assert_True(!utils_2d_grid_blocker::Has(Owner),
-            "The owner must NOT carry the feature — Create is child-making, not stamp-self");
+            "The owner must NOT carry the feature - Create is child-making, not stamp-self");
 
         FinishSuccess();
     }

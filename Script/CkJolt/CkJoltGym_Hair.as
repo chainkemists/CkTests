@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — HAIR (STRANDS ON A MOVING ANCHOR BODY)
+// CK JOLT GYM - HAIR (STRANDS ON A MOVING ANCHOR BODY)
 //
 // A Kinematic "head" sphere orbits and bobs (ECS-transform-driven, pushed
 // into Jolt by the KinematicPush processor). A ring of short Springy rope
-// strands is anchored to it via Create_Rope's AnchorBody — the strands whip
+// strands is anchored to it via Create_Rope's AnchorBody - the strands whip
 // and trail as the head moves: the hair pattern is ropes + a moving anchor,
 // not a separate feature. Enable ck.Jolt.DebugDraw.Enabled 1 to see it.
 //============================================================================
@@ -59,7 +59,7 @@ class ACk_JoltGym_Hair_PlayerController : ACk_Gym_Base_PlayerController
         utils_handle::Set_DebugName(GymEntity, n"Hair.GymEntity");
         utils_timer::Create_Tick(GymEntity, FCk_Delegate_Timer(this, n"OnTick"));
 
-        ck::Trace("JoltHairGym: started — strands anchored to the orbiting head");
+        ck::Trace("JoltHairGym: started - strands anchored to the orbiting head");
     }
 
     private void DoBuildContent()

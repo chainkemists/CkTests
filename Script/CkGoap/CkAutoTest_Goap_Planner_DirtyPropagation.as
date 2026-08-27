@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER WS DIRTY PROPAGATION
+// CK GOAP - AUTOMATION TEST: PLANNER WS DIRTY PROPAGATION
 //============================================================================
 //
-// Validates §9 row 9: "WS change → subscribed Actions replan; non-subscribed
+// Validates Sec.9 row 9: "WS change -> subscribed Actions replan; non-subscribed
 // Actions don't."
 //
 // Setup:
@@ -12,13 +12,13 @@
 //   - Root action (Root_GoalIsEffects): _InitialGoal_RootOnly={AKey=true},
 //     default ReplanPolicy=OnWorldStateDirty.
 //   - LeafA (child of Root): effect AKey=true. Atomic (no children).
-//   - WS starts at AKey=false → Root plans → plan=[LeafA]. OnPlanComplete
+//   - WS starts at AKey=false -> Root plans -> plan=[LeafA]. OnPlanComplete
 //     fires (count=1).
 //
 // Phase 1: Wait for Root's initial plan. Assert count==1 and plan contains
 //   LeafA.
 //
-// Phase 2: Mutate WS — Set AKey=true. Root's goal {AKey=true} is now
+// Phase 2: Mutate WS - Set AKey=true. Root's goal {AKey=true} is now
 //   satisfied. AutoReplan (dirty) fires a new plan request. The new plan is
 //   empty (goal already satisfied). OnPlanComplete fires again (count=2).
 //
@@ -47,7 +47,7 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
 
-        // Root goal: {AKey=true}. WS starts false → Root plans and picks LeafA.
+        // Root goal: {AKey=true}. WS starts false -> Root plans and picks LeafA.
         // Default ReplanPolicy=OnWorldStateDirty means mutating AKey will trigger
         // a replan on the next frame (via FTag_Goap_Dirty_WorldState mechanism).
         // U11.1: goal authored on PlannerParams.
@@ -128,7 +128,7 @@ class UCk_AutoTest_Goap_Planner_DirtyPropagation : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // Second plan: AKey=true, goal satisfied → empty plan (PlanFound + empty).
+        // Second plan: AKey=true, goal satisfied -> empty plan (PlanFound + empty).
         Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
             "Root PlanStatus should be PlanFound on dirty-triggered replan");
 

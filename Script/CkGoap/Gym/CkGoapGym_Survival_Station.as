@@ -1,33 +1,33 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Survival Decision station entity
+// CkGoapGym - Survival Decision station entity
 //
 // One owner entity hosting TWO independent child Planners (via Create):
 //   Planner "Hunger"   goal {Hungry=false}
-//     ├── EatFood        pre {HasFood}  eff {Hungry=false}  cost 1
-//     ├── Forage         pre {}         eff {HasFood=true}  cost 4
-//     └── HuddleInPlace  pre {}         eff {Hungry=false}  cost 999  (fallback)
+//     +-- EatFood        pre {HasFood}  eff {Hungry=false}  cost 1
+//     +-- Forage         pre {}         eff {HasFood=true}  cost 4
+//     +-- HuddleInPlace  pre {}         eff {Hungry=false}  cost 999  (fallback)
 //   Planner "Defense"  goal {SafeFromThreat=true}
-//     ├── FightEnemy   pre {ThreatActive, HasWeapon}  eff {SafeFromThreat=true}  cost 1
-//     ├── RunAway      pre {ThreatActive}             eff {SafeFromThreat=true}  cost 3
-//     └── RemainAlert  pre {}                          eff {SafeFromThreat=true}  cost 999  (fallback)
+//     +-- FightEnemy   pre {ThreatActive, HasWeapon}  eff {SafeFromThreat=true}  cost 1
+//     +-- RunAway      pre {ThreatActive}             eff {SafeFromThreat=true}  cost 3
+//     +-- RemainAlert  pre {}                          eff {SafeFromThreat=true}  cost 999  (fallback)
 //
-// Always-valid-plan tenet (CkGoap/CLAUDE.md § "Design tenets"):
+// Always-valid-plan tenet (the CkGoap docs Sec. "Design tenets"):
 //   HuddleInPlace and RemainAlert are the unconditional fallbacks for the
 //   two Planners. They only win when no real Action chain is viable (e.g.
 //   HasFood=false on Hunger; ThreatActive=false on Defense).
 //
 // Both Planners share the same WS entity but plan independently. Toggling
 // HasFood / HasWeapon / ThreatActive on the same WS triggers replans on the
-// matching Planner's root only — the unique-to-unified-model isolation.
+// matching Planner's root only - the unique-to-unified-model isolation.
 //
 // Player commands:
-//   Goap.Survival.ToggleHungry         — flip Hungry (Hunger Planner goal).
-//   Goap.Survival.ToggleHasFood        — flip HasFood.
-//   Goap.Survival.ToggleThreat         — flip ThreatActive.
-//   Goap.Survival.ToggleHasWeapon      — flip HasWeapon.
-//   Goap.Survival.Reset                — Hungry=true, HasFood=false,
+//   Goap.Survival.ToggleHungry         - flip Hungry (Hunger Planner goal).
+//   Goap.Survival.ToggleHasFood        - flip HasFood.
+//   Goap.Survival.ToggleThreat         - flip ThreatActive.
+//   Goap.Survival.ToggleHasWeapon      - flip HasWeapon.
+//   Goap.Survival.Reset                - Hungry=true, HasFood=false,
 //                                        ThreatActive=true, HasWeapon=true.
 //============================================================================
 
@@ -76,9 +76,9 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
         HungerParams.Set_Goal(HungerGoal);
         HungerParams.Set_WorldStateSource(_WS);
         HungerParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
-        // Two independent Planners on one owner → Create (named child Planners).
+        // Two independent Planners on one owner -> Create (named child Planners).
         // Add stamps the Planner role onto InHandle directly and would reject the
-        // second (Defense) Planner — one Planner role per entity.
+        // second (Defense) Planner - one Planner role per entity.
         _Planner_Hunger = utils_goap_planner::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Survival.Hunger"),
             HungerParams);
@@ -87,7 +87,7 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_EatFood));
         utils_goap_planner::AddAction(_Planner_Hunger,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_Forage));
-        // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
+        // Always-valid-plan tenet fallback - see the CkGoap docs Sec. "Design tenets".
         utils_goap_planner::AddAction(_Planner_Hunger,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_HuddleInPlace));
 
@@ -114,7 +114,7 @@ class UCk_EntityScript_GoapGym_Survival_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_FightEnemy));
         utils_goap_planner::AddAction(_Planner_Defense,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_RunAway));
-        // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
+        // Always-valid-plan tenet fallback - see the CkGoap docs Sec. "Design tenets".
         utils_goap_planner::AddAction(_Planner_Defense,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Survival_RemainAlert));
 

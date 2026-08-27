@@ -24,7 +24,7 @@ class UCk_AutoTest_GameSettings_VideoPack_ExternalNeverStored : UCk_AutoTest_Bas
         auto LiveProvider = Cast<UCk_GameSettings_IniStorageProvider_UE>(utils_game_settings::Get_StorageProvider());
         if (LiveProvider == nullptr)
         {
-            FinishFailure("The subsystem's storage provider is not the ini provider — this test asserts the store file");
+            FinishFailure("The subsystem's storage provider is not the ini provider - this test asserts the store file");
             return;
         }
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: DEPENDENTS COUNT TREE MUTATIONS
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: DEPENDENTS COUNT TREE MUTATIONS
 //============================================================================
 //
 // Verifies that Get_LifetimeDependents reflects mutations of the ownership

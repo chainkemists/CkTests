@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: LIVE TUNING REPLANS THE SAME GOAL
+// CK PATH NETWORK - AUTOMATION TEST: LIVE TUNING REPLANS THE SAME GOAL
 //============================================================================
 //
 // A Ready corridor is retuned without rebuilding its network or changing its
@@ -87,7 +87,7 @@ class UCk_AutoTest_PathNetworkFollower_TuningReplansSameGoal : UCk_AutoTest_Base
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
-        // The next hop asserts Get_IsBuilt — wait on exactly that rather than on a frame.
+        // The next hop asserts Get_IsBuilt - wait on exactly that rather than on a frame.
         WaitUntil(n"Check_NetworkBuilt", n"OnNetworkReady");
     }
 

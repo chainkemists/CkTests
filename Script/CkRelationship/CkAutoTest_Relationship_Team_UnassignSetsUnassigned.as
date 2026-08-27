@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Unassign sets the team to Unassigned
+// CK RELATIONSHIP - AUTOMATION TEST: Unassign sets the team to Unassigned
 // After Add(One) then Unassign, Get_ID returns Unassigned.
 
 class UCk_AutoTest_Relationship_Team_UnassignSetsUnassigned : UCk_AutoTest_Base

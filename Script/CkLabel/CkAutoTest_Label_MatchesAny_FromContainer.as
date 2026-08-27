@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK LABEL — AUTOMATION TEST: MATCHES ANY (FROM CONTAINER)
+// CK LABEL - AUTOMATION TEST: MATCHES ANY (FROM CONTAINER)
 //============================================================================
 //
 // Pins MatchesAny against a tag container:
@@ -33,17 +33,17 @@ class UCk_AutoTest_Label_MatchesAny_FromContainer : UCk_AutoTest_Base
         AX.AddTag(TagA);
         AX.AddTag(TagX);
         Assert_True(utils_gameplay_label::MatchesAny(Entity, AX),
-            "MatchesAny({A, X}) should be true — label A is in the container");
+            "MatchesAny({A, X}) should be true - label A is in the container");
         Assert_True(utils_gameplay_label::MatchesAnyExact(Entity, AX),
-            "MatchesAnyExact({A, X}) should be true — A matches exactly");
+            "MatchesAnyExact({A, X}) should be true - A matches exactly");
 
         auto XY = FGameplayTagContainer();
         XY.AddTag(TagX);
         XY.AddTag(TagY);
         Assert_True(utils_gameplay_label::MatchesAny(Entity, XY) == false,
-            "MatchesAny({X, Y}) should be false — neither matches label A");
+            "MatchesAny({X, Y}) should be false - neither matches label A");
         Assert_True(utils_gameplay_label::MatchesAnyExact(Entity, XY) == false,
-            "MatchesAnyExact({X, Y}) should be false — neither matches label A");
+            "MatchesAnyExact({X, Y}) should be false - neither matches label A");
 
         FinishSuccess();
     }

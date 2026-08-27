@@ -233,7 +233,7 @@ class ACk_IntegerAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
 	}
 
 	//------------------------------------------------------------------------
-	// CLAMPING STATION COMMANDS — SetResource
+	// CLAMPING STATION COMMANDS - SetResource
 	//------------------------------------------------------------------------
 
 	UFUNCTION(Exec, DisplayName="Integer Gym - Set Resource")

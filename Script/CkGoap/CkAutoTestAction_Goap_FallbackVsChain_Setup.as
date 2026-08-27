@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: FALLBACK-VS-CHAIN — SETUP STEP
+// CK GOAP - AUTOMATION TEST ACTION: FALLBACK-VS-CHAIN - SETUP STEP
 //============================================================================
 //
 // First step of the cheap chain that beats the high-cost fallback. No

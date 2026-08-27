@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK COMPASS — AUTOMATION TEST: bearing wrap-around at the 0/360 seam
+// CK COMPASS - AUTOMATION TEST: bearing wrap-around at the 0/360 seam
 //============================================================================
 //
 // Manual heading 350; POI at world yaw 10 (offset ~(984.8, 173.6)). Raw

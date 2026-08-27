@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AUDIO — AUTOMATION TEST: soft-ref sound resolves through the loader, plays, and survives GC
+// CK AUDIO - AUTOMATION TEST: soft-ref sound resolves through the loader, plays, and survives GC
 //
 // Pins the soft-params design: Params hold a soft path only; the Setup processor resolves it
 // through CkResourceLoader (async by default) and roots the resolved batch on the track's Current.
@@ -8,7 +8,7 @@
 // the load lands; a full GC after playback starts must not disturb the loader-rooted asset.
 //
 // In-editor the package/asset-registry machinery also keeps a real asset resident, so the negative
-// half (collection without the root) is only falsifiable in a packaged build — the C++ unit tests
+// half (collection without the root) is only falsifiable in a packaged build - the C++ unit tests
 // own the params-layer no-dangle contract; this test owns the resolve/queue/root pipeline.
 
 class UCk_AutoTest_AudioTrack_SoftSoundResolvesPlaysAndSurvivesGC : UCk_AutoTest_Base
@@ -38,7 +38,7 @@ class UCk_AutoTest_AudioTrack_SoftSoundResolvesPlaysAndSurvivesGC : UCk_AutoTest
         utils_audio_director::BindTo_OnTrackStarted(Director,
             FCk_Delegate_AudioDirector_Track(this, n"OnTrackStarted"));
 
-        // Requested BEFORE setup/load completes — must queue behind NeedsSetup and fire once resolved
+        // Requested BEFORE setup/load completes - must queue behind NeedsSetup and fire once resolved
         utils_audio_director::Request_StartTrack(Director,
             FCk_Request_AudioDirector_StartTrack(n"AutoTest_SoftSound"));
     }

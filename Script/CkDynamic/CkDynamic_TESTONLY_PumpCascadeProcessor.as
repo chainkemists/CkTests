@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — TEST-ONLY SCRIPT PROCESSOR: pump-cascade consumer
+// CK DYNAMIC - TEST-ONLY SCRIPT PROCESSOR: pump-cascade consumer
 //============================================================================
 //
 // Fixture for CkAutoTest_ScriptProcessor_PumpDrainsSameFrame. Consumes
 // FCk_Fragment_DynamicTest_PumpCascadeMarker: records the consumption frame
-// into the entity's PumpCascadeResults, removes the marker, and — while the
-// marker carried RemainingCascades > 0 — immediately re-adds a decremented
+// into the entity's PumpCascadeResults, removes the marker, and - while the
+// marker carried RemainingCascades > 0 - immediately re-adds a decremented
 // marker. Each re-add happens AFTER this processor's dispatch for the pass, so
 // a same-frame drain of the full chain is only possible via the scheduler's
 // pump passes observing the dynamic-marker mutation (version bump).
@@ -18,7 +18,7 @@
 // nothing.
 //
 // DIRECT MODE (Configure + ForEachBatch, no ForEachEntity): the fixture is
-// deliberately cross-entity — it collects handles from the batch, then runs
+// deliberately cross-entity - it collects handles from the batch, then runs
 // all removes/re-adds after the collection loop, so it makes no assumptions
 // about storage-iterator tolerance to mutation.
 //============================================================================
@@ -52,7 +52,7 @@ class UCk_TESTONLY_ScriptProcessor_PumpCascade : UCk_Processor_Script_Base_UE
         {
             auto Entity = _Collected[Index];
 
-            // Read Remaining BEFORE the remove — the fragment ref dies with the marker.
+            // Read Remaining BEFORE the remove - the fragment ref dies with the marker.
             auto& Marker = Entity.Get_Fragment(FCk_Fragment_DynamicTest_PumpCascadeMarker);
             const int32 Remaining = Marker.RemainingCascades;
 

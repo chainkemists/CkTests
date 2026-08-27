@@ -43,7 +43,7 @@ class ACkGym_MenuHUD : AHUD
     float ScrollbarWidth = 6.0f;
     int32 MaxVisibleEntries = 20;
 
-    // Scroll state — index into the active list of the first visible row
+    // Scroll state - index into the active list of the first visible row
     int32 ScrollOffset = 0;
 
     //--------------------------------------------------------------------------------------------------------------------------

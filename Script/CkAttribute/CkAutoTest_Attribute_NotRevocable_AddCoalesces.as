@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: NOT-REVOCABLE ADD COALESCES
+// CK ATTRIBUTE - AUTOMATION TEST: NOT-REVOCABLE ADD COALESCES
 //============================================================================
 //
-// Pins the Add coalescing contract from CkAttribute/CLAUDE.md:
+// Pins the Add coalescing contract from the CkAttribute docs:
 //
-//   | Add / Subtract | Accumulate — deltas sum into one modifier |
+//   | Add / Subtract | Accumulate - deltas sum into one modifier |
 //
 // `Add_NotRevocable` with `ECk_AttributeModifier_Operation::Add` is expected
 // to find the existing non-revocable Add modifier on the attribute and SUM
-// the new delta into it (one modifier entity, accumulated delta) — not
+// the new delta into it (one modifier entity, accumulated delta) - not
 // create a second modifier entity.
 //
 // On Base=10:
@@ -19,7 +19,7 @@
 //                                       Final = 10 + 12 = 22
 //
 // Note: NotRevocable Add modifiers feed into the BaseValue layer (not the
-// revocable BonusValue layer), so BonusValue stays at 0 throughout — Final
+// revocable BonusValue layer), so BonusValue stays at 0 throughout - Final
 // is the discriminator pinned here.
 //
 // Pattern A (signal-driven step machine), per gotcha #10.

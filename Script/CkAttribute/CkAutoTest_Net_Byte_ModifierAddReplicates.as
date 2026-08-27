@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — NET AUTOMATION TEST: BYTE MODIFIER-ADD REPLICATES
+// CK ATTRIBUTE - NET AUTOMATION TEST: BYTE MODIFIER-ADD REPLICATES
 //============================================================================
 //
 // Byte parity with the C++ Float_ModifierAdd_Replicates spec. The modifier
@@ -33,7 +33,7 @@ class UCk_AutoTest_Net_Byte_ModifierAddReplicates : UCk_AutoTest_NetBase
 
         if (utils_net::Get_HasAuthority(Subject))
         {
-            // Modifier index reuses the attribute tag — the modifier name is a separate
+            // Modifier index reuses the attribute tag - the modifier name is a separate
             // index from the attribute name within CkAttribute, so no new tag registration
             // is needed (mirrors the Float_ModifierAdd_Replicates C++ spec).
             auto ModParams = FCk_Fragment_ByteAttributeModifier_ParamsData();

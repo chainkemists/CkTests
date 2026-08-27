@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Diagnostic Gym — Gate 3+
+// Crowd Diagnostic Gym - Gate 3+
 //
 // Auto-cycling 2-agent HeadOn + 5-agent Cluster stations spaced 3000cm apart so probes
 // can't cross. Drives the digest-emission debugging loop instead of the screenshot loop:

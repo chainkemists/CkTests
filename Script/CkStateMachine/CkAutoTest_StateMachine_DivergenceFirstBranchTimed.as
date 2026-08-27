@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: DIVERGENCE FIRST-BRANCH (TIMED)
+// CK STATE MACHINE - AUTOMATION TEST: DIVERGENCE FIRST-BRANCH (TIMED)
 //============================================================================
 //
-// Headless port of the DivergenceFirstBranchTimed gym station — same shape
+// Headless port of the DivergenceFirstBranchTimed gym station - same shape
 // as the non-timed variant but the divergence transitions are gated by
 // short timer-based event conditions (~0.05s per hop) instead of vacuous
 // transitions. The two together cover both fast-path (vacuous Pass on
@@ -17,11 +17,11 @@
 //   only surfaces in one of the two paths shows up as an asymmetric
 //   pass/fail across this test and the non-timed variant.
 //
-// Pass criteria are identical to the non-timed test — every counter equals
+// Pass criteria are identical to the non-timed test - every counter equals
 // exactly 1 across both passes; the bug doubles whichever branch was
 // first-added-and-chosen.
 //
-// Settle window: 1.5s per pass × 2 = 3s minimum. Timeout 5s gives buffer.
+// Settle window: 1.5s per pass x 2 = 3s minimum. Timeout 5s gives buffer.
 //============================================================================
 
 class UCk_AutoTest_StateMachine_DivergenceFirstBranchTimed : UCk_AutoTest_Base
@@ -50,7 +50,7 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranchTimed : UCk_AutoTest_Base
         _GymActor.StationHandle = FCk_Handle();
         FinishSpawningActor(_GymActor);
 
-        // Settle: PerPassSettleSeconds=1.5 × 2 passes + buffer.
+        // Settle: PerPassSettleSeconds=1.5 x 2 passes + buffer.
         auto LocalHandle = InHandle;
         auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(3.5f));
         SettleParams.Set_StartingState(ECk_Timer_State::Running)
@@ -70,7 +70,7 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranchTimed : UCk_AutoTest_Base
             return;
         }
 
-        // Pass A — AddLeftFirst + PaymentLeft -> Enter -> Idle -> Branch -> Left -> Finish.
+        // Pass A - AddLeftFirst + PaymentLeft -> Enter -> Idle -> Branch -> Left -> Finish.
         Assert_Equals_Int(_GymActor.Snap_A_Enter,  1, "Pass A (timed): Enter task fires exactly once");
         Assert_Equals_Int(_GymActor.Snap_A_Idle,   1, "Pass A (timed): Idle task fires exactly once");
         Assert_Equals_Int(_GymActor.Snap_A_Branch, 1, "Pass A (timed): Branch task fires exactly once");
@@ -78,7 +78,7 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranchTimed : UCk_AutoTest_Base
         Assert_Equals_Int(_GymActor.Snap_A_Right,  0, "Pass A (timed): Right task does NOT fire (not chosen)");
         Assert_Equals_Int(_GymActor.Snap_A_Finish, 1, "Pass A (timed): Finish task fires exactly once");
 
-        // Pass B — AddRightFirst + PaymentRight -> Enter -> Idle -> Branch -> Right -> Finish.
+        // Pass B - AddRightFirst + PaymentRight -> Enter -> Idle -> Branch -> Right -> Finish.
         Assert_Equals_Int(_GymActor.Snap_B_Enter,  1, "Pass B (timed): Enter task fires exactly once");
         Assert_Equals_Int(_GymActor.Snap_B_Idle,   1, "Pass B (timed): Idle task fires exactly once");
         Assert_Equals_Int(_GymActor.Snap_B_Branch, 1, "Pass B (timed): Branch task fires exactly once");

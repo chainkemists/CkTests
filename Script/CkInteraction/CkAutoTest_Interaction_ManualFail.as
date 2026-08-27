@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: MANUAL COMPLETION (FAIL)
+// CK INTERACTION - AUTOMATION TEST: MANUAL COMPLETION (FAIL)
 //============================================================================
 //
 // Verifies ManuallyCompleted policy with explicit Failed end:
@@ -9,7 +9,7 @@
 //   2. Request_EndInteraction with Failed (instead of Succeeded).
 //   3. OnInteractionFinished fires with Failed.
 //
-// This is the partner test to ManualSuccess — together they verify the
+// This is the partner test to ManualSuccess - together they verify the
 // SucceededFailed parameter actually flows through to the finish callback,
 // not silently coerced to Succeeded.
 //============================================================================

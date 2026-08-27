@@ -1,10 +1,10 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Queue-Cross Gym — PlayerController
+// Crowd Queue-Cross Gym - PlayerController
 //
 // See CkCrowdGym_QueueCross_GameMode.as for the console surface and what to watch.
 //
 // Layout (station-local; +X is toward the player camera after the cycler's rotation):
-//   - 14 line members parked in a row along Y at local X = LineOffset, 95cm spacing — close enough
+//   - 14 line members parked in a row along Y at local X = LineOffset, 95cm spacing - close enough
 //     that their painted markup discs merge into one band.
 //   - 6 crossers spawn 600 before the line; each goal sits only 200 PAST the line at a Y between
 //     two members, so the straight route always crosses the band mid-line.
@@ -96,7 +96,7 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
             ECk_Signal_PostFireBehavior::DoNothing);
         utils_nav::Request_FindPath(_NavProbeEntity, FCk_Request_Nav_FindPath(ProbeGoal));
 
-        ck::crowd::Log("QueueCross gym started — the line auto-spawns once the navmesh probe resolves; crossers follow when its markup confirms.");
+        ck::crowd::Log("QueueCross gym started - the line auto-spawns once the navmesh probe resolves; crossers follow when its markup confirms.");
     }
 
     UFUNCTION()
@@ -112,7 +112,7 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     private void OnNavProbeFailed(FCk_Handle InHandle)
     {
-        ck::crowd::Log("QueueCross gym: navmesh probe failed — auto-spawn skipped; run Ck_GymCrowd_QueueCross_Spawn manually once the navmesh is visible.");
+        ck::crowd::Log("QueueCross gym: navmesh probe failed - auto-spawn skipped; run Ck_GymCrowd_QueueCross_Spawn manually once the navmesh is visible.");
     }
 
     // ---- Geometry ----------------------------------------------------------------------------------
@@ -125,7 +125,7 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
 
     private void SpawnFloor()
     {
-        // Z SCALE MUST BE >= 0.5 — thinner and the navmesh bake silently produces no tiles.
+        // Z SCALE MUST BE >= 0.5 - thinner and the navmesh bake silently produces no tiles.
         auto Floor = SpawnActor(ACk_Gym_Floor, FVector::ZeroVector, FRotator::ZeroRotator, NAME_None, true);
         if (Floor == nullptr)
         {
@@ -190,7 +190,7 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
         auto Timer = utils_timer::Add(_PcEntity, TimerParams);
         Timer.BindTo_OnDone(FCk_Delegate_Timer(this, n"OnConfirmPoll"));
 
-        ck::crowd::Log(f"QueueCross gym: parked {LineCount} line members — crossers dispatch once their markup confirms");
+        ck::crowd::Log(f"QueueCross gym: parked {LineCount} line members - crossers dispatch once their markup confirms");
     }
 
     UFUNCTION()
@@ -217,7 +217,7 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
 
         if (AllConfirmed == false)
         {
-            ck::crowd::Log(f"QueueCross gym: markup not fully confirmed after {ConfirmTimeoutSec}s — dispatching crossers anyway (planning may not see the whole line)");
+            ck::crowd::Log(f"QueueCross gym: markup not fully confirmed after {ConfirmTimeoutSec}s - dispatching crossers anyway (planning may not see the whole line)");
         }
 
         DispatchCrossers();
@@ -280,7 +280,7 @@ class ACk_CrowdGym_QueueCross_PlayerController : ACk_Gym_Base_PlayerController
             if (ck::Is_NOT_Valid(_Crossers[i])) { continue; }
             utils_crowd_agent_diag::EmitDigest_ForAgent(_Crossers[i], 0, "QueueCrosser", i);
         }
-        ck::crowd::Log("QueueCross gym: emitted digests — grep [CrowdDiag]");
+        ck::crowd::Log("QueueCross gym: emitted digests - grep [CrowdDiag]");
     }
 
     // ---- Agent factory ---------------------------------------------------------------------------

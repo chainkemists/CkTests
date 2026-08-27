@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: SIGNAL FIRES ON PRESENCE FLIP
+// CK ENTITY TAG - AUTOMATION TEST: SIGNAL FIRES ON PRESENCE FLIP
 //============================================================================
 //
 // Pins the OnTagUpdated firing contract: the signal fires only on the
@@ -10,7 +10,7 @@
 // Removed event.
 //
 // The middle hop is a FIXED-FRAME settle on purpose. Its whole point is that
-// the 2->1 remove fires NOTHING, so there is no event to wait on — a
+// the 2->1 remove fires NOTHING, so there is no event to wait on - a
 // condition wait there would either be true on entry (proving nothing) or
 // never satisfied (timing out on correct behavior). The two hops that DO
 // cross a presence flip are condition waits on the fire counter.
@@ -79,7 +79,7 @@ class UCk_AutoTest_EntityTag_SignalFiresOnPresenceFlip : UCk_AutoTest_Base
         Assert_Equals_Int(_RemovedCount, 1,
             "Removed must fire exactly once (count 1->0)");
         Assert_Equals_Int(_AddedCount, 1,
-            "Added count must remain 1 — no extra fires from removes");
+            "Added count must remain 1 - no extra fires from removes");
     }
 
     //------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: TASK SUCCEEDS DRIVES TRANSITION
+// CK STATE MACHINE - AUTOMATION TEST: TASK SUCCEEDS DRIVES TRANSITION
 //============================================================================
 //
 // Pins the task lifecycle + task-result condition contract:

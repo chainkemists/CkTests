@@ -1,5 +1,5 @@
 //============================================================================
-// REPLICATION GYM — SHARED MESSAGES & CONSTANTS
+// REPLICATION GYM - SHARED MESSAGES & CONSTANTS
 //============================================================================
 // Reproduces the "No container fragment entry found for type
 // [Ck_RepData_IntegerAttributes] on Entity" ensure seen when a replicated

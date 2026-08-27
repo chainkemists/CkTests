@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// Station Showcase Gym — Auto-Size Runtime Ticker
+// Station Showcase Gym - Auto-Size Runtime Ticker
 //
 // Companion EntityScript for the runtime-grow auto-size variant in the
 // showcase. Drives the alcove's runtime grow path by writing the
@@ -11,7 +11,7 @@
 // detect overflow and grow Width/Height.
 //
 // Spawns at the transient entity (no lifetime ownership of the station)
-// and looks the station up by tag every tick — keeps the ticker decoupled
+// and looks the station up by tag every tick - keeps the ticker decoupled
 // from the station's spawn ordering.
 //============================================================================
 

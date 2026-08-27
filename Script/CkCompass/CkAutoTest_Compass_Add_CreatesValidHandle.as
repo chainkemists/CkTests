@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK COMPASS — AUTOMATION TEST: Add creates valid handle; heading sources
+// CK COMPASS - AUTOMATION TEST: Add creates valid handle; heading sources
 //============================================================================
 //
 // Adding a Compass to an entity with Transform returns a valid handle.
@@ -38,7 +38,7 @@ class UCk_AutoTest_Compass_Add_CreatesValidHandle : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_ManualCompass),
             "utils_compass::Add should return a valid FCk_Handle_Compass");
         Assert_True(_ManualCompass == ManualHost,
-            "Compass composes directly onto the host — the typed handle wraps the same entity");
+            "Compass composes directly onto the host - the typed handle wraps the same entity");
 
         _ManualCompass.Request_SetManualHeading(37.0);
 
@@ -60,7 +60,7 @@ class UCk_AutoTest_Compass_Add_CreatesValidHandle : UCk_AutoTest_Base
     // event and the only thing this test can wait on. This compass reads no
     // POIs, so there is no shared-world membership to confuse it. The
     // EntityTransform heading resolves on the same pass, so its correctness
-    // stays an assertion — a broken transform-heading source is REPORTED with
+    // stays an assertion - a broken transform-heading source is REPORTED with
     // the observed value rather than timing out anonymously.
     UFUNCTION()
     private void Check_ManualHeadingApplied(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)

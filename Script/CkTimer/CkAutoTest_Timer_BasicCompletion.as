@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: BASIC COMPLETION
+// CK TIMER - AUTOMATION TEST: BASIC COMPLETION
 //============================================================================
 //
 // Smoke test for the timer framework. Adds a short Running timer with

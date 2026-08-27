@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: ON_STATE_CHANGED PAYLOAD OLD + NEW
+// CK STATE MACHINE - AUTOMATION TEST: ON_STATE_CHANGED PAYLOAD OLD + NEW
 //============================================================================
 //
 // Pins the FCk_Sm_Payload_OnStateChanged shape on a real Idle->Patrol

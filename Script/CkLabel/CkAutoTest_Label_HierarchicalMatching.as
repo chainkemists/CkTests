@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK LABEL — AUTOMATION TEST: HIERARCHICAL MATCHING
+// CK LABEL - AUTOMATION TEST: HIERARCHICAL MATCHING
 //============================================================================
 //
 // Verifies the distinction between hierarchical and exact gameplay-tag
 // label matching:
 //   1. Add label "AutoTest.Label.Audio.Track.BGM" to a child entity.
-//   2. MatchesExact for the full tag → true.
-//   3. MatchesExact for the parent tag "AutoTest.Label.Audio.Track" → false.
-//   4. Matches (hierarchical) for the parent tag → true.
-//   5. MatchesExact for an unrelated tag → false.
+//   2. MatchesExact for the full tag -> true.
+//   3. MatchesExact for the parent tag "AutoTest.Label.Audio.Track" -> false.
+//   4. Matches (hierarchical) for the parent tag -> true.
+//   5. MatchesExact for an unrelated tag -> false.
 //
 // Pins down the contract for label-based filtering. Misuse of Matches vs
 // MatchesExact is a common bug class (over-matching with hierarchical

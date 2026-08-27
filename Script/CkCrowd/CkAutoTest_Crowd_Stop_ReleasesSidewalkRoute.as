@@ -1,11 +1,11 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: STOP RELEASES THE SIDEWALK ROUTE TOO
+// CK CROWD - AUTOMATION TEST: STOP RELEASES THE SIDEWALK ROUTE TOO
 //============================================================================
 //
 // The shared nav slot is only half of what an episode acquires. Every provider
 // exposes a way to START a query (Request_FindRoute / Request_FindPath) and,
-// before this fix, none exposed a way to END one — so a stopped agent left the
+// before this fix, none exposed a way to END one - so a stopped agent left the
 // follower still holding a Pending corridor and still computing a route that
 // nothing would ever consume.
 //
@@ -97,6 +97,6 @@ class UCk_AutoTest_Crowd_Stop_ReleasesSidewalkRoute : UCk_AutoTest_Base
     {
         const auto RouteStatus = utils_path_network_follower::Get_RouteResult(_Follower).Get_Status();
         Assert_True(RouteStatus == ECk_PathNetwork_RouteStatus::None,
-            f"stopping the agent must RELEASE the sidewalk route it acquired, not only the shared nav slot — the follower still reports {RouteStatus}");
+            f"stopping the agent must RELEASE the sidewalk route it acquired, not only the shared nav slot - the follower still reports {RouteStatus}");
     }
 }

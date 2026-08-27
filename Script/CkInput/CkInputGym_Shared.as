@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT KEY-BINDING GYM — SHARED CONTRACT
+// CK INPUT KEY-BINDING GYM - SHARED CONTRACT
 //============================================================================
 //
 // Station tags, the mapping names the gym drives, and the read/format helpers
@@ -16,7 +16,7 @@
 // station render the last command's outcome without re-colouring it.
 //
 // WHY THE MUTATIONS LIVE ON THE PLAYER CONTROLLER, NOT THE STATIONS. A key
-// profile belongs to the LOCAL PLAYER, not to any station — there is no
+// profile belongs to the LOCAL PLAYER, not to any station - there is no
 // station-scoped binding state to mutate. The stations are read-only displays;
 // every remap / swap / reset is either a demo step on the Remap + Conflict
 // station's state machine or an exec command on the gym PlayerController, and
@@ -27,22 +27,22 @@
 // source shows up without a manual refresh. Glyph brushes in particular MUST
 // NOT be cached: both CkInput brush getters read the CommonUI device state at
 // call time, so a cached FSlateBrush goes stale the instant the player switches
-// keyboard <-> gamepad (CkInput/CLAUDE.md anti-pattern 4).
+// keyboard <-> gamepad (the CkInput docs anti-pattern 4).
 //
 // TEARDOWN IS LAW HERE. SaveKeyBindings writes real user settings under Saved/
-// that outlive the PIE session (CkInput/CLAUDE.md anti-pattern 2), so a leaked
+// that outlive the PIE session (the CkInput docs anti-pattern 2), so a leaked
 // rebind poisons every later run and the next baseline capture. That matters
 // more now that the demo runs unattended: leaving the gym mid-cycle would
 // otherwise persist whatever step happened to be on screen.
 // Request_ResetAllAndSave below is the single teardown call, reached two ways:
 // the DoEndPlay of every station that can leave the profile customized, and an
 // exec on the PlayerController. The DoEndPlay path is ARMED BY DEFAULT and can
-// be suspended for one purpose only — observing a rebind survive a PIE restart,
+// be suspended for one purpose only - observing a rebind survive a PIE restart,
 // which is unobservable if leaving PIE erases it.
 //
 // Get_ActiveControllerData is deliberately never called from this gym: it
 // ENSUREs when no controller data matches the current device, which is a
-// legitimate outcome rather than an error (CkInput/CLAUDE.md anti-pattern 4).
+// legitimate outcome rather than an error (the CkInput docs anti-pattern 4).
 // Get_BrushForKey / Get_BrushForInputAction return an empty brush on a miss and
 // are the safe pair.
 //============================================================================
@@ -60,9 +60,9 @@ namespace Ck
 }
 
 //----------------------------------------------------------------------------
-// One spawn-params shape for all five stations — the field names match the
+// One spawn-params shape for all five stations - the field names match the
 // UPROPERTY(ExposeOnSpawn) names each station script declares, which is what
-// the spawn-params contract keys on (Script/CLAUDE.md 10).
+// the spawn-params contract keys on (Script/ARCHITECTURE.md 10).
 //----------------------------------------------------------------------------
 
 USTRUCT()
@@ -166,7 +166,7 @@ namespace input_gym
     const FName k_Mapping_Interact   = n"CkTests_Interact";
     const FName k_Mapping_Flashlight = n"CkTests_Flashlight";
 
-    // A key none of the four authored mappings holds — the "rebind to a free
+    // A key none of the four authored mappings holds - the "rebind to a free
     // key succeeds" case.
     const FKey k_FreeKey = EKeys::J;
 
@@ -189,7 +189,7 @@ namespace input_gym
     // rows reach the active key profile. Without this the profile is empty and
     // every station renders nothing while appearing to work
     // (CkKeyBinding_Subsystem.cpp:62 makes the same call for scanned contexts).
-    // Idempotent — a repeat call on an already-registered context returns false
+    // Idempotent - a repeat call on an already-registered context returns false
     // and changes nothing, which is why the result is not treated as a failure.
     bool Request_RegisterMappingContext(APlayerController InPlayerController)
     {
@@ -205,7 +205,7 @@ namespace input_gym
     }
 
     // The teardown call. ResetAllToDefaults goes through the settings layer so
-    // watchers see the change (CkInput/CLAUDE.md, Broadcast discipline);
+    // watchers see the change (the CkInput docs, Broadcast discipline);
     // SaveKeyBindings then overwrites whatever an earlier remap wrote to disk.
     void Request_ResetAllAndSave(APlayerController InPlayerController)
     {
@@ -241,7 +241,7 @@ namespace input_gym
         return InBrush.ResourceObject.GetName().ToString();
     }
 
-    // "Crouch [Movement]" — the display name and category authored on the
+    // "Crouch [Movement]" - the display name and category authored on the
     // Input Action. Conflict verdicts are stated in these terms because that is
     // what a player sees in a settings screen, not the internal mapping name.
     FString Format_MappingIdentity(const UInputAction InInputAction)
@@ -277,7 +277,7 @@ namespace input_gym
     }
 
     // Who would collide if InMappingName took InNewKey, under the named scope.
-    // InMappingName is excluded from its own conflict list — it is the one
+    // InMappingName is excluded from its own conflict list - it is the one
     // asking, not a holder.
     TArray<FCk_KeyBinding_ConflictInfo> Get_ConflictsFor(
         APlayerController InPlayerController,
@@ -394,7 +394,7 @@ namespace input_gym
 
         if (Rows.Num() == 0)
         {
-            Add_Line(OutLines, "  Nothing in the key profile — the mapping context never reached it.", gym_palette::Red);
+            Add_Line(OutLines, "  Nothing in the key profile - the mapping context never reached it.", gym_palette::Red);
             return;
         }
 
@@ -490,13 +490,13 @@ namespace input_gym
     // Device class off the key's own name rather than a device query: the panel
     // is procedural 3D text with no CommonUI subsystem read of its own, and
     // Get_ActiveControllerData ensures on a legitimate miss
-    // (CkInput/CLAUDE.md anti-pattern 4).
+    // (the CkInput docs anti-pattern 4).
     bool Get_IsGamepadKey(FKey InKey)
     {
         return Format_Key(InKey).Contains("Gamepad");
     }
 
-    // The profile is the only place a row's authored default is readable — the
+    // The profile is the only place a row's authored default is readable - the
     // Input Action itself carries display metadata, not the default key.
     FKey Get_DefaultKeyForMapping(APlayerController InPlayerController, FName InMappingName)
     {
@@ -589,7 +589,7 @@ namespace input_gym
     // a project that configures no CommonUI controller data has nothing for a
     // correctly-wired resolver to hand back, so the panel says that once in
     // amber and drops the per-row verdicts. The moment ONE row resolves the
-    // per-row green/red comes back — a miss next to a hit is a real difference,
+    // per-row green/red comes back - a miss next to a hit is a real difference,
     // and only the whole pass can tell the two apart.
     void Add_AllGlyphRows(TArray<FCkGym_ColoredLine>& OutLines, APlayerController InPlayerController)
     {
@@ -629,7 +629,7 @@ namespace input_gym
     // STATION LOOKUP + VERDICT TRANSPORT
     //------------------------------------------------------------------------
 
-    // Any entity in the world works as the query anchor — the tag store is
+    // Any entity in the world works as the query anchor - the tag store is
     // world-wide, which is what lets a demo step reach a station it holds no
     // reference to.
     FCk_Handle TryGet_TaggedStation(FCk_Handle InAnyEntity, FName InStationTag)

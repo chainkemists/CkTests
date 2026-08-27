@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ACTOR — AUTOMATION TEST: OnActorSpawned DELEGATE BINDS TO AS UFUNCTION
+// CK ACTOR - AUTOMATION TEST: OnActorSpawned DELEGATE BINDS TO AS UFUNCTION
 //============================================================================
 //
 // Diagnostic seed for CkActor. Verifies that the TwoParams delegate

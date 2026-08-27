@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK AUTOMATION TEST — NETWORKED INVENTORY DataOnly AddItem REPLICATION
+// CK AUTOMATION TEST - NETWORKED INVENTORY DataOnly AddItem REPLICATION
 //============================================================================
 //
 // Server calls Request_AddItemByDefinition on its inventory; assert the new
@@ -27,7 +27,7 @@ class UCk_AutoTest_Net_DataOnly_AddItem_Replicates : UCk_AutoTest_NetBase
         auto _CkPerfScope = ck::ScopedStat();
         auto Subject = Get_SubjectEntity();
         if (ck::Is_NOT_Valid(Subject))
-        { FinishFailure("subject not found — harness misconfigured?"); return; }
+        { FinishFailure("subject not found - harness misconfigured?"); return; }
 
         auto SubjectActor = utils_owning_actor::Get_EntityOwningActor(Subject);
         auto InventoryActor = Cast<ACk_AutoTest_NetSubject_Inventory_UE>(SubjectActor);

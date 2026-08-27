@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK VAT GYM — shared tags, messages, collection resolution
+// CK VAT GYM - shared tags, messages, collection resolution
 //============================================================================
 //
 // Content contract: ZERO setup by default. Stations start on the "AUTO"
 // sentinel path, which builds a Bone-mode Mannequin collection at PIE start
-// via UCkVat_BakerSubsystem::CreateAndBake_TransientCollection — the bake
+// via UCkVat_BakerSubsystem::CreateAndBake_TransientCollection - the bake
 // runs in memory (nothing saved to disk) and re-runs each session.
 //
 // `Ck_GymVat_SetCollection <path>` swaps any BAKED on-disk collection into
-// every station — the "curated setups" hook (Vertex mode + low-poly mesh for
+// every station - the "curated setups" hook (Vertex mode + low-poly mesh for
 // the normals check, High vs Low precision, different meshes).
 // `Ck_GymVat_SetCollection AUTO` returns to the self-baked default.
 //
@@ -42,7 +42,7 @@ namespace vat_gym
 
 #if EDITOR
     // The zero-setup default: a Bone-mode Mannequin collection baked in memory at PIE start
-    // (transient bake — nothing saved to disk). Returns nullptr if the mannequin content or the
+    // (transient bake - nothing saved to disk). Returns nullptr if the mannequin content or the
     // baker subsystem is unavailable; callers fall back to the missing-collection display.
     // InWeightStorage: the Turntable station bakes WeightTexture so both per-vertex carriers
     // render side by side in the gym (ClipCycle/CrowdField stay MeshChannels).
@@ -67,7 +67,7 @@ namespace vat_gym
         if (ck::Is_NOT_Valid(Baker))
         { return nullptr; }
 
-        // (Vertex-mode bisection attempted 2026-07-10: SKM_Manny_Simple has 48705 source verts —
+        // (Vertex-mode bisection attempted 2026-07-10: SKM_Manny_Simple has 48705 source verts
         // over the 4096 Vertex cap at LOD0. Bone stays default; Vertex verification wants a higher
         // _SourceLOD or a low-poly mesh via Ck_GymVat_SetCollection.)
         return Baker.CreateAndBake_TransientCollection(Skeleton, Mesh, Clips,

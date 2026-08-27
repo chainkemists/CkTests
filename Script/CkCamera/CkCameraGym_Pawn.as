@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — GYM PAWN
+// CK CAMERA - GYM PAWN
 //============================================================================
 //
 // A flyable pawn (ADefaultPawn movement) carrying the GameplayCamera director, plus a visible subject so the
@@ -17,17 +17,17 @@
 // see what the camera frames and which way the pawn faces. These are visual-only (no collision) and the camera's
 // collision whiskers ignore the whole pawn actor anyway (_TraceIgnoreActor = owning actor).
 //
-// The PlayerController drives orbit (look axis → Request_SetOrientationIntention) and mode cycling, which
+// The PlayerController drives orbit (look axis -> Request_SetOrientationIntention) and mode cycling, which
 // call Request_Look / Request_CycleMode here.
 //============================================================================
 
 // The demo zoom trim uses a distinct (negative) priority so cycling modes (OneOnly at the default priority 0) does
-// not evict it, and so the active mode — not the look-at-less trim — stays the dominant layer for auto-reorient.
+// not evict it, and so the active mode - not the look-at-less trim - stays the dominant layer for auto-reorient.
 const int32 k_TrimPriority = -10;
 
 class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
 {
-    // We drive the view via the GameplayCamera director, so turn off ADefaultPawn's built-in WASD + mouse-look —
+    // We drive the view via the GameplayCamera director, so turn off ADefaultPawn's built-in WASD + mouse-look
     // those move along / pitch the hidden control rotation (the cause of "W/S goes up/down" and the double-acting
     // mouse). Instead the mouse only orbits the camera, and movement is polled in Tick (enabled in Request_OnPawnReady)
     // and applied on the horizontal plane relative to the camera's view yaw.
@@ -35,11 +35,11 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
 
     // The director does NOT create this. _OutputComponent is the single essential constructor parameter of
     // FCk_Fragment_Camera_ParamsData and is get-only, so the component has to exist on the actor before Add
-    // is called — Add ensures on it and returns an invalid handle otherwise.
+    // is called - Add ensures on it and returns an invalid handle otherwise.
     UPROPERTY(DefaultComponent)
     UCk_CameraComponent CameraComponent;
 
-    // Visible subject — ADefaultPawn shows nothing in-game, so the third-person / top-down / lock-on cameras
+    // Visible subject - ADefaultPawn shows nothing in-game, so the third-person / top-down / lock-on cameras
     // would frame empty space. Body sphere + forward nose cube make position and facing readable.
     UPROPERTY(DefaultComponent)
     UStaticMeshComponent BodyMesh;
@@ -54,7 +54,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
     private TArray<TSubclassOf<UCk_CameraLayer_EntityScript>> _Modes;
     private int32                     _ModeIndex = 0;
 
-    // Demo Trim toggle (FOV zoom) — layers over the active mode without being evicted on mode cycle.
+    // Demo Trim toggle (FOV zoom) - layers over the active mode without being evicted on mode cycle.
     private bool                      _ZoomActive = false;
 
     UFUNCTION(BlueprintOverride)
@@ -88,7 +88,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
         if (ck::Is_NOT_Valid(_PawnEntity))
         { return; }
 
-        // The pawn entity (a WithActor entity script) already carries an actor-synced transform — that IS the camera
+        // The pawn entity (a WithActor entity script) already carries an actor-synced transform - that IS the camera
         // anchor, and the POV reads it each frame, so the boom follows the pawn with no extra transform to add.
 
         auto PawnTransform = _PawnEntity.As_Transform();
@@ -121,7 +121,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
             FinishSpawningActor(Floor);
         }
 
-        // A ring of tall grey pillars (block ECC_Camera) — orbit parallax + camera collision push-in when one
+        // A ring of tall grey pillars (block ECC_Camera) - orbit parallax + camera collision push-in when one
         // passes between the camera and the pawn. 100cm footprint, 400cm tall, base on the floor.
         TArray<FVector2D> Offsets;
         Offsets.Add(FVector2D( 700.0f,    0.0f));
@@ -176,7 +176,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
     }
 
     // Free-fly movement, polled each frame and applied relative to the camera's view yaw so "forward" always means
-    // "into the screen" regardless of where the pawn faces. Horizontal only (camera pitch is ignored) — Space/Ctrl
+    // "into the screen" regardless of where the pawn faces. Horizontal only (camera pitch is ignored) - Space/Ctrl
     // handle vertical. ADefaultPawn's default WASD/mouse-look are disabled (see class defaults), so nothing fights this.
     UFUNCTION(BlueprintOverride)
     void Tick(float32 InDeltaSeconds)
@@ -198,7 +198,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
         if (PC.IsInputKeyDown(EKeys::D)) { AddMovementInput(Right,    1.0f); }
         if (PC.IsInputKeyDown(EKeys::A)) { AddMovementInput(Right,   -1.0f); }
 
-        // Vertical free-fly — Space up, Left Ctrl down (E/Q are taken by mode cycling).
+        // Vertical free-fly - Space up, Left Ctrl down (E/Q are taken by mode cycling).
         if (PC.IsInputKeyDown(EKeys::SpaceBar))    { AddMovementInput(FVector(0.0f, 0.0f, 1.0f),  1.0f); }
         if (PC.IsInputKeyDown(EKeys::LeftControl)) { AddMovementInput(FVector(0.0f, 0.0f, 1.0f), -1.0f); }
     }
@@ -247,7 +247,7 @@ class ACk_CameraGym_Pawn : ACk_Gym_Base_Pawn
 
         auto ModeClass = _Modes[_ModeIndex];
 
-        // OneOnly (shared default ordering group) → the new mode blends in and evicts the previous one.
+        // OneOnly (shared default ordering group) -> the new mode blends in and evicts the previous one.
         auto Request = FCk_Request_Camera_AddLayer(ModeClass);
         Request.Set_StackingBehavior(ECk_Camera_StackingBehavior::OneOnly);
         Request.Set_BlendInTime(FCk_Time(0.4));

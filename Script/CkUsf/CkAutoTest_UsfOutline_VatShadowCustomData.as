@@ -1,22 +1,22 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF ENTITY OUTLINE — AUTOTEST: VAT shadow material + custom-data parity
+// CK USF ENTITY OUTLINE - AUTOTEST: VAT shadow material + custom-data parity
 //============================================================================
 //
 // A VatProxy renders through an IsmProxy composed on the SAME entity, and VAT deforms the mesh
-// entirely inside its material's World Position Offset — sampling a baked pose texture with the 12
+// entirely inside its material's World Position Offset - sampling a baked pose texture with the 12
 // per-instance custom-data floats. So the custom-depth "shadow ISM" only silhouettes the ANIMATED
 // pose if it carries the source ISM's material AND the same custom data. If it doesn't, the outline
 // traces the bind pose while the mesh animates.
 //
-// This pins that contract CPU-side (headless-safe — no rendering asserted):
+// This pins that contract CPU-side (headless-safe - no rendering asserted):
 //   1. the shadow instance's custom data matches the proxy's authoritative cache at apply time
 //      (the seed in FProcessor_IsmProxy_Outline_Sync),
 //   2. the shadow carries the collection's VAT MID, not the static mesh's default material
 //      (the material inheritance in FindOrCreate_OutlineIsmComponent),
 //   3. a later playback state change is MIRRORED onto the shadow
-//      (FProcessor_IsmProxy_HandleRequests) — write-on-change, never per frame.
+//      (FProcessor_IsmProxy_HandleRequests) - write-on-change, never per frame.
 //   4. a late custom-data write while the movable proxy is disabled is accepted into the CPU
 //      cache, then restored to the main and newly recreated shadow instances on re-enable.
 //
@@ -287,7 +287,7 @@ class UCk_AutoTest_UsfOutline_VatShadowCustomData : UCk_AutoTest_Base
             "re-enabled outline shadow must mirror the disabled late-write value");
         Assert_ShadowMatchesSource("after re-enabling from a disabled late write");
 
-        // A playback change repacks the custom data — the shadow must follow, or the silhouette
+        // A playback change repacks the custom data - the shadow must follow, or the silhouette
         // freezes on the pose it was outlined in.
         auto Play = FCk_Request_VatProxy_PlayClip(n"Jump");
         Play.Set_PlayRate(2.0f);

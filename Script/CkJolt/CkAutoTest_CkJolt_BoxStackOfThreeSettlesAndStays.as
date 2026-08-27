@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: THREE-BOX STACK SETTLES AND STAYS STACKED
+// CK JOLT - AUTOMATION TEST: THREE-BOX STACK SETTLES AND STAYS STACKED
 //============================================================================
 //
 // A stability check for contact resolution + sleep: a PRE-FORMED touching column of three
@@ -12,7 +12,7 @@
 //
 // Deliberately NOT a drop test: dropping an aligned column with wide gaps is a pile
 // driver (~626cm/s impacts at 200uu gaps) that legitimately topples the column under
-// correct cm-tuned contact settings — the old always-survives behavior was an artifact
+// correct cm-tuned contact settings - the old always-survives behavior was an artifact
 // of the pre-fix meters-default contacts (0.02cm penetration slop = glue). Settle
 // detection reads REAL velocity/sleep, never tick position deltas (non-stepping frames
 // fake stability while the sim lags under load).
@@ -29,12 +29,12 @@ class UCk_AutoTest_CkJolt_BoxStackOfThreeSettlesAndStays : UCk_AutoTest_Base
     private TArray<FCk_Handle_JoltBody> _Bodies;
     private TArray<float> _SettledZ;
 
-    // Y=93000: the 34000 lane is trafficked by a non-Jolt test in full-suite sessions — something
+    // Y=93000: the 34000 lane is trafficked by a non-Jolt test in full-suite sessions - something
     // blasted a resting stack +X across the floor there (isolation + Jolt-pattern runs never saw it).
     private FVector _StackXY = FVector(0.0, 93000.0, 0.0);
     // Squat slabs (160x160 footprint, 100 tall), THREE high: under the sustained multi-substep
-    // frames of a loaded full-suite session (~26fps observed), Jolt topples five-high columns —
-    // cubes AND slabs, dropped AND pre-formed — while the Chaos twin holds a five-cube 200uu-gap
+    // frames of a loaded full-suite session (~26fps observed), Jolt topples five-high columns
+    // cubes AND slabs, dropped AND pre-formed - while the Chaos twin holds a five-cube 200uu-gap
     // drop in the same sessions. Three-high is what Jolt robustly delivers today; the five-high
     // gap is a recorded post-campaign investigation ([P5-FINDING] in PROGRESS.md).
     private float _BoxFootprintHalfExtent = 80.0;
@@ -66,7 +66,7 @@ class UCk_AutoTest_CkJolt_BoxStackOfThreeSettlesAndStays : UCk_AutoTest_Base
         // ---- Five stacked boxes ---------------------------------------------------------------
         // Floor top = 25; first box rests at 75. Spawn with tiny 4uu gaps (spacing 104): each box
         // lands sequentially at ~28cm/s instead of the whole column taking up penetration slop in
-        // the same substep — exact-touching spawn toppled under full-suite load, where the pump
+        // the same substep - exact-touching spawn toppled under full-suite load, where the pump
         // delivers bursty multi-substep frames.
         for (int Index = 0; Index < _BoxCount; Index++)
         {
@@ -111,7 +111,7 @@ class UCk_AutoTest_CkJolt_BoxStackOfThreeSettlesAndStays : UCk_AutoTest_Base
         if (_Phase == 0)
         {
             // Settled = every box reached REAL Jolt sleep (fires only via the actual
-            // deactivation event — the anti-vacuous witness).
+            // deactivation event - the anti-vacuous witness).
             if (Get_AllAsleep())
             {
                 // Record the settled column and assert order + spacing.
@@ -141,13 +141,13 @@ class UCk_AutoTest_CkJolt_BoxStackOfThreeSettlesAndStays : UCk_AutoTest_Base
                     auto Sleep = utils_jolt_body::Get_SleepState(_Bodies[Index]);
                     Diag += f" [{Index}: X={Location.X} Z={Location.Z} spd={Velocity.Size()} sleep={Sleep}]";
                 }
-                FinishFailure(f"Stack never settled after {_Elapsed} seconds —{Diag}");
+                FinishFailure(f"Stack never settled after {_Elapsed} seconds -{Diag}");
             }
 
             return;
         }
 
-        // Phase 1 — hold: the settled column must not drift or reorder.
+        // Phase 1 - hold: the settled column must not drift or reorder.
         _HoldTime += float(InDeltaT.Get_Seconds());
 
         for (int Index = 0; Index < _BoxCount; Index++)

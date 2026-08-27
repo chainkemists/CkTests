@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — LOCAL SHORTCUT USES SAME-COMPONENT GAP
+// CK PATH NETWORK - LOCAL SHORTCUT USES SAME-COMPONENT GAP
 //============================================================================
 //
 // A connected U sits entirely on the AutoTests navmesh. Its two lower

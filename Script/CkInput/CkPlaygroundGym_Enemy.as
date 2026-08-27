@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT PLAYGROUND GYM — THE DUMMY
+// CK INPUT PLAYGROUND GYM - THE DUMMY
 //============================================================================
 //
 // One thing to hit, and one thing that hits back. The playground's combat kit had
 // nothing to land on: every swing was a shape thrown at empty floor, and a chain
 // that connects looks exactly like a chain that misses. This entity is the other
-// half of that sentence — it takes the swing, says which family landed it, and
+// half of that sentence - it takes the swing, says which family landed it, and
 // counts. It has no health, no state machine and no AI: a hit is a flash and a
 // number, which is all the feedback a kit demo can honestly claim.
 //
 // AND IT SHOOTS, BECAUSE BLOCK NEEDS A REASON TO EXIST. Q is a held set read
-// straight off the record — the deliberate contrast to the graded moves — and a
+// straight off the record - the deliberate contrast to the graded moves - and a
 // held button with nothing to hold it against is not a demonstration. Every
 // three seconds, if the player is close enough to be worth shooting, the dummy
 // telegraphs and throws ONE slow projectile at where the player was standing at
@@ -22,13 +22,13 @@
 //
 // THE PLAYER OWNS THE VERDICT, NOT THE DUMMY. When a projectile reaches the pawn
 // this file asks Request_ResolveProjectileImpact and renders NOTHING at the
-// point of resolution — the pawn draws the outcome on its own body. The dummy
+// point of resolution - the pawn draws the outcome on its own body. The dummy
 // only ACTS on the answer: a parried shot turns gold and flies back the way it
 // came, and a returned shot that reaches the dummy counts exactly like a swing.
 //
 // THE BODY IS PMG, NOT MESHES, BECAUSE THE BODY IS THE FEEDBACK. A sphere torso
 // over a flat base ring, and the torso's COLOUR is the hit feedback: it flashes
-// RED for any landed hit — red is damage, full stop — via
+// RED for any landed hit - red is damage, full stop - via
 // utils_pmg_debug_shape::Request_SetColor, which recolours a live shape in
 // place; a StaticMeshComponent silhouette could not do that without a material
 // instance the gym has no reason to own. The base ring is there so the torso
@@ -36,7 +36,7 @@
 //
 // PMG HAS NO SIZE MUTATION AND NO PARENTING, so the projectile is a persistent
 // sphere whose Transform fragment is driven every tick, and the floor label is
-// re-anchored the same way (CkPmg/Claude.md, "Pattern: live-tracking overlay").
+// re-anchored the same way (the CkPmg docs, "Pattern: live-tracking overlay").
 // The three persistent shapes plus the projectile are this file's to destroy, and
 // DoEndPlay is the path that runs whether the session ended, the gym cycled, or
 // the entity was torn down on its own.
@@ -44,8 +44,8 @@
 // THE COUNTER LIES FLAT ON THE FLOOR, derived off the CAMERA the same way the
 // pawn's readouts are: FRotator(-90, CameraYaw, 0) on a YZ text plate is the one
 // orientation that reads face-on under this gym's fixed top-down framing. The yaw
-// is asked of the PAWN rather than re-derived here — the pawn already owns the
-// camera director and hands the number over — and falls back to zero for the
+// is asked of the PAWN rather than re-derived here - the pawn already owns the
+// camera director and hands the number over - and falls back to zero for the
 // frames before the pawn has registered, which is a label reading sideways for a
 // tick rather than a second camera authority.
 //============================================================================
@@ -74,7 +74,7 @@ namespace playground_gym_enemy
     //------------------------------------------------------------------------
     //
     // RED, whatever landed it. Red is the one colour the kit never throws a
-    // swing in, so on this body it can only mean "that hit" — the maintainer's
+    // swing in, so on this body it can only mean "that hit" - the maintainer's
     // ruling over the earlier family-coloured tints, which read as nothing at a
     // glance. Long enough to register; there is no damage model here, only
     // "that landed" and the counter.
@@ -137,7 +137,7 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
 
     // The only thing the spawner decides. FCk_Gym_TransformSpawnParams is the
     // shared transform-only params struct every gym entity script in this plugin
-    // is spawned with (CkGym_Utils.as) — the spawn machinery matches on the
+    // is spawned with (CkGym_Utils.as) - the spawn machinery matches on the
     // PROPERTY NAME, so an entity script that names its exposed transform
     // InitialTransform is spawnable without a params struct of its own.
     UPROPERTY(ExposeOnSpawn)
@@ -318,7 +318,7 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
     // edge of the range never accumulates a volley they cannot read.
     //
     // The clock is HELD at the interval while the player is out of range rather
-    // than reset, so walking into range is answered on the next tick — the dummy
+    // than reset, so walking into range is answered on the next tick - the dummy
     // is a sparring partner, not an ambush.
 
     private void DoAdvance_Fire(float32 InDeltaSeconds)
@@ -356,7 +356,7 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
         _TelegraphRemaining = playground_gym_enemy::k_Telegraph_Seconds;
     }
 
-    // Aimed at where the pawn IS at fire time and never corrected after — that is
+    // Aimed at where the pawn IS at fire time and never corrected after - that is
     // what makes walking out of the way a real answer rather than a delay.
     private void DoFireProjectile()
     {
@@ -392,7 +392,7 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
     // The dummy renders NOTHING at resolution: it asks the pawn for the verdict
     // and acts on the answer. A struck or blocked shot ends at the pawn; a
     // PARRIED one turns gold, flies back the way it came, and counts a hit when
-    // it arrives — the one-in-flight rule holds through the return leg, so a
+    // it arrives - the one-in-flight rule holds through the return leg, so a
     // dummy waiting on its own returned shot cannot fire through it. The age
     // resets on the turn because the return is a second flight, not the tail
     // of the first.
@@ -553,7 +553,7 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
 
     // The pawn's floor-text recipe: a YZ text plate tipped flat by -90 pitch and
     // turned to the camera's yaw reads face-on under this gym's fixed framing.
-    // Zero yaw until the pawn has registered — a label reading sideways for the
+    // Zero yaw until the pawn has registered - a label reading sideways for the
     // first frames beats a second opinion about where the camera is.
     private FTransform Get_LabelTransform() const
     {
@@ -582,7 +582,7 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
     //
     // PMG has no size mutation and no parenting, so a shape that moves is the
     // entity's own Transform fragment driven through the ordinary deferred request
-    // (CkPmg/Claude.md, "Pattern: live-tracking overlay").
+    // (the CkPmg docs, "Pattern: live-tracking overlay").
 
     private void DoSetShapeTransform(FCk_Handle_Pmg_DebugShape InShape, FTransform InTransform)
     {
@@ -598,7 +598,7 @@ class UCk_EntityScript_PlaygroundGym_Enemy : UCk_GenericEntityScript_UE
     }
 
     // Takes the member by reference and clears it, because a persistent shape and
-    // the handle naming it have to stop existing together — a stale projectile
+    // the handle naming it have to stop existing together - a stale projectile
     // handle would read as "one is still in flight" and the dummy would never
     // shoot again.
     private void DoDestroyShape(FCk_Handle_Pmg_DebugShape& InOutShape)

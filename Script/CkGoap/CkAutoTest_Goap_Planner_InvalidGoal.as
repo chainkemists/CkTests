@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER INVALID GOAL DIAGNOSTIC
+// CK GOAP - AUTOMATION TEST: PLANNER INVALID GOAL DIAGNOSTIC
 //============================================================================
 //
 // Validates: when Request_SetGoal is called with a goal condition that
@@ -16,13 +16,13 @@
 //
 // Setup:
 //   - WS: Ready=false (only Ready is registered by Root's CDO effects).
-//   - No goal set on PlannerParams — root gets empty goal → PlanFound immediately.
+//   - No goal set on PlannerParams - root gets empty goal -> PlanFound immediately.
 //   - utils_goap_planner::Request_SetGoal([{UnknownKey=true}]) is queued in DoBeginPlay.
 //     UnknownKey is NOT referenced by any action's CDO, so Setup will never
 //     register it in the WS key registry. HandleRequests processes SetGoal,
 //     fails to find UnknownKey, adds it to _InvalidGoal.
-//   - Bind OnPlanComplete — fires after HandleRequests processes the Plan request
-//     (empty goal → PlanFound).
+//   - Bind OnPlanComplete - fires after HandleRequests processes the Plan request
+//     (empty goal -> PlanFound).
 //
 // Expected: Get_InvalidGoal(Root).Num() == 1 in OnPlanComplete.
 //============================================================================
@@ -52,13 +52,13 @@ class UCk_AutoTest_Goap_Planner_InvalidGoal : UCk_AutoTest_Base
         ActionSetParams.Set_WorldStateSource(WS);
         // Test intentionally exercises an unregistered-goal scenario where
         // PlanFailed is reachable. Opt out of the always-valid-plan tenet ensure
-        // (see CkGoap/CLAUDE.md § "Design tenets") — game-content Planners must
+        // (see the CkGoap docs Sec. "Design tenets") - game-content Planners must
         // never set this true.
         ActionSetParams.Set_AllowPlanFailed(true);
         _Planner = utils_goap_planner::Add(Local, ActionSetParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
-        // Root with no goal on PlannerParams — empty goal, PlanFound immediately.
+        // Root with no goal on PlannerParams - empty goal, PlanFound immediately.
         auto RootParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Root_InvalidGoal);
         _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
@@ -67,7 +67,7 @@ class UCk_AutoTest_Goap_Planner_InvalidGoal : UCk_AutoTest_Base
         // Request_SetGoal with a tag that is NOT registered in the WS key registry.
         // Only Ready is registered (via Root's CDO effect). UnknownKey never appears
         // in any action CDO, so Setup will never register it. HandleRequests processes
-        // SetGoal, cannot find UnknownKey → _InvalidGoal populated. Auto-replan fires.
+        // SetGoal, cannot find UnknownKey -> _InvalidGoal populated. Auto-replan fires.
         auto GoalConditions = TArray<FCk_GoapWS_Condition_Authored>();
         GoalConditions.Add(FCk_GoapWS_Condition_Authored(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.UnknownKey"),
@@ -87,7 +87,7 @@ class UCk_AutoTest_Goap_Planner_InvalidGoal : UCk_AutoTest_Base
 
         // Request_SetGoal was enqueued in DoBeginPlay. The handler set
         // _InvalidGoal = [{UnknownKey, true}] and _Goal = []. Plan ran
-        // on the empty goal → PlanFound with empty plan. _InvalidGoal persists.
+        // on the empty goal -> PlanFound with empty plan. _InvalidGoal persists.
         Assert_True(utils_goap_planner::Get_PlanStatus(_Planner) == ECk_GoapPlanStatus::PlanFound,
             "Root PlanStatus should be PlanFound (empty goal satisfied immediately)");
 

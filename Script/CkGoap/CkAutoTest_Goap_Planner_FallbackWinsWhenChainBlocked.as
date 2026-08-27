@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: FALLBACK WINS WHEN CHAIN IS STRUCTURALLY BLOCKED
+// CK GOAP - AUTOMATION TEST: FALLBACK WINS WHEN CHAIN IS STRUCTURALLY BLOCKED
 //============================================================================
 //
 // Companion to FallbackLosesWhenChainViable. Pins the OTHER half of the
-// always-valid-plan tenet (CkGoap/CLAUDE.md § "Design tenets"): the fallback
-// MUST win — and the planner must reach PlanFound rather than PlanFailed —
+// always-valid-plan tenet (the CkGoap docs Sec. "Design tenets"): the fallback
+// MUST win - and the planner must reach PlanFound rather than PlanFailed
 // when no other goal-satisfier is reachable from the catalog.
 //
 // Catalog (flat):
@@ -15,7 +15,7 @@
 //   Fallback  [Action only]   eff:  Goal=true               cost 999
 //
 // No Action in the catalog produces Unreachable=true, so Gated is
-// structurally unreachable — the only viable path to Goal is via Fallback.
+// structurally unreachable - the only viable path to Goal is via Fallback.
 //
 // Initial WS: Unreachable=false, Goal=false.
 // Expected plan: [Fallback] (cost 999). Asserts:
@@ -84,12 +84,12 @@ class UCk_AutoTest_Goap_Planner_FallbackWinsWhenChainBlocked : UCk_AutoTest_Base
             "PlanStatus should be PlanFound (Fallback satisfies the always-valid-plan tenet, not PlanFailed)");
 
         Assert_True(Plan.Num() == 1,
-            f"Plan should be exactly [Fallback]. Got {Plan.Num()} entries — did Gated get picked despite the unreachable precondition?");
+            f"Plan should be exactly [Fallback]. Got {Plan.Num()} entries - did Gated get picked despite the unreachable precondition?");
 
         if (Plan.Num() == 1)
         {
             Assert_True(Plan[0] == UCk_AutoTestAction_Goap_FallbackOnly_Fallback,
-                "Plan[0] should be Fallback (the only viable goal-satisfier — Gated needs Unreachable=true which no Action produces).");
+                "Plan[0] should be Fallback (the only viable goal-satisfier - Gated needs Unreachable=true which no Action produces).");
         }
 
         _PlanAsserted = true;

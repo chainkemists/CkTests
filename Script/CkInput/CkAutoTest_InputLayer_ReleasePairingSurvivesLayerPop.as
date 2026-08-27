@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT LAYER — AUTOMATION TEST: PRESS/RELEASE PAIRING SURVIVES A POP
+// CK INPUT LAYER - AUTOMATION TEST: PRESS/RELEASE PAIRING SURVIVES A POP
 //============================================================================
 //
 // The failure this exists to stop: a layer consumes a key's press, the layer
 // is popped while the key is still physically held, and the release then falls
-// through to the layer below — which receives a key-up for a press it never
+// through to the layer below - which receives a key-up for a press it never
 // saw and unlatches state nothing ever latched.
 //
 // Ownership of a press lives in the ROUTER, keyed by the physical key, not in

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: STATIC BAKE COLLISION-SYNC
+// CK JOLT - AUTOMATION TEST: STATIC BAKE COLLISION-SYNC
 //============================================================================
 //
 // Pins the collision-sync contract: engine collision state is the source of
@@ -62,7 +62,7 @@ class UCk_AutoTest_CkJolt_StaticBake_CollisionToggle_SyncsScene : UCk_AutoTest_B
         if (NumBaked != 1)
         {
             _CubeActor.DestroyActor();
-            FinishFailure("Cube did not reach the Jolt static world — collision-sync assertions cannot run");
+            FinishFailure("Cube did not reach the Jolt static world - collision-sync assertions cannot run");
             return;
         }
 

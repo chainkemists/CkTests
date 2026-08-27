@@ -8,24 +8,24 @@
 // (UCk_MinimapFrame_Widget) in the top-right of the viewport; walking and
 // mouse-turning the pawn drives the projection live.
 //
-// Stations (content built toward -X from each anchor — house rule):
+// Stations (content built toward -X from each anchor - house rule):
 //   - PoiField:  a POI cluster (Quest/Shop/Danger/Info, varied priorities,
 //                one far ClampToEdge waypoint pinned to the frame rim)
 //   - WorldMap:  a FixedBounds projection over the station area; readout via
 //                Ck_GymMinimap_Readout
-//   - FogWalk:   a fog grid over the station; the pawn is a revealer — walk
+//   - FogWalk:   a fog grid over the station; the pawn is a revealer - walk
 //                to paint exploration; link/unlink it to the HUD minimap
 //   - Stress:    500 standalone POIs on demand (Ck_GymMinimap_Stress500)
 //
 // Exec commands:
-//   Ck_GymMinimap_ZoomIn / ZoomOut  — halve / double the view extent
-//   Ck_GymMinimap_ToggleRotation    — NorthLocked <-> RotateWithObserver
-//   Ck_GymMinimap_ToggleFog         — link/unlink the FogWalk grid to the HUD minimap
-//   Ck_GymMinimap_RevealAll         — reveal the whole FogWalk grid
-//   Ck_GymMinimap_ResetFog          — reset the FogWalk grid to fully fogged
-//   Ck_GymMinimap_Stress500         — spawn the stress field
-//   Ck_GymMinimap_ClearStress       — destroy the stress field
-//   Ck_GymMinimap_Readout           — dump entries + fog fraction to the log
+//   Ck_GymMinimap_ZoomIn / ZoomOut  - halve / double the view extent
+//   Ck_GymMinimap_ToggleRotation    - NorthLocked <-> RotateWithObserver
+//   Ck_GymMinimap_ToggleFog         - link/unlink the FogWalk grid to the HUD minimap
+//   Ck_GymMinimap_RevealAll         - reveal the whole FogWalk grid
+//   Ck_GymMinimap_ResetFog          - reset the FogWalk grid to fully fogged
+//   Ck_GymMinimap_Stress500         - spawn the stress field
+//   Ck_GymMinimap_ClearStress       - destroy the stress field
+//   Ck_GymMinimap_Readout           - dump entries + fog fraction to the log
 //============================================================================
 
 class ACk_MinimapGym_GameMode : ACkTests_Gym_Base_GameMode
@@ -36,7 +36,7 @@ class ACk_MinimapGym_GameMode : ACkTests_Gym_Base_GameMode
 
 class ACk_MinimapGym_Pawn : ACk_Gym_Base_Pawn
 {
-    // ADefaultPawn leaves the ACTOR un-yawed under mouse-look — the minimap's view yaw reads the pawn
+    // ADefaultPawn leaves the ACTOR un-yawed under mouse-look - the minimap's view yaw reads the pawn
     // ENTITY's actor-synced transform yaw, so the actor must follow the controller for
     // RotateWithObserver (and the HUD's facing) to track the mouse.
     default bUseControllerRotationYaw = true;
@@ -58,13 +58,13 @@ class ACk_MinimapGym_Pawn : ACk_Gym_Base_Pawn
     }
 
     // CkPoi v2 DIRECT-ATTACH acceptance demo (PROMPT criterion 5): the PLAYER itself IS a Poi,
-    // composed onto the pawn's OWN entity (_PawnEntity — the very entity that hosts the minimap
+    // composed onto the pawn's OWN entity (_PawnEntity - the very entity that hosts the minimap
     // observer), NOT a freshly spawned standalone child. Because the observer and the Poi are the
     // same entity, the player blip renders at the frame center (distance 0, observer-centric);
     // MaxRange 0 on VisibleRange = unlimited ("always shown to self", the design doc's example).
     private void DoComposePlayerAsPoi()
     {
-        // OnEntityConstructed fires once per pawn entity, but guard anyway — utils_poi::Add ensures
+        // OnEntityConstructed fires once per pawn entity, but guard anyway - utils_poi::Add ensures
         // on a double-add, so gate the whole compose on the identity tag if the path ever re-enters.
         if (utils_poi::Has(_PawnEntity))
         { return; }
@@ -72,7 +72,7 @@ class ACk_MinimapGym_Pawn : ACk_Gym_Base_Pawn
         auto PawnPoi = utils_poi::Add(_PawnEntity,
             FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Player")));
 
-        // Direct-attach display definition (Add, not Create — single consumer: the minimap).
+        // Direct-attach display definition (Add, not Create - single consumer: the minimap).
         auto DisplayParams = FCk_Fragment_PoiDisplayDefinition_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Consumer.Minimap"));
         DisplayParams.Set_Priority(100);
@@ -167,14 +167,14 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         DoCreateHudWidget();
 
         SetActorTickEnabled(true);
-        ck::Trace("MinimapGym: started — POI field + world map + fog grid built");
+        ck::Trace("MinimapGym: started - POI field + world map + fog grid built");
     }
 
     private void DoBuildPoiField()
     {
         auto Center = _PoiFieldOrigin + FVector(-800.0, 0.0, 100.0);
 
-        // 8 cluster positions at 45-degree steps, radius 600 (precomputed — no trig dependency).
+        // 8 cluster positions at 45-degree steps, radius 600 (precomputed - no trig dependency).
         DoAddPoi(Center + FVector(600.0, 0.0, 0.0),      n"Poi.Category.Quest",  5);
         DoAddPoi(Center + FVector(424.3, 424.3, 0.0),    n"Poi.Category.Shop",   3);
         DoAddPoi(Center + FVector(0.0, 600.0, 0.0),      n"Poi.Category.Danger", 4);
@@ -184,7 +184,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         DoAddPoi(Center + FVector(0.0, -600.0, 0.0),     n"Poi.Category.Danger", 3);
         DoAddPoi(Center + FVector(424.3, -424.3, 0.0),   n"Poi.Category.Info",   2);
 
-        // One far ClampToEdge waypoint — pins to the frame rim from anywhere in the gym.
+        // One far ClampToEdge waypoint - pins to the frame rim from anywhere in the gym.
         auto Waypoint = DoCreateStandalonePoi(
             FTransform(FRotator::ZeroRotator, Center + FVector(-6000.0, 0.0, 0.0)),
             FCk_Fragment_Poi_ParamsData(utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.Waypoint")));
@@ -201,7 +201,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         { return; }
 
         // A FixedBounds projection over the world-map station area, hosted on its own entity
-        // (parented off the pawn entity — the gym PlayerController is not ECS-backed).
+        // (parented off the pawn entity - the gym PlayerController is not ECS-backed).
         auto PawnEntity = GymPawn.Get_PawnEntity();
         auto Host = utils_entity_lifetime::Request_CreateEntity(PawnEntity);
         Host.Request_OverrideToSelf();
@@ -243,7 +243,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     private void DoCreateHudWidget()
     {
-        // The pawn composes its minimap in OnEntityConstructed (deferred entity construction) — at gym
+        // The pawn composes its minimap in OnEntityConstructed (deferred entity construction) - at gym
         // start it usually is not there YET. Retry on a short timer instead of silently giving up.
         auto Minimap = DoGet_Minimap();
         if (ck::Is_NOT_Valid(Minimap))
@@ -252,7 +252,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
             if (_HudWidgetRetries <= 40)
             { System::SetTimer(this, n"DoCreateHudWidget", 0.25, false); }
             else
-            { ck::Trace("MinimapGym: pawn minimap never appeared — no HUD widget (use Ck_GymMinimap_Readout)"); }
+            { ck::Trace("MinimapGym: pawn minimap never appeared - no HUD widget (use Ck_GymMinimap_Readout)"); }
             return;
         }
 
@@ -260,7 +260,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
             WidgetBlueprint::CreateWidget(UCk_MinimapFrame_Widget, this));
         if (_HudWidget == nullptr)
         {
-            ck::Trace("MinimapGym: HUD widget creation failed — use Ck_GymMinimap_Readout instead");
+            ck::Trace("MinimapGym: HUD widget creation failed - use Ck_GymMinimap_Readout instead");
             return;
         }
 
@@ -336,7 +336,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
         UCk_Utils_DebugDraw_UE::DrawDebugLine(D, A, InColor, 3600.0, 4.0);
     }
 
-    // Facing needle from the pawn, redrawn every frame — mirrors what the HUD's arrow should do
+    // Facing needle from the pawn, redrawn every frame - mirrors what the HUD's arrow should do
     private void DoDrawFacingNeedle(FCk_Handle_Minimap InMinimap)
     {
         if (ControlledPawn == nullptr)
@@ -450,7 +450,7 @@ class ACk_MinimapGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (_StressPois.Num() > 0)
         {
-            ck::Trace("MinimapGym: stress field already spawned — clear it first");
+            ck::Trace("MinimapGym: stress field already spawned - clear it first");
             return;
         }
 

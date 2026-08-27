@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: FLOAT PRE-CLAMP / OVERFLOW
+// CK ATTRIBUTE - AUTOMATION TEST: FLOAT PRE-CLAMP / OVERFLOW
 //============================================================================
 //
 // Float-attribute equivalent of CkAutoTest_Attribute_IntegerOverflow. See

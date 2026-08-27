@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE + TWEEN — AUTOMATION TEST: TWEEN COMPLETES, LEAF AT TARGET
+// CK SCENE NODE + TWEEN - AUTOMATION TEST: TWEEN COMPLETES, LEAF AT TARGET
 //============================================================================
 //
 // Endpoint contract: when a TweenEntityLocation on the root scene-node

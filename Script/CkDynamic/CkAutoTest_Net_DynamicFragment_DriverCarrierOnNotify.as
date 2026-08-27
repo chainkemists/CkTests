@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — NET AUTOMATION TEST: STOREDRIVER CARRIER, ASSERTED INSIDE OnRepNotify
+// CK DYNAMIC - NET AUTOMATION TEST: STOREDRIVER CARRIER, ASSERTED INSIDE OnRepNotify
 //============================================================================
 //
 // The decisive notify-DRIVEN test. Identical setup to DriverCarrierReplicates (driver A
 // carries a SEPARATE replicated entity B's dynamic handle in an empty->filled replicated
-// carrier), but the handle-resolution assertion runs INSIDE the OnRepNotify callback —
+// carrier), but the handle-resolution assertion runs INSIDE the OnRepNotify callback
 // exactly where the real StoreDriver reads it (Reconcile_Subordinates).
 //
 // This is the key difference from the poll-based DriverCarrierReplicates (which passes):
 // if B's rep-driver GUID is unmapped when the carrier replicates, the handle is BLANK at
 // notify time and only re-resolves later. A poll loop hides that (it retries until valid);
-// reading at notify time catches it — which is what the production consumer suffers.
+// reading at notify time catches it - which is what the production consumer suffers.
 //
 // Surface: Ck.Dynamic.Net.AS_DynamicFragment_DriverCarrierOnNotify
 //============================================================================
@@ -72,7 +72,7 @@ class UCk_AutoTest_Net_DynamicFragment_DriverCarrierOnNotify : UCk_AutoTest_NetB
         FinishSuccess();
     }
 
-    // The assertion happens HERE, at notify time — like StoreDriver's Reconcile_Subordinates.
+    // The assertion happens HERE, at notify time - like StoreDriver's Reconcile_Subordinates.
     UFUNCTION()
     private void OnRepNotify(FCk_Handle InHandle, FCk_DynamicFragment_RepNotifyInfo InInfo)
     {

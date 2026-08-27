@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS GYM — STATION ENTITY SCRIPT
+// CK EQS GYM - STATION ENTITY SCRIPT
 //============================================================================
 //
 // One station class drives every EQS scenario via a Scenario enum. Each
@@ -13,7 +13,7 @@
 // run #, and the time-to-next-restart.
 //============================================================================
 
-// AS-internal enum — UENUM() macro is not available in AngelScript; plain `enum`
+// AS-internal enum - UENUM() macro is not available in AngelScript; plain `enum`
 // is the right form (no `class` keyword, values accessed as Name::Value per
 // CkGoapEmpire_Station's ECk_GoapEmpire_Phase precedent).
 enum ECkEqsGym_Scenario
@@ -203,7 +203,7 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
         // Destroy the previous query before issuing a new one. Without this, deferred queries
         // (with Set_AutoDestroy(false)) and Immediate queries would pile up on the station entity
         // every 5 seconds. Doing it here also fixes the original "queries flicker" UX problem in
-        // the debugger — the debugger now sees one stable query per station instead of a brief
+        // the debugger - the debugger now sees one stable query per station instead of a brief
         // 1-2 frame flash followed by 5 seconds of nothing.
         if (ck::IsValid(_LastQueryHandle))
         {
@@ -217,7 +217,7 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
         if (_IsImmediate)
         {
             // Synchronous path: returns a typed query handle with results already written.
-            // Does NOT broadcast OnComplete (P3-E5) — read accessors directly.
+            // Does NOT broadcast OnComplete (P3-E5) - read accessors directly.
             auto QueryHandle = utils_eqs::Request_RunQuery_Immediate(SelfEntity, QueryParams);
             _LastQueryHandle = QueryHandle;
             Capture_Result(QueryHandle);
@@ -226,7 +226,7 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
         {
             // Deferred path: bind OnComplete on the request, fire and forget. AutoDestroy=false
             // keeps the query entity alive past Cleanup so the user can inspect it in the
-            // debugger — we own the destroy on the next cycle (above).
+            // debugger - we own the destroy on the next cycle (above).
             auto Request = FCk_Request_Eqs_RunQuery(QueryParams);
             Request.Set_OnComplete(FCk_Delegate_EqsQuery_OnComplete(this, n"OnQueryComplete"));
             Request.Set_AutoDestroy(false);
@@ -247,7 +247,7 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
             Generator.Set_SpaceBetween(100.0f);
             Generator.Set_GridHalfSize(200.0f);  // 5x5 = 25 candidates
 
-            // Distance test — closer to querier scores higher (InverseLinear).
+            // Distance test - closer to querier scores higher (InverseLinear).
             auto Distance = FCk_Eqs_TestParams();
             Distance.Set_TestType(ECk_Eqs_TestType::Distance);
             Distance.Set_Purpose(ECk_Eqs_TestPurpose::Score);
@@ -274,7 +274,7 @@ class UCk_EntityScript_EqsGym_Station : UCk_GenericEntityScript_UE
             Generator.Set_PointsPerRing(8);
             Generator.Set_ArcAngle(360.0f);
 
-            // Dot test — forward of the querier scores highest.
+            // Dot test - forward of the querier scores highest.
             auto Dot = FCk_Eqs_TestParams();
             Dot.Set_TestType(ECk_Eqs_TestType::Dot);
             Dot.Set_Purpose(ECk_Eqs_TestPurpose::Score);

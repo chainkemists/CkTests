@@ -171,7 +171,7 @@ class UCk_EntityScript_AttributeGym_ByteClamping : UCk_GenericEntityScript_UE
 			DisplayText = f"{DisplayText}Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={LastOverflow}\n";
 		}
 
-		// Live polling via utility accessors — shows the Armor attribute's this-frame values.
+		// Live polling via utility accessors - shows the Armor attribute's this-frame values.
 		auto LivePre = utils_byte_attribute::Get_PreClampFinalValue(ArmorAttribute);
 		auto LiveOvr = utils_byte_attribute::Get_ClampOverflow(ArmorAttribute);
 		DisplayText = f"{DisplayText}Live Poll (Armor): pre={LivePre}  overflow={LiveOvr}\n";

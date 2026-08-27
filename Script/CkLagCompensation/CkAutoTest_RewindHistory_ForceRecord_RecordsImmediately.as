@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK REWIND HISTORY — AUTOMATION TEST: FORCE RECORD RECORDS IMMEDIATELY
+// CK REWIND HISTORY - AUTOMATION TEST: FORCE RECORD RECORDS IMMEDIATELY
 //============================================================================
 //
 // The record interval is set far beyond the test's lifetime, so only two
@@ -33,7 +33,7 @@ class UCk_AutoTest_RewindHistory_ForceRecord_RecordsImmediately : UCk_AutoTest_B
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.LagComp.Body"),
             UCk_Utils_Shapes_UE::Make_Sphere(FCk_ShapeSphere_Dimensions(50.0))));
 
-        // Interval far longer than the test — interval-driven recording is impossible
+        // Interval far longer than the test - interval-driven recording is impossible
         auto Params = FCk_Fragment_RewindHistory_ParamsData(HitShapes);
         Params.Set_RecordInterval(FCk_Time(60.0));
         Params.Set_RetentionPeriod(FCk_Time(120.0));

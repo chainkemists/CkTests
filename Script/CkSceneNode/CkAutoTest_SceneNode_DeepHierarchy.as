@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE — AUTOMATION TEST: DEEP HIERARCHY
+// CK SCENE NODE - AUTOMATION TEST: DEEP HIERARCHY
 //============================================================================
 //
 // Headless equivalent of the Hierarchy / PropagateOnly gym behaviors.
-// Three-level chain: root (bare ECS transform) → child (SceneNode) →
+// Three-level chain: root (bare ECS transform) -> child (SceneNode) ->
 // grandchild (SceneNode). Verifies that:
 //
 //   1. Initial composition: each level's world transform = its local offset
@@ -16,7 +16,7 @@
 //      propagates to grandchild (Layer2 must re-fire when child.Transform_
 //      Updated is set even if root didn't move).
 //
-// If any of these break, propagation has stalled at a layer boundary —
+// If any of these break, propagation has stalled at a layer boundary
 // usually the layer-update gate not picking up parent's Transform_Updated.
 //============================================================================
 

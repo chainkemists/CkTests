@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — AUTOMATION TEST: ForceRefresh REBROADCASTS CURRENT VALUE
+// CK TRANSFORM - AUTOMATION TEST: ForceRefresh REBROADCASTS CURRENT VALUE
 //============================================================================
 //
 // Pins the Request_ForceRefresh contract: it fires OnUpdate with the
@@ -53,7 +53,7 @@ class UCk_AutoTest_Transform_ForceRefreshRebroadcasts : UCk_AutoTest_Base
         //     calibrated to 0.05s of WALL-CLOCK (~3 frames at 60fps). Shortening
         //     it to WaitFrames(2) made the bind + Request_ForceRefresh land while
         //     setup was still running, the refresh got absorbed into that pass,
-        //     and no distinct OnUpdate ever broadcast — the test timed out waiting
+        //     and no distinct OnUpdate ever broadcast - the test timed out waiting
         //     for a rebroadcast that legitimately never happened.
         WaitOneFrame(n"OnSetupSettled");
     }
@@ -75,7 +75,7 @@ class UCk_AutoTest_Transform_ForceRefreshRebroadcasts : UCk_AutoTest_Base
     }
 
     // The rebroadcast arriving IS the settling event. That it arrives EXACTLY
-    // once — the contract, since the value is unchanged — stays an assertion, so
+    // once - the contract, since the value is unchanged - stays an assertion, so
     // a double-broadcast regression is reported rather than hanging.
     UFUNCTION()
     private void Check_RefreshBroadcast(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)

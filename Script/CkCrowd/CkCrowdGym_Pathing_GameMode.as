@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Pathing Gym — arrival stress test
+// Crowd Pathing Gym - arrival stress test
 //
 // Drives a single CrowdAgent through Request_MoveTo -> arrival scenarios that stress the path-follow
 // arrival logic: goals flush against obstacles, mid-flight re-targets, tight approaches. Built to

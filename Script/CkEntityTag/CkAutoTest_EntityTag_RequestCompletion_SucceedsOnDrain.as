@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: REQUEST COMPLETION SUCCEEDS ON DRAIN
+// CK ENTITY TAG - AUTOMATION TEST: REQUEST COMPLETION SUCCEEDS ON DRAIN
 //============================================================================
 //
 // The Succeeded-on-drain contract in a VARIANT-list feature other than CkTimer:
@@ -71,7 +71,7 @@ class UCk_AutoTest_EntityTag_RequestCompletion_SucceedsOnDrain : UCk_AutoTest_Ba
             "Completion must fire after the request was processed (tag observably removed)");
 
         // MUST stay a settle: the next hop asserts the delegate fired EXACTLY once, and
-        // _FireCount is already 1 here. There is no condition to wait for — the window
+        // _FireCount is already 1 here. There is no condition to wait for - the window
         // exists to give a second, erroneous fire a chance to arrive.
         WaitOneFrame(n"OnSettled");
     }

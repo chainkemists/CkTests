@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER ATOMIC LEAF CHAIN STABILITY
+// CK GOAP - AUTOMATION TEST: PLANNER ATOMIC LEAF CHAIN STABILITY
 //============================================================================
 //
 // Validates: when the planner selects an atomic child (no registered
@@ -16,7 +16,7 @@
 // Expected (asserted after WaitOneFrame so ChainUpdate has run):
 //   - Get_PlanStatus(Root) == PlanFound
 //   - Get_Plan(Root)[0] == UCk_AutoTestAction_Goap_ActionSet_AtomicChild
-//   - Get_ActiveChain(Planner).Num() == 1  (Root only — AtomicChild is
+//   - Get_ActiveChain(Planner).Num() == 1  (Root only - AtomicChild is
 //     atomic, so ChainUpdate does NOT append it)
 //============================================================================
 
@@ -54,7 +54,7 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         // PR-B.1b Stage 5: register AtomicChild directly under the Planner.
-        // The legacy "implicit root" Root_AtomicLeaf is no longer needed —
+        // The legacy "implicit root" Root_AtomicLeaf is no longer needed
         // AtomicChild's own effect (Ready=true) satisfies the Planner's goal.
         auto ChildParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_AtomicChild);
@@ -98,7 +98,7 @@ class UCk_AutoTest_Goap_Planner_AtomicLeaf : UCk_AutoTest_Base
 
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() == 1,
-            f"ActiveChain should remain at length 1 (Root only) after ChainUpdate — AtomicChild must NOT be appended (got {Chain.Num()})");
+            f"ActiveChain should remain at length 1 (Root only) after ChainUpdate - AtomicChild must NOT be appended (got {Chain.Num()})");
 
         FinishSuccess();
     }

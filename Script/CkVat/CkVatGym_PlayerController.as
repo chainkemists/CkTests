@@ -46,7 +46,7 @@ class ACk_VatGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // Broadcast plumbing (messages travel as raw structs — mirror the
+    // Broadcast plumbing (messages travel as raw structs - mirror the
     // inventory gym PC; utils_messaging::Broadcast handles the wrapping)
     //------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ class ACk_VatGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // The last play rate broadcast to the clip-cycle station, panel or console. Not a mirror of station
-    // state — the stations have no readback — so it is named for what it honestly is.
+    // state - the stations have no readback - so it is named for what it honestly is.
     private float32 _LastRateSent = 1.0f;
 
     //------------------------------------------------------------------------
@@ -169,7 +169,7 @@ class ACk_VatGym_PlayerController : ACk_Gym_Base_PlayerController
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
     // Only the zero-argument controls are keyed. Setting a collection path, naming a clip or choosing a
-    // crowd count all need a value typed at them and stay console-only — the panel says so rather than
+    // crowd count all need a value typed at them and stay console-only - the panel says so rather than
     // leaving a reader to conclude the gym cannot do it.
     //--------------------------------------------------------------------------------------------------------------------------
 

@@ -1,17 +1,17 @@
 //============================================================================
-// Station Showcase Gym — PlayerController
+// Station Showcase Gym - PlayerController
 //
 // Spawns five UCk_EntityScript_GymStation instances side-by-side along the Y
 // axis with varied tuners, so each aspect of the station can be eyeballed in
 // isolation:
 //
-//   Y = -7500   AutoSize Wide    (very long single lines — exercises width growth)
-//   Y = -6000   AutoSize Tall    (many shorter lines — exercises height growth)
+//   Y = -7500   AutoSize Wide    (very long single lines - exercises width growth)
+//   Y = -6000   AutoSize Tall    (many shorter lines - exercises height growth)
 //   Y = -4500   AutoSize Runtime (small spawn-time content + ticker that reveals
-//                                 long lines over time — exercises runtime grow)
-//   Y = -3000   Default          (baseline 6×5×5)
-//   Y = -1500   Small            (3×3×3)
-//   Y =     0   Large            (10×8×8)
+//                                 long lines over time - exercises runtime grow)
+//   Y = -3000   Default          (baseline 6x5x5)
+//   Y = -1500   Small            (3x3x3)
+//   Y =     0   Large            (10x8x8)
 //   Y = +1500   NoSpotlight      (default dims, ShowSpotlight=false)
 //   Y = +3000   RightAlign       (default dims, EHTA_Right + multi-line desc)
 //
@@ -76,7 +76,7 @@ class ACk_StationShowcaseGym_PlayerController : ACk_Gym_Base_PlayerController
 	}
 
 	//------------------------------------------------------------------------
-	// Spawn helpers — each defines one tuner variant.
+	// Spawn helpers - each defines one tuner variant.
 	//------------------------------------------------------------------------
 
 	private void Spawn_Default()
@@ -162,7 +162,7 @@ class ACk_StationShowcaseGym_PlayerController : ACk_Gym_Base_PlayerController
 		Spawn_StationAt(Params);
 	}
 
-	// AUTO-SIZE WIDE — long single lines force the width-growth axis of
+	// AUTO-SIZE WIDE - long single lines force the width-growth axis of
 	// Apply_AutoSize_FromSpawnParams. Title is also long so the title's
 	// rendered width exceeds the description's longest line and dominates
 	// the spawn-time width calc.
@@ -182,9 +182,9 @@ class ACk_StationShowcaseGym_PlayerController : ACk_Gym_Base_PlayerController
 		Spawn_StationAt(Params);
 	}
 
-	// AUTO-SIZE TALL — many short lines force the height-growth axis. Each
+	// AUTO-SIZE TALL - many short lines force the height-growth axis. Each
 	// line is short so width stays modest, but the line count drives Height
-	// up via the LineHeightFactor × DescLineCount path.
+	// up via the LineHeightFactor x DescLineCount path.
 	private void Spawn_AutoSize_Tall()
 	{
 		auto Params = FCk_GymStation_SpawnParams();
@@ -212,7 +212,7 @@ class ACk_StationShowcaseGym_PlayerController : ACk_Gym_Base_PlayerController
 		Spawn_StationAt(Params);
 	}
 
-	// AUTO-SIZE RUNTIME — starts with small spawn-time content then a
+	// AUTO-SIZE RUNTIME - starts with small spawn-time content then a
 	// companion ticker progressively reveals long lines, forcing
 	// Refit_FromMeasuredBounds to grow the alcove at runtime over many
 	// frames. Stresses Resize_Alcove + Update_*Transforms in particular.

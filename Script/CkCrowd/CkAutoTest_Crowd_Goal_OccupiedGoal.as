@@ -1,10 +1,10 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: OCCUPIED GOAL (block, hold, resume)
+// CK CROWD - AUTOMATION TEST: OCCUPIED GOAL (block, hold, resume)
 //============================================================================
 //
 // Two agents are given the SAME goal. The first arrives and stands on it. The
-// second CANNOT reach it — the goal is physically occupied.
+// second CANNOT reach it - the goal is physically occupied.
 //
 // Before the block-detection tier existed, the second agent "rapidly rotated
 // left/right, almost vibrating" and eventually shoved the first agent clean off
@@ -14,18 +14,18 @@
 //
 // Three things must now hold, and this test asserts each separately:
 //
-//   1. DETECT. The latecomer notices the goal is unreachable and reports it —
+//   1. DETECT. The latecomer notices the goal is unreachable and reports it
 //      OnGoalBlocked, reason GoalOccupied, naming the blocker. The closest it
 //      can physically get is (SelfRadius + BlockerRadius) from the blocker's
 //      centre, which is further out than its arrival radius. That is geometry,
 //      not a timeout: no guessing, no waiting for a stagnation window.
 //
 //   2. HOLD WITHOUT EVICTING. It stops and waits. The agent that already
-//      arrived keeps its spot — no body-checking an NPC away from its shelf.
+//      arrived keeps its spot - no body-checking an NPC away from its shelf.
 //
 //   3. RESUME. When the goal clears, the latecomer goes and takes it. This is
 //      the assertion that rules out the tempting shortcut of silently widening
-//      the arrival radius and declaring "arrived": that would be TERMINAL — an
+//      the arrival radius and declaring "arrived": that would be TERMINAL - an
 //      agent that has "arrived" 100cm out is Idle and would never walk the last
 //      metre once the blocker left.
 //============================================================================
@@ -52,8 +52,8 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
     private float _MaxSquatterDrift = 0.0;
 
     private const FVector Goal           = FVector(400.0, 0.0, 0.0);
-    private const FVector SquatterSpawn  = FVector(200.0, 0.0, 0.0);    // near — arrives first
-    private const FVector LatecomerSpawn = FVector(-300.0, 0.0, 0.0);   // far  — arrives second
+    private const FVector SquatterSpawn  = FVector(200.0, 0.0, 0.0);    // near - arrives first
+    private const FVector LatecomerSpawn = FVector(-300.0, 0.0, 0.0);   // far  - arrives second
     private const FVector SquatterExit   = FVector(-100.0, 350.0, 0.0); // where we send it to free the goal
 
     private const float SampleIntervalSec = 0.05;
@@ -66,7 +66,7 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
 
     // The squatter has ARRIVED. Nothing should push it meaningfully off the spot it chose. Some give
     // is physical (the newcomer's body de-overlapping as it comes to a stop), but the wholesale
-    // eviction seen in PIE — 69cm, most of a body width — must be gone.
+    // eviction seen in PIE - 69cm, most of a body width - must be gone.
     private const float MaxSquatterDriftCm = 25.0;
 
     // Speed (cm/s) below which the squatter counts as having come to rest.
@@ -122,11 +122,11 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
         // NOTE: the agent has NOT stopped yet. OnGoalReached fires on ENTERING the arrival radius,
         // while the agent is still moving at speed; AccelClamp then ramps it down over ~0.5s, during
         // which it coasts a further ~30cm. Latching its "resting spot" here would count that coast as
-        // eviction — the drift number would be dominated by the squatter's own braking, not by anything
+        // eviction - the drift number would be dominated by the squatter's own braking, not by anything
         // the latecomer did. Wait until it has actually come to rest (see OnSample).
         _SquatterArrived = true;
 
-        ck::crowd::Log("[OCCUPIED] squatter reached its goal — waiting for it to come to rest before measuring");
+        ck::crowd::Log("[OCCUPIED] squatter reached its goal - waiting for it to come to rest before measuring");
     }
 
     UFUNCTION()
@@ -135,7 +135,7 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         // Only counts once the goal has actually been freed. If this fired while the squatter was
-        // still standing on the goal, the latecomer got there by SHOVING it — the original bug.
+        // still standing on the goal, the latecomer got there by SHOVING it - the original bug.
         _LatecomerReachedGoal = true;
         ck::crowd::Log(f"[OCCUPIED] latecomer reached the goal at t={_ElapsedSec} (squatterSentAway={_SquatterSentAway})");
     }
@@ -195,22 +195,22 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
         if (!_SquatterSentAway && _ElapsedSec >= BlockDeadlineSec)
         {
             Assert_True(_SquatterArrived,
-                "the first agent never reached the goal — this test never got to the condition it exists to measure");
+                "the first agent never reached the goal - this test never got to the condition it exists to measure");
 
             Assert_True(_BlockedFired,
                 f"NO DETECTION: the latecomer never reported OnGoalBlocked, even though the goal was occupied for {BlockDeadlineSec}s. It has no way to know its goal is unreachable, so it will press against the blocker forever.");
 
             Assert_True(_BlockedReasonWasOccupied,
-                "OnGoalBlocked fired with the wrong reason — the goal was occupied by a standing agent, which the geometric detector should identify exactly (not fall back to the no-progress safety net).");
+                "OnGoalBlocked fired with the wrong reason - the goal was occupied by a standing agent, which the geometric detector should identify exactly (not fall back to the no-progress safety net).");
 
             Assert_True(_BlockedNamedABlocker,
                 "OnGoalBlocked did not name the blocking agent. The payload is what a gameplay-side queue manager needs in order to send the NPC elsewhere instead of having it stand and wait.");
 
             Assert_True(utils_crowd_agent::Get_IsGoalBlocked(_Latecomer),
-                "the latecomer is not in the GoalBlocked state — it must HOLD (and be resumable), not silently give up or keep pressing.");
+                "the latecomer is not in the GoalBlocked state - it must HOLD (and be resumable), not silently give up or keep pressing.");
 
             Assert_True(!_LatecomerReachedGoal,
-                "the latecomer reported OnGoalReached while the goal was still occupied — it can only have got there by SHOVING the agent that was standing on it. That is the eviction bug.");
+                "the latecomer reported OnGoalReached while the goal was still occupied - it can only have got there by SHOVING the agent that was standing on it. That is the eviction bug.");
 
             Assert_True(_MaxSquatterDrift <= MaxSquatterDriftCm,
                 f"EVICTION: the agent that had already ARRIVED was pushed {_MaxSquatterDrift}cm off the spot it stopped on (limit {MaxSquatterDriftCm}cm). A later arrival is body-checking a standing agent off its own goal.");
@@ -218,7 +218,7 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
             // ---- Free the goal. ----
             _SquatterSentAway = true;
             utils_crowd_agent::Request_MoveTo(_Squatter, FCk_Request_CrowdAgent_MoveTo(SquatterExit));
-            ck::crowd::Log(f"[OCCUPIED] goal freed at t={_ElapsedSec} — squatter sent to {SquatterExit}");
+            ck::crowd::Log(f"[OCCUPIED] goal freed at t={_ElapsedSec} - squatter sent to {SquatterExit}");
             return;
         }
 
@@ -235,7 +235,7 @@ class UCk_AutoTest_Crowd_Goal_OccupiedGoal : UCk_AutoTest_Base
                 utils_transform::DoCastChecked(FCk_Handle(_Latecomer)));
             const auto DistToGoal = float((LatePos - Goal).Size());
 
-            FinishFailure(f"NOT RESUMED: the goal was freed at t={ClearGoalAtSec} but the latecomer never took it — still {DistToGoal}cm away at t={_ElapsedSec}, blocked={utils_crowd_agent::Get_IsGoalBlocked(_Latecomer)}. Being blocked must be a HOLD, not a terminal state. (This is exactly why the arrival radius must never be silently widened to fake an arrival: an agent that has 'arrived' 100cm out is Idle and never walks the last metre when the blocker leaves.)");
+            FinishFailure(f"NOT RESUMED: the goal was freed at t={ClearGoalAtSec} but the latecomer never took it - still {DistToGoal}cm away at t={_ElapsedSec}, blocked={utils_crowd_agent::Get_IsGoalBlocked(_Latecomer)}. Being blocked must be a HOLD, not a terminal state. (This is exactly why the arrival radius must never be silently widened to fake an arrival: an agent that has 'arrived' 100cm out is Idle and never walks the last metre when the blocker leaves.)");
             return;
         }
     }

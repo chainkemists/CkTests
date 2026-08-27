@@ -4,9 +4,9 @@
 // CkGoapGym_Shared
 //
 // Shared scaffolding for the three CkGoap gyms:
-//   - CkGoap_Gym             — five-station ascending-complexity showcase
-//   - CkGoapAutoReplan_Gym   — three-station replan-policy showcase
-//   - CkGoapEmpire_Gym       — five-action empire-research plan
+//   - CkGoap_Gym             - five-station ascending-complexity showcase
+//   - CkGoapAutoReplan_Gym   - three-station replan-policy showcase
+//   - CkGoapEmpire_Gym       - five-action empire-research plan
 //
 // Each gym station is its own ECS entity carrying:
 //   - utils_transform   (so the GymStation alcove can render where we place it)
@@ -16,7 +16,7 @@
 //
 // World-state mutations and "buttons" are exposed as UFUNCTION(Exec) console
 // commands on each gym's player controller. Each command resolves the station
-// by its gym station tag, then mutates the WS handle it holds — the GOAP
+// by its gym station tag, then mutates the WS handle it holds - the GOAP
 // runtime reacts via the OnWorldStateDirty replan policy on the relevant root.
 //============================================================================
 
@@ -39,7 +39,7 @@ namespace Ck
 
         GameplayTags.Add(n"Gym.Goap.Empire.Research");
 
-        // Planner name tags (one per Planner — used for Find_ByName).
+        // Planner name tags (one per Planner - used for Find_ByName).
         GameplayTags.Add(n"Gym.Goap.ActionSet.Door");
         GameplayTags.Add(n"Gym.Goap.ActionSet.Tea");
         GameplayTags.Add(n"Gym.Goap.ActionSet.CrossRiver");
@@ -68,16 +68,16 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.WS.OnCostDirty");
         GameplayTags.Add(n"Gym.Goap.WS.Empire");
         GameplayTags.Add(n"Gym.Goap.WS.OptOutDemo");
-        // OptOutDemo: a key that no Action ever produces — used as the
+        // OptOutDemo: a key that no Action ever produces - used as the
         // Planner's goal to deterministically force PlanFailed. The key
         // is registered here so the world-state registry knows about it.
         GameplayTags.Add(n"Gym.Goap.WS.OptOutDemo.Unreachable");
         GameplayTags.Add(n"Gym.Goap.WS.OptOutDemo.Touch");
 
-        // World-state keys — Open Door station.
+        // World-state keys - Open Door station.
         GameplayTags.Add(n"Gym.Goap.WS.Door.IsOpen");
 
-        // World-state keys — Make Tea station.
+        // World-state keys - Make Tea station.
         GameplayTags.Add(n"Gym.Goap.WS.Tea.HasKettle");
         GameplayTags.Add(n"Gym.Goap.WS.Tea.HasWater");
         GameplayTags.Add(n"Gym.Goap.WS.Tea.HasTeaLeaves");
@@ -87,26 +87,26 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.WS.Tea.TeaPoured");
         GameplayTags.Add(n"Gym.Goap.WS.Tea.TeaServed");
 
-        // World-state keys — Cross River station.
+        // World-state keys - Cross River station.
         GameplayTags.Add(n"Gym.Goap.WS.CrossRiver.BridgeIsOpen");
         GameplayTags.Add(n"Gym.Goap.WS.CrossRiver.HasCoin");
         GameplayTags.Add(n"Gym.Goap.WS.CrossRiver.Crossed");
 
-        // World-state keys — Patrol station (U11.6 multi-tier shape).
+        // World-state keys - Patrol station (U11.6 multi-tier shape).
         // Top goal: AreaPatrolled=true (replaces old Complete).
         // Mid-tier composites each satisfy one sub-key before MarkDone fires.
         GameplayTags.Add(n"Gym.Goap.WS.Patrol.AtWaypoint");
         GameplayTags.Add(n"Gym.Goap.WS.Patrol.AreaScanned");
         GameplayTags.Add(n"Gym.Goap.WS.Patrol.AreaPatrolled");
 
-        // World-state keys — Survival station.
+        // World-state keys - Survival station.
         GameplayTags.Add(n"Gym.Goap.WS.Survival.Hungry");
         GameplayTags.Add(n"Gym.Goap.WS.Survival.HasFood");
         GameplayTags.Add(n"Gym.Goap.WS.Survival.ThreatActive");
         GameplayTags.Add(n"Gym.Goap.WS.Survival.HasWeapon");
         GameplayTags.Add(n"Gym.Goap.WS.Survival.SafeFromThreat");
 
-        // World-state keys — Combat Brain station (4-tier canonical demo).
+        // World-state keys - Combat Brain station (4-tier canonical demo).
         // Mirrors the DeepNesting AutoTest's shape:
         //   Alive (Planner)  goal EnemyDead=true
         //     Engage (Action+Planner) goal EnemyAttacked=true
@@ -125,11 +125,11 @@ namespace Ck
         GameplayTags.Add(n"Gym.Goap.WS.CombatBrain.EnemyAttacked");
         GameplayTags.Add(n"Gym.Goap.WS.CombatBrain.EnemyDead");
 
-        // World-state keys — AutoReplan stations (Explicit / OnWSDirty / OnCostDirty).
+        // World-state keys - AutoReplan stations (Explicit / OnWSDirty / OnCostDirty).
         GameplayTags.Add(n"Gym.Goap.WS.AutoReplan.Goal");
         GameplayTags.Add(n"Gym.Goap.WS.AutoReplan.Flip");
 
-        // World-state keys — Empire station.
+        // World-state keys - Empire station.
         GameplayTags.Add(n"Gym.Goap.WS.Empire.HasFood");
         GameplayTags.Add(n"Gym.Goap.WS.Empire.HasGold");
         GameplayTags.Add(n"Gym.Goap.WS.Empire.HasWood");
@@ -139,7 +139,7 @@ namespace Ck
 }
 
 //============================================================================
-// CkGoapGym_Common — shared helpers used by every station entity script
+// CkGoapGym_Common - shared helpers used by every station entity script
 //============================================================================
 namespace CkGoapGym_Common
 {
@@ -171,7 +171,7 @@ namespace CkGoapGym_Common
         TArray<TSubclassOf<UCk_GoapAction_EntityScript>> InKnownClasses,
         TArray<FString> InKnownLabels)
     {
-        if (InPlan.Num() == 0) { return "(empty — goal already satisfied)"; }
+        if (InPlan.Num() == 0) { return "(empty - goal already satisfied)"; }
 
         auto Out = "";
         for (int32 i = 0; i < InPlan.Num(); i++)

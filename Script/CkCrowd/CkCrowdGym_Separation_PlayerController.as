@@ -1,9 +1,9 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Separation Gym — PlayerController (Gate 3)
+// Crowd Separation Gym - PlayerController (Gate 3)
 //
 // Spawns CrowdAgents at four cardinal offsets from the station origin and sends each toward a
-// target. The full Gate 3 stack drives them: probe → neighbor cache → separation force →
-// steering combination → motion. Visuals come up with `ck.Crowd.Debug 1`.
+// target. The full Gate 3 stack drives them: probe -> neighbor cache -> separation force ->
+// steering combination -> motion. Visuals come up with `ck.Crowd.Debug 1`.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
@@ -13,7 +13,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
 
     // Cardinal spawn offsets relative to the station origin. 600cm puts agents well outside each
     // others' 100cm separation radius at spawn time; the head-on collision happens near centre
-    // (Y=0 for N↔S, X=0 for E↔W) where separation should kick in.
+    // (Y=0 for N<->S, X=0 for E<->W) where separation should kick in.
     private const float SpawnDistance = 600.0;
     private const float SpawnZ = 100.0;
 
@@ -59,7 +59,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
 
     private void SpawnFloor()
     {
-        // 2000cm × 2000cm flat cube — same shape used by Locomotion / Pathfinding gyms. Top at
+        // 2000cm x 2000cm flat cube - same shape used by Locomotion / Pathfinding gyms. Top at
         // Z=+25 with 0.5 height scale; spawn points sit at Z=100 (75cm above the floor) so the
         // navmesh's 500cm projection comfortably finds the floor below.
         const auto FloorLocation = FVector::ZeroVector;
@@ -136,7 +136,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
 
         SpawnAgentAt(Get_North(), Get_South(), FLinearColor(0.42, 0.85, 1.0, 0.6));
         SpawnAgentAt(Get_South(), Get_North(), FLinearColor(1.0, 0.42, 0.85, 0.6));
-        ck::crowd::Log("Separation gym: dispatched 2 agents on head-on N↔S course");
+        ck::crowd::Log("Separation gym: dispatched 2 agents on head-on N<->S course");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Separation - Head-On E↔W")
@@ -147,7 +147,7 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
 
         SpawnAgentAt(Get_East(), Get_West(), FLinearColor(0.85, 1.0, 0.42, 0.6));
         SpawnAgentAt(Get_West(), Get_East(), FLinearColor(1.0, 0.85, 0.42, 0.6));
-        ck::crowd::Log("Separation gym: dispatched 2 agents on head-on E↔W course");
+        ck::crowd::Log("Separation gym: dispatched 2 agents on head-on E<->W course");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Separation - All 4 Cardinals")
@@ -212,13 +212,13 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         // Mirror the Locomotion gym's spawn flow: agent + Transform + Velocity + Acceleration +
         // EulerIntegrator started, plus a cyan capsule + orange forward cone for visuals.
         // Agents are standalone top-level entities (lifetime-owned by the registry transient),
-        // not sub-entities of the station — Clear destroys each agent explicitly.
+        // not sub-entities of the station - Clear destroys each agent explicitly.
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
 
         // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
         // onto the handle it is given and permits one agent per entity, so passing the transient
-        // directly put every agent on the same entity — the first won and the rest were no-ops,
+        // directly put every agent on the same entity - the first won and the rest were no-ops,
         // leaving a "crowd" of exactly one. It would also make ClearAll's destroy target the
         // world transient.
         auto GenericAgent = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
@@ -243,11 +243,11 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
 
         // Body capsule + forward cone come from FProcessor_CrowdAgent_DrawBody (CkCrowd
         // framework). Pin the per-agent override color so the multi-agent test's "blue vs pink
-        // vs green vs orange" identity is preserved — without this, Get_DebugColor falls back
+        // vs green vs orange" identity is preserved - without this, Get_DebugColor falls back
         // to a hash-derived color and the directions become indistinguishable.
         utils_crowd_agent::Set_DebugColor(Agent, InColor);
 
-        // Bind goal signals so we can log arrivals — useful when the cluster test is busy and we
+        // Bind goal signals so we can log arrivals - useful when the cluster test is busy and we
         // need to see "agent X reached goal" without staring at the viewport.
         utils_crowd_agent::BindTo_OnGoalReached(Agent,
             FCk_Delegate_CrowdAgent_OnGoalReached(this, n"OnAgentGoalReached"),
@@ -264,13 +264,13 @@ class ACk_CrowdGym_Separation_PlayerController : ACk_Gym_Base_PlayerController
         const auto MoveRequest = FCk_Request_CrowdAgent_MoveTo(TargetLoc);
         utils_crowd_agent::Request_MoveTo(Agent, MoveRequest);
 
-        ck::crowd::Log(f"Separation gym: spawned agent at {SpawnLoc} → target {TargetLoc}");
+        ck::crowd::Log(f"Separation gym: spawned agent at {SpawnLoc} -> target {TargetLoc}");
     }
 
     UFUNCTION()
     void OnAgentGoalReached(FCk_Handle_CrowdAgent InAgent)
     {
-        // Format via the generic FCk_Handle — typesafe handles aren't directly stringifiable in AS.
+        // Format via the generic FCk_Handle - typesafe handles aren't directly stringifiable in AS.
         FCk_Handle Generic = InAgent;
         ck::crowd::Log(f"Separation gym: agent {Generic} reached goal");
     }

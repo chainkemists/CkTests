@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: ONEONLY EVICTS ONLY ITS OWN PRIORITY SLOT
+// CK CAMERA - AUTOMATION TEST: ONEONLY EVICTS ONLY ITS OWN PRIORITY SLOT
 //============================================================================
 //
-// OneOnly stacking evicts existing layers at the SAME priority only — layers at a different priority coexist. This
+// OneOnly stacking evicts existing layers at the SAME priority only - layers at a different priority coexist. This
 // complements the OneOnlyEvicts test (which proves same-priority eviction) by proving the priority-slot boundary:
 //
 //   add A (OneOnly, p0)            -> { A }
-//   add B (OneOnly, p1)            -> { A, B }   (B does NOT evict A — different slot)
-//   add C (OneOnly, p0)            -> { B, C }   (C evicts A — same slot — but leaves B at p1 alone)
+//   add B (OneOnly, p1)            -> { A, B }   (B does NOT evict A - different slot)
+//   add C (OneOnly, p0)            -> { B, C }   (C evicts A - same slot - but leaves B at p1 alone)
 //============================================================================
 
 class UCk_AutoTest_GameplayCamera_OneOnlyPrioritySlots : UCk_AutoTest_Base
@@ -74,14 +74,14 @@ class UCk_AutoTest_GameplayCamera_OneOnlyPrioritySlots : UCk_AutoTest_Base
         {
             if (_Camera.Get_LayerCount() == 2)
             {
-                Assert_True(_Camera.Has_Layer(UCk_AutoTest_CameraLayer_A), "A (p0) still present — not evicted by B at a different priority");
+                Assert_True(_Camera.Has_Layer(UCk_AutoTest_CameraLayer_A), "A (p0) still present - not evicted by B at a different priority");
                 Assert_True(_Camera.Has_Layer(UCk_AutoTest_CameraLayer_B), "B (p1) coexists with A");
 
                 AddOneOnly(UCk_AutoTest_CameraLayer_C, 0);
                 Advance();
                 return;
             }
-            if (FailIfStuck("B (p1) did not coexist with A (p0) — expected 2 layers")) { return; }
+            if (FailIfStuck("B (p1) did not coexist with A (p0) - expected 2 layers")) { return; }
         }
         else // _Phase == 2
         {

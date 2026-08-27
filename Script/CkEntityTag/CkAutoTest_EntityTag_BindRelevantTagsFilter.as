@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: BIND RELEVANT TAGS FILTER
+// CK ENTITY TAG - AUTOMATION TEST: BIND RELEVANT TAGS FILTER
 //============================================================================
 //
 // BindTo_OnGameplayTagUpdated with a non-empty RelevantTags container must
@@ -10,7 +10,7 @@
 //
 // (BindTo_OnGameplayTagUpdated's `HasTag` is inclusive of parents in the
 // container, so a filter {A.B} matches an event for A.B.C only if A.B.C is
-// in the container — not just its parent. We test the literal filter match
+// in the container - not just its parent. We test the literal filter match
 // here to avoid coupling to that subtlety.)
 //
 // The suppression phase asserts a NON-event, so it waits on a WITNESS: the

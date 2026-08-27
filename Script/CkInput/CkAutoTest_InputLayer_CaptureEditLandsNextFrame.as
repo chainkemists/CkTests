@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT LAYER — AUTOMATION TEST: A CAPTURE EDIT NEVER LANDS MID-PASS
+// CK INPUT LAYER - AUTOMATION TEST: A CAPTURE EDIT NEVER LANDS MID-PASS
 //============================================================================
 //
 // Capture edits are deferred requests, which buys the routing pass an
@@ -13,7 +13,7 @@
 // why two events are injected together. A catch-all pass-through probe at the
 // top of the stack sees the first one and, from its delegate, asks a lower
 // layer to start capturing the SECOND event's key. The second event is routed
-// in that same pass — if the edit were immediate the lower layer would take
+// in that same pass - if the edit were immediate the lower layer would take
 // it. It must not; the same key must only be captured once the edit has
 // drained and a LATER pass routes it.
 //

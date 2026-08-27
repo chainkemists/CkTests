@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: COMPONENT-PATH COLLISION-SYNC RE-BAKES AT POSE
+// CK JOLT - AUTOMATION TEST: COMPONENT-PATH COLLISION-SYNC RE-BAKES AT POSE
 //============================================================================
 //
-// A COMPONENT-path attribution entity (Request_BakeComponent — the surface
+// A COMPONENT-path attribution entity (Request_BakeComponent - the surface
 // CkUnrealComponent auto-bakes route through) must RE-BAKE on collision
 // re-enable rather than re-adding its preserved bodies: a transform change
 // while collision is off extracts nothing, so the preserved bodies' pose can
@@ -65,7 +65,7 @@ class UCk_AutoTest_CkJolt_StaticBake_ComponentPath_ToggleRebakesAtCurrentPose : 
         if (NumBaked != 1)
         {
             _MeshActor.DestroyActor();
-            FinishFailure("Component did not reach the Jolt static world — re-bake assertions cannot run");
+            FinishFailure("Component did not reach the Jolt static world - re-bake assertions cannot run");
             return;
         }
 
@@ -85,8 +85,8 @@ class UCk_AutoTest_CkJolt_StaticBake_ComponentPath_ToggleRebakesAtCurrentPose : 
         _MeshComp.SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
         Assert_Equals_Int(utils_jolt_static_world::Get_NumStaticBodies(), _BaselineBodies + 1,
             "Re-enabling should put exactly one body back into the scene");
-        Assert_True(DownRayHitsAt(_PoseB), "Down-ray at pose B should hit — the re-bake used the current pose");
-        Assert_True(!DownRayHitsAt(_PoseA), "Down-ray at pose A should MISS — the stale-pose body must not return");
+        Assert_True(DownRayHitsAt(_PoseB), "Down-ray at pose B should hit - the re-bake used the current pose");
+        Assert_True(!DownRayHitsAt(_PoseA), "Down-ray at pose A should MISS - the stale-pose body must not return");
 
         // ---- Removal still routes through the (replaced) attribution ----------------------------
         utils_jolt_static_world::Request_RemoveComponent(_MeshComp);

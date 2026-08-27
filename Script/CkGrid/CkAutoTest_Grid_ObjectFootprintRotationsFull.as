@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: OBJECT FOOTPRINT ROTATIONS (FULL COVERAGE)
+// CK GRID - AUTOMATION TEST: OBJECT FOOTPRINT ROTATIONS (FULL COVERAGE)
 //============================================================================
 //
 // Extends ObjectFootprintResolves to pin the rest of Get_ResolvedCells:
@@ -10,7 +10,7 @@
 //      as None, and its ThreeQuarter resolves to the SAME set as Quarter
 //      (a 2x1 is 180-symmetric, so {None,Half} and {Quarter,ThreeQuarter} pair).
 //   2. Anchor offset shifts the whole footprint by the offset vector (applied
-//      uniformly in rotated/world space, AFTER rotation+normalize) — pinned at
+//      uniformly in rotated/world space, AFTER rotation+normalize) - pinned at
 //      rotation None and composed with a Quarter rotation.
 //   3. Even-extent centering: a 2x2 with Center centering, None rotation,
 //      pins the integer-truncation center offset (RotatedExtent/2 = (1,1)).

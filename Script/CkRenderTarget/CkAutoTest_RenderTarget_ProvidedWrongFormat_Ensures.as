@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RENDER TARGET — AUTOMATION TEST: PROVIDED TARGET WITH WRONG FORMAT ENSURES
+// CK RENDER TARGET - AUTOMATION TEST: PROVIDED TARGET WITH WRONG FORMAT ENSURES
 //============================================================================
 //
 // v1 is RGBA8-only: the Setup processor must trip a diagnostic
@@ -14,7 +14,7 @@
 // deliberate diagnostic.
 //
 // (This replaces the originally-planned _DisallowedClientDraw_Ensures test,
-// which cannot trip in a standalone world — every machine is
+// which cannot trip in a standalone world - every machine is
 // self-authoritative there. Client-authoring rejection is covered by the
 // client-authoring NET specs instead.)
 //============================================================================
@@ -41,7 +41,7 @@ class UCk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures : UCk_AutoTest_Base
         Params.Set_Replication(ECk_Replication::DoesNotReplicate);
 
         _RenderTarget = utils_render_target::Add(LocalHandle, Params);
-        Assert_True(ck::IsValid(_RenderTarget), "Add itself should succeed — the format gate is Setup's");
+        Assert_True(ck::IsValid(_RenderTarget), "Add itself should succeed - the format gate is Setup's");
 
         utils_timer::Create_Tick(LocalHandle, FCk_Delegate_Timer(this, n"OnTick"));
     }
@@ -52,7 +52,7 @@ class UCk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         // Give Setup a few ticks to run and trip the ensure, then assert the feature stayed
-        // inert — the wrong-format target must never be pinned as drawable.
+        // inert - the wrong-format target must never be pinned as drawable.
         _TicksWaited++;
         if (_TicksWaited < 5) { return; }
 
@@ -64,7 +64,7 @@ class UCk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures : UCk_AutoTest_Base
 }
 
 //============================================================================
-// HAND-AUTHORED WRAPPER ACTOR — registers the deliberate-ensure log pattern.
+// HAND-AUTHORED WRAPPER ACTOR - registers the deliberate-ensure log pattern.
 //============================================================================
 
 class ACk_AutoTest_RenderTarget_ProvidedWrongFormat_Ensures_Actor : ACk_AutoTestRunner

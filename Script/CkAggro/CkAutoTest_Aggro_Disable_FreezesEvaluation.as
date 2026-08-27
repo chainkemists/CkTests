@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST: a disabled Aggro's pacer freezes
+// CK AGGRO - AUTOMATION TEST: a disabled Aggro's pacer freezes
 // Disabling an Aggro excludes it from the evaluation pacer, so its debug evaluation counter stops advancing.
 
 class UCk_AutoTest_Aggro_Disable_FreezesEvaluation : UCk_AutoTest_Base

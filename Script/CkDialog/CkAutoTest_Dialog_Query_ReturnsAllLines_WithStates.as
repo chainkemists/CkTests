@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DIALOG — AUTOMATION TEST: QUERY RETURNS ALL LINES WITH STATES
+// CK DIALOG - AUTOMATION TEST: QUERY RETURNS ALL LINES WITH STATES
 //============================================================================
 // Three global lines under one ENTER tag (one gated by an always-fail
 // condition). A query returns ALL three, each classified: two Passed, one
@@ -25,20 +25,20 @@ class UCk_AutoTest_Dialog_Query_ReturnsAllLines_WithStates : UCk_AutoTest_Base
         _EventTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Dialog.All.Enter");
         auto Registry = UCk_DialogRegistry_Subsystem_UE::Get_DialogRegistry();
 
-        // Line 1 — no conditions -> Passed
+        // Line 1 - no conditions -> Passed
         {
             auto LineData = FCk_DialogBank_LineData(n"AutoTest.All.Line1", _EventTag);
             LineData.Set_Text(FText::FromString("Line 1"));
             Track_ForCleanup(FCk_Handle(Registry.Request_RegisterLine(LineData, FGameplayTagContainer())));
         }
-        // Line 2 — one always-fail condition -> Fail_LineCondition
+        // Line 2 - one always-fail condition -> Fail_LineCondition
         {
             auto LineData = FCk_DialogBank_LineData(n"AutoTest.All.Line2", _EventTag);
             LineData.Set_Text(FText::FromString("Line 2"));
             Track_ForCleanup(FCk_Handle(Registry.Request_RegisterLine_WithCondition(
                 LineData, FGameplayTagContainer(), NewObject(this, UCk_DialogTestCond_AlwaysFail))));
         }
-        // Line 3 — no conditions -> Passed
+        // Line 3 - no conditions -> Passed
         {
             auto LineData = FCk_DialogBank_LineData(n"AutoTest.All.Line3", _EventTag);
             LineData.Set_Text(FText::FromString("Line 3"));
@@ -48,7 +48,7 @@ class UCk_AutoTest_Dialog_Query_ReturnsAllLines_WithStates : UCk_AutoTest_Base
         _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
 
         // Querying before all three deferred registrations land would
-        // legitimately return fewer lines and fail misleadingly — wait until
+        // legitimately return fewer lines and fail misleadingly - wait until
         // the registry can see all of them.
         WaitUntil(n"Check_AllLinesRegistered", n"OnSettled");
     }

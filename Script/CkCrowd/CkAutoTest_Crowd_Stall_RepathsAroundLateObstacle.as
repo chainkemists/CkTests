@@ -1,24 +1,24 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: A STALLED WALKER RE-PATHS AROUND A LATE OBSTACLE
+// CK CROWD - AUTOMATION TEST: A STALLED WALKER RE-PATHS AROUND A LATE OBSTACLE
 //
 // The no-progress tier of FProcessor_CrowdAgent_BlockDetect: a Recast polyline
 // is FROZEN at plan time, so an obstacle that appears after the path installs
-// is invisible to the agent walking it. Nothing else in the pipeline notices —
+// is invisible to the agent walking it. Nothing else in the pipeline notices
 // StationaryMarkup/PathRefresh only react to *agent* cost discs, and the
 // installed nav result stays Ready. Without the stall watchdog the agent walks
 // into the new hole, is held there by ConstrainToNavmesh, and presses forever.
 //
 // Shape: a walker is sent from x=-700 to x=+700 across open mesh. The instant
 // its FIRST path is installed and it is Walking, a NAV-NULL wall (UNavArea_Null
-// via UCk_NavAreaMarkup_UE — a hole, not a cost disc) is painted across the
+// via UCk_NavAreaMarkup_UE - a hole, not a cost disc) is painted across the
 // corridor at x=0 spanning |y| <= 500. The nav volume reaches |y| = 1000, so
 // ~500uu of open mesh survives on each side: an alternate route EXISTS. The
 // walker must still arrive.
 //
 // The wall face is perpendicular to the walker's heading, so there is no
 // tangential component for ConstrainToNavmesh's surface walk to convert into a
-// slide — the agent stops dead and its REMAINING PATH DISTANCE stops improving.
+// slide - the agent stops dead and its REMAINING PATH DISTANCE stops improving.
 // That is exactly what the windowed-minimum detector measures.
 //
 // Two assertions, not one. "Reached the goal" alone would also pass if the
@@ -105,7 +105,7 @@ class UCk_AutoTest_Crowd_Stall_RepathsAroundLateObstacle : UCk_AutoTest_Base
     }
 
     // The nav-null area is a WORLD-scoped side effect with no owner-driven
-    // lifetime, so it has to come down on every exit path — including the one
+    // lifetime, so it has to come down on every exit path - including the one
     // where the engine TimeLimit kills the test before OnPoll can react.
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)
@@ -139,7 +139,7 @@ class UCk_AutoTest_Crowd_Stall_RepathsAroundLateObstacle : UCk_AutoTest_Base
             // Gate on the WHOLE corridor, not just the origin: the walker's first
             // FindPath must resolve immediately. CkNav defers a request whose start
             // tile isn't baked, and a deferred first path could resolve AFTER the
-            // wall paints — planning around it and proving nothing.
+            // wall paints - planning around it and proving nothing.
             FVector Projected;
             if (utils_nav::Try_ProjectOntoNavmesh(SelfHandle, FVector::ZeroVector, 100.0f, Projected, 300.0f) == false)
             { return; }
@@ -190,7 +190,7 @@ class UCk_AutoTest_Crowd_Stall_RepathsAroundLateObstacle : UCk_AutoTest_Base
             Assert_True(_FinalDistToGoal >= 0.0 && _FinalDistToGoal <= ArrivalToleranceUu,
                 f"the walker stopped within its arrival contract of the goal (distance={_FinalDistToGoal}, tolerance={ArrivalToleranceUu})");
 
-            // Reaching the goal is not by itself evidence the stall tier engaged —
+            // Reaching the goal is not by itself evidence the stall tier engaged
             // it would also hold if the wall had never obstructed the walker. The
             // only producer of a new navigation request in this fixture is
             // BlockDetect's stall/off-path re-path or BlockedRecheck's resume.
@@ -235,7 +235,7 @@ class UCk_AutoTest_Crowd_Stall_RepathsAroundLateObstacle : UCk_AutoTest_Base
     // A block is NOT a failure here: if a stall re-path lands while the tiles under
     // the wall are still rebuilding, the ladder can legitimately spend its budget and
     // block before BlockedRecheck resumes it onto a good detour. What must not happen
-    // is the move ending — that is OnGoalFailed's job and it is asserted above.
+    // is the move ending - that is OnGoalFailed's job and it is asserted above.
     UFUNCTION()
     private void OnGoalBlocked(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalBlockedInfo InInfo)
     {
@@ -312,7 +312,7 @@ class UCk_AutoTest_Crowd_Stall_RepathsAroundLateObstacle : UCk_AutoTest_Base
 
     // Unregistering the markup schedules an async tile rebuild. Handing the shared PIE
     // world to the next crowd test with a half-restored navmesh is the same class of
-    // contamination as leaking an entity, so wait for the hole to close — bounded,
+    // contamination as leaking an entity, so wait for the hole to close - bounded,
     // because the unregister has already happened and the rebuild completes regardless.
     private void Tick_Teardown(FCk_Handle& InSelf)
     {

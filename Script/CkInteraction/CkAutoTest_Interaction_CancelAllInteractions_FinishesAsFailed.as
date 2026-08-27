@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: CANCEL ALL INTERACTIONS FIRES FINISHED
+// CK INTERACTION - AUTOMATION TEST: CANCEL ALL INTERACTIONS FIRES FINISHED
 //============================================================================
 //
 // Pins the broadcast contract on the no-source bulk cancel:
@@ -13,7 +13,7 @@
 // Companion to CkAutoTest_Interaction_TimedInterruptedByCancel which
 // exercises the per-source Request_CancelInteraction path. Both Cancel
 // verbs must funnel through Request_EndInteraction and broadcast
-// InteractTarget_OnInteractionFinished — silent destroy would be a
+// InteractTarget_OnInteractionFinished - silent destroy would be a
 // consistency bug.
 //============================================================================
 

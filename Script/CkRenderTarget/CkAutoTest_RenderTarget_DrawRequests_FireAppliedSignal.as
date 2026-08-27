@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RENDER TARGET — AUTOMATION TEST: DRAW REQUESTS FIRE APPLIED SIGNAL
+// CK RENDER TARGET - AUTOMATION TEST: DRAW REQUESTS FIRE APPLIED SIGNAL
 //============================================================================
 //
 // Draw calls are requests; the HandleRequests processor batches one frame's
@@ -12,7 +12,7 @@
 //   - The first batch carries seq 1 (the per-target seq starts at 1)
 //   - NumCmds == 2 (both requests normalized into one batch)
 //
-// No pixel asserts — the batch counts as applied even on machines that
+// No pixel asserts - the batch counts as applied even on machines that
 // cannot render (-nullrhi CI), which is exactly the contract the replicated
 // instruction stream relies on.
 //============================================================================

@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — REGRESSION AUTOTEST: COINCIDENT-PAIR SPATIAL ORBIT PREVENTION
+// CK CROWD - REGRESSION AUTOTEST: COINCIDENT-PAIR SPATIAL ORBIT PREVENTION
 //
 // This fixed equilateral geometry must not produce a recorder-qualified spatial loop around Centre.
 //============================================================================
@@ -9,7 +9,7 @@ class UCk_AutoTest_Crowd_Separation_CoincidentPairOrbitSearch : UCk_AutoTest_Bas
 {
     // Evaluation is driven by GAME time (_ElapsedSec accrues one TickIntervalSec per timer
     // fire, reaching EvaluateAtSec=22.0s) while this budget is WALL-CLOCK, so the value has to
-    // cover the real:game ratio the harness actually runs at — measured 36.4s for 22.0s of game
+    // cover the real:game ratio the harness actually runs at - measured 36.4s for 22.0s of game
     // time here (1.65x). The former value assumed ~1.28x and had no headroom: a small per-frame
     // cost anywhere in the engine timed this out BEFORE it ever reached its assertions, which
     // surfaces as a bare TimeLimit with no message rather than as a crowd failure. Sized at ~2.5x.

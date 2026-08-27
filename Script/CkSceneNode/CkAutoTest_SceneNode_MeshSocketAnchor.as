@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE — AUTOMATION TEST: MESH SOCKET ANCHOR
+// CK SCENE NODE - AUTOMATION TEST: MESH SOCKET ANCHOR
 //============================================================================
 //
 // Regression guard for the anchor-follow path. A SceneNode created via
@@ -21,7 +21,7 @@
 //      composed world both before and after the move.
 //
 // **Why no socket name here:** CreateAndAttachToUnrealMesh fails loud
-// (CK_ENSURE_IF_NOT) on an unknown socket name — the original version of this
+// (CK_ENSURE_IF_NOT) on an unknown socket name - the original version of this
 // test passed "FakeSocket_TestOnly" intending to exercise UE's silent fallback
 // to component-world transform, which we explicitly rejected: a typo in a
 // socket name silently anchoring to component world is a QA-difficult class of
@@ -77,7 +77,7 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         TestEntity = InHandle;
 
-        // Bare ECS structural parent — the SceneNode hierarchy needs a Transform-
+        // Bare ECS structural parent - the SceneNode hierarchy needs a Transform-
         // bearing parent for InAttachTo, but the actual transform of the new
         // SceneNode comes from the mesh component, not from this parent.
         auto ParentEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
@@ -150,7 +150,7 @@ class UCk_AutoTest_SceneNode_MeshSocketAnchor : UCk_AutoTest_Base
             AssertNodeTracksMeshWorld("Initial");
             if (IsFinished()) { return; }
 
-            // Move the actor — the mesh component world moves with it,
+            // Move the actor - the mesh component world moves with it,
             // SyncFromActor should pull that into the SceneNode entity.
             Helper.SetActorLocation(HelperMoveLocation);
 

@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE + TWEEN — AUTOMATION TEST: ROTATION TWEEN, LEAF ORIENTED
+// CK SCENE NODE + TWEEN - AUTOMATION TEST: ROTATION TWEEN, LEAF ORIENTED
 //============================================================================
 //
 // Rotation-tween variant: the root's rotation is tweened (not its location),
 // and the leaf's world location must reflect the composed rotation pivoting
 // the child's local offset around the root. Different code path from the
 // location-tween cases: the tween writes the root's quaternion each tick,
-// and SceneNode propagation must observe that rotation update — not just
+// and SceneNode propagation must observe that rotation update - not just
 // translation updates.
 //
 // Setup:

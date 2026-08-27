@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// CkUsf gym GameMode (minimal — all logic lives in the PlayerController).
+// CkUsf gym GameMode (minimal - all logic lives in the PlayerController).
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_UsfGym_GameMode : ACkTests_Gym_Base_GameMode

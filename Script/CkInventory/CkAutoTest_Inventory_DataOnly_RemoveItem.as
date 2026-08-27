@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: DATA-ONLY REMOVE ITEM
+// CK INVENTORY - AUTOMATION TEST: DATA-ONLY REMOVE ITEM
 //============================================================================
 //
 // Verifies the remove-item flow:

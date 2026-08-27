@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: ROOT (WSInheritance test)
+// CK GOAP - AUTOMATION TEST ACTION: ROOT (WSInheritance test)
 //============================================================================
 //
 // Root action for the WSInheritance and WSOverride tests.
 //
-// CDO effects: AKey=true — Root's _InitialGoal_RootOnly is set to {AKey=true}
+// CDO effects: AKey=true - Root's _InitialGoal_RootOnly is set to {AKey=true}
 // so the planner searches for a child that achieves AKey=true. Mid satisfies
 // this with its own AKey=true effect.
 //============================================================================

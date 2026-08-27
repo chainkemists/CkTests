@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: A CONTACT PAIR'S RESTITUTION COMBINES BY AVERAGE
+// CK JOLT - AUTOMATION TEST: A CONTACT PAIR'S RESTITUTION COMBINES BY AVERAGE
 //============================================================================
 //
 // Jolt's stock combine function is max(r1, r2); Chaos uses the project's
 // RestitutionCombineMode, which defaults to Average. Symmetric pairs agree
-// either way, so the divergence only shows up when two surfaces disagree — and
+// either way, so the divergence only shows up when two surfaces disagree - and
 // there it is total.
 //
 // This pins the SHIPPED DEFAULT of the Jolt project setting
 // (Jolt Physics|Simulation -> RestitutionCombineMode, installed in
 // UCk_Jolt_Subsystem::Initialize). A project that deliberately sets any other
-// mode is expected to see this go red — that is the setting doing its job, not
+// mode is expected to see this go red - that is the setting doing its job, not
 // a regression.
 //
 //   1. Static floor, restitution 0.0.
@@ -116,7 +116,7 @@ class UCk_AutoTest_CkJolt_RestitutionCombinesAsAverageNotMax : UCk_AutoTest_Base
                 return;
             }
 
-            // Only a rise that follows a real fall counts — a body still waiting on its Jolt
+            // Only a rise that follows a real fall counts - a body still waiting on its Jolt
             // body-add sits at its spawn Z and must not be mistaken for an impact.
             if (_MinZ > _StartZ - 100.0 || CurrentZ <= _MinZ + 1.0)
             { return; }

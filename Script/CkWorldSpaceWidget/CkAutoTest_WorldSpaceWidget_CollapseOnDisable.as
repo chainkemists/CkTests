@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK WORLDSPACEWIDGET — AUTOMATION TEST: COLLAPSE ON DISABLE
+// CK WORLDSPACEWIDGET - AUTOMATION TEST: COLLAPSE ON DISABLE
 //============================================================================
 //
 // A disabled ScreenOverlay widget must be COLLAPSED, not merely held at zero
@@ -30,12 +30,12 @@ class UCk_AutoTest_WorldSpaceWidget_CollapseOnDisable : UCk_AutoTest_Base
 
         if (ck::Is_NOT_Valid(PlayerController) || ck::Is_NOT_Valid(PlayerController.LocalPlayer))
         {
-            ck::Trace("[WSW CollapseOnDisable] no local player in this lane — a ScreenOverlay wrapper cannot reach the screen; skipping");
+            ck::Trace("[WSW CollapseOnDisable] no local player in this lane - a ScreenOverlay wrapper cannot reach the screen; skipping");
             FinishSuccess();
             return;
         }
 
-        // The content widget's identity is irrelevant here — only the WRAPPER's visibility is
+        // The content widget's identity is irrelevant here - only the WRAPPER's visibility is
         // asserted. UUserWidget itself and every Ck widget base are UCLASS(Abstract), so this
         // borrows the one concrete widget CkTests already proves constructible headless.
         auto ContentWidget = WidgetBlueprint::CreateWidget(UCk_GameSettingsUI_ScreenWidget, PlayerController);

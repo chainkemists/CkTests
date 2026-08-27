@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST (P0): threat decays over time
+// CK AGGRO - AUTOMATION TEST (P0): threat decays over time
 // With a non-zero owner decay rate, a target's analytic threat drops below its seeded value as time passes.
 
 class UCk_AutoTest_Aggro_Decay_ReducesThreatOverTime : UCk_AutoTest_Base

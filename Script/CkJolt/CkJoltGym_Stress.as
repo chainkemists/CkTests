@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — STRESS (landscape ball rain)
+// CK JOLT GYM - STRESS (landscape ball rain)
 //
 // Drops CVar-driven waves of Dynamic Jolt spheres onto the authored landscape
-// (Ck.Gym.AuthorJoltStaticBakeContent) and keeps adding more — a load harness
+// (Ck.Gym.AuthorJoltStaticBakeContent) and keeps adding more - a load harness
 // for the heightfield + dynamic-body pipeline. Watch with
 // ck.Jolt.DebugDraw.Enabled 1 and measure with `stat CkJolt` / the CK Jolt
 // Physics Debugger tab.
 //
-//   CVars (registered from C++ at module load — settable any time; see
+//   CVars (registered from C++ at module load - settable any time; see
 //   CkJoltStressGym_Utils.cpp):
 //     ck.JoltStressGym.InitialBalls        (50)   balls at gym start
 //     ck.JoltStressGym.BallsPerWave        (10)   read live each wave
@@ -21,10 +21,10 @@
 //
 // The drop zone derives from the FOUND landscape's bounds (20% inset). With no
 // landscape in the level a static fallback floor is spawned so the gym still
-// functions — but the heightfield is the real target: author it first.
+// functions - but the heightfield is the real target: author it first.
 //
 // Balls that roll off the landscape are reaped once they fall well below it
-// (a fallen ball never sleeps — it would pollute the stress numbers forever).
+// (a fallen ball never sleeps - it would pollute the stress numbers forever).
 //
 // Station pinned at the Y=20000 band facing the authored landscape in -X;
 // keep in sync with CkGymJoltStaticBakeAuthoring.cpp.
@@ -47,7 +47,7 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
     private int32 _TotalSpawned = 0;
     private bool _CapReported = false;
 
-    // Drop zone (resolved from the landscape's bounds — or the fallback floor — at gym start).
+    // Drop zone (resolved from the landscape's bounds - or the fallback floor - at gym start).
     private FVector _DropMin = FVector::ZeroVector;
     private FVector _DropMax = FVector::ZeroVector;
     private float _DropZ = 0.0;
@@ -91,9 +91,9 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         auto Interval = UCk_Utils_JoltStressGym_UE::Get_WaveIntervalSeconds();
         auto Cap = UCk_Utils_JoltStressGym_UE::Get_MaxBalls();
         DoDropBalls(InitialCount);
-        ck::Trace(f"JoltStressGym: started — {InitialCount} initial balls, +{PerWave} every {Interval}s, cap {Cap}");
+        ck::Trace(f"JoltStressGym: started - {InitialCount} initial balls, +{PerWave} every {Interval}s, cap {Cap}");
 
-        // Repeating wave timer. The interval is read ONCE here — change the CVar, then
+        // Repeating wave timer. The interval is read ONCE here - change the CVar, then
         // Ck_Gym_Restart to apply it.
         auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(Interval));
         Params.Set_StartingState(ECk_Timer_State::Running)
@@ -122,14 +122,14 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         DoDropBalls(UCk_Utils_JoltStressGym_UE::Get_BallsPerWave());
     }
 
-    // The station is pinned far from the level's PlayerStart — without this the player spawns
+    // The station is pinned far from the level's PlayerStart - without this the player spawns
     // ~20k units from the gym. Traced so a stranded player is diagnosable from the log.
     private void DoBringPlayerToStation()
     {
         auto ViewPawn = GetControlledPawn();
         if (ck::Is_NOT_Valid(ViewPawn))
         {
-            ck::Trace("JoltStressGym: no controlled pawn yet — teleport to the pinned station skipped");
+            ck::Trace("JoltStressGym: no controlled pawn yet - teleport to the pinned station skipped");
             return;
         }
 
@@ -162,9 +162,9 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
-        // No landscape — a fallback floor keeps the gym functional (balls would otherwise fall
+        // No landscape - a fallback floor keeps the gym functional (balls would otherwise fall
         // forever). The heightfield is the real stress target: author it.
-        ck::Trace("JoltStressGym: NO landscape — run Ck.Gym.AuthorJoltStaticBakeContent in the editor (TestGyms level, then save). Using a fallback static floor");
+        ck::Trace("JoltStressGym: NO landscape - run Ck.Gym.AuthorJoltStaticBakeContent in the editor (TestGyms level, then save). Using a fallback static floor");
         auto FloorCenter = _Origin + FVector(-2500.0, 0.0, 0.0);
         DoAddStaticFloor(FloorCenter);
         _DropMin = FloorCenter - FVector(1600.0, 1600.0, 0.0);
@@ -200,7 +200,7 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
             if (!_CapReported && _Balls.Num() >= MaxBalls)
             {
                 _CapReported = true;
-                ck::Trace(f"JoltStressGym: cap reached ({MaxBalls} live balls) — raise ck.JoltStressGym.MaxBalls to go higher");
+                ck::Trace(f"JoltStressGym: cap reached ({MaxBalls} live balls) - raise ck.JoltStressGym.MaxBalls to go higher");
             }
             return;
         }
@@ -212,7 +212,7 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
 
         for (int32 i = 0; i < Budget; i++)
         {
-            // Deterministic scatter — no RNG dependency; the Z stagger separates same-cell
+            // Deterministic scatter - no RNG dependency; the Z stagger separates same-cell
             // revisits and the physics does the rest.
             auto Index = _TotalSpawned;
             auto CellX = (Index * 7) % CellsPerSide;
@@ -249,7 +249,7 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         _Balls.Add(Generic);
     }
 
-    // A ball that rolls off the landscape falls forever and never sleeps — reap it once it's
+    // A ball that rolls off the landscape falls forever and never sleeps - reap it once it's
     // well below the drop zone so the live count stays an honest stress number.
     private void DoReapFallenBalls()
     {
@@ -305,6 +305,6 @@ class ACk_JoltGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
         _CapReported = false;
 
         DoDropBalls(UCk_Utils_JoltStressGym_UE::Get_InitialBalls());
-        ck::Trace("JoltStressGym: reset — all balls destroyed, initial wave re-dropped");
+        ck::Trace("JoltStressGym: reset - all balls destroyed, initial wave re-dropped");
     }
 }

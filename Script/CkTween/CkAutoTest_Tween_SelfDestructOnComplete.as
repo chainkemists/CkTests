@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: SELF-DESTRUCT ON COMPLETE
+// CK TWEEN - AUTOMATION TEST: SELF-DESTRUCT ON COMPLETE
 //============================================================================
 //
 // Verifies ECk_TweenCompletionBehavior::SelfDestruct destroys the tween
@@ -10,7 +10,7 @@
 //      CompletionBehavior::SelfDestruct.
 //   2. Bind OnComplete.
 //   3. After OnComplete fires, poll on tick until ck::IsValid(tween) is
-//      false — that confirms the tween entity was destroyed.
+//      false - that confirms the tween entity was destroyed.
 //
 // Catches the regression where SelfDestruct doesn't actually clean up,
 // leaving leaked tween entities accumulating across plays.

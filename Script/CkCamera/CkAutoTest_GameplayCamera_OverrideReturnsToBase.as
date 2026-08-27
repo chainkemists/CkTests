@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: OVERRIDE LAYER RETURNS TO BASE ON REMOVAL
+// CK CAMERA - AUTOMATION TEST: OVERRIDE LAYER RETURNS TO BASE ON REMOVAL
 //============================================================================
 //
 // Direct regression for the scooter "arm stuck at 300" bug, on the rig attribute it surfaced on. With the default
 // profile the BoomArmLength base is 300. A single Override layer drives it to 600; removing the layer must blend the
-// arm all the way back to the base 300 (not leave a residual). Override is realized additively as (target - base)*α,
-// so on removal (α → 0) the contribution vanishes and the attribute rests on its base value.
+// arm all the way back to the base 300 (not leave a residual). Override is realized additively as (target - base)*alpha,
+// so on removal (alpha -> 0) the contribution vanishes and the attribute rests on its base value.
 //============================================================================
 
 class UCk_AutoTest_GameplayCamera_OverrideReturnsToBase : UCk_AutoTest_Base

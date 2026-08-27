@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A STATE CLOSES ON THE RELEASE ROW ITSELF
+// CK INTENT - AUTOMATION TEST: A STATE CLOSES ON THE RELEASE ROW ITSELF
 //============================================================================
 //
 // The other end of the state, held to the same standard as the opening one.
-// A level intent turns off on the frame the release was RECORDED on — not a
+// A level intent turns off on the frame the release was RECORDED on - not a
 // pass later, and not on the frame the matcher next scans and notices the
 // button is no longer in the held set.
 //
@@ -15,7 +15,7 @@
 // rate, which is precisely the class of bug the frame-indexed record exists
 // to make impossible.
 //
-// The release frame is found by walking the record's own Released rows —
+// The release frame is found by walking the record's own Released rows
 // the exact twin of the press walk in the sibling activation test, and
 // deliberately a separate helper rather than a parameterised one, so a change
 // to how presses are located cannot silently redefine what "the release
@@ -26,7 +26,7 @@
 // implementation that dropped through Completed on the way out, or that
 // re-entered Active on a subsequent scan of the still-held frames, would show
 // up as a count rather than as a subtly wrong single value. And the poll is
-// re-read afterwards — a closed state names no activation frame, because
+// re-read afterwards - a closed state names no activation frame, because
 // "when did the current state open" has no answer when there is no state.
 //============================================================================
 
@@ -144,7 +144,7 @@ class UCk_AutoTest_Intent_LevelDeactivatesOnReleaseFrame : UCk_AutoTest_Base
             "a retained row must carry the release edge for the frame arithmetic to mean anything");
 
         Assert_Equals_Int(_FromPhases.Num(), 2,
-            "a press and a release are the state's whole life — two transitions, with no Completed and no re-entry among them");
+            "a press and a release are the state's whole life - two transitions, with no Completed and no re-entry among them");
 
         if (_FromPhases.Num() != 2)
         { return; }
@@ -153,13 +153,13 @@ class UCk_AutoTest_Intent_LevelDeactivatesOnReleaseFrame : UCk_AutoTest_Base
             "the press opens the state");
 
         Assert_True(_FromPhases[1] == ECk_Intent_Phase::Active && _ToPhases[1] == ECk_Intent_Phase::Idle,
-            "the release closes it straight back to Idle — a level intent never passes through Completed");
+            "the release closes it straight back to Idle - a level intent never passes through Completed");
 
         Assert_Equals_Int(_Frames[1], ReleaseFrame,
             "the close is stamped from the release ROW, so a measured duration is frame-exact rather than drifting with the scan cadence");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_ActivationFrame_ByName(_Matcher, n"AS_Level_Drag"), -1,
-            "a closed state names no activation frame — the poll reports the CURRENT state, not the last one there was");
+            "a closed state names no activation frame - the poll reports the CURRENT state, not the last one there was");
     }
 
     //------------------------------------------------------------------------

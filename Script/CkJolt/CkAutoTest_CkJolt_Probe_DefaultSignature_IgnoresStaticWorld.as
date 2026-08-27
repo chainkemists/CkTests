@@ -1,21 +1,21 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: PROBES NEVER OVERLAP THE STATIC WORLD
+// CK JOLT - AUTOMATION TEST: PROBES NEVER OVERLAP THE STATIC WORLD
 //============================================================================
 //
 // The probe layer's signature (and the broadphase-level guard) must keep baked
-// static bodies invisible to probe overlap semantics — pre-table behavior:
+// static bodies invisible to probe overlap semantics - pre-table behavior:
 //   1. Bake a large BlockAll floor cube.
 //   2. Create a Notify sphere probe INSIDE it.
 //   3. No OnBeginOverlap fires within the settle window; the probe stays
-//      overlap-free. (A Jolt trace-semantics ray still HITS the floor — it is
+//      overlap-free. (A Jolt trace-semantics ray still HITS the floor - it is
 //      a query target, just not an overlap participant for probes.)
 //
 // Probe OVERLAP semantics and the ProbeTrace world-hit policy are separate
 // contracts and deliberately coexist. ProbeTrace can be told to report world
 // bodies (see CkAutoTest_ProbeTrace_*), but that is a per-call QUERY opt-in
-// decided per hit inside the trace's collector — it changes no layer pairing.
+// decided per hit inside the trace's collector - it changes no layer pairing.
 // This test stays green precisely because nothing about it is query-side: if it
 // ever goes red because of a trace change, the layer table was touched and the
 // change is wrong.
@@ -52,7 +52,7 @@ class UCk_AutoTest_CkJolt_Probe_DefaultSignature_IgnoresStaticWorld : UCk_AutoTe
         Assert_Equals_Int(utils_jolt_static_world::Request_BakeActor(_FloorActor), 1,
             "Floor bakes one body");
 
-        // Probe dead-center INSIDE the baked floor — maximum overlap opportunity.
+        // Probe dead-center INSIDE the baked floor - maximum overlap opportunity.
         auto ProbeEntity = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         ProbeEntity.Request_OverrideToSelf();
         auto ProbeTransform = utils_transform::Add(

@@ -173,7 +173,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Values station
+    // MANUAL COMMANDS - Values station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Byte Gym - Add Modifier")
@@ -191,7 +191,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Modifiers station
+    // MANUAL COMMANDS - Modifiers station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Byte Gym - Add Modifier (Modifiers)")
@@ -209,7 +209,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — MinMaxCurrent station
+    // MANUAL COMMANDS - MinMaxCurrent station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Byte Gym - Set Min")
@@ -234,7 +234,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Multiple station
+    // MANUAL COMMANDS - Multiple station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Byte Gym - Add Batch")
@@ -252,7 +252,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Signals station
+    // MANUAL COMMANDS - Signals station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Byte Gym - Set Signal Value")
@@ -263,7 +263,7 @@ class ACk_ByteAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Clamping station
+    // MANUAL COMMANDS - Clamping station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Byte Gym - Test Boundaries")

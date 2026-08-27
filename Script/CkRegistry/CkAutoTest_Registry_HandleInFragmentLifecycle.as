@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK REGISTRY — AUTOMATION TEST: HANDLE-IN-FRAGMENT LIFECYCLE
+// CK REGISTRY - AUTOMATION TEST: HANDLE-IN-FRAGMENT LIFECYCLE
 //============================================================================
 //
 // Verifies that storing FCk_Handle inside a fragment of an entity that lives
@@ -20,8 +20,8 @@
 // down through the standard request flow, not via shared-ptr release. The
 // test locks in the contract: stashing a handle in a fragment must NOT change
 // the destroy lifecycle of the entity that handle points to.
-// Post-migration: the handle is just (slot, gen) bytes — there is no
-// ref-cycle to break — and the same observed behaviour must hold.
+// Post-migration: the handle is just (slot, gen) bytes - there is no
+// ref-cycle to break - and the same observed behaviour must hold.
 //
 // Uses the latent OnBeginDestroy pattern because Request_DestroyEntity is
 // deferred; synchronous post-destroy assertions wouldn't see the destruction.

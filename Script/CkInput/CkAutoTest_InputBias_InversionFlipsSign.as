@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BIAS — AUTOMATION TEST: INVERSION FLIPS THE VALUE, NOT THE RECORD
+// CK INPUT BIAS - AUTOMATION TEST: INVERSION FLIPS THE VALUE, NOT THE RECORD
 //============================================================================
 //
 // "Invert Y" is the one conditioning setting every player expects to find,
@@ -13,7 +13,7 @@
 // deflections, or that clamps to zero on the way through, passes on one
 // sample and fails on the other.
 //
-// The raw half is asserted alongside every conditioned value — inversion is
+// The raw half is asserted alongside every conditioned value - inversion is
 // the cheapest place to accidentally rewrite the recorded fact.
 //============================================================================
 
@@ -86,7 +86,7 @@ class UCk_AutoTest_InputBias_InversionFlipsSign : UCk_AutoTest_Base
     private void Step_AssertNegativeInverted(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Float(utils_input_bias::Get_ConditionedAxisValue(_Bias, EKeys::Gamepad_LeftY), 0.25f, 0.0001f,
-            "inversion is symmetric — a negative deflection must condition to its positive");
+            "inversion is symmetric - a negative deflection must condition to its positive");
         Assert_Equals_Float(utils_input_bias::Get_LastRawAxisValue(_Bias, EKeys::Gamepad_LeftY), -0.25f, 0.0001f,
             "the recorded raw value keeps the sign the device sent");
     }

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE + TWEEN — AUTOMATION TEST: DEPTH-0 LEAF MATCHES EXPECTED
+// CK SCENE NODE + TWEEN - AUTOMATION TEST: DEPTH-0 LEAF MATCHES EXPECTED
 //============================================================================
 //
 // Headless equivalent of the SceneNodeTween gym's SIMPLE station: a tweened
@@ -10,8 +10,8 @@
 // world location matches the AS-composed expected location (child local
 // composed onto root world) within a sub-cm tolerance.
 //
-// A propagation-stall regression — where the tween moves the root but the
-// child stays anchored at its initial world position — surfaces as a growing
+// A propagation-stall regression - where the tween moves the root but the
+// child stays anchored at its initial world position - surfaces as a growing
 // drift that peaks at the tween amplitude. We accumulate the maximum drift
 // observed across the tween's lifetime and assert it remains small after
 // OnComplete + one settle frame.
@@ -88,7 +88,7 @@ class UCk_AutoTest_SceneNodeTween_Depth0_LeafMatchesExpected : UCk_AutoTest_Base
         auto Actual = utils_transform::Get_EntityCurrentLocation(_Child.As_Transform());
 
         _SampleCount += 1;
-        // Skip the first sample — transform features are added this same tick and
+        // Skip the first sample - transform features are added this same tick and
         // SceneNode composition needs one processor pass to populate the child's
         // initial world transform. Subsequent samples must match.
         if (_SampleCount < 2) { return; }

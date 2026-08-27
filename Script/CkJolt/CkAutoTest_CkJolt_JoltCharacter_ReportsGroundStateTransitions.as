@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: CHARACTER REPORTS GROUND-STATE TRANSITIONS
+// CK JOLT - AUTOMATION TEST: CHARACTER REPORTS GROUND-STATE TRANSITIONS
 //============================================================================
 //
 // OnGroundStateChanged must fire on the real ground-state edges:
@@ -92,7 +92,7 @@ class UCk_AutoTest_CkJolt_JoltCharacter_ReportsGroundStateTransitions : UCk_Auto
             return;
         }
 
-        // Phase 2 — the jump arc must land the character back OnGround.
+        // Phase 2 - the jump arc must land the character back OnGround.
         if (InState == ECk_JoltCharacter_GroundState::OnGround)
         { FinishSuccess(); }
     }

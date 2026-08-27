@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: CURVE-OFFSET LOCATION RETURNS TO BASE
+// CK TWEEN - AUTOMATION TEST: CURVE-OFFSET LOCATION RETURNS TO BASE
 //============================================================================
 //
-// Location sibling of CkAutoTest_Tween_CurveOffset_ShakeReturnsToBase — pins
+// Location sibling of CkAutoTest_Tween_CurveOffset_ShakeReturnsToBase - pins
 // the VectorOffset arm of the curve-drive (the rotation test only exercises
 // RotatorOffset): the curve's output is WORLD-axis units added onto a base
 // location captured at creation.
@@ -12,7 +12,7 @@
 // Same shape as the rotation test, for the same reasons: a midpoint assertion
 // (peak displacement must be large, because "starts at base, ends at base" is
 // also what a broken never-moved tween looks like), then a Restart pass that
-// must return to the SAME base — the anti-drift property, plus coverage of
+// must return to the SAME base - the anti-drift property, plus coverage of
 // the base-recapture path's VectorOffset arm.
 //============================================================================
 
@@ -106,10 +106,10 @@ class UCk_AutoTest_Tween_CurveOffset_LocationReturnsToBase : UCk_AutoTest_Base
         const auto FinalDisplacement = float32((Final - _BaseLocation).Size());
 
         Assert_True(_PeakDisplacement > k_MinPeakDisplacement,
-            f"Pass {_CompletedCount}: the location must actually MOVE mid-flight — peak displacement was {_PeakDisplacement}, needed > {k_MinPeakDisplacement}");
+            f"Pass {_CompletedCount}: the location must actually MOVE mid-flight - peak displacement was {_PeakDisplacement}, needed > {k_MinPeakDisplacement}");
 
         Assert_True(FinalDisplacement < k_RestTolerance,
-            f"Pass {_CompletedCount}: the location must return to base on completion — final displacement was {FinalDisplacement}, needed < {k_RestTolerance}");
+            f"Pass {_CompletedCount}: the location must return to base on completion - final displacement was {FinalDisplacement}, needed < {k_RestTolerance}");
 
         if (_CompletedCount >= 2)
         {

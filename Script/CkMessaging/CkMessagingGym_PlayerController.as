@@ -82,7 +82,7 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_StartOneShotStation();
         Request_StartDynamicBindStation();
         Request_StartMultiTypeStation();
-        ck::Trace("✅ Messaging Gym - All stations started");
+        ck::Trace("[OK] Messaging Gym - All stations started");
     }
 
     //------------------------------------------------------------------------
@@ -102,11 +102,11 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 
         if (ck::IsValid(SpawnRequest))
         {
-            ck::Trace("✅ Basic Broadcast & Listen station started");
+            ck::Trace("[OK] Basic Broadcast & Listen station started");
         }
         else
         {
-            ck::Error("❌ Failed to spawn Basic Broadcast entity");
+            ck::Error("[FAIL] Failed to spawn Basic Broadcast entity");
         }
     }
 
@@ -123,11 +123,11 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 
         if (ck::IsValid(SpawnRequest))
         {
-            ck::Trace("✅ Multi-Listener Fan-Out station started");
+            ck::Trace("[OK] Multi-Listener Fan-Out station started");
         }
         else
         {
-            ck::Error("❌ Failed to spawn Multi-Listener entity");
+            ck::Error("[FAIL] Failed to spawn Multi-Listener entity");
         }
     }
 
@@ -144,11 +144,11 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 
         if (ck::IsValid(SpawnRequest))
         {
-            ck::Trace("✅ One-Shot Listener station started");
+            ck::Trace("[OK] One-Shot Listener station started");
         }
         else
         {
-            ck::Error("❌ Failed to spawn One-Shot entity");
+            ck::Error("[FAIL] Failed to spawn One-Shot entity");
         }
     }
 
@@ -165,11 +165,11 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 
         if (ck::IsValid(SpawnRequest))
         {
-            ck::Trace("✅ Dynamic Bind / Unbind station started");
+            ck::Trace("[OK] Dynamic Bind / Unbind station started");
         }
         else
         {
-            ck::Error("❌ Failed to spawn Dynamic Bind entity");
+            ck::Error("[FAIL] Failed to spawn Dynamic Bind entity");
         }
     }
 
@@ -186,11 +186,11 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
 
         if (ck::IsValid(SpawnRequest))
         {
-            ck::Trace("✅ Multiple Message Types station started");
+            ck::Trace("[OK] Multiple Message Types station started");
         }
         else
         {
-            ck::Error("❌ Failed to spawn Multi-Type entity");
+            ck::Error("[FAIL] Failed to spawn Multi-Type entity");
         }
     }
 
@@ -375,6 +375,6 @@ class ACk_MessagingGym_PlayerController : ACk_Gym_Base_PlayerController
         }
 
         SequenceCounter = 0;
-        ck::Trace("✅ All Messaging Gym stations reset");
+        ck::Trace("[OK] All Messaging Gym stations reset");
     }
 }

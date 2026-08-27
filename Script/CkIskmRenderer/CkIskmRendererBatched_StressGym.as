@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — BATCHED STRESS GYM (Moving 600)
+// CK ISKM RENDERER - BATCHED STRESS GYM (Moving 600)
 //============================================================================
 //
-// 600 batched GPU-skinned instances, ALL moving (orbiting via Set_CrowdMemberTransform every tick) — the
+// 600 batched GPU-skinned instances, ALL moving (orbiting via Set_CrowdMemberTransform every tick) - the
 // worst-case production write path (per-frame in-tile pushes + a steady trickle of cross-tile migrations).
 // A/B against "IskmRenderer Stress (Moving 500)" (per-SKMC Plan-1): compare `stat unit`, `stat rhi`,
-// `stat scenerendering` — the batched crowd should draw in a handful of instanced calls with no per-instance
+// `stat scenerendering` - the batched crowd should draw in a handful of instanced calls with no per-instance
 // CPU pose evaluation.
 //
 // Reuses UCk_EntityScript_IskmRendererBatched_MovingCrowd (CkIskmRendererBatched_GymStation.as) with

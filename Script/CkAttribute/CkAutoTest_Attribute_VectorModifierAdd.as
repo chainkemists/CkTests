@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: VECTOR MODIFIER ADD
+// CK ATTRIBUTE - AUTOMATION TEST: VECTOR MODIFIER ADD
 //============================================================================
 //
 // Vector-side parity with the Float/Integer/Byte ModifierAdd tests. Verifies a

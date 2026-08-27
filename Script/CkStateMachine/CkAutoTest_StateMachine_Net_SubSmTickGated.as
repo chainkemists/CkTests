@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — NET SUB-SM TICK-GATED PROGRESSION (topology only)
+// CK STATE MACHINE - NET SUB-SM TICK-GATED PROGRESSION (topology only)
 //============================================================================
 //
 // Topology authored in AngelScript because DoDefineState is a
@@ -70,7 +70,7 @@ class UCk_SmNetSubTest_Parent_Hold : UCk_SmState_EntityScript
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        // Host the sub-SM; the parent intentionally has no outgoing transition — the
+        // Host the sub-SM; the parent intentionally has no outgoing transition - the
         // assertion reads the sub-SM's current state directly.
         AddTask(InHandle, UCk_SmNetSubTest_SubTask);
     }

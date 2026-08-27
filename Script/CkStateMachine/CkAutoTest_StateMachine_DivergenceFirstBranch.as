@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: DIVERGENCE FIRST-BRANCH REGRESSION
+// CK STATE MACHINE - AUTOMATION TEST: DIVERGENCE FIRST-BRANCH REGRESSION
 //============================================================================
 //
 // Headless port of the DivergenceFirstBranch gym station. Spawns the
@@ -13,7 +13,7 @@
 //   In a sub-SM, a state with multiple outgoing transitions whose first-
 //   added branch happens to be the chosen one constructs the chosen
 //   target-state task chain TWICE. Side-effecting tasks fire twice on a
-//   single traversal. The bug tracks AddTransition order — swap the order
+//   single traversal. The bug tracks AddTransition order - swap the order
 //   and the doubling follows the new first-added branch.
 //
 // Pass criteria:
@@ -30,7 +30,7 @@
 // Pattern B (settle-timer poll). The gym driver runs both passes back-to-
 // back via a 0.3s timer per pass; we wait 1.0s (~3 PIE frames + buffer)
 // and then read the snapshot fields. The cube + text visuals on the gym
-// actor are irrelevant to the assertion — they just briefly appear in PIE
+// actor are irrelevant to the assertion - they just briefly appear in PIE
 // and get torn down with the world.
 //============================================================================
 
@@ -38,7 +38,7 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranch : UCk_AutoTest_Base
 {
     // Gym runs two passes back-to-back at 1.5s each (now measured AFTER the async
     // entity-spawn hop completes, ~0.5s per pass), plus assertion-eval buffer.
-    // Total: 2 * (0.5 + 1.5) = 4.0s + buffer → outer settle 5.0s, timeout 7.0s.
+    // Total: 2 * (0.5 + 1.5) = 4.0s + buffer -> outer settle 5.0s, timeout 7.0s.
     default _TimeoutSeconds = 7.0f;
 
     private ACk_SmTest_DivergenceFirstBranch_GymActor _GymActor;
@@ -69,7 +69,7 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranch : UCk_AutoTest_Base
         _GymActor.StationHandle = FCk_Handle();
         FinishSpawningActor(_GymActor);
 
-        // Settle timer — gym uses PerPassSettleSeconds=1.5f per pass (now measured
+        // Settle timer - gym uses PerPassSettleSeconds=1.5f per pass (now measured
         // after the async entity-spawn hop), so each pass takes ~2s. Two passes
         // need ~4s; 5s gives buffer for verify timer + assertion eval.
         auto LocalHandle = InHandle;
@@ -91,7 +91,7 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranch : UCk_AutoTest_Base
             return;
         }
 
-        // Pass A — AddLeftFirst + PaymentLeft -> Enter -> Idle -> Branch -> Left -> Finish.
+        // Pass A - AddLeftFirst + PaymentLeft -> Enter -> Idle -> Branch -> Left -> Finish.
         Assert_Equals_Int(_GymActor.Snap_A_Enter,  1, "Pass A: Enter task fires exactly once");
         Assert_Equals_Int(_GymActor.Snap_A_Idle,   1, "Pass A: Idle task fires exactly once");
         Assert_Equals_Int(_GymActor.Snap_A_Branch, 1, "Pass A: Branch task fires exactly once");
@@ -99,7 +99,7 @@ class UCk_AutoTest_StateMachine_DivergenceFirstBranch : UCk_AutoTest_Base
         Assert_Equals_Int(_GymActor.Snap_A_Right,  0, "Pass A: Right task does NOT fire (not chosen)");
         Assert_Equals_Int(_GymActor.Snap_A_Finish, 1, "Pass A: Finish task fires exactly once");
 
-        // Pass B — AddRightFirst + PaymentRight -> Enter -> Idle -> Branch -> Right -> Finish.
+        // Pass B - AddRightFirst + PaymentRight -> Enter -> Idle -> Branch -> Right -> Finish.
         Assert_Equals_Int(_GymActor.Snap_B_Enter,  1, "Pass B: Enter task fires exactly once");
         Assert_Equals_Int(_GymActor.Snap_B_Idle,   1, "Pass B: Idle task fires exactly once");
         Assert_Equals_Int(_GymActor.Snap_B_Branch, 1, "Pass B: Branch task fires exactly once");

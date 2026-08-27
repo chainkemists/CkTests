@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK HOMING — AUTOMATION TEST: WORLD-SPACE POINT ON TARGET TRACKS THE OFFSET
+// CK HOMING - AUTOMATION TEST: WORLD-SPACE POINT ON TARGET TRACKS THE OFFSET
 //============================================================================
 //
 // The projectile is told to home on a specific world-space point captured
 // relative to the target (a "weak spot" 400 units above its center) rather
 // than the target's transform location. Steering must converge on the offset
 // point: the moment the projectile is within 120 units of the weak spot, it
-// is necessarily still far (>250 units) from the target's center — proving
+// is necessarily still far (>250 units) from the target's center - proving
 // the local offset is what was chased.
 //============================================================================
 

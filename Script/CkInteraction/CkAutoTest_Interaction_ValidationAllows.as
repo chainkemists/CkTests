@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: VALIDATION ALLOWS
+// CK INTERACTION - AUTOMATION TEST: VALIDATION ALLOWS
 //============================================================================
 //
 // Happy-path test for the validation contract:

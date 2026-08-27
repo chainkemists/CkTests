@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — A CHARACTER'S WHOLE MOVE VOCABULARY, AS NOTATION
+// CK INTENT - A CHARACTER'S WHOLE MOVE VOCABULARY, AS NOTATION
 //============================================================================
 //
 // Forty moves, declared the way a designer declares them: a name, the notation
 // string, and the priority that decides who wins a terminal they share. There
-// is nothing else here on purpose — no steps, no atoms, no definitions. The
+// is nothing else here on purpose - no steps, no atoms, no definitions. The
 // grammar is the only thing that turns a string into a move, so a table that
 // carried a pre-built shape beside the string would be a second dialect, and
 // the first time the two disagreed nothing could say which one the character
@@ -18,12 +18,12 @@
 // a vocabulary a test can only see a slice of cannot prove anything about
 // them.
 //
-// TERMINAL ZONES — read before adding a move.
+// TERMINAL ZONES - read before adding a move.
 //
 // `CkAutoTest_Intent_FortyMoveBake` reads three verdicts off the baked set,
 // and each one is a property of every move sharing that terminal button:
 //
-//   LP  must stay CLEAN — several moves end on it, none declares `hold=`,
+//   LP  must stay CLEAN - several moves end on it, none declares `hold=`,
 //       and none of its terminals carries a second BUTTON. That is what makes
 //       its zero verdict a statement about sharing a terminal rather than an
 //       accident of a thin row.
@@ -33,8 +33,8 @@
 //       `hold=` at all.
 //
 // Every other terminal is free. Adding a `hold=` or a second-button chord to
-// one of the three above is a real behaviour change — it costs every move on
-// that button the wait — and the test will say so by name.
+// one of the three above is a real behaviour change - it costs every move on
+// that button the wait - and the test will say so by name.
 //
 // Priorities are DISTINCT across the whole table. A tie is only a defect where
 // two moves share a terminal, but a globally unique number costs nothing and
@@ -73,7 +73,7 @@ class UCkTests_Intent_MoveTable : UCk_DataAsset_PDA
     TArray<FName> ButtonNames;
 
     // Asset init bodies re-run on every AS recompile (the autotest wrapper
-    // generator triggers one) and both declarations APPEND — without this the
+    // generator triggers one) and both declarations APPEND - without this the
     // table doubles on every reload and the count assertions go red for a
     // reason that has nothing to do with the moves.
     void Reset_Declarations()
@@ -102,8 +102,8 @@ namespace intent_moves
     const int32 k_MoveCount = 40;
 
     // `Charge_HP`'s declared hold, in logic frames. It appears in the notation
-    // string below as text — the string is the authoring surface and stays
-    // literal — and the test asserts the BAKED verdict against this constant,
+    // string below as text - the string is the authoring surface and stays
+    // literal - and the test asserts the BAKED verdict against this constant,
     // which is what pins the two together.
     const int32 k_ChargeHoldFrames = 45;
 
@@ -125,7 +125,7 @@ namespace intent_moves
         Declare_Button(n"Taunt");
 
         //--------------------------------------------------------------------
-        // Quarter-circle forward — the canonical motion, once per button
+        // Quarter-circle forward - the canonical motion, once per button
         //--------------------------------------------------------------------
 
         Declare_Move(n"Qcf_LP", "236+LP", 900);
@@ -143,7 +143,7 @@ namespace intent_moves
         Declare_Move(n"Qcb_MK", "214+MK", 830);
 
         //--------------------------------------------------------------------
-        // Dragon punch — a motion that doubles back on itself
+        // Dragon punch - a motion that doubles back on itself
         //--------------------------------------------------------------------
 
         Declare_Move(n"Dp_LP", "623+LP", 820);
@@ -151,7 +151,7 @@ namespace intent_moves
         Declare_Move(n"Dp_MK", "623+MK", 800);
 
         //--------------------------------------------------------------------
-        // Half circles — five-digit runs, both directions
+        // Half circles - five-digit runs, both directions
         //--------------------------------------------------------------------
 
         Declare_Move(n"Hcf_MP", "41236+MP", 790);
@@ -160,7 +160,7 @@ namespace intent_moves
         Declare_Move(n"Hcb_MK", "63214+MK", 760);
 
         //--------------------------------------------------------------------
-        // Supers — doubled motions, each with the window it is playable in
+        // Supers - doubled motions, each with the window it is playable in
         //--------------------------------------------------------------------
 
         Declare_Move(n"Super_Qcf_LP", "236236+LP w=30", 750);
@@ -169,7 +169,7 @@ namespace intent_moves
         Declare_Move(n"Super_Dp_MP", "623623+MP w=36", 720);
 
         //--------------------------------------------------------------------
-        // Charges — the terminal must be HELD. `Charge_HP` is the one the test
+        // Charges - the terminal must be HELD. `Charge_HP` is the one the test
         // reads back, so its threshold is k_ChargeHoldFrames.
         //--------------------------------------------------------------------
 
@@ -179,7 +179,7 @@ namespace intent_moves
         Declare_Move(n"Taunt_Long", "Taunt hold=60", 680);
 
         //--------------------------------------------------------------------
-        // Chords — two buttons at once, and the direction+button kind that
+        // Chords - two buttons at once, and the direction+button kind that
         // looks like one and deliberately is not (a direction is state the row
         // already reports, so nothing is ever in flight for it).
         //--------------------------------------------------------------------
@@ -190,7 +190,7 @@ namespace intent_moves
         Declare_Move(n"Chord_Salute", "Guard+Taunt", 640);
 
         //--------------------------------------------------------------------
-        // Normals — a lone button is a whole move, and the rival every
+        // Normals - a lone button is a whole move, and the rival every
         // motion above shares its terminal with
         //--------------------------------------------------------------------
 
@@ -202,7 +202,7 @@ namespace intent_moves
         Declare_Move(n"Guard_Tap", "Guard", 580);
 
         //--------------------------------------------------------------------
-        // Lenient — moves that tolerate a stick passing through directions
+        // Lenient - moves that tolerate a stick passing through directions
         // they never named
         //--------------------------------------------------------------------
 
@@ -212,7 +212,7 @@ namespace intent_moves
         Declare_Move(n"Lenient_Dash_MP", "6 6+MP lenient", 540);
 
         //--------------------------------------------------------------------
-        // Windows — whitespace-separated steps under an explicit frame budget,
+        // Windows - whitespace-separated steps under an explicit frame budget,
         // including the neutral `5` step a return-to-centre motion asks for
         //--------------------------------------------------------------------
 

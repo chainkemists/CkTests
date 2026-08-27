@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BIAS — AUTOMATION TEST: CONDITIONING NEVER REWRITES THE RAW ROW
+// CK INPUT BIAS - AUTOMATION TEST: CONDITIONING NEVER REWRITES THE RAW ROW
 //============================================================================
 //
 // The whole reason conditioned values live in their own state instead of
@@ -9,15 +9,15 @@
 // entire band onto zero, so a row conditioned in place can never be read back
 // as the physical fact or re-conditioned by a later retune.
 //
-// Asserting that from gameplay is not enough — the inbox is drained by the
+// Asserting that from gameplay is not enough - the inbox is drained by the
 // router every frame, so gameplay can only ever see an empty one. The proof
 // has to come from INSIDE the routing pass, which is what the observing layer
 // is for: it receives the row the router is delivering, on the same frame,
 // AFTER conditioning has already run over that inbox. If the stage had
 // touched the row, this is where it would show.
 //
-// The bias is deliberately violent — inverted, a third of the range dead, a
-// square curve, quadruple gain — so the conditioned value and the raw one
+// The bias is deliberately violent - inverted, a third of the range dead, a
+// square curve, quadruple gain - so the conditioned value and the raw one
 // cannot coincide by accident.
 //============================================================================
 
@@ -98,7 +98,7 @@ class UCk_AutoTest_InputBias_RawRecordStaysVerbatim : UCk_AutoTest_Base
         Assert_Equals_Int(_DeliveredCount, 1,
             "the observing layer must have received the axis row exactly once");
         Assert_Equals_Float(_DeliveredRawValue, 0.8f, 0.0001f,
-            "the row the router delivered — after conditioning ran over that same inbox — must carry the value the producer wrote");
+            "the row the router delivered - after conditioning ran over that same inbox - must carry the value the producer wrote");
 
         Assert_Equals_Float(utils_input_bias::Get_LastRawAxisValue(_Bias, EKeys::Gamepad_LeftX), 0.8f, 0.0001f,
             "the conditioned state keeps the raw half of the sample verbatim beside the conditioned one");

@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK TARGETING — AUTOMATION TEST: Create_Transient_FromLocationAndRotation round-trip
+// CK TARGETING - AUTOMATION TEST: Create_Transient_FromLocationAndRotation round-trip
 
 class UCk_AutoTest_Targeting_CreateTransientFromLocationAndRotation : UCk_AutoTest_Base
 {
@@ -15,7 +15,7 @@ class UCk_AutoTest_Targeting_CreateTransientFromLocationAndRotation : UCk_AutoTe
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        // WorldContextObject is auto-supplied by the AS binding — do not pass `this`.
+        // WorldContextObject is auto-supplied by the AS binding - do not pass `this`.
         auto TargetPoint = utils_target_point::Create_Transient_FromLocationAndRotation(
             SeedLocation, SeedRotation, ECk_Lifetime::UntilDestroyed);
 

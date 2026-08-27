@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RESOLVER — AUTOMATION TEST: ResolverSource Create (owned, with transform)
+// CK RESOLVER - AUTOMATION TEST: ResolverSource Create (owned, with transform)
 // The Create factory spawns a new child entity under the owner with the
 // ResolverSource feature already added.
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — GAMEPLAYCAMERA GYM
+// CK CAMERA - GAMEPLAYCAMERA GYM
 //============================================================================
 //
 // Visual gym for the GameplayCamera stack. A flyable pawn carries the camera director; the player orbits with
@@ -9,9 +9,9 @@
 // collision push-in, and auto-reorient lock-on on screen.
 //
 // First CkTests gym to combine a controllable pawn + Enhanced Input + a driven camera. Input is plain Enhanced
-// Input (IMC over AS-asset IAs + BindAction) — no input-profile-object wrapper.
+// Input (IMC over AS-asset IAs + BindAction) - no input-profile-object wrapper.
 //
-// Register: CkTests_GymRegistry.as → "Camera". Runs in the shared TestGyms_CkTests_Level.
+// Register: CkTests_GymRegistry.as -> "Camera". Runs in the shared TestGyms_CkTests_Level.
 //============================================================================
 
 class ACk_CameraGym_GameMode : ACkTests_Gym_Base_GameMode
@@ -55,10 +55,10 @@ class ACk_CameraGym_PlayerController : ACk_Gym_Base_PlayerController
             FEnhancedInputActionHandlerDynamicSignature(this, n"OnPrevMode"));
     }
 
-    // Skip the base gym-selector menu — the camera gym is interactive from the start (Tab still toggles the menu).
+    // Skip the base gym-selector menu - the camera gym is interactive from the start (Tab still toggles the menu).
     void Request_StartGym() override
     {
-        Print("Camera Gym — Mouse: orbit | E/Q: cycle mode (ThirdPerson / TopDown / LockOn) | "
+        Print("Camera Gym - Mouse: orbit | E/Q: cycle mode (ThirdPerson / TopDown / LockOn) | "
             + "console: Ck_GymCamera_ToggleZoom (FOV trim) | Tab: gym menu", 12.0f);
     }
 
@@ -110,7 +110,7 @@ class ACk_CameraGym_PlayerController : ACk_Gym_Base_PlayerController
         { CameraPawn.Request_CycleMode(-1); }
     }
 
-    // Toggles the FOV-zoom Trim — layers over whichever mode is active, demonstrating the Mode/Trim split.
+    // Toggles the FOV-zoom Trim - layers over whichever mode is active, demonstrating the Mode/Trim split.
     UFUNCTION(Exec, DisplayName="Camera Gym - Toggle Zoom Trim")
     void Ck_GymCamera_ToggleZoom()
     {

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: SHAPE SWEEP PARITY VS CHAOS
+// CK JOLT - AUTOMATION TEST: SHAPE SWEEP PARITY VS CHAOS
 //============================================================================
 //
 // A sphere swept down onto a baked cube must stop where Chaos's sphere sweep

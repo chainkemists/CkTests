@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Same team → Friendly
+// CK RELATIONSHIP - AUTOMATION TEST: Same team -> Friendly
 // Two entities both on team Two resolve to Friendly.
 
 class UCk_AutoTest_Relationship_AttitudeSameTeamIsFriendly : UCk_AutoTest_Base

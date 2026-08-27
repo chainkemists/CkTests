@@ -1,9 +1,9 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: WALL SEGMENTS KEEP A SAMPLED AGENT ON THE MESH
+// CK CROWD - AUTOMATION TEST: WALL SEGMENTS KEEP A SAMPLED AGENT ON THE MESH
 //
 // FProcessor_CrowdAgent_AvoidanceSample scores candidate velocities against
-// dtCrowd's local boundary (FFragment_CrowdAgent_LocalBoundary — the port of
+// dtCrowd's local boundary (FFragment_CrowdAgent_LocalBoundary - the port of
 // dtLocalBoundary + dtObstacleAvoidanceQuery::addSegment) as well as against
 // neighbouring agents.
 //
@@ -24,15 +24,15 @@
 // FIXTURE. Probe for the navmesh's -X edge, then run walker A up the +Y axis on
 // a lane CorridorInsetUu inboard of it. Blocker B stands still on that lane but
 // nudged BlockerWallOffsetUu further toward the wall, so the gap between B and
-// the boundary is far narrower than the 84uu radius sum — squeezing past on the
-// wall side is geometrically impossible — while the interior (+X) side is
+// the boundary is far narrower than the 84uu radius sum - squeezing past on the
+// wall side is geometrically impossible - while the interior (+X) side is
 // wide-open mesh.
 //
 // ASSERTIONS. A reaches its goal; A never stalls longer than MaxStallSec
 // (sampled every SampleIntervalSec, so a pinned agent is caught rather than
 // waited out); A passes B on the INTERIOR side at closest approach; A stays on
 // the navmesh. Two anti-vacuity guards: A must have been observed moving, and A
-// must actually have come near B — a silently failed path, or a stationary
+// must actually have come near B - a silently failed path, or a stationary
 // markup detour that re-routes A before it ever meets B, would otherwise
 // satisfy every other check without exercising the sampler at all.
 //
@@ -42,7 +42,7 @@
 // It is NOT red-green on _AvoidanceWallSegments: measured 2026-08-16, it passes
 // with the setting Disabled exactly as it passes with it Enabled (walker 128uu
 // clear on the INTERIOR side, worst stall 0.3s). What it guards is a regression
-// that drives the walker onto the boundary or deadlocks it — real value, but
+// that drives the walker onto the boundary or deadlocks it - real value, but
 // not proof that the wall term is what keeps it off. A "red-green" claim stood
 // in this header before; it was never true.
 //
@@ -63,17 +63,17 @@
 //
 //  3. AS (2) WITH _SeparationWeight = 0 on both agents, to leave the sampler
 //     alone in charge. Against a STATIONARY obstacle the sampler's cheapest
-//     candidate is a slower version of straight ahead — slowing pushes the
-//     predicted collision past the horizon and costs almost nothing — so the
+//     candidate is a slower version of straight ahead - slowing pushes the
+//     predicted collision past the horizon and costs almost nothing - so the
 //     walker crept up and dithered, and push-apart owned the endgame. Measured
 //     with the term ENABLED: 5.1uu off the boundary, worst stall 10.2s.
 //
 //  4. B REPLACED BY A NON-YIELDING MOVING OPPOSER (TAG_CrowdAvoidance_
-//     NeverSample), head-on, separation zeroed, probe reach widened — a closing
+//     NeverSample), head-on, separation zeroed, probe reach widened - a closing
 //     pair has no escape in time, so the choice really is lateral. The sampler
 //     emits the MINIMUM deflection that clears the predicted collision, contact
-//     happens anyway, and PushApart — wall-blind by design, and a different
-//     setting — carries the walker onto the boundary. Measured with the term
+//     happens anyway, and PushApart - wall-blind by design, and a different
+//     setting - carries the walker onto the boundary. Measured with the term
 //     ENABLED, both with an inboard opposer lane and with a dead-on one: 5uu
 //     off the boundary.
 //
@@ -82,13 +82,13 @@
 // scores a candidate through IntersectRaySegment2D, whose ray parameter is
 // clamped to [0,1]. With a candidate VELOCITY as the ray direction that
 // parameter is SECONDS, so a boundary further away than (candidate speed * 1s)
-// is not scored at all — no penalty, not even a small one. A minimal-deflection
+// is not scored at all - no penalty, not even a small one. A minimal-deflection
 // winner is therefore already committed to the wall side by the time the term
 // engages. dtCrowd has the same clamp, so this is port-faithful; it is a limit
 // of the feature, not a defect in the fixture.
 //
 // (Its sibling, Crowd_Steering_CornerRetirementKeepsAgentOnMesh, IS red-green
-// on _WaypointRetirementLineOfSight — see that file for the shape of a fixture
+// on _WaypointRetirementLineOfSight - see that file for the shape of a fixture
 // that discriminates.)
 //
 // REQUIREMENT: AutoTests_CkTests_Level's NavMeshBoundsVolume + floor.
@@ -223,14 +223,14 @@ class UCk_AutoTest_Crowd_Avoidance_WallSegmentsKeepAgentOnMesh : UCk_AutoTest_Ba
     {
         FVector OriginOnMesh;
         if (utils_nav::Try_ProjectOntoNavmesh(InSelfHandle, FVector::ZeroVector, 100.0f, OriginOnMesh, ProbeVerticalExtentUu) == false)
-        { return; }   // bake not done yet — keep polling
+        { return; }   // bake not done yet - keep polling
 
         _MeshFound = true;
         _FloorZ = float(OriginOnMesh.Z);
 
         if (FindMeshEdgeTowardsNegativeX(InSelfHandle) == false)
         {
-            FinishFailure(f"navmesh -X edge not found within {MaxProbeUu}uu of origin — test level changed?");
+            FinishFailure(f"navmesh -X edge not found within {MaxProbeUu}uu of origin - test level changed?");
             return;
         }
 
@@ -239,7 +239,7 @@ class UCk_AutoTest_Crowd_Avoidance_WallSegmentsKeepAgentOnMesh : UCk_AutoTest_Ba
         _GoalY = RunOutUu;
 
         // The blocker goes down FIRST so the walker's very first path is planned with it already
-        // standing there. It is idle — no MoveTo — which is what makes it an obstacle rather than a
+        // standing there. It is idle - no MoveTo - which is what makes it an obstacle rather than a
         // participant in a mutual dodge.
         _Blocker = SpawnAgent(InSelfHandle, FVector(_BlockerX, 0.0, _FloorZ + 100.0), n"WallSegments_Blocker");
 
@@ -306,16 +306,16 @@ class UCk_AutoTest_Crowd_Avoidance_WallSegmentsKeepAgentOnMesh : UCk_AutoTest_Ba
     private void Report(FCk_Handle& InSelfHandle)
     {
         Assert_True(_SamplesWithMotion >= MinMotionSamples,
-            f"only {_SamplesWithMotion} samples saw a non-zero desired velocity (need >= {MinMotionSamples}) — the walker never really moved, so every other assertion here would pass vacuously");
+            f"only {_SamplesWithMotion} samples saw a non-zero desired velocity (need >= {MinMotionSamples}) - the walker never really moved, so every other assertion here would pass vacuously");
 
         Assert_True(_MinDistanceToBlocker <= MaxEngagementDistanceUu,
-            f"the walker never came closer than {_MinDistanceToBlocker}uu to the blocker (limit {MaxEngagementDistanceUu}uu) — it was routed around before the avoidance sampler ever had to choose a side, so this run proves nothing about wall segments");
+            f"the walker never came closer than {_MinDistanceToBlocker}uu to the blocker (limit {MaxEngagementDistanceUu}uu) - it was routed around before the avoidance sampler ever had to choose a side, so this run proves nothing about wall segments");
 
         Assert_True(_FinalDistToGoal >= 0.0 && _FinalDistToGoal <= ArrivalToleranceUu,
             f"the walker stopped within its arrival contract of the goal (distance={_FinalDistToGoal}, tolerance={ArrivalToleranceUu})");
 
         Assert_True(_WorstStallSec <= MaxStallSec,
-            f"the walker stopped making progress along its run for {_WorstStallSec}s (limit {MaxStallSec}s) — that is the navmesh clamp eating a displacement the sampler aimed at the boundary, i.e. walking on the spot");
+            f"the walker stopped making progress along its run for {_WorstStallSec}s (limit {MaxStallSec}s) - that is the navmesh clamp eating a displacement the sampler aimed at the boundary, i.e. walking on the spot");
 
         // The decisive one. The blocker sits toward the wall, leaving a gap far narrower than the
         // 84uu radius sum, so the only passable side is the interior. Both the neighbour dodge and

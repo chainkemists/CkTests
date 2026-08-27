@@ -215,7 +215,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 				Request_SetAllValues(95, 45, 2000);
 				break;
 
-			case 2: // TestBoundaries — push past max
+			case 2: // TestBoundaries - push past max
 				Request_TestBoundariesMax();
 				break;
 
@@ -223,7 +223,7 @@ class UCk_EntityScript_IntegerGym_Basic : UCk_GenericEntityScript_UE
 				Request_SetAllValues(10, 5, 100);
 				break;
 
-			case 4: // Push past min — Health -10 (clamps to 0), Armor -5 (clamps to 0)
+			case 4: // Push past min - Health -10 (clamps to 0), Armor -5 (clamps to 0)
 				Request_SetAllValues(-10, -5, -50);
 				break;
 

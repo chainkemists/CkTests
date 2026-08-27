@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK HOMING — AUTOMATION TEST: RETARGET SWITCHES PURSUIT
+// CK HOMING - AUTOMATION TEST: RETARGET SWITCHES PURSUIT
 //============================================================================
 //
 // The projectile first closes on target A. Mid-flight, a second
-// Request_SetTargetEntity switches it to target B on the opposite flank —
+// Request_SetTargetEntity switches it to target B on the opposite flank
 // the guidance state must reset cleanly (no stale miss latch or velocity
 // history) and the distance to B must then shrink to half of what it was at
 // the moment of the switch.

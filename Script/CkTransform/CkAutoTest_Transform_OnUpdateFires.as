@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — AUTOMATION TEST: ON-UPDATE SIGNAL FIRES
+// CK TRANSFORM - AUTOMATION TEST: ON-UPDATE SIGNAL FIRES
 //============================================================================
 //
 // Verifies BindTo_OnUpdate fires when the transform actually changes:
@@ -10,7 +10,7 @@
 //   3. OnUpdate callback fires; finish on first observation.
 //
 // Catches the regression where transform mutations don't broadcast their
-// update signal — gameplay code that listens via OnUpdate (e.g. cached
+// update signal - gameplay code that listens via OnUpdate (e.g. cached
 // world-space queries) would silently miss updates.
 //============================================================================
 

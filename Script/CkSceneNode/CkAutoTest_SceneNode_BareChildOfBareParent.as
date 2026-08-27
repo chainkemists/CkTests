@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE — AUTOMATION TEST: BARE CHILD OF BARE PARENT
+// CK SCENE NODE - AUTOMATION TEST: BARE CHILD OF BARE PARENT
 //============================================================================
 //
 // Bedrock test for the layer-update math. Both parent and child are bare ECS
@@ -9,14 +9,14 @@
 // the SceneNode hierarchy. Exercises FProcessor_SceneNode_HandleRequests +
 // TProcessor_SceneNode_Update<Layer> in isolation.
 //
-// If THIS test fails, every other scene-node test breaks too — it pins down
+// If THIS test fails, every other scene-node test breaks too - it pins down
 // the basic "Current * ParentWorld" composition and the MarkedDirtyBy / layer
 // propagation chain. It must stay green regardless of whatever changes are
 // made to anchor-bound (RootComponent / MeshSocket) entity behavior.
 //
 // Test flow:
 //   1. Create a bare parent transform on a fresh entity (Identity).
-//   2. utils_scene_node::Create(parent, ChildLocal) — child is a SceneNode
+//   2. utils_scene_node::Create(parent, ChildLocal) - child is a SceneNode
 //      whose Transform fragment was seeded from the parent's world. The
 //      FTag_SceneNode_RelativeTransformUpdated tag added by AssignLayerByIndex
 //      forces TProcessor_SceneNode_Update to compute the initial world.

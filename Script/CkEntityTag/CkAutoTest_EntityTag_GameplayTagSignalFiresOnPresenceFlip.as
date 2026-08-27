@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: GAMEPLAY TAG SIGNAL FIRES ON FLIP
+// CK ENTITY TAG - AUTOMATION TEST: GAMEPLAY TAG SIGNAL FIRES ON FLIP
 //============================================================================
 //
 // Mirror of CkAutoTest_EntityTag_SignalFiresOnPresenceFlip, but for the
 // OnGameplayTagUpdated signal. Add the same gameplay tag twice + remove
-// twice — exactly one Added + one Removed event for that tag.
+// twice - exactly one Added + one Removed event for that tag.
 //
 // Same shape as its FName twin: the silent 2->1 hop has no event to wait on,
 // so it settles for a fixed number of frames; the two presence flips are
@@ -36,7 +36,7 @@ class UCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip : UCk_AutoTest
             ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_EntityTag_OnGameplayTagUpdated(this, n"OnGameplayTagUpdated"));
 
-        // Add twice — only first fires Added for THIS tag.
+        // Add twice - only first fires Added for THIS tag.
         utils_entity_tag::Add_UsingGameplayTag(_Entity, _Tag);
         utils_entity_tag::Add_UsingGameplayTag(_Entity, _Tag);
 
@@ -80,7 +80,7 @@ class UCk_AutoTest_EntityTag_GameplayTagSignalFiresOnPresenceFlip : UCk_AutoTest
         Assert_Equals_Int(_RemovedCount, 1,
             "Removed must fire exactly once (count 1->0)");
         Assert_Equals_Int(_AddedCount, 1,
-            "Added count must remain 1 — no extra fires from removes");
+            "Added count must remain 1 - no extra fires from removes");
     }
 
     //------------------------------------------------------------------------

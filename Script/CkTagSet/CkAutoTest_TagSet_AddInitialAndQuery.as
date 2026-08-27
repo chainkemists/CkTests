@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAG SET — AUTOMATION TEST: ADD INITIAL TAGS + QUERY
+// CK TAG SET - AUTOMATION TEST: ADD INITIAL TAGS + QUERY
 //============================================================================
 //
 // Smoke test for the TagSet feature:

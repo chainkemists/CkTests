@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK CROSS-CUTTING — AUTOMATION TEST: SAME-FRAME ATTRIBUTE OVERRIDE COALESCES
+// CK CROSS-CUTTING - AUTOMATION TEST: SAME-FRAME ATTRIBUTE OVERRIDE COALESCES
 //============================================================================
 //
 // Pins the documented same-frame coalescing contract for CkAttribute (see
-// CkAttribute/CLAUDE.md anti-pattern #3 / CkAutoTest_CreationSpecification.txt
+// the CkAttribute docs anti-pattern #3 / CkAutoTest_CreationSpecification.txt
 // gotcha #10):
 //   Two Request_Override calls in one tick yield ONE OnValueChanged
 //   broadcast carrying the FINAL value (latest-write-wins).
@@ -51,7 +51,7 @@ class UCk_AutoTest_CrossCutting_SameFrame_AttributeOverrideCoalesces : UCk_AutoT
             ECk_MinMaxCurrent::Current,
             FCk_Delegate_IntegerAttribute_OnValueChanged(this, n"OnValueChanged"));
 
-        // Two writes in one frame — the processor's coalesce contract says
+        // Two writes in one frame - the processor's coalesce contract says
         // exactly one OnValueChanged fires, carrying 25 (latest-write-wins).
         utils_integer_attribute::Request_Override(_Attribute, 75, ECk_MinMaxCurrent::Current);
         utils_integer_attribute::Request_Override(_Attribute, 25, ECk_MinMaxCurrent::Current);

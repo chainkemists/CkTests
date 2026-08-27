@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT — AUTOMATION TEST: RESET-ALL RESTORES EVERY AUTHORED DEFAULT
+// CK INPUT - AUTOMATION TEST: RESET-ALL RESTORES EVERY AUTHORED DEFAULT
 //============================================================================
 //
 // ResetAllToDefaults is the "restore defaults" button on a settings page and
@@ -14,15 +14,15 @@
 // The reset goes through the shipped util rather than the profile directly.
 // UEnhancedPlayerMappableKeyProfile::ResetToDefault bypasses the settings
 // layer and broadcasts nothing, so CkInput fires OnSettingsChanged by hand
-// afterwards (CkKeyBinding_Utils.cpp:356-360) — calling the profile method
+// afterwards (CkKeyBinding_Utils.cpp:356-360) - calling the profile method
 // straight would leave every watcher stale.
 //
 // K and L are unused by this IMC's authored content, so neither remap can be
 // a disguised conflict resolution, and both land on the existing slot-First
-// rows rather than adding new ones — the remappable-key count is unchanged.
+// rows rather than adding new ones - the remappable-key count is unchanged.
 //
 // ResetAllToDefaults IS this test's teardown. Assert_* records a failure
-// without aborting, so the reset is reached on every path — a failed
+// without aborting, so the reset is reached on every path - a failed
 // assertion cannot also leak a rebind into the shared PIE session.
 //============================================================================
 
@@ -34,7 +34,7 @@ class UCk_AutoTest_Input_ResetAllRestoresEveryDefault : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the key profile lives on the local player");
+            FinishFailure("no local PlayerController - the key profile lives on the local player");
             return;
         }
 

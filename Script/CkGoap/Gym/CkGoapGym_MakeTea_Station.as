@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Make Tea station entity
+// CkGoapGym - Make Tea station entity
 //
 // Four-step linear dependency chain. Plan resolves to:
 //   [BoilWater, SteepLeaves, PourCup, Serve]
@@ -12,9 +12,9 @@
 //
 // Player commands:
 //   Goap.Tea.ToggleKettle / ToggleWater / ToggleLeaves / ToggleCup
-//     — flip each ingredient WS bit.
+//     - flip each ingredient WS bit.
 //   Goap.Tea.Reset
-//     — restore all ingredients (true) and clear partial-progress bits.
+//     - restore all ingredients (true) and clear partial-progress bits.
 //============================================================================
 
 USTRUCT()
@@ -59,12 +59,12 @@ class UCk_EntityScript_GoapGym_MakeTea_Station : UCk_GenericEntityScript_UE
         ActionSetParams.Set_WorldStateSource(_WS);
         ActionSetParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         // ----------------------------------------------------------------------
-        // Always-valid-plan tenet OPT-OUT (CkGoap/CLAUDE.md § "Design tenets").
+        // Always-valid-plan tenet OPT-OUT (the CkGoap docs Sec. "Design tenets").
         // This station INTENTIONALLY demonstrates PlanFailed as a teaching
         // exception: dropping an ingredient (HasKettle/HasWater/HasTeaLeaves/
         // HasCup) collapses the dependency chain and the planner returns
         // PlanFailed. Adding a fallback Action here would defeat the entire
-        // teaching purpose of the gym — we want to show what PlanFailed looks
+        // teaching purpose of the gym - we want to show what PlanFailed looks
         // like so consumers understand why every shipping Planner must avoid it.
         // The other CkGoap gym Planners all carry no-precondition fallbacks per
         // the tenet; only this one and the dedicated OptOutDemo station opt out.

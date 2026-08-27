@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER STRESS GYMS — GameModes
+// CK ISKM RENDERER STRESS GYMS - GameModes
 //============================================================================
 //
 // Two sibling GameModes registered with the gym cycler in CkTests_GymRegistry.

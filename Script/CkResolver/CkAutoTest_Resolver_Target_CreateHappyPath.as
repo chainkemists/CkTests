@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RESOLVER — AUTOMATION TEST: ResolverTarget Create (owned, with transform)
+// CK RESOLVER - AUTOMATION TEST: ResolverTarget Create (owned, with transform)
 
 class UCk_AutoTest_Resolver_Target_CreateHappyPath : UCk_AutoTest_Base
 {

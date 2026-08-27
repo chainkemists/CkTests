@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT — AUTOMATION TEST: UNBIND-AND-REMAP LEAVES THE HOLDER UNBOUND
+// CK INPUT - AUTOMATION TEST: UNBIND-AND-REMAP LEAVES THE HOLDER UNBOUND
 //============================================================================
 //
 // UnbindConflictAndRemap is the resolution that does NOT keep both actions
@@ -19,7 +19,7 @@
 // Interact is on E is therefore load-bearing, not scene-setting.
 //
 // The key-to-name index is asserted alongside Get_KeyForMapping because they
-// are separate reads of the same profile — the index is what a settings screen
+// are separate reads of the same profile - the index is what a settings screen
 // uses to render "also held by", and an unbind the index did not see would
 // leave a phantom conflict on the page.
 //
@@ -41,7 +41,7 @@ class UCk_AutoTest_Input_UnbindConflictAndRemapUnbindsHolder : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the key profile lives on the local player");
+            FinishFailure("no local PlayerController - the key profile lives on the local player");
             return;
         }
 
@@ -63,7 +63,7 @@ class UCk_AutoTest_Input_UnbindConflictAndRemapUnbindsHolder : UCk_AutoTest_Base
         Assert_True(JumpBefore == EKeys::SpaceBar,
             f"CkTests_Jump starts on its authored default SpaceBar (got {JumpBefore.GetKeyName()})");
         Assert_True(InteractBefore == EKeys::E,
-            f"CkTests_Interact starts on its authored default E — the holder has not been moved off it (got {InteractBefore.GetKeyName()})");
+            f"CkTests_Interact starts on its authored default E - the holder has not been moved off it (got {InteractBefore.GetKeyName()})");
 
         auto FailureReason = FGameplayTagContainer();
         auto Succeeded = utils_key_binding::UnbindConflictAndRemap(
@@ -84,7 +84,7 @@ class UCk_AutoTest_Input_UnbindConflictAndRemapUnbindsHolder : UCk_AutoTest_Base
         Assert_True(NamesOnE.Contains(n"CkTests_Jump"),
             "the key-to-name index lists CkTests_Jump under E after the resolution");
         Assert_False(NamesOnE.Contains(n"CkTests_Interact"),
-            "the key-to-name index no longer lists CkTests_Interact under E — E is not doubly bound");
+            "the key-to-name index no longer lists CkTests_Interact under E - E is not doubly bound");
 
         utils_key_binding::ResetAllToDefaults(PlayerController);
 

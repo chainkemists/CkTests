@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK MESSAGING — AUTOMATION TEST: EXPLICIT UNBIND
+// CK MESSAGING - AUTOMATION TEST: EXPLICIT UNBIND
 //============================================================================
 //
 // Verifies UnbindFrom_OnBroadcast removes a listener:
-//   1. Bind delegate, broadcast Ping → callback fires (count=1).
+//   1. Bind delegate, broadcast Ping -> callback fires (count=1).
 //   2. UnbindFrom_OnBroadcast.
 //   3. Broadcast another Ping.
 //   4. Wait several ticks; callback count should remain 1 (no second fire).
@@ -29,7 +29,7 @@ class UCk_AutoTest_Messaging_Unbind : UCk_AutoTest_Base
         utils_messaging::BindTo_OnBroadcast(_SelfHandle, FCk_Message_MessagingGym_Ping,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnPing"));
 
-        // First broadcast — should fire.
+        // First broadcast - should fire.
         utils_messaging::Broadcast(_SelfHandle,
             FCk_Message_MessagingGym_Ping("First", 1));
 

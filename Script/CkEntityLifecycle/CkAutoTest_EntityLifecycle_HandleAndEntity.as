@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: HANDLE & ENTITY BASICS
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: HANDLE & ENTITY BASICS
 //============================================================================
 //
 // Smoke test for the pure-synchronous handle/entity API surface. Mirrors
 // CkEntityLifecycleGym_HandleAndEntity. Each individual API is small enough
-// that a single bundled test is more useful than 8+ individual ones — if
+// that a single bundled test is more useful than 8+ individual ones - if
 // any of these fail, all of CkEcs is at risk.
 //
 // All operations here are synchronous, so the test can finish in a single
@@ -40,7 +40,7 @@ class UCk_AutoTest_EntityLifecycle_HandleAndEntity : UCk_AutoTest_Base
             "Valid handle should not equal invalid handle");
 
         // utils_handle: Break_Handle. Local renamed from "SelfEntity" to avoid
-        // shadowing the base-class property — see autotest_self_entity_shadow
+        // shadowing the base-class property - see autotest_self_entity_shadow
         // memory note.
         auto MyEntity = FCk_Entity();
         utils_handle::Break_Handle(LocalHandle, MyEntity);

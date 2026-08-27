@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: RESET AFTER COMPLETION — REUSABLE
+// CK INTERACTION - AUTOMATION TEST: RESET AFTER COMPLETION - REUSABLE
 //============================================================================
 //
 // Pins the contract that a Target with the default ConcurrentInteractionsPolicy
 // (SingleInteraction) can be interacted with AGAIN immediately after the
-// previous interaction completes — no leaked "still busy" state on the
+// previous interaction completes - no leaked "still busy" state on the
 // target's interaction fragment.
 //
 // Setup uses Instant completion so each interaction resolves in one tick:
-//   1. Start interaction #1 → OnNewInteraction → OnInteractionFinished.
+//   1. Start interaction #1 -> OnNewInteraction -> OnInteractionFinished.
 //   2. From inside the first OnInteractionFinished, queue interaction #2.
 //   3. Observe OnNewInteraction and OnInteractionFinished a SECOND time.
 //   4. Test succeeds when the second cycle completes cleanly (same Target,
@@ -90,12 +90,12 @@ class UCk_AutoTest_Interaction_ResetAfterCompletion_Reusable : UCk_AutoTest_Base
 
         if (_FinishedObservedCount == 1)
         {
-            // First cycle done — kick off the second.
+            // First cycle done - kick off the second.
             QueueStart();
             return;
         }
 
-        // Second cycle done — verify both observations look right.
+        // Second cycle done - verify both observations look right.
         Assert_Equals_Int(_NewObservedCount, 2,
             "Exactly two OnNewInteraction fires expected across the two cycles");
         Assert_True(_SecondInteraction != _FirstInteraction,

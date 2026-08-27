@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: CELL TAG-GATING (GRID DEFAULT ∪ PER-CELL)
+// CK GRID - AUTOMATION TEST: CELL TAG-GATING (GRID DEFAULT + PER-CELL)
 //============================================================================
 //
 // Pins the tag-gating union in Get_CanPlace: a cell's effective tag set is the

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: OWNERSHIP TREE
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: OWNERSHIP TREE
 //============================================================================
 //
 // Verifies the parent/child ownership API:
@@ -49,7 +49,7 @@ class UCk_AutoTest_EntityLifecycle_OwnershipTree : UCk_AutoTest_Base
         Assert_True(Dependents.Num() >= 2,
             f"Test entity should have at least 2 dependents (got {Dependents.Num()})");
 
-        // Transient flag — note the actual semantics: Get_IsTransientEntity
+        // Transient flag - note the actual semantics: Get_IsTransientEntity
         // checks whether the handle IS the singleton transient root entity for
         // its registry (CkEntityLifetime_Utils.cpp:185), not "was this entity
         // created with a transient owner". A child of the transient root is
@@ -61,12 +61,12 @@ class UCk_AutoTest_EntityLifecycle_OwnershipTree : UCk_AutoTest_Base
         Assert_True(!utils_entity_lifetime::Get_IsTransientEntity(LocalHandle),
             "Test entity should NOT be the transient root");
 
-        // World retrieval — local renamed from "World" to avoid shadowing
+        // World retrieval - local renamed from "World" to avoid shadowing
         // the base-class GetWorld accessor.
         auto EntityWorld = utils_entity_lifetime::Get_WorldForEntity(LocalHandle);
         Assert_True(ck::IsValid(EntityWorld), "Get_WorldForEntity should return a valid world");
 
-        // Cleanup transient entity (non-essential — the harness tears down the
+        // Cleanup transient entity (non-essential - the harness tears down the
         // test entity which will cascade-destroy ChildA/ChildB regardless).
         utils_entity_lifetime::Request_DestroyEntity(Transient);
 

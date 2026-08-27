@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: STOP-ON-DONE BEHAVIOR
+// CK TIMER - AUTOMATION TEST: STOP-ON-DONE BEHAVIOR
 //============================================================================
 //
 // Verifies the StopOnDone behavior. NOTE: ECk_Timer_State only has Paused
-// and Running — there is no Stopped enum value. After a Stop request the
+// and Running - there is no Stopped enum value. After a Stop request the
 // processor removes the NeedsUpdate tag and broadcasts a separate OnStop
 // signal (see CkTimer_Processor.cpp). Get_CurrentState() reports Paused
 // for both Stop and Pause, so the only way to distinguish StopOnDone from

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: VALIDATION REJECTS BY CUSTOM PREDICATE
+// CK INTERACTION - AUTOMATION TEST: VALIDATION REJECTS BY CUSTOM PREDICATE
 //============================================================================
 //
 // Verifies the CustomValidationFailed rejection path:

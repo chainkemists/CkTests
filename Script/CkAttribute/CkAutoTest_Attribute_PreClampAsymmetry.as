@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: PRE-CLAMP ASYMMETRY (DIRECTIONLESS ACCESSOR)
+// CK ATTRIBUTE - AUTOMATION TEST: PRE-CLAMP ASYMMETRY (DIRECTIONLESS ACCESSOR)
 //============================================================================
 //
 // Pins the directionless `Get_PreClampFinalValue` contract in
-// CkAttribute/CLAUDE.md (Pre-clamp / overflow polling section):
+// the CkAttribute docs (Pre-clamp / overflow polling section):
 //
 //   The attribute system writes a TFragment_Attribute_PreClampFinalValue<T,Dir>
 //   per direction at clamp time. Min and Max Clamp processors run sequentially
-//   — each capturing _Final at *its own* start — so the two fragments do NOT
+//   - each capturing _Final at *its own* start - so the two fragments do NOT
 //   symmetrically capture the pre-any-clamp value.
 //
 //   |                       | PreClamp<Min>          | PreClamp<Max>          |
@@ -101,7 +101,7 @@ class UCk_AutoTest_Attribute_PreClampAsymmetry : UCk_AutoTest_Base
         {
             _MinObserved = true;
             Assert_Equals_Int(utils_integer_attribute::Get_PreClampFinalValue(_Attribute), -50,
-                "After overriding to -50, Get_PreClampFinalValue should return raw -50 (NOT 0 — directionless accessor must abstract over fragment asymmetry)");
+                "After overriding to -50, Get_PreClampFinalValue should return raw -50 (NOT 0 - directionless accessor must abstract over fragment asymmetry)");
             Assert_Equals_Int(utils_integer_attribute::Get_ClampOverflow(_Attribute), -50,
                 "ClampOverflow should be -50 (negative = under min)");
             FinishSuccess();

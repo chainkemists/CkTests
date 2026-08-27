@@ -65,7 +65,7 @@ class ACk_PixelArtGym_JudgeScene : AActor
     }
 
     // "Its OWN lighting rather than the map's" has to mean the map's is OFF, not merely outshone: a second
-    // directional doubles every shadow — two overlapping penumbrae that read as jitter on thin features —
+    // directional doubles every shadow - two overlapping penumbrae that read as jitter on thin features
     // and makes the engine's forward-light selection unstable (the on-screen ForwardShadingPriority
     // warning). Suppressed rather than destroyed, and restored on EndPlay, so every other gym keeps the
     // shared map's lighting exactly as it was.
@@ -100,7 +100,7 @@ class ACk_PixelArtGym_JudgeScene : AActor
         }
 
         if (_SuppressedMapLights.Num() > 0)
-        { ck::Trace(f"🟪 Pixel Art Gym: suppressed {_SuppressedMapLights.Num()} map light(s) - the judge scene owns the lighting while it is alive"); }
+        { ck::Trace(f"* Pixel Art Gym: suppressed {_SuppressedMapLights.Num()} map light(s) - the judge scene owns the lighting while it is alive"); }
     }
 
     UFUNCTION(BlueprintOverride)
@@ -125,7 +125,7 @@ class ACk_PixelArtGym_JudgeScene : AActor
 
         if (Mesh == nullptr)
         {
-            ck::Error(f"❌ PixelArt Gym: could not load {InMeshPath}");
+            ck::Error(f"[FAIL] PixelArt Gym: could not load {InMeshPath}");
             return nullptr;
         }
 
@@ -163,7 +163,7 @@ class ACk_PixelArtGym_JudgeScene : AActor
 
         // A HARD sun, deliberately: the default 0.54-degree source angle grows a penumbra several texels
         // wide at this scene's depths, and virtual shadow maps sample penumbrae stochastically per frame
-        // expecting temporal AA to clean the noise — which this renderer requires OFF. A zero source angle
+        // expecting temporal AA to clean the noise - which this renderer requires OFF. A zero source angle
         // collapses the penumbra to the crisp texel-snapped edge the style wants anyway.
         KeyLight.SetLightSourceAngle(0.0f);
 
@@ -204,7 +204,7 @@ class ACk_PixelArtGym_JudgeScene : AActor
 
     private void Build_ThinRail()
     {
-        // Roughly one texel wide at 360p from the gym's viewing distance — the point of it is to be at the
+        // Roughly one texel wide at 360p from the gym's viewing distance - the point of it is to be at the
         // edge of what the resolution can represent at all.
         Spawn_Shape("/Engine/BasicShapes/Cylinder.Cylinder", FVector(-350.0f, 0.0f, 220.0f),
             FVector(0.06f, 0.06f, 4.0f), FRotator(0.0f, 0.0f, 90.0f), FLinearColor(0.80f, 0.80f, 0.84f, 1.0f));
@@ -219,7 +219,7 @@ class ACk_PixelArtGym_JudgeScene : AActor
     // A per-frame scene capture, kept deliberately: its view family renders BETWEEN the game viewport's
     // SetupViewFamily and BeginRenderViewFamily hooks, which is exactly the interleave that once dropped the
     // upscaler for any world holding a minimap-style capture. With the capture alive, a regression of that
-    // guard is unmissable — the whole gym goes soft and mis-framed — where without one the defect is invisible
+    // guard is unmissable - the whole gym goes soft and mis-framed - where without one the defect is invisible
     // in every station. 128x128 keeps its cost negligible.
     private void Build_CaptureTripwire()
     {
@@ -232,10 +232,10 @@ class ACk_PixelArtGym_JudgeScene : AActor
         // Loud either way: an inert tripwire is worse than none, because it reads as coverage.
         if (ck::Is_NOT_Valid(Capture.TextureTarget))
         {
-            ck::Error("❌ Pixel Art Gym: the capture tripwire has NO render target - it captures nothing and the capture-interleave path is not being exercised");
+            ck::Error("[FAIL] Pixel Art Gym: the capture tripwire has NO render target - it captures nothing and the capture-interleave path is not being exercised");
             return;
         }
 
-        ck::Trace("🟪 Capture tripwire alive: a 128x128 scene capture renders every frame beside the gym");
+        ck::Trace("* Capture tripwire alive: a 128x128 scene capture renders every frame beside the gym");
     }
 }

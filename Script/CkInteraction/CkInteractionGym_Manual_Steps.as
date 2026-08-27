@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// MANUAL INTERACTION GYM — STEP STATES
+// MANUAL INTERACTION GYM - STEP STATES
 //============================================================================
 //
 // The demo sequence for the ManuallyCompleted interaction station, as a
@@ -15,7 +15,7 @@
 // are different steps even though they perform the same action.
 //
 // Dwell is UCk_Gym_Dwell_Short (1.0s), which is exactly the interval the
-// station's gym_auto::Setup used — migrating must not retime the demo.
+// station's gym_auto::Setup used - migrating must not retime the demo.
 //
 // Each state acts on the STATION ENTITY through utils_*, never on the station
 // script's members. In particular the in-flight interaction is re-derived from
@@ -30,7 +30,7 @@ namespace interaction_gym_manual
         if (ck::Is_NOT_Valid(InStation))
         { return FCk_Handle_InteractTarget(); }
 
-        // TryGet is keyed by CHANNEL, not just owner — an entity can host targets
+        // TryGet is keyed by CHANNEL, not just owner - an entity can host targets
         // on several channels. The station composes its target on the gym's
         // default channel, so resolve against the same one.
         return utils_interact_target::TryGet(InStation, interaction_gym_helpers::DefaultChannel());

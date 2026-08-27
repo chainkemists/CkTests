@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CkProjectileGym — Homing Point-on-Target station
+// CkProjectileGym - Homing Point-on-Target station
 //
 // The target is a big slowly-spinning body with a "weak spot" 250 units off
 // its center. The interceptor is told to home on that point via
-// WorldSpacePointOnTarget — the offset is captured in the target's local
+// WorldSpacePointOnTarget - the offset is captured in the target's local
 // space at request time, so as the target spins, the chased point orbits it
 // and the interceptor follows the orbit, not the center.
 //============================================================================
@@ -89,7 +89,7 @@ class UCk_EntityScript_ProjectileGym_HomingPointOnTarget_Station : UCk_GenericEn
     UFUNCTION()
     private void OnTick(FCk_Handle_Timer InHandle, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        // Spin the target — the captured local-space weak spot orbits with it
+        // Spin the target - the captured local-space weak spot orbits with it
         utils_transform::Request_AddRotationOffset(FCk_Handle(_TargetTransform),
             FRotator(0.0, 60.0 * float(InDeltaT.Get_Seconds()), 0.0), ECk_LocalWorld::World);
 

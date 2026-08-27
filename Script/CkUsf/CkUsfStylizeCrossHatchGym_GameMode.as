@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Cross-Hatch gym GameMode (minimal — all logic lives in the PlayerController).
+// Cross-Hatch gym GameMode (minimal - all logic lives in the PlayerController).
 // Registered with the gym cycler in CkTests_GymRegistry.as as "Stylize: Cross Hatch".
 // --------------------------------------------------------------------------------------------------------------------
 

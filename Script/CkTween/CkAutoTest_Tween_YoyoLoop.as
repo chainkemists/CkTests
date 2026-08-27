@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: YOYO LOOP TYPE
+// CK TWEEN - AUTOMATION TEST: YOYO LOOP TYPE
 //============================================================================
 //
 // Verifies LoopType::Yoyo with a finite loop count fires OnLoop on each
@@ -12,7 +12,7 @@
 //   3. OnLoop fires at least once before OnComplete; OnComplete fires
 //      exactly once.
 //
-// Companion to Tween_LoopRestart — that one tests Restart-loop direction
+// Companion to Tween_LoopRestart - that one tests Restart-loop direction
 // preservation; this one tests Yoyo direction reversal.
 //============================================================================
 

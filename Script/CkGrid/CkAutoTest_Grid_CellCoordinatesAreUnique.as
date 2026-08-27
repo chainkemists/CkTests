@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: CELL COORDINATES ARE UNIQUE AND IN-RANGE
+// CK GRID - AUTOMATION TEST: CELL COORDINATES ARE UNIQUE AND IN-RANGE
 //============================================================================
 //
 // Verifies the per-cell coordinate query:
@@ -35,7 +35,7 @@ class UCk_AutoTest_Grid_CellCoordinatesAreUnique : UCk_AutoTest_Base
         auto Cells = utils_2d_grid_system::ForEach_Cell(Grid, ECk_2dGridSystem_CellFilter::NoFilter);
         Assert_Equals_Int(Cells.Num(), 12, "3x4 grid should produce 12 cells");
 
-        // Track which (X,Y) pairs we've seen — pack into a single int for set membership
+        // Track which (X,Y) pairs we've seen - pack into a single int for set membership
         // (X * 100 + Y is unique within the small dimensions used here).
         auto SeenKeys = TSet<int32>();
         auto AllInRange = true;

@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER TOP-LEVEL EMERGENCE
+// CK GOAP - AUTOMATION TEST: PLANNER TOP-LEVEL EMERGENCE
 //============================================================================
 //
 // Validates: top-level Planner identification is runtime-observable, not
 // declared. A Planner is "top-level" when its root Action has no active
-// parent — i.e. Get_ActiveParentAction on the root Action returns null.
+// parent - i.e. Get_ActiveParentAction on the root Action returns null.
 //
 // Setup:
 //   - Single owner entity.
@@ -14,12 +14,12 @@
 //       Planner_A: tag AutoTest.Goap.ActionSet.Set,  WS pre-seeded AKey=true.
 //       Planner_B: tag AutoTest.Goap.ActionSet.Set2, WS pre-seeded BKey=true.
 //   - Each Planner gets its own AddAction call with a distinct Action class.
-//   - Both Planners have pre-satisfied goals → empty plans → PlanFound.
+//   - Both Planners have pre-satisfied goals -> empty plans -> PlanFound.
 //
 // Assertions (driven by OnPlanComplete on each root):
 //   1. Both roots produce PlanFound.
-//   2. Get_ActiveParentAction(RootA) == nullptr  → top-level (no parent class).
-//   3. Get_ActiveParentAction(RootB) == nullptr  → top-level (no parent class).
+//   2. Get_ActiveParentAction(RootA) == nullptr  -> top-level (no parent class).
+//   3. Get_ActiveParentAction(RootB) == nullptr  -> top-level (no parent class).
 //   4. Root handles are distinct (separate Planner entities).
 //
 // After both roots plan:
@@ -70,7 +70,7 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParamsA.Set_Goal(GoalA);
         PlannerParamsA.Set_WorldStateSource(WS);
-        // Two top-level Planners under one owner → Create (named child Planners);
+        // Two top-level Planners under one owner -> Create (named child Planners);
         // Add stamps onto Local directly and rejects the second call.
         _PlannerA = utils_goap_planner::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"),
@@ -111,11 +111,11 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
         // This is the invariant: root Actions of top-level Planners have no parent.
         auto ParentA = utils_goap_action::Get_ActiveParentAction(_RootA);
         Assert_True(ParentA == nullptr,
-            "RootA's Get_ActiveParentAction must be null — it is a top-level Planner root");
+            "RootA's Get_ActiveParentAction must be null - it is a top-level Planner root");
 
         auto ParentB = utils_goap_action::Get_ActiveParentAction(_RootB);
         Assert_True(ParentB == nullptr,
-            "RootB's Get_ActiveParentAction must be null — it is a top-level Planner root");
+            "RootB's Get_ActiveParentAction must be null - it is a top-level Planner root");
 
         // Bind OnPlanComplete on both roots to confirm independent ticking.
         utils_goap_planner::BindTo_OnPlanComplete(_PlannerA,
@@ -137,7 +137,7 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
         // Verify top-level identity is still observable after planning.
         auto ParentA = utils_goap_action::Get_ActiveParentAction(_RootA);
         Assert_True(ParentA == nullptr,
-            "RootA's Get_ActiveParentAction must still be null after PlanFound — top-level identity is stable");
+            "RootA's Get_ActiveParentAction must still be null after PlanFound - top-level identity is stable");
 
         TryFinish();
     }
@@ -155,7 +155,7 @@ class UCk_AutoTest_Goap_Planner_TopLevelEmergence : UCk_AutoTest_Base
         // Verify top-level identity is still observable after planning.
         auto ParentB = utils_goap_action::Get_ActiveParentAction(_RootB);
         Assert_True(ParentB == nullptr,
-            "RootB's Get_ActiveParentAction must still be null after PlanFound — top-level identity is stable");
+            "RootB's Get_ActiveParentAction must still be null after PlanFound - top-level identity is stable");
 
         TryFinish();
     }

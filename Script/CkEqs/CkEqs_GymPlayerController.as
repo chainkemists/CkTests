@@ -70,7 +70,7 @@ class ACk_EqsGym_PlayerController : ACk_Gym_Base_PlayerController
             ECkEqsGym_Scenario::Donut_Dot);
 
         SpawnStation("Gym.Eqs.Cone", "CONE GENERATOR",
-            "Forward 90deg cone, 500uu range, 15deg/100uu step.\nNo tests — generator output only.\nAllMatchingSorted returns every candidate.",
+            "Forward 90deg cone, 500uu range, 15deg/100uu step.\nNo tests - generator output only.\nAllMatchingSorted returns every candidate.",
             ECkEqsGym_Scenario::Cone_Generator);
 
         SpawnStation("Gym.Eqs.Immediate", "IMMEDIATE SYNC",
@@ -139,7 +139,7 @@ class ACk_EqsGym_PlayerController : ACk_Gym_Base_PlayerController
 
     private void SpawnFloor()
     {
-        // Reuses ACk_Gym_Floor (CkTests/Script/Common/CkGym_Floor.as) — generic floor
+        // Reuses ACk_Gym_Floor (CkTests/Script/Common/CkGym_Floor.as) - generic floor
         // actor with collision + nav settings. The EQS NavProjection station needs the
         // baked navmesh that this floor produces; other stations just use it as a visible
         // reference surface. 4000cm x 4000cm covers the station-anchor footprint plus a

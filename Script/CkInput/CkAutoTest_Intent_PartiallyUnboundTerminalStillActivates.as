@@ -1,41 +1,41 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A PARTIALLY-UNBOUND TERMINAL STILL ACTIVATES
+// CK INTENT - AUTOMATION TEST: A PARTIALLY-UNBOUND TERMINAL STILL ACTIVATES
 //============================================================================
 //
 // The swap is atomic on EMPTINESS, not on "every declared slot is bound". A
 // Mapped button that still resolves on ONE device while another slot sits
 // unbound is a state a player can produce from a settings screen, not a
-// defective set — so activation must succeed with the keys it has, and the
+// defective set - so activation must succeed with the keys it has, and the
 // terminal must still be completable from whichever key remains.
 //
 // CkAutoTest_Intent_SwapSetIsAtomic already proves the OTHER half of this
-// contract — a terminal that resolves to ZERO keys rejects the WHOLE swap and
-// leaves the previous set untouched — using a Physical button name the map
+// contract - a terminal that resolves to ZERO keys rejects the WHOLE swap and
+// leaves the previous set untouched - using a Physical button name the map
 // never minted at all. This test does not repeat that atomicity proof; it
 // exercises the specific path SwapSetIsAtomic cannot reach: a MAPPED button
 // that WAS resolvable, is reduced to one key, still activates, then is
 // reduced further to zero keys by unbinding its last slot and rejects.
 //
 // Per-slot unbinding goes through utils_key_binding::RemapKey with
-// EKeys::Invalid as the new key (CkInput/CLAUDE.md "The button space": there
+// EKeys::Invalid as the new key (the CkInput docs "The button space": there
 // is no UnMapPlayerKey call in this module because that engine entry point
-// RESETS to default rather than unbinding — RemapKey(..., EKeys::Invalid, ...)
+// RESETS to default rather than unbinding - RemapKey(..., EKeys::Invalid, ...)
 // is the documented unbind). No existing AutoTest unbinds a single SLOT of a
 // multi-slot mapping (the closest precedent, UnbindConflictAndRemapUnbindsHolder,
-// unbinds a single-slot mapping outright) — this is the first one to.
+// unbinds a single-slot mapping outright) - this is the first one to.
 //
 // TEARDOWN IS UNCONDITIONAL, and it has to be RESTORED RATHER THAN CLAIMED:
 // all autotests share one PIE session and profile rows outlive the test that
 // touched them, so a CkTests_DualBound left half-unbound is not one red, it is
 // every later test that reads that row. Putting the reset in the final step
-// only covers the route where every step runs — a wait that exhausts its poll
+// only covers the route where every step runs - a wait that exhausts its poll
 // budget goes through FinishFailure, which stops the sequencer where it stands
 // and never reaches the steps behind it. So the reset lives in DoRestoreMapping
 // and is driven from BOTH routes: the last step on the way out, and a
 // FinishFailure override on every other. It is idempotent, so the two cannot
-// double up. A single ResetMappingToDefault call restores BOTH slots — it
+// double up. A single ResetMappingToDefault call restores BOTH slots - it
 // resets the whole row, not one slot at a time
 // (Settings->ResetAllPlayerKeysInRow).
 //============================================================================
@@ -72,7 +72,7 @@ class UCk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates : UCk_AutoTest_
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 
@@ -126,8 +126,8 @@ class UCk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates : UCk_AutoTest_
     }
 
     // The failure route out of this test. Every wait above can end here instead of at its next
-    // step — a budget that runs out calls FinishFailure, which stops the sequencer where it stands
-    // — so this is the only place the profile restore can sit and still be reached from a run that
+    // step - a budget that runs out calls FinishFailure, which stops the sequencer where it stands
+    // - so this is the only place the profile restore can sit and still be reached from a run that
     // did NOT complete. Restoring FIRST matters: Super writes the terminal result, and a mutation
     // queued after that write is racing the runner's poll.
     void FinishFailure(const FString& InMessage) override
@@ -284,7 +284,7 @@ class UCk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates : UCk_AutoTest_
 
     // Idempotent because it is reached from two routes and must not care which arrived first: the
     // final step on the way out, and the FinishFailure override on every other. The guards are not
-    // defensive noise either — DoBeginPlay's own early-outs call FinishFailure before there is a
+    // defensive noise either - DoBeginPlay's own early-outs call FinishFailure before there is a
     // controller or a map to talk to.
     private void DoRestoreMapping()
     {
@@ -324,7 +324,7 @@ class UCk_AutoTest_Intent_PartiallyUnboundTerminalStillActivates : UCk_AutoTest_
         auto Baked = utils_intent_grammar::Bake(Definitions, Rows, 3);
 
         Assert_True(Baked.Get_Outcome() == ECk_SucceededFailed::Succeeded,
-            "the fixture set must compile — this test is about ACTIVATION, not about the bake");
+            "the fixture set must compile - this test is about ACTIVATION, not about the bake");
 
         return Baked.Get_CompiledSet();
     }

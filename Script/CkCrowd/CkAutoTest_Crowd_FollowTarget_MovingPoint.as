@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CROWD — AUTOMATION TEST: FOLLOW TARGET (moving point)
+// CK CROWD - AUTOMATION TEST: FOLLOW TARGET (moving point)
 //============================================================================
 //
 // Pins the FCk_Request_CrowdAgent_FollowTarget contract: the goal is a LIVE
@@ -9,11 +9,11 @@
 //
 //   1. CHASE. An agent follows a target point that GLIDES away along a path
 //      (a manual tween, driven by the sample timer). The agent must converge
-//      on the target's FINAL position — a snapshot MoveTo would park at the
+//      on the target's FINAL position - a snapshot MoveTo would park at the
 //      START position, which ends up several hundred cm away.
 //   2. RE-ENGAGE. Once the agent has arrived and gone Idle, the target jumps
 //      to a fresh spot. The follow must WAKE the idle agent and converge
-//      again — arrival is not terminal while the follow stands.
+//      again - arrival is not terminal while the follow stands.
 //
 // REQUIREMENT: navmesh from (-500, -500) to (500, 500) on the AutoTests map
 // (same fixture as the Pathfinding tests). All coordinates stay within it.
@@ -37,7 +37,7 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
 
     private const float SampleIntervalSec = 0.05;
 
-    // Phase 1: the target glides Start->End over GlideSeconds (~80cm/s — slower
+    // Phase 1: the target glides Start->End over GlideSeconds (~80cm/s - slower
     // than the agent, so the chase can converge).
     private const float GlideStartSec = 1.0;
     private const float GlideSeconds  = 5.0;
@@ -55,7 +55,7 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        // This entity IS the chasing agent — spawned facing its target.
+        // This entity IS the chasing agent - spawned facing its target.
         LocalHandle.Set_DebugName(n"FollowTarget_Chaser");
         auto AgentTransform = utils_transform::Add(LocalHandle,
             FTransform((TargetStart - AgentSpawn).Rotation(), AgentSpawn, FVector::OneVector),
@@ -63,7 +63,7 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
 
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
 
-        // The moving TARGET POINT — a bare transform entity the sample timer glides.
+        // The moving TARGET POINT - a bare transform entity the sample timer glides.
         auto TargetEntity = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         _TargetPoint = utils_transform::Add(TargetEntity,
             FTransform(FRotator::ZeroRotator, TargetStart, FVector::OneVector),
@@ -79,7 +79,7 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(LocalHandle);
 
-        // ONE follow request for the whole test — everything after this is the
+        // ONE follow request for the whole test - everything after this is the
         // follow keeping itself alive.
         auto Follow = FCk_Request_CrowdAgent_FollowTarget(_TargetPoint);
         Follow.Set_ArrivalRadiusOverrideMode(ECk_Override::Override);
@@ -127,14 +127,14 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
                 // The clincher: the glided end is ~400cm from the start snapshot. An
                 // agent parked at the snapshot cannot be near the target now.
                 Assert_True(float((AgentLoc - TargetStart).Size()) > ArrivalRadiusCm + ConvergeSlackCm,
-                    "agent converged AT the original snapshot — the target glided away, so the follow never re-pathed");
+                    "agent converged AT the original snapshot - the target glided away, so the follow never re-pathed");
 
                 _PhaseChaseDone = true;
                 return;
             }
             if (_ElapsedSec >= ChaseDeadlineSec)
             {
-                FinishFailure(f"CHASE: agent never converged on the moving target — still {float((AgentLoc - TargetLoc).Size())}cm away at t={_ElapsedSec} (a snapshot MoveTo parks at the target's START and never follows)");
+                FinishFailure(f"CHASE: agent never converged on the moving target - still {float((AgentLoc - TargetLoc).Size())}cm away at t={_ElapsedSec} (a snapshot MoveTo parks at the target's START and never follows)");
                 return;
             }
             return;
@@ -145,7 +145,7 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
         {
             _TargetJumped = true;
             utils_transform::Request_SetLocation(_TargetPoint, FCk_Request_Transform_SetLocation(TargetJumpTo));
-            ck::crowd::Log(f"[FOLLOW] target jumped to {TargetJumpTo} at t={_ElapsedSec} — the arrived agent must wake and re-converge");
+            ck::crowd::Log(f"[FOLLOW] target jumped to {TargetJumpTo} at t={_ElapsedSec} - the arrived agent must wake and re-converge");
             return;
         }
 
@@ -157,7 +157,7 @@ class UCk_AutoTest_Crowd_FollowTarget_MovingPoint : UCk_AutoTest_Base
 
         if (_ElapsedSec >= ResumeDeadlineSec)
         {
-            FinishFailure(f"RE-ENGAGE: the target jumped away after the agent arrived, but the agent never followed — still {float((AgentLoc - TargetJumpTo).Size())}cm away at t={_ElapsedSec}. Arrival must not be terminal while the follow stands.");
+            FinishFailure(f"RE-ENGAGE: the target jumped away after the agent arrived, but the agent never followed - still {float((AgentLoc - TargetJumpTo).Size())}cm away at t={_ElapsedSec}. Arrival must not be terminal while the follow stands.");
             return;
         }
     }

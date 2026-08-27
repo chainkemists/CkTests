@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK COMPASS — AUTOMATION TEST: entry appear/disappear membership signals
+// CK COMPASS - AUTOMATION TEST: entry appear/disappear membership signals
 //============================================================================
 //
 // Membership deltas are the push contract: creating an in-range POI fires
@@ -45,7 +45,7 @@ class UCk_AutoTest_Compass_AppearDisappear_Signals : UCk_AutoTest_Base
 
         // Let the empty compass settle a couple of frames first.
         // Frame-settle, not a condition: this phase asserts that NOTHING has
-        // fired yet, so there is no observable to converge on — a predicate
+        // fired yet, so there is no observable to converge on - a predicate
         // would be true immediately and prove nothing.
         Add_Step_WaitFrames("let any spurious pre-POI signal land",      2);
         Add_Step(          "assert no signals yet, then create the POI", n"Step_AssertEmpty_CreatePoi");
@@ -92,7 +92,7 @@ class UCk_AutoTest_Compass_AppearDisappear_Signals : UCk_AutoTest_Base
     }
 
     //------------------------------------------------------------------------
-    // Conditions — >= so an over-fire is caught by the "exactly once"
+    // Conditions - >= so an over-fire is caught by the "exactly once"
     // assertions above rather than never converging.
     //------------------------------------------------------------------------
 

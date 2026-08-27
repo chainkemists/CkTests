@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: CONTACT SIGNALS FIRE ON IMPACT (ADD + REMOVE)
+// CK JOLT - AUTOMATION TEST: CONTACT SIGNALS FIRE ON IMPACT (ADD + REMOVE)
 //============================================================================
 //
 // A dropped Dynamic box hitting a Static floor must raise OnJoltBodyContactAdded
@@ -11,7 +11,7 @@
 //   1. Static floor (a LIVE entity) + a Dynamic box dropped onto it.
 //   2. On ContactAdded assert: _OtherEntity == the floor entity; _RelativeNormalSpeed
 //      > 0 (positive-when-closing convention); _ContactNormal roughly +Z on the box's
-//      surface (dot with +Z > 0.7 — the box's contact face points up away from the floor).
+//      surface (dot with +Z > 0.7 - the box's contact face points up away from the floor).
 //   3. Let it settle, then Teleport the box far away -> OnJoltBodyContactRemoved fires.
 //
 // Placed at an isolated Y so it never touches other autotests' physics bodies.
@@ -135,7 +135,7 @@ class UCk_AutoTest_CkJolt_ContactSignalsFireOnImpact : UCk_AutoTest_Base
             return;
         }
 
-        // Phase 2 — the broken contact must raise OnJoltBodyContactRemoved.
+        // Phase 2 - the broken contact must raise OnJoltBodyContactRemoved.
         _ElapsedSinceContact += float(InDeltaT.Get_Seconds());
         if (_ContactRemoved)
         {

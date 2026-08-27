@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRAPHICS — AUTOMATION TEST: RENDER STATUS ADD CREATES FEATURE
+// CK GRAPHICS - AUTOMATION TEST: RENDER STATUS ADD CREATES FEATURE
 //============================================================================
 //
 // First-coverage seed for CkGraphics. Adding a RenderStatus feature with

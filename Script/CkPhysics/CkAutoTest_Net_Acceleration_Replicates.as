@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PHYSICS — NET AUTOMATION TEST: ACCELERATION REPLICATES
+// CK PHYSICS - NET AUTOMATION TEST: ACCELERATION REPLICATES
 //============================================================================
 //
 // The default NetSubject's entity-script adds a Replicates Acceleration (World
@@ -35,7 +35,7 @@ class UCk_AutoTest_Net_Acceleration_Replicates : UCk_AutoTest_NetBase
 
         auto Acceleration = NetSubject._TestAcceleration;
         if (ck::Is_NOT_Valid(Acceleration))
-        { FinishFailure("Acceleration handle null — entity-script Construct didn't stash it?"); return; }
+        { FinishFailure("Acceleration handle null - entity-script Construct didn't stash it?"); return; }
 
         if (utils_net::Get_HasAuthority(Subject))
         {

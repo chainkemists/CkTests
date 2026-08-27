@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: FORBIDDEN-TAG GATING + REQUIRED∩FORBIDDEN
+// CK GRID - AUTOMATION TEST: FORBIDDEN-TAG GATING + REQUIRED&FORBIDDEN
 //============================================================================
 //
 // TagFilter only covers _RequiredCellTags. This pins the forbidden side of
-// Get_CanPlace's tag-gating (and the Required∩Forbidden interaction):
+// Get_CanPlace's tag-gating (and the Required&Forbidden interaction):
 //
 // Fixture:
 //   - 10x10 grid with _DefaultCellTags = { Grid.Zone.Produce } (every cell).

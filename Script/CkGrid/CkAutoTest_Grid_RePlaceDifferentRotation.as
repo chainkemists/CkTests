@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: RE-PLACE SAME OCCUPANT AT A DIFFERENT ROTATION
+// CK GRID - AUTOMATION TEST: RE-PLACE SAME OCCUPANT AT A DIFFERENT ROTATION
 //============================================================================
 //
 // Lifecycle/ordering hardening: re-placing the SAME occupant at a new rotation

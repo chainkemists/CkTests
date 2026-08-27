@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — NET AUTOMATION TEST: RAW-HANDLE PROPERTY IN A REPLICATED DYN FRAGMENT
+// CK DYNAMIC - NET AUTOMATION TEST: RAW-HANDLE PROPERTY IN A REPLICATED DYN FRAGMENT
 //============================================================================
 //
 // CONTROL case for the dynamic-handle repro. A replicated dynamic fragment whose
@@ -11,7 +11,7 @@
 //   (2) it reported the correct changed type,
 //   (3) the carried FCk_Handle resolves to the CLIENT's subject entity.
 //
-// Per the bug report, a raw FCk_Handle is expected to PASS — this test pins that
+// Per the bug report, a raw FCk_Handle is expected to PASS - this test pins that
 // baseline so the dynamic-handle variant's failure is unambiguously about the
 // handle TYPE, not about handles-in-replicated-dynamic-fragments in general.
 //

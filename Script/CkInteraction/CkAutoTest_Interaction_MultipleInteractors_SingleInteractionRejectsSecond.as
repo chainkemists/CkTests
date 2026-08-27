@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: MULTIPLE INTERACTORS / SINGLE-INTERACTION
+// CK INTERACTION - AUTOMATION TEST: MULTIPLE INTERACTORS / SINGLE-INTERACTION
 //============================================================================
 //
 // Pins the contention contract at the Request_StartInteraction level: under

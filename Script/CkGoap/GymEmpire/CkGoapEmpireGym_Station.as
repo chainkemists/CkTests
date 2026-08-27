@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapEmpire_Gym — single-station 5-action plan
+// CkGoapEmpire_Gym - single-station 5-action plan
 //
 // Plan resolves to 5 steps. Player commands:
 //   Goap.Empire.ToggleFood / Gold / Wood / Barracks / Feudal
-//     — flip each resource WS bit individually.
+//     - flip each resource WS bit individually.
 //   Goap.Empire.Reset
-//     — clear everything to false.
+//     - clear everything to false.
 //============================================================================
 
 USTRUCT()
@@ -63,7 +63,7 @@ class UCk_EntityScript_GoapGym_Empire_Station : UCk_GenericEntityScript_UE
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_BuildBarracks));
         utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_ResearchFeudal));
-        // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
+        // Always-valid-plan tenet fallback - see the CkGoap docs Sec. "Design tenets".
         utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_Empire_WaitForOrders));
 

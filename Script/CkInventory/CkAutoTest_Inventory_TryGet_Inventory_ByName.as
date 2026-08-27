@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: TRYGET_INVENTORY BY NAME
+// CK INVENTORY - AUTOMATION TEST: TRYGET_INVENTORY BY NAME
 //============================================================================
 //
 // Pins the `TryGet_Inventory(Owner, Name)` lookup contract on an owner that
@@ -14,7 +14,7 @@
 //   4. TryGet_Inventory(owner, Unknown)  -> returns the invalid handle.
 //
 // We compare handles by inspecting Get_NumItems on the returned handle vs
-// the originals — a quick way to verify identity without typesafe handle
+// the originals - a quick way to verify identity without typesafe handle
 // equality in AS f-strings.
 //
 // Uses bare-trait Key items (Tags only, no Stackable, no Dimensions) to

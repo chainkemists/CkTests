@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK SUBSTEP — AUTOMATION TEST: SUBSTEP CREATE MAKES A DISTINCT CHILD
+// CK SUBSTEP - AUTOMATION TEST: SUBSTEP CREATE MAKES A DISTINCT CHILD
 //============================================================================
 //
 // Covers the child-making Create verb (counterpart to the stamp-self Add).
 // Create(owner, params) spawns a NEW child entity carrying the Substep
 // feature: the returned handle is valid, Has(child) is true, and Has(owner)
-// is FALSE — proving Create is child-making, not stamp-self like Add.
+// is FALSE - proving Create is child-making, not stamp-self like Add.
 //============================================================================
 
 class UCk_AutoTest_Substep_Create_MakesDistinctChild : UCk_AutoTest_Base
@@ -30,7 +30,7 @@ class UCk_AutoTest_Substep_Create_MakesDistinctChild : UCk_AutoTest_Base
         Assert_True(utils_substep::Has(ChildEntity),
             "The created child entity should carry the Substep feature");
         Assert_True(!utils_substep::Has(Owner),
-            "The owner must NOT carry the feature — Create is child-making, not stamp-self");
+            "The owner must NOT carry the feature - Create is child-making, not stamp-self");
 
         FinishSuccess();
     }

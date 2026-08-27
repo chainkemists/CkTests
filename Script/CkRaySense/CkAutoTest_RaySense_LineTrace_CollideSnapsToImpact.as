@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK RAY SENSE — AUTOMATION TEST: LINE TRACE COLLIDE SNAPS TO IMPACT
+// CK RAY SENSE - AUTOMATION TEST: LINE TRACE COLLIDE SNAPS TO IMPACT
 //============================================================================
 //
 // Pins the CollisionResponse=Collide contract on the LINE-TRACE path: on hit,
 // the entity is snapped to the impact point (previously the params field was
-// silently ignored for line traces — only sweeps honored it; this test gates
+// silently ignored for line traces - only sweeps honored it; this test gates
 // the unification through ck_raysense::Request_ProcessTraceHit).
 //
 // Flow: same wall + stepping setup as the HitFiresSignal test, with
@@ -30,7 +30,7 @@ class UCk_AutoTest_RaySense_LineTrace_CollideSnapsToImpact : UCk_AutoTest_Base
     private int32 _MaxSteps = 40;
 
     // Own Y-lane: the HitFiresSignal test runs in the same level at Y=0 and spawned actors
-    // outlive their test — keep this test's ray clear of leftover walls.
+    // outlive their test - keep this test's ray clear of leftover walls.
     private float _LaneY = 2000.0f;
 
     UFUNCTION(BlueprintOverride)
@@ -67,7 +67,7 @@ class UCk_AutoTest_RaySense_LineTrace_CollideSnapsToImpact : UCk_AutoTest_Base
         // Deliberately a settle, not a condition: RaySense exposes no "setup complete"
         // query to wait on, and this window is what keeps the wall's collision
         // registration ahead of the first step. WaitOneFrame is 0.05s (~3 frames at
-        // 60fps) — a WaitFrames(1) here would SHORTEN it and eat into the six steps
+        // 60fps) - a WaitFrames(1) here would SHORTEN it and eat into the six steps
         // the entity takes to reach the wall.
         WaitOneFrame(n"OnSetupSettled");
     }
@@ -115,7 +115,7 @@ class UCk_AutoTest_RaySense_LineTrace_CollideSnapsToImpact : UCk_AutoTest_Base
         //
         // Residual exposure, unchanged from the frame settle this replaces: if a step
         // happened to land the entity within tolerance of the impact BEFORE the snap,
-        // this releases immediately. Asserting that it did not is not safe either — the
+        // this releases immediately. Asserting that it did not is not safe either - the
         // step stride and the wall's face position could legitimately coincide.
         WaitUntil(n"Check_SnappedToImpact", n"OnSnapSettled");
     }

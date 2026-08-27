@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// TWO-PLAYER NET GYM — STATE MACHINE STATES
+// TWO-PLAYER NET GYM - STATE MACHINE STATES
 //============================================================================
 // Cycle: Idle -> Active -> Recovering -> Idle. Driven externally by the owning
 // client via UCk_Utils_StateMachine_UE::Request_Transition(NextStateClass).
-// States carry no transitions of their own — they are targets only.
+// States carry no transitions of their own - they are targets only.
 //============================================================================
 
 UCLASS()

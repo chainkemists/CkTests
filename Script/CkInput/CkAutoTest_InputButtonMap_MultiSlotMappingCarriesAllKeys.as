@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BUTTON MAP — AUTOMATION TEST: A MULTI-SLOT MAPPING CARRIES EVERY KEY
+// CK INPUT BUTTON MAP - AUTOMATION TEST: A MULTI-SLOT MAPPING CARRIES EVERY KEY
 //============================================================================
 //
-// A Mapped button used to carry ONE key — First slot, no matter how many were
+// A Mapped button used to carry ONE key - First slot, no matter how many were
 // bound. It now carries EVERY bound slot's key, primary first. This pins the
 // base case for that contract: CkTests_DualBound is bound in TWO slots (F8
 // registered first, so First; F12 second, so Second), and after the first
-// derivation the map must answer both directions correctly —
+// derivation the map must answer both directions correctly
 //
 //   button -> keys:  Get_KeysForButton   answers [F8, F12], primary first
-//   button -> key:   TryGet_KeyForButton answers F8 alone — the scalar reader
+//   button -> key:   TryGet_KeyForButton answers F8 alone - the scalar reader
 //                     a display/consumer that wants ONE key still uses
 //   key -> button:    Get_ButtonIdsForKey finds the SAME button from EITHER key
 //
@@ -20,8 +20,8 @@
 // blind to F12, so the same press some other slot device made would resolve
 // to nothing.
 //
-// No key binding is mutated here — CkTests_DualBound stays on its authored
-// F8/F12 defaults for the whole test — so there is nothing to reset on
+// No key binding is mutated here - CkTests_DualBound stays on its authored
+// F8/F12 defaults for the whole test - so there is nothing to reset on
 // teardown.
 //============================================================================
 
@@ -46,7 +46,7 @@ class UCk_AutoTest_InputButtonMap_MultiSlotMappingCarriesAllKeys : UCk_AutoTest_
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 
@@ -103,7 +103,7 @@ class UCk_AutoTest_InputButtonMap_MultiSlotMappingCarriesAllKeys : UCk_AutoTest_
 
         auto HoldersOfSecondary = utils_input_button_map::Get_ButtonIdsForKey(_Map, _SecondaryKey);
         Assert_True(DoContainsMapped(HoldersOfSecondary, _MappingName),
-            "the SECONDARY key resolves to the same button too — a reverse lookup keyed on one key would go blind to it");
+            "the SECONDARY key resolves to the same button too - a reverse lookup keyed on one key would go blind to it");
     }
 
     //------------------------------------------------------------------------

@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: REMOVE GAMEPLAY TAG ON PARTIAL IS NO-OP
+// CK ENTITY TAG - AUTOMATION TEST: REMOVE GAMEPLAY TAG ON PARTIAL IS NO-OP
 //============================================================================
 //
 // Adding A.B.C registers A.B.C explicitly and A.B / A as parent FNames.
-// Calling Request_TryRemove_UsingGameplayTag(A.B) — where A.B is only a
-// parent FName, NOT an explicitly-added gameplay tag — must:
+// Calling Request_TryRemove_UsingGameplayTag(A.B) - where A.B is only a
+// parent FName, NOT an explicitly-added gameplay tag - must:
 //
 //   1. Return Succeeded at the boundary (post-A4 contract: handle/tag valid
-//      → Succeeded; the deferred apply silently no-ops on a missing
+//      -> Succeeded; the deferred apply silently no-ops on a missing
 //      _GameplayTagCounts entry, which is what "partial match" means).
 //   2. NOT remove anything: A.B.C is still present (explicit), and A.B is
 //      still present (parent of A.B.C).
@@ -22,7 +22,7 @@
 // the same per-entity FFragment_EntityTag_Requests::_Requests array
 // (CkEntityTag_Utils.cpp:145,203,347,418) and the pump drains it in order
 // (CkEntityTag_Processor.cpp:30), so the sentinel becoming visible proves the
-// partial remove was already applied — and left the tags alone.
+// partial remove was already applied - and left the tags alone.
 //
 // NOTE: File name + class name retained for level-asset compatibility
 //       (AutoTests_CkTests_Level.umap references the old C++ class path).
@@ -67,7 +67,7 @@ class UCk_AutoTest_EntityTag_RemoveGameplayTagRejectsPartial : UCk_AutoTest_Base
     {
         auto Result = utils_entity_tag::Request_TryRemove_UsingGameplayTag(_Entity, _ParentTag);
         Assert_True(Result == ECk_SucceededFailed::Succeeded,
-            "Request_TryRemove_UsingGameplayTag must Succeed at the boundary whenever the handle/tag are valid — partial-match enforcement is handled inside the deferred apply as a silent no-op");
+            "Request_TryRemove_UsingGameplayTag must Succeed at the boundary whenever the handle/tag are valid - partial-match enforcement is handled inside the deferred apply as a silent no-op");
 
         utils_entity_tag::Add(_Entity, _SentinelTag);
     }

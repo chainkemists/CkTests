@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// TWO-PLAYER NET GYM — ENTITY SCRIPT
+// TWO-PLAYER NET GYM - ENTITY SCRIPT
 //============================================================================
 // Replicated (runs Construct on BOTH server and client via the entity-script
 // replication path). Adds:

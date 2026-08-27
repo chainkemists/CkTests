@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: OVERLAPPING GRIDS HAVE INTERSECTIONS
+// CK GRID - AUTOMATION TEST: OVERLAPPING GRIDS HAVE INTERSECTIONS
 //============================================================================
 //
-// Companion to Grid_DisjointIntersection — verifies the positive case:
+// Companion to Grid_DisjointIntersection - verifies the positive case:
 //   1. GridA: 3x3 cells of 100x100, located at world (0, 0, 0).
 //   2. GridB: 3x3 cells of 100x100, ALSO at (0, 0, 0) (perfectly co-located).
 //   3. Get_IntersectingCells(A, B) returns at least one intersection.

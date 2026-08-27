@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST: switching requires beating the hysteresis threshold
+// CK AGGRO - AUTOMATION TEST: switching requires beating the hysteresis threshold
 // With cooldown/min-duration removed (isolating the score gate), a challenger that only marginally beats the
 // incumbent (11 vs 10) does NOT steal the active slot, but one well past bias*threshold (26) does.
 
@@ -75,7 +75,7 @@ class UCk_AutoTest_Aggro_Switch_ThresholdRequired : UCk_AutoTest_Base
             return;
         }
 
-        // _Stage == 2 — the decisive challenger should now hold the active slot.
+        // _Stage == 2 - the decisive challenger should now hold the active slot.
         if (ck::IsValid(Active) && Active.Get_TrackedEntity() == _TrackedB)
         {
             Assert_True(true, "A decisive challenger past bias*threshold takes the active slot");

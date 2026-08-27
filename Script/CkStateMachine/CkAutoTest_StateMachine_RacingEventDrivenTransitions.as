@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: RACING EVENT-DRIVEN TRANSITIONS
+// CK STATE MACHINE - AUTOMATION TEST: RACING EVENT-DRIVEN TRANSITIONS
 //============================================================================
 //
 // Headless port of the SM-Racing-Event-Driven gym station. Spawns
 // ACk_SmTest_RacingEventDriven_GymActor (which constructs the Idle/DestA/
 // DestB SM with two racing timer-event-driven transitions) and asserts that
-// the second-declared (faster) transition wins — i.e. that the state
+// the second-declared (faster) transition wins - i.e. that the state
 // evaluator did NOT Break on the first Undetermined transition.
 //
 // See CkStateMachine_TestStates_RacingEventDriven.as for topology and the
 // detailed bug description.
 //
-// Pattern B (settle-timer poll). Same shape as the Divergence-Timed test —
+// Pattern B (settle-timer poll). Same shape as the Divergence-Timed test
 // spawn the gym actor, wait for the settle window, assert on counters.
 //
 // Settle window: SettleSeconds (0.8s by default) on the gym actor covers
@@ -21,14 +21,14 @@
 // _TimeoutSeconds = 2.0 gives test-runner buffer beyond settle.
 //
 // Acceptance:
-//   Counter_DestB == 1, Counter_DestA == 0 — fix is live.
-//   Counter_DestA == 1, Counter_DestB == 0 — bug is live (this is the red
+//   Counter_DestB == 1, Counter_DestA == 0 - fix is live.
+//   Counter_DestA == 1, Counter_DestB == 0 - bug is live (this is the red
 //     state the test should be in before the framework fix lands).
 //============================================================================
 
 class UCk_AutoTest_StateMachine_RacingEventDrivenTransitions : UCk_AutoTest_Base
 {
-    // Tight 2s budget — 1.0s settle + buffer. Race-condition coverage; we
+    // Tight 2s budget - 1.0s settle + buffer. Race-condition coverage; we
     // want regressions that slow it down to surface as failures, not pass
     // under the harness's 5s default.
     default _TimeoutSeconds = 2.0f;
@@ -55,7 +55,7 @@ class UCk_AutoTest_StateMachine_RacingEventDrivenTransitions : UCk_AutoTest_Base
         }
 
         // Defaults already set on the actor: SlowDelay=0.5s, FastDelay=0.1s,
-        // Settle=0.8s. No station handle — headless mode skips display push.
+        // Settle=0.8s. No station handle - headless mode skips display push.
         _GymActor.StationHandle = FCk_Handle();
         FinishSpawningActor(_GymActor);
 

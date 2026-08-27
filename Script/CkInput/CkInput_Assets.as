@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT — KEY BINDING TEST CONTENT (script-literal Enhanced Input assets)
+// CK INPUT - KEY BINDING TEST CONTENT (script-literal Enhanced Input assets)
 //============================================================================
 //
 // Input Actions and one Input Mapping Context for the CkInput key-binding
@@ -13,7 +13,7 @@
 // UPlayerMappableKeySettings (FEnhancedActionKeyMapping::IsPlayerMappable), and
 // it only reaches the key profile once its context is handed to
 // UEnhancedInputUserSettings::RegisterInputMappingContext. Registration is the
-// caller's job — nothing here registers itself, so merely referencing these
+// caller's job - nothing here registers itself, so merely referencing these
 // assets leaves every player's bindings untouched.
 //
 // The metadata writes below only compile INSIDE an asset block.
@@ -31,7 +31,7 @@
 
 namespace input_assets
 {
-    // Player-mappable rows IMC_CkTests_KeyBinding contributes to the key profile —
+    // Player-mappable rows IMC_CkTests_KeyBinding contributes to the key profile
     // one per MapKey call below. Four mapping names are single-slot, so each
     // contributes exactly one row; CkTests_DualBound is mapped twice (F8 then F12)
     // and contributes two, one per slot. Tests assert Get_AllRemappableKeys
@@ -80,9 +80,9 @@ namespace input_assets
 
     // The only mapping in this file bound in TWO slots on the same device class.
     // UEnhancedInputUserSettings buckets slots by (mapping name, hardware device
-    // type) in MapKey-registration order (EnhancedInputUserSettings.cpp — the
+    // type) in MapKey-registration order (EnhancedInputUserSettings.cpp - the
     // engine's own DetermineHardwareDeviceForActionMapping is unoverridden here,
-    // so every key falls into one shared bucket) — the FIRST MapKey call below
+    // so every key falls into one shared bucket) - the FIRST MapKey call below
     // for this action lands in EPlayerMappableKeySlot::First, the SECOND in
     // ::Second. That is what gives the multi-key button-map tests a mapping with
     // a genuine primary and secondary key to exercise, rather than one key bound
@@ -103,7 +103,7 @@ namespace input_assets
     asset IMC_CkTests_KeyBinding of UInputMappingContext
     {
         // Asset init bodies re-run on every AS recompile (the autotest wrapper
-        // generator triggers one), and MapKey APPENDS — without this reset each
+        // generator triggers one), and MapKey APPENDS - without this reset each
         // recompile doubles the mapping list on the live asset object.
         UnmapAll();
         MapKey(IA_CkTests_Jump, EKeys::SpaceBar);

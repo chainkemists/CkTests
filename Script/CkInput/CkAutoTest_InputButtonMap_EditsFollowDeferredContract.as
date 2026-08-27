@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BUTTON MAP — AUTOMATION TEST: NO EDIT LANDS ON THE CALLING STACK
+// CK INPUT BUTTON MAP - AUTOMATION TEST: NO EDIT LANDS ON THE CALLING STACK
 //============================================================================
 //
 // Every mutation of the button space is a deferred request, including the FIRST
@@ -11,13 +11,13 @@
 // answer rather than a half-applied one.
 //
 // The price is a visibility boundary, and it is the contract rather than a race
-// — so it is asserted from both sides:
+// - so it is asserted from both sides:
 //
 //   1. Immediately after Add the map is EMPTY. A first-derive that ran inline
 //      would have filled it here, and would then be able to fill it in the
 //      middle of somebody else's read.
 //   2. Immediately after Request_RegisterPhysicalButton the new button is still
-//      absent, and its completion has NOT fired — an accepted request completes
+//      absent, and its completion has NOT fired - an accepted request completes
 //      when it DRAINS, not when it is enqueued.
 //   3. Once drained, both the button and its completion are there.
 //
@@ -45,7 +45,7 @@ class UCk_AutoTest_InputButtonMap_EditsFollowDeferredContract : UCk_AutoTest_Bas
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 
@@ -66,9 +66,9 @@ class UCk_AutoTest_InputButtonMap_EditsFollowDeferredContract : UCk_AutoTest_Bas
             "the button map must compose for this test to mean anything");
 
         // This map is entirely this test's own, so its size is a legitimate thing
-        // to count — unlike the shared key profile it derives from.
+        // to count - unlike the shared key profile it derives from.
         Assert_Equals_Int(utils_input_button_map::Get_AllButtons(_Map).Num(), 0,
-            "the first derivation is deferred — Add must not have filled the map on the calling stack");
+            "the first derivation is deferred - Add must not have filled the map on the calling stack");
 
         Add_Step_WaitUntil("the first derivation drains",                    n"Check_FirstDeriveLanded");
         Add_Step(          "register a physical button, assert it is unseen", n"Step_RegisterAndAssertUnseen");
@@ -86,7 +86,7 @@ class UCk_AutoTest_InputButtonMap_EditsFollowDeferredContract : UCk_AutoTest_Bas
     private void Step_RegisterAndAssertUnseen(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_True(DoHasMappedButton(n"CkTests_Jump"),
-            "the deferred first derivation did land — the boundary is a delay, not a drop");
+            "the deferred first derivation did land - the boundary is a delay, not a drop");
 
         Assert_Equals_Int(utils_input_button_map::Get_ButtonIdsForKey(_Map, EKeys::F11).Num(), 0,
             "nothing may already hold the key this step is about to register");
@@ -96,7 +96,7 @@ class UCk_AutoTest_InputButtonMap_EditsFollowDeferredContract : UCk_AutoTest_Bas
             FCk_Delegate_Request_OnCompleted(this, n"OnRegisterCompleted"));
 
         Assert_Equals_Int(utils_input_button_map::Get_ButtonIdsForKey(_Map, EKeys::F11).Num(), 0,
-            "a registration is deferred — the map must not have moved on the calling stack");
+            "a registration is deferred - the map must not have moved on the calling stack");
         Assert_Equals_Int(_RegisterFires, 0,
             "an accepted registration completes when it DRAINS, not when it is enqueued");
     }

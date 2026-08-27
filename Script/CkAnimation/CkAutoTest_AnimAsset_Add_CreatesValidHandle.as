@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ANIMATION — AUTOMATION TEST: AnimAsset Add creates valid handle
+// CK ANIMATION - AUTOMATION TEST: AnimAsset Add creates valid handle
 //============================================================================
 //
 // First-coverage seed for CkAnimation. Pins the simplest Add contract:
@@ -11,7 +11,7 @@
 //
 // Uses the existing CkTests-shipped UAnimSequence asset (MM_Idle) via the
 // generated `assets::load::MM_Idle()` accessor, plus an AS-side
-// gameplay tag for the AnimAsset ID. No OwningActor required — the
+// gameplay tag for the AnimAsset ID. No OwningActor required - the
 // AnimAsset Add path doesn't ensure on it.
 //============================================================================
 

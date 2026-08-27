@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: Vector attribute clamps per-component
+// CK ATTRIBUTE - AUTOMATION TEST: Vector attribute clamps per-component
 //============================================================================
 //
 // Pins the per-component clamp contract on a Vector attribute: each of
@@ -9,9 +9,9 @@
 // [Min.Z, Max.Z] range independently. An override of (200, 50, -50)
 // against bounds Min=(0,0,0) Max=(100,100,100) must yield FinalValue
 // (100, 50, 0):
-//   - X 200 → clamps DOWN to Max.X=100.
-//   - Y 50  → stays (in-band).
-//   - Z -50 → clamps UP to Min.Z=0.
+//   - X 200 -> clamps DOWN to Max.X=100.
+//   - Y 50  -> stays (in-band).
+//   - Z -50 -> clamps UP to Min.Z=0.
 //
 // Catches the regression where Vector clamp uses scalar bounds (one
 // dimension's clamp leaking to all three) or treats the whole vector
@@ -49,7 +49,7 @@ class UCk_AutoTest_Attribute_VectorPerComponentClamp : UCk_AutoTest_Base
         WaitUntil(n"Check_OverrideApplied", n"OnSettled");
     }
 
-    // Waits only for the override to LAND — not for it to land correctly. X and Z
+    // Waits only for the override to LAND - not for it to land correctly. X and Z
     // both move off the (50,50,50) base whether or not the clamp behaves, so a
     // broken clamp still reaches the assertions below and fails with a message
     // naming the offending component instead of an opaque timeout.

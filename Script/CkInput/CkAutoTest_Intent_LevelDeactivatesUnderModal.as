@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE THUMB KEEPS HOLDING, THE STATE DOES NOT
+// CK INTENT - AUTOMATION TEST: THE THUMB KEEPS HOLDING, THE STATE DOES NOT
 //============================================================================
 //
 // The fact/policy split again, now against a state rather than a charge. A
 // modal opens while the player is mid-drag. Two things are true at once and a
 // design that collapses them gets one of them wrong:
 //
-//   the FACT   — the button is still physically down, and the record still
+//   the FACT   - the button is still physically down, and the record still
 //                says so, because a record that lied about the hardware would
 //                be useless for replay, debugging and rollback alike
-//   the POLICY — this layer stopped receiving the input, so its state is
+//   the POLICY - this layer stopped receiving the input, so its state is
 //                over
 //
 // Both are asserted in the same step against the same frame, which is the
@@ -23,7 +23,7 @@
 // still in the held set, an implementation that derives the state from "is it
 // down?" rather than from "did a visible press open it?" will turn the state
 // back ON with no new input. That is why the settle after the deactivation is
-// a settle and not a condition — "still Idle" is already true on arrival, so
+// a settle and not a condition - "still Idle" is already true on arrival, so
 // it can only be made meaningful by the positive assertions before it and by
 // giving the reactivation a real window in which to happen.
 //
@@ -79,7 +79,7 @@ class UCk_AutoTest_Intent_LevelDeactivatesUnderModal : UCk_AutoTest_Base
         Add_Step(          "start dragging",                                     n"Step_PressAndHold");
         Add_Step_WaitUntil("the state is open",                                  n"Check_Active");
         Add_Step(          "open a modal over the drag",                         n"Step_PushMask");
-        // Capture edits are DEFERRED — the mask is not in force on the frame it was requested, so the
+        // Capture edits are DEFERRED - the mask is not in force on the frame it was requested, so the
         // deactivation must be waited for behind the capture actually landing, never behind a hop count.
         Add_Step_WaitUntil("the modal's capture is in force",                    n"Check_MaskInForce");
         Add_Step_WaitUntil("the state closes",                                   n"Check_Idle");
@@ -131,10 +131,10 @@ class UCk_AutoTest_Intent_LevelDeactivatesUnderModal : UCk_AutoTest_Base
     private void Step_AssertFactVsPolicy(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(utils_intent_matcher::TryGet_ActivationFrame_ByName(_Matcher, n"AS_Level_Modal"), -1,
-            "the state is over, so it names no activation frame — losing delivery ends it as surely as a release does");
+            "the state is over, so it names no activation frame - losing delivery ends it as surely as a release does");
 
         Assert_True(DoContainsDrag(utils_intent_sampler::Get_LatestFrame(_Sampler).Get_Held()),
-            "the record still reports the button down — a mask changes who RECEIVES the input, never what the hardware is doing, and a record that hid that could not be replayed");
+            "the record still reports the button down - a mask changes who RECEIVES the input, never what the hardware is doing, and a record that hid that could not be replayed");
     }
 
     UFUNCTION()
@@ -142,7 +142,7 @@ class UCk_AutoTest_Intent_LevelDeactivatesUnderModal : UCk_AutoTest_Base
     {
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_Level_Modal") ==
                     ECk_Intent_Phase::Idle,
-            "after ANY deactivation a fresh press is required — a state derived from 'is the key down?' would come back on its own while the player is still holding");
+            "after ANY deactivation a fresh press is required - a state derived from 'is the key down?' would come back on its own while the player is still holding");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_ActivationFrame_ByName(_Matcher, n"AS_Level_Modal"), -1,
             "and it names no frame, because there is no state to have opened on one");

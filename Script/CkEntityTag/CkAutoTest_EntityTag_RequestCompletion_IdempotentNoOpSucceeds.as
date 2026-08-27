@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: IDEMPOTENT NO-OP REPORTS SUCCEEDED
+// CK ENTITY TAG - AUTOMATION TEST: IDEMPOTENT NO-OP REPORTS SUCCEEDED
 //============================================================================
 //
 // Succeeded means the request was processed AND the caller's intent now
@@ -12,7 +12,7 @@
 //   1. Add one tag and let it drain, so the entity carries state a faulty
 //      no-op could disturb.
 //   2. Request_TryRemove a tag that was never added, with a completion
-//      delegate — the boundary enqueues regardless, so a handler DOES run.
+//      delegate - the boundary enqueues regardless, so a handler DOES run.
 //   3. On completion assert Succeeded, that the absent tag is still absent,
 //      and that the unrelated tag was left alone.
 //============================================================================
@@ -79,7 +79,7 @@ class UCk_AutoTest_EntityTag_RequestCompletion_IdempotentNoOpSucceeds : UCk_Auto
             "The no-op removal must not disturb the entity's other tags");
 
         // MUST stay a settle: the next hop asserts the delegate fired EXACTLY once, and
-        // _FireCount is already 1 here. There is no condition to wait for — the window
+        // _FireCount is already 1 here. There is no condition to wait for - the window
         // exists to give a second, erroneous fire a chance to arrive.
         WaitOneFrame(n"OnSettled");
     }

@@ -1,22 +1,22 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — CHARACTER
+// CK JOLT GYM - CHARACTER
 //
 // Three scripted (non-player-input) JoltCharacter lanes, each looping forever
 // so the gym is alive the moment you walk in:
-//   Lane 1 (Patrol + Jump) — walks back and forth, jumps every ~2.5s.
-//   Lane 2 (Slope Limit)   — approaches a 60 deg ramp (default character slope
+//   Lane 1 (Patrol + Jump) - walks back and forth, jumps every ~2.5s.
+//   Lane 2 (Slope Limit)   - approaches a 60 deg ramp (default character slope
 //                             limit is 50 deg) and is blocked/slides instead of
 //                             climbing it, then retreats and tries again.
-//   Lane 3 (Push Policy)   — PushAndBePushed character walks into a light
+//   Lane 3 (Push Policy)   - PushAndBePushed character walks into a light
 //                             Dynamic box and shoves it; both reset and repeat.
 //                             Ck_GymJoltCharacter_CyclePushPolicy respawns this
 //                             lane's character with the next PushPolicy value
 //                             so the difference in box displacement is visible.
 //
 // Content is built in world -X from the station anchor (house rule: stations
-// face -X) — every lane's "forward" is -X.
+// face -X) - every lane's "forward" is -X.
 //============================================================================
 
 class ACk_JoltGym_Character_GameMode : ACkTests_Gym_Base_GameMode
@@ -86,7 +86,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
 
         utils_timer::Create_Tick(ck::ToEntity(this), FCk_Delegate_Timer(this, n"OnTick"));
 
-        ck::Trace("JoltCharacterGym: started — patrol/jump, slope-limit, and push-policy lanes running");
+        ck::Trace("JoltCharacterGym: started - patrol/jump, slope-limit, and push-policy lanes running");
     }
 
     // ---- Shared helpers ---------------------------------------------------------------------
@@ -158,7 +158,7 @@ class ACk_JoltGym_Character_PlayerController : ACk_Gym_Base_PlayerController
     {
         DoAddFloor(FVector(-100.0, _Lane2Y, -25.0), FVector(300.0, 140.0, 25.0));
 
-        // Ramp pitched 60 deg — steeper than the character's default 50 deg MaxSlopeAngleDegrees,
+        // Ramp pitched 60 deg - steeper than the character's default 50 deg MaxSlopeAngleDegrees,
         // so approach should be blocked/slide instead of climbed.
         auto RampEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
         RampEntity.Request_OverrideToSelf();

@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: RESET MID-FLIGHT
+// CK TIMER - AUTOMATION TEST: RESET MID-FLIGHT
 //============================================================================
 //
 // Verifies Request_Reset rewinds elapsed time back to zero on a running
 // timer:
-//   1. Add a long-goal Running timer (60s — never naturally completes
+//   1. Add a long-goal Running timer (60s - never naturally completes
 //      within the harness window).
 //   2. Wait for elapsed > 200ms (well past one frame).
 //   3. Snapshot elapsed.
@@ -49,7 +49,7 @@ class UCk_AutoTest_Timer_ResetMidFlight : UCk_AutoTest_Base
 
         if (!_ResetRequested)
         {
-            // Accumulate well past one frame of elapsed time before resetting —
+            // Accumulate well past one frame of elapsed time before resetting
             // the post-reset dip below the snapshot then stays observable for
             // many frames regardless of timer update iteration order.
             auto Elapsed = _Timer.Get_CurrentTimerValue().Get_TimeElapsed();
@@ -63,7 +63,7 @@ class UCk_AutoTest_Timer_ResetMidFlight : UCk_AutoTest_Base
         }
 
         // After the reset request, poll until elapsed has dropped below
-        // the snapshot — that confirms the reset took effect.
+        // the snapshot - that confirms the reset took effect.
         auto NowMs = _Timer.Get_CurrentTimerValue().Get_TimeElapsed().Get_Milliseconds();
         if (NowMs < _ElapsedAtResetMs)
         {

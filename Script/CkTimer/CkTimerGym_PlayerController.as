@@ -78,7 +78,7 @@ class ACk_TimerGym_PlayerController : ACk_Gym_Base_PlayerController
 		Request_StartSignals();
 		Request_StartControl();
 		Request_StartCountdown();
-		ck::Trace("✅ Timer Gym - All stations started");
+		ck::Trace("[OK] Timer Gym - All stations started");
 	}
 
 	//------------------------------------------------------------------------
@@ -137,7 +137,7 @@ class ACk_TimerGym_PlayerController : ACk_Gym_Base_PlayerController
 	//--------------------------------------------------------------------------------------------------------------------------
 	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
 	//
-	// Every station in this gym has to be RE-RUN to be watched — a timer that already finished shows
+	// Every station in this gym has to be RE-RUN to be watched - a timer that already finished shows
 	// nothing. Restarting was console-only, which made the gym look inert to anyone who arrived after the
 	// first pass had completed.
 	//--------------------------------------------------------------------------------------------------------------------------

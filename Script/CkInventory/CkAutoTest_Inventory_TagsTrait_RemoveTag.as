@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: TAGS TRAIT — REMOVE TAG
+// CK INVENTORY - AUTOMATION TEST: TAGS TRAIT - REMOVE TAG
 //============================================================================
 //
 // Verifies Request_RemoveTag strips a definition-baked tag from an item:

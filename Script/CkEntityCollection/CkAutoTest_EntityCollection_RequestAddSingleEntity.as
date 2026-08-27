@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY COLLECTION — AUTOMATION TEST: Request_AddSingleEntity
+// CK ENTITY COLLECTION - AUTOMATION TEST: Request_AddSingleEntity
 // Enqueues an Add request; after one frame the count is 1 and Contains is true.
 // Pins the deferred-handler contract for Request_AddEntities.
 

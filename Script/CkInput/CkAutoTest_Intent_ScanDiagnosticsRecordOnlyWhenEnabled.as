@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE NEAR-MISS RING, AND ITS OFF SWITCH
+// CK INTENT - AUTOMATION TEST: THE NEAR-MISS RING, AND ITS OFF SWITCH
 //============================================================================
 //
 // A failed scan leaves no trace anywhere else. The matcher simply declines to
 // complete, so "I did the motion and nothing came out" is invisible to the
-// record, the phase rows and the signals alike — which makes the diagnostic
+// record, the phase rows and the signals alike - which makes the diagnostic
 // ring the only surface that can answer WHICH step had nothing behind it.
 //
 // Three legs, and the first is as load-bearing as the other two:
@@ -22,7 +22,7 @@
 // the WINDOW rather than by whatever the ring happens to be retaining, so
 // nine examined frames is arithmetic and not a machine-speed reading. Lenient
 // also keeps the failure a clean window exhaustion instead of a contiguity
-// break on the first neutral row — the two outcomes are different diagnoses
+// break on the first neutral row - the two outcomes are different diagnoses
 // and this leg is about the first one.
 //
 // The matching leg swaps in the same move with a window wide enough for the
@@ -140,7 +140,7 @@ class UCk_AutoTest_Intent_ScanDiagnosticsRecordOnlyWhenEnabled : UCk_AutoTest_Ba
     private void Step_AssertSilentThenRelease(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_False(utils_intent_matcher::Get_ScanDiagnosticsEnabled(),
-            "the switch is off unless somebody turns it on — a ring written by default is not opt-in");
+            "the switch is off unless somebody turns it on - a ring written by default is not opt-in");
 
         Assert_Equals_Int(utils_intent_matcher::Get_ScanDiagnostics(_Matcher).Num(), 0,
             "a scan really did run on that press, and it wrote nothing because recording was off");
@@ -158,7 +158,7 @@ class UCk_AutoTest_Intent_ScanDiagnosticsRecordOnlyWhenEnabled : UCk_AutoTest_Ba
     private void Step_AssertFailure(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         // Released first so the early-return guards below can never leave the key wedged for the
-        // steps that follow — the asserts read the ring, not the held state, so order is free.
+        // steps that follow - the asserts read the ring, not the held state, so order is free.
         DoInject(ECk_InputSource_EventType::Released);
 
         TArray<FCk_Intent_ScanDiagnostic> Entries = utils_intent_matcher::Get_ScanDiagnostics(_Matcher);
@@ -194,14 +194,14 @@ class UCk_AutoTest_Intent_ScanDiagnosticsRecordOnlyWhenEnabled : UCk_AutoTest_Ba
         Assert_Equals_Int(Steps[0].Get_StepIndex(), 2,
             "steps are in WALK order, so the terminal comes first");
         Assert_True(Steps[0].Get_Outcome() == ECk_Intent_ScanStepOutcome::Matched,
-            "the punch itself was fine — that is exactly what makes this a near miss rather than a wrong button");
+            "the punch itself was fine - that is exactly what makes this a near miss rather than a wrong button");
         Assert_Equals_Int(Steps[0].Get_FramesExamined(), 1,
             "a terminal is tested against the press row and nowhere else");
 
         Assert_Equals_Int(Steps[1].Get_StepIndex(), 1,
             "the next step back is the one the walk died on");
         Assert_True(Steps[1].Get_Outcome() == ECk_Intent_ScanStepOutcome::WindowExhausted,
-            "the stick was never moved, and a lenient move tolerates every intervening row — so the walk ran out of window rather than breaking contiguity");
+            "the stick was never moved, and a lenient move tolerates every intervening row - so the walk ran out of window rather than breaking contiguity");
         Assert_Equals_Int(Steps[1].Get_MatchedAtFrame(), -1,
             "a step that never matched names no frame");
         Assert_Equals_Int(Steps[1].Get_FramesExamined(), _ExpectedFramesExamined,

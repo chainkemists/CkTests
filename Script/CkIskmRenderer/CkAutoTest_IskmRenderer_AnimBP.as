@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE I ANIMBP PATH
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE I ANIMBP PATH
 //============================================================================
 //
 // Phase I test gate. Verifies the AnimBP-mode API surface added in I1:
@@ -11,7 +11,7 @@
 //
 // What this test exercises:
 //   1. utils_iskm_proxy::Get_PoseSource(empty) returns ECk_IskmProxy_PoseSource::Sequence
-//      (the default — invalid handle yields the safe baseline pose source)
+//      (the default - invalid handle yields the safe baseline pose source)
 //   2. Calling Request_SetAnimInstanceClass with an invalid handle is a safe no-op
 //
 // What this test does NOT cover (deferred to Phase Q with real .uasset content):

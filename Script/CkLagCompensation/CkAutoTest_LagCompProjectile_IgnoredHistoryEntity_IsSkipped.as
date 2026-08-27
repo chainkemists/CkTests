@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK LAG COMP PROJECTILE — AUTOMATION TEST: IGNORED HISTORY ENTITY IS SKIPPED
+// CK LAG COMP PROJECTILE - AUTOMATION TEST: IGNORED HISTORY ENTITY IS SKIPPED
 //============================================================================
 //
 // Two stationary targets with recorded hitbox history sit dead on the shot
 // line. The compensated launch names the NEAR one as the ignored history
-// entity (the "shooter's own history" use case) — rewind validation must
+// entity (the "shooter's own history" use case) - rewind validation must
 // confirm exactly one hit, on the far target only.
 //============================================================================
 
@@ -87,7 +87,7 @@ class UCk_AutoTest_LagCompProjectile_IgnoredHistoryEntity_IsSkipped : UCk_AutoTe
         _RewindHitSignals++;
 
         Assert_True(InHit.Get_TargetEntity() == _FarTarget,
-            "The only rewind hit should be on the far target — the near one is ignored");
+            "The only rewind hit should be on the far target - the near one is ignored");
     }
 
     UFUNCTION()
@@ -98,7 +98,7 @@ class UCk_AutoTest_LagCompProjectile_IgnoredHistoryEntity_IsSkipped : UCk_AutoTe
     {
         if (IsFinished()) { return; }
 
-        Assert_Equals_Int(InRewindHits.Num(), 1, "Exactly one rewind hit — the ignored target contributes none");
+        Assert_Equals_Int(InRewindHits.Num(), 1, "Exactly one rewind hit - the ignored target contributes none");
         Assert_Equals_Int(_RewindHitSignals, 1, "OnRewindHit fired exactly once");
 
         if (InRewindHits.Num() == 1)

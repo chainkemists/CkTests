@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A MOTION COMPLETES ON THE PRESS FRAME
+// CK INTENT - AUTOMATION TEST: A MOTION COMPLETES ON THE PRESS FRAME
 //============================================================================
 //
 // The latency claim the whole module is shaped around, asserted as an
@@ -11,7 +11,7 @@
 //
 // That is only possible because the matcher scans BACKWARDS. A forward
 // matcher would have to notice 2, then 3, then wait to see whether 6+punch
-// ever arrives — and the frame it finally answers on is the frame after the
+// ever arrives - and the frame it finally answers on is the frame after the
 // press at best. Here the press is the question and the record behind it is
 // the answer, so the two share a frame index by construction.
 //
@@ -23,7 +23,7 @@
 // space.
 //
 // The set is baked IN-TEST through the same parse-then-bake pipeline a game
-// uses — there is one parser, and a fixture that assembled a set beside it
+// uses - there is one parser, and a fixture that assembled a set beside it
 // would be proving something no shipped move ever goes through.
 //============================================================================
 
@@ -125,7 +125,7 @@ class UCk_AutoTest_Intent_MatcherCompletesOnPressFrame : UCk_AutoTest_Base
     private void Step_DriveEastAndPunch(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         // Both injections reach the inbox on one render frame, so one logic frame claims them together and the
-        // terminal chord's direction and its button land on a SINGLE row — which is what simultaneity means here.
+        // terminal chord's direction and its button land on a SINGLE row - which is what simultaneity means here.
         DoDriveAxes(0.9f, 0.0f);
 
         auto Event = FCk_InputSource_RawEvent(

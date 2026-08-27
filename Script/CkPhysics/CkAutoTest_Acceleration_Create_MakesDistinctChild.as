@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PHYSICS — AUTOMATION TEST: ACCELERATION CREATE MAKES A DISTINCT CHILD
+// CK PHYSICS - AUTOMATION TEST: ACCELERATION CREATE MAKES A DISTINCT CHILD
 //============================================================================
 //
 // Covers the child-making Create verb (counterpart to the stamp-self Add).
@@ -36,7 +36,7 @@ class UCk_AutoTest_Acceleration_Create_MakesDistinctChild : UCk_AutoTest_Base
         Assert_True(utils_acceleration::Has(ChildEntity),
             "The created child entity should carry the Acceleration feature");
         Assert_True(!utils_acceleration::Has(Owner),
-            "The owner must NOT carry the feature — Create is child-making, not stamp-self");
+            "The owner must NOT carry the feature - Create is child-making, not stamp-self");
 
         auto Returned = utils_acceleration::Get_CurrentAcceleration(Child);
         Assert_True(Returned.X == StartingAcceleration.X && Returned.Y == StartingAcceleration.Y && Returned.Z == StartingAcceleration.Z,

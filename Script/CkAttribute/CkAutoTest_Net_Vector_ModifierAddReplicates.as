@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — NET AUTOMATION TEST: VECTOR MODIFIER-ADD REPLICATES
+// CK ATTRIBUTE - NET AUTOMATION TEST: VECTOR MODIFIER-ADD REPLICATES
 //============================================================================
 //
 // Vector parity with the C++ Float_ModifierAdd_Replicates spec. The modifier

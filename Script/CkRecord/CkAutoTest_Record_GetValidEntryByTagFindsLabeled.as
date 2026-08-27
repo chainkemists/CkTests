@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RECORD — AUTOMATION TEST: GET VALID ENTRY BY TAG
+// CK RECORD - AUTOMATION TEST: GET VALID ENTRY BY TAG
 //============================================================================
 //
 // Pins the label-based lookup contract: an entry connected to a Record with
@@ -12,9 +12,9 @@
 // Setup:
 //   - Owner with Record feature.
 //   - Connect two labeled entries: TagA and TagB.
-//   - Query Get_ValidEntry_ByTag(TagA) — returns EntryA.
-//   - Query Get_ValidEntry_ByTag(TagB) — returns EntryB.
-//   - Query for a non-existent tag — returns invalid handle.
+//   - Query Get_ValidEntry_ByTag(TagA) - returns EntryA.
+//   - Query Get_ValidEntry_ByTag(TagB) - returns EntryB.
+//   - Query for a non-existent tag - returns invalid handle.
 //============================================================================
 
 class UCk_AutoTest_Record_GetValidEntryByTagFindsLabeled : UCk_AutoTest_Base

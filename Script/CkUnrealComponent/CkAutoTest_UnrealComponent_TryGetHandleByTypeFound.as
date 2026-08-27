@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK UNREAL COMPONENT — AUTOMATION TEST: TryGet_HandleByType returns the match
+// CK UNREAL COMPONENT - AUTOMATION TEST: TryGet_HandleByType returns the match
 // After the Setup processor has instantiated the component, looking it up
 // by class returns the same handle that Add returned.
 

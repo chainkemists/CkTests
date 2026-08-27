@@ -181,7 +181,7 @@ class ACk_EntityLifecycleGym_PlayerController : ACk_Gym_Base_PlayerController
 	//--------------------------------------------------------------------------------------------------------------------------
 	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
 	//
-	// Every station here demonstrates something that HAPPENS and is then over — a destroy callback, a
+	// Every station here demonstrates something that HAPPENS and is then over - a destroy callback, a
 	// deferred setup, a bridge teardown. Re-running one was console-only, which made the gym look inert to
 	// anyone who arrived after the first pass.
 	//--------------------------------------------------------------------------------------------------------------------------

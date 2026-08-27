@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK MESSAGING — AUTOMATION TEST: POST-FIRE UNBIND (ONE-SHOT)
+// CK MESSAGING - AUTOMATION TEST: POST-FIRE UNBIND (ONE-SHOT)
 //============================================================================
 //
 // Verifies that binding with PostFireBehavior::Unbind makes the listener
 // auto-detach after the first fire:
 //   1. Bind delegate with ECk_Signal_PostFireBehavior::Unbind.
-//   2. Broadcast Ping → callback fires (count=1).
-//   3. Broadcast Ping again → callback should NOT fire (auto-unbound).
+//   2. Broadcast Ping -> callback fires (count=1).
+//   3. Broadcast Ping again -> callback should NOT fire (auto-unbound).
 //
 // Mirrors CkMessagingGym_OneShot.
 //============================================================================

@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT LAYER — AUTOMATION TEST: PASSTHROUGH ACTS AND KEEPS WALKING
+// CK INPUT LAYER - AUTOMATION TEST: PASSTHROUGH ACTS AND KEEPS WALKING
 //============================================================================
 //
 // The other half of the propagation rule. A PassThrough capture is delivered
-// exactly like a Consume one — the layer acts — but the walk continues, so a
+// exactly like a Consume one - the layer acts - but the walk continues, so a
 // layer below can still claim the same key.
 //
 // This is what lets one layer take part of a device and leave the rest: a
@@ -13,7 +13,7 @@
 // declared per capture rather than per layer.
 //
 // Press ownership goes to the CONSUMER, not to the pass-through layer that
-// merely observed the press — that is what makes the eventual release land on
+// merely observed the press - that is what makes the eventual release land on
 // the layer that is actually holding state for the key.
 //============================================================================
 

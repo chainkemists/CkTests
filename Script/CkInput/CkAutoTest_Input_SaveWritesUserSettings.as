@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT — AUTOMATION TEST: SAVE ACCEPTS THE PROFILE WITHOUT MUTATING IT
+// CK INPUT - AUTOMATION TEST: SAVE ACCEPTS THE PROFILE WITHOUT MUTATING IT
 //============================================================================
 //
 // WHAT THIS PROVES, AND WHAT IT CANNOT. SaveKeyBindings is reachable on a
-// remapped profile and leaves that profile byte-identical afterwards — the
+// remapped profile and leaves that profile byte-identical afterwards - the
 // keys the caller set are still the keys the queries report. That is the whole
 // of what a headless test can see.
 //
@@ -30,7 +30,7 @@
 // (SaveGameSystem.h:101-102). Two saves to one slot in one frame can in
 // principle land newest-first, leaving the remapped snapshot on disk. The
 // content of each snapshot is captured synchronously at its call site, so the
-// bytes are never mixed — only which of the two wins.
+// bytes are never mixed - only which of the two wins.
 //============================================================================
 
 class UCk_AutoTest_Input_SaveWritesUserSettings : UCk_AutoTest_Base
@@ -41,7 +41,7 @@ class UCk_AutoTest_Input_SaveWritesUserSettings : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the key profile lives on the local player");
+            FinishFailure("no local PlayerController - the key profile lives on the local player");
             return;
         }
 

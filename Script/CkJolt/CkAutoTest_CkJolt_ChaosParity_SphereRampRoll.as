@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — CHAOS PARITY TWIN: SPHERE ROLLS DOWN A RAMP AND SETTLES AT BOTTOM
+// CK JOLT - CHAOS PARITY TWIN: SPHERE ROLLS DOWN A RAMP AND SETTLES AT BOTTOM
 //============================================================================
 //
 // Chaos-engine twin of CkAutoTest_CkJolt_SphereRollsDownRampToBottom: the SAME
 // scenario and qualitative assertions, driven by stock UE/Chaos physics
-// (AStaticMeshActor + SetSimulatePhysics) instead of the Jolt world — no
+// (AStaticMeshActor + SetSimulatePhysics) instead of the Jolt world - no
 // JoltBody fragments. Shows Chaos agrees qualitatively with the pinned Jolt
 // result.
 //

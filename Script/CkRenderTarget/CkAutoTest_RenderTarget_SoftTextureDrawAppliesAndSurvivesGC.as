@@ -1,24 +1,24 @@
 // Language=angelscript
 
 //============================================================================
-// CK RENDER TARGET — AUTOMATION TEST: soft texture draw resolves, applies, survives GC
+// CK RENDER TARGET - AUTOMATION TEST: soft texture draw resolves, applies, survives GC
 //============================================================================
 //
 // Pins the soft-ref draw-request pipeline end-to-end (mirror of the IskmProxy
 // SoftSequenceQueuedPlaySurvivesGC shape):
-//   1. Request_DrawTexture enqueued IMMEDIATELY after Add — it must queue
+//   1. Request_DrawTexture enqueued IMMEDIATELY after Add - it must queue
 //      behind FTag_RenderTarget_NeedsSetup, carrying its soft texture + the
 //      enqueue-time loader batch through the queue. A same-frame DrawLine
 //      must normalize into the SAME batch (the resident-asset preload gate
 //      must not stall or split the drain).
 //   2. OnInstructionsApplied reports seq 1 with both cmds.
-//   3. A full GC pass must not corrupt the module state — a second soft draw
+//   3. A full GC pass must not corrupt the module state - a second soft draw
 //      afterwards applies as its own batch (DoApplyBatch pinned the resolved
 //      asset on the target's Current across the collect).
 //
 // Scope: in-editor the asset registry keeps real assets resident, so the
 // negative half (an unpinned DrawCmd pointer alone would dangle) is only
-// falsifiable packaged — this test owns the resolve/queue/apply/pin pipeline.
+// falsifiable packaged - this test owns the resolve/queue/apply/pin pipeline.
 //
 //============================================================================
 
@@ -51,7 +51,7 @@ class UCk_AutoTest_RenderTarget_SoftTextureDrawAppliesAndSurvivesGC : UCk_AutoTe
         _RenderTarget.BindTo_OnInstructionsApplied(
             FCk_Delegate_RenderTarget_OnInstructionsApplied(this, n"OnInstructionsApplied"));
 
-        // Enqueued BEFORE Setup completes — the requests queue behind NeedsSetup, the texture
+        // Enqueued BEFORE Setup completes - the requests queue behind NeedsSetup, the texture
         // request carrying its soft ref + enqueue-time loader batch through the queue.
         _RenderTarget.Request_DrawTexture(
             FCk_Request_RenderTarget_DrawTexture(Texture, FVector2D(0.0, 0.0), FVector2D(32.0, 32.0)));
@@ -70,7 +70,7 @@ class UCk_AutoTest_RenderTarget_SoftTextureDrawAppliesAndSurvivesGC : UCk_AutoTe
         {
             Assert_Equals_Int(InBatchSeq, 1, "First applied batch should carry seq 1");
             Assert_Equals_Int(InNumCmds, 2,
-                "Both same-frame requests should normalize into one batch — a resident-asset preload must not stall or split the drain");
+                "Both same-frame requests should normalize into one batch - a resident-asset preload must not stall or split the drain");
 
             System::CollectGarbage();
             WaitOneFrame(n"OnGCSettled");
@@ -88,7 +88,7 @@ class UCk_AutoTest_RenderTarget_SoftTextureDrawAppliesAndSurvivesGC : UCk_AutoTe
     {
         if (IsFinished()) { return; }
 
-        // A second soft draw AFTER a full GC pass — the module state (pins, seq, queue) must be intact.
+        // A second soft draw AFTER a full GC pass - the module state (pins, seq, queue) must be intact.
         auto Texture = Cast<UTexture>(LoadObject(this, "/Engine/EngineResources/WhiteSquareTexture.WhiteSquareTexture"));
         Assert_True(ck::IsValid(Texture), "the engine texture must still load by path after a GC pass");
 

@@ -1,16 +1,16 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Bunch-Up Gym — PlayerController
+// Crowd Bunch-Up Gym - PlayerController
 //
 // See CkCrowdGym_BunchUp_GameMode.as for the console surface.
 //
 // Layout mirrors the Diagnostic gym: one station registered via Get_RequiredStations, placed by the
 // cycler grid layout, with the floor and every agent anchored to the station's actual placed
-// transform through StationLocal_To_World — so wherever the cycler puts the station, the content
+// transform through StationLocal_To_World - so wherever the cycler puts the station, the content
 // follows.
 //
 // Spawn placement: a single ring at RingRadius for small counts. Past SingleRingMaxCount a single
 // ring puts neighbouring agents inside each other's separation band before they have moved a step,
-// which measures spawn overlap rather than goal contention — so larger counts split across two
+// which measures spawn overlap rather than goal contention - so larger counts split across two
 // concentric rings with the inner ring rotated half a step so the spokes do not line up (the
 // pattern CkAutoTest_Crowd_SteeringPerf uses for its 240-agent workload).
 // --------------------------------------------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
     // 180 degree rotation, so a local +X offset always lands in the visible play area.
     private const float SpawnZ           = 100.0;
     // Inside the 192cm agent body height, so the navmesh projection still finds the surface and the
-    // displacement reads as DRIFT — the case the grounding lease reconciles, rather than a
+    // displacement reads as DRIFT - the case the grounding lease reconciles, rather than a
     // deliberate elevation the lease is required to report and leave alone.
     private const float ElevateCm        = 120.0;
     private const float StationFwdOffset = 800.0;
@@ -109,7 +109,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
             ECk_Signal_PostFireBehavior::DoNothing);
         utils_nav::Request_FindPath(_NavProbeEntity, FCk_Request_Nav_FindPath(Centre));
 
-        ck::crowd::Log(f"BunchUp gym started — auto-spawning {AutoSpawnCount} agents once the navmesh probe resolves. Ck_GymCrowd_BunchUp_Spawn re-runs manually.");
+        ck::crowd::Log(f"BunchUp gym started - auto-spawning {AutoSpawnCount} agents once the navmesh probe resolves. Ck_GymCrowd_BunchUp_Spawn re-runs manually.");
     }
 
     UFUNCTION()
@@ -125,15 +125,15 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     private void OnNavProbeFailed(FCk_Handle InHandle)
     {
-        ck::crowd::Log("BunchUp gym: navmesh probe failed — auto-spawn skipped; run Ck_GymCrowd_BunchUp_Spawn manually once the navmesh is visible.");
+        ck::crowd::Log("BunchUp gym: navmesh probe failed - auto-spawn skipped; run Ck_GymCrowd_BunchUp_Spawn manually once the navmesh is visible.");
     }
 
     private void SpawnFloor()
     {
-        // Single big floor at world origin — the cycler map's NavMeshBoundsVolume is centred at
+        // Single big floor at world origin - the cycler map's NavMeshBoundsVolume is centred at
         // origin, so a floor at origin lands fully inside it.
         //
-        // Z SCALE MUST BE >= 0.5 — anything thinner and the navmesh bake silently produces no
+        // Z SCALE MUST BE >= 0.5 - anything thinner and the navmesh bake silently produces no
         // walkable tiles on the surface.
         const auto FloorLocation = FVector::ZeroVector;
         const auto FloorScale    = FVector(75.0, 75.0, 0.5);   // 7500x7500x50cm
@@ -249,11 +249,11 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
             if (ck::Is_NOT_Valid(_Agents[i])) { continue; }
             utils_crowd_agent_diag::EmitDigest_ForAgent(_Agents[i], 0, "BunchUp", i);
         }
-        ck::crowd::Log(f"BunchUp gym: emitted digest for {_Agents.Num()} agents — grep [CrowdDiag]");
+        ck::crowd::Log(f"BunchUp gym: emitted digest for {_Agents.Num()} agents - grep [CrowdDiag]");
     }
 
-    // The grounding lease, made visible. A settled agent's Z has exactly one writer — the idle
-    // verify in ConstrainToNavmesh — so shoving one upward and watching it drop back within
+    // The grounding lease, made visible. A settled agent's Z has exactly one writer - the idle
+    // verify in ConstrainToNavmesh - so shoving one upward and watching it drop back within
     // _GroundingVerifyIntervalSeconds is the only way to SEE the lease working. With the lease
     // disabled the agent simply hangs there, which is what the floating-NPC regression looked like.
     UFUNCTION(Exec, DisplayName="Crowd BunchUp - Elevate A Settled Agent")
@@ -275,11 +275,11 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
                 FCk_Request_Transform_SetTransform(
                     FTransform(Current.GetRotation(), Lifted, Current.GetScale3D())));
 
-            ck::crowd::Log(f"BunchUp gym: elevated agent {i} by {ElevateCm}cm to {Lifted} — the grounding lease must drop it back within {utils_crowd_settings::Get_GroundingVerifyIntervalSeconds()}s");
+            ck::crowd::Log(f"BunchUp gym: elevated agent {i} by {ElevateCm}cm to {Lifted} - the grounding lease must drop it back within {utils_crowd_settings::Get_GroundingVerifyIntervalSeconds()}s");
             return;
         }
 
-        ck::crowd::Log("BunchUp gym: no agents to elevate — spawn some first (S)");
+        ck::crowd::Log("BunchUp gym: no agents to elevate - spawn some first (S)");
     }
 
     // ---- Agent factory ---------------------------------------------------------------------------
@@ -310,7 +310,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
         auto AgentEntity = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         AgentEntity.Set_DebugName(InDebugName);
 
-        // Planar look direction — crowd agents are yaw-only, and FaceAngle's per-tick yaw lerp
+        // Planar look direction - crowd agents are yaw-only, and FaceAngle's per-tick yaw lerp
         // cannot correct a pitch baked into the spawn rotation.
         const auto LookDir   = InTargetLoc - InSpawnLoc;
         const auto PlanarDir = FVector(LookDir.X, LookDir.Y, 0.0);

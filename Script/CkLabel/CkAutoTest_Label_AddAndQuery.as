@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK LABEL — AUTOMATION TEST: ADD AND QUERY
+// CK LABEL - AUTOMATION TEST: ADD AND QUERY
 //============================================================================
 //
 // Smoke test for the per-entity gameplay-label API:

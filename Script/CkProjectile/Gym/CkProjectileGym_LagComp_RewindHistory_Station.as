@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CkProjectileGym — LagComp Rewind History station
+// CkProjectileGym - LagComp Rewind History station
 //
 // A hitbox-recorded target strafes side to side. Every frame the station
 // asks the history for the interpolated pose 300ms in the past and draws it
-// as a black ghost trailing the white present pose — this is exactly the
+// as a black ghost trailing the white present pose - this is exactly the
 // pose a server would rewind to for a 300ms-ping shooter.
 //============================================================================
 

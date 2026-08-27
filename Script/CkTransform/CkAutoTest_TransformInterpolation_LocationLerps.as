@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM INTERPOLATION — AUTOMATION TEST: LOCATION LERPS TOWARD GOAL
+// CK TRANSFORM INTERPOLATION - AUTOMATION TEST: LOCATION LERPS TOWARD GOAL
 //============================================================================
 //
 // Smoke test for the TransformInterpolation feature: setting a location-
@@ -12,7 +12,7 @@
 //   - Add Transform at origin.
 //   - Add TransformInterpolation with Linear strategy and a short smooth time.
 //   - Set a location-offset goal of (300, 0, 0).
-//   - Sample location after 1 tick (must be > 0 but < goal — actively lerping).
+//   - Sample location after 1 tick (must be > 0 but < goal - actively lerping).
 //   - Sample location after a wait long enough to converge.
 //
 // Pass: intermediate sample shows progress (X > 0); final sample lands within

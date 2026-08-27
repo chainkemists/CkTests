@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: OnDepleted fires when Consume drains timer
+// CK TIMER - AUTOMATION TEST: OnDepleted fires when Consume drains timer
 //============================================================================
 //
-// Pins the OnDepleted broadcast contract (CkTimer_Processor.cpp:263–283):
+// Pins the OnDepleted broadcast contract (CkTimer_Processor.cpp:263-283):
 // OnDepleted fires when Request_Consume causes the timer's elapsed value
 // to reach the depleted endpoint of its count direction. For CountUp
 // (default), depleted = elapsed clamped to zero.
 //
 // OnDepleted is NOT broadcast on natural tick completion of a Looping
-// timer — that path uses OnDone. OnDepleted is specifically a
+// timer - that path uses OnDone. OnDepleted is specifically a
 // Consume-triggered signal. The original "OnDepleted Loop semantics"
 // audit row name turned out to be misleading.
 //
@@ -74,8 +74,8 @@ class UCk_AutoTest_Timer_OnDepleted_FiresOnConsume : UCk_AutoTest_Base
 
             if (LiveElapsed.Get_Milliseconds() > 30)
             {
-                // Consume more than the elapsed so far → Consume's clamp
-                // drives elapsed to 0 → IsDepleted true → OnDepleted broadcast.
+                // Consume more than the elapsed so far -> Consume's clamp
+                // drives elapsed to 0 -> IsDepleted true -> OnDepleted broadcast.
                 utils_timer::Request_Consume(_Timer, FCk_Request_Timer_Consume(FCk_Time(5.0f)));
                 _ConsumeIssued = true;
             }

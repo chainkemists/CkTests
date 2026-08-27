@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: REQUEST COMPLETION SUCCEEDS ON DRAIN
+// CK TIMER - AUTOMATION TEST: REQUEST COMPLETION SUCCEEDS ON DRAIN
 //============================================================================
 //
 // A Request_* that carries a completion delegate must fire it exactly once

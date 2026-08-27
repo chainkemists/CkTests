@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: INTEGER CLAMPING & CLAMP SIGNALS
+// CK ATTRIBUTE - AUTOMATION TEST: INTEGER CLAMPING & CLAMP SIGNALS
 //============================================================================
 //
 // Verifies that integer-attribute clamping AND its dedicated clamp signals
@@ -14,15 +14,15 @@
 //
 // Why this is separate from CkAutoTest_Attribute_IntegerBasic:
 //   - IntegerBasic verifies the value clamps via the OnValueChanged signal
-//     and final-value check — proving the clamp BOUNDARY is correct.
+//     and final-value check - proving the clamp BOUNDARY is correct.
 //   - This test verifies the dedicated OnMin/MaxClamped notification
-//     signals fire when clamping happens — proving that clamping is
+//     signals fire when clamping happens - proving that clamping is
 //     OBSERVABLE to game code that wants to react ("you took overkill
 //     damage", "you tried to spend more gold than you have", etc.).
 //
-// IMPORTANT — REQUEST COALESCING:
+// IMPORTANT - REQUEST COALESCING:
 //   Two Request_Override calls issued back-to-back in the same frame
-//   coalesce — the second overwrites the first BEFORE the processor reads
+//   coalesce - the second overwrites the first BEFORE the processor reads
 //   it, so only the second override ever runs and only one of the two
 //   clamp signals would fire. The original draft of this test made that
 //   mistake. The correct shape is a signal-driven step machine: issue the

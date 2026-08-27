@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: MASS TRANSFER — FULL MOVE
+// CK INVENTORY - AUTOMATION TEST: MASS TRANSFER - FULL MOVE
 //============================================================================
 //
 // 5 items across 2 source inventories, 2 ample-room candidates. A mass transfer

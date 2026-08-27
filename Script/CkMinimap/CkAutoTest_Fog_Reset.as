@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK FOG OF WAR — AUTOMATION TEST: RevealAll then Reset round-trips to fogged
+// CK FOG OF WAR - AUTOMATION TEST: RevealAll then Reset round-trips to fogged
 //============================================================================
 //
 // Request_RevealAll must drive the explored fraction to 1; Request_Reset must

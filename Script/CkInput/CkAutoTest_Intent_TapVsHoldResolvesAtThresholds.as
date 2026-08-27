@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A TAP AND A HOLD ON ONE BUTTON
+// CK INTENT - AUTOMATION TEST: A TAP AND A HOLD ON ONE BUTTON
 //============================================================================
 //
 // The one ambiguity that genuinely reaches forward. A bare punch and a
@@ -10,9 +10,9 @@
 // held pending, and the three boundaries of that wait are what this pins.
 //
 // The three legs are the headless realization of "threshold-1 / at / +1".
-// Frame-accurate release is not something a test can inject — which logic
+// Frame-accurate release is not something a test can inject - which logic
 // frame an injected event lands on is a property of the sampler's cadence
-// against the renderer's — so each boundary is asserted as exact FRAME
+// against the renderer's - so each boundary is asserted as exact FRAME
 // ARITHMETIC against the press row instead, which is strictly stronger than
 // a wall-clock attempt:
 //
@@ -148,7 +148,7 @@ class UCk_AutoTest_Intent_TapVsHoldResolvesAtThresholds : UCk_AutoTest_Base
 
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_Tap_Hold_Charged") ==
                     ECk_Intent_Phase::Pending,
-            "both rivals wait together — the press has not answered either of them yet");
+            "both rivals wait together - the press has not answered either of them yet");
 
         DoInject(ECk_InputSource_EventType::Released);
     }
@@ -184,11 +184,11 @@ class UCk_AutoTest_Intent_TapVsHoldResolvesAtThresholds : UCk_AutoTest_Base
         _HoldFrame = utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Tap_Hold_Charged");
 
         Assert_Equals_Int(_HoldFrame - _HoldPressFrame, _HoldThresholdFrames,
-            "a hold completes on the frame its threshold is reached — not a frame early, not a frame late");
+            "a hold completes on the frame its threshold is reached - not a frame early, not a frame late");
 
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_Tap_Hold_Quick") ==
                     ECk_Intent_Phase::Idle,
-            "the tap lost the arbitration rather than failing — a loser goes back to Idle");
+            "the tap lost the arbitration rather than failing - a loser goes back to Idle");
     }
 
     UFUNCTION()

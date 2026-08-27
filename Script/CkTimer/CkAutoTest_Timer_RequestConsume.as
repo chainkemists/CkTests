@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: REQUEST CONSUME
+// CK TIMER - AUTOMATION TEST: REQUEST CONSUME
 //============================================================================
 //
 // Verifies Request_Consume on a CountDown timer:
 //   - Goal is large enough that natural completion can't happen in-window.
 //   - We Request_Consume(SmallChunk) until the chrono is depleted, then
 //     OnDepleted should fire. (The gym binds OnDepleted for consume-driven
-//     completion specifically — see CkTimerGym_Countdown.as.)
+//     completion specifically - see CkTimerGym_Countdown.as.)
 //
 // We poll on each tick: if not yet depleted, request another consume chunk.
 // The harness timeout catches the case where consume never depletes.
@@ -43,7 +43,7 @@ class UCk_AutoTest_Timer_RequestConsume : UCk_AutoTest_Base
         if (IsFinished()) { return; }
         if (_DepletedObserved) { return; }
 
-        // Consume a big chunk each tick — should deplete in 3 ticks.
+        // Consume a big chunk each tick - should deplete in 3 ticks.
         _Timer.Request_Consume(FCk_Request_Timer_Consume(FCk_Time(25.0f)));
         _ChunksConsumed++;
     }
@@ -57,7 +57,7 @@ class UCk_AutoTest_Timer_RequestConsume : UCk_AutoTest_Base
         Assert_True(_ChunksConsumed > 0,
             "OnDepleted should follow at least one Request_Consume");
         // Surprising but real: Request_Consume on a CountDown timer calls
-        // Tick() (current UP), not Consume() (current DOWN) — see
+        // Tick() (current UP), not Consume() (current DOWN) - see
         // CkTimer_Processor.cpp. So the consume-driven OnDepleted path
         // completes with current=goal, and Get_IsDone() (current >= goal)
         // returns TRUE. This is the OPPOSITE of the natural-tick countdown
@@ -68,7 +68,7 @@ class UCk_AutoTest_Timer_RequestConsume : UCk_AutoTest_Base
         // surprising and may be a framework bug worth investigating. If/when
         // it is unified, this test's assertion will need to be updated to match
         // whichever direction is canonical. Also: Get_IsDepleted is not yet
-        // exposed to AngelScript — see the followup note in
+        // exposed to AngelScript - see the followup note in
         // CkAutoTest_Timer_CountdownCompletion.as.
         Assert_True(InChrono.Get_IsDone(),
             "Chrono should report IsDone in consume-driven OnDepleted on a countdown timer");

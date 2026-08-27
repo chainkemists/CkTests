@@ -8,14 +8,14 @@
 //
 // UPROPERTY(SaveGame) sets the REAL CPF_SaveGame flag on the engine-fork AngelScript path. The
 // inert meta=(SaveGame) form (see Script/ECS/CosmeticOwnership/BB_CosmeticOwnership_Feature.as)
-// is DELIBERATELY not used here — the gate precondition-asserts CPF_SaveGame on these fields.
+// is DELIBERATELY not used here - the gate precondition-asserts CPF_SaveGame on these fields.
 //============================================================================
 
 class UCkSnapshot_AsSaveFields_EntityScript : UCk_GenericEntityScript_UE
 {
 	default _Replication = ECk_Replication::DoesNotReplicate;
 
-	// SaveGame-tagged — MUST round-trip a v3 rebuild+hydrate load.
+	// SaveGame-tagged - MUST round-trip a v3 rebuild+hydrate load.
 	UPROPERTY(SaveGame)
 	int32 SavedInt = 0;
 
@@ -25,7 +25,7 @@ class UCkSnapshot_AsSaveFields_EntityScript : UCk_GenericEntityScript_UE
 	UPROPERTY(SaveGame)
 	TArray<int32> SavedArray;
 
-	// Negation control — NOT SaveGame-tagged; MUST reset to the class default (0) on load.
+	// Negation control - NOT SaveGame-tagged; MUST reset to the class default (0) on load.
 	UPROPERTY()
 	int32 PlainInt = 0;
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE BAKE IS REACHABLE FROM ANGELSCRIPT
+// CK INTENT - AUTOMATION TEST: THE BAKE IS REACHABLE FROM ANGELSCRIPT
 //============================================================================
 //
 // Notation is authored in script, so the step that turns authored notation
@@ -9,7 +9,7 @@
 // too. A bake that only C++ could call would make script a place moves are
 // written and never a place they are validated.
 //
-// Entity-free, like its notation sibling — and that is the property under
+// Entity-free, like its notation sibling - and that is the property under
 // test as much as anything else. The button vocabulary arrives as ROWS the
 // script makes up on the spot, not as a live ButtonMap, so there is no world,
 // no input source and nothing to spin up before a set can be compiled. A cook
@@ -114,7 +114,7 @@ class UCk_AutoTest_Intent_BakeResolvesAndDefers : UCk_AutoTest_Base
         FCk_Intent_CompiledSet Set = Result.Get_CompiledSet();
 
         Assert_Equals_Int(Set.Get_Intents().Num(), 0,
-            "the well-formed move alongside it must NOT compile either — a set is valid whole or not at all");
+            "the well-formed move alongside it must NOT compile either - a set is valid whole or not at all");
     }
 
     //------------------------------------------------------------------------

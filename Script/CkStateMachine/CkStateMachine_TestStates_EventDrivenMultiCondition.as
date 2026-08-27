@@ -1,11 +1,11 @@
 // ============================================================================
-// SM EVENT-DRIVEN MULTI-CONDITION — REGRESSION TEST STATES
+// SM EVENT-DRIVEN MULTI-CONDITION - REGRESSION TEST STATES
 // ============================================================================
 //
 // Guards the "event-driven condition Pass results are preserved across
 // transition Reset cycles" invariant. A transition with multiple event-
 // driven conditions must fire exactly when ALL of them resolve Pass, even
-// when those events resolve at different times — and even though the
+// when those events resolve at different times - and even though the
 // state evaluator's Fail/Reset cycle runs many iterations between the
 // first and last events arriving.
 //
@@ -19,16 +19,16 @@
 //
 // Sequence of interest:
 //   t=0    : Idle entered. Both conds Fail (auto-Fail resting state).
-//            transition.Evaluate sees Fail → trans Fail. state.Evaluate
+//            transition.Evaluate sees Fail -> trans Fail. state.Evaluate
 //            cycles trans through Reset.
-//   t≈0.1s : FastEvent → MarkSatisfied. Cond Pass.
-//            transition.Evaluate walks: FastEvent Pass → SlowEvent Fail
-//            (still) → trans Fail. State keeps cycling.
-//   t≈0.1–0.4s : multiple Reset cycles. FastEvent's Pass MUST be
+//   t~0.1s : FastEvent -> MarkSatisfied. Cond Pass.
+//            transition.Evaluate walks: FastEvent Pass -> SlowEvent Fail
+//            (still) -> trans Fail. State keeps cycling.
+//   t~0.1-0.4s : multiple Reset cycles. FastEvent's Pass MUST be
 //            preserved across these cycles (event-driven cond results
 //            stick across Reset by framework design).
-//   t≈0.4s : SlowEvent → MarkSatisfied. Cond Pass.
-//            transition.Evaluate walks: both Pass → trans Pass → fire.
+//   t~0.4s : SlowEvent -> MarkSatisfied. Cond Pass.
+//            transition.Evaluate walks: both Pass -> trans Pass -> fire.
 //            SM transitions to Finish.
 //
 // PASS criterion: Counter_Finish == 1 (SM transitioned exactly once).
@@ -67,7 +67,7 @@ namespace SmEventDrivenMultiCondition_Registry
 }
 
 // ============================================================================
-// CONDITIONS — both are event-driven timer gates that arm at EnterCondition
+// CONDITIONS - both are event-driven timer gates that arm at EnterCondition
 // and call MarkSatisfied when their timer fires. Different delays so they
 // resolve at different points in the Reset cycle.
 // ============================================================================
@@ -117,7 +117,7 @@ class UCk_SmTest_EventDrivenMultiCondition_Condition_SlowEvent : UCk_SmCondition
 };
 
 // ============================================================================
-// COUNTER TASK — bumps the Finish counter on entry to the terminal state.
+// COUNTER TASK - bumps the Finish counter on entry to the terminal state.
 // ============================================================================
 
 UCLASS()
@@ -150,7 +150,7 @@ class UCk_SmTest_EventDrivenMultiCondition_State_Idle : UCk_SmState_EntityScript
     {
         auto _CkPerfScope = ck::ScopedStat();
         // Single transition with TWO event-driven conditions. The transition
-        // must fire exactly once — when both conditions have resolved Pass.
+        // must fire exactly once - when both conditions have resolved Pass.
         // The framework's contract is that event-driven conditions preserve
         // their last-known result across transition Reset (so FastEvent's
         // Pass survives the cycling between t=0.1s and t=0.4s).

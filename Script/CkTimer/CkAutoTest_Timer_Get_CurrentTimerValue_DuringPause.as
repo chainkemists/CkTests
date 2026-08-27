@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: GET_CURRENTTIMERVALUE DURING PAUSE
+// CK TIMER - AUTOMATION TEST: GET_CURRENTTIMERVALUE DURING PAUSE
 //============================================================================
 //
 // Pins Get_CurrentTimerValue's pause semantic: while a timer is Paused, the

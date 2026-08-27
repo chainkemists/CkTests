@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: ON-CLAMPED PAYLOAD DIRECTION VALUES
+// CK ATTRIBUTE - AUTOMATION TEST: ON-CLAMPED PAYLOAD DIRECTION VALUES
 //============================================================================
 //
-// Pins the per-direction payload contract in CkAttribute/CLAUDE.md:
+// Pins the per-direction payload contract in the CkAttribute docs:
 //
 //   The signal payload (`FCk_Payload_*Attribute_OnClamped`) is unaffected
-//   [by fragment asymmetry] — it carries event-time values that are correct
+//   [by fragment asymmetry] - it carries event-time values that are correct
 //   for the direction whose signal fires.
 //
 // Existing test `CkAutoTest_Attribute_IntegerClamping` only asserts that

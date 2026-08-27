@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK CROSS-CUTTING — AUTOMATION TEST: SAME-FRAME TagSet ADD + REMOVE CANCEL
+// CK CROSS-CUTTING - AUTOMATION TEST: SAME-FRAME TagSet ADD + REMOVE CANCEL
 //============================================================================
 //
 // Pins the documented same-frame request cancellation contract for TagSet:
-//   Add tag X same tick as Remove tag X → final state holds NO X.
+//   Add tag X same tick as Remove tag X -> final state holds NO X.
 //
 // The audit allows either of two acceptable signal-side outcomes (zero
 // broadcasts, or one with empty add+remove). This test pins the END STATE
-// — the tag must not survive — and counts signal fires to surface whichever
+// - the tag must not survive - and counts signal fires to surface whichever
 // outcome the framework chose so a regression that changes it is visible
 // in the assertion message.
 //
@@ -51,7 +51,7 @@ class UCk_AutoTest_CrossCutting_SameFrame_TagSetAddAndRemoveCancel : UCk_AutoTes
         auto RemoveContainer = FGameplayTagContainer();
         RemoveContainer.AddTag(_Tag);
 
-        // Add then remove in same frame — final state must have no tag.
+        // Add then remove in same frame - final state must have no tag.
         utils_tag_set::Request_AddTags(_TagSet, AddContainer);
         utils_tag_set::Request_RemoveTags(_TagSet, RemoveContainer);
 

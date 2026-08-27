@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: REJECTS OFF-NAVMESH COMPILED DETOUR
+// CK PATH NETWORK - AUTOMATION TEST: REJECTS OFF-NAVMESH COMPILED DETOUR
 //============================================================================
 //
 // The terminal ramps are deliberately short and live on the AutoTests level's

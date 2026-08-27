@@ -38,7 +38,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
 
     // Stations sit at X=k_StationX facing -X (open front toward -X). Scenarios are laid out in the
     // clear space IN FRONT of the stations (lower X) and agents move in the -X direction, away from
-    // the station body. All positions are KNOWN — we never use the deferred station-tag lookup.
+    // the station body. All positions are KNOWN - we never use the deferred station-tag lookup.
     // Lanes are within the Separation-gym-proven navmesh envelope (Y within +/-600).
     private const float k_StationX = 800.0;
     private const float k_SpawnX = 450.0;
@@ -103,12 +103,12 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
 
         // Show the framework's own crowd debug draws: separation circle, the DASHED planned path
         // ("where it intends to go"), and the SOLID breadcrumb ("where it actually went"). The
-        // gym no longer draws its own path lines — the framework's dashed-vs-solid distinction is
+        // gym no longer draws its own path lines - the framework's dashed-vs-solid distinction is
         // the single source of truth. (Toggles persist in the editor ini, so force them on entry.)
         System::ExecuteConsoleCommand("ck.Crowd.Debug 1");
         System::ExecuteConsoleCommand("ck.Crowd.DrawPlannedPaths 1");
         System::ExecuteConsoleCommand("ck.Crowd.DrawBreadcrumbs 1");
-        ck::crowd::Log(f"Pathing gym: StartGym DONE — {_Agents.Num()} agents spawned");
+        ck::crowd::Log(f"Pathing gym: StartGym DONE - {_Agents.Num()} agents spawned");
     }
 
     private void SpawnFloor()
@@ -167,7 +167,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
     private void Build_FlushBox(float InLaneY)
     {
         // Small box (100x100x150) in front of the station; goal sits just past its far (-X) face so
-        // the agent must round it and arrives laterally — the orbit seed.
+        // the agent must round it and arrives laterally - the orbit seed.
         SpawnBox(FVector(180.0, InLaneY, k_BoxZ), FVector(1.0, 1.0, 1.5));
         Queue_Agent(FVector(k_SpawnX, InLaneY, k_AgentZ), FVector(100.0, InLaneY, k_AgentZ),
             FLinearColor(1.0, 0.42, 0.42, 1.0), n"PathingAgent_FlushBox");
@@ -176,7 +176,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
     private void Build_RoundEnd(float InLaneY)
     {
         // Wall blocks the lower part of the lane with a gap above. The agent must detour up, round
-        // the wall's top end, then drop back DOWN to a goal on the far side — arriving with -Y
+        // the wall's top end, then drop back DOWN to a goal on the far side - arriving with -Y
         // (lateral) velocity. Strong orbit candidate.
         SpawnBox(FVector(150.0, InLaneY - 60.0, k_BoxZ), FVector(0.5, 2.2, 1.5));
         Queue_Agent(FVector(k_SpawnX, InLaneY - 60.0, k_AgentZ), FVector(100.0, InLaneY - 40.0, k_AgentZ),
@@ -187,7 +187,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
     {
         // A long divider wall. The agent starts above it and the goal is below it, so it must run
         // out to the wall's open (-X) end, hairpin around, and come back to a goal just past the
-        // turn — arriving mid-turn.
+        // turn - arriving mid-turn.
         SpawnBox(FVector(240.0, InLaneY, k_BoxZ), FVector(3.0, 0.4, 1.5));
         Queue_Agent(FVector(k_SpawnX, InLaneY + 70.0, k_AgentZ), FVector(130.0, InLaneY - 70.0, k_AgentZ),
             FLinearColor(1.0, 0.5, 0.9, 1.0), n"PathingAgent_Hairpin");
@@ -196,7 +196,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
     private void Build_Niche(float InLaneY)
     {
         // Three-sided pocket opening toward the agent. It enters at speed and must stop deep inside
-        // a confined space — overshoot into the back wall is where it can orbit/jitter. The side
+        // a confined space - overshoot into the back wall is where it can orbit/jitter. The side
         // walls start at X=110 so they abut (not overlap) the X[70,110] back wall.
         SpawnBox(FVector(90.0, InLaneY, k_BoxZ), FVector(0.4, 1.6, 1.5));
         SpawnBox(FVector(205.0, InLaneY + 80.0, k_BoxZ), FVector(1.9, 0.4, 1.5));
@@ -344,7 +344,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
         bool InUseCloseGoalStrafe = false)
     {
         // Agents are standalone top-level entities (lifetime-owned by the registry transient),
-        // NOT sub-entities of the PlayerController — they represent free-standing NPCs.
+        // NOT sub-entities of the PlayerController - they represent free-standing NPCs.
         // ClearAll destroys them explicitly, so no owner-cascade is needed.
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto Params = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
@@ -356,7 +356,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
 
         // Lifetime-OWNED BY the transient, not composed ONTO it. utils_crowd_agent::Add composes
         // onto the handle it is given and permits one agent per entity, so passing the transient
-        // directly put every agent on the same entity — the first won and the rest were no-ops.
+        // directly put every agent on the same entity - the first won and the rest were no-ops.
         // It would also make ClearAll's destroy target the world transient.
         auto GenericAgent = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
         GenericAgent.Set_DebugName(InDebugName);
@@ -427,7 +427,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (_RetargetValid && ck::IsValid(_RetargetAgent))
         {
-            // Re-issue MoveTo to the SAME point every frame — reproduces the live NPC's re-issue churn
+            // Re-issue MoveTo to the SAME point every frame - reproduces the live NPC's re-issue churn
             // (a noisy state machine re-firing MoveTo many times a second). Without the fix this resets
             // the waypoint cursor every frame and the agent orbits the point; with the same-goal no-op
             // (B) + the turn-radius arrival cap (A) it should ignore the churn and settle cleanly.

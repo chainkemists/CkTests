@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: CURVE-OFFSET SHAKE RETURNS TO BASE
+// CK TWEEN - AUTOMATION TEST: CURVE-OFFSET SHAKE RETURNS TO BASE
 //============================================================================
 //
 // Pins the contract that Start->End interpolation cannot express and that the
@@ -17,7 +17,7 @@
 // this test asserts a MIDPOINT: peak deviation during flight must be large.
 //
 // Phase 2 re-runs the same curve via Restart and asserts it returns to the
-// SAME base. That is the anti-drift property the migration depends on — the
+// SAME base. That is the anti-drift property the migration depends on - the
 // pose is recomputed from an immutable base every frame rather than
 // accumulated, so a spammable re-trigger cannot walk the prop away from rest.
 //
@@ -122,10 +122,10 @@ class UCk_AutoTest_Tween_CurveOffset_ShakeReturnsToBase : UCk_AutoTest_Base
         const auto FinalDeviation = Get_DeviationFromBaseDeg(Final);
 
         Assert_True(_PeakDeviationDeg > k_MinPeakDeviationDeg,
-            f"Pass {_CompletedCount}: the pose must actually MOVE mid-flight — peak deviation from base was {_PeakDeviationDeg} deg, needed > {k_MinPeakDeviationDeg}");
+            f"Pass {_CompletedCount}: the pose must actually MOVE mid-flight - peak deviation from base was {_PeakDeviationDeg} deg, needed > {k_MinPeakDeviationDeg}");
 
         Assert_True(FinalDeviation < k_RestToleranceDeg,
-            f"Pass {_CompletedCount}: the pose must return to base on completion — final deviation was {FinalDeviation} deg, needed < {k_RestToleranceDeg}");
+            f"Pass {_CompletedCount}: the pose must return to base on completion - final deviation was {FinalDeviation} deg, needed < {k_RestToleranceDeg}");
 
         if (_CompletedCount >= 2)
         {
@@ -136,7 +136,7 @@ class UCk_AutoTest_Tween_CurveOffset_ShakeReturnsToBase : UCk_AutoTest_Base
             return;
         }
 
-        // Re-trigger. The tween is Completed here, so Restart is the supported path —
+        // Re-trigger. The tween is Completed here, so Restart is the supported path
         // Stop on an already-completed tween re-adds FTag_Tween_Completed and ensures.
         _PeakDeviationDeg = 0.0f;
         utils_tween::Restart(_Tween, FCk_Delegate_Request_OnCompleted());

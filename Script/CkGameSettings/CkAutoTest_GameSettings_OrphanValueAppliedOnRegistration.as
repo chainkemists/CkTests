@@ -2,7 +2,7 @@
 
 // Verifies the orphan contract: a stored value whose definition is not registered yet is retained
 // SILENTLY (no warning, no expiry) and becomes the setting's initial value when the definition
-// registers — the stored value wins over the definition's default. Any ensure fails this test.
+// registers - the stored value wins over the definition's default. Any ensure fails this test.
 class UCk_AutoTest_GameSettings_OrphanValueAppliedOnRegistration : UCk_AutoTest_Base
 {
     UFUNCTION(BlueprintOverride)

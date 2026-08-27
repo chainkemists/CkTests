@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: CHANGE COUNT DIRECTION
+// CK TIMER - AUTOMATION TEST: CHANGE COUNT DIRECTION
 //============================================================================
 //
 // Verifies Request_ChangeCountDirection swaps a running timer's direction

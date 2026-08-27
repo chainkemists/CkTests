@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: IMPULSE CHANGES VELOCITY (BODY LEAVES + RETURNS)
+// CK JOLT - AUTOMATION TEST: IMPULSE CHANGES VELOCITY (BODY LEAVES + RETURNS)
 //============================================================================
 //
 // Request_AddImpulse must impart an instantaneous velocity change: a settled
@@ -112,7 +112,7 @@ class UCk_AutoTest_CkJolt_ImpulseChangesVelocity : UCk_AutoTest_Base
             return;
         }
 
-        // Phase 1 — the box must rise clearly above rest, then return to rest.
+        // Phase 1 - the box must rise clearly above rest, then return to rest.
         if (CurrentZ > _PeakZ)
         { _PeakZ = CurrentZ; }
 

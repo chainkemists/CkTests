@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST: idle is cheap, disabled is frozen
+// CK AGGRO - AUTOMATION TEST: idle is cheap, disabled is frozen
 // Many enabled target-less owners keep pacing (their debug counter advances) while tracking nothing; disabled
 // owners are fully excluded (counter never moves). Verifies the zero-cost-idle + counted-Disable design.
 

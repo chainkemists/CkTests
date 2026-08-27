@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: GAMEPLAY TAG PARENT UNCOUNTS CLEANLY
+// CK ENTITY TAG - AUTOMATION TEST: GAMEPLAY TAG PARENT UNCOUNTS CLEANLY
 //============================================================================
 //
 // Adds two sibling gameplay tags (A.B.C and A.B.D). Each shares the parent
-// chain A.B / A. Removing A.B.C must NOT remove the parent FNames — they
+// chain A.B / A. Removing A.B.C must NOT remove the parent FNames - they
 // are still held by A.B.D. Only after removing A.B.D as well do the parent
 // FNames go away.
 //

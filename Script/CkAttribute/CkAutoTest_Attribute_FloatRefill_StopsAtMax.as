@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: Float refill clamps + holds at Max
+// CK ATTRIBUTE - AUTOMATION TEST: Float refill clamps + holds at Max
 //============================================================================
 //
 // Pins the RefillPolicy_StopsAtMax contract: once a running refill
@@ -17,7 +17,7 @@
 //   2. Override Current to 50 (drain).
 //   3. Wait for refill to bring value back to 100 (saturation).
 //   4. After saturation, wait 0.3s of additional refill processor ticks.
-//   5. Assert value is still exactly 100.0 — the refill stopped
+//   5. Assert value is still exactly 100.0 - the refill stopped
 //      advancing once Max was reached.
 //============================================================================
 
@@ -83,10 +83,10 @@ class UCk_AutoTest_Attribute_FloatRefill_StopsAtMax : UCk_AutoTest_Base
         // After saturation, observe across additional ticks.
         _ElapsedSinceSaturation += float32(InDeltaT.Get_Seconds());
 
-        // Catch any drift from 100 immediately — the refill processor must
+        // Catch any drift from 100 immediately - the refill processor must
         // not push the value past Max or accidentally roll it back.
         Assert_True(Current == 100.0f,
-            f"After saturating at Max=100, value must stay at exactly 100 — got {Current} after {_ElapsedSinceSaturation}s of additional refill ticks");
+            f"After saturating at Max=100, value must stay at exactly 100 - got {Current} after {_ElapsedSinceSaturation}s of additional refill ticks");
 
         if (_ElapsedSinceSaturation >= 0.30f)
         {

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: ADDITIVE FOV BLEND (end-to-end auto-blend math)
+// CK CAMERA - AUTOMATION TEST: ADDITIVE FOV BLEND (end-to-end auto-blend math)
 //============================================================================
 //
 // Exercises the whole attribute-backed camera pipeline: Add materializes the tuner attributes (FOV default 90);

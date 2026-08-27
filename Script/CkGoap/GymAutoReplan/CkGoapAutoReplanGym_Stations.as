@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapAutoReplan_Gym — three stations pinning each replan policy
+// CkGoapAutoReplan_Gym - three stations pinning each replan policy
 //
 // Each station shares the same minimal action graph (root + one or two
 // operators) but configures _ReplanPolicy + _MinReplanIntervalSeconds
@@ -12,9 +12,9 @@
 //   - WS-change count (the station mutates Flip key on its own timer)
 //
 // The discrepancy between the two counts is what teaches the policy:
-//   Explicit              → plans = 1 initial; WS changes climb freely.
-//   OnWorldStateDirty (no throttle)   → plans climb 1:1 with WS changes.
-//   OnWorldStateDirty (0.5s throttle) → plans coalesce ~once per 0.5s.
+//   Explicit              -> plans = 1 initial; WS changes climb freely.
+//   OnWorldStateDirty (no throttle)   -> plans climb 1:1 with WS changes.
+//   OnWorldStateDirty (0.5s throttle) -> plans coalesce ~once per 0.5s.
 //============================================================================
 
 USTRUCT()
@@ -23,7 +23,7 @@ struct FCk_GoapGym_AutoReplan_Station_SpawnParams
     UPROPERTY()
     FTransform InitialTransform = FTransform::Identity;
 
-    // Selector — which of the three policies this instance demonstrates.
+    // Selector - which of the three policies this instance demonstrates.
     UPROPERTY()
     int32 Mode = 0;     // 0=Explicit, 1=OnWSDirty (throttled), 2=OnCostDirty
 }
@@ -100,7 +100,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
 
         if (Mode == 1)
         {
-            // OnWSDirty station — 0.5s throttle interval to show coalescing.
+            // OnWSDirty station - 0.5s throttle interval to show coalescing.
             utils_goap_planner::Request_SetReplanInterval(_Planner, 0.5);
         }
 
@@ -109,11 +109,11 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         utils_goap_planner::BindTo_OnPlanComplete(_Planner,
             FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlanComplete"));
 
-        // Auto-flipper timer — OnWSDirty + OnCostDirty stations flip
+        // Auto-flipper timer - OnWSDirty + OnCostDirty stations flip
         // Flip key 10x per second to demonstrate (un)throttled replans.
         // Explicit station auto-flips too, to make the "no replan" visible.
         // Using OnUpdate (every tick) plus an internal accumulator to fire
-        // every 0.1s would be more work — for the gym, fire every tick. The
+        // every 0.1s would be more work - for the gym, fire every tick. The
         // visualisation still demonstrates the WS vs plan-count divergence.
         utils_timer::Create_Tick(InHandle, FCk_Delegate_Timer(this, n"OnAutoFlip"));
 
@@ -161,7 +161,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
     {
         if (ck::Is_NOT_Valid(_WS)) { return; }
 
-        // Throttle to ~10 flips/sec — every tick would dilute the throttle
+        // Throttle to ~10 flips/sec - every tick would dilute the throttle
         // demonstration on Mode 1.
         _FlipAccumulator = _FlipAccumulator + float(InDeltaT.Get_Seconds());
         if (_FlipAccumulator < 0.1) { return; }
@@ -213,7 +213,7 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
         {
             Title = "STATION B / OnWorldStateDirty (throttle 0.5s)";
             ButtonsBlock = "  (auto-flipping WS every 0.1s)\n"
-                + "  Plan count should grow ~2/sec — coalesced from\n"
+                + "  Plan count should grow ~2/sec - coalesced from\n"
                 + "  ~10 WS changes/sec by the 0.5s throttle window.";
         }
         else
@@ -236,6 +236,6 @@ class UCk_EntityScript_GoapGym_AutoReplan_Station : UCk_GenericEntityScript_UE
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             Title, Body,
-            "Replan policy showcase — see plan vs WS counts.");
+            "Replan policy showcase - see plan vs WS counts.");
     }
 }

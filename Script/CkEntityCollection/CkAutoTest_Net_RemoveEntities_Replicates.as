@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY COLLECTION — NET AUTOMATION TEST: Remove Entities Replicates
+// CK ENTITY COLLECTION - NET AUTOMATION TEST: Remove Entities Replicates
 //============================================================================
 //
 // Server adds the subject's own entity, settles to let the post-Add snapshot
@@ -11,7 +11,7 @@
 // Snapshot-not-deltas gotcha (same as CkInventory DataOnly RemoveItem): the
 // container handler delivers only the post-mutation snapshot. Back-to-back
 // Add then Remove without a settle would coalesce into a single "empty"
-// snapshot, and the client would never observe the "added" state — making it
+// snapshot, and the client would never observe the "added" state - making it
 // impossible to distinguish "remove worked" from "add never landed".
 //============================================================================
 
@@ -24,13 +24,13 @@ class UCk_AutoTest_Net_RemoveEntities_Replicates : UCk_AutoTest_NetBase
     private bool _SawEntryPresent = false;
     private int _PollCount = 0;
 
-    // Settle iterations between server-side Add and Remove. 20 frames ≈ 1s — plenty for the
+    // Settle iterations between server-side Add and Remove. 20 frames ~ 1s - plenty for the
     // post-Add snapshot to reach the client before the Remove queues a new one. Same constant as
     // the Inventory RemoveItem test (kServerSettleIterations).
     private const int kServerSettleIterations = 20;
     private int _ServerSettleCount = 0;
 
-    private const int kPollBudget = 400;  // 400 * 0.05s ≈ 20s — within harness 30s timeout
+    private const int kPollBudget = 400;  // 400 * 0.05s ~ 20s - within harness 30s timeout
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -126,7 +126,7 @@ class UCk_AutoTest_Net_RemoveEntities_Replicates : UCk_AutoTest_NetBase
         if (_PollCount > kPollBudget)
         {
             if (!_SawEntryPresent)
-            { FinishFailure("DIAG-E: client never observed NumEntities>=1 (Add never replicated — possibly NetGuid resolution rejected the rep payload, see CkEntityCollection_Fragment.cpp DoApplyEntityCollections AllValidEntities check)"); return; }
+            { FinishFailure("DIAG-E: client never observed NumEntities>=1 (Add never replicated - possibly NetGuid resolution rejected the rep payload, see CkEntityCollection_Fragment.cpp DoApplyEntityCollections AllValidEntities check)"); return; }
             else
             { FinishFailure("DIAG-F: client saw Add but never observed NumEntities==0 (Remove never replicated)"); return; }
         }

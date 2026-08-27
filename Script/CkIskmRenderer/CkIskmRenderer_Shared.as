@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER GYM — shared tags
+// CK ISKM RENDERER GYM - shared tags
 //============================================================================
 //
 // Tags used by the IskmRenderer gym stations. The wrapper assets are

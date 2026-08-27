@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CkProjectileGym — Homing Proximity Miss station
+// CkProjectileGym - Homing Proximity Miss station
 //
 // Every cycle a projectile with ZERO steering budget is launched straight
 // past a homing point sitting off its path. The moment it stops closing and
 // starts receding inside the miss-notify threshold, OnTargetMissed fires
-// with the closest-approach distance — the proximity-detonation hook.
+// with the closest-approach distance - the proximity-detonation hook.
 //============================================================================
 
 USTRUCT()

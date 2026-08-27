@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MINIMAP — AUTOMATION TEST: offscreen policy — Hide vs ClampToEdge
+// CK MINIMAP - AUTOMATION TEST: offscreen policy - Hide vs ClampToEdge
 //============================================================================
 //
 // ViewExtent 1000 (Rectangle frame). Two POIs sit 3000uu out (outside the
@@ -36,10 +36,10 @@ class UCk_AutoTest_Minimap_OffscreenPolicy : UCk_AutoTest_Base
 
         _Minimap = utils_minimap::Add(Observer, FCk_Fragment_Minimap_ParamsData(1000.0));
 
-        // Due East, Hide policy — must not appear at all.
+        // Due East, Hide policy - must not appear at all.
         _HiddenPoi = DoSpawnPoi(FVector(0.0, 3000.0, 0.0), n"Poi.Category.MinimapHide",
             ECk_Poi_OffscreenPolicy::Hide);
-        // Due North, ClampToEdge — must pin to the frame rim at (0, -1).
+        // Due North, ClampToEdge - must pin to the frame rim at (0, -1).
         _ClampedPoi = DoSpawnPoi(FVector(3000.0, 0.0, 0.0), n"Poi.Category.MinimapClamp",
             ECk_Poi_OffscreenPolicy::ClampToEdge);
 
@@ -96,7 +96,7 @@ class UCk_AutoTest_Minimap_OffscreenPolicy : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         auto Entries = utils_minimap::Get_Entries(_Minimap);
-        Assert_Equals_Int(Entries.Num(), 1, "Hide policy should exclude; ClampToEdge should keep — 1 entry");
+        Assert_Equals_Int(Entries.Num(), 1, "Hide policy should exclude; ClampToEdge should keep - 1 entry");
 
         if (Entries.Num() == 1)
         {

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER GYM — wrapper assets
+// CK ISKM RENDERER GYM - wrapper assets
 //============================================================================
 //
 // AS-authored UDataAssets that wire migrated UE Mannequin content (loaded via
@@ -17,10 +17,10 @@
 // CkFoundation `UCk_DeferredAssetInit_UE` system re-runs each literal asset's
 // `__Init_<Name>` chain on `OnFEngineLoopInitComplete` (and again on
 // AS hot-reload), so the assets::load:: calls below get a real value
-// once the engine is safe — even though the first pass returns null.
+// once the engine is safe - even though the first pass returns null.
 //
 // Cross-file consumers reach the wrappers via `iskm_assets::RendererData_Demo()`
-// / `iskm_assets::AnimCollection_Demo()` — bare `Asset_Foo` symbols are NOT
+// / `iskm_assets::AnimCollection_Demo()` - bare `Asset_Foo` symbols are NOT
 // visible across `.as` files (mirrors the `inv_gym_items::Potion()` pattern
 // in CkInventoryGym_Assets.as).
 //
@@ -31,7 +31,7 @@ asset Asset_AnimCollection_Demo of UCk_IskmAnimCollection_Data
     _Skeleton = assets::load::SK_Mannequin();
     _DefaultMesh = assets::load::SKM_Manny_Simple();
 
-    // SequenceDef has no CK_DEFINE_CONSTRUCTORS — populate via local then Add.
+    // SequenceDef has no CK_DEFINE_CONSTRUCTORS - populate via local then Add.
     FCk_IskmAnimCollection_SequenceDef IdleDef;
     IdleDef._Sequence = assets::load::MM_Idle();
     IdleDef._Name = n"Idle";
@@ -62,9 +62,9 @@ asset Asset_RendererData_Demo of UCk_IskmRenderer_Data
     //   1. Lets tests' Request_PlayAnimation / Request_PlayMontage work
     //      without an explicit Request_SetAnimInstanceClass(NullClass) flip.
     //   2. Avoids the framework warning "AnimInstance class [X] does NOT
-    //      derive from UCk_IskmNotify_AnimInstance" — ABP_Unarmed is the
+    //      derive from UCk_IskmNotify_AnimInstance" - ABP_Unarmed is the
     //      stock UE third-person AnimBP, not Ck-derived. The AutoTest
-    //      harness escalates that warning to Error → all wrapper-using
+    //      harness escalates that warning to Error -> all wrapper-using
     //      tests fail.
     // Gym stations that want idle animation opt INTO ABP_Unarmed at
     // construction via Request_SetAnimInstanceClass(assets::load::ABP_Unarmed_Class()).
@@ -80,7 +80,7 @@ asset Asset_RendererData_Demo of UCk_IskmRenderer_Data
 }
 
 //============================================================================
-// ACCESSORS — bare `Asset_Foo` symbols aren't visible across files. Cross-file
+// ACCESSORS - bare `Asset_Foo` symbols aren't visible across files. Cross-file
 // consumers reach the wrappers via these namespaced functions.
 //============================================================================
 

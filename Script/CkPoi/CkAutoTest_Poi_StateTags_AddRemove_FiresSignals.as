@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: state-tag add/remove fires signals on flips only
+// CK POI - AUTOMATION TEST: state-tag add/remove fires signals on flips only
 //============================================================================
 //
 // CkPoi v2: state tags are plain CkEntityTag gameplay tags on the POI entity.
@@ -55,7 +55,7 @@ class UCk_AutoTest_Poi_StateTags_AddRemove_FiresSignals : UCk_AutoTest_Base
     // Only the two PRESENCE FLIPS (0->1, 1->0) have an event to wait on. The
     // counted middle hops (1->2, 2->1) exist precisely to prove nothing fires,
     // and no count accessor is exposed to script, so Has is true on both sides
-    // of each — a condition there would be true on entry or never satisfy.
+    // of each - a condition there would be true on entry or never satisfy.
     // Those settle for frames, which is the unit the request pump advances in.
     UFUNCTION()
     private void Check_AddedFired(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
@@ -139,7 +139,7 @@ class UCk_AutoTest_Poi_StateTags_AddRemove_FiresSignals : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         Assert_Equals_Int(_RemovedCount, 1, "Removing an absent tag is a no-op and must NOT fire");
-        Assert_Equals_Int(_AddedCount, 1, "Added count must remain 1 — no extra fires");
+        Assert_Equals_Int(_AddedCount, 1, "Added count must remain 1 - no extra fires");
         FinishSuccess();
     }
 }

@@ -2,10 +2,10 @@
 // CkParticles gym PlayerController ("Particles"): one station per CkParticles behavior,
 // each spawning the seed template with that behavior + a fitting procedural texture. Ids 9+ are the
 // marketplace recreations (VFX corpus translation sheets); station notes credit their exemplar systems.
-// Everything here is text-authored HLSL + C++ — no Niagara graph was edited for any of these effects.
+// Everything here is text-authored HLSL + C++ - no Niagara graph was edited for any of these effects.
 //
 // The faithful Vefects ports (Slash 7, LightningRange 17, GunshotProjectile 18, ArrowProjectile 19) have no
-// station here — the VfxExamples gym owns them, showing each beside its original for an objective A/B.
+// station here - the VfxExamples gym owns them, showing each beside its original for an objective A/B.
 // Roster-driven AUTOTEST coverage is unaffected: CkAutoTest_Particles_SpawnAllBehaviors still iterates
 // Get_NumBehaviors(), so the ports remain covered.
 // --------------------------------------------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ class ACk_ParticlesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
         Stations.Add(Make_Station(n"Gym.Particles.Gravity", "GRAVITY (0)",
-            "Velocity-integrating fall.", "Default behavior — also the unknown-id fallback."));
+            "Velocity-integrating fall.", "Default behavior - also the unknown-id fallback."));
         Stations.Add(Make_Station(n"Gym.Particles.Swirl", "SWIRL (1)",
             "Age-driven vortex helix.", "Blue -> magenta tint over life."));
         Stations.Add(Make_Station(n"Gym.Particles.Explosion", "EXPLOSION (2)",
@@ -70,7 +70,7 @@ class ACk_ParticlesGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartGym() override
     {
         Request_SpawnAllBehaviors();
-        ck::Trace("🟠 Particles Gym - all behaviors spawned");
+        ck::Trace("* Particles Gym - all behaviors spawned");
     }
 
     void Request_SpawnAllBehaviors()
@@ -114,7 +114,7 @@ class ACk_ParticlesGym_PlayerController : ACk_Gym_Base_PlayerController
         }
         else
         {
-            ck::Error(f"❌ Particles gym: failed to spawn BehaviorId {InBehaviorId} at station {InStationTag}");
+            ck::Error(f"[FAIL] Particles gym: failed to spawn BehaviorId {InBehaviorId} at station {InStationTag}");
         }
     }
 

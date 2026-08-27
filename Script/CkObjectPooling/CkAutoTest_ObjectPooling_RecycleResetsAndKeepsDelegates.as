@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK OBJECT POOLING — AUTOMATION TEST: recycle round trip on a plain pooled object
+// CK OBJECT POOLING - AUTOMATION TEST: recycle round trip on a plain pooled object
 //
 // Fully synchronous via the direct pooled API. acquire -> bind participant +
 // stomp Value -> release -> acquire again. Proves in one shot: the pool re-issues
@@ -37,7 +37,7 @@ class UCk_AutoTest_ObjectPooling_RecycleResetsAndKeepsDelegates : UCk_AutoTest_B
         Obj1.Participant.BindTo_OnReleasedToPool(
             FCk_Delegate_ObjectPoolingParticipant_OnReleased(this, n"OnReleased"));
 
-        // stomp a reflected property — the recycle reset must bring it back to the archetype's 0
+        // stomp a reflected property - the recycle reset must bring it back to the archetype's 0
         Obj1.Value = 42;
 
         auto ReleaseResult = utils_object::TryReleaseToPool(Obj1);

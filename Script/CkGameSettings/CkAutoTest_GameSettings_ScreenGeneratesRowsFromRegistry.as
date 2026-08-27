@@ -4,7 +4,7 @@
 // setting per row type) produces one visible row per setting, bound by key. Widget creation works
 // headless; rendering is not asserted.
 //
-// Which CLASS each row resolves to is deliberately NOT asserted here — a host that configures
+// Which CLASS each row resolves to is deliberately NOT asserted here - a host that configures
 // project-settings row overrides (BusterBlock does) legitimately gets its own WBP classes. The
 // resolution contract itself is covered host-independently by Ck.CkGameSettings.UI.RowClassResolution.
 class UCk_AutoTest_GameSettings_ScreenGeneratesRowsFromRegistry : UCk_AutoTest_Base

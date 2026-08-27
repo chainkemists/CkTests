@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: MASS TRANSFER — MULTI-FRAME, NO OVER-COMMIT
+// CK INVENTORY - AUTOMATION TEST: MASS TRANSFER - MULTI-FRAME, NO OVER-COMMIT
 //============================================================================
 //
 // The coherence + pacing guard. 6 separate 1-unit Potion stacks in the source, a
@@ -99,7 +99,7 @@ class UCk_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit : UCk_AutoTest
 
         auto Target  = FCk_BestTransferTargetParams(Candidates);
         auto Request = FCk_Request_Inventory_MassTransfer(Sources, Target);
-        // Intentionally NOT overriding MaxStepsPerFrame — exercise the default (1) so this test
+        // Intentionally NOT overriding MaxStepsPerFrame - exercise the default (1) so this test
         // guards both coherence AND the default pump budget (6 items > 1 => spans 6 frames).
 
         utils_inventory::Request_MassTransfer(InInventory, Request,
@@ -121,7 +121,7 @@ class UCk_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit : UCk_AutoTest
         Assert_Equals_Int(InUnitsMoved, 4, "Exactly the bound (4 units) should move");
         Assert_Equals_Int(InItemsFailed, 2, "The 2 over-bound items should be reported failed");
 
-        // The merged stack-count write is deferred — settle before reading TotalUnits.
+        // The merged stack-count write is deferred - settle before reading TotalUnits.
         WaitUntil(n"Check_CandidateHasFourUnits", n"OnSettled");
     }
 
@@ -132,7 +132,7 @@ class UCk_AutoTest_Inventory_MassTransfer_MultiFrame_NoOverCommit : UCk_AutoTest
 
 
         Assert_Equals_Int(_Candidate.Get_TotalUnits(), 4,
-            "Candidate must sit at its 4-unit bound — never over-commit past it");
+            "Candidate must sit at its 4-unit bound - never over-commit past it");
         Assert_Equals_Int(_Source.Get_NumItems(), 2, "Source keeps the 2 unplaceable Potions");
 
         FinishSuccess();

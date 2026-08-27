@@ -11,17 +11,17 @@
 //                          instead mean the reconstruction failed and QuantizeFinalColor is the fallback.
 //   - dielectric spheres : dark / mid / bright albedo. Curved surfaces are where band SHAPE reads, and
 //                          where "Off must restore the frame" is judged.
-//   - LitMetal spheres   : the CkUsf LitMetal look — a checker of METAL vs DIELECTRIC squares at
+//   - LitMetal spheres   : the CkUsf LitMetal look - a checker of METAL vs DIELECTRIC squares at
 //                          different roughness in one mesh. The coarse one is the Metallic group's
 //                          subject (metals get their light from reflections, so the illumination
 //                          reconstruction is worst there); the fine one is the stepped-specular subject
 //                          (its smooth squares fall under the roughness cutoff, its rough ones do not).
 //                          The ONE deliberate plugin-content dependency here: no engine material exposes
-//                          Metallic or Roughness as parameters. Null-guarded — a missing master warns
+//                          Metallic or Roughness as parameters. Null-guarded - a missing master warns
 //                          once and those spheres fall back to the default material.
 //   - backlit figure     : a capsule with a bright light BEHIND it. Rim light is the one feature that
 //                          cannot be judged on a front-lit subject at all.
-//   - stencil row        : four cubes — an untagged control plus one at the suppress value, one at
+//   - stencil row        : four cubes - an untagged control plus one at the suppress value, one at
 //                          RoundDots and one at DiagonalLines. The per-object contract is a claim about
 //                          neighbouring meshes differing, so it needs them side by side.
 //   - translating mover  : the documented world-space limitation. A post-process pass has no frame
@@ -82,7 +82,7 @@ class ACk_UsfGym_StylizeCelJudgeScene : AActor
         if (InMesh == nullptr)
         { return; }
 
-        // 0 means the stencil contract is switched off in the current settings — writing it would tag the
+        // 0 means the stencil contract is switched off in the current settings - writing it would tag the
         // mesh with the engine's "nothing here" value and read as if the row simply stopped working.
         if (InValue == 0)
         {
@@ -122,7 +122,7 @@ class ACk_UsfGym_StylizeCelJudgeScene : AActor
                 if (Mid != nullptr)
                 {
                     // Linear in ALBEDO. The whole point is that the light on this wall is uniform while
-                    // the albedo is not — so a light-driven band boundary runs straight across it.
+                    // the albedo is not - so a light-driven band boundary runs straight across it.
                     auto T = float(i) / float(GradientSlabCount - 1);
                     Mid.SetVectorParameterValue(n"Color", FLinearColor(T, T, T, 1.0f));
                 }
@@ -146,7 +146,7 @@ class ACk_UsfGym_StylizeCelJudgeScene : AActor
 
         if (MetalMaster == nullptr)
         {
-            ck::Warning("Stylize Cel Gym: LitMetal master missing — the metallic/specular spheres render as default. Run the console command 'Ck_Usf_GenerateLooks' once.");
+            ck::Warning("Stylize Cel Gym: LitMetal master missing - the metallic/specular spheres render as default. Run the console command 'Ck_Usf_GenerateLooks' once.");
         }
     }
 

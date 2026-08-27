@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: GAMEPLAYCAMERA ONEONLY EVICTS
+// CK CAMERA - AUTOMATION TEST: GAMEPLAYCAMERA ONEONLY EVICTS
 //============================================================================
 //
 // A OneOnly modifier evicts (blends out + prunes) an existing modifier in the same ordering group.

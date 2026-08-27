@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE TRACE — AUTOMATION TEST: _IgnoredEntities DROPS PROBE AND WORLD
+// CK PROBE TRACE - AUTOMATION TEST: _IgnoredEntities DROPS PROBE AND WORLD
 //============================================================================
 //
 // The caller-controlled exclusion list, and the reason it exists: a weapon trace
@@ -10,7 +10,7 @@
 //
 //   1. A baseline trace reports probe + wall, and hands us the wall's own
 //      attribution entity (the only way to name a baked body).
-//   2. Re-tracing with BOTH entities listed returns nothing at all — the
+//   2. Re-tracing with BOTH entities listed returns nothing at all - the
 //      exclusion applies to probe hits and world hits alike, and it happens
 //      BEFORE blocking, so the wall does not merely truncate the probe away.
 //============================================================================

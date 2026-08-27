@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BIAS — AUTOMATION TEST: DEADZONE, THEN EXPONENT, THEN SENSITIVITY
+// CK INPUT BIAS - AUTOMATION TEST: DEADZONE, THEN EXPONENT, THEN SENSITIVITY
 //============================================================================
 //
 // Four stages that each look like a scalar multiply are not commutative, and
-// the wrong order produces a curve that still "feels like a curve" — which is
+// the wrong order produces a curve that still "feels like a curve" - which is
 // why this has to be an assertion and not a comment.
 //
 // The numbers are chosen so every wrong order lands somewhere obviously else.
@@ -17,7 +17,7 @@
 //
 // The full-deflection sample pins the other half of the rescale contract: 1
 // still maps to 1 through the deadzone, so sensitivity is exactly what a
-// fully deflected stick produces — the property a designer actually tunes
+// fully deflected stick produces - the property a designer actually tunes
 // against.
 //============================================================================
 
@@ -73,7 +73,7 @@ class UCk_AutoTest_InputBias_StagesComposeInDeclaredOrder : UCk_AutoTest_Base
     private void Step_AssertPartial(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Float(utils_input_bias::Get_ConditionedAxisValue(_Bias, EKeys::Gamepad_RightX), 0.75f, 0.001f,
-            "deadzone, then exponent, then sensitivity — applying sensitivity first reads 4.0, exponent before the deadzone reads 0.6");
+            "deadzone, then exponent, then sensitivity - applying sensitivity first reads 4.0, exponent before the deadzone reads 0.6");
         Assert_Equals_Float(utils_input_bias::Get_LastRawAxisValue(_Bias, EKeys::Gamepad_RightX), 0.6f, 0.0001f,
             "four stages of conditioning must still leave the recorded raw value alone");
     }

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE — AUTOMATION TEST: OFFSET UPDATES
+// CK SCENE NODE - AUTOMATION TEST: OFFSET UPDATES
 //============================================================================
 //
 // Headless equivalent of the OffsetUpdates / ParentChild gym behaviors.

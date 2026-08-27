@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: MANUAL COMPLETION (SUCCESS)
+// CK INTERACTION - AUTOMATION TEST: MANUAL COMPLETION (SUCCESS)
 //============================================================================
 //
 // Verifies ManuallyCompleted policy with explicit Succeeded end:
 //   1. Source + Target on same entity, Target's CompletionPolicy::ManuallyCompleted.
 //   2. Request_StartInteraction.
 //   3. OnNewInteraction fires; capture the FCk_Handle_Interaction.
-//   4. Manual interactions do NOT auto-finish — wait several ticks to
+//   4. Manual interactions do NOT auto-finish - wait several ticks to
 //      confirm OnInteractionFinished hasn't fired.
 //   5. Issue Request_EndInteraction with Succeeded.
 //   6. OnInteractionFinished fires with Succeeded.

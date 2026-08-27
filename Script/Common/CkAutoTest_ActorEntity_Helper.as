@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK AUTOTEST — ACTOR ↔ ENTITY HELPER
+// CK AUTOTEST - ACTOR <-> ENTITY HELPER
 //============================================================================
 //
 // Reusable scaffold for AutoTests that need an entity with the
 // OwningActor fragment (i.e., a feature module whose Add ensures on
-// missing OwningActor — CkActor, CkCamera, CkOverlapBody, CkPhysics,
+// missing OwningActor - CkActor, CkCamera, CkOverlapBody, CkPhysics,
 // CkProjectile, CkChaos, etc.).
 //
 // USAGE:
@@ -32,7 +32,7 @@
 //       {
 //           if (IsFinished()) { return; }
 //           auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
-//           // OwnedEntity now has the OwningActor fragment — safe for
+//           // OwnedEntity now has the OwningActor fragment - safe for
 //           // CkActor / CkCamera / CkOverlapBody / etc. Add calls.
 //           ...
 //       }
@@ -48,12 +48,12 @@
 //     spurious entity creation work that complicates assertions.
 //
 // PATTERN ORIGIN: Mirrors the inline helper in
-// CkAutoTest_SceneNode_ActorAttachedToActor.as — that test landed
+// CkAutoTest_SceneNode_ActorAttachedToActor.as - that test landed
 // the pattern; this file extracts it so every actor-backed module seed
 // can reuse it without copy-pasting the actor class.
 //============================================================================
 
-// Non-replicating EntityScript subclass — UCk_EntityScript_WithActor_UE
+// Non-replicating EntityScript subclass - UCk_EntityScript_WithActor_UE
 // defaults to Replicates, which ensure-fails against a non-replicated
 // owner actor (no remote authority). AutoTests run as authority on a
 // single instance, so we opt out of replication entirely.

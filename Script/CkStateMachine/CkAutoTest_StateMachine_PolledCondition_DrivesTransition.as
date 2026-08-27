@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: POLLED CONDITION DRIVES TRANSITION
+// CK STATE MACHINE - AUTOMATION TEST: POLLED CONDITION DRIVES TRANSITION
 //============================================================================
 //
 // Pins the polled-condition evaluation path (FProcessor_SmCondition_Polled):

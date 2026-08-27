@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: INTEGER MULTIPLY COMPOSES
+// CK ATTRIBUTE - AUTOMATION TEST: INTEGER MULTIPLY COMPOSES
 //============================================================================
 //
-// Pins the Multiply coalescing contract in CkAttribute/CLAUDE.md:
+// Pins the Multiply coalescing contract in the CkAttribute docs:
 //
 //   | Multiply / Divide | factors compose into one modifier |
 //

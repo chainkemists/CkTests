@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: EXTERNAL OCCUPANT DESTRUCTION CLEANUP
+// CK GRID - AUTOMATION TEST: EXTERNAL OCCUPANT DESTRUCTION CLEANUP
 //============================================================================
 //
 // Lifecycle/ordering hardening: destroying the OCCUPANT entity directly (not
@@ -60,7 +60,7 @@ class UCk_AutoTest_Grid_ExternalOccupantDestructionCleanup : UCk_AutoTest_Base
         {
             if (IsOccupied(FIntPoint(5, 5)))
             {
-                // Destroy the occupant directly — NOT via Request_Remove. The occupant's
+                // Destroy the occupant directly - NOT via Request_Remove. The occupant's
                 // death-watch should destroy the placement it owns.
                 utils_entity_lifetime::Request_DestroyEntity(_ObjectA);
                 _Step = 1;

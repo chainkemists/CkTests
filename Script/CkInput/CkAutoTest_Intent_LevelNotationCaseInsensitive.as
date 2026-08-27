@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: `level` IS SPELLED HOWEVER THE DESIGNER TYPED IT
+// CK INTENT - AUTOMATION TEST: `level` IS SPELLED HOWEVER THE DESIGNER TYPED IT
 //============================================================================
 //
-// Every other token in the grammar compares case-insensitively — `w=`, `hold=`
+// Every other token in the grammar compares case-insensitively - `w=`, `hold=`
 // and `lenient` all do, and button names compare as FName does. `level` is not
 // allowed to be the exception, and the reason is what happens when it is:
 // nothing visible.
 //
 // A designer who writes `IP LEVEL` in a move table does not get a parse error.
 // `LEVEL` is a legal BUTTON token ([A-Za-z0-9_]), so a case-sensitive parser
-// reads the notation as a two-step SEQUENCE — press IP, then press the button
-// called LEVEL — which bakes, activates, and simply never fires, because no
+// reads the notation as a two-step SEQUENCE - press IP, then press the button
+// called LEVEL - which bakes, activates, and simply never fires, because no
 // button named LEVEL exists on the terminal. The move is silently absent from
 // the game and every readiness gate reports healthy.
 //
@@ -22,7 +22,7 @@
 //
 // The constraint checks are asserted through the same spelling, because the
 // case-fold has to happen where the token is CLASSIFIED, not at some later
-// comparison — a parser that recognised `LEVEL` as a modifier but compared the
+// comparison - a parser that recognised `LEVEL` as a modifier but compared the
 // stored kind case-sensitively afterwards would accept `IP LEVEL hold=60`, the
 // one combination that has no meaning at all.
 //
@@ -62,13 +62,13 @@ class UCk_AutoTest_Intent_LevelNotationCaseInsensitive : UCk_AutoTest_Base
     private void DoAssert_TheConstraintsFollowTheSpelling()
     {
         DoAssert_Rejects("IP LEVEL hold=60", ECk_Intent_ParseError::LevelWithHold,
-            "the case-fold has to happen where the token is CLASSIFIED — a parser that recognised the modifier but compared the kind case-sensitively afterwards would accept the one pairing that cannot mean anything");
+            "the case-fold has to happen where the token is CLASSIFIED - a parser that recognised the modifier but compared the kind case-sensitively afterwards would accept the one pairing that cannot mean anything");
 
         DoAssert_Rejects("6 LEVEL", ECk_Intent_ParseError::LevelTerminalNotSingleButton,
             "and the terminal constraint applies through the same spelling, rather than the token quietly becoming a second step on a direction");
 
         DoAssert_Rejects("IP Level LEVEL", ECk_Intent_ParseError::DuplicateModifier,
-            "two spellings of one modifier is still the modifier twice — a case-sensitive duplicate check would absorb the second one silently");
+            "two spellings of one modifier is still the modifier twice - a case-sensitive duplicate check would absorb the second one silently");
     }
 
     //------------------------------------------------------------------------
@@ -83,7 +83,7 @@ class UCk_AutoTest_Intent_LevelNotationCaseInsensitive : UCk_AutoTest_Base
         auto Definition = Result.Get_Definition();
 
         Assert_True(Definition.Get_Kind() == ECk_Intent_Kind::Level,
-            f"'{InNotation}' must be a LEVEL definition — 'Succeeded' on its own is also what the wrong reading produces");
+            f"'{InNotation}' must be a LEVEL definition - 'Succeeded' on its own is also what the wrong reading produces");
 
         Assert_Equals_Int(Definition.Get_Steps().Num(), 1,
             f"'{InNotation}' is ONE step, and the step count is the reading that separates a modifier from a second button token");
@@ -99,7 +99,7 @@ class UCk_AutoTest_Intent_LevelNotationCaseInsensitive : UCk_AutoTest_Base
             f"'{InNotation}' must be rejected: {InWhy}");
 
         Assert_True(Result.Get_Error() == InExpectedError,
-            f"'{InNotation}' must be rejected for its OWN reason — a rejection under the wrong rule is the case-fold landing in the wrong place");
+            f"'{InNotation}' must be rejected for its OWN reason - a rejection under the wrong rule is the case-fold landing in the wrong place");
 
         Assert_Equals_Int(Result.Get_Definition().Get_Steps().Num(), 0,
             f"'{InNotation}' was rejected, so it must leave nothing partially usable behind");

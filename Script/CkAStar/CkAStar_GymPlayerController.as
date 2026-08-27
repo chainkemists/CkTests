@@ -17,7 +17,7 @@ class ACk_AStarGym_PlayerController : ACk_Gym_Base_PlayerController
 			"10x10 grid with wall, threshold=25.\nTerminates if f-score exceeds limit."));
 
 		Stations.Add(MakeStationPayload(n"Gym.AStar.LargeGrid", "Large Grid Stress",
-			"1000x1000 grid, 10us budget/frame.\nStress test — runs for many seconds."));
+			"1000x1000 grid, 10us budget/frame.\nStress test - runs for many seconds."));
 
 		Stations.Add(MakeStationPayload(n"Gym.AStar.FailedSearch", "Failed Search",
 			"15x15 grid with impassable wall.\nDemonstrates Failed status."));

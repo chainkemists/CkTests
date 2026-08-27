@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK VARIABLES — AUTOMATION TEST: Float Set→Get round-trip
+// CK VARIABLES - AUTOMATION TEST: Float Set->Get round-trip
 
 class UCk_AutoTest_Variables_Float_SetGetRoundTrip : UCk_AutoTest_Base
 {

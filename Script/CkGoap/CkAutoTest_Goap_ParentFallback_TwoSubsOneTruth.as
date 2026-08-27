@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PARENT-FALLBACK TWO SUBS ONE TRUTH
+// CK GOAP - AUTOMATION TEST: PARENT-FALLBACK TWO SUBS ONE TRUTH
 //============================================================================
 //
 // Validates single-source-of-truth under fan-out (WsParentFallback design
 // test 8): two sibling sub-WS under one parent. A shared-key write through
-// sub A is visible through sub B and the parent — one value, no divergence.
+// sub A is visible through sub B and the parent - one value, no divergence.
 //============================================================================
 
 class UCk_AutoTest_Goap_ParentFallback_TwoSubsOneTruth : UCk_AutoTest_Base

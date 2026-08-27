@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: NO TRANSITION AVAILABLE STAYS IN STATE
+// CK STATE MACHINE - AUTOMATION TEST: NO TRANSITION AVAILABLE STAYS IN STATE
 //============================================================================
 //
-// Pins two contracts for a "sink" initial state — a state class whose
+// Pins two contracts for a "sink" initial state - a state class whose
 // DoDefineState declares zero AddTransition calls:
 //
 //   1. OnStateChanged fires exactly once on initial entry, with
@@ -13,7 +13,7 @@
 //      reacting to OnStateChanged would miss the initial state entirely
 //      and stay uninitialized forever.
 //
-//   2. After a settle window, no further OnStateChanged fires occur — the
+//   2. After a settle window, no further OnStateChanged fires occur - the
 //      SM stays in the sink state indefinitely because no transition is
 //      available.
 //
@@ -27,7 +27,7 @@ class UCk_SmTest_NoTransition_State_Sink : UCk_SmState_EntityScript
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        // No transitions — this is a sink state.
+        // No transitions - this is a sink state.
     }
 };
 
@@ -50,7 +50,7 @@ class UCk_AutoTest_StateMachine_NoTransitionAvailable_StaysInState : UCk_AutoTes
         Delegate.BindUFunction(this, n"OnStateChanged");
         _SmHandle.BindTo_OnStateChanged(Delegate);
 
-        // Settle window — long enough for any spurious transition pass to
+        // Settle window - long enough for any spurious transition pass to
         // fire if the framework attempted one. 1.0s is well past the
         // single-frame initial-entry broadcast.
         auto SettleParams = FCk_Fragment_Timer_ParamsData(FCk_Time(1.0f));

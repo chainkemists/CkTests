@@ -1,8 +1,8 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: TryGet_Entity_Team_InOwnershipChain finds owner's team
+// CK RELATIONSHIP - AUTOMATION TEST: TryGet_Entity_Team_InOwnershipChain finds owner's team
 // A child entity (no team of its own) inherits its owner's team via the
-// ownership-chain lookup — feeds CkAggro/CkTargeting/CkResolver attitude
+// ownership-chain lookup - feeds CkAggro/CkTargeting/CkResolver attitude
 // queries that span entity hierarchies.
 
 class UCk_AutoTest_Relationship_Team_TryGetInOwnershipChainFromOwner : UCk_AutoTest_Base

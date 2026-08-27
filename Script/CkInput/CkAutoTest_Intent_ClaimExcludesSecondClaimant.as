@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: ONE COMPLETION, ONE OWNER
+// CK INTENT - AUTOMATION TEST: ONE COMPLETION, ONE OWNER
 //============================================================================
 //
 // Polling is a read, so nothing about it stops two consumers acting on the
@@ -9,7 +9,7 @@
 // reason it is an IMMEDIATE mutator rather than a deferred request is what
 // this test exercises: all three claims happen on ONE frame, in one step, on
 // one call stack. A deferred claim would leave both consumers reading an
-// unclaimed row and both acting — the race the mechanism exists to remove.
+// unclaimed row and both acting - the race the mechanism exists to remove.
 //
 // Three claims, in order, and the third is the one an over-strict
 // implementation gets wrong:
@@ -75,7 +75,7 @@ class UCk_AutoTest_Intent_ClaimExcludesSecondClaimant : UCk_AutoTest_Base
 
         Add_Step(          "press the punch",                                     n"Step_Press");
         Add_Step_WaitUntil("the move completes",                                   n"Check_Completed");
-        Add_Step(          "claim it from A, then B, then A again — one frame",    n"Step_ClaimTwice");
+        Add_Step(          "claim it from A, then B, then A again - one frame",    n"Step_ClaimTwice");
 
         Run_Steps(InHandle);
     }
@@ -118,7 +118,7 @@ class UCk_AutoTest_Intent_ClaimExcludesSecondClaimant : UCk_AutoTest_Base
     private void Step_ClaimTwice(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_False(utils_intent_matcher::Get_IsClaimed_ByName(_Matcher, n"AS_Claim_Move"),
-            "a freshly completed move is unclaimed — a completion carries no owner of its own");
+            "a freshly completed move is unclaimed - a completion carries no owner of its own");
 
         DoClaim(_ClaimantA);
         Assert_True(_LastResult == ECk_Request_OperationResult::Succeeded,
@@ -128,13 +128,13 @@ class UCk_AutoTest_Intent_ClaimExcludesSecondClaimant : UCk_AutoTest_Base
 
         DoClaim(_ClaimantB);
         Assert_True(_LastResult == ECk_Request_OperationResult::Failed,
-            "a second claimant on the same completion is excluded — that IS the mechanism, not a malfunction");
+            "a second claimant on the same completion is excluded - that IS the mechanism, not a malfunction");
         Assert_True(utils_intent_matcher::TryGet_ClaimedBy_ByName(_Matcher, n"AS_Claim_Move") == _ClaimantA,
             "a rejected claim leaves the holder untouched");
 
         DoClaim(_ClaimantA);
         Assert_True(_LastResult == ECk_Request_OperationResult::Succeeded,
-            "the holder re-asserting its own ownership is idempotent — the caller's intent already holds");
+            "the holder re-asserting its own ownership is idempotent - the caller's intent already holds");
         Assert_True(utils_intent_matcher::TryGet_ClaimedBy_ByName(_Matcher, n"AS_Claim_Move") == _ClaimantA,
             "and the holder is still A");
 
@@ -191,7 +191,7 @@ class UCk_AutoTest_Intent_ClaimExcludesSecondClaimant : UCk_AutoTest_Base
             FCk_Delegate_Request_OnCompleted(this, n"OnClaimCompleted"));
 
         Assert_True(_LastResult != ECk_Request_OperationResult::Failed_Cancelled,
-            "the claim's completion must fire on the calling stack — a deferred claim cannot exclude anybody");
+            "the claim's completion must fire on the calling stack - a deferred claim cannot exclude anybody");
     }
 
     private FCk_Intent_Definition DoParse(const FString& InNotation, FName InName, int32 InPriority)

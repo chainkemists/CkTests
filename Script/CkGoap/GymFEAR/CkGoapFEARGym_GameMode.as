@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapFEAR_Gym — single-station F.E.A.R. combat AI
+// CkGoapFEAR_Gym - single-station F.E.A.R. combat AI
 //
 // Console commands (Goap.FEAR.*):
-//   SetTargetVisible / ClearTargetVisible  — flips EnemyVisible.
-//   ToggleAtCover                          — flips AtCover.
-//   ToggleBehindEnemy                      — flips BehindEnemy.
-//   ToggleHasAmmo                          — flips HasAmmo.
-//   ToggleHasAmmoReserve                   — flips HasAmmoReserve.
-//   SetHeardSound / ClearHeardSound        — flips HeardSound.
-//   Reset                                  — restore initial WS.
-//   IdealAmbush                            — set up the iconic flank-ambush
+//   SetTargetVisible / ClearTargetVisible  - flips EnemyVisible.
+//   ToggleAtCover                          - flips AtCover.
+//   ToggleBehindEnemy                      - flips BehindEnemy.
+//   ToggleHasAmmo                          - flips HasAmmo.
+//   ToggleHasAmmoReserve                   - flips HasAmmoReserve.
+//   SetHeardSound / ClearHeardSound        - flips HeardSound.
+//   Reset                                  - restore initial WS.
+//   IdealAmbush                            - set up the iconic flank-ambush
 //                                            scenario (Visible+BehindEnemy+
 //                                            HasAmmo+AtCover all true). Plan
 //                                            should resolve to
@@ -32,7 +32,7 @@ class ACk_GoapFEARGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
         Stations.Add(MakeStationPayload(n"Gym.GoapFEAR.Station.Combatant",
             "F.E.A.R. COMBATANT",
-            "Canonical GOAP enemy AI — toggle WS via Goap.FEAR.* commands."));
+            "Canonical GOAP enemy AI - toggle WS via Goap.FEAR.* commands."));
         return Stations;
     }
 
@@ -125,7 +125,7 @@ class ACk_GoapFEARGym_PlayerController : ACk_Gym_Base_PlayerController
 
     // The iconic F.E.A.R. flank-ambush moment. Should yield
     //   [AttackEnemy -> AttackFromFlank]   cost 0.5
-    // — the cheapest possible plan, where the agent has already maneuvered
+    // - the cheapest possible plan, where the agent has already maneuvered
     // behind the target before opening fire.
     UFUNCTION(Exec, DisplayName="Goap.FEAR.IdealAmbush")
     void Goap_FEAR_IdealAmbush()

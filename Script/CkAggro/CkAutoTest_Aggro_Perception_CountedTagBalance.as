@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST: perception is a counted tag
+// CK AGGRO - AUTOMATION TEST: perception is a counted tag
 // Two MarkPerceived need two MarkUnperceived to clear: after 2x perceive + 1x unperceive the target is still
 // perceived; the second unperceive clears it.
 
@@ -29,7 +29,7 @@ class UCk_AutoTest_Aggro_Perception_CountedTagBalance : UCk_AutoTest_Base
     }
 
     // Both MarkPerceived are queued in the same tick and drained in one processor pass,
-    // so when this first goes true the counted tag stands at 2 — which is exactly what
+    // so when this first goes true the counted tag stands at 2 - which is exactly what
     // stages 2 and 3 depend on.
     UFUNCTION()
     private void Check_Perceived(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
@@ -58,7 +58,7 @@ class UCk_AutoTest_Aggro_Perception_CountedTagBalance : UCk_AutoTest_Base
         // private to CK_DEFINE_ECS_TAG_COUNTED with no accessor. Waiting on
         // Check_Perceived here would release on its first poll before the unperceive was
         // even handled, and stage 2 would then assert "still perceived" about a request
-        // that had not happened yet — passing for the wrong reason.
+        // that had not happened yet - passing for the wrong reason.
         WaitOneFrame(n"OnStage2");
     }
 

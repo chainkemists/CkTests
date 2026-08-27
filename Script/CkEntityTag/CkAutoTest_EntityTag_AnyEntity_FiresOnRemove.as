@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: ANY-ENTITY LISTENER FIRES ON REMOVE
+// CK ENTITY TAG - AUTOMATION TEST: ANY-ENTITY LISTENER FIRES ON REMOVE
 //============================================================================
 //
-// Verifies J2 — BindTo_OnTagUpdated_AnyEntity fires Removed when an entity
-// transitions 1→0 on the filtered tag via Request_TryRemove.
+// Verifies J2 - BindTo_OnTagUpdated_AnyEntity fires Removed when an entity
+// transitions 1->0 on the filtered tag via Request_TryRemove.
 //
 // Each phase waits on the fan-out COUNT rising, which is the settling event;
 // the exactly-once and last-update-type contracts stay assertions, so an

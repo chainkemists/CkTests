@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: EVENT-DRIVEN MULTI-CONDITION
+// CK STATE MACHINE - AUTOMATION TEST: EVENT-DRIVEN MULTI-CONDITION
 //============================================================================
 //
 // Locks in the framework contract that event-driven condition Pass results
@@ -13,7 +13,7 @@
 //
 // Between t=0.1s and t=0.4s, the transition is in Fail (one cond Pass, one
 // Fail). state.Evaluate cycles through Reset for that duration. FastEvent's
-// Pass result must survive all those Reset cycles — when SlowEvent finally
+// Pass result must survive all those Reset cycles - when SlowEvent finally
 // fires at 0.4s, the transition must see BOTH Pass and resolve to fire.
 //
 // This test passes today (auto-Fail-on-enter via direct fragment write,
@@ -55,7 +55,7 @@ class UCk_AutoTest_StateMachine_EventDrivenMultiCondition : UCk_AutoTest_Base
         }
 
         // Defaults already set on the actor: FastDelay=0.1s, SlowDelay=0.4s,
-        // Settle=0.6s. No station handle — headless mode skips display push.
+        // Settle=0.6s. No station handle - headless mode skips display push.
         _GymActor.StationHandle = FCk_Handle();
         FinishSpawningActor(_GymActor);
 

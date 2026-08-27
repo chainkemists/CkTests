@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: STATIC BAKE, SINGLE COMPONENT ADD/REMOVE/REBAKE
+// CK JOLT - AUTOMATION TEST: STATIC BAKE, SINGLE COMPONENT ADD/REMOVE/REBAKE
 //============================================================================
 //
 // Request_BakeComponent is the runtime surface for component-granular geometry
 // (runtime-composed ISMs and friends). Contract under test:
 //   1. Baking an 8-instance HISM COMPONENT adds one body per instance and a
 //      down-ray over an instance hits.
-//   2. Request_RemoveComponent frees exactly those bodies — the ray misses.
+//   2. Request_RemoveComponent frees exactly those bodies - the ray misses.
 //   3. Re-baking after adding instances REPLACES the population (10 bodies,
 //      a ray over the new instance hits, total body count reflects 10, not 18).
 //============================================================================
@@ -89,7 +89,7 @@ class UCk_AutoTest_CkJolt_StaticBake_ComponentBake_AddRemoveRebake : UCk_AutoTes
 
         auto BodiesAfterRebake = utils_jolt_static_world::Get_NumStaticBodies();
         Assert_Equals_Int(BodiesAfterRebake - BodiesBeforeRebake, _NumInstances + 2,
-            "re-bake REPLACES the previous bodies — the total grows by the new population only");
+            "re-bake REPLACES the previous bodies - the total grows by the new population only");
 
         Assert_True(Do_RayOverInstance(_NumInstances + 1).Get_HasHit(),
             "down-ray over the newly-added instance hits after the re-bake");

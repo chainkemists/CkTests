@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MESSAGING — AUTOMATION TEST: MULTIPLE MESSAGE TYPES
+// CK MESSAGING - AUTOMATION TEST: MULTIPLE MESSAGE TYPES
 //============================================================================
 //
 // Verifies that distinct message types route to their own delegates and

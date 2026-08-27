@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: REVERSE DIRECTION MID-FLIGHT
+// CK TIMER - AUTOMATION TEST: REVERSE DIRECTION MID-FLIGHT
 //============================================================================
 //
 // Pins Request_ReverseDirection toggling a running timer's direction:
 //   1. Start a CountDown timer (long goal, never completes naturally).
 //   2. Verify Get_CountDirection == CountDown.
-//   3. Issue Request_ReverseDirection (no args — toggle).
+//   3. Issue Request_ReverseDirection (no args - toggle).
 //   4. Poll until Get_CountDirection == CountUp.
 //
 // Pairs with the existing Timer_ChangeCountDirection test (which pins the

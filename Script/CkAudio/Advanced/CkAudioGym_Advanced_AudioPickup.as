@@ -81,8 +81,8 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
             FCk_Delegate_Probe_OnBeginOverlap(this, n"OnPlayerEnteredPickup"));
 
         // Print pickup info with probe details for debugging
-        Print("🎁 Pickup Created: " + PickupName + " at " + Transform.GetLocation().ToString(), 3.0f);
-        Print("🔍 Probe Filter: Player.Probe, Motion: Static, Size: " + PickupSize.ToString(), 2.0f);
+        Print("* Pickup Created: " + PickupName + " at " + Transform.GetLocation().ToString(), 3.0f);
+        Print("* Probe Filter: Player.Probe, Motion: Static, Size: " + PickupSize.ToString(), 2.0f);
 
         return ECk_EntityScript_ConstructionFlow::Finished;
     }
@@ -99,7 +99,7 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
     {
         if (!bIsActive)
         {
-            Print("🚫 Pickup on cooldown: " + PickupName, 1.0f);
+            Print("* Pickup on cooldown: " + PickupName, 1.0f);
             return;
         }
 
@@ -121,7 +121,7 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
         // Start cooldown timer
         StartCooldown();
 
-        Print("🎁 Pickup triggered: " + PickupName, 2.0f);
+        Print("* Pickup triggered: " + PickupName, 2.0f);
     }
 
     void PlayPickupAudio()
@@ -138,7 +138,7 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
         auto PendingEntityScript = utils_cue_audio::Request_ExecuteCue(SelfEntity, AudioCueTag, Str,
             ECk_Cue_ReliabilityPolicy::Unreliable, ECk_Cue_MulticastPolicy::LocalOnly);
 
-        Print("🔊 Playing pickup audio: " + PickupName, 1.0f);
+        Print("* Playing pickup audio: " + PickupName, 1.0f);
     }
 
     void UpdatePickupVisual(bool bActive)
@@ -153,14 +153,14 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
 
         // Note: ISM color changes might require re-adding the component
         // For now, we'll just log the state change
-        Print(bActive ? "✅ Pickup ready" : "⏸️ Pickup cooling down", 1.0f);
+        Print(bActive ? "[OK] Pickup ready" : "[PAUSE] Pickup cooling down", 1.0f);
     }
 
     void StartCooldown()
     {
         // Start cooldown timer (simplified - no timer for now, just immediate reset)
         // In a real implementation, you'd use utils_timer here
-        Print("⏱️ Cooldown started", 1.0f);
+        Print("[TIMER] Cooldown started", 1.0f);
 
         // For now, just reset after a short delay (this would be timer-based in production)
         ResetPickup();
@@ -170,6 +170,6 @@ class UCkAudioGym_Advanced_AudioPickup : UCk_GenericEntityScript_UE
     {
         bIsActive = true;
         UpdatePickupVisual(true);
-        Print("🔄 Pickup reset: " + PickupName, 1.0f);
+        Print("* Pickup reset: " + PickupName, 1.0f);
     }
 }

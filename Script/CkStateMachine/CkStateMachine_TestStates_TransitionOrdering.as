@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — TEST STATES: TRANSITION ORDERING
+// CK STATE MACHINE - TEST STATES: TRANSITION ORDERING
 //============================================================================
 //
 // Two-state SM (StateA -> StateB) used to verify that, on a transition,
@@ -37,7 +37,7 @@ void Append_OrderingEvent(FCk_Handle_StateMachine& InSm, const FString& InEvent)
 }
 
 // ============================================================================
-// CONDITION — short event-driven delay to fire the A->B transition
+// CONDITION - short event-driven delay to fire the A->B transition
 // ============================================================================
 
 UCLASS()
@@ -61,7 +61,7 @@ class UCk_SmTest_Ordering_Condition_QuickDelay : UCk_SmCondition_EventDriven
 };
 
 // ============================================================================
-// TASKS — record Enter/Exit on the ordering log
+// TASKS - record Enter/Exit on the ordering log
 // ============================================================================
 
 UCLASS()
@@ -109,7 +109,7 @@ class UCk_SmTest_Ordering_Task_B : UCk_SmTask_EntityScript
 };
 
 // ============================================================================
-// STATES — A transitions to B via a short event-driven delay; B is terminal
+// STATES - A transitions to B via a short event-driven delay; B is terminal
 // ============================================================================
 
 UCLASS()

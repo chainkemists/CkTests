@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF ENTITY OUTLINE — AUTOTEST: cascade to lifetime dependents
+// CK USF ENTITY OUTLINE - AUTOTEST: cascade to lifetime dependents
 //============================================================================
 //
 // A parent entity with two child IsmProxy entities. Request_ApplyOutline with
 // EntityAndDependents must outline both children (cascade-derived targets);
-// Request_RemoveOutline on the parent must strip only the derived targets —
+// Request_RemoveOutline on the parent must strip only the derived targets
 // a child outlined EXPLICITLY keeps its outline.
 //
 //============================================================================
@@ -60,7 +60,7 @@ class UCk_AutoTest_UsfOutline_CascadeDependents : UCk_AutoTest_Base
             Assert_True(_Proxy1.Get_IsOutlineApplied(), "child 1 proxy outlined");
             Assert_True(_Proxy2.Get_IsOutlineApplied(), "child 2 proxy outlined");
 
-            // Child 1 opts into an EXPLICIT outline — it must survive the parent's removal below.
+            // Child 1 opts into an EXPLICIT outline - it must survive the parent's removal below.
             UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_Child1, CkUsf::DA_Outline_SeeThrough, ECk_Usf_OutlineScope::EntityOnly);
             UCk_Utils_Usf_Outline_UE::Request_RemoveOutline(_Parent);
             _Phase = 2; _TicksInPhase = 0;
@@ -84,7 +84,7 @@ class ACk_AutoTest_UsfOutline_CascadeDependents_Actor : ACk_AutoTestRunner
     default _TestEntityScriptClass = UCk_AutoTest_UsfOutline_CascadeDependents;
     default _TimeoutSeconds = 5.0f;
 
-    // See the matching note in CkAutoTest_UsfOutline_IsmShadowInstances.as — whichever ISM outline
+    // See the matching note in CkAutoTest_UsfOutline_IsmShadowInstances.as - whichever ISM outline
     // test runs first eats the one-time 'bUsedWithInstancedStaticMeshes' content ensure; the
     // harness suppresses with Occurrences=-1 so a non-firing pattern is harmless.
     UFUNCTION(BlueprintOverride)

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE — AUTOMATION TEST: LINEARCAST BEGIN + END OVERLAP
+// CK PROBE - AUTOMATION TEST: LINEARCAST BEGIN + END OVERLAP
 //============================================================================
 //
 // Pins the LinearCast reconcile path (FProcessor_Probe_UpdateTransform_LinearCast):
@@ -14,7 +14,7 @@
 //      reconcile ends the overlap on both probes).
 //
 // This is the behavior gate for any refactor of the LinearCast processor /
-// ContactCastCollector — the ballistic-motion impact test covers Begin via a
+// ContactCastCollector - the ballistic-motion impact test covers Begin via a
 // consumer, but nothing else covers EndOverlap on the probe itself.
 //============================================================================
 
@@ -132,7 +132,7 @@ class UCk_AutoTest_Probe_LinearCast_BeginEndOverlap : UCk_AutoTest_Base
 
         Assert_True(_BeginCount > 0, "EndOverlap should not fire before BeginOverlap");
         Assert_Equals_Int(_BeginCount, 1,
-            "Persisted contact must convert repeat casts into OverlapUpdated — exactly one Begin expected");
+            "Persisted contact must convert repeat casts into OverlapUpdated - exactly one Begin expected");
         Assert_True(InPayload.Get_OtherEntity() == _WallEntity,
             "LinearCast EndOverlap payload should reference the wall entity");
 

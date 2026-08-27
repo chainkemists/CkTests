@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: REQUEST COMPLETION CANCELLED ON TEARDOWN
+// CK TIMER - AUTOMATION TEST: REQUEST COMPLETION CANCELLED ON TEARDOWN
 //============================================================================
 //
 // A request enqueued on a timer that is destroyed before it can be processed

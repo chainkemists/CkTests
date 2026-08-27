@@ -1,27 +1,27 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Combat Brain station entity  (3-tier canonical demo)
+// CkGoapGym - Combat Brain station entity  (3-tier canonical demo)
 //
-// Builds the canonical multi-tier example from spec §2.2 — one tier deeper
-// than the Patrol station — with two sibling composites promoted at tier 2
+// Builds the canonical multi-tier example from spec Sec.2.2 - one tier deeper
+// than the Patrol station - with two sibling composites promoted at tier 2
 // so the user can watch sibling branch selection happen at depth.
 //
-// PR-B.1b Stage 5: the implicit-root model is gone — Engage and Win are
+// PR-B.1b Stage 5: the implicit-root model is gone - Engage and Win are
 // direct children of the Alive Planner.
 //
 // Construction sequence:
 //   1. utils_goap_planner::Add(InHandle, AlivePlannerParams)
-//        → top-level Alive Planner (goal: EnemyDead=true)
+//        -> top-level Alive Planner (goal: EnemyDead=true)
 //   2. utils_goap_planner::AddAction(_Alive, EngageActionParams)
-//        → Engage as Tier-1 Action under Alive
+//        -> Engage as Tier-1 Action under Alive
 //   3. utils_goap_planner::AddAction(_Alive, WinParams)
-//        → Win as Tier-1 atomic finisher under Alive
+//        -> Win as Tier-1 atomic finisher under Alive
 //   4. utils_goap_planner::PromoteActionToPlanner(_Engage, EngagePlannerParams)
-//        → Engage gains the Planner role (sub-goal EnemyAttacked=true)
+//        -> Engage gains the Planner role (sub-goal EnemyAttacked=true)
 //   5. utils_goap_planner::AddAction(_Engage_AsPlanner, LightAttacksParams)
 //      utils_goap_planner::AddAction(_Engage_AsPlanner, HeavyAttacksParams)
-//        → Tier-2 composites under Engage
+//        -> Tier-2 composites under Engage
 //   6. Promote each composite to a Planner (sub-goal EnemyHit=true).
 //   7. utils_goap_planner::AddAction for Tier-3 leaves under each.
 //
@@ -40,7 +40,7 @@
 //       Win                    [Action only]             eff: EnemyDead
 //       Standby                [Action only]             eff: EnemyDead       (cost 999, fallback)
 //
-// Always-valid-plan tenet (CkGoap/CLAUDE.md § "Design tenets"):
+// Always-valid-plan tenet (the CkGoap docs Sec. "Design tenets"):
 //   Standby is the top Alive fallback; Engage_HoldFire is the Engage sub-Planner
 //   fallback. LightAttacks and HeavyAttacks sub-Planners already comply via
 //   their precondition-less Light1..3 / Heavy1..2 leaves.
@@ -94,7 +94,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
         // ------------------------------------------------------------------
-        // WorldState — all keys start false.
+        // WorldState - all keys start false.
         // ------------------------------------------------------------------
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.CombatBrain"),
@@ -117,18 +117,18 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         _AlivePlanner = utils_goap_planner::Add(InHandle, AlivePlannerParams);
 
         // ------------------------------------------------------------------
-        // Tier 1 — Engage Action under Alive (promoted to Planner below).
+        // Tier 1 - Engage Action under Alive (promoted to Planner below).
         // ------------------------------------------------------------------
         auto EngageActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_CombatBrain_Engage);
         _Engage_AsAction = utils_goap_planner::AddAction(_AlivePlanner, EngageActionParams);
 
-        // Tier 1 — Win atomic finisher under Alive.
+        // Tier 1 - Win atomic finisher under Alive.
         auto WinParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CombatBrain_Win);
         _Win = utils_goap_planner::AddAction(_AlivePlanner, WinParams);
 
-        // Always-valid-plan tenet fallback for top Alive — see CkGoap/CLAUDE.md
-        // § "Design tenets".
+        // Always-valid-plan tenet fallback for top Alive - see the CkGoap docs
+        // Sec. "Design tenets".
         utils_goap_planner::AddAction(_AlivePlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CombatBrain_Standby));
 
@@ -145,7 +145,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
             _Engage_AsAction, EngagePlannerParams);
 
         // ------------------------------------------------------------------
-        // Tier 2 — LightAttacks + HeavyAttacks composites under Engage.
+        // Tier 2 - LightAttacks + HeavyAttacks composites under Engage.
         // ------------------------------------------------------------------
         auto LightAttacksActionParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_GoapGym_CombatBrain_LightAttacks);
@@ -157,8 +157,8 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
         _HeavyAttacks_AsAction = utils_goap_planner::AddAction(
             _Engage_AsPlanner, HeavyAttacksActionParams);
 
-        // Always-valid-plan tenet fallback for Engage sub-Planner — see
-        // CkGoap/CLAUDE.md § "Design tenets".
+        // Always-valid-plan tenet fallback for Engage sub-Planner - see
+        // the CkGoap docs Sec. "Design tenets".
         utils_goap_planner::AddAction(_Engage_AsPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CombatBrain_Engage_HoldFire));
 
@@ -187,7 +187,7 @@ class UCk_EntityScript_GoapGym_CombatBrain_Station : UCk_GenericEntityScript_UE
             _HeavyAttacks_AsAction, HeavyAttacksPlannerParams);
 
         // ------------------------------------------------------------------
-        // Tier 3 — atomic leaves under each promoted composite.
+        // Tier 3 - atomic leaves under each promoted composite.
         // ------------------------------------------------------------------
         utils_goap_planner::AddAction(_LightAttacks_AsPlanner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_CombatBrain_Light1));

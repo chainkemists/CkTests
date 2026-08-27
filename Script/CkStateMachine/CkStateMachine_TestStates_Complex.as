@@ -97,7 +97,7 @@ class UCk_SmTest_Condition_ShortDelay : UCk_SmCondition_EventDriven
 
 // ----------------------------------------------------------------------------
 
-// Event-driven condition with a long delay — used for timeout/fallback transitions.
+// Event-driven condition with a long delay - used for timeout/fallback transitions.
 UCLASS()
 class UCk_SmTest_Condition_LongDelay : UCk_SmCondition_EventDriven
 {
@@ -140,7 +140,7 @@ class UCk_SmTest_Condition_LongDelay : UCk_SmCondition_EventDriven
 
 // ----------------------------------------------------------------------------
 
-// Always-true polled condition — used as a second condition in multi-condition transitions.
+// Always-true polled condition - used as a second condition in multi-condition transitions.
 UCLASS()
 class UCk_SmTest_Condition_AlwaysTrue : UCk_SmCondition_Polled
 {
@@ -156,7 +156,7 @@ class UCk_SmTest_Condition_AlwaysTrue : UCk_SmCondition_Polled
 // TASKS
 // ============================================================================
 
-// Tick task — simulates an ongoing behavior (e.g. navigation, animation).
+// Tick task - simulates an ongoing behavior (e.g. navigation, animation).
 // Reports Running for a few seconds, then Succeeded.
 UCLASS()
 class UCk_SmTest_Task_TimedWork : UCk_SmTask_EntityScript
@@ -198,7 +198,7 @@ class UCk_SmTest_Task_TimedWork : UCk_SmTask_EntityScript
 
 // ----------------------------------------------------------------------------
 
-// EnterExit-only task — fires once on enter and once on exit (no ticking).
+// EnterExit-only task - fires once on enter and once on exit (no ticking).
 UCLASS()
 class UCk_SmTest_Task_LogOnly : UCk_SmTask_EntityScript
 {
@@ -223,8 +223,8 @@ class UCk_SmTest_Task_LogOnly : UCk_SmTask_EntityScript
 
 // --- IDLE ---
 // Two outgoing transitions:
-//   1. Idle -> Patrol (short delay — fires first)
-//   2. Idle -> Chase  (polled timer — lower priority)
+//   1. Idle -> Patrol (short delay - fires first)
+//   2. Idle -> Chase  (polled timer - lower priority)
 UCLASS()
 class UCk_SmTest_Complex_State_Idle : UCk_SmState_EntityScript
 {
@@ -257,9 +257,9 @@ class UCk_SmTest_Complex_State_Idle : UCk_SmState_EntityScript
 
 // --- PATROL ---
 // Three outgoing transitions:
-//   1. Patrol -> Chase  (short delay — fires first)
-//   2. Patrol -> Idle   (polled timer — bidirectional back to Idle)
-//   3. Patrol -> Search (long delay — fallback)
+//   1. Patrol -> Chase  (short delay - fires first)
+//   2. Patrol -> Idle   (polled timer - bidirectional back to Idle)
+//   3. Patrol -> Search (long delay - fallback)
 // Has two tasks (ticking + enter/exit).
 UCLASS()
 class UCk_SmTest_Complex_State_Patrol : UCk_SmState_EntityScript
@@ -298,7 +298,7 @@ class UCk_SmTest_Complex_State_Patrol : UCk_SmState_EntityScript
 // --- CHASE ---
 // Two outgoing transitions:
 //   1. Chase -> Attack (requires TWO conditions: short delay AND always-true)
-//   2. Chase -> Flee   (long delay — escape timeout)
+//   2. Chase -> Flee   (long delay - escape timeout)
 // Has a ticking task.
 UCLASS()
 class UCk_SmTest_Complex_State_Chase : UCk_SmState_EntityScript
@@ -333,7 +333,7 @@ class UCk_SmTest_Complex_State_Chase : UCk_SmState_EntityScript
 
 // --- ATTACK ---
 // Single outgoing transition:
-//   Attack -> Idle (short delay — return to idle after attacking)
+//   Attack -> Idle (short delay - return to idle after attacking)
 // Has two tasks.
 UCLASS()
 class UCk_SmTest_Complex_State_Attack : UCk_SmState_EntityScript
@@ -365,7 +365,7 @@ class UCk_SmTest_Complex_State_Attack : UCk_SmState_EntityScript
 
 // --- SEARCH ---
 // Single outgoing transition:
-//   Search -> Idle (short delay — give up and return)
+//   Search -> Idle (short delay - give up and return)
 // Has a ticking task.
 UCLASS()
 class UCk_SmTest_Complex_State_Search : UCk_SmState_EntityScript
@@ -396,7 +396,7 @@ class UCk_SmTest_Complex_State_Search : UCk_SmState_EntityScript
 
 // --- FLEE ---
 // Single outgoing transition:
-//   Flee -> Idle (short delay — recover and return)
+//   Flee -> Idle (short delay - recover and return)
 UCLASS()
 class UCk_SmTest_Complex_State_Flee : UCk_SmState_EntityScript
 {

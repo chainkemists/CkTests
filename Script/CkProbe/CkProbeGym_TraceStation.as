@@ -1,5 +1,5 @@
 //============================================================================
-// PROBE GYM — TRACE STATION (WORLD-HIT POLICY)
+// PROBE GYM - TRACE STATION (WORLD-HIT POLICY)
 //
 // The human-verifiable face of the ProbeTrace world-hit policy. Layout along
 // the station's local +X:
@@ -10,10 +10,10 @@
 //   Ck_GymProbeTrace_Ignore / _Blocking / _Reported
 // and watch the marker move:
 //
-//   Ignore   — the cube is invisible; the trace reports only the probe BEHIND
+//   Ignore   - the cube is invisible; the trace reports only the probe BEHIND
 //              it (today's wallhack default, shown deliberately).
-//   Blocking — the cube truncates; the probe disappears from the results.
-//   Reported — both are reported, in near-to-far order.
+//   Blocking - the cube truncates; the probe disappears from the results.
+//   Reported - both are reported, in near-to-far order.
 //
 // Markers are drawn locally (green = probe hit, red = world hit) so the station
 // reads without touching any setting. The framework's own trace overlay is
@@ -69,7 +69,7 @@ class UCk_EntityScript_ProbeGym_TraceStation : UCk_GenericEntityScript_UE
         utils_entity_tag::Add(InHandle, n"TAG_ProbeGym_TraceStation");
         StationWorldLocation = InitialTransform.Translation;
 
-        // Target probe — the thing a probe-only trace is meant to find.
+        // Target probe - the thing a probe-only trace is meant to find.
         ProbeEntity = utils_entity_lifetime::Request_CreateEntity(InHandle);
         ProbeEntity.Set_DebugName(n"TraceTarget");
         ProbeEntity.Request_OverrideToSelf();
@@ -136,7 +136,7 @@ class UCk_EntityScript_ProbeGym_TraceStation : UCk_GenericEntityScript_UE
     // Casting
     //------------------------------------------------------------------------
 
-    // World +X, matching how the physical station lays its balls out — the station panel's own
+    // World +X, matching how the physical station lays its balls out - the station panel's own
     // rotation is not worth a dependency here, and the trace reads fine from any viewing angle.
     private FVector Get_LocalPoint(float32 InForwardOffset) const
     {
@@ -214,7 +214,7 @@ class UCk_EntityScript_ProbeGym_TraceStation : UCk_GenericEntityScript_UE
     }
 
     //------------------------------------------------------------------------
-    // Console → station
+    // Console -> station
     //------------------------------------------------------------------------
 
     UFUNCTION()

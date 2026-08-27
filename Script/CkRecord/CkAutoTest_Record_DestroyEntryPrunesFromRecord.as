@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK RECORD — AUTOMATION TEST: DESTROY ENTRY PRUNES FROM RECORD
+// CK RECORD - AUTOMATION TEST: DESTROY ENTRY PRUNES FROM RECORD
 //============================================================================
 //
 // Pins the auto-prune contract on entity destruction: when a connected entry
 // entity is destroyed, the Record's internal entry array prunes it on the
-// next ForEach traversal (the framework's documented behavior — see
+// next ForEach traversal (the framework's documented behavior - see
 // DoForEach_Entry which RemoveAtSwaps pending-kill entries during iteration).
 //
 // Setup:

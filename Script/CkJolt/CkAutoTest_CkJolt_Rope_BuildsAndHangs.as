@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: ROPE BUILDER PRODUCES A HANGING CHAIN
+// CK JOLT - AUTOMATION TEST: ROPE BUILDER PRODUCES A HANGING CHAIN
 //============================================================================
 //
 // Create_Rope with 6 Rigid segments (40uu each) from a WORLD anchor must
 // return 6 segment bodies + 6 links, and after settling the LAST segment's
-// center must hang ~220uu below the anchor (5.5 * 40) with no lateral drift —
+// center must hang ~220uu below the anchor (5.5 * 40) with no lateral drift
 // i.e. the point-constraint chain is inextensible and anchored.
 //
 // Placed at an isolated Y so it never touches other autotests' physics bodies.
@@ -48,7 +48,7 @@ class UCk_AutoTest_CkJolt_Rope_BuildsAndHangs : UCk_AutoTest_Base
 
         if (Rope.Get_Segments().Num() != _SegmentCount)
         {
-            FinishFailure("Rope build incomplete — cannot continue to the hang check");
+            FinishFailure("Rope build incomplete - cannot continue to the hang check");
             return;
         }
 

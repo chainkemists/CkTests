@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CUE — AUTOMATION TEST: AFTER-ONE-FRAME LIFETIME DESTROYS QUICKLY
+// CK CUE - AUTOMATION TEST: AFTER-ONE-FRAME LIFETIME DESTROYS QUICKLY
 //============================================================================
 //
 // Pins the AfterOneFrame lifetime contract: a cue fired with
@@ -46,7 +46,7 @@ class UCk_AutoTest_Cue_AfterOneFrame_DestroyedQuickly : UCk_AutoTest_Base
 
         auto LiveCues = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AutoTestCue_AfterOneFrame");
         Assert_Equals_Int(LiveCues.Num(), 0,
-            "AfterOneFrame cue should be destroyed within 0.5s of firing — no live entities should remain");
+            "AfterOneFrame cue should be destroyed within 0.5s of firing - no live entities should remain");
 
         FinishSuccess();
     }

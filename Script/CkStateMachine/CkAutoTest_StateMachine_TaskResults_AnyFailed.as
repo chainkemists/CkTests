@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: TASK-RESULTS AnyFailed CHECK
+// CK STATE MACHINE - AUTOMATION TEST: TASK-RESULTS AnyFailed CHECK
 //============================================================================
 //
 // Pins the AnyFailed aggregate variant of the Task-Results condition: with two

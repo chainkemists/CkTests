@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PLAN-2 PHASE 1 BATCHED CLUSTER LIFECYCLE
+// CK ISKM RENDERER - AUTOMATION TEST: PLAN-2 PHASE 1 BATCHED CLUSTER LIFECYCLE
 //============================================================================
 //
 // Plan-2 Phase 1 gate (CPU-verifiable slice). Spawns a batched cluster of
@@ -11,8 +11,8 @@
 // Under -nullrhi (the default suite) the GPU proxy is not created (the app
 // can't render), so this verifies the component/instance bookkeeping only.
 // Run with --no-nullrhi to additionally exercise the render path: the baked
-// SRV/uniform-buffer/vertex-factory upload, proxy creation, and — because the
-// mannequin material's shader map then includes the batched vertex factory —
+// SRV/uniform-buffer/vertex-factory upload, proxy creation, and - because the
+// mannequin material's shader map then includes the batched vertex factory
 // compilation of CkIskm_BatchedVertexFactory.ush. A shader-compile error or a
 // render-thread crash there fails this test.
 //
@@ -27,7 +27,7 @@ class UCk_AutoTest_IskmRenderer_BatchedClusterLifecycle : UCk_AutoTest_Base
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            FinishFailure("iskm_assets::AnimCollection_Demo() invalid — registry may need regeneration.");
+            FinishFailure("iskm_assets::AnimCollection_Demo() invalid - registry may need regeneration.");
             return;
         }
 

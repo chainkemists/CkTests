@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK VFX EXAMPLES — AUTOMATION TEST: PAIR STATIONS SPAWN
+// CK VFX EXAMPLES - AUTOMATION TEST: PAIR STATIONS SPAWN
 //============================================================================
 //
 // The A/B pair registry is well-formed and BOTH sides of every pair reach a
 // live component: the CkParticles side through the normal spawn path, the
 // original side either through a resolved candidate path or through the
-// placeholder branch. Neither branch may emit a Warning or Error — the harness
+// placeholder branch. Neither branch may emit a Warning or Error - the harness
 // escalates one into a test failure, which is exactly the guarantee the
 // "Vefects content is optional" contract needs.
 //============================================================================
@@ -42,7 +42,7 @@ class UCk_AutoTest_VfxExamples_PairStationsSpawn : UCk_AutoTest_Base
         // spawn returns null. Run this lane with --no-nullrhi to exercise the spawns.
         if (!utils_render_target::Get_CanRenderOnThisProcess())
         {
-            ck::Trace("[VfxExamples] this process cannot render (e.g. -nullrhi) — Niagara drops every spawn; skipping the spawn half");
+            ck::Trace("[VfxExamples] this process cannot render (e.g. -nullrhi) - Niagara drops every spawn; skipping the spawn half");
             FinishSuccess();
             return;
         }
@@ -54,7 +54,7 @@ class UCk_AutoTest_VfxExamples_PairStationsSpawn : UCk_AutoTest_Base
 
         if (_PlaceholderCount > 0)
         {
-            ck::Trace(f"[VfxExamples] {_PlaceholderCount} pair(s) took the placeholder branch — the original content is not installed");
+            ck::Trace(f"[VfxExamples] {_PlaceholderCount} pair(s) took the placeholder branch - the original content is not installed");
         }
 
         FinishSuccess();

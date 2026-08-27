@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAG SET — AUTOMATION TEST: ADD DUPLICATE → NO SIGNAL FIRE
+// CK TAG SET - AUTOMATION TEST: ADD DUPLICATE -> NO SIGNAL FIRE
 //============================================================================
 //
 // Pins the no-op contract: Request_AddTags with a tag that's already present
@@ -11,7 +11,7 @@
 // Setup:
 //   1. Add a TagSet with initial tag A.
 //   2. Wait one frame, bind OnTagsChanged (skip the initial-add signal).
-//   3. Request_AddTags(A) — duplicate.
+//   3. Request_AddTags(A) - duplicate.
 //   4. Wait several ticks; assert OnTagsChanged fire count == 0.
 //============================================================================
 

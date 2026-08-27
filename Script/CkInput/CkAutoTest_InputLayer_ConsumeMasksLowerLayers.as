@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT LAYER — AUTOMATION TEST: CONSUME MASKS EVERYTHING BELOW
+// CK INPUT LAYER - AUTOMATION TEST: CONSUME MASKS EVERYTHING BELOW
 //============================================================================
 //
 // The core arbitration rule. Three layers on one source all declare interest
@@ -11,7 +11,7 @@
 //
 // Blocking here is STRUCTURAL: nothing on the lower layers is disabled, no
 // flag is set, and neither lower layer knows the top one exists. That is the
-// whole argument for the stack over a suspension flag — there is nothing to
+// whole argument for the stack over a suspension flag - there is nothing to
 // forget to clear.
 //
 // The two silences are asserted only after a positive: the top layer's fire

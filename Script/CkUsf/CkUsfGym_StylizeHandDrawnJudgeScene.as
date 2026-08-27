@@ -6,7 +6,7 @@
 // What each piece is FOR (a hand-drawn verdict needs all four, and none of them substitutes):
 //   - architecture block : walls, pillars and a gable. Every piece is Movable mobility (runtime-created
 //                          components have to be, to take a transform at all) but NOTHING here is ever
-//                          moved — that stillness is the point. This is the only subject that can answer
+//                          moved - that stillness is the point. This is the only subject that can answer
 //                          the load-bearing question: do world-attached strokes stay glued to the
 //                          surface while the camera orbits? Strokes that swim here are a broken
 //                          WorldPosition reconstruction, not a badly tuned pattern.
@@ -14,7 +14,7 @@
 //                          DENSITY, and a smooth prop simply does not have enough edges to tell a
 //                          working normal detector from a dead one.
 //   - shade ramp spheres : dark / mid / bright albedo. Where the paint's colour-region count and the
-//                          shadow-stroke threshold become readable — the hatching boundary has to land
+//                          shadow-stroke threshold become readable - the hatching boundary has to land
 //                          on the terminator, not on the albedo change.
 //   - animated mover     : the screen-stable vs world-attached comparison. Screen-stable strokes must
 //                          hold on it while it translates; world-attached ones will SLIDE, which is the
@@ -28,7 +28,7 @@ class ACk_UsfGym_StylizeHandDrawnJudgeScene : AActor
     UPROPERTY(DefaultComponent, RootComponent)
     USceneComponent Root;
 
-    // The translating subject — assembled in BeginPlay along with everything else.
+    // The translating subject - assembled in BeginPlay along with everything else.
     private UStaticMeshComponent _Mover;
     private float _Elapsed = 0.0f;
 
@@ -58,7 +58,7 @@ class ACk_UsfGym_StylizeHandDrawnJudgeScene : AActor
     }
 
     // A little building: back wall, two pillars, a lintel across them, and a floor slab. Deliberately
-    // plain boxes — a hand-drawn look is judged on how its strokes sit on flat planes meeting at hard
+    // plain boxes - a hand-drawn look is judged on how its strokes sit on flat planes meeting at hard
     // corners, which is exactly where a triplanar projection is hardest.
     private void Build_Architecture()
     {
@@ -107,7 +107,7 @@ class ACk_UsfGym_StylizeHandDrawnJudgeScene : AActor
             auto Direction = FRotator(0.0f, Angle, 0.0f).ForwardVector;
 
             // Rolled 90 degrees so the cone's axis lies along the outward direction instead of pointing
-            // at the sky — a ring of upright cones would give the detectors one repeated edge, not a
+            // at the sky - a ring of upright cones would give the detectors one repeated edge, not a
             // silhouette.
             Spawn_RotatedPiece(ConeMesh, Material, Center + Direction * SpikeRadius,
                 FRotator(0.0f, Angle, 90.0f), FVector(0.55f, 0.55f, 1.1f), BodyColor);

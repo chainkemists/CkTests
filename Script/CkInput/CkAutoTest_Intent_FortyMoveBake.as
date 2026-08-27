@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A WHOLE CHARACTER'S MOVE LIST, BAKED AT ONCE
+// CK INTENT - AUTOMATION TEST: A WHOLE CHARACTER'S MOVE LIST, BAKED AT ONCE
 //============================================================================
 //
 // The grammar's other tests prove one notation, one bake, two moves. This one
-// proves the thing a shipping character actually asks for: forty moves — every
-// shape the notation can express — parsed one at a time and compiled into ONE
+// proves the thing a shipping character actually asks for: forty moves - every
+// shape the notation can express - parsed one at a time and compiled into ONE
 // set, with nothing hand-assembled anywhere. The vocabulary lives in
 // `CkIntent_Moves_Assets.as` as notation STRINGS and nothing else, so the only
 // thing this test can be reading is what the parser and the bake made of them.
@@ -20,7 +20,7 @@
 // something:
 //
 //   parse   every authored row parses, and a rejection names the MOVE, its
-//           notation and the reason — a red here points at one string
+//           notation and the reason - a red here points at one string
 //   bake    forty definitions over a declared button vocabulary compile as one
 //           set, and a rejection names the offending move and button
 //   count   the compiled set carries every authored move; a bake is atomic, so
@@ -31,14 +31,14 @@
 //
 // The verdicts are the point. Every table in a set is derived from every
 // intent in it, so the tie check, the ordering and the deferrals are all
-// functions of the WHOLE forty — and a two-move fixture cannot tell a rule
+// functions of the WHOLE forty - and a two-move fixture cannot tell a rule
 // that holds from one that merely has not been contradicted yet.
 //============================================================================
 
 class UCk_AutoTest_Intent_FortyMoveBake : UCk_AutoTest_Base
 {
-    // Not the signature's default 3, so reading it back off the set — and off
-    // the chord verdict — proves both carried the argument the bake was given.
+    // Not the signature's default 3, so reading it back off the set - and off
+    // the chord verdict - proves both carried the argument the bake was given.
     private int32 _ChordWindowFrames = 4;
 
     private TArray<FCk_Intent_Definition> _Definitions;
@@ -59,7 +59,7 @@ class UCk_AutoTest_Intent_FortyMoveBake : UCk_AutoTest_Base
         TArray<FCkTests_Intent_MoveRow> Rows = intent_moves::MoveTable_FortyMove.Rows;
 
         Assert_Equals_Int(Rows.Num(), intent_moves::k_MoveCount,
-            "the move table must declare the whole vocabulary — a table that lost rows would make every count below vacuous");
+            "the move table must declare the whole vocabulary - a table that lost rows would make every count below vacuous");
 
         for (auto Index = 0; Index < Rows.Num(); Index++)
         {
@@ -82,12 +82,12 @@ class UCk_AutoTest_Intent_FortyMoveBake : UCk_AutoTest_Base
         auto OffendingButton = Result.Get_OffendingButtonName();
 
         Assert_True(Result.Get_Outcome() == ECk_SucceededFailed::Succeeded,
-            f"forty well-formed moves over a declared vocabulary must compile as ONE set — rejected as {Error :n}, naming move '{OffendingMove}', rival '{ConflictingMove}', button '{OffendingButton}'");
+            f"forty well-formed moves over a declared vocabulary must compile as ONE set - rejected as {Error :n}, naming move '{OffendingMove}', rival '{ConflictingMove}', button '{OffendingButton}'");
 
         FCk_Intent_CompiledSet Set = Result.Get_CompiledSet();
 
         Assert_Equals_Int(Set.Get_Intents().Num(), _Definitions.Num(),
-            "every authored move must survive into the set — the bake is atomic, so a short count is a special that would go missing in a fight");
+            "every authored move must survive into the set - the bake is atomic, so a short count is a special that would go missing in a fight");
         Assert_Equals_Int(Set.Get_ChordWindowFrames(), _ChordWindowFrames,
             "the set must carry the chord window it was baked with, not the signature's default");
 
@@ -102,7 +102,7 @@ class UCk_AutoTest_Intent_FortyMoveBake : UCk_AutoTest_Base
 
     // LP is the suffix zone: six moves end on it and not one of them can be
     // waited out. This is the property the whole deferral model exists to
-    // protect, and at forty moves it is worth rather more than at two — the
+    // protect, and at forty moves it is worth rather more than at two - the
     // prefix either already happened or it did not, however many rivals share
     // the button.
     private void DoAssert_SharedTerminalNeverDefers(const FCk_Intent_CompiledSet& InSet)
@@ -197,7 +197,7 @@ class UCk_AutoTest_Intent_FortyMoveBake : UCk_AutoTest_Base
         auto Token = Result.Get_ErrorToken();
 
         Assert_True(Result.Get_Outcome() == ECk_SucceededFailed::Succeeded,
-            f"move '{MoveName}' ({Notation}) must parse — rejected as {Error :n} on token '{Token}'");
+            f"move '{MoveName}' ({Notation}) must parse - rejected as {Error :n} on token '{Token}'");
 
         return Result.Get_Definition();
     }

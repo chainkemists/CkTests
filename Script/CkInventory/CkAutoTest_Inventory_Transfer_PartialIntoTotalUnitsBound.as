@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: TRANSFER PARTIAL INTO TOTAL-UNITS BOUND
+// CK INVENTORY - AUTOMATION TEST: TRANSFER PARTIAL INTO TOTAL-UNITS BOUND
 //============================================================================
 //
 // Verifies DoTransfer clamps to the target's absorbable units and settles as
 // Success_Partial instead of failing after moving nothing:
 //   1. Source: unbounded; holds Potion x8 (one stack).
 //   2. Target: BoundedByTotalUnits(5).
-//   3. Transfer AllAvailable → Success_Partial, CountTransferred=5.
+//   3. Transfer AllAvailable -> Success_Partial, CountTransferred=5.
 //   4. Source keeps 3 units; target holds 5.
 //
 //============================================================================
@@ -117,7 +117,7 @@ class UCk_AutoTest_Inventory_Transfer_PartialIntoTotalUnitsBound : UCk_AutoTest_
         Assert_Equals_Int(_Target.Get_NumItems(), 1, "Target should hold the units as one new entry");
         Assert_Equals_Int(_Source.Get_NumItems(), 1, "Source keeps its (reduced) stack");
 
-        // Both inventories' stack adjustments are deferred — settle before count asserts.
+        // Both inventories' stack adjustments are deferred - settle before count asserts.
         WaitUntil(n"Check_SourceStackIsThree", n"OnTransferSettled");
     }
 

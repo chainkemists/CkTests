@@ -80,7 +80,7 @@ class UCk_EntityScript_UnrealComponentGym_Display : UCk_GenericEntityScript_UE
 
 		Instructions = "Driver spawns an ECS entity with Transform.\n"
 			+ "Calls utils_unreal_component::Add(...) to attach the\n"
-			+ "named UActorComponent class — no AActor outer.\n"
+			+ "named UActorComponent class - no AActor outer.\n"
 			+ "OnAdded callback configures the component.\n"
 			+ "Entity orbits, PushTransform processor mirrors that\n"
 			+ "onto the SceneComponent every frame.";

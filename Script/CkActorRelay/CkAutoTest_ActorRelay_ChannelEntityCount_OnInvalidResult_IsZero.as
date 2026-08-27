@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ACTOR RELAY — AUTOMATION TEST: ChannelEntityCount on invalid result == 0
+// CK ACTOR RELAY - AUTOMATION TEST: ChannelEntityCount on invalid result == 0
 //============================================================================
 //
 // Pins the documented sentinel: when `Get_IsChannelResultValid` is false,

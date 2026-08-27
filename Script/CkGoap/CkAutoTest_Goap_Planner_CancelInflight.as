@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER CANCEL IN-FLIGHT PLAN
+// CK GOAP - AUTOMATION TEST: PLANNER CANCEL IN-FLIGHT PLAN
 //============================================================================
 //
 // Validates utils_goap_planner::Request_CancelPlan(Planner).
@@ -19,8 +19,8 @@
 //   - Add Mid (composite via LeafB) so Root has a candidate child to search.
 //   - Bind OnPlanComplete on Root to fail the test if it ever fires.
 //   - After WaitOneFrame (so Setup runs and Action is ready to plan):
-//       Request_Plan(Root) — queues plan request.
-//       Request_CancelPlan(Root) — queues cancel request immediately after.
+//       Request_Plan(Root) - queues plan request.
+//       Request_CancelPlan(Root) - queues cancel request immediately after.
 //     Both run in the same FProcessor_Goap_Action_HandleRequests pass; the
 //     Plan handler seeds search state (Planning), then the Cancel handler
 //     tears it down (Idle).
@@ -55,7 +55,7 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.BKey"),
             false);
 
-        // U11.1: Planner goal={BKey=true} — NOT pre-satisfied (BKey=false),
+        // U11.1: Planner goal={BKey=true} - NOT pre-satisfied (BKey=false),
         // so the planner has actual A* search work.
         // _PlanOnStart=false so no implicit plan races the test's manual sequence.
         auto InitialGoal = TArray<FCk_GoapWS_Condition_Authored>();
@@ -80,7 +80,7 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
         _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (Root) should return a valid handle");
 
-        // Mid (composite child of Root) — gives the planner a candidate operator.
+        // Mid (composite child of Root) - gives the planner a candidate operator.
         auto MidParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_Mid_GoalIsEffects);
         auto MidAction = utils_goap_planner::AddAction(_Planner, MidParams);
@@ -99,7 +99,7 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
         auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
         Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
 
-        // Track OnPlanComplete — must NOT fire after the cancel.
+        // Track OnPlanComplete - must NOT fire after the cancel.
         utils_goap_planner::BindTo_OnPlanComplete(_Planner,
             FCk_Delegate_Goap_OnPlanComplete(this, n"OnPlanComplete"));
 
@@ -116,15 +116,15 @@ class UCk_AutoTest_Goap_Planner_CancelInflight : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // Sanity: status is Idle (no plan started yet — _PlanOnStart=false).
+        // Sanity: status is Idle (no plan started yet - _PlanOnStart=false).
         auto InitialStatus = utils_goap_planner::Get_PlanStatus(_Planner);
         Assert_True(InitialStatus == ECk_GoapPlanStatus::Idle,
             f"Root PlanStatus should be Idle before Request_Plan (got {InitialStatus})");
 
         // Queue Plan + Cancel in the SAME frame. Both requests are processed
         // in order by FProcessor_Goap_Action_HandleRequests on the next tick:
-        // Plan seeds the search (status → Planning, _PlanInFlight tag added);
-        // Cancel immediately tears it down (status → Idle, tag removed).
+        // Plan seeds the search (status -> Planning, _PlanInFlight tag added);
+        // Cancel immediately tears it down (status -> Idle, tag removed).
         utils_goap_planner::Request_Plan(_Planner);
         utils_goap_planner::Request_CancelPlan(_Planner);
 

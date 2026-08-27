@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: REBUILD REPLANS EXISTING ROUTES
+// CK PATH NETWORK - AUTOMATION TEST: REBUILD REPLANS EXISTING ROUTES
 //============================================================================
 //
 // The runtime-rebuild promise: replacing the network's ribbons bumps the
 // build epoch, and FProcessor_PathNetworkFollower_InvalidateOnRebuild
-// re-plans every corridor planned against the older epoch — WITHOUT the
+// re-plans every corridor planned against the older epoch - WITHOUT the
 // caller re-issuing FindRoute.
 //
 //   1. Route across an L network (same geometry as RoutePrefersNetwork);
@@ -96,7 +96,7 @@ class UCk_AutoTest_PathNetworkFollower_RebuildReplansRoute : UCk_AutoTest_Base
         {
             _EpochAtFirstReady = utils_path_network::Get_BuildEpoch(_Network);
 
-            // Swap the L for a straight diagonal — the invalidation processor must replan the
+            // Swap the L for a straight diagonal - the invalidation processor must replan the
             // existing corridor without a second FindRoute from us.
             TArray<FCk_PathNetwork_RibbonPoint> DiagonalPoints;
             DiagonalPoints.Add(FCk_PathNetwork_RibbonPoint(FVector(-50.0, 25.0, 0.0), 100.0));
@@ -116,7 +116,7 @@ class UCk_AutoTest_PathNetworkFollower_RebuildReplansRoute : UCk_AutoTest_Base
         Assert_True(InResult.Get_Status() == ECk_PathNetwork_RouteStatus::Ready,
             f"replanned route must be Ready, got {InResult.Get_Status()}");
 
-        // The replanned route follows the diagonal — nothing should pass near the OLD corner.
+        // The replanned route follows the diagonal - nothing should pass near the OLD corner.
         const auto OldCorner = FVector(400.0, 0.0, 0.0);
         const auto Waypoints = InResult.Get_CompiledWaypoints();
         auto ClosestToOldCorner = 1.0e9;

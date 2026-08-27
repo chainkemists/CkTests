@@ -1,7 +1,7 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Team_Add happy path
-// Add(handle, Zero) → Has reports true; Get_ID returns Zero.
+// CK RELATIONSHIP - AUTOMATION TEST: Team_Add happy path
+// Add(handle, Zero) -> Has reports true; Get_ID returns Zero.
 
 class UCk_AutoTest_Relationship_Team_AddHappyPath : UCk_AutoTest_Base
 {

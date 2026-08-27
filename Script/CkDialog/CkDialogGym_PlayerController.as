@@ -78,7 +78,7 @@ class ACk_DialogGym_PlayerController : ACk_Gym_Base_PlayerController
 		Request_StartCooldowns();
 		Request_StartChains();
 		Request_StartGraph();
-		ck::Trace("✅ Dialog Gym - All stations started");
+		ck::Trace("[OK] Dialog Gym - All stations started");
 	}
 
 	//------------------------------------------------------------------------
@@ -137,8 +137,8 @@ class ACk_DialogGym_PlayerController : ACk_Gym_Base_PlayerController
 	//--------------------------------------------------------------------------------------------------------------------------
 	// CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
 	//
-	// Cooldowns and chains only show their behaviour on a RE-RUN — the first pass is over by the time you
-	// have walked to the station — and re-running was console-only.
+	// Cooldowns and chains only show their behaviour on a RE-RUN - the first pass is over by the time you
+	// have walked to the station - and re-running was console-only.
 	//--------------------------------------------------------------------------------------------------------------------------
 
 	FString Get_ControlPanelTitle() override

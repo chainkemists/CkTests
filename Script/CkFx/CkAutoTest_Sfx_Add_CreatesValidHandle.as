@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK FX — AUTOMATION TEST: Sfx Add creates valid handle
+// CK FX - AUTOMATION TEST: Sfx Add creates valid handle
 //============================================================================
 //
 // First-coverage seed for CkFx Sfx. Pins the simplest Add contract:
@@ -11,7 +11,7 @@
 //
 // The Sfx Setup processor reads _SoundCue when it spawns the AudioComponent
 // on the next tick. For this Add-only contract test we leave _SoundCue
-// nullptr — the Add path itself doesn't validate the cue (only the name is
+// nullptr - the Add path itself doesn't validate the cue (only the name is
 // used at Add time for the GameplayLabel). We exit the test before the
 // next-tick Setup runs.
 //============================================================================

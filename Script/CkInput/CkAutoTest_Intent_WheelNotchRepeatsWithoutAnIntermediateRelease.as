@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A WHEEL NOTCH IS A COLLAPSED PRESS/RELEASE PAIR
+// CK INTENT - AUTOMATION TEST: A WHEEL NOTCH IS A COLLAPSED PRESS/RELEASE PAIR
 //============================================================================
 //
 // A mouse-wheel notch has no duration, so it arrives as a Pressed AND a
 // Released with nothing in between. WHAT THIS TEST PINS IS THE HANDLING OF
 // THAT PAIR, NOT ITS PRODUCTION: the events are injected straight at the input
 // source, so the Slate writer never runs and nothing here would notice if it
-// changed. The writer emitting both edges is this test's PREMISE — stated so a
-// later reader does not mistake the coverage — and the shape it produces is
+// changed. The writer emitting both edges is this test's PREMISE - stated so a
+// later reader does not mistake the coverage - and the shape it produces is
 // what the sampler and the matcher are held to below:
 //
 //   1. Both edges land on ONE sampler row. Asserted rather than assumed: they
@@ -22,7 +22,7 @@
 //
 // (3) is the load-bearing half and the one that fails loudly if a press ever
 // arrives without its release: the second scroll would then be a press on a
-// button already down, produce no edge, and silently do nothing — while every
+// button already down, produce no edge, and silently do nothing - while every
 // readiness gate (button minted, capture registered, set active) still reported
 // healthy. Scroll-to-cycle is the canonical consumer, and it is used by
 // repeating the notch, never by holding it.
@@ -110,7 +110,7 @@ class UCk_AutoTest_Intent_WheelNotchRepeatsWithoutAnIntermediateRelease : UCk_Au
             FCk_Request_IntentMatcher_SwapSet(Baked.Get_CompiledSet()));
     }
 
-    // Both edges in one step, which is what puts them in one sampler row — the shape the Slate
+    // Both edges in one step, which is what puts them in one sampler row - the shape the Slate
     // writer produces for a notch, and the whole point of the test.
     UFUNCTION()
     private void Step_Notch(FCk_Handle InHandle, FInstancedStruct InPayload)
@@ -126,17 +126,17 @@ class UCk_AutoTest_Intent_WheelNotchRepeatsWithoutAnIntermediateRelease : UCk_Au
 
         // The premise, asserted rather than assumed. Injecting both edges together puts them in one
         // BATCH; only a row carrying both proves the batch became one ROW. Without this, a sampler
-        // that split the pair into a press row and a release row would satisfy everything below —
-        // the notch would complete, nothing would stay held — and the collapsed shape this test is
+        // that split the pair into a press row and a release row would satisfy everything below
+        // the notch would complete, nothing would stay held - and the collapsed shape this test is
         // named for would have gone untested.
         Assert_True(DoFind_FrameCarryingBothEdges() >= 0,
-            "one sampler row carries BOTH the press and the release — that collapse is the shape a notch has, and the rest of this test is about what the matcher does with it");
+            "one sampler row carries BOTH the press and the release - that collapse is the shape a notch has, and the rest of this test is about what the matcher does with it");
 
         Assert_True(_FirstCompletionFrame >= 0,
-            "a notch whose press and release collapse onto one row still completes — activation is evaluated ahead of the release");
+            "a notch whose press and release collapse onto one row still completes - activation is evaluated ahead of the release");
 
         Assert_False(DoContainsPhysical(utils_intent_sampler::Get_LatestFrame(_Sampler).Get_Held(), _NotchKey.GetKeyName()),
-            "the notch left nothing held — a press recorded without its release would wedge the key down for the rest of the session");
+            "the notch left nothing held - a press recorded without its release would wedge the key down for the rest of the session");
     }
 
     UFUNCTION()
@@ -145,7 +145,7 @@ class UCk_AutoTest_Intent_WheelNotchRepeatsWithoutAnIntermediateRelease : UCk_Au
         auto SecondFrame = utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Notch_Cycle");
 
         Assert_True(SecondFrame > _FirstCompletionFrame,
-            "the second notch is a fresh press EDGE and completes on its own frame — scroll-to-cycle is used by repeating the notch, never by holding it");
+            "the second notch is a fresh press EDGE and completes on its own frame - scroll-to-cycle is used by repeating the notch, never by holding it");
     }
 
     //------------------------------------------------------------------------
@@ -213,7 +213,7 @@ class UCk_AutoTest_Intent_WheelNotchRepeatsWithoutAnIntermediateRelease : UCk_Au
     }
 
     // The frame index of the row whose Pressed AND Released both name the notch button, or -1 when
-    // no row carries both — which is the collapse not having happened.
+    // no row carries both - which is the collapse not having happened.
     private int32 DoFind_FrameCarryingBothEdges()
     {
         auto Count = utils_intent_sampler::Get_FrameCount(_Sampler);

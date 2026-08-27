@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF ENTITY OUTLINE — AUTOTEST: ISKM Plan-1 apply/remove
+// CK USF ENTITY OUTLINE - AUTOTEST: ISKM Plan-1 apply/remove
 //============================================================================
 //
 // One Plan-1 skeletal proxy. Request_ApplyOutline on its entity must mark the
 // proxy outlined (custom depth + stencil on the pooled SKMC); Request_RemoveOutline
-// must clear it. (Pool hygiene — released SKMCs carrying no outline state — is
+// must clear it. (Pool hygiene - released SKMCs carrying no outline state - is
 // double-guarded in Release_BaseSKMC itself.)
 //
 //============================================================================

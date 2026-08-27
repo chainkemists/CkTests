@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PATROL GYM SHAPE REGRESSION
+// CK GOAP - AUTOMATION TEST: PATROL GYM SHAPE REGRESSION
 //============================================================================
 //
 // Pins the planner shape used by the Patrol gym (CkGoapGym_Patrol_Station).
 // Failure mode this guards: someone re-introduces a "Root" Action whose
-// effect is the planner's goal (AreaPatrolled=true) at cost 0 — that lets
+// effect is the planner's goal (AreaPatrolled=true) at cost 0 - that lets
 // the planner trivially satisfy the goal in a single step and bypasses the
 // whole [GoToWaypoint, Observe, MarkDone] chain the gym demonstrates.
 //
@@ -24,7 +24,7 @@
 //                                               eff:  AreaPatrolled=true  cost 1
 //
 // Initial WS: all false. Expected plan: [GoToWaypoint, Observe, MarkDone].
-// Assert Plan.Num() >= 3 — exact-equal-3 is the canonical shape; >=3 lets
+// Assert Plan.Num() >= 3 - exact-equal-3 is the canonical shape; >=3 lets
 // the test survive an additional intermediate step the planner might insert
 // without giving an inch on the "single-step-via-Root" regression.
 //============================================================================
@@ -41,7 +41,7 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
         auto Local = InHandle;
         utils_transform::Add(Local, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        // ---- WorldState (mirrors gym's Reset_WS — all false) ----
+        // ---- WorldState (mirrors gym's Reset_WS - all false) ----
         auto WS = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Patrol"),
             FCk_Fragment_Goap_WorldState_ParamsData());
@@ -66,9 +66,9 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
         // Framework test mirroring the Patrol gym's current catalog. The gym
-        // itself doesn't yet include a fallback Action (separate cleanup task —
-        // gyms should be audited under the always-valid-plan tenet, CkGoap/CLAUDE.md
-        // § "Design tenets"). Opt-out here so the regression test runs cleanly;
+        // itself doesn't yet include a fallback Action (separate cleanup task
+        // gyms should be audited under the always-valid-plan tenet, the CkGoap docs
+        // Sec. "Design tenets"). Opt-out here so the regression test runs cleanly;
         // when the Patrol gym gains a fallback (e.g. StandWatch), drop this line
         // and add the fallback Action below to mirror.
         PlannerParams.Set_AllowPlanFailed(true);
@@ -87,7 +87,7 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
         auto GoToPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol.GoToWaypoint"));
         GoToPlannerParams.Set_Goal(GoToGoal);
-        GoToPlannerParams.Set_AllowPlanFailed(true);  // framework test — see top-Planner comment
+        GoToPlannerParams.Set_AllowPlanFailed(true);  // framework test - see top-Planner comment
         auto GoToAsPlanner = utils_goap_planner::PromoteActionToPlanner(GoToWaypoint, GoToPlannerParams);
         Assert_True(ck::IsValid(GoToAsPlanner), "GoToWaypoint promotion should succeed");
 
@@ -108,7 +108,7 @@ class UCk_AutoTest_Goap_Planner_PatrolGymShape : UCk_AutoTest_Base
         auto ObservePlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.ActionSet.Patrol.Observe"));
         ObservePlannerParams.Set_Goal(ObserveGoal);
-        ObservePlannerParams.Set_AllowPlanFailed(true);  // framework test — see top-Planner comment
+        ObservePlannerParams.Set_AllowPlanFailed(true);  // framework test - see top-Planner comment
         auto ObserveAsPlanner = utils_goap_planner::PromoteActionToPlanner(Observe, ObservePlannerParams);
         Assert_True(ck::IsValid(ObserveAsPlanner), "Observe promotion should succeed");
 

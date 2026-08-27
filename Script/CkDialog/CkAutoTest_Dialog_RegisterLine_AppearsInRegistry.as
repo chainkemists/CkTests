@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DIALOG — AUTOMATION TEST: REGISTER LINE APPEARS IN REGISTRY
+// CK DIALOG - AUTOMATION TEST: REGISTER LINE APPEARS IN REGISTRY
 //============================================================================
 // Register one line at runtime, let deferred creation + EntityTag adds settle,
 // then assert it is findable by ID / enter tag and its data round-trips.
@@ -32,7 +32,7 @@ class UCk_AutoTest_Dialog_RegisterLine_AppearsInRegistry : UCk_AutoTest_Base
         _Line = Registry.Request_RegisterLine(LineData, FGameplayTagContainer());
         Track_ForCleanup(FCk_Handle(_Line));
 
-        // Registration is deferred (line entity creation + EntityTag adds) —
+        // Registration is deferred (line entity creation + EntityTag adds)
         // wait until the line is findable by its enter tag rather than
         // guessing one frame suffices.
         WaitUntil(n"Check_LineRegistered", n"OnSettled");

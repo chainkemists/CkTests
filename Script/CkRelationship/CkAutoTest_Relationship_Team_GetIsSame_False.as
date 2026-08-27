@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Get_IsSame returns false for different teams
+// CK RELATIONSHIP - AUTOMATION TEST: Get_IsSame returns false for different teams
 
 class UCk_AutoTest_Relationship_Team_GetIsSame_False : UCk_AutoTest_Base
 {

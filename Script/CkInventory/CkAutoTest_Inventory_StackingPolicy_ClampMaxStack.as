@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: STACKING POLICY — CLAMP MAX STACK SIZE
+// CK INVENTORY - AUTOMATION TEST: STACKING POLICY - CLAMP MAX STACK SIZE
 //============================================================================
 //
 // Verifies ECk_Inventory_StackingPolicy::ClampMaxStackSize caps stacks at
 // min(definition max, clamp). Potion defines max 10; the inventory clamps to 3.
-//   1. Add Potion x7 (PreferStacking) → 3 entries (3 + 3 + 1), all 7 units in.
+//   1. Add Potion x7 (PreferStacking) -> 3 entries (3 + 3 + 1), all 7 units in.
 //   2. Each entry's count never exceeds the clamp.
 //
 // The settle was a hand-rolled retry loop bounded by a try counter.
 // On exhausting the budget it FELL THROUGH into the assertions anyway, so a
 // genuine hang reported as "Units must be conserved across the clamped stacks"
-// — a data-integrity failure pointing at the inventory system when the real
+// - a data-integrity failure pointing at the inventory system when the real
 // cause was that the wait gave up. WaitUntil names the condition it was
 // waiting on and is bounded by the test timeout instead.
 //============================================================================

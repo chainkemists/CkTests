@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — AUTOMATION TEST: REQUEST SET LOCATION
+// CK TRANSFORM - AUTOMATION TEST: REQUEST SET LOCATION
 //============================================================================
 //
 // Verifies Request_SetLocation deferred update:

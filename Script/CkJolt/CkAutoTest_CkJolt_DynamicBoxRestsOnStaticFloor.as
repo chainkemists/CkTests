@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: DYNAMIC JOLTBODY RESTS ON A STATIC JOLTBODY FLOOR
+// CK JOLT - AUTOMATION TEST: DYNAMIC JOLTBODY RESTS ON A STATIC JOLTBODY FLOOR
 //============================================================================
 //
 // The simplest end-to-end simulated-body check: a Static-motion JoltBody floor

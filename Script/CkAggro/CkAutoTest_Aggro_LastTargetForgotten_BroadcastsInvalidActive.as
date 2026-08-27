@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// AGGRO — AUTOMATION TEST: losing the LAST target broadcasts the calm edge
+// AGGRO - AUTOMATION TEST: losing the LAST target broadcasts the calm edge
 //============================================================================
 //
 // Regression pin. OnAggroActiveTargetChanged used to fire for every switch but
@@ -9,7 +9,7 @@
 // itself, so Selection then compared an already-empty Incumbent against an empty
 // Best, concluded nothing had changed, and stayed silent. A consumer that drives
 // its combat state off this signal could learn about every acquisition and every
-// switch, yet never learn the encounter had ended — leaving it latched onto a
+// switch, yet never learn the encounter had ended - leaving it latched onto a
 // target that no longer exists.
 //
 // Two phases, because the bug was specific to the table EMPTYING:
@@ -100,7 +100,7 @@ class UCk_AutoTest_Aggro_LastTargetForgotten_BroadcastsInvalidActive : UCk_AutoT
     {
         if (IsFinished()) { return; }
 
-        // Phase 1: a survivor remains, so this must read as ONE clean switch onto B —
+        // Phase 1: a survivor remains, so this must read as ONE clean switch onto B
         // not a calm followed by a re-engage.
         Assert_True(_BroadcastCount == 1,
             "forgetting the active target with a survivor broadcasts exactly once");

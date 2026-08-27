@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: FRAGMENT CLEANUP ON EMPTY
+// CK ENTITY TAG - AUTOMATION TEST: FRAGMENT CLEANUP ON EMPTY
 //============================================================================
 //
 // After fully removing every tag, Get_AllTags must return an empty array
 // (the underlying FFragment_EntityTag_Current is removed when both the
 // FName _Tags array and the gameplay-tag _GameplayTagCounts array empty).
 //
-// Re-adding a tag afterward must work — the fragment must come back
+// Re-adding a tag afterward must work - the fragment must come back
 // cleanly, not be left in some half-removed state.
 //
-// Every phase crosses a real observable transition (0→2 tags, 2→0, 0→1), so
+// Every phase crosses a real observable transition (0->2 tags, 2->0, 0->1), so
 // all three settles are condition waits rather than fixed delays.
 //============================================================================
 

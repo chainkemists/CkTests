@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK PARTICLES GYM — station tags
+// CK PARTICLES GYM - station tags
 //============================================================================
 //
 // One station per CkParticles behavior, EXCEPT the faithful Vefects ports
-// (7, 17 and everything from 18 up) — those live in the VfxExamples gym,
+// (7, 17 and everything from 18 up) - those live in the VfxExamples gym,
 // paired against their originals.
 // Ids 9+ are the marketplace recreations (VFX corpus translation sheets,
 // 2026-07-12); their station descriptions credit the exemplar systems they

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: COUNTDOWN COMPLETION
+// CK TIMER - AUTOMATION TEST: COUNTDOWN COMPLETION
 //============================================================================
 //
 // Verifies the CountDown direction:
@@ -35,7 +35,7 @@ class UCk_AutoTest_Timer_CountdownCompletion : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         // For a *naturally* completed countdown (Update_Countdown processor),
-        // the chrono's _CurrentValue has been consumed to 0 — so Elapsed=0,
+        // the chrono's _CurrentValue has been consumed to 0 - so Elapsed=0,
         // Remaining=Goal. Get_IsDone() returns false here (it tests current>=goal,
         // which is only true at the START of a fresh countdown). Get_IsDepleted
         // would be the right query but it isn't exposed to AngelScript, so we
@@ -47,7 +47,7 @@ class UCk_AutoTest_Timer_CountdownCompletion : UCk_AutoTest_Base
         // InChrono.Get_IsDepleted() call. The Get_IsDone() assertion in
         // CkAutoTest_Timer_RequestConsume.as has the same followup.
         // (Note: this is the OPPOSITE of consume-driven completion on a countdown
-        // — Request_Consume calls Tick() not Consume(), driving current UP to
+        // - Request_Consume calls Tick() not Consume(), driving current UP to
         // goal, so that path observes Get_IsDone()=true. See RequestConsume test.)
         auto Goal = FCk_Time();
         auto Elapsed = FCk_Time();

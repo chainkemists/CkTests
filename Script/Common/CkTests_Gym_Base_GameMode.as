@@ -19,7 +19,7 @@ class ACkTests_Gym_Base_GameMode : ACk_Gym_Base_GameMode
         CkTests_Gyms::RegisterAll();
 
         // Super runs the startup-gym resolve. It must run *after* RegisterAll()
-        // so the resolve sees CkTests gyms in the registry — otherwise a saved
+        // so the resolve sees CkTests gyms in the registry - otherwise a saved
         // "Last Gym Name" or "Default Gym Name" wouldn't match anything yet.
         Super::BeginPlay();
     }

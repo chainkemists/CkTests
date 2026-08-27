@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: BUNCH-UP SETTLES AT A SHARED GOAL
+// CK CROWD - AUTOMATION TEST: BUNCH-UP SETTLES AT A SHARED GOAL
 //============================================================================
 //
 // 15 agents on a 600cm ring, every one of them commanded to the SAME point.
@@ -9,7 +9,7 @@
 // Crowd_Goal_OccupiedGoal already covers the two-agent case: the latecomer
 // contacts the agent standing ON the goal, the geometric detector fires, and
 // it holds. That detector only ever looks at the goal itself, so it answers
-// for agent #2 and nobody else — agent #3 contacts agent #2, not the goal,
+// for agent #2 and nobody else - agent #3 contacts agent #2, not the goal,
 // and learns nothing. At 15 agents only the innermost ring is in contact with
 // anything the detector can see, so the outer twelve press inward forever,
 // each one shoving the ring in front of it, and the whole formation fidgets
@@ -20,7 +20,7 @@
 // settle a Walking agent against any SETTLED neighbour that shares its goal
 // and is closer to it, so settling propagates transitively outward):
 //
-//   Phase A — every agent reaches a terminal steering state within 15s of
+//   Phase A - every agent reaches a terminal steering state within 15s of
 //     measured time. Terminal means reached-the-goal OR the resumable
 //     GoalBlocked hold. The goal-FAILED hold is NOT terminal for our
 //     purposes and fails the test outright: a crowd at a busy shelf must
@@ -28,7 +28,7 @@
 //     is over". That distinction is the whole point of the hold being
 //     resumable (see Crowd_Goal_OccupiedGoal's Phase 2).
 //
-//   Phase B — 5s of genuine quiet. No agent drifts more than 8cm from where
+//   Phase B - 5s of genuine quiet. No agent drifts more than 8cm from where
 //     it settled, none exceeds 5cm/s once its brake has finished, none
 //     re-enters Walking, and none starts a new move episode. Those four
 //     together are what "fidget" means operationally: a jittering agent
@@ -39,14 +39,14 @@
 //   reached the goal, every other one is in the GoalBlocked hold, and no pair
 //   interpenetrates.
 //
-// AT-REST SEPARATION FLOOR — deliberately NOT loosened for the crowd case.
+// AT-REST SEPARATION FLOOR - deliberately NOT loosened for the crowd case.
 // Crowd_Separation_Convergence derives the number: while agents actively
 // drive inward the residual overlap is an EQUILIBRIUM that scales with
 // press-speed x frame-time (its 61cm floor), but once the inward drive is
 // gone PushApart converges geometrically to exactly the contact distance and
 // the floor is the radius sum, 84cm, with only a 0.1cm tolerance for the
-// asymptote. Phase B here is that same drive-free regime — a GoalBlocked
-// agent is Idle, so Steering never runs on it — and PushApart runs on idle
+// asymptote. Phase B here is that same drive-free regime - a GoalBlocked
+// agent is Idle, so Steering never runs on it - and PushApart runs on idle
 // agents too. So the same 84 - 0.1 floor applies, and a settled pair reading
 // below it is a real resolver defect. Do not add slack to make it pass.
 //
@@ -77,7 +77,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
     private const float RingRadius = 600.0;
     private const FVector Centre = FVector(0.0, 0.0, 100.0);
 
-    // Accumulated by the constant interval, never from InDeltaT — the timer's delta can read 0.0.
+    // Accumulated by the constant interval, never from InDeltaT - the timer's delta can read 0.0.
     private const float SampleIntervalSec = 0.1;
 
     // The discrimination is carried by the ALL-15-terminal requirement, not by this number: every
@@ -85,7 +85,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
     // no deadline makes the pre-fix behaviour pass. 15s exists to cover the loaded-machine settle
     // path honestly: markup roots the chain only after 1.5s of windowed stillness, each ring blocks
     // on a 0.5s cadence, blocked agents coast to rest, and a 4-lane full-suite run dilates all of
-    // it — measured 14/15 by 8s with the last block landing late, zero direction reversals anywhere.
+    // it - measured 14/15 by 8s with the last block landing late, zero direction reversals anywhere.
     private const float SettleDeadlineSec = 15.0;
 
     // Bounds the pre-measurement stretch (navmesh bake, spawn, 15 path resolutions) so a setup that
@@ -94,7 +94,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
 
     private const float QuietWindowSec = 5.0;
 
-    // A GoalBlocked agent is not stopped by the transition itself — AccelClamp's Idle branch ramps
+    // A GoalBlocked agent is not stopped by the transition itself - AccelClamp's Idle branch ramps
     // it down over roughly half a second. The whole formation is already quiescent at Phase-B entry
     // (see DoSamplePhaseA), so this grace only covers the last few frames of that ramp.
     private const float QuietSpeedGraceSec = 1.0;
@@ -108,13 +108,13 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
     private const float MovingSpeedCm = 20.0;
     private const int32 MinMovingSamples = 10;
 
-    private const float MinPairwiseSepCm = 84.0;    // _Radius * 2 — asserted AT REST
+    private const float MinPairwiseSepCm = 84.0;    // _Radius * 2 - asserted AT REST
     private const float ContactToleranceCm = 0.1;   // admits PushApart's asymptote and nothing else
     private const float GoalMatchToleranceCm = 1.0; // _ActiveGoal stores the raw request target
 
     // Peak heading swing over the agent's whole run, from the diag recorder. This catches the
     // in-place fidgeter that every position/speed check can miss: an agent can end the run settled
-    // and still have spent the middle of it spinning on the spot. Measured on the first red run —
+    // and still have spent the middle of it spinning on the spot. Measured on the first red run
     // the 14 agents that transited cleanly peaked at ~9-12 degrees, while the one that never settled
     // peaked at 96.4. 60 is 5x the clean norm and well under the fidget signature, so it separates
     // the two populations rather than splitting either one.
@@ -243,7 +243,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
             if (utils_crowd_agent::Get_IsGoalFailedHold(Agent))
             {
                 DoEmitDigests();
-                FinishFailure(f"TERMINAL FAILURE: agent {i} entered the goal-FAILED hold at t={_ElapsedSec}s. A crowd at an occupied goal must degrade to the RESUMABLE GoalBlocked hold — an agent that has terminally failed will never take the spot when it frees.");
+                FinishFailure(f"TERMINAL FAILURE: agent {i} entered the goal-FAILED hold at t={_ElapsedSec}s. A crowd at an occupied goal must degrade to the RESUMABLE GoalBlocked hold - an agent that has terminally failed will never take the spot when it frees.");
                 return;
             }
 
@@ -256,7 +256,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
         if (AnyAgentMovedThisSample) { ++_MovingSamples; }
 
         // Quiescence is part of the entry condition, not just terminality. The GoalBlocked
-        // transition does not zero the velocity — it goes Idle and lets AccelClamp ramp down — so
+        // transition does not zero the velocity - it goes Idle and lets AccelClamp ramp down - so
         // an agent latched the instant it blocks is still coasting, and Phase B would measure its
         // own braking as drift. Crowd_Goal_OccupiedGoal makes the same distinction when it latches
         // the squatter's resting spot.
@@ -289,7 +289,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
         _QuietElapsedSec = 0.0;
         _QuietWindowOpen = true;
 
-        ck::crowd::Log(f"[BUNCHUP] all {_Agents.Num()} agents terminal and at rest at t={_ElapsedSec}s — opening the {QuietWindowSec}s quiet window");
+        ck::crowd::Log(f"[BUNCHUP] all {_Agents.Num()} agents terminal and at rest at t={_ElapsedSec}s - opening the {QuietWindowSec}s quiet window");
     }
 
     // ---- Phase B: the formation must stay put -----------------------------------------------------
@@ -305,7 +305,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
             if (utils_crowd_agent::Get_IsGoalFailedHold(Agent))
             {
                 DoEmitDigests();
-                FinishFailure(f"agent {i} fell out of its hold into the terminal goal-FAILED state {_QuietElapsedSec}s into the quiet window — the hold must survive as long as the goal stays taken");
+                FinishFailure(f"agent {i} fell out of its hold into the terminal goal-FAILED state {_QuietElapsedSec}s into the quiet window - the hold must survive as long as the goal stays taken");
                 return;
             }
 
@@ -341,7 +341,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
             if (Episode != StartEpisode)
             {
                 DoEmitDigests();
-                FinishFailure(f"NEW EPISODE: agent {i}'s move episode changed from {StartEpisode} to {Episode} during the quiet window. A hold retains its episode — a fresh one means the agent re-issued its own move and the settle is not stable.");
+                FinishFailure(f"NEW EPISODE: agent {i}'s move episode changed from {StartEpisode} to {Episode} during the quiet window. A hold retains its episode - a fresh one means the agent re-issued its own move and the settle is not stable.");
                 return;
             }
         }
@@ -368,12 +368,12 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
             else
             {
                 Assert_True(utils_crowd_agent::Get_IsGoalBlocked(Agent),
-                    f"agent {i} came to a stop without reaching the goal and without being in the resumable GoalBlocked hold — it is parked in a state nothing will ever resume, and state={utils_crowd_agent::Get_MovementState(Agent)}");
+                    f"agent {i} came to a stop without reaching the goal and without being in the resumable GoalBlocked hold - it is parked in a state nothing will ever resume, and state={utils_crowd_agent::Get_MovementState(Agent)}");
             }
 
             const auto GoalDelta = float((utils_crowd_agent::Get_ActiveGoal(Agent) - Centre).Size());
             Assert_True(GoalDelta <= GoalMatchToleranceCm,
-                f"agent {i}'s active goal sits {GoalDelta}cm from the shared centre — its MoveTo never took, so this run never measured the shared-goal case at all");
+                f"agent {i}'s active goal sits {GoalDelta}cm from the shared centre - its MoveTo never took, so this run never measured the shared-goal case at all");
 
             // Asserted here, at the END of the quiet window, so it reports even on a run that
             // settled: a clean settle and a violent one are indistinguishable from final positions.
@@ -390,7 +390,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
             f"NOBODY TOOK THE GOAL: {ReachedCount} of {Total} agents reached it. The formation settled around a point none of them is standing on, which means they blocked each other out of a goal that was free.");
 
         Assert_True(_MovingSamples >= MinMovingSamples,
-            f"only {_MovingSamples} samples saw an agent above {MovingSpeedCm}cm/s (need >= {MinMovingSamples}) — the crowd never actually walked, so every stillness assertion above passed vacuously");
+            f"only {_MovingSamples} samples saw an agent above {MovingSpeedCm}cm/s (need >= {MinMovingSamples}) - the crowd never actually walked, so every stillness assertion above passed vacuously");
 
         for (int32 i = 0; i < Finals.Num(); ++i)
         {
@@ -460,7 +460,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
         utils_acceleration::Add(AgentEntity, FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector), ECk_Replication::DoesNotReplicate);
         utils_euler_integrator::Request_Start(AgentEntity);
 
-        // Every agent gets the IDENTICAL target — that is the condition under test.
+        // Every agent gets the IDENTICAL target - that is the condition under test.
         utils_crowd_agent::Request_MoveTo(Agent, FCk_Request_CrowdAgent_MoveTo(Centre));
 
         // Opt into the diag recorder so a red run dumps a per-agent path digest instead of a bare
@@ -478,7 +478,7 @@ class UCk_AutoTest_Crowd_BunchUp_SettlesAtSharedGoal : UCk_AutoTest_Base
         {
             if (ck::Is_NOT_Valid(_Agents[i]))
             {
-                FinishFailure(f"agent {i} went invalid mid-run — possible early destroy / lifetime issue");
+                FinishFailure(f"agent {i} went invalid mid-run - possible early destroy / lifetime issue");
                 return false;
             }
         }

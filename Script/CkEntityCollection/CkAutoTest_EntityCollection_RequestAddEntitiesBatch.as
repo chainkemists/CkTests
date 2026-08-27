@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY COLLECTION — AUTOMATION TEST: Request_AddEntities (batch)
+// CK ENTITY COLLECTION - AUTOMATION TEST: Request_AddEntities (batch)
 // A single Request_AddEntities with N entities populates the collection with
 // all N after one processor tick. Pins the batch-handler path that
 // CkObjective and similar consumers rely on.

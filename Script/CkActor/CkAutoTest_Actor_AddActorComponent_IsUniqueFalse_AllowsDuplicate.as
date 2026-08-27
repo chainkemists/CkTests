@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ACTOR — AUTOMATION TEST: AddActorComponent IsUnique=false ALLOWS DUPLICATE
+// CK ACTOR - AUTOMATION TEST: AddActorComponent IsUnique=false ALLOWS DUPLICATE
 //============================================================================
 //
 // Pins the _IsUnique=false escape hatch on Request_AddActorComponent.

@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — AUTOMATION TEST: VOLUMECHECK TEST
+// CK EQS - AUTOMATION TEST: VOLUMECHECK TEST
 //============================================================================
 //
 // Verifies ECk_Eqs_TestType::VolumeCheck filter semantics:
-//   1. SimpleGrid 5x5 (SpaceBetween=100, GridHalfSize=200) → 25 candidates
+//   1. SimpleGrid 5x5 (SpaceBetween=100, GridHalfSize=200) -> 25 candidates
 //      all at Z=0 around origin.
 //   2. VolumeCheck Filter: WorldCenter=(0,0,0), HalfExtent=(150,150,50).
-//      Candidates within ±150 on X and Y pass:
-//        X ∈ {-100, 0, 100}, Y ∈ {-100, 0, 100} → 3×3 = 9 pass.
+//      Candidates within +/-150 on X and Y pass:
+//        X in {-100, 0, 100}, Y in {-100, 0, 100} -> 3x3 = 9 pass.
 //   3. AllMatching run mode returns all 9 passing candidates.
 //   4. Asserts HasResults==true and Candidates.Num()==9.
 //
@@ -39,7 +39,7 @@ class UCk_AutoTest_Eqs_VolumeCheck : UCk_AutoTest_Base
         auto Generator = FCk_Eqs_GeneratorParams();
         Generator.Set_GeneratorType(ECk_Eqs_GeneratorType::SimpleGrid);
         Generator.Set_SpaceBetween(100.0f);
-        Generator.Set_GridHalfSize(200.0f);  // 5×5 = 25 candidates
+        Generator.Set_GridHalfSize(200.0f);  // 5x5 = 25 candidates
 
         auto VolumeTest = FCk_Eqs_TestParams();
         VolumeTest.Set_TestType(ECk_Eqs_TestType::VolumeCheck);
@@ -84,7 +84,7 @@ class UCk_AutoTest_Eqs_VolumeCheck : UCk_AutoTest_Base
         Assert_Equals_Int(InResults.Get_Candidates().Num(), 9,
             f"Expected 9 candidates inside box (got {InResults.Get_Candidates().Num()})");
 
-        // Phase 2: inverted — candidates OUTSIDE the box should pass (25 - 9 = 16).
+        // Phase 2: inverted - candidates OUTSIDE the box should pass (25 - 9 = 16).
         Issue_Query(true);
     }
 

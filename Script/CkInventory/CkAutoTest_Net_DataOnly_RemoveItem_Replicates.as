@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK AUTOMATION TEST — NETWORKED INVENTORY DataOnly RemoveItem REPLICATION
+// CK AUTOMATION TEST - NETWORKED INVENTORY DataOnly RemoveItem REPLICATION
 //============================================================================
 //
 // Diagnostic instrumentation in place: each step records to the result fragment
@@ -20,8 +20,8 @@ class UCk_AutoTest_Net_DataOnly_RemoveItem_Replicates : UCk_AutoTest_NetBase
 
     // Number of polling iterations the server waits between the Add-callback and the
     // Remove-call. Each iteration is one CkTimer-driven WaitOneFrame (0.05s), so 20 iterations
-    // ≈ 1 second of real time. CkInventory's container rep handler delivers snapshot state,
-    // not deltas — if Add and Remove happen within one rep cycle, the client only sees the
+    // ~ 1 second of real time. CkInventory's container rep handler delivers snapshot state,
+    // not deltas - if Add and Remove happen within one rep cycle, the client only sees the
     // final "0 items" state and never observes the intermediate "1 item" state. The wait gives
     // Iris time to deliver the post-Add snapshot to the client before the Remove queues a new
     // one. (Diagnostic DIAG-I in earlier iterations of this test pinned this exact failure.)

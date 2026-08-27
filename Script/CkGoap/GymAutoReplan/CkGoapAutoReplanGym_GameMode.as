@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapAutoReplan_Gym — Replan-policy showcase
+// CkGoapAutoReplan_Gym - Replan-policy showcase
 //
 // Three stations pinning each of the supported replan policies:
-//   A — Explicit            (manual replan only)
-//   B — OnWorldStateDirty   (throttled 0.5s)
-//   C — OnCostDirty         (auto cost-bump → plan flips)
+//   A - Explicit            (manual replan only)
+//   B - OnWorldStateDirty   (throttled 0.5s)
+//   C - OnCostDirty         (auto cost-bump -> plan flips)
 //
 // Each station auto-flips its Flip WS key 10x/sec and counts plan completions
 // vs WS changes. The discrepancy teaches the policy.

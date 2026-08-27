@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — SLEEP / WAKE
+// CK JOLT GYM - SLEEP / WAKE
 //
 // A 3x3 grid of Dynamic boxes dropped onto a Static floor. Each box is bound
-// to OnJoltBodySleepStateChanged — watch the log as every box settles and
+// to OnJoltBodySleepStateChanged - watch the log as every box settles and
 // falls Asleep, then fire the wake trigger to snap them all back Awake (they
 // will re-settle and sleep again on their own, so the edge repeats).
 //
@@ -53,7 +53,7 @@ class ACk_JoltGym_SleepWake_PlayerController : ACk_Gym_Base_PlayerController
         DoAddFloor();
         DoDropGrid();
 
-        ck::Trace("JoltSleepWakeGym: started — 9 boxes dropped, watch them settle and sleep");
+        ck::Trace("JoltSleepWakeGym: started - 9 boxes dropped, watch them settle and sleep");
     }
 
     private void DoAddFloor()
@@ -135,7 +135,7 @@ class ACk_JoltGym_SleepWake_PlayerController : ACk_Gym_Base_PlayerController
             // Tiny upward nudge so a woken box visibly resettles instead of instantly re-sleeping.
             utils_jolt_body::Request_AddImpulse(Body, FCk_Request_JoltBody_AddImpulse(FVector(0.0, 0.0, 4000.0)));
         }
-        ck::Trace("JoltSleepWakeGym: wake-all fired — every box nudged awake");
+        ck::Trace("JoltSleepWakeGym: wake-all fired - every box nudged awake");
     }
 
     UFUNCTION(Exec, DisplayName="Jolt SleepWake - Reset")
@@ -148,6 +148,6 @@ class ACk_JoltGym_SleepWake_PlayerController : ACk_Gym_Base_PlayerController
         _GridBodies.Empty();
 
         DoDropGrid();
-        ck::Trace("JoltSleepWakeGym: reset — grid cleared and re-dropped");
+        ck::Trace("JoltSleepWakeGym: reset - grid cleared and re-dropped");
     }
 }

@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Team_Add default param is Unassigned
+// CK RELATIONSHIP - AUTOMATION TEST: Team_Add default param is Unassigned
 // Calling Add without specifying a team ID assigns Unassigned (the BPFL
 // default).
 

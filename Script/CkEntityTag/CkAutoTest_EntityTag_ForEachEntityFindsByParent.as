@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: FOR_EACH_ENTITY FINDS BY PARENT
+// CK ENTITY TAG - AUTOMATION TEST: FOR_EACH_ENTITY FINDS BY PARENT
 //============================================================================
 //
 // Three child entities are tagged with sibling/cousin gameplay tags:
@@ -56,7 +56,7 @@ class UCk_AutoTest_EntityTag_ForEachEntityFindsByParent : UCk_AutoTest_Base
         Assert_Equals_Int(Found.Num(), 2,
             f"ForEach_Entity(A.B) must return exactly the two A.B.* children (got {Found.Num()})");
 
-        // Verify by entity id — neither side of the swap-vector ordering matters.
+        // Verify by entity id - neither side of the swap-vector ordering matters.
         auto FoundA = false;
         auto FoundB = false;
         for (auto i = 0; i < Found.Num(); ++i)

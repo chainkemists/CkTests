@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RESOLVER — AUTOMATION TEST: CONCURRENT BUNDLES STAY INDEPENDENT
+// CK RESOLVER - AUTOMATION TEST: CONCURRENT BUNDLES STAY INDEPENDENT
 //============================================================================
 //
 // Three resolutions initiated from ONE source in the SAME tick must resolve to
@@ -12,8 +12,8 @@
 // clips two NPCs, a shotgun spread, an AoE), and every one of those bundles now
 // walks its phases inside the same frame's pump passes rather than being spread
 // across frames. Bundles that used to be separated in time are now interleaved,
-// so any shared-state assumption in the phase machinery — a value accumulating
-// on the wrong bundle, one bundle's pending operations resolving into another —
+// so any shared-state assumption in the phase machinery - a value accumulating
+// on the wrong bundle, one bundle's pending operations resolving into another
 // surfaces here and nowhere else.
 //
 // Seeds are distinct and non-overlapping so a cross-talk failure is legible in
@@ -111,7 +111,7 @@ class UCk_AutoTest_Resolver_Cascade_ConcurrentBundlesStayIndependent : UCk_AutoT
         auto _CkPerfScope = ck::ScopedStat();
 
         Assert_Equals_Int(_FinalValues.Num(), constants_autotest_resolver_concurrent::k_BundleCount,
-            f"Three concurrent resolutions produce exactly three completions — got {_FinalValues.Num()}");
+            f"Three concurrent resolutions produce exactly three completions - got {_FinalValues.Num()}");
 
         Assert_ContainsOnce(constants_autotest_resolver_concurrent::k_SeedA);
         Assert_ContainsOnce(constants_autotest_resolver_concurrent::k_SeedB);
@@ -122,7 +122,7 @@ class UCk_AutoTest_Resolver_Cascade_ConcurrentBundlesStayIndependent : UCk_AutoT
 
         Assert_True(LatencyTicks <= Budget,
             f"Three concurrent 3-phase cascades all drain within {Budget} ECS tick(s)"
-            + f" — measured {LatencyTicks}. Concurrency must not serialise the pump.");
+            + f" - measured {LatencyTicks}. Concurrency must not serialise the pump.");
     }
 
     // Each seed must survive to exactly one completion. Appearing twice means one
@@ -139,7 +139,7 @@ class UCk_AutoTest_Resolver_Cascade_ConcurrentBundlesStayIndependent : UCk_AutoT
         }
 
         Assert_Equals_Int(MatchCount, 1,
-            f"Exactly one bundle resolves to its own seed {InExpected} — matched {MatchCount}."
+            f"Exactly one bundle resolves to its own seed {InExpected} - matched {MatchCount}."
             + " A count other than 1 means concurrent bundles shared state.");
     }
 

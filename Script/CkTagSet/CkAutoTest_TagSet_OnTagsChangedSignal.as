@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAG SET — AUTOMATION TEST: ON-TAGS-CHANGED SIGNAL
+// CK TAG SET - AUTOMATION TEST: ON-TAGS-CHANGED SIGNAL
 //============================================================================
 //
 // Verifies BindTo_OnTagsChanged fires when Request_AddTags lands:
@@ -11,7 +11,7 @@
 //   4. Callback fires with the added tag in InTagsAdded and an empty
 //      InTagsRemoved.
 //
-// Pins down the change-notification contract — gameplay code that
+// Pins down the change-notification contract - gameplay code that
 // reacts to behavior-tag changes (status effects, conditional abilities)
 // relies on this signal firing.
 //============================================================================

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: SUB-SM SUCCEEDS-ON-STOP DRIVES PARENT
+// CK STATE MACHINE - AUTOMATION TEST: SUB-SM SUCCEEDS-ON-STOP DRIVES PARENT
 //============================================================================
 //
 // Pins the sub-state-machine completion contract: a UCk_SmTask_SubStateMachine

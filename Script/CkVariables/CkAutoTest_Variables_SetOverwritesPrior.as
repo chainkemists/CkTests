@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK VARIABLES — AUTOMATION TEST: Set overwrites a prior value at the same name
+// CK VARIABLES - AUTOMATION TEST: Set overwrites a prior value at the same name
 // Confirms the keyed-map semantics: a second Set under the same name replaces,
 // not appends.
 

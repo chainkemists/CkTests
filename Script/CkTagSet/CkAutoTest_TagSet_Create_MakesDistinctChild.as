@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAG SET — AUTOMATION TEST: TagSet CREATE MAKES A DISTINCT CHILD
+// CK TAG SET - AUTOMATION TEST: TagSet CREATE MAKES A DISTINCT CHILD
 //============================================================================
 //
 // Verifies the child-making Create verb (counterpart to the stamp-self Add):
-// Create(owner, ...) spawns a NEW child entity carrying the feature — the
+// Create(owner, ...) spawns a NEW child entity carrying the feature - the
 // returned handle is valid, the child carries the feature (its typed-handle
 // getters return the seeded data), and the owner does NOT carry the feature
 // (proving Create is child-making, not stamp-self like Add).
@@ -44,7 +44,7 @@ class UCk_AutoTest_TagSet_Create_MakesDistinctChild : UCk_AutoTest_Base
             "The child's TagSet should contain the first initial tag");
 
         Assert_True(!utils_tag_set::DoCast(Owner).IsSet(),
-            "The owner must NOT carry the feature — Create is child-making, not stamp-self");
+            "The owner must NOT carry the feature - Create is child-making, not stamp-self");
 
         FinishSuccess();
     }

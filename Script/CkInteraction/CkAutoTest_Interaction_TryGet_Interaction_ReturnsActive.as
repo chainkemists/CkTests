@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: TRYGET_INTERACTION RETURNS ACTIVE
+// CK INTERACTION - AUTOMATION TEST: TRYGET_INTERACTION RETURNS ACTIVE
 //============================================================================
 //
 // Pins the `TryGet_Interaction(target, source)` query contract:
@@ -42,7 +42,7 @@ class UCk_AutoTest_Interaction_TryGet_Interaction_ReturnsActive : UCk_AutoTest_B
         TargetParams.Set_CompletionPolicy(ECk_Interaction_CompletionPolicy::ManuallyCompleted);
         _Target = utils_interact_target::Add(LocalHandle, TargetParams);
 
-        // Pre-start check — no interaction yet, TryGet must report invalid.
+        // Pre-start check - no interaction yet, TryGet must report invalid.
         auto BeforeStart = utils_interact_target::TryGet_Interaction(_Target, _MyEntity);
         Assert_True(ck::Is_NOT_Valid(BeforeStart),
             "Before any Request_StartInteraction, TryGet_Interaction must return an invalid handle");
@@ -70,7 +70,7 @@ class UCk_AutoTest_Interaction_TryGet_Interaction_ReturnsActive : UCk_AutoTest_B
         _Active = InInteraction;
 
         // TryGet_Interaction reads from a source->interaction record that is
-        // populated by a deferred processor pass — at OnNewInteraction-fire
+        // populated by a deferred processor pass - at OnNewInteraction-fire
         // time, the record isn't yet visible. Wait one frame before querying.
         WaitUntil(n"Check_InteractionActive", n"OnSettled_MidFlight");
     }

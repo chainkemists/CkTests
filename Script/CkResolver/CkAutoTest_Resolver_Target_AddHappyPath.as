@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RESOLVER — AUTOMATION TEST: ResolverTarget Add happy path
+// CK RESOLVER - AUTOMATION TEST: ResolverTarget Add happy path
 
 class UCk_AutoTest_Resolver_Target_AddHappyPath : UCk_AutoTest_Base
 {

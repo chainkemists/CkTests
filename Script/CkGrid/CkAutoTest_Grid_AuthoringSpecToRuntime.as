@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: AUTHORING SPEC -> RUNTIME GRID (DATA CONTRACT)
+// CK GRID - AUTOMATION TEST: AUTHORING SPEC -> RUNTIME GRID (DATA CONTRACT)
 //============================================================================
 //
 // Proves the authoring data contract end-to-end: a grid Spec carrying
@@ -9,7 +9,7 @@
 // ALL of those are reflected, and a subsequent placement respects shape +
 // blocker + tags.
 //
-// CONSTRUCTION PATH: (b) — replicate the Spec->runtime composition in AS.
+// CONSTRUCTION PATH: (b) - replicate the Spec->runtime composition in AS.
 //
 //   The real authoring entry point UCk_2dGridSystem_EntityScript::Construct is
 //   NOT cleanly drivable from an AngelScript autotest:

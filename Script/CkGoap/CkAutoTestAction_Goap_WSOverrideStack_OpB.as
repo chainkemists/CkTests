@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: WSOverrideStack OpB
+// CK GOAP - AUTOMATION TEST ACTION: WSOverrideStack OpB
 //============================================================================
 //
 // Operator B for the WSOverrideStack BasicPushPop test. Precondition KeyB=true,

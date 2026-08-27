@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK REWIND HISTORY — NET AUTOMATION TEST: RECORDS ON AUTHORITY ONLY
+// CK REWIND HISTORY - NET AUTOMATION TEST: RECORDS ON AUTHORITY ONLY
 //============================================================================
 //
 // Multi-world PIE (server + client). Both worlds create a local entity with a
 // RewindHistory feature and let it sit while the record processor runs:
 //   - The SERVER world must accumulate frames (it rewinds shots).
-//   - The CLIENT world must record NOTHING — clients never rewind, they get
+//   - The CLIENT world must record NOTHING - clients never rewind, they get
 //     rewound against. Recording there would be wasted memory/CPU at best and
 //    a cheat surface at worst.
 //============================================================================

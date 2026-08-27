@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF ENTITY CEL PATTERN — AUTOTEST: batched (Plan-2) member cel patterns
+// CK USF ENTITY CEL PATTERN - AUTOTEST: batched (Plan-2) member cel patterns
 //============================================================================
 //
 // The cel-pattern twin of CkAutoTest_UsfOutline_BatchedMembers. Batched crowd
-// members are (crowd, index) pairs, not entities — the pattern rides the member
+// members are (crowd, index) pairs, not entities - the pattern rides the member
 // API, and reuses the outline's highlight-cluster machinery keyed on the
 // stencil VALUE instead of a preset (the cel contract is a direct value, so two
 // patterns are two clusters and nothing is refcounted).

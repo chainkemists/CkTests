@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY EXTENSION — AUTOMATION TEST: distinct owners' extensions are isolated
+// CK ENTITY EXTENSION - AUTOMATION TEST: distinct owners' extensions are isolated
 // Two unrelated owners each get their own extension; ForEach on owner A does
 // not surface owner B's extension and vice versa.
 

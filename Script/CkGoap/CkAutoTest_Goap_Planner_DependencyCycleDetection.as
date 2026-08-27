@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER DEPENDENCY CYCLE DETECTION
+// CK GOAP - AUTOMATION TEST: PLANNER DEPENDENCY CYCLE DETECTION
 //============================================================================
 //
 // Validates utils_goap_planner::Get_DependencyCycles(Planner).
 //
-// Per spec §7.1-7.2: Setup runs an iterative Tarjan SCC over the Planner's
+// Per spec Sec.7.1-7.2: Setup runs an iterative Tarjan SCC over the Planner's
 // direct children's PRECONDITION/EFFECT dependency graph. For sibling
 // Actions A and B, an edge A -> B exists iff some effect (Key,Value) in A
 // satisfies some precondition (Key,Value) in B. Any non-trivial SCC
 // (size > 1, or size 1 with a self-loop) is recorded as a diagnostic and
 // surfaces via Get_DependencyCycles. The planner does not refuse cyclic
-// catalogs — the diagnostic is informational.
+// catalogs - the diagnostic is informational.
 //
 // Setup:
 //   - WS: AKey=false, BKey=false.
@@ -94,7 +94,7 @@ class UCk_AutoTest_Goap_Planner_DependencyCycleDetection : UCk_AutoTest_Base
 
         // Per-Action Setup runs first, then per-Planner Setup detects cycles.
         // There is no terminal signal to bind to (the cycle Actions can never
-        // plan — they need each other's effects, which start false), but the
+        // plan - they need each other's effects, which start false), but the
         // diagnostic surfacing IS the observable: wait for Get_DependencyCycles
         // to become non-empty instead of guessing a frame count.
         WaitUntil(n"Check_CyclesDetected", n"OnSettleTick");

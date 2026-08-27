@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: DESTROY TARGET MID-INTERACTION
+// CK INTERACTION - AUTOMATION TEST: DESTROY TARGET MID-INTERACTION
 //============================================================================
 //
 // Pins the destroy-mid-interaction contract on a Timed interaction:
@@ -40,7 +40,7 @@ class UCk_AutoTest_Interaction_DestroyTargetMidInteraction_SourceHearsFailed : U
         SourceParams._InteractionChannel = Channel;
         _Source = utils_interact_source::Add(LocalHandle, SourceParams);
 
-        // Target on its OWN entity — destroying it must not touch the source
+        // Target on its OWN entity - destroying it must not touch the source
         // or the test entity.
         _TargetOwner = utils_entity_lifetime::Request_CreateEntity(LocalHandle);
         auto TargetParams = FCk_Fragment_InteractTarget_ParamsData(Channel);
@@ -70,7 +70,7 @@ class UCk_AutoTest_Interaction_DestroyTargetMidInteraction_SourceHearsFailed : U
     {
         if (_DestroyRequested) { return; }
 
-        // Destroy after a short delay — well before the 0.5s Timed duration
+        // Destroy after a short delay - well before the 0.5s Timed duration
         // would naturally complete.
         System::SetTimer(this, n"DoDestroyTarget", 0.1f, false);
     }

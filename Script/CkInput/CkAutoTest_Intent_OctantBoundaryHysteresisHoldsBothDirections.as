@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE OCTANT STICKS AT A BOUNDARY, BOTH WAYS
+// CK INTENT - AUTOMATION TEST: THE OCTANT STICKS AT A BOUNDARY, BOTH WAYS
 //============================================================================
 //
 // A direction read straight off an angle flickers when the stick rests on a
@@ -89,7 +89,7 @@ class UCk_AutoTest_Intent_OctantBoundaryHysteresisHoldsBothDirections : UCk_Auto
     }
 
     //------------------------------------------------------------------------
-    // Steps — driving
+    // Steps - driving
     //------------------------------------------------------------------------
 
     UFUNCTION()
@@ -123,7 +123,7 @@ class UCk_AutoTest_Intent_OctantBoundaryHysteresisHoldsBothDirections : UCk_Auto
     }
 
     //------------------------------------------------------------------------
-    // Steps — asserting
+    // Steps - asserting
     //------------------------------------------------------------------------
 
     UFUNCTION()
@@ -151,7 +151,7 @@ class UCk_AutoTest_Intent_OctantBoundaryHysteresisHoldsBothDirections : UCk_Auto
     private void Step_AssertStillNE(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         DoAssertOctant(ECk_Intent_Octant::NE,
-            "the same angle reads NE coming back that read E going out — the asymmetry is the mechanism");
+            "the same angle reads NE coming back that read E going out - the asymmetry is the mechanism");
     }
 
     UFUNCTION()

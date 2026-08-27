@@ -1,10 +1,10 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: SEPARATION HEAD-ON PASS
+// CK CROWD - AUTOMATION TEST: SEPARATION HEAD-ON PASS
 //
 // 2 agents 1500cm apart on a head-on course. Polls min-separation every 50ms.
 // Asserts min-separation never drops below _Radius * 1.5 (= 63cm at default).
-// Per Gate_03_Separation_Addendum.md §8.
+// Per Gate_03_Separation_Addendum.md Sec.8.
 //
 // REQUIREMENT: test map needs a NavMeshBoundsVolume covering at least
 // (-1000, -1000, 0) to (1000, 1000, 0). AutoTests_CkTests_Level satisfies this.
@@ -22,7 +22,7 @@ class UCk_AutoTest_Crowd_Separation_HeadOnPass : UCk_AutoTest_Base
     private const float TimeoutSec = 8.0;
     private const float SampleIntervalSec = 0.05;
     private const float MinSepRequirement = 63.0;  // _Radius(42) * 1.5
-    private const int32 MinMotionSamples = 20;     // ~1s @ 50ms — must observe real motion
+    private const int32 MinMotionSamples = 20;     // ~1s @ 50ms - must observe real motion
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -35,7 +35,7 @@ class UCk_AutoTest_Crowd_Separation_HeadOnPass : UCk_AutoTest_Base
             ECk_Replication::DoesNotReplicate);
 
         // Kick the navmesh: AutoTests_CkTests_Level has the fixture but the bake is lazy.
-        // Each spawned agent issues a MoveTo → FindPath; the deferred-request queue holds
+        // Each spawned agent issues a MoveTo -> FindPath; the deferred-request queue holds
         // those until the rebuild completes (~10ms in practice).
         utils_nav::Request_NavigationRebuild_ForTesting(LocalHandle);
 
@@ -44,7 +44,7 @@ class UCk_AutoTest_Crowd_Separation_HeadOnPass : UCk_AutoTest_Base
         _AgentA = SpawnAgent(LocalHandle, SpawnA, SpawnB);
         _AgentB = SpawnAgent(LocalHandle, SpawnB, SpawnA);
 
-        // Recurring sample timer — fires every SampleIntervalSec until we hit timeout.
+        // Recurring sample timer - fires every SampleIntervalSec until we hit timeout.
         auto TimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(SampleIntervalSec));
         TimerParams.Set_StartingState(ECk_Timer_State::Running)
                    .Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
@@ -71,12 +71,12 @@ class UCk_AutoTest_Crowd_Separation_HeadOnPass : UCk_AutoTest_Base
         if (_ElapsedSec > TimeoutSec)
         {
             // Guard against the false-positive where pathing fails silently and agents never
-            // move — _MinSeparation stays at its initial 999999 and the requirement check
+            // move - _MinSeparation stays at its initial 999999 and the requirement check
             // would trivially "pass". Mirror the motion guard from Crowd_Separation_Vibration.
             Assert_True(_SamplesWithMotion >= MinMotionSamples,
-                f"only {_SamplesWithMotion} samples saw non-zero velocity (need ≥ {MinMotionSamples}) — agents never moved, test would have falsely passed");
+                f"only {_SamplesWithMotion} samples saw non-zero velocity (need >= {MinMotionSamples}) - agents never moved, test would have falsely passed");
             Assert_True(_MinSeparation >= MinSepRequirement,
-                f"min-separation {_MinSeparation} < required {MinSepRequirement}cm — agents clipped during head-on pass");
+                f"min-separation {_MinSeparation} < required {MinSepRequirement}cm - agents clipped during head-on pass");
             FinishSuccess();
         }
     }

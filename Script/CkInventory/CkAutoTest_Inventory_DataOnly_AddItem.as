@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: DATA-ONLY ADD ITEM
+// CK INVENTORY - AUTOMATION TEST: DATA-ONLY ADD ITEM
 //============================================================================
 //
 // Verifies the basic add-item-by-definition flow on a data-only bounded

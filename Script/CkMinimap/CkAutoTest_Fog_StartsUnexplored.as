@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK FOG OF WAR — AUTOMATION TEST: fresh grid starts fully unexplored
+// CK FOG OF WAR - AUTOMATION TEST: fresh grid starts fully unexplored
 //============================================================================
 //
 // A newly composed fog grid reports fraction 0 and unexplored everywhere
@@ -9,7 +9,7 @@
 // only what it covers; mis-sized bounds fail visible, not silently hidden).
 //
 // Every headline assertion here is a NEGATIVE that is also true of a grid
-// that never composed (fraction 0, nothing explored) — a blind settle could
+// that never composed (fraction 0, nothing explored) - a blind settle could
 // pass vacuously. The wait therefore targets the one POSITIVE observable in
 // the contract: the cell grid materializing (Get_CellCounts non-zero). The
 // unexplored-everywhere assertions then run against a provably live grid,

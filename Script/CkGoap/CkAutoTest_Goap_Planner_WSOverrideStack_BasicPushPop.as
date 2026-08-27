@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: WORLDSTATE OVERRIDE STACK — BASIC PUSH/POP
+// CK GOAP - AUTOMATION TEST: WORLDSTATE OVERRIDE STACK - BASIC PUSH/POP
 //============================================================================
 //
 // Validates the override stack read path: push flips effective WS values,
@@ -13,17 +13,17 @@
 //   - OpA: precondition KeyA=true, effect Goal=true, cost 1.0.
 //   - OpB: precondition KeyB=true, effect Goal=true, cost 1.0.
 //
-// Phase A — initial plan: KeyA is true in base, so only OpA is viable.
+// Phase A - initial plan: KeyA is true in base, so only OpA is viable.
 //   Plan = [OpA].
 //
-// Phase B — Push_Override("test", {KeyA=false, KeyB=true}):
-//   Override shadows base. Effective KeyA=false → OpA blocked. Effective
-//   KeyB=true → OpB viable. Replan triggered by dirty signal.
+// Phase B - Push_Override("test", {KeyA=false, KeyB=true}):
+//   Override shadows base. Effective KeyA=false -> OpA blocked. Effective
+//   KeyB=true -> OpB viable. Replan triggered by dirty signal.
 //   Plan = [OpB].
 //
-// Phase C — Pop_Override_ByName("test"):
-//   Layer removed; effective view reverts to base. KeyA=true again → OpA
-//   viable; KeyB=false → OpB blocked. Replan triggered by dirty signal.
+// Phase C - Pop_Override_ByName("test"):
+//   Layer removed; effective view reverts to base. KeyA=true again -> OpA
+//   viable; KeyB=false -> OpB blocked. Replan triggered by dirty signal.
 //   Plan = [OpA].
 //============================================================================
 
@@ -66,8 +66,8 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.WSOverrideStack.Planner"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(_WS);
-        // Framework test catalog — opt out of always-valid-plan tenet enforcement
-        // (CkGoap/CLAUDE.md § "Design tenets"). Game-content must never opt out.
+        // Framework test catalog - opt out of always-valid-plan tenet enforcement
+        // (the CkGoap docs Sec. "Design tenets"). Game-content must never opt out.
         PlannerParams.Set_AllowPlanFailed(true);
         _Planner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
@@ -78,13 +78,13 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop : UCk_AutoTest_Base
         _RootAction = utils_goap_planner::AddAction(_Planner, RootParams);
         Assert_True(ck::IsValid(_RootAction), "AddAction (root) should return a valid handle");
 
-        // OpA — precondition KeyA=true.
+        // OpA - precondition KeyA=true.
         auto OpAParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_WSOverrideStack_OpA);
         auto OpA = utils_goap_planner::AddAction(_Planner, OpAParams);
         Assert_True(ck::IsValid(OpA), "AddAction (OpA) should return a valid handle");
 
-        // OpB — precondition KeyB=true.
+        // OpB - precondition KeyB=true.
         auto OpBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_WSOverrideStack_OpB);
         auto OpB = utils_goap_planner::AddAction(_Planner, OpBParams);
@@ -108,7 +108,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop : UCk_AutoTest_Base
 
         if (_PlansReceived == 1)
         {
-            // Phase A — base WS: KeyA=true, KeyB=false → only OpA viable.
+            // Phase A - base WS: KeyA=true, KeyB=false -> only OpA viable.
             Assert_True(Plan.Num() == 1,
                 f"Phase A: plan should have 1 entry (got {Plan.Num()})");
             Assert_True(Plan.Num() > 0 && Plan[0] == UCk_AutoTestAction_Goap_WSOverrideStack_OpA,
@@ -131,7 +131,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop : UCk_AutoTest_Base
 
         if (_PlansReceived == 2)
         {
-            // Phase B — override flipped effective view. OpB now viable.
+            // Phase B - override flipped effective view. OpB now viable.
             Assert_True(_PushDone, "Phase B should only fire after the push");
             Assert_True(Plan.Num() == 1,
                 f"Phase B: plan should have 1 entry (got {Plan.Num()})");
@@ -147,7 +147,7 @@ class UCk_AutoTest_Goap_Planner_WSOverrideStack_BasicPushPop : UCk_AutoTest_Base
             return;
         }
 
-        // Phase C — pop restored base view, OpA viable again.
+        // Phase C - pop restored base view, OpA viable again.
         Assert_True(_PopDone, "Phase C should only fire after the pop");
         Assert_True(Plan.Num() == 1,
             f"Phase C: plan should have 1 entry (got {Plan.Num()})");

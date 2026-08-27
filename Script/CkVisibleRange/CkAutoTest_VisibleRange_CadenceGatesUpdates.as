@@ -1,29 +1,29 @@
 // Language=angelscript
 
 //============================================================================
-// CK VISIBLE RANGE — AUTOMATION TEST: cadence gates re-evaluation
+// CK VISIBLE RANGE - AUTOMATION TEST: cadence gates re-evaluation
 //============================================================================
 //
-// UpdateInterval = 0.5s (quantized into the 0.5s cadence bucket — see
+// UpdateInterval = 0.5s (quantized into the 0.5s cadence bucket - see
 // CkEcs/Processor/CkProcessor_CadenceBuckets.h). Verifies two things in one pass:
 //   1. The FIRST tick after Add evaluates immediately regardless of the
 //      configured interval (AddCadenceTags transiently joins the every-tick
-//      bucket 0 with a pending-first-eval marker — without that arming the
+//      bucket 0 with a pending-first-eval marker - without that arming the
 //      entity would show the default visible state for up to a full interval
 //      before ever being evaluated).
 //      Distance is set out-of-range BEFORE the first tick specifically so the
-//      correct answer (hidden) differs from the default (visible) — otherwise
+//      correct answer (hidden) differs from the default (visible) - otherwise
 //      this property wouldn't actually be exercised, since an un-evaluated
 //      entity and a correctly-evaluated in-range entity look identical.
 //   2. The bucket cadence genuinely SKIPS re-evaluation before the interval
 //      elapses, and picks it up once it does. This assertion leans on the
 //      WAKE-ALIGNMENT contract: the 0.5s bucket's accumulator is frozen while
 //      its view is empty (empty-view skip), so its phase aligns to this
-//      entity's arrival — pinned hermetically by
+//      entity's arrival - pinned hermetically by
 //      CkTests.UnitTests.CkEcs.Processor.CadenceBuckets_EmptyViewFreezeAlignsPhaseToWake.
 //
 // Timing is measured via real CkTimer instances (utils_timer, the same
-// accumulated-DeltaT primitive the engine itself uses), never frame counts —
+// accumulated-DeltaT primitive the engine itself uses), never frame counts
 // a nullrhi/headless test run can tick far faster than real-time, so N
 // frames is not a reliable proxy for N seconds.
 //============================================================================
@@ -50,7 +50,7 @@ class UCk_AutoTest_VisibleRange_CadenceGatesUpdates : UCk_AutoTest_Base
 
         // Set out-of-range BEFORE the first tick ever evaluates anything. This is what makes the
         // next assertion actually discriminate the immediate-first-eval arming: the default
-        // (un-evaluated) state is visible/false, same as a correctly-evaluated in-range result — so
+        // (un-evaluated) state is visible/false, same as a correctly-evaluated in-range result - so
         // if distance were left at its in-range default (0), "visible" would pass whether or not the
         // first tick actually ran. Only by making the correct answer (hidden) differ from the default
         // (visible) does the assertion below prove the first tick evaluated at all.
@@ -65,16 +65,16 @@ class UCk_AutoTest_VisibleRange_CadenceGatesUpdates : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         Assert_True(utils_visible_range::Get_IsHidden(_VR),
-            "Should be hidden immediately after Add (distance 1000, beyond MaxRange 500) — the " +
+            "Should be hidden immediately after Add (distance 1000, beyond MaxRange 500) - the " +
             "first tick must not be deferred by the 0.5s cadence interval (immediate-first-eval arming)");
 
-        // Bring it back in range, then check the VERY NEXT tick — one frame's real elapsed time
+        // Bring it back in range, then check the VERY NEXT tick - one frame's real elapsed time
         // cannot be anywhere close to the 0.5s interval, so this proves cadence gates re-evaluation
         // rather than merely never having evaluated in the first place (the distinction the
         // previous assertion already nailed down).
         utils_visible_range::Update_Distance(_VR, 100.0f);
 
-        // Under the 0.5s interval — cadence should GATE this, no re-evaluation yet.
+        // Under the 0.5s interval - cadence should GATE this, no re-evaluation yet.
         auto ShortWaitParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.1));
         ShortWaitParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto ShortTimer = utils_timer::Add(_Entity, ShortWaitParams);
@@ -90,7 +90,7 @@ class UCk_AutoTest_VisibleRange_CadenceGatesUpdates : UCk_AutoTest_Base
             "Cadence should have gated the re-evaluation: only 0.1s elapsed of the 0.5s interval, " +
             "but distance was moved back in range (still stale/hidden)");
 
-        // Over the 0.5s interval — cadence should now have re-evaluated.
+        // Over the 0.5s interval - cadence should now have re-evaluated.
         auto LongWaitParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.6));
         LongWaitParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::StopOnDone);
         auto LongTimer = utils_timer::Add(_Entity, LongWaitParams);
@@ -103,7 +103,7 @@ class UCk_AutoTest_VisibleRange_CadenceGatesUpdates : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         Assert_True(!utils_visible_range::Get_IsHidden(_VR),
-            "Cadence interval has now elapsed (~0.7s since Update_Distance) — should be visible");
+            "Cadence interval has now elapsed (~0.7s since Update_Distance) - should be visible");
         FinishSuccess();
     }
 }

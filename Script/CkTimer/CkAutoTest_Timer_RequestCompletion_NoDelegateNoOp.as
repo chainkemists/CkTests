@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: REQUEST WITHOUT A COMPLETION DELEGATE
+// CK TIMER - AUTOMATION TEST: REQUEST WITHOUT A COMPLETION DELEGATE
 //============================================================================
 //
 // The completion delegate is optional: a Request_* called without one must
-// behave exactly as it did before the delegate existed — the state change
+// behave exactly as it did before the delegate existed - the state change
 // still lands, no request entity is spawned, nothing ensures. This also pins
 // the AS surface: the trailing delegate argument is omittable from script.
 //============================================================================

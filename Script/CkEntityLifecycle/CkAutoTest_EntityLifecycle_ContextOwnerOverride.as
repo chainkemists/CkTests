@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: CONTEXT OWNER OVERRIDE
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: CONTEXT OWNER OVERRIDE
 //============================================================================
 //
 // Verifies the context-ownership chain API:
@@ -11,7 +11,7 @@
 //   4. Override ChildA's context owner to itself (Request_OverrideToSelf).
 //   5. Get_ContextOwner(ChildA) returns ChildA.
 //
-// Pins down the runtime mutability contract for context ownership —
+// Pins down the runtime mutability contract for context ownership
 // gameplay code (e.g. ability transfer, possession swap) relies on
 // being able to swing the owner pointer at runtime.
 //============================================================================

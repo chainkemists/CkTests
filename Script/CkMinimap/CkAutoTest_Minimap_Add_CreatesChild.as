@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MINIMAP — AUTOMATION TEST: Create composes children; multi-instance per owner
+// CK MINIMAP - AUTOMATION TEST: Create composes children; multi-instance per owner
 //============================================================================
 //
 // Minimap uses child-entity composition so one owner can host a HUD minimap
@@ -50,7 +50,7 @@ class UCk_AutoTest_Minimap_Add_CreatesChild : UCk_AutoTest_Base
 
         _Owner = Owner;
 
-        // The RecordOfMinimaps connect is DEFERRED one pump — enumerate after a settle, not same-tick.
+        // The RecordOfMinimaps connect is DEFERRED one pump - enumerate after a settle, not same-tick.
         WaitOneFrame(n"OnSettled_RecordConnected");
     }
 
@@ -61,7 +61,7 @@ class UCk_AutoTest_Minimap_Add_CreatesChild : UCk_AutoTest_Base
 
         // ForEach_Minimap's contract is EITHER/OR (CkMinimap_Utils.cpp): a BOUND delegate is executed
         // per minimap and the returned array stays empty; an UNBOUND delegate fills the array instead.
-        // The original test asserted both on one call — structurally impossible. Two calls, one per mode.
+        // The original test asserted both on one call - structurally impossible. Two calls, one per mode.
         auto Minimaps = utils_minimap::ForEach_Minimap(_Owner, FInstancedStruct(), FCk_Lambda_InHandle());
         Assert_Equals_Int(Minimaps.Num(), 2, "ForEach_Minimap (unbound delegate) should return both minimaps");
 

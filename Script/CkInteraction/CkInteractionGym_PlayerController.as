@@ -108,8 +108,8 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             UCk_EntityScript_InteractionGym_Instant,
             FInstancedStruct::Make(FInteractionGymSpawnParams(StationTransform))
         );
-        if (ck::IsValid(SpawnRequest)) { ck::Trace("✅ [Instant] started"); }
-        else { ck::Error("❌ Failed to spawn [Instant]"); }
+        if (ck::IsValid(SpawnRequest)) { ck::Trace("[OK] [Instant] started"); }
+        else { ck::Error("[FAIL] Failed to spawn [Instant]"); }
     }
 
     void Request_StartTimedStation()
@@ -126,8 +126,8 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
         TargetTransform.SetLocation(BaseLocation + FVector(-100.0f, 0.0f, 0.0f));
         auto SpawnRequest2 = utils_entity_script::Request_SpawnEntity(StationHandle, UCk_EntityScript_InteractionGym_TimedTarget, FInstancedStruct::Make(FInteractionGymSpawnParams(TargetTransform)));
 
-        if (ck::IsValid(SpawnRequest) && ck::IsValid(SpawnRequest2)) { ck::Trace("✅ [Timed] started"); }
-        else { ck::Error("❌ Failed to spawn [Timed]"); }
+        if (ck::IsValid(SpawnRequest) && ck::IsValid(SpawnRequest2)) { ck::Trace("[OK] [Timed] started"); }
+        else { ck::Error("[FAIL] Failed to spawn [Timed]"); }
     }
 
     void Request_StartManualStation()
@@ -138,8 +138,8 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             UCk_EntityScript_InteractionGym_Manual,
             FInstancedStruct::Make(FInteractionGymSpawnParams(StationTransform))
         );
-        if (ck::IsValid(SpawnRequest)) { ck::Trace("✅ [Manual] started"); }
-        else { ck::Error("❌ Failed to spawn [Manual]"); }
+        if (ck::IsValid(SpawnRequest)) { ck::Trace("[OK] [Manual] started"); }
+        else { ck::Error("[FAIL] Failed to spawn [Manual]"); }
     }
 
     void Request_StartValidationStation()
@@ -150,8 +150,8 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             UCk_EntityScript_InteractionGym_Validation,
             FInstancedStruct::Make(FInteractionGymSpawnParams(StationTransform))
         );
-        if (ck::IsValid(SpawnRequest)) { ck::Trace("✅ [Validation] started"); }
-        else { ck::Error("❌ Failed to spawn [Validation]"); }
+        if (ck::IsValid(SpawnRequest)) { ck::Trace("[OK] [Validation] started"); }
+        else { ck::Error("[FAIL] Failed to spawn [Validation]"); }
     }
 
     void Request_StartResolverStation()
@@ -174,8 +174,8 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             utils_entity_script::Request_SpawnEntity(StationHandle, UCk_EntityScript_InteractionGym_ResolverTarget, FInstancedStruct::Make(FInteractionGymSpawnParams(TargetTransform)));
         }
 
-        if (ck::IsValid(SpawnRequest)) { ck::Trace("✅ [Resolver] started"); }
-        else { ck::Error("❌ Failed to spawn [Resolver]"); }
+        if (ck::IsValid(SpawnRequest)) { ck::Trace("[OK] [Resolver] started"); }
+        else { ck::Error("[FAIL] Failed to spawn [Resolver]"); }
     }
 
     void Request_StartDataBundleStation()
@@ -186,8 +186,8 @@ class ACk_InteractionGym_PlayerController : ACk_Gym_Base_PlayerController
             UCk_EntityScript_InteractionGym_DataBundle,
             FInstancedStruct::Make(FInteractionGymSpawnParams(StationTransform))
         );
-        if (ck::IsValid(SpawnRequest)) { ck::Trace("✅ [DataBundle] started"); }
-        else { ck::Error("❌ Failed to spawn [DataBundle]"); }
+        if (ck::IsValid(SpawnRequest)) { ck::Trace("[OK] [DataBundle] started"); }
+        else { ck::Error("[FAIL] Failed to spawn [DataBundle]"); }
     }
 
     //------------------------------------------------------------------------

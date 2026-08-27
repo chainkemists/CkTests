@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK VAT — AUTOMATION TEST: TRANSIENT BAKE + END-TO-END PLAYBACK
+// CK VAT - AUTOMATION TEST: TRANSIENT BAKE + END-TO-END PLAYBACK
 //============================================================================
 //
 // The Gate-4 end-to-end test, unblocked by the transient bake (no committed
-// baked content needed — the collection is built in memory per run):
+// baked content needed - the collection is built in memory per run):
 //   1. CreateAndBake_TransientCollection (Bone mode, Mannequin + MM_Jump)
 //      succeeds and returns a BAKED collection (textures + mesh + clip table
 //      outered to the transient package; nothing saved to disk).
 //   2. utils_vat_proxy::Add composes against it (Setup resolves the shared
 //      MID from the committed VatBone master + the transient ISM renderer).
 //   3. Request_PlayClip (Once, rate 4) plays and OnClipFinished fires exactly
-//      once with the clip's name — the full CPU playback state machine:
+//      once with the clip's name - the full CPU playback state machine:
 //      request drain, 12-float packing, FireSignals completion math.
 //
 // Editor-scoped: the baker reads FSkeletalMeshModel source data, so the body

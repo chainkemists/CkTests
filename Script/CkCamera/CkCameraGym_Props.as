@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — GYM PROPS
+// CK CAMERA - GYM PROPS
 //============================================================================
 //
 // Visual-only reference geometry for the Camera gym so the driven camera has something to frame, orbit
 // around, and lock onto. Without these the camera works but renders only skybox.
 //
 //   - ACk_CameraGym_Beacon : the fixed lock-on / look-at target. A bright floating sphere (distinct from the
-//     grey cube pillars) so it reads as "the thing the camera is tracking". No collision — it must not deflect
+//     grey cube pillars) so it reads as "the thing the camera is tracking". No collision - it must not deflect
 //     the camera's ECC_Camera collision whiskers.
 //
 // Reference pillars use the framework's ACk_Gym_ObstacleWall (grey cubes, block all channels incl. ECC_Camera),
@@ -40,7 +40,7 @@ class ACk_CameraGym_Beacon : AActor
             { Dynamic.SetVectorParameterValue(n"Color", FLinearColor(1.0f, 0.35f, 0.1f, 1.0f)); }
         }
 
-        // Visual marker only — must not block or deflect the camera's collision whiskers.
+        // Visual marker only - must not block or deflect the camera's collision whiskers.
         BeaconMesh.SetCollisionEnabled(ECollisionEnabled::NoCollision);
     }
 }

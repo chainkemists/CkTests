@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CkProjectileGym — Homing Pursuit station
+// CkProjectileGym - Homing Pursuit station
 //
 // A target orbits the station while an interceptor chases it under ProNav
 // guidance. On intercept the projectile is destroyed and a fresh one is
-// launched from the pad — an endless chase loop. The target is moved via
+// launched from the pad - an endless chase loop. The target is moved via
 // raw transform requests (no Velocity feature), so this station also
 // exercises homing's finite-difference target-velocity fallback.
 //============================================================================
@@ -118,6 +118,6 @@ class UCk_EntityScript_ProjectileGym_HomingPursuit_Station : UCk_GenericEntitySc
 
         CkGym_Common::Update_StationDisplay(ck::ToEntity(this),
             "STATION 1 / HOMING PURSUIT", Body,
-            "Endless chase — relaunches after every intercept.");
+            "Endless chase - relaunches after every intercept.");
     }
 }

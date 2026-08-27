@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: BLOCKER LIFECYCLE
+// CK GRID - AUTOMATION TEST: BLOCKER LIFECYCLE
 //============================================================================
 //
 // Drives a single GridBlocker through its full state machine and asserts the

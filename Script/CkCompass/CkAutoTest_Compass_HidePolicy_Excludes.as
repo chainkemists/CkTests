@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK COMPASS — AUTOMATION TEST: Hide policy excludes out-of-arc POIs
+// CK COMPASS - AUTOMATION TEST: Hide policy excludes out-of-arc POIs
 //============================================================================
 //
 // Arc 90 (half-arc 45). A Hide-policy POI at bearing +60 must be ABSENT

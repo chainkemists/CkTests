@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE H OUTFIT SUBMESH
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE H OUTFIT SUBMESH
 //============================================================================
 //
 // Phase H test gate. Verifies the outfit-submesh API surface added in H1/H2:

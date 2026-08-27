@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: NARROW GAP TRAVERSES CLEANLY
+// CK CROWD - AUTOMATION TEST: NARROW GAP TRAVERSES CLEANLY
 //
 // The corridor stand-down (_CorridorStandDown): a 110cm gap between two
 // UNavArea_Null slabs is walkable for a 42cm agent, but between opposing walls
@@ -99,7 +99,7 @@ class UCk_AutoTest_Crowd_NarrowGap_TraverseCalm : UCk_AutoTest_Base
         FinishSuccess();
     }
 
-    // Tests share one PIE world and run seconds apart — GC teardown is far too late for a navmesh
+    // Tests share one PIE world and run seconds apart - GC teardown is far too late for a navmesh
     // carve. Every exit path destroys the slabs explicitly or the next test inherits a severed
     // world, including the one where the engine TimeLimit kills the test before OnPoll can react.
     UFUNCTION(BlueprintOverride)

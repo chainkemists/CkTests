@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// VoxelNav Stress Gym — 400 flying CrowdAgents cross a Jolt-baked central wall.
+// VoxelNav Stress Gym - 400 flying CrowdAgents cross a Jolt-baked central wall.
 //
 // The 20x20 lattice deliberately crosses both Y and Z: this is one provider/bake and one movement
 // episode with a dense population, rather than 400 copies of the two-agent presentation gym.
@@ -315,7 +315,7 @@ class ACk_VoxelNavGym_Stress_PlayerController : ACk_Gym_Base_PlayerController
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
     // A stress run is over in seconds. Re-running it, and reversing it to re-path the whole field in one
-    // frame, are the two things this gym is FOR — and both were console-only.
+    // frame, are the two things this gym is FOR - and both were console-only.
     //--------------------------------------------------------------------------------------------------------------------------
 
     FString Get_ControlPanelTitle() override

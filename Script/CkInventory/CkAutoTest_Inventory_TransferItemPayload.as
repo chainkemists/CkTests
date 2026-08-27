@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: TRANSFER-ITEM RESULT PAYLOAD
+// CK INVENTORY - AUTOMATION TEST: TRANSFER-ITEM RESULT PAYLOAD
 //============================================================================
 //
 // Pins the result payload of Request_TransferItem between two data-only
@@ -13,7 +13,7 @@
 // Procedure:
 //   1. Create two bounded(5) data-only inventories on the test entity.
 //   2. Add a Sword to the source inventory (Tags+Dimensions item, no
-//      Stackable trait — keeps the test robust against any lingering
+//      Stackable trait - keeps the test robust against any lingering
 //      Stackable-construction issues).
 //   3. Request_TransferItem(source item, target inventory).
 //   4. Assert in the result delegate: result == Success_FullyTransferred

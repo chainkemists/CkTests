@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: OVERLAP ENTITIES INCLUDES BAKED STATIC ACTOR
+// CK JOLT - AUTOMATION TEST: OVERLAP ENTITIES INCLUDES BAKED STATIC ACTOR
 //============================================================================
 //
-// Get_OverlapEntities resolves EVERY hit body's user-data to a live entity —
+// Get_OverlapEntities resolves EVERY hit body's user-data to a live entity
 // baked static-world bodies carry their source actor's JoltStaticActor
 // attribution entity id, so a baked cube overlapping the query region comes
 // back as a real entity alongside dynamic JoltBodies (ECS-first: all Jolt
 // bodies have an entity). Only user-data 0 is dropped (never resolved to the
-// registry's transient root — the raw-id-0 regression this still pins).
+// registry's transient root - the raw-id-0 regression this still pins).
 //
 //   1. Bake a static cube (Request_BakeActor) AND add a Kinematic JoltBody box
 //      overlapping the same region (both BlockAll so the Visibility query sees them).

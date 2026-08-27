@@ -1,7 +1,7 @@
 //============================================================================
 // CkGymStation
 //
-// Procedural alcove station — built from scaled /Engine/BasicShapes/Cube
+// Procedural alcove station - built from scaled /Engine/BasicShapes/Cube
 // instances, no mesh-asset dependencies. Replaces BP_DemoDisplay's pre-baked
 // tile system with code-driven geometry that's fully parametric.
 //
@@ -27,12 +27,12 @@
 //   - Back wall at -X end (deepest from viewer)
 //   - Floor stage at Z=0 spanning the alcove
 //   - Roof at Z=Height*100 spanning the alcove
-//   - Side walls at Y=±Width*50 forming the left/right
+//   - Side walls at Y=+/-Width*50 forming the left/right
 //   - Open front at +X (viewer side)
 //   - Optional base trim sitting in front of the alcove opening
 //
 // Pivot conventions:
-//   - Actor pivot is at (0, 0, 0) — ground centre of the alcove footprint.
+//   - Actor pivot is at (0, 0, 0) - ground centre of the alcove footprint.
 //   - Alcove extends from X=-Depth*50 (back wall) to X=+Depth*50 (front opening)
 //     and from Y=-Width*50 to Y=+Width*50.
 //   - All anchor components live in actor-local space.
@@ -42,7 +42,7 @@
 // toward -X. With the alcove opening toward +X relative to the actor, the
 // player walks straight into the opening and sees the back wall.
 //
-// Width/Depth/Height are in 100×cm units (so Width=6 → 600cm). Thickness
+// Width/Depth/Height are in 100xcm units (so Width=6 -> 600cm). Thickness
 // parameters (WallThickness, RoofThickness, FloorThickness) are in cm.
 //============================================================================
 
@@ -59,7 +59,7 @@ class ACk_GymStation : AActor
 	UPROPERTY(DefaultComponent, RootComponent)
 	USceneComponent DefaultSceneRoot;
 
-	// Alcove pieces — all default-component static-mesh instances using the engine Cube.
+	// Alcove pieces - all default-component static-mesh instances using the engine Cube.
 	// Their RelativeLocation/Rotation/Scale are computed in ConstructionScript.
 	UPROPERTY(DefaultComponent, Attach = DefaultSceneRoot) UStaticMeshComponent BackWall;
 	UPROPERTY(DefaultComponent, Attach = DefaultSceneRoot) UStaticMeshComponent LeftWall;
@@ -68,19 +68,19 @@ class ACk_GymStation : AActor
 	UPROPERTY(DefaultComponent, Attach = DefaultSceneRoot) UStaticMeshComponent Roof;
 	UPROPERTY(DefaultComponent, Attach = DefaultSceneRoot) UStaticMeshComponent BaseTrim;
 
-	// Text render — title + description on the alcove's back wall, facing +X (toward viewer).
+	// Text render - title + description on the alcove's back wall, facing +X (toward viewer).
 	UPROPERTY(DefaultComponent, Attach = DefaultSceneRoot)
 	UTextRenderComponent TitleText_Component;
 
 	UPROPERTY(DefaultComponent, Attach = DefaultSceneRoot)
 	UTextRenderComponent DescriptionText_Component;
 
-	// Spotlight — optional, illuminates the alcove from inside.
+	// Spotlight - optional, illuminates the alcove from inside.
 	UPROPERTY(DefaultComponent, Attach = DefaultSceneRoot)
 	USpotLightComponent Spotlight_Component;
 
 	//------------------------------------------------------------------------
-	// SceneNode anchors — public hooks for placement logic.
+	// SceneNode anchors - public hooks for placement logic.
 	// All in actor-local space. Read via .GetWorldLocation().
 	//------------------------------------------------------------------------
 
@@ -96,19 +96,19 @@ class ACk_GymStation : AActor
 	// Properties
 	//------------------------------------------------------------------------
 
-	// Alcove dimensions — 100×cm units.
+	// Alcove dimensions - 100xcm units.
 	UPROPERTY(Category = "Alcove") double Width = 6.0;
 	UPROPERTY(Category = "Alcove") double Depth = 5.0;
 	UPROPERTY(Category = "Alcove") double Height = 5.0;
 
-	// Wall thicknesses — cm.
+	// Wall thicknesses - cm.
 	UPROPERTY(Category = "Alcove") double WallThickness = 15.0;
 	UPROPERTY(Category = "Alcove") double FloorThickness = 15.0;
 	UPROPERTY(Category = "Alcove") double RoofThickness = 25.0;
 
-	// Base trim — small bar in front of the alcove opening.
+	// Base trim - small bar in front of the alcove opening.
 	UPROPERTY(Category = "Alcove") double BaseTrimDepth = 50.0;        // cm; how deep the bar is along X
-	UPROPERTY(Category = "Alcove") double BaseTrimWidth = 7.0;         // 100×cm units; usually slightly wider than alcove
+	UPROPERTY(Category = "Alcove") double BaseTrimWidth = 7.0;         // 100xcm units; usually slightly wider than alcove
 	UPROPERTY(Category = "Alcove") double BaseTrimHeight = 30.0;       // cm; vertical thickness
 	UPROPERTY(Category = "Alcove") double BaseTrimForwardOffset = 30.0; // cm; gap between alcove front and the trim
 
@@ -129,7 +129,7 @@ class ACk_GymStation : AActor
 	UPROPERTY(Category = "Description") EHorizTextAligment TextAlignment = EHorizTextAligment::EHTA_Left;
 
 	//------------------------------------------------------------------------
-	// ConstructionScript — entry point. Re-runs in editor on every property
+	// ConstructionScript - entry point. Re-runs in editor on every property
 	// change AND at runtime spawn time.
 	//------------------------------------------------------------------------
 
@@ -152,7 +152,7 @@ class ACk_GymStation : AActor
 	}
 
 	//------------------------------------------------------------------------
-	// Update_Display — runtime API for gym scripts.
+	// Update_Display - runtime API for gym scripts.
 	//------------------------------------------------------------------------
 
 	UFUNCTION()
@@ -181,14 +181,14 @@ class ACk_GymStation : AActor
 	}
 
 	//------------------------------------------------------------------------
-	// Build_Alcove — places the 6 box pieces according to the dimension params.
+	// Build_Alcove - places the 6 box pieces according to the dimension params.
 	//
 	// Coordinate system (actor-local):
 	//   - X: -Depth/2*100 (back wall) to +Depth/2*100 (front opening)
 	//   - Y: -Width/2*100 to +Width/2*100
 	//   - Z: 0 (floor) to +Height*100 (top of back wall / roof)
 	//
-	// Cube mesh is 100×100×100 cm centred at the component origin, so
+	// Cube mesh is 100x100x100 cm centred at the component origin, so
 	// scale_X = size_in_cm / 100, etc.
 	//------------------------------------------------------------------------
 	private void Build_Alcove()
@@ -201,12 +201,12 @@ class ACk_GymStation : AActor
 		const auto FT = FloorThickness;
 		const auto RT = RoofThickness;
 
-		// Back wall: thin slab at -X end, full Width × full Height.
+		// Back wall: thin slab at -X end, full Width x full Height.
 		BackWall.SetRelativeLocation(FVector(-D_cm * 0.5 + WT * 0.5, 0.0, H_cm * 0.5));
 		BackWall.SetRelativeRotation(FRotator::ZeroRotator);
 		BackWall.SetRelativeScale3D(FVector(WT / 100.0, Width, Height));
 
-		// Left wall (+Y side): thin slab spanning full Depth × full Height.
+		// Left wall (+Y side): thin slab spanning full Depth x full Height.
 		LeftWall.SetRelativeLocation(FVector(0.0, W_cm * 0.5 - WT * 0.5, H_cm * 0.5));
 		LeftWall.SetRelativeRotation(FRotator::ZeroRotator);
 		LeftWall.SetRelativeScale3D(FVector(Depth, WT / 100.0, Height));
@@ -217,7 +217,7 @@ class ACk_GymStation : AActor
 		RightWall.SetRelativeScale3D(FVector(Depth, WT / 100.0, Height));
 
 		// Floor stage: flat slab whose TOP face sits at actor-local Z=0, extending DOWN to Z=-FT.
-		// This makes the actor's anchor coincide with the walkable surface — so when the gym
+		// This makes the actor's anchor coincide with the walkable surface - so when the gym
 		// places the station at world Z=0 (DefaultStationGridZ), the floor's top is flush with
 		// the world floor / navmesh height instead of poking up by FT cm and penetrating
 		// path waypoints + agent capsules that ride on world Z=0.
@@ -225,7 +225,7 @@ class ACk_GymStation : AActor
 		FloorStage.SetRelativeRotation(FRotator::ZeroRotator);
 		FloorStage.SetRelativeScale3D(FVector(Depth, Width, FT / 100.0));
 
-		// Roof: flat slab at Z=Height*100, full Width × full Depth.
+		// Roof: flat slab at Z=Height*100, full Width x full Depth.
 		Roof.SetRelativeLocation(FVector(0.0, 0.0, H_cm - RT * 0.5));
 		Roof.SetRelativeRotation(FRotator::ZeroRotator);
 		Roof.SetRelativeScale3D(FVector(Depth, Width, RT / 100.0));
@@ -238,7 +238,7 @@ class ACk_GymStation : AActor
 	}
 
 	//------------------------------------------------------------------------
-	// Position_TextComponents — text sits on the back wall's inner face
+	// Position_TextComponents - text sits on the back wall's inner face
 	// (which faces +X, toward the viewer at the front opening).
 	//
 	// Back wall is at X = -Depth/2*100. Inner face (toward viewer) is at
@@ -246,7 +246,7 @@ class ACk_GymStation : AActor
 	// of that face (toward +X) to avoid z-fighting.
 	//
 	// Default UTextRender at rotation (0,0,0) already faces +X, which is
-	// exactly what we want — no Yaw flip needed.
+	// exactly what we want - no Yaw flip needed.
 	//------------------------------------------------------------------------
 	private void Position_TextComponents()
 	{
@@ -262,7 +262,7 @@ class ACk_GymStation : AActor
 		// Description.
 		const auto DescY = TextAlignmentOffset(1.0, false);
 		// Floor-text mode: text sits 5cm above the floor's top. With FloorStage relocated so its
-		// top is at actor-local Z=0 (see Build_Alcove), 5cm above the surface is just Z=5 — no
+		// top is at actor-local Z=0 (see Build_Alcove), 5cm above the surface is just Z=5 - no
 		// FloorThickness component needed any more.
 		const auto DescLocation = IsFloorText
 			? FVector(0.0, DescY, 5.0)
@@ -298,8 +298,8 @@ class ACk_GymStation : AActor
 		TitleText_Component.VerticalAlignment = EVerticalTextAligment::EVRTA_TextTop;
 	}
 
-	// Mirrors BP "Text Alignment Offset" macro — Y offset for text based on
-	// alignment + width adjustment. EHTA_Left → +Y, EHTA_Right → -Y, Center → 0.
+	// Mirrors BP "Text Alignment Offset" macro - Y offset for text based on
+	// alignment + width adjustment. EHTA_Left -> +Y, EHTA_Right -> -Y, Center -> 0.
 	private double TextAlignmentOffset(double InWidthAdjustment, bool InForceCenter)
 	{
 		const auto Effective = InForceCenter ? EHorizTextAligment::EHTA_Center : TextAlignment;
@@ -337,7 +337,7 @@ class ACk_GymStation : AActor
 	}
 
 	//------------------------------------------------------------------------
-	// Configure_Spotlight — illuminates the back wall from inside the alcove.
+	// Configure_Spotlight - illuminates the back wall from inside the alcove.
 	//------------------------------------------------------------------------
 	private void Configure_Spotlight()
 	{
@@ -357,7 +357,7 @@ class ACk_GymStation : AActor
 	}
 
 	//------------------------------------------------------------------------
-	// Update_Anchors — recomputes RelativeLocation on each anchor based on the
+	// Update_Anchors - recomputes RelativeLocation on each anchor based on the
 	// current alcove dimensions. Anchors are in actor-local space.
 	//------------------------------------------------------------------------
 	private void Update_Anchors()
@@ -369,7 +369,7 @@ class ACk_GymStation : AActor
 		// Footprint centre of the alcove on the ground.
 		FootprintCenterAnchor.SetRelativeLocation(FVector(0.0, 0.0, 0.0));
 
-		// Spawn anchors — ground level, 100cm beyond the alcove footprint edge.
+		// Spawn anchors - ground level, 100cm beyond the alcove footprint edge.
 		// "Front" = the alcove opening (+X). "Back" = behind the back wall (-X).
 		AgentSpawnFrontAnchor.SetRelativeLocation(FVector( D_cm * 0.5 + 100.0, 0.0, 0.0));
 		AgentSpawnBackAnchor.SetRelativeLocation(FVector(-D_cm * 0.5 - 100.0, 0.0, 0.0));

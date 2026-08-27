@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: LIGHT ATTACKS (DeepNesting test) — tier 3
+// CK GOAP - AUTOMATION TEST ACTION: LIGHT ATTACKS (DeepNesting test) - tier 3
 //============================================================================
 //
 // Mid-tier composite under Engage's promoted planner. As an Action (visible
-// to Engage's planner), its effect is EnemyAttacked=true — satisfying
+// to Engage's planner), its effect is EnemyAttacked=true - satisfying
 // Engage's goal so Engage's plan = [LightAttacks]. As a Planner (promoted in
 // the test), it plans toward EnemyHit=true and is expected to pick the
 // cheaper of Light1 (cost 1.0) / Light2 (cost 2.0). Cost 1.0.

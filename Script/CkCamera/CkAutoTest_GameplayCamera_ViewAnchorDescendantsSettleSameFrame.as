@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: VIEW-ANCHOR DESCENDANTS SETTLE SAME FRAME
+// CK CAMERA - AUTOMATION TEST: VIEW-ANCHOR DESCENDANTS SETTLE SAME FRAME
 //============================================================================
 //
 // Camera composition runs after the primary Transform pass and publishes the

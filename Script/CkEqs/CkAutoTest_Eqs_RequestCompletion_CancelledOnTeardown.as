@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — AUTOMATION TEST: REQUEST COMPLETION CANCELLED ON TEARDOWN
+// CK EQS - AUTOMATION TEST: REQUEST COMPLETION CANCELLED ON TEARDOWN
 //============================================================================
 //
 // Pins the NON-VARIANT branch of ck::request::FireCancelledForPending. CkEqs
 // keeps its pending requests as a plain TArray<FCk_Request_Eqs_RunQuery> on
 // FFragment_EqsQuery_Requests, not as a TArray<std::variant<...>> like most
-// features — so the arm that calls TryFireCompletion directly, WITHOUT
+// features - so the arm that calls TryFireCompletion directly, WITHOUT
 // std::visit, is the one exercised here. CkTimer only ever drives the variant
 // arm, leaving this one unexecuted at runtime.
 //   1. Create a querier entity and enqueue a deferred RunQuery on it, carrying
 //      a completion delegate.
 //   2. Destroy the querier in the same frame, before FProcessor_Eqs_HandleRequests
-//      (FGroup_PostTransform) can drain it — that view excludes
+//      (FGroup_PostTransform) can drain it - that view excludes
 //      FTag_DestroyEntity_Initiate, which Request_DestroyEntity applies
 //      synchronously.
 //   3. FProcessor_Eqs_CancelPendingRequests (FGroup_EndPlay) must complete the

@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK VARIABLES — AUTOMATION TEST: Bool Set→Get round-trip
+// CK VARIABLES - AUTOMATION TEST: Bool Set->Get round-trip
 // Set a bool variable via tag; Get_ByName retrieves the same value and
 // reports Succeeded.
 

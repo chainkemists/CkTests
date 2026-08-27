@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK TARGETING — AUTOMATION TEST: Create_FromLocation round-trip
+// CK TARGETING - AUTOMATION TEST: Create_FromLocation round-trip
 // Create_FromLocation(loc) yields a TargetPoint whose current location
 // matches the seed FVector.
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: QUEUED REQUEST CANCELLED ON DESTROY
+// CK INVENTORY - AUTOMATION TEST: QUEUED REQUEST CANCELLED ON DESTROY
 //============================================================================
 //
 // A request enqueued on an inventory that is then destroyed before it can be

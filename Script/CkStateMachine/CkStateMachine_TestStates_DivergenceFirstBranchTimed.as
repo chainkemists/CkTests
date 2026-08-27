@@ -1,5 +1,5 @@
 // ============================================================================
-// SM DIVERGENCE-FIRST-BRANCH (TIMED) — REGRESSION TEST STATES
+// SM DIVERGENCE-FIRST-BRANCH (TIMED) - REGRESSION TEST STATES
 // ============================================================================
 //
 // What this test guards against:
@@ -36,7 +36,7 @@
 //
 // Each linear transition: gated by FastDelay (timer condition).
 // Each divergence transition: FastDelay AND a polled payment-method check
-// — gives the SM a deterministic single-branch Pass at the divergence.
+// - gives the SM a deterministic single-branch Pass at the divergence.
 //
 // PASS criterion: each per-state task fires exactly once per sub-SM cycle,
 // regardless of AddTransition order.
@@ -52,7 +52,7 @@ enum ECk_SmTest_DivergenceTimed_PaymentChoice
 }
 
 // ============================================================================
-// COUNTER REGISTRY (stateless — same pattern as graph-walk regression)
+// COUNTER REGISTRY (stateless - same pattern as graph-walk regression)
 // ============================================================================
 
 namespace SmDivergenceTimed_Regression
@@ -91,7 +91,7 @@ namespace SmDivergenceTimed_Regression
 // Event-driven timer condition. On EnterCondition it arms a CkTimer for
 // DelaySeconds; when the timer's OnDone fires, MarkSatisfied flips the
 // condition to Pass. This is the canonical "wait a moment, then proceed"
-// transition gate — used by every linear hop in this test SM so each
+// transition gate - used by every linear hop in this test SM so each
 // transition's Pass result is established asynchronously (mirroring how
 // real game-code transitions tend to be timed rather than vacuous).
 //
@@ -127,7 +127,7 @@ class UCk_SmTest_DivergenceTimed_Condition_FastDelay : UCk_SmCondition_EventDriv
     }
 };
 
-// Polled — true when PaymentChoice == Left.
+// Polled - true when PaymentChoice == Left.
 UCLASS()
 class UCk_SmTest_DivergenceTimed_Condition_PaymentIsLeft : UCk_SmCondition_Polled
 {
@@ -140,7 +140,7 @@ class UCk_SmTest_DivergenceTimed_Condition_PaymentIsLeft : UCk_SmCondition_Polle
     }
 };
 
-// Polled — true when PaymentChoice == Right.
+// Polled - true when PaymentChoice == Right.
 UCLASS()
 class UCk_SmTest_DivergenceTimed_Condition_PaymentIsRight : UCk_SmCondition_Polled
 {
@@ -228,7 +228,7 @@ class UCk_SmTest_DivergenceTimed_Task_Finish : UCk_SmTask_EntityScript
 };
 
 // ============================================================================
-// SUB-SM STATES — every linear transition gated by FastDelay (timed Pass).
+// SUB-SM STATES - every linear transition gated by FastDelay (timed Pass).
 // The divergence transitions additionally have a polled payment-method
 // check so exactly one branch wins deterministically.
 // ============================================================================
@@ -261,7 +261,7 @@ class UCk_SmTest_DivergenceTimed_State_Idle : UCk_SmState_EntityScript
     }
 };
 
-// The divergence point — state with two outgoing transitions. AddTransition
+// The divergence point - state with two outgoing transitions. AddTransition
 // order is read from the gym actor at DefineState time so a single PIE
 // session can exercise both orders by re-spawning the SM with a swapped
 // flag. Each branch is gated by FastDelay (so it Pass'es timed, not

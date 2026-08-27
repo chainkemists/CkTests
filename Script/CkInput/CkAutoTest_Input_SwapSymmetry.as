@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT — AUTOMATION TEST: SWAP TRADES BOTH KEYS AND IS ITS OWN INVERSE
+// CK INPUT - AUTOMATION TEST: SWAP TRADES BOTH KEYS AND IS ITS OWN INVERSE
 //============================================================================
 //
 // SwapKeys is the conflict resolution that keeps both actions bound: the
 // requested mapping takes the new key and whoever held that key inherits the
-// requested mapping's old key. Both halves are asserted — a swap that only
+// requested mapping's old key. Both halves are asserted - a swap that only
 // moved the requested side would look correct from the caller's row and
 // silently unbind the other action.
 //
@@ -17,7 +17,7 @@
 // SCOPE: both sides are bound before either swap, and the opening assertions
 // enforce that. SwapKeys reads the source's old key as EKeys::Invalid when the
 // source has none (CkKeyBinding_Utils.cpp:474-485), so an unbound-source swap
-// assigns Invalid to the other action — a distinct behaviour that this test
+// assigns Invalid to the other action - a distinct behaviour that this test
 // deliberately does not exercise.
 //
 // TEARDOWN IS UNCONDITIONAL. The trailing resets run whether or not the
@@ -33,7 +33,7 @@ class UCk_AutoTest_Input_SwapSymmetry : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the key profile lives on the local player");
+            FinishFailure("no local PlayerController - the key profile lives on the local player");
             return;
         }
 

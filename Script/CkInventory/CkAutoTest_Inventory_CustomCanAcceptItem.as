@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: CUSTOM CAN-ACCEPT-ITEM REJECTS
+// CK INVENTORY - AUTOMATION TEST: CUSTOM CAN-ACCEPT-ITEM REJECTS
 //============================================================================
 //
 // Verifies that the FCk_Delegate_Inventory_CustomCanAcceptItem_Dynamic
@@ -13,7 +13,7 @@
 //   1. Create a bounded data-only inventory whose CustomCanAcceptItem
 //      delegate returns false.
 //   2. Issue Request_AddItemByDefinition for a Sword (Tags+Dimensions
-//      only — no Stackable, to avoid any lingering Stackable-trait
+//      only - no Stackable, to avoid any lingering Stackable-trait
 //      framework issues).
 //   3. Assert: result enum is Failed_RejectedByCustomAcceptanceLogic,
 //      AmountAdded == 0, ItemsCreated empty, Get_NumItems == 0.

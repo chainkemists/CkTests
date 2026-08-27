@@ -1,21 +1,21 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — AUTOMATION TEST: _ProjectOntoNav GENERATOR FLAG
+// CK EQS - AUTOMATION TEST: _ProjectOntoNav GENERATOR FLAG
 //============================================================================
 //
 // Verifies FCk_Eqs_GeneratorParams::_ProjectOntoNav flag behavior:
 //
-// Phase 1 (baseline — projection disabled):
+// Phase 1 (baseline - projection disabled):
 //   SimpleGrid at Z=20000uu (far above any baked navmesh), _ProjectOntoNav=false.
-//   Candidates generated normally → HasResults=true, count > 0.
+//   Candidates generated normally -> HasResults=true, count > 0.
 //
-// Phase 2 (projection enabled — no navmesh at altitude):
+// Phase 2 (projection enabled - no navmesh at altitude):
 //   Same SimpleGrid at Z=20000uu, _ProjectOntoNav=true,
 //   _NavProjectionSearchHalfExtentUu=200uu.
 //   No navmesh tile exists at that altitude, so every candidate fails
-//   UNavigationSystemV1::ProjectPointToNavigation → all candidates dropped
-//   at generate time → query fails with 0 candidates → HasResults=false.
+//   UNavigationSystemV1::ProjectPointToNavigation -> all candidates dropped
+//   at generate time -> query fails with 0 candidates -> HasResults=false.
 //
 // This test is deliberately world-independent: no navmesh bake required.
 // Positive projection (candidates snap to navmesh surface) is demonstrated
@@ -46,10 +46,10 @@ class UCk_AutoTest_Eqs_NavProjection : UCk_AutoTest_Base
         auto Generator = FCk_Eqs_GeneratorParams();
         Generator.Set_GeneratorType(ECk_Eqs_GeneratorType::SimpleGrid);
         Generator.Set_SpaceBetween(100.0f);
-        Generator.Set_GridHalfSize(200.0f);  // 5×5 = 25 candidates
-        // _ProjectOntoNav defaults to false — no projection, all candidates kept.
+        Generator.Set_GridHalfSize(200.0f);  // 5x5 = 25 candidates
+        // _ProjectOntoNav defaults to false - no projection, all candidates kept.
 
-        // Score-only Distance test — satisfies non-empty requirement without filtering.
+        // Score-only Distance test - satisfies non-empty requirement without filtering.
         auto DistanceTest = FCk_Eqs_TestParams();
         DistanceTest.Set_Purpose(ECk_Eqs_TestPurpose::Score);
         auto Tests = TArray<FCk_Eqs_TestParams>();
@@ -108,8 +108,8 @@ class UCk_AutoTest_Eqs_NavProjection : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         // With _ProjectOntoNav=true at Z=20000uu and no navmesh at that altitude,
-        // all candidates fail projection and are dropped → generator returns 0 candidates
-        // → query broadcasts Failed with empty results.
+        // all candidates fail projection and are dropped -> generator returns 0 candidates
+        // -> query broadcasts Failed with empty results.
         Assert_True(InResults.Get_HasResults() == false,
             f"_ProjectOntoNav=true at high altitude should produce 0 candidates (baseline had {_Phase1CandidateCount})");
 

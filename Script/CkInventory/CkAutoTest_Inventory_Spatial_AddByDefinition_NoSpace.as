@@ -1,21 +1,21 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: SPATIAL ADD-BY-DEFINITION NO-SPACE
+// CK INVENTORY - AUTOMATION TEST: SPATIAL ADD-BY-DEFINITION NO-SPACE
 //============================================================================
 //
 // Pins the rejection path of Request_AddItemByDefinition on a spatial
 // inventory when no item from the request can be placed:
 //
 //   1. Build a 2x2 spatial inventory.
-//   2. Request_AddItemByDefinition(Sword, Amount=1, ForceNewItem) — the
+//   2. Request_AddItemByDefinition(Sword, Amount=1, ForceNewItem) - the
 //      Sword footprint is 3x1 (Tags+Dimensions, no Stackable), which can
 //      never fit in a 2-column / 2-row grid at any rotation.
 //   3. Result delegate must report `Failed_NoSpaceAvailable`,
 //      AmountAdded == 0, ItemsCreated empty, and the inventory remains
 //      empty.
 //
-// Sword (Tags+Dimensions only — no Stackable) is used deliberately so this
+// Sword (Tags+Dimensions only - no Stackable) is used deliberately so this
 // test sidesteps the Stackable+Tags trait double-apply framework bug
 // documented in CkAutoTest_Inventory_DataOnly_AddItem.as. This negative
 // path is the spatial counterpart to BoundedReject (DataOnly).

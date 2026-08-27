@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: ownership-chain teams drive attitude
+// CK RELATIONSHIP - AUTOMATION TEST: ownership-chain teams drive attitude
 // Two team-less children whose parents are on opposing teams should resolve
 // to Hostile through the ownership-chain team lookup.
 

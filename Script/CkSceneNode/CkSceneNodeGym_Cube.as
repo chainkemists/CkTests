@@ -228,7 +228,7 @@ class ACk_SceneNodeGym_Cube : AActor
 	{
 		// Sun (root) is the rotating parent this actor is attached to. The
 		// planet and moon have static local offsets and NO per-frame updates
-		// of their own — purely relying on scene-node transform propagation
+		// of their own - purely relying on scene-node transform propagation
 		// to inherit the root's rotation.
 		auto PlanetLocalTransform = FTransform(FRotator(), FVector(PropagatePlanetOrbitRadius, 0.0f, 0.0f), FVector(0.6f, 0.6f, 0.6f));
 		PropagatePlanet = utils_scene_node::Create(ParentTransform, PlanetLocalTransform);
@@ -243,7 +243,7 @@ class ACk_SceneNodeGym_Cube : AActor
 	private void Setup_AnchorOffset()
 	{
 		// Attach a SceneNode to this actor's Mesh component (a foreign USceneComponent)
-		// at a fixed relative offset. The node follows the mesh's world at that offset —
+		// at a fixed relative offset. The node follows the mesh's world at that offset
 		// it never drives the mesh back (read-only follower).
 		auto Offset = FTransform(FRotator(), AnchorBaseOffset, FVector(0.5f, 0.5f, 0.5f));
 		AnchorNode = utils_scene_node::CreateAndAttachToUnrealComponent(ParentTransform, Mesh, Offset);
@@ -320,7 +320,7 @@ class ACk_SceneNodeGym_Cube : AActor
 
 	private void Tick_MultipleChildren(float32 DeltaSeconds)
 	{
-		// Rotate the parent — children follow automatically
+		// Rotate the parent - children follow automatically
 		utils_transform::Request_AddRotationOffset(EcsEntity, FRotator(0.0f, ParentRotationSpeed * DeltaSeconds, 0.0f), ECk_LocalWorld::World);
 
 		for (int32 Index = 0; Index < ChildNodes.Num(); ++Index)
@@ -349,7 +349,7 @@ class ACk_SceneNodeGym_Cube : AActor
 	private void Tick_PropagateOnly(float32 DeltaSeconds)
 	{
 		// ONLY the root rotates. Planet and Moon have their offsets locked in
-		// at setup and are never touched again — so their world transforms
+		// at setup and are never touched again - so their world transforms
 		// depend entirely on scene-node transform propagation picking up the
 		// root's rotation change each frame.
 		utils_transform::Request_AddRotationOffset(EcsEntity, FRotator(0.0f, PropagateRootRotationSpeed * DeltaSeconds, 0.0f), ECk_LocalWorld::World);
@@ -360,11 +360,11 @@ class ACk_SceneNodeGym_Cube : AActor
 
 	private void Tick_AnchorOffset(float32 DeltaSeconds)
 	{
-		// Rotate the whole actor — its Mesh (the anchor component) moves in world,
+		// Rotate the whole actor - its Mesh (the anchor component) moves in world,
 		// so the follower node tracks it at the offset.
 		utils_transform::Request_AddRotationOffset(EcsEntity, FRotator(0.0f, AnchorRotationSpeed * DeltaSeconds, 0.0f), ECk_LocalWorld::World);
 
-		// Animate the offset height to show the anchor offset is runtime-mutable —
+		// Animate the offset height to show the anchor offset is runtime-mutable
 		// Request_UpdateOffset now sticks for anchor-follow nodes (was a no-op before).
 		auto BobbedOffset = AnchorBaseOffset + FVector(0.0f, 0.0f, Math::Sin(ElapsedTime * 1.5f) * 60.0f);
 		utils_scene_node::Request_UpdateOffset_Location(AnchorNode, BobbedOffset, ECk_RelativeAbsolute::Absolute);
@@ -378,7 +378,7 @@ class ACk_SceneNodeGym_Cube : AActor
 		{ return; }
 
 		// Read the node's OWN composed world (offset * mesh world), not the structural-
-		// parent composition — the Unreal anchor drives this node directly.
+		// parent composition - the Unreal anchor drives this node directly.
 		auto NodeWorld = utils_transform::Get_EntityCurrentTransform(AnchorNode.As_Transform());
 		AnchorCubeActor.SetActorLocationAndRotation(NodeWorld.GetLocation(), NodeWorld.GetRotation().Rotator());
 		AnchorCubeActor.SetActorScale3D(NodeWorld.GetScale3D());

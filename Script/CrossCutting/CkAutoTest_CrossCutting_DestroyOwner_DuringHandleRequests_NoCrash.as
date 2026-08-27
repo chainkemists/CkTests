@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK CROSS-CUTTING — AUTOMATION TEST: DESTROY OWNER DURING HANDLE REQUESTS
+// CK CROSS-CUTTING - AUTOMATION TEST: DESTROY OWNER DURING HANDLE REQUESTS
 //============================================================================
 //
 // Destroying an entity while one of its processors has an in-flight request
 // queued must not crash. This pattern is the canary for the upcoming refactor
-// that turns silent-failure paths into `CK_ENSURE_IF_NOT` — destroy-mid-tick
+// that turns silent-failure paths into `CK_ENSURE_IF_NOT` - destroy-mid-tick
 // is the highest-traffic dead-handle code path in the codebase.
 //
 // Setup:

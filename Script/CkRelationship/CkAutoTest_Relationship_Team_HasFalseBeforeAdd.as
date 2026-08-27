@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Team_Has is false before Add
+// CK RELATIONSHIP - AUTOMATION TEST: Team_Has is false before Add
 // A freshly created entity reports Has == false until Add is called.
 
 class UCk_AutoTest_Relationship_Team_HasFalseBeforeAdd : UCk_AutoTest_Base

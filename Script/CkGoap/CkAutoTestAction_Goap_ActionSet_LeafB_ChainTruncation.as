@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: LEAF_B (ChainTruncation test)
+// CK GOAP - AUTOMATION TEST ACTION: LEAF_B (ChainTruncation test)
 //============================================================================
 //
 // Leaf action for Mid_B in the ChainTruncation test.

@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: COUNT(2) SATISFIES AND STAYS STABLE
+// CK ENTITY TAG QUERY - AUTOMATION TEST: COUNT(2) SATISFIES AND STAYS STABLE
 //============================================================================
 //
-// Spawn a query "I need 2 entities tagged A". Tag 1 entity → no fire. Tag a 2nd
-// → fires once. Tag a 3rd → no extra fire (Count is capped, no All-mode re-fire).
+// Spawn a query "I need 2 entities tagged A". Tag 1 entity -> no fire. Tag a 2nd
+// -> fires once. Tag a 3rd -> no extra fire (Count is capped, no All-mode re-fire).
 //
 // The one phase that crosses the threshold waits on the fire counter. The
 // under-threshold and over-cap phases both assert a NON-event, and their
 // witness would have to prove the QUERY re-evaluated, not merely that the tag
-// landed — the tag pump and the query evaluator are separate processors and
+// landed - the tag pump and the query evaluator are separate processors and
 // their relative order is not something this test should encode. Those two
 // phases settle for a fixed number of frames instead, which is robust to that
 // ordering either way.
@@ -74,7 +74,7 @@ class UCk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable : UCk_AutoTest_Ba
     private void Step_AssertStillIdleAndTagSecond(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_FireCount, 0,
-            "Only 1 of 2 — query must not have fired yet");
+            "Only 1 of 2 - query must not have fired yet");
 
         _E2 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E2, n"AutoTestEtq_A");
@@ -84,7 +84,7 @@ class UCk_AutoTest_EntityTagQuery_CountSatisfiesAndStaysStable : UCk_AutoTest_Ba
     private void Step_AssertOneAndTagThird(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_FireCount, 1,
-            "Threshold (2) crossed — must fire exactly once");
+            "Threshold (2) crossed - must fire exactly once");
 
         _E3 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E3, n"AutoTestEtq_A");

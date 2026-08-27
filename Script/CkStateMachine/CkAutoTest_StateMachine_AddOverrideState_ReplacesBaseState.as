@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: ADD-OVERRIDE-STATE REPLACES BASE
+// CK STATE MACHINE - AUTOMATION TEST: ADD-OVERRIDE-STATE REPLACES BASE
 //============================================================================
 //
 // Pins the runtime state-override contract: an SM created with state
 // class A as its initial state, but with Request_AddOverrideState(B)
-// queued BEFORE Request_Start, will enter B instead of A — B's
+// queued BEFORE Request_Start, will enter B instead of A - B's
 // Get_StatesToOverride includes the state tag of A.
 //
 // The OnStateChanged payload's NewStateClass reports the REQUESTED
@@ -15,7 +15,7 @@
 // the transition lands.
 //
 // Setup uses ECk_SmAutoStart::Disabled so the Add and AddOverrideState
-// requests both land before the Start request — without that ordering
+// requests both land before the Start request - without that ordering
 // the override wouldn't apply to the initial state.
 //============================================================================
 
@@ -82,7 +82,7 @@ class UCk_AutoTest_StateMachine_AddOverrideState_ReplacesBaseState : UCk_AutoTes
     {
         if (IsFinished()) { return; }
 
-        // Initial entry — PreviousStateClass is null. The payload's
+        // Initial entry - PreviousStateClass is null. The payload's
         // NewStateClass is the REQUESTED initial class (Base); the
         // resolved (overridden) class is exposed via Get_CurrentStateClass.
         auto Resolved = InHandle.Get_CurrentStateClass();

@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAG SET — AUTOMATION TEST: bulk-remove fires OnTagsChanged once
+// CK TAG SET - AUTOMATION TEST: bulk-remove fires OnTagsChanged once
 //============================================================================
 //
 // Pins the "clear-all signal count" contract: bulk-removing every tag
 // on a TagSet via a single Request_RemoveTags(allTagsContainer) fires
-// OnTagsChanged ONCE — not once per tag — with InTagsRemoved carrying
+// OnTagsChanged ONCE - not once per tag - with InTagsRemoved carrying
 // all previously-held tags.
 //
 // CkTagSet has no dedicated `Request_Clear` / `RemoveAll`; the canonical
 // way to clear is to pass an FGameplayTagContainer of every current tag
 // to Request_RemoveTags. The processor coalesces all removes in the
 // frame's request batch into a single OnTagsChanged broadcast
-// (CkTagSet_Processor.cpp:27–48).
+// (CkTagSet_Processor.cpp:27-48).
 //
 // Flow:
 //   1. Add a TagSet pre-populated with 3 tags.

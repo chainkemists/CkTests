@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK VFX EXAMPLES GYM — PAIR SELECTION, REMEMBERED ACROSS PIE SESSIONS
+// CK VFX EXAMPLES GYM - PAIR SELECTION, REMEMBERED ACROSS PIE SESSIONS
 //============================================================================
 //
 // Judging one port takes many PIE sessions, and re-walking the V selector to
@@ -69,7 +69,7 @@ namespace CkVfxExamplesGym_Save
         Gameplay::SaveGameToSlot(Save, Get_SlotName(), Get_UserIndex());
     }
 
-    // Zero means "never measured" — an absent slot, an absent entry, and a genuinely instant setup
+    // Zero means "never measured" - an absent slot, an absent entry, and a genuinely instant setup
     // are all the same answer to the only question the caller asks (is a freeze worth announcing?).
     float32 TryGet_PairSetupSeconds(int32 InPairIndex)
     {
@@ -99,7 +99,7 @@ namespace CkVfxExamplesGym_Save
         Gameplay::SaveGameToSlot(Save, Get_SlotName(), Get_UserIndex());
     }
 
-    // Returns InFallbackIndex when no slot exists — an absent save is the expected
+    // Returns InFallbackIndex when no slot exists - an absent save is the expected
     // first-run state, not a defect, so this branch stays silent at Warning/Error
     // level. A slot written by an earlier session is CLAMPED into the current
     // roster: pairs can be removed between sessions and a stale index would

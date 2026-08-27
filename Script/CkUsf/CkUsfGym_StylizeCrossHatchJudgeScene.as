@@ -5,24 +5,24 @@
 //
 // What each piece is FOR (a cross-hatch verdict needs all four, and none of them substitutes):
 //   - curved forms      : a sphere, two cylinders and a cone. THE headline subject. Hatching is judged on
-//                         whether the strokes WRAP the form — the projected normal turns continuously
+//                         whether the strokes WRAP the form - the projected normal turns continuously
 //                         across a sphere, so the lines must sweep with it. A box cannot show this: its
 //                         faces each have one constant normal, so any direction looks correct on them.
 //   - flat wall + boxes : the control for the above. One normal per face means one hatch direction per
 //                         face, and the discontinuity AT an edge must be a clean break rather than a
-//                         smear — that is where a badly derived direction shows as noise.
+//                         smear - that is where a badly derived direction shows as noise.
 //   - shade ramp row    : dark / mid / bright albedo spheres, where the LAYER stepping becomes readable.
 //                         Each layer owns a slice of the darkness range, so the dark sphere must carry
 //                         visibly more crossing stroke fields than the bright one.
 //   - mask row          : two cubes hand-tagged with the project's effect-mask Custom-Stencil value.
 //                         They are the reference the entity-API subjects (CkUsfStylizeCrossHatchGym_-
-//                         EntityStations.as) must be INDISTINGUISHABLE from — both front doors write the
+//                         EntityStations.as) must be INDISTINGUISHABLE from - both front doors write the
 //                         same byte, so any difference between the two rows is a bug in one of them.
 //                         Placed in FRONT of the control wall and clear of the floor slab's footprint,
 //                         at the same X as the entity subjects the PlayerController spawns, so each
 //                         hand-tagged cube and its entity twin sit side by side in one glance from the
 //                         mask stations. A pair the judge has to walk between is a pair nobody compares
-//                         — that is the Cel gym's contract for this row, and it is what makes the
+//                         - that is the Cel gym's contract for this row, and it is what makes the
 //                         "indistinguishable" verdict cheap enough to actually be made.
 // The sky is the fifth judge surface for free: with AffectSky off it must keep its own colours entirely,
 // because a sky has no form for the hatch direction to follow.
@@ -60,14 +60,14 @@ class ACk_UsfGym_StylizeCrossHatchJudgeScene : AActor
         Spawn_Piece(CylinderMesh, Material, FVector(-100.0f, 100.0f, 260.0f), FVector(1.8f, 1.8f, 2.6f), BodyColor);
         Spawn_Piece(ConeMesh, Material, FVector(-100.0f, 480.0f, 240.0f), FVector(2.2f, 2.2f, 2.4f), BodyColor);
 
-        // Lying on its side, so its curvature runs across the screen rather than around it — the two
+        // Lying on its side, so its curvature runs across the screen rather than around it - the two
         // orientations exercise different halves of the projected normal.
         Spawn_RotatedPiece(CylinderMesh, Material, FVector(-100.0f, 850.0f, 200.0f),
             FRotator(90.0f, 0.0f, 0.0f), FVector(1.6f, 1.6f, 3.0f), BodyColor);
     }
 
     // Flat faces are the control: one normal per face means one direction per face. What is being judged
-    // here is the EDGE between two faces — it must be a clean discontinuity, not a smeared band.
+    // here is the EDGE between two faces - it must be a clean discontinuity, not a smeared band.
     private void Build_FlatControl()
     {
         auto CubeMesh = Cast<UStaticMesh>(LoadObject(this, "/Engine/BasicShapes/Cube.Cube"));
@@ -100,7 +100,7 @@ class ACk_UsfGym_StylizeCrossHatchJudgeScene : AActor
             FLinearColor(0.82f, 0.80f, 0.74f, 1.0f));
     }
 
-    // Hand-tagged with the project's effect-mask stencil value — the same byte
+    // Hand-tagged with the project's effect-mask stencil value - the same byte
     // UCk_Utils_Usf_StylizeMask_UE stamps through the entity API. Requires r.CustomDepth 3.
     private void Build_MaskRow()
     {
@@ -113,7 +113,7 @@ class ACk_UsfGym_StylizeCrossHatchJudgeScene : AActor
         // Read the value from the project settings rather than restating 190: a project that moves the
         // reservation must move this row with it, or the gym silently stops demonstrating anything.
         // X = -900 puts these in FRONT of the control wall (X = 700) and clear of the floor slab, which
-        // spans X 300 +- 500 — at X = -450 they sat inside that footprint and were occluded from the
+        // spans X 300 +- 500 - at X = -450 they sat inside that footprint and were occluded from the
         // mask stations. The entity twins spawn at the SAME X, offset only in Y, so each pair reads as
         // a pair rather than as two unrelated cubes.
         for (int32 i = 0; i < 2; i++)

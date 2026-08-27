@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK BALLISTIC MOTION — AUTOMATION TEST: IMPACT STOPS PROJECTILE
+// CK BALLISTIC MOTION - AUTOMATION TEST: IMPACT STOPS PROJECTILE
 //============================================================================
 //
 // Verifies the probe-driven impact path (FProcessor_BallisticMotion_HandleImpacts):
@@ -73,7 +73,7 @@ class UCk_AutoTest_BallisticMotion_ImpactStopsProjectile : UCk_AutoTest_Base
 
         utils_probe::Add_Sphere(_ProjectileTransform, 10.0, ProjectileProbeParams, FCk_Probe_DebugInfo());
 
-        // Heavy terminal velocity ≈ negligible drag over the short hop; drop over 0.3s is ~44cm,
+        // Heavy terminal velocity ~ negligible drag over the short hop; drop over 0.3s is ~44cm,
         // well inside the 150cm target radius
         auto TrajectoryParams = FCk_Ballistic_TrajectoryParams(FVector(0.0, 0.0, -100000.0));
         auto MotionParams = FCk_Fragment_BallisticMotion_ParamsData(TrajectoryParams);

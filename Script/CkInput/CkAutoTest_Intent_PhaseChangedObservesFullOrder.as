@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: EVERY TRANSITION, IN ORDER, ONCE
+// CK INTENT - AUTOMATION TEST: EVERY TRANSITION, IN ORDER, ONCE
 //============================================================================
 //
-// A phase cannot change without its signal. That is enforced structurally —
-// one writer owns the phase fields and broadcasts from inside itself — and
+// A phase cannot change without its signal. That is enforced structurally
+// one writer owns the phase fields and broadcasts from inside itself - and
 // this is the test that would catch it coming apart.
 //
 // A charged move is driven through its entire life in one press and the
@@ -26,7 +26,7 @@
 // window is chosen so the whole lifecycle fits comfortably inside the test.
 //
 // Only the charged move's transitions are recorded. Its tap rival is
-// transitioning too — Idle -> Pending -> Idle as it loses — and filtering by
+// transitioning too - Idle -> Pending -> Idle as it loses - and filtering by
 // name in the handler is how a consumer of this signal is meant to work,
 // since identity rides the payload rather than the subscription.
 //============================================================================
@@ -146,7 +146,7 @@ class UCk_AutoTest_Intent_PhaseChangedObservesFullOrder : UCk_AutoTest_Base
     private void Step_AssertLifecycle(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_FromPhases.Num(), 3,
-            "the charged move's whole life is three transitions — a writer that also fired on unchanged phases would add noise a consumer would replay as gameplay");
+            "the charged move's whole life is three transitions - a writer that also fired on unchanged phases would add noise a consumer would replay as gameplay");
 
         if (_FromPhases.Num() != 3)
         { return; }

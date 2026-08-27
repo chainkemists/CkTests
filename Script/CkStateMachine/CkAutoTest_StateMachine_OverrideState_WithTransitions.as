@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: OVERRIDE STATE'S OWN TRANSITIONS ACTIVE
+// CK STATE MACHINE - AUTOMATION TEST: OVERRIDE STATE'S OWN TRANSITIONS ACTIVE
 //============================================================================
 //
 // Extends AddOverrideState_ReplacesBaseState: not only does the override state
 // replace the base as the resolved current state, its OWN DefineState graph is
-// active — the replacement declares a transition the base never had, and that
+// active - the replacement declares a transition the base never had, and that
 // transition drives the SM onward.
 //
 // Topology: initial=Base (a sink). Override Base with Replacement, which adds a
@@ -20,7 +20,7 @@ UCLASS()
 class UCk_SmOvrTransTest_Base : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle) { /* sink — no transitions */ }
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle) { /* sink - no transitions */ }
 };
 
 UCLASS()

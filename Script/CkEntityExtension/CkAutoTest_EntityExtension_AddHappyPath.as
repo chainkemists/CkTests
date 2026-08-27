@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY EXTENSION — AUTOMATION TEST: Add happy path
+// CK ENTITY EXTENSION - AUTOMATION TEST: Add happy path
 // Add a child entity as an extension to the owner; the returned handle is
 // valid and Get_ExtensionOwner reports the owner.
 

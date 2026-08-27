@@ -1,21 +1,21 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT — AUTOMATION TEST: SCRIPT-LITERAL IMC POPULATES THE KEY PROFILE
+// CK INPUT - AUTOMATION TEST: SCRIPT-LITERAL IMC POPULATES THE KEY PROFILE
 //============================================================================
 //
 // The prerequisite every other CkInput key-binding test rests on: that
 // AngelScript-authored Enhanced Input content actually reaches the local
 // player's key profile. Registers IMC_CkTests_KeyBinding through
-// UEnhancedInputUserSettings::RegisterInputMappingContext — the same call
+// UEnhancedInputUserSettings::RegisterInputMappingContext - the same call
 // UCk_KeyBinding_Subsystem::Initialize makes for asset-registry-scanned
-// contexts (CkKeyBinding_Subsystem.cpp:62) — then reads the profile back
+// contexts (CkKeyBinding_Subsystem.cpp:62) - then reads the profile back
 // through the shipped Ck surface.
 //
 // Without this the profile is empty, Get_AllRemappableKeys returns an empty
 // array, and every remap / conflict / reset test passes while exercising
 // nothing. Assert the count against input_assets::k_MappableRowCount rather
-// than a bare "non-empty" so adding content without adding coverage is red —
+// than a bare "non-empty" so adding content without adding coverage is red
 // but count ONLY CkTests_-prefixed rows: the key profile is per-player and
 // SHARED with the host project, which registers its own mappable actions
 // (BusterBlock alone contributes 9 IA_* rows), so a global count can never
@@ -25,7 +25,7 @@
 // UnregisterInputMappingContext only drops the context from the registered set
 // (EnhancedInputUserSettings.cpp:1789-1792); the rows it added stay in the key
 // profile for the rest of the PIE session and Enhanced Input ships no API to
-// remove them. Nothing reaches disk — SaveKeyBindings is never called here — and
+// remove them. Nothing reaches disk - SaveKeyBindings is never called here - and
 // re-registration is idempotent (a row already in the same slot is updated, not
 // duplicated), so the count is stable across repeat runs in one session.
 //============================================================================
@@ -38,7 +38,7 @@ class UCk_AutoTest_Input_RemappableKeysRegistered : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the key profile lives on the local player");
+            FinishFailure("no local PlayerController - the key profile lives on the local player");
             return;
         }
 
@@ -69,7 +69,7 @@ class UCk_AutoTest_Input_RemappableKeysRegistered : UCk_AutoTest_Base
             { NumCkTestsRows++; }
         }
         Assert_Equals_Int(NumCkTestsRows, input_assets::k_MappableRowCount,
-            f"CkTests_-prefixed player-mappable rows in the active key profile (host-project rows excluded) — all rows:{ProfileDump}");
+            f"CkTests_-prefixed player-mappable rows in the active key profile (host-project rows excluded) - all rows:{ProfileDump}");
 
         Assert_True(utils_key_binding::Get_MappingNamesForKey(PlayerController, EKeys::SpaceBar).Contains(n"CkTests_Jump"),
             "SpaceBar is registered under the CkTests_Jump mapping name");

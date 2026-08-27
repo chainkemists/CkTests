@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: MULTI-CELL OCCUPANCY + ENUMERATION + REMOVAL
+// CK GRID - AUTOMATION TEST: MULTI-CELL OCCUPANCY + ENUMERATION + REMOVAL
 //============================================================================
 //
 // BasicPlacement only covers a 1x1 place. This pins the multi-cell path of the

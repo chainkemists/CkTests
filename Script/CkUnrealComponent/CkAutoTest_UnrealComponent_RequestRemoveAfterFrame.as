@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK UNREAL COMPONENT — AUTOMATION TEST: Request_Remove tears down the child entity
+// CK UNREAL COMPONENT - AUTOMATION TEST: Request_Remove tears down the child entity
 // After Request_Remove the child entity is destroyed, leaving the handle invalid
 // and the owner's Get_AllHandles list empty.
 

@@ -106,12 +106,12 @@ class UCkAudioGym_Advanced_Base : UCk_GenericEntityScript_UE
         utils_ism_proxy::Add(TransformHandle, IsmProxyParams);
 
         // Print station information to console for now
-        Print("🎯 Station Created: " + StationName, 5.0f);
-        Print("📝 Description: " + StationDescription, 5.0f);
-        Print("🎨 Color Theme Applied", 3.0f);
-        Print("📐 Large Testing Area Created", 3.0f);
-        Print("📍 Position: Transform applied", 3.0f);
-        Print("📏 Scale: Using utility function for 1040x1040x1040 background cube", 3.0f);
+        Print("* Station Created: " + StationName, 5.0f);
+        Print("* Description: " + StationDescription, 5.0f);
+        Print("* Color Theme Applied", 3.0f);
+        Print("* Large Testing Area Created", 3.0f);
+        Print("* Position: Transform applied", 3.0f);
+        Print("* Scale: Using utility function for 1040x1040x1040 background cube", 3.0f);
 
         // Bind overlaps to base class functions that derived classes can override
         utils_probe::BindTo_OnBeginOverlap(ProbeHandle,
@@ -200,11 +200,11 @@ class UCkAudioGym_Advanced_Base : UCk_GenericEntityScript_UE
 
         if (IsAudioPlaying)
         {
-            Print("🎵 Audio playing at: " + StationName, 2.0f);
+            Print("* Audio playing at: " + StationName, 2.0f);
         }
         else
         {
-            Print("🔇 Audio stopped at: " + StationName, 2.0f);
+            Print("* Audio stopped at: " + StationName, 2.0f);
         }
     }
 

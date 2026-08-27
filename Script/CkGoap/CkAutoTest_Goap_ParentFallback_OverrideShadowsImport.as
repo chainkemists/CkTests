@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PARENT-FALLBACK OVERRIDE SHADOWS IMPORT
+// CK GOAP - AUTOMATION TEST: PARENT-FALLBACK OVERRIDE SHADOWS IMPORT
 //============================================================================
 //
-// Validates the snapshot merge ordering (WsParentFallback design §3.5 +
+// Validates the snapshot merge ordering (WsParentFallback design Sec.3.5 +
 // decision 2): a SUB-side override layer on an imported key shadows the
-// parent's value for both reads and the plan snapshot — the sub-planner can
+// parent's value for both reads and the plan snapshot - the sub-planner can
 // hypothesize a shared gate true without touching the parent.
 //============================================================================
 
@@ -73,7 +73,7 @@ class UCk_AutoTest_Goap_ParentFallback_OverrideShadowsImport : UCk_AutoTest_Base
     {
         utils_goap_world_state::Push_Override_SingleKey(_Sub, n"hypothesis", SharedKey(), true);
 
-        // Push is synchronous — the effective read flips on this very stack.
+        // Push is synchronous - the effective read flips on this very stack.
         Assert_True(utils_goap_world_state::Get_Value(_Sub, SharedKey()),
             "sub override must shadow the imported key's parent value immediately");
         Assert_True(utils_goap_world_state::Get_Value(_Parent, SharedKey()) == false,

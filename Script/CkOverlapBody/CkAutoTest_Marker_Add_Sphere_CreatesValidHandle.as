@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK OVERLAP BODY — AUTOMATION TEST: Marker Add (Sphere) creates valid handle
+// CK OVERLAP BODY - AUTOMATION TEST: Marker Add (Sphere) creates valid handle
 //============================================================================
 //
 // Sphere variant of the Box seed. Pins that ECk_ShapeType::Sphere +
 // FCk_SphereRadius produces a valid FCk_Handle_Marker through
 // utils_marker::Add.
 //
-// 50 cm sphere radius — non-zero so the Marker Setup's UShapeComponent
+// 50 cm sphere radius - non-zero so the Marker Setup's UShapeComponent
 // attachment doesn't degenerate.
 //============================================================================
 

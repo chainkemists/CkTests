@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE — AUTOMATION TEST: NON-UNIFORM PARENT SCALE PROPAGATION
+// CK SCENE NODE - AUTOMATION TEST: NON-UNIFORM PARENT SCALE PROPAGATION
 //============================================================================
 //
 // Existing OffsetUpdates uses an identity-transform parent (parent at world

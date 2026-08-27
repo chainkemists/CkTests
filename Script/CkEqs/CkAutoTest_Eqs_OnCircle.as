@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — AUTOMATION TEST: ONCIRCLE GENERATOR
+// CK EQS - AUTOMATION TEST: ONCIRCLE GENERATOR
 //============================================================================
 //
 // Verifies ECk_Eqs_GeneratorType::OnCircle produces the correct ring geometry:
-//   1. OnCircle: Radius=300, NumPoints=8, ArcAngle=360 → 8 evenly-spaced
+//   1. OnCircle: Radius=300, NumPoints=8, ArcAngle=360 -> 8 evenly-spaced
 //      candidates on a flat ring at the querier's Z.
 //   2. AllMatching with a neutral Score-only Distance test returns all 8.
 //   3. Each candidate must be within 1cm of radius 300 from the querier.
-//   4. Partial arc: ArcAngle=180 → 8 candidates across a half-ring. The
+//   4. Partial arc: ArcAngle=180 -> 8 candidates across a half-ring. The
 //      generator uses ArcAngle/NumPoints (= 22.5deg step here, matching the
 //      Donut convention); points span [-90,90] less one final step.
 //============================================================================
@@ -65,7 +65,7 @@ class UCk_AutoTest_Eqs_OnCircle : UCk_AutoTest_Base
         Assert_Equals_Int(InResults.Get_Candidates().Num(), 8,
             f"OnCircle 360deg should produce exactly 8 candidates (got {InResults.Get_Candidates().Num()})");
 
-        // Every candidate must be on the ring — distance from querier ≈ 300cm.
+        // Every candidate must be on the ring - distance from querier ~ 300cm.
         auto Candidates = InResults.Get_Candidates();
         for (int32 i = 0; i < Candidates.Num(); i++)
         {

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: ON_UPDATE FIRES EVERY TICK WHILE ACTIVE
+// CK TIMER - AUTOMATION TEST: ON_UPDATE FIRES EVERY TICK WHILE ACTIVE
 //============================================================================
 //
 // Pins the OnUpdate signal contract:

@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PARENT-FALLBACK READ-THROUGH
+// CK GOAP - AUTOMATION TEST: PARENT-FALLBACK READ-THROUGH
 //============================================================================
 //
-// Validates chain-aware Get_Value (WsParentFallback design §3.3): a key that
+// Validates chain-aware Get_Value (WsParentFallback design Sec.3.3): a key that
 // is not registered on the sub-WS at all reads through to the parent's value.
-// No planner involved — this is the pure miss-path fallback.
+// No planner involved - this is the pure miss-path fallback.
 //============================================================================
 
 class UCk_AutoTest_Goap_ParentFallback_ReadThrough : UCk_AutoTest_Base

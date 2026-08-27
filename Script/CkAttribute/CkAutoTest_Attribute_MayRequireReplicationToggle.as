@@ -1,23 +1,23 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: MayRequireReplicationThisFrame toggle
+// CK ATTRIBUTE - AUTOMATION TEST: MayRequireReplicationThisFrame toggle
 //============================================================================
 //
 // Pins the FTag_MayRequireReplication toggle contract:
-//   1. A mutation on a replicated attribute sets the tag IMMEDIATELY —
+//   1. A mutation on a replicated attribute sets the tag IMMEDIATELY
 //      Get_MayRequireReplicationThisFrame == true in the same script
 //      pass as Request_Override.
 //   2. The Replicate processor (FGroup_Replication) clears the tag on
-//      its next pass — Get_MayRequireReplicationThisFrame == false
+//      its next pass - Get_MayRequireReplicationThisFrame == false
 //      after one WaitOneFrame.
 //   3. The same mutation on a DoesNotReplicate attribute NEVER sets the
-//      tag — Request_TryReplicateAttribute early-returns when
+//      tag - Request_TryReplicateAttribute early-returns when
 //      FTag_ReplicatedAttribute is absent.
 //
 // Why this matters: the tag is the single source of truth for "this
 // attribute has pending replication". Drift in either direction breaks
-// replication scheduling — either pushing redundant data every frame, or
+// replication scheduling - either pushing redundant data every frame, or
 // missing pushes after a mutation. The Replicate processor body in
 // CkAttribute_Processor.inl.h ends with InHandle.Remove<MarkedDirtyBy>(),
 // so the tag's lifetime is exactly one processor pass from set to clear.
@@ -73,7 +73,7 @@ class UCk_AutoTest_Attribute_MayRequireReplicationToggle : UCk_AutoTest_Base
 
         auto FlagNotReplicatedNow = utils_float_attribute::Get_MayRequireReplicationThisFrame(_NotReplicated);
         Assert_True(!FlagNotReplicatedNow,
-            "Non-replicated attribute must NOT have MayRequireReplication set — Request_TryReplicateAttribute gates on FTag_ReplicatedAttribute and early-returns when absent");
+            "Non-replicated attribute must NOT have MayRequireReplication set - Request_TryReplicateAttribute gates on FTag_ReplicatedAttribute and early-returns when absent");
 
         WaitUntil(n"Check_ReplicationFlagCleared", n"OnAfterReplicateProcessor");
     }
@@ -83,8 +83,8 @@ class UCk_AutoTest_Attribute_MayRequireReplicationToggle : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // The timer callback fires in FGroup_Gameplay_TimeDelta — BEFORE this frame's
-        // FGroup_Replication slot — so a single fixed wait can observe the tag in the window
+        // The timer callback fires in FGroup_Gameplay_TimeDelta - BEFORE this frame's
+        // FGroup_Replication slot - so a single fixed wait can observe the tag in the window
         // between the value settling (same-frame via pumps) and the next Replicate pass
         // consuming it. Poll until the Replicate pass has run; the assert below then pins
         // that the tag DID clear (a sticky tag fails via the bounded retry).

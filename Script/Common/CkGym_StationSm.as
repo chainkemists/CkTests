@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// GYM STATION STATE MACHINE — HFSM-DRIVEN STEP SEQUENCES
+// GYM STATION STATE MACHINE - HFSM-DRIVEN STEP SEQUENCES
 //============================================================================
 //
 // Replaces the `AutoStep % TotalSteps` + if-else dispatch that gym stations
@@ -10,7 +10,7 @@
 //
 // Why. The integer-and-if-else shape is the exact anti-pattern CkStateMachine
 // exists to remove ("Don't encode state transition logic in raw if-else chains
-// in a Processor" — CkStateMachine/Claude.md). It also made the step list a
+// in a Processor" - the CkStateMachine docs). It also made the step list a
 // LIE: FCkGym_AutoStep carried Description/FirstIndex/LastIndex purely for the
 // HUD while the real control flow lived in a modulo, so the two drifted freely.
 // Under an SM the HUD reads the live current state, so what is displayed is
@@ -48,27 +48,27 @@
 // old stations had and makes each step independently inspectable.
 //
 // DETERMINISM. DoDefineState output is structurally hashed and must be
-// identical across machines (CkStateMachine/Claude.md, "DefineState
+// identical across machines (the CkStateMachine docs, "DefineState
 // determinism"). Gyms are local-only, but keep DefineState free of
-// conditionals anyway — divergence faults the SM outright rather than
+// conditionals anyway - divergence faults the SM outright rather than
 // degrading.
 //
 //============================================================================
 
 //============================================================================
-// DWELL CONDITIONS — how long a step holds before advancing
+// DWELL CONDITIONS - how long a step holds before advancing
 //============================================================================
 //
 // WHY NOT UCk_SmCondition_Timer. The framework's timer condition adds a plain
 // CkTimer on the condition entity and MarkSatisfied()s from its OnDone
 // (CkSmCondition_Timer.cpp:18-27). That timer ticks with the game and never
-// consults the owning SM's run status — so while the SM is paused the dwell
+// consults the owning SM's run status - so while the SM is paused the dwell
 // still elapses, the condition latches Pass, and the moment the station is
 // un-paused the transition fires immediately. For a demo station whose auto
 // toggle IS an SM pause, that makes pause look broken: you pause to study a
 // step, and it advances the instant you resume.
 //
-// This mirrors UCk_SmTest_Condition_AfterDelay instead — the in-tree pattern
+// This mirrors UCk_SmTest_Condition_AfterDelay instead - the in-tree pattern
 // that re-arms while the owner is paused. A dwell interrupted by a pause is
 // re-armed in full on the pause check, so resuming gives the step a fresh
 // dwell rather than an instant jump.
@@ -126,7 +126,7 @@ class UCk_Gym_Dwell_Long : UCk_Gym_Dwell
 UCLASS()
 class UCk_Gym_StepState : UCk_SmState_EntityScript
 {
-    // The gym station entity this step is running against — the SM's context
+    // The gym station entity this step is running against - the SM's context
     // owner. Everything a step touches goes through this handle and utils_*,
     // never through the station script object.
     FCk_Handle Get_StationEntity() const
@@ -136,7 +136,7 @@ class UCk_Gym_StepState : UCk_SmState_EntityScript
 }
 
 //============================================================================
-// DISPLAY CONFIG — the HUD's view of the sequence
+// DISPLAY CONFIG - the HUD's view of the sequence
 //============================================================================
 
 // One row on the station panel, bound to the state class that IS that step.
@@ -166,13 +166,13 @@ struct FCkGym_SmConfig
 }
 
 //============================================================================
-// NAMESPACE — setup, auto toggle, display
+// NAMESPACE - setup, auto toggle, display
 //============================================================================
 
 namespace gym_sm
 {
     //------------------------------------------------------------------------
-    // Setup — call from DoConstruct. Adds the state machine to the station
+    // Setup - call from DoConstruct. Adds the state machine to the station
     // entity; it auto-starts on setup, so the first step enters on its own.
     //------------------------------------------------------------------------
 
@@ -187,7 +187,7 @@ namespace gym_sm
     }
 
     //------------------------------------------------------------------------
-    // Auto on/off — the Ck_Gym*_Auto console toggle. Pausing the SM freezes it
+    // Auto on/off - the Ck_Gym*_Auto console toggle. Pausing the SM freezes it
     // in the current step (dwell conditions stop advancing) rather than
     // tearing the graph down, so resuming continues the demo where it stopped.
     //------------------------------------------------------------------------
@@ -204,14 +204,14 @@ namespace gym_sm
     // migrating station swaps the namespace and the timer handle for the SM
     // handle rather than hand-rolling payload parsing 36 times.
     //
-    // StopAuto — call from a manual message handler: a viewer poking a manual
+    // StopAuto - call from a manual message handler: a viewer poking a manual
     // command means they want the demo to hold still.
     void StopAuto(FCk_Handle_StateMachine InSm)
     {
         Request_SetAutoRunning(InSm, false);
     }
 
-    // HandleAutoSet — call from the station's OnAutoSet UFUNCTION. Mirrors
+    // HandleAutoSet - call from the station's OnAutoSet UFUNCTION. Mirrors
     // gym_auto::HandleAutoSet (CkGym_AutoStation.as:131): same
     // FCk_Message_Gym_AutoSet transport, so the Ck_Gym*_Auto console toggle
     // drives migrated and unmigrated stations identically.
@@ -236,7 +236,7 @@ namespace gym_sm
     }
 
     //------------------------------------------------------------------------
-    // Display helpers — drop-in replacements for the gym_auto formatters,
+    // Display helpers - drop-in replacements for the gym_auto formatters,
     // sourced from the SM's live state instead of an integer.
     //------------------------------------------------------------------------
 

@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE THUMB KEEPS HOLDING, THE CHARGE DOES NOT
+// CK INTENT - AUTOMATION TEST: THE THUMB KEEPS HOLDING, THE CHARGE DOES NOT
 //============================================================================
 //
 // The fact/policy split, made observable. A modal opens while the player is
 // mid-charge. Two things are true at once and a design that collapses them
 // gets one of them wrong:
 //
-//   the FACT   — the button is still physically down, and the record still
+//   the FACT   - the button is still physically down, and the record still
 //                says so, because a record that lied about the hardware
 //                would be useless for replay, debugging and rollback alike
-//   the POLICY — this layer stopped receiving the input, so its charge is
+//   the POLICY - this layer stopped receiving the input, so its charge is
 //                over. v1 ships the conservative default pair, and the loss
 //                half of it is Cancel.
 //
@@ -20,7 +20,7 @@
 // value read twice.
 //
 // The mask is applied MID-HOLD, after the pending window is observed, so the
-// cancel is a transition rather than a state the episode was born into — an
+// cancel is a transition rather than a state the episode was born into - an
 // implementation that only checked deliverability at the press would pass a
 // naive version of this test and fail this one.
 //============================================================================
@@ -124,13 +124,13 @@ class UCk_AutoTest_Intent_DeliveryLossCancelsHold : UCk_AutoTest_Base
     {
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_Loss_Quick") ==
                     ECk_Intent_Phase::Failed,
-            "the whole ambiguity was cancelled, not just the hold half — the press answered nothing at all");
+            "the whole ambiguity was cancelled, not just the hold half - the press answered nothing at all");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Loss_Charged"), -1,
             "a cancelled charge names no completion frame, however far it had got");
 
         Assert_True(DoContainsPunch(utils_intent_sampler::Get_LatestFrame(_Sampler).Get_Held()),
-            "the record still reports the button down — a mask changes who RECEIVES the input, never what the hardware is doing, and a record that hid that could not be replayed");
+            "the record still reports the button down - a mask changes who RECEIVES the input, never what the hardware is doing, and a record that hid that could not be replayed");
     }
 
     //------------------------------------------------------------------------

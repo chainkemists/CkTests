@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — AUTOMATION TEST: Request_TryRemove on absent returns Failed
+// CK DYNAMIC - AUTOMATION TEST: Request_TryRemove on absent returns Failed
 //============================================================================
 //
 // Pins the contract that Request_TryRemove on an entity that does not

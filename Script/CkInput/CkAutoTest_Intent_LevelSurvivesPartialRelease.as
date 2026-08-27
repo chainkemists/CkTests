@@ -1,23 +1,23 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE STATE IS THE BUTTON'S, NOT ONE KEY'S
+// CK INTENT - AUTOMATION TEST: THE STATE IS THE BUTTON'S, NOT ONE KEY'S
 //============================================================================
 //
 // A Mapped button carries every bound slot's key, so "is this button down?"
 // is a question about the UNION of its keys. A level intent's state is
-// exactly that question asked every frame — which makes the union the one
+// exactly that question asked every frame - which makes the union the one
 // place a naive implementation will get it wrong, by remembering the key the
 // activating press arrived on and closing the state when that key comes up.
 //
 // So the player opens the state on the keyboard, puts a thumb on the second
 // binding, and lifts the keyboard key. The button never came up. The state
-// must not notice — and the activation frame must still be the ORIGINAL one,
+// must not notice - and the activation frame must still be the ORIGINAL one,
 // because a state that quietly closed and reopened would look identical to a
 // surviving one on a phase poll alone. The frame is the discriminator.
 //
 // Both keys are keyboard keys (F8 and F12). The device class on an injected
-// event is a LABEL the record carries, not a second identity — the held-union
+// event is a LABEL the record carries, not a second identity - the held-union
 // is key-space and device-agnostic. Injecting the second press as Gamepad
 // exercises the injection path's device-class handling and nothing more; a
 // reader should not infer that a real gamepad is involved, nor that the union
@@ -29,7 +29,7 @@
 // pass without exercising anything.
 //
 // CkTests_DualBound stays on its authored F8/F12 defaults for the whole test
-// — no key binding is mutated, so there is nothing to reset on teardown.
+// - no key binding is mutated, so there is nothing to reset on teardown.
 //============================================================================
 
 class UCk_AutoTest_Intent_LevelSurvivesPartialRelease : UCk_AutoTest_Base
@@ -62,7 +62,7 @@ class UCk_AutoTest_Intent_LevelSurvivesPartialRelease : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 
@@ -102,18 +102,18 @@ class UCk_AutoTest_Intent_LevelSurvivesPartialRelease : UCk_AutoTest_Base
         Add_Step(          "bake the level intent on the dual-bound button",      n"Step_SwapSet");
         Add_Step_WaitUntil("the swap registers captures for BOTH keys",           n"Check_CapturesBothKeys");
 
-        Add_Step(          "press the PRIMARY key — the state opens on it",       n"Step_PressPrimary");
+        Add_Step(          "press the PRIMARY key - the state opens on it",       n"Step_PressPrimary");
         Add_Step_WaitUntil("the state opens",                                     n"Check_Active");
         Add_Step(          "record the activation frame",                         n"Step_RecordActivation");
 
         Add_Step(          "press the SECONDARY key while the primary is down",   n"Step_PressSecondary");
         Add_Step_WaitUntil("the secondary press reaches the record",              n"Check_SecondaryPressRecorded");
 
-        Add_Step(          "release the PRIMARY key — the one it opened on",      n"Step_ReleasePrimary");
+        Add_Step(          "release the PRIMARY key - the one it opened on",      n"Step_ReleasePrimary");
         Add_Step_WaitUntil("the primary release reaches the record",              n"Check_PrimaryReleaseRecorded");
         Add_Step(          "assert the state survived, unmoved",                  n"Step_AssertStillActive");
 
-        Add_Step(          "release the SECONDARY key — the last one down",       n"Step_ReleaseSecondary");
+        Add_Step(          "release the SECONDARY key - the last one down",       n"Step_ReleaseSecondary");
         Add_Step_WaitUntil("the state closes",                                    n"Check_Idle");
         Add_Step(          "assert four edges produced exactly two transitions",  n"Step_AssertTransitions");
 
@@ -182,7 +182,7 @@ class UCk_AutoTest_Intent_LevelSurvivesPartialRelease : UCk_AutoTest_Base
     {
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_Level_Drag") ==
                     ECk_Intent_Phase::Active,
-            "the key the state opened on came up while a co-bound key stayed down — the BUTTON never came up, so the state must still be on");
+            "the key the state opened on came up while a co-bound key stayed down - the BUTTON never came up, so the state must still be on");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_ActivationFrame_ByName(_Matcher, n"AS_Level_Drag"),
             _ActivationFrame,

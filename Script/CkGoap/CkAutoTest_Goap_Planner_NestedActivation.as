@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER CHAIN GROWTH
+// CK GOAP - AUTOMATION TEST: PLANNER CHAIN GROWTH
 //============================================================================
 //
-// Validates §9 row 2: "Plan[0] is a composite Action → chain extends,
+// Validates Sec.9 row 2: "Plan[0] is a composite Action -> chain extends,
 // OnPlannerActivated fires."
 //
 // Setup reuses the GoalIsEffects action class hierarchy:
 //   - Root CDO effect: AKey=true. _InitialGoal_RootOnly: {BKey=true}.
-//   - Mid (child of Root): effect BKey=true → satisfies Root's goal.
-//     Mid is composite (has LeafB as child) → ChainUpdate extends the chain.
-//   - LeafB (child of Mid): effect BKey=true → satisfies Mid's goal.
+//   - Mid (child of Root): effect BKey=true -> satisfies Root's goal.
+//     Mid is composite (has LeafB as child) -> ChainUpdate extends the chain.
+//   - LeafB (child of Mid): effect BKey=true -> satisfies Mid's goal.
 //
 // Phase 1: Bind OnPlannerActivated on Mid immediately in DoBeginPlay
 //   (before ChainUpdate can activate Mid). The binding policy is
@@ -88,14 +88,14 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_MidAsPlanner), "Mid PromoteActionToPlanner should succeed");
         auto MidAsPlanner = _MidAsPlanner;
 
-        // Add LeafB as a tree child of promoted Mid — makes Mid composite so
+        // Add LeafB as a tree child of promoted Mid - makes Mid composite so
         // UpdateActivation extends the chain through Mid.
         auto LeafBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_LeafB_GoalIsEffects);
         auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
         Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
 
-        // Bind OnPlannerActivated on Mid NOW — before UpdateActivation runs — so
+        // Bind OnPlannerActivated on Mid NOW - before UpdateActivation runs - so
         // we cannot miss the activation signal.
         utils_goap_planner::BindTo_OnPlannerActivated(_MidAsPlanner,
             FCk_Delegate_Goap_OnPlannerActivated(this, n"OnMidActivated"));
@@ -126,7 +126,7 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
     }
 
     // Counts only. This previously ALSO asserted and called FinishSuccess, as did
-    // the chain poll — two completion paths racing, so whichever fired first
+    // the chain poll - two completion paths racing, so whichever fired first
     // decided the verdict and the other's assertions never ran. The wait below is
     // now the single path to a verdict; the exactly-once contract on this signal
     // is asserted there.
@@ -156,7 +156,7 @@ class UCk_AutoTest_Goap_Planner_NestedActivation : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         // PR-B.1b Stage 5: the chain starts at Plan[0] (Mid), then walks Mid's
-        // Plan[0] (LeafB) — so the chain is [Mid, LeafB].
+        // Plan[0] (LeafB) - so the chain is [Mid, LeafB].
         auto Chain = utils_goap_planner::Get_ActiveChain(_Planner);
         Assert_True(Chain.Num() >= 1,
             f"ActiveChain should include Mid (got {Chain.Num()})");

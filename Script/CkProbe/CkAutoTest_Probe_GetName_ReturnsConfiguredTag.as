@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE — AUTOMATION TEST: GET_NAME ROUND-TRIPS THE CONFIGURED TAG
+// CK PROBE - AUTOMATION TEST: GET_NAME ROUND-TRIPS THE CONFIGURED TAG
 //============================================================================
 //
 // Pins the parameter round-trip for FCk_Fragment_Probe_ParamsData._ProbeName:
 // the name tag passed to the Probe params constructor is the same tag
-// Get_Name(probe) returns immediately after Add — no settle frame, no
+// Get_Name(probe) returns immediately after Add - no settle frame, no
 // processor pass needed, because _ProbeName is a constant-after-construction
 // fragment field.
 //============================================================================

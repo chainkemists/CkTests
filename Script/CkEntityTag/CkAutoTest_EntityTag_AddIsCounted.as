@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: ADD IS COUNTED
+// CK ENTITY TAG - AUTOMATION TEST: ADD IS COUNTED
 //============================================================================
 //
 // Adds the same FName tag three times, then removes twice. The tag is still

@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: WSOverrideStack Root host
+// CK GOAP - AUTOMATION TEST ACTION: WSOverrideStack Root host
 //============================================================================
 //
 // Implicit-root host for the WSOverrideStack tests. The planner's goal is
 // {Goal=true}; OpA / OpB are the two candidate operators registered as
-// children of this root. The root itself is never picked by the planner —
+// children of this root. The root itself is never picked by the planner
 // only its children are. Effect declared so the action can be a valid root
 // (CDO must have something to define).
 //============================================================================

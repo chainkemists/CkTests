@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT PLAYGROUND GYM — GameMode
+// CK INPUT PLAYGROUND GYM - GameMode
 //============================================================================
 //
 // A drivable playground for the CkInput / CkIntent surface: one capsule pawn on

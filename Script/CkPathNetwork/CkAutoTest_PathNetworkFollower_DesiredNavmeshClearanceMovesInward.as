@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: DESIRED NAVMESH CLEARANCE MOVES INWARD
+// CK PATH NETWORK - AUTOMATION TEST: DESIRED NAVMESH CLEARANCE MOVES INWARD
 //============================================================================
 //
 // The test discovers the AutoTests level's north Recast boundary, then places a
@@ -157,7 +157,7 @@ class UCk_AutoTest_PathNetworkFollower_DesiredNavmeshClearanceMovesInward
             ECk_Signal_BindingPolicy::FireIfPayloadInFlightThisFrame,
             ECk_Signal_PostFireBehavior::DoNothing);
 
-        // The next hop asserts Get_IsBuilt — wait on exactly that rather than on a frame.
+        // The next hop asserts Get_IsBuilt - wait on exactly that rather than on a frame.
         WaitUntil(n"Check_NetworkBuilt", n"OnNetworkReady");
     }
 

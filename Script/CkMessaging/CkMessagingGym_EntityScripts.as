@@ -83,7 +83,7 @@ class UCk_EntityScript_MessagingGym_Basic : UCk_GenericEntityScript_UE
         PingCount++;
         LastSender = TypedPayload.Sender;
         LastSequence = TypedPayload.SequenceNumber;
-        ck::Trace(f"📨 Basic: Ping #{TypedPayload.SequenceNumber} from {TypedPayload.Sender}");
+        ck::Trace(f"* Basic: Ping #{TypedPayload.SequenceNumber} from {TypedPayload.Sender}");
     }
 
     UFUNCTION()
@@ -92,7 +92,7 @@ class UCk_EntityScript_MessagingGym_Basic : UCk_GenericEntityScript_UE
         PingCount = 0;
         LastSequence = -1;
         LastSender = "N/A";
-        ck::Trace("✅ Basic: Counters reset");
+        ck::Trace("[OK] Basic: Counters reset");
     }
 }
 
@@ -180,7 +180,7 @@ class UCk_EntityScript_MessagingGym_MultiListener : UCk_GenericEntityScript_UE
         ListenerA_Count = 0;
         ListenerB_Count = 0;
         ListenerC_Count = 0;
-        ck::Trace("✅ MultiListener: Counters reset");
+        ck::Trace("[OK] MultiListener: Counters reset");
     }
 }
 
@@ -258,7 +258,7 @@ class UCk_EntityScript_MessagingGym_OneShot : UCk_GenericEntityScript_UE
     {
         PingCount++;
         IsListening = false;
-        ck::Trace(f"📨 OneShot: Ping received (count: {PingCount}), listener now unbound");
+        ck::Trace(f"* OneShot: Ping received (count: {PingCount}), listener now unbound");
     }
 
     UFUNCTION()
@@ -266,7 +266,7 @@ class UCk_EntityScript_MessagingGym_OneShot : UCk_GenericEntityScript_UE
     {
         PingCount = 0;
         Request_BindOneShot(ck::ToEntity(this));
-        ck::Trace("✅ OneShot: Reset and re-armed");
+        ck::Trace("[OK] OneShot: Reset and re-armed");
     }
 }
 
@@ -338,7 +338,7 @@ class UCk_EntityScript_MessagingGym_DynamicBind : UCk_GenericEntityScript_UE
     private void OnPing(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
         PingCount++;
-        ck::Trace(f"📨 DynamicBind: Ping received (count: {PingCount})");
+        ck::Trace(f"* DynamicBind: Ping received (count: {PingCount})");
     }
 
     UFUNCTION()
@@ -351,14 +351,14 @@ class UCk_EntityScript_MessagingGym_DynamicBind : UCk_GenericEntityScript_UE
             utils_messaging::UnbindFrom_OnBroadcast(SelfEntity, FCk_Message_MessagingGym_Ping, FCk_Delegate_Messaging_OnBroadcast(this, n"OnPing"));
             IsBound = false;
             UnbindCount++;
-            ck::Trace("🔓 DynamicBind: Ping listener UNBOUND");
+            ck::Trace("* DynamicBind: Ping listener UNBOUND");
         }
         else
         {
             utils_messaging::BindTo_OnBroadcast(SelfEntity, FCk_Message_MessagingGym_Ping, FCk_Delegate_Messaging_OnBroadcast(this, n"OnPing"));
             IsBound = true;
             BindCount++;
-            ck::Trace("🔒 DynamicBind: Ping listener BOUND");
+            ck::Trace("* DynamicBind: Ping listener BOUND");
         }
     }
 
@@ -376,7 +376,7 @@ class UCk_EntityScript_MessagingGym_DynamicBind : UCk_GenericEntityScript_UE
         PingCount = 0;
         BindCount = 1;
         UnbindCount = 0;
-        ck::Trace("✅ DynamicBind: Reset and rebound");
+        ck::Trace("[OK] DynamicBind: Reset and rebound");
     }
 }
 
@@ -453,7 +453,7 @@ class UCk_EntityScript_MessagingGym_MultiType : UCk_GenericEntityScript_UE
         auto TypedPayload = InPayload.Get(FCk_Message_MessagingGym_Ping);
         PingCount++;
         LastPingSender = TypedPayload.Sender;
-        ck::Trace(f"📨 MultiType: Ping from {TypedPayload.Sender}");
+        ck::Trace(f"* MultiType: Ping from {TypedPayload.Sender}");
     }
 
     UFUNCTION()
@@ -462,7 +462,7 @@ class UCk_EntityScript_MessagingGym_MultiType : UCk_GenericEntityScript_UE
         auto TypedPayload = InPayload.Get(FCk_Message_MessagingGym_Pong);
         PongCount++;
         LastPongResponder = TypedPayload.Responder;
-        ck::Trace(f"📨 MultiType: Pong from {TypedPayload.Responder}");
+        ck::Trace(f"* MultiType: Pong from {TypedPayload.Responder}");
     }
 
     UFUNCTION()
@@ -472,7 +472,7 @@ class UCk_EntityScript_MessagingGym_MultiType : UCk_GenericEntityScript_UE
         AlertCount++;
         LastAlertText = TypedPayload.AlertText;
         LastAlertPriority = TypedPayload.Priority;
-        ck::Trace(f"📨 MultiType: Alert '{TypedPayload.AlertText}' P{TypedPayload.Priority}");
+        ck::Trace(f"* MultiType: Alert '{TypedPayload.AlertText}' P{TypedPayload.Priority}");
     }
 
     UFUNCTION()
@@ -485,6 +485,6 @@ class UCk_EntityScript_MessagingGym_MultiType : UCk_GenericEntityScript_UE
         LastPongResponder = "N/A";
         LastAlertText = "N/A";
         LastAlertPriority = 0;
-        ck::Trace("✅ MultiType: All counters reset");
+        ck::Trace("[OK] MultiType: All counters reset");
     }
 }

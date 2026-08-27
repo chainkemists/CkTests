@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE TRACE — AUTOMATION TEST: SILENT NOTIFY POLICY SUPPRESSES PINGS
+// CK PROBE TRACE - AUTOMATION TEST: SILENT NOTIFY POLICY SUPPRESSES PINGS
 //============================================================================
 //
 // The knob that exists because the game's weapon aim sweep could not use this
@@ -104,13 +104,13 @@ class UCk_AutoTest_ProbeTrace_OverlapNotify_SilentFiresNothing : UCk_AutoTest_Ba
     {
         if (IsFinished()) { return; }
 
-        Assert_Equals_Int(_BeginCount, 1, "Notify is the default — the probe receives exactly one ping");
+        Assert_Equals_Int(_BeginCount, 1, "Notify is the default - the probe receives exactly one ping");
 
         auto Settings = Make_Settings();
         Settings.Set_OverlapNotifyPolicy(ECk_ProbeResponse_Policy::Silent);
 
         auto Silent = utils_probe_trace::Request_MultiLineTrace(_SelfHandle, Settings);
-        Assert_Equals_Int(Silent.Num(), 1, "Silent still RETURNS the hit — only the side-effect is suppressed");
+        Assert_Equals_Int(Silent.Num(), 1, "Silent still RETURNS the hit - only the side-effect is suppressed");
 
         // Nothing to wait for: the assertion is that no further ping arrives.
         WaitFrames(6, n"OnSilentDrained");

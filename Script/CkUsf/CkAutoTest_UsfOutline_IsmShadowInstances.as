@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF ENTITY OUTLINE — AUTOTEST: ISM shadow-instance bookkeeping
+// CK USF ENTITY OUTLINE - AUTOTEST: ISM shadow-instance bookkeeping
 //============================================================================
 //
 // Three IsmProxy cube entities share one ISM component. Outlining two of them
@@ -53,7 +53,7 @@ class UCk_AutoTest_UsfOutline_IsmShadowInstances : UCk_AutoTest_Base
 
         if (_Phase == 0 && _TicksInPhase >= 2)
         {
-            // Proxies set up + instances added — outline A and B.
+            // Proxies set up + instances added - outline A and B.
             UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_EntityA, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly);
             UCk_Utils_Usf_Outline_UE::Request_ApplyOutline(_EntityB, CkUsf::DA_Outline_Interactable, ECk_Usf_OutlineScope::EntityOnly);
             _Phase = 1; _TicksInPhase = 0;
@@ -97,7 +97,7 @@ class ACk_AutoTest_UsfOutline_IsmShadowInstances_Actor : ACk_AutoTestRunner
 
     // The FIRST test in the map to stand up the shared ISM renderer eats a one-time content ensure:
     // the renderer DA's material lacks 'bUsedWithInstancedStaticMeshes' in uncooked/headless runs
-    // (editor sessions auto-set the flag on save). Whitelist it on BOTH ISM outline tests — the
+    // (editor sessions auto-set the flag on save). Whitelist it on BOTH ISM outline tests - the
     // harness registers these with Occurrences=-1 (pure suppression), so a non-firing pattern is fine.
     UFUNCTION(BlueprintOverride)
     TArray<FString> Get_ExpectedLogErrors() const

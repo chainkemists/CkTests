@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: LOOP COUNT FINITE
+// CK TWEEN - AUTOMATION TEST: LOOP COUNT FINITE
 //============================================================================
 //
 // Pins the finite-loop contract: a tween with LoopType::Restart and a

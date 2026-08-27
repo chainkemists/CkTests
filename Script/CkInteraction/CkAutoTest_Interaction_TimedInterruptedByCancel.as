@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: TIMED INTERRUPTED BY CANCEL
+// CK INTERACTION - AUTOMATION TEST: TIMED INTERRUPTED BY CANCEL
 //============================================================================
 //
 // Pins the cancel-mid-flight contract on a Timed interaction:
 //   - Start a Timed interaction (0.5s duration).
 //   - At ~0.1s into the duration, issue Request_CancelInteraction.
 //   - OnInteractionFinished fires with ECk_SucceededFailed::Failed
-//     (NOT Succeeded — the timer didn't reach its goal).
+//     (NOT Succeeded - the timer didn't reach its goal).
 //
 // This is the audit's "TimedInterruptedMidway" gap, simplified to use the
 // CkInteraction-native Cancel path rather than destroying the target entity
@@ -62,7 +62,7 @@ class UCk_AutoTest_Interaction_TimedInterruptedByCancel : UCk_AutoTest_Base
     {
         if (_CancelRequested) { return; }
 
-        // Cancel after a short delay — well before the 0.5s Timed duration
+        // Cancel after a short delay - well before the 0.5s Timed duration
         // would naturally complete.
         System::SetTimer(this, n"DoCancel", 0.1f, false);
     }

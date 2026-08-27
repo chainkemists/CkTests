@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — NET AUTOMATION TEST: REPLICATED DYNAMIC FRAGMENT UPDATE
+// CK DYNAMIC - NET AUTOMATION TEST: REPLICATED DYNAMIC FRAGMENT UPDATE
 //============================================================================
 //
 // Server adds a replicated dynamic fragment (Value=111), lets it settle, then

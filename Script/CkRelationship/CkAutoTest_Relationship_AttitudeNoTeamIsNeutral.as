@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: No team on either side → Neutral
+// CK RELATIONSHIP - AUTOMATION TEST: No team on either side -> Neutral
 // Two entities with no Team in their ownership chain resolve to Neutral.
 
 class UCk_AutoTest_Relationship_AttitudeNoTeamIsNeutral : UCk_AutoTest_Base

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RECORD — AUTOMATION TEST: CONNECT + DISCONNECT ROUND-TRIP
+// CK RECORD - AUTOMATION TEST: CONNECT + DISCONNECT ROUND-TRIP
 //============================================================================
 //
 // Pins the basic Record-of-Entities lifecycle: an entry connected to a
@@ -11,8 +11,8 @@
 // Setup:
 //   - Create an owner entity and add the generic Record feature.
 //   - Create a labeled child entry entity (label required by default policy).
-//   - Connect → ContainsEntry true.
-//   - Disconnect → ContainsEntry false.
+//   - Connect -> ContainsEntry true.
+//   - Disconnect -> ContainsEntry false.
 //============================================================================
 
 class UCk_AutoTest_Record_ConnectDisconnectRoundTrip : UCk_AutoTest_Base

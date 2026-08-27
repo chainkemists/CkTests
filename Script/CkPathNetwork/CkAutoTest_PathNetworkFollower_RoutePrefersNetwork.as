@@ -1,27 +1,27 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: FOLLOWER ROUTE PREFERS THE NETWORK
+// CK PATH NETWORK - AUTOMATION TEST: FOLLOWER ROUTE PREFERS THE NETWORK
 //============================================================================
 //
 // The core promise of the feature: with the default 3x off-path multiplier,
 // a follower whose goal sits past an L-shaped sidewalk routes ALONG the L
-// (entry ramp → both edges → exit ramp) instead of cutting the diagonal.
+// (entry ramp -> both edges -> exit ramp) instead of cutting the diagonal.
 //
-//   network:  (0,0) ──► (400,0) ──► (400,400)     start (-50, 25)
+//   network:  (0,0) --> (400,0) --> (400,400)     start (-50, 25)
 //                                                  goal  (450, 450)
 //
 // The diagonal costs ~656cm x 3; the network path costs ~800cm x 1 plus two
-// short ramps — the network wins by construction. Verified by:
+// short ramps - the network wins by construction. Verified by:
 //   - OnRouteReady fires with Status Ready and >= 4 compiled waypoints
-//   - some compiled waypoint passes near the L's corner (400, 0) — the
+//   - some compiled waypoint passes near the L's corner (400, 0) - the
 //     giveaway that the route walked the network rather than the diagonal
 //   - the compiled polyline is meaningfully LONGER than the straight line
 //     (a shortcut would be ~straight)
 //
 // GEOMETRY NOTE: everything sits inside the AutoTests level's baked navmesh
-// (±500cm around origin) so plan-time off-path validation resolves honestly
-// — off-mesh legs get demoted to a huge uniform price, which would let the
+// (+/-500cm around origin) so plan-time off-path validation resolves honestly
+// - off-mesh legs get demoted to a huge uniform price, which would let the
 // direct edge tie the network route and invalidate this assertion.
 //============================================================================
 
@@ -113,7 +113,7 @@ class UCk_AutoTest_PathNetworkFollower_RoutePrefersNetwork : UCk_AutoTest_Base
         Assert_True(Waypoints.Num() >= 4,
             f"an L-route with 100cm spacing should compile >= 4 waypoints, got {Waypoints.Num()}");
 
-        // The route must pass near the L's corner — the proof it walked the network.
+        // The route must pass near the L's corner - the proof it walked the network.
         // Corner samples carry at most ~50cm side-keeping offset + 100cm spacing slack.
         const auto Corner = FVector(400.0, 0.0, 0.0);
         auto ClosestToCorner = 1.0e9;
@@ -129,7 +129,7 @@ class UCk_AutoTest_PathNetworkFollower_RoutePrefersNetwork : UCk_AutoTest_Base
         }
 
         Assert_True(ClosestToCorner <= 200.0,
-            f"route should pass near the L corner (400,0,0); closest waypoint was {ClosestToCorner}cm away — did it shortcut the diagonal?");
+            f"route should pass near the L corner (400,0,0); closest waypoint was {ClosestToCorner}cm away - did it shortcut the diagonal?");
 
         const auto StraightLine = (Goal - FVector(-50.0, 25.0, 0.0)).Size();
         Assert_True(PolylineLength > StraightLine * 1.15,

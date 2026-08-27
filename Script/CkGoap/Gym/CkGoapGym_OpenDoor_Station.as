@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Open Door station entity
+// CkGoapGym - Open Door station entity
 //
 // Visual + interactive wrapper around the OpenDoor Planner. The station
 // entity carries its own Goap root, Planner, and WS. A Tick timer refreshes
@@ -10,10 +10,10 @@
 //
 // Player commands (exec'd on ACk_GoapGym_PlayerController, routed by station
 // tag):
-//   Goap.OpenDoor.Toggle  — flips Door.IsOpen and lets OnWorldStateDirty
+//   Goap.OpenDoor.Toggle  - flips Door.IsOpen and lets OnWorldStateDirty
 //                           replan from the new state.
 //
-// Always-valid-plan tenet (CkGoap/CLAUDE.md § "Design tenets"):
+// Always-valid-plan tenet (the CkGoap docs Sec. "Design tenets"):
 //   Catalog includes WaitAtDoor (no preconditions, effect=goal, cost 999) as
 //   the unconditional fallback. OpenDoor wins whenever the door is closed
 //   (cost 1 < 999); WaitAtDoor only ever appears if OpenDoor becomes
@@ -45,7 +45,7 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
     {
         utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
 
-        // World-state for this station — Door.IsOpen starts closed.
+        // World-state for this station - Door.IsOpen starts closed.
         _WS = utils_goap_world_state::Create(InHandle,
             utils_gameplay_tag::ResolveGameplayTag(n"Gym.Goap.WS.Door"),
             FCk_Fragment_Goap_WorldState_ParamsData());
@@ -67,11 +67,11 @@ class UCk_EntityScript_GoapGym_OpenDoor_Station : UCk_GenericEntityScript_UE
         ActionSetParams.Set_ReplanPolicy(ECk_Goap_ReplanPolicy::OnWorldStateDirty);
         _Planner = utils_goap_planner::Add(InHandle, ActionSetParams);
 
-        // Single operator — atomic OpenDoor. Registered directly on the Planner.
+        // Single operator - atomic OpenDoor. Registered directly on the Planner.
         auto OpParams = FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_Operator);
         utils_goap_planner::AddAction(_Planner, OpParams);
 
-        // Always-valid-plan tenet fallback — see CkGoap/CLAUDE.md § "Design tenets".
+        // Always-valid-plan tenet fallback - see the CkGoap docs Sec. "Design tenets".
         utils_goap_planner::AddAction(_Planner,
             FCk_Fragment_Goap_ActionParamsData(UCk_GoapGym_OpenDoor_WaitAtDoor));
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RENDER TARGET — AUTOMATION TEST: ADD AND QUERY
+// CK RENDER TARGET - AUTOMATION TEST: ADD AND QUERY
 //============================================================================
 //
 // Smoke test for the RenderTarget feature shape. Adds a managed 64x64 target

@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE Q4 RAGDOLL POSE-SOURCE FLIP
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE Q4 RAGDOLL POSE-SOURCE FLIP
 //============================================================================
 //
 // Calls Request_BeginRagdoll, asserts Get_PoseSource flips to Ragdoll. Then
 // Request_EndRagdoll, asserts pose source returns to Sequence (or AnimBP).
 //
 // Pulls iskm_assets::RendererData_Demo() (AS-authored). The renderer's mesh must have
-// a bound PhysicsAsset for ragdoll to engage — otherwise the handler logs a
+// a bound PhysicsAsset for ragdoll to engage - otherwise the handler logs a
 // warning and bails (no pose-source flip), which the test treats as a skip.
 //
 //============================================================================
@@ -53,7 +53,7 @@ class UCk_AutoTest_IskmRenderer_RagdollPoseSource : UCk_AutoTest_Base
         else if (_Phase == 1 && _TicksInPhase >= 2)
         {
             const auto Pose = utils_iskm_proxy::Get_PoseSource(_Proxy);
-            // No PhysicsAsset → pose source stays Sequence (skip condition).
+            // No PhysicsAsset -> pose source stays Sequence (skip condition).
             if (Pose != ECk_IskmProxy_PoseSource::Ragdoll) { FinishSuccess(); return; }
 
             utils_iskm_proxy::Request_EndRagdoll(_Proxy, FCk_Request_IskmProxy_EndRagdoll());

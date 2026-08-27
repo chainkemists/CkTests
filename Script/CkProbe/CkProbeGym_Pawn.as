@@ -1,11 +1,11 @@
 //============================================================================
-// PROBE GYM — PAWN
+// PROBE GYM - PAWN
 //
 // Attaches a Kinematic Box probe to the pawn's ECS entity so that walking it
 // into the Physical station's detector fires real overlap signals.
 //
 // ProbeName = CkTests.Probe.Gym.Marker (matches the detector's Filter).
-// MotionType::Kinematic — Jolt treats the pawn as a driven moving body;
+// MotionType::Kinematic - Jolt treats the pawn as a driven moving body;
 // Static-vs-Kinematic contact pairs generate overlaps cleanly.
 //============================================================================
 

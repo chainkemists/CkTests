@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: STOP FIRES ON_STOPPED
+// CK STATE MACHINE - AUTOMATION TEST: STOP FIRES ON_STOPPED
 //============================================================================
 //
 // Pins Request_Stop's contract on a running SM:

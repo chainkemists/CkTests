@@ -1,8 +1,8 @@
 //============================================================================
-// Station Showcase Gym — GameMode
+// Station Showcase Gym - GameMode
 //
 // Sandbox gym for iterating on UCk_EntityScript_GymStation. Spawns no nav
-// infrastructure, no test agents — just a row of GymStation instances with
+// infrastructure, no test agents - just a row of GymStation instances with
 // varied tuners (see ACk_StationShowcaseGym_PlayerController::Request_StartGym).
 //============================================================================
 

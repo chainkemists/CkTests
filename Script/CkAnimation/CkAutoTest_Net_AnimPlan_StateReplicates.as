@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK ANIMATION — NET AUTOMATION TEST: ANIMPLAN STATE REPLICATES
+// CK ANIMATION - NET AUTOMATION TEST: ANIMPLAN STATE REPLICATES
 //============================================================================
 //
-// AnimPlan state is pure tag data (goal/cluster/state gameplay tags) — no
+// AnimPlan state is pure tag data (goal/cluster/state gameplay tags) - no
 // skeletal mesh required for the state-replication contract. The default
 // NetSubject's entity-script adds a Replicates AnimPlan (goal + cluster +
 // state A) on both worlds. The server Request_UpdateAnimState's it to state B;
@@ -32,7 +32,7 @@ class UCk_AutoTest_Net_AnimPlan_StateReplicates : UCk_AutoTest_NetBase
         auto GoalTag = utils_gameplay_tag::ResolveGameplayTag(_GoalName);
         auto AnimPlan = utils_anim_plan::TryGet_AnimPlan(Subject, GoalTag);
         if (ck::Is_NOT_Valid(AnimPlan))
-        { FinishFailure("AnimPlan not found on subject — entity-script Construct didn't add it?"); return; }
+        { FinishFailure("AnimPlan not found on subject - entity-script Construct didn't add it?"); return; }
 
         if (utils_net::Get_HasAuthority(Subject))
         {

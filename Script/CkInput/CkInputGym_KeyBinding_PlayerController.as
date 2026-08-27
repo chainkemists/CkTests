@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT KEY-BINDING GYM — PlayerController
+// CK INPUT KEY-BINDING GYM - PlayerController
 //
 // Owns every mutation a VIEWER can perform. A key profile is per-local-player,
 // so there is nothing station-scoped to mutate: the exec commands below call
@@ -26,14 +26,14 @@
 // Saved/ that outlive the session, and the demo runs unattended, so the stations
 // that can be mutated reset and re-save on DoEndPlay unless the viewer
 // explicitly suspends it. Suspending is what makes the persistence check
-// possible at all — a rebind cannot be observed surviving a PIE restart if
-// leaving PIE erases it — so it is offered as an exec rather than being
+// possible at all - a rebind cannot be observed surviving a PIE restart if
+// leaving PIE erases it - so it is offered as an exec rather than being
 // impossible, and re-arming is one command away.
 //
 // Two shipped-code traps this file deliberately steers around:
 //   - SwapKeys assigns Invalid to the other side when the SOURCE mapping is
 //     unbound, so Ck_GymInput_Swap refuses unless both rows currently hold a
-//     key (CkInput/CLAUDE.md anti-pattern 6).
+//     key (the CkInput docs anti-pattern 6).
 //   - RemapKeys reports success for an EMPTY name array, so the batch command
 //     checks the array before calling.
 //============================================================================
@@ -68,7 +68,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // Super reaches Get_RequiredStations() and the whole station spawn flow, so
-    // the mapping context has to be registered before it runs — otherwise the
+    // the mapping context has to be registered before it runs - otherwise the
     // stations construct against an empty key profile.
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
@@ -117,7 +117,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
     // Conflict station enters its first step and starts moving keys.
     void Request_StartGym() override
     {
-        // Idempotent, and the gym can be restarted through Ck_Gym_Restart — a
+        // Idempotent, and the gym can be restarted through Ck_Gym_Restart - a
         // second registration of an already-registered context is a no-op.
         input_gym::Request_RegisterMappingContext(this);
 
@@ -552,7 +552,7 @@ class ACk_InputGym_KeyBinding_PlayerController : ACk_Gym_Base_PlayerController
 // STATION -> CONTROLLER BRIDGE
 //
 // The stations are display-only; these reads are the only place they reach the
-// controller, and each degrades safely when it is gone — which is the normal
+// controller, and each degrades safely when it is gone - which is the normal
 // state during world teardown.
 //============================================================================
 

@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: ALL-MODE RE-FIRES PER NEW MATCH
+// CK ENTITY TAG QUERY - AUTOMATION TEST: ALL-MODE RE-FIRES PER NEW MATCH
 //============================================================================
 //
 // All-mode requirement on tag B. Each new entity tagged B should re-fire
-// OnSatisfied. Three additions → three fires.
+// OnSatisfied. Three additions -> three fires.
 //
 // Every match phase waits on the fire counter reaching that match's expected
 // value, so a slow-but-correct evaluation pass no longer reads as a failure.
@@ -13,7 +13,7 @@
 // the assertion rather than hanging until the deadline.
 //
 // The opening phase asserts a non-event (nothing matches yet), so it waits on
-// the requirement itself being registered — proof the query is live and has
+// the requirement itself being registered - proof the query is live and has
 // evaluated at least once with an empty result set.
 //============================================================================
 
@@ -64,7 +64,7 @@ class UCk_AutoTest_EntityTagQuery_AllModeRefiresPerNewMatch : UCk_AutoTest_Base
     private void Step_AssertIdleAndTagFirst(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_FireCount, 0,
-            "Empty result — must not have fired yet");
+            "Empty result - must not have fired yet");
 
         _E1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E1, n"AutoTestEtq_B");

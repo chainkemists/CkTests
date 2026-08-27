@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// RENDER TARGET GYM — WHITEBOARD (manual multiplayer validation)
+// RENDER TARGET GYM - WHITEBOARD (manual multiplayer validation)
 //============================================================================
 //
 // Manual multiplayer validation for CkRenderTarget: a replicated
@@ -11,10 +11,10 @@
 // world's station display converge (applied batch seq, pixel payloads,
 // pixel-state hash).
 //
-//   LMB (hold, aim at board)              — freehand draw where you look
-//   Ck_GymRenderTarget_DrawRandomStroke   — draw a random line
-//   Ck_GymRenderTarget_Clear              — clear the board
-//   Ck_GymRenderTarget_SyncPixels         — server capture -> FullSync/Delta
+//   LMB (hold, aim at board)              - freehand draw where you look
+//   Ck_GymRenderTarget_DrawRandomStroke   - draw a random line
+//   Ck_GymRenderTarget_Clear              - clear the board
+//   Ck_GymRenderTarget_SyncPixels         - server capture -> FullSync/Delta
 //                                           reconcile (Hybrid mode's pixel leg)
 //
 // PASS = seq / payload counters and the pixel hash match across all worlds
@@ -49,7 +49,7 @@ struct FCk_Message_RenderTargetGym_SyncPixels
 }
 
 // ----------------------------------------------------------------------------------------------------------------
-// REPLICATED WHITEBOARD ACTOR — spawned at the station by the (server) PC.
+// REPLICATED WHITEBOARD ACTOR - spawned at the station by the (server) PC.
 // BeginPlay spawns the WithActor entity script so both worlds compose the
 // RenderTarget symmetrically (the rep handler's Apply/NotReady contract).
 // ----------------------------------------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ class ACk_RenderTargetGym_WhiteboardActor : AActor
     UPROPERTY(DefaultComponent, RootComponent)
     USceneComponent SceneRoot;
 
-    // Board surface: engine plane stood upright like a banner — the actor spawns
+    // Board surface: engine plane stood upright like a banner - the actor spawns
     // above the station's back wall (the header), the mesh floats above it with
     // its normal facing local +X (the alcove opening, i.e. toward the player).
     // Pitch -90 maps the plane's +Z normal onto +X. One-sided: invisible from behind.
@@ -85,7 +85,7 @@ class ACk_RenderTargetGym_WhiteboardActor : AActor
     }
 
     // Blits the board's render target onto the plane via the USF Blit look.
-    // Returning true means "stop retrying" — including the no-generated-look
+    // Returning true means "stop retrying" - including the no-generated-look
     // failure case, which warns once and leaves the board untextured.
     bool Request_BindBoardSurface(UTextureRenderTarget2D InTarget)
     {
@@ -95,7 +95,7 @@ class ACk_RenderTargetGym_WhiteboardActor : AActor
         auto MID = UCk_Utils_Usf_UE::Create_MID_ForLook(CkUsf::Blit, this);
         if (MID == nullptr)
         {
-            ck::Warning("RenderTarget gym: no generated Blit look material — board stays untextured. Run 'Generate Look Materials'.");
+            ck::Warning("RenderTarget gym: no generated Blit look material - board stays untextured. Run 'Generate Look Materials'.");
             _SurfaceBindFailed = true;
             return true;
         }
@@ -106,7 +106,7 @@ class ACk_RenderTargetGym_WhiteboardActor : AActor
     }
 
     // Maps the view ray to render-target pixel coords via analytic ray/plane
-    // intersection — no collision needed on the board mesh. Assumes the engine
+    // intersection - no collision needed on the board mesh. Assumes the engine
     // plane's UVs run U along local +X, V along local +Y from the (-50,-50)
     // corner; if strokes appear mirrored relative to the aim point, flip here.
     bool Get_BoardPixelUnderRay(FVector InViewLoc, FVector InViewDir, FVector2D& OutPixel)
@@ -136,7 +136,7 @@ class ACk_RenderTargetGym_WhiteboardActor : AActor
     void BeginPlay()
     {
         auto _CkPerfScope = ck::ScopedStat();
-        // Authority only: this actor replicates, so BeginPlay also runs on clients —
+        // Authority only: this actor replicates, so BeginPlay also runs on clients
         // spawning there would create a SECOND, orphan composition next to the one the
         // entity-script replication path re-creates (split-brain boards: the display
         // and the local draws can land on different render targets).
@@ -208,7 +208,7 @@ class UCk_RenderTargetGym_Whiteboard_EntityScript : UCk_EntityScript_WithActor_U
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnDone(FCk_Delegate_Timer(this, n"DisplayTick"));
 
-        // The managed target starts black — the host resets it to the whiteboard
+        // The managed target starts black - the host resets it to the whiteboard
         // base look. Replicated instructions; late joiners get them via the ring.
         if (utils_net::Get_IsEntityNetMode_Host(InHandle))
         { RequestBoardReset(); }
@@ -266,7 +266,7 @@ class UCk_RenderTargetGym_Whiteboard_EntityScript : UCk_EntityScript_WithActor_U
     }
 
     // The drawable target exists one tick after Add (Setup processor) and only
-    // on worlds that can render — retried from the display timer until bound.
+    // on worlds that can render - retried from the display timer until bound.
     private void TryBindBoardSurface(FCk_Handle InSelfEntity)
     {
         if (_SurfaceBound)
@@ -299,7 +299,7 @@ class UCk_RenderTargetGym_Whiteboard_EntityScript : UCk_EntityScript_WithActor_U
 
         TryBindBoardSurface(SelfEntity);
 
-        auto Title = f"RENDER TARGET — WHITEBOARD ({NetworkRole})";
+        auto Title = f"RENDER TARGET - WHITEBOARD ({NetworkRole})";
 
         auto AppliedSeq = _Board.Get_LatestAppliedBatchSeq();
         auto PixelHash = _Board.Get_PixelStateHash();
@@ -352,7 +352,7 @@ class ACk_RenderTargetGym_PlayerController : ACk_Gym_Base_PlayerController
 
     // Freehand drawing: while LMB is held, intersect the camera ray with the
     // board plane each frame and draw a line segment from the previous hit.
-    // Runs on the local PC of every world — clients author predictively
+    // Runs on the local PC of every world - clients author predictively
     // (the board's _ClientAuthoring is Allowed).
     UFUNCTION(BlueprintOverride)
     void Tick(float32 InDeltaSeconds)
@@ -365,7 +365,7 @@ class ACk_RenderTargetGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             if (_LmbWasDown)
             {
-                ck::Trace(f"[Whiteboard] stroke ended — {_StrokeSegments} segment(s) drawn", n"Whiteboard", 3.0f,
+                ck::Trace(f"[Whiteboard] stroke ended - {_StrokeSegments} segment(s) drawn", n"Whiteboard", 3.0f,
                     _StrokeSegments > 0 ? FLinearColor::Green : FLinearColor::Yellow);
                 _StrokeSegments = 0;
             }
@@ -405,7 +405,7 @@ class ACk_RenderTargetGym_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
-        // Throttle to ~20 segments/sec — every segment is one replicated instruction
+        // Throttle to ~20 segments/sec - every segment is one replicated instruction
         // batch, and the ring only holds 64. Unthrottled 60Hz strokes force constant
         // ring-wrap gap recovery on every other world.
         _SegmentCooldown -= InDeltaSeconds;
@@ -415,7 +415,7 @@ class ACk_RenderTargetGym_PlayerController : ACk_Gym_Base_PlayerController
         if ((Pixel - _LastPixel).Size() < 2.0)
         { return; }
 
-        // Near-black colors only — strokes must survive the unlit look's bloom.
+        // Near-black colors only - strokes must survive the unlit look's bloom.
         if (_DrawColor.A <= 0.0)
         {
             _DrawColor = FLinearColor(
@@ -436,7 +436,7 @@ class ACk_RenderTargetGym_PlayerController : ACk_Gym_Base_PlayerController
         if (ck::IsValid(_BoardActor) && ck::IsValid(_BoardRT))
         { return true; }
 
-        // Anchor the tag query to THIS controller's entity — ck::TransientEntity()
+        // Anchor the tag query to THIS controller's entity - ck::TransientEntity()
         // resolves through an ambient world lookup that can return another PIE
         // world's registry in multi-window sessions.
         auto ContextEntity = ck::ToEntity(this);
@@ -489,10 +489,10 @@ class ACk_RenderTargetGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartWhiteboard()
     {
-        // The whiteboard replicates — only the server spawns it; clients receive it.
+        // The whiteboard replicates - only the server spawns it; clients receive it.
         // And only ONE per world: Request_StartGym runs on EVERY server-side
         // PlayerController (one per connected player), so without the local gate each
-        // joining player stacks another whiteboard actor on the station — two meshes,
+        // joining player stacks another whiteboard actor on the station - two meshes,
         // two render targets, and draws landing on a board nobody is looking at.
         // (Listen-server tool: the host's PC is the local one.)
         if (!HasAuthority() || !IsLocalController())
@@ -504,7 +504,7 @@ class ACk_RenderTargetGym_PlayerController : ACk_Gym_Base_PlayerController
             _SpawnedWhiteboard = nullptr;
         }
 
-        // The header text sits on the BACK wall top — no anchor exists for it, but it's
+        // The header text sits on the BACK wall top - no anchor exists for it, but it's
         // PanelTopFront (top FRONT edge) reflected through PanelCenter horizontally.
         auto StationRotation = Get_StationTransform("Gym.RenderTarget.Whiteboard").Rotator();
         auto FrontTop = Get_StationAnchorLocation("Gym.RenderTarget.Whiteboard", ECk_GymStation_Anchor::PanelTopFront);
@@ -517,7 +517,7 @@ class ACk_RenderTargetGym_PlayerController : ACk_Gym_Base_PlayerController
             ACk_RenderTargetGym_WhiteboardActor,
             BackWallTop, StationRotation));
 
-        ck::Trace("✅ RenderTarget whiteboard spawned at station");
+        ck::Trace("[OK] RenderTarget whiteboard spawned at station");
     }
 
     UFUNCTION(Exec, DisplayName="RenderTarget Gym - Draw Random Stroke")

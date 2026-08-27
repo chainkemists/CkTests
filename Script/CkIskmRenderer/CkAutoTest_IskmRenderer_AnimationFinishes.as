@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE Q1 ANIMATION FINISHES
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE Q1 ANIMATION FINISHES
 //============================================================================
 //
 // Plays a non-looping anim sequence on a proxy and asserts the
 // OnAnimationFinished signal fires with reason=Completed within timeout.
 //
 // Pulls iskm_assets::RendererData_Demo() (AS-authored, in CkIskmRenderer_Assets.as)
-// and assets::load::MM_Jump() (registry-generated). Either invalid →
+// and assets::load::MM_Jump() (registry-generated). Either invalid ->
 // FinishSuccess()-skip. With both present, the real assertion runs.
 //
 //============================================================================

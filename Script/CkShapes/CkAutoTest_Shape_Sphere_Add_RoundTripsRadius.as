@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SHAPES — AUTOMATION TEST: SPHERE ADD ROUND-TRIPS RADIUS
+// CK SHAPES - AUTOMATION TEST: SPHERE ADD ROUND-TRIPS RADIUS
 //============================================================================
 //
 // Sphere variant of the ShapeBox round-trip seed: adding a ShapeSphere

@@ -2,14 +2,14 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
 {
     // ---- Scene constants (every position is KNOWN; nothing is looked up at runtime) ---------------
 
-    // Z SCALE MUST BE >= 0.5 — thinner slabs bake to zero walkable tiles. The floor's walkable
+    // Z SCALE MUST BE >= 0.5 - thinner slabs bake to zero walkable tiles. The floor's walkable
     // surface sits at the actor origin, so the slab hangs below Z=0 and agents walk on Z=0.
     private const FVector k_FloorLocation = FVector(0.0, 0.0, 0.0);
     private const FVector k_FloorScale    = FVector(30.0, 30.0, 0.5);
 
     // /Engine/BasicShapes/Cube is a 100uu cube CENTRED on its own origin, so a Z scale of 12 spans
     // 1200uu and the actor must sit at Z=600 for the wall to run from the floor (0) up to 1200.
-    // Footprint: X +/-100, Y from -850 to +50 — it straddles the flying lane and clears the other.
+    // Footprint: X +/-100, Y from -850 to +50 - it straddles the flying lane and clears the other.
     private const FVector k_WallLocation = FVector(0.0, -400.0, 600.0);
     private const FVector k_WallScale    = FVector(2.0, 9.0, 12.0);
 
@@ -132,7 +132,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         DoBringPlayerToViewpoint();
         DoWaitOneFrame(n"OnViewpointSettle");
 
-        ck::voxelnav::Log("VoxelNav gym: volume bake requested — agents spawn when it completes");
+        ck::voxelnav::Log("VoxelNav gym: volume bake requested - agents spawn when it completes");
     }
 
     private bool DoSpawnFloor()
@@ -178,8 +178,8 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         auto NumBaked = utils_jolt_static_world::Request_BakeActor(WallActor);
         if (NumBaked == 0)
         {
-            ck::voxelnav::Warning("VoxelNav gym: the wall baked 0 Jolt bodies — the volume would voxelize it as free space");
-            ck::Error("VoxelNav gym: wall bake produced 0 Jolt bodies — gym aborted", n"VoxelNavGym.WallBake", 10.0);
+            ck::voxelnav::Warning("VoxelNav gym: the wall baked 0 Jolt bodies - the volume would voxelize it as free space");
+            ck::Error("VoxelNav gym: wall bake produced 0 Jolt bodies - gym aborted", n"VoxelNavGym.WallBake", 10.0);
             return false;
         }
 
@@ -196,7 +196,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         SetControlRotation(k_PlayerViewRotation);
     }
 
-    // Mirrors the gym base's private WaitOneFrame — a one-shot timer on the PC's own entity.
+    // Mirrors the gym base's private WaitOneFrame - a one-shot timer on the PC's own entity.
     private void DoWaitOneFrame(FName InCallbackName)
     {
         auto Params = FCk_Fragment_Timer_ParamsData(FCk_Time(0.05));
@@ -209,7 +209,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
     UFUNCTION()
     private void OnViewpointSettle(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        // Retry — the pawn may not have been possessed yet when the gym started.
+        // Retry - the pawn may not have been possessed yet when the gym started.
         DoBringPlayerToViewpoint();
     }
 
@@ -220,8 +220,8 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
     {
         if (InResult != ECk_Request_OperationResult::Succeeded)
         {
-            ck::voxelnav::Warning(f"VoxelNav gym: the volume bake did not succeed (got {InResult}) — no agents spawned");
-            ck::Error("VoxelNav gym: volume bake failed — no agents spawned", n"VoxelNavGym.Bake", 10.0);
+            ck::voxelnav::Warning(f"VoxelNav gym: the volume bake did not succeed (got {InResult}) - no agents spawned");
+            ck::Error("VoxelNav gym: volume bake failed - no agents spawned", n"VoxelNavGym.Bake", 10.0);
             return;
         }
 
@@ -308,7 +308,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
         if (ck::IsValid(_Volume) && utils_voxel_nav_volume::Get_IsBuilt(_Volume) == false)
         {
             utils_debug_draw::DrawDebugString(FVector(0.0, 0.0, 500.0),
-                f"Baking voxel volume… {utils_voxel_nav_volume::Get_BuildProgress(_Volume)}",
+                f"Baking voxel volume... {utils_voxel_nav_volume::Get_BuildProgress(_Volume)}",
                 FLinearColor(1.0f, 1.0f, 1.0f, 1.0f), DrawSeconds);
         }
 
@@ -359,7 +359,7 @@ class ACk_VoxelNavGym_FlyingVsGrounded_PlayerController : ACk_Gym_Base_PlayerCon
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
     // The comparison this gym exists for only happens WHILE the agents are moving, so re-running it and
-    // sending them back are the two controls that matter — and both were console-only.
+    // sending them back are the two controls that matter - and both were console-only.
     //--------------------------------------------------------------------------------------------------------------------------
 
     FString Get_ControlPanelTitle() override

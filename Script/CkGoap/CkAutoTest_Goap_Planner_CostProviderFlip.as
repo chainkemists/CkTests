@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK GOAP — AUTOMATION TEST: dynamic action cost flips the plan
+// CK GOAP - AUTOMATION TEST: dynamic action cost flips the plan
 //============================================================================
 // Two no-precondition actions both satisfy goal Reached=true:
 //   Cheap  cost 3  |  Pricey cost 5  -> initial plan [Cheap].

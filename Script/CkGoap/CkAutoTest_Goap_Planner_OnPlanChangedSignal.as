@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER OnActiveChainChanged SIGNAL
+// CK GOAP - AUTOMATION TEST: PLANNER OnActiveChainChanged SIGNAL
 //============================================================================
 //
 // Validates utils_goap_planner::BindTo_OnActiveChainChanged and the
 // FCk_Goap_Payload_OnActiveChainChanged payload.
 //
 // Per CkGoap_Planner_Processor.cpp (ChainUpdate): the signal fires
-// whenever the active chain mutates (extension OR truncation) — with the
+// whenever the active chain mutates (extension OR truncation) - with the
 // pre-mutation chain snapshot in the payload's _OldChain. The new chain
 // is readable via Get_ActiveChain inside the handler.
 //
@@ -84,7 +84,7 @@ class UCk_AutoTest_Goap_Planner_OnPlanChangedSignal : UCk_AutoTest_Base
         auto LeafBAction = utils_goap_planner::AddAction(MidAsPlanner, LeafBParams);
         Assert_True(ck::IsValid(LeafBAction), "LeafB AddAction should succeed");
 
-        // Bind the signal NOW — before any UpdateActivation runs.
+        // Bind the signal NOW - before any UpdateActivation runs.
         utils_goap_planner::BindTo_OnActiveChainChanged(_Planner,
             FCk_Delegate_Goap_OnActiveChainChanged(this, n"OnChainChanged"));
 
@@ -109,7 +109,7 @@ class UCk_AutoTest_Goap_Planner_OnPlanChangedSignal : UCk_AutoTest_Base
 
         // Payload contains the OLD chain snapshot (pre-mutation). The signal
         // may fire multiple times in one frame as both the top-level Planner
-        // and Mid's promoted Planner run their UpdateActivation passes — the
+        // and Mid's promoted Planner run their UpdateActivation passes - the
         // first fire we see has OldChain=[] (top-level activation walk), but
         // FireIfPayloadInFlightThisFrame may surface a later fire whose
         // snapshot already includes Mid. Either is consistent with the design;

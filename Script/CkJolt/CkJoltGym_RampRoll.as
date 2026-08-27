@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — RAMP ROLL
+// CK JOLT GYM - RAMP ROLL
 //
 // Three parallel lanes, each a Static ramp pitched at a different angle
 // (15 / 30 / 45 degrees), with a Dynamic sphere released at the top of each.
 // Walk up and compare how fast/far each sphere rolls before a catch wall
-// stops it — a direct visual read on how ramp angle affects rolling speed.
+// stops it - a direct visual read on how ramp angle affects rolling speed.
 //
 // Content is built in world -X from the station anchor (house rule: stations
-// face -X) — spheres start near the anchor and roll away from the camera.
+// face -X) - spheres start near the anchor and roll away from the camera.
 //============================================================================
 
 class ACk_JoltGym_RampRoll_GameMode : ACkTests_Gym_Base_GameMode
@@ -54,7 +54,7 @@ class ACk_JoltGym_RampRoll_PlayerController : ACk_Gym_Base_PlayerController
 
         Ck_GymJoltRampRoll_Release(-1);
 
-        ck::Trace("JoltRampRollGym: started — 3 ramps built, spheres released");
+        ck::Trace("JoltRampRollGym: started - 3 ramps built, spheres released");
     }
 
     private float DoLaneY(int32 InLaneIndex)
@@ -147,6 +147,6 @@ class ACk_JoltGym_RampRoll_PlayerController : ACk_Gym_Base_PlayerController
         _Spheres.Empty();
 
         Ck_GymJoltRampRoll_Release(-1);
-        ck::Trace("JoltRampRollGym: reset — all spheres cleared and re-released");
+        ck::Trace("JoltRampRollGym: reset - all spheres cleared and re-released");
     }
 }

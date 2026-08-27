@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ACTOR RELAY — AUTOMATION TEST: Default ChannelResult is invalid
+// CK ACTOR RELAY - AUTOMATION TEST: Default ChannelResult is invalid
 //============================================================================
 //
 // Pins the value-type contract that a default-constructed

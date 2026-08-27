@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: RESET-ON-DONE BEHAVIOR
+// CK TIMER - AUTOMATION TEST: RESET-ON-DONE BEHAVIOR
 //============================================================================
 //
 // Verifies the ResetOnDone behavior: after a Running timer hits its goal,
 // the processor enqueues Request_Reset, the chrono restarts at 0, and the
 // timer continues running. We observe this by counting OnDone fires across
-// multiple cycles — a single fire could be ResetOnDone OR PauseOnDone OR
+// multiple cycles - a single fire could be ResetOnDone OR PauseOnDone OR
 // StopOnDone, but two fires unambiguously means the timer auto-restarted.
 //============================================================================
 

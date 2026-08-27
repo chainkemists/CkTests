@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: BASIC PLACEMENT (UNIFIED PLACEMENT LAYER)
+// CK GRID - AUTOMATION TEST: BASIC PLACEMENT (UNIFIED PLACEMENT LAYER)
 //============================================================================
 //
 // Exercises the unifying placement layer (validate -> stamp -> signal):

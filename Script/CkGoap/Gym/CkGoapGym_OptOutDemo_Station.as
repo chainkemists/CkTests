@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Opt-Out Demo station
+// CkGoapGym - Opt-Out Demo station
 //
 // EXPLICITLY demonstrates the _AllowPlanFailed=true opt-out path described in
-// CkGoap/CLAUDE.md § "Design tenets / Every Planner must always produce a
+// the CkGoap docs Sec. "Design tenets / Every Planner must always produce a
 // valid plan". This is the COUNTERPART to the other CkGoap gyms: every other
 // game-content Planner must comply with the always-valid-plan tenet (and the
 // gyms here include explicit fallback Actions to do so). This station is the
@@ -15,7 +15,7 @@
 //   - One Action (CannotReach) whose effect = OptOutDemo.Unreachable=true,
 //     gated by a precondition (OptOutDemo.Touch=true) that the gym never
 //     flips. Even though the Action's effect technically matches the goal,
-//     the precondition is registered as false and never satisfied — so the
+//     the precondition is registered as false and never satisfied - so the
 //     planner provably never finds a viable Action chain.
 //   - PlannerParams.Set_AllowPlanFailed(true). Without this flag, the
 //     framework's runtime CK_ENSURE_IF_NOT on PlanFailed would fire.
@@ -27,7 +27,7 @@
 //   - No CK_ENSURE_IF_NOT warnings in the log
 //
 // Compare with MakeTea: MakeTea also opts out but ONLY when the player drops
-// an ingredient. This station opts out unconditionally — the goal is
+// an ingredient. This station opts out unconditionally - the goal is
 // structurally unreachable. Treat the two stations together as the complete
 // teaching pair for the opt-out path.
 //============================================================================
@@ -42,7 +42,7 @@ struct FCk_GoapGym_OptOutDemo_Station_SpawnParams
 // The intentionally-blocked Action. Precondition Touch=true is never flipped
 // by the gym, so the precondition is always false and the planner backchain
 // never finds this Action selectable. The Action exists only to register
-// both WS keys in the Planner's key registry — without at least one Action
+// both WS keys in the Planner's key registry - without at least one Action
 // referencing each key, writes to them would be silent no-ops.
 class UCk_GoapGym_OptOutDemo_CannotReach : UCk_GoapAction_EntityScript
 {
@@ -100,7 +100,7 @@ class UCk_EntityScript_GoapGym_OptOutDemo_Station : UCk_GenericEntityScript_UE
         // opt-out path. PlanFailed will fire continuously (the goal is
         // structurally unreachable from the catalog). The debugger should
         // clearly show this is opted-in rather than a misconfiguration.
-        // See CkGoap/CLAUDE.md § "Design tenets / Every Planner must always
+        // See the CkGoap docs Sec. "Design tenets / Every Planner must always
         // produce a valid plan" for the tenet itself and the opt-out rules.
         // -----------------------------------------------------------------
         PlannerParams.Set_AllowPlanFailed(true);
@@ -126,7 +126,7 @@ class UCk_EntityScript_GoapGym_OptOutDemo_Station : UCk_GenericEntityScript_UE
         auto Body = "This station explicitly opts out of the always-valid-plan\n"
             + "tenet via _AllowPlanFailed=true. The Planner's goal is\n"
             + "unreachable (no Action's effect can satisfy it from any WS\n"
-            + "state — the sole Action has a precondition the gym never\n"
+            + "state - the sole Action has a precondition the gym never\n"
             + "flips), so PlanFailed fires every replan. Watch the\n"
             + "debugger: the OPT-OUT indicator should make it clear this\n"
             + "is INTENTIONAL, not a bug.\n\n"
@@ -136,7 +136,7 @@ class UCk_EntityScript_GoapGym_OptOutDemo_Station : UCk_GenericEntityScript_UE
             + "Planner\n"
             + f"  Status        {CkGoapGym_Common::Format_PlanStatus(Status)}\n"
             + f"  Plan length   {Plan.Num()}   (expected: 0)\n\n"
-            + "See CkGoap/CLAUDE.md § \"Design tenets / Every Planner must\n"
+            + "See the CkGoap docs Sec. \"Design tenets / Every Planner must\n"
             + "always produce a valid plan\" for the tenet itself and the\n"
             + "rules around opt-out.";
 

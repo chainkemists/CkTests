@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RESOLVER — AUTOMATION TEST: ResolverTarget ForEach_ResolverDataBundle empty by default
+// CK RESOLVER - AUTOMATION TEST: ResolverTarget ForEach_ResolverDataBundle empty by default
 
 class UCk_AutoTest_Resolver_Target_ForEachDataBundleEmpty : UCk_AutoTest_Base
 {

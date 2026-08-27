@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: VALIDATION REJECTS CHANNEL MISMATCH
+// CK INTERACTION - AUTOMATION TEST: VALIDATION REJECTS CHANNEL MISMATCH
 //============================================================================
 //
 // Verifies the ChannelMismatch rejection path:
@@ -17,7 +17,7 @@
 //
 // RESOLUTION:
 // The library's channel check at CkInteractTarget_Utils.cpp:156-163 only
-// runs when UCk_Utils_InteractSource_UE::Cast(InSource) succeeds — i.e.,
+// runs when UCk_Utils_InteractSource_UE::Cast(InSource) succeeds - i.e.,
 // when InSource refers to the entity that owns the InteractSource fragment.
 // utils_interact_source::Add(carrier, ...) creates a CHILD entity that holds
 // the fragment; the carrier itself does NOT have FFragment_InteractSource_Params.
@@ -26,7 +26,7 @@
 // through to CanInteractWith.
 //
 // The fix is to pass _Source (the typed handle for the source sub-entity)
-// instead — both to Get_CanInteractWith and to the StartInteraction request.
+// instead - both to Get_CanInteractWith and to the StartInteraction request.
 // Cast now succeeds, channels are compared (Default vs Secondary), and the
 // ChannelMismatch path returns as designed.
 //============================================================================

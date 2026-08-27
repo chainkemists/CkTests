@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK RECORD — AUTOMATION TEST: ADD FEATURE + HAS QUERY
+// CK RECORD - AUTOMATION TEST: ADD FEATURE + HAS QUERY
 //============================================================================
 //
 // Smoke test for the Record-of-Entities public BP/AS surface. Adding the
 // generic Record feature to an entity should make `Has` return true.
 //
 // Catches regressions where the BP `Add` overload diverges from the
-// templated C++ AddIfMissing — most likely if the refactor consolidates
+// templated C++ AddIfMissing - most likely if the refactor consolidates
 // the Default-policy overload.
 //============================================================================
 

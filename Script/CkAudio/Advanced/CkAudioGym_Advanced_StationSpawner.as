@@ -53,7 +53,7 @@ class ACkAudioGym_Advanced_StationSpawner : AActor
     {
         if (StationEntityScriptClass == nullptr)
         {
-            Print("❌ No station class selected in StationSpawner", 5.0f);
+            Print("[FAIL] No station class selected in StationSpawner", 5.0f);
             return;
         }
 
@@ -70,12 +70,12 @@ class ACkAudioGym_Advanced_StationSpawner : AActor
 
         if (ck::IsValid(StationEntity))
         {
-            Print("✅ Station spawned successfully", 3.0f);
-            Print("📍 Position: Transform applied", 2.0f);
+            Print("[OK] Station spawned successfully", 3.0f);
+            Print("* Position: Transform applied", 2.0f);
         }
         else
         {
-            Print("❌ Failed to spawn station", 3.0f);
+            Print("[FAIL] Failed to spawn station", 3.0f);
         }
     }
 

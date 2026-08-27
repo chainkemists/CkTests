@@ -1,5 +1,5 @@
 //============================================================================
-// REPLICATION GYM — PLAYER CONTROLLER
+// REPLICATION GYM - PLAYER CONTROLLER
 //============================================================================
 
 class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
@@ -8,7 +8,7 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
-        // Scenario A — replicated actor that spawns a WithActor entity script.
+        // Scenario A - replicated actor that spawns a WithActor entity script.
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Replication.ReplicatedActor");
@@ -25,7 +25,7 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
             Stations.Add(Station);
         }
 
-        // Scenario B — replicated pawn + second WithActor entity script.
+        // Scenario B - replicated pawn + second WithActor entity script.
         {
             auto Station = FCkGym_Station_SpawnParams_Payload();
             Station.Tags.Add(n"Gym.Replication.PawnTransient");
@@ -47,7 +47,7 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         Request_StartReplicatedActorStation();
         // Scenario B is driven by the Pawn itself (see ACk_ReplicationGym_Pawn::Request_OnPawnReady).
-        ck::Trace("[ReplicationGym] Gym started — watch Output Log for 'No container fragment entry found'");
+        ck::Trace("[ReplicationGym] Gym started - watch Output Log for 'No container fragment entry found'");
     }
 
     //------------------------------------------------------------------------
@@ -145,7 +145,7 @@ class ACk_ReplicationGym_PlayerController : ACk_Gym_Base_PlayerController
         auto ActorTag = utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.ReplicationGym.ActorValue");
         auto PawnTag  = utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.ReplicationGym.PawnValue");
 
-        ck::Trace("=== ReplicationGym — DumpRep ===");
+        ck::Trace("=== ReplicationGym - DumpRep ===");
         for (auto E : utils_entity_tag::ForEach_Entity(Self, n"TAG_ReplicationGym_ReplicatedActor"))
         {
             auto A = utils_integer_attribute::TryGet(E, ActorTag);

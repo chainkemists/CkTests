@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: DELAY TASK DESTROYS ITS TIMER
+// CK STATE MACHINE - AUTOMATION TEST: DELAY TASK DESTROYS ITS TIMER
 //============================================================================
 //
 // UCk_SmTask_Delay::EnterTask Adds a fresh timer entity per entry and ExitTask
-// only unbinds the done delegate — it never destroys it. Nothing leaks anyway,
+// only unbinds the done delegate - it never destroys it. Nothing leaks anyway,
 // because the timer is a child of the TASK entity and FProcessor_SmState_Exit
 // destroys every task entity on state exit, so the lifetime cascade reclaims
 // the timer. This test pins that cascade: it is load-bearing, and the only
@@ -126,7 +126,7 @@ class UCk_AutoTest_SmTask_Delay_DestroysTimerOnCompletion : UCk_AutoTest_Base
             "the Delay task must still drive the SM into its terminal state");
 
         Assert_True(ck::Is_NOT_Valid(_DelayTimer),
-            "a completed Delay task's timer entity must not outlive the task — the state-exit lifetime cascade is what keeps per-entry Delay timers from accumulating");
+            "a completed Delay task's timer entity must not outlive the task - the state-exit lifetime cascade is what keeps per-entry Delay timers from accumulating");
     }
 
     // Breadth-first over lifetime dependents, skipping the test entity itself so

@@ -139,7 +139,7 @@ class UCk_EntityScript_TimerGym_Countdown : UCk_GenericEntityScript_UE
 
 		auto ElapsedMs = ElapsedOut.Get_Milliseconds();
 		auto GoalMs = Goal.Get_Milliseconds();
-		// For countdown: elapsed goes 10→0, so bar drains naturally
+		// For countdown: elapsed goes 10->0, so bar drains naturally
 		auto Ratio = (GoalMs > 0.0) ? float32(ElapsedMs / GoalMs) : 0.0f;
 		auto Bar = utils_debug_draw::Create_ASCII_ProgressBar(
 			FCk_FloatRange_0to1(Ratio), 20, ECk_ForwardReverse::Forward, ECk_ASCII_ProgressBar_Style::Equal_Symbol);

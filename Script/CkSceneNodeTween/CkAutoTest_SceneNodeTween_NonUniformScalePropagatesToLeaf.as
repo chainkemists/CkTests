@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE + TWEEN — AUTOMATION TEST: NON-UNIFORM SCALE PROPAGATES
+// CK SCENE NODE + TWEEN - AUTOMATION TEST: NON-UNIFORM SCALE PROPAGATES
 //============================================================================
 //
 // Tween-driven counterpart to CkAutoTest_SceneNode_NonUniformScalePropagation:

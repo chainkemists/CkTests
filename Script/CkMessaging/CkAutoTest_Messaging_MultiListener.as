@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MESSAGING — AUTOMATION TEST: MULTI-LISTENER FAN-OUT
+// CK MESSAGING - AUTOMATION TEST: MULTI-LISTENER FAN-OUT
 //============================================================================
 //
 // Verifies that multiple delegates bound to the same message type on the

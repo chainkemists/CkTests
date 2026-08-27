@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BUTTON MAP — AUTOMATION TEST: ONE BUTTON PER MAPPING NAME, NO MERGES
+// CK INPUT BUTTON MAP - AUTOMATION TEST: ONE BUTTON PER MAPPING NAME, NO MERGES
 //============================================================================
 //
 // Identity is (tier, name), so four distinct mapping names must produce four
 // distinct buttons in the map. The failure this guards against is a map keyed on
-// anything coarser — the key, the display category, the input action — which
+// anything coarser - the key, the display category, the input action - which
 // would silently merge two mappings into one button and leave every consumer of
 // the merged button ambiguous. The mirror failure is a map that mints a fresh
 // row per derivation pass, which shows up here as a duplicate.
 //
 // Both are read off the MAP rather than off constructed literals, because
 // comparing two hand-built identities only proves that == works. Occurrences are
-// counted per authored name — those four rows are this test's own, unlike
+// counted per authored name - those four rows are this test's own, unlike
 // Get_AllButtons as a whole, which in the shared PIE world also carries every
 // context other suites registered.
 //
@@ -36,7 +36,7 @@ class UCk_AutoTest_InputButtonMap_IdentitiesAreDistinctPerName : UCk_AutoTest_Ba
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 

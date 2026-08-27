@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: TWO OVERLAPPING BLOCKERS (REFCOUNT)
+// CK GRID - AUTOMATION TEST: TWO OVERLAPPING BLOCKERS (REFCOUNT)
 //============================================================================
 //
 // Verifies the counted Disabled tag composes across blockers:

@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF ENTITY CEL PATTERN — AUTOTEST: ISKM Plan-1 apply/remove
+// CK USF ENTITY CEL PATTERN - AUTOTEST: ISKM Plan-1 apply/remove
 //============================================================================
 //
 // The cel-pattern twin of CkAutoTest_UsfOutline_IskmApplyRemove. One Plan-1
 // skeletal proxy. Request_SetCelPattern on its entity must mark the proxy
 // patterned (custom depth + the pattern's stencil on the pooled SKMC);
-// Request_ClearCelPattern must clear it. (Pool hygiene — released SKMCs
-// carrying no stencil state — is double-guarded in Release_BaseSKMC itself.)
+// Request_ClearCelPattern must clear it. (Pool hygiene - released SKMCs
+// carrying no stencil state - is double-guarded in Release_BaseSKMC itself.)
 //
 // Then the mutual-exclusion half: an outline applied over a pattern drops the
 // cel applied-state without clearing the flags, because both features write

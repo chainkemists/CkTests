@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — NET AUTOMATION TEST: ROTATION REPLICATES
+// CK TRANSFORM - NET AUTOMATION TEST: ROTATION REPLICATES
 //============================================================================
 //
 // Server issues Request_SetRotation on the subject; FCk_RepData_Rotation
@@ -9,7 +9,7 @@
 // against the client-side Transform fragment.
 //
 // Rotation values round-trip through FQuat on the wire (rep payload stores
-// FQuat, OnChange converts back to FRotator) — use Equals tolerance, not ==.
+// FQuat, OnChange converts back to FRotator) - use Equals tolerance, not ==.
 // See the standalone CkAutoTest_Transform_SetRotation.as for the same gotcha.
 //============================================================================
 

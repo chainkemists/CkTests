@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A CHARGE OUTLIVES THE RELEASE OF THE KEY IT
+// CK INTENT - AUTOMATION TEST: A CHARGE OUTLIVES THE RELEASE OF THE KEY IT
 //                              OPENED ON
 //============================================================================
 //
 // A Mapped button now carries every bound slot's key, so one logical button
 // can be down because of EITHER device. That makes "is the button still
-// down?" a question about the union of its keys — while the episode that is
+// down?" a question about the union of its keys - while the episode that is
 // charging remembers exactly one key, the one its opening press arrived on
 // (FIntentMatcher_PendingEpisode::_PressKey).
 //
@@ -19,14 +19,14 @@
 // A wrong implementation fails LOUDLY here rather than subtly, and it fails
 // as the SIBLING completing: if the opening key's release were read as "the
 // button came up", the hold cause would disarm and the episode would resolve
-// to the tap. So the discriminator is not merely "the charge completed" — it
+// to the tap. So the discriminator is not merely "the charge completed" - it
 // is "the charge completed AND the tap did not", plus exact frame arithmetic
 // proving the accumulator was never reset along the way.
 //
 // A rival is mandatory, not decoration: with one candidate on the terminal
 // there is no forward ambiguity, the bake writes no verdict, and the press
 // would resolve immediately with no episode to survive anything. The tap
-// sibling is what makes the deferral exist at all — Step_SwapSet asserts the
+// sibling is what makes the deferral exist at all - Step_SwapSet asserts the
 // verdict rather than assuming it.
 //
 // The threshold is three seconds of logic frames. That is not tuning slack:
@@ -36,7 +36,7 @@
 // STILL pending, or the test is asserting nothing.
 //
 // CkTests_DualBound stays on its authored F8/F12 defaults for the whole test
-// — no key binding is mutated, so there is nothing to reset on teardown.
+// - no key binding is mutated, so there is nothing to reset on teardown.
 //============================================================================
 
 class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
@@ -75,7 +75,7 @@ class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 
@@ -112,20 +112,20 @@ class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
         Add_Step(          "bake the tap/charge pair on the dual-bound button",     n"Step_SwapSet");
         Add_Step_WaitUntil("the swap registers captures for BOTH keys",             n"Check_CapturesBothKeys");
 
-        Add_Step(          "press the PRIMARY key — the charge opens on it",        n"Step_PressPrimary");
+        Add_Step(          "press the PRIMARY key - the charge opens on it",        n"Step_PressPrimary");
         Add_Step_WaitUntil("the press is held pending",                             n"Check_ChargeIsPending");
         Add_Step(          "record the press frame",                                n"Step_RecordPressFrame");
 
         Add_Step(          "press the SECONDARY key while the primary is down",     n"Step_PressSecondary");
         Add_Step_WaitUntil("the secondary press reaches the record",                n"Check_SecondaryPressRecorded");
 
-        Add_Step(          "release the PRIMARY key — the one the episode opened on", n"Step_ReleasePrimary");
+        Add_Step(          "release the PRIMARY key - the one the episode opened on", n"Step_ReleasePrimary");
         Add_Step_WaitUntil("the primary release reaches the record",                n"Check_PrimaryReleaseRecorded");
         Add_Step(          "assert the charge survived its opening key coming up",  n"Step_AssertStillCharging");
 
         // This wait is on the SAMPLER's own clock, not on the poller's. A budget is a POLL count
         // and the threshold is a FRAME count, and the two clocks run at machine-load-dependent
-        // ratios — measured 113 polls/s solo but 230 polls/s under 3-lane contention, where the
+        // ratios - measured 113 polls/s solo but 230 polls/s under 3-lane contention, where the
         // old 600-poll budget was 2.61s and expired BEFORE the 3.0s threshold (full-suite red,
         // 2026-08-12). Sizing that budget larger only moves the ratio at which it breaks again.
         // So the predicate reads the same frame delta Step_AssertStillCharging already reads, and
@@ -203,15 +203,15 @@ class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
         auto ElapsedFrames = utils_intent_sampler::Get_LatestFrame(_Sampler).Get_FrameIndex() - _PressFrame;
 
         Assert_True(ElapsedFrames < _HoldThresholdFrames,
-            f"the release sequence took {ElapsedFrames} frames, past the {_HoldThresholdFrames}-frame threshold — raise the threshold, this run proved nothing about survival");
+            f"the release sequence took {ElapsedFrames} frames, past the {_HoldThresholdFrames}-frame threshold - raise the threshold, this run proved nothing about survival");
 
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_DualHold_Charged") ==
                     ECk_Intent_Phase::Pending,
-            "the opening key came up while a co-bound key stayed down — the button never came up, so the charge must still be waiting");
+            "the opening key came up while a co-bound key stayed down - the button never came up, so the charge must still be waiting");
 
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_DualHold_Quick") ==
                     ECk_Intent_Phase::Pending,
-            "the tap must not have been answered either — the episode is intact, not resolved");
+            "the tap must not have been answered either - the episode is intact, not resolved");
     }
 
     UFUNCTION()
@@ -224,10 +224,10 @@ class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
         // and it is stated separately so an unanswered threshold reads as an unanswered threshold
         // rather than as arithmetic against -1.
         Assert_True(CompletionFrame >= 0,
-            "the record passed the threshold and the charge never completed — the episode was cancelled or disarmed somewhere in the release sequence");
+            "the record passed the threshold and the charge never completed - the episode was cancelled or disarmed somewhere in the release sequence");
 
         Assert_Equals_Int(CompletionFrame - _PressFrame, _HoldThresholdFrames,
-            "the charge completes exactly its threshold after the press — a reset accumulator would land late, and a cancelled episode would never land at all");
+            "the charge completes exactly its threshold after the press - a reset accumulator would land late, and a cancelled episode would never land at all");
 
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_DualHold_Quick") ==
                     ECk_Intent_Phase::Idle,
@@ -283,7 +283,7 @@ class UCk_AutoTest_Intent_HoldSurvivesOpeningKeyRelease : UCk_AutoTest_Base
 
     // Deliberately NOT "the phase reads Completed". The step behind this one asserts the completion
     // frame to the exact frame, so a charge that never completed fails there with the arithmetic it
-    // got — which says what went wrong — rather than here as a budget that ran out, which says only
+    // got - which says what went wrong - rather than here as a budget that ran out, which says only
     // that the machine was busy. What this waits for is the one thing that has to have happened
     // before that assertion can mean anything: the record itself moving past the threshold.
     UFUNCTION()

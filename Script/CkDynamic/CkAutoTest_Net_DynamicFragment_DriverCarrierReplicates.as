@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — NET AUTOMATION TEST: STOREDRIVER-SHAPED DYNAMIC-HANDLE CARRIER
+// CK DYNAMIC - NET AUTOMATION TEST: STOREDRIVER-SHAPED DYNAMIC-HANDLE CARRIER
 //============================================================================
 //
 // Faithful reproduction of the reported StoreDriver setup (origin/Feature/
@@ -11,12 +11,12 @@
 //
 // Differences from the simpler self-target tests (which all pass):
 //   1. The handle points at a SEPARATE replicated entity B (spawned under the subject),
-//      not the same entity — B's rep-driver may be unmapped when A's carrier deserializes.
+//      not the same entity - B's rep-driver may be unmapped when A's carrier deserializes.
 //   2. The carrier is added empty then FILLED (empty -> B), an OnChange not an authored add.
 //   3. B replicates INDEPENDENTLY of A's carrier (the cross-driver ordering race the
 //      production comments call the "blank-client bug").
 //
-// B is spawned UNDER the (actor-bridged) subject so it inherits an owning-actor chain —
+// B is spawned UNDER the (actor-bridged) subject so it inherits an owning-actor chain
 // production spawns subordinates under the driver for exactly this reason (channel-owned
 // entities get HasOwningActorInChain=false on clients and never net-translate).
 //

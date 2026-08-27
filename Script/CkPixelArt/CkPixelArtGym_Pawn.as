@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// PIXEL ART GYM — PAWN AND ITS FIXED ORTHOGRAPHIC CAMERA
+// PIXEL ART GYM - PAWN AND ITS FIXED ORTHOGRAPHIC CAMERA
 //============================================================================
 //
 // The gym needs its own pawn for exactly one reason: the technique is ORTHOGRAPHIC-ONLY and the shared gym
@@ -12,7 +12,7 @@
 // one world-space snap displaces near and far geometry by different screen amounts, so there is no snap that
 // corrects all depths at once.
 //
-// Run this gym on the shared pawn and the result is a low-resolution UNSNAPPED image on every station — which
+// Run this gym on the shared pawn and the result is a low-resolution UNSNAPPED image on every station - which
 // looks exactly like the CREEP station and makes all three A/B verdicts meaningless while still appearing to
 // work. That is too quiet a failure to leave to an operator remembering to type
 // r.Ortho.Debug.ForceAllCamerasToOrtho, so the gym composes the camera it needs.
@@ -23,16 +23,16 @@
 //
 // Movement is polled rather than bound, for the same reason the camera gym polls it: ADefaultPawn's built-in
 // bindings move along the control rotation, which mouse-look turns underneath a camera whose framing is
-// fixed — so "forward" would drift away from "into the screen" the first time the mouse moved.
+// fixed - so "forward" would drift away from "into the screen" the first time the mouse moved.
 //============================================================================
 
-// 2200uu across 640 displayed texels at 16:9/360p is ~3.4uu per texel — small enough that the judge scene's
+// 2200uu across 640 displayed texels at 16:9/360p is ~3.4uu per texel - small enough that the judge scene's
 // thin rail lands at roughly one texel (which is what the 180 station exists to push under one) and large
 // enough that two 1200uu-spaced stations are never both fully framed, so a station change is unambiguous.
 const float32 k_PixelArtGym_OrthoWidth = 2200.0f;
 
 // Explicit planes, never auto-calculated: the engine derives those from the view rect, which would make the
-// gym's depth range a function of the internal resolution — so the 180/360/540 stations would silently be
+// gym's depth range a function of the internal resolution - so the 180/360/540 stations would silently be
 // judging three different scenes.
 const float32 k_PixelArtGym_NearClip = 10.0f;
 const float32 k_PixelArtGym_FarClip = 50000.0f;
@@ -149,7 +149,7 @@ class ACk_PixelArtGym_Pawn : ACk_Gym_Base_Pawn
         Print("Projection: ORTHOGRAPHIC - the camera snap is live.", 5.0f);
     }
 
-    // Free-fly along the fixed boom yaw. The boom never yaws today, so this is world +X/+Y — written through
+    // Free-fly along the fixed boom yaw. The boom never yaws today, so this is world +X/+Y - written through
     // the boom rotation anyway so a future angle change carries the controls with it.
     UFUNCTION(BlueprintOverride)
     void Tick(float32 InDeltaSeconds)

@@ -1,7 +1,7 @@
 // Language=angelscript
 //
-// CK MATH — AUTOMATION TEST: Get_FlattenedAndNormalized degenerate + happy path
-// A vector that collapses to zero when flattened must come back as ZeroVector —
+// CK MATH - AUTOMATION TEST: Get_FlattenedAndNormalized degenerate + happy path
+// A vector that collapses to zero when flattened must come back as ZeroVector
 // not a non-unit residue (regression guard: FVector::Normalize() leaves
 // near-zero input unchanged; the utility now uses GetSafeNormal). A regular
 // vector must come back unit length with the flattened axis stripped.
@@ -16,7 +16,7 @@ class UCk_AutoTest_Math_Vector3_FlattenedAndNormalized : UCk_AutoTest_Base
         const float Tol = 0.001f;
 
         // Degenerate: a pure-Z vector flattened onto XY collapses to zero
-        // (UCk_Utils_Vector3_UE is a ScriptMixin on FVector — call as a method)
+        // (UCk_Utils_Vector3_UE is a ScriptMixin on FVector - call as a method)
         auto Degenerate = FVector(0, 0, 5).Get_FlattenedAndNormalized(ECk_Plane_Axis::XY);
         Assert_True(Degenerate.IsNearlyZero(),
             "Flattening a pure-Z vector onto XY must return ZeroVector, not a non-unit residue");

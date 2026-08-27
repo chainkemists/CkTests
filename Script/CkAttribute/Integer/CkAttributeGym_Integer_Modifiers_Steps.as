@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// INTEGER MODIFIERS GYM — STEP STATES
+// INTEGER MODIFIERS GYM - STEP STATES
 //============================================================================
 //
 // The demo sequence for the Integer-attribute modifier station, as a
@@ -14,7 +14,7 @@
 // script's members: a state is its own entity script and has no business
 // reaching into another object's fields. The Damage attribute is looked up by
 // tag off the station entity, which is also what makes the old
-// `ActiveModifiers` bookkeeping array unnecessary — the framework already
+// `ActiveModifiers` bookkeeping array unnecessary - the framework already
 // tracks modifiers, and TryGet finds them by tag.
 //============================================================================
 

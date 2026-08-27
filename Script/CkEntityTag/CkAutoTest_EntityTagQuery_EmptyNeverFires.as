@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: EMPTY QUERY NEVER FIRES
+// CK ENTITY TAG QUERY - AUTOMATION TEST: EMPTY QUERY NEVER FIRES
 //============================================================================
 //
 // Add a query, bind OnSatisfied, but never add any requirements. After
 // several settle frames, OnSatisfied must NOT have fired. An empty
-// requirement list is not vacuously satisfied — the query stays idle.
+// requirement list is not vacuously satisfied - the query stays idle.
 //
 // This is a pure NON-event test: nothing is ever enqueued, so there is no
 // observable to wait on and no witness to reach for. The three chained
@@ -36,7 +36,7 @@ class UCk_AutoTest_EntityTagQuery_EmptyNeverFires : UCk_AutoTest_Base
             ECk_Signal_PostFireBehavior::DoNothing,
             FCk_Delegate_EntityTagQuery_OnSatisfied(this, n"OnSatisfied"));
 
-        // No requirements added — query sits idle.
+        // No requirements added - query sits idle.
         Add_Step_WaitFrames("let several evaluation passes run",       3);
         Add_Step(           "assert the empty query stayed silent",    n"Step_AssertSilent");
 

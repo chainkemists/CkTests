@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: VACUOUS TRANSITION FIRES IMMEDIATELY
+// CK STATE MACHINE - AUTOMATION TEST: VACUOUS TRANSITION FIRES IMMEDIATELY
 //============================================================================
 //
 // Pins the zero-condition (vacuous) transition contract: a transition with no

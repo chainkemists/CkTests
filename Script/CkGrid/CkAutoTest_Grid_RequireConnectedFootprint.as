@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: REQUIRE-CONNECTED FOOTPRINT VALIDATION
+// CK GRID - AUTOMATION TEST: REQUIRE-CONNECTED FOOTPRINT VALIDATION
 //============================================================================
 //
 // Pins the ECk_GridConnectivity::RequireConnected branch of Get_CanPlace.
@@ -9,7 +9,7 @@
 // A 3x1 GridObject anchored at (5,5) resolves to cells (5,5),(6,5),(7,5). A
 // blocker disables the MIDDLE cell (6,5), splitting the footprint into two
 // pieces: {(5,5)} (the anchor / BFS start) and {(7,5)} (cut off behind the
-// wall). The disabled cell is a wall — impassable — so the 4-neighbour BFS
+// wall). The disabled cell is a wall - impassable - so the 4-neighbour BFS
 // from the anchor can never reach (7,5).
 //
 // Expected: Get_CanPlace(... RequireConnected) returns CanPlace==false with

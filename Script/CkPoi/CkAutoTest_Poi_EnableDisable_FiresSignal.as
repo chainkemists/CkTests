@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: enable/disable via the Poi.Disabled EntityTag
+// CK POI - AUTOMATION TEST: enable/disable via the Poi.Disabled EntityTag
 //============================================================================
 //
 // CkPoi v2: enable/disable is a CkEntityTag convention, not a Poi request.

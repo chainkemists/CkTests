@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: ADD ITEM — DUPLICATE INSERT REJECTED
+// CK INVENTORY - AUTOMATION TEST: ADD ITEM - DUPLICATE INSERT REJECTED
 //============================================================================
 //
 // Pins the documented hard-failure contract: an item that already belongs to

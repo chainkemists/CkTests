@@ -7,13 +7,13 @@
 // Two sustained-churn stations that stress the ObjectPooling subsystem and
 // show its live stats:
 //
-//   SCRIPT CHURN — every tick spawns a wave of poolable EntityScripts and
+//   SCRIPT CHURN - every tick spawns a wave of poolable EntityScripts and
 //   destroys the wave from kWaveDepth ticks ago. Steady state keeps
 //   (kWaveSize * kWaveDepth) scripts in flight with kWaveSize spawns AND
 //   destroys per tick. Healthy pooling = LIVE plateaus while HITS climbs
 //   forever and MISSES stays frozen at the initial ramp.
 //
-//   SM CHURN — a herd of entities each running a Ping<->Pong StateMachine
+//   SM CHURN - a herd of entities each running a Ping<->Pong StateMachine
 //   whose event-driven condition re-arms a world timer on every transition.
 //   Every kSmRespawnPeriod seconds a slice of the herd is destroyed and
 //   respawned, recycling the SM state/condition scripts under load.
@@ -126,7 +126,7 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // TICK — churn + display
+    // TICK - churn + display
     //------------------------------------------------------------------------
 
     UFUNCTION()
@@ -145,7 +145,7 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // STATION 1 — script wave churn
+    // STATION 1 - script wave churn
     //------------------------------------------------------------------------
 
     private void DoChurnScriptWaves()
@@ -181,7 +181,7 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // STATION 2 — SM herd churn
+    // STATION 2 - SM herd churn
     //------------------------------------------------------------------------
 
     private void DoSpawnSmHerdMember()
@@ -275,7 +275,7 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
-    // The burst is the measurement this gym exists for — a pool only proves anything under a spike — and
+    // The burst is the measurement this gym exists for - a pool only proves anything under a spike - and
     // it was reachable only by a console command whose name you had to already know.
     //--------------------------------------------------------------------------------------------------------------------------
 
@@ -330,7 +330,7 @@ class ACk_ObjectPoolingGym_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="ObjectPooling Gym - Burst 100")
     void Ck_GymObjectPooling_Burst()
     {
-        // spike: 100 extra scripts land in the newest wave and churn out with it —
+        // spike: 100 extra scripts land in the newest wave and churn out with it
         // watch high-water jump, then free ramp as the burst recycles back
         const auto StationEntity = Get_StationHandle("Gym.ObjectPooling.ScriptChurn");
         for (int Index = 0; Index < 100; Index++)

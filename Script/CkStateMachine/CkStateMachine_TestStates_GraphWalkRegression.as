@@ -1,9 +1,9 @@
 // ============================================================================
-// SM GRAPH-WALK GHOST-TASK REGRESSION — TEST STATES
+// SM GRAPH-WALK GHOST-TASK REGRESSION - TEST STATES
 // ============================================================================
 //
 // Guards CkFoundation PR #643. The debug graph-walk processor
-// (FProcessor_Sm_Debug_GraphWalk, guarded by CK_BUILD_SM_GRAPH_WALK —
+// (FProcessor_Sm_Debug_GraphWalk, guarded by CK_BUILD_SM_GRAPH_WALK
 // defined for editor/development builds) constructs temp state / condition /
 // task entities at SM-add time to cache the reachable graph for the HFSM
 // viewer. Those temp entities are stamped with FTag_Sm_Debug_GraphWalkEntity;
@@ -12,7 +12,7 @@
 //
 // Without the short-circuit, every reachable state's task DoEnterTask fires
 // at construction. Side-effecting tasks (signal broadcasts, Request_Stop on
-// the owning SM — see UBb_Hfsm_Task_TerminateOwningSm) then corrupt real
+// the owning SM - see UBb_Hfsm_Task_TerminateOwningSm) then corrupt real
 // state before the SM has started.
 //
 // This file defines a 5-state linear chain A -> B -> C -> D -> E gated by a
@@ -21,7 +21,7 @@
 // regresses, counters B..E become nonzero at construction and the gym's
 // station reports FAIL. A terminal-state Request_Stop variant is used on E
 // in the sub-SM build so a regression additionally stops the real sub-SM
-// immediately — matching the original CheckoutCounter failure mode.
+// immediately - matching the original CheckoutCounter failure mode.
 //
 // In non-graph-walk builds (CK_BUILD_SM_GRAPH_WALK=0) this test trivially
 // passes since no ghost entities are ever created. The regression guard
@@ -33,7 +33,7 @@
 //
 // AngelScript disallows mutable namespace globals, so counter state lives as
 // a TMap<FName,int32> UPROPERTY on ACk_SmTest_GraphWalkRegression_GymActor.
-// Tasks call SmGraphWalk_Regression::Increment(Label) — this resolves the
+// Tasks call SmGraphWalk_Regression::Increment(Label) - this resolves the
 // (single) live gym actor via GetAllActorsOfClass and forwards to its
 // Increment_Counter method. One-gym-actor-at-a-time is enforced by the SM
 // gym's GameMode spawning exactly one instance.
@@ -53,7 +53,7 @@ namespace SmGraphWalk_Regression
 // POLLED-FALSE CONDITION
 // ============================================================================
 
-// DoEvaluate returns false unconditionally — no real transition can ever fire.
+// DoEvaluate returns false unconditionally - no real transition can ever fire.
 // The real SM stays in its initial state forever; any counter increment
 // beyond the initial state is proof of a graph-walk ghost regression.
 UCLASS()
@@ -68,12 +68,12 @@ class UCk_SmTest_Condition_PolledFalse : UCk_SmCondition_Polled
 };
 
 // ============================================================================
-// COUNTER TASKS — TOP-LEVEL SM (EnterExitOnly)
+// COUNTER TASKS - TOP-LEVEL SM (EnterExitOnly)
 // ============================================================================
 //
 // Distinct classes per state (not one parameterised class). The graph-walk
 // processor instantiates a temp entity per task-in-state; reusing a single
-// class across all five states would collapse attribution — any increment
+// class across all five states would collapse attribution - any increment
 // could have come from any ghost. Distinct classes preserve per-state
 // attribution so a FAIL report pinpoints which ghost(s) ran.
 
@@ -129,7 +129,7 @@ class UCk_SmTest_Task_EnterCount_Top_D : UCk_SmTask_EntityScript
     void DoExitTask(FCk_Handle_SmTask InHandle, ECk_Sm_NetContext InNetContext) {}
 };
 
-// Terminal state task for the top-level SM — Request_Stop on the owning SM.
+// Terminal state task for the top-level SM - Request_Stop on the owning SM.
 // This is the sharpest regression signal: if a ghost runs, the real SM dies
 // at construction and the station's OnSmStopped handler fires before the
 // first Verify() tick.
@@ -156,7 +156,7 @@ class UCk_SmTest_Task_RequestStopOwning_Top : UCk_SmTask_EntityScript
 };
 
 // ============================================================================
-// COUNTER TASKS — SUB-SM
+// COUNTER TASKS - SUB-SM
 // ============================================================================
 
 UCLASS()
@@ -447,7 +447,7 @@ class UCk_SmTest_GraphWalk_Sub_State_E : UCk_SmState_EntityScript
 };
 
 // ============================================================================
-// SUB-SM WRAPPER — parent state hosting the sub-SM as a SubStateMachine task
+// SUB-SM WRAPPER - parent state hosting the sub-SM as a SubStateMachine task
 // ============================================================================
 
 UCLASS()
@@ -459,7 +459,7 @@ class UCk_SmTest_GraphWalk_SubSmTask : UCk_SmTask_SubStateMachine
 
 // Parent wrapper state for the sub-SM variant. Polled-false self-loop would
 // require a second state, so we keep this as a terminal state holding only
-// the SubStateMachine task — the parent SM stays here indefinitely while
+// the SubStateMachine task - the parent SM stays here indefinitely while
 // the sub-SM is the system under test.
 UCLASS()
 class UCk_SmTest_GraphWalk_SubSmWrapper_State : UCk_SmState_EntityScript

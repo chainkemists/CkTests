@@ -5,20 +5,20 @@
 //
 // What each piece is FOR (a screen-dither verdict needs all four, and none of them substitutes):
 //   - gradient ramp wall : 32 tinted slabs from black to white. This is where banding, palette size and
-//                          dither texture are actually readable — a scene of lit props is not.
+//                          dither texture are actually readable - a scene of lit props is not.
 //   - dielectric spheres : dark / mid / bright albedo. Shows what the reduction does to plain surfaces
 //                          at three exposures, which is where "Off must restore the frame" is judged.
-//   - LitMetal spheres   : the CkUsf LitMetal look — a checker of METAL vs DIELECTRIC squares with
+//   - LitMetal spheres   : the CkUsf LitMetal look - a checker of METAL vs DIELECTRIC squares with
 //                          different roughness in one mesh. Metals and smooth speculars are the first
 //                          thing a palette reduction ruins, so they get their own subject.
 //                          The ONE deliberate plugin-content dependency here (everything else is an
 //                          engine basic shape + BasicShapeMaterial): no engine material exposes
 //                          Metallic or Roughness as parameters, so without this look the scene simply
-//                          cannot answer the metal question. Null-guarded — a missing master warns
+//                          cannot answer the metal question. Null-guarded - a missing master warns
 //                          once and those two spheres fall back to the default material, degrading
 //                          the scene rather than breaking it.
 //   - rotating mover     : temporal stability. A static frame hides pattern crawl; this does not.
-// The sky (or whatever fills the horizon in the gym map) is the fourth judge surface for free — a large
+// The sky (or whatever fills the horizon in the gym map) is the fourth judge surface for free - a large
 // smooth region is where an ordered pattern reads worst.
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ class ACk_UsfGym_StylizeDitherJudgeScene : AActor
     UPROPERTY(DefaultComponent, RootComponent)
     USceneComponent Root;
 
-    // The rotating subject — assembled in BeginPlay along with everything else.
+    // The rotating subject - assembled in BeginPlay along with everything else.
     private UStaticMeshComponent _Mover;
     private float _Elapsed = 0.0f;
 
@@ -109,7 +109,7 @@ class ACk_UsfGym_StylizeDitherJudgeScene : AActor
 
         if (MetalMaster == nullptr)
         {
-            ck::Warning("Stylize Dither Gym: LitMetal master missing — metal/roughness spheres render as default. Run the console command 'Ck_Usf_GenerateLooks' once.");
+            ck::Warning("Stylize Dither Gym: LitMetal master missing - metal/roughness spheres render as default. Run the console command 'Ck_Usf_GenerateLooks' once.");
         }
     }
 

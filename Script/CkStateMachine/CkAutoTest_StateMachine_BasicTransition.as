@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: BASIC TRANSITION
+// CK STATE MACHINE - AUTOMATION TEST: BASIC TRANSITION
 //============================================================================
 //
 // Smoke test for the state machine framework. Builds the simple Idle ->

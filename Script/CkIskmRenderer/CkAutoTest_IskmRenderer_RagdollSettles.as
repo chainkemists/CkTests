@@ -1,23 +1,23 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: RAGDOLL SETTLE SIGNAL
+// CK ISKM RENDERER - AUTOMATION TEST: RAGDOLL SETTLE SIGNAL
 //============================================================================
 //
 // Get_IsRagdollSettled answers "has this ragdoll physically come to rest?" by
 // asking whether any rigid body is still awake. Chaos auto-sleeps bodies at
-// rest, so the signal is exact and needs no velocity threshold — but that also
+// rest, so the signal is exact and needs no velocity threshold - but that also
 // means the query is only meaningful while the proxy is actually ragdolling.
 //
 // The three assertions, in the order they run:
 //   1. A proxy that has never ragdolled is NOT settled. A body that never fell
-//      has not come to rest — reporting settled there would make every consumer
+//      has not come to rest - reporting settled there would make every consumer
 //      that gates on it fire before the ragdoll even starts.
 //   2. Once the ragdoll has engaged, it is NOT settled. This is the
 //      discriminator: BeginRagdoll wakes every body, so an implementation that
 //      simply returned true would pass 1 and 3 and fail only here.
 //   3. It eventually IS settled, waited on as a named condition rather than a
-//      hop count — how long Chaos takes to sleep is a physics property, not a
+//      hop count - how long Chaos takes to sleep is a physics property, not a
 //      processor-ordering one.
 //
 // Two things about the setup are load-bearing, both measured rather than assumed.
@@ -28,7 +28,7 @@
 // It also needs to spawn CLEAR of that floor, which is what the +15 Z offset below is
 // for. Spawned at Z=0 the standing pose's lower bodies start interpenetrating the
 // plate; Chaos depenetration then throws the ragdoll into the air and it lands in a
-// self-sustaining micro-oscillation — root Z holding steady to within 1.5 mm yet never
+// self-sustaining micro-oscillation - root Z holding steady to within 1.5 mm yet never
 // dropping under the solver's sleep threshold, so it stays awake indefinitely. Clear of
 // the plate the same body comes to rest inside ~0.15 mm and sleeps in a few seconds.
 // If this test ever hangs on the settle step, suspect the resting configuration before
@@ -90,7 +90,7 @@ class UCk_AutoTest_IskmRenderer_RagdollSettles : UCk_AutoTest_Base
         FCk_Request_IskmProxy_BeginRagdoll Req;
         // Deliberately gentle: enough that the settle is a real physics outcome rather than a
         // body that never moved, small enough to keep the landing energy low. Assertion 2 does
-        // not depend on its magnitude — BeginRagdoll wakes every body regardless.
+        // not depend on its magnitude - BeginRagdoll wakes every body regardless.
         Req.Set_Impulse(FVector(100.0f, 0.0f, 0.0f));
         utils_iskm_proxy::Request_BeginRagdoll(_Proxy, Req);
     }

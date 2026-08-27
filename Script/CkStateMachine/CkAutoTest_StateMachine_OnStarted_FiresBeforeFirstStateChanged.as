@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: OnStarted FIRES BEFORE FIRST StateChanged
+// CK STATE MACHINE - AUTOMATION TEST: OnStarted FIRES BEFORE FIRST StateChanged
 //============================================================================
 //
 // Pins the signal-ordering contract: OnStarted fires once when the SM enters
@@ -20,7 +20,7 @@ class UCk_SmStartedTest_State_Only : UCk_SmState_EntityScript
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        // Sink — only the initial entry fires.
+        // Sink - only the initial entry fires.
     }
 };
 

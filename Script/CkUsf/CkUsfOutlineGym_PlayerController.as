@@ -36,9 +36,9 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
             "One Request_ApplyOutline(EntityAndDependents) outlines them all."));
         Stations.Add(Make_Station(n"Gym.Rendering.OutlineVat", "OUTLINE: VAT (ANIMATED)",
             "3 vertex-animated figures; outer two outlined (blue/green), middle is the control.",
-            "Silhouettes must WALK with the mesh — a bind-pose outline means the shadow ISM lost the VAT material or its custom data."));
+            "Silhouettes must WALK with the mesh - a bind-pose outline means the shadow ISM lost the VAT material or its custom data."));
 
-        // Explicit single-row layout, wider than the 800uu default grid — the entity stations
+        // Explicit single-row layout, wider than the 800uu default grid - the entity stations
         // spawn free-standing content (cube rows, crowds) that needs the extra clearance to
         // read as belonging to their station.
         const float StationSpacing = 1600.0f;
@@ -70,7 +70,7 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
     void Request_StartGym() override
     {
         Request_SpawnAllOutlines();
-        ck::Trace("🟦 Solid Outline Gym - stations started");
+        ck::Trace("* Solid Outline Gym - stations started");
     }
 
     void Request_SpawnAllOutlines()
@@ -86,7 +86,7 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_SpawnOutline(n"Gym.Rendering.OutlineSeeThrough",   CkUsf::DA_Outline_SeeThrough);
         Request_SpawnOutline(n"Gym.Rendering.OutlineMasked",       CkUsf::DA_Outline_MaskedObjective);
 
-        // Entity-outline stations (ISM / ISKM / Batched / Cascade / VAT) — entity-script stations.
+        // Entity-outline stations (ISM / ISKM / Batched / Cascade / VAT) - entity-script stations.
         Request_SpawnEntityStation("Gym.Rendering.OutlineIsm",     UCk_EntityScript_UsfOutlineGym_Ism);
         Request_SpawnEntityStation("Gym.Rendering.OutlineIskm",    UCk_EntityScript_UsfOutlineGym_Iskm);
         Request_SpawnEntityStation("Gym.Rendering.OutlineBatched", UCk_EntityScript_UsfOutlineGym_Batched);
@@ -119,7 +119,7 @@ class ACk_UsfOutlineGym_PlayerController : ACk_Gym_Base_PlayerController
         }
         else
         {
-            ck::Error("❌ Failed to spawn solid-outline showcase actor");
+            ck::Error("[FAIL] Failed to spawn solid-outline showcase actor");
         }
     }
 

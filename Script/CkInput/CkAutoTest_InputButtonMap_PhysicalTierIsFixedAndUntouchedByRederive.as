@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BUTTON MAP — AUTOMATION TEST: THE PHYSICAL TIER DOES NOT MOVE
+// CK INPUT BUTTON MAP - AUTOMATION TEST: THE PHYSICAL TIER DOES NOT MOVE
 //============================================================================
 //
-// Tier 2 exists so something can name a button before a binding profile does —
+// Tier 2 exists so something can name a button before a binding profile does
 // prototyping, synthetic producers, debug keys. That is only worth anything if
 // its association is genuinely fixed, so this pins the property a re-derive is
 // most likely to break: a derivation that rebuilt the WHOLE table from the
@@ -17,7 +17,7 @@
 //
 // F9 and F10 are chosen because no CkTests mapping is authored to them and no
 // other script in this plugin names them, so neither can be a disguised mapped
-// button. Nothing presses them — the association is what is under test, not
+// button. Nothing presses them - the association is what is under test, not
 // delivery.
 //
 // The re-derive between the two assertion blocks is the actual experiment; the
@@ -43,7 +43,7 @@ class UCk_AutoTest_InputButtonMap_PhysicalTierIsFixedAndUntouchedByRederive : UC
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 
@@ -138,7 +138,7 @@ class UCk_AutoTest_InputButtonMap_PhysicalTierIsFixedAndUntouchedByRederive : UC
     }
 
     // The second re-derive is what the last block is testing, and the map looks
-    // the same before and after it — so the wait is on the request COMPLETING,
+    // the same before and after it - so the wait is on the request COMPLETING,
     // the only observable that is false until it has actually run.
     UFUNCTION()
     private void Check_RederiveCompleted(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)

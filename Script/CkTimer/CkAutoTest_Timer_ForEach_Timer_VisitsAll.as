@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: ForEach_Timer visits all timers on entity
+// CK TIMER - AUTOMATION TEST: ForEach_Timer visits all timers on entity
 //============================================================================
 //
 // Pins the ForEach_Timer iteration contract: after Add-ing N timers to

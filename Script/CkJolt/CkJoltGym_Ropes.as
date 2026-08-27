@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — ROPES
+// CK JOLT GYM - ROPES
 //
 // Three ropes hang from a gantry, built by utils_jolt_rope::Create_Rope:
-//   lane 0 — Rigid chain, 10 segments
-//   lane 1 — Springy (stretchy) rope, 10 segments
-//   lane 2 — Rigid chain, 14 segments with a heavy pendulum ball pinned to
+//   lane 0 - Rigid chain, 10 segments
+//   lane 1 - Springy (stretchy) rope, 10 segments
+//   lane 2 - Rigid chain, 14 segments with a heavy pendulum ball pinned to
 //            the tail, released swinging
-// Yank the tails, or CUT a rope (destroys its middle link — the lower half
+// Yank the tails, or CUT a rope (destroys its middle link - the lower half
 // drops). Enable ck.Jolt.DebugDraw.Enabled 1 to see segments + links.
 //============================================================================
 
@@ -21,7 +21,7 @@ class ACk_JoltGym_Ropes_GameMode : ACkTests_Gym_Base_GameMode
 class ACk_JoltGym_Ropes_PlayerController : ACk_Gym_Base_PlayerController
 {
     private FVector _Origin = FVector::ZeroVector;
-    private TArray<FCk_Handle> _RopeRoots;                  // one root entity per rope — cascade cleanup
+    private TArray<FCk_Handle> _RopeRoots;                  // one root entity per rope - cascade cleanup
     private TArray<FCk_JoltRope_Result> _Ropes;             // index = lane
 
     private float _LaneSpacingY = 240.0;
@@ -50,7 +50,7 @@ class ACk_JoltGym_Ropes_PlayerController : ACk_Gym_Base_PlayerController
 
         DoBuildContent();
 
-        ck::Trace("JoltRopesGym: started — 3 ropes hung; yank or cut them");
+        ck::Trace("JoltRopesGym: started - 3 ropes hung; yank or cut them");
     }
 
     private void DoBuildContent()
@@ -166,7 +166,7 @@ class ACk_JoltGym_Ropes_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("JoltRopesGym: yanked");
     }
 
-    // Destroys the middle link of the given rope — the lower half drops free.
+    // Destroys the middle link of the given rope - the lower half drops free.
     UFUNCTION(Exec, DisplayName="Jolt Ropes - Cut")
     void Ck_GymJoltRopes_Cut(int32 InLaneIndex = 0)
     {

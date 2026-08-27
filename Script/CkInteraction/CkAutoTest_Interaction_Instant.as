@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: INSTANT COMPLETION
+// CK INTERACTION - AUTOMATION TEST: INSTANT COMPLETION
 //============================================================================
 //
 // Smoke test for the interaction system's Instant completion policy:

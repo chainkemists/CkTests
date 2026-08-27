@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: TASK FAILURE SUPPRESSES TRANSITION
+// CK STATE MACHINE - AUTOMATION TEST: TASK FAILURE SUPPRESSES TRANSITION
 //============================================================================
 //
 // Complement to TaskSucceeds_DrivesTransition. A Tick-mode task that returns
@@ -44,7 +44,7 @@ class UCk_SmTaskFailTest_State_B : UCk_SmState_EntityScript
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        // Sink — should never be reached.
+        // Sink - should never be reached.
     }
 };
 
@@ -82,7 +82,7 @@ class UCk_AutoTest_StateMachine_TaskFailure_NoTransition : UCk_AutoTest_Base
         if (InPayload.Get_NewStateClass() != UCk_SmTaskFailTest_State_B) { return; }
 
         _ReachedB = true;
-        FinishFailure("SM transitioned to B despite the task Failing — AllSucceeded must not be satisfied by a failed task");
+        FinishFailure("SM transitioned to B despite the task Failing - AllSucceeded must not be satisfied by a failed task");
     }
 
     UFUNCTION()
@@ -90,7 +90,7 @@ class UCk_AutoTest_StateMachine_TaskFailure_NoTransition : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
         Assert_True(_ReachedB == false,
-            "A failed task must leave the AllSucceeded transition suppressed — SM stays in A");
+            "A failed task must leave the AllSucceeded transition suppressed - SM stays in A");
         FinishSuccess();
     }
 }

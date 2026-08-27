@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: REVOKE MODIFIER DURING ON-VALUE-CHANGED
+// CK ATTRIBUTE - AUTOMATION TEST: REVOKE MODIFIER DURING ON-VALUE-CHANGED
 //============================================================================
 //
 // Pins re-entrancy safety for revocable modifier removal triggered from

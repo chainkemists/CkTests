@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: FALLBACK-VS-CHAIN — FALLBACK
+// CK GOAP - AUTOMATION TEST ACTION: FALLBACK-VS-CHAIN - FALLBACK
 //============================================================================
 //
 // The always-valid-plan tenet fallback. No preconditions; effect=Goal=true;

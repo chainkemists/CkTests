@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE NOTATION PARSES FROM ANGELSCRIPT
+// CK INTENT - AUTOMATION TEST: THE NOTATION PARSES FROM ANGELSCRIPT
 //============================================================================
 //
 // The notation string IS the authoring surface, and the place moves will be
 // authored is script. So the parser is not "a C++ function that AngelScript
-// happens to reach" — the AS path is one of the three environments the API
+// happens to reach" - the AS path is one of the three environments the API
 // has to work in, and this test is what says so.
 //
 // Deliberately ENTITY-FREE. Parsing is pure data: no world, no source, no
@@ -78,7 +78,7 @@ class UCk_AutoTest_Intent_NotationParsesInAngelScript : UCk_AutoTest_Base
             "the chord's direction atom is the run's LAST digit, not its first");
         Assert_True(TerminalAtoms[1].Get_Kind() == ECk_Intent_AtomKind::Button &&
                     TerminalAtoms[1].Get_ButtonName() == n"LP",
-            "the button atom stays an unresolved NAME — resolving it to a ButtonId is the bake's job");
+            "the button atom stays an unresolved NAME - resolving it to a ButtonId is the bake's job");
 
         Assert_Equals_Int(Definition.Get_WindowFrames(), 200,
             "the window modifier parses to logic frames");

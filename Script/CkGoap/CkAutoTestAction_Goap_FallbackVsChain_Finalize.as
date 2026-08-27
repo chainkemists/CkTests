@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: FALLBACK-VS-CHAIN — FINALIZE STEP
+// CK GOAP - AUTOMATION TEST ACTION: FALLBACK-VS-CHAIN - FINALIZE STEP
 //============================================================================
 //
 // Second step of the cheap chain. Precondition MidStep=true (provided by

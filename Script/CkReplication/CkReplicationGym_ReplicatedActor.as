@@ -1,5 +1,5 @@
 //============================================================================
-// REPLICATION GYM — REPLICATED ACTOR (Scenario A driver)
+// REPLICATION GYM - REPLICATED ACTOR (Scenario A driver)
 //============================================================================
 // Direct mirror of ABB_Store. Placed in the world by the PlayerController at
 // the station transform. In BeginPlay it spawns a replicated entity script

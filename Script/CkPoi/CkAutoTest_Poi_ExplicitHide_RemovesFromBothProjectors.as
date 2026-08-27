@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: explicit hide removes a POI from BOTH projectors
+// CK POI - AUTOMATION TEST: explicit hide removes a POI from BOTH projectors
 //============================================================================
 //
 // Gate 4 semantics: a base-entity CkVisibleRange with an UNLIMITED range (so
 // distance never hides it) still drives projector membership through the
 // explicit show/hide override. Request_SetVisibility(Hide) sets the base
 // entity's FTag_VisibleRange_Hidden, which both the compass and the minimap
-// gather-exclude — the POI leaves BOTH projectors. Request_SetVisibility(Show)
+// gather-exclude - the POI leaves BOTH projectors. Request_SetVisibility(Show)
 // clears the vote and the projectors (which keep feeding hidden POIs by
 // design) re-admit it.
 //

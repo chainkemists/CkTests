@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: JUMP BACKWARD
+// CK TIMER - AUTOMATION TEST: JUMP BACKWARD
 //============================================================================
 //
 // Pairs with CkAutoTest_Timer_Jump_Forward. Pins the backward-jump contract

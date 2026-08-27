@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Foundation Gym — Gate 0
+// Crowd Foundation Gym - Gate 0
 //
 // Minimal gym proving that:
 //   - The CkCrowd module loads
@@ -7,7 +7,7 @@
 //   - The CkCrowdDebugger window (ck.CrowdDebugger 1) shows live agents in its list
 //   - Removing an agent removes the row from the list within 1 frame
 //
-// No movement, no pathfinding — those land in Gates 1-2.
+// No movement, no pathfinding - those land in Gates 1-2.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_CrowdGym_Foundation_GameMode : ACkTests_Gym_Base_GameMode

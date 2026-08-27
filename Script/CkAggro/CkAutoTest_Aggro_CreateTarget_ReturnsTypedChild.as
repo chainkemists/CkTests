@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST (P0): CreateTarget returns a typed child
+// CK AGGRO - AUTOMATION TEST (P0): CreateTarget returns a typed child
 // CreateTarget on an Aggro owner builds a valid AggroTarget child, bumps the
 // tracked-target count to one, and the child reports the tracked entity it was
 // created for.

@@ -1,23 +1,23 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF OUTLINE GYM — ENTITY-OUTLINE stations (ISM / ISKM Plan-1 / Batched / Cascade)
+// CK USF OUTLINE GYM - ENTITY-OUTLINE stations (ISM / ISKM Plan-1 / Batched / Cascade)
 //============================================================================
 //
-// Demonstrates "outline this ENTITY" across every renderer (CkUsf/DESIGN_EntityOutlines.md):
+// Demonstrates "outline this ENTITY" across every renderer (CkUsf/the entity-outlines design note):
 //   - ISM:     a row of IsmProxy cube entities sharing ONE ISM component; only the outlined
-//              entities' instances silhouette (shadow-ISM mechanism — per-instance outlines).
+//              entities' instances silhouette (shadow-ISM mechanism - per-instance outlines).
 //   - ISKM:    three Plan-1 skeletal proxies; the middle one is outlined (custom depth on its
 //              pooled SKMC).
 //   - Batched: a small Plan-2 GPU-skinned crowd; a few members outlined by index (highlight
 //              cluster tracks the skinned pose). THE visual verification for the batched
-//              custom-depth path — flagged as unverified-until-PIE in the design doc.
+//              custom-depth path - flagged as unverified-until-PIE in the design doc.
 //   - Cascade: a parent entity whose visuals live on child IsmProxy entities; one entity-level
 //              Request_ApplyOutline(EntityAndDependents) outlines them all.
 //============================================================================
 
 // ====================================================================================================================
-// Station — ISM: 5 cube proxies in one ISM; entities 1 and 3 outlined (different presets).
+// Station - ISM: 5 cube proxies in one ISM; entities 1 and 3 outlined (different presets).
 // ====================================================================================================================
 
 class UCk_EntityScript_UsfOutlineGym_Ism : UCk_GenericEntityScript_UE
@@ -62,7 +62,7 @@ class UCk_EntityScript_UsfOutlineGym_Ism : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station — ISKM Plan-1: 3 skeletal proxies; the middle one outlined.
+// Station - ISKM Plan-1: 3 skeletal proxies; the middle one outlined.
 // ====================================================================================================================
 
 class UCk_EntityScript_UsfOutlineGym_Iskm : UCk_GenericEntityScript_UE
@@ -81,7 +81,7 @@ class UCk_EntityScript_UsfOutlineGym_Iskm : UCk_GenericEntityScript_UE
         auto RendererData = iskm_assets::RendererData_Demo();
         if (ck::Is_NOT_Valid(RendererData))
         {
-            Print("[UsfOutline Gym/Iskm] RendererData_Demo() invalid — registry may need regeneration.", 10.0f);
+            Print("[UsfOutline Gym/Iskm] RendererData_Demo() invalid - registry may need regeneration.", 10.0f);
             return ECk_EntityScript_ConstructionFlow::Finished;
         }
 
@@ -106,7 +106,7 @@ class UCk_EntityScript_UsfOutlineGym_Iskm : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station — Batched (Plan-2): small GPU-skinned crowd; members 0..2 outlined by index.
+// Station - Batched (Plan-2): small GPU-skinned crowd; members 0..2 outlined by index.
 // ====================================================================================================================
 
 class UCk_EntityScript_UsfOutlineGym_Batched : UCk_GenericEntityScript_UE
@@ -125,19 +125,19 @@ class UCk_EntityScript_UsfOutlineGym_Batched : UCk_GenericEntityScript_UE
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            Print("[UsfOutline Gym/Batched] AnimCollection_Demo() invalid — registry may need regeneration.", 10.0f);
+            Print("[UsfOutline Gym/Batched] AnimCollection_Demo() invalid - registry may need regeneration.", 10.0f);
             return ECk_EntityScript_ConstructionFlow::Finished;
         }
         UCk_Utils_IskmAnimCollection_UE::Build_BakedPoseData(Collection);
 
-        // Tight scatter (±250uu) close to the panel so the crowd visibly belongs to THIS station.
+        // Tight scatter (+/-250uu) close to the panel so the crowd visibly belongs to THIS station.
         auto SpawnBase = InitialTransform;
         SpawnBase.AddToTranslation(FVector(-500.0f, 0.0f, 0.0f));
         auto Crowd = UCk_Utils_IskmBatched_UE::Debug_SpawnScatteredCrowd(Collection, SpawnBase, 16, 250.0f, 2000.0f, 0, 1.0f);
         if (ck::Is_NOT_Valid(Crowd))
         { return ECk_EntityScript_ConstructionFlow::Finished; }
 
-        // Outline three members with two different presets — silhouettes must track the skinned pose.
+        // Outline three members with two different presets - silhouettes must track the skinned pose.
         UCk_Utils_IskmBatched_UE::Set_CrowdMemberOutline(Crowd, 0, CkUsf::DA_Outline_Interactable);
         UCk_Utils_IskmBatched_UE::Set_CrowdMemberOutline(Crowd, 1, CkUsf::DA_Outline_Interactable);
         UCk_Utils_IskmBatched_UE::Set_CrowdMemberOutline(Crowd, 2, CkUsf::DA_Outline_SeeThrough);
@@ -147,7 +147,7 @@ class UCk_EntityScript_UsfOutlineGym_Batched : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station — Cascade: parent entity with 3 child cube proxies; one EntityAndDependents request.
+// Station - Cascade: parent entity with 3 child cube proxies; one EntityAndDependents request.
 // ====================================================================================================================
 
 class UCk_EntityScript_UsfOutlineGym_Cascade : UCk_GenericEntityScript_UE
@@ -194,18 +194,18 @@ class UCk_EntityScript_UsfOutlineGym_Cascade : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station — VAT: 3 vertex-animated proxies sharing ONE ISM; the outer two outlined, middle one the control.
+// Station - VAT: 3 vertex-animated proxies sharing ONE ISM; the outer two outlined, middle one the control.
 // ====================================================================================================================
 //
 // The ANIMATED-silhouette check. A VatProxy renders through an IsmProxy composed on the same entity, and VAT
-// deforms the mesh entirely inside the material's World Position Offset — it samples a baked pose texture using
+// deforms the mesh entirely inside the material's World Position Offset - it samples a baked pose texture using
 // the 12 per-instance custom-data floats. So the silhouette is only correct if the custom-depth shadow ISM carries
 // the SAME material AND the same custom data as the visible instance. If it doesn't, the outlined figures
 // silhouette their bind pose while the mesh walks. The un-outlined middle figure is the comparison control:
 // all three must be in identical poses at all times, outline or not.
 //
 // Uses the VAT gym's collection contract (CkVatGym_Shared.as): "AUTO" self-bakes a Bone-mode Mannequin
-// collection in memory at PIE start. Editor-only — a cooked run resolves nothing and the station early-outs.
+// collection in memory at PIE start. Editor-only - a cooked run resolves nothing and the station early-outs.
 
 class UCk_EntityScript_UsfOutlineGym_Vat : UCk_GenericEntityScript_UE
 {

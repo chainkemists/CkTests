@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PLAN-2 PHASE 4b SPATIAL TILE CROWD
+// CK ISKM RENDERER - AUTOMATION TEST: PLAN-2 PHASE 4b SPATIAL TILE CROWD
 //============================================================================
 //
 // Spawns a scattered crowd and confirms it partitions into MORE THAN ONE tile
-// cluster — i.e. the batched crowd is spatially partitioned (each tile is its own
+// cluster - i.e. the batched crowd is spatially partitioned (each tile is its own
 // GPUScene proxy with tight bounds for per-tile frustum + per-instance occlusion
 // culling), not one giant aggregate proxy.
 //
@@ -22,7 +22,7 @@ class UCk_AutoTest_IskmRenderer_BatchedCrowdTiling : UCk_AutoTest_Base
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            FinishFailure("iskm_assets::AnimCollection_Demo() invalid — registry may need regeneration.");
+            FinishFailure("iskm_assets::AnimCollection_Demo() invalid - registry may need regeneration.");
             return;
         }
 
@@ -30,7 +30,7 @@ class UCk_AutoTest_IskmRenderer_BatchedCrowdTiling : UCk_AutoTest_Base
         Assert_True(UCk_Utils_IskmAnimCollection_UE::Get_IsBaked(Collection),
             "Collection should bake before spawning a crowd");
 
-        // 100 instances over a ~8000cm square (±4000), partitioned into 2000cm tiles -> multiple tiles.
+        // 100 instances over a ~8000cm square (+/-4000), partitioned into 2000cm tiles -> multiple tiles.
         // WorldContext is auto-injected in AngelScript.
         auto BaseXf = FTransform();
         auto Crowd = UCk_Utils_IskmBatched_UE::Debug_SpawnScatteredCrowd(Collection, BaseXf, 100, 4000.0f, 2000.0f, 0, 1.0f);

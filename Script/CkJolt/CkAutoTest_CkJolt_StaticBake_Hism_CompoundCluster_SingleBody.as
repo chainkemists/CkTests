@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: STATIC BAKE, DENSE HISM -> ONE COMPOUND BODY
+// CK JOLT - AUTOMATION TEST: STATIC BAKE, DENSE HISM -> ONE COMPOUND BODY
 //============================================================================
 //
 // At/above the compound threshold (default 32), a dense instanced cluster
@@ -34,7 +34,7 @@ class UCk_AutoTest_CkJolt_StaticBake_Hism_CompoundCluster_SingleBody : UCk_AutoT
         _HismActor = SpawnActor(AActor, _Origin);
 
         auto Hism = UHierarchicalInstancedStaticMeshComponent::Create(_HismActor);
-        // A plain AActor has no root component — place the created component explicitly.
+        // A plain AActor has no root component - place the created component explicitly.
         Hism.SetWorldLocation(_Origin);
         Hism.SetStaticMesh(Cube);
         Hism.SetCollisionProfileName(n"BlockAll");
@@ -72,7 +72,7 @@ class UCk_AutoTest_CkJolt_StaticBake_Hism_CompoundCluster_SingleBody : UCk_AutoT
             LastCenter + FVector(0.0, 0.0, 500.0), LastCenter - FVector(0.0, 0.0, 500.0));
         Assert_True(LastHit.Get_HasHit(), "Down-ray over the LAST compound child should hit");
 
-        // A ray BETWEEN instances (gap in the grid) must miss — the compound isn't a blob.
+        // A ray BETWEEN instances (gap in the grid) must miss - the compound isn't a blob.
         auto GapCenter = _Origin + FVector(0.5 * _Spacing, 0.5 * _Spacing, 0.0);
         auto GapHit = utils_jolt_static_world::Get_RayCastStaticWorld(
             GapCenter + FVector(0.0, 0.0, 500.0), GapCenter - FVector(0.0, 0.0, 500.0));

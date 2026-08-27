@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: SOCKET-FOLLOWER DRIVES SCENE-NODE CHILD
+// CK ISKM RENDERER - AUTOMATION TEST: SOCKET-FOLLOWER DRIVES SCENE-NODE CHILD
 //============================================================================
 //
 // Regression guard for the held-item no-follow bug. A scene-node child parented
 // UNDER an IskM socket-follower's output transform must track the follower every
 // frame. The socket follower (FProcessor_IskmProxy_SocketFollower_SyncTransform)
-// runs in FGroup_Transform_Finalize so scene-node-driven LEADERS are read fresh —
+// runs in FGroup_Transform_Finalize so scene-node-driven LEADERS are read fresh
 // but that is AFTER TProcessor_SceneNode_Update (FGroup_Transform), so a scene-node
 // child's parent carries no FTag_Transform_Updated when the child recomputes, and
 // the child freezes at its construct pose after the one-shot settle.
@@ -137,7 +137,7 @@ class UCk_AutoTest_IskmRenderer_SocketFollowerDrivesChild : UCk_AutoTest_Base
         Assert_True(float32((CurrentSocket0 - _Follower0).Size()) < 1.0f,
             "current-entity-world socket helper must match the canonical socket follower before movement");
 
-        // Move the leader far along X — the socket follower should carry the attach point with it.
+        // Move the leader far along X - the socket follower should carry the attach point with it.
         utils_transform::Request_SetTransform(_Leader, FTransform(FVector(1000.0f, 0.0f, 0.0f)));
         _Leader.AddOrGet_Fragment(FCk_Fragment_TESTONLY_IskmSocketCurrentWorldProbeResult);
         _Leader.AddOrGet_Fragment(FCk_Fragment_TESTONLY_IskmSocketCurrentWorldProbeMarker);
@@ -175,7 +175,7 @@ class UCk_AutoTest_IskmRenderer_SocketFollowerDrivesChild : UCk_AutoTest_Base
         // The scene-node child must have moved by the SAME world delta as its follower parent.
         // Without SyncDescendants the child freezes: ChildDelta ~ 0 while FollowerDelta ~ k_MoveDist.
         Assert_True(float32((ChildDelta - FollowerDelta).Size()) < k_Tolerance,
-            f"Scene-node child did not track the socket follower (child delta {ChildDelta.Size()} cm vs follower delta {FollowerDelta.Size()} cm) — SyncDescendants regression");
+            f"Scene-node child did not track the socket follower (child delta {ChildDelta.Size()} cm vs follower delta {FollowerDelta.Size()} cm) - SyncDescendants regression");
 
         Assert_True(float32((CurrentSocket - FollowerNow).Size()) < 1.0f,
             "current-entity-world socket helper must stay aligned with the canonical follower after movement");

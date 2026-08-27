@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Assign reassigns the team
+// CK RELATIONSHIP - AUTOMATION TEST: Assign reassigns the team
 // Starting on One, Assign(Two) flips the entity's reported team to Two.
 
 class UCk_AutoTest_Relationship_Team_AssignChanges : UCk_AutoTest_Base

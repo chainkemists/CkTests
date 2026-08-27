@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: CIRCULAR CONTEXT OWNERSHIP
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: CIRCULAR CONTEXT OWNERSHIP
 //============================================================================
 //
-// Pins safety contract: requesting an A→B then B→A context-owner override
+// Pins safety contract: requesting an A->B then B->A context-owner override
 // must not leave Get_ContextOwner in an unbounded chain walk. The framework
 // must either (a) reject the second override, or (b) accept both but ensure
 // Get_ContextOwner returns in finite time without infinite recursion.
 //
-// This test does NOT assert *which* outcome the framework chooses — both
+// This test does NOT assert *which* outcome the framework chooses - both
 // are acceptable. It asserts:
 //
 //   1. Both Request_Override calls return without crashing.
@@ -59,7 +59,7 @@ class UCk_AutoTest_EntityLifecycle_CircularContextOwnership : UCk_AutoTest_Base
         auto OwnerOfA = utils_context_owner::Get_ContextOwner(_ChildA);
         auto OwnerOfB = utils_context_owner::Get_ContextOwner(_ChildB);
 
-        // Ownership requests are deferred — wait for at least one of them to
+        // Ownership requests are deferred - wait for at least one of them to
         // visibly land before asserting. Once observed, both owners must be
         // valid handles (rejection -> stays as test entity; acceptance ->
         // points at the cycle peer; either is acceptable so long as the

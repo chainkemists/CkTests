@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BUTTON MAP — AUTOMATION TEST: A REBIND MOVES THE KEY, NOT THE BUTTON
+// CK INPUT BUTTON MAP - AUTOMATION TEST: A REBIND MOVES THE KEY, NOT THE BUTTON
 //============================================================================
 //
 // This is the whole reason the button space exists. A definition that names a
-// button must survive the player rebinding it, with no edit anywhere — which is
+// button must survive the player rebinding it, with no edit anywhere - which is
 // only true if a re-derive moves ASSOCIATIONS and leaves IDENTITIES alone.
 //
 // Three things are pinned, and the third is the one an "obvious" implementation
 // gets wrong by rebuilding the map from scratch:
 //
 //   1. Jump's identity after the rebind is the SAME identity captured before it
-//      — same tier, same name, still present in the map.
+//      - same tier, same name, still present in the map.
 //   2. Its association moved to the new key.
 //   3. The OLD key no longer resolves to it. A map that re-pointed the new key
 //      without clearing the old one would pass 1 and 2 and still hand a
@@ -43,7 +43,7 @@ class UCk_AutoTest_InputButtonMap_RebindMovesAssociationNotIdentity : UCk_AutoTe
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 

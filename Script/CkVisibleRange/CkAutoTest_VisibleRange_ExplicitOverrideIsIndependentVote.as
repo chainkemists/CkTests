@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK VISIBLE RANGE — AUTOMATION TEST: explicit override is an independent vote
+// CK VISIBLE RANGE - AUTOMATION TEST: explicit override is an independent vote
 //============================================================================
 //
 // FTag_VisibleRange_Hidden is reference-counted (CK_DEFINE_ECS_TAG_COUNTED)
 // specifically because "hidden" has two independent sources: the entity's
 // own out-of-range state, and an explicit Request_SetVisibility(Hide). This
 // test activates BOTH, clears only ONE, and asserts the entity is STILL
-// hidden — the exact case a plain (non-counted) tag would get wrong, since
+// hidden - the exact case a plain (non-counted) tag would get wrong, since
 // one source's clear would silently wipe the other source's still-active
 // vote. If this test passes with a plain tag substituted in, the contract
 // is broken and this assertion is the one that should catch it.
@@ -25,7 +25,7 @@ class UCk_AutoTest_VisibleRange_ExplicitOverrideIsIndependentVote : UCk_AutoTest
         auto LocalHandle = InHandle;
 
         // MaxRange = 0 (unlimited far); MinRange = 500 means the default distance (0) already
-        // violates MinRange — the own-range vote is active from the first evaluated tick, no
+        // violates MinRange - the own-range vote is active from the first evaluated tick, no
         // Update_Distance call needed to arm it.
         auto Params = FCk_Fragment_VisibleRange_ParamsData(0.0f);
         Params.Set_MinRange(500.0f);
@@ -59,7 +59,7 @@ class UCk_AutoTest_VisibleRange_ExplicitOverrideIsIndependentVote : UCk_AutoTest
         if (IsFinished()) { return; }
 
         Assert_True(utils_visible_range::Get_IsHidden(_VR),
-            "Should STILL be hidden — the own-range vote was never cleared. A plain tag would " +
+            "Should STILL be hidden - the own-range vote was never cleared. A plain tag would " +
             "incorrectly report visible here since the explicit source's clear would wipe both.");
 
         // Now clear the own-range vote too (bring distance back inside MinRange).

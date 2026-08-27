@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: SWAPPING THE SET CLOSES WHAT IT WAS HOLDING
+// CK INTENT - AUTOMATION TEST: SWAPPING THE SET CLOSES WHAT IT WAS HOLDING
 //============================================================================
 //
 // A state outlives the frame it opened on, which makes it the one thing in
@@ -13,8 +13,8 @@
 // So the swap must close it, and it must close it as a broadcast TRANSITION
 // rather than by quietly resizing the phase rows out from under it. A
 // default-constructed set is used because that is the deactivation leg of the
-// swap contract — captures released, rows gone, Succeeded, because that is
-// what the caller asked for — and it is the harshest version of the case: the
+// swap contract - captures released, rows gone, Succeeded, because that is
+// what the caller asked for - and it is the harshest version of the case: the
 // intent's NAME does not exist afterwards.
 //
 // Which is exactly why this is asserted from the SIGNAL rather than from the
@@ -157,7 +157,7 @@ class UCk_AutoTest_Intent_LevelSwapWhileActiveDeactivates : UCk_AutoTest_Base
             "the second transition is the swap closing the state a consumer is still holding open");
 
         Assert_Equals_Int(_Frames[1], -1,
-            "no input row closed this state, so it names no frame — stamping the current one would tell a consumer the player let go");
+            "no input row closed this state, so it names no frame - stamping the current one would tell a consumer the player let go");
     }
 
     UFUNCTION()

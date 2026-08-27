@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: REQUEST COMPLETE
+// CK TIMER - AUTOMATION TEST: REQUEST COMPLETE
 //============================================================================
 //
 // Verifies that Request_Complete fires OnDone immediately rather than
 // waiting for the chrono to reach its goal naturally. The timer is created
 // with a long goal that would take longer than the harness timeout to
-// complete on its own — so if OnDone fires within the timeout, it must
+// complete on its own - so if OnDone fires within the timeout, it must
 // have come from the explicit Request_Complete.
 //============================================================================
 

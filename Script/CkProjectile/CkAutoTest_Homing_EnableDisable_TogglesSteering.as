@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK HOMING — AUTOMATION TEST: ENABLE/DISABLE TOGGLES STEERING
+// CK HOMING - AUTOMATION TEST: ENABLE/DISABLE TOGGLES STEERING
 //============================================================================
 //
 // Homing is added with StartingState=Disable. Setting a target while disabled
 // must NOT activate steering. Request_EnableDisable(Enable) activates it
-// (the target was retained), and a subsequent Disable deactivates it again —
+// (the target was retained), and a subsequent Disable deactivates it again
 // after which the projectile flies dead straight.
 //============================================================================
 
@@ -98,7 +98,7 @@ class UCk_AutoTest_Homing_EnableDisable_TogglesSteering : UCk_AutoTest_Base
             return;
         }
 
-        // Phase 2 — settle the disable, then the flight direction must never change again
+        // Phase 2 - settle the disable, then the flight direction must never change again
         if (_PhaseTicks <= 2)
         {
             _PreviousLocation = utils_transform::Get_EntityCurrentLocation(_ProjectileTransform);

@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY TAG — AUTOMATION TEST: Request_TryRemove on absent tag (no-op)
+// CK ENTITY TAG - AUTOMATION TEST: Request_TryRemove on absent tag (no-op)
 //
 // Contract (post-A4): Request_TryRemove returns Succeeded whenever the
 // handle is valid, regardless of whether the tag is present. The deferred
@@ -26,13 +26,13 @@ class UCk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed : UCk_AutoTest_Base
     {
         auto _CkPerfScope = ck::ScopedStat();
         _Entity = InHandle;
-        // Don't add anything — pin the absent-tag no-op contract.
+        // Don't add anything - pin the absent-tag no-op contract.
         auto Result = utils_entity_tag::Request_TryRemove(_Entity, n"NeverAdded");
         Assert_True(Result == ECk_SucceededFailed::Succeeded,
-            "Request_TryRemove on an absent tag should return Succeeded — the boundary only validates the handle; the deferred apply silently no-ops on a missing tag");
+            "Request_TryRemove on an absent tag should return Succeeded - the boundary only validates the handle; the deferred apply silently no-ops on a missing tag");
 
-        // No positive condition exists here — the contract is that NOTHING
-        // happens — so this settles a fixed number of frames rather than
+        // No positive condition exists here - the contract is that NOTHING
+        // happens - so this settles a fixed number of frames rather than
         // pretending to wait on something.
         WaitFrames(2, n"AfterAbsentRemove");
     }
@@ -41,7 +41,7 @@ class UCk_AutoTest_EntityTag_RequestTryRemoveAbsentFailed : UCk_AutoTest_Base
     private void AfterAbsentRemove(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
         Assert_True(!utils_entity_tag::Has(_Entity, n"NeverAdded"),
-            "After the no-op remove pumps, Has(NeverAdded) must still be false — the no-op must not poison the entity");
+            "After the no-op remove pumps, Has(NeverAdded) must still be false - the no-op must not poison the entity");
 
         FinishSuccess();
     }
