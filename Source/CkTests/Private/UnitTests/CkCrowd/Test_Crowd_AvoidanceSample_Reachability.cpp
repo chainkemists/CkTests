@@ -62,6 +62,30 @@ bool FCkTest_Crowd_AvoidanceSample_ReachabilityProjection::RunTest(const FString
     TestTrue(TEXT("Projection uses the same turn-rate-limited velocity as AccelClamp"),
         QuarterTurn.Equals(ExpectedTurn, 0.001f));
 
+    const auto TurnLimitedCloseGoal = ProjectVelocity(
+        FVector{kMaxSpeed, 0.0f, 0.0f},
+        FVector{0.0f, 60.0f, 0.0f},
+        kMaxSpeed,
+        200.0f,
+        4.0f,
+        0.05f);
+    const auto ImmediateDirection = ProjectVelocity(
+        FVector{kMaxSpeed, 0.0f, 0.0f},
+        FVector{0.0f, 60.0f, 0.0f},
+        kMaxSpeed,
+        200.0f,
+        4.0f,
+        0.05f,
+        true);
+    TestTrue(TEXT("Ordinary close-goal movement remains turn limited"),
+        TurnLimitedCloseGoal.X > 0.0f && TurnLimitedCloseGoal.Y < ImmediateDirection.Y);
+    TestTrue(TEXT("Close-goal strafe bypasses only the angular turn clamp"),
+        ImmediateDirection.Equals(FVector{0.0f, 90.0f, 0.0f}, 0.001f));
+    TestTrue(TEXT("Close-goal strafe still respects the maximum scalar speed"),
+        ImmediateDirection.Size() <= kMaxSpeed + KINDA_SMALL_NUMBER);
+    TestTrue(TEXT("Close-goal strafe still respects the scalar acceleration budget"),
+        FMath::Abs(ImmediateDirection.Size() - kMaxSpeed) <= 200.0f * 0.05f + KINDA_SMALL_NUMBER);
+
     const auto FirstFrame = ProjectVelocity(
         FVector::ZeroVector,
         FVector{0.0f, kMaxSpeed, 0.0f},
