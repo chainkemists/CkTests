@@ -8,6 +8,12 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     private FCk_Handle_Queue _Queue;
     private FCk_Handle       _EarlyFar;
     private FCk_Handle       _LateNear;
+    private FCk_Handle       _TailNear;
+    private FCk_Handle       _ReverseOwner;
+    private FCk_Handle_Queue _ReverseQueue;
+    private FCk_Handle       _ReverseJoinedFirst;
+    private FCk_Handle       _ReverseJoinedSecond;
+    private FCk_Handle       _ReverseJoinedThird;
     private FCk_Handle       _TicketOwner;
     private FCk_Handle_Queue _TicketQueue;
     private FCk_Handle       _TicketEarlyFar;
@@ -29,8 +35,14 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     private FCk_Handle       _PhaseSpreadDisabledOwner;
     private FCk_Handle_Queue _PhaseSpreadDisabledQueue;
     private int32            _InitialRevision = 0;
-    private int32            _SwappedRevision = 0;
+    private int32            _ReservationStableRevision = 0;
     private int32            _StableRevision = 0;
+    private int32            _IncumbentRankOneRevision = 0;
+    private int32            _TailAssignmentRevision = 0;
+    private int32            _AdvanceCompletions = 0;
+    private ECk_Request_OperationResult _AdvanceResult = ECk_Request_OperationResult::Failed;
+    private int32            _ReverseAdvanceCompletions = 0;
+    private ECk_Request_OperationResult _ReverseAdvanceResult = ECk_Request_OperationResult::Failed;
     private int32            _ArrivedFrontRevision = 0;
     private int32            _ReservedSlotReachedCount = 0;
     private int32            _ClaimFirstSlotReachedCount = 0;
@@ -56,7 +68,7 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
         Add_Step("join far ticket one before near ticket two", n"Step_RequestDistanceJoins");
         Add_Step_WaitUntil("near later ticket receives rank zero", n"Check_NearLaterWinsInitialReservation");
         Add_Step("move ticket one closer than ticket two", n"Step_MoveEarlyTicketCloser");
-        Add_Step_WaitUntil("distance refresh swaps the two reservations", n"Check_AssignmentsSwapAfterMoverTransformChange");
+        Add_Step_WaitUntil("existing reservations retain their lower ranks despite changed distances", n"Check_AssignmentsRetainExistingRanksAfterMoverTransformChange");
         Add_Step_WaitUntil("unchanged distance refresh has no revision churn", n"Check_UnchangedRefreshRetainsAssignments");
         Add_Step("create a fresh queue with an exact distance tie", n"Step_CreateExactTieQueue");
         Add_Step_WaitUntil("ticket order breaks an exact distance tie", n"Check_TicketBreaksExactDistanceTie");
@@ -66,6 +78,16 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
         Add_Step_WaitUntil("duplicate arrival report drains without another SlotReached", n"Check_DuplicateArrivalDrained");
         Add_Step("move the later ticket directly onto the occupied front", n"Step_MoveLaterTicketOntoFront");
         Add_Step_WaitUntil("arrived front remains pinned despite a nearer follower", n"Check_ArrivedFrontRemainsPinned");
+        Add_Step("join a later tail physically nearest the occupied front", n"Step_RequestTailNearFront");
+        Add_Step_WaitUntil("later tail receives only the free suffix reservation", n"Check_TailRemainsBehindReservedIncumbent");
+        Add_Step("advance the arrived front", n"Step_RequestAdvance");
+        Add_Step_WaitUntil("lower-ranked incumbent compacts before the nearer tail", n"Check_AdvanceCompactsIncumbentBeforeTail");
+        Add_Step("create a queue whose distance order reverses join order", n"Step_CreateReverseJoinQueue");
+        Add_Step_WaitUntil("last join owns front while earlier joins own the suffix", n"Check_ReverseJoinRanks");
+        Add_Step("move the reverse-order front into its reservation", n"Step_MoveReverseFrontIntoClaimRadius");
+        Add_Step_WaitUntil("reverse-order front arrives", n"Check_ReverseFrontArrived");
+        Add_Step("advance the reverse-order front", n"Step_RequestReverseAdvance");
+        Add_Step_WaitUntil("published rank one advances before join-order rank two", n"Check_ReverseAdvancePreservesPublishedOrder");
         Add_Step("create a default queue with a transformless early join", n"Step_CreateTransformlessQueue");
         Add_Step_WaitUntil("near transform-bearing later join receives rank zero", n"Check_TransformlessEarlyJoinDoesNotBlockNearMover");
         Add_Step("create a ticket-order compatibility queue", n"Step_CreateTicketOrderQueue");
@@ -84,7 +106,7 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     private void OnMemberEvent(FCk_Handle_Queue InQueue, FCk_Queue_MemberEvent InEvent)
     {
         if (InEvent.Get_Reason() != ECk_Queue_EventReason::SlotReached) { return; }
-        if (InQueue == _Queue && InEvent.Get_Member().Get_Member() == _EarlyFar)
+        if (InQueue == _Queue && InEvent.Get_Member().Get_Member() == _LateNear)
         { _ReservedSlotReachedCount++; }
         else if (InQueue == _ClaimFirstQueue && InEvent.Get_Member().Get_Member() == _ClaimFirstMover)
         { _ClaimFirstSlotReachedCount++; }
@@ -174,17 +196,24 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     }
 
     UFUNCTION()
-    private void Check_AssignmentsSwapAfterMoverTransformChange(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    private void Check_AssignmentsRetainExistingRanksAfterMoverTransformChange(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
         FCk_Queue_MemberSnapshot Early;
         FCk_Queue_MemberSnapshot Late;
         const bool HasEarly = _Queue.TryGet_MemberSnapshot(_EarlyFar, Early);
         const bool HasLate = _Queue.TryGet_MemberSnapshot(_LateNear, Late);
-        if (HasEarly && HasLate && Early.Get_Rank() == 0 && Late.Get_Rank() == 1
-            && Early.Get_AssignmentRevision() > _InitialRevision && Late.Get_AssignmentRevision() > _InitialRevision)
-        { _SwappedRevision = _Queue.Get_Revision(); }
+        const auto EarlyLocation = utils_transform::Get_EntityCurrentLocation(_EarlyFar.As_Transform());
+        const auto LateLocation = utils_transform::Get_EntityCurrentLocation(_LateNear.As_Transform());
+        if (HasEarly && HasLate && Early.Get_Rank() == 1 && Late.Get_Rank() == 0
+            && Early.Get_AssignmentRevision() > 0 && Late.Get_AssignmentRevision() == _InitialRevision
+            && EarlyLocation.Equals(FVector(120.0f, 0.0f, 0.0f), 1.0f)
+            && LateLocation.Equals(FVector(-900.0f, 0.0f, 0.0f), 1.0f))
+        {
+            _IncumbentRankOneRevision = Early.Get_AssignmentRevision();
+            _ReservationStableRevision = _Queue.Get_Revision();
+        }
         auto Result = OutResult;
-        Result.Set(_SwappedRevision > _InitialRevision);
+        Result.Set(_ReservationStableRevision >= _InitialRevision && _IncumbentRankOneRevision > 0);
     }
 
     UFUNCTION()
@@ -194,8 +223,8 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
         FCk_Queue_MemberSnapshot Late;
         const bool HasEarly = _Queue.TryGet_MemberSnapshot(_EarlyFar, Early);
         const bool HasLate = _Queue.TryGet_MemberSnapshot(_LateNear, Late);
-        const bool Stable = HasEarly && HasLate && Early.Get_Rank() == 0 && Late.Get_Rank() == 1
-            && _Queue.Get_Revision() == _SwappedRevision;
+        const bool Stable = HasEarly && HasLate && Early.Get_Rank() == 1 && Late.Get_Rank() == 0
+            && _Queue.Get_Revision() == _ReservationStableRevision;
         if (Stable) { _StableRevision = _Queue.Get_Revision(); }
         auto Result = OutResult;
         Result.Set(Stable);
@@ -233,23 +262,23 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_MoveFrontIntoClaimRadius(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        FCk_Queue_MemberSnapshot Early;
-        Assert_True(_Queue.TryGet_MemberSnapshot(_EarlyFar, Early), "ticket-one snapshot exists before geometric arrival reconciliation");
-        _ArrivedFrontRevision = Early.Get_AssignmentRevision();
+        FCk_Queue_MemberSnapshot Late;
+        Assert_True(_Queue.TryGet_MemberSnapshot(_LateNear, Late), "rank-zero ticket-two snapshot exists before geometric arrival reconciliation");
+        _ArrivedFrontRevision = Late.Get_AssignmentRevision();
         utils_transform::Request_SetLocation(
-            _EarlyFar.As_Transform(),
-            Early.Get_TargetWorldTransform().GetLocation(),
+            _LateNear.As_Transform(),
+            Late.Get_TargetWorldTransform().GetLocation(),
             ECk_LocalWorld::World);
     }
 
     UFUNCTION()
     private void Check_FrontArrived(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
     {
-        FCk_Queue_MemberSnapshot Early;
-        const bool HasEarly = _Queue.TryGet_MemberSnapshot(_EarlyFar, Early);
+        FCk_Queue_MemberSnapshot Late;
+        const bool HasLate = _Queue.TryGet_MemberSnapshot(_LateNear, Late);
         auto Result = OutResult;
-        Result.Set(HasEarly && Early.Get_State() == ECk_Queue_MemberState::AtFront
-            && Early.Get_Rank() == 0 && Early.Get_AssignmentRevision() == _ArrivedFrontRevision
+        Result.Set(HasLate && Late.Get_State() == ECk_Queue_MemberState::AtFront
+            && Late.Get_Rank() == 0 && Late.Get_AssignmentRevision() == _ArrivedFrontRevision
             && _ReservedSlotReachedCount == 1);
     }
 
@@ -258,7 +287,7 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     {
         _Queue.Request_ReportMovementOutcome(
             FCk_Request_Queue_ReportMovementOutcome(
-                _EarlyFar, _ArrivedFrontRevision, ECk_Queue_MovementOutcome::Reached),
+                _LateNear, _ArrivedFrontRevision, ECk_Queue_MovementOutcome::Reached),
             FCk_Delegate_Request_OnCompleted(this, n"OnDuplicateOutcomeCompleted"));
     }
 
@@ -278,7 +307,11 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_MoveLaterTicketOntoFront(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        utils_transform::Request_SetLocation(_LateNear.As_Transform(), FVector(200.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
+        FCk_Queue_MemberSnapshot Front;
+        Assert_True(_Queue.TryGet_MemberSnapshot(_LateNear, Front),
+            "front snapshot exists before placing the incumbent follower nearby");
+        utils_transform::Request_SetLocation(
+            _EarlyFar.As_Transform(), Front.Get_TargetWorldTransform().GetLocation(), ECk_LocalWorld::World);
     }
 
     UFUNCTION()
@@ -289,9 +322,162 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
         const bool HasEarly = _Queue.TryGet_MemberSnapshot(_EarlyFar, Early);
         const bool HasLate = _Queue.TryGet_MemberSnapshot(_LateNear, Late);
         auto Result = OutResult;
-        Result.Set(HasEarly && HasLate && Early.Get_State() == ECk_Queue_MemberState::AtFront
-            && Early.Get_Rank() == 0 && Early.Get_AssignmentRevision() == _ArrivedFrontRevision
-            && Late.Get_Rank() == 1);
+        Result.Set(HasEarly && HasLate && Late.Get_State() == ECk_Queue_MemberState::AtFront
+            && Late.Get_Rank() == 0 && Late.Get_AssignmentRevision() == _ArrivedFrontRevision
+            && Early.Get_Rank() == 1 && Early.Get_AssignmentRevision() == _IncumbentRankOneRevision);
+    }
+
+    UFUNCTION()
+    private void Step_RequestTailNearFront(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Front;
+        Assert_True(_Queue.TryGet_MemberSnapshot(_LateNear, Front),
+            "front snapshot exists before placing the late tail nearby");
+        utils_transform::Request_SetLocation(
+            _EarlyFar.As_Transform(), FVector(-900.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
+        _TailNear = CreateMover(InHandle, Front.Get_TargetWorldTransform().GetLocation());
+        auto Tail = FCk_Request_Queue_Join(_TailNear);
+        Tail.Set_Mover(_TailNear);
+        _Queue.Request_Join(Tail);
+    }
+
+    UFUNCTION()
+    private void Check_TailRemainsBehindReservedIncumbent(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Early;
+        FCk_Queue_MemberSnapshot Tail;
+        const bool HasEarly = _Queue.TryGet_MemberSnapshot(_EarlyFar, Early);
+        const bool HasTail = _Queue.TryGet_MemberSnapshot(_TailNear, Tail);
+        const auto EarlyLocation = utils_transform::Get_EntityCurrentLocation(_EarlyFar.As_Transform());
+        if (HasTail) { _TailAssignmentRevision = Tail.Get_AssignmentRevision(); }
+        auto Result = OutResult;
+        Result.Set(HasEarly && HasTail && Early.Get_Rank() == 1
+            && Early.Get_AssignmentRevision() == _IncumbentRankOneRevision
+            && EarlyLocation.Equals(FVector(-900.0f, 0.0f, 0.0f), 1.0f)
+            && Tail.Get_Rank() == 2 && _TailAssignmentRevision > 0);
+    }
+
+    UFUNCTION()
+    private void Step_RequestAdvance(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        _Queue.Request_Advance(FCk_Request_Queue_Advance(),
+            FCk_Delegate_Request_OnCompleted(this, n"OnAdvanceCompleted"));
+    }
+
+    UFUNCTION()
+    private void OnAdvanceCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    {
+        _AdvanceCompletions += 1;
+        _AdvanceResult = InResult;
+    }
+
+    UFUNCTION()
+    private void Check_AdvanceCompactsIncumbentBeforeTail(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Early;
+        FCk_Queue_MemberSnapshot Tail;
+        const bool HasEarly = _Queue.TryGet_MemberSnapshot(_EarlyFar, Early);
+        const bool HasTail = _Queue.TryGet_MemberSnapshot(_TailNear, Tail);
+        auto Result = OutResult;
+        Result.Set(_AdvanceCompletions == 1 && _AdvanceResult == ECk_Request_OperationResult::Succeeded
+            && HasEarly && HasTail && _Queue.Get_MemberCount() == 2
+            && Early.Get_Rank() == 0 && Tail.Get_Rank() == 1
+            && Tail.Get_AssignmentRevision() >= _TailAssignmentRevision
+            && _ReservedSlotReachedCount == 1);
+    }
+
+    UFUNCTION()
+    private void Step_CreateReverseJoinQueue(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        _ReverseOwner = utils_entity_lifetime::Request_CreateEntity(InHandle);
+        utils_transform::Add(_ReverseOwner,
+            FTransform(FVector(800.0f, 0.0f, 0.0f)), ECk_Replication::DoesNotReplicate);
+
+        auto Params = FCk_Fragment_Queue_ParamsData();
+        Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
+        Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);
+        Params.Set_ReserveAssignmentPolicy(ECk_Queue_ReserveAssignmentPolicy::DistanceThenTicket);
+        Params.Set_ReserveAssignmentRefreshSeconds(0.0f);
+        Params.Set_ReserveAssignmentHysteresisUu(0.0f);
+        _ReverseQueue = utils_queue::Add(_ReverseOwner, Params);
+
+        _ReverseJoinedFirst = CreateMover(InHandle, FVector(-200.0f, 0.0f, 0.0f));
+        _ReverseJoinedSecond = CreateMover(InHandle, FVector(450.0f, 0.0f, 0.0f));
+        _ReverseJoinedThird = CreateMover(InHandle, FVector(800.0f, 0.0f, 0.0f));
+
+        auto First = FCk_Request_Queue_Join(_ReverseJoinedFirst);
+        First.Set_Mover(_ReverseJoinedFirst);
+        _ReverseQueue.Request_Join(First);
+        auto Second = FCk_Request_Queue_Join(_ReverseJoinedSecond);
+        Second.Set_Mover(_ReverseJoinedSecond);
+        _ReverseQueue.Request_Join(Second);
+        auto Third = FCk_Request_Queue_Join(_ReverseJoinedThird);
+        Third.Set_Mover(_ReverseJoinedThird);
+        _ReverseQueue.Request_Join(Third);
+    }
+
+    UFUNCTION()
+    private void Check_ReverseJoinRanks(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot First;
+        FCk_Queue_MemberSnapshot Second;
+        FCk_Queue_MemberSnapshot Third;
+        const bool HasFirst = _ReverseQueue.TryGet_MemberSnapshot(_ReverseJoinedFirst, First);
+        const bool HasSecond = _ReverseQueue.TryGet_MemberSnapshot(_ReverseJoinedSecond, Second);
+        const bool HasThird = _ReverseQueue.TryGet_MemberSnapshot(_ReverseJoinedThird, Third);
+        auto Result = OutResult;
+        Result.Set(HasFirst && HasSecond && HasThird
+            && First.Get_Rank() == 2 && Second.Get_Rank() == 1 && Third.Get_Rank() == 0
+            && First.Get_AssignmentRevision() > 0 && Second.Get_AssignmentRevision() > 0
+            && Third.Get_AssignmentRevision() > 0);
+    }
+
+    UFUNCTION()
+    private void Step_MoveReverseFrontIntoClaimRadius(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Front;
+        Assert_True(_ReverseQueue.TryGet_MemberSnapshot(_ReverseJoinedThird, Front),
+            "reverse-order front snapshot exists before arrival");
+        utils_transform::Request_SetLocation(
+            _ReverseJoinedThird.As_Transform(), Front.Get_TargetWorldTransform().GetLocation(), ECk_LocalWorld::World);
+    }
+
+    UFUNCTION()
+    private void Check_ReverseFrontArrived(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot Front;
+        const bool HasFront = _ReverseQueue.TryGet_MemberSnapshot(_ReverseJoinedThird, Front);
+        auto Result = OutResult;
+        Result.Set(HasFront && Front.Get_Rank() == 0
+            && Front.Get_State() == ECk_Queue_MemberState::AtFront);
+    }
+
+    UFUNCTION()
+    private void Step_RequestReverseAdvance(FCk_Handle InHandle, FInstancedStruct InPayload)
+    {
+        _ReverseQueue.Request_Advance(FCk_Request_Queue_Advance(),
+            FCk_Delegate_Request_OnCompleted(this, n"OnReverseAdvanceCompleted"));
+    }
+
+    UFUNCTION()
+    private void OnReverseAdvanceCompleted(FCk_Handle InRequestOwner, ECk_Request_OperationResult InResult)
+    {
+        _ReverseAdvanceCompletions += 1;
+        _ReverseAdvanceResult = InResult;
+    }
+
+    UFUNCTION()
+    private void Check_ReverseAdvancePreservesPublishedOrder(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
+    {
+        FCk_Queue_MemberSnapshot First;
+        FCk_Queue_MemberSnapshot Second;
+        const bool HasFirst = _ReverseQueue.TryGet_MemberSnapshot(_ReverseJoinedFirst, First);
+        const bool HasSecond = _ReverseQueue.TryGet_MemberSnapshot(_ReverseJoinedSecond, Second);
+        auto Result = OutResult;
+        Result.Set(_ReverseAdvanceCompletions == 1
+            && _ReverseAdvanceResult == ECk_Request_OperationResult::Succeeded
+            && _ReverseQueue.Get_MemberCount() == 2 && HasFirst && HasSecond
+            && First.Get_Rank() == 1 && Second.Get_Rank() == 0);
     }
 
     UFUNCTION()
@@ -423,14 +609,19 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_AssertContracts(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        Assert_True(_InitialRevision > 0 && _SwappedRevision > _InitialRevision,
-            "the default-enabled phase spread still allows zero-refresh distance reflow to publish a new reservation revision");
-        Assert_Equals_Int(_StableRevision, _SwappedRevision,
+        Assert_True(_InitialRevision > 0 && _ReservationStableRevision >= _InitialRevision,
+            "a distance refresh preserves live reservation ranks instead of reordering them by later mover transforms");
+        Assert_Equals_Int(_StableRevision, _ReservationStableRevision,
             "a distance refresh with unchanged mover transforms does not churn queue revisions");
         Assert_True(_ArrivedFrontRevision > 0,
             "queue-owned reconciliation detects physical arrival and preserves its assignment revision without an outcome report");
         Assert_Equals_Int(_ReservedSlotReachedCount, 1,
             "queue-owned reconciliation and a later duplicate report publish SlotReached exactly once");
+        Assert_True(_AdvanceCompletions == 1 && _AdvanceResult == ECk_Request_OperationResult::Succeeded,
+            "advancing the arrived front compacts the earlier reserved incumbent before a nearer later tail");
+        Assert_True(_ReverseAdvanceCompletions == 1
+            && _ReverseAdvanceResult == ECk_Request_OperationResult::Succeeded,
+            "rank compaction follows the published queue order when distance order differs from join order");
         Assert_Equals_Int(_ClaimFirstSlotReachedCount, 1,
             "claim-first queues reconcile physical proximity exactly once without requiring an outcome report");
         Assert_Equals_Int(_DestroySlotReachedCount, 0,
@@ -446,7 +637,8 @@ class UCk_AutoTest_Queue_ReserveDistanceAwareReflow : UCk_AutoTest_Base
 
     private FCk_Handle_Queue CreateQueue(FCk_Handle InOwner, ECk_Queue_ReserveAssignmentPolicy InPolicy)
     {
-        utils_transform::Request_SetLocation(InOwner.As_Transform(), FVector(200.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
+        // Keep the third linear slot clear of the AutoTest runner near world origin.
+        utils_transform::Request_SetLocation(InOwner.As_Transform(), FVector(800.0f, 0.0f, 0.0f), ECk_LocalWorld::World);
         auto Params = FCk_Fragment_Queue_ParamsData();
         Params.Set_LayoutAlgorithm(ECk_Queue_LayoutAlgorithm::Linear);
         Params.Set_SlotClaimPolicy(ECk_Queue_SlotClaimPolicy::ReserveOnFormation);
