@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK QUEUE - PERF READOUT (synchronised DistanceThenTicket refresh bursts)
+// CK QUEUE — PERF READOUT (amortised DistanceThenTicket incumbent refreshes)
 //============================================================================
 //
 // Five hundred twelve independent ReserveOnFormation queues each admit twelve
 // transform-backed members. Every 0.25 seconds, six members in every queue
-// switch between near and far positions together, making the timed
-// DistanceThenTicket refresh work relevant throughout the warmup and sample.
+// switch between near and far positions together. Their reservations remain
+// rank-stable while the timed refresh path proves the incumbent scan stays amortised.
 //
 // This measures frame time only: setup failures fail the test, but no timing
 // threshold is applied because the readout is machine-dependent.

@@ -127,7 +127,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         if (HasAuthority() == false) { return TArray<FCkGym_Station_SpawnParams_Payload>(); }
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
         AddStation(Stations, n"Gym.Queue.Live", "QUEUE: LIVE CROWD AGENTS",
-            "Use the numbered options panel for direct queue scenarios. Press R for the contested-slot race or K for reservation scatter: far tickets reserve first, then nearby admissions demonstrate reassignment. Queue and all Crowd-agent debug overlays are enabled while this gym is active.");
+            "Use the numbered options panel for direct queue scenarios. Press R for the contested-slot race or K for reservation scatter: far tickets reserve first, then nearby admissions prove incumbent-first compaction. Queue and all Crowd-agent debug overlays are enabled while this gym is active.");
         return Stations;
     }
 
@@ -882,7 +882,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         _ScatterNearAdmissionPending = false;
         _ScatterFarReservationDisplaySeconds = 0.0f;
         SpawnAndJoinAgents(_Population - _Agents.Num());
-        AddTrace("SCATTER: the far pair held distinct ranks 0 and 1 visibly; nearby admissions now join for distance-based reassignment.");
+        AddTrace("SCATTER: the far pair held distinct ranks 0 and 1 visibly; nearby admissions now join and must fill only the unreserved suffix.");
         RefreshDisplays();
     }
 
@@ -1748,8 +1748,8 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
             }
             else if (_ReservationScatterPreset)
             {
-                // The first pair joins before nearby agents. They therefore initially reserve ranks zero and one;
-                // the later nearby admissions expose DistanceThenTicket's continuous reassignment in the same run.
+                // The first pair joins before nearby agents. They therefore reserve ranks zero and one; the later
+                // nearby admissions prove that proximity cannot steal an incumbent's established lower rank.
                 if (Index < 2)
                 {
                     X = -2600.0f + float(Index) * 220.0f;
@@ -1843,7 +1843,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         }
         if (_ReservationScatterPreset)
         {
-            DisplayText = f"{DisplayText}ORACLE: far tickets 1/2 reserve first, then near agents join; DistanceThenTicket must visibly reassign nearer members ahead.\n";
+            DisplayText = f"{DisplayText}ORACLE: far tickets 1/2 reserve first, then near agents join behind them. Advance once the front arrives: ticket 2 must compact to rank 0 before any physically nearer later ticket.\n";
         }
         DisplayText = f"{DisplayText}joins={_JoinSucceeded}/{_JoinRejected} events={_EventCount}\n";
         for (auto Line : _Trace) { DisplayText = f"{DisplayText}{Line}\n"; }
