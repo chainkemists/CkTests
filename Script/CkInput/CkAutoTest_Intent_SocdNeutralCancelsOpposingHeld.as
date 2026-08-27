@@ -204,14 +204,14 @@ class UCk_AutoTest_Intent_SocdNeutralCancelsOpposingHeld : UCk_AutoTest_Base
 
     private bool DoContainsPhysical(const TArray<FCk_Input_ButtonId>& InButtons, FKey InKey)
     {
-        auto Name = InKey.GetKeyName();
+        auto KeyName = InKey.GetKeyName();
 
         for (auto Index = 0; Index < InButtons.Num(); Index++)
         {
             if (InButtons[Index].Get_Tier() != ECk_Input_ButtonTier::Physical)
             { continue; }
 
-            if (InButtons[Index].Get_Name() == Name)
+            if (InButtons[Index].Get_Name() == KeyName)
             { return true; }
         }
 

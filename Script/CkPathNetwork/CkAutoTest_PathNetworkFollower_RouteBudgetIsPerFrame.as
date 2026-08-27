@@ -85,7 +85,7 @@ class UCk_AutoTest_PathNetworkFollower_RouteBudgetIsPerFrame : UCk_AutoTest_Base
             f"the route-query budget must be a positive cap for this test to mean anything (budget={_Budget})");
 
         _FollowerCount = 3 * _Budget;
-        _FramesToWatch = ((_FollowerCount + _Budget - 1) / _Budget) + 3;
+        _FramesToWatch = Math::IntegerDivisionTrunc(_FollowerCount + _Budget - 1, _Budget) + 3;
 
         for (int32 i = 0; i < _FollowerCount; ++i)
         {
