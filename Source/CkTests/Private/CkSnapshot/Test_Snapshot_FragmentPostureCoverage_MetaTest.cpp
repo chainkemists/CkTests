@@ -18,8 +18,13 @@
 // the prefix list is committed config and is ratcheted exactly like the allow-list.
 //
 // The registered C++ payload types are the other half of the population, and their posture is the REGISTRAR: a
-// handler with Produce + HydrationApply is Durable, a wire-only handler is Session. Here that inference only has to
-// be WELL-FORMED; whether a registration's DECLARED posture agrees with its lambda set is T-C1-7's assertion.
+// handler with Produce + HydrationApply is Durable, a wire-only handler is Session. That inference has to be
+// WELL-FORMED; whether a registration's DECLARED posture agrees with its lambda set is T-C1-7's assertion.
+//
+// That half also carries the ONE structural rule the script half already enforces at runtime and it did not: a
+// Durable payload may hold no hard UObject reference. ck::dynamic::Validate_FragmentSchema closes it for script
+// fragments and for EntityScript spawn params; nothing closed it for a registered C++ payload, which is how a
+// dangling TObjectPtr<UAnimMontage> reached the capture and crashed a QA save on 2026-08-26.
 
 #include "CkCore/Format/CkFormat.h"
 #include "CkCore/Macros/CkMacros.h"
@@ -341,6 +346,16 @@ bool
     const auto RegisteredTypes = FCk_PersistenceHandlerRegistry::Get_RegisteredTypes();
     auto RegisteredDurable = 0;
     auto RegisteredSession = 0;
+    auto RegisteredUnproven = TArray<FString>{};
+
+    // A Durable payload may not carry a hard UObject reference. ECS fragments live outside the UObject graph, so
+    // such a field dangles instead of nulling when its target dies, and the capture dereferences it TWICE over:
+    // Audit_DurableObjectRefs reads IsAsset() on it, and Serialize_OwnedStruct (ArIsSaveGame=false) then reads
+    // GetPathName() on it from a ParallelFor worker. QA 2026-08-26 crashed on the first of those.
+    //
+    // The two narrowings this question makes on the shared GC-safety walk, and why, are documented at the policy's
+    // definition; Ck.Snapshot.DurablePayloadRefs pins both against the analyzer's unnarrowed defaults.
+    const auto DurablePayloadRefPolicy = ck::Get_DurablePayloadObjectRefPolicy();
 
     for (const auto* Registered : RegisteredTypes)
     {
@@ -355,6 +370,27 @@ bool
         if (HasProduce && HasHydration)
         {
             ++RegisteredDurable;
+
+            const auto Safety = ck::Analyze_UntracedStructSafety(Registered, DurablePayloadRefPolicy);
+            if (Safety.Safety == ck::ECk_UntracedStructSafety::RequiresGcTracing)
+            {
+                AddError(FString::Printf(
+                    TEXT("Durable payload type [%s] carries a hard UObject reference at [%s]: %s. The snapshot ")
+                    TEXT("capture walks and serializes this payload, and a fragment-held hard ref is invisible to ")
+                    TEXT("GC - it dangles rather than nulling, and the capture dereferences it. Hold it as ")
+                    TEXT("TSoftObjectPtr (the save already writes a hard ref as its path string, so this preserves ")
+                    TEXT("the saved form), or TWeakObjectPtr for a reference the save does not need."),
+                    *Registered->GetName(), *Safety.FailurePath, *Safety.FailureReason));
+            }
+
+            // Not an error: UnprovenOpaque means reflection could not PROVE the type safe, which is a weaker claim
+            // than finding a hard ref. Reported so the population is visible rather than silently tolerated.
+            if (Safety.Safety == ck::ECk_UntracedStructSafety::UnprovenOpaque)
+            {
+                RegisteredUnproven.Add(FString::Printf(TEXT("%s (%s: %s)"),
+                    *Registered->GetName(), *Safety.FailurePath, *Safety.FailureReason));
+            }
+
             continue;
         }
 
@@ -374,6 +410,12 @@ bool
 
     AddInfo(FString::Printf(TEXT("Registered payload postures: durable=[%d] session=[%d] of [%d] registrations"),
         RegisteredDurable, RegisteredSession, RegisteredTypes.Num()));
+
+    if (NOT RegisteredUnproven.IsEmpty())
+    {
+        AddInfo(FString::Printf(TEXT("Durable payload types reflection could not prove GC-independent [%d]: %s"),
+            RegisteredUnproven.Num(), *FString::Join(RegisteredUnproven, TEXT(", "))));
+    }
 
     TestTrue(TEXT("the persistence registry resolved a non-trivial number of registrations (0 would mean this "
         "enumeration is broken, not that the registry is empty)"), RegisteredTypes.Num() >= 3);
