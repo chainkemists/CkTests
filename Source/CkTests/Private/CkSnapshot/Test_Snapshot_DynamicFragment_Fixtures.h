@@ -9,6 +9,7 @@
 #include "CkEcs/Snapshot/CkSnapshot_Posture.h"
 
 #include <StructUtils/InstancedStruct.h>
+#include "Templates/SubclassOf.h"
 #include "UObject/Object.h"
 
 #include "Test_Snapshot_DynamicFragment_Fixtures.generated.h"
@@ -526,4 +527,35 @@ public:
     int32 _TypeHydratedCount = 0;
     int32 _RepNotifyCount = 0;
     TSet<TObjectPtr<UScriptStruct>> _TypeHydratedTypes;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// The two shapes the durable-payload object-ref fence deliberately ACCEPTS, kept beside the hard-ref fixture
+// (FCk_Test_HydrationPayloadWithObject) it is contrasted against. A soft ref is dangle-proof by weak-ptr serial;
+// a class ref is accepted by an explicit, documented narrowing rather than because it is unreachable.
+USTRUCT()
+struct FCk_Test_DurablePayload_SoftRef
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    TSoftObjectPtr<UObject> Asset;
+};
+
+USTRUCT()
+struct FCk_Test_DurablePayload_ClassRef
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    TSubclassOf<UObject> Class;
+};
+
+// A concrete, field-less UObject to be collected on purpose. UObject itself is ABSTRACT, so NewObject<UObject> is
+// not a way to mint a throwaway subject — it ensures and nulls the result.
+UCLASS()
+class UCk_Test_CollectableSubject : public UObject
+{
+    GENERATED_BODY()
 };
