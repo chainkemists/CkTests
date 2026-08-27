@@ -43,7 +43,7 @@ class UCk_AutoTest_Crowd_Watchdog_PendingTimeoutFailsEpisodeOnce : UCk_AutoTest_
     private const FVector Goal = FVector(300.0, 0.0, 0.0);
 
     // Comfortably past the 10s default without depending on its exact value.
-    private const float AgeBySeconds = 30.0f;
+    private const float32 AgeBySeconds = 30.0f;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)

@@ -148,8 +148,8 @@ class UCk_AutoTest_Tween_CurveOffset_ShakeReturnsToBase : UCk_AutoTest_Base
     // moved / did-not-move verdict.
     private float32 Get_DeviationFromBaseDeg(const FRotator& InRotation)
     {
-        return Math::Abs(InRotation.Pitch - _BaseRotation.Pitch)
+        return float32(Math::Abs(InRotation.Pitch - _BaseRotation.Pitch)
              + Math::Abs(InRotation.Yaw   - _BaseRotation.Yaw)
-             + Math::Abs(InRotation.Roll  - _BaseRotation.Roll);
+             + Math::Abs(InRotation.Roll  - _BaseRotation.Roll));
     }
 }

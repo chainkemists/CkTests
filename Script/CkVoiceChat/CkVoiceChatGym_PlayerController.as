@@ -31,15 +31,15 @@ class ACk_VoiceChatGym_PlayerController : ACk_Gym_Base_PlayerController
 
     void Request_StartGym() override
     {
-        auto ControlledPawn = GetControlledPawn();
+        auto GymPawn = GetControlledPawn();
 
-        if (!System::IsValid(ControlledPawn))
+        if (!System::IsValid(GymPawn))
         {
             ck::Trace("VoiceChat Gym - no controlled pawn; talker not composed");
             return;
         }
 
-        auto PawnEntity = ck::ToEntity(ControlledPawn);
+        auto PawnEntity = ck::ToEntity(GymPawn);
 
         if (ck::Is_NOT_Valid(PawnEntity))
         {

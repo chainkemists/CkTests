@@ -61,16 +61,16 @@ namespace autotest_resolver_cascade
     // Generous on purpose: a regressed pipeline must still be allowed to FINISH,
     // so the tick assertion reports a real measured number rather than degrading
     // into "the cascade never completed".
-    const float k_SettleSeconds = 1.0f;
+    const float32 k_SettleSeconds = 1.0f;
 
     // Seed pushed into BaseValue via the resolution request's initial modifier.
-    const float k_SeedBaseValue = 100.0f;
+    const float32 k_SeedBaseValue = 100.0f;
 
     // Added to BonusValue at the start of phase Two.
-    const float k_PhaseTwoBonus = 25.0f;
+    const float32 k_PhaseTwoBonus = 25.0f;
 
     // Applied to TotalMultiplier at the start of phase Three.
-    const float k_PhaseThreeMultiplier = 1.5f;
+    const float32 k_PhaseThreeMultiplier = 1.5f;
 
     FGameplayTag BundleName() { return utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Resolver.Cascade.Bundle"); }
     FGameplayTag Phase_One()  { return utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Resolver.Cascade.Phase.One"); }
