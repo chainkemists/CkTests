@@ -1495,6 +1495,19 @@ class ACk_AutoTest_CkJolt_SphereRollsDownRampToBottom_Actor : ACk_AutoTestRunner
     }
 }
 
+class ACk_AutoTest_CkJolt_StaticBake_CollisionToggle_SyncsScene_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_StaticBake_CollisionToggle_SyncsScene");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_CkJolt_StaticBake_ComponentBake_AddRemoveRebake_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 8.0f;
@@ -1502,6 +1515,19 @@ class ACk_AutoTest_CkJolt_StaticBake_ComponentBake_AddRemoveRebake_Actor : ACk_A
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
         auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_StaticBake_ComponentBake_AddRemoveRebake");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
+class ACk_AutoTest_CkJolt_StaticBake_ComponentPath_ToggleRebakesAtCurrentPose_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_CkJolt_StaticBake_ComponentPath_ToggleRebakesAtCurrentPose");
         TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
         ResolvedClass = Path.TryLoadClass();
         return ResolvedClass;
