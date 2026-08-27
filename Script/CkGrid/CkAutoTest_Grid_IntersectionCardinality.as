@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: INTERSECTION CARDINALITY (EXACT COUNT)
+// CK GRID - AUTOMATION TEST: INTERSECTION CARDINALITY (EXACT COUNT)
 //============================================================================
 //
 // Existing OverlappingIntersection asserts only `Intersections.Num() > 0`,

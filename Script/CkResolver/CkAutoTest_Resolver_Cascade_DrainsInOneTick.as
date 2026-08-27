@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RESOLVER — AUTOMATION TEST: PHASE CASCADE DRAINS IN ONE TICK
+// CK RESOLVER - AUTOMATION TEST: PHASE CASCADE DRAINS IN ONE TICK
 //============================================================================
 //
 // The regression guard. A 3-phase resolution must reach AllPhasesComplete
@@ -14,7 +14,7 @@
 // _PumpOrder, and since Calculate is also what advances the phase
 // (DoTryStartNewPhase), the whole cascade silently degrades to one phase per
 // frame. Nothing errors, nothing warns, and every correctness assertion in this
-// module still passes — only a tick count catches it.
+// module still passes - only a tick count catches it.
 //
 // The failure message reports the MEASURED delta so a red run is the
 // measurement, not just a verdict.
@@ -99,7 +99,7 @@ class UCk_AutoTest_Resolver_Cascade_DrainsInOneTick : UCk_AutoTest_Base
         const auto Budget = autotest_resolver_cascade::k_MaxCascadeTicks;
 
         Assert_True(LatencyTicks <= Budget,
-            f"A 3-phase resolution completes within {Budget} ECS tick(s) — measured {LatencyTicks}."
+            f"A 3-phase resolution completes within {Budget} ECS tick(s) - measured {LatencyTicks}."
             + " A larger number means a processor in the ResolverSource -> ResolverDataBundle chain"
             + " stopped being pump-eligible; check that each one still declares MarkedDirtyBy,"
             + " Calculate included.");

@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT SOURCE — AUTOMATION TEST: SYNTHETIC INJECT + DEVICE-OWNERSHIP REJECTION
+// CK INPUT SOURCE - AUTOMATION TEST: SYNTHETIC INJECT + DEVICE-OWNERSHIP REJECTION
 //============================================================================
 //
 // Two contracts of the raw input layer, pinned together because the second
 // needs the first's source entity to prove it left no partial state:
 //
 //   1. INJECT ROUND-TRIP. Request_InjectRawEvent is the single append surface
-//      — the Slate writer, tooling and this test all use it — so a row that
+//      - the Slate writer, tooling and this test all use it - so a row that
 //      goes in through it must come back out of the inbox byte-for-byte.
 //      Every field is asserted, not just the key: an event whose device class
 //      or ordering provenance is lost is indistinguishable from a correct one
@@ -85,7 +85,7 @@ class UCk_AutoTest_InputSource_InjectAndOwnership : UCk_AutoTest_Base
 
         if (Pending.Num() != 1)
         {
-            FinishFailure("inbox did not receive the injected event — the remaining field assertions cannot run");
+            FinishFailure("inbox did not receive the injected event - the remaining field assertions cannot run");
             return;
         }
 
@@ -107,7 +107,7 @@ class UCk_AutoTest_InputSource_InjectAndOwnership : UCk_AutoTest_Base
         DoRunInvalidAssignmentLeg();
 
         // MUST stay a settle: the next hop asserts each delegate fired EXACTLY once and both counts are
-        // already 1 here. There is no condition to wait for — the window exists to give a second,
+        // already 1 here. There is no condition to wait for - the window exists to give a second,
         // erroneous fire a chance to arrive.
         WaitOneFrame(n"OnSettled");
     }
@@ -159,7 +159,7 @@ class UCk_AutoTest_InputSource_InjectAndOwnership : UCk_AutoTest_Base
 }
 
 //============================================================================
-// HAND-AUTHORED WRAPPER ACTOR — registers the deliberate-ensure log pattern.
+// HAND-AUTHORED WRAPPER ACTOR - registers the deliberate-ensure log pattern.
 //============================================================================
 
 class ACk_AutoTest_InputSource_InjectAndOwnership_Actor : ACk_AutoTestRunner

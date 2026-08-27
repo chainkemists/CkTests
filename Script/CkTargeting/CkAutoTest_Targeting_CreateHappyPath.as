@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK TARGETING — AUTOMATION TEST: Create happy path
+// CK TARGETING - AUTOMATION TEST: Create happy path
 // Create(owner, transform) returns a valid FCk_Handle_Transform whose
 // current location matches the seed transform.
 

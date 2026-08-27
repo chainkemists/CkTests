@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: OnClamped fires only at Min/Max boundary
+// CK ATTRIBUTE - AUTOMATION TEST: OnClamped fires only at Min/Max boundary
 //============================================================================
 //
 // Pins the OnClamped fire-gating: the signal fires when an Override or
@@ -15,8 +15,8 @@
 // Flow:
 //   1. Add Float attr Min=0, Max=100, starting=50.
 //   2. Bind OnClamped to counter delegate.
-//   3. Override to 30 (in-band) → wait one frame → count must stay 0.
-//   4. Override to 200 (clamps to Max=100) → wait one frame → count
+//   3. Override to 30 (in-band) -> wait one frame -> count must stay 0.
+//   4. Override to 200 (clamps to Max=100) -> wait one frame -> count
 //      must be 1.
 //
 // Closes the OnClamped_NoFireWhenInBand audit gap.
@@ -46,12 +46,12 @@ class UCk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand : UCk_AutoTest_Base
 
         // CkAttribute exposes two separate boundary signals (OnMinClamped
         // and OnMaxClamped), not a single OnClamped. We test the Max path
-        // because we're forcing a value above 100 — OnMinClamped would not
+        // because we're forcing a value above 100 - OnMinClamped would not
         // fire for that direction. Audit row name preserved on the test
         // class for grep-ability.
         _Attr.BindTo_OnMaxClamped(FCk_Delegate_FloatAttribute_OnClamped(this, n"OnClamped"));
 
-        // Step 1: in-band override — no clamp expected.
+        // Step 1: in-band override - no clamp expected.
         utils_float_attribute::Request_Override(_Attr, 30.0f, ECk_MinMaxCurrent::Current);
 
         WaitUntil(n"Check_InBandApplied", n"AfterInBand");
@@ -90,7 +90,7 @@ class UCk_AutoTest_Attribute_FloatOnClamped_NoFireWhenInBand : UCk_AutoTest_Base
         Assert_Equals_Int(_ClampedCount, 0,
             "OnClamped should NOT fire when override lands in-band (30 within [0,100])");
 
-        // Step 2: above-Max override — clamp expected.
+        // Step 2: above-Max override - clamp expected.
         utils_float_attribute::Request_Override(_Attr, 200.0f, ECk_MinMaxCurrent::Current);
 
         WaitUntil(n"Check_ClampFired", n"AfterAboveMax");

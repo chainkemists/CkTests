@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: SPLIT-STACK BOUNDARY COUNT
+// CK INVENTORY - AUTOMATION TEST: SPLIT-STACK BOUNDARY COUNT
 //============================================================================
 //
 // Pins the rejection path of Request_SplitStack when SplitCount equals or
 // exceeds the source stack count. The framework treats `Count >= SourceCount`
-// as invalid (you must leave at least one unit on the source — splitting the
+// as invalid (you must leave at least one unit on the source - splitting the
 // entire stack would just be a rename) and must report
 // `Failed_InsufficientCount` without creating a new item entity.
 //
 // Procedure:
 //   1. Add Potion x3 with default policy (single stack of count 3, by virtue
 //      of the Stackable trait merging on add).
-//   2. Request_SplitStack(stack, 3) — exactly equal to current stack count.
+//   2. Request_SplitStack(stack, 3) - exactly equal to current stack count.
 //   3. Result delegate must report `Failed_InsufficientCount`, the source
 //      stack must retain its full count (3), the inventory must still hold
 //      exactly one item, and no new item entity must be created
@@ -70,7 +70,7 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount : UCk_AutoT
         }
         _OriginalStack = Items[0];
 
-        // AddByDefinition's count is a deferred Override modifier — wait one
+        // AddByDefinition's count is a deferred Override modifier - wait one
         // tick so the source's count is actually 3 before we ask the library
         // to split 3 off it (otherwise it sees count=1 and rejects for the
         // wrong reason).
@@ -87,7 +87,7 @@ class UCk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount : UCk_AutoT
 
         // Boundary case: SplitCount == CurrentCount. Must be rejected as
         // Failed_InsufficientCount (callers cannot split off the entire
-        // stack — that would leave the source empty).
+        // stack - that would leave the source empty).
         _Inventory.Request_SplitStack(FCk_Request_Inventory_SplitStack(_OriginalStack, 3),
             FCk_Delegate_Inventory_OnOperationResult_Split(this, n"OnSplitResult"));
     }
@@ -120,7 +120,7 @@ class ACk_AutoTest_Inventory_StackableTrait_SplitStack_BoundaryCount_Actor : ACk
 
     // The test deliberately attempts SplitStack with Count == SourceCount to
     // pin the boundary contract (must return Failed_InsufficientCount, no new
-    // item). The library correctly logs a Warning at that callsite — a real
+    // item). The library correctly logs a Warning at that callsite - a real
     // diagnostic for production callers who reached an illegal split. Suppress
     // here so the harness doesn't escalate the intentional warning into a
     // test failure. Library severity unchanged for everyone outside the test.

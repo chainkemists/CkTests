@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: PATH-NETWORK ROUTE LOCALLY DETOURS A STATIONARY LINE
+// CK CROWD - AUTOMATION TEST: PATH-NETWORK ROUTE LOCALLY DETOURS A STATIONARY LINE
 //
 // A PathNetwork is a route preference, not a movement boundary. Stationary-agent
 // markup must therefore be allowed to bend the installed CrowdAgent path outside

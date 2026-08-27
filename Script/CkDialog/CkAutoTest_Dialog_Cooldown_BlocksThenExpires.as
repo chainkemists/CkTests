@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK DIALOG — AUTOMATION TEST: COOLDOWN BLOCKS THEN EXPIRES
+// CK DIALOG - AUTOMATION TEST: COOLDOWN BLOCKS THEN EXPIRES
 //============================================================================
 // Query a line (Passed) -> start a 0.25s cooldown -> re-query
 // (Fail_EmitterCondition) -> wait for expiry -> re-query (Passed again).
 //
 // Expiry is awaited on Get_IsLineOnCooldown, not on a timer sized to outlast
-// the cooldown. The old form armed a 0.4s wait against a 0.25s cooldown — a
+// the cooldown. The old form armed a 0.4s wait against a 0.25s cooldown - a
 // 60% margin that converges no faster than its constant and fails outright if
 // cooldown accounting ever slips past it. Polling the emitter's own predicate
 // advances the instant the cooldown actually clears and, if it never does,
@@ -43,7 +43,7 @@ class UCk_AutoTest_Dialog_Cooldown_BlocksThenExpires : UCk_AutoTest_Base
         _Emitter = UCk_Utils_DialogEmitter_UE::Add(LocalHandle, FCk_Fragment_DialogEmitter_ParamsData(FGameplayTagContainer()));
 
         // The original settled a frame before binding. Preserve that ordering
-        // rather than binding inline — stated as a condition on the emitter
+        // rather than binding inline - stated as a condition on the emitter
         // instead of a hop, but deliberately still AFTER composition.
         Add_Step_WaitUntil("the emitter is composed",                n"Check_EmitterReady");
         Add_Step(          "bind the query-completed signal",        n"Step_Bind");

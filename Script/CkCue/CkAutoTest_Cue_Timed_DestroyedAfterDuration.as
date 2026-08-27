@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CUE — AUTOMATION TEST: TIMED LIFETIME DESTROYS AFTER DURATION
+// CK CUE - AUTOMATION TEST: TIMED LIFETIME DESTROYS AFTER DURATION
 //============================================================================
 //
 // Pins the Timed lifetime contract: a cue with
@@ -34,9 +34,9 @@ class UCk_AutoTest_Cue_Timed_DestroyedAfterDuration : UCk_AutoTest_Base
             ECk_Cue_ReliabilityPolicy::Unreliable,
             ECk_Cue_MulticastPolicy::LocalOnly);
 
-        // Mid-flight check at 0.1s — well before the 0.2s lifetime expires.
+        // Mid-flight check at 0.1s - well before the 0.2s lifetime expires.
         System::SetTimer(this, n"OnMidFlight", 0.1f, false);
-        // Final check at 0.5s — well past the 0.2s lifetime expiry.
+        // Final check at 0.5s - well past the 0.2s lifetime expiry.
         System::SetTimer(this, n"OnAfterExpiry", 0.5f, false);
     }
 
@@ -55,11 +55,11 @@ class UCk_AutoTest_Cue_Timed_DestroyedAfterDuration : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         Assert_True(_MidFlightCueObserved,
-            "Timed cue should still be alive at 0.1s (well before the 0.2s _LifetimeDuration expires) — without this the test cannot prove the duration mattered");
+            "Timed cue should still be alive at 0.1s (well before the 0.2s _LifetimeDuration expires) - without this the test cannot prove the duration mattered");
 
         auto LiveCues = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_AutoTestCue_Timed");
         Assert_Equals_Int(LiveCues.Num(), 0,
-            "Timed cue should be destroyed by 0.5s (past the 0.2s _LifetimeDuration with margin) — no live entities should remain");
+            "Timed cue should be destroyed by 0.5s (past the 0.2s _LifetimeDuration with margin) - no live entities should remain");
 
         FinishSuccess();
     }

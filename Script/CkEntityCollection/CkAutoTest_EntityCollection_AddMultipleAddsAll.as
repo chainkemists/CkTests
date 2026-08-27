@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY COLLECTION — AUTOMATION TEST: AddMultiple registers every entry
+// CK ENTITY COLLECTION - AUTOMATION TEST: AddMultiple registers every entry
 // AddMultiple(N) returns N handles and each name resolves via TryGet.
 
 class UCk_AutoTest_EntityCollection_AddMultipleAddsAll : UCk_AutoTest_Base

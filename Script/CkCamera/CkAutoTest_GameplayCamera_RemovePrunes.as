@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: GAMEPLAYCAMERA REMOVE PRUNES
+// CK CAMERA - AUTOMATION TEST: GAMEPLAYCAMERA REMOVE PRUNES
 //============================================================================
 //
 // RemoveLayer blends the modifier out and prunes it; the modifier count returns to zero.

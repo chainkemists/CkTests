@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI DISPLAY DEFINITION — AUTOMATION TEST: Create under a hidden parent
+// CK POI DISPLAY DEFINITION - AUTOMATION TEST: Create under a hidden parent
 //                                               seeds the ParentHidden vote
 //============================================================================
 //
@@ -11,9 +11,9 @@
 //
 // Discriminator: the cascade handler only fires on a 0<->>0 hidden TRANSITION.
 // The owner already transitioned to hidden BEFORE this child existed, and it
-// will not transition again — so a purely reactive cascade would leave this
+// will not transition again - so a purely reactive cascade would leave this
 // child visible forever. Only the SYNCHRONOUS seed inside Create (step b:
-// "owner has VisibleRange AND Get_IsHidden → pre-apply ParentHidden") makes the
+// "owner has VisibleRange AND Get_IsHidden -> pre-apply ParentHidden") makes the
 // child hidden. This test fails if that seed is removed.
 //============================================================================
 

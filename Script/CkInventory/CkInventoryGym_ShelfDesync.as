@@ -328,7 +328,7 @@ class UCk_EntityScript_InvGym_ShelfDesync : UCk_GenericEntityScript_UE
         DisplayText = f"{DisplayText}Expected total: {InitialPotionCount}\n";
         DisplayText = f"{DisplayText}Player: {PlayerPotions}   Shelf: {ShelfPotions}\n";
         DisplayText = f"{DisplayText}TOTAL: {Total}";
-        if (Delta != 0) { DisplayText = f"{DisplayText}  ❌ DRIFT {Delta}"; }
+        if (Delta != 0) { DisplayText = f"{DisplayText}  [FAIL] DRIFT {Delta}"; }
         DisplayText = f"{DisplayText}\n\n";
 
         DisplayText = f"{DisplayText}Stock ops: {StockOps}   Loot ops: {LootOps}\n\n";

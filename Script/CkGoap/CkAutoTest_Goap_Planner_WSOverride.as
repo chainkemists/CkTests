@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: ACTIONSET WS OVERRIDE (spec §9 row 7)
+// CK GOAP - AUTOMATION TEST: ACTIONSET WS OVERRIDE (spec Sec.9 row 7)
 //============================================================================
 //
 // Validates: a child Action WITH an explicit _WorldStateSource_Override has
@@ -11,11 +11,11 @@
 //   - WS_Parent: WorldState for Root. Registers AKey=false.
 //   - WS_Child:  WorldState for Mid override. Registers AKey=false.
 //   - Root Action: effect AKey=true. Planner _Goal = {AKey=true}.
-//     PlannerParams._WorldStateSource = WS_Parent → Root resolves WS = WS_Parent.
+//     PlannerParams._WorldStateSource = WS_Parent -> Root resolves WS = WS_Parent.
 //   - Mid Action: effect AKey=true, _WorldStateSource_Override = WS_Child.
-//     AddAction(Planner, MidParamsWithOverride) → Mid resolved WS = WS_Child.
+//     AddAction(Planner, MidParamsWithOverride) -> Mid resolved WS = WS_Child.
 //
-// Assert (synchronous — WS resolution is eager at AddAction time):
+// Assert (synchronous - WS resolution is eager at AddAction time):
 //   Get_WorldStateSource(RootAction) == WS_Parent
 //   Get_WorldStateSource(MidAction)  == WS_Child
 //   WS_Parent != WS_Child  (distinct entities)
@@ -34,7 +34,7 @@ class UCk_AutoTest_Goap_Planner_WSOverride : UCk_AutoTest_Base
         auto Local = InHandle;
         utils_transform::Add(Local, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        // Create WS_Parent — used as the Root's WorldState source.
+        // Create WS_Parent - used as the Root's WorldState source.
         auto WS_Parent = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS"),
             FCk_Fragment_Goap_WorldState_ParamsData());
@@ -42,7 +42,7 @@ class UCk_AutoTest_Goap_Planner_WSOverride : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.AKey"),
             false);
 
-        // Create WS_Child — used as Mid's WS override. Use a distinct label tag
+        // Create WS_Child - used as Mid's WS override. Use a distinct label tag
         // so this WS entity is a separate entity from WS_Parent.
         auto WS_Child = utils_goap_world_state::Create(Local,
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.WS.Child"),
@@ -106,7 +106,7 @@ class UCk_AutoTest_Goap_Planner_WSOverride : UCk_AutoTest_Base
         Assert_True(MidWS == WS_Child,
             "Mid's resolved WS should equal WS_Child (explicit override)");
         Assert_True(!(MidWS == WS_Parent),
-            "Mid's resolved WS should NOT equal WS_Parent — override must take precedence");
+            "Mid's resolved WS should NOT equal WS_Parent - override must take precedence");
 
         // Root and Mid must have DIFFERENT resolved WS sources.
         Assert_True(!(MidWS == RootWS),

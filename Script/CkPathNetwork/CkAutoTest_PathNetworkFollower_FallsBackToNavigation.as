@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: FALLS BACK TO NAVIGATION
+// CK PATH NETWORK - AUTOMATION TEST: FALLS BACK TO NAVIGATION
 //============================================================================
 //
 // The authored corridor is deliberately invalid because its middle lies far
@@ -26,7 +26,7 @@ class UCk_AutoTest_PathNetworkFollower_FallsBackToNavigation : UCk_AutoTest_Base
     private const float ArrivalRadius = 180.0f;
 
     // The arrival LATCH fires at <= ArrivalRadius on the latch frame, but this test measures 3D
-    // distance to the requested goal on a LATER sample, after the post-arrival coast — a different
+    // distance to the requested goal on a LATER sample, after the post-arrival coast - a different
     // metric at a different time. Asserting the latch constant with zero slack made the pass margin
     // millimetres (measured reds: 180.09cm and 180.26cm), so any benign timing shift anywhere in
     // the sim flipped it. The slack covers the coast + metric gap, not a behaviour allowance.

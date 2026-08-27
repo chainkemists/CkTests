@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// TWO-PLAYER NET GYM — SHARED MESSAGES & CONSTANTS
+// TWO-PLAYER NET GYM - SHARED MESSAGES & CONSTANTS
 //============================================================================
 // The server-only cadence director drives these messages on a beat: Damage is
 // broadcast on a pawn's entity server-side (server-authoritative attribute);
@@ -50,7 +50,7 @@ struct FCk_Message_NetGym_Damage
 }
 
 // Owning-client SM path: broadcast LOCALLY on the owning client (no meaningful payload).
-// No explicit constructor — a default-arg ctor would be ambiguous with the implicit
+// No explicit constructor - a default-arg ctor would be ambiguous with the implicit
 // default ctor when this is constructed as `FCk_Message_NetGym_AdvanceState()`.
 USTRUCT()
 struct FCk_Message_NetGym_AdvanceState

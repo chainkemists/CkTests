@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: TIMED COMPLETION
+// CK INTERACTION - AUTOMATION TEST: TIMED COMPLETION
 //============================================================================
 //
 // Verifies the Timed completion policy:
@@ -13,7 +13,7 @@
 //   5. Result is Succeeded.
 //
 // We track that some delta of ticks elapses between OnNewInteraction and
-// OnInteractionFinished — the Timed policy must not auto-resolve in the
+// OnInteractionFinished - the Timed policy must not auto-resolve in the
 // same frame as the start.
 //
 // Mirrors CkInteractionGym_Timed.

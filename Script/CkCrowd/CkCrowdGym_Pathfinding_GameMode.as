@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Pathfinding Gym — Gate 1
+// Crowd Pathfinding Gym - Gate 1
 //
 // Verifies the new CkNavigation API end-to-end:
 //   - utils_nav::Request_FindPath enqueues a path query on a Transform-bearing entity.
@@ -9,9 +9,9 @@
 //
 // Open the debugger to see Navmesh Status: ck.CrowdDebugger 1
 //
-// Console commands (Tab → menu HUD → or run direct from `~`):
+// Console commands (Tab -> menu HUD -> or run direct from `~`):
 //   Ck_GymCrowd_Path_IssueGood   issue a path to a reachable point
-//   Ck_GymCrowd_Path_IssueBad    issue a path to (99999, 99999, 99999) — fails
+//   Ck_GymCrowd_Path_IssueBad    issue a path to (99999, 99999, 99999) - fails
 //   Ck_GymCrowd_Path_Status      print last status + waypoint count + fail reason
 // --------------------------------------------------------------------------------------------------------------------
 

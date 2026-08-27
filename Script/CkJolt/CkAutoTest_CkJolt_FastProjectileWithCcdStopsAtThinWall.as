@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: CCD PROJECTILE DOES NOT TUNNEL A THIN WALL
+// CK JOLT - AUTOMATION TEST: CCD PROJECTILE DOES NOT TUNNEL A THIN WALL
 //============================================================================
 //
 // A small, very fast Dynamic sphere with MotionQuality LinearCast (Jolt's native
@@ -16,7 +16,7 @@
 //      having actually travelled most of the way there (not a no-op launch).
 //
 // (The Discrete negative control is deliberately omitted: whether Discrete tunnels
-// is timestep-dependent and non-deterministic — the dispatch says do not assert it.)
+// is timestep-dependent and non-deterministic - the dispatch says do not assert it.)
 //
 // Placed at an isolated Y so it never touches other autotests' physics bodies.
 //============================================================================
@@ -98,7 +98,7 @@ class UCk_AutoTest_CkJolt_FastProjectileWithCcdStopsAtThinWall : UCk_AutoTest_Ba
             return;
         }
 
-        // Phase 1 — give it time to reach and stop at the wall, then assert it did not tunnel.
+        // Phase 1 - give it time to reach and stop at the wall, then assert it did not tunnel.
         _ElapsedSinceLaunch += float(InDeltaT.Get_Seconds());
         if (_ElapsedSinceLaunch >= 0.667)
         {
@@ -107,7 +107,7 @@ class UCk_AutoTest_CkJolt_FastProjectileWithCcdStopsAtThinWall : UCk_AutoTest_Ba
             Assert_True(FinalX > _WallX - 390.0,
                 f"Projectile should have launched and travelled toward the wall (final X={FinalX})");
             Assert_True(FinalX < _WallX,
-                f"CCD projectile must NOT tunnel the wall — it should stop on the near side (final X={FinalX}, wall X={_WallX})");
+                f"CCD projectile must NOT tunnel the wall - it should stop on the near side (final X={FinalX}, wall X={_WallX})");
             FinishSuccess();
         }
     }

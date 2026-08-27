@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY TAG — AUTOMATION TEST: Has(absent) → false
+// CK ENTITY TAG - AUTOMATION TEST: Has(absent) -> false
 // Add one tag; Has on a different tag returns false (does not blanket-match).
 
 class UCk_AutoTest_EntityTag_HasAbsentTagFalse : UCk_AutoTest_Base

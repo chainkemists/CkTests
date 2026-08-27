@@ -1,11 +1,11 @@
-// Auto-generated AutoTest actor wrappers — DO NOT EDIT.
+// Auto-generated AutoTest actor wrappers - DO NOT EDIT.
 // Regenerated on editor startup and after every AngelScript recompile.
 //
 // =====================================================================
 // WHY DO THESE WRAPPERS LOOK SO WEIRD?
 // =====================================================================
 //
-// You'd normally write a wrapper like this — short, type-safe:
+// You'd normally write a wrapper like this - short, type-safe:
 //
 //   class A<TestName>_Actor : ACk_AutoTestRunner
 //   {
@@ -17,8 +17,8 @@
 //
 //   1. AS file watcher misses the delete for one cycle.
 //   2. Generator emits a wrapper still referencing U<TestName>.
-//   3. AS recompiles the generated file → fails because U<TestName> is
-//      gone → PostCompile stops firing → generator can't fix the file
+//   3. AS recompiles the generated file -> fails because U<TestName> is
+//      gone -> PostCompile stops firing -> generator can't fix the file
 //      it just emitted. Editor stays broken until manual recovery.
 //
 // The runtime-resolved form below sidesteps the deadlock: the entity-
@@ -46,7 +46,7 @@
 // The generator detects hand-authored wrappers by class name + source
 // path and skips emission for that test, leaving yours authoritative.
 // (Hand-authored wrappers don't carry the deletion-race risk because
-// deleting the .as file removes BOTH classes atomically — no stale
+// deleting the .as file removes BOTH classes atomically - no stale
 // generated file to get out of sync.)
 
 class ACk_AutoTest_2dGridBlocker_Create_MakesDistinctChild_Actor : ACk_AutoTestRunner

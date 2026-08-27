@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY SCRIPT — AUTOMATION TEST: SPAWNED ENTITY IS A LIFETIME DEPENDENT
+// CK ENTITY SCRIPT - AUTOMATION TEST: SPAWNED ENTITY IS A LIFETIME DEPENDENT
 //============================================================================
 //
 // Verifies that an entity-script spawned with an owner appears in that

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: ON-NEW-INTERACTION PAYLOAD VALUES
+// CK INTERACTION - AUTOMATION TEST: ON-NEW-INTERACTION PAYLOAD VALUES
 //============================================================================
 //
 // Extends the Instant smoke test by reading the Interaction handle's
@@ -19,7 +19,7 @@
 // Interaction handle's payload routes the wrong source/instigator/channel
 // (which a "signal-fired" smoke test would not catch).
 //
-// IMPORTANT — SIGNAL/FRAGMENT ORDERING:
+// IMPORTANT - SIGNAL/FRAGMENT ORDERING:
 //   OnNewInteraction fires before the Interaction fragments are fully
 //   populated on the new entity (verified empirically). Reading the
 //   payload synchronously inside the callback hits Has<FFragment_Interaction_Params>=false

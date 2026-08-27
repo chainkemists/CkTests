@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: DATA-ONLY UNBOUNDED
+// CK INVENTORY - AUTOMATION TEST: DATA-ONLY UNBOUNDED
 //============================================================================
 //
 // Verifies that an unbounded data-only inventory accepts adds without ever

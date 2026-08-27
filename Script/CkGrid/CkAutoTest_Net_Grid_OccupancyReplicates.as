@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK AUTOMATION TEST — NETWORKED GRID OCCUPANCY REPLICATION
+// CK AUTOMATION TEST - NETWORKED GRID OCCUPANCY REPLICATION
 //============================================================================
 //
 // Server calls Request_Place on its occupancy-capable grid, placing a 1x1
@@ -10,11 +10,11 @@
 //
 // Server and client each have their own grid + occupant child entities created
 // by UCk_AutoTest_NetSubject_GridEntityScript_UE during Construct (symmetric
-// setup — mandatory for the container replication pattern), stashed on the
+// setup - mandatory for the container replication pattern), stashed on the
 // actor as `_TestGrid` / `_TestOccupant`. The placement record's contents
 // (the {Occupant, Anchor, Rotation, Cells} entries) flow server->client; the
 // client-side ClientOnly SyncReplication processor rebuilds a placement entity
-// from the entry's Cells and the reconcile pass stamps the `Occupied` tag — so
+// from the entry's Cells and the reconcile pass stamps the `Occupied` tag - so
 // the client observes Get_IsOccupied((2,2)) flip true.
 //
 // Surface: Ck.Grid.Net.AS_Grid_OccupancyReplicates
@@ -33,7 +33,7 @@ class UCk_AutoTest_Net_Grid_OccupancyReplicates : UCk_AutoTest_NetBase
         auto _CkPerfScope = ck::ScopedStat();
         auto Subject = Get_SubjectEntity();
         if (ck::Is_NOT_Valid(Subject))
-        { FinishFailure("subject not found — harness misconfigured?"); return; }
+        { FinishFailure("subject not found - harness misconfigured?"); return; }
 
         auto SubjectActor = utils_owning_actor::Get_EntityOwningActor(Subject);
         auto GridActor = Cast<ACk_AutoTest_NetSubject_Grid_UE>(SubjectActor);

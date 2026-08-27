@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: ONE PRESS PRODUCES EXACTLY ONE EDGE
+// CK INTENT - AUTOMATION TEST: ONE PRESS PRODUCES EXACTLY ONE EDGE
 //============================================================================
 //
 // The record is written on a fixed 60 Hz cadence over a surface the router
@@ -14,15 +14,15 @@
 //   - DUPLICATION, below 60 fps: a catch-up burst replays the sampler several
 //     times in one render frame, and each replay re-reads the same events.
 //
-// Neither is directly drivable from script — nothing here can dictate the
-// render cadence — so this pins the INVARIANT both would break instead: one
+// Neither is directly drivable from script - nothing here can dictate the
+// render cadence - so this pins the INVARIANT both would break instead: one
 // injected press appears in exactly ONE row, and stays that way while the
 // sampler keeps running.
 //
 // The two guards against a vacuous pass are the reason the test is shaped
 // this way. Counting only after the edge has been seen means "count == 1"
 // cannot pass as "count == 0". Waiting on a NAMED count of further logic
-// frames — not a render-frame hop — means the sampler provably kept ticking
+// frames - not a render-frame hop - means the sampler provably kept ticking
 // afterwards, at any frame rate, so "no duplicate" is not "nothing happened".
 // The held-set check at the end is the third: the sampler is still recording
 // this button as down, so it is still looking at it and still declining to
@@ -109,7 +109,7 @@ class UCk_AutoTest_Intent_NoEdgeLostAcrossSkippedRenderFrames : UCk_AutoTest_Bas
             "the sampler must have kept writing rows, or the no-duplicate assertion below proves nothing");
 
         Assert_Equals_Int(DoCountPressRows(), 1,
-            "one injected press is one recorded edge — a replayed catch-up tick must not record it again");
+            "one injected press is one recorded edge - a replayed catch-up tick must not record it again");
 
         Assert_True(DoContainsPhysical(Latest.Get_Held(), _SubjectButtonName),
             "the button is still down, so the sampler is still tracking it and still declining to re-edge it");

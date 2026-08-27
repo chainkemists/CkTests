@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY EXTENSION — AUTOMATION TEST: Remove leaves siblings intact
+// CK ENTITY EXTENSION - AUTOMATION TEST: Remove leaves siblings intact
 // Attach two extensions A and B; remove A; B is still reported in ForEach.
 
 class UCk_AutoTest_EntityExtension_RemoveLeavesOthers : UCk_AutoTest_Base

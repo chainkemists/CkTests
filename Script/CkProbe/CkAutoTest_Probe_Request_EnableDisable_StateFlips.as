@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE — AUTOMATION TEST: REQUEST ENABLE/DISABLE FLIPS STATE
+// CK PROBE - AUTOMATION TEST: REQUEST ENABLE/DISABLE FLIPS STATE
 //============================================================================
 //
 // Pins the Request_EnableDisable round-trip: a probe Added with the

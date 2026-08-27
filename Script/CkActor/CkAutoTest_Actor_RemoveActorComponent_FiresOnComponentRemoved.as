@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK ACTOR — AUTOMATION TEST: Request_RemoveActorComponent FIRES OnComponentRemoved
+// CK ACTOR - AUTOMATION TEST: Request_RemoveActorComponent FIRES OnComponentRemoved
 //============================================================================
 //
-// Pins the Request_RemoveActorComponent → OnActorComponentRemoved delegate
+// Pins the Request_RemoveActorComponent -> OnActorComponentRemoved delegate
 // contract. Flow:
 //   1. Add a UStaticMeshComponent to the helper actor via Request_AddActorComponent.
 //   2. Capture the added component's reference inside the OnComponentAdded
@@ -15,7 +15,7 @@
 //      removed-component-class.
 //
 // Note: OnComponentRemoved's middle param is `TSubclassOf<UActorComponent>`
-// (the *class* of the removed component, not the instance) — so the AS bound
+// (the *class* of the removed component, not the instance) - so the AS bound
 // function signature uses `TSubclassOf<UActorComponent>` there.
 //============================================================================
 

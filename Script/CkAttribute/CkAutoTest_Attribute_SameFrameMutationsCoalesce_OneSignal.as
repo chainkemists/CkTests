@@ -1,24 +1,24 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: SAME-FRAME MUTATIONS COALESCE TO ONE SIGNAL
+// CK ATTRIBUTE - AUTOMATION TEST: SAME-FRAME MUTATIONS COALESCE TO ONE SIGNAL
 //============================================================================
 //
 // Pins the documented coalescing-before-signal contract from
-// CkAttribute/CLAUDE.md anti-pattern #3:
+// the CkAttribute docs anti-pattern #3:
 //
 //   Two `Request_Override(attr, A)` then `Request_Override(attr, B)` in the
-//   same tick produce a single processor pass that sees only `B` — you get
+//   same tick produce a single processor pass that sees only `B` - you get
 //   ONE `OnValueChanged` reflecting `B`. The `A` mutation is silently
 //   overwritten in the modifier.
 //
 // This is the WRONG-shape pattern documented in CkAutoTest creation spec
-// gotcha #10 — pinned here as an explicit regression test so a future change
+// gotcha #10 - pinned here as an explicit regression test so a future change
 // that fired one-signal-per-Request_Override would be caught.
 //
 // On Base=10:
 //   Same tick: Request_Override(attr, 50); Request_Override(attr, 30);
-//   Processor sees only the final mutation (30) → ONE OnValueChanged.
+//   Processor sees only the final mutation (30) -> ONE OnValueChanged.
 //   Final == 30, signal count == 1.
 //============================================================================
 
@@ -62,7 +62,7 @@ class UCk_AutoTest_Attribute_SameFrameMutationsCoalesce_OneSignal : UCk_AutoTest
             ECk_MinMaxCurrent::Current,
             FCk_Delegate_IntegerAttribute_OnValueChanged(this, n"OnValueChanged"));
 
-        // Two Request_Override calls in the SAME tick — the second should
+        // Two Request_Override calls in the SAME tick - the second should
         // overwrite the first in the persistent non-revocable Override
         // modifier before any processor sees the first.
         utils_integer_attribute::Request_Override(_Attribute, 50, ECk_MinMaxCurrent::Current);

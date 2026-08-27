@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK OBJECT POOLING — TEST SUBJECTS
+// CK OBJECT POOLING - TEST SUBJECTS
 //============================================================================
 //
 // Subjects for the CkCore ObjectPooling autotests. The instance-level contract
 // (pointer identity across recycle, reset-to-archetype, participant hooks, the
 // pin + GC model) is proven on PLAIN pooled UObjects, which the direct pooled
 // API (utils_object::Request_CreateNewObject_Pooled / TryReleaseToPool) hands
-// back by pointer — no reach-into-the-instance accessor needed.
+// back by pointer - no reach-into-the-instance accessor needed.
 //
 // The EntityScript subjects prove only the POLICY WIRING (poolable -> recycles,
 // force-new -> never pools), observed through the public pool-stats surface
@@ -16,7 +16,7 @@
 // stats, since pools are keyed by (class, archetype).
 //============================================================================
 
-// Plain pooled object with a participant — the recycle + participant test binds
+// Plain pooled object with a participant - the recycle + participant test binds
 // the participant delegates on the returned instance and reads Value directly
 class UCk_ObjectPoolingTest_PlainObject : UObject
 {
@@ -28,28 +28,28 @@ class UCk_ObjectPoolingTest_PlainObject : UObject
 }
 
 // Separate class for the pinned + GC test (DestroyOnRelease uses the pinned-unique
-// path, not a pool — a distinct class keeps it cleanly isolated regardless)
+// path, not a pool - a distinct class keeps it cleanly isolated regardless)
 class UCk_ObjectPoolingTest_PinnedObject : UObject
 {
     UPROPERTY()
     int32 Value = 0;
 }
 
-// EntityScript, poolable policy — proves recycle wiring via pool stats
+// EntityScript, poolable policy - proves recycle wiring via pool stats
 class UCk_ObjectPoolingTest_PoolableScript : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _InstancingPolicy = ECk_EntityScript_InstancingPolicy::InstancedPerEntity_Poolable;
 }
 
-// EntityScript, force-new policy — proves no pool is ever created
+// EntityScript, force-new policy - proves no pool is ever created
 class UCk_ObjectPoolingTest_ForceNewScript : UCk_GenericEntityScript_UE
 {
     default _Replication = ECk_Replication::DoesNotReplicate;
     default _InstancingPolicy = ECk_EntityScript_InstancingPolicy::InstancedPerEntity;
 }
 
-// Pooled-component subject for the external-destroy (steal) tests — a component because
+// Pooled-component subject for the external-destroy (steal) tests - a component because
 // DestroyComponent is the one AS-reachable way to externally destroy a pooled plain object
 class UCk_ObjectPoolingTest_PooledComponent : UActorComponent
 {
@@ -85,7 +85,7 @@ class UCk_ObjectPoolingTest_TransparencyScript : UCk_GenericEntityScript_UE
     }
 }
 
-// Replicated + poolable — the decision-3 safety net (replicated EntityScripts ARE allowed to
+// Replicated + poolable - the decision-3 safety net (replicated EntityScripts ARE allowed to
 // recycle). Construct marks its entity with a local variable on EVERY world, so the client can
 // prove its own construction ran for the recycled respawn
 class UCk_ObjectPoolingTest_ReplicatedPoolableScript : UCk_GenericEntityScript_UE

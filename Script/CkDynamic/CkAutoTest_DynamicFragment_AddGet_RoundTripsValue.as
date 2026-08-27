@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — AUTOMATION TEST: Add → Get round-trip preserves payload
+// CK DYNAMIC - AUTOMATION TEST: Add -> Get round-trip preserves payload
 //============================================================================
 //
 // Verifies that the data added via Add_Fragment(Payload) is observable

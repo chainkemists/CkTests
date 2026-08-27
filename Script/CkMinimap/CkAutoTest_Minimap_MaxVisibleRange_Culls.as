@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MINIMAP — AUTOMATION TEST: per-POI MaxVisibleRange culls the projection
+// CK MINIMAP - AUTOMATION TEST: per-POI MaxVisibleRange culls the projection
 //============================================================================
 //
 // Two POIs inside the view extent (5000): one unlimited (range 0) at 800uu,
@@ -51,7 +51,7 @@ class UCk_AutoTest_Minimap_MaxVisibleRange_Culls : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"Poi.Category.MinimapRangeFar")));
 
         // Range config now lives in CkVisibleRange (composed onto the POI). The minimap reads
-        // MaxRange and computes distance itself — no Update_Distance needed.
+        // MaxRange and computes distance itself - no Update_Distance needed.
         utils_visible_range::Add(RangedOwner, FCk_Fragment_VisibleRange_ParamsData(1000.0));
 
         WaitUntil(n"Check_MinimapProjected", n"OnSettled_Requests");

@@ -1,5 +1,5 @@
 //============================================================================
-// PROBE GYM — STATIONARY HIERARCHY STATION
+// PROBE GYM - STATIONARY HIERARCHY STATION
 //
 // Companion to the Nested SceneNode stress station, but with NO motion:
 // verifies that a Kinematic Probe composed on the end of a scene-node chain
@@ -7,9 +7,9 @@
 //
 // Hierarchy (same layout as the tweened Nested station):
 //   Root (static)
-//    └─ SceneNodeA  — +150 X, yaw 45°
-//         └─ SceneNodeB — +100 Y (in A's frame), roll 30°
-//              └─ ChainedProbe — Kinematic Sphere, ProbeName = Marker
+//    +- SceneNodeA  - +150 X, yaw 45 deg
+//         +- SceneNodeB - +100 Y (in A's frame), roll 30 deg
+//              +- ChainedProbe - Kinematic Sphere, ProbeName = Marker
 //
 // A Static Box detector is placed at the AS-composed expected world
 // position of the chained probe with extent sized to comfortably include
@@ -55,7 +55,7 @@ class UCk_EntityScript_ProbeGym_StationaryHierarchyStation : UCk_GenericEntitySc
     int32 DetectorHitCount = 0;
     FString LastDetectorEventLine = "(none)";
 
-    // Persistent debug shapes — chain is stationary, so the hierarchy cubes
+    // Persistent debug shapes - chain is stationary, so the hierarchy cubes
     // and breadcrumbs are spawned once with infinite lifetime and never moved.
     // Actual sphere and Detector box are only destroyed + respawned when
     // their (color-encoded) state actually changes; basic-shape PMG has no

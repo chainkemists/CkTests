@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — CHAOS PARITY TWIN: KINEMATIC PLATFORM CARRIES A DYNAMIC BOX
+// CK JOLT - CHAOS PARITY TWIN: KINEMATIC PLATFORM CARRIES A DYNAMIC BOX
 //============================================================================
 //
 // Chaos-engine twin of CkAutoTest_CkJolt_KinematicPlatformCarriesDynamicBox:
 // the SAME scenario and qualitative assertions, driven by stock UE/Chaos
-// physics instead of the Jolt world — no JoltBody fragments. A non-simulating
+// physics instead of the Jolt world - no JoltBody fragments. A non-simulating
 // Movable mesh (kinematic in the Chaos scene) is moved from the test's tick via
 // SetActorLocation; Chaos derives its velocity from the position delta and
 // carries a resting simulating box through contact friction.
@@ -18,12 +18,12 @@
 //   4. Assert the box tracked the platform (within +/-30uu) and it never fell
 //      below the platform top.
 //
-// Windows are TIME-based, never frame-counted — and accumulated with the tick
+// Windows are TIME-based, never frame-counted - and accumulated with the tick
 // delta CLAMPED to Chaos's MaxPhysicsDeltaTime (1/30, PhysicsSettings.cpp:22;
 // no project override, no substepping). Unclamped, a frame hitch of Dt > 33ms
 // advances the platform's kinematic target by game-time while Chaos integrates
 // only 33ms, so the platform's SIM-TIME velocity spikes to 80 * Dt/(1/30) uu/s
-// — friction that holds the intended 80 uu/s ramp breaks, and the box slips
+// - friction that holds the intended 80 uu/s ramp breaks, and the box slips
 // permanently (friction matches velocities, it never recovers position). That
 // was this test's load-correlated flake: box ~140-152 vs platform 200. With
 // the clamp the platform moves at exactly the intended speed in sim-time under
@@ -135,7 +135,7 @@ class UCk_AutoTest_CkJolt_ChaosParity_KinematicPlatformCarry : UCk_AutoTest_Base
             return;
         }
 
-        // Phase 1 — drive the platform in +X, then hold.
+        // Phase 1 - drive the platform in +X, then hold.
         _DriveTime += SimDt;
 
         float TargetX = _MaxDriveX;

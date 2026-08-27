@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: BYTE CLAMPING & CLAMP SIGNALS
+// CK ATTRIBUTE - AUTOMATION TEST: BYTE CLAMPING & CLAMP SIGNALS
 //============================================================================
 //
 // Byte-side parity with CkAutoTest_Attribute_IntegerClamping. Verifies the
@@ -14,7 +14,7 @@
 //   3. Override to 250 -> expect OnMaxClamped, FinalValue=200.
 //   4. Override to 5   -> expect OnMinClamped, FinalValue=20.
 //
-// Pattern A (signal-driven step machine) — back-to-back overrides in one frame
+// Pattern A (signal-driven step machine) - back-to-back overrides in one frame
 // coalesce, so each step waits for its own signal before issuing the next.
 //============================================================================
 

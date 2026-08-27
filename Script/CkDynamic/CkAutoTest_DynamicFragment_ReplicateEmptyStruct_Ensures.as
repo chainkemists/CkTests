@@ -1,20 +1,20 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — AUTOMATION TEST: REPLICATING A TAG / SIZE-0 STRUCT ENSURES
+// CK DYNAMIC - AUTOMATION TEST: REPLICATING A TAG / SIZE-0 STRUCT ENSURES
 //============================================================================
 //
 // Adding a dynamic fragment whose struct carries no reflected properties with
 // ECk_Replication::Replicates must trip the size-0 guard ensure in
-// DoSetupReplication — replicating a payload with no data is meaningless.
+// DoSetupReplication - replicating a payload with no data is meaningless.
 //
 // Add_Fragment returns an invalid handle on rejection, and the AS binding turns that into a
 // FAngelscriptManager::Throw (CkDynamic_Utils.cpp:679) which UNWINDS THE REST OF DoBeginPlay.
-// Anything after the rejected call — including FinishSuccess — never runs, which is why the
+// Anything after the rejected call - including FinishSuccess - never runs, which is why the
 // verdict is armed on a timer BEFORE the call rather than written after it.
 //
 // The timer also buys the real assertion: CanSetupReplication validates before Add_Fragment
-// performs its first mutation, so a rejected replicated tag must leave NOTHING behind — no
+// performs its first mutation, so a rejected replicated tag must leave NOTHING behind - no
 // local-only named storage, no presence marker. That is what is checked once the stack unwinds.
 //============================================================================
 
@@ -59,7 +59,7 @@ class UCk_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures : UCk_AutoTest_B
 }
 
 //============================================================================
-// HAND-AUTHORED WRAPPER ACTOR — registers the deliberate-ensure log pattern.
+// HAND-AUTHORED WRAPPER ACTOR - registers the deliberate-ensure log pattern.
 //============================================================================
 
 class ACk_AutoTest_DynamicFragment_ReplicateEmptyStruct_Ensures_Actor : ACk_AutoTestRunner

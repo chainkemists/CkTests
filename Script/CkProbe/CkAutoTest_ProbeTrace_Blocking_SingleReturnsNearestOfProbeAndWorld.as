@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE TRACE — AUTOMATION TEST: SINGLE = NEAREST OF (PROBE, WORLD BLOCKER)
+// CK PROBE TRACE - AUTOMATION TEST: SINGLE = NEAREST OF (PROBE, WORLD BLOCKER)
 //============================================================================
 //
 // One geometry, traced from both ends, so the two arrangements cannot drift
@@ -11,7 +11,7 @@
 //   (b) -X sweep: the cube is nearer  -> Single reports kind World, with a
 //       valid attribution entity and a REAL surface normal (+X face, since we
 //       approach the cube from +X). _NormalDirLen is not that normal and never
-//       was — it is (StartPos - HitLocation).
+//       was - it is (StartPos - HitLocation).
 //
 // This is the "did the bullet land or hit the wall" contract.
 //============================================================================
@@ -36,7 +36,7 @@ class UCk_AutoTest_ProbeTrace_Blocking_SingleReturnsNearestOfProbeAndWorld : UCk
     private float _Band = 30000.0;
     private float _TraceZ = 300.0;
 
-    // cos(5 degrees) — the normal tolerance PHASE_3 specifies.
+    // cos(5 degrees) - the normal tolerance PHASE_3 specifies.
     private float32 _NormalDotTolerance = 0.9961f;
 
     UFUNCTION(BlueprintOverride)
@@ -103,7 +103,7 @@ class UCk_AutoTest_ProbeTrace_Blocking_SingleReturnsNearestOfProbeAndWorld : UCk
             Make_Settings(FVector(0.0, _Band, _TraceZ), FVector(1500.0, _Band, _TraceZ)));
 
         Assert_True(Forward.Get_HitKind() == ECk_ProbeTrace_HitKind::Probe,
-            "Sweeping +X, the probe is nearer than the wall — Single should report Probe");
+            "Sweeping +X, the probe is nearer than the wall - Single should report Probe");
         Assert_True(Forward.Get_HitEntity() == _ProbeEntity, "Forward Single should name the probe entity");
 
         // ---- (b) wall nearer -------------------------------------------------------------------
@@ -111,7 +111,7 @@ class UCk_AutoTest_ProbeTrace_Blocking_SingleReturnsNearestOfProbeAndWorld : UCk
             Make_Settings(FVector(1500.0, _Band, _TraceZ), FVector(0.0, _Band, _TraceZ)));
 
         Assert_True(Backward.Get_HitKind() == ECk_ProbeTrace_HitKind::World,
-            "Sweeping -X, the wall is nearer than the probe — Single should report World");
+            "Sweeping -X, the wall is nearer than the probe - Single should report World");
         Assert_Invalid(FCk_Handle(Backward.Get_Probe()), "A World hit must carry an INVALID _Probe");
         Assert_Valid(Backward.Get_HitEntity(), "A baked-world hit should resolve to its attribution entity");
 

@@ -1,5 +1,5 @@
 // ============================================================================
-// SM RACING EVENT-DRIVEN TRANSITIONS — GYM ACTOR
+// SM RACING EVENT-DRIVEN TRANSITIONS - GYM ACTOR
 // ============================================================================
 //
 // Driver actor for CkStateMachine_TestStates_RacingEventDriven.as.
@@ -10,7 +10,7 @@
 //     Idle -+-> DestA   (SlowDelaySeconds, declared FIRST)
 //           `-> DestB   (FastDelaySeconds, declared SECOND, should win)
 //
-// The visual station and the headless autotest both use this same actor —
+// The visual station and the headless autotest both use this same actor
 // the autotest spawns it with default fast timings, while the gym station
 // spawns it with watchable timings.
 //
@@ -54,12 +54,12 @@ class ACk_SmTest_RacingEventDriven_GymActor : AActor
     // CONFIGURATION
     // ========================================================================
 
-    // Slow path delay — added FIRST. With the bug, only this path's timer
+    // Slow path delay - added FIRST. With the bug, only this path's timer
     // ever starts ticking; it Pass'es at this delay and DestA wins.
     UPROPERTY(ExposeOnSpawn)
     float32 SlowDelaySeconds = 0.5f;
 
-    // Fast path delay — added SECOND. After the framework fix this timer
+    // Fast path delay - added SECOND. After the framework fix this timer
     // starts alongside the slow path, fires first, and DestB wins.
     UPROPERTY(ExposeOnSpawn)
     float32 FastDelaySeconds = 0.1f;
@@ -73,7 +73,7 @@ class ACk_SmTest_RacingEventDriven_GymActor : AActor
     FCk_Handle StationHandle;
 
     // ========================================================================
-    // COUNTERS — bumped by the SM tasks via the SmRacing_Registry namespace.
+    // COUNTERS - bumped by the SM tasks via the SmRacing_Registry namespace.
     // ========================================================================
 
     UPROPERTY() int32 Counter_DestA = 0;

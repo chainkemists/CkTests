@@ -3,7 +3,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     default Replicates = false;
 
     // Z offset applied to every station's default grid placement. Override
-    // in subclasses whose world floor isn't at Z=0 — the GymStation's alcove
+    // in subclasses whose world floor isn't at Z=0 - the GymStation's alcove
     // floor sits at Z=FloorThickness/2 above the station origin, so without
     // adjustment that floor protrudes above any world floor whose top is at
     // Z=0. Negative values pull the alcove down. See ACk_NavigationGym_PlayerController.
@@ -42,7 +42,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         if (_PendingStationCount <= 0)
         {
             // Stations tag themselves via utils_entity_tag::Add inside DoConstruct,
-            // which is DEFERRED by one processor pass (see CkEntityTag CLAUDE.md
+            // which is DEFERRED by one processor pass (see the CkEntityTag docs
             // "Timing"). Request_StartGym / Get_StationHandle query that tag store,
             // so starting in this same construction pass finds zero stations. Wait
             // one frame for the deferred Adds to settle before starting the gym.
@@ -56,7 +56,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         Request_StartGym();
     }
 
-    // Mirrors CkAutoTest_Base::WaitOneFrame — schedules a one-frame timer on the
+    // Mirrors CkAutoTest_Base::WaitOneFrame - schedules a one-frame timer on the
     // PC's own entity and invokes InCallbackName (FCk_Delegate_Timer signature)
     // once it fires. Use to observe state mutated through a deferred pathway
     // (e.g. deferred CkEntityTag Adds) on a subsequent frame.
@@ -77,7 +77,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     }
 
     //--------------------------------------------------------------------------------------------------------------------------
-    // Control panel — the on-screen list of this gym's controls
+    // Control panel - the on-screen list of this gym's controls
     //
     // Declared here rather than per-gym so ACkGym_ControlPanelHUD (the default HUDClass) can drive ANY
     // gym without knowing what it is. A gym's console commands are invisible until they appear here.
@@ -85,7 +85,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     //--------------------------------------------------------------------------------------------------------------------------
 
     // Rebuilt every frame, so the value column reports live state rather than a snapshot. Returning an
-    // empty list — the default — draws no panel at all, which is why this costs nothing to the gyms that
+    // empty list - the default - draws no panel at all, which is why this costs nothing to the gyms that
     // have not adopted it.
     TArray<FCkGym_ControlRow> Get_ControlRows()
     {
@@ -93,7 +93,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     }
 
     // InRowIndex indexes the array Get_ControlRows() returned this frame. Header and Status rows hold no
-    // key and never arrive here, but they DO occupy an index — build the list in one place and branch on
+    // key and never arrive here, but they DO occupy an index - build the list in one place and branch on
     // the index there, rather than counting rows by hand in two places that then drift apart.
     void Request_ControlActivated(int32 InRowIndex)
     {
@@ -109,7 +109,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
         auto RequiredStations = Get_RequiredStations();
         if (RequiredStations.Num() == 0)
         {
-            // No stations to spawn — proceed straight to gym startup.
+            // No stations to spawn - proceed straight to gym startup.
             Request_StartGym();
             return;
         }
@@ -132,7 +132,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
 
         if (_PendingStationCount == 0)
         {
-            // All stations already existed — nothing to await.
+            // All stations already existed - nothing to await.
             Request_StartGym();
         }
     }
@@ -197,8 +197,8 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     }
 
     // Look up the station entity tagged with InStationTag. Stations are
-    // pure ECS entities now (UCk_EntityScript_GymStation) — no underlying
-    // AActor — so all station lookups go through utils_entity_tag.
+    // pure ECS entities now (UCk_EntityScript_GymStation) - no underlying
+    // AActor - so all station lookups go through utils_entity_tag.
     FCk_Handle Get_StationHandle(FString InStationTag)
     {
         auto Entities = utils_entity_tag::ForEach_Entity(ck::TransientEntity(), FName(InStationTag));
@@ -245,12 +245,12 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     // Returns FVector::ZeroVector if the station entity isn't found.
     //
     // Picking the right anchor:
-    //   - PanelCenter      → DEFAULT for most gyms. Inside the alcove at
+    //   - PanelCenter      -> DEFAULT for most gyms. Inside the alcove at
     //                        mid-height; debug visuals don't intersect geometry.
-    //   - FootprintCenter  → For nav / physics / spatial / AStar gyms whose
+    //   - FootprintCenter  -> For nav / physics / spatial / AStar gyms whose
     //                        test elements need to sit on the floor / navmesh.
-    //   - AgentSpawn*      → Perimeter pickup points (respects AgentSpawnOffset).
-    //   - PanelTopFront    → Banner / label attach point.
+    //   - AgentSpawn*      -> Perimeter pickup points (respects AgentSpawnOffset).
+    //   - PanelTopFront    -> Banner / label attach point.
     FVector Get_StationAnchorLocation(FString InStationTag, ECk_GymStation_Anchor InAnchor)
     {
         auto Handle = Get_StationHandle(InStationTag);
@@ -271,7 +271,7 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     // Convenience for callers that want a full FTransform at the named anchor
     // (anchor location + station's existing rotation). Replaces the common
     // pattern of Get_StationTransform(tag) when migrating gyms to use a
-    // specific anchor — the inventory entity / cube / etc. still gets the
+    // specific anchor - the inventory entity / cube / etc. still gets the
     // station's facing direction, just placed at the chosen anchor.
     FTransform Get_StationAnchorTransform(FString InStationTag, ECk_GymStation_Anchor InAnchor)
     {

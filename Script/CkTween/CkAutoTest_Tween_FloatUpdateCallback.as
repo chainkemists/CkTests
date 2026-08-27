@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: FLOAT UPDATE CALLBACK
+// CK TWEEN - AUTOMATION TEST: FLOAT UPDATE CALLBACK
 //============================================================================
 //
 // Verifies that OnUpdate fires repeatedly during a tween (not just at
 // completion):
-//   1. Create a Linear float tween 0 → 100 over 0.5s.
+//   1. Create a Linear float tween 0 -> 100 over 0.5s.
 //   2. Bind OnUpdate.
 //   3. Wait until OnComplete.
 //   4. Verify OnUpdate was called at least 2 times before completion (a
 //      single fire could be a degenerate "fires only at end" regression
-//      mode — multiple fires confirm the per-tick update path).
+//      mode - multiple fires confirm the per-tick update path).
 //   5. Verify OnUpdate's payload Progress was monotonically increasing.
 //============================================================================
 

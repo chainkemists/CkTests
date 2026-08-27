@@ -1,16 +1,16 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: UNREALCOMPONENT BAKE OPT-IN + TEARDOWN REMOVAL
+// CK JOLT - AUTOMATION TEST: UNREALCOMPONENT BAKE OPT-IN + TEARDOWN REMOVAL
 //============================================================================
 //
-// The CkUnrealComponent opt-in path end-to-end — the exact scenario the
+// The CkUnrealComponent opt-in path end-to-end - the exact scenario the
 // feature exists for (an entity-hosted runtime ISM had NO Jolt body at all):
 //   1. Entity + Transform + UnrealComponent(ISM) via the normal Add flow.
 //   2. AFTER configuring the ISM (mesh, profile, instances), the caller opts
-//      in via Request_BakeIntoJoltStaticWorld — a static-world ray now hits.
+//      in via Request_BakeIntoJoltStaticWorld - a static-world ray now hits.
 //   3. Destroying the OWNING ENTITY tears the component down, and teardown
-//      removes the baked bodies with it — the ray misses again with no
+//      removes the baked bodies with it - the ray misses again with no
 //      explicit removal call.
 //============================================================================
 
@@ -59,7 +59,7 @@ class UCk_AutoTest_CkJolt_UnrealComponent_BakeOptIn_TeardownRemoves : UCk_AutoTe
             return;
         }
 
-        // Configure FIRST, then opt in — baking before the instances exist would bake nothing.
+        // Configure FIRST, then opt in - baking before the instances exist would bake nothing.
         Ism.SetStaticMesh(Cube);
         Ism.SetCollisionProfileName(n"BlockAll");
         Ism.AddInstance(FTransform::Identity, false);
@@ -87,7 +87,7 @@ class UCk_AutoTest_CkJolt_UnrealComponent_BakeOptIn_TeardownRemoves : UCk_AutoTe
         if (IsFinished()) { return; }
 
         Assert_True(Do_RayOverOrigin().Get_HasHit() == false,
-            "teardown removed the baked bodies — the ray misses with no explicit removal call");
+            "teardown removed the baked bodies - the ray misses with no explicit removal call");
 
         FinishSuccess();
     }

@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT KEY-BINDING GYM — REMAP + CONFLICT STATION
+// CK INPUT KEY-BINDING GYM - REMAP + CONFLICT STATION
 //
 // The centrepiece of the gym: a self-running demo that walks the whole
-// remapping surface — RemapKey, RemapKeys, Get_HasKeyConflicts, SwapKeys,
-// UnbindConflictAndRemap, ResetAllToDefaults, SaveKeyBindings — and checks
+// remapping surface - RemapKey, RemapKeys, Get_HasKeyConflicts, SwapKeys,
+// UnbindConflictAndRemap, ResetAllToDefaults, SaveKeyBindings - and checks
 // itself at every step. The steps live in CkInputGym_RemapDemoSteps.as as a
 // CkStateMachine graph; this station owns the machine and renders it.
 //
@@ -15,7 +15,7 @@
 // the last remap-family command the viewer typed.
 //
 // WHY THE REPORT LIVES HERE. The PlayerController advertises its remap commands
-// on this panel, so this is where their outcome belongs — a viewer reading
+// on this panel, so this is where their outcome belongs - a viewer reading
 // about Ck_GymInput_Swap should not have to look at a different station to see
 // what it did.
 //
@@ -134,11 +134,11 @@ class UCk_EntityScript_InputGym_RemapConflict : UCk_GenericEntityScript_UE
 
         if (Verdict.StepLabel == "")
         {
-            input_gym::Add_Line(OutLines, "THIS STEP — waiting for the first step to run", gym_palette::Grey);
+            input_gym::Add_Line(OutLines, "THIS STEP - waiting for the first step to run", gym_palette::Grey);
             return;
         }
 
-        input_gym::Add_Line(OutLines, f"THIS STEP — {Verdict.StepLabel}", gym_palette::White);
+        input_gym::Add_Line(OutLines, f"THIS STEP - {Verdict.StepLabel}", gym_palette::White);
         input_gym::Add_Lines(OutLines, Verdict.Lines);
     }
 
@@ -149,7 +149,7 @@ class UCk_EntityScript_InputGym_RemapConflict : UCk_GenericEntityScript_UE
         input_gym::Add_MappingRows(OutLines, InPlayerController);
     }
 
-    // Asking about a collision changes nothing — this block is a read, run every
+    // Asking about a collision changes nothing - this block is a read, run every
     // tick against whatever key Crouch currently holds.
     private void Add_CollisionPreview(TArray<FCkGym_ColoredLine>& OutLines, APlayerController InPlayerController)
     {
@@ -161,7 +161,7 @@ class UCk_EntityScript_InputGym_RemapConflict : UCk_GenericEntityScript_UE
 
         if (CrouchKey.IsValid() == false)
         {
-            input_gym::Add_Line(OutLines, "  Crouch is unbound right now — nothing to test against.", gym_palette::Grey);
+            input_gym::Add_Line(OutLines, "  Crouch is unbound right now - nothing to test against.", gym_palette::Grey);
             return;
         }
 
@@ -171,7 +171,7 @@ class UCk_EntityScript_InputGym_RemapConflict : UCk_GenericEntityScript_UE
     private void Add_LastCommand(TArray<FCkGym_ColoredLine>& OutLines)
     {
         input_gym::Add_Spacer(OutLines, gym_palette::White);
-        input_gym::Add_Line(OutLines, f"LAST COMMAND — {input_gym_pc::Get_RemapReportLabel()}", gym_palette::White);
+        input_gym::Add_Line(OutLines, f"LAST COMMAND - {input_gym_pc::Get_RemapReportLabel()}", gym_palette::White);
 
         auto Report = input_gym_pc::Get_RemapReportLines();
         input_gym::Add_Lines(OutLines, Report);

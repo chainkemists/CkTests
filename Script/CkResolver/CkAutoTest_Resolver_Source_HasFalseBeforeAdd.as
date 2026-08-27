@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RESOLVER — AUTOMATION TEST: ResolverSource Has is false before Add
+// CK RESOLVER - AUTOMATION TEST: ResolverSource Has is false before Add
 
 class UCk_AutoTest_Resolver_Source_HasFalseBeforeAdd : UCk_AutoTest_Base
 {

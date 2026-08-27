@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BUTTON MAP — AUTOMATION TEST: COMPOSING A MAP DERIVES THE PROFILE
+// CK INPUT BUTTON MAP - AUTOMATION TEST: COMPOSING A MAP DERIVES THE PROFILE
 //============================================================================
 //
-// The mapped tier is not declared anywhere — it is READ off the player's
-// resolved mappings — so "does the map know about my buttons" is entirely a
+// The mapped tier is not declared anywhere - it is READ off the player's
+// resolved mappings - so "does the map know about my buttons" is entirely a
 // question of whether the derivation ran and what it read.
 //
 // This pins the base case: register the four authored CkTests mappings, compose
@@ -14,7 +14,7 @@
 // default key.
 //
 // The wait is on ONE of the four names existing rather than on a count. Every
-// autotest shares one PIE world and the key profile is global to it — other
+// autotest shares one PIE world and the key profile is global to it - other
 // suites register their own contexts, so a count would be measuring them too.
 // The assertions that follow name only the four this test authored.
 //
@@ -37,7 +37,7 @@ class UCk_AutoTest_InputButtonMap_DeriveOnAddProducesMappedIdentities : UCk_Auto
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 

@@ -1,5 +1,5 @@
 // ============================================================================
-// SM EVENT-DRIVEN MULTI-CONDITION — GYM ACTOR
+// SM EVENT-DRIVEN MULTI-CONDITION - GYM ACTOR
 // ============================================================================
 //
 // Driver actor for CkStateMachine_TestStates_EventDrivenMultiCondition.as.
@@ -60,7 +60,7 @@ class ACk_SmTest_EventDrivenMultiCondition_GymActor : AActor
     UPROPERTY(ExposeOnSpawn)
     float32 SlowDelaySeconds = 0.4f;
 
-    // Settle window — must be > SlowDelaySeconds with margin so the test
+    // Settle window - must be > SlowDelaySeconds with margin so the test
     // captures a stable post-transition state.
     UPROPERTY(ExposeOnSpawn)
     float32 SettleSeconds = 0.6f;
@@ -69,7 +69,7 @@ class ACk_SmTest_EventDrivenMultiCondition_GymActor : AActor
     FCk_Handle StationHandle;
 
     // ========================================================================
-    // COUNTER — bumped by UCk_SmTest_EventDrivenMultiCondition_Task_Finish.
+    // COUNTER - bumped by UCk_SmTest_EventDrivenMultiCondition_Task_Finish.
     // ========================================================================
 
     UPROPERTY() int32 Counter_Finish = 0;
@@ -168,7 +168,7 @@ class ACk_SmTest_EventDrivenMultiCondition_GymActor : AActor
                 + "FastEvent resolves Pass first, then the state evaluator\n"
                 + "cycles through Reset many times waiting for SlowEvent.\n"
                 + "When SlowEvent finally resolves, the transition must see\n"
-                + "BOTH conds Pass and fire — which only works if FastEvent's\n"
+                + "BOTH conds Pass and fire - which only works if FastEvent's\n"
                 + "Pass survived all those Reset cycles.\n"
                 + "\n"
                 + "PASS = Counter_Finish exactly 1.\n"

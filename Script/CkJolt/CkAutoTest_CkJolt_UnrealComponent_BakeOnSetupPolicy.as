@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: UNREALCOMPONENT BakeOnSetup POLICY
+// CK JOLT - AUTOMATION TEST: UNREALCOMPONENT BakeOnSetup POLICY
 //============================================================================
 //
 // The ARCHETYPE-COMPLETE composition path (the shape BusterBlock's rental
 // return bin uses): collision is fully authored on the archetype before Add,
-// so the params-level BakeOnSetup policy bakes inside the Setup processor —
+// so the params-level BakeOnSetup policy bakes inside the Setup processor
 // no explicit Request_BakeIntoJoltStaticWorld, no OnAdded bind:
 //   1. Archetype (mesh + BlockAll) + BakeOnSetup -> the static-world ray hits
 //      as soon as the component exists.
@@ -71,7 +71,7 @@ class UCk_AutoTest_CkJolt_UnrealComponent_BakeOnSetupPolicy : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         Assert_True(Do_RayOverOrigin().Get_HasHit(),
-            "BakeOnSetup baked the archetype-complete mesh with NO explicit request — the ray hits");
+            "BakeOnSetup baked the archetype-complete mesh with NO explicit request - the ray hits");
 
         utils_entity_lifetime::Request_DestroyEntity(_Owner);
         WaitOneFrame(n"OnTornDown");
@@ -84,7 +84,7 @@ class UCk_AutoTest_CkJolt_UnrealComponent_BakeOnSetupPolicy : UCk_AutoTest_Base
         if (IsFinished()) { return; }
 
         Assert_True(Do_RayOverOrigin().Get_HasHit() == false,
-            "entity teardown removed the policy-baked bodies — the ray misses");
+            "entity teardown removed the policy-baked bodies - the ray misses");
 
         FinishSuccess();
     }

@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: ONE PRESS, TWO ANSWERS, NO WAITING
+// CK INTENT - AUTOMATION TEST: ONE PRESS, TWO ANSWERS, NO WAITING
 //============================================================================
 //
-// The arbiter's rule is that one press resolves to exactly ONE intent — the
+// The arbiter's rule is that one press resolves to exactly ONE intent - the
 // most dominant one whose prefix is behind it. A level intent is not a
 // competitor in that arbitration at all: it is a state the same press opens,
 // on the same frame, without taking the press away from anybody.
@@ -13,7 +13,7 @@
 // on one button is the ordinary shape of a hold-to-drag control, and it must
 // cost nothing: the tap completes on its own press frame and the drag opens
 // on that same frame. Asserting the two frames are EQUAL is what makes this a
-// test rather than a demonstration — it goes red the moment level rows are
+// test rather than a demonstration - it goes red the moment level rows are
 // put back inside the first-match-wins arbiter, where the drag would either
 // steal the press from the tap or be starved by it.
 //
@@ -27,7 +27,7 @@
 // priorities would fail at the bake and never reach the behaviour it is for.
 //
 // The decay window is long, because the last leg reads the tap's latch after
-// the drag has been released — a short window would let the latch expire and
+// the drag has been released - a short window would let the latch expire and
 // the final assertion would be reporting the clock, not the arbitration.
 //============================================================================
 
@@ -106,13 +106,13 @@ class UCk_AutoTest_Intent_LevelCoexistsWithPressIntentOnTerminal : UCk_AutoTest_
         auto Baked = utils_intent_grammar::Bake(Definitions, Rows, 3);
 
         Assert_True(Baked.Get_Outcome() == ECk_SucceededFailed::Succeeded,
-            "an edge intent and a level intent on one terminal is a legal set — distinct priorities keep the total order intact");
+            "an edge intent and a level intent on one terminal is a legal set - distinct priorities keep the total order intact");
 
         auto Verdict = utils_intent_grammar::Get_DeferralVerdict(
             Baked.Get_CompiledSet(), DoMake_PhysicalButton(_DragKey));
 
         Assert_Equals_Int(Verdict.Get_HoldSiblingFrames(), 0,
-            "a level intent is not a hold sibling — nothing about the tap has to wait to find out whether the drag 'wins'");
+            "a level intent is not a hold sibling - nothing about the tap has to wait to find out whether the drag 'wins'");
         Assert_Equals_Int(Verdict.Get_ChordMemberFrames(), 0,
             "a single-button terminal completes no chord, so no partner press can be in flight");
 
@@ -137,11 +137,11 @@ class UCk_AutoTest_Intent_LevelCoexistsWithPressIntentOnTerminal : UCk_AutoTest_
         _TapFrame = utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Level_Tap");
 
         Assert_Equals_Int(_TapFrame, PressFrame,
-            "the edge intent still completes on its own press frame — sharing the terminal with a state costs it nothing");
+            "the edge intent still completes on its own press frame - sharing the terminal with a state costs it nothing");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_ActivationFrame_ByName(_Matcher, n"AS_Level_Hold"),
             _TapFrame,
-            "the state opened on the SAME press, not on a later one — a level row inside the first-match-wins arbiter could only give one of them this frame");
+            "the state opened on the SAME press, not on a later one - a level row inside the first-match-wins arbiter could only give one of them this frame");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Level_Hold"), -1,
             "the drag is a state, so it never completes however the press was arbitrated");
@@ -162,7 +162,7 @@ class UCk_AutoTest_Intent_LevelCoexistsWithPressIntentOnTerminal : UCk_AutoTest_
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Level_Tap"),
             _TapFrame,
-            "and it still names the frame it was stamped with — a re-stamp would read as a second press that never happened");
+            "and it still names the frame it was stamped with - a re-stamp would read as a second press that never happened");
     }
 
     //------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: CORNER RETIREMENT KEEPS THE AGENT ON THE MESH
+// CK CROWD - AUTOMATION TEST: CORNER RETIREMENT KEEPS THE AGENT ON THE MESH
 //
 // FProcessor_CrowdAgent_Steering retires the waypoint it is steering at when
 // the agent is within _WaypointArrivalRadius (25uu) of it, OR when the agent
@@ -8,13 +8,13 @@
 //
 // PRE-FIX FAILURE MODE. Both tests are laterally BLIND. The plane is unbounded
 // perpendicular to the segment, and proximity says nothing about which side of
-// the corridor the agent stands on — so a corner is given up while the agent is
+// the corridor the agent stands on - so a corner is given up while the agent is
 // still SHORT of it or BESIDE it, and steering re-aims at Waypoints[k+1] along a
 // chord that cuts the UNavArea_Null hole the planner routed around. The polyline
 // is FROZEN at plan time (Detour has no such bug: dtPathCorridor re-string-pulls
 // from the agent's CURRENT position every frame), so nothing re-plans that aim.
-// FProcessor_CrowdAgent_ConstrainToNavmesh then eats the displacement — the
-// surface walk keeps only the sliver tangential to the hole face — and the agent
+// FProcessor_CrowdAgent_ConstrainToNavmesh then eats the displacement - the
+// surface walk keeps only the sliver tangential to the hole face - and the agent
 // creeps along the boundary at a few uu/s until BlockDetect's no-progress window
 // (3s) notices. Measured in the field: clipFrac 1.00 against a 240uu/s desired
 // velocity, 2.8s walking on the spot, nav raycast agent->k+1 BLOCKED while
@@ -28,14 +28,14 @@
 // corner at the eroded NE tip (call it C1) with the next corner ~870uu due west
 // at the eroded NW tip (C2).
 //
-// WHY IT IS RED PRE-FIX — AND WHY THE APPROACH ANGLE IS THE WHOLE FIXTURE.
+// WHY IT IS RED PRE-FIX - AND WHY THE APPROACH ANGLE IS THE WHOLE FIXTURE.
 // Approaching C1, the agent hits the 25uu proximity test while still
 // h = 25*sin(theta) SOUTH of the C1->C2 line, theta being the turn angle at the
 // corner. The chord from there to C2 runs almost due west and enters the eroded
 // wall through its EAST face, so the pre-fix retirement points steering at
 // geometry the agent cannot enter; ConstrainToNavmesh keeps only the sliver
-// tangential to that face, which is MaxSpeed * h / |C1->C2| — a couple of uu/s
-// against a 240uu/s desired velocity — and h decays with a time constant of
+// tangential to that face, which is MaxSpeed * h / |C1->C2| - a couple of uu/s
+// against a 240uu/s desired velocity - and h decays with a time constant of
 // |C1->C2| / MaxSpeed (~3.6s here), so nothing but BlockDetect's 3s ladder ends
 // it.
 //
@@ -47,13 +47,13 @@
 //     60 * (1 - cos theta)  <  25 * sin(theta)   <=>   theta < ~45 deg
 //
 // at the shipped defaults (MaxSpeed 240, MaxTurnRate 4, _WaypointArrivalRadius
-// 25). SpawnY is chosen to put theta at ~23 deg — comfortably inside the pinning
+// 25). SpawnY is chosen to put theta at ~23 deg - comfortably inside the pinning
 // regime while leaving h ~10uu, big enough that the chord is unambiguously
 // blocked against voxel-quantised erosion. An earlier revision of this fixture
 // approached at 58 deg and passed with the gate OFF for exactly this reason:
 // measured, the agent cleared the corner in 0.1s and never clipped at all.
 // POST-FIX the chord reads blocked, the corner is NOT retired, the agent walks
-// to C1 — on-mesh by construction — and turns there.
+// to C1 - on-mesh by construction - and turns there.
 //
 // Red-green via UCk_Crowd_ProjectSettings_UE::_WaypointRetirementLineOfSight.
 //
@@ -68,7 +68,7 @@
 // which it is Walking with a desired velocity >= StallSpeedFloorUu but moved
 // less than StallDisplacementUu); it ends on the navmesh. Two anti-vacuity
 // guards: it must have been observed moving at all, and it must have passed
-// within MaxTipApproachUu of the wall's NE corner — otherwise it took some
+// within MaxTipApproachUu of the wall's NE corner - otherwise it took some
 // other route and never met the corner under test.
 //
 // SHARED-WORLD HYGIENE: an unpainted nav-null area left behind would split the
@@ -99,7 +99,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     private const float32 AgentHeightUu = 192.0f;
 
     // The wall's own geometry. Its north face is the long one the agent must run
-    // after rounding the tip — length is what sets the pre-fix pin duration.
+    // after rounding the tip - length is what sets the pre-fix pin duration.
     private const float WallMinX = -700.0;
     private const float WallMaxX = 100.0;
     private const float WallTipY = 300.0;
@@ -111,7 +111,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     // with the eroded tip near (135, 347) that is ~23 deg, inside the pinning regime derived in
     // the header. Raising SpawnY toward the tip SHRINKS theta (longer pin, but a smaller lateral
     // error h to keep the chord unambiguously blocked); LOWERING it grows theta, and past ~45 deg
-    // the agent's residual velocity clears the corner on its own — that is the configuration this
+    // the agent's residual velocity clears the corner on its own - that is the configuration this
     // test shipped with, and it passed with the gate OFF.
     private const float SpawnY = 150.0;
     private const float GoalX = -830.0;
@@ -186,7 +186,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     }
 
     // The nav-null area is a WORLD-scoped side effect with no owner-driven lifetime, so it has to
-    // come down on every exit path — including the one where the engine TimeLimit kills the test
+    // come down on every exit path - including the one where the engine TimeLimit kills the test
     // before OnPoll can react.
     UFUNCTION(BlueprintOverride)
     void DoEndPlay(FCk_Handle InHandle)
@@ -262,13 +262,13 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     {
         FVector OriginOnMesh;
         if (utils_nav::Try_ProjectOntoNavmesh(InSelf, FVector::ZeroVector, 100.0f, OriginOnMesh, ProbeVerticalExtentUu) == false)
-        { return; }   // bake not done yet — keep polling
+        { return; }   // bake not done yet - keep polling
 
         _FloorZ = float(OriginOnMesh.Z);
 
         if (FindMeshEdgeTowardsNegativeY(InSelf) == false)
         {
-            Begin_Teardown(false, f"navmesh -Y edge not found within {MaxProbeUu}uu of origin — test level changed?");
+            Begin_Teardown(false, f"navmesh -Y edge not found within {MaxProbeUu}uu of origin - test level changed?");
             return;
         }
 
@@ -284,7 +284,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
         FVector Unused;
         const auto HoleCentre = FVector(0.5 * (WallMinX + WallMaxX), 0.0, _FloorZ);
         if (utils_nav::Try_ProjectOntoNavmesh(InSelf, HoleCentre, HoleProbeHalfExtentUu, Unused, ProbeVerticalExtentUu))
-        { return; }   // mesh still there — the rebuild has not landed
+        { return; }   // mesh still there - the rebuild has not landed
 
         _HoleConfirmed = true;
         SpawnWalker(InSelf);
@@ -344,10 +344,10 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
     private void Report(FCk_Handle& InSelf)
     {
         Assert_True(_SamplesWithMotion >= MinMotionSamples,
-            f"only {_SamplesWithMotion} samples saw a non-zero desired velocity (need >= {MinMotionSamples}) — the walker never really moved, so every other assertion here would pass vacuously");
+            f"only {_SamplesWithMotion} samples saw a non-zero desired velocity (need >= {MinMotionSamples}) - the walker never really moved, so every other assertion here would pass vacuously");
 
         Assert_True(_MinDistanceToTipUu <= MaxTipApproachUu,
-            f"the walker never came closer than {_MinDistanceToTipUu}uu to the wall's north-east corner ({WallMaxX}, {WallTipY}) (limit {MaxTipApproachUu}uu) — it never rounded the tip, so it never met the corner this test is about and the run proves nothing");
+            f"the walker never came closer than {_MinDistanceToTipUu}uu to the wall's north-east corner ({WallMaxX}, {WallTipY}) (limit {MaxTipApproachUu}uu) - it never rounded the tip, so it never met the corner this test is about and the run proves nothing");
 
         Assert_True(_FinalDistToGoal >= 0.0 && _FinalDistToGoal <= ArrivalToleranceUu,
             f"the walker stopped within its arrival contract of the goal (distance={_FinalDistToGoal}, tolerance={ArrivalToleranceUu})");
@@ -358,7 +358,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
         // the sliver tangential to it, and the walker creeps at a few uu/s for the length of the
         // face divided by its speed.
         Assert_True(_StalledSamples == 0,
-            f"the walker was Walking with a desired velocity of at least {StallSpeedFloorUu}uu/s yet covered only {_WorstWindowDisplacementUu}uu in a 1.0s window (limit {StallDisplacementUu}uu, at t={_WorstWindowAtSec}s, {_StalledSamples} such samples) — that is the navmesh clamp eating a displacement steering aimed at the wall face after giving up the tip corner too early");
+            f"the walker was Walking with a desired velocity of at least {StallSpeedFloorUu}uu/s yet covered only {_WorstWindowDisplacementUu}uu in a 1.0s window (limit {StallDisplacementUu}uu, at t={_WorstWindowAtSec}s, {_StalledSamples} such samples) - that is the navmesh clamp eating a displacement steering aimed at the wall face after giving up the tip corner too early");
 
         AssertOnMesh(InSelf, _LastAgentLoc);
 
@@ -472,7 +472,7 @@ class UCk_AutoTest_Crowd_Steering_CornerRetirementKeepsAgentOnMesh : UCk_AutoTes
 
     // Unregistering the markup schedules an async tile rebuild. Handing the shared PIE world to the
     // next crowd test with a half-restored navmesh is the same class of contamination as leaking an
-    // entity, so wait for the hole to close — bounded, because the unregister has already happened
+    // entity, so wait for the hole to close - bounded, because the unregister has already happened
     // and the rebuild completes regardless.
     private void Tick_Teardown(FCk_Handle& InSelf)
     {

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: TAGS TRAIT — ADD TAG
+// CK INVENTORY - AUTOMATION TEST: TAGS TRAIT - ADD TAG
 //============================================================================
 //
 // Verifies Request_AddTag attaches a runtime tag to an item carrying the

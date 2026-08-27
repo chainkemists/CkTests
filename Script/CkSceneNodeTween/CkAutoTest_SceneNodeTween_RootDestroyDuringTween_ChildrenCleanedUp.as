@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE + TWEEN — AUTOMATION TEST: ROOT DESTROY MID-TWEEN
+// CK SCENE NODE + TWEEN - AUTOMATION TEST: ROOT DESTROY MID-TWEEN
 //============================================================================
 //
 // Tween-in-flight regression check for SceneNode parent destruction:

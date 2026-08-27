@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: TRANSITION REPLACED EVENT
+// CK ISKM RENDERER - AUTOMATION TEST: TRANSITION REPLACED EVENT
 //============================================================================
 //
 // Plays sequence A (looping), then mid-loop swaps to sequence B. Asserts that
 // the OnAnimationFinished signal fired with reason=Replaced for the swap.
 //
 // This is the only test that exercises the Replaced path in Phase F's
-// PlayAnimation handler — Q1 covers Completed, Phase F's StopAnimation covers
+// PlayAnimation handler - Q1 covers Completed, Phase F's StopAnimation covers
 // Stopped, but Replaced (interrupting a still-playing sequence) had no
 // coverage until this test.
 //
 // Pulls iskm_assets::RendererData_Demo() (AS-authored), assets::load::MM_Idle()
-// (looping) and assets::load::MM_Jump() (non-looping). Any invalid →
+// (looping) and assets::load::MM_Jump() (non-looping). Any invalid ->
 // FinishSuccess()-skip.
 //
 //============================================================================
@@ -73,7 +73,7 @@ class UCk_AutoTest_IskmRenderer_TransitionReplaced : UCk_AutoTest_Base
 
         if (_Phase == 0 && _TicksInPhase >= 2)
         {
-            // Seq A is now active. Swap to seq B → handler should fire Replaced for A.
+            // Seq A is now active. Swap to seq B -> handler should fire Replaced for A.
             auto ReqB = FCk_Request_IskmProxy_PlayAnimation(_SeqB);
             ReqB.Set_Loop(false);
             utils_iskm_proxy::Request_PlayAnimation(_Proxy, ReqB);

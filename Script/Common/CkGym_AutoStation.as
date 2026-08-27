@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// GYM AUTO-STATION — REUSABLE AUTO-MODE INFRASTRUCTURE
+// GYM AUTO-STATION - REUSABLE AUTO-MODE INFRASTRUCTURE
 //============================================================================
 //
 // Provides shared helpers for gyms that auto-cycle through operations.
@@ -14,7 +14,7 @@
 //============================================================================
 
 //============================================================================
-// MESSAGE — used by all gyms for auto on/off
+// MESSAGE - used by all gyms for auto on/off
 //============================================================================
 
 USTRUCT()
@@ -54,7 +54,7 @@ struct FCkGym_AutoStep
 }
 
 //============================================================================
-// AUTO CONFIG — declarative station configuration
+// AUTO CONFIG - declarative station configuration
 //============================================================================
 
 USTRUCT()
@@ -80,13 +80,13 @@ struct FCkGym_AutoConfig
 }
 
 //============================================================================
-// NAMESPACE — setup, stop, and display helpers
+// NAMESPACE - setup, stop, and display helpers
 //============================================================================
 
 namespace gym_auto
 {
     //------------------------------------------------------------------------
-    // Setup — call from DoConstruct. Creates timer + binds AutoSet message.
+    // Setup - call from DoConstruct. Creates timer + binds AutoSet message.
     // The caller must still define OnAutoSet and AutoTick as UFUNCTIONs
     // on their class (delegates need a UObject target).
     //------------------------------------------------------------------------
@@ -112,7 +112,7 @@ namespace gym_auto
     }
 
     //------------------------------------------------------------------------
-    // StopAuto — call from manual message handlers.
+    // StopAuto - call from manual message handlers.
     //------------------------------------------------------------------------
 
     void StopAuto(FCk_Handle_Timer InTimer, bool& InAutoRunning)
@@ -125,7 +125,7 @@ namespace gym_auto
     }
 
     //------------------------------------------------------------------------
-    // HandleAutoSet — call from OnAutoSet UFUNCTION.
+    // HandleAutoSet - call from OnAutoSet UFUNCTION.
     //------------------------------------------------------------------------
 
     void HandleAutoSet(FInstancedStruct InPayload, FCk_Handle_Timer InTimer, bool& InAutoRunning)

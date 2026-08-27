@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY SCRIPT — AUTOMATION TEST: SPAWN PARAMS ROUND-TRIP
+// CK ENTITY SCRIPT - AUTOMATION TEST: SPAWN PARAMS ROUND-TRIP
 //============================================================================
 //
 // Verifies that ExposeOnSpawn fields populated on the SpawnParams reach

@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE TRACE — AUTOMATION TEST: BLOCKING TRUNCATES AT THE WORLD HIT
+// CK PROBE TRACE - AUTOMATION TEST: BLOCKING TRUNCATES AT THE WORLD HIT
 //============================================================================
 //
 // Layout along +X: start -> probe A -> baked BlockAll cube -> probe B.
 //
 //   1. Blocking returns A and the wall, in that order, and STOPS: probe B is
 //      absent even though the cast reached it.
-//   2. Truncation covers side-effects too — B receives zero BeginOverlap pings
+//   2. Truncation covers side-effects too - B receives zero BeginOverlap pings
 //      while A receives exactly one. A result list that hid B but still pinged
 //      it would be a wallhack with extra steps.
 //   3. The World element carries an INVALID _Probe and a VALID _HitEntity that
@@ -137,7 +137,7 @@ class UCk_AutoTest_ProbeTrace_Blocking_WorldHitTruncatesProbes : UCk_AutoTest_Ba
 
             Assert_True(Hits[1].Get_HitKind() == ECk_ProbeTrace_HitKind::World, "[1] should be the WORLD blocker");
             Assert_Invalid(FCk_Handle(Hits[1].Get_Probe()),
-                "A World hit must carry an INVALID _Probe — the claw-machine guard depends on it");
+                "A World hit must carry an INVALID _Probe - the claw-machine guard depends on it");
             Assert_Valid(Hits[1].Get_HitEntity(), "The wall's hit should resolve to a JoltStaticActor entity");
 
             Assert_True(Hits[0].Get_Fraction() < Hits[1].Get_Fraction(),
@@ -168,7 +168,7 @@ class UCk_AutoTest_ProbeTrace_Blocking_WorldHitTruncatesProbes : UCk_AutoTest_Ba
 
         Assert_Equals_Int(_NearBeginCount, 1, "The pre-blocker probe should receive exactly one BeginOverlap");
         Assert_Equals_Int(_FarBeginCount, 0,
-            "The probe BEHIND the blocker must receive no overlap ping — truncation covers side-effects too");
+            "The probe BEHIND the blocker must receive no overlap ping - truncation covers side-effects too");
 
         Do_Cleanup();
         FinishSuccess();

@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: NAV-QUERY POLICY FORCE-REPLAN
+// CK CROWD - AUTOMATION TEST: NAV-QUERY POLICY FORCE-REPLAN
 //============================================================================
 //
 // A policy-only SetNavQueryFilter must replace the active navigation request,

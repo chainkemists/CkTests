@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK OBJECT POOLING — NET AUTOMATION TEST: replicated poolable script recycles
+// CK OBJECT POOLING - NET AUTOMATION TEST: replicated poolable script recycles
 //============================================================================
 //
 // Decision 3 allowed replicated EntityScripts to use the Poolable policy; this
 // is its safety net. Server: spawn a replicated poolable script under the
 // subject, destroy it (EndPlay releases the instance to the pool), respawn the
-// same class — the pool stats must prove a recycle (1 hit, 1 live instance).
+// same class - the pool stats must prove a recycle (1 hit, 1 live instance).
 // The respawned entity's handle then rides a replicated dynamic fragment to
 // the client, which asserts the recycled respawn re-established cleanly on its
 // world: the handle resolves, and the CLIENT-side Construct ran for it (the
@@ -71,7 +71,7 @@ class UCk_AutoTest_Net_ObjectPooling_ReplicatedPoolableScriptRecycles : UCk_Auto
     {
         if (IsFinished()) { return; }
 
-        // replicated entity destruction is deferred beyond one frame (replication teardown) —
+        // replicated entity destruction is deferred beyond one frame (replication teardown)
         // poll until EndPlay has released the instance back to the pool
         auto Stats = utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_ReplicatedPoolableScript, nullptr);
 
@@ -133,7 +133,7 @@ class UCk_AutoTest_Net_ObjectPooling_ReplicatedPoolableScriptRecycles : UCk_Auto
             const auto& Carrier = Subject.Get_Fragment(FCk_Fragment_PoolingTest_RespawnedRef);
 
             // the respawned entity and its client-side construction may land a few frames after
-            // the carrier — keep polling inside the budget until both are observable
+            // the carrier - keep polling inside the budget until both are observable
             if (ck::IsValid(Carrier.TheEntity))
             {
                 auto ConstructedTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.ObjectPooling.NetConstructed");

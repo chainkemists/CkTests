@@ -1,7 +1,7 @@
 // Language=angelscript
 //
-// CK ENTITY COLLECTION — AUTOMATION TEST: Request_RemoveSingleEntity
-// Add → frame → Remove → frame. Final state: Num=0 and Contains is false.
+// CK ENTITY COLLECTION - AUTOMATION TEST: Request_RemoveSingleEntity
+// Add -> frame -> Remove -> frame. Final state: Num=0 and Contains is false.
 
 class UCk_AutoTest_EntityCollection_RequestRemoveSingleEntity : UCk_AutoTest_Base
 {

@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PARENT-FALLBACK WRITE-THROUGH
+// CK GOAP - AUTOMATION TEST: PARENT-FALLBACK WRITE-THROUGH
 //============================================================================
 //
-// Validates SetValue forwarding (WsParentFallback design §3.4): a Set issued
+// Validates SetValue forwarding (WsParentFallback design Sec.3.4): a Set issued
 // through the sub handle for a parent-resident key lands in the PARENT's
-// values — no local shadow copy is created on the sub — and a later parent-
+// values - no local shadow copy is created on the sub - and a later parent-
 // side change is what the sub keeps reading (the alias never becomes truth).
 //============================================================================
 

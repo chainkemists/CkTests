@@ -49,9 +49,9 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
     private void SpawnFloor()
     {
         // 2000cm x 2000cm flat cube centered at world origin (Z=0). Cube mesh is 100cm tall scaled
-        // by 0.5 → 50cm tall, so the floor extends from Z=-25 to Z=+25. Stations sit with their
+        // by 0.5 -> 50cm tall, so the floor extends from Z=-25 to Z=+25. Stations sit with their
         // actor-Z=0 at world Z=0 (DefaultStationGridZ); after the Build_Alcove fix the station's
-        // floor slab extends from actor-Z=-FT to 0, which lands inside the gym floor's volume —
+        // floor slab extends from actor-Z=-FT to 0, which lands inside the gym floor's volume
         // visually flush with the gym floor's lower half rather than poking up through it.
         const auto FloorLocation = FVector::ZeroVector;
         const auto FloorScale    = FVector(20.0, 20.0, 0.5);
@@ -133,7 +133,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         }
 
         // The agent is a standalone top-level entity (lifetime-owned by the registry transient),
-        // not a sub-entity of the station — Ck_GymCrowd_Loco_Stop destroys it explicitly.
+        // not a sub-entity of the station - Ck_GymCrowd_Loco_Stop destroys it explicitly.
         FCk_Handle TransientOwner = ck::TransientEntity();
         auto AgentParams = FCk_Fragment_CrowdAgent_ParamsData(42.0f, 192.0f);
 
@@ -144,7 +144,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         const auto InitialXform = FTransform(FRotator::ZeroRotator, _SpawnLocation, FVector::OneVector);
 
         // Lifetime-OWNED BY the transient, not composed ONTO it. Only one agent here, so the
-        // one-agent-per-entity collapse the other crowd gyms hit is not visible — but composing
+        // one-agent-per-entity collapse the other crowd gyms hit is not visible - but composing
         // onto the world transient still puts a Transform + CrowdAgent + Velocity + Acceleration
         // on it, and Ck_GymCrowd_Loco_Stop's explicit destroy would target the transient itself.
         auto GenericAgent = utils_entity_lifetime::Request_CreateEntity(TransientOwner);
@@ -160,7 +160,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         auto VelocityParams = FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, VelocityStart);
         utils_velocity::Add(GenericAgent, VelocityParams, ECk_Replication::DoesNotReplicate);
 
-        // Acceleration feature with zero acceleration — required by the integrator's view.
+        // Acceleration feature with zero acceleration - required by the integrator's view.
         auto AccelParams = FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector);
         utils_acceleration::Add(GenericAgent, AccelParams, ECk_Replication::DoesNotReplicate);
 
@@ -172,7 +172,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         // FProcessor_CrowdAgent_DrawBody (CkCrowd/Agent/CkCrowdAgent_DrawBody_Processor).
         // Enable in PIE via the Crowd Debugger's "Agent Body" checkbox or
         //   ck.Crowd.Debug.AgentBody 1
-        // Color comes from UCk_Utils_CrowdAgent_UE::Get_DebugColor — to override per-agent
+        // Color comes from UCk_Utils_CrowdAgent_UE::Get_DebugColor - to override per-agent
         // (e.g. blue+pink for the head-on test pair), call Set_DebugColor after Add.
 
         // Bind OnPathReady on the agent so we can draw the path overlay when navigation lands the result.
@@ -199,13 +199,13 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     void OnAgentGoalReached(FCk_Handle_CrowdAgent InAgent)
     {
-        ck::crowd::Log(f"Locomotion gym: OnGoalReached fired — agent arrived at destination");
+        ck::crowd::Log(f"Locomotion gym: OnGoalReached fired - agent arrived at destination");
     }
 
     UFUNCTION()
     void OnAgentGoalFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
-        ck::crowd::Warning(f"Locomotion gym: OnGoalFailed fired — path could not be resolved");
+        ck::crowd::Warning(f"Locomotion gym: OnGoalFailed fired - path could not be resolved");
     }
 
     UFUNCTION()
@@ -237,7 +237,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
             UCk_Utils_DebugDraw_UE::DrawDebugLine(Waypoints[i], Waypoints[i + 1], Color, Duration, 4.0f);
         }
 
-        ck::crowd::Log(f"Locomotion gym: OnPathReady — waypoints={Waypoints.Num()}, drew overlay (decays in {Duration}s)");
+        ck::crowd::Log(f"Locomotion gym: OnPathReady - waypoints={Waypoints.Num()}, drew overlay (decays in {Duration}s)");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Print Position")
@@ -253,7 +253,7 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         auto TransformHandle = utils_transform::DoCastChecked(GenericAgent);
         if (ck::Is_NOT_Valid(TransformHandle))
         {
-            ck::crowd::Warning("Locomotion gym: agent has no Transform feature — cannot read position");
+            ck::crowd::Warning("Locomotion gym: agent has no Transform feature - cannot read position");
             return;
         }
 
@@ -269,8 +269,8 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         const auto TrailHalfHeight = 48.0f;
         utils_pmg_basic_shapes::DrawFilledCapsule(
             CurrentLoc + FVector(0.0, 0.0, TrailHalfHeight),
-            20.0f,           // radius — smaller than spawn marker to distinguish trail vs origin
-            TrailHalfHeight, // half-height — half of spawn marker's
+            20.0f,           // radius - smaller than spawn marker to distinguish trail vs origin
+            TrailHalfHeight, // half-height - half of spawn marker's
             12,              // segments
             6,               // rings
             TrailColor,
@@ -290,15 +290,15 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
-        // Stations face -X (rotated 180° in Request_ApplyDefaultGridLayout so they face the player
-        // who spawns at +X). The path target is chosen forward of the station — i.e., negative X
-        // from the station origin — so the agent walks out toward the player camera and the path
+        // Stations face -X (rotated 180 deg in Request_ApplyDefaultGridLayout so they face the player
+        // who spawns at +X). The path target is chosen forward of the station - i.e., negative X
+        // from the station origin - so the agent walks out toward the player camera and the path
         // overlay is visible in the foreground rather than going through the station's back wall.
         const auto Target = _SpawnLocation + FVector(-800.0, 0.0, -100.0);
 
         // Sub-task 2E: go through the public utils_crowd_agent::Request_MoveTo API instead of
         // poking utils_nav directly. The handler stamps PathPending, fires FindPath, and the
-        // OnPathResolved processor flips PathPending → Walking when the result lands.
+        // OnPathResolved processor flips PathPending -> Walking when the result lands.
         auto Request = FCk_Request_CrowdAgent_MoveTo(Target);
         utils_crowd_agent::Request_MoveTo(_Agent, Request);
 
@@ -345,13 +345,13 @@ class ACk_CrowdGym_Locomotion_PlayerController : ACk_Gym_Base_PlayerController
         auto TransformHandle = utils_transform::DoCastChecked(GenericAgent);
         if (ck::Is_NOT_Valid(TransformHandle))
         {
-            ck::crowd::Warning("Locomotion gym: agent has no Transform feature — cannot read rotation");
+            ck::crowd::Warning("Locomotion gym: agent has no Transform feature - cannot read rotation");
             return;
         }
 
         const auto CurrentRot = utils_transform::Get_EntityCurrentRotation(TransformHandle);
         const auto TargetYaw = utils_crowd_agent::Get_TargetYawDegrees(_Agent);
-        ck::crowd::Log(f"Locomotion gym: current_yaw={CurrentRot.Yaw}°  target_yaw={TargetYaw}°  (lerping at MaxTurnRate=4 rad/s)");
+        ck::crowd::Log(f"Locomotion gym: current_yaw={CurrentRot.Yaw} deg  target_yaw={TargetYaw} deg  (lerping at MaxTurnRate=4 rad/s)");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd Locomotion - Stop / Destroy Agent")

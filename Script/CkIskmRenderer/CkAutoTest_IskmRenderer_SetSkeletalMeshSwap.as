@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: SetSkeletalMesh swap on a live proxy
+// CK ISKM RENDERER - AUTOMATION TEST: SetSkeletalMesh swap on a live proxy
 //============================================================================
 //
 // First real-content coverage of Request_SetSkeletalMesh (previously only the
@@ -10,7 +10,7 @@
 // loader batch):
 //   1. A swap on a live sequence-mode proxy completes Succeeded (the request
 //      resolved its mesh from the enqueue-time batch and applied it).
-//   2. Playback still works after the swap — SetSkeletalMesh re-ran InitAnim,
+//   2. Playback still works after the swap - SetSkeletalMesh re-ran InitAnim,
 //      so a fresh PlayAnimation must land on the swapped mesh.
 //
 //============================================================================
@@ -55,7 +55,7 @@ class UCk_AutoTest_IskmRenderer_SetSkeletalMeshSwap : UCk_AutoTest_Base
     {
         _SwapCompleted = true;
         Assert_True(InResult == ECk_Request_OperationResult::Succeeded,
-            "SetSkeletalMesh with a valid mesh must complete Succeeded — the enqueue-time preload batch resolves it at the drain");
+            "SetSkeletalMesh with a valid mesh must complete Succeeded - the enqueue-time preload batch resolves it at the drain");
     }
 
     UFUNCTION()
@@ -90,7 +90,7 @@ class UCk_AutoTest_IskmRenderer_SetSkeletalMeshSwap : UCk_AutoTest_Base
         {
             auto Playing = utils_iskm_proxy::Get_PlayingAnimation(_Proxy);
             Assert_True(ck::IsValid(Playing),
-                "PlayAnimation after the mesh swap must drive the swapped mesh — InitAnim re-ran and the proxy stayed playable");
+                "PlayAnimation after the mesh swap must drive the swapped mesh - InitAnim re-ran and the proxy stayed playable");
 
             FinishSuccess();
         }

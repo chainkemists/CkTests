@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT KEY-BINDING GYM — BINDING INSPECTION STATION
+// CK INPUT KEY-BINDING GYM - BINDING INSPECTION STATION
 //
 // The read half of the key-binding surface, all four query entry points on one
 // panel: Get_AllRemappableKeys for the raw profile, Get_KeyForMapping for the
@@ -11,7 +11,7 @@
 //
 // The panel asserts one thing on its own: the profile has exactly the rows the
 // mapping context authored. That check is what separates "nothing is bound" from
-// "the mapping context never reached the key profile" — every query in this
+// "the mapping context never reached the key profile" - every query in this
 // module answers identically in both cases, so a bare row list cannot tell them
 // apart.
 //
@@ -21,7 +21,7 @@
 // to read amber as a failure.
 //
 // Everything is read on the display tick and nothing is stored, so a remap made
-// from any source — this gym's exec commands, the demo, a settings widget —
+// from any source - this gym's exec commands, the demo, a settings widget
 // appears here without a manual refresh.
 //============================================================================
 
@@ -110,7 +110,7 @@ class UCk_EntityScript_InputGym_Inspection : UCk_GenericEntityScript_UE
     private void Add_LastCommand(TArray<FCkGym_ColoredLine>& OutLines)
     {
         input_gym::Add_Spacer(OutLines, gym_palette::White);
-        input_gym::Add_Line(OutLines, f"LAST COMMAND — {input_gym_pc::Get_DumpReportLabel()}", gym_palette::White);
+        input_gym::Add_Line(OutLines, f"LAST COMMAND - {input_gym_pc::Get_DumpReportLabel()}", gym_palette::White);
 
         auto Report = input_gym_pc::Get_DumpReportLines();
         input_gym::Add_Lines(OutLines, Report);

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A SET ACTIVATES WHOLE, OR NOT AT ALL
+// CK INTENT - AUTOMATION TEST: A SET ACTIVATES WHOLE, OR NOT AT ALL
 //============================================================================
 //
 // Every other atomicity boundary in this module rejects at BAKE time, where
@@ -18,7 +18,7 @@
 // never-completed even though the intent count looked unchanged.
 //
 // The third leg pins the other end of the same request: a default-constructed
-// set is not a rejection, it is DEACTIVATION — captures removed, rows gone,
+// set is not a rejection, it is DEACTIVATION - captures removed, rows gone,
 // and Succeeded, because that is what the caller asked for.
 //============================================================================
 
@@ -129,7 +129,7 @@ class UCk_AutoTest_Intent_SwapSetIsAtomic : UCk_AutoTest_Base
         TArray<FCk_Intent_Definition> Definitions;
         Definitions.Add(DoParse("Ghost", n"AS_Atomic_Unresolvable", 100));
 
-        // The row is well-formed, so the BAKE accepts it — the identity it names simply is not one this source's
+        // The row is well-formed, so the BAKE accepts it - the identity it names simply is not one this source's
         // map has ever minted, which is a fact only the activation can know.
         TArray<FCk_Intent_ButtonNameRow> Rows;
         Rows.Add(FCk_Intent_ButtonNameRow(n"Ghost", DoMake_PhysicalButton(n"CkTests_NoSuchKey")));
@@ -148,7 +148,7 @@ class UCk_AutoTest_Intent_SwapSetIsAtomic : UCk_AutoTest_Base
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Atomic_Primary"),
             _PrimaryFrame,
-            "the previous set's phase rows were never touched — a half-landed swap would have cleared them");
+            "the previous set's phase rows were never touched - a half-landed swap would have cleared them");
 
         Assert_True(utils_intent_matcher::Get_RegisteredCaptureKeys(_Matcher).Contains(_PunchKey),
             "the previous set's captures are still registered");
@@ -231,7 +231,7 @@ class UCk_AutoTest_Intent_SwapSetIsAtomic : UCk_AutoTest_Base
         auto Baked = utils_intent_grammar::Bake(InDefinitions, InRows, 3);
 
         Assert_True(Baked.Get_Outcome() == ECk_SucceededFailed::Succeeded,
-            "the fixture set must compile — this test is about ACTIVATION, not about the bake");
+            "the fixture set must compile - this test is about ACTIVATION, not about the bake");
 
         return Baked.Get_CompiledSet();
     }

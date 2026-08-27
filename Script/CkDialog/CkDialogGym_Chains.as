@@ -82,7 +82,7 @@ class UCk_EntityScript_DialogGym_Chains : UCk_GenericEntityScript_UE
 		_HasCurrent = true;
 		_Step++;
 
-		// Advance to the next link (no-op at the chain's tail — line C has no exit).
+		// Advance to the next link (no-op at the chain's tail - line C has no exit).
 		auto PlayedLine = Entries[0].Get_Line();
 		_Emitter.Request_QueryFollowUp(PlayedLine);
 	}

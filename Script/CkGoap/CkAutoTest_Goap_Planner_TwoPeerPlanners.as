@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: MULTI-PLANNER INDEPENDENT TICKING
+// CK GOAP - AUTOMATION TEST: MULTI-PLANNER INDEPENDENT TICKING
 //============================================================================
 //
-// Validates spec §9 row 10: "Two Planners on one entity tick independently."
+// Validates spec Sec.9 row 10: "Two Planners on one entity tick independently."
 //
 // Setup:
 //   - Single Goap root on one entity.
 //   - Planner A: tag AutoTest.Goap.ActionSet.Set,
 //       root = UCk_AutoTestAction_Goap_ActionSet_Root_MultiA
-//       goal {AKey=true}, WS pre-seeded AKey=true → empty plan → PlanFound.
+//       goal {AKey=true}, WS pre-seeded AKey=true -> empty plan -> PlanFound.
 //   - Planner B: tag AutoTest.Goap.ActionSet.Set2,
 //       root = UCk_AutoTestAction_Goap_ActionSet_Root_MultiB
-//       goal {BKey=true}, WS pre-seeded BKey=true → empty plan → PlanFound.
+//       goal {BKey=true}, WS pre-seeded BKey=true -> empty plan -> PlanFound.
 //   - Both share the same WorldState entity.
 //   - Bind OnPlanComplete on each root independently.
 //
@@ -66,7 +66,7 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         ActionSetParamsA.Set_Goal(GoalA);
         ActionSetParamsA.Set_WorldStateSource(WS);
-        // Two independent Planners on one owner → Create (named child Planners).
+        // Two independent Planners on one owner -> Create (named child Planners).
         // Add would stamp the Planner role directly onto Local and reject the
         // second call (one Planner role per entity).
         _PlannerA = utils_goap_planner::Create(Local,
@@ -142,7 +142,7 @@ class UCk_AutoTest_Goap_Planner_TwoPeerPlanners : UCk_AutoTest_Base
     {
         if (!_PlanAReceived || !_PlanBReceived) { return; }
 
-        // Both plans fired. The two roots are distinct — confirm again now
+        // Both plans fired. The two roots are distinct - confirm again now
         // that both are live (planning may have mutated handles).
         Assert_True(ck::IsValid(_RootA), "RootA should still be valid after both plans fired");
         Assert_True(ck::IsValid(_RootB), "RootB should still be valid after both plans fired");

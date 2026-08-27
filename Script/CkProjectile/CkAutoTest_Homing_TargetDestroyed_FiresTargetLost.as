@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK HOMING — AUTOMATION TEST: TARGET DESTROYED FIRES TARGET LOST
+// CK HOMING - AUTOMATION TEST: TARGET DESTROYED FIRES TARGET LOST
 //============================================================================
 //
 // A projectile is homing on a target entity that gets destroyed mid-flight.

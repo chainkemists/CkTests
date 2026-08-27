@@ -90,7 +90,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
     void OnPathReady(FCk_Handle InHandle, FCk_Nav_PathResult InResult)
     {
         _LastResult = InResult;
-        ck::Trace(f"Pathfinding gym: OnPathReady — status={InResult.Get_Status()} waypoints={InResult.Get_Waypoints().Num()}");
+        ck::Trace(f"Pathfinding gym: OnPathReady - status={InResult.Get_Status()} waypoints={InResult.Get_Waypoints().Num()}");
         UpdateStationDisplay();
         DrawPathOverlay();
     }
@@ -129,7 +129,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         // Surface the full projection picture in one log line so we don't need to chase
         // a separate diag command after every failure.
         ck::Warning(
-            f"Pathfinding gym: OnPathFailed — reason={Diag.Get_LastFailReason()}\n" +
+            f"Pathfinding gym: OnPathFailed - reason={Diag.Get_LastFailReason()}\n" +
             f"  agent loc           = {Diag.Get_LastAgentLocation()}\n" +
             f"  target              = {Diag.Get_LastTargetLocation()}\n" +
             f"  start projected     = {Diag.Get_StartProjected()}  -> {Diag.Get_LastProjectedStart()}\n" +
@@ -202,7 +202,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         // walkable area within this distance of (StationXY+500, StationZ). For the
         // CkTests_Level the floor extends well past 500cm so this should always succeed.
         // Use the station-anchor helper rather than casting the handle to a typesafe
-        // transform — 'Cast' is an AS reserved word, and this avoids the conversion entirely.
+        // transform - 'Cast' is an AS reserved word, and this avoids the conversion entirely.
         const auto StationXform = Get_StationAnchorTransform("Gym.Crowd.Pathfinding", ECk_GymStation_Anchor::FootprintCenter);
         const auto Target = StationXform.GetLocation() + FVector(500.0, 0.0, 0.0);
 
@@ -223,7 +223,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
-        // Far outside any reasonable navmesh — should fail with EndProjectFailed.
+        // Far outside any reasonable navmesh - should fail with EndProjectFailed.
         const auto Target = FVector(99999.0, 99999.0, 99999.0);
 
         auto Request = FCk_Request_Nav_FindPath(Target);

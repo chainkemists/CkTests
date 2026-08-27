@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE COMPLETION SIGNAL REACHES ANGELSCRIPT
+// CK INTENT - AUTOMATION TEST: THE COMPLETION SIGNAL REACHES ANGELSCRIPT
 //============================================================================
 //
 // Half of this test is about the intent surface and half is about the BINDING
 // PATH itself. A dynamic delegate bound from script is matched by SIGNATURE,
 // not by name: one parameter declared differently from the C++ delegate and
-// the bind silently never fires — no compile error, no warning, just a
+// the bind silently never fires - no compile error, no warning, just a
 // handler that is never called. Script is a first-class consumer of every
 // public API here, so a signal that only C++ can receive is a third of done.
 //
@@ -129,7 +129,7 @@ class UCk_AutoTest_Intent_CompletedSignalFiresInAngelScript : UCk_AutoTest_Base
             "the payload names the matcher the consumer bound on, which is the layer the move belongs to");
 
         Assert_True(_HeardName == n"AS_Signal_Move",
-            "identity rides the payload — with no per-intent entity to subscribe to, the name is the only thing a handler can filter on");
+            "identity rides the payload - with no per-intent entity to subscribe to, the name is the only thing a handler can filter on");
 
         Assert_False(_HeardTag.IsValid(),
             "the set was baked with no tag, and the payload reports that honestly rather than inventing one");
@@ -144,7 +144,7 @@ class UCk_AutoTest_Intent_CompletedSignalFiresInAngelScript : UCk_AutoTest_Base
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Signal_Move"),
             _HeardFrame,
-            "the signal and the poll surface report the same frame — they are two views of one row, never two sources of truth");
+            "the signal and the poll surface report the same frame - they are two views of one row, never two sources of truth");
     }
 
     //------------------------------------------------------------------------

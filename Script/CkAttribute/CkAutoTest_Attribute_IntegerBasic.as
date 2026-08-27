@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: INTEGER BASIC
+// CK ATTRIBUTE - AUTOMATION TEST: INTEGER BASIC
 //============================================================================
 //
 // Verifies the CkAttribute integer-attribute API end-to-end:
 //   1. Add a Health attribute (range 0-100, starting at 100).
 //   2. Override the value to 42.
-//   3. Bind OnValueChanged → expect signal with new=42.
+//   3. Bind OnValueChanged -> expect signal with new=42.
 //   4. Assert Get_FinalValue == 42.
-//   5. Override to -50 → expect clamp to MinValue (0).
+//   5. Override to -50 -> expect clamp to MinValue (0).
 //
 // This is the first non-Economy / non-BB-specific automation test, exercising
 // the harness against a pure CkFoundation framework feature.

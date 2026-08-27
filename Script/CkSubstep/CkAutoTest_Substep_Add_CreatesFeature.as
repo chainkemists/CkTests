@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SUBSTEP — AUTOMATION TEST: ADD CREATES FEATURE
+// CK SUBSTEP - AUTOMATION TEST: ADD CREATES FEATURE
 //============================================================================
 //
 // First-coverage seed for CkSubstep. Adding a Substep feature with a

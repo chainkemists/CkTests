@@ -46,7 +46,7 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
         auto DebugInfo = FCk_Probe_DebugInfo();
         utils_probe::Add(TransformHandle, ProbeParams, DebugInfo);
 
-        ck::Trace("✅ Player probe added", NAME_None, 2.0f, utils_linear_color::Get_Green());
+        ck::Trace("[OK] Player probe added", NAME_None, 2.0f, utils_linear_color::Get_Green());
     }
 
     // ============================================================================
@@ -55,7 +55,7 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
 
     void SetupLevel()
     {
-        ck::Trace("🎯 AudioGym Advanced Level Ready - Use StationSpawner actors to place stations", NAME_None, 5.0f, utils_linear_color::Get_Orange());
+        ck::Trace("* AudioGym Advanced Level Ready - Use StationSpawner actors to place stations", NAME_None, 5.0f, utils_linear_color::Get_Orange());
 
         // Scatter audio pickups around the level for testing
         ScatterAudioPickups();
@@ -67,13 +67,13 @@ class ACkAudioGym_Advanced_Pawn : ADefaultPawn
 
     void ScatterAudioPickups()
     {
-        ck::Trace("🎁 Scattering audio pickups throughout the level...", NAME_None, 3.0f, utils_linear_color::Get_Yellow());
+        ck::Trace("* Scattering audio pickups throughout the level...", NAME_None, 3.0f, utils_linear_color::Get_Yellow());
 
         // Scatter pickups across the full 8000x6000 level area
         // Level dimensions: X: -4000 to +4000, Y: -3000 to +3000
         ScatterPickupsAcrossFullLevel();
 
-        ck::Trace("✅ Audio pickups scattered successfully", NAME_None, 2.0f, utils_linear_color::Get_Green());
+        ck::Trace("[OK] Audio pickups scattered successfully", NAME_None, 2.0f, utils_linear_color::Get_Green());
     }
 
 void ScatterPickupsAcrossFullLevel()
@@ -114,7 +114,7 @@ void ScatterPickupsAcrossFullLevel()
 
         if (ck::IsValid(PickupEntity))
         {
-            ck::Trace(f"🔵 Interface pickup placed at {Location.X},{Location.Y}", NAME_None, 1.0f, utils_linear_color::Get_Cyan());
+            ck::Trace(f"* Interface pickup placed at {Location.X},{Location.Y}", NAME_None, 1.0f, utils_linear_color::Get_Cyan());
         }
     }
 
@@ -128,7 +128,7 @@ void ScatterPickupsAcrossFullLevel()
 
         if (ck::IsValid(PickupEntity))
         {
-            ck::Trace(f"🟡 LevelUp pickup placed at {Location.X},{Location.Y}", NAME_None, 1.0f, utils_linear_color::Get_Yellow());
+            ck::Trace(f"* LevelUp pickup placed at {Location.X},{Location.Y}", NAME_None, 1.0f, utils_linear_color::Get_Yellow());
         }
     }
 
@@ -142,7 +142,7 @@ void ScatterPickupsAcrossFullLevel()
 
         if (ck::IsValid(PickupEntity))
         {
-            ck::Trace(f"🟣 Notifications pickup placed at {Location.X},{Location.Y}", NAME_None, 1.0f, utils_linear_color::Get_Magenta());
+            ck::Trace(f"* Notifications pickup placed at {Location.X},{Location.Y}", NAME_None, 1.0f, utils_linear_color::Get_Magenta());
         }
     }
 }

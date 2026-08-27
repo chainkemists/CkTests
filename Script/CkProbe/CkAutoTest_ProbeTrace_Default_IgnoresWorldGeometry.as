@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE TRACE — AUTOMATION TEST: DEFAULT SETTINGS IGNORE WORLD GEOMETRY
+// CK PROBE TRACE - AUTOMATION TEST: DEFAULT SETTINGS IGNORE WORLD GEOMETRY
 //============================================================================
 //
 // Pins the DEFAULT of the world-hit policy, which is load-bearing rather than a
@@ -11,7 +11,7 @@
 //
 //   1. A baked BlockAll cube sits BETWEEN the trace start and a matching probe.
 //   2. A trace with untouched settings still reports the probe behind the wall.
-//   3. Exactly one hit, of kind Probe — the wall is invisible to this trace.
+//   3. Exactly one hit, of kind Probe - the wall is invisible to this trace.
 //============================================================================
 
 namespace ck_probetrace_default_test
@@ -30,7 +30,7 @@ class UCk_AutoTest_ProbeTrace_Default_IgnoresWorldGeometry : UCk_AutoTest_Base
     private FCk_Handle _ProbeEntity;
     private AStaticMeshActor _Wall;
 
-    // Y-band 24000 — this map's tests share one PIE world, so every test parks its
+    // Y-band 24000 - this map's tests share one PIE world, so every test parks its
     // geometry in its own band.
     private float _Band = 24000.0;
     private float _TraceZ = 300.0;
@@ -71,7 +71,7 @@ class UCk_AutoTest_ProbeTrace_Default_IgnoresWorldGeometry : UCk_AutoTest_Base
         auto Filter = FGameplayTagContainer();
         Filter.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"CkTests.ProbeTrace.Default.Target"));
 
-        // Deliberately NOTHING else is set — this test is about the untouched defaults.
+        // Deliberately NOTHING else is set - this test is about the untouched defaults.
         return FCk_Probe_RayCast_Settings(
             FVector(0.0, _Band, _TraceZ), FVector(1500.0, _Band, _TraceZ), Filter);
     }
@@ -102,7 +102,7 @@ class UCk_AutoTest_ProbeTrace_Default_IgnoresWorldGeometry : UCk_AutoTest_Base
             Assert_True(Hits[0].Get_HitEntity() == _ProbeEntity,
                 "HitEntity on a Probe hit should be the probe's own entity");
             Assert_True(Hits[0].Get_HitLocation().X > 500.0,
-                "The reported hit is BEYOND the wall — the wall is invisible to a default trace");
+                "The reported hit is BEYOND the wall - the wall is invisible to a default trace");
         }
 
         Do_Cleanup();

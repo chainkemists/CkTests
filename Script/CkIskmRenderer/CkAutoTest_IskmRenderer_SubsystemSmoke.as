@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE C SUBSYSTEM SMOKE
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE C SUBSYSTEM SMOKE
 //============================================================================
 //
 // Phase C test gate. Verifies the per-world subsystem + manager-actor
@@ -19,10 +19,10 @@
 //      actor (TMap keyed on PDA).
 //
 // What this test does NOT cover:
-//   - SKMC pool internals (Acquire/Release_BaseSKMC) — exercised in Phase E
+//   - SKMC pool internals (Acquire/Release_BaseSKMC) - exercised in Phase E
 //     when proxies are added. Reaching into the pool from this test would
 //     leak SKMCs since there are no proxies to release them yet.
-//   - Subsystem Deinitialize cleanup — covered transitively when the PIE
+//   - Subsystem Deinitialize cleanup - covered transitively when the PIE
 //     world tears down at test end.
 //
 //============================================================================

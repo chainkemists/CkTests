@@ -1,12 +1,12 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Pixel Art gym ("Pixel Art" in the cycler).
 //
-// The renderer is view-wide, so the stations cannot each own a subject — there is only ever one frame.
+// The renderer is view-wide, so the stations cannot each own a subject - there is only ever one frame.
 // They are MODE SELECTORS: walk up to a station and its configuration is applied to the whole view, and
 // every judgement is made against the one shared judge scene, which is what makes two stations comparable.
 //
 // The three stations that matter most are the A/B rig for pixel creep, and they only mean anything read in
-// order — CREEP first, because it is what proves the problem exists in this scene at all:
+// order - CREEP first, because it is what proves the problem exists in this scene at all:
 //
 //   CREEP    (snap off)              -> pixels crawl along edges
 //   STUTTER  (snap on, comp off)     -> motion advances in whole texels
@@ -18,15 +18,15 @@
 //
 // There are TWO ways to pick a station and they take turns rather than fighting: walking to one selects it,
 // and pressing its number key selects it and SUSPENDS the walking selection until you move away again.
-// Without that suspension the number keys would be useless — the next proximity tick would snap straight
+// Without that suspension the number keys would be useless - the next proximity tick would snap straight
 // back to whichever station you happen to be standing next to.
 //
 // Tab opens the gym cycler menu; search "Pixel". Console:
-//   Ck_GymPixelArt_RestartAll     — respawn the judge scene and re-apply the first station
-//   Ck_GymPixelArt_CycleStation   — next station without walking
-//   Ck_GymPixelArt_TogglePan      — start/stop the 0.2 texel/frame diagonal drift
-//   Ck_GymPixelArt_ToggleLook     — the look on its own, independent of the renderer
-//   Ck_GymPixelArt_ToggleOKLab    — flip the active station into OKLab banding + the warm ramp
+//   Ck_GymPixelArt_RestartAll     - respawn the judge scene and re-apply the first station
+//   Ck_GymPixelArt_CycleStation   - next station without walking
+//   Ck_GymPixelArt_TogglePan      - start/stop the 0.2 texel/frame diagonal drift
+//   Ck_GymPixelArt_ToggleLook     - the look on its own, independent of the renderer
+//   Ck_GymPixelArt_ToggleOKLab    - flip the active station into OKLab banding + the warm ramp
 //
 // Every one of those is also a KEY on the shared gym control panel (Script/Common/CkGym_ControlPanel.as),
 // which is where the live state is read off: 1-9/0 select a station, P flips orthographic <-> perspective,
@@ -34,7 +34,7 @@
 // H hides the panel without disabling it; Tab opens the cycler menu.
 //
 // Needs the PixelArt master on disk for the LOOK stations: on a fresh checkout run
-// "Ck_Usf_GenerateLooks PixelArt" once in the editor console. The RENDERER stations work regardless — and
+// "Ck_Usf_GenerateLooks PixelArt" once in the editor console. The RENDERER stations work regardless - and
 // telling those two halves apart is exactly what the RENDERER ONLY station is for.
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -71,9 +71,9 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
 
         Stations.Add(Make_Station(n"Gym.PixelArt.Off", "OFF (NATIVE)",
-            "The renderer disabled entirely — the scene at full resolution.",
+            "The renderer disabled entirely - the scene at full resolution.",
             "The control. Everything else is judged against this, including the perf numbers."));
-        Stations.Add(Make_Station(n"Gym.PixelArt.RendererOnly", "RENDERER ONLY — 360p",
+        Stations.Add(Make_Station(n"Gym.PixelArt.RendererOnly", "RENDERER ONLY - 360p",
             "360 internal texels, snap on, box filter, no stylization.",
             "Chunky but SHARP. Blurry here means the box filter is not running and the engine's upscale is."));
         Stations.Add(Make_Station(n"Gym.PixelArt.Height180", "INTERNAL HEIGHT: 180",
@@ -82,24 +82,24 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         Stations.Add(Make_Station(n"Gym.PixelArt.Height540", "INTERNAL HEIGHT: 540",
             "Half again as many texels as the reference station.",
             "Finer grid, same framing. A framing that CHANGES with the height means the margin fold is wrong."));
-        Stations.Add(Make_Station(n"Gym.PixelArt.Creep", "A/B 1 — CREEP (SNAP OFF)",
+        Stations.Add(Make_Station(n"Gym.PixelArt.Creep", "A/B 1 - CREEP (SNAP OFF)",
             "Snapping disabled. Start the pan: Ck_GymPixelArt_TogglePan.",
             "Pixels must visibly CRAWL along edges. If they do not, the pan is not running and the next two verdicts are worthless."));
-        Stations.Add(Make_Station(n"Gym.PixelArt.Stutter", "A/B 2 — STUTTER (NO COMPENSATION)",
+        Stations.Add(Make_Station(n"Gym.PixelArt.Stutter", "A/B 2 - STUTTER (NO COMPENSATION)",
             "Snap on, sub-texel compensation off.",
-            "Motion must advance in whole texels — visibly stepped. That is the proof the snap is live."));
-        Stations.Add(Make_Station(n"Gym.PixelArt.Smooth", "A/B 3 — SMOOTH (THE RESULT)",
+            "Motion must advance in whole texels - visibly stepped. That is the proof the snap is live."));
+        Stations.Add(Make_Station(n"Gym.PixelArt.Smooth", "A/B 3 - SMOOTH (THE RESULT)",
             "Snap on, compensation on. The finished behaviour.",
             "Smooth motion AND no crawl. Smooth-but-creeping means the compensation sign is inverted: try ck.PixelArt.Debug.CompSign -1."));
         Stations.Add(Make_Station(n"Gym.PixelArt.Crisp16", "PRESET: CRISP 16",
             "360p, 8-colour palette, band-shift edges.",
-            "Outlines must be colours the palette already holds — a grey or black line means the edge is being tinted after the palette snap instead of before."));
+            "Outlines must be colours the palette already holds - a grey or black line means the edge is being tinted after the palette snap instead of before."));
         Stations.Add(Make_Station(n"Gym.PixelArt.SoftRamp", "PRESET: SOFT RAMP",
             "Five bands, wide transition, flat edge colours, per-channel steps.",
             "Reads as toon shading rather than pixel art. That contrast with Crisp16 is the point: the palette and the edge rule carry the style, not the low resolution."));
         Stations.Add(Make_Station(n"Gym.PixelArt.Nearest", "FILTER: NEAREST",
             "Point sampling instead of the box filter.",
-            "The texel grid becomes unambiguous — use it to count texels and to check the margin. Aliasing on the diagonal ramp is expected here and is what the box filter exists to remove."));
+            "The texel grid becomes unambiguous - use it to count texels and to check the margin. Aliasing on the diagonal ramp is expected here and is what the box filter exists to remove."));
 
         const float StationSpacing = 1200.0f;
         const float StationRowX = 1800.0f + k_PixelArtGym_ViewingClearance;
@@ -140,7 +140,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         if (System::IsValid(Pawn) && _StationLocations.Num() > 0)
         { Pawn.SetActorLocation(_StationLocations[0] + FVector(0.0f, 0.0f, k_PixelArtGym_SpawnHeight)); }
 
-        ck::Trace("🟪 Pixel Art Gym - walk to a station to apply its configuration");
+        ck::Trace("* Pixel Art Gym - walk to a station to apply its configuration");
         ck::Trace("   Ck_GymPixelArt_TogglePan starts the 0.2 texel/frame drift the creep verdicts need");
 
         DoWarn_IfPiePreview();
@@ -155,7 +155,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
     // below 1", which only the renderer can see. It logs that value itself the frame it changes.
     private void DoWarn_IfPiePreview()
     {
-        ck::Trace("⚠ IF THIS IS PIE, IT IS A PREVIEW. Above 100% OS DPI the engine adds a second upscale");
+        ck::Trace("[WARN] IF THIS IS PIE, IT IS A PREVIEW. Above 100% OS DPI the engine adds a second upscale");
         ck::Trace("   after this renderer's, so the image is softer than standalone. Check the log for a");
         ck::Trace("   `CkPixelArtRenderer: Secondary view fraction is <1` line - that line IS the condition.");
         ck::Trace("   Take sharpness, creep and margin verdicts from a standalone -game run.");
@@ -169,7 +169,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         _JudgeScene = SpawnActor(ACk_PixelArtGym_JudgeScene, FVector::ZeroVector, FRotator::ZeroRotator);
 
         if (_JudgeScene == nullptr)
-        { ck::Error("❌ Pixel Art Gym: failed to spawn the judge scene"); }
+        { ck::Error("[FAIL] Pixel Art Gym: failed to spawn the judge scene"); }
 
         _StationTags.Empty();
         _StationLabels.Empty();
@@ -340,7 +340,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         // the gym believing the station is showing.
         if (Subsystem.Get_IsEnabled() != Enabled)
         {
-            ck::Error(f"❌ Pixel Art Gym: the subsystem refused station [{Tag}] — see the precondition report");
+            ck::Error(f"[FAIL] Pixel Art Gym: the subsystem refused station [{Tag}] - see the precondition report");
             return;
         }
 
@@ -429,7 +429,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         _LookOverride = !_LookOverride;
 
         auto State = _LookOverride ? "ON" : "OFF";
-        ck::Trace(f"🟪 Pixel Art Gym: look override {State}");
+        ck::Trace(f"* Pixel Art Gym: look override {State}");
 
         if (_StationTags.IsValidIndex(_ActiveStation))
         {
@@ -449,7 +449,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         _OKLabOverride = !_OKLabOverride;
 
         auto State = _OKLabOverride ? "ON" : "OFF";
-        ck::Trace(f"🟪 Pixel Art Gym: OKLab treatment {State}");
+        ck::Trace(f"* Pixel Art Gym: OKLab treatment {State}");
 
         if (_StationTags.IsValidIndex(_ActiveStation))
         {
@@ -466,7 +466,7 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
     //
     //   1. Selection without walking. 1-9 and 0 pick a station directly; the panel says which is live.
     //   2. It IS the native-resolution UI subject. The renderer upscales the SCENE and composites UI
-    //      after, so crisp text sitting directly on top of a chunky frame is the whole criterion — and a
+    //      after, so crisp text sitting directly on top of a chunky frame is the whole criterion - and a
     //      panel that is always there judges it continuously instead of only at one station.
     //
     // Conditional rows go LAST so a row that appears only in one state cannot shift the index of a keyed
@@ -572,13 +572,13 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             System::ExecuteConsoleCommand("ck.PixelArt.Debug.Pan");
             _PanRunning = false;
-            ck::Trace("🟪 Pixel Art Gym: pan stopped");
+            ck::Trace("* Pixel Art Gym: pan stopped");
             return;
         }
 
         System::ExecuteConsoleCommand("ck.PixelArt.Debug.Pan 0.2");
         _PanRunning = true;
-        ck::Trace("🟪 Pixel Art Gym: pan running at 0.2 texels/frame");
+        ck::Trace("* Pixel Art Gym: pan running at 0.2 texels/frame");
     }
 
     UFUNCTION(Exec, DisplayName="Pixel Art Gym - Toggle Look")

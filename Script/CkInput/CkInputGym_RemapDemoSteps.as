@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT KEY-BINDING GYM — DEMO STEP STATES
+// CK INPUT KEY-BINDING GYM - DEMO STEP STATES
 //============================================================================
 //
 // The Remap + Conflict station's demo sequence, as a CkStateMachine graph. It
@@ -27,12 +27,12 @@
 // EVERY WATCHED ROW MOVES ONCE PER CYCLE. Jump moves constantly, Crouch moves
 // at the swap and the batch, and Interact and Flashlight both ride the batch.
 // Interact rides it rather than relying on the unbind-and-remap step, which
-// leaves it UNBOUND rather than on a key. That is deliberate — the Change
+// leaves it UNBOUND rather than on a key. That is deliberate - the Change
 // Signal station asserts that every row's listener has fired, and a row the
 // loop never touches would leave that panel permanently red.
 //
 // The cycle closes on a reset-and-save so an unattended demo cannot leave a
-// customized profile on disk between laps (CkInput/CLAUDE.md anti-pattern 2).
+// customized profile on disk between laps (the CkInput docs anti-pattern 2).
 //============================================================================
 
 namespace input_gym_demo
@@ -289,7 +289,7 @@ class UCk_InputGym_Step_SwapJumpCrouch : UCk_Gym_StepState
             PlayerController, input_gym::k_Mapping_Jump, EPlayerMappableKeySlot::First, CrouchBefore, FailureReason);
 
         auto Lines = TArray<FCkGym_ColoredLine>();
-        input_gym::Add_Line(Lines, "  Jump and Crouch trade keys in one call — neither is left unbound.", gym_palette::White);
+        input_gym::Add_Line(Lines, "  Jump and Crouch trade keys in one call - neither is left unbound.", gym_palette::White);
         input_gym::Add_Verdict(Lines, "swap accepted", "yes", input_gym::Format_Bool(Succeeded));
         input_gym::Add_Verdict(Lines, "Jump", input_gym::Format_Key(CrouchBefore),
             input_gym_demo::Get_KeyText(PlayerController, input_gym::k_Mapping_Jump));
@@ -336,7 +336,7 @@ class UCk_InputGym_Step_UnbindConflict : UCk_Gym_StepState
 
         auto Lines = TArray<FCkGym_ColoredLine>();
         input_gym::Add_Line(Lines, "  Jump takes Interact's key outright. The previous holder keeps", gym_palette::White);
-        input_gym::Add_Line(Lines, "  nothing — this is the resolution that unbinds instead of trading.", gym_palette::White);
+        input_gym::Add_Line(Lines, "  nothing - this is the resolution that unbinds instead of trading.", gym_palette::White);
         input_gym::Add_Verdict(Lines, "take accepted", "yes", input_gym::Format_Bool(Succeeded));
         input_gym::Add_Verdict(Lines, "Jump", input_gym::Format_Key(InteractKey),
             input_gym_demo::Get_KeyText(PlayerController, input_gym::k_Mapping_Jump));

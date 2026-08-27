@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI DISPLAY DEFINITION — AUTOMATION TEST: multiple Creates on one owner
+// CK POI DISPLAY DEFINITION - AUTOMATION TEST: multiple Creates on one owner
 //============================================================================
 //
 // Two Creates with DISTINCT _Consumer tags on a single owner compose two
@@ -13,7 +13,7 @@
 //   - TryGet with an unused consumer returns an INVALID handle.
 //
 // Create's Request_Connect (wiring the child into the owner's record) is
-// DEFERRED, so TryGet — which walks that record — is asserted after one
+// DEFERRED, so TryGet - which walks that record - is asserted after one
 // WaitOneFrame to let the connect settle.
 //============================================================================
 
@@ -78,7 +78,7 @@ class UCk_AutoTest_PoiDisplayDefinition_CreateMultipleOnOneOwner : UCk_AutoTest_
 
         // Add (which Create composes each child through) also stamps a CkLabel carrying the
         // _Consumer. Load-bearing and otherwise invisible: Request_Connect indexes children into
-        // _RecordEntriesTagNamePairs BY THAT LABEL, while TryGet above matches the Params field —
+        // _RecordEntriesTagNamePairs BY THAT LABEL, while TryGet above matches the Params field
         // so a regression in the label would break record-by-name lookups with every assertion
         // above still green.
         Assert_True(utils_gameplay_label::Get_Label(_ChildCompass) == _ConsumerCompass,

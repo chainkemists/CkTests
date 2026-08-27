@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: DESTROY-OWNER CASCADES TO QUERY
+// CK ENTITY TAG QUERY - AUTOMATION TEST: DESTROY-OWNER CASCADES TO QUERY
 //============================================================================
 //
 // The query lives as a child entity under its owner. Destroying the owner
@@ -12,8 +12,8 @@
 // entity itself isn't destroyed mid-callback). Add a query under it, then
 // destroy the child.
 //
-// Both hops cross a real observable transition — invalid→valid on Add, then
-// valid→invalid on the cascade — so neither is a fixed delay.
+// Both hops cross a real observable transition - invalid->valid on Add, then
+// valid->invalid on the cascade - so neither is a fixed delay.
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_DestroyOwnerDestroysQuery : UCk_AutoTest_Base

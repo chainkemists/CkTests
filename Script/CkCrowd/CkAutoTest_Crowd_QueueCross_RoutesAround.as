@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: A CLOSE GOAL PAST A STANDING LINE ROUTES AROUND
+// CK CROWD - AUTOMATION TEST: A CLOSE GOAL PAST A STANDING LINE ROUTES AROUND
 //
 // Two-phase planning (_PlanAroundStandingCrowds) against the field symptom:
 // "the NPC's goal is VERY close on the other side of a queue; instead of
@@ -93,7 +93,7 @@ class UCk_AutoTest_Crowd_QueueCross_RoutesAround : UCk_AutoTest_Base
                 { return; }
             }
 
-            // Mid-line Y, between two members — the straight route crosses the band, never an end.
+            // Mid-line Y, between two members - the straight route crosses the band, never an end.
             const auto CrossY = LineSpacingUu * 0.5;
             const auto SpawnLoc = FVector(-CrosserApproachX, CrossY, _FloorZ + 100.0);
             const auto GoalLoc  = FVector(CrosserOvershootX, CrossY, _FloorZ + 100.0);

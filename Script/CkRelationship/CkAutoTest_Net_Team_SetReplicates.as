@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK AUTOMATION TEST — NETWORKED TEAM ID REPLICATION
+// CK AUTOMATION TEST - NETWORKED TEAM ID REPLICATION
 //============================================================================
 //
 // Server calls utils_team::Assign; assert the replicated value lands on the
@@ -27,11 +27,11 @@ class UCk_AutoTest_Net_Team_SetReplicates : UCk_AutoTest_NetBase
         auto _CkPerfScope = ck::ScopedStat();
         auto Subject = Get_SubjectEntity();
         if (ck::Is_NOT_Valid(Subject))
-        { FinishFailure("subject not found — harness misconfigured?"); return; }
+        { FinishFailure("subject not found - harness misconfigured?"); return; }
 
         auto Team = utils_team::TryGet_Entity_Team_InOwnershipChain(Subject);
         if (ck::Is_NOT_Valid(Team))
-        { FinishFailure("Team child entity missing — entity-script Add failed?"); return; }
+        { FinishFailure("Team child entity missing - entity-script Add failed?"); return; }
 
         if (utils_net::Get_HasAuthority(Subject))
         {

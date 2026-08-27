@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — NET AUTOMATION TEST: VECTOR OVERRIDE REPLICATES
+// CK ATTRIBUTE - NET AUTOMATION TEST: VECTOR OVERRIDE REPLICATES
 //============================================================================
 //
 // Vector attributes ride the same templated container-replication path as

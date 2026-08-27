@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: CELLS RESPECT DefaultCellState
+// CK GRID - AUTOMATION TEST: CELLS RESPECT DefaultCellState
 //============================================================================
 //
 // Verifies the DefaultCellState param is honored at construction time:

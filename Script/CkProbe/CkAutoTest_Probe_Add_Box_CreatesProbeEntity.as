@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE — AUTOMATION TEST: ADD BOX CREATES PROBE ENTITY
+// CK PROBE - AUTOMATION TEST: ADD BOX CREATES PROBE ENTITY
 //============================================================================
 //
 // First-coverage seed for CkProbe. Adding a box probe to a transform-bearing

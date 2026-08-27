@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: TASK ExitTask FIRES ON SM STOP
+// CK STATE MACHINE - AUTOMATION TEST: TASK ExitTask FIRES ON SM STOP
 //============================================================================
 //
 // The existing TransitionOrdering test pins that an EnterExitOnly task's
@@ -62,7 +62,7 @@ class UCk_SmTaskExitTest_State : UCk_SmState_EntityScript
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        AddTask(InHandle, UCk_SmTaskExitTest_Task); // sink — left only via Stop
+        AddTask(InHandle, UCk_SmTaskExitTest_Task); // sink - left only via Stop
     }
 };
 

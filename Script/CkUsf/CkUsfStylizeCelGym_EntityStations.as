@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF CEL SHADE GYM — ENTITY-PATTERN subjects.
+// CK USF CEL SHADE GYM - ENTITY-PATTERN subjects.
 //
 // Demonstrates "give this ENTITY a cel pattern" through the public API instead
 // of tagging a mesh's Custom Stencil by hand:
@@ -11,7 +11,7 @@
 // The actor path is the one CkUsf itself implements: each subject spawns a
 // UCk_EntityScript_WithActor_UE bound to itself, so the entity carries an
 // owning actor and FProcessor_Usf_CelPatternActor_Sync writes the stencil onto
-// its primitives. ISM / ISKM proxies are not covered — the same distribution
+// its primitives. ISM / ISKM proxies are not covered - the same distribution
 // entity outlines have, one sync processor per renderer module.
 //
 // Judge these against the STENCIL row in the judge scene: the hand-tagged cubes

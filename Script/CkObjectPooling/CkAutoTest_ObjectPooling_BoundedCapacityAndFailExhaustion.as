@@ -1,10 +1,10 @@
 // Language=angelscript
 //
-// CK OBJECT POOLING — AUTOMATION TEST: bounded capacity + Fail exhaustion contracts
+// CK OBJECT POOLING - AUTOMATION TEST: bounded capacity + Fail exhaustion contracts
 //
 // Bounded/Grow: the pool creates up to MaxSize live instances, then acquire returns null (no
-// ensure — capacity is an expected runtime condition) until something is released. Fail: an empty
-// pool never creates on demand — acquire returns null and counts a miss.
+// ensure - capacity is an expected runtime condition) until something is released. Fail: an empty
+// pool never creates on demand - acquire returns null and counts a miss.
 
 class UCk_AutoTest_ObjectPooling_BoundedCapacityAndFailExhaustion : UCk_AutoTest_Base
 {
@@ -40,7 +40,7 @@ class UCk_AutoTest_ObjectPooling_BoundedCapacityAndFailExhaustion : UCk_AutoTest
         Assert_Equals_Int(BoundedStats.Get_NumLiveInstances(), 2, "bounded: capacity capped live instances at MaxSize");
         if (IsFinished()) { return; }
 
-        // capacity frees up on release — the parked instance is re-issued
+        // capacity frees up on release - the parked instance is re-issued
         utils_object::TryReleaseToPool(First);
         auto Reacquired = utils_object::Request_CreateNewObject_Pooled(
             this, UCk_ObjectPoolingTest_PlainObject, BoundedArchetype, BoundedParams);

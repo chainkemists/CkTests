@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — GAMEPLAYCAMERA AUTOTEST FIXTURES
+// CK CAMERA - GAMEPLAYCAMERA AUTOTEST FIXTURES
 //============================================================================
 //
 // Shared no-op camera-layer fixtures for the gameplay-camera stack AutoTests. They exist only to be
-// pushed/removed so the stack invariants (count, OneOnly eviction, blend-out pruning) can be asserted —
+// pushed/removed so the stack invariants (count, OneOnly eviction, blend-out pruning) can be asserted
 // they acquire no modifiers (DoEnter is not overridden), so they contribute nothing to the composed profile.
 //============================================================================
 
@@ -43,7 +43,7 @@ class UCk_AutoTest_CameraLayer_FovAdd30 : UCk_CameraLayer_EntityScript
     }
 }
 
-// ADDITIVE FOV +5 — a second additive contributor so the multi-layer-stack tests can mix several FOV modifiers.
+// ADDITIVE FOV +5 - a second additive contributor so the multi-layer-stack tests can mix several FOV modifiers.
 class UCk_AutoTest_CameraLayer_FovAdd5 : UCk_CameraLayer_EntityScript
 {
     UFUNCTION(BlueprintOverride)
@@ -56,7 +56,7 @@ class UCk_AutoTest_CameraLayer_FovAdd5 : UCk_CameraLayer_EntityScript
 }
 
 // OVERRIDE FOV -> 70. The blend processor realizes Override additively as (target - base)*alpha, i.e. a delta of
-// (70 - 90) = -20 against the base FOV — so it composes alongside additive modifiers as a simple summed contribution.
+// (70 - 90) = -20 against the base FOV - so it composes alongside additive modifiers as a simple summed contribution.
 class UCk_AutoTest_CameraLayer_FovOverride70 : UCk_CameraLayer_EntityScript
 {
     UFUNCTION(BlueprintOverride)

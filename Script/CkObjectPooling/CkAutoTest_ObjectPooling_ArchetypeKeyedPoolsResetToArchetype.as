@@ -1,10 +1,10 @@
 // Language=angelscript
 //
-// CK OBJECT POOLING — AUTOMATION TEST: pools are keyed per archetype and reset to the ARCHETYPE
+// CK OBJECT POOLING - AUTOMATION TEST: pools are keyed per archetype and reset to the ARCHETYPE
 //
 // Pools are keyed (class, archetype): an archetype-keyed pool is fully independent of the CDO
 // pool of the same class, a fresh acquire carries the archetype's values, and the recycle reset
-// restores the ARCHETYPE's values — not the CDO's.
+// restores the ARCHETYPE's values - not the CDO's.
 
 class UCk_AutoTest_ObjectPooling_ArchetypeKeyedPoolsResetToArchetype : UCk_AutoTest_Base
 {
@@ -39,7 +39,7 @@ class UCk_AutoTest_ObjectPooling_ArchetypeKeyedPoolsResetToArchetype : UCk_AutoT
             "recycle reset must restore the ARCHETYPE's value (7), not the CDO default (0)");
         if (IsFinished()) { return; }
 
-        // the (class, CDO) pool is a different pool — completely untouched by all of the above
+        // the (class, CDO) pool is a different pool - completely untouched by all of the above
         auto CdoPoolStats = utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_PlainObject, nullptr);
         Assert_Equals_Int(CdoPoolStats.Get_NumLiveInstances(), 0,
             "the CDO-keyed pool of the same class must be independent of the archetype-keyed pool");

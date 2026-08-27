@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: a per-consumer VisibleRange culls ONE projector
+// CK POI - AUTOMATION TEST: a per-consumer VisibleRange culls ONE projector
 //============================================================================
 //
 // Gate 4 per-consumer restriction: a POI has NO base VisibleRange, but carries
-// two PoiDisplayDefinition children — one for the compass consumer, one for the
+// two PoiDisplayDefinition children - one for the compass consumer, one for the
 // minimap consumer. A CkVisibleRange composed on the COMPASS child only, with a
 // MaxRange smaller than the POI's distance, culls the compass entry while the
 // minimap (whose child has no VisibleRange) keeps showing it.
@@ -20,7 +20,7 @@
 // Isolated Y band: 51800.
 //
 // The headline assertion is a NEGATIVE (the compass must not list the POI),
-// which is already true before any projector has run — an unconditional settle
+// which is already true before any projector has run - an unconditional settle
 // could pass it vacuously. The sequence therefore waits on a POSITIVE witness
 // first (the minimap picking the POI up, proving the projectors are live), then
 // on the causal event (the compass child's VR going hidden), before asserting.
@@ -56,7 +56,7 @@ class UCk_AutoTest_Poi_PerConsumerRange_CullsOneProjector : UCk_AutoTest_Base
 
         _Minimap = utils_minimap::Add(Observer, FCk_Fragment_Minimap_ParamsData(5000.0));
 
-        // POI 2000uu due +X — NO base VisibleRange.
+        // POI 2000uu due +X - NO base VisibleRange.
         auto PoiOwner = utils_entity_lifetime::Request_CreateEntity(_SelfHandle);
         PoiOwner.Request_OverrideToSelf();
         utils_transform::Add(PoiOwner,
@@ -110,7 +110,7 @@ class UCk_AutoTest_Poi_PerConsumerRange_CullsOneProjector : UCk_AutoTest_Base
     //------------------------------------------------------------------------
 
     // A POSITIVE witness, and it is load-bearing. The headline assertion is a
-    // negative — the compass must NOT list the POI — which is already true
+    // negative - the compass must NOT list the POI - which is already true
     // before any projector has run. Proving the minimap picked the POI up first
     // establishes that the projectors are live, so the negative means the
     // compass consumer was CULLED rather than never gathered.

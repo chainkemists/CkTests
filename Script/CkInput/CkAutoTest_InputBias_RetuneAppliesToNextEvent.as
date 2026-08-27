@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BIAS — AUTOMATION TEST: A RETUNE CONDITIONS THE NEXT EVENT, NOT THE LAST
+// CK INPUT BIAS - AUTOMATION TEST: A RETUNE CONDITIONS THE NEXT EVENT, NOT THE LAST
 //============================================================================
 //
-// The conditioning table is runtime-mutable — a sensitivity slider moves it
-// while the player is holding the stick — and that makes "when does it take
+// The conditioning table is runtime-mutable - a sensitivity slider moves it
+// while the player is holding the stick - and that makes "when does it take
 // effect" a contract rather than an implementation detail.
 //
 // It is a deferred request, so the answer is: the next event to arrive. Three
@@ -15,7 +15,7 @@
 //   1. On the calling stack the table has not moved at all (an immediate
 //      mutator would have changed it here, and would then be able to change
 //      it in the middle of a conditioning pass).
-//   2. Once the retune HAS drained, the sample already taken is unchanged —
+//   2. Once the retune HAS drained, the sample already taken is unchanged
 //      conditioned state is a record of a past event, not a live formula, so
 //      re-deriving it under new settings would fabricate an input the device
 //      never sent.
@@ -80,7 +80,7 @@ class UCk_AutoTest_InputBias_RetuneAppliesToNextEvent : UCk_AutoTest_Base
             FCk_Delegate_Request_OnCompleted(this, n"OnRetuneCompleted"));
 
         Assert_Equals_Int(utils_input_bias::Get_AxisBiases(_Bias).Num(), 0,
-            "a retune is deferred — the table must not have moved on the calling stack");
+            "a retune is deferred - the table must not have moved on the calling stack");
         Assert_Equals_Int(_RetuneFires, 0,
             "an accepted retune completes when it DRAINS, not when it is enqueued");
     }
@@ -98,7 +98,7 @@ class UCk_AutoTest_InputBias_RetuneAppliesToNextEvent : UCk_AutoTest_Base
             "the drained retune must be readable back from the live table");
 
         Assert_Equals_Float(utils_input_bias::Get_ConditionedAxisValue(_Bias, EKeys::Gamepad_LeftX), 0.5f, 0.0001f,
-            "conditioned state records a past event — a retune must not re-derive it and invent an input the device never sent");
+            "conditioned state records a past event - a retune must not re-derive it and invent an input the device never sent");
 
         DoInjectAxis(0.6f);
     }

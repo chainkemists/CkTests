@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: SORT WITH NO PREDICATE IS REJECTED
+// CK INVENTORY - AUTOMATION TEST: SORT WITH NO PREDICATE IS REJECTED
 //============================================================================
 //
 // Request_Sort carrying no sort predicate (neither native nor dynamic bound)
-// is a malformed request, not a bad inventory — it must complete with
+// is a malformed request, not a bad inventory - it must complete with
 // Failed_NoPredicate.
 //============================================================================
 

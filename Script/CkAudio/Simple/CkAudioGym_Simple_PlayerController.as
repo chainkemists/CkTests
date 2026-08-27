@@ -6,7 +6,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
         Request_StartBackgroundMusic();
         Request_StartSpatialAudio();
 
-        ck::Trace("🎵 Simple Audio Gym - All audio features started");
+        ck::Trace("* Simple Audio Gym - All audio features started");
     }
 
     void Request_StartBackgroundMusic()
@@ -19,7 +19,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
             ECk_Cue_ReliabilityPolicy::Unreliable,
             ECk_Cue_MulticastPolicy::LocalOnly);
 
-        ck::Trace("🎵 Background music cue executed at demo display location");
+        ck::Trace("* Background music cue executed at demo display location");
     }
 
     void Request_StartSpatialAudio()
@@ -32,7 +32,7 @@ class ACk_AudioGym_Simple_PlayerController : ACk_Gym_Base_PlayerController
             ECk_Cue_ReliabilityPolicy::Unreliable,
             ECk_Cue_MulticastPolicy::LocalOnly);
 
-        ck::Trace("🔊 Spatial audio cue executed at demo display location");
+        ck::Trace("* Spatial audio cue executed at demo display location");
     }
 
     //--------------------------------------------------------------------------------------------------------------------------

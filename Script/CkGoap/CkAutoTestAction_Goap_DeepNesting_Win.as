@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: WIN (DeepNesting test)
+// CK GOAP - AUTOMATION TEST ACTION: WIN (DeepNesting test)
 //============================================================================
 //
 // Atomic finishing-move under Alive. Precondition: EnemyAttacked=true.

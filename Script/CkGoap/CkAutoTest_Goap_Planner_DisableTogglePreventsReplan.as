@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: DISABLE TOGGLE PREVENTS REPLAN (PR-B.1b Stage 1)
+// CK GOAP - AUTOMATION TEST: DISABLE TOGGLE PREVENTS REPLAN (PR-B.1b Stage 1)
 //============================================================================
 //
-// Validates spec §3.3 ("Disabled Planners don't replan and don't activate
+// Validates spec Sec.3.3 ("Disabled Planners don't replan and don't activate
 // their children.") and CTO finding A4. Before PR-B.1b Stage 1, only
-// FProcessor_Goap_Planner_UpdateActivation gated on EnableToggle — the A*
+// FProcessor_Goap_Planner_UpdateActivation gated on EnableToggle - the A*
 // pipeline on the Action side (Setup, AutoReplan, HandleRequests, Execute,
 // HandleResult) ran unconditionally, burning CPU on disabled Planners and
 // silently broadcasting OnPlanComplete signals that activation then ignored.
@@ -23,9 +23,9 @@
 // Phase 1: Initial plan fires. _PlanCompleteCount == 1, plan = [LeafA].
 //
 // Phase 2: Disable Planner. Reset count to 0. Mutate WS to AKey=true (would
-//   normally fire FTag_Goap_Dirty_WorldState → AutoReplan → HandleRequests
-//   → Execute → HandleResult → OnPlanComplete). Wait several frames. Assert
-//   _PlanCompleteCount == 0 — the disabled Planner did NOT replan.
+//   normally fire FTag_Goap_Dirty_WorldState -> AutoReplan -> HandleRequests
+//   -> Execute -> HandleResult -> OnPlanComplete). Wait several frames. Assert
+//   _PlanCompleteCount == 0 - the disabled Planner did NOT replan.
 //
 // Phase 3: Re-enable. AutoReplan picks up the dirty tag (still set) and
 //   pipelines through; OnPlanComplete fires. Assert _PlanCompleteCount >= 1.

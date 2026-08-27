@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: RESULT DELTAS ON CONTINUOUS UPDATE
+// CK ENTITY TAG QUERY - AUTOMATION TEST: RESULT DELTAS ON CONTINUOUS UPDATE
 //============================================================================
 //
-// Verifies J1 — OnContinuousUpdate payload's _Added / _Removed arrays surface
+// Verifies J1 - OnContinuousUpdate payload's _Added / _Removed arrays surface
 // the per-pass deltas without requiring caller-side diffing.
 //
 // Continuous-update fires on each pass whose result set changed (add or remove).
@@ -75,7 +75,7 @@ class UCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous : UCk_AutoTest_Base
     private void Step_AssertNoRemovalsAndTagSecond(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_True(_TotalRemovedSeen == 0,
-            "No removals expected yet — _TotalRemovedSeen must be 0");
+            "No removals expected yet - _TotalRemovedSeen must be 0");
 
         _E2 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E2, n"AutoTestEtq_Delta");
@@ -128,7 +128,7 @@ class UCk_AutoTest_EntityTagQuery_ResultDeltasOnContinuous : UCk_AutoTest_Base
     {
         if (InResults.Num() == 0) { return; }
 
-        // Accumulate — a single mutation may surface its delta across one or more change
+        // Accumulate - a single mutation may surface its delta across one or more change
         // fires; cumulative counts keep the assertions robust to that split.
         _TotalAddedSeen   += InResults[0].Get_Added().Num();
         _TotalRemovedSeen += InResults[0].Get_Removed().Num();

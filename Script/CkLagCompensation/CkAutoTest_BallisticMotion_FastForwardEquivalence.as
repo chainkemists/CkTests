@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK BALLISTIC MOTION — AUTOMATION TEST: FAST-FORWARD EQUIVALENCE
+// CK BALLISTIC MOTION - AUTOMATION TEST: FAST-FORWARD EQUIVALENCE
 //============================================================================
 //
 // The core lag-compensation determinism guarantee: a projectile launched NOW
 // with its trajectory anchored 0.5s in the PAST (OverrideTime) must land in
 // exactly the same place as a projectile that has genuinely been flying for
-// those 0.5s. No stepping, no error accumulation — both are the same closed
+// those 0.5s. No stepping, no error accumulation - both are the same closed
 // form evaluated at the same world time.
 //============================================================================
 
@@ -60,7 +60,7 @@ class UCk_AutoTest_BallisticMotion_FastForwardEquivalence : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // Projectile A has flown for ~0.5s. Launch B NOW, anchored at A's exact launch time —
+        // Projectile A has flown for ~0.5s. Launch B NOW, anchored at A's exact launch time
         // it must instantly catch up and shadow A perfectly from here on
         auto LaunchTimeOfA = _MotionA.Get_InitialConditions().Get_StartTime();
 

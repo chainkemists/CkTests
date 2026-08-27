@@ -1,9 +1,9 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Combat Brain station Actions  (4-tier canonical demo)
+// CkGoapGym - Combat Brain station Actions  (4-tier canonical demo)
 //
-// Demonstrates spec §2.2's canonical 4-tier hierarchy with TWO mid-tier
+// Demonstrates spec Sec.2.2's canonical 4-tier hierarchy with TWO mid-tier
 // composites promoted to Planners under the same parent, exercising sibling
 // branch selection by cost.
 //
@@ -35,22 +35,22 @@
 //
 // Player exploration:
 //   - With all gates false, no plan exists (preconditions block Engage).
-//   - SetEnemyVisible + SetWeaponEquipped → Alive plan = [Engage, Win],
+//   - SetEnemyVisible + SetWeaponEquipped -> Alive plan = [Engage, Win],
 //                                            Engage promoted plan = [LightAttacks],
 //                                            LightAttacks promoted plan = [Light3]
 //                                            (cost 0.5 < Light1 cost 1.0 < Light2).
-//   - SetEnemyVisible + SetStaminaHigh (no weapon) → Engage promoted picks
+//   - SetEnemyVisible + SetStaminaHigh (no weapon) -> Engage promoted picks
 //                                            HeavyAttacks (the only one whose
 //                                            precondition is met), then Heavy1
 //                                            (cost 3 < Heavy2 cost 5).
-//   - Both gates on → light branch wins on cost.
+//   - Both gates on -> light branch wins on cost.
 //
 // Buttons (Goap.CombatBrain.*):
 //   SetEnemyVisible / ClearEnemyVisible
 //   SetWeaponEquipped / ClearWeaponEquipped
 //   SetStaminaHigh / ClearStaminaHigh
-//   Reset    — all keys back to false
-//   Complete — set every key true (drives the chain to terminal state)
+//   Reset    - all keys back to false
+//   Complete - set every key true (drives the chain to terminal state)
 //============================================================================
 
 // ---- Tier 1: direct children under Alive Planner ----
@@ -91,7 +91,7 @@ class UCk_GoapGym_CombatBrain_Win : UCk_GoapAction_EntityScript
 
 // LightAttacks: produces EnemyAttacked (visible to Engage's planner) and
 // promoted to a Planner with sub-goal EnemyHit=true. Gated by WeaponEquipped.
-// Cost 1.0 — same as HeavyAttacks at this tier; cost difference plays out
+// Cost 1.0 - same as HeavyAttacks at this tier; cost difference plays out
 // among the tier-4 leaves.
 class UCk_GoapGym_CombatBrain_LightAttacks : UCk_GoapAction_EntityScript
 {
@@ -108,7 +108,7 @@ class UCk_GoapGym_CombatBrain_LightAttacks : UCk_GoapAction_EntityScript
 }
 
 // HeavyAttacks: sibling alternative under Engage. Gated by StaminaHigh.
-// Same effect, same cost — Engage's regressive planner picks whichever's
+// Same effect, same cost - Engage's regressive planner picks whichever's
 // precondition is satisfiable.
 class UCk_GoapGym_CombatBrain_HeavyAttacks : UCk_GoapAction_EntityScript
 {
@@ -150,7 +150,7 @@ class UCk_GoapGym_CombatBrain_Light2 : UCk_GoapAction_EntityScript
     }
 }
 
-// Light3: cheapest leaf — wins cost tie-break when WeaponEquipped is on.
+// Light3: cheapest leaf - wins cost tie-break when WeaponEquipped is on.
 class UCk_GoapGym_CombatBrain_Light3 : UCk_GoapAction_EntityScript
 {
     UFUNCTION(BlueprintOverride)
@@ -191,7 +191,7 @@ class UCk_GoapGym_CombatBrain_Heavy2 : UCk_GoapAction_EntityScript
 
 // ---- Tenet fallbacks ----
 //
-// Standby: top Alive Planner fallback (CkGoap/CLAUDE.md § "Design tenets").
+// Standby: top Alive Planner fallback (the CkGoap docs Sec. "Design tenets").
 // No preconditions; effect = EnemyDead=true (the top goal); cost 999. Wins
 // only when no real combat chain is viable. Semantically: "stand down; the
 // enemy is neutralized by attrition / they leave / a teammate kills them".
@@ -209,7 +209,7 @@ class UCk_GoapGym_CombatBrain_Standby : UCk_GoapAction_EntityScript
 
 // HoldFire: Engage sub-Planner fallback. Sub-goal is EnemyAttacked=true.
 // LightAttacks (pre: WeaponEquipped) and HeavyAttacks (pre: StaminaHigh)
-// can both be blocked — without this fallback the Engage sub-Planner has
+// can both be blocked - without this fallback the Engage sub-Planner has
 // no unconditional path and the tenet check fires. Semantically: "wait for
 // an attack opening; EnemyAttacked satisfied by attrition".
 class UCk_GoapGym_CombatBrain_Engage_HoldFire : UCk_GoapAction_EntityScript

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: CAMERA SHAKE ADD CREATES RECORD ENTRY
+// CK CAMERA - AUTOMATION TEST: CAMERA SHAKE ADD CREATES RECORD ENTRY
 //============================================================================
 //
 // First-coverage seed for CkCamera. Adding a CameraShake with a tag
@@ -11,7 +11,7 @@
 //
 // The actual shake playback path (Request_PlayOnTarget /
 // Request_PlayAtLocation) needs an APlayerCameraManager; this seed
-// only pins the Add → Record-of-shakes contract.
+// only pins the Add -> Record-of-shakes contract.
 //============================================================================
 
 class UCk_AutoTest_CameraShake_Add_CreatesEntry : UCk_AutoTest_Base

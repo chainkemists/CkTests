@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DIALOG — AUTOMATION TEST: EXIT-TAG CHAIN ADJACENCY
+// CK DIALOG - AUTOMATION TEST: EXIT-TAG CHAIN ADJACENCY
 //============================================================================
 // Line A's ExitTag equals Line B's EnterTag. Querying A's enter tag returns A
 // (whose entry exposes the exit tag); Request_QueryFollowUp on the played A

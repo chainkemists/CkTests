@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: FACTORY EQUIVALENCE
+// CK ENTITY TAG QUERY - AUTOMATION TEST: FACTORY EQUIVALENCE
 //============================================================================
 //
 // Pure value test (no WaitOneFrame chain): verifies each Make_Requirement_*
@@ -9,12 +9,12 @@
 // Tag / Mode / Count / MaxAllowedEnsure fields.
 //
 // Cases:
-//   - Make_Requirement_Single(Tag)            → SingleOnly, Count 1, NoEnsure (0)
-//   - Make_Requirement_Of(Tag, 3)             → Count, Count 3, NoEnsure (0)
-//   - Make_Requirement_All(Tag)               → All, NoEnsure (0)
-//   - Make_Requirement_Of_WithEnsure(T,2,4)   → Count, Count 2, MaxAllowed 4
-//   - Make_Requirement_Single_WithEnsure(T,3) → SingleOnly, MaxAllowed 3
-//   - Make_Requirement_All_WithEnsure(T,5)    → All, MaxAllowed 5
+//   - Make_Requirement_Single(Tag)            -> SingleOnly, Count 1, NoEnsure (0)
+//   - Make_Requirement_Of(Tag, 3)             -> Count, Count 3, NoEnsure (0)
+//   - Make_Requirement_All(Tag)               -> All, NoEnsure (0)
+//   - Make_Requirement_Of_WithEnsure(T,2,4)   -> Count, Count 2, MaxAllowed 4
+//   - Make_Requirement_Single_WithEnsure(T,3) -> SingleOnly, MaxAllowed 3
+//   - Make_Requirement_All_WithEnsure(T,5)    -> All, MaxAllowed 5
 //============================================================================
 
 class UCk_AutoTest_EntityTagQuery_FactoryEquivalence : UCk_AutoTest_Base

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: BYTE MODIFIER ADD
+// CK ATTRIBUTE - AUTOMATION TEST: BYTE MODIFIER ADD
 //============================================================================
 //
 // Byte-side parity with the existing Integer/Float modifier tests.

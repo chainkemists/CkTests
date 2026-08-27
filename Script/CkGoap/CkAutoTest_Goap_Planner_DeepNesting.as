@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER 4-TIER DEEP NESTING
+// CK GOAP - AUTOMATION TEST: PLANNER 4-TIER DEEP NESTING
 //============================================================================
 //
-// Coverage gap filler: the design spec §2.2 illustrates a 4-tier hierarchy
+// Coverage gap filler: the design spec Sec.2.2 illustrates a 4-tier hierarchy
 //
 //   Alive (Planner)
-//     ├─ Win (atomic Action)
-//     └─ Engage (Planner + Action — tier 2)
-//          └─ LightAttacks (Planner + Action — tier 3)
-//               ├─ Light1 (atomic Action — tier 4)
-//               └─ Light2 (atomic Action — tier 4)
+//     +- Win (atomic Action)
+//     +- Engage (Planner + Action - tier 2)
+//          +- LightAttacks (Planner + Action - tier 3)
+//               +- Light1 (atomic Action - tier 4)
+//               +- Light2 (atomic Action - tier 4)
 //
 // but no regression test exercises 4+ tiers end-to-end. The U11.6 Patrol gym
 // is only 3 tiers. This test fills that gap and is the canonical "the spec's
@@ -34,11 +34,11 @@
 //   - Light2 (under LightAttacks) : effect EnemyHit=true, cost 2.0 (distractor).
 //
 // Expected plans (each tier verified via Get_PlanClasses):
-//   - Alive plan         = [Engage, Win]     — regressive: Win needs EnemyAttacked,
+//   - Alive plan         = [Engage, Win]     - regressive: Win needs EnemyAttacked,
 //                                              only Engage produces it; plan is sequenced
 //                                              in execution order.
-//   - Engage promoted    = [LightAttacks]    — goal EnemyAttacked, LightAttacks satisfies.
-//   - LightAttacks prom. = [Light1]          — goal EnemyHit; Light1 cheaper than Light2.
+//   - Engage promoted    = [LightAttacks]    - goal EnemyAttacked, LightAttacks satisfies.
+//   - LightAttacks prom. = [Light1]          - goal EnemyHit; Light1 cheaper than Light2.
 //
 // Flow:
 //   1. DoBeginPlay wires the full hierarchy and binds OnPlanComplete on the
@@ -55,11 +55,11 @@ namespace Ck
     {
         // Top-tier goal.
         GameplayTags.Add(n"AutoTest.Goap.DeepNesting.WS.EnemyDead");
-        // Tier-2 (Engage) goal — produced by LightAttacks' effect.
+        // Tier-2 (Engage) goal - produced by LightAttacks' effect.
         GameplayTags.Add(n"AutoTest.Goap.DeepNesting.WS.EnemyAttacked");
-        // Tier-3 (LightAttacks) goal — produced by Light1/Light2.
+        // Tier-3 (LightAttacks) goal - produced by Light1/Light2.
         GameplayTags.Add(n"AutoTest.Goap.DeepNesting.WS.EnemyHit");
-        // Planner-name tag (one Planner per tier reuses this name — they live
+        // Planner-name tag (one Planner per tier reuses this name - they live
         // on different host entities so collisions don't matter).
         GameplayTags.Add(n"AutoTest.Goap.DeepNesting.Planner");
         // WS entity name tag.
@@ -111,15 +111,15 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.Planner"));
         AliveParams.Set_Goal(AliveGoal);
         AliveParams.Set_WorldStateSource(WS);
-        // Framework test catalog — minimal planner shape, no fallback Action.
-        // Opt out of the always-valid-plan tenet enforcement (see CkGoap/CLAUDE.md
-        // § "Design tenets"). Game-content Planners must NEVER set this true.
+        // Framework test catalog - minimal planner shape, no fallback Action.
+        // Opt out of the always-valid-plan tenet enforcement (see the CkGoap docs
+        // Sec. "Design tenets"). Game-content Planners must NEVER set this true.
         AliveParams.Set_AllowPlanFailed(true);
         _Alive = utils_goap_planner::Add(Local, AliveParams);
         Assert_True(ck::IsValid(_Alive), "Add Alive Planner should return a valid handle");
 
         // PR-B.1b Stage 5: no implicit-root Action. The legacy Alive class is
-        // dropped — its effect (EnemyDead=true cost 0) would short-circuit the
+        // dropped - its effect (EnemyDead=true cost 0) would short-circuit the
         // plan to a single-step Alive_Root instead of the [Engage, Win] chain.
 
         // ---- Tier 2: Engage Action (direct child of Alive Planner) ----
@@ -129,7 +129,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_Engage), "Engage AddAction (under Alive) should succeed");
         _AliveRoot = _Engage;
 
-        // Win — atomic finisher under Alive (precondition EnemyAttacked=true).
+        // Win - atomic finisher under Alive (precondition EnemyAttacked=true).
         auto WinParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_DeepNesting_Win);
         auto Win = utils_goap_planner::AddAction(_Alive, WinParams);
@@ -143,7 +143,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         auto EngagePlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.Planner"));
         EngagePlannerParams.Set_Goal(EngageGoal);
-        EngagePlannerParams.Set_AllowPlanFailed(true);  // framework test — see top
+        EngagePlannerParams.Set_AllowPlanFailed(true);  // framework test - see top
         _Engage_AsPlanner = utils_goap_planner::PromoteActionToPlanner(_Engage, EngagePlannerParams);
         Assert_True(ck::IsValid(_Engage_AsPlanner),
             "PromoteActionToPlanner(Engage) should return a valid Planner handle");
@@ -162,7 +162,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         auto LightAttacksPlannerParams = FCk_Fragment_Goap_PlannerParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.DeepNesting.Planner"));
         LightAttacksPlannerParams.Set_Goal(LightAttacksGoal);
-        LightAttacksPlannerParams.Set_AllowPlanFailed(true);  // framework test — see top
+        LightAttacksPlannerParams.Set_AllowPlanFailed(true);  // framework test - see top
         _LightAttacks_AsPlanner = utils_goap_planner::PromoteActionToPlanner(_LightAttacks, LightAttacksPlannerParams);
         Assert_True(ck::IsValid(_LightAttacks_AsPlanner),
             "PromoteActionToPlanner(LightAttacks) should return a valid Planner handle");
@@ -179,7 +179,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
         Assert_True(ck::IsValid(Light2), "Light2 AddAction should succeed");
 
         // ---- Bind plan-complete on all three planning entities ----
-        // Bind early — sub-planners may fire before/during ChainUpdate activation.
+        // Bind early - sub-planners may fire before/during ChainUpdate activation.
         // FireIfPayloadInFlightThisFrame (default) catches same-frame fires.
         utils_goap_planner::BindTo_OnPlanComplete(_Alive,
             FCk_Delegate_Goap_OnPlanComplete(this, n"OnAlivePlan"));
@@ -197,7 +197,7 @@ class UCk_AutoTest_Goap_Planner_DeepNesting : UCk_AutoTest_Base
 
         auto Plan = utils_goap_planner::Get_PlanClasses(_Alive);
         // The first PlanComplete fire on Alive may produce an empty plan
-        // before all child catalogs are visible — skip empty fires.
+        // before all child catalogs are visible - skip empty fires.
         if (Plan.Num() == 0) { return; }
 
         Assert_True(utils_goap_planner::Get_PlanStatus(_Alive) == ECk_GoapPlanStatus::PlanFound,

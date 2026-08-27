@@ -1,5 +1,5 @@
 //============================================================================
-// PROBE GYM — NESTED SCENE-NODE STATION
+// PROBE GYM - NESTED SCENE-NODE STATION
 //
 // Stress-tests transform composition when a Kinematic Probe is attached at
 // the end of a nested scene-node chain. Catches bugs where:
@@ -9,10 +9,10 @@
 //   (c) Jolt body desyncs from the ECS-composed world transform
 //
 // Hierarchy built in DoConstruct:
-//   Root            — own entity, tweened along +Y axis
-//    └─ SceneNodeA  — +150 along X, 45° yaw (Z rotation)
-//         └─ SceneNodeB — +100 along Y (in A's frame), 30° roll (X rotation)
-//              └─ ChainedProbe — Kinematic Sphere, ProbeName = Marker
+//   Root            - own entity, tweened along +Y axis
+//    +- SceneNodeA  - +150 along X, 45 deg yaw (Z rotation)
+//         +- SceneNodeB - +100 along Y (in A's frame), 30 deg roll (X rotation)
+//              +- ChainedProbe - Kinematic Sphere, ProbeName = Marker
 //
 // Static Detector (Box, Filter=Marker) placed so the chained probe crosses
 // it twice per yoyo period. Detector overlap count is the ground truth.
@@ -61,7 +61,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
     // Persistent debug shapes for the static-color elements of the chain.
     // Created once with infinite lifetime in DoBeginPlay and re-positioned
     // each frame in DrawVisuals. Only Actual (drift-colored) and Detector
-    // (overlap-colored) are still recreated per-tick — basic-shape PMG has
+    // (overlap-colored) are still recreated per-tick - basic-shape PMG has
     // no recolor API, so swapping colors requires a fresh shape.
     FCk_Handle_Pmg_DebugShape RootShape;
     FCk_Handle_Pmg_DebugShape NodeAShape;
@@ -73,7 +73,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
     FLinearColor LineColor_RootToA = FLinearColor(1.0f, 0.7f, 0.2f, 0.8f);
     FLinearColor LineColor_AToB    = FLinearColor(0.5f, 0.6f, 1.0f, 0.8f);
 
-    // Color-flipping shapes — kept persistent, position updated each frame,
+    // Color-flipping shapes - kept persistent, position updated each frame,
     // and only destroyed + respawned when the desired color actually changes.
     FCk_Handle_Pmg_DebugShape ActualShape;
     FLinearColor ActualColorCached;
@@ -114,7 +114,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
         // Making Root itself a scene-node child of the station ensures the
         // tween's world-space writes propagate through the chain below it.
         // Without this, Root has a plain transform and NodeA/B compose off a
-        // static parent — the chained probe never moves.
+        // static parent - the chained probe never moves.
         // Request_OverrideToSelf so probes in the chain aren't suppressed by
         // the default DifferentContextOnly policy when overlapping the
         // Detector (also under this station's context).
@@ -296,7 +296,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
     UFUNCTION()
     private void OnNestedResetMsg(FCk_Handle InHandle, FGameplayTag InMessageName, FInstancedStruct InPayload)
     {
-        // Counter-only reset — the yoyo tween keeps running uninterrupted so
+        // Counter-only reset - the yoyo tween keeps running uninterrupted so
         // we don't need to worry about tween teardown / re-create ordering.
         DetectorHitCount = 0;
         ElapsedSeconds = 0.0f;
@@ -341,7 +341,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
     }
 
     //------------------------------------------------------------------------
-    // Expected-position math — composes FTransforms the same way the ECS
+    // Expected-position math - composes FTransforms the same way the ECS
     // scene-node processor should. If processor is correct, ECS reports
     // an identical world transform.
     //------------------------------------------------------------------------
@@ -377,7 +377,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
         // Hierarchy cubes track the AS-composed world positions so the
         // chain follows Root regardless of whether the ECS scene-node
         // processor propagates the tween. The "Actual" sphere below shows
-        // where the ECS thinks the probe is — if it diverges from the
+        // where the ECS thinks the probe is - if it diverges from the
         // composed chain, that IS the bug this station exists to expose.
         auto ExpectedNodeA = ComputeExpectedNodeAWorld(RootPos).GetLocation();
         auto ExpectedNodeB = ComputeExpectedNodeBWorld(RootPos).GetLocation();
@@ -408,9 +408,9 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
             DashLen, GapLen, Thickness,
             LineColor_AToB, ECk_Plane_Axis::XY, OneFrame);
 
-        // Actual probe body position (what the ECS reports) —
+        // Actual probe body position (what the ECS reports)
         //   MAGENTA when aligned with Expected
-        //   YELLOW on desync (Drift > 5 units) — this is the bug state
+        //   YELLOW on desync (Drift > 5 units) - this is the bug state
         // Basic-shape PMG has no recolor request, so on color flip we
         // destroy + respawn the shape; otherwise just move it.
         auto Drift = (Expected - Actual).Size();
@@ -430,7 +430,7 @@ class UCk_EntityScript_ProbeGym_NestedSceneNodeStation : UCk_GenericEntityScript
             utils_transform::Request_SetLocation(ActualShape, Actual, ECk_LocalWorld::World);
         }
 
-        // Detector (GREEN empty / RED occupied). NOT part of the chain — a
+        // Detector (GREEN empty / RED occupied). NOT part of the chain - a
         // standalone static probe; the chained probe should sweep through
         // it twice per yoyo period when the hierarchy propagates motion.
         // Position is fixed; only respawn on color change.

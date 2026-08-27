@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TAG SET — AUTOMATION TEST: REMOVE ABSENT → NO SIGNAL FIRE
+// CK TAG SET - AUTOMATION TEST: REMOVE ABSENT -> NO SIGNAL FIRE
 //============================================================================
 //
 // Pins the no-op contract: Request_RemoveTags with a tag that's NOT in the
@@ -11,7 +11,7 @@
 // Setup:
 //   1. Add a TagSet with initial tag A.
 //   2. Wait one frame, bind OnTagsChanged.
-//   3. Request_RemoveTags(X) — X is not in the set.
+//   3. Request_RemoveTags(X) - X is not in the set.
 //   4. Wait several ticks; assert OnTagsChanged fire count == 0 and TagA
 //      is still present.
 //============================================================================

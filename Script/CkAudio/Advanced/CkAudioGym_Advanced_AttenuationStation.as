@@ -208,10 +208,10 @@ class UCkAudioGym_Advanced_AttenuationStation : UCkAudioGym_Advanced_Base
         }
 
         ck::Trace("Advanced attenuation features active:", NAME_None, 2.0f, FLinearColor(0.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Volume falloff based on distance", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Low-pass filtering (air absorption)", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Dynamic reverb wet level", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
-        ck::Trace("• Priority attenuation for culling", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Volume falloff based on distance", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Low-pass filtering (air absorption)", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Dynamic reverb wet level", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
+        ck::Trace("* Priority attenuation for culling", NAME_None, 1.5f, FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
     }
 
     // Zone detection and feedback

@@ -1,5 +1,5 @@
 //============================================================================
-// STATION SHOWCASE GYM — SHARED GAMEPLAY TAGS
+// STATION SHOWCASE GYM - SHARED GAMEPLAY TAGS
 //
 // Sandbox gym for iterating on UCk_EntityScript_GymStation in isolation.
 // Each tag corresponds to one tuner-variant station spawned by the PC, so we

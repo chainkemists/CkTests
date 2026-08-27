@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — EXAMPLE LAYER: THIRD-PERSON FOLLOW + ORBIT
+// CK CAMERA - EXAMPLE LAYER: THIRD-PERSON FOLLOW + ORBIT
 //============================================================================
 //
 // Reference CameraLayer: a third-person boom (long-ish arm, slight over-the-shoulder framing) with

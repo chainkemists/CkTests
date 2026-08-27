@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER STRESS GYMS — PlayerControllers
+// CK ISKM RENDERER STRESS GYMS - PlayerControllers
 //============================================================================
 //
 // Two PCs that differ only by the Moving flag they pass to the shared

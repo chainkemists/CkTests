@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — NET AUTOMATION TEST: DYNAMIC HANDLE, ASSERTED INSIDE OnRepNotify
+// CK DYNAMIC - NET AUTOMATION TEST: DYNAMIC HANDLE, ASSERTED INSIDE OnRepNotify
 //============================================================================
 //
 // Notify-DRIVEN variant of DynHandleReplicates. The poll-based tests read the handle
-// in a timer loop that retries until it resolves — which would MASK a handle that is
+// in a timer loop that retries until it resolves - which would MASK a handle that is
 // blank AT notify time but re-resolves a few frames later. The real consumer
 // (StoreDriver's Reconcile_Subordinates) reads the handle INSIDE the OnRepNotify
 // callback, so this test does the same: it asserts the handle resolves at the exact
@@ -50,7 +50,7 @@ class UCk_AutoTest_Net_DynamicFragment_DynHandleOnNotify : UCk_AutoTest_NetBase
         WaitOneFrame(n"OnTimeoutTick");
     }
 
-    // The assertion happens HERE, at notify time — not in a retry loop.
+    // The assertion happens HERE, at notify time - not in a retry loop.
     UFUNCTION()
     private void OnRepNotify(FCk_Handle InHandle, FCk_DynamicFragment_RepNotifyInfo InInfo)
     {

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RESOLVER — AUTOMATION TEST: PHASES FIRE EXACTLY ONCE, IN DECLARED ORDER
+// CK RESOLVER - AUTOMATION TEST: PHASES FIRE EXACTLY ONCE, IN DECLARED ORDER
 //============================================================================
 //
 // Guards the cost of making the cascade drain in one tick.
@@ -11,7 +11,7 @@
 // is that Calculate CONSUMES its readiness marker
 // (FTag_ResolverDataBundle_NeedsCalculate) before re-arming StartNewPhase. If
 // that consume were dropped, a later pump pass in the same frame would
-// re-Calculate a phase that already finished — double-broadcasting PhaseComplete
+// re-Calculate a phase that already finished - double-broadcasting PhaseComplete
 // and double-applying whatever a listener does in response (in BusterBlock: HP
 // deducted twice from one hit).
 //
@@ -97,22 +97,22 @@ class UCk_AutoTest_Resolver_Cascade_PhasesFireOnceInOrder : UCk_AutoTest_Base
         auto _CkPerfScope = ck::ScopedStat();
 
         Assert_Equals_Int(_PhaseStarts.Num(), 3,
-            f"PhaseStart fires once per declared phase — got {_PhaseStarts.Num()} for 3 phases."
+            f"PhaseStart fires once per declared phase - got {_PhaseStarts.Num()} for 3 phases."
             + " More than 3 means a phase was re-entered inside the pump.");
 
         Assert_Equals_Int(_PhaseCompletes.Num(), 3,
-            f"PhaseComplete fires once per declared phase — got {_PhaseCompletes.Num()} for 3 phases."
+            f"PhaseComplete fires once per declared phase - got {_PhaseCompletes.Num()} for 3 phases."
             + " More than 3 means Calculate ran twice for one phase, which is what consuming"
             + " FTag_ResolverDataBundle_NeedsCalculate prevents.");
 
         Assert_Equals_Int(_AllPhasesCompleteCount, 1,
-            f"AllPhasesComplete fires exactly once — got {_AllPhasesCompleteCount}");
+            f"AllPhasesComplete fires exactly once - got {_AllPhasesCompleteCount}");
 
         // Reported rather than silently absorbed by the _BundleBound guard below:
         // one resolution request should surface one bundle to its own delegate.
         Assert_Equals_Int(_NewBundleCount, 1,
             f"One resolution request surfaces its bundle once to the requesting delegate"
-            + f" — got {_NewBundleCount}");
+            + f" - got {_NewBundleCount}");
 
         Assert_Ordered(_PhaseStarts,    "PhaseStart");
         Assert_Ordered(_PhaseCompletes, "PhaseComplete");
@@ -127,11 +127,11 @@ class UCk_AutoTest_Resolver_Cascade_PhasesFireOnceInOrder : UCk_AutoTest_Base
         { return; }
 
         Assert_True(InObserved[0] == autotest_resolver_cascade::Phase_One(),
-            f"{InSignalName}[0] is phase One — got {InObserved[0].ToString()}");
+            f"{InSignalName}[0] is phase One - got {InObserved[0].ToString()}");
         Assert_True(InObserved[1] == autotest_resolver_cascade::Phase_Two(),
-            f"{InSignalName}[1] is phase Two — got {InObserved[1].ToString()}");
+            f"{InSignalName}[1] is phase Two - got {InObserved[1].ToString()}");
         Assert_True(InObserved[2] == autotest_resolver_cascade::Phase_Three(),
-            f"{InSignalName}[2] is phase Three — got {InObserved[2].ToString()}");
+            f"{InSignalName}[2] is phase Three - got {InObserved[2].ToString()}");
     }
 
     UFUNCTION()
@@ -146,7 +146,7 @@ class UCk_AutoTest_Resolver_Cascade_PhasesFireOnceInOrder : UCk_AutoTest_Base
         // The source processor broadcasts OnNewResolverDataBundle on both the
         // request handle and the source entity. Binding the phase delegates twice
         // would double every count below and read as a framework double-dispatch,
-        // so guard our own subscription rather than measuring our own mistake —
+        // so guard our own subscription rather than measuring our own mistake
         // the counter above still reports it, so nothing is swallowed.
         if (_BundleBound)
         { return; }

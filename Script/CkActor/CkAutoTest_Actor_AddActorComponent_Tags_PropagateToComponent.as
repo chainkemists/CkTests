@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ACTOR — AUTOMATION TEST: AddActorComponent Tags PROPAGATE TO COMPONENT
+// CK ACTOR - AUTOMATION TEST: AddActorComponent Tags PROPAGATE TO COMPONENT
 //============================================================================
 //
 // Pins the contract that _ComponentParams._Tags on the request struct is

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — AUTOMATION TEST: TRACE TEST BLOCKS LOS + FIRES NO OVERLAP EVENTS
+// CK EQS - AUTOMATION TEST: TRACE TEST BLOCKS LOS + FIRES NO OVERLAP EVENTS
 //============================================================================
 //
 // First coverage of the Trace test type (DoRunTest_Trace), plus a pin on the
@@ -11,7 +11,7 @@
 //      Rays to the 3 +X-side candidates cross the blocker; the other 5 don't.
 //   3. Trace test (LineTrace, Filter, FilterMin=0.5) must drop exactly the 3
 //      LOS-blocked candidates.
-//   4. EQS queries SCORE the world — they must NOT enqueue Begin/EndOverlap
+//   4. EQS queries SCORE the world - they must NOT enqueue Begin/EndOverlap
 //      events into the probes their casts hit. The blocker binds
 //      OnBeginOverlap and the test asserts zero events after the query
 //      completes (+1 settle frame so Probe_HandleRequests had its tick).
@@ -37,7 +37,7 @@ class UCk_AutoTest_Eqs_Trace_BlocksLosAndStaysSilent : UCk_AutoTest_Base
     {
         _SelfEntity = InHandle;
 
-        // Querier needs a transform — Generate validates this.
+        // Querier needs a transform - Generate validates this.
         utils_transform::Add(_SelfEntity, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
         // ---- Blocker: static box probe wall at X=+300, spanning Y/Z ----
@@ -50,7 +50,7 @@ class UCk_AutoTest_Eqs_Trace_BlocksLosAndStaysSilent : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Eqs.TraceBlocker"));
         BlockerProbeParams.Set_MotionType(ECk_MotionType::Static);
         // Notify + empty filter: the blocker WOULD receive overlap events if anything fired
-        // them — which is exactly what this test asserts EQS casts do not do.
+        // them - which is exactly what this test asserts EQS casts do not do.
         BlockerProbeParams.Set_ResponsePolicy(ECk_ProbeResponse_Policy::Notify);
 
         auto BlockerProbe = utils_probe::Add_Box(
@@ -62,7 +62,7 @@ class UCk_AutoTest_Eqs_Trace_BlocksLosAndStaysSilent : UCk_AutoTest_Base
         // Let probe setup (Jolt body creation) settle before the query casts against it.
         // Stays a settle: probe setup completion is not exposed (FTag_Probe_NeedsSetup is
         // internal, and the utils surface offers only enabled/overlapping queries). A
-        // too-short window here fails LOUDLY — 8 surviving candidates instead of 5 — so
+        // too-short window here fails LOUDLY - 8 surviving candidates instead of 5 - so
         // there is no silent-pass exposure to close.
         WaitOneFrame(n"OnWorldSettled");
     }
@@ -87,7 +87,7 @@ class UCk_AutoTest_Eqs_Trace_BlocksLosAndStaysSilent : UCk_AutoTest_Base
         TraceFilter.AddTag(utils_gameplay_tag::ResolveGameplayTag(n"CkTests.Eqs.TraceBlocker"));
         Trace.Set_TraceFilter(TraceFilter);
 
-        // Raw is 1.0 (LOS clear) or 0.0 (blocked) — Minimum 0.5 drops the blocked candidates.
+        // Raw is 1.0 (LOS clear) or 0.0 (blocked) - Minimum 0.5 drops the blocked candidates.
         auto FilterConfig = FCk_Eqs_FilterConfig();
         FilterConfig.Set_FilterType(ECk_Eqs_FilterType::Minimum);
         FilterConfig.Set_FilterMin(0.5f);
@@ -127,10 +127,10 @@ class UCk_AutoTest_Eqs_Trace_BlocksLosAndStaysSilent : UCk_AutoTest_Base
         }
 
         // Overlap requests (if any were erroneously enqueued by the query's casts) are drained
-        // by Probe_HandleRequests on a later tick — settle one frame before asserting silence.
+        // by Probe_HandleRequests on a later tick - settle one frame before asserting silence.
         // MUST stay a settle: the assertion is a NEGATIVE (zero events), which is already
         // true on arrival, so there is nothing to wait for. What makes the silence
-        // meaningful is the positive above — the trace demonstrably hit the blocker, since
+        // meaningful is the positive above - the trace demonstrably hit the blocker, since
         // it dropped exactly the 3 LOS-blocked candidates.
         WaitOneFrame(n"OnPostQuerySettled");
     }

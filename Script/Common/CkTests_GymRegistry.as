@@ -2,7 +2,7 @@
 // CkTests Gym Registry
 //
 // Registers all CkFoundation-testing gyms with the gym cycler. Called from
-// ACkTests_Gym_Base_GameMode::BeginPlay. Idempotent — safe to call multiple
+// ACkTests_Gym_Base_GameMode::BeginPlay. Idempotent - safe to call multiple
 // times (RegisterProjectGym dedupes by display name).
 //
 // To add a new CkTests gym:

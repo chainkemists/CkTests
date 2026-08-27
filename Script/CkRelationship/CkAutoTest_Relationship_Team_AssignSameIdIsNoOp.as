@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Assign with the current ID is a no-op
+// CK RELATIONSHIP - AUTOMATION TEST: Assign with the current ID is a no-op
 // Assigning the team ID the entity already has must early-return without
 // re-assigning, and the returned handle must still resolve to that team.
 // (Regression guard for the Assign restructure that removed the double-cast:

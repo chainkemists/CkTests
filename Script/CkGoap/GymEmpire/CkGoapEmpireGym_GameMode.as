@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapEmpire_Gym — compact AoE-style 5-action plan
+// CkGoapEmpire_Gym - compact AoE-style 5-action plan
 //============================================================================
 
 class ACk_GoapEmpireGym_GameMode : ACkTests_Gym_Base_GameMode

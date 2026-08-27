@@ -30,7 +30,7 @@ class ACk_Gym_Base_GameMode : ACk_GameMode_UE
 
         if (StartupIndex < 0)
         {
-            // No saved target — cycler menu handles entry as usual.
+            // No saved target - cycler menu handles entry as usual.
             Subsystem.SuppressHUDDuringStartup = false;
             return;
         }
@@ -40,7 +40,7 @@ class ACk_Gym_Base_GameMode : ACk_GameMode_UE
         // land on the chosen gym, BeginPlay sees the match and bails.
         if (Subsystem.CurrentGymIndex == StartupIndex)
         {
-            // We've arrived at the chosen gym — restore the HUD.
+            // We've arrived at the chosen gym - restore the HUD.
             Subsystem.SuppressHUDDuringStartup = false;
             return;
         }

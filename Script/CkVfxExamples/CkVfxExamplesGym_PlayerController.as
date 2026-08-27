@@ -1,10 +1,10 @@
 // --------------------------------------------------------------------------------------------------------------------
 // CkVfxExamples gym PlayerController ("VfxExamples"): an objective A/B fidelity harness. Every ported
-// Vefects effect gets a PAIR of adjacent stations — the CkParticles recreation (text-authored HLSL, spawned
+// Vefects effect gets a PAIR of adjacent stations - the CkParticles recreation (text-authored HLSL, spawned
 // through the normal CkParticles path) beside the ORIGINAL Niagara system, resolved at runtime from candidate
 // path strings. Ck_GymVfxExamples_RestartAll re-fires both sides in sync so the t=0 flashes can be compared.
 //
-// ONE pair exists at a time — stations included. All 31 pairs simulating at once (~370 emitter instances
+// ONE pair exists at a time - stations included. All 31 pairs simulating at once (~370 emitter instances
 // with the originals installed) collapsed editor frame times to minutes, and 62 pedestals made the live
 // pair impossible to find. Only the active pair's two stations are spawned, always at the SAME two spots
 // (the default grid layout of a 2-station gym), so switching swaps the world in place around the viewer.
@@ -12,14 +12,14 @@
 //
 // Pairs live in CkVfxExamplesGym_Shared.as. Adding a port is a data edit there, not a change here.
 //
-// Ck_GymVfxExamples_Tune retunes the live recreation without a respawn — an OVERLAY on top of the
+// Ck_GymVfxExamples_Tune retunes the live recreation without a respawn - an OVERLAY on top of the
 // behavior's per-behavior tuning DataAsset, which the spawn path applies. Ck_GymVfxExamples_TuneReset
 // drops the overlay and restarts the pair, because only a respawn brings the asset's values back.
 // The chosen pair is remembered across PIE sessions (CkVfxExamplesGym_SaveGame.as).
 //
 // The FIRST activation of a pair in a session can block the game thread for minutes with nothing logged
 // and nothing drawn. Two things follow from that. (1) The spawn is split in two: Request_SpawnActivePair
-// decides and announces, Request_SpawnActivePair_Immediate blocks — with a frame in between, so the
+// decides and announces, Request_SpawnActivePair_Immediate blocks - with a frame in between, so the
 // warning is painted while the thread is still alive. The trigger is the pair's own measured duration
 // from a previous session, also carried in the SaveGame slot. (2) Every phase is wall-clock bracketed and
 // summarised into one greppable `[VfxSetup]` Print, because a block that logs nothing cannot be attributed
@@ -36,7 +36,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     // hitting the original standing beside it. _Spawned still owns the destroy sweep.
     private UNiagaraComponent _CkSideComponent;
 
-    // Session-scoped look knobs, re-applied on every respawn of the recreation — but ONLY while the
+    // Session-scoped look knobs, re-applied on every respawn of the recreation - but ONLY while the
     // overlay is active. Off, the recreation keeps whatever its per-behavior tuning DataAsset gave it.
     private float32 _TuningSize = 1.0f;
     private float32 _TuningColor = 1.0f;
@@ -51,7 +51,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     // Request_StartGym fires); further switch requests during it are dropped, not queued.
     private bool _bSwitchInFlight = false;
 
-    // A pair whose CkParticles template is still compiling (the first run after a regen) is NOT spawned yet —
+    // A pair whose CkParticles template is still compiling (the first run after a regen) is NOT spawned yet
     // a component spawned into an unfinished compile renders nothing and reads as a broken port. True while a
     // readiness poll is outstanding; the HUD announces it so the empty pedestal is explained.
     private bool _bWaitingForCompile = false;
@@ -66,7 +66,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     private bool _bCompilePollOutstanding = false;
 
     // The first activation of a pair in a session can block the game thread for MINUTES inside the spawn
-    // calls, silently — nothing draws while it is blocked, so a banner raised at the blocking call is a
+    // calls, silently - nothing draws while it is blocked, so a banner raised at the blocking call is a
     // banner nobody ever sees. Below this many recorded seconds the spawn is indistinguishable from a
     // normal hitch and a banner would be noise.
     private const float32 SetupFreezeThresholdSeconds = 1.0f;
@@ -79,7 +79,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     private int32 _SetupBannerPairIndex = -1;
     private bool _bSetupBannerTimerOutstanding = false;
 
-    // Phase stamps in wall seconds (FDateTime::UtcNow, NOT UWorld::GetRealTimeSeconds — the world clock
+    // Phase stamps in wall seconds (FDateTime::UtcNow, NOT UWorld::GetRealTimeSeconds - the world clock
     // is refreshed once per tick, so every stamp taken inside one frame would read identical and the
     // two spawn brackets would both report 0ms). Reset per activation.
     private float64 _SetupEnterStamp = 0.0;
@@ -96,7 +96,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     private bool _bSetupMeasureOutstanding = false;
 
     // Super starts the base flow, which reaches Get_RequiredStations() below and bakes the
-    // active index into the stations it lays out — so the remembered pair must be restored
+    // active index into the stations it lays out - so the remembered pair must be restored
     // before Super runs, not in Request_StartGym.
     UFUNCTION(BlueprintOverride)
     void BeginPlay()
@@ -148,7 +148,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         return Station;
     }
 
-    // Runs at gym boot AND at the end of every pair switch — the switch flow routes back
+    // Runs at gym boot AND at the end of every pair switch - the switch flow routes back
     // through Request_EnsureStationsExist, which lands here once the new stations settle.
     void Request_StartGym() override
     {
@@ -183,7 +183,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // Non-empty for the deferring frame AND for the whole freeze that follows it. The HUD draws it
-    // unconditionally on that basis — see Request_SpawnActivePair for why one frame has to pass first.
+    // unconditionally on that basis - see Request_SpawnActivePair for why one frame has to pass first.
     FString Get_SetupBannerText()
     {
         return _SetupBannerText;
@@ -222,7 +222,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         CkVfxExamplesGym_Save::Request_SaveActivePairIndex(_ActivePairIndex);
 
         // Base flow: lay out + spawn the (new) required stations, await construction,
-        // settle one frame, then call Request_StartGym — which spawns the VFX.
+        // settle one frame, then call Request_StartGym - which spawns the VFX.
         Request_EnsureStationsExist();
     }
 
@@ -258,7 +258,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     // cheap enough to return and let a frame render.
     private void Request_SpawnActivePair()
     {
-        // Held across the compile wait and the banner defer — the gate phase is the whole pre-spawn cost
+        // Held across the compile wait and the banner defer - the gate phase is the whole pre-spawn cost
         // of THIS activation, not of the last re-entry into it.
         if (_bSetupEnterStamped == false)
         {
@@ -295,7 +295,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         _CompileWaitText = "";
 
         // A pair that froze the game thread last session freezes it again. Nothing draws during the block,
-        // so the warning has to reach the screen BEFORE the blocking call — which costs a frame: this one
+        // so the warning has to reach the screen BEFORE the blocking call - which costs a frame: this one
         // only sets the text, and the timer below spawns on the next.
         auto RecordedSeconds = CkVfxExamplesGym_Save::TryGet_PairSetupSeconds(_ActivePairIndex);
         if (RecordedSeconds > SetupFreezeThresholdSeconds)
@@ -328,7 +328,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         Request_SpawnOriginalSide(Pair);
         _SetupOriginalDoneStamp = Get_SetupWallSeconds();
 
-        // Logged HERE rather than in Request_StartGym so a restart is observable too — the
+        // Logged HERE rather than in Request_StartGym so a restart is observable too - the
         // start-only trace made an invoked restart indistinguishable from one that never ran.
         ck::Trace(f"🟣 VfxExamples Gym - [{_ActivePairIndex}/{Pairs.Num()}] {Pair.DisplayName} live from t=0");
 
@@ -336,7 +336,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // Wall clock, not world clock. UWorld::GetRealTimeSeconds is refreshed once per tick, so it cannot
-    // separate two stamps taken inside the same frame — which is every stamp in the spawn body.
+    // separate two stamps taken inside the same frame - which is every stamp in the spawn body.
     private float64 Get_SetupWallSeconds()
     {
         auto SinceEpoch = FDateTime::UtcNow() - FDateTime::MinValue();
@@ -373,7 +373,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
 
         _bSetupBannerPending = false;
 
-        // A switch superseded this activation — its own flow spawns whatever is selected now. Nothing is
+        // A switch superseded this activation - its own flow spawns whatever is selected now. Nothing is
         // cleared on the way out: Request_ResetSetupTracking already did that for the OLD activation, and
         // the NEW one has since re-armed the same members. Touching them here would clobber it.
         if (_SetupBannerPairIndex != _ActivePairIndex)
@@ -385,7 +385,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // The frame after the spawn calls only ARRIVES once the game thread unblocks, so this timer's fire
-    // time is the honest end of the freeze — nothing measurable from inside the spawn call can say that.
+    // time is the honest end of the freeze - nothing measurable from inside the spawn call can say that.
     // Costs a ~50ms floor on the firstFrameAfter figure when there is no block, which is the same idiom
     // (and the same floor) the compile poll runs on.
     private void Request_BeginSetupMeasure()
@@ -409,7 +409,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         _bSetupMeasureOutstanding = false;
 
-        // Superseded — these stamps describe a pair that is no longer live, and recording them under the
+        // Superseded - these stamps describe a pair that is no longer live, and recording them under the
         // CURRENT index would poison the next session's banner decision with another pair's number. Drops
         // out WITHOUT clearing anything: the switch that superseded it already reset the tracking, and the
         // activation now in flight has re-armed those same members.
@@ -444,7 +444,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
 
     // A switch abandons whatever the previous activation was measuring: the stamps describe a pair that is
     // no longer live, and the banner would keep warning about a freeze that has already happened. The
-    // outstanding timers are left alone — their own staleness guards drop them.
+    // outstanding timers are left alone - their own staleness guards drop them.
     private void Request_ResetSetupTracking()
     {
         _bSetupEnterStamped = false;
@@ -453,7 +453,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // Arms (or re-aims) the readiness poll. Deliberately leaves _bSwitchInFlight alone: Request_StartGym clears
-    // that flag BEFORE it reaches the spawn, so the selector stays live for the whole wait — switching pairs
+    // that flag BEFORE it reaches the spawn, so the selector stays live for the whole wait - switching pairs
     // while one compiles is exactly the case that has to keep working.
     private void Request_BeginCompileWait(FCk_VfxExamples_Pair InPair)
     {
@@ -484,7 +484,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         if (_bWaitingForCompile == false)
         { return; }
 
-        // A switch superseded this spawn — its own flow spawns whatever is selected now. Dropping out silently
+        // A switch superseded this spawn - its own flow spawns whatever is selected now. Dropping out silently
         // is the whole guard; re-entering would spawn the pair the viewer just moved off.
         if (_CompileWaitPairIndex != _ActivePairIndex)
         {
@@ -498,7 +498,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
 
     // Places the viewer between the pair's two agent-spawn front anchors, backed off far
     // enough to frame both pedestals, looking at the midpoint of the two stations. Runs
-    // ONCE at gym boot — the stations sit at the same two spots for every pair, so after
+    // ONCE at gym boot - the stations sit at the same two spots for every pair, so after
     // a switch the viewer is already exactly where they chose to stand.
     private void Request_TeleportToActivePair()
     {
@@ -543,14 +543,14 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
             _Spawned.Add(Component);
             _CkSideComponent = Component;
 
-            // The one place the recreation becomes live, so every path that respawns it —
-            // gym boot, pair switch, R / Ck_GymVfxExamples_RestartAll — re-applies the stored
+            // The one place the recreation becomes live, so every path that respawns it
+            // gym boot, pair switch, R / Ck_GymVfxExamples_RestartAll - re-applies the stored
             // tuning here rather than each calling site remembering to.
             Request_ApplyTuningToCkSide();
         }
         else
         {
-            ck::Error(f"❌ VfxExamples gym: failed to spawn CkParticles BehaviorId {InPair.BehaviorId}");
+            ck::Error(f"[FAIL] VfxExamples gym: failed to spawn CkParticles BehaviorId {InPair.BehaviorId}");
         }
     }
 
@@ -559,8 +559,8 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
     // and remains the reference the recreation is judged against.
     private void Request_ApplyTuningToCkSide()
     {
-        // An inactive overlay writes NOTHING, leaving the per-behavior tuning DataAsset's values —
-        // applied by the spawn path — in force. Writing identity here would silently erase them.
+        // An inactive overlay writes NOTHING, leaving the per-behavior tuning DataAsset's values
+        // applied by the spawn path - in force. Writing identity here would silently erase them.
         if (_bTuneOverlayActive == false)
         { return; }
 
@@ -600,7 +600,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
             // The originals are FINISHING systems; the CkParticles templates loop by design.
             // Without this re-arm the original pedestal plays once and then sits inactive
             // forever, which is useless for an A/B comparison. A system whose emitters loop
-            // infinitely (NS_Lightning_Range) never fires this — binding it is harmless.
+            // infinitely (NS_Lightning_Range) never fires this - binding it is harmless.
             Component.OnSystemFinished.AddUFunction(this, n"OnOriginalSystemFinished");
         }
     }
@@ -611,7 +611,7 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         CkVfxExamples::Request_RestartComponent(PSystem);
     }
 
-    // An absent Vefects install is an expected state, not a defect — this branch stays
+    // An absent Vefects install is an expected state, not a defect - this branch stays
     // silent at Warning/Error level and says what to install on the station itself.
     private void Show_MissingOriginalPlaceholder(FCk_VfxExamples_Pair InPair)
     {
@@ -623,8 +623,8 @@ class ACk_VfxExamplesGym_PlayerController : ACk_Gym_Base_PlayerController
         Set_StationTitleAndDescription(InPair.OriginalStationTag.ToString(), Display);
     }
 
-    // Name kept from the all-pairs era: every cookbook recipe's §12 walk cites it, and its
-    // job — re-fire both sides of what you are looking at in sync — is unchanged; only the
+    // Name kept from the all-pairs era: every cookbook recipe's Sec.12 walk cites it, and its
+    // job - re-fire both sides of what you are looking at in sync - is unchanged; only the
     // set of live pairs shrank to one.
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)

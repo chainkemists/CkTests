@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — AUTOMATION TEST: REQUEST SET ROTATION
+// CK TRANSFORM - AUTOMATION TEST: REQUEST SET ROTATION
 //============================================================================
 //
 // Verifies Request_SetRotation deferred update:
@@ -34,7 +34,7 @@ class UCk_AutoTest_Transform_SetRotation : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // FRotator round-trips through FQuat lose precision — compare with tolerance.
+        // FRotator round-trips through FQuat lose precision - compare with tolerance.
         auto Tol = 0.01f;
         auto Rotation = utils_transform::Get_EntityCurrentRotation(_Transform);
         if (Math::Abs(Rotation.Pitch - 45.0f)  < Tol &&

@@ -1,18 +1,18 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: FLOAT BASIC
+// CK ATTRIBUTE - AUTOMATION TEST: FLOAT BASIC
 //============================================================================
 //
 // Float-attribute equivalent of CkAutoTest_Attribute_IntegerBasic. Verifies
 // the float attribute API end-to-end:
 //   1. Add a Health attribute (range 0-100, starting at 100).
 //   2. Override the value to 42.5.
-//   3. Bind OnValueChanged → expect signal with new=42.5.
+//   3. Bind OnValueChanged -> expect signal with new=42.5.
 //   4. Assert Get_FinalValue == 42.5.
-//   5. Override to -50 → expect clamp to MinValue (0).
+//   5. Override to -50 -> expect clamp to MinValue (0).
 //
-// Same step-machine pattern as the Integer test — coalescing applies to
+// Same step-machine pattern as the Integer test - coalescing applies to
 // float requests too, so each step waits for its signal before queuing the
 // next.
 //============================================================================

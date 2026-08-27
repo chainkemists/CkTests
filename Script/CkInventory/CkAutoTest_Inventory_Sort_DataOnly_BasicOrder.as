@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: SORT — DATAONLY BASIC ORDER
+// CK INVENTORY - AUTOMATION TEST: SORT - DATAONLY BASIC ORDER
 //============================================================================
 //
 // Pins the Request_Sort contract: with a custom sort predicate bound on
@@ -12,14 +12,14 @@
 // Setup:
 //   1. Create an unbounded DataOnly inventory.
 //   2. Seed it with three distinct items in arbitrary order:
-//      Sword (rank=2), Shield (rank=1), Key (rank=3) — captured as
+//      Sword (rank=2), Shield (rank=1), Key (rank=3) - captured as
 //      _Sword/_Shield/_Key handles.
 //   3. Bind a sort predicate that ranks _Shield < _Sword < _Key.
 //   4. Issue Request_Sort.
 //   5. On Sort result: Success, Get_Items returns the three items in the
 //      expected order [Shield, Sword, Key].
 //
-// All three items are bare-trait (Tags+Dimensions or Tags only) — no
+// All three items are bare-trait (Tags+Dimensions or Tags only) - no
 // Stackable, so the Stackable framework warning is avoided.
 //============================================================================
 
@@ -94,7 +94,7 @@ class UCk_AutoTest_Inventory_Sort_DataOnly_BasicOrder : UCk_AutoTest_Base
             FCk_Delegate_Inventory_OnOperationResult_Sort(this, n"OnSortResult"));
     }
 
-    // Sort predicate — returns true if A should come BEFORE B.
+    // Sort predicate - returns true if A should come BEFORE B.
     // Desired final order: Shield (rank 1), Sword (rank 2), Key (rank 3).
     UFUNCTION()
     private void ComparePair(

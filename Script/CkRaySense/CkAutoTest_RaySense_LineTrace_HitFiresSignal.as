@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RAY SENSE — AUTOMATION TEST: LINE TRACE HIT FIRES SIGNAL
+// CK RAY SENSE - AUTOMATION TEST: LINE TRACE HIT FIRES SIGNAL
 //============================================================================
 //
 // First behavioral coverage of the RaySense trace pipeline (the existing
@@ -14,7 +14,7 @@
 //      impact point on the traced path.
 //
 // The asserts deliberately pin only what RaySense owns (signal, payload
-// actor, impact on the path) — NOT the exact face coordinate, which belongs
+// actor, impact on the path) - NOT the exact face coordinate, which belongs
 // to the engine cube's pivot/collision convention.
 //============================================================================
 

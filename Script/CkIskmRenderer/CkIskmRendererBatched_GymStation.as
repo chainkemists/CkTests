@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — BATCHED GYM stations + tags
+// CK ISKM RENDERER - BATCHED GYM stations + tags
 //============================================================================
 //
 // Stations for the dedicated batched-renderer gym. Uses iskm_assets::AnimCollection_Demo()
@@ -37,7 +37,7 @@ struct FCkIskmBatchedGym_CrowdSpawnParams
 }
 
 // ====================================================================================================================
-// Station — Batched Crowd: one large GPU-skinned crowd through GPUScene cluster proxies.
+// Station - Batched Crowd: one large GPU-skinned crowd through GPUScene cluster proxies.
 // ====================================================================================================================
 
 class UCk_EntityScript_IskmRendererBatched_Crowd : UCk_GenericEntityScript_UE
@@ -56,16 +56,16 @@ class UCk_EntityScript_IskmRendererBatched_Crowd : UCk_GenericEntityScript_UE
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            Print("[IskmBatched Gym/Crowd] AnimCollection_Demo() invalid — registry may need regeneration.", 10.0f);
+            Print("[IskmBatched Gym/Crowd] AnimCollection_Demo() invalid - registry may need regeneration.", 10.0f);
             return ECk_EntityScript_ConstructionFlow::Finished;
         }
 
         UCk_Utils_IskmAnimCollection_UE::Build_BakedPoseData(Collection);
 
         // 144 GPU-skinned instances scattered over a ~6000cm square in front of the panel (player camera is -X),
-        // spatially partitioned into 2000cm tile clusters — each tile is its own GPUScene proxy with tight bounds
+        // spatially partitioned into 2000cm tile clusters - each tile is its own GPUScene proxy with tight bounds
         // (per-tile frustum + per-instance occlusion culling). SequenceIndex -1 = cycle idle/walk/jog per instance
-        // so the crowd is visibly alive and the per-instance (out-of-phase, independent) animation is obvious — idle
+        // so the crowd is visibly alive and the per-instance (out-of-phase, independent) animation is obvious - idle
         // alone is too subtle to read. WorldContext is auto-injected in AS.
         auto SpawnBase = InitialTransform;
         SpawnBase.AddToTranslation(FVector(-3000.0f, 0.0f, 0.0f));
@@ -76,9 +76,9 @@ class UCk_EntityScript_IskmRendererBatched_Crowd : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station — Moving Crowd: members orbit their spawn points (walk/jog), crossing tile borders.
+// Station - Moving Crowd: members orbit their spawn points (walk/jog), crossing tile borders.
 //
-// Parameterized (FCkIskmBatchedGym_CrowdSpawnParams) — the Batched gym spawns 64, the Batched Stress gym 600.
+// Parameterized (FCkIskmBatchedGym_CrowdSpawnParams) - the Batched gym spawns 64, the Batched Stress gym 600.
 // Exercises the full production movement path every tick: Set_CrowdMemberTransform (light in-tile pushes +
 // cross-tile migrations), motion vectors, and the fixed tile bounds. What to look for: no flicker/pops at tile
 // borders, no TAA smearing, smooth walking circles.
@@ -116,7 +116,7 @@ class UCk_EntityScript_IskmRendererBatched_MovingCrowd : UCk_GenericEntityScript
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            Print("[IskmBatched Gym/MovingCrowd] AnimCollection_Demo() invalid — registry may need regeneration.", 10.0f);
+            Print("[IskmBatched Gym/MovingCrowd] AnimCollection_Demo() invalid - registry may need regeneration.", 10.0f);
             return ECk_EntityScript_ConstructionFlow::Finished;
         }
         UCk_Utils_IskmAnimCollection_UE::Build_BakedPoseData(Collection);
@@ -175,10 +175,10 @@ class UCk_EntityScript_IskmRendererBatched_MovingCrowd : UCk_GenericEntityScript
 }
 
 // ====================================================================================================================
-// Station — GPU <-> SKMC Flip: distance-LOD routing (Phase 5).
+// Station - GPU <-> SKMC Flip: distance-LOD routing (Phase 5).
 //
 // A small batched crowd. Each tick, the members within PromoteDist of the player flip OUT of the batched tile
-// (Set_CrowdMemberVisible false) and are replaced by a real per-SKMC proxy (Plan-1) at the same transform — so
+// (Set_CrowdMemberVisible false) and are replaced by a real per-SKMC proxy (Plan-1) at the same transform - so
 // they can ragdoll and play montages. When a promoted member moves beyond DemoteDist, its SKMC proxy is destroyed
 // (SKMC returns to the Plan-1 pool automatically on EndPlay) and it returns to batched rendering. Hysteresis
 // (700/1100) prevents thrash; MaxPromoted caps concurrent SKMCs so the pool stays small.
@@ -214,7 +214,7 @@ class UCk_EntityScript_IskmRendererBatched_Flip : UCk_GenericEntityScript_UE
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            Print("[IskmBatched Gym/Flip] AnimCollection_Demo() invalid — registry may need regeneration.", 10.0f);
+            Print("[IskmBatched Gym/Flip] AnimCollection_Demo() invalid - registry may need regeneration.", 10.0f);
             return ECk_EntityScript_ConstructionFlow::Finished;
         }
         UCk_Utils_IskmAnimCollection_UE::Build_BakedPoseData(Collection);
@@ -283,7 +283,7 @@ class UCk_EntityScript_IskmRendererBatched_Flip : UCk_GenericEntityScript_UE
     }
 
     // Hide the batched member; stand up a per-SKMC proxy at its transform and RAGDOLL it. Against the idle batched
-    // backdrop the flip is unmistakable — the nearest instances become real per-SKMC proxies and collapse — and it
+    // backdrop the flip is unmistakable - the nearest instances become real per-SKMC proxies and collapse - and it
     // directly demonstrates the SKMC-only capability (ragdoll) the batched path can't do.
     private void Promote(int32 InIndex, FTransform InMemberXf)
     {

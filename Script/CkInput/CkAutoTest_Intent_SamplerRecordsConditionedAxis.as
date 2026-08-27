@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE ROW RECORDS THE CONDITIONED AXIS
+// CK INTENT - AUTOMATION TEST: THE ROW RECORDS THE CONDITIONED AXIS
 //============================================================================
 //
 // The record must carry the number gameplay would act on, not the number the
@@ -9,8 +9,8 @@
 // whole point of having a conditioning stage: a recorded 0.5 that ignored a
 // 2x sensitivity would describe an input the player never gave.
 //
-// The expectation is computed the way the InputBias tests compute theirs —
-// from the declared bias, by hand — so a change to the conditioning math has
+// The expectation is computed the way the InputBias tests compute theirs
+// from the declared bias, by hand - so a change to the conditioning math has
 // to be made in two places before this test agrees with it.
 //
 //   raw 0.5, deadzone 0.2, exponent 1, sensitivity 2

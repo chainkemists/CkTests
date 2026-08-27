@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PIXEL ART — AUTOMATION TEST: SUBSYSTEM CONTRACT
+// CK PIXEL ART - AUTOMATION TEST: SUBSYSTEM CONTRACT
 //============================================================================
 //
 // The subsystem is the only thing game code talks to, so its contract is the whole public promise of the
@@ -10,7 +10,7 @@
 //   - it is OFF until something says otherwise, so merely having the module linked changes nothing;
 //   - settings round-trip exactly, so a preset means what it says;
 //   - enabling is REFUSED, loudly and with a report, when an engine setting makes a pixel-art image impossible
-//     — and refusal leaves no half-state. That last one is the interesting case: silently enabling into a
+//     - and refusal leaves no half-state. That last one is the interesting case: silently enabling into a
 //     configuration that cannot render is how this feature would waste an afternoon of someone's debugging.
 //============================================================================
 
@@ -32,7 +32,7 @@ class UCk_AutoTest_PixelArt_SubsystemContract : UCk_AutoTest_Base
         // the SUITE, not about this feature: every test in a lane shares one process, so any earlier
         // test (or gym) that enabled the renderer failed this one, arbitrarily far from the cause.
         // The "off until something asks" boot default cannot honestly be observed from a world with
-        // 1798 predecessors — it belongs in a C++ unit test over a fresh subsystem. What this test
+        // 1798 predecessors - it belongs in a C++ unit test over a fresh subsystem. What this test
         // owns is the gating contract below, so force the precondition it needs and assert that.
         Subsystem.Request_SetEnabled(ECk_EnableDisable::Disable);
 
@@ -168,7 +168,7 @@ class UCk_AutoTest_PixelArt_SubsystemContract : UCk_AutoTest_Base
         // r.AntiAliasingMethod goes back to whatever this project actually had, not to a literal 0:
         // Set_CVarForTest captured the real prior value and the base restores it at finish, on the
         // failure path too. (The subsystem's own recommended-CVar leases are separate and already
-        // ref-counted — Request_SetEnabled(Disable) above released ours.)
+        // ref-counted - Request_SetEnabled(Disable) above released ours.)
         return true;
     }
 

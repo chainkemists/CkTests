@@ -1,22 +1,22 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: AGENT INSIDE THE COST BAND PLANS OUT AND AROUND
+// CK CROWD - AUTOMATION TEST: AGENT INSIDE THE COST BAND PLANS OUT AND AROUND
 //
 // The inside-band escape (FProcessor_CrowdAgent_PathRefresh::Get_EscapedQueryStart):
 // the stationary-markup toll is paid per distance crossed, so for an agent
 // ALREADY INSIDE the band, finishing the crossing is cheaper than backing out
-// plus detouring — a plain plan from its feet picks "through". Every re-path
+// plus detouring - a plain plan from its feet picks "through". Every re-path
 // site therefore plans from just outside the band when the agent is inside it
 // and its goal is not.
 //
 // Shape: a picket line paints its discs; we wait until every picket reports
-// Get_IsStationaryMarkupConfirmed (ground truth — painted AND the rebuilt mesh
+// Get_IsStationaryMarkupConfirmed (ground truth - painted AND the rebuilt mesh
 // prices the cost area) and a PROBE path from the test entity detours (belt on
 // top), then spawn a walker AT THE SEAM between two pickets (inside both
 // discs) and MoveTo across. With the tier enabled, the walker's installed path
 // must exit the band and clear every picket; with it disabled (red), the fresh
 // plan goes straight through. Deterministic: fresh MoveTo against
-// pre-confirmed discs — no refresh timing involved.
+// pre-confirmed discs - no refresh timing involved.
 //============================================================================
 
 class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
@@ -33,7 +33,7 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
     private const float MinClearanceUu = 50.0;
     // Stage-2 discriminator, measured over the WHOLE plan polyline including its start point:
     // with the escape, the plan starts at the pushed-out point (>=112uu from every picket
-    // centre — 84uu disc + 42uu agent radius + margin, and detour segments stay ~112+); without
+    // centre - 84uu disc + 42uu agent radius + margin, and detour segments stay ~112+); without
     // it (red), the plan starts at the walker's seam position ~50uu from the nearest picket.
     // 90 splits the two with margin on both sides.
     private const float InsideBandMinClearanceUu = 90.0;
@@ -88,7 +88,7 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
 
         // GROUND TRUTH gate, before the attempts budget: every picket's markup must be painted
         // AND confirmed on the rebuilt mesh. The probe detour alone is an unsound proxy in the
-        // shared suite world — leftover cost from an earlier test can detour the probe before
+        // shared suite world - leftover cost from an earlier test can detour the probe before
         // this test's own pickets have even painted, and the walker then plans against a bare
         // band. Confirm latency (paint delay + settle + async tile rebake) is unbounded under
         // suite load, so this wait deliberately does not consume attempts; the harness timeout
@@ -98,7 +98,7 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
             for (auto Picket : _Pickets)
             {
                 if (utils_crowd_agent::Get_IsStationaryMarkupConfirmed(Picket) == false)
-                { return; }   // discs not all priced into the mesh yet — keep waiting
+                { return; }   // discs not all priced into the mesh yet - keep waiting
             }
         }
 
@@ -106,11 +106,11 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
         if (_Attempts > MaxAttempts)
         {
             const auto Stage = _ProbeDetoured ? "walker's fresh plan never exited the band" : "probe path never detoured (discs never confirmed?)";
-            FinishFailure(f"{Stage} after {MaxAttempts} polls — worst clearance {_LastWorstClearance}uu (need {MinClearanceUu}uu). Inside-band escape is not planning out.");
+            FinishFailure(f"{Stage} after {MaxAttempts} polls - worst clearance {_LastWorstClearance}uu (need {MinClearanceUu}uu). Inside-band escape is not planning out.");
             return;
         }
 
-        // Stage 1: prove the discs are live on the rebuilt mesh — with the pickets confirmed
+        // Stage 1: prove the discs are live on the rebuilt mesh - with the pickets confirmed
         // above, a probe path from the test entity (well outside the band) must detour. Only
         // then does the walker scenario start.
         if (_ProbeDetoured == false)
@@ -131,7 +131,7 @@ class UCk_AutoTest_Crowd_PathRefresh_InsideBandPlansOut : UCk_AutoTest_Base
             return;
         }
 
-        // Stage 2: the walker planned from INSIDE the band — the PLAN itself (its whole
+        // Stage 2: the walker planned from INSIDE the band - the PLAN itself (its whole
         // polyline, start point included) must sit outside the band. The walker's body stays at
         // the seam; only the plan is judged, so it is deliberately NOT prepended.
         if (utils_nav::Get_PathStatus(_WalkerEntity) == ECk_Nav_PathStatus::Ready)

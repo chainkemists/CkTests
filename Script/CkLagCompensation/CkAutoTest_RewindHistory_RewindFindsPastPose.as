@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK REWIND HISTORY — AUTOMATION TEST: REWIND FINDS PAST POSE
+// CK REWIND HISTORY - AUTOMATION TEST: REWIND FINDS PAST POSE
 //============================================================================
 //
 // Verifies the record processor + rewind queries end-to-end:
@@ -126,7 +126,7 @@ class UCk_AutoTest_RewindHistory_RewindFindsPastPose : UCk_AutoTest_Base
             SegmentStart, SegmentEnd,
             FCk_Time(NowTime - 0.02), FCk_Time(NowTime), 5.0, PresentHit);
 
-        Assert_True(!PresentHitFound, "Sweep through A at the present time should miss — target is at B");
+        Assert_True(!PresentHitFound, "Sweep through A at the present time should miss - target is at B");
 
         // ---- Sweep through B at the present time: hit ----
         FCk_LagComp_RewindHit PresentHitAtB;

@@ -1,9 +1,9 @@
 // Language=angelscript
 
 //============================================================================
-// TWO-PLAYER NET GYM — PLAYER CONTROLLER
+// TWO-PLAYER NET GYM - PLAYER CONTROLLER
 //============================================================================
-// The gym is a fully automatic showcase — state changes and damage run on the
+// The gym is a fully automatic showcase - state changes and damage run on the
 // server-driven cadence (see the director). No console commands.
 //============================================================================
 

@@ -1,20 +1,20 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: OVERRIDE BOUNDS
+// CK INVENTORY - AUTOMATION TEST: OVERRIDE BOUNDS
 //============================================================================
 //
 // Verifies that Request_OverrideBounds expands a bounded data-only inventory's
 // capacity, allowing previously-rejected adds to succeed:
 //   1. Create a bounded(1) inventory.
-//   2. Add Bare → Success (count=1, at capacity).
-//   3. Add Bare → rejected (Failed_NoSpaceAvailable).
+//   2. Add Bare -> Success (count=1, at capacity).
+//   3. Add Bare -> rejected (Failed_NoSpaceAvailable).
 //   4. Request_OverrideBounds(5).
-//   5. Poll until Get_BoundsInfo reports 5 (the request is deferred —
+//   5. Poll until Get_BoundsInfo reports 5 (the request is deferred
 //      issuing the next add immediately uses the OLD bound and fails).
-//   6. Add Bare → Success (count=2, capacity now 5).
+//   6. Add Bare -> Success (count=2, capacity now 5).
 //
-// IMPORTANT — TIMING:
+// IMPORTANT - TIMING:
 //   Request_OverrideBounds is a deferred request handled by a processor
 //   on a subsequent frame. Queueing the next add in the same frame as
 //   the override request results in the add being processed against the
@@ -86,7 +86,7 @@ class UCk_AutoTest_Inventory_DataOnly_OverrideBounds : UCk_AutoTest_Base
             return;
         }
 
-        // Third add — should now succeed under expanded bound.
+        // Third add - should now succeed under expanded bound.
         Assert_True(InResult == ECk_Inventory_OperationResult_AddByDefinition::Success_AllAdded,
             f"Add #3 after OverrideBounds(5) should succeed (got {InResult})");
         Assert_Equals_Int(_Inventory.Get_NumItems(), 2,

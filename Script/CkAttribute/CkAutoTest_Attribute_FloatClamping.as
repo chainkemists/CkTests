@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: FLOAT CLAMPING & CLAMP SIGNALS
+// CK ATTRIBUTE - AUTOMATION TEST: FLOAT CLAMPING & CLAMP SIGNALS
 //============================================================================
 //
 // Float-attribute equivalent of CkAutoTest_Attribute_IntegerClamping. See

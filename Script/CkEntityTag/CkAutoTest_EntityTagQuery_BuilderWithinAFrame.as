@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: BUILDER WITHIN A FRAME
+// CK ENTITY TAG QUERY - AUTOMATION TEST: BUILDER WITHIN A FRAME
 //============================================================================
 //
 // Pre-stage 2 entities tagged A and 1 tagged B. After tags settle, build the
-// query in a single tick: Add → AddRequirement(Of A, 2) → AddRequirement(All B)
-// → BindTo. The first evaluation pass after that frame must fire OnSatisfied
+// query in a single tick: Add -> AddRequirement(Of A, 2) -> AddRequirement(All B)
+// -> BindTo. The first evaluation pass after that frame must fire OnSatisfied
 // exactly once (atomic-build evaluation, no duplicate fires across the
 // in-frame request flushes).
 //
@@ -64,7 +64,7 @@ class UCk_AutoTest_EntityTagQuery_BuilderWithinAFrame : UCk_AutoTest_Base
     UFUNCTION()
     private void Step_BuildAtomically(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
-        // No wait between Add/AddRequirement/BindTo — verifies the processor's
+        // No wait between Add/AddRequirement/BindTo - verifies the processor's
         // batch evaluation doesn't double-fire across the in-frame deferred steps.
         _Query = utils_entity_tag_query::Add(_Owner);
 

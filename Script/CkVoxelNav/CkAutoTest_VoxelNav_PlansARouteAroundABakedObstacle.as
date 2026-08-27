@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK VOXEL NAV — AUTOMATION TEST: ANGELSCRIPT PLANS A ROUTE AROUND AN OBSTACLE
+// CK VOXEL NAV - AUTOMATION TEST: ANGELSCRIPT PLANS A ROUTE AROUND AN OBSTACLE
 //============================================================================
 //
 // The whole public surface driven from AngelScript, in the order a consumer
@@ -18,11 +18,11 @@
 //   4. Request_FindPath, then read the result: Ready, endpoints preserved,
 //      every waypoint in baked free space, length past the straight line.
 //
-// The route is only ever validated against the volume's own occupancy — the
-// same structure the search planned through — so a disagreement is the
+// The route is only ever validated against the volume's own occupancy - the
+// same structure the search planned through - so a disagreement is the
 // module's, never the physics world's.
 //
-// Isolated Y band: 62000, at Z 20000 — far from every other autotest's bodies.
+// Isolated Y band: 62000, at Z 20000 - far from every other autotest's bodies.
 //============================================================================
 
 class UCk_AutoTest_VoxelNav_PlansARouteAroundABakedObstacle : UCk_AutoTest_Base

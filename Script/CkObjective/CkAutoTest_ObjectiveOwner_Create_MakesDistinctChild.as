@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK OBJECTIVE — AUTOMATION TEST: OBJECTIVE OWNER CREATE MAKES A DISTINCT CHILD
+// CK OBJECTIVE - AUTOMATION TEST: OBJECTIVE OWNER CREATE MAKES A DISTINCT CHILD
 //============================================================================
 //
 // Covers the child-making Create verb (counterpart to the stamp-self Add).
 // Create(owner, params) spawns a NEW child entity carrying the feature:
 //   - the returned handle is valid,
 //   - Has(child) is true,
-//   - Has(owner) is FALSE — proving Create stamped the feature on a separate
+//   - Has(owner) is FALSE - proving Create stamped the feature on a separate
 //     child entity, not onto the owner (which is what Add does).
 //============================================================================
 
@@ -33,7 +33,7 @@ class UCk_AutoTest_ObjectiveOwner_Create_MakesDistinctChild : UCk_AutoTest_Base
         Assert_True(utils_objective_owner::Has(ChildEntity),
             "The created child entity should carry the ObjectiveOwner feature");
         Assert_True(!utils_objective_owner::Has(Owner),
-            "The owner must NOT carry the feature — Create is child-making, not stamp-self");
+            "The owner must NOT carry the feature - Create is child-making, not stamp-self");
 
         FinishSuccess();
     }

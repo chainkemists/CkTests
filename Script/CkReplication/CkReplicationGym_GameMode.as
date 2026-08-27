@@ -1,5 +1,5 @@
 //============================================================================
-// REPLICATION GYM — GAME MODE
+// REPLICATION GYM - GAME MODE
 //============================================================================
 
 class ACk_ReplicationGym_GameMode : ACkTests_Gym_Base_GameMode

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PROBE — AUTOMATION TEST: ADD SPHERE CREATES PROBE ENTITY
+// CK PROBE - AUTOMATION TEST: ADD SPHERE CREATES PROBE ENTITY
 //============================================================================
 //
 // Sphere-shape variant of the Add box-shape seed. utils_probe::Add_Sphere

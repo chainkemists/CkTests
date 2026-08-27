@@ -1,11 +1,11 @@
 // Language=angelscript
 //
-// CK OBJECT POOLING — AUTOMATION TEST: force-new EntityScript policy never pools
+// CK OBJECT POOLING - AUTOMATION TEST: force-new EntityScript policy never pools
 //
 // The complement to the poolable-recycle test. A default InstancedPerEntity script
 // is pinned-unique (DestroyOnRelease) and never enters a recycle pool. Across a
 // spawn -> destroy -> spawn cycle the (class, archetype) pool stats must stay
-// zeroed — no free list, no hits, no live pool instances — proving nothing was
+// zeroed - no free list, no hits, no live pool instances - proving nothing was
 // recycled.
 
 class UCk_AutoTest_ObjectPooling_ForceNewScriptPolicyDoesNotPool : UCk_AutoTest_Base
@@ -32,7 +32,7 @@ class UCk_AutoTest_ObjectPooling_ForceNewScriptPolicyDoesNotPool : UCk_AutoTest_
 
         _FirstEntity = FCk_Handle(InEntity);
 
-        // no recycle pool exists for a force-new class — stats are zeroed
+        // no recycle pool exists for a force-new class - stats are zeroed
         auto Stats = utils_object::Get_ObjectPoolStats(this, UCk_ObjectPoolingTest_ForceNewScript, nullptr);
         Assert_Equals_Int(Stats.Get_NumInUse(), 0, "spawn #1: force-new must not create a recycle pool (0 in use)");
         Assert_Equals_Int(Stats.Get_NumLiveInstances(), 0, "spawn #1: no pooled live instances");

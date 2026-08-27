@@ -1,21 +1,21 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: DESTRUCTION PRUNES PROACTIVELY
+// CK ENTITY TAG QUERY - AUTOMATION TEST: DESTRUCTION PRUNES PROACTIVELY
 //============================================================================
 //
-// Verifies improvement I1 — when a tagged entity is destroyed while it is in
+// Verifies improvement I1 - when a tagged entity is destroyed while it is in
 // a satisfied query's result set, the dedicated destructor processor proactively
 // prunes the result array (without relying on the lazy Is_NOT_Valid filter
 // inside Evaluate, which was removed in I1).
 //
 // Count(2) of tag A:
-//   1. Create + tag 2 entities → fires once, IsSatisfied=true, result Handles=2.
-//   2. Destroy one of the matches → the result array's Handles array drops to 1
+//   1. Create + tag 2 entities -> fires once, IsSatisfied=true, result Handles=2.
+//   2. Destroy one of the matches -> the result array's Handles array drops to 1
 //      and IsSatisfied flips back to false.
 //
 // The "Handles count went from 2 to 1" assertion is the proof that the
-// destructor processor scrubbed the cached results — if cleanup had been
+// destructor processor scrubbed the cached results - if cleanup had been
 // purely lazy, reading the array before the next Evaluate pass would still
 // show 2 entries (one stale invalid).
 //
@@ -23,7 +23,7 @@
 // count one frame after the destroy, branched on whether it had reached 1, and
 // gave the pump exactly one more frame through a second callback before
 // judging. That is the ad-hoc timing workaround the sequencer exists to
-// remove — the prune is now a single wait on the count reaching 1, bounded by
+// remove - the prune is now a single wait on the count reaching 1, bounded by
 // the test timeout instead of by a hardcoded second chance.
 //============================================================================
 
@@ -91,7 +91,7 @@ class UCk_AutoTest_EntityTagQuery_DestructionPrunesProactively : UCk_AutoTest_Ba
             "Result entry must hold both tagged handles before destruction");
 
         // Destroy one of the matches. The destructor processor should
-        // proactively prune the cached results — not just rely on Evaluate's
+        // proactively prune the cached results - not just rely on Evaluate's
         // lazy filter.
         utils_entity_lifetime::Request_DestroyEntity(_E1);
     }

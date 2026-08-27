@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Get_IsAssignedTo discriminates teams
+// CK RELATIONSHIP - AUTOMATION TEST: Get_IsAssignedTo discriminates teams
 // An entity assigned to team Three reports IsAssignedTo(Three)==true and
 // IsAssignedTo(Four)==false.
 

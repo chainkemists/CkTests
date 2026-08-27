@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT BIAS — AUTOMATION TEST: AN UNDECLARED AXIS IS NOT TOUCHED
+// CK INPUT BIAS - AUTOMATION TEST: AN UNDECLARED AXIS IS NOT TOUCHED
 //============================================================================
 //
 // The default of the conditioning stage is "do nothing". A game declares bias
 // for the two or three axes it cares about; every other axis on the device
 // must arrive at consumers exactly as the device reported it, and must still
-// be SAMPLED — an axis with no bias is passed through, not skipped.
+// be SAMPLED - an axis with no bias is passed through, not skipped.
 //
 // The never-sampled reading is pinned in the same test because it is the one
 // value a consumer will read before any input arrives: zero, from no samples,
@@ -34,7 +34,7 @@ class UCk_AutoTest_InputBias_IdentityPassthrough : UCk_AutoTest_Base
         Assert_Equals_Int(utils_input_bias::Get_AxisBiases(_Bias).Num(), 0,
             "a bias composed with no declared rows starts with an empty conditioning table");
         Assert_Equals_Float(utils_input_bias::Get_ConditionedAxisValue(_Bias, EKeys::Gamepad_LeftX), 0.0f, 0.0001f,
-            "an axis no event has ever arrived for reads zero — derived from no samples, not from a deadzone");
+            "an axis no event has ever arrived for reads zero - derived from no samples, not from a deadzone");
 
         Add_Step(          "inject an unbiased axis sample",              n"Step_InjectAxis");
         Add_Step_WaitUntil("the sample reaches the conditioned state",    n"Check_AxisSampled");

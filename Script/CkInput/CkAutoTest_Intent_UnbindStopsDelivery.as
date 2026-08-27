@@ -1,26 +1,26 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT / CK INPUT — AUTOMATION TEST: AN UNBOUND HANDLER STOPS HEARING
+// CK INTENT / CK INPUT - AUTOMATION TEST: AN UNBOUND HANDLER STOPS HEARING
 //============================================================================
 //
 // Every BindTo_* in this stack has an UnbindFrom_* beside it, and until now
 // nothing exercised one. That asymmetry is the dangerous kind: a bind that
-// silently fails is loud — the handler never runs and the test that wanted it
-// times out — while an UNBIND that silently fails is invisible. The handler
+// silently fails is loud - the handler never runs and the test that wanted it
+// times out - while an UNBIND that silently fails is invisible. The handler
 // keeps being called, and the only symptom is a consumer acting on input long
 // after it stopped caring, which surfaces as a lifetime bug in whatever object
 // owned the delegate rather than as an input bug.
 //
-// Three unbinds are proven here — the layer's OnCaptureTriggered and the
-// matcher's OnIntentPhaseChanged and OnIntentCompleted — on ONE fixture,
+// Three unbinds are proven here - the layer's OnCaptureTriggered and the
+// matcher's OnIntentPhaseChanged and OnIntentCompleted - on ONE fixture,
 // because the matcher's swap registers its terminal capture on the layer it
 // composed onto: a single press drives all three signals off the same routed
 // event, so nothing about the three legs can disagree about timing.
 //
 // THE SHAPE, and why the silence is not vacuous. Each signal carries TWO
 // handlers: one under test and one control, bound the same way on the same
-// entity. The press proves both fired — that positive is what proves the
+// entity. The press proves both fired - that positive is what proves the
 // binding path, the delegate signature and the broadcast all work, so a later
 // silence means something. The unbind then removes ONLY the handler under
 // test, and a second press follows. The control hearing the second round is
@@ -143,7 +143,7 @@ class UCk_AutoTest_Intent_UnbindStopsDelivery : UCk_AutoTest_Base
 
         Add_Step(          "press the punch again",                                 n"Step_Press");
         Add_Step_WaitUntil("the still-bound controls hear the second round",        n"Check_ControlsHeardAgain");
-        // MUST stay a settle. What follows is the NEGATIVE — three counters that must not have moved — and it is
+        // MUST stay a settle. What follows is the NEGATIVE - three counters that must not have moved - and it is
         // already true the instant the wait above resolves. There is no condition left to wait for; the window
         // exists to give a delivery to an unbound handler a chance to arrive and be caught.
         Add_Step_WaitFrames("give a fire on an unbound handler a chance to arrive",  10);
@@ -219,7 +219,7 @@ class UCk_AutoTest_Intent_UnbindStopsDelivery : UCk_AutoTest_Base
     private void Step_AssertSilence(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_True(_CaptureFires_Control > _CaptureControl_AtUnbind,
-            "the layer went on delivering to the handler that stayed bound — unbinding one handler must not silence the signal");
+            "the layer went on delivering to the handler that stayed bound - unbinding one handler must not silence the signal");
         Assert_True(_PhaseFires_Control > _PhaseControl_AtUnbind,
             "the matcher went on broadcasting phase transitions to the handler that stayed bound");
         Assert_True(_CompletedFires_Control > _CompletedControl_AtUnbind,
@@ -234,7 +234,7 @@ class UCk_AutoTest_Intent_UnbindStopsDelivery : UCk_AutoTest_Base
 
         Assert_True(utils_intent_matcher::TryGet_CompletionFrame_ByName(_Matcher, n"AS_Unbind_Move") >
                     _FirstCompletionFrame,
-            "and the poll surface — which no unbind can reach — agrees a second completion landed on a later frame, so the silence above is about delivery and nothing else");
+            "and the poll surface - which no unbind can reach - agrees a second completion landed on a later frame, so the silence above is about delivery and nothing else");
     }
 
     //------------------------------------------------------------------------
@@ -279,7 +279,7 @@ class UCk_AutoTest_Intent_UnbindStopsDelivery : UCk_AutoTest_Base
     }
 
     //------------------------------------------------------------------------
-    // Handlers — parameter for parameter with their delegates. A dynamic delegate is matched by SIGNATURE, so one
+    // Handlers - parameter for parameter with their delegates. A dynamic delegate is matched by SIGNATURE, so one
     // type out of place is a handler that is never called, which would make every silence below meaningless.
     //------------------------------------------------------------------------
 

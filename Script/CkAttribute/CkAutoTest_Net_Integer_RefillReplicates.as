@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — NET AUTOMATION TEST: INTEGER REFILL REPLICATES
+// CK ATTRIBUTE - NET AUTOMATION TEST: INTEGER REFILL REPLICATES
 //============================================================================
 //
 // Integer parity with the C++ Float_Refill_Replicates spec. Refill is a
@@ -11,7 +11,7 @@
 //
 // The refill subject's entity-script adds a replicated IntegerAttribute.AutoTest_Energy
 // (initial 0, refill 20/s, Min 0 / Max 100, StartingState Running) on both
-// worlds. No mutation is issued — the refill processor drives the value up on
+// worlds. No mutation is issued - the refill processor drives the value up on
 // the authoritative world and the container fragment carries the climbing
 // value to the client. Both worlds poll until the energy attribute has risen
 // clear of its initial value.
@@ -42,7 +42,7 @@ class UCk_AutoTest_Net_Integer_RefillReplicates : UCk_AutoTest_NetBase
         if (ck::Is_NOT_Valid(Attribute))
         { FinishFailure("Integer refill attribute not found on subject"); return; }
 
-        // No authority branch — refill runs automatically on the authoritative world and the
+        // No authority branch - refill runs automatically on the authoritative world and the
         // climbing value replicates. Both worlds poll for the same observable: value rose above
         // the initial. (Server confirms the refill processor ran; client confirms it replicated.)
         WaitOneFrame(n"OnPollValue");

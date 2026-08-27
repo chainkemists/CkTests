@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT KEY-BINDING GYM — RESET + PERSISTENCE STATION
+// CK INPUT KEY-BINDING GYM - RESET + PERSISTENCE STATION
 //
 // Display half of ResetMappingToDefault / ResetAllToDefaults / SaveKeyBindings.
 // The profile view shows current AND default per row, so a reset is verifiable
@@ -11,8 +11,8 @@
 // Ck_GymInput_StartPersistenceCheck moves Jump onto a key nothing else in this
 // gym ever assigns, saves, and suspends teardown so leaving PIE does not erase
 // the very thing being tested. On the next session this station probes ONCE at
-// construct — before the demo on the Remap + Conflict station can touch
-// anything — and a Jump still sitting on the marker key can only have come off
+// construct - before the demo on the Remap + Conflict station can touch
+// anything - and a Jump still sitting on the marker key can only have come off
 // disk. That is what makes the verdict a detection rather than a checklist item
 // the viewer has to grade themselves.
 //
@@ -117,7 +117,7 @@ class UCk_EntityScript_InputGym_ResetPersistence : UCk_GenericEntityScript_UE
 
         if (Probe.Passed)
         {
-            input_gym::Add_Line(OutLines, f"  PERSISTENCE: PASS — Jump returned as {MarkerText} from disk", gym_palette::Green);
+            input_gym::Add_Line(OutLines, f"  PERSISTENCE: PASS - Jump returned as {MarkerText} from disk", gym_palette::Green);
             input_gym::Add_Line(OutLines, "  Run Ck_GymInput_ResetAllAndSave to finish and leave nothing behind.", gym_palette::Cyan);
             return;
         }
@@ -162,7 +162,7 @@ class UCk_EntityScript_InputGym_ResetPersistence : UCk_GenericEntityScript_UE
     private void Add_LastCommand(TArray<FCkGym_ColoredLine>& OutLines)
     {
         input_gym::Add_Spacer(OutLines, gym_palette::White);
-        input_gym::Add_Line(OutLines, f"LAST COMMAND — {input_gym_pc::Get_ResetReportLabel()}", gym_palette::White);
+        input_gym::Add_Line(OutLines, f"LAST COMMAND - {input_gym_pc::Get_ResetReportLabel()}", gym_palette::White);
 
         auto Report = input_gym_pc::Get_ResetReportLines();
         input_gym::Add_Lines(OutLines, Report);

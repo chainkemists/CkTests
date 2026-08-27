@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: MIXED COUNT(2) A + ALL B
+// CK ENTITY TAG QUERY - AUTOMATION TEST: MIXED COUNT(2) A + ALL B
 //============================================================================
 //
 // Two requirements coexist on one query:
-//   - Count(2) of tag A — capped at 2 matches, fires once on crossing
-//   - All       of tag B — fires once per new match while satisfied
+//   - Count(2) of tag A - capped at 2 matches, fires once on crossing
+//   - All       of tag B - fires once per new match while satisfied
 //
 // Verifies:
 //   1. Before the last-needed match is added, no fires.
@@ -18,7 +18,7 @@
 // The two firing phases wait on the fire counter. The four phases that assert
 // a NON-fire settle for a fixed number of frames: their witness would have to
 // prove the QUERY re-evaluated, and a tag landing only proves the TAG pump
-// ran — those are separate processors whose relative order this test should
+// ran - those are separate processors whose relative order this test should
 // not encode.
 //============================================================================
 
@@ -80,7 +80,7 @@ class UCk_AutoTest_EntityTagQuery_MixedCountAndAll : UCk_AutoTest_Base
     private void Step_AssertIdleAndTagFirstA(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_FireCount, 0,
-            "Empty result — must not have fired before any matches exist");
+            "Empty result - must not have fired before any matches exist");
 
         _A1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_A1, n"AutoTestEtq_MixA");
@@ -90,7 +90,7 @@ class UCk_AutoTest_EntityTagQuery_MixedCountAndAll : UCk_AutoTest_Base
     private void Step_AssertIdleAndTagSecondA(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_FireCount, 0,
-            "Only 1 of 2 A's and 0 B's — query is not satisfied yet");
+            "Only 1 of 2 A's and 0 B's - query is not satisfied yet");
 
         _A2 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_A2, n"AutoTestEtq_MixA");
@@ -100,7 +100,7 @@ class UCk_AutoTest_EntityTagQuery_MixedCountAndAll : UCk_AutoTest_Base
     private void Step_AssertIdleAndTagFirstB(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_FireCount, 0,
-            "Both A's present but still no B — All(B) requirement keeps query unsatisfied");
+            "Both A's present but still no B - All(B) requirement keeps query unsatisfied");
 
         _B1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_B1, n"AutoTestEtq_MixB");
@@ -110,7 +110,7 @@ class UCk_AutoTest_EntityTagQuery_MixedCountAndAll : UCk_AutoTest_Base
     private void Step_AssertOneAndTagSecondB(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_FireCount, 1,
-            "Last requirement crosses threshold (1st B with both A's present) — must fire exactly once");
+            "Last requirement crosses threshold (1st B with both A's present) - must fire exactly once");
 
         _B2 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_B2, n"AutoTestEtq_MixB");

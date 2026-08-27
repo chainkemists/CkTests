@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: LINEAR COLOR COMPLETION
+// CK TWEEN - AUTOMATION TEST: LINEAR COLOR COMPLETION
 //============================================================================
 //
 // Verifies the linear-color tween API:
@@ -52,7 +52,7 @@ class UCk_AutoTest_Tween_LinearColorCompletion : UCk_AutoTest_Base
         Assert_True(utils_tween::TweenValue_IsLinearColor(InPayload.Get_FinalValue()),
             "OnComplete payload should be a LinearColor tween value");
 
-        // FLinearColor components are floats — use tolerance comparison
+        // FLinearColor components are floats - use tolerance comparison
         // to be safe against any internal interpolation rounding.
         auto Tol = 0.001f;
         auto Final = utils_tween::TweenValue_GetAsLinearColor(InPayload.Get_FinalValue());

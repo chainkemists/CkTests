@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK AGGRO — AUTOMATION TEST: taunt forces the active target
+// CK AGGRO - AUTOMATION TEST: taunt forces the active target
 // The higher-threat target is selected first; Request_SetActiveTarget then forces the OTHER target active,
 // bypassing selection hysteresis.
 

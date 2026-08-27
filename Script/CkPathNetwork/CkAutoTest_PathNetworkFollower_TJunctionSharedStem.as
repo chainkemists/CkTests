@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: T-JUNCTION SHARED STEM (2-AGENT STANDOFF)
+// CK PATH NETWORK - AUTOMATION TEST: T-JUNCTION SHARED STEM (2-AGENT STANDOFF)
 //============================================================================
 //
 // REPRO for the T JUNCTION gym standoff seen in PIE (2026-07-13): two agents
 // share the stem, and instead of both splitting to their branches they lock up
-// pushing against each other — one shoves the other, and the one being shoved
+// pushing against each other - one shoves the other, and the one being shoved
 // wants to travel back to a point BEHIND the shover.
 //
 // Headless replica of the gym's T JUNCTION lane
 // (CkPathNetworkGym_Following_PlayerController.as:129-133, :169-171), translated
 // to Y=0 and kept inside the AutoTests level's baked navmesh (+/-500cm) per the
 // follower-test geometry rule. Same shape, same agent defaults, same
-// OffPathCostMultiplier(3.0), and — critically — the same CO-LOCATED SPAWN:
+// OffPathCostMultiplier(3.0), and - critically - the same CO-LOCATED SPAWN:
 //
 //        stem:    (450,0) ------------------ (-200,0)
 //        branch:                    (-200,-200) .. (-200,+200)   [vertical]
@@ -22,7 +22,7 @@
 //
 // WHY CO-LOCATION MATTERS: at spawn RelativeOffset ~= 0, so the separation
 // processor's SafeDistance clamp (0.01) makes the push DIRECTION degenerate to
-// noise while the falloff is at full strength — the pair is blasted apart at up
+// noise while the falloff is at full strength - the pair is blasted apart at up
 // to MaxSpeed in an arbitrary bearing, including ALONG the stem. That is what can
 // carry an agent past a waypoint it never came within _WaypointArrivalRadius(25cm)
 // of.
@@ -36,7 +36,7 @@
 //
 //   H1 (un-retired waypoint): separation shoved the agent past a waypoint by more
 //       than 25cm, so it was never retired. Path-follow now aims BACKWARD at a
-//       point the agent has already physically passed — through the neighbour.
+//       point the agent has already physically passed - through the neighbour.
 //   H2 (corridor routes backward): the compiled corridor legitimately contains a
 //       backward leg at the junction (e.g. a side-keeping offset flip), so the
 //       backward aim is CORRECT and the standoff is purely a separation vs
@@ -74,12 +74,12 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
     // RelativeOffset == 0, so the separation processor's Push = -OffsetPlanar/SafeDistance is the
     // ZERO vector and Force.IsNearlyZero() short-circuits to no force at all
     // (CkCrowdAgent_Separation_Processor.cpp:67-88). If their stem corridors are also identical, the
-    // pair walks in perfect LOCKSTEP, never influences each other, and splits cleanly — a pass that
+    // pair walks in perfect LOCKSTEP, never influences each other, and splits cleanly - a pass that
     // proves nothing. These track whether the agents ever actually interacted.
     private float _MinInterAgentDist = 999999.0;
     private float _MaxSepMag = 0.0;
 
-    // Longest UNBROKEN stretch of agent-agent contact — the standoff's signature. See
+    // Longest UNBROKEN stretch of agent-agent contact - the standoff's signature. See
     // MaxAllowedContactSec.
     private float _ContactRunSec = 0.0;
     private float _MaxContactRunSec = 0.0;
@@ -101,7 +101,7 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
     // present. Time-to-arrival simply cannot separate "deadlocked" from "took the long way round".
     private const float WatchdogSec       = 20.0;
 
-    // THE DEFECT DETECTOR. The standoff's signature is not slowness — it is two agents PINNED
+    // THE DEFECT DETECTOR. The standoff's signature is not slowness - it is two agents PINNED
     // TOGETHER, leaning on each other, unable to resolve. Combined radius is 42+42 = 84cm, so a gap
     // at or under ContactThresholdCm means they are touching. Measured:
     //   deadlocked (avoidance sampler blind while overlapping): ~9.5s of UNBROKEN contact
@@ -205,7 +205,7 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
         Trace();
 
         // THE REGRESSION ASSERTION. Fires the moment the pair has been pinned together longer than
-        // any healthy avoidance manoeuvre could explain — i.e. mid-standoff, not after it eventually
+        // any healthy avoidance manoeuvre could explain - i.e. mid-standoff, not after it eventually
         // unsticks itself. Checked every sample so the failure lands while the agents are still in it.
         if (_MaxContactRunSec > MaxAllowedContactSec)
         {
@@ -220,7 +220,7 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
         {
             // GUARD: a lockstep walk-through is not a passing scenario, it is a scenario that never
             // ran. Two agents spawned at EXACTLY the same point have RelativeOffset == 0, which makes
-            // the separation push degenerate to the zero vector — so a co-located pair could in
+            // the separation push degenerate to the zero vector - so a co-located pair could in
             // principle walk in perfect LOCKSTEP, never influence each other, and "pass" without ever
             // exercising the interaction under test.
             //
@@ -231,7 +231,7 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
             //
             // Deliberately NOT asserting that the separation force ever fired. That assertion was here,
             // and it was WRONG: it assumed agent-agent interaction must manifest as repulsion. With the
-            // avoidance sampler working, the pair resolves its conflict AT A DISTANCE — they de-overlap
+            // avoidance sampler working, the pair resolves its conflict AT A DISTANCE - they de-overlap
             // from the co-located spawn and walk the shared stem in single file ~145-190cm apart, which
             // never enters _SeparationRadius (100cm), so the separation force correctly stays at zero
             // for the whole run. Requiring a non-zero repulsion would be requiring the agents to crowd
@@ -314,7 +314,7 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
 
         if (ck::Is_NOT_Valid(InFollower))
         {
-            ck::pathnetwork::Log(f"[STANDOFF][{InLabel}] follower handle INVALID — corridor unavailable");
+            ck::pathnetwork::Log(f"[STANDOFF][{InLabel}] follower handle INVALID - corridor unavailable");
             return;
         }
 
@@ -393,14 +393,14 @@ class UCk_AutoTest_PathNetworkFollower_TJunctionSharedStem : UCk_AutoTest_Base
     private void OnSouthFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
-        FinishFailure("agent SOUTH reported OnGoalFailed — the route never resolved. That is NOT the standoff under test; the corridor failed to install.");
+        FinishFailure("agent SOUTH reported OnGoalFailed - the route never resolved. That is NOT the standoff under test; the corridor failed to install.");
     }
 
     UFUNCTION()
     private void OnNorthFailed(FCk_Handle_CrowdAgent InAgent, FCk_CrowdAgent_GoalFailedInfo InInfo)
     {
         if (IsFinished()) { return; }
-        FinishFailure("agent NORTH reported OnGoalFailed — the route never resolved. That is NOT the standoff under test; the corridor failed to install.");
+        FinishFailure("agent NORTH reported OnGoalFailed - the route never resolved. That is NOT the standoff under test; the corridor failed to install.");
     }
 }
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: INTEGER MIN/MAX COMPONENT ROUTING
+// CK ATTRIBUTE - AUTOMATION TEST: INTEGER MIN/MAX COMPONENT ROUTING
 //============================================================================
 //
 // Integer-side parity with CkAutoTest_Attribute_FloatMinMaxComponents. Verifies

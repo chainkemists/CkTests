@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — AUTOMATION TEST: script-processor pump drains same frame
+// CK DYNAMIC - AUTOMATION TEST: script-processor pump drains same frame
 //============================================================================
 //
 // Pins the contract that a script processor's MarkedDirtyBy work drains via
-// the scheduler's PUMP passes within a single frame — the same-frame cascade
-// guarantee C++ processors get — rather than slipping one frame per
+// the scheduler's PUMP passes within a single frame - the same-frame cascade
+// guarantee C++ processors get - rather than slipping one frame per
 // generation to successive main passes.
 //
 // Mechanism under test: dynamic-fragment mutations bump the dirty-marker
@@ -58,7 +58,7 @@ class UCk_AutoTest_ScriptProcessor_PumpDrainsSameFrame : UCk_AutoTest_Base
             Assert_True(
                 Results.ConsumedFrames[0] == Results.ConsumedFrames[1] &&
                 Results.ConsumedFrames[1] == Results.ConsumedFrames[2],
-                f"cascade generations must all drain in the SAME frame (via pump passes) — got frames [{Results.ConsumedFrames[0]}, {Results.ConsumedFrames[1]}, {Results.ConsumedFrames[2]}]; differing frames mean the script processor is pump-deaf (dynamic-marker version bumps broken)");
+                f"cascade generations must all drain in the SAME frame (via pump passes) - got frames [{Results.ConsumedFrames[0]}, {Results.ConsumedFrames[1]}, {Results.ConsumedFrames[2]}]; differing frames mean the script processor is pump-deaf (dynamic-marker version bumps broken)");
         }
 
         FinishSuccess();

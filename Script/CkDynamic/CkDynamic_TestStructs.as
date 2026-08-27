@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK DYNAMIC — SHARED TEST STRUCTS
+// CK DYNAMIC - SHARED TEST STRUCTS
 //============================================================================
 //
 // Lightweight test-only USTRUCT used by the CkDynamic AutoTests. Carries
-// two reflected fields so we can verify the dynamic-fragment Add→Get
+// two reflected fields so we can verify the dynamic-fragment Add->Get
 // round-trip preserves payload data.
 //============================================================================
 
@@ -48,7 +48,7 @@ struct FCk_Fragment_TESTONLY_HandleMarker
     int32 Tag = 0;
 }
 
-// Payload carrying a DYNAMIC-handle property (FCk_Handle_TESTONLY_NetSubject — registered from the
+// Payload carrying a DYNAMIC-handle property (FCk_Handle_TESTONLY_NetSubject - registered from the
 // merged DynamicHandleTypes.TESTONLY.json). This is the reported-broken shape: same wire intent as
 // the raw-handle payload, but the member is a dynamic handle type. The matching AutoTest asserts
 // whether OnRepNotify fires and whether the handle resolves on the client.
@@ -80,7 +80,7 @@ struct FCk_Fragment_TESTONLY_SubordinateFeature
     int32 Tag = 0;
 }
 
-// Replicated carrier — single dynamic typesafe handle to the separate replicated entity B.
+// Replicated carrier - single dynamic typesafe handle to the separate replicated entity B.
 // Added empty (Replicates) on both worlds; server sets Handle = B + MarkReplicationDirty.
 struct FCk_Fragment_TESTONLY_DriverCarrier
 {
@@ -93,7 +93,7 @@ struct FCk_Fragment_TESTONLY_DriverCarrier
 //============================================================================
 
 // MarkedDirtyBy marker consumed by UCk_TESTONLY_ScriptProcessor_PumpCascade. RemainingCascades > 0
-// makes the processor re-add the marker after consuming it — each re-add lands AFTER the
+// makes the processor re-add the marker after consuming it - each re-add lands AFTER the
 // processor's own tick, so draining the whole chain within one frame REQUIRES the scheduler's
 // pump passes to observe dynamic-marker mutations (the dirty-marker version bump in
 // UCk_Utils_DynamicFragment_UE's mutation paths).
@@ -104,7 +104,7 @@ struct FCk_Fragment_DynamicTest_PumpCascadeMarker
 }
 
 // Per-generation consumption log written by the processor and asserted by the AutoTest: all
-// entries equal ⇒ the cascade settled in one frame (pump), entries differ ⇒ generations slipped
+// entries equal => the cascade settled in one frame (pump), entries differ => generations slipped
 // to later frames' main passes (the pre-fix pump-deaf behavior).
 struct FCk_Fragment_DynamicTest_PumpCascadeResults
 {

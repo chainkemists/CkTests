@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: INTEGER MODIFIER STACKING
+// CK ATTRIBUTE - AUTOMATION TEST: INTEGER MODIFIER STACKING
 //============================================================================
 //
 // Integer-side parity with CkAutoTest_Attribute_FloatModifierStacking.
@@ -12,7 +12,7 @@
 // wait for OnValueChanged again. Two adds in one frame would coalesce,
 // hence the step-machine. See FloatModifierStacking for fuller rationale.
 //
-// NOTE — same Multiply-operation coverage gap noted in
+// NOTE - same Multiply-operation coverage gap noted in
 // CkAutoTest_Attribute_FloatModifierStacking applies on the Integer side
 // too: ECk_AttributeModifier_Operation::Multiply isn't exercised anywhere.
 //============================================================================

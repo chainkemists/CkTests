@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RAY SENSE — AUTOMATION TEST: ADD CREATES ENTITY
+// CK RAY SENSE - AUTOMATION TEST: ADD CREATES ENTITY
 //============================================================================
 //
 // First-coverage seed for CkRaySense. Adding a RaySense feature with a

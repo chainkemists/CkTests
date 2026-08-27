@@ -11,7 +11,7 @@
 //
 // Node boxes: gray = not-yet-evaluated, GREEN = passable, RED = blocked by a
 // condition, YELLOW = the line currently being "played". Dashed edges are
-// colored by their target node — a red dashed edge is one that CAN'T be taken.
+// colored by their target node - a red dashed edge is one that CAN'T be taken.
 // The chain auto-walks Start -> Choice -> End and restarts; watch the active
 // node move and the Hostile branch stay red.
 //

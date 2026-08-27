@@ -1,27 +1,27 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER GET_PLAN ENTITY-HANDLE VARIANT
+// CK GOAP - AUTOMATION TEST: PLANNER GET_PLAN ENTITY-HANDLE VARIANT
 //============================================================================
 //
 // Coverage gap filler: every other Goap_Planner_* test reads the plan via
 // utils_goap_planner::Get_PlanClasses (returns TArray<TSubclassOf<...>>).
 // The sibling variant utils_goap_planner::Get_Plan (returns
-// TArray<FCk_Handle_Goap_Action> — the actual entity handles) has had no
+// TArray<FCk_Handle_Goap_Action> - the actual entity handles) has had no
 // dedicated regression coverage. This test exercises it on a real multi-step
 // plan and cross-checks against Get_PlanClasses for consistency.
 //
-// Setup — a 2-step ordered plan:
+// Setup - a 2-step ordered plan:
 //   - WS: AKey=false, BKey=false.
 //   - Planner goal: {BKey=true}.
 //   - Implicit root: Root_GoalIsEffects (effect AKey=true, just hosts the
-//     planner — never picked as an operator since the planner's goal is BKey).
+//     planner - never picked as an operator since the planner's goal is BKey).
 //   - MakeA (cost 1.0): effect AKey=true.
 //   - MakeB (cost 1.0): precondition AKey=true, effect BKey=true.
 //
 // Regressive A* with goal BKey=true:
-//   Goal needs BKey=true → only MakeB has that effect.
-//   MakeB needs AKey=true → only MakeA has that effect.
+//   Goal needs BKey=true -> only MakeB has that effect.
+//   MakeB needs AKey=true -> only MakeA has that effect.
 //   Plan (execution order) = [MakeA, MakeB].
 //
 // Assertions on OnPlanComplete:
@@ -67,8 +67,8 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
             utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.Goap.ActionSet.Set"));
         PlannerParams.Set_Goal(Goal);
         PlannerParams.Set_WorldStateSource(WS);
-        // Framework test catalog — opt out of always-valid-plan tenet enforcement
-        // (CkGoap/CLAUDE.md § "Design tenets"). Game-content must never opt out.
+        // Framework test catalog - opt out of always-valid-plan tenet enforcement
+        // (the CkGoap docs Sec. "Design tenets"). Game-content must never opt out.
         PlannerParams.Set_AllowPlanFailed(true);
         _Planner = utils_goap_planner::Add(Local, PlannerParams);
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
@@ -82,7 +82,7 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
         Assert_True(ck::IsValid(MakeAAction), "AddAction (MakeA) should return a valid handle");
         _RootAction = MakeAAction;
 
-        // MakeB — precondition AKey=true, effect BKey=true. Chains after MakeA.
+        // MakeB - precondition AKey=true, effect BKey=true. Chains after MakeA.
         auto MakeBParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_GetPlanEntities_MakeB);
         auto MakeBAction = utils_goap_planner::AddAction(_Planner, MakeBParams);
@@ -134,9 +134,9 @@ class UCk_AutoTest_Goap_Planner_GetPlanEntities : UCk_AutoTest_Base
 
             // Sanity: the two slots are distinct operators of the chained plan.
             Assert_True(PlanClasses[0] == UCk_AutoTestAction_Goap_GetPlanEntities_MakeA,
-                "Plan[0] class should be MakeA (first step — establishes AKey)");
+                "Plan[0] class should be MakeA (first step - establishes AKey)");
             Assert_True(PlanClasses[1] == UCk_AutoTestAction_Goap_GetPlanEntities_MakeB,
-                "Plan[1] class should be MakeB (second step — needs AKey, sets BKey)");
+                "Plan[1] class should be MakeB (second step - needs AKey, sets BKey)");
         }
 
         FinishSuccess();

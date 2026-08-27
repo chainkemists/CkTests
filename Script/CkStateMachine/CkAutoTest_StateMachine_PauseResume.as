@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: PAUSE HALTS, RESUME CONTINUES
+// CK STATE MACHINE - AUTOMATION TEST: PAUSE HALTS, RESUME CONTINUES
 //============================================================================
 //
 // Pins the pause/resume contract: while an SM is Paused its polled-condition
@@ -64,7 +64,7 @@ class UCk_AutoTest_StateMachine_PauseResume : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
         // Disabled auto-start so we control start/pause ordering. Request_Pause only engages on a
         // Running SM (the Pause processor early-returns if not Running), so Start then Pause are
-        // enqueued the same frame — the request queue drains in order Running -> Paused.
+        // enqueued the same frame - the request queue drains in order Running -> Paused.
         auto SmParams = FCk_Fragment_StateMachine_ParamsData(UCk_SmPauseTest_State_Idle);
         SmParams.Set_AutoStart(ECk_SmAutoStart::Disabled);
         _SmHandle = UCk_Utils_StateMachine_UE::Add(LocalHandle, SmParams);
@@ -94,7 +94,7 @@ class UCk_AutoTest_StateMachine_PauseResume : UCk_AutoTest_Base
         if (!_Resumed)
         {
             _TransitionedEarly = true;
-            FinishFailure("SM transitioned to Finish while still Paused — pause must halt the polled evaluator");
+            FinishFailure("SM transitioned to Finish while still Paused - pause must halt the polled evaluator");
             return;
         }
 

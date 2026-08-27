@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Assign shifts the Get_IsAssignedTo tag
+// CK RELATIONSHIP - AUTOMATION TEST: Assign shifts the Get_IsAssignedTo tag
 // IsAssignedTo is backed by a tag-per-team-id; after Assign the old tag
 // must no longer match and the new one must.
 

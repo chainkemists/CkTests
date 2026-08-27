@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: CHARACTER MOVE REQUEST DRIVES THE CAPSULE
+// CK JOLT - AUTOMATION TEST: CHARACTER MOVE REQUEST DRIVES THE CAPSULE
 //============================================================================
 //
 // A grounded JoltCharacter must translate at the Move request's desired velocity

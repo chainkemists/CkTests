@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A REBIND MOVES THE MOVE, WITH NO EDIT
+// CK INTENT - AUTOMATION TEST: A REBIND MOVES THE MOVE, WITH NO EDIT
 //============================================================================
 //
 // The payoff of the whole button-space design, asserted end to end and
 // headless. A move names a BUTTON; the player rebinds that button in a
 // settings screen; the move keeps working on the new key and stops working
-// on the old one — and not one character of the notation, the definition or
+// on the old one - and not one character of the notation, the definition or
 // the compiled set changed.
 //
 // Three legs, and the second is the one an implementation that only ADDS
@@ -23,7 +23,7 @@
 // index is the only thing that can tell those apart.
 //
 // CkTests_Flashlight is used because no other test in this battery remaps it,
-// and F3 because nothing in the project is authored to it — so the remap
+// and F3 because nothing in the project is authored to it - so the remap
 // cannot be a disguised conflict resolution.
 //
 // TEARDOWN IS UNCONDITIONAL within its step: all autotests share one PIE
@@ -56,7 +56,7 @@ class UCk_AutoTest_Intent_RebindMovesTheMatch : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 

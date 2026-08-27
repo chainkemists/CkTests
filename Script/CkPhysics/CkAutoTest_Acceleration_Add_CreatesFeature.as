@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PHYSICS — AUTOMATION TEST: ACCELERATION ADD CREATES FEATURE
+// CK PHYSICS - AUTOMATION TEST: ACCELERATION ADD CREATES FEATURE
 //============================================================================
 //
 // First-coverage seed for CkPhysics. Acceleration is the building

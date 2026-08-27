@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — DOORS (HINGE CONSTRAINTS)
+// CK JOLT GYM - DOORS (HINGE CONSTRAINTS)
 //
 // Three Dynamic door slabs in static frames, each hinged about the vertical
 // axis with a different personality:
-//   lane 0 — FREE:         +/-110 deg limits, light friction — push it open
-//   lane 1 — SELF-CLOSING: +/-110 deg limits, Position motor driving to 0
-//   lane 2 — TURNSTILE:    no limits, Velocity motor spinning at 90 deg/s
+//   lane 0 - FREE:         +/-110 deg limits, light friction - push it open
+//   lane 1 - SELF-CLOSING: +/-110 deg limits, Position motor driving to 0
+//   lane 2 - TURNSTILE:    no limits, Velocity motor spinning at 90 deg/s
 // Shoot balls at them (Ck_GymJoltDoors_Shoot) and watch each react. Enable
 // ck.Jolt.DebugDraw.Enabled 1 to see the hinge axes and limits.
 //============================================================================
@@ -51,7 +51,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
 
         DoBuildContent();
 
-        ck::Trace("JoltDoorsGym: started — shoot the doors with Ck_GymJoltDoors_Shoot");
+        ck::Trace("JoltDoorsGym: started - shoot the doors with Ck_GymJoltDoors_Shoot");
     }
 
     private void DoBuildContent()
@@ -60,13 +60,13 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
         DoAddDoorLane(1);
         DoAddDoorLane(2);
 
-        // Lane 1: self-closing — position motor drives back to the closed pose.
+        // Lane 1: self-closing - position motor drives back to the closed pose.
         auto ClosingMotor = FCk_Request_JoltConstraint_Hinge_SetMotor(ECk_JoltConstraint_MotorState::Position);
         ClosingMotor.Set_TargetAngleDegrees(0.0);
         auto ClosingHinge = utils_jolt_constraint::DoCastChecked(_Hinges[1]);
         utils_jolt_constraint::Request_Hinge_SetMotor(ClosingHinge, ClosingMotor);
 
-        // Lane 2: turnstile — constant angular velocity.
+        // Lane 2: turnstile - constant angular velocity.
         DoSetSpin(90.0);
     }
 
@@ -81,7 +81,7 @@ class ACk_JoltGym_Doors_PlayerController : ACk_Gym_Base_PlayerController
         auto FrameX = -350.0;
         auto HingeEdge = _Origin + FVector(FrameX, LaneY - _DoorHalfWidth, _DoorHalfHeight);
 
-        // Frame posts either side of the doorway (the turnstile lane gets none — it spins full-circle).
+        // Frame posts either side of the doorway (the turnstile lane gets none - it spins full-circle).
         if (InLaneIndex != 2)
         {
             DoAddStaticBox(FVector(FrameX, LaneY - _DoorHalfWidth - 12.0, 100.0), FVector(10.0, 10.0, 100.0), n"Doors.PostL");

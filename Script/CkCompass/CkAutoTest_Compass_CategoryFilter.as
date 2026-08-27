@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK COMPASS — AUTOMATION TEST: category tag-query filter
+// CK COMPASS - AUTOMATION TEST: category tag-query filter
 //============================================================================
 //
 // Compass filtered to Quest-category only: a Quest POI and a Shop POI both
 // in range/arc; only the Quest POI may appear. An empty query (the default)
-// accepts everything — pinned by the other tests.
+// accepts everything - pinned by the other tests.
 //
 // NOTE (flagged for the build-fix pass): FGameplayTagQuery construction from
-// AS via MakeQuery_MatchAnyTags is UNVERIFIED — if the static is not bound,
+// AS via MakeQuery_MatchAnyTags is UNVERIFIED - if the static is not bound,
 // swap to a data-authored query or a utils_compass convenience once the
 // modules compile.
 //

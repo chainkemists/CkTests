@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — CHAOS PARITY TWIN: CCD PROJECTILE DOES NOT TUNNEL A THIN WALL
+// CK JOLT - CHAOS PARITY TWIN: CCD PROJECTILE DOES NOT TUNNEL A THIN WALL
 //============================================================================
 //
 // Chaos-engine twin of CkAutoTest_CkJolt_FastProjectileWithCcdStopsAtThinWall:
 // the SAME scenario and qualitative assertions, driven by stock UE/Chaos
-// physics instead of the Jolt world — no JoltBody fragments. Continuous
+// physics instead of the Jolt world - no JoltBody fragments. Continuous
 // collision detection is enabled on the body instance via SetUseCCD(true).
 //
 // A small, very fast dynamic sphere with CCD must NOT tunnel a thin static
@@ -20,7 +20,7 @@
 //   3. Assert on the PEAK X the sphere ever reaches: it must get to the wall
 //      (peak > wall - 50) and its centre must never cross the wall plane
 //      (peak < wall). Chaos's default physical material has restitution 0.3,
-//      so the sphere BOUNCES back hard after impact — final X is behind the
+//      so the sphere BOUNCES back hard after impact - final X is behind the
 //      launch point and useless as a travel witness; the peak is the correct
 //      tunnel discriminator (a tunneling sphere peaks PAST the wall).
 //
@@ -88,7 +88,7 @@ class UCk_AutoTest_CkJolt_ChaosParity_CcdProjectileStopsAtThinWall : UCk_AutoTes
         // No gravity so the horizontal CCD result is not muddied by any vertical drop.
         _ProjectileMesh.SetEnableGravity(false);
         _ProjectileMesh.SetUseCCD(true);
-        // The impact is witnessed by EVENT, not by tick sampling — see OnTick for why.
+        // The impact is witnessed by EVENT, not by tick sampling - see OnTick for why.
         _ProjectileMesh.SetNotifyRigidBodyCollision(true);
         _ProjectileMesh.OnComponentHit.AddUFunction(this, n"OnProjectileHit");
         _Actors.Add(_Projectile);
@@ -132,14 +132,14 @@ class UCk_AutoTest_CkJolt_ChaosParity_CcdProjectileStopsAtThinWall : UCk_AutoTes
             return;
         }
 
-        // Phase 1 — track the farthest X the sphere ever reaches (it bounces back after impact),
+        // Phase 1 - track the farthest X the sphere ever reaches (it bounces back after impact),
         // then assert on the peak: reached the wall, never crossed it.
         _ElapsedSinceLaunch += float(InDeltaT.Get_Seconds());
         _PeakX = Math::Max(_PeakX, float(_Projectile.GetActorLocation().X));
 
         if (_ElapsedSinceLaunch >= 0.667)
         {
-            // REACHED THE WALL — witnessed two frame-rate-independent ways, never by the sampled
+            // REACHED THE WALL - witnessed two frame-rate-independent ways, never by the sampled
             // peak. At 12000uu/s a contended ~30ms frame steps over the ENTIRE 400uu approach, so
             // no sample lands between (wall-50) and the wall and the peak reads short; that was a
             // phantom red under three test lanes (peak -53.2 vs a -50 threshold, true peak -15).
@@ -156,10 +156,10 @@ class UCk_AutoTest_CkJolt_ChaosParity_CcdProjectileStopsAtThinWall : UCk_AutoTes
 
             // The peak stays the TUNNEL discriminator and is safe against coarse sampling in that
             // role: under-sampling can only make the peak SMALLER, never larger, so it cannot
-            // manufacture a false tunnel report — and a sphere that did tunnel keeps going (no
+            // manufacture a false tunnel report - and a sphere that did tunnel keeps going (no
             // gravity, nothing to stop it), so every later sample is far past the wall.
             Assert_True(_PeakX < _WallX,
-                f"CCD projectile must NOT tunnel the wall — its centre must stay on the near side (peak X={_PeakX}, final X={FinalX}, wall X={_WallX})");
+                f"CCD projectile must NOT tunnel the wall - its centre must stay on the near side (peak X={_PeakX}, final X={FinalX}, wall X={_WallX})");
             DoCleanup();
             FinishSuccess();
         }

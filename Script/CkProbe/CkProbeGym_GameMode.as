@@ -1,13 +1,13 @@
 //============================================================================
-// PROBE GYM — GAME MODE & PLAYER CONTROLLER
+// PROBE GYM - GAME MODE & PLAYER CONTROLLER
 //
 // Generic CkFoundation Probe feature gym. Three stations:
-//   1. Debug          — pure-ECS Request_BeginOverlap/EndOverlap cycle +
+//   1. Debug          - pure-ECS Request_BeginOverlap/EndOverlap cycle +
 //                       manual force commands. Exercises signal dedup.
-//   2. Physical       — multi-ball tween-driven overlap demo with
+//   2. Physical       - multi-ball tween-driven overlap demo with
 //                       AABB-vs-probe desync diagnostic (yellow = Jolt body
 //                       stuck vs geometric ground truth).
-//   3. NestedSceneNode— Kinematic Probe at the end of a Z45 → X30 scene-node
+//   3. NestedSceneNode- Kinematic Probe at the end of a Z45 -> X30 scene-node
 //                       chain; catches transform-composition bugs. Detector
 //                       overlap firings are the ground truth.
 //============================================================================
@@ -176,7 +176,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // Console Commands — Debug station manual drive
+    // Console Commands - Debug station manual drive
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Probe Gym - Force Enter")
@@ -208,7 +208,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // Console Commands — Trace station world-hit policy
+    // Console Commands - Trace station world-hit policy
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Probe Gym - Trace World Hits: Ignore")
@@ -236,7 +236,7 @@ class ACk_ProbeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // Console Commands — Auto
+    // Console Commands - Auto
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Probe Gym - Auto")

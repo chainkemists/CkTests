@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — AUTOMATION TEST: TASK ORDERING ON TRANSITION
+// CK STATE MACHINE - AUTOMATION TEST: TASK ORDERING ON TRANSITION
 //============================================================================
 //
 // Verifies that on a state transition, the OLD state's tasks run
@@ -25,7 +25,7 @@
 // FINDING: OnStateChanged fires BETWEEN ExitTask_A and EnterTask_B, not
 // after EnterTask_B. Discovered via this test's first revision (failed
 // with 2 events instead of 3). The actual SM event order is:
-//   EnterTask_A → ExitTask_A → OnStateChanged signal → EnterTask_B
+//   EnterTask_A -> ExitTask_A -> OnStateChanged signal -> EnterTask_B
 // So we mark when State_B has been observed via OnStateChanged, then
 // poll the events log on subsequent ticks until EnterTask_B has been
 // logged.

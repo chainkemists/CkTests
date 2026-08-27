@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG QUERY — AUTOMATION TEST: LAZY VALIDATION (DROP-AND-RECOVER)
+// CK ENTITY TAG QUERY - AUTOMATION TEST: LAZY VALIDATION (DROP-AND-RECOVER)
 //============================================================================
 //
 // Count(2) of tag A. Once satisfied (2 entities tagged), destroy one entity.
@@ -10,10 +10,10 @@
 // query and the OnSatisfied signal fires again.
 //
 // Verifies:
-//   1. Two matches → fires once and Get_IsSatisfied returns true.
-//   2. Destroying one match → next pump prunes; Get_IsSatisfied → false
+//   1. Two matches -> fires once and Get_IsSatisfied returns true.
+//   2. Destroying one match -> next pump prunes; Get_IsSatisfied -> false
 //      WITHOUT a re-fire (drop is silent on the signal).
-//   3. Adding a 3rd match → re-satisfies → fires again (drop-and-recover).
+//   3. Adding a 3rd match -> re-satisfies -> fires again (drop-and-recover).
 //
 // Every phase crosses a real observable transition, including the drop:
 // Get_IsSatisfied is TRUE on entry to that phase and must go false, so the
@@ -69,7 +69,7 @@ class UCk_AutoTest_EntityTagQuery_LazyValidation : UCk_AutoTest_Base
     private void Step_AssertIdleAndTagBoth(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_FireCount, 0,
-            "No matches yet — query must not have fired");
+            "No matches yet - query must not have fired");
 
         _E1 = utils_entity_lifetime::Request_CreateEntity(_Owner);
         utils_entity_tag::Add(_E1, n"AutoTestEtq_Lazy");
@@ -82,7 +82,7 @@ class UCk_AutoTest_EntityTagQuery_LazyValidation : UCk_AutoTest_Base
     private void Step_AssertSatisfiedAndDestroy(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         Assert_Equals_Int(_FireCount, 1,
-            "Count(2) crossed — must fire exactly once");
+            "Count(2) crossed - must fire exactly once");
         Assert_True(utils_entity_tag_query::Get_IsSatisfied(_Query),
             "After 2 matches, Get_IsSatisfied must report true");
 

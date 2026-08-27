@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK COMPASS — AUTOMATION TEST: ClampToEdge policy pins out-of-arc POIs
+// CK COMPASS - AUTOMATION TEST: ClampToEdge policy pins out-of-arc POIs
 //============================================================================
 //
 // Arc 90 (half-arc 45). Two ClampToEdge POIs at bearings +60 and -60 (both
@@ -45,7 +45,7 @@ class UCk_AutoTest_Compass_ClampPolicy_PinsToEdge : UCk_AutoTest_Base
         // -60 degrees: (500, -866).
         _LeftClamped = DoSpawnPoi(FVector(500.0, -866.0, 0.0), n"Poi.Category.TestClampLeft",
             ECk_Poi_OffscreenPolicy::ClampToEdge);
-        // +10 degrees: (984.8, 173.6) — inside the 45-degree half-arc.
+        // +10 degrees: (984.8, 173.6) - inside the 45-degree half-arc.
         _Inside = DoSpawnPoi(FVector(984.8, 173.6, 0.0), n"Poi.Category.TestInside",
             ECk_Poi_OffscreenPolicy::ClampToEdge);
 

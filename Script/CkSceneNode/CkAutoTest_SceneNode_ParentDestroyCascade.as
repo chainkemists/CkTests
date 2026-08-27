@@ -1,13 +1,13 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE — AUTOMATION TEST: PARENT DESTROY CASCADES TO CHILDREN
+// CK SCENE NODE - AUTOMATION TEST: PARENT DESTROY CASCADES TO CHILDREN
 //============================================================================
 //
 // Verifies that destroying a SceneNode parent entity propagates to the
-// children — the children must observe OnBeginDestroy. The lifetime
+// children - the children must observe OnBeginDestroy. The lifetime
 // ownership chain (parent owns child entities under it via SceneNode)
-// guarantees this cascade — destroying the owner cascades to dependents.
+// guarantees this cascade - destroying the owner cascades to dependents.
 //
 // Setup:
 //   Test entity owns ParentEntity (Transform fixture).

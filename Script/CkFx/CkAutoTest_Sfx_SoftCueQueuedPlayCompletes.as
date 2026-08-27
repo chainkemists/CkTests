@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK FX — AUTOMATION TEST: a soft-cue play queued before setup completes with Succeeded
+// CK FX - AUTOMATION TEST: a soft-cue play queued before setup completes with Succeeded
 //
 // Pins the Sfx half of the soft-params design end-to-end: soft cue in Params, the Setup processor
 // resolves + roots it through CkResourceLoader (async default), a play requested IMMEDIATELY after
@@ -26,7 +26,7 @@ class UCk_AutoTest_Sfx_SoftCueQueuedPlayCompletes : UCk_AutoTest_Base
         Assert_True(ck::IsValid(SfxHandle), "utils_sfx::Add should return a valid FCk_Handle_Sfx");
         if (IsFinished()) { return; }
 
-        // Requested BEFORE setup/load completes — must queue behind NeedsSetup, then spawn + complete
+        // Requested BEFORE setup/load completes - must queue behind NeedsSetup, then spawn + complete
         auto PlayRequest = FCk_Request_Sfx_PlayAtLocation();
         PlayRequest._Outer = this;
 

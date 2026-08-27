@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: ANY-ENTITY FILTER SHARES A LIVE TAG NAME
+// CK ENTITY TAG - AUTOMATION TEST: ANY-ENTITY FILTER SHARES A LIVE TAG NAME
 //============================================================================
 //
 // Verifies that a subscription filter and a live entity tag can share one
@@ -13,8 +13,8 @@
 //
 // Order matters and is deliberate: the tag pool is created FIRST, so the
 // subscription bind is the side that would have landed in the wrong-typed
-// pool. The test then round-trips both directions — a second entity gaining
-// the tag must fire Added, losing it must fire Removed — while Has() on both
+// pool. The test then round-trips both directions - a second entity gaining
+// the tag must fire Added, losing it must fire Removed - while Has() on both
 // subjects proves the tag-side pool stayed intact throughout.
 //============================================================================
 

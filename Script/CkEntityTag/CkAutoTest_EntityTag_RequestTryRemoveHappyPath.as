@@ -1,10 +1,10 @@
 // Language=angelscript
 //
-// CK ENTITY TAG — AUTOMATION TEST: Request_TryRemove happy path
+// CK ENTITY TAG - AUTOMATION TEST: Request_TryRemove happy path
 // Add a tag, then TryRemove returns Succeeded; Has reports false.
 //
 // Add and Request_TryRemove are both deferred through the request pump
-// (CkEntityTag/Claude.md § Timing), so each phase waits on the presence
+// (the CkEntityTag docs Sec. Timing), so each phase waits on the presence
 // actually flipping.
 
 class UCk_AutoTest_EntityTag_RequestTryRemoveHappyPath : UCk_AutoTest_Base

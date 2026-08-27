@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Different teams → Hostile
+// CK RELATIONSHIP - AUTOMATION TEST: Different teams -> Hostile
 // Entity on team Two and entity on team Three resolve to Hostile.
 
 class UCk_AutoTest_Relationship_AttitudeDifferentTeamsIsHostile : UCk_AutoTest_Base

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE + TWEEN — AUTOMATION TEST: DEPTH-1 LEAF MATCHES EXPECTED
+// CK SCENE NODE + TWEEN - AUTOMATION TEST: DEPTH-1 LEAF MATCHES EXPECTED
 //============================================================================
 //
 // Headless equivalent of the SceneNodeTween gym's CHAIN station: a tweened

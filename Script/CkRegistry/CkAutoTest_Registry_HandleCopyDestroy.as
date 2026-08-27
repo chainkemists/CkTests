@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK REGISTRY — AUTOMATION TEST: HANDLE COPY / DESTROY
+// CK REGISTRY - AUTOMATION TEST: HANDLE COPY / DESTROY
 //============================================================================
 //
 // Verifies basic copy + destroy semantics for FCk_Handle:
@@ -9,7 +9,7 @@
 //   2. Copy handle A into handle B (separate variable referencing same entity).
 //   3. Bind OnBeginDestroy on the entity, then Request_DestroyEntity via A.
 //   4. The callback fires (proving destroy propagated for the shared entity).
-//   5. Both A and B implicitly destruct on test teardown — must not crash.
+//   5. Both A and B implicitly destruct on test teardown - must not crash.
 //
 // CkFoundation's destroy is a deferred request, so post-destroy invalidity
 // must be observed via the OnBeginDestroy callback rather than synchronously

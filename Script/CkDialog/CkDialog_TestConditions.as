@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DIALOG — SHARED TEST CONDITIONS
+// CK DIALOG - SHARED TEST CONDITIONS
 //============================================================================
 // Reusable inline condition subclasses for the Dialog autotests. Defined once
 // here (a duplicate UCLASS across test files is an AS compile error). Tests
@@ -9,7 +9,7 @@
 // FCk_DialogBank_LineData._Conditions.
 //============================================================================
 
-// Always fails — turns a line into Fail_LineCondition.
+// Always fails - turns a line into Fail_LineCondition.
 UCLASS()
 class UCk_DialogTestCond_AlwaysFail : UCk_DialogCondition_EntityScript
 {
@@ -24,7 +24,7 @@ class UCk_DialogTestCond_AlwaysFail : UCk_DialogCondition_EntityScript
     }
 };
 
-// Always passes — an AS-authored equivalent of the built-in UCk_DialogCondition_AlwaysTrue.
+// Always passes - an AS-authored equivalent of the built-in UCk_DialogCondition_AlwaysTrue.
 UCLASS()
 class UCk_DialogTestCond_AlwaysPass : UCk_DialogCondition_EntityScript
 {
@@ -39,7 +39,7 @@ class UCk_DialogTestCond_AlwaysPass : UCk_DialogCondition_EntityScript
     }
 };
 
-// Passes only when the querying emitter carries the tag it is configured with — proves the condition
+// Passes only when the querying emitter carries the tag it is configured with - proves the condition
 // receives the CALLER (emitter) context, and that the same line can pass for one emitter and fail for another.
 UCLASS()
 class UCk_DialogTestCond_RequiresEmitterTag : UCk_DialogCondition_EntityScript

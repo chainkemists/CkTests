@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: A PHYSICALLY BLOCKED MOVE FAILS, AND FAILS BOUNDED
+// CK CROWD - AUTOMATION TEST: A PHYSICALLY BLOCKED MOVE FAILS, AND FAILS BOUNDED
 //
 // The regression this exists for: "a physically blocked move can never fail."
 //
@@ -12,7 +12,7 @@
 //     none here;
 //   - the old feet-sample centroid ring could not see it either, because
 //     ConstrainToNavmesh's FindMoveAlongSurface turns a wall press into a
-//     lateral SLIDE — real displacement, zero progress toward the goal.
+//     lateral SLIDE - real displacement, zero progress toward the goal.
 // The agent stayed Walking, at speed, forever, and no caller could observe it.
 //
 // Shape: identical staging to Crowd_Stall_RepathsAroundLateObstacle except the
@@ -22,14 +22,14 @@
 // within a budget derived from the settings, and the agent MUST end up Idle.
 //
 // WHAT THIS DOES AND DOES NOT PIN DOWN. The terminal signal can legitimately
-// arrive by any of three routes, and the test deliberately accepts all three —
+// arrive by any of three routes, and the test deliberately accepts all three
 // which one fires depends on what Recast returns for a re-path into a
 // disconnected component from wherever the agent happens to be standing:
-//   (a) BlockedRecheck::DoFailMove — the bounded NoProgress ladder
+//   (a) BlockedRecheck::DoFailMove - the bounded NoProgress ladder
 //       (2 stall re-paths, then GoalBlocked, then 3 bounded re-checks);
-//   (b) Steering's partial-path final-stop — a Partial re-path whose reachable
+//   (b) Steering's partial-path final-stop - a Partial re-path whose reachable
 //       end is short of the goal is walked to the end and reported failed;
-//   (c) OnPathResolved's Failed branch — an empty/failed re-path result.
+//   (c) OnPathResolved's Failed branch - an empty/failed re-path result.
 // All three are downstream of the SAME trigger: the no-progress detector
 // noticing the stall and issuing a re-path at all. Without it none of them are
 // ever reached, which is precisely the hang this test locks down. Asserting one
@@ -62,7 +62,7 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
     private const float SettleAfterFailSec = 0.2;
 
     // Worst case, derived symbolically from CkCrowd project settings rather than
-    // measured — the numbers below are the SETTINGS, so a settings change that
+    // measured - the numbers below are the SETTINGS, so a settings change that
     // outgrows this budget shows up as an arithmetic mismatch here, not as flake.
     //
     // Let W = _BlockDetectionNoProgressWindowSeconds (3.0s)
@@ -73,7 +73,7 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
     //
     // A "no-progress window" costs W + 2I, not W: DoResetProgressWindow parks
     // _BestRemainingPathDistanceCm at Max, the next sample only SEEDS the baseline,
-    // and the sampler runs on the I cadence — so one seed sample plus cadence
+    // and the sampler runs on the I cadence - so one seed sample plus cadence
     // granularity ride on top of every window. Call that Wc = W + 2I = 4.0s.
     //
     //   staging: approach 620uu / 240cm/s + accel ramp        ~=  3.0s
@@ -90,7 +90,7 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
     // A resumed retry does NOT re-run the full stall ladder: BlockedRecheck sets
     // _StallRepathCount = _BlockDetectionMaxStallRepaths on resume, so one window of
     // no progress re-blocks directly. Before that fix each cycle re-paid the whole
-    // (S+1)-rung ladder — ~10s per cycle, ~40s total — which is what timed this test
+    // (S+1)-rung ladder - ~10s per cycle, ~40s total - which is what timed this test
     // out at 23.8s with blockedSignals=1 and the agent still Walking mid-resume.
     // If this budget starts failing again, check that invariant before raising it.
     private const float FailDeadlineSec = 38.0;
@@ -257,14 +257,14 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
             }
 
             Assert_Equals_Int(_FailedCount, 1,
-                "the blocked move reported OnGoalFailed exactly once — a terminal signal that repeats is not terminal, and a caller that re-dispatches on it would loop");
+                "the blocked move reported OnGoalFailed exactly once - a terminal signal that repeats is not terminal, and a caller that re-dispatches on it would loop");
 
             const auto State = utils_crowd_agent::Get_MovementState(_Agent);
             Assert_True(State != ECk_CrowdAgent_MovementState::Walking,
                 f"the agent STOPPED when its move failed (movement state={State}). A terminal OnGoalFailed while the agent is still Walking means the failure was reported but the press never ended.");
 
             Assert_False(utils_crowd_agent::Get_IsGoalBlocked(_Agent),
-                "the GoalBlocked hold was released when the move failed — a failed move is terminal, so leaving the agent flagged as blocked would have BlockedRecheck keep re-planning an episode nobody owns any more.");
+                "the GoalBlocked hold was released when the move failed - a failed move is terminal, so leaving the agent flagged as blocked would have BlockedRecheck keep re-planning an episode nobody owns any more.");
             Assert_True(utils_crowd_agent::Get_IsGoalFailedHold(_Agent),
                 "the unreachable goal remains in the stable failed-goal hold");
 
@@ -308,7 +308,7 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
             if (_BlockedCount > 0)
             {
                 Assert_True(_BlockedReasonWasNoProgress,
-                    "OnGoalBlocked reported the NoProgress cause. A static obstruction has no agent blocker to wait out, and the GoalOccupied cause deliberately holds UNBOUNDED — reporting it here would put the agent in the one retry policy that never fails.");
+                    "OnGoalBlocked reported the NoProgress cause. A static obstruction has no agent blocker to wait out, and the GoalOccupied cause deliberately holds UNBOUNDED - reporting it here would put the agent in the one retry policy that never fails.");
                 Assert_Equals_Int(_BlockedCount, 1,
                     "OnGoalBlocked fired once per blocked EPISODE, not once per re-check");
             }
@@ -356,7 +356,7 @@ class UCk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded : UCk_AutoTest_Base
             const auto Blocks = _BlockedCount;
             const auto Blocked = utils_crowd_agent::Get_IsGoalBlocked(_Agent);
             const auto SinceWall = _ElapsedSec - _WallPaintedAtSec;
-            Begin_Teardown(false, f"SILENT HANG: {SinceWall}s after the corridor was sealed the walker has still not reported OnGoalFailed (position={Pos}, state={State}, goalBlocked={Blocked}, blockedSignals={Blocks}). Its goal is in a disconnected component of the navmesh — it can never arrive — so a move that neither succeeds nor fails is unobservable to every caller.");
+            Begin_Teardown(false, f"SILENT HANG: {SinceWall}s after the corridor was sealed the walker has still not reported OnGoalFailed (position={Pos}, state={State}, goalBlocked={Blocked}, blockedSignals={Blocks}). Its goal is in a disconnected component of the navmesh - it can never arrive - so a move that neither succeeds nor fails is unobservable to every caller.");
         }
     }
 
@@ -520,13 +520,13 @@ class ACk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded_Actor : ACk_AutoTestR
     // Warning to a test failure, so the test's own deliberate output would fail it.
     // Same mechanism CkAutoTest_Crowd_Pathfinding_Failure uses for its deliberate
     // projection failure. Registered as plain substrings (AddExpectedErrorPlain,
-    // Contains, suppress-all) — no regex, and a pattern that never fires is not
+    // Contains, suppress-all) - no regex, and a pattern that never fires is not
     // reported as missing, so listing all three costs nothing.
     UFUNCTION(BlueprintOverride)
     TArray<FString> Get_ExpectedLogErrors() const
     {
         TArray<FString> Out;
-        // FProcessor_CrowdAgent_BlockedRecheck::DoFailMove — the bounded NoProgress
+        // FProcessor_CrowdAgent_BlockedRecheck::DoFailMove - the bounded NoProgress
         // ladder running out of re-checks:
         //   "CrowdAgent [..] made no progress toward .. across N re-path attempts .."
         // Downgraded to Log verbosity in CkCrowd (an unreachable goal is a legitimate
@@ -535,11 +535,11 @@ class ACk_AutoTest_Crowd_Stall_UnreachableGoalFailsBounded_Actor : ACk_AutoTestR
         // day it goes back to Warning this test does not start failing on its own
         // deliberate output.
         Out.Add("made no progress toward");
-        // FProcessor_CrowdAgent_OnPathResolved, Failed branch — a re-path into the
+        // FProcessor_CrowdAgent_OnPathResolved, Failed branch - a re-path into the
         // disconnected component that Recast answers with no path at all:
         //   "CrowdAgent [..] PathPending -> Idle (path failed: ..)"
         Out.Add("(path failed:");
-        // FCk_Nav_Algorithm::FindPathSync — start projection can fail on the frame the
+        // FCk_Nav_Algorithm::FindPathSync - start projection can fail on the frame the
         // tiles under the pressed agent are mid-rebuild:
         //   "FindPathSync: [Start] projection FAILED. .."
         Out.Add("projection FAILED");

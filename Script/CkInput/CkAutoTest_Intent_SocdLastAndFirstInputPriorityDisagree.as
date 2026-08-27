@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE TWO PRIORITY POLICIES DISAGREE
+// CK INTENT - AUTOMATION TEST: THE TWO PRIORITY POLICIES DISAGREE
 //============================================================================
 //
 // LastInputPriority and FirstInputPriority are only meaningful relative to each
@@ -20,7 +20,7 @@
 // "same input, two answers" is a fact rather than two separate runs compared by
 // hand.
 //
-// The FirstInputPriority answer is the one that could pass vacuously — it was
+// The FirstInputPriority answer is the one that could pass vacuously - it was
 // already Negative before the right press arrived. Its guard is the held set:
 // the step asserts BOTH buttons are recorded down on that sampler's row, so
 // "still Negative" cannot pass as "the second press never got there".

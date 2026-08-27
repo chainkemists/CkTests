@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: EASING CURVE — OUT-CUBIC VS LINEAR
+// CK TWEEN - AUTOMATION TEST: EASING CURVE - OUT-CUBIC VS LINEAR
 //============================================================================
 //
 // Pins the easing-table contract: at the same alpha (mid-flight, ~50% time
 // elapsed), an OutCubic-eased tween's value differs from a Linear tween's
-// value in the expected direction. OutCubic at α=0.5 maps to ~0.875 (well
+// value in the expected direction. OutCubic at alpha=0.5 maps to ~0.875 (well
 // above the linear 0.5).
 //
 // Setup: two parallel float tweens 0->100 over 0.5s. Bind OnUpdate on both
@@ -107,7 +107,7 @@ class UCk_AutoTest_Tween_EasingCurve_OutCubic_VsLinear : UCk_AutoTest_Base
         Assert_True(_CubicMidCaptured,
             "OutCubic tween should have produced an OnUpdate at ~50% progress");
 
-        // OutCubic at α=0.5 maps to 0.875; Linear at α=0.5 maps to 0.5.
+        // OutCubic at alpha=0.5 maps to 0.875; Linear at alpha=0.5 maps to 0.5.
         // On a 0->100 range that's ~87.5 vs ~50. Require Cubic to be
         // at least 20 units above Linear (very loose to absorb the
         // exact-progress capture window).

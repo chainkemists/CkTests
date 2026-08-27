@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: TRANSFER-ALL REPORTS SUCCESS (NOT PARTIAL)
+// CK INVENTORY - AUTOMATION TEST: TRANSFER-ALL REPORTS SUCCESS (NOT PARTIAL)
 //============================================================================
 //
 // A transfer-all (Count == -1) that moves every requested unit must report

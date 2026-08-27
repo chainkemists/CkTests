@@ -1,13 +1,13 @@
 //============================================================================
-// PROBE GYM — DEBUG STATION
+// PROBE GYM - DEBUG STATION
 //
 // Pure-ECS station that composes a Box Probe (Static, Notify, filter matches
 // CkTests.Probe.Gym.Marker) on itself and drives the Request_BeginOverlap /
 // Request_EndOverlap pipeline through a 4-step auto cycle:
-//   0: BeginOverlap(self)       → 0→1, OnBeginOverlap fires
-//   1: BeginOverlap(self) again → dedup, no signal expected
-//   2: EndOverlap(self)         → 1→0, OnEndOverlap fires
-//   3: EndOverlap(self) again   → no-op, no signal expected
+//   0: BeginOverlap(self)       -> 0->1, OnBeginOverlap fires
+//   1: BeginOverlap(self) again -> dedup, no signal expected
+//   2: EndOverlap(self)         -> 1->0, OnEndOverlap fires
+//   3: EndOverlap(self) again   -> no-op, no signal expected
 //
 // HUD shows current overlap count, signal counters, and last event so the
 // dedup behavior is visible without reading logs.
@@ -44,10 +44,10 @@ class UCk_EntityScript_ProbeGym_DebugStation : UCk_GenericEntityScript_UE
         auto TransformHandle = utils_transform::Add(InHandle, InitialTransform, ECk_Replication::DoesNotReplicate);
         utils_entity_tag::Add(InHandle, n"TAG_ProbeGym_DebugStation");
 
-        // Box probe — Static, Notify. Filter contains the Marker tag so
+        // Box probe - Static, Notify. Filter contains the Marker tag so
         // anything detectable can physically overlap too, though the auto
         // cycle uses Request_BeginOverlap/EndOverlap directly (bypassing
-        // physical overlap entirely — it exercises the request pipeline
+        // physical overlap entirely - it exercises the request pipeline
         // and signal state with the station's own handle as the dummy
         // other-entity).
         auto ProbeParams = FCk_Fragment_Probe_ParamsData(
@@ -174,7 +174,7 @@ class UCk_EntityScript_ProbeGym_DebugStation : UCk_GenericEntityScript_UE
     }
 
     //------------------------------------------------------------------------
-    // Auto Mode — drives Request_BeginOverlap / Request_EndOverlap on self
+    // Auto Mode - drives Request_BeginOverlap / Request_EndOverlap on self
     //------------------------------------------------------------------------
 
     UFUNCTION()
@@ -187,8 +187,8 @@ class UCk_EntityScript_ProbeGym_DebugStation : UCk_GenericEntityScript_UE
 
         switch (Step)
         {
-            case 0: // BeginOverlap self → 0→1, signal fires
-            case 1: // BeginOverlap self again → dedup, no signal
+            case 0: // BeginOverlap self -> 0->1, signal fires
+            case 1: // BeginOverlap self again -> dedup, no signal
             {
                 auto Empty = TArray<FVector>();
                 auto Req = FCk_Request_Probe_BeginOverlap(SelfEntity, Empty, FVector::ZeroVector, nullptr);
@@ -196,8 +196,8 @@ class UCk_EntityScript_ProbeGym_DebugStation : UCk_GenericEntityScript_UE
                 break;
             }
 
-            case 2: // EndOverlap self → 1→0, signal fires
-            case 3: // EndOverlap self again → no-op, no signal
+            case 2: // EndOverlap self -> 1->0, signal fires
+            case 3: // EndOverlap self again -> no-op, no signal
                 utils_probe::Request_EndOverlap(ProbeHandle,
                     FCk_Request_Probe_EndOverlap(SelfEntity));
                 break;

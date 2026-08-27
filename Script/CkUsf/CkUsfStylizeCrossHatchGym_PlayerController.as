@@ -2,31 +2,31 @@
 // Cross-Hatch gym ("Stylize: Cross Hatch" in the cycler).
 //
 // CrossHatch is a VIEW-WIDE post-process, so the stations cannot each own a subject the way the Solid
-// Outline gym's do — there is only ever one frame. They are PRESET SELECTORS instead: walk up to a
+// Outline gym's do - there is only ever one frame. They are PRESET SELECTORS instead: walk up to a
 // station and its preset is applied to the whole view. Everything is judged against the single shared
 // judge scene (ACk_UsfGym_StylizeCrossHatchJudgeScene), which is what makes two presets comparable.
 //
 // Three rows, each centred on its own count:
-//   front row (4) — the authored presets
-//   mid row   (2) — the effect MASK, Include and Exclude, over one preset. The mask row is the only one
+//   front row (4) - the authored presets
+//   mid row   (2) - the effect MASK, Include and Exclude, over one preset. The mask row is the only one
 //                   with per-object subjects: the judge scene's hand-tagged cubes and the entity-API
 //                   subjects spawned here must look identical to each other under both modes.
-//   back row  (3) — Sketch with one debug view forced on, because a mask is the only way to tell "the
+//   back row  (3) - Sketch with one debug view forced on, because a mask is the only way to tell "the
 //                   detector found nothing" from "the detector found everything at low opacity".
 //
 // Tab opens the gym cycler menu; search "Stylize". Console:
-//   Ck_GymStylizeCrossHatch_RestartAll        — respawn the judge scene and re-apply Sketch
-//   Ck_GymStylizeCrossHatch_CyclePreset       — next preset without walking
-//   Ck_GymStylizeCrossHatch_CycleDebug        — next debug view of the CURRENT settings
-//   Ck_GymStylizeCrossHatch_ToggleNormalSpace — flip view-space <-> world-space normals, changing NOTHING
+//   Ck_GymStylizeCrossHatch_RestartAll        - respawn the judge scene and re-apply Sketch
+//   Ck_GymStylizeCrossHatch_CyclePreset       - next preset without walking
+//   Ck_GymStylizeCrossHatch_CycleDebug        - next debug view of the CURRENT settings
+//   Ck_GymStylizeCrossHatch_ToggleNormalSpace - flip view-space <-> world-space normals, changing NOTHING
 //                                               else. THE headline A/B: orbit the sphere row and only the
 //                                               view-space mode may keep its strokes wrapping the form.
-//   Ck_GymStylizeCrossHatch_ToggleAlignment   — flip NormalAlignment 1 <-> 0. At 0 the hatch is a fixed
+//   Ck_GymStylizeCrossHatch_ToggleAlignment   - flip NormalAlignment 1 <-> 0. At 0 the hatch is a fixed
 //                                               screen angle, which is the control that proves the
 //                                               alignment does anything at all.
-//   Ck_GymStylizeCrossHatch_ToggleEntityMask  — add/remove the entity subjects from the mask, so the
+//   Ck_GymStylizeCrossHatch_ToggleEntityMask  - add/remove the entity subjects from the mask, so the
 //                                               REMOVE path is exercised and not just the apply.
-//   Ck_GymStylizeCrossHatch_ToggleHandDrawnStack / _ToggleDitherStack — the stacking claim on the Off
+//   Ck_GymStylizeCrossHatch_ToggleHandDrawnStack / _ToggleDitherStack - the stacking claim on the Off
 //                                               station's panel, made testable rather than asserted.
 //
 // Needs the CrossHatch master on disk: on a fresh checkout run "Ck_Usf_GenerateLooks CrossHatch" once in
@@ -64,37 +64,37 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
             "Walk around the sphere row: the strokes must WRAP each form and sweep continuously across it. Strokes that hold one screen angle mean the normal is not reaching the direction."));
         Stations.Add(Make_Station(n"Gym.Stylize.CrossHatchEngraving", "CROSS-HATCH: ENGRAVING",
             "Four fine, near-perfectly-regular crosshatch layers on a cool bright sheet.",
-            "Copperplate. Lines must be crisp and even — visible wobble here means StrokeIrregularity is not actually near zero."));
+            "Copperplate. Lines must be crisp and even - visible wobble here means StrokeIrregularity is not actually near zero."));
         Stations.Add(Make_Station(n"Gym.Stylize.CrossHatchBlueprint", "CROSS-HATCH: BLUEPRINT",
             "White ink on blue, ONE layer, and NormalAlignment at 0.",
             "The control: hatching must run at ONE fixed screen angle everywhere, ignoring the forms completely. If it still curves around the sphere, NormalAlignment is not reaching the shader."));
         Stations.Add(Make_Station(n"Gym.Stylize.CrossHatchOff", "CROSS-HATCH: OFF",
-            "The A/B reference — the subsystem's blendable disabled.",
+            "The A/B reference - the subsystem's blendable disabled.",
             "The frame must come back completely clean. Any residue here means disable is not actually disabling.",
             "STACKING: cross-hatch and hand-drawn both restyle the whole frame at the same chain location, so the second simply paints over the first. Cross-hatch + screen dither composes, like the other pre-TAA looks."));
 
         Stations.Add(Make_Station(n"Gym.Stylize.CrossHatchMaskInclude", "MASK: INCLUDE RANGE",
-            "Sketch, confined to the mask stencil range — ONLY the tagged cubes are hatched.",
-            "Both cubes in the judge scene's mask row AND the two entity-API subjects here must be hatched, and NOTHING else. The two pairs must be indistinguishable — same byte, different front doors."));
+            "Sketch, confined to the mask stencil range - ONLY the tagged cubes are hatched.",
+            "Both cubes in the judge scene's mask row AND the two entity-API subjects here must be hatched, and NOTHING else. The two pairs must be indistinguishable - same byte, different front doors."));
         Stations.Add(Make_Station(n"Gym.Stylize.CrossHatchMaskExclude", "MASK: EXCLUDE RANGE",
-            "Sketch everywhere EXCEPT the mask stencil range — the tagged cubes stay untouched.",
+            "Sketch everywhere EXCEPT the mask stencil range - the tagged cubes stay untouched.",
             "The exact inverse of the previous station. A cube that changes between the two modes in any way other than hatched/not-hatched means the mask is lerping toward something that is not the original frame."));
 
         Stations.Add(Make_Station(n"Gym.Stylize.CrossHatchDebugMask", "DEBUG: HATCH MASK",
             "Sketch with the hatch mask forced on (white = inked).",
-            "Stroke coverage only. Solid white means the darkness ramp is saturated — check DarknessBias."));
+            "Stroke coverage only. Solid white means the darkness ramp is saturated - check DarknessBias."));
         Stations.Add(Make_Station(n"Gym.Stylize.CrossHatchDebugDirection", "DEBUG: HATCH DIRECTION",
             "RG = the hatch direction remapped to 0..1, B = the projected normal's length.",
-            "A smoothly turning surface must show a SMOOTH sweep. Hard patches are pixels whose normal projects to nothing and fell back to AngleOffset — expected at the centre of a sphere facing the camera, wrong anywhere else."));
+            "A smoothly turning surface must show a SMOOTH sweep. Hard patches are pixels whose normal projects to nothing and fell back to AngleOffset - expected at the centre of a sphere facing the camera, wrong anywhere else."));
         Stations.Add(Make_Station(n"Gym.Stylize.CrossHatchDebugLayers", "DEBUG: LAYER COVERAGE",
             "How many stroke layers this pixel's darkness has reached.",
-            "Must be a stepped ramp following the SHADING on the sphere row, not their albedo — the layers step with darkness, and darkness is normalized luminance."));
+            "Must be a stepped ramp following the SHADING on the sphere row, not their albedo - the layers step with darkness, and darkness is normalized luminance."));
 
-        // Three explicit rows, each centred on its OWN count — a single global index would leave the
+        // Three explicit rows, each centred on its OWN count - a single global index would leave the
         // short rows hanging off one end of the long one.
         //
         // Every row sits BEHIND its judging line, alcoves opening toward the judge scene. Selection is
-        // measured at Get_StationViewingPoint — one clearance in front of each mouth — so the player
+        // measured at Get_StationViewingPoint - one clearance in front of each mouth - so the player
         // judges from outside the alcove with the whole scene ahead of them, and only turns around to
         // read a panel.
         const float StationSpacing = 1200.0f;
@@ -150,7 +150,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
     void Request_StartGym() override
     {
         Request_RebuildGym();
-        ck::Trace("🖊 Stylize Cross-Hatch Gym - walk to a station to apply its preset");
+        ck::Trace("* Stylize Cross-Hatch Gym - walk to a station to apply its preset");
     }
 
     private void Request_RebuildGym()
@@ -167,11 +167,11 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
 
         _JudgeScene = SpawnActor(ACk_UsfGym_StylizeCrossHatchJudgeScene, FVector(0.0f, 0.0f, 0.0f), FRotator::ZeroRotator);
         if (_JudgeScene == nullptr)
-        { ck::Error("❌ Stylize Cross-Hatch Gym: failed to spawn the judge scene"); }
+        { ck::Error("[FAIL] Stylize Cross-Hatch Gym: failed to spawn the judge scene"); }
 
         // Same X, same scale, same albedo as the judge scene's hand-tagged mask cubes, offset one step in
         // Y so each hand-tagged cube sits immediately beside its entity twin. The verdict on this row is
-        // "indistinguishable", and that is only cheap to make if the pair is in one glance — the Cel
+        // "indistinguishable", and that is only cheap to make if the pair is in one glance - the Cel
         // gym's contract for its own stencil row.
         for (int32 i = 0; i < 2; i++)
         {
@@ -206,7 +206,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
     // Where a player stands to judge from: one clearance out of the alcove mouth, on the judge-scene
     // side. The mouth is along the station's own forward axis, so this follows the row's rotation
     // instead of assuming an axis. Selecting on the station's OWN location would put the player inside
-    // the alcove facing its back wall, with the judge scene behind them — you cannot look at the
+    // the alcove facing its back wall, with the judge scene behind them - you cannot look at the
     // content while choosing the preset that restyles it.
     private FVector Get_StationViewingPoint(FName InTag)
     {
@@ -339,7 +339,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
     }
 
     // const because PrintToScreen is a development-only call and AngelScript rejects non-const members
-    // inside one — the compiler cannot prove the call is side-effect-free in a shipping build otherwise.
+    // inside one - the compiler cannot prove the call is side-effect-free in a shipping build otherwise.
     private FString Get_StationNameAt(int32 InIndex) const
     {
         if (InIndex == 0) { return "Sketch"; }
@@ -381,7 +381,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
     //
     // Normal space and alignment are read back off the subsystem rather than mirrored in a flag here: they
     // are settings the subsystem genuinely owns, and a mirror would be a second source of truth for the
-    // exact value this gym exists to A/B. The two STACK flags are mirrored, and cannot be read back —
+    // exact value this gym exists to A/B. The two STACK flags are mirrored, and cannot be read back
     // an untouched subsystem reports Enabled while rendering nothing.
     //
     // Conditional rows go LAST so a row that appears in only one state cannot shift the index of a keyed
@@ -497,7 +497,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
 
     // The stacking claim the Off station's panel makes, made testable. Cross-hatch and hand-drawn both
     // restyle the whole frame at the same chain location, so whichever blendable renders second wins.
-    // Screen dither sits post-tonemap and genuinely composes — that contrast is what makes the first
+    // Screen dither sits post-tonemap and genuinely composes - that contrast is what makes the first
     // result mean something rather than looking like a bug.
     UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Toggle Hand-Drawn Stack")
     void Ck_GymStylizeCrossHatch_ToggleHandDrawnStack()
@@ -534,7 +534,7 @@ class ACk_UsfStylizeCrossHatchGym_PlayerController : ACk_Gym_Base_PlayerControll
     }
 
     // Debug views are a property of the CURRENT settings, so this edits them in place rather than
-    // re-applying a preset — walking to another station resets it, which is the intended behaviour.
+    // re-applying a preset - walking to another station resets it, which is the intended behaviour.
     UFUNCTION(Exec, DisplayName="Stylize Cross-Hatch Gym - Cycle Debug Mode")
     void Ck_GymStylizeCrossHatch_CycleDebug()
     {

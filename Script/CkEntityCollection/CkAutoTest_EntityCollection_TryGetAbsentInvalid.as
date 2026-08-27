@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK ENTITY COLLECTION — AUTOMATION TEST: TryGet for an unregistered name
+// CK ENTITY COLLECTION - AUTOMATION TEST: TryGet for an unregistered name
 // returns an invalid handle (does not match a different collection by accident).
 
 class UCk_AutoTest_EntityCollection_TryGetAbsentInvalid : UCk_AutoTest_Base

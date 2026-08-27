@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GRID — AUTOMATION TEST: GRID OBJECT FOOTPRINT RESOLUTION
+// CK GRID - AUTOMATION TEST: GRID OBJECT FOOTPRINT RESOLUTION
 //============================================================================
 //
 // Pins the GridObject feature's footprint resolution:

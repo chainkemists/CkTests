@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK ACTOR — AUTOMATION TEST: Request_AddActorComponent FIRES OnComponentAdded
+// CK ACTOR - AUTOMATION TEST: Request_AddActorComponent FIRES OnComponentAdded
 //============================================================================
 //
-// Pins the Request_AddActorComponent → OnActorComponentAdded delegate
+// Pins the Request_AddActorComponent -> OnActorComponentAdded delegate
 // contract end-to-end:
 //   1. Spawn an actor-backed entity via the shared scaffold so it carries
 //      the OwningActor fragment that Request_AddActorComponent ensures on.
@@ -16,7 +16,7 @@
 //
 // Bind-signature note: the delegate's third param is `const FInstancedStruct&`
 // (const-ref), so the AS UFUNCTION must declare `const FInstancedStruct &in`
-// — bare `FInstancedStruct` fails compile with "Specified function is not
+// - bare `FInstancedStruct` fails compile with "Specified function is not
 // compatible with delegate function". See feedback_as_delegate_const_ref_signature.md.
 //============================================================================
 
@@ -54,7 +54,7 @@ class UCk_AutoTest_Actor_AddActorComponent_FiresOnComponentAdded : UCk_AutoTest_
         auto OwnedEntity = FCk_Handle(InEntityScriptHandle);
 
         // The processor's Request_AddActorComponent path ensures on a valid
-        // ComponentParent regardless of AttachmentType — it dereferences
+        // ComponentParent regardless of AttachmentType - it dereferences
         // ComponentParent->GetOwner() to resolve the actor. Pass the helper's
         // SceneRoot to satisfy the validity ensure; DoNotAttach then skips
         // the actual attachment step.

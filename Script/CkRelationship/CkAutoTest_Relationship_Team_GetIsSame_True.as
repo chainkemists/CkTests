@@ -1,7 +1,7 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Get_IsSame returns true for same team
-// Two entities both assigned to team Two → Get_IsSame is true.
+// CK RELATIONSHIP - AUTOMATION TEST: Get_IsSame returns true for same team
+// Two entities both assigned to team Two -> Get_IsSame is true.
 
 class UCk_AutoTest_Relationship_Team_GetIsSame_True : UCk_AutoTest_Base
 {

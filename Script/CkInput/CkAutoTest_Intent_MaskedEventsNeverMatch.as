@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A MASKED PRESS IS NOT AN INPUT
+// CK INTENT - AUTOMATION TEST: A MASKED PRESS IS NOT AN INPUT
 //============================================================================
 //
 // Matching runs per LAYER, over the events that layer was allowed to see. So
 // a modal that consumes a key above the move set does not merely make the
-// move feel wrong — the move is unrepresentable, because the press never
+// move feel wrong - the move is unrepresentable, because the press never
 // reached the layer whose set names it.
 //
 // This is a NEGATIVE, and the silence is only meaningful once the machinery
@@ -15,8 +15,8 @@
 // as the layer that ended the walk. A router that dropped the event entirely
 // would produce the same final silence for an entirely different reason.
 //
-// Both layers declare a Consume capture on the same key — the matcher's is
-// registered for it by the swap, the masker's by hand — so nothing about the
+// Both layers declare a Consume capture on the same key - the matcher's is
+// registered for it by the swap, the masker's by hand - so nothing about the
 // outcome depends on the lower layer being uninterested. It is interested,
 // and it is outranked.
 //============================================================================

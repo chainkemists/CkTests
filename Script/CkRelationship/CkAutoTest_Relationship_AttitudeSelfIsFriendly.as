@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Get_AttitudeTowards(self, self) is Friendly
+// CK RELATIONSHIP - AUTOMATION TEST: Get_AttitudeTowards(self, self) is Friendly
 // Self-attitude short-circuits to Friendly regardless of team assignment.
 
 class UCk_AutoTest_Relationship_AttitudeSelfIsFriendly : UCk_AutoTest_Base

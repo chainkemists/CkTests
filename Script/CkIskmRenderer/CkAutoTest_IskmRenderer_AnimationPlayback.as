@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE F ANIMATION PLAYBACK
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE F ANIMATION PLAYBACK
 //============================================================================
 //
-// Phase F test gate. Verifies the animation playback API surface added in F1–F3:
+// Phase F test gate. Verifies the animation playback API surface added in F1-F3:
 //   - DoHandleRequest overloads (PlayAnimation / StopAnimation) compile and link
 //   - EmitFinishedEvents processor body exists (verified by build succeeding)
 //   - Public Utils API (Request_PlayAnimation / StopAnimation / SetPlayRate /

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: CAN-INTERACT-WITH COMPLEX VALIDATION
+// CK INTERACTION - AUTOMATION TEST: CAN-INTERACT-WITH COMPLEX VALIDATION
 //============================================================================
 //
 // Existing ValidationCustomFails covers a flat "always-false" predicate.

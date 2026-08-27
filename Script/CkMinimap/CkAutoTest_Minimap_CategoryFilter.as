@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK MINIMAP — AUTOMATION TEST: category filter excludes and re-includes
+// CK MINIMAP - AUTOMATION TEST: category filter excludes and re-includes
 //============================================================================
 //
 // A minimap whose params carry a Quest-only tag query must project only the
 // Quest POI; clearing the filter via Request_SetCategoryFilter (empty query
-// accepts everything) must re-include the Shop POI on the next update — the
+// accepts everything) must re-include the Shop POI on the next update - the
 // request also bypasses the update throttle by design.
 //
 // Isolated Y band: 53200.
@@ -46,7 +46,7 @@ class UCk_AutoTest_Minimap_CategoryFilter : UCk_AutoTest_Base
         WaitUntil(n"Check_FilterApplied", n"OnSettled_Filtered");
     }
 
-    // Quest present ALONE does not prove the filter ran — Shop can still be in
+    // Quest present ALONE does not prove the filter ran - Shop can still be in
     // the projection. The filtered state is Quest present AND Shop excluded.
     // Decisive: while the filter is unapplied Shop is present, so this is false.
     UFUNCTION()

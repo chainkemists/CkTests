@@ -15,8 +15,8 @@
 //                |                                 |
 //                +--> Flee (from Approach, short-circuits to Heal)
 //
-// Sub-SM A (on Engage): Combat cycle — WindUp -> Strike -> Recover -> WindUp
-// Sub-SM B (on Heal):   Healing cycle — Gather -> Channel -> Restore -> Gather
+// Sub-SM A (on Engage): Combat cycle - WindUp -> Strike -> Recover -> WindUp
+// Sub-SM B (on Heal):   Healing cycle - Gather -> Channel -> Restore -> Gather
 //
 // Features exercised:
 //   - Two separate sub-state machines on different parent states
@@ -46,7 +46,7 @@ class UCk_SmTest_Hier_HealSubSmTask : UCk_SmTask_SubStateMachine
 };
 
 // ============================================================================
-// CHILD STATES — Sub-SM A (Combat: WindUp -> Strike -> Recover)
+// CHILD STATES - Sub-SM A (Combat: WindUp -> Strike -> Recover)
 // ============================================================================
 
 UCLASS()
@@ -129,7 +129,7 @@ class UCk_SmTest_Hier_Child_Recover : UCk_SmState_EntityScript
 };
 
 // ============================================================================
-// CHILD STATES — Sub-SM B (Healing: Gather -> Channel -> Restore)
+// CHILD STATES - Sub-SM B (Healing: Gather -> Channel -> Restore)
 // ============================================================================
 
 UCLASS()

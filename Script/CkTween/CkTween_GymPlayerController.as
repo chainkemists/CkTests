@@ -33,7 +33,7 @@ class ACk_TweenTest_GymPlayerController : ACk_Gym_Base_PlayerController
             Request_SpawnTweenActor(EasingMethod);
         }
 
-        ck::Trace("✅ Tween Gym - All easing methods started");
+        ck::Trace("[OK] Tween Gym - All easing methods started");
     }
 
     void Request_SpawnTweenActor(ECk_TweenEasing InEasingMethod)

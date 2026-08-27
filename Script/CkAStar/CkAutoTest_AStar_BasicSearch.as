@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK A-STAR — AUTOMATION TEST: BASIC SEARCH ON OPEN GRID
+// CK A-STAR - AUTOMATION TEST: BASIC SEARCH ON OPEN GRID
 //============================================================================
 //
 // Smoke test for the A* search API:
@@ -15,7 +15,7 @@
 // Get_SearchStatus, Get_Path, Get_TotalCost.
 //
 // Reuses the gym's utils_a_star_test::* utility namespace (the production
-// CkAStar API may be exposed differently — this test uses the same path
+// CkAStar API may be exposed differently - this test uses the same path
 // the gym uses, so it follows whatever surface the gym is built against).
 //============================================================================
 

@@ -1,8 +1,8 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Nav-only obstacle for the Crowd Pathing gym. Carves the navmesh (so crowd agents path AROUND it,
 // which is what creates the lateral approach -> orbit), but ignores the player Pawn so the player
-// can walk straight through it instead of getting stuck on it. Crowd agents have no physics body —
-// they avoid obstacles via the carved navmesh, not collision — so ignoring the Pawn costs nothing.
+// can walk straight through it instead of getting stuck on it. Crowd agents have no physics body
+// they avoid obstacles via the carved navmesh, not collision - so ignoring the Pawn costs nothing.
 // --------------------------------------------------------------------------------------------------------------------
 
 class ACk_CrowdPathingGym_NavBox : AActor

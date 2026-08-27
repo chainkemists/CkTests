@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK POI — AUTOMATION TEST: standalone POI at a world location
+// CK POI - AUTOMATION TEST: standalone POI at a world location
 //============================================================================
 //
 // The standalone-POI pattern (utils_poi::Create was removed): create an
@@ -11,7 +11,7 @@
 // bearing ~0 / distance ~1000 (it was placed 1000uu along +X).
 //
 // NOTE: the class keeps its historical Create name (the AutoTests level has a
-// placed runner actor referencing it by class path — renaming requires an
+// placed runner actor referencing it by class path - renaming requires an
 // editor level edit).
 //
 // Isolated Y band: 52400.

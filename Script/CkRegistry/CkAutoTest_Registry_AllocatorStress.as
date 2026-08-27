@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK REGISTRY — AUTOMATION TEST: ALLOCATOR + DESTROY-QUEUE STRESS
+// CK REGISTRY - AUTOMATION TEST: ALLOCATOR + DESTROY-QUEUE STRESS
 //============================================================================
 //
 // Validates that allocating N entities + destroying them all in the same PIE
@@ -15,7 +15,7 @@
 //   5. Finish from the last entity's OnBeginDestroy callback.
 //
 // Cross-PIE coverage (the originally-named "PIE start/stop" intent) is NOT
-// achievable from inside one AutoTest run — that stays operator-driven by
+// achievable from inside one AutoTest run - that stays operator-driven by
 // running the suite repeatedly.
 //============================================================================
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PMG — AUTOMATION TEST: DRAW FILLED SPHERE RETURNS VALID HANDLE
+// CK PMG - AUTOMATION TEST: DRAW FILLED SPHERE RETURNS VALID HANDLE
 //============================================================================
 //
 // Pmg drawing primitives spawn debug-shape entities tracked by a returned

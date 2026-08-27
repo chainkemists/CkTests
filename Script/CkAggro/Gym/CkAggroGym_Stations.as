@@ -1,17 +1,17 @@
 // Language=angelscript
 //
 //============================================================================
-// CkAggro Gym — station EntityScripts
+// CkAggro Gym - station EntityScripts
 //
 // Three self-driving demos of the threat/target-selection feature, visualized
 // with utils_debug_draw. All authority-side; each station owns a "guard" Aggro
 // entity plus dummy "attacker" entities it tracks.
 //
-//   1. Chase        — bursts of threat rotate the active target; the guard eases
+//   1. Chase        - bursts of threat rotate the active target; the guard eases
 //                     toward whoever it is aggro'd on. Dummies redden with threat.
-//   2. Perception   — a vision cone gates decay: a dummy inside the cone is
+//   2. Perception   - a vision cone gates decay: a dummy inside the cone is
 //                     perceived (keeps its threat); outside, threat decays fast.
-//   3. Stress       — many guards x many dummies; the pipeline holds, a sampled
+//   3. Stress       - many guards x many dummies; the pipeline holds, a sampled
 //                     guard reports its selection.
 //============================================================================
 
@@ -29,7 +29,7 @@ struct FCkAggroGym_Station_SpawnParams
 }
 
 // ====================================================================================================================
-// Station 1 — Aggro + Chase
+// Station 1 - Aggro + Chase
 // ====================================================================================================================
 
 class UCk_EntityScript_AggroGym_Chase_Station : UCk_GenericEntityScript_UE
@@ -81,7 +81,7 @@ class UCk_EntityScript_AggroGym_Chase_Station : UCk_GenericEntityScript_UE
         auto DtSec = float(InDeltaT.Get_Seconds());
         _FeedTimer += DtSec;
 
-        // Every 2.5s, dump a burst of threat on the next dummy — the active target rotates around the ring.
+        // Every 2.5s, dump a burst of threat on the next dummy - the active target rotates around the ring.
         if (_FeedTimer >= 2.5)
         {
             _FeedTimer = 0.0;
@@ -117,7 +117,7 @@ class UCk_EntityScript_AggroGym_Chase_Station : UCk_GenericEntityScript_UE
             }
         }
 
-        // Dummies — redder = more threat.
+        // Dummies - redder = more threat.
         for (auto DummyTransform : _Dummies)
         {
             auto  Loc    = utils_transform::Get_EntityCurrentLocation(DummyTransform);
@@ -140,7 +140,7 @@ class UCk_EntityScript_AggroGym_Chase_Station : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station 2 — Line-of-sight cone gates perception (and therefore decay)
+// Station 2 - Line-of-sight cone gates perception (and therefore decay)
 // ====================================================================================================================
 
 class UCk_EntityScript_AggroGym_Perception_Station : UCk_GenericEntityScript_UE
@@ -212,7 +212,7 @@ class UCk_EntityScript_AggroGym_Perception_Station : UCk_GenericEntityScript_UE
         auto ToOrbiter = (OrbiterLoc - _GuardLoc).GetSafeNormal();
         auto InCone    = ToOrbiter.X >= _ConeHalfCos;
 
-        // Mark perception ONLY on cone-entry/exit — FTag_AggroTarget_Perceived is counted.
+        // Mark perception ONLY on cone-entry/exit - FTag_AggroTarget_Perceived is counted.
         if (InCone && !_WasInCone)
         { _Guard.Request_MarkPerceived_ByTrackedEntity(_Orbiter, FCk_Request_AggroTarget_MarkPerceived()); }
         else if (!InCone && _WasInCone)
@@ -246,7 +246,7 @@ class UCk_EntityScript_AggroGym_Perception_Station : UCk_GenericEntityScript_UE
 }
 
 // ====================================================================================================================
-// Station 3 — Stress: many guards x many dummies
+// Station 3 - Stress: many guards x many dummies
 // ====================================================================================================================
 
 class UCk_EntityScript_AggroGym_Stress_Station : UCk_GenericEntityScript_UE

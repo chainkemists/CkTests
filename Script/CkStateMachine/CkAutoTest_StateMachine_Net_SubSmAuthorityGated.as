@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — NET SUB-SM AUTHORITY-GATED TASK (topology only)
+// CK STATE MACHINE - NET SUB-SM AUTHORITY-GATED TASK (topology only)
 //============================================================================
 //
 // Distilled reproduction of the BusterBlock "remote clients can't sprint" bug,
@@ -16,7 +16,7 @@
 //
 // Mirror of the real sprint path:
 //   - The sub-SM transition is gated on a byte attribute (the Intent.Sprint
-//     analog) that the spec sets ONLY on the owning client via Override — exactly
+//     analog) that the spec sets ONLY on the owning client via Override - exactly
 //     how the input profile sets the sprint intent.
 //   - Sub_Active hosts an AUTHORITY-GATED task (Get_HasAuthority early-return)
 //     that adds a revocable Multiply modifier to a float attribute (the
@@ -25,10 +25,10 @@
 // The bug it captures: the sub-SM is DoesNotReplicate and driven locally on every
 // machine. The owning client enters Sub_Active (it has the input) but the
 // authority-gated task no-ops there (no entity authority). The server HAS authority
-// but never enters Sub_Active (its byte-attr copy is 0 — the client-local input
+// but never enters Sub_Active (its byte-attr copy is 0 - the client-local input
 // never reaches it). So the Multiply modifier is added on NO machine, and the float
 // "speed" stays at its base value everywhere. The spec asserts the owning client's
-// float FinalValue reflects the multiplier — RED today.
+// float FinalValue reflects the multiplier - RED today.
 //============================================================================
 
 UCLASS()
@@ -85,7 +85,7 @@ class UCk_SmNetSubGatedTest_Condition_InputPressed : UCk_SmCondition_EventDriven
 }
 
 // ----------------------------------------------------------------------------
-// Release edge — satisfied while the input is NOT pressed. The sprint analog of
+// Release edge - satisfied while the input is NOT pressed. The sprint analog of
 // SprintReleased. The owning client (input held = 1) never satisfies this and
 // stays in Sub_Active; the SERVER's byte input is 0 (client-local), so without
 // authority-gated transition evaluation the server self-evaluates this and
@@ -98,7 +98,7 @@ class UCk_SmNetSubGatedTest_Condition_InputReleased : UCk_SmNetSubGatedTest_Cond
 }
 
 // ----------------------------------------------------------------------------
-// Authority-gated speed modifier — distilled UBb_SmTask_SprintMultiplier. Adds a
+// Authority-gated speed modifier - distilled UBb_SmTask_SprintMultiplier. Adds a
 // revocable Multiply modifier on enter (only on the entity authority), removes on
 // exit. Add_Revocable replicates, so when the AUTHORITY machine is in Sub_Active
 // the modified FinalValue propagates to the owning client.
@@ -152,7 +152,7 @@ class UCk_SmNetSubGatedTest_Sub_Active : UCk_SmState_EntityScript
     {
         AddTask(InHandle, UCk_SmNetSubGatedTest_SpeedModifierTask);
 
-        // Release transition — faithful to sprint's Sprinting -> Walking on input release.
+        // Release transition - faithful to sprint's Sprinting -> Walking on input release.
         // The owning client holds input=1 so it stays here; the server's input is 0, so a
         // non-authority-gated server would self-evaluate this and revert the relayed state.
         auto ToIdle = AddTransition(InHandle, UCk_SmNetSubGatedTest_Sub_Idle);
@@ -184,7 +184,7 @@ class UCk_SmNetSubGatedTest_Parent_Hold : UCk_SmState_EntityScript
     UFUNCTION(BlueprintOverride)
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
-        // Host the sub-SM; the parent intentionally has no outgoing transition — the
+        // Host the sub-SM; the parent intentionally has no outgoing transition - the
         // assertion reads the sub-SM's current state + the float attribute directly.
         AddTask(InHandle, UCk_SmNetSubGatedTest_SubTask);
     }

@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: BYTE MULTIPLY COMPOSES
+// CK ATTRIBUTE - AUTOMATION TEST: BYTE MULTIPLY COMPOSES
 //============================================================================
 //
 // Byte-side parity with CkAutoTest_Attribute_IntegerMultiplyComposes.
 //
-// Pins the Multiply coalescing contract from CkAttribute/CLAUDE.md:
+// Pins the Multiply coalescing contract from the CkAttribute docs:
 //
 //   | Multiply / Divide | factors compose into one modifier |
 //

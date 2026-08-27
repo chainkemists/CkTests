@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: BYTE MODIFIER REMOVE
+// CK ATTRIBUTE - AUTOMATION TEST: BYTE MODIFIER REMOVE
 //============================================================================
 //
 // Byte-side parity with CkAutoTest_Attribute_IntegerModifierRemove. Verifies

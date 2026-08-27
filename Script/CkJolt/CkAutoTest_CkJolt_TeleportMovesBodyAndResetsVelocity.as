@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: TELEPORT MOVES BODY, VELOCITY POLICY HONORED
+// CK JOLT - AUTOMATION TEST: TELEPORT MOVES BODY, VELOCITY POLICY HONORED
 //============================================================================
 //
 // Request_Teleport snaps a body to a pose with no interpolation across the jump,

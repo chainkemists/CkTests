@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK RESOLVER — AUTOMATION TEST: OPERATIONS LAND ONE PHASE LATER
+// CK RESOLVER - AUTOMATION TEST: OPERATIONS LAND ONE PHASE LATER
 //============================================================================
 //
 // CHARACTERIZATION TEST. It pins the resolver's ACTUAL submit-to-visible
@@ -17,7 +17,7 @@
 //   -------------------------------------------|-----------|-----|------
 //   seed 100 -> BaseValue (with the request)    |     0     | 100 | 100
 //   +25 -> BonusValue    (at phase Two start)   |           |   0 |  25
-//   x1.5 -> TotalMultiplier (at phase Three start) — never observed: it would
+//   x1.5 -> TotalMultiplier (at phase Three start) - never observed: it would
 //   surface in phase Four, which does not exist.
 //
 //   observed resolved values: [0] [100] [125]   final: 125
@@ -36,13 +36,13 @@
 // wave's seed. Each wave boundary is a hard barrier, so the lag is absorbed
 // there and the damage value that reaches the receiver is correct. A consumer
 // that collapsed that to a single wave and read its seed back in the first phase
-// would silently get 0 — which is exactly the trap this test documents.
+// would silently get 0 - which is exactly the trap this test documents.
 //
 // WHAT IS NOT ESTABLISHED
 //
 // The mechanism. The suspicion is that the modifier is applied via a revocable
 // float-attribute modifier in ResolveOperations while Calculate reads the
-// attribute's final value in the same pass, one recompute behind — but the
+// attribute's final value in the same pass, one recompute behind - but the
 // float-attribute processors were not traced far enough to confirm ordering, so
 // that is a lead, not a finding. If someone fixes the lag, this test SHOULD go
 // red: it is a record of current behaviour, not an endorsement of it. Update the
@@ -122,7 +122,7 @@ class UCk_AutoTest_Resolver_Cascade_OperationsLandOnePhaseLater : UCk_AutoTest_B
         auto _CkPerfScope = ck::ScopedStat();
 
         Assert_Equals_Int(_ValueAtEachPhaseComplete.Num(), 3,
-            f"Observed one resolved value per phase — got {_ValueAtEachPhaseComplete.Num()}");
+            f"Observed one resolved value per phase - got {_ValueAtEachPhaseComplete.Num()}");
 
         if (_ValueAtEachPhaseComplete.Num() != 3)
         { return; }
@@ -148,7 +148,7 @@ class UCk_AutoTest_Resolver_Cascade_OperationsLandOnePhaseLater : UCk_AutoTest_B
             + f" phase Three start, would need a phase Four to surface. Observed {Seq}");
 
         Assert_Equals_Float(_FinalValue, SeedPlusBonus, 0.01f,
-            f"AllPhasesComplete carries the last phase's value — the trailing operation submitted in"
+            f"AllPhasesComplete carries the last phase's value - the trailing operation submitted in"
             + f" the final phase is silently dropped. Observed {Seq} final {_FinalValue}");
     }
 
@@ -179,7 +179,7 @@ class UCk_AutoTest_Resolver_Cascade_OperationsLandOnePhaseLater : UCk_AutoTest_B
             InDataBundle, FCk_Delegate_ResolverDataBundle_OnAllPhasesComplete(this, n"OnAllPhasesComplete"));
     }
 
-    // Submitting from the phase-start hook is the production shape — it is how
+    // Submitting from the phase-start hook is the production shape - it is how
     // BusterBlock's damage receiver injects into the HitPoints phase.
     UFUNCTION()
     private void OnPhaseStart(FCk_Handle_ResolverDataBundle InDataBundle, FGameplayTag InPhase)

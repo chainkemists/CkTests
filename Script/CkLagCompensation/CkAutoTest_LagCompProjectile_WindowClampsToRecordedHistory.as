@@ -1,19 +1,19 @@
 // Language=angelscript
 
 //============================================================================
-// CK LAG COMP PROJECTILE — AUTOMATION TEST: WINDOW CLAMPS TO RECORDED HISTORY
+// CK LAG COMP PROJECTILE - AUTOMATION TEST: WINDOW CLAMPS TO RECORDED HISTORY
 //============================================================================
 //
 // A compensated launch arrives with a compensation window (30s) that reaches
 // far beyond the target's recorded history (<1s). The launch anchor honors
-// the requested window — that is the deterministic trajectory contract — but
+// the requested window - that is the deterministic trajectory contract - but
 // the rewind sweep must only validate against the span the history actually
 // recorded. The trajectory crossed the target's position ~30s ago in
 // simulated time, when NO history existed, so:
 //   - ZERO rewind hits are confirmed (the pre-fix code manufactured a hit
 //     there by clamping ancient times to the oldest recorded pose), and
 //   - the sweep terminates promptly (bounded by retention, not by the
-//     window — the pre-fix code iterated the full 30s slice by slice).
+//     window - the pre-fix code iterated the full 30s slice by slice).
 //============================================================================
 
 class UCk_AutoTest_LagCompProjectile_WindowClampsToRecordedHistory : UCk_AutoTest_Base
@@ -81,11 +81,11 @@ class UCk_AutoTest_LagCompProjectile_WindowClampsToRecordedHistory : UCk_AutoTes
 
         auto NewestRecorded = _TargetHistory.Get_NewestFrameTime().Get_Seconds();
 
-        // The launch anchor honors the request — 30s in the past (plus the fudge factor)
+        // The launch anchor honors the request - 30s in the past (plus the fudge factor)
         Assert_True(InInitialConditions.Get_StartTime().Get_Seconds() < NewestRecorded - 29.0,
             f"Launch anchor should honor the requested window (start={InInitialConditions.Get_StartTime().Get_Seconds()}, newest={NewestRecorded})");
 
-        // The trajectory passed the target's location ~30s before any history was recorded —
+        // The trajectory passed the target's location ~30s before any history was recorded
         // clamping ancient times to the oldest recorded pose must NOT manufacture a hit
         Assert_Equals_Int(InRewindHits.Num(), 0,
             "No rewind hits: the catch-up crossed the target in the pre-history era");

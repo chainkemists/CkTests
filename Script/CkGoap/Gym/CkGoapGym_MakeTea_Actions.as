@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapGym — Make Tea station Actions
+// CkGoapGym - Make Tea station Actions
 //
 // Four-step linear dependency chain:
 //   BoilWater  pre {HasKettle, HasWater}        eff {WaterBoiled}

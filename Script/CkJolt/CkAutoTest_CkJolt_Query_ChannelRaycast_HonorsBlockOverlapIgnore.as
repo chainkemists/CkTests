@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: CHANNEL QUERIES HONOR BLOCK / OVERLAP / IGNORE
+// CK JOLT - AUTOMATION TEST: CHANNEL QUERIES HONOR BLOCK / OVERLAP / IGNORE
 //============================================================================
 //
 // The signature-driven layer table must reproduce UE trace semantics:

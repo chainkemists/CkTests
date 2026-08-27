@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: GAMEPLAY TAG PARENT FLATTEN
+// CK ENTITY TAG - AUTOMATION TEST: GAMEPLAY TAG PARENT FLATTEN
 //============================================================================
 //
 // Adding gameplay tag AutoTestEt.A.B.C must register every ancestor in the

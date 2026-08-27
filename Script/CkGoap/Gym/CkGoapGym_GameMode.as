@@ -1,17 +1,17 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoap_Gym — Main Gym GameMode + PlayerController
+// CkGoap_Gym - Main Gym GameMode + PlayerController
 //
 // Spawns 7 stations of ascending complexity:
-//   1. Open Door         — atomic plan
-//   2. Make Tea          — 4-step linear chain (intentional PlanFailed demo —
+//   1. Open Door         - atomic plan
+//   2. Make Tea          - 4-step linear chain (intentional PlanFailed demo
 //                          ingredient drop; opts out of always-valid-plan tenet)
-//   3. Cross River       — 3-branch cost selection
-//   4. Patrol Route      — composite Action, chain extends to [Root, DoPatrol]
-//   5. Survival Decision — two independent ActionSets on one entity
-//   6. Combat Brain      — 4-tier canonical hierarchy (spec 2.2)
-//   7. Opt-Out Demo      — intentional permanent PlanFailed via
+//   3. Cross River       - 3-branch cost selection
+//   4. Patrol Route      - composite Action, chain extends to [Root, DoPatrol]
+//   5. Survival Decision - two independent ActionSets on one entity
+//   6. Combat Brain      - 4-tier canonical hierarchy (spec 2.2)
+//   7. Opt-Out Demo      - intentional permanent PlanFailed via
 //                          _AllowPlanFailed=true; counterpart to MakeTea
 //
 // Each station is its own ECS entity tagged with a station identity gameplay
@@ -153,7 +153,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //--------------------------------------------------------------------------
-    // WS lookup helpers — locate the named WorldState child of a station entity.
+    // WS lookup helpers - locate the named WorldState child of a station entity.
     // Each station creates its WS in DoConstruct with a name tag matching the
     // station's domain (Door / Tea / CrossRiver / Patrol / Survival).
     //--------------------------------------------------------------------------
@@ -383,7 +383,7 @@ class ACk_GoapGym_PlayerController : ACk_Gym_Base_PlayerController
         Set(WS, n"Gym.Goap.WS.CombatBrain.EnemyDead", false);
     }
 
-    // Drive the entire chain to terminal state — useful for showing the
+    // Drive the entire chain to terminal state - useful for showing the
     // plan running to completion without manually flipping every key.
     UFUNCTION(Exec, DisplayName="Goap.CombatBrain.Complete")
     void Goap_CombatBrain_Complete()

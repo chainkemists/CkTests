@@ -1,8 +1,8 @@
 //============================================================================
-// REPLICATION GYM — REPLICATED ACTOR ENTITY SCRIPT (Scenario A)
+// REPLICATION GYM - REPLICATED ACTOR ENTITY SCRIPT (Scenario A)
 //============================================================================
 // Mirror of UBB_Store_EntityScript. Replicates, and in DoConstructWithActor
-// adds a replicated Integer Attribute — this is the call path that currently
+// adds a replicated Integer Attribute - this is the call path that currently
 // triggers:
 //   Ensure: No container fragment entry found for type
 //           [Ck_RepData_IntegerAttributes] on Entity ...
@@ -44,13 +44,13 @@ class UCk_ReplicationGym_ReplicatedActor_EntityScript : UCk_EntityScript_WithAct
         utils_messaging::BindTo_OnBroadcast(InHandle, FCk_Message_ReplicationGym_SetAttribute,
             FCk_Delegate_Messaging_OnBroadcast(this, n"OnSetAttribute"));
 
-        // Display timer — every frame, update the station demo display.
+        // Display timer - every frame, update the station demo display.
         auto DisplayTimerParams = FCk_Fragment_Timer_ParamsData(FCk_Time(0.0f));
         DisplayTimerParams.Set_StartingState(ECk_Timer_State::Running).Set_Behavior(ECk_Timer_Behavior::ResetOnDone);
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
-        ck::Warning("[ReplicationGym] ReplicatedActor entity construction done — "
+        ck::Warning("[ReplicationGym] ReplicatedActor entity construction done - "
                   + "if 'No container fragment entry found' appears above this line, bug reproduced");
     }
 
@@ -76,7 +76,7 @@ class UCk_ReplicationGym_ReplicatedActor_EntityScript : UCk_EntityScript_WithAct
         auto AttrValue = AttrPresent ? AttrHandle.Get_FinalValue(ECk_MinMaxCurrent::Current) : 0;
         auto PresenceStr = AttrPresent ? "YES" : "NO";
 
-        auto Title = "REPLICATION — REPLICATED ACTOR (" + NetworkRole + ")";
+        auto Title = "REPLICATION - REPLICATED ACTOR (" + NetworkRole + ")";
 
         FString Body;
         Body = Body + "Scenario A: replicated actor -> WithActor entity script\n";

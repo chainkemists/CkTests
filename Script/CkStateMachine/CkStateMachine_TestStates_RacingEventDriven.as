@@ -1,5 +1,5 @@
 // ============================================================================
-// SM RACING EVENT-DRIVEN TRANSITIONS — REGRESSION TEST STATES
+// SM RACING EVENT-DRIVEN TRANSITIONS - REGRESSION TEST STATES
 // ============================================================================
 //
 // What this test guards against:
@@ -9,20 +9,20 @@
 // activating that transition's evaluation but never inspecting any later
 // sibling. When two event-driven transitions race on the same state, a later
 // transition that has already resolved Pass is silently ignored if any
-// earlier transition is still Undetermined — and worse, with the bug present
+// earlier transition is still Undetermined - and worse, with the bug present
 // the second transition's condition never gets activated at all (its timer
 // never starts), so the slow-first transition wins by default at its delay.
 //
 // Topology:
 //
-//     Idle -+-> DestA   (event-driven timer, slow — added FIRST)
-//           `-> DestB   (event-driven timer, fast — added SECOND, should win)
+//     Idle -+-> DestA   (event-driven timer, slow - added FIRST)
+//           `-> DestB   (event-driven timer, fast - added SECOND, should win)
 //
 // Both transitions are pure event-driven timer conditions. With the fix in
 // place, every Undetermined sibling is activated each evaluation pass; the
-// fast timer fires first and ToDestB Pass'es first → DestB wins. Without
+// fast timer fires first and ToDestB Pass'es first -> DestB wins. Without
 // the fix, only ToDestA's evaluation ever begins; ToDestA Pass'es at its
-// (slower) delay → DestA wins.
+// (slower) delay -> DestA wins.
 //
 // PASS criterion: SM lands on DestB exactly once.
 // FAIL: SM lands on DestA (the first-declared, slower transition that
@@ -66,7 +66,7 @@ namespace SmRacing_Registry
 }
 
 // ============================================================================
-// CONDITIONS — event-driven timer Pass after a delay sourced from the gym
+// CONDITIONS - event-driven timer Pass after a delay sourced from the gym
 // actor (so a single set of state classes can be reused by both the visual
 // gym station with watchable timing and the headless autotest with fast
 // timing).
@@ -167,7 +167,7 @@ class UCk_SmTest_Racing_State_Idle : UCk_SmState_EntityScript
     void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        // ORDER MATTERS — ToDestA is declared first. With the bug, the state
+        // ORDER MATTERS - ToDestA is declared first. With the bug, the state
         // evaluator hits ToDestA's Undetermined transition first, Break's,
         // and never inspects ToDestB. After the fix, every Undetermined
         // sibling is activated each pass and the first Pass wins; ToDestB

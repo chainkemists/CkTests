@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: CONTEXT-OWNER GRANDPARENT WALK
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: CONTEXT-OWNER GRANDPARENT WALK
 //============================================================================
 //
 // Pins the contract of Get_ContextOwner traversal across a 3-deep chain.
@@ -10,7 +10,7 @@
 //
 //   1. Get_ContextOwner returns the IMMEDIATE owner (one hop up), not the
 //      transitive root.
-//   2. Repeatedly applying Get_ContextOwner walks up the chain — Get(Get(A))
+//   2. Repeatedly applying Get_ContextOwner walks up the chain - Get(Get(A))
 //      reaches the grandparent.
 //
 // Setup: chain A -> B -> C via Request_Override. Then:
@@ -75,7 +75,7 @@ class UCk_AutoTest_EntityLifecycle_ContextOwnerGrandparent : UCk_AutoTest_Base
         // Walk: applying Get_ContextOwner twice should reach the grandparent.
         auto Grandparent = utils_context_owner::Get_ContextOwner(OwnerOfA);
         Assert_True(utils_handle::IsEqual(Grandparent, _C),
-            "Get_ContextOwner(Get_ContextOwner(A)) must reach C — chain traversal works by composition");
+            "Get_ContextOwner(Get_ContextOwner(A)) must reach C - chain traversal works by composition");
 
         FinishSuccess();
     }

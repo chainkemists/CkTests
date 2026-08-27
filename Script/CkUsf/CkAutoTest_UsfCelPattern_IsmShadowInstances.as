@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK USF ENTITY CEL PATTERN — AUTOTEST: ISM shadow-instance bookkeeping
+// CK USF ENTITY CEL PATTERN - AUTOTEST: ISM shadow-instance bookkeeping
 //============================================================================
 //
 // The cel-pattern twin of CkAutoTest_UsfOutline_IsmShadowInstances. Four
@@ -66,7 +66,7 @@ class UCk_AutoTest_UsfCelPattern_IsmShadowInstances : UCk_AutoTest_Base
 
         if (_Phase == 0 && _TicksInPhase >= 2)
         {
-            // Proxies set up + instances added — two entities per pattern.
+            // Proxies set up + instances added - two entities per pattern.
             UCk_Utils_Usf_CelPattern_UE::Request_SetCelPattern(_EntityA, ECk_Usf_CelPattern::Bayer, ECk_Usf_OutlineScope::EntityOnly);
             UCk_Utils_Usf_CelPattern_UE::Request_SetCelPattern(_EntityB, ECk_Usf_CelPattern::Bayer, ECk_Usf_OutlineScope::EntityOnly);
             UCk_Utils_Usf_CelPattern_UE::Request_SetCelPattern(_EntityC, ECk_Usf_CelPattern::Lines, ECk_Usf_OutlineScope::EntityOnly);

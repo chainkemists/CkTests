@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: INTEGER PRE-CLAMP / OVERFLOW
+// CK ATTRIBUTE - AUTOMATION TEST: INTEGER PRE-CLAMP / OVERFLOW
 //============================================================================
 //
 // Verifies that the OnMin/MaxClamped signal payload carries accurate
@@ -27,15 +27,15 @@
 //
 // Why use the SIGNAL PAYLOAD's pre-clamp values rather than polling
 // Get_PreClampFinalValue / Get_ClampOverflow at settle time:
-//   Per CkAttribute/CLAUDE.md, the two TFragment_Attribute_PreClampFinalValue
-//   fragments are not symmetric — Min-before-Max ordering means the Max
+//   Per the CkAttribute docs, the two TFragment_Attribute_PreClampFinalValue
+//   fragments are not symmetric - Min-before-Max ordering means the Max
 //   fragment captures pre-min-clamp value, not pre-any-clamp. The
 //   utility accessors abstract over this asymmetry, but the SIGNAL PAYLOAD
 //   carries the correct pre-clamp value for THIS direction at fire time,
 //   which is what gameplay code reading the event actually wants. Testing
 //   the payload tests the path callers actually use.
 //
-// Pattern A (signal-driven step machine) — same as IntegerClamping. Two
+// Pattern A (signal-driven step machine) - same as IntegerClamping. Two
 // requests in one frame would coalesce (gotcha #10), so each step waits
 // for its own signal before triggering the next.
 //============================================================================

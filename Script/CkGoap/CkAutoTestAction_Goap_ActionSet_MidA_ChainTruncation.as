@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: MID_A (ChainTruncation test)
+// CK GOAP - AUTOMATION TEST ACTION: MID_A (ChainTruncation test)
 //============================================================================
 //
 // Mid-level composite action A for the ChainTruncation test.
@@ -13,7 +13,7 @@
 // ChainUpdate extends the chain to [Root, Mid_A] when Mid_A is chosen.
 //
 // After Request_SetActionCost bumps Mid_A's cost to 100, Root replans
-// and picks Mid_B instead — triggering the chain truncation.
+// and picks Mid_B instead - triggering the chain truncation.
 //============================================================================
 
 class UCk_AutoTestAction_Goap_ActionSet_MidA_ChainTruncation : UCk_GoapAction_EntityScript

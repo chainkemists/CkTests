@@ -1,14 +1,14 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: ON-INTERACTION-FINISHED PAYLOAD SHAPE
+// CK INTERACTION - AUTOMATION TEST: ON-INTERACTION-FINISHED PAYLOAD SHAPE
 //============================================================================
 //
 // Pins the FCk_Delegate_InteractTarget_OnInteractionFinished call shape:
 //   - 3 args: (FCk_Handle_InteractTarget, FCk_Handle_Interaction, ECk_SucceededFailed)
 //   - Target arg equals the target the delegate was bound on.
 //   - Interaction arg equals the FCk_Handle_Interaction observed in
-//     OnNewInteraction (same entity carried through start → finish).
+//     OnNewInteraction (same entity carried through start -> finish).
 //   - Result is Succeeded for an Instant-policy interaction with no
 //     validator rejections.
 //

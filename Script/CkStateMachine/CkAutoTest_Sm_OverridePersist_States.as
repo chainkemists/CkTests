@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK STATE MACHINE — SAVE/LOAD OVERRIDE-PERSISTENCE STATE CLASSES
+// CK STATE MACHINE - SAVE/LOAD OVERRIDE-PERSISTENCE STATE CLASSES
 //============================================================================
 //
 // Two state classes used by the C++ gate Ck.Snapshot.SmStateOverride_Reload
@@ -9,7 +9,7 @@
 // runtime Request_AddOverrideState survives a snapshot save -> OpenLevel reload.
 //
 // These live in AngelScript because an override-state class must override
-// DoGet_StatesToOverride, a BlueprintImplementableEvent — authorable only in
+// DoGet_StatesToOverride, a BlueprintImplementableEvent - authorable only in
 // AngelScript/Blueprint, NOT plain C++. The C++ gate resolves both classes by
 // package path (/Script/Angelscript.Ck_SmOvrPersist_*), the same idiom the
 // SubStateMachine net subjects use for their AS-authored states.
@@ -24,14 +24,14 @@ UCLASS()
 class UCk_SmOvrPersist_Target : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle) { /* sink — no transitions */ }
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle) { /* sink - no transitions */ }
 }
 
 UCLASS()
 class UCk_SmOvrPersist_Replacement : UCk_SmState_EntityScript
 {
     UFUNCTION(BlueprintOverride)
-    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle) { /* sink — no transitions */ }
+    void DoDefineState(FCk_Handle_SmState_UnderConstruction& InHandle) { /* sink - no transitions */ }
 
     UFUNCTION(BlueprintOverride)
     TArray<FGameplayTag> DoGet_StatesToOverride() const

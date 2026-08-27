@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK EQS — AUTOMATION TEST: RANDOM RUN MODES TRUNCATE TO ONE
+// CK EQS - AUTOMATION TEST: RANDOM RUN MODES TRUNCATE TO ONE
 //============================================================================
 //
 // Verifies the RandomBest5Pct / RandomBest25Pct path returns exactly one
@@ -18,11 +18,11 @@ class UCk_AutoTest_Eqs_RandomRunMode : UCk_AutoTest_Base
         auto LocalHandle = InHandle;
         utils_transform::Add(LocalHandle, FTransform::Identity, ECk_Replication::DoesNotReplicate);
 
-        // Bigger grid → more candidates → top-5% slice has more than 1 element.
+        // Bigger grid -> more candidates -> top-5% slice has more than 1 element.
         auto Generator = FCk_Eqs_GeneratorParams();
         Generator.Set_GeneratorType(ECk_Eqs_GeneratorType::SimpleGrid);
         Generator.Set_SpaceBetween(50.0f);
-        Generator.Set_GridHalfSize(500.0f);   // 21x21 = 441 candidates → top 5% = 22
+        Generator.Set_GridHalfSize(500.0f);   // 21x21 = 441 candidates -> top 5% = 22
 
         auto Distance = FCk_Eqs_TestParams();
         Distance.Set_TestType(ECk_Eqs_TestType::Distance);
@@ -54,13 +54,13 @@ class UCk_AutoTest_Eqs_RandomRunMode : UCk_AutoTest_Base
         Assert_Equals_Int(CandidatesB.Num(), 1,
             "RandomBest25Pct must truncate to a single picked candidate");
 
-        // AllMatchingSorted case — should NOT truncate.
+        // AllMatchingSorted case - should NOT truncate.
         Params.Set_RunMode(ECk_Eqs_RunMode::AllMatchingSorted);
         auto QueryC = utils_eqs::Request_RunQuery_Immediate(LocalHandle, Params);
         Assert_True(ck::IsValid(QueryC), "AllMatchingSorted query should return a valid handle");
         Assert_True(utils_eqs::Get_HasResults(QueryC), "AllMatchingSorted should produce results");
         auto CandidatesC = utils_eqs::Get_AllCandidates(QueryC);
-        // Without filter tests, every candidate passes → all 441 returned.
+        // Without filter tests, every candidate passes -> all 441 returned.
         Assert_True(CandidatesC.Num() > 1,
             f"AllMatchingSorted should retain >1 candidates (got {CandidatesC.Num()})");
 

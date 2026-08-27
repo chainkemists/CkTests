@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY TAG — AUTOMATION TEST: ANY-ENTITY LISTENER FIRES ON ADD
+// CK ENTITY TAG - AUTOMATION TEST: ANY-ENTITY LISTENER FIRES ON ADD
 //============================================================================
 //
-// Verifies J2 — UCk_Utils_EntityTag_UE::BindTo_OnTagUpdated_AnyEntity with a
+// Verifies J2 - UCk_Utils_EntityTag_UE::BindTo_OnTagUpdated_AnyEntity with a
 // specific FName filter fires when ANY entity gains that tag, exactly once
-// per 0→1 presence flip. A subsequent add of a *different* tag must NOT
+// per 0->1 presence flip. A subsequent add of a *different* tag must NOT
 // re-fire the listener (filter is honored).
 //
 // The second phase asserts a NON-event, so it waits on a WITNESS instead: the

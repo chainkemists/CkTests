@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INPUT — AUTOMATION TEST: A REMAP FIRES THE CHANGE LISTENER EXACTLY ONCE
+// CK INPUT - AUTOMATION TEST: A REMAP FIRES THE CHANGE LISTENER EXACTLY ONCE
 //============================================================================
 //
 // UCk_KeyBinding_Subsystem is what lets a settings row redraw itself without
@@ -30,7 +30,7 @@
 //
 // TEARDOWN ORDER IS LOAD-BEARING: unbind first, then reset. ResetMappingToDefault
 // broadcasts too, and a listener still attached would count that broadcast as
-// well — leaving the row correct but the fire count meaningless on a re-run.
+// well - leaving the row correct but the fire count meaningless on a re-run.
 //============================================================================
 
 class UCk_AutoTest_Input_ChangeSignalFiresOnRemap : UCk_AutoTest_Base
@@ -46,7 +46,7 @@ class UCk_AutoTest_Input_ChangeSignalFiresOnRemap : UCk_AutoTest_Base
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the key profile lives on the local player");
+            FinishFailure("no local PlayerController - the key profile lives on the local player");
             return;
         }
 

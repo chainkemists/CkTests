@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTERACTION — AUTOMATION TEST: CONCURRENT INTERACTIONS, SAME TARGET
+// CK INTERACTION - AUTOMATION TEST: CONCURRENT INTERACTIONS, SAME TARGET
 //============================================================================
 //
 // Pins the contract of `_ConcurrentInteractionsPolicy` on InteractTarget:
@@ -15,7 +15,7 @@
 // stays in flight until we explicitly end it. While in flight, we attempt a
 // second start with a different InteractSource handle and assert rejection.
 //
-// (MultipleInteractions semantics — both proceed in parallel — would require
+// (MultipleInteractions semantics - both proceed in parallel - would require
 // two distinct source entities + two simultaneous OnNewInteraction observers,
 // which is doable but doubles the fixture setup. SingleInteraction
 // rejection is the load-bearing half: it's what gates the gameplay

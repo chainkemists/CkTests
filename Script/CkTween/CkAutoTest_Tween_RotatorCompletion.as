@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: ROTATOR COMPLETION
+// CK TWEEN - AUTOMATION TEST: ROTATOR COMPLETION
 //============================================================================
 //
 // Verifies the rotator-tween API:

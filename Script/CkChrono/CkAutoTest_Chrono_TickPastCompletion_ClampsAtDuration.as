@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CHRONO — AUTOMATION TEST: TICK PAST COMPLETION CLAMPS AT DURATION
+// CK CHRONO - AUTOMATION TEST: TICK PAST COMPLETION CLAMPS AT DURATION
 //============================================================================
 //
 // Pins the clamp-on-overshoot contract: a single Tick that pushes elapsed
@@ -23,7 +23,7 @@ class UCk_AutoTest_Chrono_TickPastCompletion_ClampsAtDuration : UCk_AutoTest_Bas
         auto Chrono = FCk_Chrono();
         Chrono._GoalValue = FCk_Time(1.0f);
 
-        // Single Tick of 5x the goal — should clamp at goal, not overshoot to 5.
+        // Single Tick of 5x the goal - should clamp at goal, not overshoot to 5.
         utils_chrono::Tick(Chrono, FCk_Time(5.0f));
 
         Assert_True(utils_chrono::Get_IsDone(Chrono),

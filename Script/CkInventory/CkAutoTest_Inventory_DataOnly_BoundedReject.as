@@ -1,23 +1,23 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: BOUNDED REJECTION
+// CK INVENTORY - AUTOMATION TEST: BOUNDED REJECTION
 //============================================================================
 //
 // Verifies that a bounded data-only inventory rejects adds that would
 // exceed its capacity:
 //   1. Create a bounded(2) inventory.
-//   2. Add Potion → Success (count=1).
-//   3. Add Potion → Success (count=2, at capacity).
-//   4. Add Potion → result is NOT Succeeded; Get_NumItems remains 2.
+//   2. Add Potion -> Success (count=1).
+//   3. Add Potion -> Success (count=2, at capacity).
+//   4. Add Potion -> result is NOT Succeeded; Get_NumItems remains 2.
 //
 // Step-machine pattern: each add is queued only after the previous result
 // is observed (request coalescing would silently drop intermediate adds
 // otherwise).
 //
-// NOTE — GAP IN GYM COVERAGE (potential gym addition):
+// NOTE - GAP IN GYM COVERAGE (potential gym addition):
 //   The bounded gym (CkInventoryGym_DataOnly_Bounded) auto-step description
-//   says "Overfill (expect reject)" but never asserts the rejection — the
+//   says "Overfill (expect reject)" but never asserts the rejection - the
 //   gym only displays Last result text visually. A regression where over-
 //   capacity adds silently succeed (or where the result enum gets renamed
 //   without the gym noticing) would not be caught visually. This test
@@ -73,7 +73,7 @@ class UCk_AutoTest_Inventory_DataOnly_BoundedReject : UCk_AutoTest_Base
             return;
         }
 
-        // Third add — should be rejected with NoSpaceAvailable.
+        // Third add - should be rejected with NoSpaceAvailable.
         Assert_True(InResult == ECk_Inventory_OperationResult_AddByDefinition::Failed_NoSpaceAvailable,
             f"Add #3 over bounded(2) capacity should fail with Failed_NoSpaceAvailable (got {InResult})");
         Assert_Equals_Int(_Inventory.Get_NumItems(), 2,

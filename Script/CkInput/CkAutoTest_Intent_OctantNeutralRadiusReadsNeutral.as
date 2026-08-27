@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A SHORT VECTOR HAS NO DIRECTION
+// CK INTENT - AUTOMATION TEST: A SHORT VECTOR HAS NO DIRECTION
 //============================================================================
 //
 // Angle is defined for any non-zero vector, which is the problem: a stick a
 // hair off centre has a perfectly real angle and a completely arbitrary one.
-// The neutral radius is the sampler's answer — below it the row reads Neutral
+// The neutral radius is the sampler's answer - below it the row reads Neutral
 // rather than naming whichever octant the noise fell in.
 //
 // Three readings at TWO angles, in this order, because the third one is what
@@ -18,13 +18,13 @@
 //                                       CLEARED the remembered NE
 //
 // That last line is the load-bearing one. 20 degrees sits 25 degrees from NE's
-// centre, inside NE's hold band of 22.5 + 5 — so a sampler that kept its
+// centre, inside NE's hold band of 22.5 + 5 - so a sampler that kept its
 // hysteresis memory through the neutral pass would still be reporting NE here.
 // Reading E is only possible if going neutral reset it, which is the documented
 // contract: hysteresis damps a flicker inside ONE gesture, and a stick that came
 // back to centre has ended the gesture.
 //
-// An InputBias is composed but left EMPTY — an identity passthrough — so the
+// An InputBias is composed but left EMPTY - an identity passthrough - so the
 // magnitudes under test are the magnitudes asked for, and the axis reaches the
 // row by the same path the conditioned-axis test already pins.
 //============================================================================
@@ -108,7 +108,7 @@ class UCk_AutoTest_Intent_OctantNeutralRadiusReadsNeutral : UCk_AutoTest_Base
     private void Step_AssertNeutral(FCk_Handle InHandle, FInstancedStruct InPayload)
     {
         DoAssertOctant(ECk_Intent_Octant::Neutral,
-            "the same angle inside the radius reads Neutral — magnitude, not angle, decides whether there is a direction at all");
+            "the same angle inside the radius reads Neutral - magnitude, not angle, decides whether there is a direction at all");
     }
 
     UFUNCTION()

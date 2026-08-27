@@ -1,6 +1,6 @@
 // Language=angelscript
 //============================================================================
-// CK CROWD — AUTOMATION TEST: PATHS ROUTE AROUND A STATIONARY LINE
+// CK CROWD - AUTOMATION TEST: PATHS ROUTE AROUND A STATIONARY LINE
 //
 // The stationary-markup tier (FProcessor_CrowdAgent_StationaryMarkup): agents
 // that hold still paint a UCk_NavArea_CrowdAgent cost disc, so a fresh path for
@@ -8,9 +8,9 @@
 // through.
 //
 // Shape: a picket line of 5 idle agents across the X axis at x=0. A path is
-// queried from (-500,0) to (+500,0) — agent-blind pathfinding returns the
+// queried from (-500,0) to (+500,0) - agent-blind pathfinding returns the
 // straight line through the picket. With markup enabled, once the discs paint
-// (stationary delay + async tile rebuild — hence the poll), the path detours
+// (stationary delay + async tile rebuild - hence the poll), the path detours
 // around the line's end. Red-green via ECk_CrowdStationaryMarkupMode.
 //============================================================================
 
@@ -90,7 +90,7 @@ class UCk_AutoTest_Crowd_StationaryLine_PathsRouteAround : UCk_AutoTest_Base
         _Attempts += 1;
         if (_Attempts > MaxAttempts)
         {
-            FinishFailure(f"path never detoured around the stationary line after {MaxAttempts} attempts — worst clearance {_LastWorstClearance}uu (need {MinClearanceUu}uu). Stationary markup is not steering paths.");
+            FinishFailure(f"path never detoured around the stationary line after {MaxAttempts} attempts - worst clearance {_LastWorstClearance}uu (need {MinClearanceUu}uu). Stationary markup is not steering paths.");
             return;
         }
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: ROOT B (TwoPeerPlanners test)
+// CK GOAP - AUTOMATION TEST ACTION: ROOT B (TwoPeerPlanners test)
 //============================================================================
 //
 // Root action for Planner B in the TwoPeerPlanners test.
@@ -9,8 +9,8 @@
 //   - Goal    : _InitialGoal_RootOnly set to {BKey=true} in the test
 //   - Cost    : 1.0
 //
-// WS is pre-set to BKey=true so the goal is immediately satisfied →
-// empty plan → PlanFound. This keeps the two Planners symmetric and
+// WS is pre-set to BKey=true so the goal is immediately satisfied ->
+// empty plan -> PlanFound. This keeps the two Planners symmetric and
 // ensures they fire independently.
 //============================================================================
 

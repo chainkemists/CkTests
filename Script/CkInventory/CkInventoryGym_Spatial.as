@@ -169,7 +169,7 @@ class UCk_EntityScript_InvGym_Spatial : UCk_GenericEntityScript_UE
         if (Placement._Succeeded == false)
         {
             LastFailedCoord = Typed.Coordinate;
-            ck::Warning(f"[InvGym Spatial] Cannot place {Typed.DefName} at ({Typed.Coordinate.X},{Typed.Coordinate.Y}) — blocked");
+            ck::Warning(f"[InvGym Spatial] Cannot place {Typed.DefName} at ({Typed.Coordinate.X},{Typed.Coordinate.Y}) - blocked");
             return;
         }
 

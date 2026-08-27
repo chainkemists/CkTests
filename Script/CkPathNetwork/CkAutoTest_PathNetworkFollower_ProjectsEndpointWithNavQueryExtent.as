@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK PATH NETWORK — AUTOMATION TEST: PROJECTS ENDPOINT WITH NAV QUERY EXTENT
+// CK PATH NETWORK - AUTOMATION TEST: PROJECTS ENDPOINT WITH NAV QUERY EXTENT
 //============================================================================
 //
 // The AutoTests navmesh ends near X=500. The raw goal is deliberately farther

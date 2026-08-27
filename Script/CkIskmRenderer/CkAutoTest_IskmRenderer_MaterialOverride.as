@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PER-PROXY MATERIAL OVERRIDE
+// CK ISKM RENDERER - AUTOMATION TEST: PER-PROXY MATERIAL OVERRIDE
 //============================================================================
 //
 // Verifies the per-proxy material-override capability (Phase 1a of the
@@ -13,7 +13,7 @@
 //   3. POOL HYGIENE (load-bearing): destroying the proxy entity returns its
 //      SKMC to the renderer pool (LIFO). A second proxy created against the
 //      same renderer borrows the SAME SKMC and must come back with the
-//      mesh-default material — no override leak across borrowers.
+//      mesh-default material - no override leak across borrowers.
 //
 // Skip condition (mirrors CustomDataSuccess): missing wrapper/demo assets ->
 // FinishSuccess without asserting.

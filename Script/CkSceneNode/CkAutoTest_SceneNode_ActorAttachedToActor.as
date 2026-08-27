@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE — AUTOMATION TEST: ACTOR ATTACHED TO ACTOR
+// CK SCENE NODE - AUTOMATION TEST: ACTOR ATTACHED TO ACTOR
 //============================================================================
 //
 // Reproduces the bug observed when trying to make a WithActor-backed entity
@@ -30,9 +30,9 @@
 // actor's RootComponent drives the entity's Transform fragment), so any
 // WithActor-bound entity (like ABb_ItemActor) is treated as "actor-
 // authoritative" and the scene-node parent's transform is never propagated
-// into it. (A sibling processor used to run the OPPOSITE direction — reading the
+// into it. (A sibling processor used to run the OPPOSITE direction - reading the
 // actor's world transform and rewriting the relative offset on the scene-node
-// fragment — but it was removed; anchor-follow now lives in
+// fragment - but it was removed; anchor-follow now lives in
 // FProcessor_SceneNode_FollowUnrealAnchor for CreateAndAttachToUnreal* nodes.)
 //
 // In short: WithActor + scene-node parent are mutually exclusive in the
@@ -54,7 +54,7 @@
 //   2. When A's entity is ECS-ready, create a child SceneNode on A's entity
 //      transform with a known local offset (location + rotation).
 //   3. Spawn Actor B at the origin (the spawn pose is irrelevant if propagation
-//      works — the scene-node parenting overrides it).
+//      works - the scene-node parenting overrides it).
 //   4. When B's entity is ECS-ready, scene-node-parent B's entity transform
 //      to the SceneNode created in (2) with FTransform::Identity local offset.
 //   5. Wait a few frames for the ECS scene-node + transform sync processors.
@@ -66,8 +66,8 @@
 //   9. Assert both layers reflect the new pose.
 //============================================================================
 
-// Non-replicated WithActor entity script — the test runs locally on the
-// authority only, so we explicitly opt the actor↔entity bridge out of
+// Non-replicated WithActor entity script - the test runs locally on the
+// authority only, so we explicitly opt the actor<->entity bridge out of
 // replication to keep the test self-contained.
 class UCk_AutoTest_SceneNode_AttachedActor_EntityScript : UCk_EntityScript_WithActor_UE
 {
@@ -145,7 +145,7 @@ class UCk_AutoTest_SceneNode_ActorAttachedToActor : UCk_AutoTest_Base
         auto EntityA = FCk_Handle(InEntityScriptHandle);
 
         // The helper actor anchors its entity to ck::TransientEntity(), which is OUTSIDE the
-        // runner's teardown subtree — untracked, both actors' entity graphs survive into every
+        // runner's teardown subtree - untracked, both actors' entity graphs survive into every
         // later test in this lane. Registered here, before the early-return below, so a failed
         // cast cleans up too.
         Track_ForCleanup(EntityA);
@@ -189,7 +189,7 @@ class UCk_AutoTest_SceneNode_ActorAttachedToActor : UCk_AutoTest_Base
         auto EntityB = FCk_Handle(InEntityScriptHandle);
 
         // The helper actor anchors its entity to ck::TransientEntity(), which is OUTSIDE the
-        // runner's teardown subtree — untracked, both actors' entity graphs survive into every
+        // runner's teardown subtree - untracked, both actors' entity graphs survive into every
         // later test in this lane. Registered here, before the early-return below, so a failed
         // cast cleans up too.
         Track_ForCleanup(EntityB);
@@ -244,8 +244,8 @@ class UCk_AutoTest_SceneNode_ActorAttachedToActor : UCk_AutoTest_Base
     // local offset under the child node = Identity, set in OnActorBEntityReady).
     //
     // Asserts on TWO layers so the failure tells us which one is broken:
-    //   1. ECS Transform fragment on B — driven by scene-node propagation.
-    //   2. ActorB world transform — driven by the Transform→Actor sync processor.
+    //   1. ECS Transform fragment on B - driven by scene-node propagation.
+    //   2. ActorB world transform - driven by the Transform->Actor sync processor.
     private void AssertActorBMatchesComposedExpected(
         const FVector& InA_Location, const FRotator& InA_Rotation, const FString& InContext)
     {

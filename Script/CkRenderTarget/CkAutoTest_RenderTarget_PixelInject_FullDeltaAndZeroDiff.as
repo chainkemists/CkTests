@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK RENDER TARGET — AUTOMATION TEST: PIXEL INJECT FULL / ZERO-DIFF / DELTA
+// CK RENDER TARGET - AUTOMATION TEST: PIXEL INJECT FULL / ZERO-DIFF / DELTA
 //============================================================================
 //
 // Exercises the capture-side pixel pipeline through the Debug_InjectCapturedPixels
-// test seam — works under -nullrhi because everything downstream of
+// test seam - works under -nullrhi because everything downstream of
 // the GPU readback (diff, compress, payload production) is CPU-side:
 //
 //   1. Inject image A with no prior snapshot  -> FullSync payload, seq 1
@@ -81,7 +81,7 @@ class UCk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff : UCk_AutoTest_
 
         if (_Stage == 2)
         {
-            FinishFailure("Zero-diff inject produced a payload — it must be dropped");
+            FinishFailure("Zero-diff inject produced a payload - it must be dropped");
             return;
         }
 
@@ -96,7 +96,7 @@ class UCk_AutoTest_RenderTarget_PixelInject_FullDeltaAndZeroDiff : UCk_AutoTest_
         }
     }
 
-    // The zero-diff pass runs on a background task — give it a generous settle window before
+    // The zero-diff pass runs on a background task - give it a generous settle window before
     // declaring "nothing was produced" and moving to the delta stage.
     private void ScheduleSettle()
     {

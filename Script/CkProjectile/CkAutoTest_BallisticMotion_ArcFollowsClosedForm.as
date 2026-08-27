@@ -1,15 +1,15 @@
 // Language=angelscript
 
 //============================================================================
-// CK BALLISTIC MOTION — AUTOMATION TEST: ARC FOLLOWS CLOSED FORM
+// CK BALLISTIC MOTION - AUTOMATION TEST: ARC FOLLOWS CLOSED FORM
 //============================================================================
 //
 // Verifies the BallisticMotion feature end-to-end against the deterministic
-// closed-form trajectory (no probe — pure flight):
+// closed-form trajectory (no probe - pure flight):
 //   1. Entity + Transform at (0,0,500); launch with velocity (900,0,700).
 //   2. OnTrajectoryChanged fires with the anchored initial conditions.
 //   3. Two samples ~0.7s apart: time-of-flight recovered from each sampled
-//      position must advance by the same wall-clock gap — proving the motion
+//      position must advance by the same wall-clock gap - proving the motion
 //      runs on the closed form anchored to world time, not per-frame
 //      integration.
 //   4. The arc actually arcs: X advances, Z falls below the no-gravity line.
@@ -130,14 +130,14 @@ class UCk_AutoTest_BallisticMotion_ArcFollowsClosedForm : UCk_AutoTest_Base
         Assert_True(_Motion.Get_IsInFlight(),
             "Projectile should still be in flight at mark 2");
         Assert_Equals_Int(_Motion.Get_TrajectorySegmentIndex(), 0,
-            "No impacts — still on trajectory segment 0");
+            "No impacts - still on trajectory segment 0");
 
         Assert_True(Mark2Location.X > _Mark1Location.X + 100.0,
             f"Projectile should keep advancing in X (mark1={_Mark1Location.X}, mark2={Mark2Location.X})");
 
         // The recovered flight-time delta must match the 0.7s wall-clock gap between marks.
         // Both samples lag the transform write by the same sub-frame amount, so the delta is
-        // immune to that lag — generous bounds only absorb timer/frame quantization
+        // immune to that lag - generous bounds only absorb timer/frame quantization
         auto RecoveredDelta = Mark2TimeOfFlight - _Mark1TimeOfFlight;
         Assert_True(Math::Abs(RecoveredDelta - 0.7) < 0.15,
             f"Recovered time-of-flight should advance by the wall-clock gap (expected ~0.7s, got {RecoveredDelta})");

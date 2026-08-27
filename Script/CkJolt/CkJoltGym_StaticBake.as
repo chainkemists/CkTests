@@ -1,31 +1,31 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT GYM — STATIC BAKE
+// CK JOLT GYM - STATIC BAKE
 //
 // Exercises and self-verifies the Jolt static-world bake paths. Each lane
 // builds (or scans) geometry, bakes it into the Jolt static world, and fires
-// "witness" ray pairs — one CHANNEL-FILTERED Jolt ray (Visibility/Block, same
+// "witness" ray pairs - one CHANNEL-FILTERED Jolt ray (Visibility/Block, same
 // filter the Chaos side uses) vs one Chaos line trace from identical
 // start/end. A witness PASSES when both hit within 1uu, or when both miss and
 // the witness expected a miss; anything else is a FAIL logged with both
 // positions.
 //
-//   1.  StaticMesh   — one AStaticMeshActor (engine Cube, scale 2). Bake -> 1.
-//   2.  HISM sparse  — 5 instances (< compound threshold) -> per-instance bodies (5).
-//   3.  HISM dense   — 40 instances, 8-wide grid (>= threshold) -> 1 compound body.
-//   4.  SplineMesh   — runtime-spawned; documents the runtime-cook gap (skipped
-//                      when collision never cooks — expected).
-//   4b. SplineMesh (authored) — scans actors tagged CkJoltGym.AuthoredSpline
+//   1.  StaticMesh   - one AStaticMeshActor (engine Cube, scale 2). Bake -> 1.
+//   2.  HISM sparse  - 5 instances (< compound threshold) -> per-instance bodies (5).
+//   3.  HISM dense   - 40 instances, 8-wide grid (>= threshold) -> 1 compound body.
+//   4.  SplineMesh   - runtime-spawned; documents the runtime-cook gap (skipped
+//                      when collision never cooks - expected).
+//   4b. SplineMesh (authored) - scans actors tagged CkJoltGym.AuthoredSpline
 //                      (editor-authored via Ck.Gym.AuthorJoltStaticBakeContent);
 //                      the lane that actually exercises the spline bake branch.
-//   5.  Volume/Brush — LEVEL-SWEEP bake path; scans authored volumes.
-//   6.  Landscape    — scans authored landscapes (author one with the same command).
+//   5.  Volume/Brush - LEVEL-SWEEP bake path; scans authored volumes.
+//   6.  Landscape    - scans authored landscapes (author one with the same command).
 //
-// The player's view also fires a CONTINUOUS Jolt ray (green hit / red miss —
+// The player's view also fires a CONTINUOUS Jolt ray (green hit / red miss
 // see OnViewRayTick) for free-aim visual verification of any geometry.
 //
-// The station is PINNED at (500, 20000, 0) — the authored landscape/spline are
+// The station is PINNED at (500, 20000, 0) - the authored landscape/spline are
 // permanent level content parked at the Y=20000 band so the 42 other gyms
 // sharing this level never collide with them; Request_StartGym teleports the
 // player there. Keep coordinates in sync with CkGymJoltStaticBakeAuthoring.cpp.
@@ -82,7 +82,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     private float _LaneY_HismDense = 0.0;
     private float _LaneY_Spline = 500.0;
 
-    // Continuous player view-ray vs the full Jolt query layer — instant visual confirmation of
+    // Continuous player view-ray vs the full Jolt query layer - instant visual confirmation of
     // which geometry Jolt actually has (a rendered mesh with NO hit = a bake gap, e.g. the
     // runtime spline-mesh lane). Toggled by Ck_GymJoltStaticBake_ToggleRay.
     private bool _ViewRayEnabled = true;
@@ -96,7 +96,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         Station.Tags.Add(n"Gym.Jolt.StaticBake");
         Station.Title = FText::FromString("JOLT STATIC BAKE");
 
-        // Pinned off the shared default grid — the authored landscape/spline are permanent level
+        // Pinned off the shared default grid - the authored landscape/spline are permanent level
         // content at the Y=20000 band (see the header comment). Keep in sync with
         // CkGymJoltStaticBakeAuthoring.cpp.
         Station.Transform = FTransform(FRotator(0.0, 180.0, 0.0), FVector(500.0, 20000.0, 0.0), FVector::OneVector);
@@ -117,7 +117,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     {
         _Origin = Get_StationAnchorLocation("Gym.Jolt.StaticBake", ECk_GymStation_Anchor::FootprintCenter);
 
-        // The station is pinned far off the default grid — bring the player to it (retried in
+        // The station is pinned far off the default grid - bring the player to it (retried in
         // OnWitnessSettle in case the pawn isn't possessed yet this early).
         DoBringPlayerToStation();
 
@@ -130,7 +130,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         auto Cube = Cast<UStaticMesh>(LoadObject(UStaticMesh, "/Engine/BasicShapes/Cube.Cube"));
         if (ck::Is_NOT_Valid(Cube))
         {
-            ck::Trace("StaticBakeGym: FAILED to load /Engine/BasicShapes/Cube.Cube — gym cannot build lanes");
+            ck::Trace("StaticBakeGym: FAILED to load /Engine/BasicShapes/Cube.Cube - gym cannot build lanes");
             return;
         }
 
@@ -142,7 +142,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         DoScanLane_Volumes();
         DoScanLane_Landscapes();
 
-        ck::Trace("JoltStaticBakeGym: lanes built + baked — set ck.Jolt.DebugDraw.Enabled 1 to see baked wireframes");
+        ck::Trace("JoltStaticBakeGym: lanes built + baked - set ck.Jolt.DebugDraw.Enabled 1 to see baked wireframes");
 
         // Continuous view-ray: every frame, cast from the player's view through the Jolt world
         // and draw the result (see OnViewRayTick).
@@ -156,13 +156,13 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     private void OnWitnessSettle(FCk_Handle_Timer InTimer, FCk_Chrono InChrono, FCk_Time InDeltaT)
     {
-        DoBringPlayerToStation();   // retry — the pawn may not have been possessed at StartGym
-        DoResolveSplineLane();   // Chaos body now exists — probe then bake-or-skip
+        DoBringPlayerToStation();   // retry - the pawn may not have been possessed at StartGym
+        DoResolveSplineLane();   // Chaos body now exists - probe then bake-or-skip
         DoRunAllWitnesses();
         DoLogWitnessSummary("initial");
     }
 
-    // The station is pinned at the Y=20000 band, far from the level's PlayerStart — without this
+    // The station is pinned at the Y=20000 band, far from the level's PlayerStart - without this
     // the player spawns ~20k units from the gym. Traced so a stranded player is diagnosable from
     // the log.
     private void DoBringPlayerToStation()
@@ -170,7 +170,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         auto ViewPawn = GetControlledPawn();
         if (ck::Is_NOT_Valid(ViewPawn))
         {
-            ck::Trace("StaticBakeGym: no controlled pawn yet — teleport to the pinned station skipped");
+            ck::Trace("StaticBakeGym: no controlled pawn yet - teleport to the pinned station skipped");
             return;
         }
 
@@ -180,7 +180,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // ------------------------------------------------------------------------------------------
-    // Lane 1 — StaticMesh: one engine Cube (scale 2), simple box collision, one Jolt body.
+    // Lane 1 - StaticMesh: one engine Cube (scale 2), simple box collision, one Jolt body.
     // ------------------------------------------------------------------------------------------
     private void DoBuildLane_StaticMesh(UStaticMesh InCube)
     {
@@ -188,7 +188,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         auto Actor = Cast<AStaticMeshActor>(SpawnActor(AStaticMeshActor, SpawnAt));
         if (ck::Is_NOT_Valid(Actor))
         {
-            ck::Trace("StaticBakeGym: [FAIL] StaticMesh lane — could not spawn AStaticMeshActor");
+            ck::Trace("StaticBakeGym: [FAIL] StaticMesh lane - could not spawn AStaticMeshActor");
             return;
         }
 
@@ -210,7 +210,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // ------------------------------------------------------------------------------------------
-    // Lane 2 — HISM sparse: 5 instances (below compound threshold) => 5 per-instance bodies.
+    // Lane 2 - HISM sparse: 5 instances (below compound threshold) => 5 per-instance bodies.
     // ------------------------------------------------------------------------------------------
     private void DoBuildLane_HismSparse(UStaticMesh InCube)
     {
@@ -218,12 +218,12 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         auto Actor = SpawnActor(AActor, CompWorld);
         if (ck::Is_NOT_Valid(Actor))
         {
-            ck::Trace("StaticBakeGym: [FAIL] HISM sparse lane — could not spawn host actor");
+            ck::Trace("StaticBakeGym: [FAIL] HISM sparse lane - could not spawn host actor");
             return;
         }
 
         auto Hism = UHierarchicalInstancedStaticMeshComponent::Create(Actor);
-        // A plain AActor has no root component — place the created component explicitly.
+        // A plain AActor has no root component - place the created component explicitly.
         Hism.SetWorldLocation(CompWorld);
         Hism.SetStaticMesh(InCube);
         Hism.SetCollisionProfileName(n"BlockAll");
@@ -243,7 +243,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // ------------------------------------------------------------------------------------------
-    // Lane 3 — HISM dense: 40 instances in an 8-wide grid (>= threshold) => 1 compound body.
+    // Lane 3 - HISM dense: 40 instances in an 8-wide grid (>= threshold) => 1 compound body.
     // ------------------------------------------------------------------------------------------
     private void DoBuildLane_HismDense(UStaticMesh InCube)
     {
@@ -251,7 +251,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         auto Actor = SpawnActor(AActor, CompWorld);
         if (ck::Is_NOT_Valid(Actor))
         {
-            ck::Trace("StaticBakeGym: [FAIL] HISM dense lane — could not spawn host actor");
+            ck::Trace("StaticBakeGym: [FAIL] HISM dense lane - could not spawn host actor");
             return;
         }
 
@@ -275,12 +275,12 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         DoAddDownWitness("HISM dense first", CompWorld.X, CompWorld.Y - 240.0, false);
         DoAddDownWitness("HISM dense last", CompWorld.X - 840.0, CompWorld.Y + 240.0, false);
 
-        // A ray in a grid gap: both MISS (expected-miss witness — the compound isn't a blob).
+        // A ray in a grid gap: both MISS (expected-miss witness - the compound isn't a blob).
         DoAddDownWitness("HISM dense gap", CompWorld.X - 60.0, CompWorld.Y - 180.0, true);
     }
 
     // ------------------------------------------------------------------------------------------
-    // Lane 4 — SplineMesh (experimental; coverage-gap item 8). Geometry is built here; the
+    // Lane 4 - SplineMesh (experimental; coverage-gap item 8). Geometry is built here; the
     // Chaos precondition probe + bake happen in settle once the Chaos body exists.
     // ------------------------------------------------------------------------------------------
     private void DoBuildLane_Spline_Geometry(UStaticMesh InCube)
@@ -290,13 +290,13 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         _SplineActor = SpawnActor(AActor, CompWorld);
         if (ck::Is_NOT_Valid(_SplineActor))
         {
-            ck::Trace("StaticBakeGym: [FAIL] SplineMesh lane — could not spawn host actor");
+            ck::Trace("StaticBakeGym: [FAIL] SplineMesh lane - could not spawn host actor");
             return;
         }
 
         auto Spline = USplineMeshComponent::Create(_SplineActor);
         // The plain-AActor host is rootless, so the ACTOR transform reads (0,0,0) in the
-        // outliner forever — the component below carries the real world position. Same story
+        // outliner forever - the component below carries the real world position. Same story
         // for the HISM lane hosts.
         Spline.SetWorldLocation(CompWorld);
         Spline.SetMobility(EComponentMobility::Movable);
@@ -316,26 +316,26 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         auto Top = FVector(_SplineMidWorld.X, _SplineMidWorld.Y, _SplineMidWorld.Z + _WitnessTopZ);
         auto Bottom = FVector(_SplineMidWorld.X, _SplineMidWorld.Y, _SplineMidWorld.Z - _WitnessBottomZ);
 
-        // Precondition probe: if Chaos misses, runtime collision never cooked — do NOT bake
+        // Precondition probe: if Chaos misses, runtime collision never cooked - do NOT bake
         // (a bodyless bake fires a CK_ENSURE by design). Editor-authored spline meshes remain
         // the coverage path for this branch.
         if (DoChaosHits(Top, Bottom) == false)
         {
-            ck::Trace("StaticBakeGym: [GAP] SplineMesh runtime collision did not cook — lane skipped (editor-authored spline meshes remain the coverage path)");
+            ck::Trace("StaticBakeGym: [GAP] SplineMesh runtime collision did not cook - lane skipped (editor-authored spline meshes remain the coverage path)");
             _SkippedGapCount += 1;
             return;
         }
 
         auto NumBaked = utils_jolt_static_world::Request_BakeActor(_SplineActor);
-        ck::Trace(f"StaticBakeGym: SplineMesh baked — {NumBaked} body/bodies");
+        ck::Trace(f"StaticBakeGym: SplineMesh baked - {NumBaked} body/bodies");
         _LaneActors.Add(_SplineActor);
         DoAddWitness("SplineMesh parity", Top, Bottom, false);
     }
 
     // ------------------------------------------------------------------------------------------
-    // Lane 4b — authored SplineMesh scan: actors tagged CkJoltGym.AuthoredSpline (created once
+    // Lane 4b - authored SplineMesh scan: actors tagged CkJoltGym.AuthoredSpline (created once
     // in the editor by Ck.Gym.AuthorJoltStaticBakeContent). Editor machinery cooks the deformed
-    // collision, so THIS lane exercises the spline extraction branch — the runtime lane above
+    // collision, so THIS lane exercises the spline extraction branch - the runtime lane above
     // documents the runtime-cook gap. The witness fires through the S-curve midpoint: local
     // (200, -50, 0) for the authored curve; keep in sync with CkGymJoltStaticBakeAuthoring.cpp.
     // ------------------------------------------------------------------------------------------
@@ -359,12 +359,12 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
 
         if (NumFound == 0)
         {
-            ck::Trace("StaticBakeGym: no authored spline meshes — run Ck.Gym.AuthorJoltStaticBakeContent in the editor (TestGyms level, then save) to exercise the spline bake branch");
+            ck::Trace("StaticBakeGym: no authored spline meshes - run Ck.Gym.AuthorJoltStaticBakeContent in the editor (TestGyms level, then save) to exercise the spline bake branch");
         }
     }
 
     // ------------------------------------------------------------------------------------------
-    // Lane 5 — Volume/Brush scan: the only lane exercising the LEVEL-SWEEP bake path (brushes
+    // Lane 5 - Volume/Brush scan: the only lane exercising the LEVEL-SWEEP bake path (brushes
     // cannot be authored at runtime). Scans authored volumes; a witness per found actor.
     // ------------------------------------------------------------------------------------------
     private void DoScanLane_Volumes()
@@ -374,7 +374,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
 
         if (Volumes.Num() == 0)
         {
-            ck::Trace("StaticBakeGym: no volumes/brushes in this level — place a BlockingVolume in TestGyms_CkTests_Level to exercise the brush bake branch");
+            ck::Trace("StaticBakeGym: no volumes/brushes in this level - place a BlockingVolume in TestGyms_CkTests_Level to exercise the brush bake branch");
             return;
         }
 
@@ -386,7 +386,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     // ------------------------------------------------------------------------------------------
-    // Lane 6 — Landscape scan: same scan pattern for authored landscapes.
+    // Lane 6 - Landscape scan: same scan pattern for authored landscapes.
     // ------------------------------------------------------------------------------------------
     private void DoScanLane_Landscapes()
     {
@@ -395,7 +395,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
 
         if (Landscapes.Num() == 0)
         {
-            ck::Trace("StaticBakeGym: no landscapes in this level — run Ck.Gym.AuthorJoltStaticBakeContent in the editor (TestGyms level, then save) to exercise the landscape bake branch");
+            ck::Trace("StaticBakeGym: no landscapes in this level - run Ck.Gym.AuthorJoltStaticBakeContent in the editor (TestGyms level, then save) to exercise the landscape bake branch");
             return;
         }
 
@@ -410,7 +410,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     // own Z band (+/- margin) so a miss never reaches the gym floor below.
     //
     // Only actors Chaos itself collides with get a witness: a differential probe traces the
-    // ray twice — once normally, once ignoring the scanned actor. If ignoring it changes
+    // ray twice - once normally, once ignoring the scanned actor. If ignoring it changes
     // nothing, the "hit" was unrelated geometry inside the actor's bounds (the transient
     // DefaultPhysicsVolume, a no-collision NavMeshBounds) and a parity row would mislead.
     private void DoAddBoundsWitness(AActor InActor, FString InLabel)
@@ -440,7 +440,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
 
         if (!ActorItselfBlocks)
         {
-            ck::Trace(f"StaticBakeGym: [INERT] {InLabel} — not Chaos-blocking itself (no parity witness)");
+            ck::Trace(f"StaticBakeGym: [INERT] {InLabel} - not Chaos-blocking itself (no parity witness)");
             return;
         }
 
@@ -472,11 +472,11 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         auto NumBaked = utils_jolt_static_world::Request_BakeActor(InActor);
         if (NumBaked == InExpected)
         {
-            ck::Trace(f"StaticBakeGym: [PASS] {InLaneName} bake — {NumBaked} body/bodies (expected {InExpected})");
+            ck::Trace(f"StaticBakeGym: [PASS] {InLaneName} bake - {NumBaked} body/bodies (expected {InExpected})");
         }
         else
         {
-            ck::Trace(f"StaticBakeGym: [FAIL] {InLaneName} bake — {NumBaked} body/bodies (expected {InExpected})");
+            ck::Trace(f"StaticBakeGym: [FAIL] {InLaneName} bake - {NumBaked} body/bodies (expected {InExpected})");
         }
         _LaneActors.Add(InActor);
     }
@@ -507,7 +507,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     {
         _LastTotal += 1;
 
-        // Channel-filtered query, NOT the unfiltered static-world introspection ray — Chaos's
+        // Channel-filtered query, NOT the unfiltered static-world introspection ray - Chaos's
         // line trace below is Visibility-filtered, so true parity must exercise Jolt's channel
         // filter too. (An ignore-everything collision signature is invisible to the unfiltered
         // ray: the landscape bug hid behind exactly that.)
@@ -527,7 +527,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         if (JoltDidHit && ChaosDidHit && JoltHit.Get_Position().Distance(ChaosHit.Location) <= 1.0)
         {
             _LastPass += 1;
-            ck::Trace(f"StaticBakeGym: [PASS] {InWitness.Label} — Jolt {JoltHit.Get_Position()} == Chaos {ChaosHit.Location}");
+            ck::Trace(f"StaticBakeGym: [PASS] {InWitness.Label} - Jolt {JoltHit.Get_Position()} == Chaos {ChaosHit.Location}");
             return;
         }
 
@@ -536,23 +536,23 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         {
             _LastPass += 1;
             _LastExpectedMiss += 1;
-            ck::Trace(f"StaticBakeGym: [PASS] {InWitness.Label} — both missed (expected miss)");
+            ck::Trace(f"StaticBakeGym: [PASS] {InWitness.Label} - both missed (expected miss)");
             return;
         }
 
-        // Everything else FAILs — report both hit-flags and both positions.
+        // Everything else FAILs - report both hit-flags and both positions.
         _LastFail += 1;
-        ck::Trace(f"StaticBakeGym: [FAIL] {InWitness.Label} — Jolt(hit={JoltDidHit}) {JoltHit.Get_Position()} vs Chaos(hit={ChaosDidHit}) {ChaosHit.Location}");
+        ck::Trace(f"StaticBakeGym: [FAIL] {InWitness.Label} - Jolt(hit={JoltDidHit}) {JoltHit.Get_Position()} vs Chaos(hit={ChaosDidHit}) {ChaosHit.Location}");
     }
 
     private void DoLogWitnessSummary(FString InContext)
     {
         auto NumBodies = utils_jolt_static_world::Get_NumStaticBodies();
-        ck::Trace(f"StaticBakeGym: witnesses [{InContext}] — total {_LastTotal} / PASS {_LastPass} / FAIL {_LastFail} / expected-miss {_LastExpectedMiss} / skipped-gap {_SkippedGapCount} | NumStaticBodies {NumBodies}");
+        ck::Trace(f"StaticBakeGym: witnesses [{InContext}] - total {_LastTotal} / PASS {_LastPass} / FAIL {_LastFail} / expected-miss {_LastExpectedMiss} / skipped-gap {_SkippedGapCount} | NumStaticBodies {NumBodies}");
     }
 
     // ------------------------------------------------------------------------------------------
-    // Continuous view-ray — fired every frame from the player's view against the FULL Jolt
+    // Continuous view-ray - fired every frame from the player's view against the FULL Jolt
     // query layer (baked statics + dynamic bodies), drawn green on hit / red on miss. The hit
     // marker shows the impact point, surface normal, and the resolved entity (baked statics
     // resolve to their JoltStaticActor attribution entity).
@@ -594,7 +594,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
             auto HitEntity = Hit.Get_Entity();
             auto Label = FString("<no entity>");
             // NOT an f-string: FCk_Handle (typesafe OR generic) is not appendable in AS string
-            // interpolation — it compiles but throws "Invalid type to append to string" at
+            // interpolation - it compiles but throws "Invalid type to append to string" at
             // runtime. The entity's DebugName is the label we actually want anyway.
             if (ck::IsValid(HitEntity))
             { Label = utils_handle::Get_DebugName(HitEntity).ToString(); }
@@ -607,7 +607,7 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
         }
     }
 
-    // Mirrors the gym base's private WaitOneFrame — schedules a one-frame timer on the gym's
+    // Mirrors the gym base's private WaitOneFrame - schedules a one-frame timer on the gym's
     // own entity and invokes InCallbackName (FCk_Delegate_Timer signature) once it fires.
     private void DoWaitOneFrame(FName InCallbackName)
     {
@@ -641,24 +641,24 @@ class ACk_JoltGym_StaticBake_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION(Exec, DisplayName="Jolt StaticBake - Rebake")
     void Ck_GymJoltStaticBake_Rebake()
     {
-        ck::Trace("StaticBakeGym: Rebake — removing all runtime-baked lane bodies");
+        ck::Trace("StaticBakeGym: Rebake - removing all runtime-baked lane bodies");
         for (auto Actor : _LaneActors)
         {
             utils_jolt_static_world::Request_RemoveActor(Actor);
         }
 
-        ck::Trace("StaticBakeGym: Rebake — witnesses post-remove (lanes 1-4 Jolt-side MISS is the EXPECTED observation)");
+        ck::Trace("StaticBakeGym: Rebake - witnesses post-remove (lanes 1-4 Jolt-side MISS is the EXPECTED observation)");
         DoRunAllWitnesses();
         DoLogWitnessSummary("post-remove (expected Jolt-side misses)");
 
-        ck::Trace("StaticBakeGym: Rebake — re-baking all runtime lanes");
+        ck::Trace("StaticBakeGym: Rebake - re-baking all runtime lanes");
         for (auto Actor : _LaneActors)
         {
             auto NumBaked = utils_jolt_static_world::Request_BakeActor(Actor);
-            ck::Trace(f"StaticBakeGym: Rebake — {NumBaked} body/bodies for {Actor.GetName()}");
+            ck::Trace(f"StaticBakeGym: Rebake - {NumBaked} body/bodies for {Actor.GetName()}");
         }
 
-        ck::Trace("StaticBakeGym: Rebake — witnesses post-rebake (parity should be restored)");
+        ck::Trace("StaticBakeGym: Rebake - witnesses post-rebake (parity should be restored)");
         DoRunAllWitnesses();
         DoLogWitnessSummary("post-rebake");
     }

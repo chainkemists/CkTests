@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ENTITY LIFECYCLE — AUTOMATION TEST: TAG ADD / REMOVE
+// CK ENTITY LIFECYCLE - AUTOMATION TEST: TAG ADD / REMOVE
 //============================================================================
 //
 // Verifies the entity-tag API:
@@ -11,7 +11,7 @@
 //   4. ForEach_Entity returns empty after removal.
 //
 // Both Add and Request_TryRemove are deferred via the EntityTag request pump
-// (see CkEntityTag/Claude.md "Timing"), so observable state (Has,
+// (see the CkEntityTag docs "Timing"), so observable state (Has,
 // ForEach_Entity) is checked after WaitOneFrame.
 //============================================================================
 

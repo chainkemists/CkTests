@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK TIMER — AUTOMATION TEST: IMMEDIATE MUTATOR COMPLETES SYNCHRONOUSLY
+// CK TIMER - AUTOMATION TEST: IMMEDIATE MUTATOR COMPLETES SYNCHRONOUSLY
 //============================================================================
 //
 // Request_ChangeCountDirection mutates the countdown tag inline and enqueues
-// nothing — there is no request entity and no handler. Its completion
+// nothing - there is no request entity and no handler. Its completion
 // delegate must therefore fire with Succeeded on the CALLER'S OWN STACK,
 // before the Request_* call returns: no tick, no drain, no settle frame.
 //============================================================================

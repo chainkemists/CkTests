@@ -162,7 +162,7 @@ class UCk_EntityScript_IntegerGym_Clamping : UCk_GenericEntityScript_UE
 			DisplayText = f"{DisplayText}Last Clamp: pre={LastPreClampValue} clamped={LastClampedValue} overflow={LastOverflow}\n";
 		}
 
-		// Live polling via utility accessors — updates every frame (this-frame values).
+		// Live polling via utility accessors - updates every frame (this-frame values).
 		auto LivePre = utils_integer_attribute::Get_PreClampFinalValue(ResourceAttribute);
 		auto LiveOvr = utils_integer_attribute::Get_ClampOverflow(ResourceAttribute);
 		DisplayText = f"{DisplayText}Live Poll:  pre={LivePre}  overflow={LiveOvr}\n";

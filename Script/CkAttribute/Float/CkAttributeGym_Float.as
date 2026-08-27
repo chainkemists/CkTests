@@ -225,7 +225,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Values station
+    // MANUAL COMMANDS - Values station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Float Gym - Add Modifier")
@@ -243,7 +243,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Clamping station
+    // MANUAL COMMANDS - Clamping station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Float Gym - Test Boundaries")
@@ -261,7 +261,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Modifiers station
+    // MANUAL COMMANDS - Modifiers station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Float Gym - Add Weapon Modifier")
@@ -286,7 +286,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — MinMaxCurrent station
+    // MANUAL COMMANDS - MinMaxCurrent station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Float Gym - Set Min")
@@ -311,7 +311,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Signals station
+    // MANUAL COMMANDS - Signals station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Float Gym - Set Signal Value")
@@ -322,7 +322,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Refill station
+    // MANUAL COMMANDS - Refill station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Float Gym - Toggle Refill")
@@ -347,7 +347,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — IncDec station
+    // MANUAL COMMANDS - IncDec station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Float Gym - Increment")
@@ -372,7 +372,7 @@ class ACk_FloatAttributeGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     //------------------------------------------------------------------------
-    // MANUAL COMMANDS — Multiple station
+    // MANUAL COMMANDS - Multiple station
     //------------------------------------------------------------------------
 
     UFUNCTION(Exec, DisplayName="Float Gym - Add Batch")

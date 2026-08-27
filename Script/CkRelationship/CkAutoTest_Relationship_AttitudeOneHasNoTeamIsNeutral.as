@@ -1,8 +1,8 @@
 // Language=angelscript
 //
-// CK RELATIONSHIP — AUTOMATION TEST: Asymmetric team membership → Neutral
+// CK RELATIONSHIP - AUTOMATION TEST: Asymmetric team membership -> Neutral
 // If only one entity has a Team fragment, the attitude lookup falls back to
-// Neutral — the framework does not treat "team vs no team" as Hostile.
+// Neutral - the framework does not treat "team vs no team" as Hostile.
 
 class UCk_AutoTest_Relationship_AttitudeOneHasNoTeamIsNeutral : UCk_AutoTest_Base
 {

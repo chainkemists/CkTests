@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK TWEEN — AUTOMATION TEST: COMPLETION BEHAVIOR — KEEP ENTITY
+// CK TWEEN - AUTOMATION TEST: COMPLETION BEHAVIOR - KEEP ENTITY
 //============================================================================
 //
-// Pins ECk_TweenCompletionBehavior::DoNothing — the tween entity remains
+// Pins ECk_TweenCompletionBehavior::DoNothing - the tween entity remains
 // valid after OnComplete fires (no auto-destruction).
 //
 // Pairs with the existing CkAutoTest_Tween_SelfDestructOnComplete test

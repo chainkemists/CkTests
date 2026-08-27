@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Cel Shade gym GameMode (minimal — all logic lives in the PlayerController).
+// Cel Shade gym GameMode (minimal - all logic lives in the PlayerController).
 // Registered with the gym cycler in CkTests_GymRegistry.as as "Stylize: Cel Shade".
 // --------------------------------------------------------------------------------------------------------------------
 

@@ -1,23 +1,23 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Crowd Narrow-Gap Gym — PlayerController
+// Crowd Narrow-Gap Gym - PlayerController
 //
 // See CkCrowdGym_NarrowGap_GameMode.as for the console surface and what to watch.
 //
 // Layout (station-local; +X is toward the player camera after the cycler's rotation):
 //   - Wall line perpendicular to the approach at local X = WallLineOffset, split by a GapWidth
-//     opening at local Y = 0. Wall boxes carve the navmesh (ACk_CrowdPathingGym_NavBox — nav-only,
+//     opening at local Y = 0. Wall boxes carve the navmesh (ACk_CrowdPathingGym_NavBox - nav-only,
 //     player walks through).
 //   - Walkers spawn in staggered rows before the wall; each goal is the mirrored point past
 //     the wall at the same Y, so every route's shortest form crosses the gap.
 //   - Optional flank caps extend the wall line past the floor edge so no detour exists.
 //
-// Two map constraints size everything below — both were learned from a PIE session where the
+// Two map constraints size everything below - both were learned from a PIE session where the
 // default state had NO route at all (every path Partial, the whole crowd piled at the wall):
 //   - The wall boxes are PHYSICAL rasterized obstacles, so Recast erodes the walkable surface
 //     around them by the nav agent radius (~35cm per side). GapWidth is the PHYSICAL gap; the
 //     navmesh corridor through it is ~70cm narrower, and under ~150cm physical the gap bakes
 //     shut entirely. (The headless autotests carve with nav-area markup instead, which does not
-//     erode — their 110cm figure does not transfer here.)
+//     erode - their 110cm figure does not transfer here.)
 //   - The cycler map's NavMeshBoundsVolume is origin-centred and does not reach much past
 //     ~1000cm, so every spawn, goal, and wall END (the SpawnBlocked detour route) must stay
 //     inside that envelope or the detour silently doesn't exist.
@@ -114,7 +114,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
             ECk_Signal_PostFireBehavior::DoNothing);
         utils_nav::Request_FindPath(_NavProbeEntity, FCk_Request_Nav_FindPath(ProbeGoal));
 
-        ck::crowd::Log(f"NarrowGap gym started — auto-spawning {AutoSpawnCount} walkers once the navmesh probe resolves.");
+        ck::crowd::Log(f"NarrowGap gym started - auto-spawning {AutoSpawnCount} walkers once the navmesh probe resolves.");
     }
 
     UFUNCTION()
@@ -124,7 +124,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
         { return; }
 
         // A "Ready" path to a goal the end-projection pulled back onto the near side looks exactly
-        // like success — the one PIE symptom this gym ever shipped with. Require the path to
+        // like success - the one PIE symptom this gym ever shipped with. Require the path to
         // actually reach the far side before trusting the bake.
         auto Waypoints = InResult.Get_Waypoints();
         if (Waypoints.Num() > 0)
@@ -133,7 +133,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
             EndDelta.Z = 0.0;
             if (EndDelta.Size() > 200.0)
             {
-                ck::crowd::Warning(f"NarrowGap gym: probe path stops {EndDelta.Size()}cm short of the far side — the gap failed to bake or the map's NavMeshBoundsVolume doesn't cover the layout. Auto-spawn skipped.");
+                ck::crowd::Warning(f"NarrowGap gym: probe path stops {EndDelta.Size()}cm short of the far side - the gap failed to bake or the map's NavMeshBoundsVolume doesn't cover the layout. Auto-spawn skipped.");
                 return;
             }
         }
@@ -145,7 +145,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
     UFUNCTION()
     private void OnNavProbeFailed(FCk_Handle InHandle)
     {
-        ck::crowd::Log("NarrowGap gym: navmesh probe failed — auto-spawn skipped; run Ck_GymCrowd_NarrowGap_Spawn manually once the navmesh is visible.");
+        ck::crowd::Log("NarrowGap gym: navmesh probe failed - auto-spawn skipped; run Ck_GymCrowd_NarrowGap_Spawn manually once the navmesh is visible.");
     }
 
     // ---- Geometry ----------------------------------------------------------------------------------
@@ -158,7 +158,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
 
     private void SpawnFloor()
     {
-        // Z SCALE MUST BE >= 0.5 — thinner and the navmesh bake silently produces no tiles.
+        // Z SCALE MUST BE >= 0.5 - thinner and the navmesh bake silently produces no tiles.
         const auto FloorLocation = FVector::ZeroVector;
         const auto FloorScale    = FVector(75.0, 75.0, 0.5);
 
@@ -288,7 +288,7 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
 
         utils_nav::Request_NavigationRebuild_ForTesting(_PcEntity);
         const auto FlankState = InClosed != 0 ? FString("CLOSED (no detour)") : FString("OPEN");
-        ck::crowd::Log(f"NarrowGap gym: flank caps {FlankState} — navmesh rebuilding");
+        ck::crowd::Log(f"NarrowGap gym: flank caps {FlankState} - navmesh rebuilding");
     }
 
     UFUNCTION(Exec, DisplayName="Crowd NarrowGap - Reset (Destroy Agents)")
@@ -317,15 +317,15 @@ class ACk_CrowdGym_NarrowGap_PlayerController : ACk_Gym_Base_PlayerController
             if (ck::Is_NOT_Valid(_Agents[i])) { continue; }
             utils_crowd_agent_diag::EmitDigest_ForAgent(_Agents[i], 0, "NarrowGap", i);
         }
-        ck::crowd::Log(f"NarrowGap gym: emitted digest for {_Agents.Num()} agents — grep [CrowdDiag]");
+        ck::crowd::Log(f"NarrowGap gym: emitted digest for {_Agents.Num()} agents - grep [CrowdDiag]");
     }
 
     // ---- Agent factory ---------------------------------------------------------------------------
 
     private void SpawnWalkers(int32 InCount, int32 InColorIndexBase)
     {
-        // Staggered rows before the wall, kept narrow (~±200 at 20 walkers) so the gap is every
-        // walker's shortest route — a wide line puts the rim walkers closer to the wall ENDS than
+        // Staggered rows before the wall, kept narrow (~+/-200 at 20 walkers) so the gap is every
+        // walker's shortest route - a wide line puts the rim walkers closer to the wall ENDS than
         // to the gap and half the crowd legitimately detours instead of funnelling. Goals mirror
         // each spawn across the wall line at the same Y.
         const auto SpawnX = WallLineOffset - ApproachOffset;

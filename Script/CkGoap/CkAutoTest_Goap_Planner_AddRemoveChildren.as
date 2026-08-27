@@ -1,22 +1,22 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST: PLANNER ADD/REMOVE CHILDREN AT RUNTIME
+// CK GOAP - AUTOMATION TEST: PLANNER ADD/REMOVE CHILDREN AT RUNTIME
 //============================================================================
 //
-// Replaces the obsolete Goap_Planner_SiblingActions test (spec §9 mapping
+// Replaces the obsolete Goap_Planner_SiblingActions test (spec Sec.9 mapping
 // table). Validates that a Planner's child Action catalog can be MUTATED at
-// runtime — both ADD and REMOVE of children must be reflected in the next
+// runtime - both ADD and REMOVE of children must be reflected in the next
 // plan.
 //
 // Coverage map:
-//   Phase A — Initial plan: Planner has only the AtomicChild leaf as child.
+//   Phase A - Initial plan: Planner has only the AtomicChild leaf as child.
 //             Plan = [AtomicChild].
-//   Phase B — Runtime add: A SECOND cheaper leaf (UCk_AutoTestAction_Goap_AddRemove_Cheaper,
+//   Phase B - Runtime add: A SECOND cheaper leaf (UCk_AutoTestAction_Goap_AddRemove_Cheaper,
 //             cost 0.5) is added under the same Planner. Request_Plan is
 //             enqueued. Plan must replan to [Cheaper] because cheaper option
 //             wins under regressive A*.
-//   Phase C — Runtime remove: Cheaper is removed via Request_RemoveAction.
+//   Phase C - Runtime remove: Cheaper is removed via Request_RemoveAction.
 //             The planner's next plan must flip back to [AtomicChild] (the
 //             only remaining candidate operator).
 //
@@ -24,22 +24,22 @@
 //   - WS: Ready=false.
 //   - Top-level Planner with goal {Ready=true}.
 //   - Implicit root Action: UCk_AutoTestAction_Goap_ActionSet_Root_AtomicLeaf
-//     (effect Ready=true, cost 1.0 — but root cost isn't relevant; root is
+//     (effect Ready=true, cost 1.0 - but root cost isn't relevant; root is
 //     never picked as an operator for itself).
 //   - Initial child: UCk_AutoTestAction_Goap_ActionSet_AtomicChild
 //     (effect Ready=true, cost 1.0).
 //   - Bind OnPlanComplete on the root.
 //
-// Phase A — OnRootPlan (first fire):
+// Phase A - OnRootPlan (first fire):
 //   Assert PlanStatus == PlanFound, Plan == [AtomicChild] (only child option).
-//   AddAction(Cheaper) → planner catalog now has 2 children.
+//   AddAction(Cheaper) -> planner catalog now has 2 children.
 //   Request_Plan to force a replan.
 //
-// Phase B — OnRootPlan (second fire, after we add Cheaper):
+// Phase B - OnRootPlan (second fire, after we add Cheaper):
 //   Assert Plan == [Cheaper] (lower cost wins).
-//   Request_RemoveAction(Cheaper) → planner catalog drops back to 1 child.
+//   Request_RemoveAction(Cheaper) -> planner catalog drops back to 1 child.
 //
-// Phase C — OnRootPlan (third fire, after we remove Cheaper):
+// Phase C - OnRootPlan (third fire, after we remove Cheaper):
 //   Assert Plan == [AtomicChild] (only remaining candidate operator).
 //   FinishSuccess.
 //============================================================================
@@ -81,7 +81,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
         Assert_True(ck::IsValid(_Planner), "Add Planner should return a valid handle");
 
         // PR-B.1b Stage 5: AtomicChild is the only candidate operator. No
-        // implicit-root Action — the Planner's catalog drives the plan.
+        // implicit-root Action - the Planner's catalog drives the plan.
         auto AtomicParams = FCk_Fragment_Goap_ActionParamsData(
             UCk_AutoTestAction_Goap_ActionSet_AtomicChild);
         _RootAction = utils_goap_planner::AddAction(_Planner, AtomicParams);
@@ -105,7 +105,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
 
         if (_PlansReceived == 1)
         {
-            // Phase A — initial plan should be [AtomicChild] (only available option).
+            // Phase A - initial plan should be [AtomicChild] (only available option).
             Assert_True(Plan.Num() == 1,
                 f"Phase A: plan should have exactly 1 entry (got {Plan.Num()})");
             Assert_True(Plan.Num() > 0 && Plan[0] == UCk_AutoTestAction_Goap_ActionSet_AtomicChild,
@@ -121,9 +121,9 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
 
             // Cheaper's Setup must populate its cached operator def (cost,
             // effects) before the planner's next A* graph build can consume it
-            // (CkGoap/CLAUDE.md anti-pattern: Request_Plan right after a runtime
+            // (the CkGoap docs anti-pattern: Request_Plan right after a runtime
             // AddAction sees a default-constructed candidate). Wait on the real
-            // readiness observable rather than guessing a frame count — the
+            // readiness observable rather than guessing a frame count - the
             // previous fixed 3-frame settle turned a slow Setup under load into
             // a misleading "Plan[0] should be Cheaper" failure.
             WaitUntil(n"Check_CheaperSetupComplete", n"OnCheaperReady");
@@ -132,7 +132,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
 
         if (_PlansReceived == 2)
         {
-            // Phase B — replan after the runtime add.
+            // Phase B - replan after the runtime add.
             Assert_True(_CheaperAdded, "Phase B should only fire after Cheaper was added");
             Assert_True(Plan.Num() == 1,
                 f"Phase B: plan should have exactly 1 entry (got {Plan.Num()})");
@@ -149,7 +149,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
             return;
         }
 
-        // Phase C — replan after the runtime remove.
+        // Phase C - replan after the runtime remove.
         Assert_True(_CheaperRemoved, "Phase C should only fire after Cheaper was removed");
         Assert_True(Plan.Num() == 1,
             f"Phase C: plan should have exactly 1 entry (got {Plan.Num()})");
@@ -174,7 +174,7 @@ class UCk_AutoTest_Goap_Planner_AddRemoveChildren : UCk_AutoTest_Base
     {
         if (IsFinished()) { return; }
 
-        // Cheaper is now a fully-registered candidate operator — force a replan.
+        // Cheaper is now a fully-registered candidate operator - force a replan.
         utils_goap_planner::Request_Plan(_Planner);
     }
 }

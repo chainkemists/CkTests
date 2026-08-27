@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK SUBSTEP — AUTOMATION TEST: IMMEDIATE MUTATOR COMPLETES SYNCHRONOUSLY
+// CK SUBSTEP - AUTOMATION TEST: IMMEDIATE MUTATOR COMPLETES SYNCHRONOUSLY
 //============================================================================
 //
-// Request_Resume adds FTag_Substep_Update inline and enqueues nothing — there
+// Request_Resume adds FTag_Substep_Update inline and enqueues nothing - there
 // is no request struct and no handler. Its completion delegate must therefore
 // fire with Succeeded on the CALLER'S OWN STACK, before the Request_* call
 // returns: no tick, no drain, no settle frame.

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK DIALOG — AUTOMATION TEST: EMPTY QUERY STILL FIRES THE SIGNAL
+// CK DIALOG - AUTOMATION TEST: EMPTY QUERY STILL FIRES THE SIGNAL
 //============================================================================
 // A query for an ENTER tag with no registered lines fires OnQueryCompleted
 // with an empty entry list (an empty answer is still an answer) and no

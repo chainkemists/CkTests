@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: NOT-REVOCABLE COALESCE DURING OWNER TEARDOWN
+// CK ATTRIBUTE - AUTOMATION TEST: NOT-REVOCABLE COALESCE DURING OWNER TEARDOWN
 //============================================================================
 //
 // Regression pin for the owner-aware pending-destroy guard in
@@ -11,11 +11,11 @@
 // same operation. If that modifier's owning attribute is being torn down this
 // frame, entity-lifetime cascade stamps the attribute AND its child modifiers
 // pending-destroy synchronously. A same-frame Add_NotRevocable then finds a
-// pending-destroy coalesce target — which is BENIGN (the whole attribute is
+// pending-destroy coalesce target - which is BENIGN (the whole attribute is
 // going away, the write is moot) and must NOT ensure.
 //
 // This reproduces exactly what happens in the wild when an attribute's owner
-// is destroyed the same frame something writes the attribute — e.g. the Float
+// is destroyed the same frame something writes the attribute - e.g. the Float
 // refill processor (TProcessor_Attribute_Refill) applying its per-tick
 // Add_NotRevocable to an attribute whose owner just got destroyed, or an item's
 // StackCount being adjusted the frame the item entity is removed.
@@ -83,7 +83,7 @@ class UCk_AutoTest_Attribute_NotRevocable_OwnerTeardownNoEnsure : UCk_AutoTest_B
         // The NotRevocable Add modifier now exists. Destroy the owner: cascade
         // stamps the owner, the attribute and the modifier pending-destroy this
         // same frame. The following Add_NotRevocable finds the doomed modifier
-        // as its coalesce target — the exact tripwire condition. With the
+        // as its coalesce target - the exact tripwire condition. With the
         // owner-aware guard it drops the moot write silently (no ensure); without
         // it, an ensure fires and the framework fails this test.
         utils_entity_lifetime::Request_DestroyEntity(_Owner);

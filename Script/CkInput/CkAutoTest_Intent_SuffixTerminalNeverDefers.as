@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: A SHARED TERMINAL COSTS NOTHING
+// CK INTENT - AUTOMATION TEST: A SHARED TERMINAL COSTS NOTHING
 //============================================================================
 //
 // The property the deferral model exists to protect. `236+P` and a bare `P`
 // share a terminal, and a naive matcher would hold the bare punch back for a
-// few frames "in case a motion was coming" — which is exactly the input lag
+// few frames "in case a motion was coming" - which is exactly the input lag
 // the whole design refuses. The prefix either already happened or it did not,
 // so there is nothing in the FUTURE to wait for.
 //
@@ -21,7 +21,7 @@
 // The second leg is what pins the arbiter: one press resolves to exactly one
 // intent, the most dominant one whose prefix is actually behind it. The bare
 // punch's completion frame is checked to still be the FIRST leg's, which is
-// stronger than checking it is merely "not now" — it proves the latch was
+// stronger than checking it is merely "not now" - it proves the latch was
 // left alone rather than re-stamped.
 //============================================================================
 
@@ -303,7 +303,7 @@ class UCk_AutoTest_Intent_SuffixTerminalNeverDefers : UCk_AutoTest_Base
         return false;
     }
 
-    // Offset 0 is the newest row, so the first press found walking forward from it is the most recent one — which
+    // Offset 0 is the newest row, so the first press found walking forward from it is the most recent one - which
     // is the press the assertion around this call is about.
     private int32 DoFind_LatestPunchPressFrame()
     {

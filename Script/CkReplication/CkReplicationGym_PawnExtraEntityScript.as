@@ -1,5 +1,5 @@
 //============================================================================
-// REPLICATION GYM — PAWN EXTRA ENTITY SCRIPT (Scenario B)
+// REPLICATION GYM - PAWN EXTRA ENTITY SCRIPT (Scenario B)
 //============================================================================
 // A second UCk_EntityScript_WithActor_UE attached to the replicated pawn,
 // with ck::TransientEntity() as the lifetime owner. Mirrors the shape that
@@ -20,7 +20,7 @@ class UCk_ReplicationGym_PawnExtra_EntityScript : UCk_EntityScript_WithActor_UE
         auto _CkPerfScope = ck::ScopedStat();
         utils_entity_tag::Add(InHandle, n"TAG_ReplicationGym_PawnExtra");
 
-        // *** REPRO LINE — Scenario B ***
+        // *** REPRO LINE - Scenario B ***
         auto Params = FCk_Fragment_IntegerAttribute_ParamsData(
             utils_gameplay_tag::ResolveGameplayTag(n"IntegerAttribute.ReplicationGym.PawnValue"),
             StartingValue);
@@ -43,7 +43,7 @@ class UCk_ReplicationGym_PawnExtra_EntityScript : UCk_EntityScript_WithActor_UE
         auto DisplayTimer = utils_timer::Add(InHandle, DisplayTimerParams);
         DisplayTimer.BindTo_OnUpdate(FCk_Delegate_Timer(this, n"DisplayTick"));
 
-        ck::Warning("[ReplicationGym] PawnExtra entity construction done — "
+        ck::Warning("[ReplicationGym] PawnExtra entity construction done - "
                   + "if 'No container fragment entry found' appears above this line, bug reproduced");
     }
 
@@ -69,7 +69,7 @@ class UCk_ReplicationGym_PawnExtra_EntityScript : UCk_EntityScript_WithActor_UE
         auto AttrValue = AttrPresent ? AttrHandle.Get_FinalValue(ECk_MinMaxCurrent::Current) : 0;
         auto PresenceStr = AttrPresent ? "YES" : "NO";
 
-        auto Title = "REPLICATION — PAWN TRANSIENT-ENTITY CHILD (" + NetworkRole + ")";
+        auto Title = "REPLICATION - PAWN TRANSIENT-ENTITY CHILD (" + NetworkRole + ")";
 
         FString Body;
         Body = Body + "Scenario B: replicated pawn + second WithActor script\n";

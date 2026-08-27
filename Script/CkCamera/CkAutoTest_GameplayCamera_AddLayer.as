@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK CAMERA — AUTOMATION TEST: GAMEPLAYCAMERA ADD LAYER
+// CK CAMERA - AUTOMATION TEST: GAMEPLAYCAMERA ADD LAYER
 //============================================================================
 //
 // Pushing a layer onto the camera creates exactly one live layer entity, discoverable by class.

@@ -82,7 +82,7 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
 
         IsAudioPlaying = true;
         UpdateVisualFeedback(true);
-        Print("🔊 Spatial Audio Started", 2.0f);
+        Print("* Spatial Audio Started", 2.0f);
     }
 
     UFUNCTION()
@@ -99,6 +99,6 @@ class UCkAudioGym_Advanced_SpatialStation : UCkAudioGym_Advanced_Base
 
         IsAudioPlaying = false;
         UpdateVisualFeedback(false);
-        Print("🔇 Spatial Audio Stopped", 2.0f);
+        Print("* Spatial Audio Stopped", 2.0f);
     }
 }

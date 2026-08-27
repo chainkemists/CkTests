@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE B PDA SMOKE
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE B PDA SMOKE
 //============================================================================
 //
 // Phase B test gate. Verifies that the two PDAs added in Phase B
@@ -21,9 +21,9 @@
 //   4. Lookup helpers on empty collections return INDEX_NONE.
 //
 // What this test does NOT cover:
-//   - IsDataValid() flow — that's editor-time cook-validation. Verified
+//   - IsDataValid() flow - that's editor-time cook-validation. Verified
 //     manually when authoring real assets, not from AS at runtime.
-//   - Setting field values — both PDAs declare fields as BlueprintReadOnly,
+//   - Setting field values - both PDAs declare fields as BlueprintReadOnly,
 //     so AS cannot mutate them. Asset authoring goes through the editor.
 //
 //============================================================================

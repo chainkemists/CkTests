@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK OBJECT POOLING — AUTOMATION TEST: release edge cases are benign no-ops
+// CK OBJECT POOLING - AUTOMATION TEST: release edge cases are benign no-ops
 //
 // "Dev does not care whether the object is pooled" also means teardown code may release in any
 // order, any number of times, on anything. Double-release must not double-park; releasing an
@@ -40,7 +40,7 @@ class UCk_AutoTest_ObjectPooling_ReleaseEdgeCasesAreBenign : UCk_AutoTest_Base
         Assert_Equals_Int(Stats.Get_NumInUse(), 0, "nothing in use after release");
         if (IsFinished()) { return; }
 
-        // an object the subsystem never handed out — release is a quiet no-op
+        // an object the subsystem never handed out - release is a quiet no-op
         auto NeverPooled = NewObject(this, UCk_ObjectPoolingTest_PlainObject);
         auto NeverPooledRelease = utils_object::TryReleaseToPool(NeverPooled);
         Assert_True(NeverPooledRelease == ECk_SucceededFailed::Failed,

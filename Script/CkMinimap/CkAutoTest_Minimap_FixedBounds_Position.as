@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MINIMAP — AUTOMATION TEST: FixedBounds projection position parity
+// CK MINIMAP - AUTOMATION TEST: FixedBounds projection position parity
 //============================================================================
 //
 // World-map mode: bounds centered on the band with half-extents (2000, 2000).

@@ -1,12 +1,12 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: soft sequence resolves, plays, survives GC
+// CK ISKM RENDERER - AUTOMATION TEST: soft sequence resolves, plays, survives GC
 //============================================================================
 //
 // Pins the soft-ref request pipeline end-to-end (mirror of the AudioTrack
 // SoftSoundResolvesPlaysAndSurvivesGC shape):
-//   1. Request_PlayAnimation enqueued IMMEDIATELY after Add — it must queue
+//   1. Request_PlayAnimation enqueued IMMEDIATELY after Add - it must queue
 //      behind FTag_IskmProxy_NeedsSetup, carrying its soft sequence + the
 //      enqueue-time loader batch through the queue.
 //   2. Once Setup completes, the drain resolves the sequence from the batch
@@ -17,7 +17,7 @@
 //
 // Scope: in-editor the asset registry keeps real assets resident, so the
 // negative half (a fragment-held pointer alone would dangle) is only
-// falsifiable packaged — the C++ unit tests own the params-layer no-dangle
+// falsifiable packaged - the C++ unit tests own the params-layer no-dangle
 // contract; this test owns the resolve/queue/root pipeline.
 //
 //============================================================================
@@ -50,7 +50,7 @@ class UCk_AutoTest_IskmRenderer_SoftSequenceQueuedPlaySurvivesGC : UCk_AutoTest_
         TSubclassOf<UAnimInstance> NullClass;
         utils_iskm_proxy::Request_SetAnimInstanceClass(_Proxy, NullClass);
 
-        // Requested BEFORE the proxy's Setup completes — must queue behind
+        // Requested BEFORE the proxy's Setup completes - must queue behind
         // NeedsSetup and play once the drain runs.
         auto PlayReq = FCk_Request_IskmProxy_PlayAnimation(TestSequence);
         PlayReq.Set_Loop(true);
@@ -84,7 +84,7 @@ class UCk_AutoTest_IskmRenderer_SoftSequenceQueuedPlaySurvivesGC : UCk_AutoTest_
 
         auto Playing = utils_iskm_proxy::Get_PlayingAnimation(_Proxy);
         Assert_True(ck::IsValid(Playing),
-            "the playing sequence must survive a full GC pass — the single-node instance roots it after the drain applied it");
+            "the playing sequence must survive a full GC pass - the single-node instance roots it after the drain applied it");
 
         FinishSuccess();
     }

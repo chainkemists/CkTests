@@ -1,11 +1,11 @@
 // Language=angelscript
 //
-// CK OBJECT POOLING — AUTOMATION TEST: a recycled EntityScript is indistinguishable from fresh
+// CK OBJECT POOLING - AUTOMATION TEST: a recycled EntityScript is indistinguishable from fresh
 //
 // The core transparency requirement, proven from INSIDE the script: the subject records the
 // Scratch value it observes at Construct into an entity variable. Incarnation #1 stomps Scratch
 // in BeginPlay; after destroy + respawn the recycled incarnation must observe the archetype
-// default (the recycle reset ran) and BeginPlay must run again — while the pool stats prove it
+// default (the recycle reset ran) and BeginPlay must run again - while the pool stats prove it
 // really was the same recycled instance, not a fresh create.
 
 class UCk_AutoTest_ObjectPooling_PoolableScriptRecycleIsTransparent : UCk_AutoTest_Base
@@ -86,7 +86,7 @@ class UCk_AutoTest_ObjectPooling_PoolableScriptRecycleIsTransparent : UCk_AutoTe
         WaitUntil(n"Check_InstanceReturnedToPool", n"OnDestroySettled");
     }
 
-    // NumFree is 0 while the instance is in use, so this cannot release early — it goes
+    // NumFree is 0 while the instance is in use, so this cannot release early - it goes
     // true only once the destroy has run teardown all the way through the pool release.
     UFUNCTION()
     private void Check_InstanceReturnedToPool(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)
@@ -114,14 +114,14 @@ class UCk_AutoTest_ObjectPooling_PoolableScriptRecycleIsTransparent : UCk_AutoTe
 
         _SecondEntity = FCk_Handle(InEntity);
 
-        // the recycled incarnation must have observed the RESET value at Construct — if the
+        // the recycled incarnation must have observed the RESET value at Construct - if the
         // recycle reset had not run, it would have observed incarnation #1's stomped 99
         auto ObservedTag = utils_gameplay_tag::ResolveGameplayTag(n"AutoTest.ObjectPooling.ObservedScratch");
         ECk_SucceededFailed Status = ECk_SucceededFailed::Failed;
         auto Observed = utils_variables_int32::Get_ByName(_SecondEntity, ObservedTag.GetTagName(), ECk_Recursion::NotRecursive, Status);
         Assert_True(Status == ECk_SucceededFailed::Succeeded, "incarnation #2: Construct must have re-run and recorded");
         Assert_Equals_Int(Observed, 0,
-            "incarnation #2: the RECYCLED instance must observe the archetype default (0) at Construct, not the previous incarnation's stomped 99 — recycled must be indistinguishable from fresh");
+            "incarnation #2: the RECYCLED instance must observe the archetype default (0) at Construct, not the previous incarnation's stomped 99 - recycled must be indistinguishable from fresh");
         if (IsFinished()) { return; }
 
         // and it really was a recycle, not a fresh create
@@ -130,7 +130,7 @@ class UCk_AutoTest_ObjectPooling_PoolableScriptRecycleIsTransparent : UCk_AutoTe
         Assert_Equals_Int(Stats.Get_NumLiveInstances(), 1, "exactly 1 live script instance across both spawns");
         if (IsFinished()) { return; }
 
-        // The recycled incarnation's BeginPlay has not run yet — assert that rather than
+        // The recycled incarnation's BeginPlay has not run yet - assert that rather than
         // assume it. The entity is new, but a recycled entity id that somehow kept its
         // variables would make the wait below pass on its first poll and prove nothing.
         Assert_True(!DoSawBeginPlay(_SecondEntity),

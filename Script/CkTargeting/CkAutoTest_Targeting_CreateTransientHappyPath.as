@@ -1,8 +1,8 @@
 // Language=angelscript
 //
-// CK TARGETING — AUTOMATION TEST: Create_Transient happy path
+// CK TARGETING - AUTOMATION TEST: Create_Transient happy path
 // Create_Transient(transform, worldCtx) spawns a TargetPoint on the world's
-// transient owner — independent of any specific entity owner.
+// transient owner - independent of any specific entity owner.
 
 class UCk_AutoTest_Targeting_CreateTransientHappyPath : UCk_AutoTest_Base
 {
@@ -15,7 +15,7 @@ class UCk_AutoTest_Targeting_CreateTransientHappyPath : UCk_AutoTest_Base
     void DoBeginPlay(FCk_Handle InHandle)
     {
         auto _CkPerfScope = ck::ScopedStat();
-        // WorldContextObject is auto-supplied by the AS binding — do not pass `this`.
+        // WorldContextObject is auto-supplied by the AS binding - do not pass `this`.
         auto TargetPoint = utils_target_point::Create_Transient(
             FTransform(SeedLocation), ECk_Lifetime::UntilDestroyed);
 

@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK TRANSFORM — AUTOMATION TEST: ATOMIC SetLocationAndRotation
+// CK TRANSFORM - AUTOMATION TEST: ATOMIC SetLocationAndRotation
 //============================================================================
 //
 // Pins the atomic-write contract for the combined SetLocationAndRotation
@@ -10,7 +10,7 @@
 // component).
 //
 // The refactor's processor simplification could regress this in either
-// direction — splitting the combined request into two separate writes
+// direction - splitting the combined request into two separate writes
 // (two broadcasts), or losing one component (incomplete transform).
 //
 // Setup:

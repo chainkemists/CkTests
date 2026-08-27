@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK MINIMAP — AUTOMATION TEST: destroyed POI fires Disappeared exactly once
+// CK MINIMAP - AUTOMATION TEST: destroyed POI fires Disappeared exactly once
 //============================================================================
 //
 // Membership deltas are the push contract: creating an in-range POI fires
@@ -9,7 +9,7 @@
 // exactly once (no repeats while it stays, none after it is gone).
 //
 // Mixed sequence: the opening phase asserts nothing has fired before any POI
-// exists — a non-event with nothing to wait on, so it settles a fixed pair of
+// exists - a non-event with nothing to wait on, so it settles a fixed pair of
 // frames. The appear/disappear phases wait on the counters rising, and the
 // exactly-once contracts stay assertions so an over-fire is reported rather
 // than swallowed.

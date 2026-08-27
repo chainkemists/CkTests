@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK VARIABLES — AUTOMATION TEST: GameplayTag Set→Get round-trip
+// CK VARIABLES - AUTOMATION TEST: GameplayTag Set->Get round-trip
 
 class UCk_AutoTest_Variables_GameplayTag_SetGetRoundTrip : UCk_AutoTest_Base
 {

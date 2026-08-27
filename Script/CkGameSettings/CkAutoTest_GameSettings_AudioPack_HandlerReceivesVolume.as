@@ -1,7 +1,7 @@
 // Language=angelscript
 
 // Verifies the seam the Audio pack rides: a Float volume setting with a Handler binding routes
-// every applied value into the registered handler — including the immediate apply at handler
+// every applied value into the registered handler - including the immediate apply at handler
 // registration. The SoundMix side of the pack is asset-dependent and covered by [EDITOR-VERIFY].
 class UCk_AutoTest_GameSettings_AudioPack_HandlerReceivesVolume : UCk_AutoTest_Base
 {

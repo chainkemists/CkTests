@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK GOAP — AUTOMATION TEST ACTION: MID_B (ChainTruncation test)
+// CK GOAP - AUTOMATION TEST ACTION: MID_B (ChainTruncation test)
 //============================================================================
 //
 // Mid-level composite action B for the ChainTruncation test.

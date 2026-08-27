@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE PARTNER ARRIVES, OR IT DOES NOT
+// CK INTENT - AUTOMATION TEST: THE PARTNER ARRIVES, OR IT DOES NOT
 //============================================================================
 //
 // The second forward ambiguity. A button that is both a move's terminal on
@@ -22,7 +22,7 @@
 //
 // Latency was paid; history was not rewritten. The completion frame names
 // the frame the WAIT ended on, while the backward scan behind it is still
-// anchored on the press row — those are two different frames on purpose, and
+// anchored on the press row - those are two different frames on purpose, and
 // conflating them would either lie about when the game reacted or lie about
 // what the player did.
 //============================================================================
@@ -150,7 +150,7 @@ class UCk_AutoTest_Intent_ChordWindowResolvesPartnerOrTimeout : UCk_AutoTest_Bas
 
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_Chord_Bare") !=
                     ECk_Intent_Phase::Completed,
-            "one press resolves to ONE intent — the chord is what the player asked for, so the bare move loses");
+            "one press resolves to ONE intent - the chord is what the player asked for, so the bare move loses");
 
         DoInject(_PunchKey, ECk_InputSource_EventType::Released);
         DoInject(_KickKey,  ECk_InputSource_EventType::Released);

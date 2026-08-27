@@ -14,7 +14,7 @@
 //   - Pivot at alcove centre on the ground (Z=0).
 //   - Alcove opens toward +X (player approaches from world +X looking -X).
 //   - Width along Y, Depth along X, Height along Z.
-//   - Width / Depth / Height in 100×cm units (Width=6 → 600cm).
+//   - Width / Depth / Height in 100xcm units (Width=6 -> 600cm).
 //   - WallThickness / FloorThickness / TrimDepth in cm.
 //
 // Pieces (lit + opaque, lit by /Engine/BasicShapes/Cube's BasicShapeMaterial):
@@ -25,7 +25,7 @@
 //   - Spotlight illuminating the back wall (USpotLightComponent)
 //
 // Anchors:
-//   - 7 anchor SceneNodes are always created — they are the canonical
+//   - 7 anchor SceneNodes are always created - they are the canonical
 //     world-position source for Get_*WorldLocation() getters. The getters
 //     read the SceneNode's world transform via utils_transform.
 //   - When ShowAnchors=true, each anchor SceneNode also gets a small PMG
@@ -34,7 +34,7 @@
 //
 // Lifecycle:
 //   - DoConstruct: build SceneNode hierarchy + attach all components + setup
-//     anchor visuals if requested. Component setup is async — OnAdded
+//     anchor visuals if requested. Component setup is async - OnAdded
 //     handlers configure each component once Setup processor instantiates it.
 //   - DoEndPlay: nothing manual. SceneNode children cascade-destroy with the
 //     station; each child entity's CkUnrealComponent EndPlay processor tears
@@ -46,9 +46,9 @@
 //============================================================================
 
 // Where the floor description sits along the alcove's depth (X axis).
-//   Front  → toward +X (the alcove opening)
-//   Center → middle of the floor stage along X
-//   Back   → toward -X (against the back wall)
+//   Front  -> toward +X (the alcove opening)
+//   Center -> middle of the floor stage along X
+//   Back   -> toward -X (against the back wall)
 // Y position is controlled by FloorTextAlignment, mirroring wall-text behaviour.
 UENUM()
 enum ECk_GymStation_FloorTextPlacement
@@ -63,13 +63,13 @@ enum ECk_GymStation_FloorTextPlacement
 // (cross-gym helper) to retrieve the corresponding world position.
 //
 // Quick guide for picking one:
-//   - FootprintCenter — alcove pivot on the floor (Z=0). Use for nav/physics/spatial
+//   - FootprintCenter - alcove pivot on the floor (Z=0). Use for nav/physics/spatial
 //     tests where elements need to sit on the navmesh.
-//   - PanelCenter     — geometric centre of the alcove at mid-height. Use for
+//   - PanelCenter     - geometric centre of the alcove at mid-height. Use for
 //     debug-shape tests so visual elements sit inside the alcove without
 //     intersecting back wall / floor / trim. Default for most gyms.
-//   - PanelTopFront   — top edge of the front opening. Marker / banner attach point.
-//   - AgentSpawn{Front,Back,Left,Right} — perimeter anchors that respect AgentSpawnOffset.
+//   - PanelTopFront   - top edge of the front opening. Marker / banner attach point.
+//   - AgentSpawn{Front,Back,Left,Right} - perimeter anchors that respect AgentSpawnOffset.
 UENUM()
 enum ECk_GymStation_Anchor
 {
@@ -87,7 +87,7 @@ enum ECk_GymStation_Anchor
 // can read the positions via Handle.Get_Fragment(FCkGym_Station_Anchors)
 // without needing access to the EntityScript instance.
 //
-// Note: snapshot is computed at construction from InitialTransform × local
+// Note: snapshot is computed at construction from InitialTransform x local
 // offsets. If a station is moved at runtime, this fragment goes stale (the
 // EntityScript's per-tick math via Get_EntityCurrentLocation stays correct,
 // but the cross-gym fragment-based read does not). Acceptable for static
@@ -110,19 +110,19 @@ struct FCk_GymStation_SpawnParams
 	UPROPERTY()
 	FTransform InitialTransform = FTransform::Identity;
 
-	// Alcove dimensions — 100×cm units.
+	// Alcove dimensions - 100xcm units.
 	UPROPERTY() double Width = 6.0;
 	UPROPERTY() double Depth = 5.0;
 	UPROPERTY() double Height = 5.0;
 
-	// Wall thicknesses — cm.
+	// Wall thicknesses - cm.
 	UPROPERTY() double WallThickness = 15.0;
 	UPROPERTY() double FloorThickness = 15.0;
 
-	// How far the trim pieces extend forward from the back wall — cm.
+	// How far the trim pieces extend forward from the back wall - cm.
 	UPROPERTY() double TrimDepth = 30.0;
 
-	// How far past the alcove edge each agent-spawn anchor sits — cm.
+	// How far past the alcove edge each agent-spawn anchor sits - cm.
 	// 0 = anchor sits right on the alcove footprint edge. Increase for clearance
 	// when spawning physical test agents that shouldn't clip the trim.
 	UPROPERTY() double AgentSpawnOffset = 0.0;
@@ -130,7 +130,7 @@ struct FCk_GymStation_SpawnParams
 	// Body colour for the back wall + floor stage.
 	UPROPERTY() FLinearColor BodyColour = FLinearColor(0.02, 0.02, 0.02, 1.0);
 
-	// Trim colour for the four frame pieces — lighter grey by default.
+	// Trim colour for the four frame pieces - lighter grey by default.
 	UPROPERTY() FLinearColor TrimColour = FLinearColor(0.3, 0.3, 0.3, 1.0);
 
 	// Title.
@@ -155,7 +155,7 @@ struct FCk_GymStation_SpawnParams
 	UPROPERTY() bool ShowSpotlight = true;
 	UPROPERTY() bool ShowAnchors = false;
 
-	// Debug overlays — when true, draws a translucent wireframe PMG box at
+	// Debug overlays - when true, draws a translucent wireframe PMG box at
 	// each piece's *expected* world transform (computed from InitialTransform
 	// + the local-offset math). If a piece's actual rendered geometry doesn't
 	// match its overlay, the resize plumbing is broken for that piece.
@@ -226,7 +226,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	private FText _CachedDescription;
 	private FText _CachedInstructions;
 
-	// Body component handles — used by OnBodyMeshAdded/OnTrimMeshAdded to
+	// Body component handles - used by OnBodyMeshAdded/OnTrimMeshAdded to
 	// disambiguate which piece fired the callback (since one handler serves
 	// multiple pieces of the same type).
 	private FCk_Handle_UnrealComponent _BackWallHandle;
@@ -236,9 +236,9 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	private FCk_Handle_UnrealComponent _TopTrimHandle;
 	private FCk_Handle_UnrealComponent _BottomTrimHandle;
 
-	// Body SceneNode handles — stored directly so resize updates the right
-	// SCN every time. (Get_OwningEntity → As_SceneNode chain proved unreliable
-	// during runtime resizes — partial-update bugs that left the floor at
+	// Body SceneNode handles - stored directly so resize updates the right
+	// SCN every time. (Get_OwningEntity -> As_SceneNode chain proved unreliable
+	// during runtime resizes - partial-update bugs that left the floor at
 	// the new size while the back wall stayed at the old.)
 	private FCk_Handle_SceneNode _BackWallSCN;
 	private FCk_Handle_SceneNode _FloorStageSCN;
@@ -267,7 +267,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	private TArray<FString>                    _ColouredRunAppliedText;
 	private TArray<FColor>                     _ColouredRunAppliedColour;
 
-	// First body-line index each run starts at — the run's vertical offset below
+	// First body-line index each run starts at - the run's vertical offset below
 	// the description anchor is a multiple of it.
 	private TArray<int32> _ColouredRunStartLine;
 
@@ -280,7 +280,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	// PMG handles for debug overlays (when ShowDebugOverlays=true).
 	private TArray<FCk_Handle_Pmg_DebugShape> _DebugOverlays;
 
-	// Anchor SceneNodes — always created; queried by Get_*WorldLocation getters.
+	// Anchor SceneNodes - always created; queried by Get_*WorldLocation getters.
 	private FCk_Handle_SceneNode _AnchorFootprintCenter;
 	private FCk_Handle_SceneNode _AnchorAgentSpawnFront;
 	private FCk_Handle_SceneNode _AnchorAgentSpawnBack;
@@ -339,8 +339,8 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 
 	// Snapshot the seven anchor world positions into a fragment on the station
 	// entity so other gym scripts can read them via Handle.Get_Fragment.
-	// Computed from InitialTransform × local offset (matches the Build_Anchors
-	// math). Static stations only — moving stations would need this re-run.
+	// Computed from InitialTransform x local offset (matches the Build_Anchors
+	// math). Static stations only - moving stations would need this re-run.
 	private void Populate_AnchorsFragment(FCk_Handle& InHandle)
 	{
 		const auto W_cm = Width * 100.0;
@@ -358,7 +358,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	}
 
 	//------------------------------------------------------------------------
-	// Fragment-driven display updates — directors push live status text via
+	// Fragment-driven display updates - directors push live status text via
 	// CkGym_Common::Update_StationDisplay, which writes the fragment on this
 	// entity. We poll the fragment each tick and re-apply text components
 	// when any field changes.
@@ -439,7 +439,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	}
 
 	//------------------------------------------------------------------------
-	// Coloured body — same title and floor-instruction channels as the plain
+	// Coloured body - same title and floor-instruction channels as the plain
 	// path; only the body is different, and it is rendered as one component per
 	// run of consecutive same-coloured lines.
 	//------------------------------------------------------------------------
@@ -493,7 +493,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		}
 
 		// Components are only torn down when the RUN COUNT moves. Text and
-		// colour changes reuse what is already there — the display ticks every
+		// colour changes reuse what is already there - the display ticks every
 		// frame, so recreating on content would churn components continuously.
 		const auto RunCountChanged = RunTexts.Num() != _ColouredRunHandles.Num();
 		const auto LayoutChanged = RunCountChanged || Get_ColouredRunLayoutChanged(RunStartLines);
@@ -586,7 +586,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	private void Destroy_ColouredRunComponents()
 	{
 		// Destroying the run's SceneNode entity takes its UTextRenderComponent
-		// with it — same cascade the station itself relies on.
+		// with it - same cascade the station itself relies on.
 		for (auto RunSCN : _ColouredRunSCNs)
 		{
 			utils_entity_lifetime::Request_DestroyEntity(RunSCN);
@@ -649,12 +649,12 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		return InA.R == InB.R && InA.G == InB.G && InA.B == InB.B && InA.A == InB.A;
 	}
 
-	// DoEndPlay intentionally omitted — SceneNode children cascade-destroy with
+	// DoEndPlay intentionally omitted - SceneNode children cascade-destroy with
 	// the station entity, and the CkUnrealComponent EndPlay processor tears down
 	// each child's component when its entity dies.
 
 	//========================================================================
-	// Body — back wall, floor stage, four trims.
+	// Body - back wall, floor stage, four trims.
 	//========================================================================
 
 	private void Build_Body(FCk_Handle_Transform& InStationTH)
@@ -666,7 +666,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		const auto WT = WallThickness;
 		const auto FT = FloorThickness;
 
-		// Back wall: thin slab at -X end, full Width × full Height.
+		// Back wall: thin slab at -X end, full Width x full Height.
 		_BackWallHandle = Spawn_StaticMeshPiece(InStationTH, n"BackWall", n"OnBodyMeshAdded",
 			FVector(-D_cm * 0.5 + WT * 0.5, 0.0, H_cm * 0.5),
 			FVector(WT / 100.0, Width, Height),
@@ -678,7 +678,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 			FVector(Depth, Width, FT / 100.0),
 			_FloorStageSCN);
 
-		// Trim — picture-frame around the back wall, flush with the back wall's
+		// Trim - picture-frame around the back wall, flush with the back wall's
 		// front face, projecting forward by TrimDepth.
 		const auto TrimCenterX = -D_cm * 0.5 + WT + TrimDepth * 0.5;
 
@@ -758,7 +758,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	}
 
 	//========================================================================
-	// Text — title + description on back wall, optional floor description.
+	// Text - title + description on back wall, optional floor description.
 	//========================================================================
 
 	private void Build_Text(FCk_Handle_Transform& InStationTH)
@@ -867,7 +867,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	}
 
 	// Y offset for text based on the given alignment + width adjustment.
-	// EHTA_Left → +Y, EHTA_Right → -Y, Center → 0.
+	// EHTA_Left -> +Y, EHTA_Right -> -Y, Center -> 0.
 	private double TextAlignmentOffset(EHorizTextAligment InAlignment, double InWidthAdjustment)
 	{
 		const auto Magnitude = ((Width - InWidthAdjustment) * 0.5) * 100.0;
@@ -878,7 +878,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	}
 
 	// X offset for the floor text based on FloorTextPlacement + depth adjustment.
-	// Front → +X (toward opening), Back → -X (toward back wall), Center → 0.
+	// Front -> +X (toward opening), Back -> -X (toward back wall), Center -> 0.
 	private double FloorPlacementOffset(double InDepthAdjustment)
 	{
 		const auto Magnitude = ((Depth - InDepthAdjustment) * 0.5) * 100.0;
@@ -906,7 +906,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	}
 
 	//========================================================================
-	// Spotlight — illuminates the back wall from inside the alcove.
+	// Spotlight - illuminates the back wall from inside the alcove.
 	//========================================================================
 
 	private void Build_Spotlight(FCk_Handle_Transform& InStationTH)
@@ -946,7 +946,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	}
 
 	//========================================================================
-	// Anchors — 7 SceneNodes always created. They are the canonical
+	// Anchors - 7 SceneNodes always created. They are the canonical
 	// world-position source for Get_*WorldLocation() getters.
 	//========================================================================
 
@@ -975,13 +975,13 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	// Cyan for the 4 agent-spawn anchors; magenta for footprint + panel anchors.
 	//
 	// We use Create_Sphere (spawns a fresh child entity owned by the station)
-	// rather than Add_Sphere (which would ENSURE — Add_Sphere internally calls
+	// rather than Add_Sphere (which would ENSURE - Add_Sphere internally calls
 	// utils_transform::Add, but the anchor SCNs already have Transform fragments
 	// from utils_scene_node::Create).
 	//
-	// World transforms are computed manually from InitialTransform × LocalOffset
+	// World transforms are computed manually from InitialTransform x LocalOffset
 	// because at DoConstruct time the SceneNode propagation processor hasn't yet
-	// written world transforms to the anchor SCNs — so Get_EntityCurrentLocation
+	// written world transforms to the anchor SCNs - so Get_EntityCurrentLocation
 	// would return stale values.
 	//
 	// Trade-off: spheres are positioned once and won't follow the station if it
@@ -1022,21 +1022,21 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 			16,                       // Rings
 			ECk_Plane_Axis::XY,
 			InColour,
-			true,                     // InDrawLines = true — wireframe overlay (PMG idiom)
+			true,                     // InDrawLines = true - wireframe overlay (PMG idiom)
 			2.0f,                     // InLineThickness
 			-1.0f);                   // InDuration = -1.0f for persistent
 	}
 
 	//========================================================================
-	// Anchor world-position getter — reads the named anchor SCN's current
+	// Anchor world-position getter - reads the named anchor SCN's current
 	// world transform via the framework's transform util. SceneNode
 	// propagation keeps this correct even if the station moves (which the
 	// FCkGym_Station_Anchors fragment snapshot doesn't).
 	//
 	// External gym scripts can either:
 	//   (a) Call ACk_Gym_Base_PlayerController::Get_StationAnchorLocation(InTag, EAnchor),
-	//       which uses the snapshot fragment — fine for static stations.
-	//   (b) Call this getter directly — needs the EntityScript instance.
+	//       which uses the snapshot fragment - fine for static stations.
+	//   (b) Call this getter directly - needs the EntityScript instance.
 	//========================================================================
 
 	UFUNCTION()
@@ -1058,7 +1058,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	}
 
 	//========================================================================
-	// Auto-sizing — heuristic Width/Height from text content.
+	// Auto-sizing - heuristic Width/Height from text content.
 	//
 	// Spawn-time: walk the spawn-params Title + DescriptionText (TArray<FText>)
 	// to find longest line + line count. Override Width/Height before geometry
@@ -1066,11 +1066,11 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	//
 	// Runtime: when Update_StationDisplay writes the fragment, recompute
 	// required size from Fragment.Title + Fragment.Description (which may
-	// contain "\n" for multi-line). Grow-only — Width/Height only ever
+	// contain "\n" for multi-line). Grow-only - Width/Height only ever
 	// increase. Avoids pulsing as live-status text fluctuates.
 	//
-	// Heuristic uses approximate char-width (0.6 × DescriptionScale) and
-	// line-height (1.5 × DescriptionScale). Imprecise but safely over-sizes
+	// Heuristic uses approximate char-width (0.6 x DescriptionScale) and
+	// line-height (1.5 x DescriptionScale). Imprecise but safely over-sizes
 	// rather than truncating.
 	//========================================================================
 
@@ -1120,7 +1120,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 
 		// Both components must exist for the measurement; this method is
 		// called from each Apply_*Text handler so it may be invoked before
-		// the other component is ready — early out and we'll catch up next call.
+		// the other component is ready - early out and we'll catch up next call.
 		if (TitleComp == nullptr || DescComp == nullptr) { return; }
 
 		const auto TitleSize = TitleComp.GetTextLocalSize();
@@ -1166,7 +1166,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	}
 
 	//========================================================================
-	// Resize — re-applies local transforms to all SCNs based on current
+	// Resize - re-applies local transforms to all SCNs based on current
 	// Width / Depth / Height. Used by Refit_IfOverflow on grow.
 	//========================================================================
 
@@ -1280,7 +1280,7 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		Update_PieceLocOnly(_AnchorPanelCenter,      FVector(0.0, 0.0, H_cm * 0.5));
 	}
 
-	// Direct SCN updates — issued as a SINGLE full-transform request per piece.
+	// Direct SCN updates - issued as a SINGLE full-transform request per piece.
 	//
 	// Why not the per-component Request_UpdateOffset_Location / _Rotation /
 	// _Scale helpers: those each read the current offset, mutate one field,
@@ -1320,18 +1320,18 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 	}
 
 	//========================================================================
-	// Debug overlays — translucent wireframe PMG boxes drawn at each piece's
+	// Debug overlays - translucent wireframe PMG boxes drawn at each piece's
 	// EXPECTED world transform. Useful for spotting a partial-resize bug:
 	// if a piece's actual rendered geometry doesn't sit inside its overlay,
 	// that piece's transform isn't tracking the latest dimensions.
 	//
 	// Colour key:
-	//   Back wall  → red
-	//   Floor      → blue
-	//   Top trim   → yellow
-	//   Bottom trim→ orange
-	//   Left trim  → cyan
-	//   Right trim → magenta
+	//   Back wall  -> red
+	//   Floor      -> blue
+	//   Top trim   -> yellow
+	//   Bottom trim-> orange
+	//   Left trim  -> cyan
+	//   Right trim -> magenta
 	//========================================================================
 
 	private void Build_DebugOverlays(FCk_Handle& InOwner)
@@ -1365,37 +1365,37 @@ class UCk_EntityScript_GymStation : UCk_GenericEntityScript_UE
 		const auto FT = FloorThickness;
 		const auto TrimCenterX = -D_cm * 0.5 + WT + TrimDepth * 0.5;
 
-		// Back wall — red
+		// Back wall - red
 		Push_OverlayBoxAt(InOwner,
 			FVector(-D_cm * 0.5 + WT * 0.5, 0.0, H_cm * 0.5),
 			FVector(WT * 0.5, W_cm * 0.5, H_cm * 0.5),
 			FLinearColor(1.0, 0.0, 0.0, 0.25));
 
-		// Floor — blue
+		// Floor - blue
 		Push_OverlayBoxAt(InOwner,
 			FVector(0.0, 0.0, FT * 0.5),
 			FVector(D_cm * 0.5, W_cm * 0.5, FT * 0.5),
 			FLinearColor(0.0, 0.4, 1.0, 0.25));
 
-		// Left trim — cyan
+		// Left trim - cyan
 		Push_OverlayBoxAt(InOwner,
 			FVector(TrimCenterX, W_cm * 0.5 - WT * 0.5, H_cm * 0.5),
 			FVector(TrimDepth * 0.5, WT * 0.5, H_cm * 0.5),
 			FLinearColor(0.0, 1.0, 1.0, 0.25));
 
-		// Right trim — magenta
+		// Right trim - magenta
 		Push_OverlayBoxAt(InOwner,
 			FVector(TrimCenterX, -W_cm * 0.5 + WT * 0.5, H_cm * 0.5),
 			FVector(TrimDepth * 0.5, WT * 0.5, H_cm * 0.5),
 			FLinearColor(1.0, 0.0, 1.0, 0.25));
 
-		// Top trim — yellow
+		// Top trim - yellow
 		Push_OverlayBoxAt(InOwner,
 			FVector(TrimCenterX, 0.0, H_cm - WT * 0.5),
 			FVector(TrimDepth * 0.5, W_cm * 0.5, WT * 0.5),
 			FLinearColor(1.0, 1.0, 0.0, 0.25));
 
-		// Bottom trim — orange
+		// Bottom trim - orange
 		Push_OverlayBoxAt(InOwner,
 			FVector(TrimCenterX, 0.0, FT + WT * 0.5),
 			FVector(TrimDepth * 0.5, W_cm * 0.5, WT * 0.5),

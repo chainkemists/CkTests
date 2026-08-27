@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CkGoapEmpire_Gym — Empire-research Actions
+// CkGoapEmpire_Gym - Empire-research Actions
 //
 // 5-step plan resolving Feudal-age research from raw gathering:
 //   GatherFood     pre {}                              eff {Food.Have}      cost 3
@@ -12,9 +12,9 @@
 //
 // Planner goal {FeudalResearched=true}. Initial WS has all booleans false.
 // Plan = [GatherWood, GatherFood, GatherGold, BuildBarracks, ResearchFeudal]
-// (gather order is by cost — wood cheapest, gold dearest).
+// (gather order is by cost - wood cheapest, gold dearest).
 //
-// PR-B.1b Stage 5: the implicit-root model is gone — operators are direct
+// PR-B.1b Stage 5: the implicit-root model is gone - operators are direct
 // children of the Planner. ResearchFeudal is the only candidate whose effect
 // satisfies the goal, so the backchain naturally orders the dependency chain.
 //============================================================================
@@ -89,8 +89,8 @@ class UCk_GoapGym_Empire_ResearchFeudal : UCk_GoapAction_EntityScript
     }
 }
 
-// Always-valid-plan tenet fallback (CkGoap/CLAUDE.md § "Design tenets").
-// ResearchFeudal carries hard preconditions on BarracksBuilt + HasFood — the
+// Always-valid-plan tenet fallback (the CkGoap docs Sec. "Design tenets").
+// ResearchFeudal carries hard preconditions on BarracksBuilt + HasFood - the
 // real path goes through all five resource/build steps. Without this fallback
 // the Planner has no unconditional path to FeudalResearched and the tenet
 // check fires. Semantically: "wait for orders from the ruler; FeudalResearched

@@ -1,6 +1,6 @@
 // Language=angelscript
 //
-// CK VARIABLES — AUTOMATION TEST: Int32 Set→Get round-trip
+// CK VARIABLES - AUTOMATION TEST: Int32 Set->Get round-trip
 
 class UCk_AutoTest_Variables_Int32_SetGetRoundTrip : UCk_AutoTest_Base
 {

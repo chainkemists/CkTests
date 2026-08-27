@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK JOLT — AUTOMATION TEST: HINGE CONSTRAINT RESPECTS ITS ANGLE LIMITS
+// CK JOLT - AUTOMATION TEST: HINGE CONSTRAINT RESPECTS ITS ANGLE LIMITS
 //============================================================================
 //
 // A Dynamic "door" slab is hinged to the WORLD about a vertical axis with
@@ -47,7 +47,7 @@ class UCk_AutoTest_CkJolt_Constraint_HingeRespectsLimits : UCk_AutoTest_Base
         DoorParams.Set_ShapeDimensions(DoorShape);
         DoorParams.Set_MotionType(ECk_MotionType::Dynamic);
         // A door hinged about Z is gravity-neutral; heavy ANGULAR damping (exponential, unit-free)
-        // is what settles it — friction torque would need absurd values at FromShape mass scale.
+        // is what settles it - friction torque would need absurd values at FromShape mass scale.
         DoorParams.Set_GravityFactor(0.0);
         DoorParams.Set_AngularDamping(1.0);
         auto DoorBody = utils_jolt_body::Add(DoorEntity, DoorParams);
@@ -59,7 +59,7 @@ class UCk_AutoTest_CkJolt_Constraint_HingeRespectsLimits : UCk_AutoTest_Base
         ConstraintParams.Set_LimitsMaxDegrees(_LimitDegrees);
         _Hinge = utils_jolt_constraint::Create(DoorBody, ConstraintParams);
 
-        // Slam the free edge — way harder than the limits allow, so the stop is what ends the swing.
+        // Slam the free edge - way harder than the limits allow, so the stop is what ends the swing.
         // 4e10 at a 55cm arm on this ~1.7e8-mass-unit slab spins it ~150 deg/s into the stop.
         utils_jolt_body::Request_AddImpulseAtLocation(DoorBody,
             FCk_Request_JoltBody_AddImpulseAtLocation(FVector(40000000000.0, 0.0, 0.0), _Pivot + FVector(0.0, 115.0, 0.0)));

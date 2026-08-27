@@ -1,11 +1,11 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — AUTOMATION TEST: PHASE L SOCKETS + LINE TRACE
+// CK ISKM RENDERER - AUTOMATION TEST: PHASE L SOCKETS + LINE TRACE
 //============================================================================
 //
 // Phase L test gate. Verifies the socket/line-trace API surface added in L1
-// AND the UpdateTransform processor body (no-op stub from E3 → real
+// AND the UpdateTransform processor body (no-op stub from E3 -> real
 // SetWorldTransform pass-through, gated by FTag_IskmProxy_Movable +
 // FTag_Transform_Updated, excluding ragdolling).
 //

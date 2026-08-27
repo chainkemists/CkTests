@@ -1,10 +1,10 @@
 // Language=angelscript
 
 //============================================================================
-// CK INTENT — AUTOMATION TEST: THE MASK HAS TO HIT THE KEY IT OPENED ON
+// CK INTENT - AUTOMATION TEST: THE MASK HAS TO HIT THE KEY IT OPENED ON
 //============================================================================
 //
-// Losing delivery closes a level state — but "delivery" is about the key the
+// Losing delivery closes a level state - but "delivery" is about the key the
 // state is actually riding on, and a Mapped button has more than one. The
 // state remembers the ANCHOR: the key the activating press arrived on. A mask
 // over any OTHER bound key of the same button takes away input the state was
@@ -17,14 +17,14 @@
 // anchor and the union are the same key. Two bindings is the smallest fixture
 // where they can disagree.
 //
-// The negative half — "still Active after the wrong key was masked" — is a
+// The negative half - "still Active after the wrong key was masked" - is a
 // settle rather than a condition, because it is already true on arrival. What
 // makes the silence mean something is the leg after it: the anchor is masked
 // too, and the state closes even though the non-anchor key is STILL physically
 // held. A state that merely ignored masks entirely would pass the first half
 // and hang forever on the second.
 //
-// CkTests_DualBound stays on its authored F8/F12 defaults — no key binding is
+// CkTests_DualBound stays on its authored F8/F12 defaults - no key binding is
 // mutated, so there is nothing to reset on teardown. The masker's captures are
 // added on a layer this test owns and dies with.
 //============================================================================
@@ -56,7 +56,7 @@ class UCk_AutoTest_Intent_LevelMaskingNonAnchorKeyKeepsActive : UCk_AutoTest_Bas
         auto PlayerController = Gameplay::GetPlayerController(0);
         if (ck::Is_NOT_Valid(PlayerController))
         {
-            FinishFailure("no local PlayerController — the mapped tier derives from the local player's profile");
+            FinishFailure("no local PlayerController - the mapped tier derives from the local player's profile");
             return;
         }
 
@@ -163,7 +163,7 @@ class UCk_AutoTest_Intent_LevelMaskingNonAnchorKeyKeepsActive : UCk_AutoTest_Bas
     {
         Assert_True(utils_intent_matcher::Get_IntentPhase_ByName(_Matcher, n"AS_Level_Drag") ==
                     ECk_Intent_Phase::Active,
-            "the masked key is not the one the state is riding on — closing here would be the union being mistaken for the anchor");
+            "the masked key is not the one the state is riding on - closing here would be the union being mistaken for the anchor");
 
         Assert_Equals_Int(utils_intent_matcher::TryGet_ActivationFrame_ByName(_Matcher, n"AS_Level_Drag"),
             _ActivationFrame,
@@ -226,7 +226,7 @@ class UCk_AutoTest_Intent_LevelMaskingNonAnchorKeyKeepsActive : UCk_AutoTest_Bas
         Res.Set(DoFind_RoutedEdge(_OtherKey, ECk_InputSource_EventType::Pressed));
     }
 
-    // Capture edits are DEFERRED, so both mask legs wait on the capture actually being in force —
+    // Capture edits are DEFERRED, so both mask legs wait on the capture actually being in force
     // asserting one hop after the request would be asserting against a mask that is not applied yet.
     UFUNCTION()
     private void Check_OtherMasked(FCk_Handle InHandle, FCk_SharedBool OutResult, FInstancedStruct InPayload)

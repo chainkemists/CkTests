@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK INVENTORY — AUTOMATION TEST: RESOLVE BEST TRANSFER TARGET — NO PASSES
+// CK INVENTORY - AUTOMATION TEST: RESOLVE BEST TRANSFER TARGET - NO PASSES
 //============================================================================
 //
 // Pins the documented contract from CkInventory_Utils.h:
@@ -32,7 +32,7 @@ class UCk_AutoTest_Inventory_ResolveBestTransferTarget_NoCandidatePasses : UCk_A
         auto _CkPerfScope = ck::ScopedStat();
         auto LocalHandle = InHandle;
 
-        // Source inventory has no CustomCanAcceptItem rejection — it'll
+        // Source inventory has no CustomCanAcceptItem rejection - it'll
         // accept the Sword we add to it.
         auto SourceParams = utils_inventory_data_only::Make_Params(
             utils_gameplay_tag::ResolveGameplayTag(n"Inventory.AutoTest_RBT_Source"),

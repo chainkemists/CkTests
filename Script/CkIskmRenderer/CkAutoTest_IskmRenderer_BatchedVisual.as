@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ISKM RENDERER — VISUAL CAPTURE AUTOTEST (batched moving crowd)
+// CK ISKM RENDERER - VISUAL CAPTURE AUTOTEST (batched moving crowd)
 //============================================================================
 //
 // Renders a moving batched crowd in front of the player view and takes TWO screenshots ~1.2s apart
@@ -10,7 +10,7 @@
 //   2. the two frames DIFFER (per-instance animation + movement actually render),
 //   3. no missing/black tiles (bounds/culling sane from this vantage).
 //
-// The test itself passes on capture-sequence completion — image judgement is the operator's.
+// The test itself passes on capture-sequence completion - image judgement is the operator's.
 // Requires RHI (--no-nullrhi); under -nullrhi it still passes but writes no images.
 //============================================================================
 
@@ -26,7 +26,7 @@ class UCk_AutoTest_IskmRenderer_BatchedVisual : UCk_AutoTest_Base
         auto Collection = iskm_assets::AnimCollection_Demo();
         if (ck::Is_NOT_Valid(Collection))
         {
-            FinishFailure("iskm_assets::AnimCollection_Demo() invalid — registry may need regeneration.");
+            FinishFailure("iskm_assets::AnimCollection_Demo() invalid - registry may need regeneration.");
             return;
         }
 
@@ -36,9 +36,9 @@ class UCk_AutoTest_IskmRenderer_BatchedVisual : UCk_AutoTest_Base
         Snapshot_CVarForTest(n"r.SceneColorFormat");
         Snapshot_CVarForTest(n"r.PostProcessingColorFormat");
 
-        // The barren AutoTests level has no lighting — capture in UNLIT so base color renders without lights.
+        // The barren AutoTests level has no lighting - capture in UNLIT so base color renders without lights.
         // `viewmode` is a console COMMAND, not a variable, so there is no prior value for
-        // Set_CVarForTest to capture — this one has to be put back by hand (see OnTick). Leaving it
+        // Set_CVarForTest to capture - this one has to be put back by hand (see OnTick). Leaving it
         // unlit would hand every later test in this lane a viewport that renders nothing correctly.
         System::ExecuteConsoleCommand("viewmode unlit");
 

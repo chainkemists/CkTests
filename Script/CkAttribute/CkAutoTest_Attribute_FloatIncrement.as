@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK ATTRIBUTE — AUTOMATION TEST: FLOAT INCREMENT / DECREMENT HELPERS
+// CK ATTRIBUTE - AUTOMATION TEST: FLOAT INCREMENT / DECREMENT HELPERS
 //============================================================================
 //
 // Verifies the float attribute mixin's increment/decrement helpers:

@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// Pixel Art gym GameMode (minimal — all logic lives in the PlayerController).
+// Pixel Art gym GameMode (minimal - all logic lives in the PlayerController).
 // Registered with the gym cycler in CkTests_GymRegistry.as as "Pixel Art".
 // --------------------------------------------------------------------------------------------------------------------
 
