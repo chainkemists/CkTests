@@ -359,6 +359,46 @@ bool FCkTest_Crowd_AvoidanceSample_AvoidanceVolume_ContactRetainsWalls::RunTest(
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_Crowd_AvoidanceVolume_TraversalPoliciesBuildPhaseOverlays,
+    "CkTests.UnitTests.CkCrowd.AvoidanceVolume.TraversalPolicies.BuildPhaseOverlays",
+    kCkUnitTestFlags)
+bool FCkTest_Crowd_AvoidanceVolume_TraversalPoliciesBuildPhaseOverlays::RunTest(const FString& InParameters)
+{
+    const auto DefaultParams = FCk_Fragment_CrowdAvoidanceVolume_ParamsData{};
+    TestEqual(TEXT("AvoidIfPossible remains the authored default"),
+        DefaultParams.Get_TraversalPolicy(), ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible);
+
+    TestTrue(TEXT("strict excludes AvoidIfPossible"),
+        UCk_Utils_CrowdAvoidanceVolume_UE::Get_IsTraversalPolicyExcluded(
+            ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible,
+            ECk_CrowdAvoidanceVolume_QueryPhase::Strict));
+    TestTrue(TEXT("strict excludes HardExclude"),
+        UCk_Utils_CrowdAvoidanceVolume_UE::Get_IsTraversalPolicyExcluded(
+            ECk_CrowdAvoidanceVolume_TraversalPolicy::HardExclude,
+            ECk_CrowdAvoidanceVolume_QueryPhase::Strict));
+    TestFalse(TEXT("strict keeps CostOnly traversable"),
+        UCk_Utils_CrowdAvoidanceVolume_UE::Get_IsTraversalPolicyExcluded(
+            ECk_CrowdAvoidanceVolume_TraversalPolicy::CostOnly,
+            ECk_CrowdAvoidanceVolume_QueryPhase::Strict));
+    TestTrue(TEXT("permissive still excludes HardExclude"),
+        UCk_Utils_CrowdAvoidanceVolume_UE::Get_IsTraversalPolicyExcluded(
+            ECk_CrowdAvoidanceVolume_TraversalPolicy::HardExclude,
+            ECk_CrowdAvoidanceVolume_QueryPhase::Permissive));
+    TestFalse(TEXT("permissive allows AvoidIfPossible"),
+        UCk_Utils_CrowdAvoidanceVolume_UE::Get_IsTraversalPolicyExcluded(
+            ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible,
+            ECk_CrowdAvoidanceVolume_QueryPhase::Permissive));
+    TestFalse(TEXT("permissive allows CostOnly"),
+        UCk_Utils_CrowdAvoidanceVolume_UE::Get_IsTraversalPolicyExcluded(
+            ECk_CrowdAvoidanceVolume_TraversalPolicy::CostOnly,
+            ECk_CrowdAvoidanceVolume_QueryPhase::Permissive));
+
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkTest_Crowd_AvoidanceVolume_DebugSnapshots_AreCopiedAndPendingWithoutRecast,
     "CkTests.UnitTests.CkCrowd.AvoidanceVolume.DebugSnapshots.CopiedAndPendingWithoutRecast",
     kCkUnitTestFlags)
@@ -387,6 +427,7 @@ bool FCkTest_Crowd_AvoidanceVolume_DebugSnapshots_AreCopiedAndPendingWithoutReca
     Params.Set_HalfExtents(FVector{10.0f, 20.0f, 30.0f});
     Params.Set_InfluenceRange(25.0f);
     Params.Set_PathPlanningClearance(15.0f);
+    Params.Set_TraversalPolicy(ECk_CrowdAvoidanceVolume_TraversalPolicy::HardExclude);
     Volume.Add<ck::FFragment_CrowdAvoidanceVolume_Params>(Params);
     Volume.Add<ck::FFragment_CrowdAvoidanceVolume_ProbeRef>();
     Volume.Add<ck::FTag_CrowdAvoidanceVolume_NeedsSetup>();
@@ -402,6 +443,8 @@ bool FCkTest_Crowd_AvoidanceVolume_DebugSnapshots_AreCopiedAndPendingWithoutReca
         Snapshot.Get_VolumeDebugName(), FName{TEXT("SnapshotVolume")});
     TestEqual(TEXT("pending setup is reported before any nav-area paint"),
         Snapshot.Get_State(), ECk_CrowdAvoidanceVolume_DebugState::PendingSetup);
+    TestEqual(TEXT("the authored traversal policy is copied into the detached snapshot"),
+        Snapshot.Get_TraversalPolicy(), ECk_CrowdAvoidanceVolume_TraversalPolicy::HardExclude);
     TestTrue(TEXT("scaled pending geometry is safe to render"), Snapshot.Get_HasValidGeometry());
     TestTrue(TEXT("the copied yaw transform retains location"),
         Snapshot.Get_YawWorldTransform().GetLocation().Equals(FVector{100.0f, 200.0f, 300.0f}, 0.001f));
@@ -425,7 +468,8 @@ bool FCkTest_Crowd_AvoidanceVolume_DebugSnapshots_AreCopiedAndPendingWithoutReca
         Snapshot.Get_PhysicalWorldHalfExtents().Equals(FVector{20.0f, 60.0f, 120.0f}, 0.001f) &&
         Snapshot.Get_InfluenceWorldHalfExtents().Equals(FVector{45.0f, 85.0f, 120.0f}, 0.001f) &&
         Snapshot.Get_PaintedWorldHalfExtents().Equals(FVector{35.0f, 75.0f, 120.0f}, 0.001f) &&
-        Snapshot.Get_State() == ECk_CrowdAvoidanceVolume_DebugState::PendingSetup);
+        Snapshot.Get_State() == ECk_CrowdAvoidanceVolume_DebugState::PendingSetup &&
+        Snapshot.Get_TraversalPolicy() == ECk_CrowdAvoidanceVolume_TraversalPolicy::HardExclude);
     return true;
 }
 

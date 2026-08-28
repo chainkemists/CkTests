@@ -2,7 +2,7 @@
 
 class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_AutoTest_Base
 {
-    default _TimeoutSeconds = 15.0f;
+    default _TimeoutSeconds = 25.0f;
 
     private const float AgentRadius = 42.0f;
     private const FVector Spawn = FVector(-700.0, 0.0, 100.0);
@@ -10,14 +10,24 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
     private const FVector VolumeHalfExtents = FVector(220.0, 90.0, 100.0);
     private const float VolumeYaw = 35.0;
     private const float StraightPathLateralTolerance = 5.0;
+    // Keep all nine volume confirmation samples outside the agent-expanded Null walls, while the
+    // Recast expansions still overlap and leave no traversable side gap.
+    private const float SealedCorridorHalfWidth = 190.0;
+    private const float SealedWallHalfExtent = 2000.0;
+    private const FVector SealedVolumeHalfExtents = FVector(180.0, 90.0, 100.0);
 
     private FCk_Handle _AgentEntity;
     private FCk_Handle _VolumeEntity;
     private FCk_Handle_CrowdAvoidanceVolume _Volume;
     private FCk_Handle_CrowdAgent _Agent;
+    private UCk_NavAreaMarkup_UE _TopWall = nullptr;
+    private UCk_NavAreaMarkup_UE _BottomWall = nullptr;
     private FVector _Centre;
     private bool _RouteIssued = false;
     private bool _ReplacementRouteIssued = false;
+    private bool _SealedStageStarted = false;
+    private bool _SealedRouteIssued = false;
+    private bool _SealedPathVerified = false;
 
     UFUNCTION(BlueprintOverride)
     void DoBeginPlay(FCk_Handle InHandle)
@@ -41,6 +51,11 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         if (IsFinished()) { return; }
 
         auto SelfHandle = DoGet_ScriptEntity();
+        if (_SealedStageStarted)
+        {
+            PollSealedCorridor();
+            return;
+        }
         if (_RouteIssued == false)
         {
             FVector Projected;
@@ -78,7 +93,7 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         if (_ReplacementRouteIssued)
         {
             if (IsReplacementPathStraight(Waypoints))
-            { FinishSuccess(); }
+            { BeginSealedCorridor(SelfHandle); }
             return;
         }
 
@@ -104,7 +119,9 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         auto VolumeTransform = utils_transform::Add(_VolumeEntity,
             FTransform(FRotator(0.0, VolumeYaw, 0.0), _Centre, FVector::OneVector),
             ECk_Replication::DoesNotReplicate);
-        const auto VolumeParams = FCk_Fragment_CrowdAvoidanceVolume_ParamsData(VolumeHalfExtents, 400.0);
+        auto VolumeParams = FCk_Fragment_CrowdAvoidanceVolume_ParamsData(VolumeHalfExtents, 400.0);
+        // Make the product default explicit: when space exists this policy must install a detour.
+        VolumeParams.Set_TraversalPolicy(ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible);
         _Volume = utils_crowd_avoidance_volume::Add(VolumeTransform, VolumeParams);
         if (ck::Is_NOT_Valid(_Volume))
         { FinishFailure("failed to compose avoidance volume"); return; }
@@ -135,6 +152,95 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
         { FinishFailure("failed to compose replacement crowd agent after removal"); return; }
         utils_crowd_agent::Request_MoveTo(_Agent, FCk_Request_CrowdAgent_MoveTo(Goal + FVector(0.0, 0.0, _Centre.Z)));
         _ReplacementRouteIssued = true;
+    }
+
+    private void BeginSealedCorridor(FCk_Handle& InOwner)
+    {
+        utils_entity_lifetime::Request_DestroyEntity(_AgentEntity);
+
+        const auto WallCentreY = SealedCorridorHalfWidth + SealedWallHalfExtent;
+        _TopWall = utils_nav_area_markup::Request_Create(InOwner,
+            FTransform(FRotator::ZeroRotator,
+                FVector(0.0, WallCentreY, _Centre.Z), FVector::OneVector),
+            FVector(SealedWallHalfExtent, SealedWallHalfExtent, 200.0), UNavArea_Null);
+        _BottomWall = utils_nav_area_markup::Request_Create(InOwner,
+            FTransform(FRotator::ZeroRotator,
+                FVector(0.0, -WallCentreY, _Centre.Z), FVector::OneVector),
+            FVector(SealedWallHalfExtent, SealedWallHalfExtent, 200.0), UNavArea_Null);
+        utils_nav::Request_NavigationRebuild_ForTesting(InOwner);
+
+        _VolumeEntity = utils_entity_lifetime::Request_CreateEntity(ck::TransientEntity());
+        auto VolumeTransform = utils_transform::Add(_VolumeEntity,
+            FTransform(FRotator::ZeroRotator, _Centre, FVector::OneVector),
+            ECk_Replication::DoesNotReplicate);
+        auto VolumeParams = FCk_Fragment_CrowdAvoidanceVolume_ParamsData(SealedVolumeHalfExtents, 400.0);
+        VolumeParams.Set_TraversalPolicy(ECk_CrowdAvoidanceVolume_TraversalPolicy::AvoidIfPossible);
+        _Volume = utils_crowd_avoidance_volume::Add(VolumeTransform, VolumeParams);
+
+        _AgentEntity = utils_entity_lifetime::Request_CreateEntity(InOwner);
+        auto AgentTransform = utils_transform::Add(_AgentEntity,
+            FTransform(FRotator::ZeroRotator, Spawn + FVector(0.0, 0.0, _Centre.Z), FVector::OneVector),
+            ECk_Replication::DoesNotReplicate);
+        _Agent = utils_crowd_agent::Add(
+            AgentTransform, FCk_Fragment_CrowdAgent_ParamsData(AgentRadius, 192.0f));
+        utils_velocity::Add(_AgentEntity,
+            FCk_Fragment_Velocity_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            ECk_Replication::DoesNotReplicate);
+        utils_acceleration::Add(_AgentEntity,
+            FCk_Fragment_Acceleration_ParamsData(ECk_LocalWorld::World, FVector::ZeroVector),
+            ECk_Replication::DoesNotReplicate);
+        utils_euler_integrator::Request_Start(_AgentEntity);
+
+        if (ck::Is_NOT_Valid(_Volume) || ck::Is_NOT_Valid(_Agent))
+        { FinishFailure("failed to compose sealed-corridor Avoid If Possible fixture"); return; }
+        _SealedStageStarted = true;
+    }
+
+    private void PollSealedCorridor()
+    {
+        if (utils_crowd_avoidance_volume::Get_IsNavigationConfirmed(_Volume) == false)
+        { return; }
+        if (_SealedRouteIssued == false)
+        {
+            utils_crowd_agent::Request_MoveTo(
+                _Agent, FCk_Request_CrowdAgent_MoveTo(Goal + FVector(0.0, 0.0, _Centre.Z)));
+            _SealedRouteIssued = true;
+            return;
+        }
+
+        const auto Status = utils_nav::Get_PathStatus(_Agent);
+        if (Status == ECk_Nav_PathStatus::Failed || Status == ECk_Nav_PathStatus::Partial)
+        { FinishFailure(f"Avoid If Possible did not fall back through the sealed corridor: {Status}"); return; }
+        if (Status != ECk_Nav_PathStatus::Ready) { return; }
+
+        if (_SealedPathVerified == false)
+        {
+            if (PathCrossesSealedVolume(utils_nav::Get_PathResult(_Agent).Get_Waypoints()) == false)
+            { FinishFailure("Avoid If Possible did not install a path through its sealed painted volume"); return; }
+            _SealedPathVerified = true;
+        }
+
+        const auto AgentLocation = utils_transform::Get_EntityCurrentLocation(
+            utils_transform::DoCastChecked(FCk_Handle(_Agent)));
+        if (AgentLocation.X > SealedVolumeHalfExtents.X + 50.0f)
+        {
+            Assert_True(true, "Avoid If Possible path and body traverse the sealed volume");
+            FinishSuccess();
+        }
+    }
+
+    private bool PathCrossesSealedVolume(const TArray<FVector>& InWaypoints)
+    {
+        auto Previous = Spawn + FVector(0.0, 0.0, _Centre.Z);
+        const auto PaintedHalfY = SealedVolumeHalfExtents.Y + 50.0;
+        for (auto Point : InWaypoints)
+        {
+            if (Previous.X <= SealedVolumeHalfExtents.X && Point.X >= -SealedVolumeHalfExtents.X &&
+                Math::Abs(Previous.Y) <= PaintedHalfY && Math::Abs(Point.Y) <= PaintedHalfY)
+            { return true; }
+            Previous = Point;
+        }
+        return Previous.X <= SealedVolumeHalfExtents.X && Math::Abs(Previous.Y) <= PaintedHalfY;
     }
 
     private bool IsReplacementPathStraight(const TArray<FVector>& InWaypoints)
@@ -174,4 +280,13 @@ class UCk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb : UCk_Auto
 
     private float DistanceToBaseline(FVector InPoint)
     { return float(Math::Abs(InPoint.Y)); }
+
+    UFUNCTION(BlueprintOverride)
+    void DoEndPlay(FCk_Handle InHandle)
+    {
+        if (ck::IsValid(_VolumeEntity)) { utils_entity_lifetime::Request_DestroyEntity(_VolumeEntity); }
+        if (ck::IsValid(_AgentEntity)) { utils_entity_lifetime::Request_DestroyEntity(_AgentEntity); }
+        if (_TopWall != nullptr) { utils_nav_area_markup::Request_Destroy(_TopWall); _TopWall = nullptr; }
+        if (_BottomWall != nullptr) { utils_nav_area_markup::Request_Destroy(_BottomWall); _BottomWall = nullptr; }
+    }
 }
