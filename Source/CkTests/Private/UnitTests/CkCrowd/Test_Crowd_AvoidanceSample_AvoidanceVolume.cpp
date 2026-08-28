@@ -6,6 +6,14 @@
 
 #include "CkCrowd/Agent/CkCrowdAgent_AvoidanceSample_Algorithm.h"
 #include "CkCrowd/AvoidanceVolume/CkCrowdAvoidanceVolume_Algorithm.h"
+#include "CkCrowd/AvoidanceVolume/CkCrowdAvoidanceVolume_Fragment.h"
+#include "CkCrowd/AvoidanceVolume/CkCrowdAvoidanceVolume_Utils.h"
+
+#include "CkCore/Validation/CkIsValid.h"
+#include "CkEcs/EntityLifetime/CkEntityLifetime_Utils.h"
+#include "CkEcs/Handle/CkHandle_Utils.h"
+#include "CkEcs/World/CkEcsWorld.h"
+#include "CkEcsExt/Transform/CkTransform_Utils.h"
 
 #include "../CkUnitTest_Common.h"
 
@@ -345,6 +353,79 @@ bool FCkTest_Crowd_AvoidanceSample_AvoidanceVolume_ContactRetainsWalls::RunTest(
         TestFalse(TEXT("The contacted volume face lets positive-normal motion escape"),
             Built._Walls[0]._BlocksPositiveNormalAtTouch);
     }
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkTest_Crowd_AvoidanceVolume_DebugSnapshots_AreCopiedAndPendingWithoutRecast,
+    "CkTests.UnitTests.CkCrowd.AvoidanceVolume.DebugSnapshots.CopiedAndPendingWithoutRecast",
+    kCkUnitTestFlags)
+bool FCkTest_Crowd_AvoidanceVolume_DebugSnapshots_AreCopiedAndPendingWithoutRecast::RunTest(const FString& InParameters)
+{
+    auto EcsWorld = ck::FEcsWorld{};
+    auto& Registry = EcsWorld.Get_Registry();
+    auto Selector = FCk_Handle{Registry.Get_TransientEntity(), Registry.Get_RegistryHandle()};
+
+    TestTrue(TEXT("An invalid world selector produces no debug snapshots"),
+        UCk_Utils_CrowdAvoidanceVolume_UE::Get_DebugSnapshots(FCk_Handle{}).IsEmpty());
+
+    auto Volume = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Selector, {});
+    if (NOT TestTrue(TEXT("fixture created a volume entity"), ck::IsValid(Volume)))
+    { return false; }
+
+    const auto AuthoredTransform = FTransform{
+        FRotator{30.0f, 90.0f, 40.0f}, FVector{100.0f, 200.0f, 300.0f}, FVector{2.0f, 3.0f, 4.0f}};
+    const auto VolumeTransform = UCk_Utils_Transform_UE::Add(
+        Volume, AuthoredTransform, ECk_Replication::DoesNotReplicate);
+    if (NOT TestTrue(TEXT("fixture added a volume transform"), ck::IsValid(VolumeTransform)))
+    { return false; }
+
+    UCk_Utils_Handle_UE::Set_DebugName(Volume, TEXT("SnapshotVolume"));
+    auto Params = FCk_Fragment_CrowdAvoidanceVolume_ParamsData{};
+    Params.Set_HalfExtents(FVector{10.0f, 20.0f, 30.0f});
+    Params.Set_InfluenceRange(25.0f);
+    Params.Set_PathPlanningClearance(15.0f);
+    Volume.Add<ck::FFragment_CrowdAvoidanceVolume_Params>(Params);
+    Volume.Add<ck::FFragment_CrowdAvoidanceVolume_ProbeRef>();
+    Volume.Add<ck::FTag_CrowdAvoidanceVolume_NeedsSetup>();
+
+    const auto Snapshots = UCk_Utils_CrowdAvoidanceVolume_UE::Get_DebugSnapshots(Selector);
+    if (NOT TestEqual(TEXT("one pending volume is collected without Recast"), Snapshots.Num(), 1))
+    { return false; }
+
+    const auto Snapshot = Snapshots[0];
+    TestEqual(TEXT("the copied identity is the live entity identity"),
+        Snapshot.Get_VolumeIdentity(), static_cast<int64>(Volume.Get_Entity().Get_ID()));
+    TestEqual(TEXT("the copied debug name is not a handle reference"),
+        Snapshot.Get_VolumeDebugName(), FName{TEXT("SnapshotVolume")});
+    TestEqual(TEXT("pending setup is reported before any nav-area paint"),
+        Snapshot.Get_State(), ECk_CrowdAvoidanceVolume_DebugState::PendingSetup);
+    TestTrue(TEXT("scaled pending geometry is safe to render"), Snapshot.Get_HasValidGeometry());
+    TestTrue(TEXT("the copied yaw transform retains location"),
+        Snapshot.Get_YawWorldTransform().GetLocation().Equals(FVector{100.0f, 200.0f, 300.0f}, 0.001f));
+    TestTrue(TEXT("the copied yaw transform strips pitch, roll, and scale"),
+        FMath::IsNearlyEqual(Snapshot.Get_YawWorldTransform().Rotator().Yaw, 90.0f) &&
+        FMath::IsNearlyZero(Snapshot.Get_YawWorldTransform().Rotator().Pitch) &&
+        FMath::IsNearlyZero(Snapshot.Get_YawWorldTransform().Rotator().Roll) &&
+        Snapshot.Get_YawWorldTransform().GetScale3D().Equals(FVector::OneVector, 0.001f));
+    TestTrue(TEXT("physical world half extents apply authored scale once"),
+        Snapshot.Get_PhysicalWorldHalfExtents().Equals(FVector{20.0f, 60.0f, 120.0f}, 0.001f));
+    TestTrue(TEXT("influence extents expand physical XY only"),
+        Snapshot.Get_InfluenceWorldHalfExtents().Equals(FVector{45.0f, 85.0f, 120.0f}, 0.001f));
+    TestTrue(TEXT("painted extents apply path clearance to XY only"),
+        Snapshot.Get_PaintedWorldHalfExtents().Equals(FVector{35.0f, 75.0f, 120.0f}, 0.001f));
+
+    // The returned DTO must remain usable after the producer no longer exposes its source fragments.
+    Volume.Try_Remove<ck::FFragment_CrowdAvoidanceVolume_Params>();
+    Volume.Try_Remove<ck::FFragment_CrowdAvoidanceVolume_ProbeRef>();
+    Volume.Try_Remove<ck::FFragment_Transform>();
+    TestTrue(TEXT("a copied snapshot survives source-fragment teardown"),
+        Snapshot.Get_PhysicalWorldHalfExtents().Equals(FVector{20.0f, 60.0f, 120.0f}, 0.001f) &&
+        Snapshot.Get_InfluenceWorldHalfExtents().Equals(FVector{45.0f, 85.0f, 120.0f}, 0.001f) &&
+        Snapshot.Get_PaintedWorldHalfExtents().Equals(FVector{35.0f, 75.0f, 120.0f}, 0.001f) &&
+        Snapshot.Get_State() == ECk_CrowdAvoidanceVolume_DebugState::PendingSetup);
     return true;
 }
 
