@@ -1856,6 +1856,19 @@ class ACk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor : 
     }
 }
 
+class ACk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 15.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_Crowd_Separation_CoincidentPairOrbitSearch_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 55.0f;
