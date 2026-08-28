@@ -29,6 +29,7 @@
 #include "CkEntitySpawner/CkEntitySpawner_Actor.h"
 
 #include "CkSnapshot/SaveGame/CkSnapshot_SaveGame.h"
+#include "CkSnapshot/Persistence/CkSnapshot_PersistentEntityMutation.h"
 #include "CkSnapshot/Subsystem/CkSnapshot_Subsystem.h"
 
 #include "CkTests/Net/CkNetAutomation_Common.h"
@@ -49,6 +50,7 @@ namespace ck_test_snapshot_level_root_removal_contract
     const auto CommittedMutationSlot = FName{TEXT("Ck_LevelRootRemoval_CommittedMutation")};
     const auto SpawnerCancelledSlot = FName{TEXT("Ck_LevelRootRemoval_SpawnerCancelled")};
     const auto SpawnerCommittedSlot = FName{TEXT("Ck_LevelRootRemoval_SpawnerCommitted")};
+    const auto StaleWorldMutationSlot = FName{TEXT("Ck_LevelRootRemoval_StaleWorld")};
     const auto SpawnerProbeName = FName{TEXT("Ck_LevelRootRemoval_SpawnerProbe")};
 
     struct FInjectedSpawnerState
@@ -400,43 +402,31 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkSnapshot_LevelRootDuplicateIdentityFailsClosed::RunTest(const FString& Parameters)
 {
-    auto EnttRegistry = ck::registry_table::EnttRegistryType{};
-    const auto RegistryHandle = ck::registry_table::Allocate(&EnttRegistry);
-    auto Registry = FCk_Registry{RegistryHandle};
-    ON_SCOPE_EXIT { ck::registry_table::Free(RegistryHandle); };
+    using namespace ck_test_snapshot_level_root_removal_contract;
 
-    auto FirstRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    auto CollidingRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    const auto Identity = FString{TEXT("Ck.Spec.DuplicateLevelRoot")};
-    ck::save_key::AssignLevelPlaced(FirstRoot, Identity);
-    ck::save_key::AssignLevelPlaced(CollidingRoot, Identity);
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(SinglePIEClient, EntryMap));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(SinglePIEWorld, PIEReadyTimeoutSeconds));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            const auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
+            auto FirstRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            auto CollidingRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            ck::save_key::AssignLevelPlaced(FirstRoot, TEXT("Ck.Spec.DuplicateLevelRoot"));
+            ck::save_key::AssignLevelPlaced(CollidingRoot, TEXT("Ck.Spec.DuplicateLevelRoot"));
 
-    auto* GameInstance = NewObject<UGameInstance>();
-    TestNotNull(TEXT("snapshot subsystem outer is valid"), GameInstance);
-    if (GameInstance == nullptr)
-    { return false; }
+            auto* Subsystem = Get_SnapshotSubsystem(InServer);
+            TestNotNull(TEXT("snapshot subsystem is valid"), Subsystem);
+            if (Subsystem == nullptr)
+            { return; }
 
-    auto* Subsystem = NewObject<UCk_Snapshot_Subsystem_UE>(GameInstance);
-    TestNotNull(TEXT("snapshot subsystem test instance is valid"), Subsystem);
-    if (Subsystem == nullptr)
-    { return false; }
-
-    const auto Key = FirstRoot.Get<FFragment_SaveKey>().Get_Key();
-    TestTrue(TEXT("first unique authored publisher is accepted"),
-        Subsystem->TestOnly_TryPublish_SaveKeyWithoutDiagnostics(Key, FirstRoot));
-    TestFalse(TEXT("second live authored publisher proves the identity collision"),
-        Subsystem->TestOnly_TryPublish_SaveKeyWithoutDiagnostics(Key, CollidingRoot));
-
-    const auto Retirement = Subsystem->Request_BeginSaveKeyRetirement(FirstRoot);
-    TestFalse(TEXT("persistent removal refuses a colliding authored identity"),
-        Retirement.IsValid());
-    TestFalse(TEXT("collision refusal leaves every authored root unsuppressed"),
-        Subsystem->TestOnly_Get_IsSaveKeySuppressed(Key));
-
-    // Current code suppresses before noticing the collision. Restore local test state so this red
-    // specification cannot contaminate another test sharing the same process.
-    if (Retirement.IsValid())
-    { Subsystem->Request_CancelSaveKeyRetirement(FirstRoot, Retirement); }
+            const auto Ticket = Subsystem->Request_BeginEntityRemoval(FirstRoot);
+            TestEqual(TEXT("duplicate live authored publisher fails closed before suppression"),
+                Ticket.Get_BeginResult(), ECk_PersistentEntityMutationResult::Failed_DuplicateLivePublisher);
+            TestFalse(TEXT("duplicate refusal leaves the authored identity unsuppressed"),
+                Subsystem->TestOnly_Get_IsSaveKeySuppressed(FirstRoot.Get<FFragment_SaveKey>().Get_Key()));
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 
     return true;
 }
@@ -451,41 +441,60 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FCkSnapshot_LevelRootRetirementCancellationSurvivesSourceTeardown::RunTest(
     const FString& Parameters)
 {
-    auto EnttRegistry = ck::registry_table::EnttRegistryType{};
-    const auto RegistryHandle = ck::registry_table::Allocate(&EnttRegistry);
-    auto Registry = FCk_Registry{RegistryHandle};
-    ON_SCOPE_EXIT { ck::registry_table::Free(RegistryHandle); };
+    using namespace ck_test_snapshot_level_root_removal_contract;
 
-    auto LevelRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    ck::save_key::AssignLevelPlaced(LevelRoot, TEXT("Ck.Spec.CancelAfterSourceTeardown"));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(SinglePIEClient, EntryMap));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(SinglePIEWorld, PIEReadyTimeoutSeconds));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            const auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
+            auto LevelRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            ck::save_key::AssignLevelPlaced(LevelRoot, TEXT("Ck.Spec.CancelAfterSourceTeardown"));
+            const auto Key = LevelRoot.Get<FFragment_SaveKey>().Get_Key();
 
-    auto* GameInstance = NewObject<UGameInstance>();
-    TestNotNull(TEXT("snapshot subsystem outer is valid"), GameInstance);
-    if (GameInstance == nullptr)
-    { return false; }
+            auto* Subsystem = Get_SnapshotSubsystem(InServer);
+            TestNotNull(TEXT("snapshot subsystem is valid"), Subsystem);
+            if (Subsystem == nullptr)
+            { return; }
 
-    auto* Subsystem = NewObject<UCk_Snapshot_Subsystem_UE>(GameInstance);
-    TestNotNull(TEXT("snapshot subsystem test instance is valid"), Subsystem);
-    if (Subsystem == nullptr)
-    { return false; }
+            const auto Ticket = Subsystem->Request_BeginEntityRemoval(LevelRoot);
+            TestEqual(TEXT("authored removal begins"), Ticket.Get_BeginResult(),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestFalse(TEXT("beginning removal is runtime-only and does not suppress reconstruction"),
+                Subsystem->TestOnly_Get_IsSaveKeySuppressed(Key));
 
-    const auto Key = LevelRoot.Get<FFragment_SaveKey>().Get_Key();
-    const auto Retirement = Subsystem->Request_BeginSaveKeyRetirement(LevelRoot);
-    TestEqual(TEXT("retirement begins with the authored root's identity"), Retirement, Key);
-    TestTrue(TEXT("pending retirement suppresses level reconstruction"),
-        Subsystem->TestOnly_Get_IsSaveKeySuppressed(Key));
+            LevelRoot.Add<ck::FTag_DestroyEntity_Teardown>();
+            TestFalse(TEXT("source is unavailable before cancellation"), ck::IsValid(LevelRoot));
+            TestEqual(TEXT("ticket cancellation survives source teardown"),
+                Subsystem->Request_CancelPersistentMutation(Ticket),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestFalse(TEXT("cancellation restores reconstruction"),
+                Subsystem->TestOnly_Get_IsSaveKeySuppressed(Key));
 
-    UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(LevelRoot);
-    LevelRoot.Add<ck::FTag_DestroyEntity_Teardown>();
-    TestFalse(TEXT("source is unavailable before the outer operation cancels"),
-        ck::IsValid(LevelRoot));
+            auto DeterministicRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            auto LatePublisher = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            ck::save_key::AssignLevelPlaced(DeterministicRoot, TEXT("Ck.Spec.DeterministicRemovalCommit"));
+            ck::save_key::AssignLevelPlaced(LatePublisher, TEXT("Ck.Spec.DeterministicRemovalCommit"));
+            const auto DeterministicKey = DeterministicRoot.Get<FFragment_SaveKey>().Get_Key();
 
-    AddExpectedError(TEXT("source entity is invalid"),
-        EAutomationExpectedErrorFlags::Contains, -1);
-    TestTrue(TEXT("opaque retirement authority can cancel after source teardown"),
-        Subsystem->Request_CancelSaveKeyRetirement(LevelRoot, Retirement));
-    TestFalse(TEXT("cancellation after source teardown restores level reconstruction"),
-        Subsystem->TestOnly_Get_IsSaveKeySuppressed(Key));
+            // Remove the deliberate duplicate before begin, then prove the reservation prevents it from
+            // publishing while an external inventory grant is in flight.
+            LatePublisher.Remove<FFragment_SaveKey>();
+            const auto DeterministicTicket = Subsystem->Request_BeginEntityRemoval(DeterministicRoot);
+            TestEqual(TEXT("deterministic removal reserves its authored identity"),
+                DeterministicTicket.Get_BeginResult(), ECk_PersistentEntityMutationResult::Succeeded);
+            ck::save_key::AssignLevelPlaced(LatePublisher, TEXT("Ck.Spec.DeterministicRemovalCommit"));
+            TestFalse(TEXT("a pending removal rejects a late publisher for its reserved identity"),
+                Subsystem->TestOnly_TryPublish_SaveKeyWithoutDiagnostics(DeterministicKey, LatePublisher));
+            TestEqual(TEXT("successful begin makes same-world authority removal commit deterministic"),
+                Subsystem->Request_CommitEntityRemoval(DeterministicTicket),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestTrue(TEXT("deterministic commit durably suppresses the reserved authored identity"),
+                Subsystem->TestOnly_Get_IsSaveKeySuppressed(DeterministicKey));
+            UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(LatePublisher);
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 
     return true;
 }
@@ -499,49 +508,89 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkSnapshot_LevelRootLegacyRelocationCompatibility::RunTest(const FString& Parameters)
 {
-    auto EnttRegistry = ck::registry_table::EnttRegistryType{};
-    const auto RegistryHandle = ck::registry_table::Allocate(&EnttRegistry);
-    auto Registry = FCk_Registry{RegistryHandle};
-    ON_SCOPE_EXIT { ck::registry_table::Free(RegistryHandle); };
+    using namespace ck_test_snapshot_level_root_removal_contract;
 
-    auto AuthoredSource = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    auto PlacedDestination = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    ck::save_key::AssignLevelPlaced(AuthoredSource, TEXT("Ck.Spec.LegacyFixtureRelocation"));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(SinglePIEClient, EntryMap));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(SinglePIEWorld, PIEReadyTimeoutSeconds));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            const auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
+            auto LegacySource = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            auto LegacyDestination = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            auto SemanticSource = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            auto SemanticDestination = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            auto SecondSemanticDestination = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            ck::save_key::AssignLevelPlaced(LegacySource, TEXT("Ck.Spec.LegacyFixtureRelocation"));
+            ck::save_key::AssignLevelPlaced(SemanticSource, TEXT("Ck.Spec.SemanticFixtureRelocation"));
+            const auto LegacyKey = LegacySource.Get<FFragment_SaveKey>().Get_Key();
 
-    auto* GameInstance = NewObject<UGameInstance>();
-    auto* Subsystem = NewObject<UCk_Snapshot_Subsystem_UE>(GameInstance);
-    TestNotNull(TEXT("snapshot subsystem test instance is valid"), Subsystem);
-    if (Subsystem == nullptr)
-    { return false; }
+            auto* Subsystem = Get_SnapshotSubsystem(InServer);
+            TestNotNull(TEXT("snapshot subsystem is valid"), Subsystem);
+            if (Subsystem == nullptr)
+            { return; }
 
-    const auto Key = AuthoredSource.Get<FFragment_SaveKey>().Get_Key();
-    TestTrue(TEXT("authored source publishes before the legacy pickup"),
-        Subsystem->TestOnly_TryPublish_SaveKeyWithoutDiagnostics(Key, AuthoredSource));
+            const auto LegacyRemoval = Subsystem->Request_BeginEntityRemoval(LegacySource);
+            TestEqual(TEXT("legacy source removal begins"), LegacyRemoval.Get_BeginResult(),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestEqual(TEXT("legacy source removal commits its durable suppression"),
+                Subsystem->Request_CommitEntityRemoval(LegacyRemoval),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestTrue(TEXT("committed historical removal supplies the legacy suppression"),
+                Subsystem->TestOnly_Get_IsSaveKeySuppressed(LegacyKey));
 
-    const auto Relocation = Subsystem->Request_BeginSaveKeyRelocation(AuthoredSource);
-    TestEqual(TEXT("legacy pickup token receives the authored root identity"), Relocation, Key);
-    TestTrue(TEXT("unfinished legacy relocation suppresses the authored root"),
-        Subsystem->TestOnly_Get_IsSaveKeySuppressed(Key));
+            const auto LegacyDestinationReservation =
+                Subsystem->Request_BeginEntityRemoval(LegacyDestination);
+            TestEqual(TEXT("legacy relocation destination can be reserved as another mutation source"),
+                LegacyDestinationReservation.Get_BeginResult(),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestEqual(TEXT("legacy relocation rejects a destination reserved by another operation"),
+                Subsystem->Request_CompleteLegacySaveKeyRelocation(LegacyDestination, LegacyKey),
+                ECk_PersistentEntityMutationResult::Failed_DestinationAlreadyReserved);
+            TestEqual(TEXT("legacy relocation destination reservation cancels cleanly"),
+                Subsystem->Request_CancelPersistentMutation(LegacyDestinationReservation),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestEqual(TEXT("legacy SaveKey relocation consumes the historical suppression"),
+                Subsystem->Request_CompleteLegacySaveKeyRelocation(LegacyDestination, LegacyKey),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestTrue(TEXT("legacy replacement owns the original canonical key"),
+                LegacyDestination.Has<FFragment_SaveKey>() &&
+                LegacyDestination.Get<FFragment_SaveKey>().Get_Key() == LegacyKey);
+            TestFalse(TEXT("legacy completion clears the historical suppression"),
+                Subsystem->TestOnly_Get_IsSaveKeySuppressed(LegacyKey));
 
-    UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(AuthoredSource);
-    AuthoredSource.Add<ck::FTag_DestroyEntity_Teardown>();
-    TestFalse(TEXT("legacy source can disappear before placement completes"),
-        ck::IsValid(AuthoredSource));
+            const auto Relocation = Subsystem->Request_BeginPersistentRelocation(SemanticSource);
+            TestEqual(TEXT("persistent relocation begins for the authored source"),
+                Relocation.Get_BeginResult(), ECk_PersistentEntityMutationResult::Succeeded);
+            TestEqual(TEXT("removal completion rejects a relocation ticket"),
+                Subsystem->Request_CommitEntityRemoval(Relocation),
+                ECk_PersistentEntityMutationResult::Failed_WrongOperationKind);
+            TestEqual(TEXT("default ticket is invalid"),
+                Subsystem->Request_CancelPersistentMutation(FCk_PersistentEntityMutationTicket{}),
+                ECk_PersistentEntityMutationResult::Failed_InvalidTicket);
 
-    TestTrue(TEXT("an old relocation token can complete onto the placed replacement"),
-        Subsystem->Request_CompleteSaveKeyRelocation(PlacedDestination, Relocation));
-    TestTrue(TEXT("replacement owns the original canonical key"),
-        PlacedDestination.Has<FFragment_SaveKey>() &&
-        PlacedDestination.Get<FFragment_SaveKey>().Get_Key() == Key);
-    TestTrue(TEXT("replacement retains authored-root provenance"),
-        PlacedDestination.Get<FFragment_SaveKey>().Get_IsLevelPlacedRoot());
-    TestFalse(TEXT("completed relocation no longer suppresses the key"),
-        Subsystem->TestOnly_Get_IsSaveKeySuppressed(Key));
-
-    auto Resolved = FCk_Handle{};
-    TestTrue(TEXT("canonical key resolves after legacy placement"),
-        Subsystem->TryResolve_SaveKey(Key, Resolved));
-    TestEqual(TEXT("canonical key resolves to the replacement"), Resolved, PlacedDestination);
+            const auto SemanticDestinationReservation =
+                Subsystem->Request_BeginEntityRemoval(SemanticDestination);
+            TestEqual(TEXT("semantic relocation destination can be reserved as another mutation source"),
+                SemanticDestinationReservation.Get_BeginResult(),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestEqual(TEXT("semantic relocation rejects a destination reserved by another operation"),
+                Subsystem->Request_CompletePersistentRelocation(SemanticDestination, Relocation),
+                ECk_PersistentEntityMutationResult::Failed_DestinationAlreadyReserved);
+            TestEqual(TEXT("semantic relocation destination reservation cancels cleanly"),
+                Subsystem->Request_CancelPersistentMutation(SemanticDestinationReservation),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestEqual(TEXT("semantic relocation completes onto its replacement"),
+                Subsystem->Request_CompletePersistentRelocation(SemanticDestination, Relocation),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestTrue(TEXT("semantic replacement retains authored-root provenance"),
+                SemanticDestination.Has<FFragment_SaveKey>() &&
+                SemanticDestination.Get<FFragment_SaveKey>().Get_IsLevelPlacedRoot());
+            TestEqual(TEXT("a terminal relocation ticket cannot complete twice"),
+                Subsystem->Request_CompletePersistentRelocation(SecondSemanticDestination, Relocation),
+                ECk_PersistentEntityMutationResult::Failed_AlreadyTerminal);
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 
     return true;
 }
@@ -556,9 +605,6 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 bool FCkSnapshot_LevelRootCkEntitySpawnerRemovalTravelRoundTrip::RunTest(const FString& Parameters)
 {
     using namespace ck_test_snapshot_level_root_removal_contract;
-
-    AddExpectedErrorPlain(TEXT("Request_Load: rebuild stalled (no progress)"),
-        EAutomationExpectedErrorFlags::Contains, -1);
 
     const auto ProbeClass = Resolve_LevelRootProbeClass();
     TestTrue(TEXT("fixture probe EntityScript resolves for travel injection"), ProbeClass != nullptr);
@@ -634,10 +680,12 @@ bool FCkSnapshot_LevelRootCkEntitySpawnerRemovalTravelRoundTrip::RunTest(const F
             if (Subsystem == nullptr)
             { return; }
 
-            const auto Retirement = Subsystem->Request_BeginSaveKeyRetirement(LevelRoot);
-            TestEqual(TEXT("authored spawner pickup opens retirement"), Retirement, State->ExpectedKey);
+            const auto Retirement = Subsystem->Request_BeginEntityRemoval(LevelRoot);
+            TestEqual(TEXT("authored spawner pickup opens removal"), Retirement.Get_BeginResult(),
+                ECk_PersistentEntityMutationResult::Succeeded);
             TestTrue(TEXT("failed pickup cancels authored spawner retirement"),
-                Subsystem->Request_CancelSaveKeyRetirement(LevelRoot, Retirement));
+                Subsystem->Request_CancelPersistentMutation(Retirement) ==
+                    ECk_PersistentEntityMutationResult::Succeeded);
 
             Subsystem->Request_Save(SpawnerCancelledSlot, FCk_Delegate_OnSaveComplete{});
             auto* CancelledSave = Load_SaveGame(SpawnerCancelledSlot);
@@ -651,6 +699,9 @@ bool FCkSnapshot_LevelRootCkEntitySpawnerRemovalTravelRoundTrip::RunTest(const F
             Subsystem->Request_Load(SpawnerCancelledSlot, FCk_Delegate_OnLoadComplete{});
             TestTrue(TEXT("cancelled authored-spawner load starts asynchronously"),
                 Subsystem->Get_IsLoadInProgress());
+            TestEqual(TEXT("persistent removal refuses while the snapshot load is active"),
+                Subsystem->Request_BeginEntityRemoval(LevelRoot).Get_BeginResult(),
+                ECk_PersistentEntityMutationResult::Failed_SnapshotBusy);
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitUntil(this,
@@ -690,12 +741,14 @@ bool FCkSnapshot_LevelRootCkEntitySpawnerRemovalTravelRoundTrip::RunTest(const F
             if (Subsystem == nullptr)
             { return true; }
 
-            const auto Retirement = Subsystem->Request_BeginSaveKeyRetirement(LevelRoot);
-            TestEqual(TEXT("successful authored-spawner pickup opens retirement"),
-                Retirement, State->ExpectedKey);
+            const auto Retirement = Subsystem->Request_BeginEntityRemoval(LevelRoot);
+            TestEqual(TEXT("successful authored-spawner pickup opens removal"),
+                Retirement.Get_BeginResult(), ECk_PersistentEntityMutationResult::Succeeded);
             TestTrue(TEXT("successful authored-spawner pickup commits retirement"),
-                Subsystem->Request_CommitSaveKeyRetirement(Retirement));
-            UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(LevelRoot);
+                Subsystem->Request_CommitEntityRemoval(Retirement) ==
+                    ECk_PersistentEntityMutationResult::Succeeded);
+            TestFalse(TEXT("terminal spawner removal leaves no live source SaveKey"),
+                LevelRoot.Has<FFragment_SaveKey>());
             return true;
         }), TEXT("cancelled authored-spawner removal reconstructs before committed removal")));
 
@@ -786,12 +839,6 @@ bool FCkSnapshot_LevelRootMutationSaveAtomicity::RunTest(const FString& Paramete
 {
     using namespace ck_test_snapshot_level_root_removal_contract;
 
-    // Current Foundation refuses capture while a suppressed source is still live. A future implementation may
-    // instead capture the pre-mutation state. Both are atomic provided the durable slot never contains the
-    // uncommitted suppression, so accept either mechanism while pinning the durable outcome.
-    AddExpectedError(TEXT("HasSuppressedSaveKey"), EAutomationExpectedErrorFlags::Contains, -1);
-    AddExpectedError(TEXT("Failed Not Quiescent"), EAutomationExpectedErrorFlags::Contains, -1);
-
     const auto ExpectedKey = MakeShared<FGuid>();
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(SinglePIEClient, EntryMap));
@@ -808,9 +855,11 @@ bool FCkSnapshot_LevelRootMutationSaveAtomicity::RunTest(const FString& Paramete
             UGameplayStatics::DeleteGameInSlot(CancelledMutationSlot.ToString(), 0);
             UGameplayStatics::DeleteGameInSlot(CommittedMutationSlot.ToString(), 0);
 
-            // Give the pending save a known-good predecessor. Refusal must leave this intact; an atomic
-            // implementation that succeeds may replace it, but still must not persist uncommitted suppression.
+            // Give the pending save a known-good predecessor. A pending mutation must leave these bytes intact.
             Subsystem->Request_Save(PendingMutationSlot, FCk_Delegate_OnSaveComplete{});
+            auto PreMutationBytes = TArray<uint8>{};
+            TestTrue(TEXT("pending-mutation slot captures its predecessor bytes"),
+                UGameplayStatics::LoadDataFromSlot(PreMutationBytes, PendingMutationSlot.ToString(), 0));
 
             const auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
             auto AuthoredRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
@@ -818,20 +867,42 @@ bool FCkSnapshot_LevelRootMutationSaveAtomicity::RunTest(const FString& Paramete
             const auto Key = AuthoredRoot.Get<FFragment_SaveKey>().Get_Key();
             *ExpectedKey = Key;
 
-            const auto PendingRetirement = Subsystem->Request_BeginSaveKeyRetirement(AuthoredRoot);
-            TestEqual(TEXT("fixture pickup opens a retirement transaction"), PendingRetirement, Key);
+            const auto PendingRetirement = Subsystem->Request_BeginEntityRemoval(AuthoredRoot);
+            TestEqual(TEXT("fixture pickup opens a removal transaction"), PendingRetirement.Get_BeginResult(),
+                ECk_PersistentEntityMutationResult::Succeeded);
+
+            Subsystem->Request_Load(PendingMutationSlot, FCk_Delegate_OnLoadComplete{});
+            TestFalse(TEXT("pending mutation blocks load before world teardown begins"),
+                Subsystem->Get_IsLoadInProgress());
+            TestEqual(TEXT("blocked load updates the pull completion report"),
+                Subsystem->Get_LastLoadReport().Get_Result(),
+                ECk_SnapshotResult::Failed_NotQuiescent);
+            TestTrue(TEXT("blocked load leaves the reserved source live with its authored identity"),
+                ck::IsValid(AuthoredRoot) && AuthoredRoot.Has<FFragment_SaveKey>() &&
+                AuthoredRoot.Get<FFragment_SaveKey>().Get_Key() == Key);
+
             Subsystem->Request_Save(PendingMutationSlot, FCk_Delegate_OnSaveComplete{});
+            TestEqual(TEXT("blocked save updates the pull completion report"),
+                Subsystem->Get_LastSaveReport().Get_Result(),
+                ECk_SnapshotResult::Failed_NotQuiescent);
+
+            auto PendingMutationBytes = TArray<uint8>{};
+            TestTrue(TEXT("pending-mutation slot remains readable"),
+                UGameplayStatics::LoadDataFromSlot(PendingMutationBytes, PendingMutationSlot.ToString(), 0));
+            TestTrue(TEXT("pending mutation blocks save without overwriting its predecessor bytes"),
+                PendingMutationBytes == PreMutationBytes);
 
             auto* PendingSave = Load_SaveGame(PendingMutationSlot);
             TestNotNull(TEXT("save taken during the pending inventory grant loads"), PendingSave);
             if (PendingSave != nullptr)
             {
-                TestFalse(TEXT("uncommitted pickup suppression is never durable"),
+                TestFalse(TEXT("pending mutation blocks overwrite and leaves the predecessor durable"),
                     PendingSave->_HeaderV3.Get_SuppressedSaveKeys().Contains(Key));
             }
 
             TestTrue(TEXT("failed inventory grant rolls the retirement back"),
-                Subsystem->Request_CancelSaveKeyRetirement(AuthoredRoot, PendingRetirement));
+                Subsystem->Request_CancelPersistentMutation(PendingRetirement) ==
+                    ECk_PersistentEntityMutationResult::Succeeded);
             Subsystem->Request_Save(CancelledMutationSlot, FCk_Delegate_OnSaveComplete{});
 
             auto* CancelledSave = Load_SaveGame(CancelledMutationSlot);
@@ -842,13 +913,26 @@ bool FCkSnapshot_LevelRootMutationSaveAtomicity::RunTest(const FString& Paramete
                     CancelledSave->_HeaderV3.Get_SuppressedSaveKeys().Contains(Key));
             }
 
-            const auto CommittedRetirement = Subsystem->Request_BeginSaveKeyRetirement(AuthoredRoot);
-            TestTrue(TEXT("successful inventory grant commits retirement"),
-                Subsystem->Request_CommitSaveKeyRetirement(CommittedRetirement));
-            UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(AuthoredRoot);
+            const auto CommittedRetirement = Subsystem->Request_BeginEntityRemoval(AuthoredRoot);
+            TestEqual(TEXT("successful inventory grant begins removal"),
+                CommittedRetirement.Get_BeginResult(), ECk_PersistentEntityMutationResult::Succeeded);
+            TestEqual(TEXT("successful inventory grant commits removal"),
+                Subsystem->Request_CommitEntityRemoval(CommittedRetirement),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestFalse(TEXT("terminal removal leaves no live source SaveKey before the next tick"),
+                AuthoredRoot.Has<FFragment_SaveKey>());
+
+            Subsystem->Request_Save(CommittedMutationSlot, FCk_Delegate_OnSaveComplete{});
+            auto* SameFrameCommittedSave = Load_SaveGame(CommittedMutationSlot);
+            TestNotNull(TEXT("same-frame terminal save loads"), SameFrameCommittedSave);
+            if (SameFrameCommittedSave != nullptr)
+            {
+                TestTrue(TEXT("same-frame terminal save persists suppression without a duplicate source"),
+                    SameFrameCommittedSave->_HeaderV3.Get_SuppressedSaveKeys().Contains(Key));
+            }
         })));
 
-    // Match the real fixture task: commit, request entity destruction, then let teardown drain before saving.
+    // Let the terminal request's deferred teardown drain before the final durable-read assertion.
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(10));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
         FCk_NetAutoTest_ServerAction::CreateLambda([this, ExpectedKey](UWorld* InServer) -> void
@@ -882,6 +966,74 @@ bool FCkSnapshot_LevelRootMutationSaveAtomicity::RunTest(const FString& Paramete
 // --------------------------------------------------------------------------------------------------------------------
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FCkSnapshot_LevelRootPendingMutationDoesNotSurviveWorldTravel,
+    "Ck.Snapshot.LevelRootRemoval.PendingMutationDoesNotSurviveWorldTravel",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCkSnapshot_LevelRootPendingMutationDoesNotSurviveWorldTravel::RunTest(const FString& Parameters)
+{
+    using namespace ck_test_snapshot_level_root_removal_contract;
+
+    const auto PreTravelWorld = MakeShared<TWeakObjectPtr<UWorld>>();
+    const auto StaleTicket = MakeShared<FCk_PersistentEntityMutationTicket>();
+
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(SinglePIEClient, EntryMap));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(SinglePIEWorld, PIEReadyTimeoutSeconds));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda(
+            [this, PreTravelWorld, StaleTicket](UWorld* InServer) -> void
+            {
+                auto* Subsystem = Get_SnapshotSubsystem(InServer);
+                TestNotNull(TEXT("pre-travel snapshot subsystem is valid"), Subsystem);
+                if (Subsystem == nullptr)
+                { return; }
+
+                auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
+                auto Source = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+                *StaleTicket = Subsystem->Request_BeginEntityRemoval(Source);
+                TestEqual(TEXT("pre-travel mutation begins"), StaleTicket->Get_BeginResult(),
+                    ECk_PersistentEntityMutationResult::Succeeded);
+
+                *PreTravelWorld = InServer;
+                const auto MapName = InServer->RemovePIEPrefix(InServer->GetOutermost()->GetName());
+                constexpr auto AbsoluteTravel = true;
+                UGameplayStatics::OpenLevel(InServer, FName{*MapName}, AbsoluteTravel);
+            })));
+
+    // OpenLevel leaves the single-client PIE world in NM_Standalone, so the net harness can no
+    // longer find it as a server. Let travel settle, then address the replacement PIE world directly.
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_TickWorlds(150));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_AssertCondition(this,
+        FCk_NetAutoTest_Assertion::CreateLambda([this, PreTravelWorld, StaleTicket]() -> bool
+        {
+            auto* Current = Get_CurrentPIEWorld();
+            if (Current == nullptr || Current == PreTravelWorld->Get() || Current->HasBegunPlay() == false)
+            { AddError(TEXT("ordinary travel did not produce a ready replacement PIE world")); return false; }
+
+            auto* Subsystem = Get_SnapshotSubsystem(Current);
+            TestNotNull(TEXT("post-travel snapshot subsystem is valid"), Subsystem);
+            if (Subsystem == nullptr)
+            { return false; }
+
+            UGameplayStatics::DeleteGameInSlot(StaleWorldMutationSlot.ToString(), 0);
+            Subsystem->Request_Save(StaleWorldMutationSlot, FCk_Delegate_OnSaveComplete{});
+            TestEqual(TEXT("post-travel save prunes the abandoned old-world mutation"),
+                Subsystem->Get_LastSaveReport().Get_Result(), ECk_SnapshotResult::Success);
+            TestTrue(TEXT("post-travel save writes a readable slot"),
+                UGameplayStatics::DoesSaveGameExist(StaleWorldMutationSlot.ToString(), 0));
+            TestEqual(TEXT("pruned old-world ticket has deterministic terminal status"),
+                Subsystem->Request_CancelPersistentMutation(*StaleTicket),
+                ECk_PersistentEntityMutationResult::Failed_AlreadyTerminal);
+            UGameplayStatics::DeleteGameInSlot(StaleWorldMutationSlot.ToString(), 0);
+            return true;
+        }), TEXT("ordinary travel prunes abandoned persistent mutations before the next save")));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
+    return true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCkSnapshot_LevelRootRemovalAuthorityBoundary,
     "Ck.Snapshot.LevelRootRemoval.AuthorityBoundary",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -890,14 +1042,32 @@ bool FCkSnapshot_LevelRootRemovalAuthorityBoundary::RunTest(const FString& Param
 {
     using namespace ck_test_snapshot_level_root_removal_contract;
 
-    AddExpectedError(TEXT("authority"), EAutomationExpectedErrorFlags::Contains, -1);
+    const auto ServerTicket = MakeShared<FCk_PersistentEntityMutationTicket>();
+    const auto ServerRoot = MakeShared<FCk_Handle>();
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(MultiPIEClients, EntryMap));
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(
         ListenServerAndClientWorlds, PIEReadyTimeoutSeconds));
 
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this, ServerTicket, ServerRoot](UWorld* InServer) -> void
+        {
+            auto* Subsystem = Get_SnapshotSubsystem(InServer);
+            TestNotNull(TEXT("server snapshot subsystem is valid"), Subsystem);
+            if (Subsystem == nullptr)
+            { return; }
+
+            const auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
+            *ServerRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            ck::save_key::AssignLevelPlaced(*ServerRoot, TEXT("Ck.Spec.ServerCanRetireLevelRoot"));
+
+            *ServerTicket = Subsystem->Request_BeginEntityRemoval(*ServerRoot);
+            TestEqual(TEXT("authoritative server can open the persistent-removal transaction"),
+                ServerTicket->Get_BeginResult(), ECk_PersistentEntityMutationResult::Succeeded);
+        })));
+
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnClient(0,
-        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InClient) -> void
+        FCk_NetAutoTest_ServerAction::CreateLambda([this, ServerTicket](UWorld* InClient) -> void
         {
             auto* Subsystem = Get_SnapshotSubsystem(InClient);
             TestNotNull(TEXT("client snapshot subsystem is valid"), Subsystem);
@@ -908,35 +1078,27 @@ bool FCkSnapshot_LevelRootRemovalAuthorityBoundary::RunTest(const FString& Param
             auto ClientRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
             ck::save_key::AssignLevelPlaced(ClientRoot, TEXT("Ck.Spec.ClientCannotRetireLevelRoot"));
 
-            const auto ClientRetirement = Subsystem->Request_BeginSaveKeyRetirement(ClientRoot);
-            TestFalse(TEXT("non-authoritative client cannot create durable world suppression"),
-                ClientRetirement.IsValid());
-
-            // Current production accepts this request, which is the intended red. Keep that failure local to
-            // this client world so the remainder of the suite does not inherit suppression state.
-            if (ClientRetirement.IsValid())
-            { Subsystem->Request_CancelSaveKeyRetirement(ClientRoot, ClientRetirement); }
+            const auto ClientRetirement = Subsystem->Request_BeginEntityRemoval(ClientRoot);
+            TestEqual(TEXT("non-authoritative client cannot create durable world suppression"),
+                ClientRetirement.Get_BeginResult(), ECk_PersistentEntityMutationResult::Failed_NotAuthority);
+            TestEqual(TEXT("a ticket cannot be committed through another world's subsystem"),
+                Subsystem->Request_CommitEntityRemoval(*ServerTicket),
+                ECk_PersistentEntityMutationResult::Failed_WrongWorld);
             UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(ClientRoot);
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
-        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        FCk_NetAutoTest_ServerAction::CreateLambda([this, ServerTicket, ServerRoot](UWorld* InServer) -> void
         {
             auto* Subsystem = Get_SnapshotSubsystem(InServer);
-            TestNotNull(TEXT("server snapshot subsystem is valid"), Subsystem);
+            TestNotNull(TEXT("server snapshot subsystem remains valid"), Subsystem);
             if (Subsystem == nullptr)
             { return; }
 
-            const auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
-            auto ServerRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
-            ck::save_key::AssignLevelPlaced(ServerRoot, TEXT("Ck.Spec.ServerCanRetireLevelRoot"));
-
-            const auto ServerRetirement = Subsystem->Request_BeginSaveKeyRetirement(ServerRoot);
-            TestTrue(TEXT("authoritative server can open the persistent-removal transaction"),
-                ServerRetirement.IsValid());
-            if (ServerRetirement.IsValid())
-            { Subsystem->Request_CancelSaveKeyRetirement(ServerRoot, ServerRetirement); }
-            UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(ServerRoot);
+            TestEqual(TEXT("server cancellation closes the transaction"),
+                Subsystem->Request_CancelPersistentMutation(*ServerTicket),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(*ServerRoot);
         })));
 
     ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
@@ -952,49 +1114,74 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FCkSnapshot_LevelRootRemovalRejectsNonAuthoredOrigins::RunTest(const FString& Parameters)
 {
-    auto EnttRegistry = ck::registry_table::EnttRegistryType{};
-    const auto RegistryHandle = ck::registry_table::Allocate(&EnttRegistry);
-    auto Registry = FCk_Registry{RegistryHandle};
-    ON_SCOPE_EXIT { ck::registry_table::Free(RegistryHandle); };
+    using namespace ck_test_snapshot_level_root_removal_contract;
 
-    auto UnkeyedRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    auto StableRuntimeRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    auto SharedInfrastructureRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Registry);
-    ck::save_key::Assign(StableRuntimeRoot, TEXT("Ck.Spec.StableRuntimeRoot"));
-    ck::save_key::AssignSharedRendezvousGroup(
-        SharedInfrastructureRoot, TEXT("Ck.Spec.SharedInfrastructureRoot"));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_StartPIEMultiClient(SinglePIEClient, EntryMap));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_WaitForPIEReady(SinglePIEWorld, PIEReadyTimeoutSeconds));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_RunOnServer(
+        FCk_NetAutoTest_ServerAction::CreateLambda([this](UWorld* InServer) -> void
+        {
+            const auto Transient = UCk_Utils_EcsWorld_Subsystem_UE::Get_TransientEntity(InServer);
+            auto UnkeyedRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            auto StableRuntimeRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            auto SharedInfrastructureRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+            ck::save_key::Assign(StableRuntimeRoot, TEXT("Ck.Spec.StableRuntimeRoot"));
+            ck::save_key::AssignSharedRendezvousGroup(
+                SharedInfrastructureRoot, TEXT("Ck.Spec.SharedInfrastructureRoot"));
 
-    auto* GameInstance = NewObject<UGameInstance>();
-    TestNotNull(TEXT("snapshot subsystem outer is valid"), GameInstance);
-    if (GameInstance == nullptr)
-    { return false; }
+            auto* Subsystem = Get_SnapshotSubsystem(InServer);
+            TestNotNull(TEXT("snapshot subsystem is valid"), Subsystem);
+            if (Subsystem == nullptr)
+            { return; }
 
-    auto* Subsystem = NewObject<UCk_Snapshot_Subsystem_UE>(GameInstance);
-    TestNotNull(TEXT("snapshot subsystem test instance is valid"), Subsystem);
-    if (Subsystem == nullptr)
-    { return false; }
+            TestFalse(TEXT("unkeyed runtime source has no durable identity to suppress"),
+                UnkeyedRoot.Has<FFragment_SaveKey>());
+            TestEqual(TEXT("unkeyed runtime destruction succeeds without durable suppression"),
+                Subsystem->Request_DestroyEntityPersistently(UnkeyedRoot),
+                ECk_PersistentEntityMutationResult::Succeeded);
+            TestEqual(TEXT("generic stable rendezvous identity is not removal authority"),
+                Subsystem->Request_BeginEntityRemoval(StableRuntimeRoot).Get_BeginResult(),
+                ECk_PersistentEntityMutationResult::Failed_KeyedNonAuthoredSource);
+            TestEqual(TEXT("shared infrastructure identity is not removal authority"),
+                Subsystem->Request_BeginEntityRemoval(SharedInfrastructureRoot).Get_BeginResult(),
+                ECk_PersistentEntityMutationResult::Failed_SharedSaveKeySource);
+            TestFalse(TEXT("generic stable identity remains unsuppressed after refusal"),
+                Subsystem->TestOnly_Get_IsSaveKeySuppressed(
+                    StableRuntimeRoot.Get<FFragment_SaveKey>().Get_Key()));
+            TestFalse(TEXT("shared infrastructure identity remains unsuppressed after refusal"),
+                Subsystem->TestOnly_Get_IsSaveKeySuppressed(
+                    SharedInfrastructureRoot.Get<FFragment_SaveKey>().Get_Key()));
 
-    // Refusal is the result under test. Allow the associated diagnostics to exist or disappear
-    // without making their wording/count the behavioral contract.
-    AddExpectedError(TEXT("has no save identity"), EAutomationExpectedErrorFlags::Contains, -1);
-    AddExpectedError(TEXT("was not created from a level-authored root"),
-        EAutomationExpectedErrorFlags::Contains, -1);
-    AddExpectedError(TEXT("uses a shared infrastructure SaveKey"),
-        EAutomationExpectedErrorFlags::Contains, -1);
-
-    TestFalse(TEXT("unkeyed runtime root cannot retire an authored level identity"),
-        Subsystem->Request_BeginSaveKeyRetirement(UnkeyedRoot).IsValid());
-    TestFalse(TEXT("generic stable rendezvous identity is not persistent-removal authority"),
-        Subsystem->Request_BeginSaveKeyRetirement(StableRuntimeRoot).IsValid());
-    TestFalse(TEXT("shared infrastructure identity cannot be retired as one authored root"),
-        Subsystem->Request_BeginSaveKeyRetirement(SharedInfrastructureRoot).IsValid());
-
-    TestFalse(TEXT("generic stable identity remains unsuppressed after refusal"),
-        Subsystem->TestOnly_Get_IsSaveKeySuppressed(
-            StableRuntimeRoot.Get<FFragment_SaveKey>().Get_Key()));
-    TestFalse(TEXT("shared infrastructure identity remains unsuppressed after refusal"),
-        Subsystem->TestOnly_Get_IsSaveKeySuppressed(
-            SharedInfrastructureRoot.Get<FFragment_SaveKey>().Get_Key()));
+            auto OldestTerminalTicket = FCk_PersistentEntityMutationTicket{};
+            auto NewestTerminalTicket = FCk_PersistentEntityMutationTicket{};
+            for (auto Index = 0; Index < 257; ++Index)
+            {
+                auto ChurnRoot = UCk_Utils_EntityLifetime_UE::Request_CreateEntity(Transient);
+                const auto ChurnTicket = Subsystem->Request_BeginEntityRemoval(ChurnRoot);
+                if (Index == 0)
+                { OldestTerminalTicket = ChurnTicket; }
+                if (Index == 256)
+                { NewestTerminalTicket = ChurnTicket; }
+                if (ChurnTicket.Get_BeginResult() != ECk_PersistentEntityMutationResult::Succeeded ||
+                    Subsystem->Request_CancelPersistentMutation(ChurnTicket) !=
+                        ECk_PersistentEntityMutationResult::Succeeded)
+                {
+                    AddError(FString::Printf(
+                        TEXT("terminal-history churn failed at operation [%d]"), Index));
+                    break;
+                }
+                UCk_Utils_EntityLifetime_UE::Request_DestroyEntity(ChurnRoot);
+            }
+            TestEqual(TEXT("terminal idempotence history is bounded"),
+                Subsystem->TestOnly_Get_NumRememberedTerminalPersistentMutations(), 256);
+            TestEqual(TEXT("oldest evicted terminal ticket becomes stale"),
+                Subsystem->Request_CancelPersistentMutation(OldestTerminalTicket),
+                ECk_PersistentEntityMutationResult::Failed_StaleTicket);
+            TestEqual(TEXT("newest terminal ticket retains deterministic idempotence"),
+                Subsystem->Request_CancelPersistentMutation(NewestTerminalTicket),
+                ECk_PersistentEntityMutationResult::Failed_AlreadyTerminal);
+        })));
+    ADD_LATENT_AUTOMATION_COMMAND(FCk_Latent_EndPIE());
 
     return true;
 }
