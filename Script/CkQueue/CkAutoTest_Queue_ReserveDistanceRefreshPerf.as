@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK QUEUE — PERF READOUT (amortised DistanceThenTicket incumbent refreshes)
+// CK QUEUE - PERF READOUT (amortised DistanceThenTicket incumbent refreshes)
 //============================================================================
 //
 // Five hundred twelve independent ReserveOnFormation queues each admit twelve
