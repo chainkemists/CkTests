@@ -1,7 +1,7 @@
 // Language=angelscript
 
 //============================================================================
-// CK SCENE NODE — AUTOMATION TEST: CREATE SEEDS THE COMPOSED WORLD
+// CK SCENE NODE - AUTOMATION TEST: CREATE SEEDS THE COMPOSED WORLD
 //============================================================================
 //
 // Asserts SYNCHRONOUSLY, with no wait. Every other SceneNode and SceneNodeTween
