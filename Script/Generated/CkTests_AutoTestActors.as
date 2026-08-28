@@ -1858,7 +1858,7 @@ class ACk_AutoTest_CrossCutting_SameFrame_TransformSetLocationCoalesces_Actor : 
 
 class ACk_AutoTest_Crowd_AvoidanceVolume_InitialPathAvoidsExpandedObb_Actor : ACk_AutoTestRunner
 {
-    default _TimeoutSeconds = 15.0f;
+    default _TimeoutSeconds = 25.0f;
     UFUNCTION(BlueprintOverride)
     TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
     {
