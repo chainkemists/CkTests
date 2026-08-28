@@ -47,6 +47,8 @@ public class CkTests : CkModuleRules
             "CkEcsExt",
             "CkEntityVisualizer",
             "CkEntityCollection",
+            // Level-root persistence contracts exercise authored/runtime CkEntitySpawner identity stamping.
+            "CkEntitySpawner",
             "CkEntityExtension",
             "CkEntityTag",
             "CkEqs",
