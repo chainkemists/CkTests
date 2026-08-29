@@ -62,4 +62,11 @@ public:
               meta = (DisplayName = "Last Gym Name",
                       Tooltip = "Auto-updated by the cycler on every successful travel. Used when StartupMode = Last."))
     FString LastGymName;
+
+    UPROPERTY(Config, VisibleAnywhere, Category = "Startup",
+              meta = (DisplayName = "Recent Gym Names",
+                      Tooltip = "Auto-updated by the cycler on every successful travel; most recent first, capped. Surfaced by the gym switchboard's recents section."))
+    TArray<FString> RecentGymNames;
+
+    static constexpr int32 RecentGymsCap = 8;
 };

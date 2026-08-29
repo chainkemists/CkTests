@@ -1,5 +1,7 @@
 #include "CkGymStartup_Utils.h"
 
+#include "CkGym_Registry.h"
+
 // --------------------------------------------------------------------------------------------------------------------
 
 auto
@@ -68,5 +70,34 @@ auto
     { return; }
 
     Settings->LastGymName = InName;
+    Settings->SaveConfig();
+}
+
+auto
+    UCk_Utils_GymStartup_UE::
+    Get_RecentGymNames()
+    -> TArray<FString>
+{
+    const auto* Settings = GetDefault<UCkGym_StartupSettings>();
+    return Settings->RecentGymNames;
+}
+
+auto
+    UCk_Utils_GymStartup_UE::
+    Request_PushRecentGym(
+        const FString& InName)
+    -> void
+{
+    if (InName.IsEmpty())
+    { return; }
+
+    auto* Settings = GetMutableDefault<UCkGym_StartupSettings>();
+    auto NewRecents = UCkGym_Registry_Subsystem::Get_RecentsAfterVisit(
+        Settings->RecentGymNames, InName, UCkGym_StartupSettings::RecentGymsCap);
+
+    if (Settings->RecentGymNames == NewRecents)
+    { return; }
+
+    Settings->RecentGymNames = MoveTemp(NewRecents);
     Settings->SaveConfig();
 }

@@ -97,8 +97,7 @@ class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
 
         // Mirror the base's startup suppression - the base check runs inside Super,
         // which the VFX-menu branch below never reaches.
-        auto CyclerSubsystem = UCkGym_CyclerSubsystem::Get();
-        if (ck::IsValid(CyclerSubsystem) && CyclerSubsystem.SuppressHUDDuringStartup)
+        if (UCk_Utils_GymRegistry_UE::Get_SuppressHUDDuringStartup())
         {
             return;
         }
