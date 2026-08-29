@@ -33,8 +33,13 @@ asset Asset_VisualLodGym_ArbiterConfig of UCk_VisualLodArbiter_Data
     _PreemptDistanceMargin = 200.0f;
     _MaxPreemptsPerTick    = 2;
 
+    // The two ends of the one fade alpha. Slot 13 is the crowd instance float the CkUsf
+    // VisualLodCrowdFade look reads; index 0 is the proxy custom-primitive-data float
+    // VisualLodNearFade reads. Both are the defaults — stated here because the station's material
+    // wiring hard-codes the matching look assets, and a silent drift on either end shows up as a pop.
     _FadeDuration = FCk_Time(0.3);
     _FadeCustomDataSlot = 13;
+    _FadeNearCustomPrimitiveDataSlot = 0;
 
     FCk_VisualLod_CrowdConfig CrowdCfg;
     CrowdCfg._AnimCollection = iskm_assets::AnimCollection_Demo();
