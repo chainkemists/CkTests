@@ -156,12 +156,14 @@ class ACk_Gym_Base_Pawn : ADefaultPawn
 
         if (InEvent.Get_EventType() == ECk_InputSource_EventType::AnalogAxis)
         {
-            // Pitch is inverted to match the stock LookUp mapping's -1 scale; the controller's
-            // InputYaw/PitchScale still applies downstream of these calls.
+            // No sign flip on pitch: the legacy MouseY AXIS was positive-up and its LookUp mapping
+            // carried a -1, but the raw layer records the SLATE-space cursor delta (Y grows down)
+            // - already the negation of the axis convention, so adding the mapping's -1 double-
+            // inverts. One flip total, and it is the coordinate space's.
             if (Key == EKeys::MouseX)
             { AddControllerYawInput(InEvent.Get_AnalogValue() * _MouseLookScale); }
             else if (Key == EKeys::MouseY)
-            { AddControllerPitchInput(-InEvent.Get_AnalogValue() * _MouseLookScale); }
+            { AddControllerPitchInput(InEvent.Get_AnalogValue() * _MouseLookScale); }
             return;
         }
 

@@ -3,6 +3,7 @@
 #include "CkGymRegistry_Utils.h"
 #include "CkGym_Registry.h"
 #include "CkTests/CkTests_Log.h"
+#include "Slate/SCkGym_ControlPanel.h"
 #include "Slate/SCkGym_Switchboard.h"
 
 #include "CkCore/Algorithms/CkAlgorithms.h"
@@ -23,8 +24,10 @@
 
 namespace ck_gym_switchboard_subsystem
 {
-    // Below CkEntityDebugOverlay's 100 so the debug overlay keeps the foreground when both are up.
+    // Below CkEntityDebugOverlay's 100 so the debug overlay keeps the foreground when both are up;
+    // the control panel sits under the switchboard.
     constexpr int32 SwitchboardZOrder = 90;
+    constexpr int32 ControlPanelZOrder = 85;
 
     constexpr auto FallbackCategory = TEXT("Misc");
 
@@ -142,6 +145,19 @@ auto
 
     DoRemoveViewportWidget();
 
+    if (_PanelWidget.IsValid())
+    {
+        if (const auto* LocalPlayer = GetLocalPlayer();
+            ck::IsValid(LocalPlayer))
+        {
+            if (auto* ViewportClient = LocalPlayer->ViewportClient.Get();
+                IsValid(ViewportClient))
+            { ViewportClient->RemoveViewportWidgetContent(_PanelWidget.ToSharedRef()); }
+        }
+
+        _PanelWidget.Reset();
+    }
+
     // The menu layer's entity has a transient owner and dies with its world's registry; nothing to
     // destroy explicitly here, and the handle must not be poked mid-teardown.
     _MenuLayer = {};
@@ -214,6 +230,66 @@ auto
 
 auto
     UCkGym_Switchboard_Subsystem::
+    Request_SetControlPanel(
+        const FString& InTitle,
+        const TArray<FCkGym_ControlRow>& InRows,
+        FVector2D InOffset,
+        bool InPanelCollapsed,
+        bool InFullyHidden)
+    -> void
+{
+    const auto Unchanged =
+        _PanelWidget.IsValid() &&
+        _PanelTitle == InTitle && _PanelRows == InRows && _PanelOffset == InOffset &&
+        _PanelCollapsed == InPanelCollapsed && _PanelFullyHidden == InFullyHidden;
+
+    if (Unchanged)
+    { return; }
+
+    _PanelTitle = InTitle;
+    _PanelRows = InRows;
+    _PanelOffset = InOffset;
+    _PanelCollapsed = InPanelCollapsed;
+    _PanelFullyHidden = InFullyHidden;
+
+    if (NOT _PanelWidget.IsValid())
+    {
+        auto* LocalPlayer = GetLocalPlayer();
+        auto* ViewportClient = ck::IsValid(LocalPlayer) ? LocalPlayer->ViewportClient.Get() : nullptr;
+
+        if (NOT IsValid(ViewportClient))
+        { return; }
+
+        _PanelWidget = SNew(SCkGym_ControlPanel);
+        ViewportClient->AddViewportWidgetContent(_PanelWidget.ToSharedRef(),
+            ck_gym_switchboard_subsystem::ControlPanelZOrder);
+    }
+
+    DoRefreshPanelWidget();
+}
+
+auto
+    UCkGym_Switchboard_Subsystem::
+    DoRefreshPanelWidget()
+    -> void
+{
+    if (NOT _PanelWidget.IsValid())
+    { return; }
+
+    // The panel vanishes outright during startup suppression and while the switchboard is open
+    // (the menu draws over its corner and owns every key anyway).
+    if (_PanelFullyHidden || _IsOpen)
+    {
+        _PanelWidget->SetVisibility(EVisibility::Collapsed);
+        return;
+    }
+
+    _PanelWidget->SetVisibility(EVisibility::HitTestInvisible);
+    _PanelWidget->Refresh(_PanelTitle, _PanelRows, _PanelOffset, _PanelCollapsed);
+}
+
+auto
+    UCkGym_Switchboard_Subsystem::
     Request_Toggle()
     -> void
 {
@@ -259,6 +335,7 @@ auto
         FTickerDelegate::CreateUObject(this, &UCkGym_Switchboard_Subsystem::DoTickRepeat), 0.0f);
 
     _IsOpen = true;
+    DoRefreshPanelWidget();
     ck::tests::Log(TEXT("[GymSwitchboard] opened"));
 }
 
@@ -287,6 +364,7 @@ auto
     DoRemoveViewportWidget();
 
     _IsOpen = false;
+    DoRefreshPanelWidget();
     ck::tests::Log(TEXT("[GymSwitchboard] closed"));
 }
 

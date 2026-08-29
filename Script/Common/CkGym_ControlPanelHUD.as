@@ -4,11 +4,11 @@
 // GYM CONTROL PANEL HUD - the default gym HUD
 //============================================================================
 //
-// Draws the control panel for whichever gym is running: it asks the PlayerController for its rows
-// and dispatches by index. It also ARMS the gym switchboard's Tab global action (gym worlds only,
-// by HUDClass construction) and draws the closed-state Tab hint - the switchboard itself is the
-// C++ UCkGym_Switchboard_Subsystem. A gym that declares no rows gets just the hint - the panel is
-// opt-in per gym, not per HUD.
+// Drives the control panel for whichever gym is running: it asks the PlayerController for its
+// rows, dispatches by index off its input layer, and pushes the row state to the Slate panel that
+// UCkGym_Switchboard_Subsystem renders (CkStyle language, same as the switchboard). It also ARMS
+// the switchboard's Tab global action (gym worlds only, by HUDClass construction). A gym that
+// declares no rows gets just the Tab hint - the panel is opt-in per gym, not per HUD.
 //
 // This is ACk_Gym_Base_GameMode's default HUDClass, so adopting the panel never involves touching a
 // GameMode: a gym overrides Get_ControlRows() on its PlayerController and the panel appears.
@@ -49,20 +49,22 @@ class ACkGym_ControlPanelHUD : AHUD
         }
     }
 
+    // No Canvas drawing left: this is the per-frame DRIVER. It arms the switchboard, keeps the
+    // panel's input layer in sync, and pushes the row state across to the Slate panel (which
+    // re-renders only on change). Suppression and the switchboard-open case still push - with an
+    // explicit hide - so the widget can never linger showing a stale gym's rows.
     UFUNCTION(BlueprintOverride)
     void DrawHUD(int32 SizeX, int32 SizeY)
     {
         auto _CkPerfScope = ck::ScopedStat();
 
-        // Mirrors the base's startup suppression. Without it the panel flashes over the launcher level
-        // during an auto-travel to the startup gym.
-        if (UCk_Utils_GymRegistry_UE::Get_SuppressHUDDuringStartup())
-        { return; }
-
         auto PC = Cast<ACk_Gym_Base_PlayerController>(GetOwningPlayerController());
 
         if (ck::Is_NOT_Valid(PC))
         { return; }
+
+        auto Suppressed = UCk_Utils_GymRegistry_UE::Get_SuppressHUDDuringStartup();
+        auto Rows = Suppressed ? TArray<FCkGym_ControlRow>() : PC.Get_ControlRows();
 
         auto Switchboard = UCkGym_Switchboard_Subsystem::Get(PC);
         if (ck::IsValid(Switchboard))
@@ -70,33 +72,16 @@ class ACkGym_ControlPanelHUD : AHUD
             // Idempotent, retried until the input source exists.
             Switchboard.Request_ArmTabOpen();
 
-            // The switchboard draws over the center; skip the panel's own draw while it is open.
-            // Key dispatch needs no such gate - the menu's catch-all masks the panel's layer.
-            if (Switchboard.Get_IsOpen())
-            { return; }
+            auto Style = Get_ControlPanelStyle();
+            Switchboard.Request_SetControlPanel(PC.Get_ControlPanelTitle(), Rows,
+                FVector2D(Style.X, Style.Y), _PanelHidden, Suppressed);
         }
 
-        DrawText("[Tab] gym switchboard", CkGym_ControlPanel::Colour_Muted,
-            float(SizeX) - 200.0f, 20.0f, nullptr, 0.85f, false);
-
-        auto Rows = PC.Get_ControlRows();
+        if (Suppressed)
+        { return; }
 
         DoEnsurePanelLayer(PC);
         DoSyncCaptures(Rows);
-
-        if (Rows.Num() == 0)
-        { return; }
-
-        auto Style = Get_ControlPanelStyle();
-
-        if (_PanelHidden)
-        {
-            DrawText("[H] gym controls", CkGym_ControlPanel::Colour_Muted,
-                Style.X, Style.Y, nullptr, 0.85f, false);
-            return;
-        }
-
-        CkGym_ControlPanel::Draw(this, PC.Get_ControlPanelTitle(), Rows, Style);
     }
 
     //------------------------------------------------------------------------

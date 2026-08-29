@@ -4,6 +4,8 @@
 
 #include "CkCore/Macros/CkMacros.h"
 
+#include "CkGym_ControlPanelTypes.h"
+
 #include "CkInput/CkInputLayer_Fragment_Data.h"
 #include "CkInput/CkInputSource_Fragment_Data.h"
 
@@ -12,6 +14,7 @@
 
 #include "CkGym_Switchboard_Subsystem.generated.h"
 
+class SCkGym_ControlPanel;
 class SCkGym_Switchboard;
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -102,6 +105,20 @@ public:
     bool
     Get_IsOpen() const;
 
+    // The gym HUD pushes the control panel's state here every frame; the Slate panel re-renders
+    // only when something changed. InPanelCollapsed = the H toggle (rows keep firing, drawing
+    // collapses to the reminder chip); InFullyHidden = the startup-suppression window (nothing
+    // draws at all).
+    UFUNCTION(BlueprintCallable, Category = "Ck|Gym|Switchboard",
+              DisplayName = "[Ck][GymSwitchboard] Set ControlPanel")
+    void
+    Request_SetControlPanel(
+        const FString& InTitle,
+        const TArray<FCkGym_ControlRow>& InRows,
+        FVector2D InOffset,
+        bool InPanelCollapsed,
+        bool InFullyHidden);
+
     auto
     Request_Toggle() -> void;
 
@@ -187,7 +204,18 @@ private:
         float InDeltaTime) -> bool;
 
 private:
+    auto
+    DoRefreshPanelWidget() -> void;
+
+private:
     TSharedPtr<SCkGym_Switchboard> _RootWidget;
+
+    TSharedPtr<SCkGym_ControlPanel> _PanelWidget;
+    FString _PanelTitle;
+    TArray<FCkGym_ControlRow> _PanelRows;
+    FVector2D _PanelOffset = FVector2D::ZeroVector;
+    bool _PanelCollapsed = false;
+    bool _PanelFullyHidden = true;
 
     FCk_Handle_InputLayer _MenuLayer;
 
