@@ -8,8 +8,8 @@
 // on the panel: after it, the two agree on every row.
 //
 // PERSISTENCE SPANS TWO PIE SESSIONS, SO THE PANEL PROVES IT WITH A MARKER.
-// Ck_GymInput_StartPersistenceCheck moves Jump onto a key nothing else in this
-// gym ever assigns, saves, and suspends teardown so leaving PIE does not erase
+// The control panel's start-the-check row moves Jump onto a key nothing else in
+// this gym ever assigns, saves, and suspends teardown so leaving PIE does not erase
 // the very thing being tested. On the next session this station probes ONCE at
 // construct - before the demo on the Remap + Conflict station can touch
 // anything - and a Jump still sitting on the marker key can only have come off
@@ -104,7 +104,7 @@ class UCk_EntityScript_InputGym_ResetPersistence : UCk_GenericEntityScript_UE
         }
 
         input_gym::Add_Line(OutLines, "  Leaving this gym will LEAVE your key changes on disk.", gym_palette::Amber);
-        input_gym::Add_Line(OutLines, "  Run Ck_GymInput_ResetAllAndSave when you are done.", gym_palette::Amber);
+        input_gym::Add_Line(OutLines, "  Press panel [L] when you are done.", gym_palette::Amber);
     }
 
     private void Add_PersistenceBlock(TArray<FCkGym_ColoredLine>& OutLines, FCk_Handle& InSelfEntity, APlayerController InPlayerController)
@@ -118,7 +118,7 @@ class UCk_EntityScript_InputGym_ResetPersistence : UCk_GenericEntityScript_UE
         if (Probe.Passed)
         {
             input_gym::Add_Line(OutLines, f"  PERSISTENCE: PASS - Jump returned as {MarkerText} from disk", gym_palette::Green);
-            input_gym::Add_Line(OutLines, "  Run Ck_GymInput_ResetAllAndSave to finish and leave nothing behind.", gym_palette::Cyan);
+            input_gym::Add_Line(OutLines, "  Press panel [L] to finish and leave nothing behind.", gym_palette::Cyan);
             return;
         }
 
@@ -134,12 +134,12 @@ class UCk_EntityScript_InputGym_ResetPersistence : UCk_GenericEntityScript_UE
             return;
         }
 
-        input_gym::Add_Line(OutLines, "  1. Run Ck_GymInput_StartPersistenceCheck", gym_palette::Grey);
+        input_gym::Add_Line(OutLines, "  1. Press panel [P]", gym_palette::Grey);
         input_gym::Add_Line(OutLines, f"  2. Jump moves to {MarkerText}, is saved, and teardown is suspended", gym_palette::Grey);
         input_gym::Add_Line(OutLines, "  3. Stop PIE, PIE again, come back to this gym", gym_palette::Grey);
         input_gym::Add_Line(OutLines, "  4. This panel turns green on its own if the key came back", gym_palette::Grey);
-        input_gym::Add_Line(OutLines, "  5. Run Ck_GymInput_ResetAllAndSave to leave nothing behind", gym_palette::Grey);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_StartPersistenceCheck    start the check now", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  5. Press panel [L] to leave nothing behind", gym_palette::Grey);
+        input_gym::Add_Line(OutLines, "  panel [P]    start the check now", gym_palette::Cyan);
     }
 
     private void Add_Rows(TArray<FCkGym_ColoredLine>& OutLines, APlayerController InPlayerController)
@@ -169,11 +169,10 @@ class UCk_EntityScript_InputGym_ResetPersistence : UCk_GenericEntityScript_UE
 
         input_gym::Add_Spacer(OutLines, gym_palette::White);
         input_gym::Add_Line(OutLines, "TRY IT YOURSELF", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_ResetJump          put one row back", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_ResetAll           put every row back", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_Save               write the current keys to disk", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_SuspendTeardown    keep changes when you leave", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_ArmTeardown        clean up when you leave", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_ResetAllAndSave    put everything back and save", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  panel [R]    put one row back", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  panel [G]    put every row back", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  panel [K]    write the current keys to disk", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  panel [O]    keep changes when you leave, or clean up", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  panel [L]    put everything back and save", gym_palette::Cyan);
     }
 }

@@ -377,7 +377,7 @@ class ACk_CrowdGym_Diag_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Rows = TArray<FCkGym_ControlRow>();
         Rows.Add(CkGym_Control::ToggleNamed(EKeys::P, "P", "Auto-cycling", _AutoCycleEnabled, "running", "PAUSED"));
-        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Dump cycle digest now"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Dump cycle digest now"));
         Rows.Add(CkGym_Control::Action(EKeys::O, "O", "Spawn an overlap wave now"));
         return Rows;
     }

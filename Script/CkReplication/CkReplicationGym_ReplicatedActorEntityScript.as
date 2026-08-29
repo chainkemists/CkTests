@@ -87,7 +87,7 @@ class UCk_ReplicationGym_ReplicatedActor_EntityScript : UCk_EntityScript_WithAct
         Body = Body + "PASS = no 'No container fragment entry found' in Output Log\n";
         Body = Body + "       + Attribute present YES on both server and client.\n\n";
         Body = Body + "Manual:\n";
-        Body = Body + "  Ck_GymReplication_SetActorValue [n]\n";
+        Body = Body + "  panel [1] Actor value preset ring\n";
         Body = Body + "  Ck_GymReplication_RespawnActor\n";
         Body = Body + "  Ck_GymReplication_DumpRep\n";
 

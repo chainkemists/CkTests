@@ -68,7 +68,7 @@ class UCk_EntityScript_InteractionGym_ResolverSource : UCk_GenericEntityScript_U
         AutoConfig.TotalSteps = 4;
         AutoConfig.Description = "Resolver with distance sorting, 3 targets.";
         AutoConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymInteraction_AutoResolver";
+        AutoConfig.PerStationAutoCommand = "panel [L] Re-arm auto (Resolver)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add 3 targets", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Start intent", 1, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Stop intent", 2, 2));

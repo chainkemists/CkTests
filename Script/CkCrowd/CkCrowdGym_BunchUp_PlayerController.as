@@ -180,10 +180,10 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
     TArray<FCkGym_ControlRow> Get_ControlRows() override
     {
         auto Rows = TArray<FCkGym_ControlRow>();
-        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Spawn 15 on a shared goal"));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Reset - destroy agents"));
-        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Emit per-agent digest"));
-        Rows.Add(CkGym_Control::Action(EKeys::E, "E", "Elevate a settled agent 120cm"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Spawn 15 on a shared goal"));
+        Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Reset - destroy agents"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Emit per-agent digest"));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Elevate a settled agent 120cm"));
         Rows.Add(CkGym_Control::Status("Another agent count: console only"));
         return Rows;
     }
@@ -279,7 +279,7 @@ class ACk_CrowdGym_BunchUp_PlayerController : ACk_Gym_Base_PlayerController
             return;
         }
 
-        ck::crowd::Log("BunchUp gym: no agents to elevate - spawn some first (S)");
+        ck::crowd::Log("BunchUp gym: no agents to elevate - spawn some first (G)");
     }
 
     // ---- Agent factory ---------------------------------------------------------------------------

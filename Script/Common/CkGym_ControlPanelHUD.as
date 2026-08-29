@@ -37,6 +37,7 @@ class ACkGym_ControlPanelHUD : AHUD
     private FCk_Handle _PanelLayerOwner;
     private FCk_Handle_InputLayer _PanelLayer;
     private TArray<FKey> _SyncedKeys;
+    private TArray<FKey> _ReportedReservedKeys;
 
     UFUNCTION(BlueprintOverride)
     void EndPlay(EEndPlayReason EndPlayReason)
@@ -119,8 +120,20 @@ class ACkGym_ControlPanelHUD : AHUD
             ECk_Signal_PostFireBehavior::DoNothing);
     }
 
+    // Keys a panel row must NEVER capture: a capture CONSUMES, so a row on a movement key would
+    // steal the pawn's input (the old polling panel merely observed, which is how such rows crept
+    // in). Tab/H are the framework's own.
+    private bool DoIsReservedRowKey(FKey InKey)
+    {
+        return InKey == EKeys::W || InKey == EKeys::A || InKey == EKeys::S || InKey == EKeys::D ||
+               InKey == EKeys::E || InKey == EKeys::Q || InKey == EKeys::C || InKey == EKeys::SpaceBar ||
+               InKey == EKeys::H || InKey == EKeys::Tab;
+    }
+
     // Diff-syncs the capture set to H + every enabled, keyed row (and its alt key). Rows change
-    // rarely (per gym, per scenario state), so the steady state enqueues nothing.
+    // rarely (per gym, per scenario state), so the steady state enqueues nothing. A row binding a
+    // reserved key is refused LOUDLY and never captured - the row draws but cannot fire, so the
+    // authoring mistake is visible in the panel and the log instead of silently freezing the pawn.
     private void DoSyncCaptures(const TArray<FCkGym_ControlRow>&in InRows)
     {
         if (ck::Is_NOT_Valid(_PanelLayer))
@@ -137,9 +150,19 @@ class ACkGym_ControlPanelHUD : AHUD
             if (Row.KeyLabel.Len() == 0)
             { continue; }
 
+            if (DoIsReservedRowKey(Row.Key))
+            {
+                if (_ReportedReservedKeys.Contains(Row.Key) == false)
+                {
+                    _ReportedReservedKeys.Add(Row.Key);
+                    ck::Error(f"[GymControlPanel] row '{Row.Label}' binds RESERVED key '{Row.KeyLabel}' (pawn/menu-owned) - the row will not fire; re-key it");
+                }
+                continue;
+            }
+
             Desired.AddUnique(Row.Key);
 
-            if (Row.HasAltKey)
+            if (Row.HasAltKey && DoIsReservedRowKey(Row.AltKey) == false)
             { Desired.AddUnique(Row.AltKey); }
         }
 

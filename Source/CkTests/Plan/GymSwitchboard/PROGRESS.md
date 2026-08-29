@@ -35,6 +35,27 @@ visibility.
 
 ## Dated entries (append-only, newest first)
 
+### 2026-08-29 — Gate_04 sweep executed (batches A-E) + a systemic find
+- Batch 1 COMMITTED (a1cb90e3, 67 files): gym CVars deleted (+C++ bridge), ~135 execs → rows
+  across Jolt/GOAP/Attribute/Probe/Minimap/Compass/Camera/RenderTarget/SceneNodeTween/
+  IskmBatchedStress; all station text renamed to rows; Ck_Gym*_Auto fallback literals updated;
+  VfxExamples H double-fire fixed (Get_PanelKeysSuspended override point).
+- Batches D+E landed (uncommitted): partial-gap gyms extended (Interaction/Inventory/Vat/Queue/
+  Pmg/Messaging/PixelArt), KeyBinding fully adopted (16 rows), Playground rows avoid its 5 matcher
+  keys (its diagnostics cvar HAS a live getter — no mirror), VoiceChat TX latch + V-hold preserved,
+  Replication rings, 4 Stylize aliases + PixelArt CycleStation + Vat's 2 auto aliases deleted.
+- Execs KEPT by policy (free-range console input): Attribute SetVelocity, Vat SetCollection/
+  PlayClip/PlayOnce, Inventory AddShieldAt/SplitStack (+AddPotion/AddArrow), Queue DestroyAgent —
+  each advertised by a Status row.
+- **SYSTEMIC FIND: 45 pre-existing panel rows across 22 files bind RESERVED keys (W/A/S/D/E/Q/C/
+  Space).** Harmless under the old polling panel (observe-only); the layer migration made captures
+  CONSUME, so each such row steals pawn movement in its gym. Fixed at two layers: (1) structural
+  guardrail in CkGym_ControlPanelHUD.DoSyncCaptures — reserved-key rows are refused loudly (row
+  draws, never captures, ck::Error names it); (2) repo-wide re-key pass in flight (uniform
+  conventions across sibling gyms).
+- gym_auto's AutoConfig command-string mechanism is arguably redundant with the panel now —
+  flagged for the user / P6, NOT acted on.
+
 ### 2026-08-29 — USER PIE VERDICTS (round 2) + panel restyle
 - Round-1 fixes CONFIRMED by user: "keys inside the gym work" (per-world Tab re-arm holds).
 - New finding: **mouse pitch inverted.** Root cause: the round-1 comment's own premise was wrong —

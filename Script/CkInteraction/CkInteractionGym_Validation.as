@@ -60,7 +60,7 @@ class UCk_EntityScript_InteractionGym_Validation : UCk_GenericEntityScript_UE
         AutoConfig.TotalSteps = 6;
         AutoConfig.Description = "Custom CanInteractWith validation + enable/disable.";
         AutoConfig.GlobalAutoCommand = "Ck_GymInteraction_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymInteraction_AutoValidation";
+        AutoConfig.PerStationAutoCommand = "panel [K] Re-arm auto (Validation)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Attempt interaction (expect OK)", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Disable target", 1, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Attempt interaction (expect Disabled)", 2, 2));

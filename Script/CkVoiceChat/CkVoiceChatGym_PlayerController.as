@@ -94,18 +94,43 @@ class ACk_VoiceChatGym_PlayerController : ACk_Gym_Base_PlayerController
         PrintToScreen("TX END - squelch-close beep binds HERE", 1.5, FLinearColor::Yellow);
     }
 
-    // Console fallbacks for machines where the key poll misbehaves (gym spec convention).
-    UFUNCTION(Exec)
-    void Ck_GymVoiceChat_TalkStart()
+    //--------------------------------------------------------------------------------------------------------------------------
+    // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
+    //
+    // A row is a press, not a hold, so this cannot BE the push-to-talk - it is a LATCH: one press opens
+    // the transmit and the next closes it. V stays the real hold-to-talk and is left untouched, which is
+    // also why the row reads the live transmit tag rather than a mirror: releasing V closes a latch this
+    // panel opened, and a mirrored bool would keep claiming ON after that.
+    //--------------------------------------------------------------------------------------------------------------------------
+
+    FString Get_ControlPanelTitle() override
     {
-        if (ck::IsValid(_GymTalker))
-        { utils_voice_talker::Request_StartTransmit(_GymTalker, FCk_Request_VoiceTalker_StartTransmit()); }
+        return "VOICE CHAT";
     }
 
-    UFUNCTION(Exec)
-    void Ck_GymVoiceChat_TalkStop()
+    TArray<FCkGym_ControlRow> Get_ControlRows() override
     {
-        if (ck::IsValid(_GymTalker))
+        auto Rows = TArray<FCkGym_ControlRow>();
+
+        auto IsTransmitting = ck::IsValid(_GymTalker) && utils_voice_talker::Get_IsTransmitting(_GymTalker);
+
+        Rows.Add(CkGym_Control::Toggle(EKeys::T, "T", "TX latch", IsTransmitting, false, ck::IsValid(_GymTalker)));
+        Rows.Add(CkGym_Control::Status("Push-to-talk", "HOLD V - the latch above is the press-only stand-in"));
+
+        return Rows;
+    }
+
+    void Request_ControlActivated(int32 InRowIndex) override
+    {
+        if (InRowIndex != 0)
+        { return; }
+
+        if (ck::Is_NOT_Valid(_GymTalker))
+        { return; }
+
+        if (utils_voice_talker::Get_IsTransmitting(_GymTalker))
         { utils_voice_talker::Request_StopTransmit(_GymTalker); }
+        else
+        { utils_voice_talker::Request_StartTransmit(_GymTalker, FCk_Request_VoiceTalker_StartTransmit()); }
     }
 }

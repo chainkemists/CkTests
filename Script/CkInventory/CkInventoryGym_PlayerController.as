@@ -6,6 +6,11 @@
 
 class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
 {
+    // Preset-ring position for the bounded-capacity row. It reports its STEP, not a value, because
+    // the bounded station's own auto sequence calls Request_OverrideBounds(10)/(5) behind the panel's
+    // back - a mirrored number would read 20 while the inventory was back at 5.
+    private int32 _BoundsPresetIndex = -1;
+
     TArray<FCkGym_Station_SpawnParams_Payload> Get_RequiredStations() override
     {
         auto Stations = TArray<FCkGym_Station_SpawnParams_Payload>();
@@ -183,9 +188,15 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
-    // Twenty-five console commands. The curated set below is keyed, at each command's own default
-    // count or coordinate - the values the gym's placards talk about. Anything that needs a different
-    // number keeps to the console, and the panel says so rather than implying it is gone.
+    // Every keyed row fires at its command's own default count or coordinate - the values the gym's
+    // placards talk about. The bound is a preset ring instead, since its three interesting values are
+    // exactly the ones the bounded station demonstrates. Three commands genuinely need a number or a
+    // pair the panel cannot express; they stay on the console and get a Status row that names them.
+    //
+    // The six per-station auto-drive rows are Actions, not Toggles: every station calls
+    // gym_auto::StopAuto the moment any manual row fires, so a mirrored bool would read ON while the
+    // station had already stopped. An Action that re-arms is the only honest shape. Their letters
+    // carry no mnemonic - six stations exhaust the free initials.
     //--------------------------------------------------------------------------------------------------------------------------
 
     FString Get_ControlPanelTitle() override
@@ -213,23 +224,38 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Action(EKeys::Y, "Y", "Remove the RARE tag"));
 
         Rows.Add(CkGym_Control::Header("SHELF"));
-        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Stock"));
+        Rows.Add(CkGym_Control::Action(EKeys::O, "O", "Stock"));
         Rows.Add(CkGym_Control::Action(EKeys::L, "L", "Loot"));
         Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Start"));
         Rows.Add(CkGym_Control::Action(EKeys::X, "X", "Stop"));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Reset"));
+        Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Reset"));
 
         Rows.Add(CkGym_Control::Header("RUN"));
-        Rows.Add(CkGym_Control::Action(EKeys::A, "A", "Auto-drive every station"));
+        Rows.Add(CkGym_Control::Action(EKeys::U, "U", "Auto-drive every station"));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart everything"));
-        Rows.Add(CkGym_Control::Status("Other counts, bounds and coordinates: console only"));
+
+        Rows.Add(CkGym_Control::Header("BOUNDED CAPACITY"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::B, "B", "Override the bound", DoGet_BoundsPresetLabel()));
+
+        Rows.Add(CkGym_Control::Header("RE-ARM AUTO-DRIVE (one station)"));
+        Rows.Add(CkGym_Control::Action(EKeys::F, "F", "Data-only unbounded"));
+        Rows.Add(CkGym_Control::Action(EKeys::I, "I", "Data-only bounded"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Spatial"));
+        Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Stackable trait"));
+        Rows.Add(CkGym_Control::Action(EKeys::M, "M", "Tags trait"));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Shelf loot/stock"));
+
+        Rows.Add(CkGym_Control::Header("CONSOLE (free-range input the panel cannot express)"));
+        Rows.Add(CkGym_Control::Status("Shield at a coordinate", "Ck_GymInventory_AddShieldAt X Y"));
+        Rows.Add(CkGym_Control::Status("Split N off a stack", "Ck_GymInventory_SplitStack N"));
+        Rows.Add(CkGym_Control::Status("Add N of an item", "Ck_GymInventory_AddPotion N · Ck_GymInventory_AddArrow N"));
 
         return Rows;
     }
 
     void Request_ControlActivated(int32 InRowIndex) override
     {
-        // Rows 0, 10, 13 and 19 are headers, which hold no key and never arrive here.
+        // Rows 0, 10, 13, 19, 22, 24 and 31 are headers, which hold no key and never arrive here.
         if (InRowIndex == 1) { Ck_GymInventory_AddPotion(1); }
         else if (InRowIndex == 2) { Ck_GymInventory_AddArrow(1); }
         else if (InRowIndex == 3) { Ck_GymInventory_AddSword(); }
@@ -248,6 +274,32 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         else if (InRowIndex == 18) { Ck_GymInventory_ShelfReset(); }
         else if (InRowIndex == 20) { Ck_GymInventory_Auto(1); }
         else if (InRowIndex == 21) { Ck_GymInventory_RestartAll(); }
+        else if (InRowIndex == 23) { DoCycleBoundsPreset(); }
+        else if (InRowIndex == 25) { BroadcastAutoToTag(n"TAG_InvGym_DataOnlyUnbounded", true); }
+        else if (InRowIndex == 26) { BroadcastAutoToTag(n"TAG_InvGym_DataOnlyBounded", true); }
+        else if (InRowIndex == 27) { BroadcastAutoToTag(n"TAG_InvGym_Spatial", true); }
+        else if (InRowIndex == 28) { BroadcastAutoToTag(n"TAG_InvGym_StackableTrait", true); }
+        else if (InRowIndex == 29) { BroadcastAutoToTag(n"TAG_InvGym_TagsTrait", true); }
+        else if (InRowIndex == 30) { BroadcastAutoToTag(n"TAG_InvGym_ShelfDesync", true); }
+    }
+
+    // 5 is the bound the station is authored with, 10 is what its auto sequence overrides to, and 20
+    // is the headroom step that makes a rejection stop happening.
+    private FString DoGet_BoundsPresetLabel()
+    {
+        return _BoundsPresetIndex < 0 ? "(5 / 10 / 20)" : f"step {_BoundsPresetIndex + 1}";
+    }
+
+    private void DoCycleBoundsPreset()
+    {
+        _BoundsPresetIndex = (_BoundsPresetIndex + 1) % 3;
+
+        auto Values = TArray<int32>();
+        Values.Add(5); Values.Add(10); Values.Add(20);
+
+        auto Msg = FCk_Message_InvGym_OverrideBounds(Values[_BoundsPresetIndex]);
+        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_DataOnlyBounded");
+        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
     }
 
     UFUNCTION(Exec, DisplayName="Inventory Gym - Add Potion")
@@ -306,14 +358,6 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
         {
             for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
         }
-    }
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Set Bounds")
-    void Ck_GymInventory_SetBounds(int32 InNewBound = 10)
-    {
-        auto Msg = FCk_Message_InvGym_OverrideBounds(InNewBound);
-        auto Entities = utils_entity_tag::ForEach_Entity(ck::ToEntity(this), n"TAG_InvGym_DataOnlyBounded");
-        for (auto E : Entities) { utils_messaging::Broadcast(E, Msg); }
     }
 
     //------------------------------------------------------------------------
@@ -455,42 +499,6 @@ class ACk_InventoryGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymInventory_Auto(int32 InEnabled = 1)
     {
         BroadcastAutoToAll(InEnabled != 0);
-    }
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Unbounded")
-    void Ck_GymInventory_AutoUnbounded()
-    {
-        BroadcastAutoToTag(n"TAG_InvGym_DataOnlyUnbounded", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Bounded")
-    void Ck_GymInventory_AutoBounded()
-    {
-        BroadcastAutoToTag(n"TAG_InvGym_DataOnlyBounded", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Spatial")
-    void Ck_GymInventory_AutoSpatial()
-    {
-        BroadcastAutoToTag(n"TAG_InvGym_Spatial", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Stackable")
-    void Ck_GymInventory_AutoStackable()
-    {
-        BroadcastAutoToTag(n"TAG_InvGym_StackableTrait", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Tags")
-    void Ck_GymInventory_AutoTags()
-    {
-        BroadcastAutoToTag(n"TAG_InvGym_TagsTrait", true);
-    }
-
-    UFUNCTION(Exec, DisplayName="Inventory Gym - Auto Shelf")
-    void Ck_GymInventory_AutoShelf()
-    {
-        BroadcastAutoToTag(n"TAG_InvGym_ShelfDesync", true);
     }
 
     //------------------------------------------------------------------------

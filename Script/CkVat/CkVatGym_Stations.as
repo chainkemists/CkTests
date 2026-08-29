@@ -64,7 +64,7 @@ class UCk_EntityScript_VatGym_ClipCycle : UCk_GenericEntityScript_UE
 
         AutoConfig.Description = "Single VAT instance. Cycles every baked\nclip with a 0.4s crossfade, then rate 2.0,\nrate 0.5, freeze, resume.";
         AutoConfig.GlobalAutoCommand = "Ck_GymVat_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymVat_AutoClipCycle";
+        AutoConfig.PerStationAutoCommand = "panel [U] Auto-drive clip cycle";
         AutoConfig.ManualCommands.Add("Ck_GymVat_PlayClip [name] [rate]");
         AutoConfig.ManualCommands.Add("Ck_GymVat_PlayOnce [name] [rate]");
         AutoConfig.ManualCommands.Add("Ck_GymVat_SetRate [rate]");
@@ -361,7 +361,7 @@ class UCk_EntityScript_VatGym_Turntable : UCk_GenericEntityScript_UE
             DisplayText = f"{DisplayText}(others: mesh channels) - must look identical.\n\n";
             DisplayText = f"{DisplayText}Yaw: {int32(_Yaw)} deg @ {_DegreesPerSecond} deg/s\n\n";
             DisplayText = f"{DisplayText}===== Commands =====\n";
-            DisplayText = f"{DisplayText}Ck_GymVat_TurnRate [deg/s]\n";
+            DisplayText = f"{DisplayText}panel [G] Turntable rate\n";
             DisplayText = f"{DisplayText}Ck_GymVat_SetCollection [path]\n";
         }
 
@@ -431,9 +431,9 @@ class UCk_EntityScript_VatGym_CrowdField : UCk_GenericEntityScript_UE
         AutoConfig.TotalSteps = 1;
         AutoConfig.Description = "Instanced crowd, RandomPerInstance phase\noffset - same clip, desynced playback.\nCustom data writes on clip change ONLY.";
         AutoConfig.GlobalAutoCommand = "Ck_GymVat_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymVat_AutoCrowdField";
+        AutoConfig.PerStationAutoCommand = "panel [F] Auto-drive crowd field";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Switch whole field to next clip", 0, 0));
-        AutoConfig.ManualCommands.Add("Ck_GymVat_FieldCount [n]");
+        AutoConfig.ManualCommands.Add("panel [N] Crowd field count");
         AutoConfig.ManualCommands.Add("Ck_GymVat_SetCollection [path]");
 
         RebuildStation();

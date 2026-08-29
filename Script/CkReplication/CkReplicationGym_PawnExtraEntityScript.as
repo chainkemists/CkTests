@@ -81,7 +81,7 @@ class UCk_ReplicationGym_PawnExtra_EntityScript : UCk_EntityScript_WithActor_UE
         Body = Body + "PASS = no 'No container fragment entry found' in Output Log\n";
         Body = Body + "       + Attribute present YES on both server and client.\n\n";
         Body = Body + "Manual:\n";
-        Body = Body + "  Ck_GymReplication_SetPawnValue [n]\n";
+        Body = Body + "  panel [2] Pawn value preset ring\n";
         Body = Body + "  Ck_GymReplication_DumpRep\n";
 
         auto StationActor = utils_actor::Get_FirstActorWithNameContaining(

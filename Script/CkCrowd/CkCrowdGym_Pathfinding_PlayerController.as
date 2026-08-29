@@ -175,7 +175,7 @@ class ACk_CrowdGym_Pathfinding_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Numbered(0, "Issue a GOOD path", false));
         Rows.Add(CkGym_Control::Numbered(1, "Issue a BAD path", false));
         Rows.Add(CkGym_Control::Action(EKeys::P, "P", "Print status"));
-        Rows.Add(CkGym_Control::Action(EKeys::D, "D", "Print diagnostics"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", "Print diagnostics"));
         return Rows;
     }
 

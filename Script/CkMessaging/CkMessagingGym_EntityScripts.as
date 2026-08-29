@@ -441,7 +441,7 @@ class UCk_EntityScript_MessagingGym_MultiType : UCk_GenericEntityScript_UE
         auto Instructions = "";
         Instructions = f"{Instructions}Ck_GymMessaging_SendAllTypes\n";
         Instructions = f"{Instructions}Ck_GymMessaging_SendPong\n";
-        Instructions = f"{Instructions}Ck_GymMessaging_SendAlert [priority]\n";
+        Instructions = f"{Instructions}panel [6] Alert (1 / 5 / 9)\n";
         Instructions = f"{Instructions}Ck_GymMessaging_ResetAll";
 
         CkGym_Common::Update_StationDisplay(SelfEntity, TitleText, DisplayText, Instructions);

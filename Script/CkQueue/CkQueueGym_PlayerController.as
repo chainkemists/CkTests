@@ -54,6 +54,8 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     private int32 _Population = 6;
     private int32 _HardLimit = 30;
     private int32 _QueueCount = 2;
+    // The increment the agent-add row applies. 5 is what the old console command defaulted to.
+    private int32 _AddAgentsStep = 5;
     private int32 _SelectedQueueIndex = 0;
     private bool _CoordinatorNearestFirst = false;
     private bool _PrimaryOwnerMoved = false;
@@ -152,6 +154,11 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         Rows.Add(CkGym_Control::Action(EKeys::Y, "Y", f"Refresh interval: {GetReserveAssignmentRefreshSecondsLabel()}"));
         Rows.Add(CkGym_Control::Action(EKeys::I, "I", f"Coordinator policy: {GetCoordinatorPolicyLabel()}"));
         Rows.Add(CkGym_Control::Action(EKeys::B, "B", f"Selected queue: {GetSelectedQueueLabel()}"));
+        Rows.Add(CkGym_Control::Action(EKeys::M, "M", f"Move primary queue, forces 1 queue: {GetPrimaryOwnerMovedLabel()}"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Print snapshot / GOAP trace"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::N, "N", "Agent add step", f"+{_AddAgentsStep}"));
+        Rows.Add(CkGym_Control::Action(EKeys::J, "J", f"Add {_AddAgentsStep} agents (rebuilds, caps at 32)"));
+        Rows.Add(CkGym_Control::Status("Destroy an agent by index", "Ck_GymQueue_DestroyAgent N"));
         return Rows;
     }
 
@@ -176,7 +183,35 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         if (InRowIndex == 13) { CycleReserveAssignmentPhaseSpread(); return; }
         if (InRowIndex == 14) { CycleReserveAssignmentRefreshSeconds(); return; }
         if (InRowIndex == 15) { CycleCoordinatorPolicy(); return; }
-        if (InRowIndex == 16) { CycleSelectedQueue(); }
+        if (InRowIndex == 16) { CycleSelectedQueue(); return; }
+        if (InRowIndex == 17) { MovePrimaryQueue(); return; }
+        if (InRowIndex == 18) { EmitSnapshot(); RefreshDisplays(); return; }
+        if (InRowIndex == 19) { CycleAddAgentsStep(); return; }
+        if (InRowIndex == 20) { AddAgents(_AddAgentsStep); }
+        // Row 21 is a Status row - it holds no key and never arrives here.
+    }
+
+    // Split from the old console command so the add STEP is picked on one row and applied on the next,
+    // the same shape the population row already has: a value you choose, then a rebuild you ask for.
+    private void CycleAddAgentsStep()
+    {
+        _AddAgentsStep = _AddAgentsStep == 1 ? 5 : _AddAgentsStep == 5 ? 20 : 1;
+    }
+
+    private void AddAgents(int32 InCount)
+    {
+        if (InCount <= 0) { return; }
+        ClearContestedSlotRacePreset();
+        _Population = Math::Min(32, _Population + InCount);
+        Ck_GymQueue_Start();
+    }
+
+    private void MovePrimaryQueue()
+    {
+        ClearContestedSlotRacePreset();
+        _QueueCount = 1;
+        _PrimaryOwnerMoved = !_PrimaryOwnerMoved;
+        Ck_GymQueue_Start();
     }
 
     private FCkGym_ControlRow MakeNumberedControl(
@@ -386,25 +421,6 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         RefreshDisplays();
     }
 
-    // Compatibility entry point. It changes source state then creates an exact new scenario, not an incremental mystery population.
-    UFUNCTION(Exec, DisplayName="Queue - Add Agents")
-    void Ck_GymQueue_AddAgents(int32 InCount = 5)
-    {
-        if (InCount <= 0) { return; }
-        ClearContestedSlotRacePreset();
-        _Population = Math::Min(32, _Population + InCount);
-        Ck_GymQueue_Start();
-    }
-
-    UFUNCTION(Exec, DisplayName="Queue - Move Primary Queue (Reflow)")
-    void Ck_GymQueue_MovePrimaryQueue()
-    {
-        ClearContestedSlotRacePreset();
-        _QueueCount = 1;
-        _PrimaryOwnerMoved = !_PrimaryOwnerMoved;
-        Ck_GymQueue_Start();
-    }
-
     UFUNCTION(Exec, DisplayName="Queue - Use Two Independent Queues")
     void Ck_GymQueue_TwoQueues()
     {
@@ -569,9 +585,6 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         AddTrace(f"ACTION: {GetSelectedQueueLabel()} owner destroyed. QueueCoordinator must prune that service without affecting peer Queues.");
         RefreshDisplays();
     }
-
-    UFUNCTION(Exec, DisplayName="Queue - Print Snapshot / GOAP Trace")
-    void Ck_GymQueue_Digest() { if (HasAuthority()) { EmitSnapshot(); RefreshDisplays(); } }
 
     UFUNCTION()
     private void SubmitPendingSelections()
@@ -1622,6 +1635,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
     }
 
     private FString GetPopulationLabel() const { return _Population == 32 ? f"32 (up to {_HardLimit * _QueueCount} across bank + overflow)" : f"{_Population}"; }
+    private FString GetPrimaryOwnerMovedLabel() const { return _PrimaryOwnerMoved ? "moved" : "home"; }
     private FString GetPresetLabel() const
     {
         if (_ContestedSlotRacePreset) { return "Contested slot race (R)"; }
@@ -1848,7 +1862,7 @@ class ACk_QueueGym_PlayerController : ACk_Gym_Base_PlayerController
         DisplayText = f"{DisplayText}joins={_JoinSucceeded}/{_JoinRejected} events={_EventCount}\n";
         for (auto Line : _Trace) { DisplayText = f"{DisplayText}{Line}\n"; }
         CkGym_Common::Update_StationDisplay(Get_StationHandle("Gym.Queue.Live"), "QUEUE: LIVE CROWD AGENTS", DisplayText,
-            "Options: 0 Reset | 1 Population | 2 Layout | 3 Queue bank | 4 Environment | 5 Advance all ready queues | 6 Destroy agent | 7 Destroy selected Queue owner | 8 Slot claiming | L Queue limit reset | P Reserve policy | I Coordinator policy | B Selected queue | R Contested race | K Reservation scatter | T Phase spread | Y Refresh interval | Ck_GymQueue_Digest snapshot");
+            "Options: 0 Reset | 1 Population | 2 Layout | 3 Queue bank | 4 Environment | 5 Advance all ready queues | 6 Destroy agent | 7 Destroy selected Queue owner | 8 Slot claiming | L Queue limit reset | P Reserve policy | I Coordinator policy | B Selected queue | R Contested race | K Reservation scatter | T Phase spread | Y Refresh interval | M Move primary queue | G Snapshot | N Agent add step | J Add agents");
     }
 
     private void AddStation(TArray<FCkGym_Station_SpawnParams_Payload>& InOutStations, FName InTag, FString InTitle, FString InDescription)

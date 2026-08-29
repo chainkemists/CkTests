@@ -252,7 +252,7 @@ class ACk_CrowdGym_Pathing_PlayerController : ACk_Gym_Base_PlayerController
     {
         auto Rows = TArray<FCkGym_ControlRow>();
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Restart every agent"));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear"));
+        Rows.Add(CkGym_Control::Action(EKeys::Z, "Z", "Clear"));
         Rows.Add(CkGym_Control::Action(EKeys::K, "K",
             _CloseGoalStrafeEnabled ? "Close-goal strafe: Enabled (60 uu)" : "Close-goal strafe: Disabled"));
         return Rows;

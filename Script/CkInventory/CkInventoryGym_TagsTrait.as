@@ -51,7 +51,7 @@ class UCk_EntityScript_InvGym_TagsTrait : UCk_GenericEntityScript_UE
         AutoConfig.TotalSteps = 6;
         AutoConfig.Description = "Runtime tag add/remove via Request_AddTag\n/ Request_RemoveTag. Binds OnTagsChanged.";
         AutoConfig.GlobalAutoCommand = "Ck_GymInventory_Auto [0/1]";
-        AutoConfig.PerStationAutoCommand = "Ck_GymInventory_AutoTags";
+        AutoConfig.PerStationAutoCommand = "panel [M] Re-arm auto (Tags trait)";
         AutoConfig.Steps.Add(FCkGym_AutoStep("Add sword item", 0, 0));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Tag all items Rare", 1, 1));
         AutoConfig.Steps.Add(FCkGym_AutoStep("Tag all items Legendary", 2, 2));

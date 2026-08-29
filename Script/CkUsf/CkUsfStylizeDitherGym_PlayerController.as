@@ -8,7 +8,6 @@
 //
 // Tab opens the gym cycler menu; search "Stylize". Console:
 //   Ck_GymStylizeDither_RestartAll     - respawn the judge scene and re-apply Balanced
-//   Ck_GymStylizeDither_CyclePreset    - next preset without walking
 //   Ck_GymStylizeDither_CycleDebug     - next debug view of the CURRENT preset
 //   Ck_GymStylizeDither_ToggleCelStack - stack CelShade underneath, for the cross-effect A/B
 //
@@ -276,8 +275,8 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
         { Rows.Add(CkGym_Control::Numbered(Index, Get_PresetNameAt(Index), Index == _ActiveStation)); }
 
         Rows.Add(CkGym_Control::Header("VIEW"));
-        Rows.Add(CkGym_Control::Cycle(EKeys::D, "D", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
-        Rows.Add(CkGym_Control::Toggle(EKeys::C, "C", "Stack CelShade under", _StackedOther));
+        Rows.Add(CkGym_Control::Cycle(EKeys::J, "J", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
+        Rows.Add(CkGym_Control::Toggle(EKeys::M, "M", "Stack CelShade under", _StackedOther));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Rebuild judge scene"));
 
         // A debug view is not the effect. Someone who left one on and walked away would otherwise judge
@@ -308,12 +307,6 @@ class ACk_UsfStylizeDitherGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymStylizeDither_RestartAll()
     {
         Request_RebuildGym();
-    }
-
-    UFUNCTION(Exec, DisplayName="Stylize Dither Gym - Cycle Preset")
-    void Ck_GymStylizeDither_CyclePreset()
-    {
-        Request_ApplyStation((_ActiveStation + 1) % _StationTags.Num());
     }
 
     // Debug views are a property of the CURRENT preset, so this edits the live settings rather than

@@ -23,7 +23,6 @@
 //
 // Tab opens the gym cycler menu; search "Pixel". Console:
 //   Ck_GymPixelArt_RestartAll     - respawn the judge scene and re-apply the first station
-//   Ck_GymPixelArt_CycleStation   - next station without walking
 //   Ck_GymPixelArt_TogglePan      - start/stop the 0.2 texel/frame diagonal drift
 //   Ck_GymPixelArt_ToggleLook     - the look on its own, independent of the renderer
 //   Ck_GymPixelArt_ToggleOKLab    - flip the active station into OKLab banding + the warm ramp
@@ -416,14 +415,6 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
         Pawn.Request_ToggleProjection();
     }
 
-    void Request_CycleStation()
-    {
-        if (_StationTags.Num() == 0)
-        { return; }
-
-        Request_ApplyStation((_ActiveStation + 1) % _StationTags.Num());
-    }
-
     void Request_ToggleLook()
     {
         _LookOverride = !_LookOverride;
@@ -541,12 +532,6 @@ class ACk_PixelArtGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymPixelArt_RestartAll()
     {
         Request_RebuildGym();
-    }
-
-    UFUNCTION(Exec, DisplayName="Pixel Art Gym - Cycle Station")
-    void Ck_GymPixelArt_CycleStation()
-    {
-        Request_CycleStation();
     }
 
     // Delegates to the renderer's own pan rather than moving the camera here: the drift has to be measured

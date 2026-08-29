@@ -94,6 +94,6 @@ class UCk_EntityScript_InputGym_KeyIcon : UCk_GenericEntityScript_UE
 
         input_gym::Add_Spacer(OutLines, gym_palette::White);
         input_gym::Add_Line(OutLines, "TRY IT YOURSELF", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_RefreshGlyphs    resolve every brush again, now", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  panel [B]    resolve every brush again, now", gym_palette::Cyan);
     }
 }

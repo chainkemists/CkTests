@@ -35,7 +35,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Displays all 8 flat PMG debug shapes in multiple orientations."));
             Description.Add(FText::FromString("Shapes shown in XY (Red), XZ (Green), and YZ (Blue) planes."));
-            Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
+            Description.Add(FText::FromString("Panel: [G] Regenerate · [K] Clear · [P] Grid spacing · [Z] Shape size"));
             Station.Description = Description;
             Station.AutoSize = true;
             Stations.Add(Station);
@@ -48,7 +48,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Displays all basic 3D PMG debug shapes."));
             Description.Add(FText::FromString("8 shapes shown in 3 orientations each (Red/Green/Blue)."));
-            Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
+            Description.Add(FText::FromString("Panel: [G] Regenerate · [K] Clear · [P] Grid spacing · [Z] Shape size"));
             Station.Description = Description;
             Station.AutoSize = true;
             Stations.Add(Station);
@@ -61,7 +61,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Displays angular PMG debug shapes (wedges, arcs)."));
             Description.Add(FText::FromString("3 shapes shown in 3 orientations each (Red/Green/Blue)."));
-            Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
+            Description.Add(FText::FromString("Panel: [G] Regenerate · [K] Clear · [P] Grid spacing · [Z] Shape size"));
             Station.Description = Description;
             Station.AutoSize = true;
             Stations.Add(Station);
@@ -74,7 +74,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Displays directional PMG debug shapes (arrows, pivots, dashed lines)."));
             Description.Add(FText::FromString("3 shapes shown in 3 orientations each (Red/Green/Blue)."));
-            Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
+            Description.Add(FText::FromString("Panel: [G] Regenerate · [K] Clear · [P] Grid spacing · [Z] Shape size"));
             Station.Description = Description;
             Station.AutoSize = true;
             Stations.Add(Station);
@@ -87,7 +87,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Displays icon PMG debug shapes (warning, prohibition, no entry, info)."));
             Description.Add(FText::FromString("4 shapes shown in 3 orientations each (Red/Green/Blue)."));
-            Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
+            Description.Add(FText::FromString("Panel: [G] Regenerate · [K] Clear · [P] Grid spacing · [Z] Shape size"));
             Station.Description = Description;
             Station.AutoSize = true;
             Stations.Add(Station);
@@ -100,7 +100,7 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
             auto Description = TArray<FText>();
             Description.Add(FText::FromString("Displays symbol PMG debug shapes (search, question, exclamation, flag, pin)."));
             Description.Add(FText::FromString("5 shapes shown in 3 orientations each (Red/Green/Blue)."));
-            Description.Add(FText::FromString("Console: Ck_GymPmg_RegenerateAll / ClearAll / SetGridSpacing / SetShapeSize"));
+            Description.Add(FText::FromString("Panel: [G] Regenerate · [K] Clear · [P] Grid spacing · [Z] Shape size"));
             Station.Description = Description;
             Station.AutoSize = true;
             Stations.Add(Station);
@@ -813,8 +813,10 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     //--------------------------------------------------------------------------------------------------------------------------
     // CONTROL PANEL (Script/Common/CkGym_ControlPanel.as)
     //
-    // Only the zero-argument controls are keyed. Grid spacing and shape size take a number and stay
-    // console-only - the panel says so rather than leaving a reader to conclude the gym cannot do it.
+    // Every control is keyed. The two numbers are preset rings around the gym's authored defaults
+    // (250uu spacing, 50uu shapes) rather than typed values: what a reader wants from them is a
+    // denser board or a bigger shape, not an arbitrary float. Both rings are the sole writer of their
+    // knob, so their value columns are the real ones the shapes are being built at.
     //--------------------------------------------------------------------------------------------------------------------------
 
     FString Get_ControlPanelTitle() override
@@ -827,8 +829,9 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         auto Rows = TArray<FCkGym_ControlRow>();
 
         Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Regenerate every shape"));
-        Rows.Add(CkGym_Control::Action(EKeys::C, "C", "Clear every shape"));
-        Rows.Add(CkGym_Control::Status("Grid spacing and shape size: console only"));
+        Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Clear every shape"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::P, "P", "Grid spacing", f"{GridSpacing}uu"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::Z, "Z", "Shape size", f"{ShapeSize}uu"));
 
         return Rows;
     }
@@ -837,6 +840,25 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
     {
         if (InRowIndex == 0) { Ck_GymPmg_RegenerateAll(); }
         else if (InRowIndex == 1) { Ck_GymPmg_ClearAll(); }
+        else if (InRowIndex == 2) { Request_StepGridSpacing(); }
+        else if (InRowIndex == 3) { Request_StepShapeSize(); }
+    }
+
+    // 250 is the authored spacing; 150 packs the board tight enough to catch shapes overlapping, 400
+    // pulls them apart when one needs looking at on its own.
+    private void Request_StepGridSpacing()
+    {
+        GridSpacing = GridSpacing < 200.0f ? 250.0f : GridSpacing < 300.0f ? 400.0f : 150.0f;
+        Request_SpawnAllShapes();
+        ck::Trace(f"* Grid spacing set to {GridSpacing} and shapes regenerated");
+    }
+
+    // 50 is the authored size; the halved and doubled steps are where tessellation artefacts show.
+    private void Request_StepShapeSize()
+    {
+        ShapeSize = ShapeSize < 40.0f ? 50.0f : ShapeSize < 75.0f ? 100.0f : 25.0f;
+        Request_SpawnAllShapes();
+        ck::Trace(f"* Shape size set to {ShapeSize} and shapes regenerated");
     }
 
     UFUNCTION(Exec, DisplayName="PMG Gym - Regenerate All Shapes")
@@ -853,19 +875,4 @@ class ACk_PmgShapesGym_PlayerController : ACk_Gym_Base_PlayerController
         ck::Trace("* All PMG shapes cleared");
     }
 
-    UFUNCTION(Exec, DisplayName="PMG Gym - Set Grid Spacing")
-    void Ck_GymPmg_SetGridSpacing(float32 InSpacing)
-    {
-        GridSpacing = InSpacing;
-        Request_SpawnAllShapes();
-        ck::Trace("* Grid spacing set to " + InSpacing + " and shapes regenerated");
-    }
-
-    UFUNCTION(Exec, DisplayName="PMG Gym - Set Shape Size")
-    void Ck_GymPmg_SetShapeSize(float32 InSize)
-    {
-        ShapeSize = InSize;
-        Request_SpawnAllShapes();
-        ck::Trace("* Shape size set to " + InSize + " and shapes regenerated");
-    }
 }

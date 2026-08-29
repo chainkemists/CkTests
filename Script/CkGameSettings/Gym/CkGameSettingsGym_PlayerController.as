@@ -107,7 +107,7 @@ class ACk_GameSettingsGym_PlayerController : ACk_Gym_Base_PlayerController
     TArray<FCkGym_ControlRow> Get_ControlRows() override
     {
         auto Rows = TArray<FCkGym_ControlRow>();
-        Rows.Add(CkGym_Control::Action(EKeys::S, "S", "Reopen the settings screen"));
+        Rows.Add(CkGym_Control::Action(EKeys::G, "G", "Reopen the settings screen"));
         Rows.Add(CkGym_Control::Action(EKeys::K, "K", "Open the key-binding page"));
         return Rows;
     }

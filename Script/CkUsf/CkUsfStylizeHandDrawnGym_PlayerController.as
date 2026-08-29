@@ -14,7 +14,6 @@
 //
 // Tab opens the gym cycler menu; search "Stylize". Console:
 //   Ck_GymStylizeHandDrawn_RestartAll        - respawn the judge scene and re-apply StorybookInk
-//   Ck_GymStylizeHandDrawn_CyclePreset       - next preset without walking
 //   Ck_GymStylizeHandDrawn_CycleDebug        - next debug view of the CURRENT settings
 //   Ck_GymStylizeHandDrawn_ToggleDitherStack - stack ScreenDither on top, for the cross-effect A/B
 //   Ck_GymStylizeHandDrawn_ToggleStrokeSpace - flip ScreenStable <-> WorldAttached, changing NOTHING
@@ -349,9 +348,9 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
         { Rows.Add(CkGym_Control::Numbered(Index, Get_StationNameAt(Index), Index == _ActiveStation)); }
 
         Rows.Add(CkGym_Control::Header("VIEW"));
-        Rows.Add(CkGym_Control::ToggleNamed(EKeys::S, "S", "Stroke space", Get_StrokesAreWorldAttached(), "world", "screen"));
-        Rows.Add(CkGym_Control::Cycle(EKeys::D, "D", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
-        Rows.Add(CkGym_Control::Toggle(EKeys::C, "C", "Stack ScreenDither over", _StackedOther));
+        Rows.Add(CkGym_Control::ToggleNamed(EKeys::Y, "Y", "Stroke space", Get_StrokesAreWorldAttached(), "world", "screen"));
+        Rows.Add(CkGym_Control::Cycle(EKeys::J, "J", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
+        Rows.Add(CkGym_Control::Toggle(EKeys::M, "M", "Stack ScreenDither over", _StackedOther));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Rebuild judge scene"));
 
         // A debug view is not the effect. Someone who left one on and walked away would otherwise judge
@@ -383,14 +382,6 @@ class ACk_UsfStylizeHandDrawnGym_PlayerController : ACk_Gym_Base_PlayerControlle
     void Ck_GymStylizeHandDrawn_RestartAll()
     {
         Request_RebuildGym();
-    }
-
-    // Cycles the PRESET row only: the debug stations are a view onto StorybookInk, not styles to walk.
-    UFUNCTION(Exec, DisplayName="Stylize Hand-Drawn Gym - Cycle Preset")
-    void Ck_GymStylizeHandDrawn_CyclePreset()
-    {
-        auto Next = (_ActiveStation + 1) % k_HandDrawnGym_PresetStationCount;
-        Request_ApplyStation(Next);
     }
 
     // Debug views are a property of the CURRENT settings, so this edits them in place rather than

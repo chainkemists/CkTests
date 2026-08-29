@@ -117,6 +117,6 @@ class UCk_EntityScript_InputGym_Inspection : UCk_GenericEntityScript_UE
 
         input_gym::Add_Spacer(OutLines, gym_palette::White);
         input_gym::Add_Line(OutLines, "TRY IT YOURSELF", gym_palette::Cyan);
-        input_gym::Add_Line(OutLines, "  Ck_GymInput_Dump    print the whole profile here", gym_palette::Cyan);
+        input_gym::Add_Line(OutLines, "  panel [I]    print the whole profile here", gym_palette::Cyan);
     }
 }

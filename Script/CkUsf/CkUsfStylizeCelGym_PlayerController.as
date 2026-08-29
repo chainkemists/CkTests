@@ -12,7 +12,6 @@
 //
 // Tab opens the gym cycler menu; search "Stylize". Console:
 //   Ck_GymStylizeCel_RestartAll      - respawn the judge scene and re-apply Balanced
-//   Ck_GymStylizeCel_CyclePreset     - next preset without walking
 //   Ck_GymStylizeCel_CycleDebug      - next debug view of the CURRENT preset
 //   Ck_GymStylizeCel_ToggleEntity    - clear/re-apply the ENTITY row's patterns
 //   Ck_GymStylizeCel_ToggleDitherStack - stack ScreenDither on top, for the cross-effect A/B
@@ -329,12 +328,12 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
         { Rows.Add(CkGym_Control::Numbered(Index, Get_PresetNameAt(Index), Index == _ActiveStation)); }
 
         Rows.Add(CkGym_Control::Header("VIEW"));
-        Rows.Add(CkGym_Control::Cycle(EKeys::D, "D", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
+        Rows.Add(CkGym_Control::Cycle(EKeys::J, "J", "Debug view", Get_DebugNameAt(_DebugIndex), _DebugIndex != 0));
 
         // An Action rather than a Toggle: each subject owns its own pattern state, so there is no single
         // value to report and a two-state row here would be guessing at one.
-        Rows.Add(CkGym_Control::Action(EKeys::E, "E", "Flip entity patterns"));
-        Rows.Add(CkGym_Control::Toggle(EKeys::C, "C", "Stack ScreenDither over", _StackedOther));
+        Rows.Add(CkGym_Control::Action(EKeys::N, "N", "Flip entity patterns"));
+        Rows.Add(CkGym_Control::Toggle(EKeys::M, "M", "Stack ScreenDither over", _StackedOther));
         Rows.Add(CkGym_Control::Action(EKeys::R, "R", "Rebuild judge scene"));
 
         // A debug view is not the effect. Someone who left one on and walked away would otherwise judge
@@ -366,12 +365,6 @@ class ACk_UsfStylizeCelGym_PlayerController : ACk_Gym_Base_PlayerController
     void Ck_GymStylizeCel_RestartAll()
     {
         Request_RebuildGym();
-    }
-
-    UFUNCTION(Exec, DisplayName="Stylize Cel Gym - Cycle Preset")
-    void Ck_GymStylizeCel_CyclePreset()
-    {
-        Request_ApplyStation((_ActiveStation + 1) % _StationTags.Num());
     }
 
     // Debug views are a property of the CURRENT preset, so this edits the live settings rather than
