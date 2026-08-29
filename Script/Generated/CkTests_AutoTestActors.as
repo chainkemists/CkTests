@@ -4071,6 +4071,19 @@ class ACk_AutoTest_InputButtonMap_SharedKeyReturnsAllHolders_Actor : ACk_AutoTes
     }
 }
 
+class ACk_AutoTest_InputLayer_AxisEventsReachCapture_Actor : ACk_AutoTestRunner
+{
+    default _TimeoutSeconds = 8.0f;
+    UFUNCTION(BlueprintOverride)
+    TSubclassOf<UCk_EntityScript_UE> Get_TestEntityScriptClass() const
+    {
+        auto Path = FSoftClassPath("/Script/Angelscript.Ck_AutoTest_InputLayer_AxisEventsReachCapture");
+        TSubclassOf<UCk_EntityScript_UE> ResolvedClass;
+        ResolvedClass = Path.TryLoadClass();
+        return ResolvedClass;
+    }
+}
+
 class ACk_AutoTest_InputLayer_CaptureEditLandsNextFrame_Actor : ACk_AutoTestRunner
 {
     default _TimeoutSeconds = 10.0f;

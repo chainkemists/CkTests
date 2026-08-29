@@ -188,11 +188,11 @@ class ACk_Gym_Base_PlayerController : ACk_PlayerController_UE
     // Override this in derived gym classes to implement gym-specific startup logic
     void Request_StartGym()
     {
-        // Base class: show the gym selector HUD menu
-        auto MenuHUD = Cast<ACkGym_MenuHUD>(GetHUD());
-        if (ck::IsValid(MenuHUD))
+        // Base class: open the gym switchboard
+        auto Switchboard = UCkGym_Switchboard_Subsystem::Get(this);
+        if (ck::IsValid(Switchboard))
         {
-            MenuHUD.Request_ShowMenu();
+            Switchboard.Request_Open();
         }
     }
 

@@ -20,7 +20,7 @@
 // of struct constructions per frame on a HUD that already formats strings per frame.
 //
 // Reserved keys the panel itself owns, which a gym must therefore NOT bind in a row:
-//   Tab - the gym cycler menu (ACkGym_MenuHUD)
+//   Tab - the gym switchboard (UCkGym_Switchboard_Subsystem)
 //   H   - hide/show this panel
 //
 // Adopting it, in full:
@@ -295,7 +295,7 @@ namespace CkGym_Control
 }
 
 //============================================================================
-// PANEL RENDERING AND KEY DISPATCH
+// PANEL RENDERING
 //============================================================================
 //
 // Free functions taking the HUD rather than methods on one, so a gym that already has a bespoke HUD
@@ -314,34 +314,6 @@ namespace CkGym_ControlPanel
     const FLinearColor Colour_Off        = FLinearColor(0.55f, 0.60f, 0.68f, 1.0f);
     const FLinearColor Colour_Warn       = FLinearColor(1.00f, 0.55f, 0.25f, 1.0f);
     const FLinearColor Colour_Muted      = FLinearColor(0.55f, 0.60f, 0.68f, 1.0f);
-
-    // Returns the index of the row whose key fired this frame, or -1. Header and Status rows hold no
-    // key and are skipped. The first match wins, so a gym that binds one key twice gets the earlier row
-    // rather than both.
-    int32 Get_PressedRow(APlayerController InPC, const TArray<FCkGym_ControlRow>&in InRows)
-    {
-        if (ck::Is_NOT_Valid(InPC))
-        { return -1; }
-
-        for (int32 Index = 0; Index < InRows.Num(); Index++)
-        {
-            auto Row = InRows[Index];
-
-            if (Row.Kind == ECkGym_ControlKind::Header || Row.Kind == ECkGym_ControlKind::Status || Row.Enabled == false)
-            { continue; }
-
-            if (Row.KeyLabel.Len() == 0)
-            { continue; }
-
-            if (InPC.WasInputKeyJustPressed(Row.Key))
-            { return Index; }
-
-            if (Row.HasAltKey && InPC.WasInputKeyJustPressed(Row.AltKey))
-            { return Index; }
-        }
-
-        return -1;
-    }
 
     float Get_PanelHeight(const TArray<FCkGym_ControlRow>&in InRows, const FCkGym_ControlPanel_Style&in InStyle)
     {
