@@ -30,6 +30,13 @@ public class CkTests : CkModuleRules
             // (LNK2019 on Z_Construct_UClass_UNiagaraSystem_NoRegister).
             "Niagara",
             "Voice",
+            // The gym switchboard (Slate viewport widget styled with the shared CkStyle tokens).
+            // Slate/SlateCore are reachable transitively via CkWidgets/CkUICore, but transitive
+            // links are luck, not policy.
+            "Slate",
+            "SlateCore",
+            "InputCore",
+            "CkEditorTools",
 
             "CkActorRelay",
             "CkAggro",

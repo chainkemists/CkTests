@@ -16,8 +16,14 @@ SceneNodeTween_{Depth0,Depth1,Depth4}_LeafMatchesExpected, SceneNodeTween_Rotati
 SceneNodeTween_NonUniformScalePropagatesToLeaf, SceneNodeTween_TweenLoopYoyo_LeafTracksBoth,
 SceneNodeTween_TweenCompletes_LeafLandsAtTarget, SceneNodeTween_RootDestroyDuringTween_ChildrenCleanedUp
 (log: Saved/Logs/Test-Baseline-GymSwitchboard.log)
-**Next action:** P2 per Gate_02 — de-risk AutoTest (axis-through-layer) first.
-**Blocked on:** nothing. **P1 ✅ Done 2026-08-29** — see dated entry.
+**Next action:** USER-TEST CHECKPOINT — Gate_03's [EDITOR-VERIFY] list in PIE; P4 starts only
+after verdicts. P1 ✅ P2 ✅ P2.5 ✅ P3 code ✅ (all 2026-08-29).
+**Blocked on:** user PIE verification.
+**P3 gate evidence:** full suite 1293 total / 1276 passed / 17 failed — a strict SUBSET of the
+19-name baseline (NarrowGap + BunchUp flakes passed this round); zero new failures; all 4 new
+tests green (BuildTest-P3b.log). En-route AS fixes: VfxExamples HUD needed 10 member declarations
+its clone had been inheriting from the deleted menu; Request_Open/Close needed UFUNCTION for AS
+visibility.
 
 ## Decision log
 | Date | Decision | Why | Revisit when |
@@ -28,6 +34,31 @@ SceneNodeTween_TweenCompletes_LeafLandsAtTarget, SceneNodeTween_RootDestroyDurin
 | 2026-08-29 | User-test checkpoint = end of P3 (goal hook) | First moment something is PIE-testable end-to-end | — |
 
 ## Dated entries (append-only, newest first)
+
+### 2026-08-29 — P2/P2.5 implementation notes (audit of all 7 pawn subclasses)
+- Axis-through-layer PROVEN: new `CkAutoTest_InputLayer_AxisEventsReachCapture` green (7/7
+  InputLayer battery) — value fidelity both signs, no press-owner recording, no latching.
+- P2 C++ landed: `UCkGym_Switchboard_Subsystem` (console `Ck.Gym.Switchboard`, menu layer prio
+  1000, catch-all Consume open/close, HitTestInvisible shell w/ CkStyle) + Build.cs deps
+  (Slate/SlateCore/InputCore/CkEditorTools).
+- P2.5: base pawn keeps ADefaultPawn but `default bAddDefaultMovementBindings = false;` (the b
+  prefix STAYS — AS binds this ReadOnly flag as default-assignable under its C++ name; the
+  stripped spelling was 'not declared'. CkCameraGym_Pawn:34 was the in-repo precedent all along).
+  Pawn layer prio 100: WASD/E/Q/Space/C Consume + MouseX/Y PassThrough (event-driven look).
+  Control panel layer prio 500 with per-frame DIFF-synced captures; `Get_PressedRow` polling
+  helper deleted (zero callers incl. BusterBlock — verified by grep of both repos).
+- Pawn subclass audit (all 7):
+  - Probe, Replication, Minimap, Compass: no PAWN Tick override → inherit layer movement
+    automatically. (First read mis-attributed Minimap/Compass PLAYERCONTROLLER Ticks to their
+    pawns and "fixed" them — reverted; the lesson: check which class in a multi-class .as file
+    owns a method before editing it. Cost: two red smoke runs — the 'Namespace Super doesn't
+    exist' / 'No matching signatures' errors were both symptoms of calling a pawn method from a
+    PC.) The base exposes Tick_StandardMovement() for future subclasses that override Tick and
+    still want standard movement.
+  - Camera, PixelArt, Playground: bespoke polled movement by design (each already sets
+    bAddDefaultMovementBindings=false itself or polls) — they keep their PRE-EXISTING unmaskable
+    polling. FOLLOW-UP (not this campaign): migrate each onto its own layer.
+- VfxExamples gym HUD keeps its cloned Canvas menu → same follow-up bucket.
 
 ### 2026-08-29 — P1 LANDED: registry moved to C++, categories + recents in
 - New C++: `FCkGym_Entry` + `UCkGym_Registry_Subsystem` (UGameInstanceSubsystem) in

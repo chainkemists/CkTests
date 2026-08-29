@@ -8,7 +8,7 @@
 // V opens a searchable list of the A/B pairs (F-keys are taken by the editor's
 // rendering debug modes); Enter activates the selection
 // one pair is live at a time (see the PlayerController for why). The menu's
-// mechanics deliberately mirror ACkGym_MenuHUD's cycler menu (arrows with
+// mechanics deliberately mirror the retired Canvas cycler menu (arrows with
 // key-repeat, type-to-search, Enter/Esc) so the two feel like one tool; the
 // logic is adapted here rather than refactored out of the base because the
 // cycler menu serves every gym and has no automated coverage to catch a
@@ -46,6 +46,21 @@ class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
     // Key repeat (arrows)
     float VfxHeldTimer = 0.0f;
     int32 VfxHeldDirection = 0;
+
+    // Interaction tuning + layout geometry inherited from the retired Canvas cycler menu this
+    // clones; declared here now that the base class no longer provides them. Values are the
+    // originals.
+    float CursorBlinkTimer = 0.0f;
+    float CursorBlinkRate = 0.5f;
+    float RepeatDelay = 0.35f;
+    float RepeatRate = 0.08f;
+    int32 MaxVisibleEntries = 20;
+    float EntryHeight = 36.0f;
+    float EntryWidth = 460.0f;
+    float TitleHeight = 48.0f;
+    float PaddingX = 24.0f;
+    float PaddingY = 16.0f;
+    float ScrollbarWidth = 6.0f;
 
     // Key repeat (letters)
     bool bVfxHasHeldChar = false;
@@ -122,7 +137,10 @@ class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
             return;
         }
 
-        if (ck::IsValid(PC) && bMenuVisible == false)
+        auto Switchboard = UCkGym_Switchboard_Subsystem::Get(GetOwningPlayerController());
+        auto SwitchboardOpen = ck::IsValid(Switchboard) && Switchboard.Get_IsOpen();
+
+        if (ck::IsValid(PC) && SwitchboardOpen == false)
         {
             // Toggle + hands-free shortcuts live only in the "no menu open" state, so
             // they can never collide with either menu's text search.
@@ -140,7 +158,7 @@ class ACk_VfxExamplesGym_HUD : ACkGym_ControlPanelHUD
 
         Super::DrawHUD(SizeX, SizeY);
 
-        if (bMenuVisible == false)
+        if (SwitchboardOpen == false)
         {
             Draw_VfxHint(SizeX);
         }

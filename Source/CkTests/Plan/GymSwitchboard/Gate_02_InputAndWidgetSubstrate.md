@@ -1,6 +1,6 @@
 # Gate 2 — Input + widget substrate
 
-> **Status:** ⏳ Pending
+> **Status:** ✅ Done (2026-08-29) — code + automated gates; PIE observations fold into Gate 3's user checkpoint
 > **Depends on:** Gate 1
 > **Estimate:** 1-2 sessions (P2 + P2.5 together)
 
@@ -31,8 +31,10 @@ open menu structurally silences pawn + panel, verified by an AutoTest with synth
 - **Key repeat** is menu-side: press starts repeat timer, release cancels — release always
   cancels, including the synthetic Releases the focus-loss flush writes.
 - **Transitional Tab ownership**: through P2 the OLD Canvas menu keeps Tab; the shell is opened
-  via console `ck.Gym.Switchboard` for iteration. P3 hands Tab to the switchboard and retires the
-  Canvas menu. This keeps every intermediate commit shippable.
+  via console `Ck.Gym.Switchboard` for iteration, and the Tab GLOBAL ACTION is NOT registered yet
+  (both menus reacting to one Tab press would fight — the old menu polls outside the layer stack,
+  so the global action can't mask it). P3 hands Tab to the switchboard and retires the Canvas
+  menu. This keeps every intermediate commit shippable.
 - **Pawn (P2.5)**: `ACk_Gym_Base_Pawn` stays `ADefaultPawn` for its movement component but sets
   `bAddDefaultMovementBindings = false`; a pawn-owned layer (priority 100) captures
   W/A/S/D/Q/E/SpaceBar (Consume) + MouseX/MouseY (PassThrough, event-driven
@@ -56,9 +58,11 @@ open menu structurally silences pawn + panel, verified by an AutoTest with synth
 2. Priority constants + `UCkGym_Switchboard_Subsystem` skeleton (viewport widget add/remove,
    cvar gate, source acquisition, layer creation) → verify: shell toggles via console in PIE
    [EDITOR-VERIFY], no ensure spam in headless boot.
-3. Menu open/close over the layer (catch-all add/remove, Tab global action wired but shell-only)
-   → verify: AutoTest with synthetic source: open → inject W → menu saw it, a lower probe layer
-   did not; close → probe sees W again.
+3. Menu open/close over the layer (catch-all add/remove; Tab global action deferred to P3, see
+   above) → verify: the catch-all masking semantics are already runtime-proven by
+   `CkAutoTest_InputLayer_ConsumeMasksLowerLayers`; the subsystem's own open/close lifecycle acts
+   on the REAL local-player source, which a shared-world AutoTest must not touch — it is
+   PIE-verified instead [EDITOR-VERIFY].
 4. `SCkGym_Switchboard` shell (glass panel, CkStyle tokens, empty body) → verify: [EDITOR-VERIFY]
    visual.
 5. P2.5 pawn migration → verify: AutoTest for held-set bookkeeping where feasible; PIE parity
